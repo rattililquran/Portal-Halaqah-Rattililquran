@@ -7,7 +7,7 @@
 // ============================================================
 
 // ─── GANTI INI SETELAH DEPLOY GAS ───
-const BASE_URL = 'GANTI_DENGAN_URL_GOOGLE_APPS_SCRIPT_DEPLOYMENT';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbxHViZteE33bJNzisZnU4RV1uyMi-vkUPX6JwjQNGCe_5gOrzP9WimC8VvMKqcrAtAC/exec';
 
 // ─── Helper ambil token dari storage ───
 function getToken() {
