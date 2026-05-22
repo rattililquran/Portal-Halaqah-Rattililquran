@@ -1,1565 +1,590 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Portal Guru — Rattililqur'an</title>
-<link rel="manifest" href="../manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#2563EB"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Halaqah"/>
+<title>Rattililqur'an — Portal Halaqah</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --blue:#1458A8;--blue-d:#0d3d7a;--blue-l:#e8f0fb;
-  --green:#1D9E75;--green-l:#e1f5ee;
-  --amber:#e0aa2a;--amber-l:#fdf6e3;
-  --red:#e05a2a;--red-l:#fdf0eb;
-  --purple:#7c3aed;--purple-l:#ede9fe;
-  --bg:#f1f5f9;--card:#fff;--text:#0f172a;
-  --text-2:#475569;--text-3:#94a3b8;--border:#e2e8f0;
-  --r:16px;--r-sm:10px;--r-lg:20px;--r-xl:26px;
-  --shadow:0 1px 8px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.04);
-  --shadow-lg:0 8px 32px rgba(15,23,42,.10),0 2px 8px rgba(15,23,42,.06);
-  --sw:260px;--hh:58px;
-  --sat:env(safe-area-inset-top,0px);
-  --sab:env(safe-area-inset-bottom,0px);
+:root {
+  --blue-1: #1e4fd8;
+  --blue-2: #2563EB;
+  --blue-3: #3b82f6;
+  --blue-4: #60a5fa;
+  --blue-5: #bfdbfe;
+  --blue-6: #eff6ff;
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
+  --text-4: #94a3b8;
+  --border: rgba(148,163,184,0.18);
+  --border-md: rgba(148,163,184,0.28);
+  --white: #ffffff;
+  --bg: #f1f5f9;
+
+  /* Glass */
+  --glass: rgba(255,255,255,0.70);
+  --glass-sm: rgba(255,255,255,0.50);
+  --glass-xs: rgba(255,255,255,0.30);
+  --glass-blur: blur(32px) saturate(1.8) brightness(1.04);
+  --glass-blur-sm: blur(18px) saturate(1.5);
+  --glass-shadow: 0 8px 40px rgba(37,99,235,0.10), 0 2px 8px rgba(0,0,0,0.05);
+  --glass-shadow-lg: 0 24px 64px rgba(37,99,235,0.14), 0 4px 16px rgba(0,0,0,0.07);
+
+  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px; --r-2xl: 32px; --r-pill: 100px;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+  --t-fast: 160ms; --t-mid: 300ms;
+  --sat: env(safe-area-inset-top,0px);
+  --sab: env(safe-area-inset-bottom,0px);
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
 
-/* ── AUTH ── */
-#authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,#061a36 0%,#1458A8 60%,#1D9E75 100%);padding:20px}
-.auth-box{background:#fff;border-radius:var(--r-xl);padding:36px 32px;width:100%;max-width:360px;
-  box-shadow:0 24px 64px rgba(0,0,0,.25)}
-.auth-arabic{font-family:'Amiri',serif;font-size:22px;color:var(--blue);text-align:center;margin-bottom:4px}
-.auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
-.auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.auth-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);
-  font-family:inherit;font-size:14px;font-weight:600;outline:none;transition:border-color .2s;color:var(--text)}
-.auth-input:focus{border-color:var(--blue)}
-.auth-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);
-  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s}
-.auth-btn:hover{background:var(--blue-d)}
-#authErr{color:var(--red);font-size:12px;margin-top:8px;text-align:center;display:none}
-
-/* ── LAYOUT ── */
-#app{display:none}
-.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100dvh;
-  background:#0f172a;display:flex;flex-direction:column;z-index:100;transition:transform .3s}
-.sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
-.sb-arabic{font-family:'Amiri',serif;font-size:20px;color:#fff}
-.sb-sub{font-size:9.5px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
-.sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
-.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.sb-name{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
-.sb-role{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em}
-.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
-.sb-section{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.22);text-transform:uppercase;
-  letter-spacing:.1em;padding:12px 18px 5px}
-.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 18px;
-  color:rgba(255,255,255,.5);background:none;border:none;border-left:3px solid transparent;
-  font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-align:left}
-.nav-btn:hover{color:#fff;background:rgba(255,255,255,.05)}
-.nav-btn.active{color:#fff;background:rgba(20,88,168,.35);border-left-color:#60a5fa}
-.nav-btn .ni{font-size:15px;flex-shrink:0}
-.sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
-.logout-btn{width:100%;padding:9px;background:rgba(224,90,42,.12);color:#f87c55;
-  border:1px solid rgba(224,90,42,.25);border-radius:var(--r-sm);
-  font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .2s}
-.logout-btn:hover{background:rgba(224,90,42,.22)}
-
-.main{margin-left:var(--sw);min-height:100dvh;display:flex;flex-direction:column}
-.topbar{height:var(--hh);background:var(--card);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 20px;gap:12px;
-  position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
-.topbar-title{font-size:15px;font-weight:700;flex:1}
-.topbar-date{font-size:11.5px;color:var(--text-3)}
-.hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
-.content{flex:1;padding:20px;max-width:960px;width:100%}
-
-/* ── PAGES ── */
-.page{display:none}.page.active{display:block}
-
-/* ── STAT CARDS ── */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
-.stat{background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);
-  box-shadow:var(--shadow);transition:transform .2s}
-.stat:hover{transform:translateY(-2px)}
-.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:8px}
-.stat-val{font-size:26px;font-weight:800;line-height:1}
-.stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:3px;font-weight:500}
-
-/* ── CARD ── */
-.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
-.card-head{padding:14px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:12px}
-.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
-.card-body{padding:18px}
-
-/* ── HALAQAH CARDS ── */
-.hq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.hq-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  box-shadow:var(--shadow);padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.hq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--blue),#60a5fa)}
-.hq-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
-.hq-name{font-size:14px;font-weight:700;margin-bottom:5px}
-.hq-meta{font-size:11.5px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.hq-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid var(--border)}
-.hq-stat .v{font-size:18px;font-weight:800;color:var(--blue)}
-.hq-stat .l{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
-
-/* ── TABLE ── */
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;
-  text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:#f8fafc;white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#f8fafc}
-
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;white-space:nowrap}
-.b-green{background:var(--green-l);color:#0a6b4e}
-.b-blue{background:var(--blue-l);color:var(--blue)}
-.b-amber{background:var(--amber-l);color:#8a6200}
-.b-red{background:var(--red-l);color:#a03010}
-.b-gray{background:#f1f5f9;color:#64748b}
-.b-purple{background:var(--purple-l);color:var(--purple)}
-
-/* ── NILAI BADGES ── */
-.nilai-Mumtaz{background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
-.nilai-JJ{background:var(--green-l);color:#0a6b4e;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
-.nilai-Jayyid{background:var(--blue-l);color:var(--blue);border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
-.nilai-Maqbul{background:var(--red-l);color:#a03010;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
-
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-sm);
-  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
-.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
-.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#166a52}
-.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b8461e}
-.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}.btn-outline:hover{background:var(--blue-l)}
-.btn-sm{padding:5px 12px;font-size:12px}
-.btn-lg{padding:13px 28px;font-size:14.5px;font-weight:700;border-radius:100px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-perjuangan{
-  background:linear-gradient(135deg,var(--green),#0d5c42);
-  color:#fff;font-size:15px;font-weight:800;padding:14px 32px;
-  border-radius:100px;border:none;cursor:pointer;font-family:inherit;
-  box-shadow:0 4px 20px rgba(29,158,117,.35),inset 0 1px 0 rgba(255,255,255,.15);
-  transition:all .2s;width:100%;margin-top:8px
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { -webkit-text-size-adjust:100%; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
-.btn-perjuangan:hover{transform:scale(1.02);box-shadow:0 6px 24px rgba(29,158,117,.4)}
-.btn-perjuangan:active{transform:scale(.98)}
-.btn-perjuangan:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
-/* ── FORMS ── */
-.fg{margin-bottom:14px}
-.fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
-  font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
-.fc:focus{border-color:var(--blue)}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+/* ── BACKGROUND ── */
+.bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(145deg, #f8faff 0%, #eef3ff 35%, #f0f7ff 65%, #f5f9ff 100%);
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px);
+  animation: float var(--d,18s) ease-in-out infinite alternate;
+}
+.bg-orb-1 { width:500px;height:500px;background:#c7dcff;opacity:.55;top:-180px;left:-150px;--d:20s; }
+.bg-orb-2 { width:380px;height:380px;background:#bbf7d0;opacity:.40;bottom:-120px;right:-100px;--d:16s;animation-delay:-7s; }
+.bg-orb-3 { width:260px;height:260px;background:#e0eaff;opacity:.60;top:38%;left:55%;--d:24s;animation-delay:-12s; }
+.bg-orb-4 { width:180px;height:180px;background:#dbeafe;opacity:.70;top:12%;right:14%;--d:14s;animation-delay:-3s; }
 
-/* ── PRESENSI ── */
-.presensi-list{display:flex;flex-direction:column;gap:0}
-.prow{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-bottom:1px solid var(--border);gap:12px}
-.prow:last-child{border-bottom:none}
-.prow-name{font-weight:600;font-size:14px;flex:1}
-.prow-level{font-size:11px;color:var(--text-3);margin-top:1px}
-.prow-btns{display:flex;gap:4px}
-.pb{padding:6px 11px;border-radius:7px;border:1.5px solid;font-family:inherit;
-  font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent}
-.pb[data-k="H"]{border-color:var(--green);color:var(--green)}.pb[data-k="H"].on{background:var(--green);color:#fff}
-.pb[data-k="I"]{border-color:var(--amber);color:#8a6200}.pb[data-k="I"].on{background:var(--amber);color:#fff}
-.pb[data-k="S"]{border-color:var(--blue);color:var(--blue)}.pb[data-k="S"].on{background:var(--blue);color:#fff}
-.pb[data-k="A"]{border-color:var(--red);color:var(--red)}.pb[data-k="A"].on{background:var(--red);color:#fff}
+@keyframes float { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(28px,-20px) scale(1.06)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(22px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
 
-/* ── NILAI INPUT ── */
-.nilai-row{padding:14px;border-radius:var(--r);border:1px solid var(--border);
-  margin-bottom:10px;background:#fafbfc}
-.nilai-row:last-child{margin-bottom:0}
-.nilai-murid-name{font-weight:700;font-size:14px;margin-bottom:10px;
-  display:flex;align-items:center;justify-content:space-between}
-.nilai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* ── APP ── */
+.app { position:relative; z-index:1; min-height:100dvh; display:flex; flex-direction:column; }
 
-/* ── STEP INDICATOR ── */
-.steps{display:flex;align-items:center;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
-.step{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
-.step-num.done{background:var(--green);color:#fff}
-.step-num.active{background:var(--blue);color:#fff}
-.step-num.pending{background:var(--border);color:var(--text-3)}
-.step-label{font-size:12px;font-weight:600;white-space:nowrap}
-.step-label.active{color:var(--blue)}
-.step-label.done{color:var(--green)}
-.step-label.pending{color:var(--text-3)}
-.step-line{width:32px;height:2px;background:var(--border);flex-shrink:0}
-.step-line.done{background:var(--green)}
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top:0; z-index:100;
+  padding: calc(var(--sat) + 10px) 24px 10px;
+  background: rgba(255,255,255,0.68);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(255,255,255,0.85);
+  box-shadow: 0 1px 16px rgba(37,99,235,0.07);
+  display: flex; align-items:center; justify-content:space-between;
+}
+.brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.brand-icon {
+  width:36px; height:36px; border-radius:10px;
+  background: linear-gradient(135deg, var(--blue-2), var(--blue-1));
+  display:flex; align-items:center; justify-content:center; font-size:17px;
+  box-shadow: 0 3px 10px rgba(37,99,235,0.22);
+}
+.brand-name { font-size:14px; font-weight:800; color:var(--blue-2); }
+.brand-sub  { font-size:10px; color:var(--text-3); font-weight:500; }
+.pwa-pill {
+  font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill);
+  background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.18);
+  color:var(--blue-2); letter-spacing:.06em; text-transform:uppercase;
+}
 
-/* ── SESI AKTIF BANNER ── */
-.sesi-banner{background:linear-gradient(135deg,#e1f5ee,#d1fae5);
-  border:1.5px solid var(--green);border-radius:var(--r);padding:14px 18px;
-  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
-.sesi-dot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── MAIN ── */
+.main {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding: 40px 20px calc(var(--sab)+48px); gap:20px;
+  max-width:1100px; margin:0 auto; width:100%;
+}
 
-/* ── MODAL ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);
-  z-index:200;align-items:flex-end;justify-content:center;
-  backdrop-filter:blur(4px);padding:0}
-.overlay.open{display:flex}
-@media(min-width:640px){.overlay{align-items:center;padding:20px}}
-.modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:560px;
-  max-height:92dvh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,.15);
-  animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
-@media(min-width:640px){.modal{border-radius:var(--r-xl);animation:fadeInModal .25s ease}}
-.modal-lg{max-width:680px}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
-@keyframes fadeInModal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
-.modal-title{font-size:15px;font-weight:700}
-.modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px;line-height:1}
-.modal-body{padding:18px 22px}
-.modal-foot{padding:14px 22px;border-top:1px solid var(--border);
-  display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+/* ── LOGIN CARD ── */
+.login-card {
+  width:100%; max-width:400px;
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255,255,255,0.90);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--glass-shadow-lg);
+  overflow: hidden;
+  animation: fadeUp var(--t-mid) var(--ease-out) both;
+  position: relative;
+}
+/* Top highlight line */
+.login-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px; z-index:2;
+  background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 50%, transparent 95%);
+}
+
+/* Card header — gradient biru */
+.card-header {
+  padding: 32px 28px 26px;
+  display: flex; flex-direction:column; align-items:center; gap:8px;
+  position: relative; overflow:hidden;
+  transition: background var(--t-mid);
+}
+.card-header::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(160deg, var(--blue-2) 0%, var(--blue-3) 55%, #5b9cf6 100%);
+  z-index:0;
+}
+/* Glass shimmer di header */
+.card-header::after {
+  content:''; position:absolute; inset:0; z-index:1;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 4s linear infinite;
+}
+.card-header.h-guru::before   { background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 55%,#34d399 100%); }
+.card-header.h-murid::before  { background:linear-gradient(160deg,#6d58d6 0%,#7F77DD 55%,#a78bfa 100%); }
+
+.header-icon-wrap {
+  width:56px; height:56px; border-radius:18px;
+  background: rgba(255,255,255,0.22);
+  border: 1.5px solid rgba(255,255,255,0.40);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center; font-size:26px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.30);
+  position:relative; z-index:2;
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.login-card:hover .header-icon-wrap { transform:scale(1.06) translateY(-1px); }
+
+.header-title { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.02em; position:relative; z-index:2; }
+.header-sub   { font-size:12px; color:rgba(255,255,255,0.72); position:relative; z-index:2; }
+
+/* Role tabs */
+.role-tabs {
+  display:flex; padding:0; margin:0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.55);
+}
+.role-tab {
+  flex:1; padding:11px 6px; border:none; background:transparent;
+  font-family:inherit; font-size:11.5px; font-weight:600;
+  color:var(--text-3); cursor:pointer; letter-spacing:.03em;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  border-bottom:2.5px solid transparent; margin-bottom:-1px;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.role-tab:hover { color:var(--text-2); background:rgba(255,255,255,0.45); }
+.role-tab.active-admin { color:var(--blue-2); border-bottom-color:var(--blue-2); }
+.role-tab.active-guru  { color:#1D9E75;       border-bottom-color:#1D9E75; }
+.role-tab.active-murid { color:#7F77DD;       border-bottom-color:#7F77DD; }
+.tab-icon { font-size:14px; }
+
+/* Card body */
+.card-body { padding:22px 28px 28px; display:flex; flex-direction:column; gap:14px; }
+
+/* Toast */
+.toast { font-size:12.5px; font-weight:600; border-radius:var(--r-md); max-height:0; overflow:hidden; padding:0; transition:all var(--t-fast); }
+.toast.error   { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.22); color:#b91c1c; padding:9px 13px; max-height:60px; }
+.toast.success { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.22); color:#065f46; padding:9px 13px; max-height:60px; }
+
+/* Form field */
+.field-label {
+  font-size:11px; font-weight:700; color:var(--text-3);
+  text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; display:block;
+}
+.field-wrap { position:relative; display:flex; align-items:center; }
+.field-icon { position:absolute; left:13px; font-size:14px; color:var(--blue-3); pointer-events:none; }
+.field-input {
+  width:100%; padding:13px 13px 13px 40px;
+  font-family:inherit; font-size:14px; font-weight:600; color:var(--text-1);
+  background: rgba(255,255,255,0.75);
+  border: 1.5px solid rgba(148,163,184,0.22);
+  border-radius: var(--r-md);
+  outline:none; -webkit-appearance:none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.8);
+  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+.field-input::placeholder { color:var(--text-4); font-weight:400; }
+.field-input:focus {
+  background: rgba(255,255,255,0.95);
+  border-color: var(--blue-3);
+  box-shadow: 0 0 0 3.5px rgba(59,130,246,0.14), 0 2px 6px rgba(0,0,0,0.04);
+}
+.field-input.f-guru:focus  { border-color:#1D9E75; box-shadow:0 0 0 3.5px rgba(29,158,117,0.13); }
+.field-input.f-murid:focus { border-color:#7F77DD; box-shadow:0 0 0 3.5px rgba(127,119,221,0.13); }
+.field-hint { font-size:10.5px; color:var(--text-4); margin-top:4px; padding-left:2px; }
+
+/* Remember */
+.remember-row { display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none; width:fit-content; }
+.remember-row input[type=checkbox] { width:14px; height:14px; accent-color:var(--blue-2); cursor:pointer; }
+.remember-label { font-size:12px; color:var(--text-3); font-weight:500; }
+
+/* Submit */
+.btn-submit {
+  width:100%; padding:14px;
+  border:none; border-radius:var(--r-pill); cursor:pointer;
+  font-family:inherit; font-size:14.5px; font-weight:700; color:#fff;
+  background: linear-gradient(135deg, var(--blue-3), var(--blue-1));
+  box-shadow: 0 4px 18px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: opacity var(--t-fast), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast);
+  margin-top:2px;
+}
+.btn-submit:hover  { opacity:.92; transform:scale(1.018); }
+.btn-submit:active { transform:scale(0.98); }
+.btn-submit:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.btn-submit.s-guru  { background:linear-gradient(135deg,#1D9E75,#0F6E56); box-shadow:0 4px 18px rgba(29,158,117,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
+.btn-submit.s-murid { background:linear-gradient(135deg,#A89FFF,#7F77DD); box-shadow:0 4px 18px rgba(127,119,221,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
+
+/* ── STATS STRIP ── */
+.stats-row {
+  display:flex; gap:10px; width:100%; max-width:400px; flex-wrap:wrap;
+  animation: fadeUp var(--t-mid) var(--ease-out) 120ms both;
+}
+.stat-pill {
+  flex:1; min-width:80px;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.85);
+  backdrop-filter: var(--glass-blur-sm); -webkit-backdrop-filter:var(--glass-blur-sm);
+  border-radius: var(--r-lg);
+  padding:14px 10px; text-align:center;
+  box-shadow: var(--glass-shadow);
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.stat-pill:hover { transform:translateY(-3px); }
+.stat-emoji { font-size:18px; margin-bottom:4px; }
+.stat-num   { font-size:20px; font-weight:800; color:var(--blue-2); letter-spacing:-.03em; }
+.stat-lbl   { font-size:10px; color:var(--text-3); margin-top:2px; line-height:1.4; font-weight:500; }
+
+/* ── FOOTER ── */
+.footer { text-align:center; padding:0 20px calc(var(--sab)+16px); font-size:11px; color:var(--text-4); }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display:none; position:fixed; bottom:calc(var(--sab)+14px); left:50%; transform:translateX(-50%);
+  z-index:200; width:min(360px,calc(100vw - 24px));
+  background:rgba(255,255,255,0.88); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid rgba(255,255,255,0.90); border-radius:var(--r-xl);
+  padding:12px 14px; box-shadow:var(--glass-shadow-lg);
+  flex-direction:row; align-items:center; gap:10px;
+  animation:slideUp 380ms var(--ease-spring) both;
+}
+.install-banner.show { display:flex; }
+.ibtn { padding:7px 13px; border-radius:var(--r-pill); font-size:11.5px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
+.ibtn-install { background:linear-gradient(135deg,var(--blue-3),var(--blue-1)); color:#fff; }
+.ibtn-dismiss { background:transparent; border:1px solid var(--border-md); color:var(--text-3); }
 
 /* ── LOADING ── */
-.loader{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);
-  z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px)}
-.loader.show{display:flex}
-.spin{width:42px;height:42px;border:3.5px solid rgba(255,255,255,.18);
-  border-top-color:#fff;border-radius:50%;animation:rot .75s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-.loader-txt{color:#fff;font-size:13.5px;font-weight:500}
-
-/* ── TOAST ── */
-#toast{position:fixed;bottom:calc(var(--sab)+20px);left:50%;transform:translateX(-50%) translateY(80px);
-  background:#0f172a;color:#fff;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;
-  box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:all .3s;z-index:600;
-  white-space:nowrap;max-width:calc(100vw - 40px);text-align:center}
-#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-#toast.ok{background:var(--green)}
-#toast.err{background:var(--red)}
-#toast.warn{background:var(--amber);color:#3d2800}
-
-/* ── EMPTY ── */
-.empty{text-align:center;padding:48px 20px;color:var(--text-3)}
-.empty-ico{font-size:44px;margin-bottom:10px;opacity:.35}
-.empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
-.empty-sub{font-size:12.5px}
-
-/* ── SIDEBAR OVERLAY ── */
-.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
-
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
-  .sb-overlay.show{display:block}
-  .main{margin-left:0}.hamburger{display:block}
-  .content{padding:14px}
-  .f2,.f3{grid-template-columns:1fr}
-  .stats-row{grid-template-columns:1fr 1fr}
-  .sesi-banner{flex-direction:column;align-items:flex-start}
-  .steps{gap:0}
+.loading-overlay {
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(241,245,249,0.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  align-items:center; justify-content:center; flex-direction:column; gap:14px;
 }
-@media(max-width:380px){.stats-row{grid-template-columns:1fr}}
+.loading-overlay.show { display:flex; }
+.spinner { width:40px; height:40px; border:3px solid rgba(37,99,235,0.15); border-top-color:var(--blue-2); border-radius:50%; animation:spin 700ms linear infinite; }
+.loading-text { font-size:13px; color:var(--blue-2); font-weight:600; }
+
+@media(min-width:720px) {
+  .main { flex-direction:row; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap; padding-top:60px; }
+  .login-card { flex:0 0 400px; }
+  .side-info  { flex:1 1 280px; max-width:380px; }
+  .stats-row  { max-width:380px; }
+}
+@media(max-width:480px) {
+  .topbar { padding-left:16px; padding-right:16px; }
+  .card-body,.card-header { padding-left:20px; padding-right:20px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
 </style>
 </head>
 <body>
 
-<div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
-<div id="toast"></div>
-<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
-
-<!-- AUTH -->
-<div id="authScreen">
-  <div class="auth-box">
-    <div class="auth-arabic">رتيل القرآن</div>
-    <div class="auth-sub">Portal Guru — Halaqah Rattililqur'an</div>
-    <label class="auth-label" for="nisInput">NIS (Nomor Induk Santri)</label>
-    <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: GRU-001" autocomplete="username" style="text-transform:uppercase;margin-bottom:14px">
-    <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
-    <div id="authErr"></div>
-  </div>
+<div class="bg" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-arabic">رتيل القرآن</div>
-      <div class="sb-sub">Portal Guru</div>
-    </div>
-    <div class="sb-user">
-      <div class="sb-avatar" id="sbAvatar">G</div>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="brand" href="#">
+      <div class="brand-icon">☪</div>
       <div>
-        <div class="sb-name" id="sbName">Guru</div>
-        <div class="sb-role">Guru Halaqah</div>
+        <div class="brand-name">Rattililqur'an</div>
+        <div class="brand-sub">Portal Manajemen Halaqah</div>
       </div>
-    </div>
-    <div class="sb-nav">
-      <div class="sb-section">Menu</div>
-      <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
-      <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni">📋</span>Sesi KBM</button>
-      <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
-      <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
-      <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
-    </div>
-    <div class="sb-foot">
-      <button class="logout-btn" onclick="doLogout()">⬅ Keluar</button>
-    </div>
-  </aside>
+    </a>
+    <span class="pwa-pill">PWA Ready</span>
+  </header>
 
-  <div class="main">
-    <div class="topbar">
-      <button class="hamburger" onclick="openSB()">☰</button>
-      <div class="topbar-title" id="pageTitle">Dashboard</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="topbar-date" id="topDate"></div>
-        <button onclick="refreshPage()" title="Refresh data"
-          style="background:none;border:1px solid var(--border);border-radius:var(--r-sm);
-          padding:5px 9px;cursor:pointer;font-size:15px;color:var(--text-3);transition:all .2s"
-          id="refreshBtn">🔄</button>
+  <main class="main">
+
+    <!-- ── SIDE INFO (desktop only) ── -->
+    <div class="side-info" style="display:flex;flex-direction:column;gap:16px;animation:fadeUp 300ms var(--ease-out) both">
+      <div>
+        <p style="font-family:'Amiri',serif;font-size:clamp(16px,3vw,22px);color:var(--blue-2);margin-bottom:8px">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+        <h1 style="font-size:clamp(24px,4vw,36px);font-weight:800;color:var(--text-1);letter-spacing:-.03em;line-height:1.15;margin-bottom:10px">Sistem Manajemen<br/>Halaqah Digital</h1>
+        <p style="font-size:13.5px;color:var(--text-3);line-height:1.75;max-width:320px">Kelola KBM, hafalan Al-Qur'an, absensi, dan perkembangan murid dalam satu platform terintegrasi.</p>
       </div>
-    </div>
-    <div class="content">
-
-      <!-- ════ DASHBOARD ════ -->
-      <div class="page active" id="page-dashboard">
-        <div style="font-size:19px;font-weight:800;margin-bottom:2px" id="greet">Selamat datang!</div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:18px">Ringkasan aktivitas halaqah Anda hari ini.</div>
-
-        <div class="stats-row">
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--blue-l)">📚</div>
-            <div class="stat-val" id="st-halaqah">–</div>
-            <div class="stat-lbl">Halaqah Diampu</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--green-l)">👥</div>
-            <div class="stat-val" id="st-murid">–</div>
-            <div class="stat-lbl">Total Murid</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--amber-l)">📋</div>
-            <div class="stat-val" id="st-kbm">–</div>
-            <div class="stat-lbl">KBM Hari Ini</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--purple-l)">🏆</div>
-            <div class="stat-val" id="st-bulan">–</div>
-            <div class="stat-lbl">Sesi Bulan Ini</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📚 Halaqah yang Diampu</div>
-            <button class="btn btn-primary btn-sm" onclick="goPage('kbm')">+ Sesi KBM</button>
-          </div>
-          <div class="card-body" id="dashHalaqah">
-            <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
-          </div>
-        </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📋 Absensi Real-time</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📖 Tracking Hafalan</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📊 Laporan Otomatis</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📵 Offline Ready</span>
       </div>
 
-      <!-- ════ SESI KBM ════ -->
-      <div class="page" id="page-kbm">
-        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Sesi KBM</div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:18px">Kelola sesi tahsin bersama murid.</div>
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-pill"><div class="stat-emoji">🕌</div><div class="stat-num counter" data-target="4">4</div><div class="stat-lbl">Halaqah Aktif</div></div>
+        <div class="stat-pill"><div class="stat-emoji">👨‍🏫</div><div class="stat-num counter" data-target="8">8</div><div class="stat-lbl">Guru / Musyrif</div></div>
+        <div class="stat-pill"><div class="stat-emoji">🧒</div><div class="stat-num counter" data-target="48">48</div><div class="stat-lbl">Murid Terdaftar</div></div>
+        <div class="stat-pill"><div class="stat-emoji">📋</div><div class="stat-num counter" data-target="87" data-suffix="%">87%</div><div class="stat-lbl">Rata-rata Hadir</div></div>
+      </div>
+    </div>
 
-        <!-- Sesi aktif -->
-        <div class="sesi-banner" id="sesiBanner" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <div class="sesi-dot"></div>
-            <strong style="color:#0a6b4e">Sesi Sedang Berjalan</strong>
-            <span id="sesiInfo" style="font-size:12.5px;color:var(--text-2)"></span>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-outline btn-sm" onclick="lanjutSesi()">Lanjutkan Sesi</button>
-            <button class="btn btn-red btn-sm" onclick="konfirmasiTutup()">■ Tutup Sesi</button>
-          </div>
-        </div>
+    <!-- ── LOGIN CARD ── -->
+    <div class="login-card" id="login-card">
 
-        <!-- Form buka KBM baru -->
-        <div class="card" id="formBukaKBM">
-          <div class="card-head">
-            <div class="card-title">▶ KBM Baru</div>
-          </div>
-          <div class="card-body">
-            <div class="f2">
-              <div class="fg">
-                <label>Pilih Halaqah</label>
-                <select class="fc" id="kbmHalaqah"><option value="">— Pilih —</option></select>
-              </div>
-              <div class="fg">
-                <label>Jenis Sesi</label>
-                <select class="fc" id="kbmJenis">
-                  <option value="KBM Reguler">KBM Reguler</option>
-                  <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
-            </div>
-            <div class="f2">
-              <div class="fg">
-                <label>Tanggal</label>
-                <input type="date" class="fc" id="kbmTanggal">
-              </div>
-              <div class="fg">
-                <label>Jam Mulai</label>
-                <input type="time" class="fc" id="kbmJam">
-              </div>
-            </div>
-            <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()">
-              🌟 Mulai Perjuangan Baru
-            </button>
-          </div>
-        </div>
+      <!-- Header gradient -->
+      <div class="card-header" id="card-header">
+        <div class="header-icon-wrap" id="header-icon">🛡️</div>
+        <div class="header-title" id="header-title">Rattililqur'an</div>
+        <div class="header-sub" id="header-sub">Portal Manajemen Halaqah</div>
       </div>
 
-      <!-- ════ PRESENSI (step 2) ════ -->
-      <div class="page" id="page-presensi">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Presensi Murid</div>
-
-        <div class="steps" id="stepBar"></div>
-
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">👥 Daftar Kehadiran</div>
-            <span id="presensiCount" style="font-size:12px;color:var(--text-3)"></span>
-          </div>
-          <div class="card-body">
-            <div id="presensiList" class="presensi-list"></div>
-            <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-outline btn-sm" onclick="setAllPresensi('H')">✓ Semua Hadir</button>
-            </div>
-          </div>
-        </div>
-        <button class="btn btn-green btn-lg" style="width:100%" onclick="doSimpanPresensi()">
-          Lanjut ke Jurnal KBM →
+      <!-- Role tabs -->
+      <div class="role-tabs">
+        <button class="role-tab active-admin" id="tab-admin" onclick="selectRole('admin')">
+          <span class="tab-icon">🛡️</span>ADMIN
+        </button>
+        <button class="role-tab" id="tab-guru" onclick="selectRole('guru')">
+          <span class="tab-icon">📖</span>GURU
+        </button>
+        <button class="role-tab" id="tab-murid" onclick="selectRole('murid')">
+          <span class="tab-icon">🌙</span>MURID
         </button>
       </div>
 
-      <!-- ════ JURNAL KBM (step 3) ════ -->
-      <div class="page" id="page-jurnal">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Jurnal KBM</div>
+      <!-- Body -->
+      <div class="card-body">
 
-        <div class="steps" id="stepBar2"></div>
+        <div class="toast" id="login-toast" role="alert" aria-live="polite"></div>
 
-        <div class="card">
-          <div class="card-head"><div class="card-title">📓 Isi Jurnal Sesi</div></div>
-          <div class="card-body">
-            <div class="fg">
-              <label>Pencapaian Halaman / Modul / Materi</label>
-              <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Halaman 12–15, Bab Makhraj Huruf Halq">
-            </div>
-            <div class="f2">
-              <div class="fg">
-                <label>Metode</label>
-                <select class="fc" id="jurnalMetode">
-                  <option value="Talaqqi">Talaqqi</option>
-                  <option value="Murajaah">Murajaah</option>
-                  <option value="Materi">Materi</option>
-                  <option value="Campuran">Campuran</option>
-                </select>
-              </div>
-              <div class="fg">
-                <label>Jam Selesai</label>
-                <input type="time" class="fc" id="jurnalJamSelesai">
-              </div>
-            </div>
-            <div class="fg">
-              <label>Catatan Umum Sesi</label>
-              <textarea class="fc" id="jurnalCatatan" rows="3" placeholder="Kondisi kelas, progress keseluruhan, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
-            </div>
+        <!-- NIS -->
+        <div>
+          <label class="field-label" for="input-nis">NIS / Nomor Induk Santri</label>
+          <div class="field-wrap">
+            <span class="field-icon">🪪</span>
+            <input class="field-input" type="text" id="input-nis"
+              placeholder="Contoh: USR-ADMIN-001"
+              autocomplete="username" maxlength="30"
+              aria-required="true" aria-describedby="nis-hint"/>
           </div>
+          <p class="field-hint" id="nis-hint">NIS terdaftar di sistem Rattililqur'an</p>
         </div>
 
-        <!-- Latihan Mandiri (PR) -->
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📝 Latihan Mandiri <span style="font-size:11px;font-weight:500;color:var(--text-3)">(PR untuk murid)</span></div>
-          </div>
-          <div class="card-body">
-            <div class="fg">
-              <label>Jenis Latihan Mandiri</label>
-              <select class="fc" id="jurnalJenisLatihan">
-                <option value="">— Tidak ada latihan mandiri —</option>
-                <option value="VN di WAG">🎙 VN di WAG (Voice Note di WhatsApp Group)</option>
-                <option value="Mendengar rekaman dan baca mandiri">🎧 Mendengar rekaman dan baca mandiri</option>
-                <option value="Lainnya">📌 Lainnya</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label>Deskripsi Latihan Mandiri</label>
-              <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
-                placeholder="Contoh: Baca halaman 12–15 sebanyak 3x, kirim VN ke WAG sebelum pertemuan berikutnya..."
-                style="resize:vertical"></textarea>
-            </div>
-            <div class="fg">
-              <label>Deadline Pengerjaan</label>
-              <input type="date" class="fc" id="jurnalDeadline">
-            </div>
-            <div style="font-size:11.5px;color:var(--text-3);margin-top:-6px">
-              💡 Latihan mandiri akan tampil di dashboard murid sebagai PR
-            </div>
-          </div>
-        </div>
+        <!-- Ingat saya -->
+        <label class="remember-row">
+          <input type="checkbox" id="remember-me"/>
+          <span class="remember-label">Ingat saya</span>
+        </label>
 
-        <!-- Nilai per murid -->
-        <div class="card">
-          <div class="card-head"><div class="card-title">✏️ Penilaian per Murid</div></div>
-          <div class="card-body">
-            <div id="nilaiList"></div>
-          </div>
-        </div>
-
-        <button class="btn btn-green btn-lg" style="width:100%" id="btnSelesai" onclick="doSelesaiKBM()">
-          ✅ Selesaikan & Tutup Sesi
+        <!-- Submit -->
+        <button class="btn-submit" id="btn-submit" onclick="doLogin()">
+          <span id="btn-text">Masuk sebagai Admin</span>
         </button>
+
       </div>
-
-      <!-- ════ DAFTAR MURID ════ -->
-      <div class="page" id="page-murid">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
-        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:280px">
-            <option value="">— Pilih Halaqah —</option>
-          </select>
-          <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah Murid</button>
-          <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄 Refresh</button>
-        </div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr>
-                <th>Nama Murid</th><th>Level</th><th>Hadir</th>
-                <th>Sesi</th><th>% Kehadiran</th><th>Skor/40</th><th>Rata-rata Nilai</th><th>Aksi</th>
-              </tr></thead>
-              <tbody id="muridTbl">
-                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ════ PENGUMUMAN ════ -->
-      <div class="page" id="page-pengumuman">
-        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Pengumuman</div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Kirim pengumuman ke murid halaqah Anda.</div>
-
-        <div class="card">
-          <div class="card-head"><div class="card-title">📢 Buat Pengumuman Baru</div></div>
-          <div class="card-body">
-            <div class="fg">
-              <label>Target Halaqah</label>
-              <select class="fc" id="pngHalaqah">
-                <option value="semua">Semua Halaqah Saya</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label>Judul Pengumuman</label>
-              <input type="text" class="fc" id="pngJudul" placeholder="Contoh: Jadwal KBM Minggu Depan Berubah">
-            </div>
-            <div class="fg">
-              <label>Isi Pengumuman</label>
-              <textarea class="fc" id="pngIsi" rows="4" placeholder="Tulis isi pengumuman di sini..." style="resize:vertical"></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim Pengumuman</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ════ RIWAYAT KBM ════ -->
-      <div class="page" id="page-riwayat">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Riwayat KBM</div>
-        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:280px">
-            <option value="">— Pilih Halaqah —</option>
-          </select>
-          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
-            style="color:var(--green);border-color:var(--green)">
-            📊 Rekap Presensi
-          </button>
-          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('nilai')"
-            style="color:var(--purple);border-color:var(--purple)">
-            🏆 Rekap Nilai
-          </button>
-        </div>
-        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
-          💡 Rekap akan otomatis dibuat sebagai sheet baru di Google Spreadsheet Anda
-        </div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr>
-                <th>Tanggal</th><th>Sesi ke-</th><th>Jenis</th>
-                <th>Materi</th><th>Hadir</th><th>Status</th><th>Aksi</th>
-              </tr></thead>
-              <tbody id="riwayatTbl">
-                <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Rattililqur'an &nbsp;·&nbsp; Google Apps Script + GitHub Pages</p>
+  </footer>
+
+</div>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="install-banner">
+  <div style="font-size:24px">📲</div>
+  <div style="flex:1">
+    <div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Install Aplikasi Halaqah</div>
+    <div style="font-size:10.5px;color:var(--text-3)">Akses dari layar utama HP</div>
+  </div>
+  <div style="display:flex;gap:6px">
+    <button class="ibtn ibtn-install" onclick="installPWA()">Install</button>
+    <button class="ibtn ibtn-dismiss" onclick="dismissInstall()">✕</button>
   </div>
 </div>
 
-<!-- MODAL DETAIL NILAI -->
-<div class="overlay" id="detailModal">
-  <div class="modal modal-lg">
-    <div class="modal-head">
-      <div class="modal-title" id="detailTitle">Detail Sesi</div>
-      <button class="modal-x" onclick="closeModal('detailModal')">✕</button>
-    </div>
-    <div class="modal-body" id="detailBody"></div>
-  </div>
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay" role="status">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Memverifikasi akun…</div>
 </div>
 
-<!-- MODAL CATATAN MURID -->
-<div class="overlay" id="catatanModal">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">📝 Catatan Murid</div>
-      <button class="modal-x" onclick="closeModal('catatanModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p id="catatanNama" style="font-weight:700;font-size:15px;margin-bottom:12px"></p>
-      <div class="fg">
-        <label>Catatan Guru</label>
-        <textarea class="fc" id="catatanTxt" rows="4" style="resize:vertical" placeholder="Perkembangan, rekomendasi, catatan khusus..."></textarea>
-      </div>
-      <input type="hidden" id="catatanIdAnggota">
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeModal('catatanModal')">Batal</button>
-      <button class="btn btn-primary" onclick="simpanCatatan()">💾 Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EDIT PRESENSI -->
-<div class="overlay" id="editPresensiModal">
-  <div class="modal modal-lg">
-    <div class="modal-head">
-      <div class="modal-title" id="editPresensiTitle">Edit Presensi</div>
-      <button class="modal-x" onclick="closeModal('editPresensiModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
-        padding:10px 14px;font-size:12.5px;color:#8a6200;margin-bottom:16px">
-        ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
-      </div>
-      <div id="editPresensiList" class="presensi-list"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
-      <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL TAMBAH MURID -->
-<div class="overlay" id="tambahMuridModal">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">👤 Tambah Murid ke Halaqah</div>
-      <button class="modal-x" onclick="closeModal('tambahMuridModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="fg">
-        <label>Pilih Halaqah</label>
-        <select class="fc" id="tmHalaqah">
-          <option value="">— Pilih Halaqah —</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label>Pilih Murid</label>
-        <select class="fc" id="tmMurid">
-          <option value="">— Pilih halaqah dulu —</option>
-        </select>
-      </div>
-      <div class="f2">
-        <div class="fg">
-          <label>Level Saat Ini</label>
-          <select class="fc" id="tmLevel">
-            <option value="Level 1">Level 1</option>
-            <option value="Level 2">Level 2</option>
-            <option value="Level 3">Level 3</option>
-            <option value="Level 4">Level 4</option>
-            <option value="Level Qiyam">Level Qiyam</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>Target Level</label>
-          <select class="fc" id="tmTargetLevel">
-            <option value="Level 2">Level 2</option>
-            <option value="Level 3">Level 3</option>
-            <option value="Level 4">Level 4</option>
-            <option value="Level Qiyam">Level Qiyam</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeModal('tambahMuridModal')">Batal</button>
-      <button class="btn btn-primary" onclick="doTambahMurid()">+ Tambah</button>
-    </div>
-  </div>
-</div>
-
-<script src="../assets/js/api.js"></script>
 <script>
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
-let token = '', currentUser = null;
-let halaqahList = [], muridCache = {};
-let sesiAktif   = null;  // KBM yang sedang berjalan
-let muridSesi   = [];    // murid halaqah sesi aktif
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec';
 
-// ══════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  const now = new Date();
-  document.getElementById('kbmTanggal').value = now.toISOString().split('T')[0];
-  document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
-  document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
-    weekday:'long', day:'numeric', month:'long', year:'numeric'
-  });
+const ROLES = {
+  admin: {
+    icon:'🛡️', title:'Portal Admin', sub:'Masuk sebagai Administrator',
+    headerClass:'', tabActive:'active-admin', btnClass:'',
+    btnText:'Masuk sebagai Admin', fieldClass:'',
+    nisPlaceholder:'Contoh: USR-ADMIN-001',
+    nisHint:'NIS / ID Admin terdaftar di sistem',
+    redirect:'admin/index.html',
+  },
+  guru: {
+    icon:'📖', title:'Portal Guru', sub:'Masuk sebagai Musyrif / Musyrifah',
+    headerClass:'h-guru', tabActive:'active-guru', btnClass:'s-guru',
+    btnText:'Masuk sebagai Guru', fieldClass:'f-guru',
+    nisPlaceholder:'Contoh: GRU-001',
+    nisHint:'NIS / ID Guru terdaftar di sistem',
+    redirect:'guru/index.html',
+  },
+  murid: {
+    icon:'🌙', title:'Portal Murid', sub:'Masuk sebagai Santri / Peserta',
+    headerClass:'h-murid', tabActive:'active-murid', btnClass:'s-murid',
+    btnText:'Masuk sebagai Murid', fieldClass:'f-murid',
+    nisPlaceholder:'Contoh: MRD-001',
+    nisHint:'Nomor Induk Santri terdaftar di sistem',
+    redirect:'murid/index.html',
+  },
+};
 
-  const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
-  if (tk && us && us.role === 'guru') {
-    token = tk; currentUser = us; startApp(); return;
+let currentRole = 'admin';
+let deferredInstall = null;
+
+function selectRole(role) {
+  if (!ROLES[role]) return;
+  currentRole = role;
+  const c = ROLES[role];
+
+  // Header
+  document.getElementById('header-icon').textContent  = c.icon;
+  document.getElementById('header-title').textContent = c.title;
+  document.getElementById('header-sub').textContent   = c.sub;
+  const hdr = document.getElementById('card-header');
+  hdr.className = 'card-header ' + c.headerClass;
+
+  // Tabs
+  document.querySelectorAll('.role-tab').forEach(t => t.className = 'role-tab');
+  document.getElementById('tab-' + role).className = 'role-tab ' + c.tabActive;
+
+  // Button
+  document.getElementById('btn-submit').className  = 'btn-submit ' + c.btnClass;
+  document.getElementById('btn-text').textContent  = c.btnText;
+
+  // Field
+  const inp = document.getElementById('input-nis');
+  inp.className = 'field-input ' + c.fieldClass;
+  inp.placeholder = c.nisPlaceholder;
+  document.getElementById('nis-hint').textContent = c.nisHint;
+
+  // Clear toast
+  const t = document.getElementById('login-toast');
+  t.className = 'toast'; t.textContent = '';
+
+  if (window.innerWidth < 720)
+    setTimeout(() => document.getElementById('login-card').scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
+}
+
+async function doLogin() {
+  const nis = document.getElementById('input-nis').value.trim().toUpperCase();
+  if (!nis) { showToast('NIS wajib diisi.', 'error'); document.getElementById('input-nis').focus(); return; }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  setLoading(true, 'Memverifikasi akun…');
+
+  try {
+    const res  = await fetch(`${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}`, { method:'GET', mode:'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    if (data.status === 'ok') {
+      const store = document.getElementById('remember-me').checked ? localStorage : sessionStorage;
+      store.setItem('hq_token', data.token);
+      store.setItem('hq_user', JSON.stringify(data.user));
+      setLoading(true, 'Berhasil! Mengarahkan ke portal…');
+      setTimeout(() => { window.location.href = ROLES[data.user.role]?.redirect || 'index.html'; }, 800);
+    } else {
+      setLoading(false); btn.disabled = false;
+      showToast(data.message || 'NIS tidak ditemukan.', 'error');
+    }
+  } catch(err) {
+    setLoading(false); btn.disabled = false;
+    showToast(GAS_URL.includes('GANTI_') ? '⚠ GAS URL belum dikonfigurasi.' : 'Koneksi gagal: ' + err.message, 'error');
   }
+}
 
-  document.getElementById('nisInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement?.id === 'input-nis') doLogin();
 });
 
-// ══════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════
-async function doLogin() {
-  const nis = document.getElementById('nisInput').value.trim().toUpperCase();
-  if (!nis) return showErr('NIS wajib diisi');
-  setBtn('loginBtn', true, 'Masuk...');
-  showLoad('Memverifikasi...');
-  try {
-    const d = await window.HQ.Auth.login(nis, 'guru');
-    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
-    if (d.user.role !== 'guru') throw new Error('Akun ini bukan role Guru');
-    token = d.token; currentUser = d.user;
-    sessionStorage.setItem('hq_token', token);
-    sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
-    startApp();
-  } catch(e) { showErr(e.message); }
-  finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
+function showToast(msg, type) {
+  const t = document.getElementById('login-toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+}
+function setLoading(show, text) {
+  const o = document.getElementById('loading-overlay');
+  show ? o.classList.add('show') : o.classList.remove('show');
+  if (text) document.getElementById('loading-text').textContent = text;
 }
 
-function doLogout() { window.HQ.Auth.logout(); }
-function showErr(m) {
-  const el = document.getElementById('authErr');
-  el.textContent = '⚠ ' + m; el.style.display = 'block';
-}
-
-// ══════════════════════════════════════════
-//  APP START
-// ══════════════════════════════════════════
-function startApp() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  const nama = currentUser.nama || currentUser.id_user;
-  const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('sbAvatar').textContent = ini;
-  document.getElementById('sbName').textContent   = nama;
-  document.getElementById('greet').textContent    = "Assalamu'alaikum, " + nama.split(' ')[0] + " 👋";
-  loadDashboard();
-}
-
-// ══════════════════════════════════════════
-//  NAVIGASI
-// ══════════════════════════════════════════
-const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
-  presensi:'Presensi Murid',jurnal:'Jurnal KBM',
-  murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman'};
-
-function goPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name)?.classList.add('active');
-  document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
-  document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
-  closeSB();
-  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); }
-  if (name === 'murid')      populateSel('muridHalaqahSel');
-  if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
-  if (name === 'pengumuman') initPengumumanPage();
-}
-
-function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
-function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
-
-// ══════════════════════════════════════════
-//  DASHBOARD
-// ══════════════════════════════════════════
-async function loadDashboard() {
-  showLoad('Memuat dashboard...');
-  try {
-    const r = await window.HQ.GuruAPI.getDashboard();
-    const d = r.data;
-    halaqahList = d.halaqah || [];
-
-    document.getElementById('st-halaqah').textContent = d.total_halaqah ?? '–';
-    document.getElementById('st-murid').textContent   = d.total_murid   ?? '–';
-    document.getElementById('st-kbm').textContent     = d.kbm_hari_ini  ?? '–';
-    document.getElementById('st-bulan').textContent   = d.kbm_bulan_ini ?? '–';
-
-    // Cek sesi draft
-    if (d.sesi_draft) {
-      sesiAktif = d.sesi_draft;
-      updateSesiBanner();
-    }
-
-    const cont = document.getElementById('dashHalaqah');
-    if (!halaqahList.length) {
-      cont.innerHTML = emptyHTML('📭','Belum ada halaqah','Hubungi admin untuk mendaftarkan halaqah.');
-    } else {
-      cont.innerHTML = '<div class="hq-grid">' + halaqahList.map(hqCard).join('') + '</div>';
-    }
-  } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
-  finally { hideLoad(); }
-}
-
-function hqCard(h) {
-  return `<div class="hq-card" onclick="goPage('kbm')">
-    <div class="hq-name">${esc(h.nama_halaqah)}</div>
-    <div class="hq-meta">
-      <span>📅 ${esc(h.jadwal_hari||'-')}</span>
-      <span>⏰ ${esc(h.jam_mulai||'-')}</span>
-      <span>📍 ${esc(h.lokasi||'-')}</span>
-    </div>
-    <div class="hq-stats">
-      <div class="hq-stat"><div class="v">${h.total_murid??0}</div><div class="l">Murid</div></div>
-      <div class="hq-stat"><div class="v">${h.total_sesi??0}</div><div class="l">Sesi</div></div>
-      <div class="hq-stat"><div class="v">${esc(h.level||'-')}</div><div class="l">Level</div></div>
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════
-//  BUKA KBM
-// ══════════════════════════════════════════
-async function doBukaKBM() {
-  const id_halaqah = document.getElementById('kbmHalaqah').value;
-  const tanggal    = document.getElementById('kbmTanggal').value;
-  const jam_mulai  = document.getElementById('kbmJam').value;
-  const jenis_sesi = document.getElementById('kbmJenis').value;
-
-  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
-  if (!tanggal)    return toast('Tanggal wajib diisi','err');
-  if (sesiAktif)   return toast('Masih ada sesi berjalan. Tutup dulu!','warn');
-
-  setBtn('btnMulai', true, '⏳ Membuka sesi...');
-  showLoad('Membuka sesi KBM...');
-  try {
-    const r = await window.HQ.GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, jam_mulai, jenis_sesi });
-    sesiAktif = r.data;
-    muridSesi = await getMurid(id_halaqah);
-    goPage('presensi');
-    renderPresensi();
-    renderSteps('presensi');
-    toast('Sesi dibuka! Silakan isi presensi.','ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru'); }
-}
-
-function updateSesiBanner() {
-  const b = document.getElementById('sesiBanner');
-  if (!sesiAktif) { b.style.display='none'; return; }
-  const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
-  document.getElementById('sesiInfo').innerHTML =
-    `<strong>${esc(h?.nama_halaqah||sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
-     ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp;
-     ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''} &nbsp;·&nbsp;
-     Pertemuan ke-${sesiAktif.pertemuan_ke}`;
-  b.style.display = 'flex';
-}
-
-function lanjutSesi() {
-  if (!sesiAktif) return;
-  muridSesi.length ? goToJurnal() : (async () => {
-    muridSesi = await getMurid(sesiAktif.id_halaqah);
-    goPage('presensi'); renderPresensi(); renderSteps('presensi');
-  })();
-}
-
-// ══════════════════════════════════════════
-//  PRESENSI
-// ══════════════════════════════════════════
-function renderPresensi() {
-  const cont = document.getElementById('presensiList');
-  if (!muridSesi.length) {
-    cont.innerHTML = emptyHTML('👥','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
-  }
-  cont.innerHTML = muridSesi.map(m => `
-    <div class="prow" id="prow-${esc(m.id_murid)}">
-      <div>
-        <div class="prow-name">${esc(m.nama_murid)}</div>
-        <div class="prow-level">Level: ${esc(m.level||'-')} &nbsp;·&nbsp; ${m.total_hadir||0}× hadir</div>
-      </div>
-      <div class="prow-btns">
-        ${['H','I','S','A'].map(k=>`
-          <button class="pb ${k==='H'?'on':''}" data-k="${k}" data-id="${esc(m.id_murid)}"
-            data-nama="${esc(m.nama_murid)}" onclick="togPresensi(this)">${k}</button>
-        `).join('')}
-      </div>
-    </div>`).join('');
-
-  document.getElementById('presensiCount').textContent = muridSesi.length + ' murid';
-}
-
-function togPresensi(btn) {
-  btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  updatePresensiCount();
-}
-
-function setAllPresensi(kode) {
-  document.querySelectorAll('.pb[data-k="' + kode + '"]').forEach(btn => {
-    btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-  });
-  updatePresensiCount();
-}
-
-function updatePresensiCount() {
-  const hadir = document.querySelectorAll('.pb[data-k="H"].on').length;
-  document.getElementById('presensiCount').textContent =
-    hadir + ' hadir / ' + muridSesi.length + ' murid';
-}
-
-async function doSimpanPresensi() {
-  if (!sesiAktif) return;
-  const presensi = [];
-  document.querySelectorAll('.prow').forEach(row => {
-    const aktif = row.querySelector('.pb.on');
-    if (aktif) presensi.push({
-      id_murid    : aktif.dataset.id,
-      nama_murid  : aktif.dataset.nama,
-      status_hadir: aktif.dataset.k,
-    });
-  });
-  if (!presensi.length) return toast('Isi presensi minimal 1 murid','err');
-
-  showLoad('Menyimpan presensi...');
-  try {
-    await window.HQ.GuruAPI.simpanPresensi({
-      id_kbm: sesiAktif.id_kbm,
-      id_halaqah: sesiAktif.id_halaqah,
-      presensi
-    });
-    goToJurnal();
-    toast('Presensi tersimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  JURNAL & NILAI
-// ══════════════════════════════════════════
-function goToJurnal() {
-  // Set jam selesai otomatis
-  document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
-  renderNilaiList();
-  goPage('jurnal');
-  renderSteps('jurnal');
-}
-
-function renderNilaiList() {
-  const hadir = muridSesi;  // tampilkan semua murid
-  const cont  = document.getElementById('nilaiList');
-  if (!hadir.length) { cont.innerHTML = emptyHTML('👥','Tidak ada murid',''); return; }
-
-  cont.innerHTML = hadir.map(m => `
-    <div class="nilai-row">
-      <div class="nilai-murid-name">
-        <span>👤 ${esc(m.nama_murid)}</span>
-        <span id="hadirBadge-${esc(m.id_murid)}" class="badge b-gray" style="font-size:11px">–</span>
-      </div>
-      <div class="nilai-grid">
-        <div class="fg" style="margin:0">
-          <label>Nilai Tahsin</label>
-          <select class="fc" id="nilai-${esc(m.id_murid)}" style="font-size:13px">
-            <option value="">— Pilih —</option>
-            <option value="Mumtaz">⭐ Mumtaz</option>
-            <option value="Jayyid Jiddan">✅ Jayyid Jiddan</option>
-            <option value="Jayyid">👍 Jayyid</option>
-            <option value="Maqbul">📌 Maqbul</option>
-          </select>
-        </div>
-        <div class="fg" style="margin:0">
-          <label>Adab</label>
-          <select class="fc" id="adab-${esc(m.id_murid)}" style="font-size:13px">
-            <option value="">— Pilih —</option>
-            <option value="Baik">😊 Baik</option>
-            <option value="Cukup">🙂 Cukup</option>
-            <option value="Perlu Perhatian">⚠️ Perlu Perhatian</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg" style="margin-top:8px">
-        <label>Koreksi Tahsin</label>
-        <input type="text" class="fc" id="koreksi-${esc(m.id_murid)}"
-          placeholder="Contoh: Makhraj ح perlu diperbaiki, mad tabi'i kurang panjang..."
-          style="font-size:13px">
-      </div>
-    </div>`).join('');
-
-  // Update badge hadir dari presensi
-  document.querySelectorAll('.pb.on').forEach(btn => {
-    const el = document.getElementById('hadirBadge-' + btn.dataset.id);
-    if (!el) return;
-    const map = {H:'b-green',I:'b-amber',S:'b-blue',A:'b-red'};
-    const lbl = {H:'Hadir',I:'Izin',S:'Sakit',A:'Alpa'};
-    el.className = 'badge ' + (map[btn.dataset.k]||'b-gray');
-    el.textContent = lbl[btn.dataset.k]||btn.dataset.k;
-  });
-}
-
-async function doSelesaiKBM() {
-  if (!sesiAktif) return;
-
-  const materi     = document.getElementById('jurnalMateri').value.trim();
-  const metode     = document.getElementById('jurnalMetode').value;
-  const catatan    = document.getElementById('jurnalCatatan').value.trim();
-  const jamSelesai = document.getElementById('jurnalJamSelesai').value;
-
-  setBtn('btnSelesai', true, '⏳ Menyimpan...');
-  showLoad('Menyimpan jurnal KBM...');
-  try {
-    // 1. Simpan jurnal
-    await window.HQ.GuruAPI.simpanJurnalKBM({
-      id_kbm           : sesiAktif.id_kbm,
-      pencapaian_modul : materi,
-      metode,
-      catatan_umum     : catatan,
-      jam_selesai      : jamSelesai,
-      latihan_mandiri  : document.getElementById('jurnalLatihanMandiri').value.trim(),
-      jenis_latihan    : document.getElementById('jurnalJenisLatihan').value,
-      deadline_latihan : document.getElementById('jurnalDeadline').value,
-    });
-
-    // 2. Simpan nilai per murid
-    for (const m of muridSesi) {
-      const nilai   = document.getElementById('nilai-'   + m.id_murid)?.value || '';
-      const adab    = document.getElementById('adab-'    + m.id_murid)?.value || '';
-      const koreksi = document.getElementById('koreksi-' + m.id_murid)?.value || '';
-      if (nilai || adab || koreksi) {
-        await window.HQ.GuruAPI.simpanNilaiMurid({
-          id_kbm    : sesiAktif.id_kbm,
-          id_halaqah: sesiAktif.id_halaqah,
-          id_murid  : m.id_murid,
-          nama_murid: m.nama_murid,
-          nilai, adab, koreksi_tahsin: koreksi,
-        });
-      }
-    }
-
-    // 3. Tutup sesi
-    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-    toast(res.message || 'Sesi berhasil ditutup! Jazakallah khairan 🌟', 'ok');
-
-    // Reset state
-    sesiAktif = null; muridSesi = [];
-    muridCache = {};
-
-    // Kembali ke dashboard
-    setTimeout(() => {
-      loadDashboard();
-      goPage('dashboard');
-    }, 1200);
-
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
-}
-
-async function konfirmasiTutup() {
-  if (!confirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.')) return;
-  showLoad('Menutup sesi...');
-  try {
-    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-    toast(res.message || 'Sesi ditutup','ok');
-    sesiAktif = null; muridSesi = [];
-    updateSesiBanner();
-    loadDashboard();
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  STEP INDICATOR
-// ══════════════════════════════════════════
-function renderSteps(current) {
-  const steps = [
-    {id:'kbm',     label:'Buka Sesi'},
-    {id:'presensi',label:'Presensi'},
-    {id:'jurnal',  label:'Jurnal & Nilai'},
-  ];
-  const ci = steps.findIndex(s => s.id === current);
-
-  ['stepBar','stepBar2'].forEach(barId => {
-    const bar = document.getElementById(barId);
-    if (!bar) return;
-    bar.innerHTML = steps.map((s,i) => {
-      const state = i < ci ? 'done' : i === ci ? 'active' : 'pending';
-      const line  = i < steps.length-1
-        ? `<div class="step-line ${i < ci?'done':''}"></div>` : '';
-      return `<div class="step">
-        <div class="step-num ${state}">${i < ci ? '✓' : i+1}</div>
-        <div class="step-label ${state}">${s.label}</div>
-      </div>${line}`;
-    }).join('');
-  });
-}
-
-// ══════════════════════════════════════════
-//  DAFTAR MURID
-// ══════════════════════════════════════════
-async function getMurid(id_halaqah) {
-  if (muridCache[id_halaqah]) return muridCache[id_halaqah];
-  const r = await window.HQ.GuruAPI.getMurid(id_halaqah);
-  muridCache[id_halaqah] = r.data || [];
-  return muridCache[id_halaqah];
-}
-
-async function loadMurid() {
-  const id = document.getElementById('muridHalaqahSel').value;
-  if (!id) return;
-  showLoad('Memuat murid...');
-  try {
-    muridCache[id] = null;
-    const murid = await getMurid(id);
-    const tbody = document.getElementById('muridTbl');
-    if (!murid.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = murid.map(m => {
-      const pct = m.pct_hadir ?? 0;
-      const s40 = m.skor_dari_40 ?? 0;
-      const pctColor = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
-      return `<tr>
-        <td><strong>${esc(m.nama_murid)}</strong></td>
-        <td><span class="badge b-blue">${esc(m.level||'-')}</span></td>
-        <td><span class="badge b-green">${m.total_hadir||0}×</span></td>
-        <td>${m.total_sesi||0}</td>
-        <td>
-          <span style="font-weight:700;color:${pctColor}">${pct}%</span>
-          <div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">
-            <div style="height:4px;background:${pctColor};border-radius:4px;width:${Math.min(pct,100)}%"></div>
-          </div>
-        </td>
-        <td>
-          <span style="font-weight:700;color:${s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)'}">${s40}%</span>
-          <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw?.toFixed?.(1)||'–'}/40</div>
-        </td>
-        <td>${nilaiLabel(m.avg_nilai)}</td>
-        <td><button class="btn btn-outline btn-sm"
-          onclick="bukaCatatan('${esc(m.id_anggota)}','${esc(m.nama_murid)}','${esc((m.catatan_guru||'').replace(/'/g,"&#39;"))}')">
-          📝 Catatan</button></td>
-      </tr>`;
-    }).join('');
-  } catch(e) { toast('Gagal: '+e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  RIWAYAT
-// ══════════════════════════════════════════
-async function loadRiwayat() {
-  const id = document.getElementById('riwayatHalaqahSel').value;
-  if (!id) return;
-  showLoad('Memuat riwayat...');
-  try {
-    const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 30);
-    const rows = r.data || [];
-    const tbody = document.getElementById('riwayatTbl');
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada riwayat</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = rows.map(k => `<tr>
-      <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
-      <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
-      <td><span class="badge b-gray">${esc(k.jenis_sesi||'-')}</span></td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k.pencapaian_modul||'-')}</td>
-      <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
-      <td>${statusBadge(k.status)}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
-        <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
-          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Presensi</button>
-      </td>
-    </tr>`).join('');
-  } catch(e) { toast('Gagal: '+e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-async function lihatDetail(id_kbm, tgl) {
-  document.getElementById('detailTitle').textContent = 'Detail — ' + fmtDate(tgl);
-  document.getElementById('detailBody').innerHTML =
-    emptyHTML('⏳','Memuat...','');
-  openModal('detailModal');
-  try {
-    const r = await window.HQ.GuruAPI.getNilaiByKBM(id_kbm);
-    const data = r.data || [];
-    if (!data.length) {
-      document.getElementById('detailBody').innerHTML = emptyHTML('📭','Belum ada data nilai','');
-      return;
-    }
-    document.getElementById('detailBody').innerHTML = data.map(n => `
-      <div class="nilai-row">
-        <div class="nilai-murid-name">
-          <span>👤 ${esc(n.nama_murid||n.id_murid)}</span>
-          ${hadirBadge(n.status_hadir)}
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          ${n.nilai ? nilaiLabel(n.nilai) : ''}
-          ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
-        </div>
-        ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
-      </div>`).join('');
-  } catch(e) {
-    document.getElementById('detailBody').innerHTML = emptyHTML('❌','Gagal memuat','');
-  }
-}
-
-// ══════════════════════════════════════════
-//  CATATAN MURID
-// ══════════════════════════════════════════
-function bukaCatatan(id_anggota, nama, catatan) {
-  document.getElementById('catatanNama').textContent    = nama;
-  document.getElementById('catatanTxt').value           = catatan;
-  document.getElementById('catatanIdAnggota').value     = id_anggota;
-  openModal('catatanModal');
-}
-
-async function simpanCatatan() {
-  const id_anggota  = document.getElementById('catatanIdAnggota').value;
-  const catatan_guru = document.getElementById('catatanTxt').value;
-  showLoad('Menyimpan...');
-  try {
-    await window.HQ.GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
-    closeModal('catatanModal');
-    muridCache = {};
-    toast('Catatan tersimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  HELPERS — UI
-// ══════════════════════════════════════════
-function populateSel(selId) {
-  const sel = document.getElementById(selId);
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' +
-    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
-}
-
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function showLoad(msg='Memuat...') {
-  document.getElementById('loaderTxt').textContent = msg;
-  document.getElementById('loader').classList.add('show');
-}
-function hideLoad() { document.getElementById('loader').classList.remove('show'); }
-
-let _tt;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'show ' + type;
-  clearTimeout(_tt); _tt = setTimeout(() => el.className = '', 3800);
-}
-
-function setBtn(id, dis, txt) {
-  const el = document.getElementById(id);
-  if (!el) return; el.disabled = dis; el.textContent = txt;
-}
-
-function statusBadge(s) {
-  const m = {selesai:'b-green',draft:'b-amber',batal:'b-red'};
-  return `<span class="badge ${m[s]||'b-gray'}">${s||'-'}</span>`;
-}
-
-function hadirBadge(k) {
-  const m = {H:'b-green',I:'b-amber',S:'b-blue',A:'b-red'};
-  const l = {H:'Hadir',I:'Izin',S:'Sakit',A:'Alpa'};
-  return `<span class="badge ${m[k]||'b-gray'}">${l[k]||k||'-'}</span>`;
-}
-
-function nilaiLabel(n) {
-  const m = {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'};
-  if (!n || n==='-') return '<span style="color:var(--text-3)">–</span>';
-  return `<span class="${m[n]||''}">${esc(n)}</span>`;
-}
-
-function fmtDate(d) {
-  if (!d) return '–';
-  return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-}
-
-function esc(s) {
-  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function emptyHTML(ico, ttl, sub) {
-  return `<div class="empty"><div class="empty-ico">${ico}</div>
-    <div class="empty-ttl">${ttl}</div>
-    ${sub?`<div class="empty-sub">${sub}</div>`:''}
-  </div>`;
-}
-
-// ══════════════════════════════════════════
-//  EDIT PRESENSI SESI LAMA
-// ══════════════════════════════════════════
-let editPresensiKBMId   = '';
-let editPresensiHalaqah = '';
-
-async function bukaEditPresensi(id_kbm, tanggal) {
-  editPresensiKBMId = id_kbm;
-  document.getElementById('editPresensiTitle').textContent =
-    'Edit Presensi — ' + fmtDate(tanggal);
-  document.getElementById('editPresensiList').innerHTML =
-    emptyHTML('⏳','Memuat data...','');
-  openModal('editPresensiModal');
-
-  showLoad('Memuat data presensi...');
-  try {
-    const r = await window.HQ.GuruAPI.getPresensiByKBM(id_kbm);
-    editPresensiHalaqah = r.kbm?.id_halaqah || '';
-    const data = r.data || [];
-
-    if (!data.length) {
-      // Jika belum ada data nilai, ambil dari daftar murid halaqah
-      const murid = editPresensiHalaqah
-        ? await getMurid(editPresensiHalaqah) : [];
-      if (!murid.length) {
-        document.getElementById('editPresensiList').innerHTML =
-          emptyHTML('📭','Tidak ada murid','');
-        return;
-      }
-      document.getElementById('editPresensiList').innerHTML = murid.map(m => `
-        <div class="prow">
-          <div>
-            <div class="prow-name">${esc(m.nama_murid)}</div>
-            <div class="prow-level">Level: ${esc(m.level||'-')}</div>
-          </div>
-          <div class="prow-btns">
-            ${['H','I','S','A'].map(k => `
-              <button class="pb ${k==='H'?'on':''}" data-k="${k}"
-                data-id="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}"
-                onclick="togEditPresensi(this)">${k}</button>`).join('')}
-          </div>
-        </div>`).join('');
-      return;
-    }
-
-    // Render dengan data yang sudah ada
-    document.getElementById('editPresensiList').innerHTML = data.map(n => {
-      const status = String(n.status_hadir||'H').toUpperCase();
-      return `<div class="prow">
-        <div>
-          <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
-        </div>
-        <div class="prow-btns">
-          ${['H','I','S','A'].map(k => `
-            <button class="pb ${k===status?'on':''}" data-k="${k}"
-              data-id="${esc(n.id_murid)}" data-nama="${esc(n.nama_murid||n.id_murid)}"
-              onclick="togEditPresensi(this)">${k}</button>`).join('')}
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('editPresensiList').innerHTML =
-      emptyHTML('❌','Gagal memuat: ' + e.message,'');
-  } finally { hideLoad(); }
-}
-
-function togEditPresensi(btn) {
-  btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-}
-
-async function simpanEditPresensi() {
-  const presensi = [];
-  document.querySelectorAll('#editPresensiList .prow').forEach(row => {
-    const aktif = row.querySelector('.pb.on');
-    if (aktif) presensi.push({
-      id_murid    : aktif.dataset.id,
-      nama_murid  : aktif.dataset.nama,
-      status_hadir: aktif.dataset.k,
-    });
-  });
-  if (!presensi.length) return toast('Tidak ada data presensi','err');
-
-  showLoad('Menyimpan perubahan presensi...');
-  try {
-    await window.HQ.GuruAPI.editPresensi({
-      id_kbm    : editPresensiKBMId,
-      id_halaqah: editPresensiHalaqah,
-      presensi,
-    });
-    closeModal('editPresensiModal');
-    toast('Presensi berhasil diperbarui!','ok');
-    // Refresh riwayat & murid
-    muridCache = {};
-    const rSel = document.getElementById('riwayatHalaqahSel').value;
-    if (rSel) loadRiwayat();
-    const mSel = document.getElementById('muridHalaqahSel').value;
-    if (mSel) loadMurid();
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  REFRESH
-// ══════════════════════════════════════════
-async function refreshPage() {
-  const btn = document.getElementById('refreshBtn');
-  btn.style.transform = 'rotate(360deg)';
-  btn.style.transition = 'transform 0.6s ease';
-  setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
-
-  muridCache = {};
-  const active = document.querySelector('.page.active')?.id?.replace('page-','');
-  if (active === 'dashboard') await loadDashboard();
-  else if (active === 'murid' && document.getElementById('muridHalaqahSel').value) await loadMurid();
-  else if (active === 'riwayat' && document.getElementById('riwayatHalaqahSel').value) await loadRiwayat();
-  else await loadDashboard();
-  toast('Data diperbarui','ok');
-}
-
-// ══════════════════════════════════════════
-//  TAMBAH MURID
-// ══════════════════════════════════════════
-function bukaModalTambahMurid() {
-  const id_halaqah = document.getElementById('muridHalaqahSel').value;
-  // Populate halaqah dropdown
-  const sel = document.getElementById('tmHalaqah');
-  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' +
-    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}" ${h.id_halaqah===id_halaqah?'selected':''}>${esc(h.nama_halaqah)}</option>`).join('');
-  // Trigger load murid belum terdaftar
-  if (id_halaqah) loadMuridBelum(id_halaqah);
-  sel.onchange = () => loadMuridBelum(sel.value);
-  openModal('tambahMuridModal');
-}
-
-async function loadMuridBelum(id_halaqah) {
-  const sel = document.getElementById('tmMurid');
-  sel.innerHTML = '<option value="">Memuat...</option>';
-  try {
-    const r = await window.HQ.GuruAPI.getMuridBelum(id_halaqah);
-    const list = r.data || [];
-    sel.innerHTML = list.length
-      ? '<option value="">— Pilih Murid —</option>' + list.map(m => `<option value="${esc(m.id_murid)}">${esc(m.nama_murid)} (${esc(m.id_murid)})</option>`).join('')
-      : '<option value="">Semua murid sudah terdaftar</option>';
-  } catch(e) {
-    sel.innerHTML = '<option value="">Gagal memuat</option>';
-  }
-}
-
-async function doTambahMurid() {
-  const id_halaqah   = document.getElementById('tmHalaqah').value;
-  const id_murid     = document.getElementById('tmMurid').value;
-  const level        = document.getElementById('tmLevel').value;
-  const target_level = document.getElementById('tmTargetLevel').value;
-
-  if (!id_halaqah) return toast('Pilih halaqah','err');
-  if (!id_murid)   return toast('Pilih murid','err');
-
-  showLoad('Menambahkan murid...');
-  try {
-    const r = await window.HQ.GuruAPI.addMuridByGuru({ id_halaqah, id_murid, level, target_level });
-    closeModal('tambahMuridModal');
-    muridCache = {};
-    toast(r.message || 'Murid berhasil ditambahkan!','ok');
-    if (document.getElementById('muridHalaqahSel').value === id_halaqah) loadMurid();
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  PENGUMUMAN
-// ══════════════════════════════════════════
-function initPengumumanPage() {
-  const sel = document.getElementById('pngHalaqah');
-  sel.innerHTML = '<option value="semua">Semua Halaqah Saya</option>' +
-    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
-}
-
-async function doKirimPengumuman() {
-  const judul      = document.getElementById('pngJudul').value.trim();
-  const isi        = document.getElementById('pngIsi').value.trim();
-  const target     = document.getElementById('pngHalaqah').value;
-  const id_halaqah = target === 'semua' ? '' : target;
-
-  if (!judul) return toast('Judul wajib diisi','err');
-  if (!isi)   return toast('Isi pengumuman wajib diisi','err');
-
-  showLoad('Mengirim pengumuman...');
-  try {
-    await window.HQ.GuruAPI.kirimPengumuman({ judul, isi, target, id_halaqah });
-    document.getElementById('pngJudul').value = '';
-    document.getElementById('pngIsi').value   = '';
-    toast('Pengumuman berhasil dikirim! 📢','ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  UPDATE doSelesaiKBM — tambah latihan mandiri
-// ══════════════════════════════════════════
-// ══════════════════════════════════════════
-//  GENERATE REKAP
-// ══════════════════════════════════════════
-async function doGenerateRekap(tipe) {
-  const id_halaqah = document.getElementById('riwayatHalaqahSel').value;
-  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
-
-  const label = tipe === 'presensi' ? 'Rekap Presensi' : 'Rekap Nilai';
-  showLoad('Membuat ' + label + '...');
-  try {
-    const fn = tipe === 'presensi'
-      ? window.HQ.GuruAPI.generateRekapPresensi
-      : window.HQ.GuruAPI.generateRekapNilai;
-    const r = await fn(id_halaqah);
-    toast('✅ ' + r.message, 'ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
-}
-
+// Session restore
+(function() {
+  const token = localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token');
+  const user  = JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
+  if (token && user?.role && ROLES[user.role]) window.location.href = ROLES[user.role].redirect;
+})();
+
+// SW
 if ('serviceWorker' in navigator)
-  navigator.serviceWorker.register('../sw.js').catch(()=>{});
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+
+// PWA
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+  if (!sessionStorage.getItem('hq_nodismiss'))
+    setTimeout(() => document.getElementById('install-banner').classList.add('show'), 3500);
+});
+function installPWA() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => { document.getElementById('install-banner').classList.remove('show'); deferredInstall = null; });
+}
+function dismissInstall() {
+  document.getElementById('install-banner').classList.remove('show');
+  sessionStorage.setItem('hq_nodismiss', '1');
+}
+
+// Counter
+function animCount(el) {
+  const target=parseInt(el.dataset.target,10), suf=el.dataset.suffix||'', dur=1400, t0=performance.now();
+  (function s(now){ const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3); el.textContent=Math.round(target*e)+suf; if(p<1)requestAnimationFrame(s); })(t0);
+}
+new IntersectionObserver((en,ob)=>{ en.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('.counter').forEach(animCount); ob.disconnect(); }}); },{threshold:0.2}).observe(document.querySelector('.stats-row'));
+
+window.addEventListener('DOMContentLoaded', () => {
+  selectRole('admin');
+  if (window.innerWidth >= 720) setTimeout(() => document.getElementById('input-nis')?.focus(), 400);
+});
 </script>
 </body>
 </html>
