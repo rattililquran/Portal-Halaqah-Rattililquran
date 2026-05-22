@@ -572,19 +572,18 @@ tr:hover td{background:var(--brand-light)}
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-let Auth, GuruAPI, Utils;
+// Auth, GuruAPI, Utils diambil dari window.HQ (api.js) di dalam DOMContentLoaded
 let token = '';
 let currentUser = null;
 let halaqahList = [];
-let muridCache  = {};   // { id_halaqah: [...murid] }
-let sesiAktif   = null; // object KBM yang sedang berjalan
+let muridCache  = {};
+let sesiAktif   = null;
 
 // ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // Resolve dari api.js
-  ({ Auth, GuruAPI, Utils } = window.HQ);
+  // api.js sudah ekspos window.HQ — tidak perlu resolve ulang
 
   // Set tanggal hari ini
   document.getElementById('kbmTanggal').value = new Date().toISOString().split('T')[0];
@@ -617,7 +616,7 @@ async function doLogin() {
   setBtn('btnLogin', true, 'Masuk...');
   showLoading('Login...');
   try {
-    const data = await Auth.login(nis, 'guru');
+    const data = await window.HQ.Auth.login(nis, 'guru');
     if (data.status !== 'ok') throw new Error(data.message || 'Login gagal');
     if (data.user.role !== 'guru') throw new Error('Akun ini bukan role Guru');
 
@@ -635,7 +634,7 @@ async function doLogin() {
 }
 
 function doLogout() {
-  Auth.logout();
+  window.HQ.Auth.logout();
 }
 
 function showAuthError(msg) {
@@ -687,7 +686,7 @@ function closeSidebar() { document.getElementById('sidebar').classList.remove('o
 async function loadDashboard() {
   showLoading('Memuat dashboard...');
   try {
-    const res = await GuruAPI.getDashboard();
+    const res = await window.HQ.GuruAPI.getDashboard();
     const d   = res.data;
     halaqahList = d.halaqah || [];
 
@@ -741,7 +740,7 @@ async function doBukaKBM() {
   setBtn('btnBukaKBM', true, '⏳ Membuka...');
   showLoading('Membuka sesi KBM...');
   try {
-    const res = await GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, materi, metode, catatan_umum: catatan, durasi_menit: 60 });
+    const res = await window.HQ.GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, materi, metode, catatan_umum: catatan, durasi_menit: 60 });
     sesiAktif = res.data;
 
     // Preload murid untuk sesi ini
@@ -766,7 +765,7 @@ async function doTutupKBM() {
 
   showLoading('Menutup sesi...');
   try {
-    const res = await GuruAPI.tutupKBM(sesiAktif.id_kbm);
+    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     showToast('Sesi KBM berhasil ditutup! Hadir: ' + (res.data?.jumlah_hadir ?? 0) + ' murid.', 'success');
     sesiAktif = null;
     document.getElementById('sesiAktifBanner').style.display = 'none';
@@ -827,7 +826,7 @@ async function doSimpanAbsensi() {
 
   showLoading('Menyimpan absensi...');
   try {
-    await GuruAPI.simpanAbsensi({ id_kbm: sesiAktif.id_kbm, id_halaqah: sesiAktif.id_halaqah, absensi });
+    await window.HQ.GuruAPI.simpanAbsensi({ id_kbm: sesiAktif.id_kbm, id_halaqah: sesiAktif.id_halaqah, absensi });
     closeModal('absensiModal');
     showToast(absensi.length + ' absensi berhasil disimpan!', 'success');
   } catch(e) {
@@ -869,7 +868,7 @@ async function doSimpanHafalan() {
 
   showLoading('Menyimpan hafalan...');
   try {
-    await GuruAPI.simpanHafalan({
+    await window.HQ.GuruAPI.simpanHafalan({
       id_kbm        : sesiAktif.id_kbm,
       id_halaqah    : sesiAktif.id_halaqah,
       id_murid,
@@ -897,7 +896,7 @@ async function doSimpanHafalan() {
 // ═══════════════════════════════════════════
 async function getMuridHalaqah(id_halaqah) {
   if (muridCache[id_halaqah]) return muridCache[id_halaqah];
-  const res = await GuruAPI.getMurid(id_halaqah);
+  const res = await window.HQ.GuruAPI.getMurid(id_halaqah);
   muridCache[id_halaqah] = res.data || [];
   return muridCache[id_halaqah];
 }
@@ -952,7 +951,7 @@ async function doSimpanCatatan() {
   const catatan_guru = document.getElementById('catatanInput').value;
   showLoading('Menyimpan catatan...');
   try {
-    await GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
+    await window.HQ.GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
     closeModal('catatanModal');
     // Update cache
     const select = document.getElementById('muridHalaqahSelect');
@@ -973,7 +972,7 @@ async function loadRiwayat() {
   if (!id_halaqah) return;
   showLoading('Memuat riwayat...');
   try {
-    const res  = await GuruAPI.getRiwayatKBM(id_halaqah, 30);
+    const res  = await window.HQ.GuruAPI.getRiwayatKBM(id_halaqah, 30);
     const rows = res.data || [];
     const tbody = document.getElementById('riwayatTable');
     if (!rows.length) {
@@ -1003,7 +1002,7 @@ async function loadDetailKBM(id_kbm, tanggal) {
   openModal('detailKBMModal');
 
   try {
-    const res  = await GuruAPI.getHafalanByKBM(id_kbm);
+    const res  = await window.HQ.GuruAPI.getHafalanByKBM(id_kbm);
     const data = res.data || [];
     if (!data.length) {
       document.getElementById('detailKBMBody').innerHTML =
