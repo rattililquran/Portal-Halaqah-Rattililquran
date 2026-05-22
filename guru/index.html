@@ -312,6 +312,7 @@ tr:hover td{background:#f8fafc}
       <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni">📋</span>Sesi KBM</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
+      <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">⬅ Keluar</button>
@@ -322,7 +323,13 @@ tr:hover td{background:#f8fafc}
     <div class="topbar">
       <button class="hamburger" onclick="openSB()">☰</button>
       <div class="topbar-title" id="pageTitle">Dashboard</div>
-      <div class="topbar-date" id="topDate"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="topbar-date" id="topDate"></div>
+        <button onclick="refreshPage()" title="Refresh data"
+          style="background:none;border:1px solid var(--border);border-radius:var(--r-sm);
+          padding:5px 9px;cursor:pointer;font-size:15px;color:var(--text-3);transition:all .2s"
+          id="refreshBtn">🔄</button>
+      </div>
     </div>
     <div class="content">
 
@@ -478,6 +485,37 @@ tr:hover td{background:#f8fafc}
           </div>
         </div>
 
+        <!-- Latihan Mandiri (PR) -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📝 Latihan Mandiri <span style="font-size:11px;font-weight:500;color:var(--text-3)">(PR untuk murid)</span></div>
+          </div>
+          <div class="card-body">
+            <div class="fg">
+              <label>Jenis Latihan Mandiri</label>
+              <select class="fc" id="jurnalJenisLatihan">
+                <option value="">— Tidak ada latihan mandiri —</option>
+                <option value="VN di WAG">🎙 VN di WAG (Voice Note di WhatsApp Group)</option>
+                <option value="Mendengar rekaman dan baca mandiri">🎧 Mendengar rekaman dan baca mandiri</option>
+                <option value="Lainnya">📌 Lainnya</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Deskripsi Latihan Mandiri</label>
+              <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
+                placeholder="Contoh: Baca halaman 12–15 sebanyak 3x, kirim VN ke WAG sebelum pertemuan berikutnya..."
+                style="resize:vertical"></textarea>
+            </div>
+            <div class="fg">
+              <label>Deadline Pengerjaan</label>
+              <input type="date" class="fc" id="jurnalDeadline">
+            </div>
+            <div style="font-size:11.5px;color:var(--text-3);margin-top:-6px">
+              💡 Latihan mandiri akan tampil di dashboard murid sebagai PR
+            </div>
+          </div>
+        </div>
+
         <!-- Nilai per murid -->
         <div class="card">
           <div class="card-head"><div class="card-title">✏️ Penilaian per Murid</div></div>
@@ -494,10 +532,12 @@ tr:hover td{background:#f8fafc}
       <!-- ════ DAFTAR MURID ════ -->
       <div class="page" id="page-murid">
         <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
-        <div style="margin-bottom:14px">
+        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:280px">
             <option value="">— Pilih Halaqah —</option>
           </select>
+          <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah Murid</button>
+          <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄 Refresh</button>
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -514,13 +554,51 @@ tr:hover td{background:#f8fafc}
         </div>
       </div>
 
+      <!-- ════ PENGUMUMAN ════ -->
+      <div class="page" id="page-pengumuman">
+        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Pengumuman</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Kirim pengumuman ke murid halaqah Anda.</div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">📢 Buat Pengumuman Baru</div></div>
+          <div class="card-body">
+            <div class="fg">
+              <label>Target Halaqah</label>
+              <select class="fc" id="pngHalaqah">
+                <option value="semua">Semua Halaqah Saya</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Judul Pengumuman</label>
+              <input type="text" class="fc" id="pngJudul" placeholder="Contoh: Jadwal KBM Minggu Depan Berubah">
+            </div>
+            <div class="fg">
+              <label>Isi Pengumuman</label>
+              <textarea class="fc" id="pngIsi" rows="4" placeholder="Tulis isi pengumuman di sini..." style="resize:vertical"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim Pengumuman</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ════ RIWAYAT KBM ════ -->
       <div class="page" id="page-riwayat">
         <div style="font-size:19px;font-weight:800;margin-bottom:16px">Riwayat KBM</div>
-        <div style="margin-bottom:14px">
+        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:280px">
             <option value="">— Pilih Halaqah —</option>
           </select>
+          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
+            style="color:var(--green);border-color:var(--green)">
+            📊 Rekap Presensi
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('nilai')"
+            style="color:var(--purple);border-color:var(--purple)">
+            🏆 Rekap Nilai
+          </button>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
+          💡 Rekap akan otomatis dibuat sebagai sheet baru di Google Spreadsheet Anda
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -591,6 +669,55 @@ tr:hover td{background:#f8fafc}
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
       <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH MURID -->
+<div class="overlay" id="tambahMuridModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👤 Tambah Murid ke Halaqah</div>
+      <button class="modal-x" onclick="closeModal('tambahMuridModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Pilih Halaqah</label>
+        <select class="fc" id="tmHalaqah">
+          <option value="">— Pilih Halaqah —</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Pilih Murid</label>
+        <select class="fc" id="tmMurid">
+          <option value="">— Pilih halaqah dulu —</option>
+        </select>
+      </div>
+      <div class="f2">
+        <div class="fg">
+          <label>Level Saat Ini</label>
+          <select class="fc" id="tmLevel">
+            <option value="Level 1">Level 1</option>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Target Level</label>
+          <select class="fc" id="tmTargetLevel">
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('tambahMuridModal')">Batal</button>
+      <button class="btn btn-primary" onclick="doTambahMurid()">+ Tambah</button>
     </div>
   </div>
 </div>
@@ -672,7 +799,7 @@ function startApp() {
 // ══════════════════════════════════════════
 const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   presensi:'Presensi Murid',jurnal:'Jurnal KBM',
-  murid:'Daftar Murid',riwayat:'Riwayat KBM'};
+  murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -681,9 +808,10 @@ function goPage(name) {
   document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
-  if (name === 'kbm')     { populateSel('kbmHalaqah'); updateSesiBanner(); }
-  if (name === 'murid')   populateSel('muridHalaqahSel');
-  if (name === 'riwayat') populateSel('riwayatHalaqahSel');
+  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); }
+  if (name === 'murid')      populateSel('muridHalaqahSel');
+  if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
+  if (name === 'pengumuman') initPengumumanPage();
 }
 
 function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
@@ -929,9 +1057,14 @@ async function doSelesaiKBM() {
   try {
     // 1. Simpan jurnal
     await window.HQ.GuruAPI.simpanJurnalKBM({
-      id_kbm: sesiAktif.id_kbm,
-      pencapaian_modul: materi,
-      metode, catatan_umum: catatan, jam_selesai: jamSelesai
+      id_kbm           : sesiAktif.id_kbm,
+      pencapaian_modul : materi,
+      metode,
+      catatan_umum     : catatan,
+      jam_selesai      : jamSelesai,
+      latihan_mandiri  : document.getElementById('jurnalLatihanMandiri').value.trim(),
+      jenis_latihan    : document.getElementById('jurnalJenisLatihan').value,
+      deadline_latihan : document.getElementById('jurnalDeadline').value,
     });
 
     // 2. Simpan nilai per murid
@@ -1304,6 +1437,123 @@ async function simpanEditPresensi() {
     if (rSel) loadRiwayat();
     const mSel = document.getElementById('muridHalaqahSel').value;
     if (mSel) loadMurid();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  REFRESH
+// ══════════════════════════════════════════
+async function refreshPage() {
+  const btn = document.getElementById('refreshBtn');
+  btn.style.transform = 'rotate(360deg)';
+  btn.style.transition = 'transform 0.6s ease';
+  setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
+
+  muridCache = {};
+  const active = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (active === 'dashboard') await loadDashboard();
+  else if (active === 'murid' && document.getElementById('muridHalaqahSel').value) await loadMurid();
+  else if (active === 'riwayat' && document.getElementById('riwayatHalaqahSel').value) await loadRiwayat();
+  else await loadDashboard();
+  toast('Data diperbarui','ok');
+}
+
+// ══════════════════════════════════════════
+//  TAMBAH MURID
+// ══════════════════════════════════════════
+function bukaModalTambahMurid() {
+  const id_halaqah = document.getElementById('muridHalaqahSel').value;
+  // Populate halaqah dropdown
+  const sel = document.getElementById('tmHalaqah');
+  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' +
+    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}" ${h.id_halaqah===id_halaqah?'selected':''}>${esc(h.nama_halaqah)}</option>`).join('');
+  // Trigger load murid belum terdaftar
+  if (id_halaqah) loadMuridBelum(id_halaqah);
+  sel.onchange = () => loadMuridBelum(sel.value);
+  openModal('tambahMuridModal');
+}
+
+async function loadMuridBelum(id_halaqah) {
+  const sel = document.getElementById('tmMurid');
+  sel.innerHTML = '<option value="">Memuat...</option>';
+  try {
+    const r = await window.HQ.GuruAPI.getMuridBelum(id_halaqah);
+    const list = r.data || [];
+    sel.innerHTML = list.length
+      ? '<option value="">— Pilih Murid —</option>' + list.map(m => `<option value="${esc(m.id_murid)}">${esc(m.nama_murid)} (${esc(m.id_murid)})</option>`).join('')
+      : '<option value="">Semua murid sudah terdaftar</option>';
+  } catch(e) {
+    sel.innerHTML = '<option value="">Gagal memuat</option>';
+  }
+}
+
+async function doTambahMurid() {
+  const id_halaqah   = document.getElementById('tmHalaqah').value;
+  const id_murid     = document.getElementById('tmMurid').value;
+  const level        = document.getElementById('tmLevel').value;
+  const target_level = document.getElementById('tmTargetLevel').value;
+
+  if (!id_halaqah) return toast('Pilih halaqah','err');
+  if (!id_murid)   return toast('Pilih murid','err');
+
+  showLoad('Menambahkan murid...');
+  try {
+    const r = await window.HQ.GuruAPI.addMuridByGuru({ id_halaqah, id_murid, level, target_level });
+    closeModal('tambahMuridModal');
+    muridCache = {};
+    toast(r.message || 'Murid berhasil ditambahkan!','ok');
+    if (document.getElementById('muridHalaqahSel').value === id_halaqah) loadMurid();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PENGUMUMAN
+// ══════════════════════════════════════════
+function initPengumumanPage() {
+  const sel = document.getElementById('pngHalaqah');
+  sel.innerHTML = '<option value="semua">Semua Halaqah Saya</option>' +
+    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
+}
+
+async function doKirimPengumuman() {
+  const judul      = document.getElementById('pngJudul').value.trim();
+  const isi        = document.getElementById('pngIsi').value.trim();
+  const target     = document.getElementById('pngHalaqah').value;
+  const id_halaqah = target === 'semua' ? '' : target;
+
+  if (!judul) return toast('Judul wajib diisi','err');
+  if (!isi)   return toast('Isi pengumuman wajib diisi','err');
+
+  showLoad('Mengirim pengumuman...');
+  try {
+    await window.HQ.GuruAPI.kirimPengumuman({ judul, isi, target, id_halaqah });
+    document.getElementById('pngJudul').value = '';
+    document.getElementById('pngIsi').value   = '';
+    toast('Pengumuman berhasil dikirim! 📢','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  UPDATE doSelesaiKBM — tambah latihan mandiri
+// ══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  GENERATE REKAP
+// ══════════════════════════════════════════
+async function doGenerateRekap(tipe) {
+  const id_halaqah = document.getElementById('riwayatHalaqahSel').value;
+  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
+
+  const label = tipe === 'presensi' ? 'Rekap Presensi' : 'Rekap Nilai';
+  showLoad('Membuat ' + label + '...');
+  try {
+    const fn = tipe === 'presensi'
+      ? window.HQ.GuruAPI.generateRekapPresensi
+      : window.HQ.GuruAPI.generateRekapNilai;
+    const r = await fn(id_halaqah);
+    toast('✅ ' + r.message, 'ok');
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
 }
