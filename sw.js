@@ -6,7 +6,7 @@
 //            Network-First untuk panggilan API GAS.
 // ============================================================
 
-const APP_VERSION   = 'v1.0.0';
+const APP_VERSION   = 'v1.1.0';
 const CACHE_STATIC  = `halaqah-static-${APP_VERSION}`;
 const CACHE_DYNAMIC = `halaqah-dynamic-${APP_VERSION}`;
 
