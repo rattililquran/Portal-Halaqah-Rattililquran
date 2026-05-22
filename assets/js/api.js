@@ -7,7 +7,7 @@
 // ============================================================
 
 // ─── GANTI INI SETELAH DEPLOY GAS ───
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbzz45SY5AvTFz0t8WY5tygrBJJSxX82nK-OklnRO2swLRfloCafZijRDx2EzFbaCF6dgA/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbz-PL7V7OYzbClhxNIk-5aH8VVR1RP8S4zi_UjXlwLDJbq2lJJrabGqE0YeedhAx7uIEQ/exec';
 
 // ─── Helper ambil token dari storage ───
 function getToken() {
@@ -52,7 +52,9 @@ const Auth = {
     localStorage.removeItem('hq_user');
     sessionStorage.removeItem('hq_token');
     sessionStorage.removeItem('hq_user');
-    window.location.href = '/index.html';
+    // Deteksi apakah di subfolder atau root
+    const depth = window.location.pathname.split('/').filter(Boolean).length;
+    window.location.href = depth >= 2 ? '../index.html' : 'index.html';
   },
   getUser: () => {
     return JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
