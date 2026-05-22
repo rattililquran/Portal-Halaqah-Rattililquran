@@ -79,32 +79,54 @@ const Auth = {
 // ════════════════════════════════════════════════
 const AdminAPI = {
   // Dashboard
-  getDashboard:    ()          => apiGet('getDashboardAdmin'),
+  getDashboard:        ()           => apiGet('getDashboardAdmin'),
+
+  // Periode
+  getAllPeriode:        ()           => apiGet('getAllPeriode'),
+  createPeriode:       (data)       => apiPost('createPeriode', data),
+  updatePeriode:       (data)       => apiPost('updatePeriode', data),
 
   // Users
-  getAllUsers:     (role)      => apiGet('getAllUsers', role ? { role } : {}),
-  createUser:     (data)      => apiPost('createUser', data),
-  updateUser:     (data)      => apiPost('updateUser', data),
-  deleteUser:     (id_user)   => apiPost('deleteUser', { id_user }),
+  getAllUsers:          (role)       => apiGet('getAllUsers', role ? { role } : {}),
+  createUser:          (data)       => apiPost('createUser', data),
+  updateUser:          (data)       => apiPost('updateUser', data),
+  deleteUser:          (id_user)    => apiPost('deleteUser', { id_user }),
+  bulkImportUsers:     (data)       => apiPost('bulkImportUsers', data),
 
   // Halaqah
-  getAllHalaqah:   ()          => apiGet('getAllHalaqah'),
-  createHalaqah:  (data)      => apiPost('createHalaqah', data),
-  updateHalaqah:  (data)      => apiPost('updateHalaqah', data),
-  deleteHalaqah:  (id_halaqah)=> apiPost('deleteHalaqah', { id_halaqah }),
+  getAllHalaqah:        ()           => apiGet('getAllHalaqah'),
+  createHalaqah:       (data)       => apiPost('createHalaqah', data),
+  updateHalaqah:       (data)       => apiPost('updateHalaqah', data),
+  deleteHalaqah:       (id_halaqah) => apiPost('deleteHalaqah', { id_halaqah }),
 
   // Anggota
-  addAnggota:     (data)      => apiPost('addAnggota', data),
-  removeAnggota:  (id_anggota)=> apiPost('removeAnggota', { id_anggota }),
+  getAllAnggota:        (id_halaqah) => apiGet('getAllAnggota', id_halaqah ? { id_halaqah } : {}),
+  addAnggota:          (data)       => apiPost('addAnggota', data),
+  updateAnggota:       (data)       => apiPost('updateAnggota', data),
+  removeAnggota:       (id_anggota) => apiPost('removeAnggota', { id_anggota }),
 
   // Laporan
-  getAllKBM:       (params)    => apiGet('getAllKBM', params || {}),
-  getRekapAbsensi:(params)    => apiGet('getRekapAbsensi', params || {}),
-  getLaporanGlobal:()         => apiGet('getLaporanGlobal'),
-  getAuditLog:    ()          => apiGet('getAuditLog'),
+  getAllKBM:            (params)     => apiGet('getAllKBM', params || {}),
+  getRekapAbsensi:     (params)     => apiGet('getRekapAbsensi', params || {}),
+  getLaporanGlobal:    (params)     => apiGet('getLaporanGlobal', params || {}),
+  getAuditLog:         ()           => apiGet('getAuditLog'),
+
+  // Komponen & Nilai Raport
+  getKomponenRaport:   (id_periode) => apiGet('getKomponenRaport', { id_periode }),
+  saveKomponenRaport:  (data)       => apiPost('saveKomponenRaport', data),
+  getNilaiManual:      (id_periode) => apiGet('getNilaiManual', { id_periode }),
+  saveNilaiManual:     (data)       => apiPost('saveNilaiManual', data),
+
+  // Raport
+  generateRaport:      (data)       => apiPost('generateRaportMurid', data),
+  generateRaportBulk:  (data)       => apiPost('generateRaportBulk', data),
+  getRaportList:       (id_periode) => apiGet('getRaportList', { id_periode }),
+  publishRaport:       (id_raport)  => apiPost('publishRaport', { id_raport }),
+  kirimRaportEmail:    (id_raport)  => apiPost('kirimRaportEmail', { id_raport }),
 
   // Pengumuman
-  buatPengumuman: (data)      => apiPost('buatPengumuman', data),
+  buatPengumuman:      (data)       => apiPost('buatPengumuman', data),
+  getAllPengumuman:     ()           => apiGet('getAllPengumuman'),
 };
 
 // ════════════════════════════════════════════════
