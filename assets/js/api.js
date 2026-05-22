@@ -125,6 +125,11 @@ const GuruAPI = {
   simpanNilaiMurid:   (data)               => apiPost('simpanNilaiMurid', data),
   tutupKBM:           (id_kbm)             => apiPost('tutupKBM', { id_kbm }),
   updateCatatanMurid: (data)               => apiPost('updateCatatanMurid', data),
+  addMuridByGuru:     (data)               => apiPost('addMuridByGuru', data),
+  kirimPengumuman:    (data)               => apiPost('kirimPengumumanGuru', data),
+  getMuridBelum:      (id_halaqah)         => apiGet('getMuridBelumDiHalaqah', { id_halaqah }),
+  generateRekapPresensi: (id_halaqah)      => apiGet('generateRekapPresensi', { id_halaqah }),
+  generateRekapNilai:    (id_halaqah)      => apiGet('generateRekapNilai', { id_halaqah }),
 };
 
 // ════════════════════════════════════════════════
