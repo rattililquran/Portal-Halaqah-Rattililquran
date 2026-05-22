@@ -27,13 +27,17 @@ async function apiGet(action, params = {}) {
   return data;
 }
 
-// ─── POST request ───
+// ─── POST request — pakai GET untuk hindari CORS preflight 405 ───
 async function apiPost(action, body = {}) {
-  const res = await fetch(BASE_URL, {
-    method:  'POST',
-    mode:    'cors',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ action, token: getToken(), data: body }),
+  // Encode data sebagai JSON dalam query param untuk hindari preflight
+  const query = new URLSearchParams({
+    action,
+    token: getToken(),
+    payload: JSON.stringify(body),
+  });
+  const res = await fetch(`${BASE_URL}?${query}`, {
+    method: 'GET',
+    mode:   'cors',
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
