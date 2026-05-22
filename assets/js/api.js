@@ -7,7 +7,7 @@
 // ============================================================
 
 // ─── GANTI INI SETELAH DEPLOY GAS ───
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbxHViZteE33bJNzisZnU4RV1uyMi-vkUPX6JwjQNGCe_5gOrzP9WimC8VvMKqcrAtAC/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbzz45SY5AvTFz0t8WY5tygrBJJSxX82nK-OklnRO2swLRfloCafZijRDx2EzFbaCF6dgA/exec';
 
 // ─── Helper ambil token dari storage ───
 function getToken() {
