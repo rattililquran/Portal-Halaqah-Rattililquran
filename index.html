@@ -1,925 +1,590 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#1458A8" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Halaqah" />
-  <meta name="description" content="Portal Manajemen Halaqah Rattililqur'an — KBM, Hafalan, Absensi" />
-  <title>Rattililqur'an — Portal Halaqah</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --blue-900:  #061a36;
-      --blue-800:  #0c2e5e;
-      --blue-700:  #1458A8;
-      --blue-600:  #1a6fc4;
-      --blue-500:  #2a8de0;
-      --blue-400:  #5aabf0;
-      --blue-300:  #93c8f8;
-      --blue-200:  #c3e0fc;
-      --glass-bg:        rgba(255,255,255,0.18);
-      --glass-bg-card:   rgba(255,255,255,0.52);
-      --glass-border:    rgba(255,255,255,0.52);
-      --glass-border-sub:rgba(255,255,255,0.22);
-      --glass-shadow:    0 8px 32px rgba(14,78,168,0.18),0 1.5px 6px rgba(14,78,168,0.10);
-      --glass-shadow-lg: 0 20px 60px rgba(14,78,168,0.24),0 4px 16px rgba(14,78,168,0.14);
-      --glass-blur:      blur(24px) saturate(1.7);
-      --glass-blur-sm:   blur(12px) saturate(1.4);
-      --font-sans:   'Plus Jakarta Sans', system-ui, sans-serif;
-      --font-arabic: 'Amiri', serif;
-      --r-md:  16px; --r-lg: 22px; --r-xl: 28px; --r-2xl: 38px; --r-pill: 100px;
-      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-      --ease-out:    cubic-bezier(0.16,1,0.3,1);
-      --t-fast: 180ms; --t-mid: 320ms; --t-slow: 500ms;
-      --sat: env(safe-area-inset-top,0px);
-      --sab: env(safe-area-inset-bottom,0px);
-      --sal: env(safe-area-inset-left,0px);
-      --sar: env(safe-area-inset-right,0px);
-    }
-    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
-    body { font-family:var(--font-sans); background:var(--blue-900); color:#fff; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#2563EB"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Halaqah"/>
+<title>Rattililqur'an — Portal Halaqah</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --blue-1: #1e4fd8;
+  --blue-2: #2563EB;
+  --blue-3: #3b82f6;
+  --blue-4: #60a5fa;
+  --blue-5: #bfdbfe;
+  --blue-6: #eff6ff;
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
+  --text-4: #94a3b8;
+  --border: rgba(148,163,184,0.18);
+  --border-md: rgba(148,163,184,0.28);
+  --white: #ffffff;
+  --bg: #f1f5f9;
 
-    /* ── BG ── */
-    .bg-mesh { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
-    .bg-mesh::before {
-      content:''; position:absolute; inset:0;
-      background:
-        radial-gradient(ellipse 80% 60% at 15% 10%, #1a6fc4 0%, transparent 58%),
-        radial-gradient(ellipse 55% 75% at 85% 92%, #0c2e5e 0%, transparent 55%),
-        radial-gradient(ellipse 45% 45% at 62% 38%, #2a8de0 0%, transparent 50%),
-        linear-gradient(158deg,#061a36 0%,#0a2550 45%,#061a36 100%);
-      animation:meshShift 20s ease-in-out infinite alternate;
-    }
-    .bg-mesh::after {
-      content:''; position:absolute; inset:0;
-      background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.035) 1px,transparent 0);
-      background-size:38px 38px;
-    }
-    .orb { position:absolute; border-radius:50%; filter:blur(70px); animation:orbFloat var(--dur,14s) ease-in-out infinite alternate; }
-    .orb-1 { width:500px; height:500px; background:#2a8de0; opacity:.28; top:-140px; left:-160px; --dur:17s; }
-    .orb-2 { width:340px; height:340px; background:#1458A8; opacity:.30; bottom:-100px; right:-100px; --dur:13s; animation-delay:-5s; }
-    .orb-3 { width:220px; height:220px; background:#93c8f8; opacity:.18; top:50%; left:58%; --dur:22s; animation-delay:-9s; }
-    @keyframes meshShift { 0%{transform:scale(1) rotate(0deg)} 100%{transform:scale(1.06) rotate(1.2deg)} }
-    @keyframes orbFloat  { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(36px,-28px) scale(1.08)} }
-    @keyframes fadeUp    { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeIn    { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-    @keyframes spin      { to{transform:rotate(360deg)} }
-    @keyframes slideUp   { from{opacity:0;transform:translateX(-50%) translateY(26px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-    @keyframes pulse     { 0%,100%{opacity:1} 50%{opacity:.5} }
+  /* Glass */
+  --glass: rgba(255,255,255,0.70);
+  --glass-sm: rgba(255,255,255,0.50);
+  --glass-xs: rgba(255,255,255,0.30);
+  --glass-blur: blur(32px) saturate(1.8) brightness(1.04);
+  --glass-blur-sm: blur(18px) saturate(1.5);
+  --glass-shadow: 0 8px 40px rgba(37,99,235,0.10), 0 2px 8px rgba(0,0,0,0.05);
+  --glass-shadow-lg: 0 24px 64px rgba(37,99,235,0.14), 0 4px 16px rgba(0,0,0,0.07);
 
-    /* ── APP SHELL ── */
-    .app { position:relative; z-index:1; min-height:100dvh; display:flex; flex-direction:column; }
+  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px; --r-2xl: 32px; --r-pill: 100px;
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+  --t-fast: 160ms; --t-mid: 300ms;
+  --sat: env(safe-area-inset-top,0px);
+  --sab: env(safe-area-inset-bottom,0px);
+}
 
-    /* ── TOPBAR ── */
-    .topbar {
-      position:sticky; top:0; z-index:100;
-      padding:calc(var(--sat) + 12px) max(22px,var(--sal)) 12px max(22px,var(--sar));
-      background:rgba(6,26,54,0.52); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-      border-bottom:1px solid var(--glass-border-sub);
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
-    .brand-icon {
-      width:38px; height:38px; border-radius:12px; flex-shrink:0;
-      background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
-      display:flex; align-items:center; justify-content:center; font-size:19px;
-      box-shadow:0 4px 14px rgba(42,141,224,0.4),inset 0 1px 0 rgba(255,255,255,0.22);
-    }
-    .brand-name { font-size:15px; font-weight:700; color:#fff; letter-spacing:-.01em; line-height:1.2; }
-    .brand-sub  { font-size:10.5px; color:var(--blue-300); font-weight:500; }
-    .pwa-badge {
-      font-size:10px; font-weight:600; padding:3px 10px; border-radius:var(--r-pill);
-      background:rgba(90,171,240,0.15); border:1px solid rgba(90,171,240,0.32);
-      color:var(--blue-300); letter-spacing:.05em; text-transform:uppercase; flex-shrink:0;
-    }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { -webkit-text-size-adjust:100%; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-    /* ── MAIN ── */
-    .main {
-      flex:1; display:flex; flex-direction:column; align-items:center;
-      padding:36px 20px calc(var(--sab) + 44px); gap:28px;
-      max-width:1120px; margin:0 auto; width:100%;
-    }
+/* ── BACKGROUND ── */
+.bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(145deg, #f8faff 0%, #eef3ff 35%, #f0f7ff 65%, #f5f9ff 100%);
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px);
+  animation: float var(--d,18s) ease-in-out infinite alternate;
+}
+.bg-orb-1 { width:500px;height:500px;background:#c7dcff;opacity:.55;top:-180px;left:-150px;--d:20s; }
+.bg-orb-2 { width:380px;height:380px;background:#bbf7d0;opacity:.40;bottom:-120px;right:-100px;--d:16s;animation-delay:-7s; }
+.bg-orb-3 { width:260px;height:260px;background:#e0eaff;opacity:.60;top:38%;left:55%;--d:24s;animation-delay:-12s; }
+.bg-orb-4 { width:180px;height:180px;background:#dbeafe;opacity:.70;top:12%;right:14%;--d:14s;animation-delay:-3s; }
 
-    /* ── HERO ── */
-    .hero { text-align:center; max-width:600px; animation:fadeUp var(--t-slow) var(--ease-out) both; }
-    .hero-arabic {
-      font-family:var(--font-arabic); font-size:clamp(20px,4.5vw,32px);
-      color:var(--blue-300); letter-spacing:.02em; margin-bottom:10px;
-      text-shadow:0 2px 14px rgba(90,171,240,0.3);
-    }
-    .hero-title {
-      font-size:clamp(26px,5.5vw,46px); font-weight:800; line-height:1.1;
-      letter-spacing:-.03em; margin-bottom:12px;
-      background:linear-gradient(138deg,#fff 25%,var(--blue-300) 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .hero-desc { font-size:clamp(13px,2.2vw,15.5px); color:var(--blue-200); line-height:1.75; max-width:430px; margin:0 auto; }
-    .feature-pills { display:flex; flex-wrap:wrap; justify-content:center; gap:7px; margin-top:20px; }
-    .pill {
-      font-size:11.5px; font-weight:600; padding:5px 13px; border-radius:var(--r-pill);
-      background:var(--glass-bg); border:1px solid var(--glass-border-sub);
-      backdrop-filter:var(--glass-blur-sm); -webkit-backdrop-filter:var(--glass-blur-sm);
-      color:var(--blue-200); display:flex; align-items:center; gap:5px;
-      transition:background var(--t-fast),transform var(--t-fast);
-    }
-    .pill:hover { background:rgba(255,255,255,0.28); transform:translateY(-1px); }
-    .pill-dot { width:5px; height:5px; border-radius:50%; background:var(--blue-400); flex-shrink:0; }
+@keyframes float { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(28px,-20px) scale(1.06)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+@keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(22px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
 
-    /* ── PORTAL CARDS ── */
-    .portals-grid {
-      display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:100%;
-      animation:fadeUp var(--t-slow) var(--ease-out) 120ms both;
-    }
-    @media(max-width:600px) { .portals-grid { grid-template-columns:1fr; gap:12px; } }
-    @media(min-width:601px) and (max-width:880px) { .portals-grid { grid-template-columns:repeat(3,1fr); gap:11px; } }
+/* ── APP ── */
+.app { position:relative; z-index:1; min-height:100dvh; display:flex; flex-direction:column; }
 
-    .portal-card {
-      position:relative; border-radius:var(--r-xl);
-      background:var(--glass-bg-card); border:1px solid var(--glass-border);
-      backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-      box-shadow:var(--glass-shadow); overflow:hidden; cursor:pointer;
-      transition:transform var(--t-mid) var(--ease-spring),box-shadow var(--t-mid) var(--ease-out),outline-color var(--t-fast);
-      display:flex; flex-direction:column; outline:2.5px solid transparent; outline-offset:2px;
-    }
-    .portal-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:1px;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,0.72),transparent);
-    }
-    .portal-card:hover  { transform:translateY(-5px) scale(1.012); box-shadow:var(--glass-shadow-lg); }
-    .portal-card:active { transform:translateY(-1px) scale(0.99); }
-    .portal-card:focus-visible { outline-color:var(--blue-400); }
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top:0; z-index:100;
+  padding: calc(var(--sat) + 10px) 24px 10px;
+  background: rgba(255,255,255,0.68);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(255,255,255,0.85);
+  box-shadow: 0 1px 16px rgba(37,99,235,0.07);
+  display: flex; align-items:center; justify-content:space-between;
+}
+.brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.brand-icon {
+  width:36px; height:36px; border-radius:10px;
+  background: linear-gradient(135deg, var(--blue-2), var(--blue-1));
+  display:flex; align-items:center; justify-content:center; font-size:17px;
+  box-shadow: 0 3px 10px rgba(37,99,235,0.22);
+}
+.brand-name { font-size:14px; font-weight:800; color:var(--blue-2); }
+.brand-sub  { font-size:10px; color:var(--text-3); font-weight:500; }
+.pwa-pill {
+  font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill);
+  background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.18);
+  color:var(--blue-2); letter-spacing:.06em; text-transform:uppercase;
+}
 
-    /* Active state */
-    .portal-card.selected-admin  { outline-color:rgba(90,171,240,0.75); }
-    .portal-card.selected-guru   { outline-color:rgba(78,204,163,0.75); }
-    .portal-card.selected-murid  { outline-color:rgba(196,191,255,0.75); }
+/* ── MAIN ── */
+.main {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding: 40px 20px calc(var(--sab)+48px); gap:20px;
+  max-width:1100px; margin:0 auto; width:100%;
+}
 
-    .stripe { height:4px; width:100%; }
-    .card-admin .stripe { background:linear-gradient(90deg,#1a6fc4,#2a8de0); }
-    .card-guru  .stripe { background:linear-gradient(90deg,#0F6E56,#1D9E75); }
-    .card-murid .stripe { background:linear-gradient(90deg,#7F77DD,#A89FFF); }
+/* ── LOGIN CARD ── */
+.login-card {
+  width:100%; max-width:400px;
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255,255,255,0.90);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--glass-shadow-lg);
+  overflow: hidden;
+  animation: fadeUp var(--t-mid) var(--ease-out) both;
+  position: relative;
+}
+/* Top highlight line */
+.login-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px; z-index:2;
+  background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 50%, transparent 95%);
+}
 
-    .portal-card-inner { padding:20px 20px 22px; flex:1; display:flex; flex-direction:column; }
+/* Card header — gradient biru */
+.card-header {
+  padding: 32px 28px 26px;
+  display: flex; flex-direction:column; align-items:center; gap:8px;
+  position: relative; overflow:hidden;
+  transition: background var(--t-mid);
+}
+.card-header::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(160deg, var(--blue-2) 0%, var(--blue-3) 55%, #5b9cf6 100%);
+  z-index:0;
+}
+/* Glass shimmer di header */
+.card-header::after {
+  content:''; position:absolute; inset:0; z-index:1;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 4s linear infinite;
+}
+.card-header.h-guru::before   { background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 55%,#34d399 100%); }
+.card-header.h-murid::before  { background:linear-gradient(160deg,#6d58d6 0%,#7F77DD 55%,#a78bfa 100%); }
 
-    .portal-icon-wrap {
-      width:48px; height:48px; border-radius:14px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:24px; margin-bottom:13px; box-shadow:0 4px 14px rgba(0,0,0,0.14);
-    }
-    .card-admin .portal-icon-wrap { background:linear-gradient(135deg,#1a6fc4,#2a8de0); }
-    .card-guru  .portal-icon-wrap { background:linear-gradient(135deg,#0F6E56,#1D9E75); }
-    .card-murid .portal-icon-wrap { background:linear-gradient(135deg,#7F77DD,#A89FFF); }
+.header-icon-wrap {
+  width:56px; height:56px; border-radius:18px;
+  background: rgba(255,255,255,0.22);
+  border: 1.5px solid rgba(255,255,255,0.40);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center; font-size:26px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.30);
+  position:relative; z-index:2;
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.login-card:hover .header-icon-wrap { transform:scale(1.06) translateY(-1px); }
 
-    .portal-role  { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:3px; }
-    .card-admin .portal-role { color:#5aabf0; }
-    .card-guru  .portal-role { color:#4ecca3; }
-    .card-murid .portal-role { color:#c4bfff; }
+.header-title { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.02em; position:relative; z-index:2; }
+.header-sub   { font-size:12px; color:rgba(255,255,255,0.72); position:relative; z-index:2; }
 
-    .portal-title { font-size:clamp(16px,2.2vw,20px); font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:7px; line-height:1.2; }
-    .portal-desc  { font-size:12.5px; color:rgba(255,255,255,0.58); line-height:1.65; flex:1; }
+/* Role tabs */
+.role-tabs {
+  display:flex; padding:0; margin:0;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.55);
+}
+.role-tab {
+  flex:1; padding:11px 6px; border:none; background:transparent;
+  font-family:inherit; font-size:11.5px; font-weight:600;
+  color:var(--text-3); cursor:pointer; letter-spacing:.03em;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  border-bottom:2.5px solid transparent; margin-bottom:-1px;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.role-tab:hover { color:var(--text-2); background:rgba(255,255,255,0.45); }
+.role-tab.active-admin { color:var(--blue-2); border-bottom-color:var(--blue-2); }
+.role-tab.active-guru  { color:#1D9E75;       border-bottom-color:#1D9E75; }
+.role-tab.active-murid { color:#7F77DD;       border-bottom-color:#7F77DD; }
+.tab-icon { font-size:14px; }
 
-    .portal-features { list-style:none; display:flex; flex-direction:column; gap:5px; margin-top:13px; }
-    .portal-features li { font-size:11.5px; color:rgba(255,255,255,0.68); display:flex; align-items:center; gap:6px; }
-    .feat-dot { width:4px; height:4px; border-radius:50%; flex-shrink:0; }
-    .card-admin .feat-dot { background:#5aabf0; }
-    .card-guru  .feat-dot { background:#4ecca3; }
-    .card-murid .feat-dot { background:#c4bfff; }
+/* Card body */
+.card-body { padding:22px 28px 28px; display:flex; flex-direction:column; gap:14px; }
 
-    /* ── LOGIN PANEL ── */
-    .login-panel {
-      width:100%; max-width:420px;
-      background:var(--glass-bg-card); border:1px solid var(--glass-border);
-      backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-      box-shadow:var(--glass-shadow-lg); border-radius:var(--r-2xl); overflow:hidden; position:relative;
-      animation:fadeUp var(--t-slow) var(--ease-out) 200ms both;
-    }
-    .login-panel::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:1px;
-      background:linear-gradient(90deg,transparent 5%,rgba(255,255,255,0.78) 50%,transparent 95%);
-      z-index:1;
-    }
+/* Toast */
+.toast { font-size:12.5px; font-weight:600; border-radius:var(--r-md); max-height:0; overflow:hidden; padding:0; transition:all var(--t-fast); }
+.toast.error   { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.22); color:#b91c1c; padding:9px 13px; max-height:60px; }
+.toast.success { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.22); color:#065f46; padding:9px 13px; max-height:60px; }
 
-    /* header — dynamic color bar */
-    .login-header {
-      padding:0;
-      position:relative;
-      overflow:hidden;
-    }
-    .login-header-bar {
-      height:5px; width:100%;
-      transition:background var(--t-mid) var(--ease-out);
-    }
-    .bar-admin  { background:linear-gradient(90deg,#1a6fc4,#2a8de0); }
-    .bar-guru   { background:linear-gradient(90deg,#0F6E56,#1D9E75); }
-    .bar-murid  { background:linear-gradient(90deg,#7F77DD,#A89FFF); }
+/* Form field */
+.field-label {
+  font-size:11px; font-weight:700; color:var(--text-3);
+  text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; display:block;
+}
+.field-wrap { position:relative; display:flex; align-items:center; }
+.field-icon { position:absolute; left:13px; font-size:14px; color:var(--blue-3); pointer-events:none; }
+.field-input {
+  width:100%; padding:13px 13px 13px 40px;
+  font-family:inherit; font-size:14px; font-weight:600; color:var(--text-1);
+  background: rgba(255,255,255,0.75);
+  border: 1.5px solid rgba(148,163,184,0.22);
+  border-radius: var(--r-md);
+  outline:none; -webkit-appearance:none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.8);
+  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+.field-input::placeholder { color:var(--text-4); font-weight:400; }
+.field-input:focus {
+  background: rgba(255,255,255,0.95);
+  border-color: var(--blue-3);
+  box-shadow: 0 0 0 3.5px rgba(59,130,246,0.14), 0 2px 6px rgba(0,0,0,0.04);
+}
+.field-input.f-guru:focus  { border-color:#1D9E75; box-shadow:0 0 0 3.5px rgba(29,158,117,0.13); }
+.field-input.f-murid:focus { border-color:#7F77DD; box-shadow:0 0 0 3.5px rgba(127,119,221,0.13); }
+.field-hint { font-size:10.5px; color:var(--text-4); margin-top:4px; padding-left:2px; }
 
-    .login-header-inner { padding:22px 28px 16px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:14px; }
+/* Remember */
+.remember-row { display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none; width:fit-content; }
+.remember-row input[type=checkbox] { width:14px; height:14px; accent-color:var(--blue-2); cursor:pointer; }
+.remember-label { font-size:12px; color:var(--text-3); font-weight:500; }
 
-    .login-avatar {
-      width:46px; height:46px; border-radius:15px; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center; font-size:22px;
-      transition:background var(--t-mid) var(--ease-out), transform var(--t-mid) var(--ease-spring);
-    }
-    .avatar-admin { background:linear-gradient(135deg,#1a6fc4,#2a8de0); }
-    .avatar-guru  { background:linear-gradient(135deg,#0F6E56,#1D9E75); }
-    .avatar-murid { background:linear-gradient(135deg,#7F77DD,#A89FFF); }
+/* Submit */
+.btn-submit {
+  width:100%; padding:14px;
+  border:none; border-radius:var(--r-pill); cursor:pointer;
+  font-family:inherit; font-size:14.5px; font-weight:700; color:#fff;
+  background: linear-gradient(135deg, var(--blue-3), var(--blue-1));
+  box-shadow: 0 4px 18px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: opacity var(--t-fast), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast);
+  margin-top:2px;
+}
+.btn-submit:hover  { opacity:.92; transform:scale(1.018); }
+.btn-submit:active { transform:scale(0.98); }
+.btn-submit:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.btn-submit.s-guru  { background:linear-gradient(135deg,#1D9E75,#0F6E56); box-shadow:0 4px 18px rgba(29,158,117,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
+.btn-submit.s-murid { background:linear-gradient(135deg,#A89FFF,#7F77DD); box-shadow:0 4px 18px rgba(127,119,221,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
 
-    .login-header-text {}
-    .login-greeting { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; margin-bottom:2px; transition:color var(--t-mid); }
-    .greeting-admin { color:#5aabf0; }
-    .greeting-guru  { color:#4ecca3; }
-    .greeting-murid { color:#c4bfff; }
-    .login-title    { font-size:19px; font-weight:800; color:#fff; letter-spacing:-.02em; line-height:1.2; }
+/* ── STATS STRIP ── */
+.stats-row {
+  display:flex; gap:10px; width:100%; max-width:400px; flex-wrap:wrap;
+  animation: fadeUp var(--t-mid) var(--ease-out) 120ms both;
+}
+.stat-pill {
+  flex:1; min-width:80px;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.85);
+  backdrop-filter: var(--glass-blur-sm); -webkit-backdrop-filter:var(--glass-blur-sm);
+  border-radius: var(--r-lg);
+  padding:14px 10px; text-align:center;
+  box-shadow: var(--glass-shadow);
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.stat-pill:hover { transform:translateY(-3px); }
+.stat-emoji { font-size:18px; margin-bottom:4px; }
+.stat-num   { font-size:20px; font-weight:800; color:var(--blue-2); letter-spacing:-.03em; }
+.stat-lbl   { font-size:10px; color:var(--text-3); margin-top:2px; line-height:1.4; font-weight:500; }
 
-    /* role indicator pills row */
-    .role-indicators {
-      display:flex; gap:6px; padding:14px 28px 0;
-    }
-    .role-pill {
-      flex:1; padding:8px 6px; border-radius:12px; cursor:pointer;
-      border:1.5px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.07);
-      color:rgba(255,255,255,0.45); font-family:var(--font-sans);
-      font-size:11px; font-weight:600; text-align:center;
-      display:flex; flex-direction:column; align-items:center; gap:3px;
-      transition:all var(--t-fast) var(--ease-out); user-select:none;
-    }
-    .role-pill .rp-icon { font-size:15px; }
-    .role-pill.rp-active { background:rgba(255,255,255,0.18); border-color:rgba(255,255,255,0.42); color:#fff; }
-    .role-pill.rp-active.rp-admin { border-color:rgba(90,171,240,0.6); }
-    .role-pill.rp-active.rp-guru  { border-color:rgba(78,204,163,0.6); }
-    .role-pill.rp-active.rp-murid { border-color:rgba(196,191,255,0.6); }
+/* ── FOOTER ── */
+.footer { text-align:center; padding:0 20px calc(var(--sab)+16px); font-size:11px; color:var(--text-4); }
 
-    /* form body */
-    .login-body { padding:20px 28px 26px; display:flex; flex-direction:column; gap:13px; }
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display:none; position:fixed; bottom:calc(var(--sab)+14px); left:50%; transform:translateX(-50%);
+  z-index:200; width:min(360px,calc(100vw - 24px));
+  background:rgba(255,255,255,0.88); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid rgba(255,255,255,0.90); border-radius:var(--r-xl);
+  padding:12px 14px; box-shadow:var(--glass-shadow-lg);
+  flex-direction:row; align-items:center; gap:10px;
+  animation:slideUp 380ms var(--ease-spring) both;
+}
+.install-banner.show { display:flex; }
+.ibtn { padding:7px 13px; border-radius:var(--r-pill); font-size:11.5px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
+.ibtn-install { background:linear-gradient(135deg,var(--blue-3),var(--blue-1)); color:#fff; }
+.ibtn-dismiss { background:transparent; border:1px solid var(--border-md); color:var(--text-3); }
 
-    .form-group { display:flex; flex-direction:column; gap:6px; }
-    .form-label { font-size:11.5px; font-weight:600; color:var(--blue-200); letter-spacing:.03em; }
+/* ── LOADING ── */
+.loading-overlay {
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(241,245,249,0.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  align-items:center; justify-content:center; flex-direction:column; gap:14px;
+}
+.loading-overlay.show { display:flex; }
+.spinner { width:40px; height:40px; border:3px solid rgba(37,99,235,0.15); border-top-color:var(--blue-2); border-radius:50%; animation:spin 700ms linear infinite; }
+.loading-text { font-size:13px; color:var(--blue-2); font-weight:600; }
 
-    .form-input-wrap { position:relative; display:flex; align-items:center; }
-    .form-input-icon { position:absolute; left:13px; font-size:15px; color:rgba(255,255,255,0.38); pointer-events:none; z-index:1; }
-
-    .form-input {
-      width:100%; padding:12px 13px 12px 40px; font-family:var(--font-sans);
-      font-size:14px; font-weight:500;
-      background:rgba(255,255,255,0.11); border:1.5px solid rgba(255,255,255,0.18);
-      border-radius:var(--r-md); color:#fff; outline:none; -webkit-appearance:none;
-      transition:border-color var(--t-fast),background var(--t-fast),box-shadow var(--t-fast);
-    }
-    .form-input::placeholder { color:rgba(255,255,255,0.32); }
-    .form-input:focus {
-      border-color:rgba(90,171,240,0.7); background:rgba(255,255,255,0.16);
-      box-shadow:0 0 0 3px rgba(90,171,240,0.16);
-    }
-    .form-input.focus-guru:focus  { border-color:rgba(78,204,163,0.7); box-shadow:0 0 0 3px rgba(78,204,163,0.14); }
-    .form-input.focus-murid:focus { border-color:rgba(196,191,255,0.7); box-shadow:0 0 0 3px rgba(196,191,255,0.14); }
-
-    /* NIS hint */
-    .nis-hint { font-size:10.5px; color:rgba(255,255,255,0.35); margin-top:2px; padding-left:2px; }
-
-    .pwd-toggle {
-      position:absolute; right:11px; background:none; border:none; cursor:pointer;
-      color:rgba(255,255,255,0.42); font-size:15px; padding:4px; border-radius:6px;
-      display:flex; align-items:center; transition:color var(--t-fast);
-    }
-    .pwd-toggle:hover { color:rgba(255,255,255,0.85); }
-
-    .form-row { display:flex; align-items:center; justify-content:space-between; }
-    .checkbox-wrap { display:flex; align-items:center; gap:7px; cursor:pointer; }
-    .checkbox-wrap input[type="checkbox"] { width:14px; height:14px; accent-color:var(--blue-400); cursor:pointer; }
-    .checkbox-label { font-size:11.5px; color:rgba(255,255,255,0.58); }
-    .forgot-link { font-size:11.5px; color:var(--blue-300); text-decoration:none; font-weight:600; transition:color var(--t-fast); }
-    .forgot-link:hover { color:#fff; }
-
-    /* submit */
-    .btn-login {
-      width:100%; padding:13px; border-radius:var(--r-pill); font-family:var(--font-sans);
-      font-size:14px; font-weight:700; letter-spacing:.015em; border:none; cursor:pointer; color:#fff;
-      background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
-      box-shadow:0 4px 20px rgba(26,111,196,0.45),inset 0 1px 0 rgba(255,255,255,0.18);
-      transition:opacity var(--t-fast),transform var(--t-fast) var(--ease-spring),box-shadow var(--t-fast),background var(--t-mid);
-      display:flex; align-items:center; justify-content:center; gap:8px; margin-top:2px;
-    }
-    .btn-login:hover  { opacity:.91; transform:scale(1.02); }
-    .btn-login:active { transform:scale(0.98); }
-    .btn-login.btn-guru  { background:linear-gradient(135deg,#0F6E56,#1D9E75); box-shadow:0 4px 20px rgba(29,158,117,0.4),inset 0 1px 0 rgba(255,255,255,0.18); }
-    .btn-login.btn-murid { background:linear-gradient(135deg,#7F77DD,#A89FFF); box-shadow:0 4px 20px rgba(127,119,221,0.4),inset 0 1px 0 rgba(255,255,255,0.18); }
-
-    .divider { display:flex; align-items:center; gap:10px; color:rgba(255,255,255,0.22); font-size:10.5px; }
-    .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.1); }
-
-    .btn-google {
-      width:100%; padding:12px; border-radius:var(--r-pill); font-family:var(--font-sans);
-      font-size:13px; font-weight:600; border:1.5px solid rgba(255,255,255,0.2);
-      background:rgba(255,255,255,0.08); color:#fff; cursor:pointer;
-      display:flex; align-items:center; justify-content:center; gap:9px;
-      transition:background var(--t-fast),border-color var(--t-fast),transform var(--t-fast);
-    }
-    .btn-google:hover  { background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.36); }
-    .btn-google:active { transform:scale(0.98); }
-    .google-icon {
-      width:17px; height:17px; flex-shrink:0;
-      background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center/contain no-repeat;
-    }
-
-    /* toast */
-    .toast { display:none; align-items:center; gap:8px; padding:10px 13px; border-radius:var(--r-md); font-size:12px; font-weight:500; animation:fadeIn 200ms ease; line-height:1.5; }
-    .toast.error   { display:flex; background:rgba(231,76,60,0.16); border:1px solid rgba(231,76,60,0.32); color:#fca5a5; }
-    .toast.success { display:flex; background:rgba(29,158,117,0.16); border:1px solid rgba(29,158,117,0.32); color:#6ee7b7; }
-
-    /* ── STATS STRIP ── */
-    .stats-strip {
-      width:100%; background:var(--glass-bg); border:1px solid var(--glass-border-sub);
-      backdrop-filter:var(--glass-blur-sm); -webkit-backdrop-filter:var(--glass-blur-sm);
-      border-radius:var(--r-xl); display:grid; grid-template-columns:repeat(4,1fr); overflow:hidden;
-      animation:fadeUp var(--t-slow) var(--ease-out) 260ms both;
-    }
-    @media(max-width:520px) { .stats-strip { grid-template-columns:repeat(2,1fr); } }
-    .stat-item { padding:18px 14px; text-align:center; border-right:1px solid rgba(255,255,255,0.07); display:flex; flex-direction:column; align-items:center; gap:3px; }
-    .stat-item:last-child { border-right:none; }
-    .stat-num {
-      font-size:clamp(24px,4vw,34px); font-weight:800; letter-spacing:-.03em;
-      background:linear-gradient(138deg,#fff 30%,var(--blue-300) 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .stat-lbl  { font-size:10.5px; color:rgba(255,255,255,0.45); font-weight:500; line-height:1.3; text-align:center; }
-    .stat-icon { font-size:15px; margin-bottom:1px; }
-
-    /* ── FOOTER ── */
-    .footer {
-      text-align:center; padding:0 20px calc(var(--sab) + 18px);
-      font-size:11.5px; color:rgba(255,255,255,0.28); display:flex; flex-direction:column; gap:4px;
-      animation:fadeUp var(--t-slow) var(--ease-out) 300ms both;
-    }
-    .footer a { color:var(--blue-400); text-decoration:none; }
-    .footer a:hover { color:var(--blue-200); }
-
-    /* ── INSTALL BANNER ── */
-    .install-banner {
-      display:none; position:fixed; bottom:calc(var(--sab) + 16px); left:50%; transform:translateX(-50%);
-      z-index:200; width:min(370px,calc(100vw - 28px));
-      background:rgba(6,26,54,0.92); backdrop-filter:blur(36px) saturate(1.8); -webkit-backdrop-filter:blur(36px) saturate(1.8);
-      border:1px solid rgba(90,171,240,0.32); border-radius:var(--r-xl);
-      padding:14px 16px; box-shadow:0 16px 48px rgba(0,0,0,0.42);
-      flex-direction:row; align-items:center; gap:11px; animation:slideUp 400ms var(--ease-spring) both;
-    }
-    .install-banner.show { display:flex; }
-    .install-icon { font-size:26px; flex-shrink:0; }
-    .install-text { flex:1; }
-    .install-title { font-size:13px; font-weight:700; color:#fff; }
-    .install-desc  { font-size:11px; color:var(--blue-300); margin-top:1px; }
-    .install-btns  { display:flex; gap:6px; flex-shrink:0; }
-    .btn-install {
-      padding:7px 13px; border-radius:var(--r-pill); font-size:12px; font-weight:700;
-      border:none; cursor:pointer; background:linear-gradient(135deg,var(--blue-500),var(--blue-700)); color:#fff;
-      font-family:var(--font-sans);
-    }
-    .btn-dismiss {
-      padding:7px 9px; border-radius:var(--r-pill); font-size:12px; font-weight:600;
-      border:1px solid rgba(255,255,255,0.18); background:transparent; color:rgba(255,255,255,0.5); cursor:pointer;
-      font-family:var(--font-sans);
-    }
-
-    /* ── LOADING OVERLAY ── */
-    .loading-overlay {
-      display:none; position:fixed; inset:0; z-index:300;
-      background:rgba(6,26,54,0.62); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-      align-items:center; justify-content:center; flex-direction:column; gap:16px;
-    }
-    .loading-overlay.show { display:flex; }
-    .spinner { width:44px; height:44px; border:3px solid rgba(255,255,255,0.13); border-top-color:var(--blue-400); border-radius:50%; animation:spin 700ms linear infinite; }
-    .loading-text { font-size:13px; color:rgba(255,255,255,0.68); font-weight:500; }
-
-    /* ── RESPONSIVE DESKTOP ── */
-    @media(min-width:961px) {
-      .main { flex-direction:row; flex-wrap:wrap; align-items:flex-start; padding-top:48px; gap:30px; }
-      .hero { text-align:left; align-self:center; flex:1 1 300px; max-width:420px; }
-      .hero-desc { margin:0; }
-      .feature-pills { justify-content:flex-start; }
-      .portals-grid { flex:1 1 100%; order:2; }
-      .login-panel { flex:0 0 380px; position:sticky; top:90px; order:1; }
-      .stats-strip { flex:1 1 100%; order:3; }
-      .footer { order:4; }
-    }
-
-    @media(max-width:480px) {
-      .topbar { padding-left:16px; padding-right:16px; }
-      .main { padding:22px 14px calc(var(--sab) + 32px); gap:22px; }
-      .login-header-inner,.login-body,.role-indicators { padding-left:20px; padding-right:20px; }
-    }
-
-    @media(prefers-reduced-motion:reduce) {
-      *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
-    }
-  </style>
+@media(min-width:720px) {
+  .main { flex-direction:row; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap; padding-top:60px; }
+  .login-card { flex:0 0 400px; }
+  .side-info  { flex:1 1 280px; max-width:380px; }
+  .stats-row  { max-width:380px; }
+}
+@media(max-width:480px) {
+  .topbar { padding-left:16px; padding-right:16px; }
+  .card-body,.card-header { padding-left:20px; padding-right:20px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+</style>
 </head>
 <body>
 
-  <div class="bg-mesh" aria-hidden="true">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
+<div class="bg" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+</div>
 
-  <div class="app">
+<div class="app">
 
-    <!-- ════ TOPBAR ════ -->
-    <header class="topbar" role="banner">
-      <a class="brand" href="#" aria-label="Halaman utama Rattililqur'an">
-        <div class="brand-icon" aria-hidden="true">☪</div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="brand" href="#">
+      <div class="brand-icon">☪</div>
+      <div>
+        <div class="brand-name">Rattililqur'an</div>
+        <div class="brand-sub">Portal Manajemen Halaqah</div>
+      </div>
+    </a>
+    <span class="pwa-pill">PWA Ready</span>
+  </header>
+
+  <main class="main">
+
+    <!-- ── SIDE INFO (desktop only) ── -->
+    <div class="side-info" style="display:flex;flex-direction:column;gap:16px;animation:fadeUp 300ms var(--ease-out) both">
+      <div>
+        <p style="font-family:'Amiri',serif;font-size:clamp(16px,3vw,22px);color:var(--blue-2);margin-bottom:8px">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+        <h1 style="font-size:clamp(24px,4vw,36px);font-weight:800;color:var(--text-1);letter-spacing:-.03em;line-height:1.15;margin-bottom:10px">Sistem Manajemen<br/>Halaqah Digital</h1>
+        <p style="font-size:13.5px;color:var(--text-3);line-height:1.75;max-width:320px">Kelola KBM, hafalan Al-Qur'an, absensi, dan perkembangan murid dalam satu platform terintegrasi.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📋 Absensi Real-time</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📖 Tracking Hafalan</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📊 Laporan Otomatis</span>
+        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📵 Offline Ready</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-pill"><div class="stat-emoji">🕌</div><div class="stat-num counter" data-target="4">4</div><div class="stat-lbl">Halaqah Aktif</div></div>
+        <div class="stat-pill"><div class="stat-emoji">👨‍🏫</div><div class="stat-num counter" data-target="8">8</div><div class="stat-lbl">Guru / Musyrif</div></div>
+        <div class="stat-pill"><div class="stat-emoji">🧒</div><div class="stat-num counter" data-target="48">48</div><div class="stat-lbl">Murid Terdaftar</div></div>
+        <div class="stat-pill"><div class="stat-emoji">📋</div><div class="stat-num counter" data-target="87" data-suffix="%">87%</div><div class="stat-lbl">Rata-rata Hadir</div></div>
+      </div>
+    </div>
+
+    <!-- ── LOGIN CARD ── -->
+    <div class="login-card" id="login-card">
+
+      <!-- Header gradient -->
+      <div class="card-header" id="card-header">
+        <div class="header-icon-wrap" id="header-icon">🛡️</div>
+        <div class="header-title" id="header-title">Rattililqur'an</div>
+        <div class="header-sub" id="header-sub">Portal Manajemen Halaqah</div>
+      </div>
+
+      <!-- Role tabs -->
+      <div class="role-tabs">
+        <button class="role-tab active-admin" id="tab-admin" onclick="selectRole('admin')">
+          <span class="tab-icon">🛡️</span>ADMIN
+        </button>
+        <button class="role-tab" id="tab-guru" onclick="selectRole('guru')">
+          <span class="tab-icon">📖</span>GURU
+        </button>
+        <button class="role-tab" id="tab-murid" onclick="selectRole('murid')">
+          <span class="tab-icon">🌙</span>MURID
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="card-body">
+
+        <div class="toast" id="login-toast" role="alert" aria-live="polite"></div>
+
+        <!-- NIS -->
         <div>
-          <div class="brand-name">Rattililqur'an</div>
-          <div class="brand-sub">Portal Manajemen Halaqah</div>
+          <label class="field-label" for="input-nis">NIS / Nomor Induk Santri</label>
+          <div class="field-wrap">
+            <span class="field-icon">🪪</span>
+            <input class="field-input" type="text" id="input-nis"
+              placeholder="Contoh: USR-ADMIN-001"
+              autocomplete="username" maxlength="30"
+              aria-required="true" aria-describedby="nis-hint"/>
+          </div>
+          <p class="field-hint" id="nis-hint">NIS terdaftar di sistem Rattililqur'an</p>
         </div>
-      </a>
-      <span class="pwa-badge" aria-label="Aplikasi siap diinstal">PWA Ready</span>
-    </header>
 
-    <!-- ════ MAIN ════ -->
-    <main class="main" role="main">
+        <!-- Ingat saya -->
+        <label class="remember-row">
+          <input type="checkbox" id="remember-me"/>
+          <span class="remember-label">Ingat saya</span>
+        </label>
 
-      <!-- HERO -->
-      <section class="hero" aria-labelledby="hero-title">
-        <p class="hero-arabic" aria-label="Bismillahirrahmanirrahim">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-        <h1 class="hero-title" id="hero-title">Sistem Manajemen<br/>Halaqah Digital</h1>
-        <p class="hero-desc">Kelola KBM, hafalan Al-Qur'an, absensi, dan perkembangan murid dalam satu platform terintegrasi yang mudah diakses kapan saja.</p>
-        <div class="feature-pills" role="list" aria-label="Fitur unggulan">
-          <div class="pill" role="listitem"><span class="pill-dot" aria-hidden="true"></span>Absensi Real-time</div>
-          <div class="pill" role="listitem"><span class="pill-dot" aria-hidden="true"></span>Tracking Hafalan</div>
-          <div class="pill" role="listitem"><span class="pill-dot" aria-hidden="true"></span>Laporan Otomatis</div>
-          <div class="pill" role="listitem"><span class="pill-dot" aria-hidden="true"></span>Offline Ready</div>
-        </div>
-      </section>
+        <!-- Submit -->
+        <button class="btn-submit" id="btn-submit" onclick="doLogin()">
+          <span id="btn-text">Masuk sebagai Admin</span>
+        </button>
 
-      <!-- PORTAL CARDS — klik untuk pilih role -->
-      <div style="width:100%">
-        <div class="portals-grid" role="list" aria-label="Portal tersedia">
-
-          <!-- Admin -->
-          <article class="portal-card card-admin" id="card-admin" role="listitem" tabindex="0"
-            aria-label="Portal Administrator — klik untuk memilih"
-            onclick="selectRole('admin')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRole('admin')}">
-            <div class="stripe" aria-hidden="true"></div>
-            <div class="portal-card-inner">
-              <div class="portal-icon-wrap" aria-hidden="true">🛡️</div>
-              <p class="portal-role">Administrator</p>
-              <h2 class="portal-title">Portal Admin</h2>
-              <p class="portal-desc">Kelola seluruh sistem, data guru, murid, halaqah, dan pantau laporan KBM global.</p>
-              <ul class="portal-features" aria-label="Fitur admin">
-                <li><span class="feat-dot" aria-hidden="true"></span>Manajemen Guru &amp; Murid</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Rekap Absensi &amp; KBM</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Laporan &amp; Pengumuman</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Pengaturan Halaqah</li>
-              </ul>
-            </div>
-          </article>
-
-          <!-- Guru -->
-          <article class="portal-card card-guru" id="card-guru" role="listitem" tabindex="0"
-            aria-label="Portal Guru — klik untuk memilih"
-            onclick="selectRole('guru')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRole('guru')}">
-            <div class="stripe" aria-hidden="true"></div>
-            <div class="portal-card-inner">
-              <div class="portal-icon-wrap" aria-hidden="true">📖</div>
-              <p class="portal-role">Musyrif / Musyrifah</p>
-              <h2 class="portal-title">Portal Guru</h2>
-              <p class="portal-desc">Catat KBM, input absensi murid, nilai hafalan, dan pantau perkembangan per sesi.</p>
-              <ul class="portal-features" aria-label="Fitur guru">
-                <li><span class="feat-dot" aria-hidden="true"></span>Buka / Tutup Sesi KBM</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Input Absensi Murid</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Catat Hafalan &amp; Nilai</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Catatan Perkembangan</li>
-              </ul>
-            </div>
-          </article>
-
-          <!-- Murid -->
-          <article class="portal-card card-murid" id="card-murid" role="listitem" tabindex="0"
-            aria-label="Portal Murid — klik untuk memilih"
-            onclick="selectRole('murid')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRole('murid')}">
-            <div class="stripe" aria-hidden="true"></div>
-            <div class="portal-card-inner">
-              <div class="portal-icon-wrap" aria-hidden="true">🌙</div>
-              <p class="portal-role">Santri / Peserta</p>
-              <h2 class="portal-title">Portal Murid</h2>
-              <p class="portal-desc">Lihat progres hafalan, riwayat kehadiran, jadwal halaqah, dan penilaian dari guru.</p>
-              <ul class="portal-features" aria-label="Fitur murid">
-                <li><span class="feat-dot" aria-hidden="true"></span>Progress Hafalan</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Riwayat Absensi</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Jadwal Halaqah</li>
-                <li><span class="feat-dot" aria-hidden="true"></span>Nilai &amp; Evaluasi</li>
-              </ul>
-            </div>
-          </article>
-
-        </div>
       </div>
-
-      <!-- ════ LOGIN PANEL — satu form untuk semua peran ════ -->
-      <section class="login-panel" aria-label="Form Masuk" id="login-panel">
-
-        <!-- Dynamic top bar -->
-        <div class="login-header">
-          <div class="login-header-bar bar-admin" id="login-bar" aria-hidden="true"></div>
-          <div class="login-header-inner">
-            <div class="login-avatar avatar-admin" id="login-avatar" aria-hidden="true">🛡️</div>
-            <div class="login-header-text">
-              <div class="login-greeting greeting-admin" id="login-greeting">Administrator</div>
-              <div class="login-title" id="login-title">Selamat Datang</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Role indicator pills -->
-        <div class="role-indicators" role="tablist" aria-label="Pilih peran">
-          <button class="role-pill rp-active rp-admin" id="rp-admin" role="tab" aria-selected="true"
-            onclick="selectRole('admin')" aria-label="Masuk sebagai Admin">
-            <span class="rp-icon" aria-hidden="true">🛡️</span>Admin
-          </button>
-          <button class="role-pill rp-guru" id="rp-guru" role="tab" aria-selected="false"
-            onclick="selectRole('guru')" aria-label="Masuk sebagai Guru">
-            <span class="rp-icon" aria-hidden="true">📖</span>Guru
-          </button>
-          <button class="role-pill rp-murid" id="rp-murid" role="tab" aria-selected="false"
-            onclick="selectRole('murid')" aria-label="Masuk sebagai Murid">
-            <span class="rp-icon" aria-hidden="true">🌙</span>Murid
-          </button>
-        </div>
-
-        <!-- Form -->
-        <div class="login-body">
-
-          <!-- Toast -->
-          <div class="toast" id="login-toast" role="alert" aria-live="polite"></div>
-
-          <!-- NIS -->
-          <div class="form-group">
-            <label class="form-label" for="input-nis">NIS <span id="nis-suffix" style="font-weight:400;opacity:.7">/ Nomor Induk Siswa</span></label>
-            <div class="form-input-wrap">
-              <span class="form-input-icon" aria-hidden="true">🪪</span>
-              <input class="form-input" type="text" id="input-nis" name="nis"
-                placeholder="Contoh: 2024001" autocomplete="username"
-                inputmode="numeric" maxlength="20"
-                aria-required="true" aria-describedby="nis-hint" />
-            </div>
-            <p class="nis-hint" id="nis-hint">NIS terdaftar di sistem Rattililqur'an</p>
-          </div>
-
-          <!-- Password -->
-          <div class="form-group">
-            <label class="form-label" for="input-password">Password</label>
-            <div class="form-input-wrap">
-              <span class="form-input-icon" aria-hidden="true">🔒</span>
-              <input class="form-input" type="password" id="input-password" name="password"
-                placeholder="••••••••" autocomplete="current-password"
-                aria-required="true" />
-              <button class="pwd-toggle" type="button"
-                aria-label="Tampilkan atau sembunyikan password"
-                onclick="togglePassword()">
-                <span id="eye-icon" aria-hidden="true">👁️</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Remember & Forgot -->
-          <div class="form-row">
-            <label class="checkbox-wrap">
-              <input type="checkbox" id="remember-me" name="remember" />
-              <span class="checkbox-label">Ingat saya</span>
-            </label>
-            <a href="#" class="forgot-link" onclick="showForgot(event)">Lupa password?</a>
-          </div>
-
-          <!-- Submit -->
-          <button class="btn-login" type="button" id="btn-login" onclick="doLogin()">
-            <span id="btn-text">Masuk sebagai Admin</span>
-            <span aria-hidden="true">→</span>
-          </button>
-
-          <!-- Divider -->
-          <div class="divider" aria-hidden="true">atau</div>
-
-          <!-- Google -->
-          <button class="btn-google" type="button" onclick="doGoogleLogin()"
-            aria-label="Masuk dengan akun Google">
-            <span class="google-icon" role="img" aria-label="Google"></span>
-            Masuk dengan Google
-          </button>
-
-        </div>
-      </section>
-
-      <!-- STATS STRIP -->
-      <div class="stats-strip" role="region" aria-label="Statistik sistem">
-        <div class="stat-item">
-          <div class="stat-icon" aria-hidden="true">🕌</div>
-          <div class="stat-num counter" data-target="4">4</div>
-          <div class="stat-lbl">Halaqah<br/>Aktif</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon" aria-hidden="true">👨‍🏫</div>
-          <div class="stat-num counter" data-target="8">8</div>
-          <div class="stat-lbl">Guru /<br/>Musyrif</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon" aria-hidden="true">🧒</div>
-          <div class="stat-num counter" data-target="48">48</div>
-          <div class="stat-lbl">Murid<br/>Terdaftar</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-icon" aria-hidden="true">📋</div>
-          <div class="stat-num counter" data-target="87" data-suffix="%">87%</div>
-          <div class="stat-lbl">Rata-rata<br/>Kehadiran</div>
-        </div>
-      </div>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="footer" role="contentinfo">
-      <div>© 2025 <strong>Rattililqur'an</strong> — Sistem Manajemen Halaqah Digital</div>
-      <div>Google Apps Script &amp; GitHub Pages &nbsp;·&nbsp; <a href="mailto:admin@rattililquran.com">Hubungi Admin</a></div>
-    </footer>
-
-  </div>
-
-  <!-- INSTALL BANNER -->
-  <div class="install-banner" id="install-banner" role="complementary" aria-label="Install aplikasi">
-    <div class="install-icon" aria-hidden="true">📲</div>
-    <div class="install-text">
-      <div class="install-title">Install Aplikasi Halaqah</div>
-      <div class="install-desc">Akses langsung dari layar utama HP</div>
     </div>
-    <div class="install-btns">
-      <button class="btn-install" onclick="installPWA()">Install</button>
-      <button class="btn-dismiss" onclick="dismissInstall()" aria-label="Tutup">✕</button>
-    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Rattililqur'an &nbsp;·&nbsp; Google Apps Script + GitHub Pages</p>
+  </footer>
+
+</div>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="install-banner">
+  <div style="font-size:24px">📲</div>
+  <div style="flex:1">
+    <div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Install Aplikasi Halaqah</div>
+    <div style="font-size:10.5px;color:var(--text-3)">Akses dari layar utama HP</div>
   </div>
-
-  <!-- LOADING OVERLAY -->
-  <div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
-    <div class="spinner" aria-hidden="true"></div>
-    <div class="loading-text" id="loading-text">Memverifikasi akun…</div>
+  <div style="display:flex;gap:6px">
+    <button class="ibtn ibtn-install" onclick="installPWA()">Install</button>
+    <button class="ibtn ibtn-dismiss" onclick="dismissInstall()">✕</button>
   </div>
+</div>
 
-  <script>
-    /* ─────────────────────────────────────────────────────────
-       CONFIG
-    ───────────────────────────────────────────────────────── */
-    const GAS_URL = 'GANTI_DENGAN_URL_GOOGLE_APPS_SCRIPT';
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay" role="status">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Memverifikasi akun…</div>
+</div>
 
-    const ROLES = {
-      admin : {
-        icon:'🛡️', label:'Administrator', greeting:'Administrator',
-        avatarClass:'avatar-admin', barClass:'bar-admin', greetingClass:'greeting-admin',
-        rpClass:'rp-admin', btnClass:'', btnText:'Masuk sebagai Admin',
-        redirect:'admin/index.html', nisPlaceholder:'Contoh: ADM-001',
-        nisHint:'NIS / ID Admin terdaftar di sistem',
-      },
-      guru  : {
-        icon:'📖', label:'Guru', greeting:'Musyrif / Musyrifah',
-        avatarClass:'avatar-guru', barClass:'bar-guru', greetingClass:'greeting-guru',
-        rpClass:'rp-guru', btnClass:'btn-guru', btnText:'Masuk sebagai Guru',
-        redirect:'guru/index.html', nisPlaceholder:'Contoh: GRU-2024-001',
-        nisHint:'NIS / ID Guru terdaftar di sistem',
-      },
-      murid : {
-        icon:'🌙', label:'Murid', greeting:'Santri / Peserta Halaqah',
-        avatarClass:'avatar-murid', barClass:'bar-murid', greetingClass:'greeting-murid',
-        rpClass:'rp-murid', btnClass:'btn-murid', btnText:'Masuk sebagai Murid',
-        redirect:'murid/index.html', nisPlaceholder:'Contoh: 2024001',
-        nisHint:'Nomor Induk Siswa (NIS) terdaftar di sistem',
-      },
-    };
+<script>
+const GAS_URL = 'GANTI_DENGAN_URL_GOOGLE_APPS_SCRIPT';
 
-    let currentRole = 'admin';
-    let deferredInstallPrompt = null;
+const ROLES = {
+  admin: {
+    icon:'🛡️', title:'Portal Admin', sub:'Masuk sebagai Administrator',
+    headerClass:'', tabActive:'active-admin', btnClass:'',
+    btnText:'Masuk sebagai Admin', fieldClass:'',
+    nisPlaceholder:'Contoh: USR-ADMIN-001',
+    nisHint:'NIS / ID Admin terdaftar di sistem',
+    redirect:'admin/index.html',
+  },
+  guru: {
+    icon:'📖', title:'Portal Guru', sub:'Masuk sebagai Musyrif / Musyrifah',
+    headerClass:'h-guru', tabActive:'active-guru', btnClass:'s-guru',
+    btnText:'Masuk sebagai Guru', fieldClass:'f-guru',
+    nisPlaceholder:'Contoh: GRU-001',
+    nisHint:'NIS / ID Guru terdaftar di sistem',
+    redirect:'guru/index.html',
+  },
+  murid: {
+    icon:'🌙', title:'Portal Murid', sub:'Masuk sebagai Santri / Peserta',
+    headerClass:'h-murid', tabActive:'active-murid', btnClass:'s-murid',
+    btnText:'Masuk sebagai Murid', fieldClass:'f-murid',
+    nisPlaceholder:'Contoh: MRD-001',
+    nisHint:'Nomor Induk Santri terdaftar di sistem',
+    redirect:'murid/index.html',
+  },
+};
 
-    /* ─── ROLE SELECT ─── */
-    function selectRole(role) {
-      if (!ROLES[role]) return;
-      currentRole = role;
-      const cfg = ROLES[role];
+let currentRole = 'admin';
+let deferredInstall = null;
 
-      /* Header */
-      const avatar   = document.getElementById('login-avatar');
-      const bar      = document.getElementById('login-bar');
-      const greeting = document.getElementById('login-greeting');
-      const btnLogin = document.getElementById('btn-login');
-      const btnText  = document.getElementById('btn-text');
-      const nisInput = document.getElementById('input-nis');
-      const passInput= document.getElementById('input-password');
-      const nisHint  = document.getElementById('nis-hint');
+function selectRole(role) {
+  if (!ROLES[role]) return;
+  currentRole = role;
+  const c = ROLES[role];
 
-      avatar.textContent = cfg.icon;
-      avatar.className   = 'login-avatar ' + cfg.avatarClass;
+  // Header
+  document.getElementById('header-icon').textContent  = c.icon;
+  document.getElementById('header-title').textContent = c.title;
+  document.getElementById('header-sub').textContent   = c.sub;
+  const hdr = document.getElementById('card-header');
+  hdr.className = 'card-header ' + c.headerClass;
 
-      bar.className = 'login-header-bar ' + cfg.barClass;
+  // Tabs
+  document.querySelectorAll('.role-tab').forEach(t => t.className = 'role-tab');
+  document.getElementById('tab-' + role).className = 'role-tab ' + c.tabActive;
 
-      greeting.textContent = cfg.greeting;
-      greeting.className   = 'login-greeting ' + cfg.greetingClass;
+  // Button
+  document.getElementById('btn-submit').className  = 'btn-submit ' + c.btnClass;
+  document.getElementById('btn-text').textContent  = c.btnText;
 
-      btnLogin.className = 'btn-login ' + cfg.btnClass;
-      btnText.textContent = cfg.btnText;
+  // Field
+  const inp = document.getElementById('input-nis');
+  inp.className = 'field-input ' + c.fieldClass;
+  inp.placeholder = c.nisPlaceholder;
+  document.getElementById('nis-hint').textContent = c.nisHint;
 
-      nisInput.placeholder = cfg.nisPlaceholder;
-      nisHint.textContent  = cfg.nisHint;
+  // Clear toast
+  const t = document.getElementById('login-toast');
+  t.className = 'toast'; t.textContent = '';
 
-      /* Focus ring color on inputs */
-      ['focus-admin','focus-guru','focus-murid'].forEach(c => {
-        nisInput.classList.remove(c);
-        passInput.classList.remove(c);
-      });
-      if (role !== 'admin') {
-        nisInput.classList.add('focus-' + role);
-        passInput.classList.add('focus-' + role);
-      }
+  if (window.innerWidth < 720)
+    setTimeout(() => document.getElementById('login-card').scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
+}
 
-      /* Role pills */
-      document.querySelectorAll('.role-pill').forEach(p => {
-        p.classList.remove('rp-active');
-        p.setAttribute('aria-selected','false');
-      });
-      const rp = document.getElementById('rp-' + role);
-      if (rp) { rp.classList.add('rp-active'); rp.setAttribute('aria-selected','true'); }
+async function doLogin() {
+  const nis = document.getElementById('input-nis').value.trim().toUpperCase();
+  if (!nis) { showToast('NIS wajib diisi.', 'error'); document.getElementById('input-nis').focus(); return; }
 
-      /* Portal cards highlight */
-      document.querySelectorAll('.portal-card').forEach(c => c.className = c.className.replace(/ selected-\w+/g,''));
-      const card = document.getElementById('card-' + role);
-      if (card) card.classList.add('selected-' + role);
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  setLoading(true, 'Memverifikasi akun…');
 
-      /* Clear toast */
-      const toast = document.getElementById('login-toast');
-      toast.className = 'toast'; toast.textContent = '';
+  try {
+    const res  = await fetch(`${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}`, { method:'GET', mode:'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
 
-      /* On mobile: scroll form into view */
-      if (window.innerWidth < 961) {
-        const panel = document.getElementById('login-panel');
-        if (panel) setTimeout(() => panel.scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
-      }
+    if (data.status === 'ok') {
+      const store = document.getElementById('remember-me').checked ? localStorage : sessionStorage;
+      store.setItem('hq_token', data.token);
+      store.setItem('hq_user', JSON.stringify(data.user));
+      setLoading(true, 'Berhasil! Mengarahkan ke portal…');
+      setTimeout(() => { window.location.href = ROLES[data.user.role]?.redirect || 'index.html'; }, 800);
+    } else {
+      setLoading(false); btn.disabled = false;
+      showToast(data.message || 'NIS tidak ditemukan.', 'error');
     }
+  } catch(err) {
+    setLoading(false); btn.disabled = false;
+    showToast(GAS_URL.includes('GANTI_') ? '⚠ GAS URL belum dikonfigurasi.' : 'Koneksi gagal: ' + err.message, 'error');
+  }
+}
 
-    /* ─── PASSWORD TOGGLE ─── */
-    function togglePassword() {
-      const input = document.getElementById('input-password');
-      const icon  = document.getElementById('eye-icon');
-      const isHidden = input.type === 'password';
-      input.type       = isHidden ? 'text'     : 'password';
-      icon.textContent = isHidden ? '🙈'       : '👁️';
-    }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement?.id === 'input-nis') doLogin();
+});
 
-    /* ─── LOGIN ─── */
-    async function doLogin() {
-      const nis  = document.getElementById('input-nis').value.trim();
-      const pass = document.getElementById('input-password').value;
+function showToast(msg, type) {
+  const t = document.getElementById('login-toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+}
+function setLoading(show, text) {
+  const o = document.getElementById('loading-overlay');
+  show ? o.classList.add('show') : o.classList.remove('show');
+  if (text) document.getElementById('loading-text').textContent = text;
+}
 
-      if (!nis)  { showToast('NIS wajib diisi.', 'error'); document.getElementById('input-nis').focus(); return; }
-      if (!pass) { showToast('Password wajib diisi.', 'error'); document.getElementById('input-password').focus(); return; }
+// Session restore
+(function() {
+  const token = localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token');
+  const user  = JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
+  if (token && user?.role && ROLES[user.role]) window.location.href = ROLES[user.role].redirect;
+})();
 
-      setLoading(true, 'Memverifikasi akun…');
-      try {
-        const res  = await fetch(
-          `${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}`,
-          { method:'GET', mode:'cors' }
-        );
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
+// SW
+if ('serviceWorker' in navigator)
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 
-        if (data.status === 'ok') {
-          const store = document.getElementById('remember-me').checked ? localStorage : sessionStorage;
-          store.setItem('hq_token', data.token);
-          store.setItem('hq_user',  JSON.stringify(data.user));
-          setLoading(true, 'Berhasil! Mengarahkan ke portal…');
-          setTimeout(() => {
-            window.location.href = ROLES[data.user.role]?.redirect || 'index.html';
-          }, 850);
-        } else {
-          setLoading(false);
-          showToast(data.message || 'NIS atau password salah.', 'error');
-        }
-      } catch (err) {
-        setLoading(false);
-        if (GAS_URL.includes('GANTI_')) {
-          showToast('⚠️ Demo Mode: GAS URL belum dikonfigurasi di js/api.js', 'error');
-        } else {
-          showToast('Koneksi gagal: ' + err.message, 'error');
-        }
-      }
-    }
+// PWA
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+  if (!sessionStorage.getItem('hq_nodismiss'))
+    setTimeout(() => document.getElementById('install-banner').classList.add('show'), 3500);
+});
+function installPWA() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => { document.getElementById('install-banner').classList.remove('show'); deferredInstall = null; });
+}
+function dismissInstall() {
+  document.getElementById('install-banner').classList.remove('show');
+  sessionStorage.setItem('hq_nodismiss', '1');
+}
 
-    function doGoogleLogin() {
-      showToast('🔗 Google Sign-In memerlukan konfigurasi OAuth di GAS. Hubungi admin.', 'error');
-    }
+// Counter
+function animCount(el) {
+  const target=parseInt(el.dataset.target,10), suf=el.dataset.suffix||'', dur=1400, t0=performance.now();
+  (function s(now){ const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3); el.textContent=Math.round(target*e)+suf; if(p<1)requestAnimationFrame(s); })(t0);
+}
+new IntersectionObserver((en,ob)=>{ en.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('.counter').forEach(animCount); ob.disconnect(); }}); },{threshold:0.2}).observe(document.querySelector('.stats-row'));
 
-    function showForgot(e) {
-      e.preventDefault();
-      showToast('Hubungi admin untuk reset password: admin@rattililquran.com', 'error');
-    }
-
-    /* Enter key → login */
-    document.addEventListener('keydown', e => {
-      if (e.key !== 'Enter') return;
-      const a = document.activeElement;
-      if (a && (a.id === 'input-nis' || a.id === 'input-password')) doLogin();
-    });
-
-    /* ─── UI HELPERS ─── */
-    function showToast(msg, type) {
-      const t = document.getElementById('login-toast');
-      t.textContent = msg;
-      t.className   = 'toast ' + type;
-    }
-
-    function setLoading(show, text) {
-      const o = document.getElementById('loading-overlay');
-      if (show) {
-        o.classList.add('show');
-        if (text) document.getElementById('loading-text').textContent = text;
-      } else {
-        o.classList.remove('show');
-      }
-    }
-
-    /* ─── SESSION CHECK ─── */
-    (function checkSession() {
-      const token = localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token');
-      const user  = JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
-      if (token && user?.role && ROLES[user.role]) {
-        window.location.href = ROLES[user.role].redirect;
-      }
-    })();
-
-    /* ─── SERVICE WORKER ─── */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () =>
-        navigator.serviceWorker.register('/sw.js')
-          .then(r => console.log('[SW]', r.scope))
-          .catch(e => console.warn('[SW] Failed:', e))
-      );
-    }
-
-    /* ─── PWA INSTALL ─── */
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredInstallPrompt = e;
-      if (!sessionStorage.getItem('hq_install_dismissed')) {
-        setTimeout(() => document.getElementById('install-banner').classList.add('show'), 3500);
-      }
-    });
-
-    function installPWA() {
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      deferredInstallPrompt.userChoice.then(r => {
-        if (r.outcome === 'accepted') document.getElementById('install-banner').classList.remove('show');
-        deferredInstallPrompt = null;
-      });
-    }
-
-    function dismissInstall() {
-      document.getElementById('install-banner').classList.remove('show');
-      sessionStorage.setItem('hq_install_dismissed', '1');
-    }
-
-    /* ─── ANIMATED COUNTERS ─── */
-    function animateCounter(el) {
-      const target = parseInt(el.dataset.target, 10);
-      const suffix = el.dataset.suffix || '';
-      const dur = 1500, t0 = performance.now();
-      (function step(now) {
-        const p    = Math.min((now - t0) / dur, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(target * ease) + suffix;
-        if (p < 1) requestAnimationFrame(step);
-      })(t0);
-    }
-
-    new IntersectionObserver((entries, obs) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          document.querySelectorAll('.counter').forEach(animateCounter);
-          obs.disconnect();
-        }
-      });
-    }, { threshold: 0.25 }).observe(document.querySelector('.stats-strip'));
-
-    /* ─── INIT ─── */
-    window.addEventListener('DOMContentLoaded', () => {
-      selectRole('admin');
-      if (window.innerWidth >= 961) {
-        setTimeout(() => { const el = document.getElementById('input-nis'); if (el) el.focus(); }, 500);
-      }
-    });
-  </script>
-
+window.addEventListener('DOMContentLoaded', () => {
+  selectRole('admin');
+  if (window.innerWidth >= 720) setTimeout(() => document.getElementById('input-nis')?.focus(), 400);
+});
+</script>
 </body>
 </html>
