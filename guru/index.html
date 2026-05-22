@@ -2,1098 +2,1314 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal Guru — Halaqah Rattililqur'an</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Portal Guru — Rattililqur'an</title>
 <link rel="manifest" href="../manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --brand:#1458A8;--brand-dark:#0d3d7a;--brand-light:#e8f0fb;
-  --accent:#1D9E75;--accent-light:#e1f5ee;
-  --warn:#e0aa2a;--warn-light:#fdf6e3;
-  --danger:#e05a2a;--danger-light:#fdf0eb;
-  --bg:#f4f6fb;--surface:#fff;--text:#0e1a2d;
-  --text-2:#4a5568;--text-3:#94a3b8;--border:#e2e8f0;
-  --radius:14px;--radius-sm:8px;
-  --shadow:0 2px 12px rgba(20,88,168,.07);
-  --shadow-lg:0 8px 32px rgba(20,88,168,.13);
-  --sidebar-w:240px;--header-h:60px;
+  --blue:#1458A8;--blue-d:#0d3d7a;--blue-l:#e8f0fb;
+  --green:#1D9E75;--green-l:#e1f5ee;
+  --amber:#e0aa2a;--amber-l:#fdf6e3;
+  --red:#e05a2a;--red-l:#fdf0eb;
+  --purple:#7c3aed;--purple-l:#ede9fe;
+  --bg:#f1f5f9;--card:#fff;--text:#0f172a;
+  --text-2:#475569;--text-3:#94a3b8;--border:#e2e8f0;
+  --r:16px;--r-sm:10px;--r-lg:20px;--r-xl:26px;
+  --shadow:0 1px 8px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.04);
+  --shadow-lg:0 8px 32px rgba(15,23,42,.10),0 2px 8px rgba(15,23,42,.06);
+  --sw:260px;--hh:58px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
 
-/* AUTH */
-#authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#061a36 0%,#1458A8 100%);padding:24px}
-.auth-card{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.auth-logo{font-family:'Amiri',serif;font-size:28px;color:var(--brand);text-align:center;margin-bottom:4px}
-.auth-sub{text-align:center;color:var(--text-3);font-size:13px;margin-bottom:32px}
-.auth-card label{display:block;font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.auth-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:16px}
-.auth-card input:focus{border-color:var(--brand)}
-.btn-login{width:100%;padding:13px;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .1s}
-.btn-login:hover{background:var(--brand-dark)}
-.btn-login:active{transform:scale(.98)}
-#authError{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;display:none}
+/* ── AUTH ── */
+#authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#061a36 0%,#1458A8 60%,#1D9E75 100%);padding:20px}
+.auth-box{background:#fff;border-radius:var(--r-xl);padding:36px 32px;width:100%;max-width:360px;
+  box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.auth-arabic{font-family:'Amiri',serif;font-size:22px;color:var(--blue);text-align:center;margin-bottom:4px}
+.auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
+.auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.auth-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-family:inherit;font-size:14px;font-weight:600;outline:none;transition:border-color .2s;color:var(--text)}
+.auth-input:focus{border-color:var(--blue)}
+.auth-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s}
+.auth-btn:hover{background:var(--blue-d)}
+#authErr{color:var(--red);font-size:12px;margin-top:8px;text-align:center;display:none}
 
-/* APP LAYOUT */
-#app{display:none;min-height:100dvh}
-.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100dvh;background:#061a36;display:flex;flex-direction:column;z-index:100;transition:transform .3s}
-.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-logo .logo-arabic{font-family:'Amiri',serif;font-size:22px;color:#fff;line-height:1.3}
-.sidebar-logo .logo-sub{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
-.sidebar-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
-.avatar{width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.sidebar-user .user-name{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
-.sidebar-user .user-role{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em}
-nav{flex:1;padding:12px 0;overflow-y:auto}
-.nav-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;padding:12px 20px 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.55);cursor:pointer;font-size:13.5px;font-weight:500;transition:all .15s;border-left:3px solid transparent}
-.nav-item:hover{color:#fff;background:rgba(255,255,255,.06)}
-.nav-item.active{color:#fff;background:rgba(20,88,168,.4);border-left-color:#4da3f5}
-.nav-icon{font-size:16px;flex-shrink:0}
-.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08)}
-.btn-logout{width:100%;padding:9px;background:rgba(224,90,42,.15);color:#f87c55;border:1px solid rgba(224,90,42,.3);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
-.btn-logout:hover{background:rgba(224,90,42,.25)}
-.main{margin-left:var(--sidebar-w);min-height:100dvh;display:flex;flex-direction:column}
-.topbar{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:50}
-.topbar-title{font-size:16px;font-weight:700;color:var(--text);flex:1}
-.topbar-date{font-size:12px;color:var(--text-3)}
-.btn-menu{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
-.content{flex:1;padding:24px}
+/* ── LAYOUT ── */
+#app{display:none}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100dvh;
+  background:#0f172a;display:flex;flex-direction:column;z-index:100;transition:transform .3s}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-arabic{font-family:'Amiri',serif;font-size:20px;color:#fff}
+.sb-sub{font-size:9.5px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-name{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.sb-role{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em}
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto}
+.sb-section{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.22);text-transform:uppercase;
+  letter-spacing:.1em;padding:12px 18px 5px}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 18px;
+  color:rgba(255,255,255,.5);background:none;border:none;border-left:3px solid transparent;
+  font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-align:left}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-btn.active{color:#fff;background:rgba(20,88,168,.35);border-left-color:#60a5fa}
+.nav-btn .ni{font-size:15px;flex-shrink:0}
+.sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.logout-btn{width:100%;padding:9px;background:rgba(224,90,42,.12);color:#f87c55;
+  border:1px solid rgba(224,90,42,.25);border-radius:var(--r-sm);
+  font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .2s}
+.logout-btn:hover{background:rgba(224,90,42,.22)}
 
-/* PAGES */
-.page{display:none}
-.page.active{display:block}
+.main{margin-left:var(--sw);min-height:100dvh;display:flex;flex-direction:column}
+.topbar{height:var(--hh);background:var(--card);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+  position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.topbar-date{font-size:11.5px;color:var(--text-3)}
+.hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
+.content{flex:1;padding:20px;max-width:960px;width:100%}
 
-/* STAT CARDS */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);transition:transform .2s,box-shadow .2s}
-.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
-.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:4px}
-.stat-value{font-size:28px;font-weight:800;color:var(--text)}
-.stat-label{font-size:12px;color:var(--text-3);font-weight:500}
+/* ── PAGES ── */
+.page{display:none}.page.active{display:block}
 
-/* CARD */
-.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
-.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
-.card-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
-.card-body{padding:20px}
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);
+  box-shadow:var(--shadow);transition:transform .2s}
+.stat:hover{transform:translateY(-2px)}
+.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:8px}
+.stat-val{font-size:26px;font-weight:800;line-height:1}
+.stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:3px;font-weight:500}
 
-/* TABLE */
-.table-wrap{overflow-x:auto}
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-body{padding:18px}
+
+/* ── HALAQAH CARDS ── */
+.hq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.hq-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
+  box-shadow:var(--shadow);padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.hq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--blue),#60a5fa)}
+.hq-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+.hq-name{font-size:14px;font-weight:700;margin-bottom:5px}
+.hq-meta{font-size:11.5px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.hq-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid var(--border)}
+.hq-stat .v{font-size:18px;font-weight:800;color:var(--blue)}
+.hq-stat .l{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-th{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);background:#fafbfc;white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13.5px;color:var(--text);vertical-align:middle}
+th{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;
+  text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:#f8fafc;white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--brand-light)}
+tr:hover td{background:#f8fafc}
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
-.badge-green{background:var(--accent-light);color:#0a6b4e}
-.badge-blue{background:var(--brand-light);color:var(--brand)}
-.badge-warn{background:var(--warn-light);color:#8a6200}
-.badge-red{background:var(--danger-light);color:#a03010}
-.badge-gray{background:#f1f5f9;color:#64748b}
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.b-green{background:var(--green-l);color:#0a6b4e}
+.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-amber{background:var(--amber-l);color:#8a6200}
+.b-red{background:var(--red-l);color:#a03010}
+.b-gray{background:#f1f5f9;color:#64748b}
+.b-purple{background:var(--purple-l);color:var(--purple)}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
-.btn-primary{background:var(--brand);color:#fff}
-.btn-primary:hover{background:var(--brand-dark)}
-.btn-success{background:var(--accent);color:#fff}
-.btn-success:hover{background:#166a52}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-danger:hover{background:#b8461e}
-.btn-outline{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
-.btn-outline:hover{background:var(--brand-light)}
-.btn-sm{padding:5px 11px;font-size:12px}
+/* ── NILAI BADGES ── */
+.nilai-Mumtaz{background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
+.nilai-JJ{background:var(--green-l);color:#0a6b4e;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
+.nilai-Jayyid{background:var(--blue-l);color:var(--blue);border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
+.nilai-Maqbul{background:var(--red-l);color:#a03010;border-radius:6px;padding:2px 9px;font-weight:700;font-size:12px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-sm);
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#166a52}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b8461e}
+.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}.btn-outline:hover{background:var(--blue-l)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-lg{padding:13px 28px;font-size:14.5px;font-weight:700;border-radius:100px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* FORMS */
-.form-group{margin-bottom:16px}
-.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.form-control{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
-.form-control:focus{border-color:var(--brand)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-
-/* HALAQAH CARDS */
-.halaqah-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px}
-.halaqah-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.halaqah-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--brand),#4da3f5)}
-.halaqah-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--brand)}
-.halaqah-name{font-size:15px;font-weight:700;margin-bottom:6px}
-.halaqah-meta{font-size:12px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:8px}
-.halaqah-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-.halaqah-stat .val{font-size:20px;font-weight:800;color:var(--brand)}
-.halaqah-stat .lbl{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
-
-/* ABSENSI */
-.absensi-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
-.absensi-row:last-child{border-bottom:none}
-.absensi-name{font-weight:600;font-size:14px;flex:1}
-.absensi-btns{display:flex;gap:4px}
-.btn-hadir{padding:5px 10px;border-radius:6px;border:1.5px solid;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent}
-.btn-hadir[data-kode="H"]{border-color:var(--accent);color:var(--accent)}
-.btn-hadir[data-kode="H"].active{background:var(--accent);color:#fff}
-.btn-hadir[data-kode="I"]{border-color:var(--warn);color:#8a6200}
-.btn-hadir[data-kode="I"].active{background:var(--warn);color:#fff}
-.btn-hadir[data-kode="S"]{border-color:var(--brand);color:var(--brand)}
-.btn-hadir[data-kode="S"].active{background:var(--brand);color:#fff}
-.btn-hadir[data-kode="A"]{border-color:var(--danger);color:var(--danger)}
-.btn-hadir[data-kode="A"].active{background:var(--danger);color:#fff}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(6,26,54,.6);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-.modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:18px;width:100%;max-width:520px;max-height:90dvh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
-.modal-lg{max-width:680px}
-@keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-size:16px;font-weight:700}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);line-height:1;padding:4px}
-.modal-close:hover{color:var(--text)}
-.modal-body{padding:20px 24px}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
-/* NILAI */
-.nilai-A{background:#e1f5ee;color:#0a6b4e;border-radius:6px;padding:2px 8px;font-weight:700;font-size:13px}
-.nilai-B{background:var(--brand-light);color:var(--brand);border-radius:6px;padding:2px 8px;font-weight:700;font-size:13px}
-.nilai-C{background:var(--warn-light);color:#8a6200;border-radius:6px;padding:2px 8px;font-weight:700;font-size:13px}
-.nilai-D{background:var(--danger-light);color:#a03010;border-radius:6px;padding:2px 8px;font-weight:700;font-size:13px}
-
-/* LOADING */
-.loading-overlay{display:none;position:fixed;inset:0;background:rgba(6,26,54,.65);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(4px)}
-.loading-overlay.show{display:flex}
-.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:#fff;font-size:14px;font-weight:500}
-
-/* TOAST */
-#toast{position:fixed;bottom:24px;right:24px;background:#0e1a2d;color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.3);transform:translateY(80px);opacity:0;transition:all .3s ease;z-index:600;max-width:320px;display:flex;align-items:center;gap:8px}
-#toast.show{transform:translateY(0);opacity:1}
-#toast.success{background:var(--accent)}
-#toast.error{background:var(--danger)}
-#toast.warn{background:var(--warn);color:#3d2800}
-
-/* SECTION */
-.section-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px}
-.section-sub{font-size:13px;color:var(--text-3);margin-bottom:20px}
-
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:48px 24px;color:var(--text-3)}
-.empty-icon{font-size:48px;margin-bottom:12px;opacity:.4}
-.empty-title{font-size:15px;font-weight:600;color:var(--text-2);margin-bottom:6px}
-.empty-sub{font-size:13px}
-
-/* SESI AKTIF */
-.sesi-aktif-banner{background:var(--accent-light);border:1.5px solid var(--accent);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.sesi-aktif-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.dot-green{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* HAFALAN DETAIL ROWS */
-.hafalan-row{padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px;background:#fafbfc;font-size:13px}
-.hafalan-row:last-child{margin-bottom:0}
-
-/* SIDEBAR OVERLAY */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .sidebar-overlay.show{display:block}
-  .main{margin-left:0}
-  .btn-menu{display:block}
-  .form-grid{grid-template-columns:1fr}
-  .content{padding:16px}
-  .sesi-aktif-banner{flex-direction:column;align-items:flex-start}
+.btn-perjuangan{
+  background:linear-gradient(135deg,var(--green),#0d5c42);
+  color:#fff;font-size:15px;font-weight:800;padding:14px 32px;
+  border-radius:100px;border:none;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 20px rgba(29,158,117,.35),inset 0 1px 0 rgba(255,255,255,.15);
+  transition:all .2s;width:100%;margin-top:8px
 }
+.btn-perjuangan:hover{transform:scale(1.02);box-shadow:0 6px 24px rgba(29,158,117,.4)}
+.btn-perjuangan:active{transform:scale(.98)}
+.btn-perjuangan:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── FORMS ── */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
+.fc:focus{border-color:var(--blue)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ── PRESENSI ── */
+.presensi-list{display:flex;flex-direction:column;gap:0}
+.prow{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);gap:12px}
+.prow:last-child{border-bottom:none}
+.prow-name{font-weight:600;font-size:14px;flex:1}
+.prow-level{font-size:11px;color:var(--text-3);margin-top:1px}
+.prow-btns{display:flex;gap:4px}
+.pb{padding:6px 11px;border-radius:7px;border:1.5px solid;font-family:inherit;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent}
+.pb[data-k="H"]{border-color:var(--green);color:var(--green)}.pb[data-k="H"].on{background:var(--green);color:#fff}
+.pb[data-k="I"]{border-color:var(--amber);color:#8a6200}.pb[data-k="I"].on{background:var(--amber);color:#fff}
+.pb[data-k="S"]{border-color:var(--blue);color:var(--blue)}.pb[data-k="S"].on{background:var(--blue);color:#fff}
+.pb[data-k="A"]{border-color:var(--red);color:var(--red)}.pb[data-k="A"].on{background:var(--red);color:#fff}
+
+/* ── NILAI INPUT ── */
+.nilai-row{padding:14px;border-radius:var(--r);border:1px solid var(--border);
+  margin-bottom:10px;background:#fafbfc}
+.nilai-row:last-child{margin-bottom:0}
+.nilai-murid-name{font-weight:700;font-size:14px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between}
+.nilai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── STEP INDICATOR ── */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
+.step{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
+.step-num.done{background:var(--green);color:#fff}
+.step-num.active{background:var(--blue);color:#fff}
+.step-num.pending{background:var(--border);color:var(--text-3)}
+.step-label{font-size:12px;font-weight:600;white-space:nowrap}
+.step-label.active{color:var(--blue)}
+.step-label.done{color:var(--green)}
+.step-label.pending{color:var(--text-3)}
+.step-line{width:32px;height:2px;background:var(--border);flex-shrink:0}
+.step-line.done{background:var(--green)}
+
+/* ── SESI AKTIF BANNER ── */
+.sesi-banner{background:linear-gradient(135deg,#e1f5ee,#d1fae5);
+  border:1.5px solid var(--green);border-radius:var(--r);padding:14px 18px;
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.sesi-dot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);
+  z-index:200;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);padding:0}
+.overlay.open{display:flex}
+@media(min-width:640px){.overlay{align-items:center;padding:20px}}
+.modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:560px;
+  max-height:92dvh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,.15);
+  animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
+@media(min-width:640px){.modal{border-radius:var(--r-xl);animation:fadeInModal .25s ease}}
+.modal-lg{max-width:680px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeInModal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.modal-title{font-size:15px;font-weight:700}
+.modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px;line-height:1}
+.modal-body{padding:18px 22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+
+/* ── LOADING ── */
+.loader{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px)}
+.loader.show{display:flex}
+.spin{width:42px;height:42px;border:3.5px solid rgba(255,255,255,.18);
+  border-top-color:#fff;border-radius:50%;animation:rot .75s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loader-txt{color:#fff;font-size:13.5px;font-weight:500}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:calc(var(--sab)+20px);left:50%;transform:translateX(-50%) translateY(80px);
+  background:#0f172a;color:#fff;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:all .3s;z-index:600;
+  white-space:nowrap;max-width:calc(100vw - 40px);text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.ok{background:var(--green)}
+#toast.err{background:var(--red)}
+#toast.warn{background:var(--amber);color:#3d2800}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text-3)}
+.empty-ico{font-size:44px;margin-bottom:10px;opacity:.35}
+.empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+.empty-sub{font-size:12.5px}
+
+/* ── SIDEBAR OVERLAY ── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .sb-overlay.show{display:block}
+  .main{margin-left:0}.hamburger{display:block}
+  .content{padding:14px}
+  .f2,.f3{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .sesi-banner{flex-direction:column;align-items:flex-start}
+  .steps{gap:0}
+}
+@media(max-width:380px){.stats-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<!-- Loading -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Memuat...</div>
-</div>
-
-<!-- Toast -->
+<div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
 <div id="toast"></div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
 
-<!-- Sidebar Overlay Mobile -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<!-- ═══ AUTH ═══ -->
+<!-- AUTH -->
 <div id="authScreen">
-  <div class="auth-card">
-    <div class="auth-logo">رتيل القرآن</div>
+  <div class="auth-box">
+    <div class="auth-arabic">رتيل القرآن</div>
     <div class="auth-sub">Portal Guru — Halaqah Rattililqur'an</div>
-    <div class="form-group">
-      <label>NIS (Nomor Induk Santri)</label>
-      <input type="text" id="loginNIS" placeholder="Contoh: USR-20250001-1234" autocomplete="username" style="text-transform:uppercase">
-    </div>
-    <button class="btn-login" id="btnLogin" onclick="doLogin()">Masuk</button>
-    <div id="authError"></div>
+    <label class="auth-label" for="nisInput">NIS (Nomor Induk Santri)</label>
+    <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: GRU-001" autocomplete="username" style="text-transform:uppercase;margin-bottom:14px">
+    <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+    <div id="authErr"></div>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- APP -->
 <div id="app">
-
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-arabic">رتيل القرآن</div>
-      <div class="logo-sub">Portal Guru</div>
+    <div class="sb-logo">
+      <div class="sb-arabic">رتيل القرآن</div>
+      <div class="sb-sub">Portal Guru</div>
     </div>
-    <div class="sidebar-user">
-      <div class="avatar" id="sidebarAvatar">G</div>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">G</div>
       <div>
-        <div class="user-name" id="sidebarName">Guru</div>
-        <div class="user-role">Guru Halaqah</div>
+        <div class="sb-name" id="sbName">Guru</div>
+        <div class="sb-role">Guru Halaqah</div>
       </div>
     </div>
-    <nav>
-      <div class="nav-label">Menu</div>
-      <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
-        <span class="nav-icon">🏠</span> Dashboard
-      </div>
-      <div class="nav-item" onclick="showPage('kbm')" data-page="kbm">
-        <span class="nav-icon">📋</span> Sesi KBM
-      </div>
-      <div class="nav-item" onclick="showPage('murid')" data-page="murid">
-        <span class="nav-icon">👥</span> Daftar Murid
-      </div>
-      <div class="nav-item" onclick="showPage('riwayat')" data-page="riwayat">
-        <span class="nav-icon">📜</span> Riwayat KBM
-      </div>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="btn-logout" onclick="doLogout()">⬅ Keluar</button>
+    <div class="sb-nav">
+      <div class="sb-section">Menu</div>
+      <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
+      <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni">📋</span>Sesi KBM</button>
+      <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
+      <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
+    </div>
+    <div class="sb-foot">
+      <button class="logout-btn" onclick="doLogout()">⬅ Keluar</button>
     </div>
   </aside>
 
   <div class="main">
     <div class="topbar">
-      <button class="btn-menu" onclick="openSidebar()">☰</button>
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
-      <div class="topbar-date" id="topbarDate"></div>
+      <button class="hamburger" onclick="openSB()">☰</button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-date" id="topDate"></div>
     </div>
-
     <div class="content">
 
-      <!-- ══ DASHBOARD ══ -->
+      <!-- ════ DASHBOARD ════ -->
       <div class="page active" id="page-dashboard">
-        <div class="section-title" id="greetName">Selamat datang!</div>
-        <div class="section-sub">Ringkasan aktivitas halaqah Anda.</div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon" style="background:var(--brand-light)">📚</div>
-            <div class="stat-value" id="stat-halaqah">–</div>
-            <div class="stat-label">Halaqah Diampu</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px" id="greet">Selamat datang!</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:18px">Ringkasan aktivitas halaqah Anda hari ini.</div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-ico" style="background:var(--blue-l)">📚</div>
+            <div class="stat-val" id="st-halaqah">–</div>
+            <div class="stat-lbl">Halaqah Diampu</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:var(--accent-light)">👥</div>
-            <div class="stat-value" id="stat-murid">–</div>
-            <div class="stat-label">Total Murid</div>
+          <div class="stat">
+            <div class="stat-ico" style="background:var(--green-l)">👥</div>
+            <div class="stat-val" id="st-murid">–</div>
+            <div class="stat-lbl">Total Murid</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:var(--warn-light)">📋</div>
-            <div class="stat-value" id="stat-kbm">–</div>
-            <div class="stat-label">KBM Hari Ini</div>
+          <div class="stat">
+            <div class="stat-ico" style="background:var(--amber-l)">📋</div>
+            <div class="stat-val" id="st-kbm">–</div>
+            <div class="stat-lbl">KBM Hari Ini</div>
+          </div>
+          <div class="stat">
+            <div class="stat-ico" style="background:var(--purple-l)">🏆</div>
+            <div class="stat-val" id="st-bulan">–</div>
+            <div class="stat-lbl">Sesi Bulan Ini</div>
           </div>
         </div>
+
         <div class="card">
-          <div class="card-header">
+          <div class="card-head">
             <div class="card-title">📚 Halaqah yang Diampu</div>
-            <button class="btn btn-primary btn-sm" onclick="showPage('kbm')">+ Buka KBM</button>
+            <button class="btn btn-primary btn-sm" onclick="goPage('kbm')">+ Sesi KBM</button>
           </div>
-          <div class="card-body" id="dashHalaqahList">
-            <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Memuat data...</div></div>
+          <div class="card-body" id="dashHalaqah">
+            <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ══ KBM ══ -->
+      <!-- ════ SESI KBM ════ -->
       <div class="page" id="page-kbm">
-        <div class="section-title">Sesi KBM</div>
-        <div class="section-sub">Buka sesi, catat absensi, dan input hafalan murid.</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Sesi KBM</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:18px">Kelola sesi tahsin bersama murid.</div>
 
-        <!-- Sesi aktif banner -->
-        <div class="sesi-aktif-banner" id="sesiAktifBanner" style="display:none">
-          <div class="sesi-aktif-info">
-            <div class="dot-green"></div>
-            <strong style="color:var(--accent)">Sesi Sedang Berjalan</strong>
-            <span id="sesiAktifLabel" style="font-size:13px;color:var(--text-2)"></span>
+        <!-- Sesi aktif -->
+        <div class="sesi-banner" id="sesiBanner" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="sesi-dot"></div>
+            <strong style="color:#0a6b4e">Sesi Sedang Berjalan</strong>
+            <span id="sesiInfo" style="font-size:12.5px;color:var(--text-2)"></span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-outline btn-sm" onclick="openAbsensiModal()">📋 Absensi</button>
-            <button class="btn btn-outline btn-sm" onclick="openHafalanModal()">✏️ Hafalan</button>
-            <button class="btn btn-danger btn-sm" onclick="doTutupKBM()">■ Tutup Sesi</button>
+            <button class="btn btn-outline btn-sm" onclick="lanjutSesi()">Lanjutkan Sesi</button>
+            <button class="btn btn-red btn-sm" onclick="konfirmasiTutup()">■ Tutup Sesi</button>
           </div>
         </div>
 
-        <!-- Form buka KBM -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">▶ Buka Sesi KBM Baru</div>
+        <!-- Form buka KBM baru -->
+        <div class="card" id="formBukaKBM">
+          <div class="card-head">
+            <div class="card-title">▶ KBM Baru</div>
           </div>
           <div class="card-body">
-            <div class="form-grid">
-              <div class="form-group">
+            <div class="f2">
+              <div class="fg">
                 <label>Pilih Halaqah</label>
-                <select class="form-control" id="kbmHalaqahSelect">
-                  <option value="">— Pilih Halaqah —</option>
+                <select class="fc" id="kbmHalaqah"><option value="">— Pilih —</option></select>
+              </div>
+              <div class="fg">
+                <label>Jenis Sesi</label>
+                <select class="fc" id="kbmJenis">
+                  <option value="KBM Reguler">KBM Reguler</option>
+                  <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
+                  <option value="Lainnya">Lainnya</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label>Tanggal Pertemuan</label>
-                <input type="date" class="form-control" id="kbmTanggal">
+            </div>
+            <div class="f2">
+              <div class="fg">
+                <label>Tanggal</label>
+                <input type="date" class="fc" id="kbmTanggal">
+              </div>
+              <div class="fg">
+                <label>Jam Mulai</label>
+                <input type="time" class="fc" id="kbmJam">
               </div>
             </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Materi</label>
-                <input type="text" class="form-control" id="kbmMateri" placeholder="Contoh: Al-Baqarah 1–10">
-              </div>
-              <div class="form-group">
+            <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()">
+              🌟 Mulai Perjuangan Baru
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PRESENSI (step 2) ════ -->
+      <div class="page" id="page-presensi">
+        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Presensi Murid</div>
+
+        <div class="steps" id="stepBar"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">👥 Daftar Kehadiran</div>
+            <span id="presensiCount" style="font-size:12px;color:var(--text-3)"></span>
+          </div>
+          <div class="card-body">
+            <div id="presensiList" class="presensi-list"></div>
+            <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-sm" onclick="setAllPresensi('H')">✓ Semua Hadir</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-green btn-lg" style="width:100%" onclick="doSimpanPresensi()">
+          Lanjut ke Jurnal KBM →
+        </button>
+      </div>
+
+      <!-- ════ JURNAL KBM (step 3) ════ -->
+      <div class="page" id="page-jurnal">
+        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Jurnal KBM</div>
+
+        <div class="steps" id="stepBar2"></div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">📓 Isi Jurnal Sesi</div></div>
+          <div class="card-body">
+            <div class="fg">
+              <label>Pencapaian Halaman / Modul / Materi</label>
+              <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Halaman 12–15, Bab Makhraj Huruf Halq">
+            </div>
+            <div class="f2">
+              <div class="fg">
                 <label>Metode</label>
-                <select class="form-control" id="kbmMetode">
-                  <option value="talaqqi">Talaqqi</option>
-                  <option value="murajaah">Murajaah</option>
-                  <option value="tasmi">Tasmi</option>
-                  <option value="campuran" selected>Campuran</option>
+                <select class="fc" id="jurnalMetode">
+                  <option value="Talaqqi">Talaqqi</option>
+                  <option value="Murajaah">Murajaah</option>
+                  <option value="Materi">Materi</option>
+                  <option value="Campuran">Campuran</option>
                 </select>
               </div>
+              <div class="fg">
+                <label>Jam Selesai</label>
+                <input type="time" class="fc" id="jurnalJamSelesai">
+              </div>
             </div>
-            <div class="form-group">
-              <label>Catatan Umum (opsional)</label>
-              <input type="text" class="form-control" id="kbmCatatan" placeholder="Catatan untuk sesi ini...">
+            <div class="fg">
+              <label>Catatan Umum Sesi</label>
+              <textarea class="fc" id="jurnalCatatan" rows="3" placeholder="Kondisi kelas, progress keseluruhan, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
             </div>
-            <button class="btn btn-primary" id="btnBukaKBM" onclick="doBukaKBM()">▶ Buka Sesi KBM</button>
           </div>
         </div>
+
+        <!-- Nilai per murid -->
+        <div class="card">
+          <div class="card-head"><div class="card-title">✏️ Penilaian per Murid</div></div>
+          <div class="card-body">
+            <div id="nilaiList"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-green btn-lg" style="width:100%" id="btnSelesai" onclick="doSelesaiKBM()">
+          ✅ Selesaikan & Tutup Sesi
+        </button>
       </div>
 
-      <!-- ══ MURID ══ -->
+      <!-- ════ DAFTAR MURID ════ -->
       <div class="page" id="page-murid">
-        <div class="section-title">Daftar Murid</div>
-        <div class="section-sub">Progress dan catatan setiap murid per halaqah.</div>
-        <div style="margin-bottom:16px">
-          <select class="form-control" id="muridHalaqahSelect" onchange="loadMurid()" style="max-width:280px">
+        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
+        <div style="margin-bottom:14px">
+          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:280px">
             <option value="">— Pilih Halaqah —</option>
           </select>
         </div>
         <div class="card">
-          <div class="table-wrap">
+          <div class="tbl-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Nama Murid</th>
-                  <th>Target Hafalan</th>
-                  <th>Total Hadir</th>
-                  <th>Setoran</th>
-                  <th>Murajaah</th>
-                  <th>Hafalan Terakhir</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="muridTable">
-                <tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:32px">Pilih halaqah untuk melihat murid</td></tr>
+              <thead><tr>
+                <th>Nama Murid</th><th>Level</th><th>Hadir</th>
+                <th>Sesi</th><th>% Kehadiran</th><th>Skor/40</th><th>Rata-rata Nilai</th><th>Aksi</th>
+              </tr></thead>
+              <tbody id="muridTbl">
+                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ══ RIWAYAT KBM ══ -->
+      <!-- ════ RIWAYAT KBM ════ -->
       <div class="page" id="page-riwayat">
-        <div class="section-title">Riwayat KBM</div>
-        <div class="section-sub">Rekap sesi per halaqah beserta detail hafalan.</div>
-        <div style="margin-bottom:16px">
-          <select class="form-control" id="riwayatHalaqahSelect" onchange="loadRiwayat()" style="max-width:280px">
+        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Riwayat KBM</div>
+        <div style="margin-bottom:14px">
+          <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:280px">
             <option value="">— Pilih Halaqah —</option>
           </select>
         </div>
         <div class="card">
-          <div class="table-wrap">
+          <div class="tbl-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Pertemuan</th>
-                  <th>Materi</th>
-                  <th>Metode</th>
-                  <th>Hadir</th>
-                  <th>Status</th>
-                  <th>Detail</th>
-                </tr>
-              </thead>
-              <tbody id="riwayatTable">
-                <tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:32px">Pilih halaqah untuk melihat riwayat</td></tr>
+              <thead><tr>
+                <th>Tanggal</th><th>Sesi ke-</th><th>Jenis</th>
+                <th>Materi</th><th>Hadir</th><th>Status</th><th>Aksi</th>
+              </tr></thead>
+              <tbody id="riwayatTbl">
+                <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /app -->
-
-<!-- ═══ MODAL ABSENSI ═══ -->
-<div class="modal-overlay" id="absensiModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">📋 Input Absensi</div>
-      <button class="modal-close" onclick="closeModal('absensiModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:var(--text-3);margin-bottom:16px">Klik tombol untuk set status kehadiran tiap murid.</p>
-      <div id="absensiList"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('absensiModal')">Batal</button>
-      <button class="btn btn-success" onclick="doSimpanAbsensi()">💾 Simpan Absensi</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ MODAL HAFALAN ═══ -->
-<div class="modal-overlay" id="hafalanModal">
+<!-- MODAL DETAIL NILAI -->
+<div class="overlay" id="detailModal">
   <div class="modal modal-lg">
-    <div class="modal-header">
-      <div class="modal-title">✏️ Input Hafalan</div>
-      <button class="modal-close" onclick="closeModal('hafalanModal')">✕</button>
+    <div class="modal-head">
+      <div class="modal-title" id="detailTitle">Detail Sesi</div>
+      <button class="modal-x" onclick="closeModal('detailModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Pilih Murid</label>
-        <select class="form-control" id="hfMuridSelect">
-          <option value="">— Pilih Murid —</option>
-        </select>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Surah Mulai</label>
-          <input type="text" class="form-control" id="hfSurahMulai" placeholder="Al-Baqarah">
-        </div>
-        <div class="form-group">
-          <label>Ayat Mulai</label>
-          <input type="number" class="form-control" id="hfAyatMulai" placeholder="1" min="1">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Surah Selesai</label>
-          <input type="text" class="form-control" id="hfSurahSelesai" placeholder="Al-Baqarah">
-        </div>
-        <div class="form-group">
-          <label>Ayat Selesai</label>
-          <input type="number" class="form-control" id="hfAyatSelesai" placeholder="10" min="1">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Jenis Hafalan</label>
-          <select class="form-control" id="hfJenis">
-            <option value="setoran">Setoran</option>
-            <option value="murajaah">Murajaah</option>
-            <option value="tasmi">Tasmi</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Nilai</label>
-          <select class="form-control" id="hfNilai">
-            <option value="A">A — Sangat Baik</option>
-            <option value="B">B — Baik</option>
-            <option value="C">C — Cukup</option>
-            <option value="D">D — Perlu Bimbingan</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Durasi (menit)</label>
-          <input type="number" class="form-control" id="hfLama" placeholder="15" min="1">
-        </div>
-        <div class="form-group">
-          <label>Catatan Guru</label>
-          <input type="text" class="form-control" id="hfCatatan" placeholder="Tajwid perlu diperbaiki...">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('hafalanModal')">Batal</button>
-      <button class="btn btn-success" onclick="doSimpanHafalan()">💾 Simpan Hafalan</button>
-    </div>
+    <div class="modal-body" id="detailBody"></div>
   </div>
 </div>
 
-<!-- ═══ MODAL CATATAN MURID ═══ -->
-<div class="modal-overlay" id="catatanModal">
+<!-- MODAL CATATAN MURID -->
+<div class="overlay" id="catatanModal">
   <div class="modal">
-    <div class="modal-header">
+    <div class="modal-head">
       <div class="modal-title">📝 Catatan Murid</div>
-      <button class="modal-close" onclick="closeModal('catatanModal')">✕</button>
+      <button class="modal-x" onclick="closeModal('catatanModal')">✕</button>
     </div>
     <div class="modal-body">
-      <p id="catatanNama" style="font-weight:700;font-size:15px;margin-bottom:14px"></p>
-      <div class="form-group">
+      <p id="catatanNama" style="font-weight:700;font-size:15px;margin-bottom:12px"></p>
+      <div class="fg">
         <label>Catatan Guru</label>
-        <textarea class="form-control" id="catatanInput" rows="4" placeholder="Catatan perkembangan murid..." style="resize:vertical"></textarea>
+        <textarea class="fc" id="catatanTxt" rows="4" style="resize:vertical" placeholder="Perkembangan, rekomendasi, catatan khusus..."></textarea>
       </div>
       <input type="hidden" id="catatanIdAnggota">
     </div>
-    <div class="modal-footer">
+    <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('catatanModal')">Batal</button>
-      <button class="btn btn-primary" onclick="doSimpanCatatan()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="simpanCatatan()">💾 Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ MODAL DETAIL KBM ═══ -->
-<div class="modal-overlay" id="detailKBMModal">
+<!-- MODAL EDIT PRESENSI -->
+<div class="overlay" id="editPresensiModal">
   <div class="modal modal-lg">
-    <div class="modal-header">
-      <div class="modal-title" id="detailKBMTitle">Detail Sesi KBM</div>
-      <button class="modal-close" onclick="closeModal('detailKBMModal')">✕</button>
+    <div class="modal-head">
+      <div class="modal-title" id="editPresensiTitle">Edit Presensi</div>
+      <button class="modal-x" onclick="closeModal('editPresensiModal')">✕</button>
     </div>
-    <div class="modal-body" id="detailKBMBody">
-      <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Memuat...</div></div>
+    <div class="modal-body">
+      <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
+        padding:10px 14px;font-size:12.5px;color:#8a6200;margin-bottom:16px">
+        ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
+      </div>
+      <div id="editPresensiList" class="presensi-list"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
+      <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
     </div>
   </div>
 </div>
 
 <script src="../assets/js/api.js"></script>
 <script>
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════
-// Auth, GuruAPI, Utils diambil dari window.HQ (api.js) di dalam DOMContentLoaded
-let token = '';
-let currentUser = null;
-let halaqahList = [];
-let muridCache  = {};
-let sesiAktif   = null;
+// ══════════════════════════════════════════
+let token = '', currentUser = null;
+let halaqahList = [], muridCache = {};
+let sesiAktif   = null;  // KBM yang sedang berjalan
+let muridSesi   = [];    // murid halaqah sesi aktif
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // api.js sudah ekspos window.HQ — tidak perlu resolve ulang
-
-  // Set tanggal hari ini
-  document.getElementById('kbmTanggal').value = new Date().toISOString().split('T')[0];
-  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('id-ID', {
+  const now = new Date();
+  document.getElementById('kbmTanggal').value = now.toISOString().split('T')[0];
+  document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
+  document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
   });
 
-  // Restore sesi tersimpan
-  const savedToken = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-  const savedUser  = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
-  if (savedToken && savedUser && savedUser.role === 'guru') {
-    token = savedToken;
-    currentUser = savedUser;
-    startApp();
-    return;
+  const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
+  if (tk && us && us.role === 'guru') {
+    token = tk; currentUser = us; startApp(); return;
   }
 
-  document.getElementById('loginNIS').addEventListener('keydown', e => {
+  document.getElementById('nisInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
 });
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  AUTH
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 async function doLogin() {
-  const nis = document.getElementById('loginNIS').value.trim().toUpperCase();
-  if (!nis) return showAuthError('NIS wajib diisi');
-
-  setBtn('btnLogin', true, 'Masuk...');
-  showLoading('Login...');
+  const nis = document.getElementById('nisInput').value.trim().toUpperCase();
+  if (!nis) return showErr('NIS wajib diisi');
+  setBtn('loginBtn', true, 'Masuk...');
+  showLoad('Memverifikasi...');
   try {
-    const data = await window.HQ.Auth.login(nis, 'guru');
-    if (data.status !== 'ok') throw new Error(data.message || 'Login gagal');
-    if (data.user.role !== 'guru') throw new Error('Akun ini bukan role Guru');
-
-    token = data.token;
-    currentUser = data.user;
+    const d = await window.HQ.Auth.login(nis, 'guru');
+    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
+    if (d.user.role !== 'guru') throw new Error('Akun ini bukan role Guru');
+    token = d.token; currentUser = d.user;
     sessionStorage.setItem('hq_token', token);
     sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
     startApp();
-  } catch(e) {
-    showAuthError(e.message);
-  } finally {
-    hideLoading();
-    setBtn('btnLogin', false, 'Masuk');
-  }
+  } catch(e) { showErr(e.message); }
+  finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
 }
 
-function doLogout() {
-  window.HQ.Auth.logout();
+function doLogout() { window.HQ.Auth.logout(); }
+function showErr(m) {
+  const el = document.getElementById('authErr');
+  el.textContent = '⚠ ' + m; el.style.display = 'block';
 }
 
-function showAuthError(msg) {
-  const el = document.getElementById('authError');
-  el.textContent = '⚠ ' + msg;
-  el.style.display = 'block';
-}
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  APP START
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-
-  const nama   = currentUser.nama || currentUser.id_user;
-  const inisial = nama.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = inisial;
-  document.getElementById('sidebarName').textContent   = nama;
-  document.getElementById('greetName').textContent     = "Assalamu'alaikum, " + nama.split(' ')[0] + " 👋";
-
+  const nama = currentUser.nama || currentUser.id_user;
+  const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sbAvatar').textContent = ini;
+  document.getElementById('sbName').textContent   = nama;
+  document.getElementById('greet').textContent    = "Assalamu'alaikum, " + nama.split(' ')[0] + " 👋";
   loadDashboard();
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  NAVIGASI
-// ═══════════════════════════════════════════
-function showPage(name) {
+// ══════════════════════════════════════════
+const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
+  presensi:'Presensi Murid',jurnal:'Jurnal KBM',
+  murid:'Daftar Murid',riwayat:'Riwayat KBM'};
+
+function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelector('[data-page="' + name + '"]')?.classList.add('active');
-
-  const titles = { dashboard:'Dashboard', kbm:'Sesi KBM', murid:'Daftar Murid', riwayat:'Riwayat KBM' };
-  document.getElementById('topbarTitle').textContent = titles[name] || name;
-  closeSidebar();
-
-  if (name === 'kbm')     populateSelect('kbmHalaqahSelect');
-  if (name === 'murid')   populateSelect('muridHalaqahSelect');
-  if (name === 'riwayat') populateSelect('riwayatHalaqahSelect');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name)?.classList.add('active');
+  document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
+  closeSB();
+  if (name === 'kbm')     { populateSel('kbmHalaqah'); updateSesiBanner(); }
+  if (name === 'murid')   populateSel('muridHalaqahSel');
+  if (name === 'riwayat') populateSel('riwayatHalaqahSel');
 }
 
-function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show') }
-function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show') }
+function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
+function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 //  DASHBOARD
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
 async function loadDashboard() {
-  showLoading('Memuat dashboard...');
+  showLoad('Memuat dashboard...');
   try {
-    const res = await window.HQ.GuruAPI.getDashboard();
-    const d   = res.data;
+    const r = await window.HQ.GuruAPI.getDashboard();
+    const d = r.data;
     halaqahList = d.halaqah || [];
 
-    document.getElementById('stat-halaqah').textContent = d.total_halaqah ?? '–';
-    document.getElementById('stat-murid').textContent   = d.total_murid   ?? '–';
-    document.getElementById('stat-kbm').textContent     = d.kbm_hari_ini  ?? '–';
+    document.getElementById('st-halaqah').textContent = d.total_halaqah ?? '–';
+    document.getElementById('st-murid').textContent   = d.total_murid   ?? '–';
+    document.getElementById('st-kbm').textContent     = d.kbm_hari_ini  ?? '–';
+    document.getElementById('st-bulan').textContent   = d.kbm_bulan_ini ?? '–';
 
-    const cont = document.getElementById('dashHalaqahList');
-    if (!halaqahList.length) {
-      cont.innerHTML = emptyState('📭', 'Belum ada halaqah yang diampu', 'Hubungi admin untuk mendaftarkan halaqah Anda.');
-    } else {
-      cont.innerHTML = '<div class="halaqah-grid">' + halaqahList.map(halaqahCardHTML).join('') + '</div>';
+    // Cek sesi draft
+    if (d.sesi_draft) {
+      sesiAktif = d.sesi_draft;
+      updateSesiBanner();
     }
-  } catch(e) {
-    showToast('Gagal memuat dashboard: ' + e.message, 'error');
-  } finally {
-    hideLoading();
-  }
+
+    const cont = document.getElementById('dashHalaqah');
+    if (!halaqahList.length) {
+      cont.innerHTML = emptyHTML('📭','Belum ada halaqah','Hubungi admin untuk mendaftarkan halaqah.');
+    } else {
+      cont.innerHTML = '<div class="hq-grid">' + halaqahList.map(hqCard).join('') + '</div>';
+    }
+  } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
+  finally { hideLoad(); }
 }
 
-function halaqahCardHTML(h) {
-  return `<div class="halaqah-card" onclick="showPage('kbm')">
-    <div class="halaqah-name">${esc(h.nama_halaqah)}</div>
-    <div class="halaqah-meta">
+function hqCard(h) {
+  return `<div class="hq-card" onclick="goPage('kbm')">
+    <div class="hq-name">${esc(h.nama_halaqah)}</div>
+    <div class="hq-meta">
       <span>📅 ${esc(h.jadwal_hari||'-')}</span>
-      <span>⏰ ${esc(h.jam_mulai||'-')}–${esc(h.jam_selesai||'-')}</span>
+      <span>⏰ ${esc(h.jam_mulai||'-')}</span>
       <span>📍 ${esc(h.lokasi||'-')}</span>
     </div>
-    <div class="halaqah-stats">
-      <div class="halaqah-stat"><div class="val">${h.total_murid??0}</div><div class="lbl">Murid</div></div>
-      <div class="halaqah-stat"><div class="val">${h.total_sesi??0}</div><div class="lbl">Sesi</div></div>
-      <div class="halaqah-stat"><div class="val">${esc(h.level||'-')}</div><div class="lbl">Level</div></div>
+    <div class="hq-stats">
+      <div class="hq-stat"><div class="v">${h.total_murid??0}</div><div class="l">Murid</div></div>
+      <div class="hq-stat"><div class="v">${h.total_sesi??0}</div><div class="l">Sesi</div></div>
+      <div class="hq-stat"><div class="v">${esc(h.level||'-')}</div><div class="l">Level</div></div>
     </div>
   </div>`;
 }
 
-// ═══════════════════════════════════════════
-//  KBM — BUKA & TUTUP
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  BUKA KBM
+// ══════════════════════════════════════════
 async function doBukaKBM() {
-  const id_halaqah = document.getElementById('kbmHalaqahSelect').value;
+  const id_halaqah = document.getElementById('kbmHalaqah').value;
   const tanggal    = document.getElementById('kbmTanggal').value;
-  const materi     = document.getElementById('kbmMateri').value.trim();
-  const metode     = document.getElementById('kbmMetode').value;
-  const catatan    = document.getElementById('kbmCatatan').value.trim();
+  const jam_mulai  = document.getElementById('kbmJam').value;
+  const jenis_sesi = document.getElementById('kbmJenis').value;
 
-  if (!id_halaqah) return showToast('Pilih halaqah terlebih dahulu', 'error');
-  if (!tanggal)    return showToast('Tanggal pertemuan wajib diisi', 'error');
-  if (sesiAktif)   return showToast('Sudah ada sesi yang berjalan. Tutup dulu sebelum membuka baru.', 'warn');
+  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
+  if (!tanggal)    return toast('Tanggal wajib diisi','err');
+  if (sesiAktif)   return toast('Masih ada sesi berjalan. Tutup dulu!','warn');
 
-  setBtn('btnBukaKBM', true, '⏳ Membuka...');
-  showLoading('Membuka sesi KBM...');
+  setBtn('btnMulai', true, '⏳ Membuka sesi...');
+  showLoad('Membuka sesi KBM...');
   try {
-    const res = await window.HQ.GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, materi, metode, catatan_umum: catatan, durasi_menit: 60 });
-    sesiAktif = res.data;
-
-    // Preload murid untuk sesi ini
-    await getMuridHalaqah(id_halaqah);
-    showSesiAktif();
-    showToast('Sesi KBM berhasil dibuka!', 'success');
-
-    // Reset form
-    document.getElementById('kbmMateri').value  = '';
-    document.getElementById('kbmCatatan').value = '';
-  } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    hideLoading();
-    setBtn('btnBukaKBM', false, '▶ Buka Sesi KBM');
-  }
+    const r = await window.HQ.GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, jam_mulai, jenis_sesi });
+    sesiAktif = r.data;
+    muridSesi = await getMurid(id_halaqah);
+    goPage('presensi');
+    renderPresensi();
+    renderSteps('presensi');
+    toast('Sesi dibuka! Silakan isi presensi.','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru'); }
 }
 
-async function doTutupKBM() {
-  if (!sesiAktif) return;
-  if (!confirm('Tutup sesi KBM ini? Data tidak bisa diubah setelah ditutup.')) return;
-
-  showLoading('Menutup sesi...');
-  try {
-    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-    showToast('Sesi KBM berhasil ditutup! Hadir: ' + (res.data?.jumlah_hadir ?? 0) + ' murid.', 'success');
-    sesiAktif = null;
-    document.getElementById('sesiAktifBanner').style.display = 'none';
-    // Refresh riwayat jika sedang di halaman itu
-    if (document.getElementById('page-riwayat').classList.contains('active')) loadRiwayat();
-  } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    hideLoading();
-  }
-}
-
-function showSesiAktif() {
-  if (!sesiAktif) return;
+function updateSesiBanner() {
+  const b = document.getElementById('sesiBanner');
+  if (!sesiAktif) { b.style.display='none'; return; }
   const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
-  document.getElementById('sesiAktifLabel').innerHTML =
-    `<strong>${esc(h?.nama_halaqah || sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
-     Pertemuan ke-${sesiAktif.pertemuan_ke} &nbsp;·&nbsp;
-     ${formatDate(sesiAktif.tanggal_pertemuan)} &nbsp;·&nbsp;
-     <span class="badge badge-green">${esc(sesiAktif.id_kbm)}</span>`;
-  document.getElementById('sesiAktifBanner').style.display = 'flex';
+  document.getElementById('sesiInfo').innerHTML =
+    `<strong>${esc(h?.nama_halaqah||sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
+     ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp;
+     ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''} &nbsp;·&nbsp;
+     Pertemuan ke-${sesiAktif.pertemuan_ke}`;
+  b.style.display = 'flex';
 }
 
-// ═══════════════════════════════════════════
-//  ABSENSI
-// ═══════════════════════════════════════════
-async function openAbsensiModal() {
-  if (!sesiAktif) return showToast('Tidak ada sesi aktif', 'error');
-  const murid = await getMuridHalaqah(sesiAktif.id_halaqah);
-  if (!murid.length) return showToast('Belum ada murid di halaqah ini', 'error');
+function lanjutSesi() {
+  if (!sesiAktif) return;
+  muridSesi.length ? goToJurnal() : (async () => {
+    muridSesi = await getMurid(sesiAktif.id_halaqah);
+    goPage('presensi'); renderPresensi(); renderSteps('presensi');
+  })();
+}
 
-  document.getElementById('absensiList').innerHTML = murid.map(m => `
-    <div class="absensi-row">
-      <div class="absensi-name">${esc(m.nama_murid)}</div>
-      <div class="absensi-btns">
-        ${['H','I','S','A'].map(k => `
-          <button class="btn-hadir ${k==='H'?'active':''}" data-kode="${k}" data-murid="${esc(m.id_murid)}" onclick="toggleAbsensi(this)">${k}</button>
+// ══════════════════════════════════════════
+//  PRESENSI
+// ══════════════════════════════════════════
+function renderPresensi() {
+  const cont = document.getElementById('presensiList');
+  if (!muridSesi.length) {
+    cont.innerHTML = emptyHTML('👥','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
+  }
+  cont.innerHTML = muridSesi.map(m => `
+    <div class="prow" id="prow-${esc(m.id_murid)}">
+      <div>
+        <div class="prow-name">${esc(m.nama_murid)}</div>
+        <div class="prow-level">Level: ${esc(m.level||'-')} &nbsp;·&nbsp; ${m.total_hadir||0}× hadir</div>
+      </div>
+      <div class="prow-btns">
+        ${['H','I','S','A'].map(k=>`
+          <button class="pb ${k==='H'?'on':''}" data-k="${k}" data-id="${esc(m.id_murid)}"
+            data-nama="${esc(m.nama_murid)}" onclick="togPresensi(this)">${k}</button>
         `).join('')}
       </div>
     </div>`).join('');
 
-  openModal('absensiModal');
+  document.getElementById('presensiCount').textContent = muridSesi.length + ' murid';
 }
 
-function toggleAbsensi(btn) {
-  btn.closest('.absensi-btns').querySelectorAll('.btn-hadir').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function togPresensi(btn) {
+  btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  updatePresensiCount();
 }
 
-async function doSimpanAbsensi() {
-  if (!sesiAktif) return;
-  const absensi = [];
-  document.querySelectorAll('#absensiList .absensi-row').forEach(row => {
-    const aktif = row.querySelector('.btn-hadir.active');
-    if (aktif) absensi.push({ id_murid: aktif.dataset.murid, status_hadir: aktif.dataset.kode });
+function setAllPresensi(kode) {
+  document.querySelectorAll('.pb[data-k="' + kode + '"]').forEach(btn => {
+    btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
   });
-  if (!absensi.length) return showToast('Tidak ada data absensi', 'error');
-
-  showLoading('Menyimpan absensi...');
-  try {
-    await window.HQ.GuruAPI.simpanAbsensi({ id_kbm: sesiAktif.id_kbm, id_halaqah: sesiAktif.id_halaqah, absensi });
-    closeModal('absensiModal');
-    showToast(absensi.length + ' absensi berhasil disimpan!', 'success');
-  } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    hideLoading();
-  }
+  updatePresensiCount();
 }
 
-// ═══════════════════════════════════════════
-//  HAFALAN
-// ═══════════════════════════════════════════
-async function openHafalanModal() {
-  if (!sesiAktif) return showToast('Tidak ada sesi aktif', 'error');
-  const murid = await getMuridHalaqah(sesiAktif.id_halaqah);
-
-  const sel = document.getElementById('hfMuridSelect');
-  sel.innerHTML = '<option value="">— Pilih Murid —</option>' +
-    murid.map(m => `<option value="${esc(m.id_murid)}">${esc(m.nama_murid)}</option>`).join('');
-
-  // Reset field
-  ['hfSurahMulai','hfAyatMulai','hfSurahSelesai','hfAyatSelesai','hfLama','hfCatatan'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('hfNilai').value = 'A';
-  document.getElementById('hfJenis').value = 'setoran';
-
-  openModal('hafalanModal');
+function updatePresensiCount() {
+  const hadir = document.querySelectorAll('.pb[data-k="H"].on').length;
+  document.getElementById('presensiCount').textContent =
+    hadir + ' hadir / ' + muridSesi.length + ' murid';
 }
 
-async function doSimpanHafalan() {
+async function doSimpanPresensi() {
   if (!sesiAktif) return;
-  const id_murid = document.getElementById('hfMuridSelect').value;
-  if (!id_murid) return showToast('Pilih murid terlebih dahulu', 'error');
-
-  const surahMulai   = document.getElementById('hfSurahMulai').value.trim();
-  const surahSelesai = document.getElementById('hfSurahSelesai').value.trim();
-  if (!surahMulai || !surahSelesai) return showToast('Surah mulai dan selesai wajib diisi', 'error');
-
-  showLoading('Menyimpan hafalan...');
-  try {
-    await window.HQ.GuruAPI.simpanHafalan({
-      id_kbm        : sesiAktif.id_kbm,
-      id_halaqah    : sesiAktif.id_halaqah,
-      id_murid,
-      surah_mulai   : surahMulai,
-      ayat_mulai    : document.getElementById('hfAyatMulai').value   || '',
-      surah_selesai : surahSelesai,
-      ayat_selesai  : document.getElementById('hfAyatSelesai').value || '',
-      jenis_hafalan : document.getElementById('hfJenis').value,
-      nilai         : document.getElementById('hfNilai').value,
-      lama_menit    : document.getElementById('hfLama').value        || '',
-      catatan_guru  : document.getElementById('hfCatatan').value     || '',
+  const presensi = [];
+  document.querySelectorAll('.prow').forEach(row => {
+    const aktif = row.querySelector('.pb.on');
+    if (aktif) presensi.push({
+      id_murid    : aktif.dataset.id,
+      nama_murid  : aktif.dataset.nama,
+      status_hadir: aktif.dataset.k,
     });
-    closeModal('hafalanModal');
-    muridCache[sesiAktif.id_halaqah] = null; // invalidate
-    showToast('Hafalan berhasil disimpan!', 'success');
-  } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    hideLoading();
-  }
+  });
+  if (!presensi.length) return toast('Isi presensi minimal 1 murid','err');
+
+  showLoad('Menyimpan presensi...');
+  try {
+    await window.HQ.GuruAPI.simpanPresensi({
+      id_kbm: sesiAktif.id_kbm,
+      id_halaqah: sesiAktif.id_halaqah,
+      presensi
+    });
+    goToJurnal();
+    toast('Presensi tersimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
 }
 
-// ═══════════════════════════════════════════
-//  MURID
-// ═══════════════════════════════════════════
-async function getMuridHalaqah(id_halaqah) {
+// ══════════════════════════════════════════
+//  JURNAL & NILAI
+// ══════════════════════════════════════════
+function goToJurnal() {
+  // Set jam selesai otomatis
+  document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
+  renderNilaiList();
+  goPage('jurnal');
+  renderSteps('jurnal');
+}
+
+function renderNilaiList() {
+  const hadir = muridSesi;  // tampilkan semua murid
+  const cont  = document.getElementById('nilaiList');
+  if (!hadir.length) { cont.innerHTML = emptyHTML('👥','Tidak ada murid',''); return; }
+
+  cont.innerHTML = hadir.map(m => `
+    <div class="nilai-row">
+      <div class="nilai-murid-name">
+        <span>👤 ${esc(m.nama_murid)}</span>
+        <span id="hadirBadge-${esc(m.id_murid)}" class="badge b-gray" style="font-size:11px">–</span>
+      </div>
+      <div class="nilai-grid">
+        <div class="fg" style="margin:0">
+          <label>Nilai Tahsin</label>
+          <select class="fc" id="nilai-${esc(m.id_murid)}" style="font-size:13px">
+            <option value="">— Pilih —</option>
+            <option value="Mumtaz">⭐ Mumtaz</option>
+            <option value="Jayyid Jiddan">✅ Jayyid Jiddan</option>
+            <option value="Jayyid">👍 Jayyid</option>
+            <option value="Maqbul">📌 Maqbul</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0">
+          <label>Adab</label>
+          <select class="fc" id="adab-${esc(m.id_murid)}" style="font-size:13px">
+            <option value="">— Pilih —</option>
+            <option value="Baik">😊 Baik</option>
+            <option value="Cukup">🙂 Cukup</option>
+            <option value="Perlu Perhatian">⚠️ Perlu Perhatian</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" style="margin-top:8px">
+        <label>Koreksi Tahsin</label>
+        <input type="text" class="fc" id="koreksi-${esc(m.id_murid)}"
+          placeholder="Contoh: Makhraj ح perlu diperbaiki, mad tabi'i kurang panjang..."
+          style="font-size:13px">
+      </div>
+    </div>`).join('');
+
+  // Update badge hadir dari presensi
+  document.querySelectorAll('.pb.on').forEach(btn => {
+    const el = document.getElementById('hadirBadge-' + btn.dataset.id);
+    if (!el) return;
+    const map = {H:'b-green',I:'b-amber',S:'b-blue',A:'b-red'};
+    const lbl = {H:'Hadir',I:'Izin',S:'Sakit',A:'Alpa'};
+    el.className = 'badge ' + (map[btn.dataset.k]||'b-gray');
+    el.textContent = lbl[btn.dataset.k]||btn.dataset.k;
+  });
+}
+
+async function doSelesaiKBM() {
+  if (!sesiAktif) return;
+
+  const materi     = document.getElementById('jurnalMateri').value.trim();
+  const metode     = document.getElementById('jurnalMetode').value;
+  const catatan    = document.getElementById('jurnalCatatan').value.trim();
+  const jamSelesai = document.getElementById('jurnalJamSelesai').value;
+
+  setBtn('btnSelesai', true, '⏳ Menyimpan...');
+  showLoad('Menyimpan jurnal KBM...');
+  try {
+    // 1. Simpan jurnal
+    await window.HQ.GuruAPI.simpanJurnalKBM({
+      id_kbm: sesiAktif.id_kbm,
+      pencapaian_modul: materi,
+      metode, catatan_umum: catatan, jam_selesai: jamSelesai
+    });
+
+    // 2. Simpan nilai per murid
+    for (const m of muridSesi) {
+      const nilai   = document.getElementById('nilai-'   + m.id_murid)?.value || '';
+      const adab    = document.getElementById('adab-'    + m.id_murid)?.value || '';
+      const koreksi = document.getElementById('koreksi-' + m.id_murid)?.value || '';
+      if (nilai || adab || koreksi) {
+        await window.HQ.GuruAPI.simpanNilaiMurid({
+          id_kbm    : sesiAktif.id_kbm,
+          id_halaqah: sesiAktif.id_halaqah,
+          id_murid  : m.id_murid,
+          nama_murid: m.nama_murid,
+          nilai, adab, koreksi_tahsin: koreksi,
+        });
+      }
+    }
+
+    // 3. Tutup sesi
+    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
+    toast(res.message || 'Sesi berhasil ditutup! Jazakallah khairan 🌟', 'ok');
+
+    // Reset state
+    sesiAktif = null; muridSesi = [];
+    muridCache = {};
+
+    // Kembali ke dashboard
+    setTimeout(() => {
+      loadDashboard();
+      goPage('dashboard');
+    }, 1200);
+
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
+}
+
+async function konfirmasiTutup() {
+  if (!confirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.')) return;
+  showLoad('Menutup sesi...');
+  try {
+    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
+    toast(res.message || 'Sesi ditutup','ok');
+    sesiAktif = null; muridSesi = [];
+    updateSesiBanner();
+    loadDashboard();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  STEP INDICATOR
+// ══════════════════════════════════════════
+function renderSteps(current) {
+  const steps = [
+    {id:'kbm',     label:'Buka Sesi'},
+    {id:'presensi',label:'Presensi'},
+    {id:'jurnal',  label:'Jurnal & Nilai'},
+  ];
+  const ci = steps.findIndex(s => s.id === current);
+
+  ['stepBar','stepBar2'].forEach(barId => {
+    const bar = document.getElementById(barId);
+    if (!bar) return;
+    bar.innerHTML = steps.map((s,i) => {
+      const state = i < ci ? 'done' : i === ci ? 'active' : 'pending';
+      const line  = i < steps.length-1
+        ? `<div class="step-line ${i < ci?'done':''}"></div>` : '';
+      return `<div class="step">
+        <div class="step-num ${state}">${i < ci ? '✓' : i+1}</div>
+        <div class="step-label ${state}">${s.label}</div>
+      </div>${line}`;
+    }).join('');
+  });
+}
+
+// ══════════════════════════════════════════
+//  DAFTAR MURID
+// ══════════════════════════════════════════
+async function getMurid(id_halaqah) {
   if (muridCache[id_halaqah]) return muridCache[id_halaqah];
-  const res = await window.HQ.GuruAPI.getMurid(id_halaqah);
-  muridCache[id_halaqah] = res.data || [];
+  const r = await window.HQ.GuruAPI.getMurid(id_halaqah);
+  muridCache[id_halaqah] = r.data || [];
   return muridCache[id_halaqah];
 }
 
 async function loadMurid() {
-  const id_halaqah = document.getElementById('muridHalaqahSelect').value;
-  if (!id_halaqah) return;
-  showLoading('Memuat murid...');
+  const id = document.getElementById('muridHalaqahSel').value;
+  if (!id) return;
+  showLoad('Memuat murid...');
   try {
-    muridCache[id_halaqah] = null; // force refresh
-    const murid = await getMuridHalaqah(id_halaqah);
-    const tbody = document.getElementById('muridTable');
+    muridCache[id] = null;
+    const murid = await getMurid(id);
+    const tbody = document.getElementById('muridTbl');
     if (!murid.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:32px">Belum ada murid di halaqah ini</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
       return;
     }
     tbody.innerHTML = murid.map(m => {
-      const hl = m.hafalan_terakhir;
+      const pct = m.pct_hadir ?? 0;
+      const s40 = m.skor_dari_40 ?? 0;
+      const pctColor = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
       return `<tr>
         <td><strong>${esc(m.nama_murid)}</strong></td>
-        <td><small style="color:var(--text-3)">${esc(m.target_hafalan||'-')}</small></td>
-        <td><span class="badge badge-green">${m.total_hadir??0}×</span></td>
-        <td>${m.total_setoran??0}</td>
-        <td>${m.total_murajaah??0}</td>
-        <td style="font-size:12px">
-          ${hl ? `${esc(hl.surah_selesai)}:${hl.ayat_selesai} <span class="nilai-${hl.nilai}">${hl.nilai}</span>` : '<span style="color:var(--text-3)">–</span>'}
+        <td><span class="badge b-blue">${esc(m.level||'-')}</span></td>
+        <td><span class="badge b-green">${m.total_hadir||0}×</span></td>
+        <td>${m.total_sesi||0}</td>
+        <td>
+          <span style="font-weight:700;color:${pctColor}">${pct}%</span>
+          <div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">
+            <div style="height:4px;background:${pctColor};border-radius:4px;width:${Math.min(pct,100)}%"></div>
+          </div>
         </td>
         <td>
-          <button class="btn btn-outline btn-sm" onclick="openCatatanModal('${esc(m.id_anggota)}','${esc(m.nama_murid)}','${esc((m.catatan_guru||'').replace(/'/g,"&#39;"))}')">📝 Catatan</button>
+          <span style="font-weight:700;color:${s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)'}">${s40}%</span>
+          <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw?.toFixed?.(1)||'–'}/40</div>
         </td>
+        <td>${nilaiLabel(m.avg_nilai)}</td>
+        <td><button class="btn btn-outline btn-sm"
+          onclick="bukaCatatan('${esc(m.id_anggota)}','${esc(m.nama_murid)}','${esc((m.catatan_guru||'').replace(/'/g,"&#39;"))}')">
+          📝 Catatan</button></td>
       </tr>`;
     }).join('');
-  } catch(e) {
-    showToast('Gagal memuat murid: ' + e.message, 'error');
-  } finally {
-    hideLoading();
-  }
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
 }
 
-// ═══════════════════════════════════════════
-//  CATATAN MURID
-// ═══════════════════════════════════════════
-function openCatatanModal(id_anggota, nama, catatan) {
-  document.getElementById('catatanNama').textContent      = nama;
-  document.getElementById('catatanInput').value           = catatan;
-  document.getElementById('catatanIdAnggota').value       = id_anggota;
-  openModal('catatanModal');
-}
-
-async function doSimpanCatatan() {
-  const id_anggota  = document.getElementById('catatanIdAnggota').value;
-  const catatan_guru = document.getElementById('catatanInput').value;
-  showLoading('Menyimpan catatan...');
-  try {
-    await window.HQ.GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
-    closeModal('catatanModal');
-    // Update cache
-    const select = document.getElementById('muridHalaqahSelect');
-    if (select.value) muridCache[select.value] = null;
-    showToast('Catatan berhasil disimpan!', 'success');
-  } catch(e) {
-    showToast(e.message, 'error');
-  } finally {
-    hideLoading();
-  }
-}
-
-// ═══════════════════════════════════════════
-//  RIWAYAT KBM
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  RIWAYAT
+// ══════════════════════════════════════════
 async function loadRiwayat() {
-  const id_halaqah = document.getElementById('riwayatHalaqahSelect').value;
-  if (!id_halaqah) return;
-  showLoading('Memuat riwayat...');
+  const id = document.getElementById('riwayatHalaqahSel').value;
+  if (!id) return;
+  showLoad('Memuat riwayat...');
   try {
-    const res  = await window.HQ.GuruAPI.getRiwayatKBM(id_halaqah, 30);
-    const rows = res.data || [];
-    const tbody = document.getElementById('riwayatTable');
+    const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 30);
+    const rows = r.data || [];
+    const tbody = document.getElementById('riwayatTbl');
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:32px">Belum ada riwayat KBM</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada riwayat</td></tr>`;
       return;
     }
     tbody.innerHTML = rows.map(k => `<tr>
-      <td>${formatDate(k.tanggal_pertemuan)}</td>
-      <td><span class="badge badge-blue">ke-${k.pertemuan_ke}</span></td>
-      <td>${esc(k.materi||'-')}</td>
-      <td><span class="badge badge-gray">${esc(k.metode||'-')}</span></td>
-      <td><strong style="color:var(--accent)">${k.jumlah_hadir??0}</strong> hadir / <span style="color:var(--danger)">${k.jumlah_alpa??0}</span> alpa</td>
+      <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
+      <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
+      <td><span class="badge b-gray">${esc(k.jenis_sesi||'-')}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k.pencapaian_modul||'-')}</td>
+      <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
       <td>${statusBadge(k.status)}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="loadDetailKBM('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
+          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Presensi</button>
+      </td>
     </tr>`).join('');
-  } catch(e) {
-    showToast('Gagal memuat riwayat: ' + e.message, 'error');
-  } finally {
-    hideLoading();
-  }
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
 }
 
-async function loadDetailKBM(id_kbm, tanggal) {
-  document.getElementById('detailKBMTitle').textContent = 'Detail Hafalan — ' + formatDate(tanggal);
-  document.getElementById('detailKBMBody').innerHTML =
-    '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Memuat...</div></div>';
-  openModal('detailKBMModal');
-
+async function lihatDetail(id_kbm, tgl) {
+  document.getElementById('detailTitle').textContent = 'Detail — ' + fmtDate(tgl);
+  document.getElementById('detailBody').innerHTML =
+    emptyHTML('⏳','Memuat...','');
+  openModal('detailModal');
   try {
-    const res  = await window.HQ.GuruAPI.getHafalanByKBM(id_kbm);
-    const data = res.data || [];
+    const r = await window.HQ.GuruAPI.getNilaiByKBM(id_kbm);
+    const data = r.data || [];
     if (!data.length) {
-      document.getElementById('detailKBMBody').innerHTML =
-        '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Belum ada data hafalan untuk sesi ini</div></div>';
+      document.getElementById('detailBody').innerHTML = emptyHTML('📭','Belum ada data nilai','');
       return;
     }
-    document.getElementById('detailKBMBody').innerHTML = data.map(hf => `
-      <div class="hafalan-row">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <strong>${esc(hf.id_murid)}</strong>
-          <div style="display:flex;gap:6px;align-items:center">
-            ${statusHadirBadge(hf.status_hadir)}
-            ${hf.nilai ? `<span class="nilai-${hf.nilai}">${hf.nilai}</span>` : ''}
-            ${hf.jenis_hafalan ? `<span class="badge badge-blue">${esc(hf.jenis_hafalan)}</span>` : ''}
-          </div>
+    document.getElementById('detailBody').innerHTML = data.map(n => `
+      <div class="nilai-row">
+        <div class="nilai-murid-name">
+          <span>👤 ${esc(n.nama_murid||n.id_murid)}</span>
+          ${hadirBadge(n.status_hadir)}
         </div>
-        <div style="font-size:12px;color:var(--text-2)">
-          ${hf.surah_mulai ? `📖 ${esc(hf.surah_mulai)} ${hf.ayat_mulai} — ${esc(hf.surah_selesai)} ${hf.ayat_selesai}` : '<em style="color:var(--text-3)">Tidak ada setoran</em>'}
-          ${hf.lama_menit ? ` &nbsp;·&nbsp; ⏱ ${hf.lama_menit} menit` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          ${n.nilai ? nilaiLabel(n.nilai) : ''}
+          ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
         </div>
-        ${hf.catatan_guru ? `<div style="font-size:12px;color:var(--text-3);margin-top:4px">💬 ${esc(hf.catatan_guru)}</div>` : ''}
+        ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
       </div>`).join('');
   } catch(e) {
-    document.getElementById('detailKBMBody').innerHTML =
-      `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-title">Gagal memuat: ${esc(e.message)}</div></div>`;
+    document.getElementById('detailBody').innerHTML = emptyHTML('❌','Gagal memuat','');
   }
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  CATATAN MURID
+// ══════════════════════════════════════════
+function bukaCatatan(id_anggota, nama, catatan) {
+  document.getElementById('catatanNama').textContent    = nama;
+  document.getElementById('catatanTxt').value           = catatan;
+  document.getElementById('catatanIdAnggota').value     = id_anggota;
+  openModal('catatanModal');
+}
+
+async function simpanCatatan() {
+  const id_anggota  = document.getElementById('catatanIdAnggota').value;
+  const catatan_guru = document.getElementById('catatanTxt').value;
+  showLoad('Menyimpan...');
+  try {
+    await window.HQ.GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
+    closeModal('catatanModal');
+    muridCache = {};
+    toast('Catatan tersimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
 //  HELPERS — UI
-// ═══════════════════════════════════════════
-function populateSelect(selectId) {
-  const sel = document.getElementById(selectId);
+// ══════════════════════════════════════════
+function populateSel(selId) {
+  const sel = document.getElementById(selId);
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' +
     halaqahList.map(h => `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
 }
 
-function openModal(id)  { document.getElementById(id).classList.add('open') }
-function closeModal(id) { document.getElementById(id).classList.remove('open') }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-function showLoading(msg = 'Memuat...') {
-  document.getElementById('loadingText').textContent = msg;
-  document.getElementById('loadingOverlay').classList.add('show');
+function showLoad(msg='Memuat...') {
+  document.getElementById('loaderTxt').textContent = msg;
+  document.getElementById('loader').classList.add('show');
 }
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show') }
+function hideLoad() { document.getElementById('loader').classList.remove('show'); }
 
-let _toastTimer;
-function showToast(msg, type = '') {
+let _tt;
+function toast(msg, type='') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className   = 'show ' + type;
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => { el.className = '' }, 3500);
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(_tt); _tt = setTimeout(() => el.className = '', 3800);
 }
 
-function setBtn(id, disabled, text) {
+function setBtn(id, dis, txt) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.disabled   = disabled;
-  el.textContent = text;
+  if (!el) return; el.disabled = dis; el.textContent = txt;
 }
 
 function statusBadge(s) {
-  const map = { selesai:'badge-green', draft:'badge-warn', batal:'badge-red' };
-  return `<span class="badge ${map[s]||'badge-gray'}">${s||'-'}</span>`;
+  const m = {selesai:'b-green',draft:'b-amber',batal:'b-red'};
+  return `<span class="badge ${m[s]||'b-gray'}">${s||'-'}</span>`;
 }
 
-function statusHadirBadge(k) {
-  const map = { H:'badge-green', I:'badge-warn', S:'badge-blue', A:'badge-red' };
-  const lbl = { H:'Hadir', I:'Izin', S:'Sakit', A:'Alpa' };
-  return `<span class="badge ${map[k]||'badge-gray'}">${lbl[k]||k||'-'}</span>`;
+function hadirBadge(k) {
+  const m = {H:'b-green',I:'b-amber',S:'b-blue',A:'b-red'};
+  const l = {H:'Hadir',I:'Izin',S:'Sakit',A:'Alpa'};
+  return `<span class="badge ${m[k]||'b-gray'}">${l[k]||k||'-'}</span>`;
 }
 
-function formatDate(d) {
+function nilaiLabel(n) {
+  const m = {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'};
+  if (!n || n==='-') return '<span style="color:var(--text-3)">–</span>';
+  return `<span class="${m[n]||''}">${esc(n)}</span>`;
+}
+
+function fmtDate(d) {
   if (!d) return '–';
-  return new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+  return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
 }
 
-function esc(str) {
-  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function esc(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function emptyState(icon, title, sub = '') {
-  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-title">${title}</div>${sub ? `<div class="empty-sub">${sub}</div>` : ''}</div>`;
+function emptyHTML(ico, ttl, sub) {
+  return `<div class="empty"><div class="empty-ico">${ico}</div>
+    <div class="empty-ttl">${ttl}</div>
+    ${sub?`<div class="empty-sub">${sub}</div>`:''}
+  </div>`;
 }
 
-// Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('../sw.js').catch(() => {});
+// ══════════════════════════════════════════
+//  EDIT PRESENSI SESI LAMA
+// ══════════════════════════════════════════
+let editPresensiKBMId   = '';
+let editPresensiHalaqah = '';
+
+async function bukaEditPresensi(id_kbm, tanggal) {
+  editPresensiKBMId = id_kbm;
+  document.getElementById('editPresensiTitle').textContent =
+    'Edit Presensi — ' + fmtDate(tanggal);
+  document.getElementById('editPresensiList').innerHTML =
+    emptyHTML('⏳','Memuat data...','');
+  openModal('editPresensiModal');
+
+  showLoad('Memuat data presensi...');
+  try {
+    const r = await window.HQ.GuruAPI.getPresensiByKBM(id_kbm);
+    editPresensiHalaqah = r.kbm?.id_halaqah || '';
+    const data = r.data || [];
+
+    if (!data.length) {
+      // Jika belum ada data nilai, ambil dari daftar murid halaqah
+      const murid = editPresensiHalaqah
+        ? await getMurid(editPresensiHalaqah) : [];
+      if (!murid.length) {
+        document.getElementById('editPresensiList').innerHTML =
+          emptyHTML('📭','Tidak ada murid','');
+        return;
+      }
+      document.getElementById('editPresensiList').innerHTML = murid.map(m => `
+        <div class="prow">
+          <div>
+            <div class="prow-name">${esc(m.nama_murid)}</div>
+            <div class="prow-level">Level: ${esc(m.level||'-')}</div>
+          </div>
+          <div class="prow-btns">
+            ${['H','I','S','A'].map(k => `
+              <button class="pb ${k==='H'?'on':''}" data-k="${k}"
+                data-id="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}"
+                onclick="togEditPresensi(this)">${k}</button>`).join('')}
+          </div>
+        </div>`).join('');
+      return;
+    }
+
+    // Render dengan data yang sudah ada
+    document.getElementById('editPresensiList').innerHTML = data.map(n => {
+      const status = String(n.status_hadir||'H').toUpperCase();
+      return `<div class="prow">
+        <div>
+          <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
+        </div>
+        <div class="prow-btns">
+          ${['H','I','S','A'].map(k => `
+            <button class="pb ${k===status?'on':''}" data-k="${k}"
+              data-id="${esc(n.id_murid)}" data-nama="${esc(n.nama_murid||n.id_murid)}"
+              onclick="togEditPresensi(this)">${k}</button>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('editPresensiList').innerHTML =
+      emptyHTML('❌','Gagal memuat: ' + e.message,'');
+  } finally { hideLoad(); }
 }
+
+function togEditPresensi(btn) {
+  btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+async function simpanEditPresensi() {
+  const presensi = [];
+  document.querySelectorAll('#editPresensiList .prow').forEach(row => {
+    const aktif = row.querySelector('.pb.on');
+    if (aktif) presensi.push({
+      id_murid    : aktif.dataset.id,
+      nama_murid  : aktif.dataset.nama,
+      status_hadir: aktif.dataset.k,
+    });
+  });
+  if (!presensi.length) return toast('Tidak ada data presensi','err');
+
+  showLoad('Menyimpan perubahan presensi...');
+  try {
+    await window.HQ.GuruAPI.editPresensi({
+      id_kbm    : editPresensiKBMId,
+      id_halaqah: editPresensiHalaqah,
+      presensi,
+    });
+    closeModal('editPresensiModal');
+    toast('Presensi berhasil diperbarui!','ok');
+    // Refresh riwayat & murid
+    muridCache = {};
+    const rSel = document.getElementById('riwayatHalaqahSel').value;
+    if (rSel) loadRiwayat();
+    const mSel = document.getElementById('muridHalaqahSel').value;
+    if (mSel) loadMurid();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+if ('serviceWorker' in navigator)
+  navigator.serviceWorker.register('../sw.js').catch(()=>{});
 </script>
 </body>
 </html>
