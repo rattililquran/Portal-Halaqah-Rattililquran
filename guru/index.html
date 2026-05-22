@@ -241,15 +241,60 @@ tr:hover td{background:#f8fafc}
 @keyframes rot{to{transform:rotate(360deg)}}
 .loader-txt{color:#fff;font-size:13.5px;font-weight:500}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:calc(var(--sab)+20px);left:50%;transform:translateX(-50%) translateY(80px);
-  background:#0f172a;color:#fff;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;
-  box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:all .3s;z-index:600;
-  white-space:nowrap;max-width:calc(100vw - 40px);text-align:center}
-#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-#toast.ok{background:var(--green)}
-#toast.err{background:var(--red)}
-#toast.warn{background:var(--amber);color:#3d2800}
+/* ── NOTIF CENTER ── */
+.notif-overlay{
+  display:none;position:fixed;inset:0;z-index:700;
+  align-items:center;justify-content:center;
+  background:rgba(15,23,42,.35);backdrop-filter:blur(3px);
+  padding:20px;
+}
+.notif-overlay.show{display:flex}
+.notif-box{
+  background:#fff;border-radius:var(--r-xl);
+  padding:28px 28px 24px;width:100%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  animation:notifPop .28s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;position:relative;
+}
+@keyframes notifPop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.notif-icon{font-size:44px;margin-bottom:10px;line-height:1}
+.notif-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px}
+.notif-msg{font-size:13.5px;color:var(--text-2);line-height:1.6;margin-bottom:18px}
+.notif-btn{
+  width:100%;padding:12px;border:none;border-radius:var(--r-pill);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:opacity .15s;
+}
+.notif-btn:hover{opacity:.88}
+.notif-btn.ok  {background:var(--green);color:#fff}
+.notif-btn.err {background:var(--red);color:#fff}
+.notif-btn.warn{background:var(--amber);color:#3d2800}
+.notif-btn.info{background:var(--blue);color:#fff}
+
+/* Draft warning banner */
+.draft-warning{
+  background:linear-gradient(135deg,#fef9c3,#fef3c7);
+  border:2px solid var(--amber);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:16px;
+  display:none;align-items:flex-start;gap:12px;
+}
+.draft-warning.show{display:flex}
+.draft-warning-ico{font-size:24px;flex-shrink:0;margin-top:1px}
+.draft-warning-body{flex:1}
+.draft-warning-title{font-size:14px;font-weight:700;color:#8a6200;margin-bottom:3px}
+.draft-warning-sub{font-size:12.5px;color:#a37a00;margin-bottom:10px}
+.draft-warning-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Preview modal */
+.preview-box{background:#f8fafc;border-radius:var(--r);padding:14px;margin-bottom:12px}
+.preview-row{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.preview-row:last-child{border-bottom:none}
+.preview-label{color:var(--text-3);font-weight:500}
+.preview-value{font-weight:700;color:var(--text)}
+.preview-murid-item{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.preview-murid-item:last-child{border-bottom:none}
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:48px 20px;color:var(--text-3)}
@@ -277,7 +322,15 @@ tr:hover td{background:#f8fafc}
 <body>
 
 <div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
-<div id="toast"></div>
+<!-- NOTIF CENTER -->
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotif()">
+  <div class="notif-box" onclick="event.stopPropagation()">
+    <div class="notif-icon" id="notifIcon">✅</div>
+    <div class="notif-title" id="notifTitle">Berhasil</div>
+    <div class="notif-msg" id="notifMsg"></div>
+    <button class="notif-btn ok" id="notifBtn" onclick="closeNotif()">OK</button>
+  </div>
+</div>
 <div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
 
 <!-- AUTH -->
@@ -387,6 +440,21 @@ tr:hover td{background:#f8fafc}
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-outline btn-sm" onclick="lanjutSesi()">Lanjutkan Sesi</button>
             <button class="btn btn-red btn-sm" onclick="konfirmasiTutup()">■ Tutup Sesi</button>
+          </div>
+        </div>
+
+        <!-- Draft Warning Banner -->
+        <div class="draft-warning" id="draftWarning">
+          <div class="draft-warning-ico">⚠️</div>
+          <div class="draft-warning-body">
+            <div class="draft-warning-title">Ada Sesi yang Belum Ditutup!</div>
+            <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
+            <div class="draft-warning-btns">
+              <button class="btn btn-sm" style="background:var(--amber);color:#fff;font-weight:700"
+                onclick="lanjutSesi()">▶ Lanjutkan Sesi</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
+                onclick="tutupPaksaSesi()">✕ Tutup Paksa</button>
+            </div>
           </div>
         </div>
 
@@ -524,7 +592,7 @@ tr:hover td{background:#f8fafc}
           </div>
         </div>
 
-        <button class="btn btn-green btn-lg" style="width:100%" id="btnSelesai" onclick="doSelesaiKBM()">
+        <button class="btn btn-green btn-lg" style="width:100%" id="btnSelesai" onclick="showPreview()">
           ✅ Selesaikan & Tutup Sesi
         </button>
       </div>
@@ -673,6 +741,92 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- MODAL PREVIEW SEBELUM TUTUP SESI -->
+<div class="overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📋 Ringkasan Sesi</div>
+      <button class="modal-x" onclick="closeModal('previewModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
+        Review sebelum sesi ditutup. Data tidak bisa diubah setelah ditutup.
+      </p>
+
+      <!-- Info sesi -->
+      <div class="preview-box">
+        <div class="preview-row">
+          <span class="preview-label">Halaqah</span>
+          <span class="preview-value" id="pvHalaqah">–</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Jenis Sesi</span>
+          <span class="preview-value" id="pvJenis">–</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Tanggal</span>
+          <span class="preview-value" id="pvTanggal">–</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Waktu</span>
+          <span class="preview-value" id="pvWaktu">–</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Materi</span>
+          <span class="preview-value" id="pvMateri">–</span>
+        </div>
+        <div class="preview-row">
+          <span class="preview-label">Metode</span>
+          <span class="preview-value" id="pvMetode">–</span>
+        </div>
+      </div>
+
+      <!-- Presensi ringkasan -->
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="flex:1;background:var(--green-l);border-radius:var(--r-sm);padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--green)" id="pvHadir">0</div>
+          <div style="font-size:11px;color:#0a6b4e;font-weight:600">Hadir</div>
+        </div>
+        <div style="flex:1;background:var(--amber-l);border-radius:var(--r-sm);padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--amber)" id="pvIzin">0</div>
+          <div style="font-size:11px;color:#8a6200;font-weight:600">Izin/Sakit</div>
+        </div>
+        <div style="flex:1;background:var(--red-l);border-radius:var(--r-sm);padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--red)" id="pvAlpa">0</div>
+          <div style="font-size:11px;color:#a03010;font-weight:600">Alpa</div>
+        </div>
+      </div>
+
+      <!-- Nilai murid ringkasan -->
+      <div class="preview-box" id="pvNilaiList"></div>
+
+      <!-- Latihan mandiri -->
+      <div id="pvLatihanWrap" style="display:none;margin-top:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;
+          letter-spacing:.06em;margin-bottom:6px">Latihan Mandiri</div>
+        <div style="background:var(--amber-l);border-radius:var(--r-sm);padding:10px;font-size:13px">
+          <div style="font-weight:600;color:#8a6200" id="pvLatihanJenis"></div>
+          <div style="color:var(--text-2);margin-top:3px" id="pvLatihanDesk"></div>
+          <div style="color:var(--text-3);font-size:12px;margin-top:3px" id="pvLatihanDeadline"></div>
+        </div>
+      </div>
+
+      <!-- Warning nilai kosong -->
+      <div id="pvWarningNilai" style="display:none;margin-top:12px;
+        background:var(--red-l);border:1px solid var(--red);border-radius:var(--r-sm);
+        padding:10px 13px;font-size:12.5px;color:#a03010">
+        ⚠️ <strong id="pvWarningNilaiTxt"></strong> murid hadir belum diisi nilainya.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('previewModal')">✏️ Edit Lagi</button>
+      <button class="btn btn-green" id="btnKonfirmasiTutup" onclick="doSelesaiKBM()">
+        ✅ Tutup & Simpan Sesi
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL TAMBAH MURID -->
 <div class="overlay" id="tambahMuridModal">
   <div class="modal">
@@ -792,6 +946,56 @@ function startApp() {
   document.getElementById('sbName').textContent   = nama;
   document.getElementById('greet').textContent    = "Assalamu'alaikum, " + nama.split(' ')[0] + " 👋";
   loadDashboard();
+  // Cek sesi draft setelah dashboard load
+  setTimeout(cekSesiDraft, 1500);
+}
+
+// ══════════════════════════════════════════
+//  DRAFT DETECTION
+// ══════════════════════════════════════════
+function cekSesiDraft() {
+  if (!sesiAktif) return;
+  const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
+  const nama = h?.nama_halaqah || sesiAktif.id_halaqah;
+
+  // Tampilkan di halaman KBM jika aktif, atau simpan state
+  updateDraftWarning();
+
+  // Jika sedang di dashboard, tampilkan notif
+  if (document.getElementById('page-dashboard').classList.contains('active')) {
+    quickToast('⚠️ Ada sesi ' + nama + ' yang belum ditutup!', 'warn');
+  }
+}
+
+function updateDraftWarning() {
+  const banner = document.getElementById('draftWarning');
+  if (!banner) return;
+  if (!sesiAktif) { banner.classList.remove('show'); return; }
+
+  const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
+  const nama = h?.nama_halaqah || sesiAktif.id_halaqah;
+  document.getElementById('draftWarningInfo').innerHTML =
+    `<strong>${esc(nama)}</strong> · Pertemuan ke-${sesiAktif.pertemuan_ke} · ${fmtDate(sesiAktif.tanggal_pertemuan)}`;
+  banner.classList.add('show');
+}
+
+async function tutupPaksaSesi() {
+  if (!sesiAktif) return;
+  toast('Apakah Anda yakin ingin menutup sesi tanpa mengisi jurnal?', 'warn');
+  // Ganti tombol OK notif jadi konfirmasi
+  document.getElementById('notifBtn').textContent = 'Ya, Tutup Paksa';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Menutup sesi...');
+    try {
+      await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
+      sesiAktif = null; muridSesi = [];
+      updateDraftWarning();
+      loadDashboard();
+      quickToast('Sesi ditutup', 'ok');
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
 }
 
 // ══════════════════════════════════════════
@@ -808,7 +1012,7 @@ function goPage(name) {
   document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
-  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); }
+  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); }
   if (name === 'murid')      populateSel('muridHalaqahSel');
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
@@ -1294,11 +1498,62 @@ function showLoad(msg='Memuat...') {
 }
 function hideLoad() { document.getElementById('loader').classList.remove('show'); }
 
-let _tt;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'show ' + type;
-  clearTimeout(_tt); _tt = setTimeout(() => el.className = '', 3800);
+// ── NOTIF CENTER (ganti toast) ──
+let _notifTimer;
+function toast(msg, type='', autoDismiss=true) {
+  const icons = { ok:'✅', err:'❌', warn:'⚠️', '':'ℹ️' };
+  const titles = { ok:'Berhasil', err:'Gagal', warn:'Perhatian', '':'Info' };
+  const overlay = document.getElementById('notifOverlay');
+  const btn     = document.getElementById('notifBtn');
+
+  document.getElementById('notifIcon').textContent  = icons[type]  || 'ℹ️';
+  document.getElementById('notifTitle').textContent = titles[type] || 'Info';
+  document.getElementById('notifMsg').textContent   = msg;
+
+  btn.className = 'notif-btn ' + (type || 'info');
+  btn.textContent = type === 'err' ? 'Tutup' : type === 'warn' ? 'Mengerti' : 'OK';
+
+  overlay.classList.add('show');
+
+  // Auto dismiss hanya untuk sukses sederhana
+  clearTimeout(_notifTimer);
+  if (autoDismiss && type === 'ok') {
+    _notifTimer = setTimeout(closeNotif, 2800);
+  }
+}
+
+function closeNotif() {
+  document.getElementById('notifOverlay').classList.remove('show');
+  clearTimeout(_notifTimer);
+}
+
+// Untuk pesan cepat yang tidak perlu klik (info ringan)
+let _quickTimer;
+function quickToast(msg, type='ok') {
+  // Buat elemen toast kecil sementara
+  let el = document.getElementById('quickToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'quickToast';
+    el.style.cssText = `position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+20px);
+      left:50%;transform:translateX(-50%) translateY(60px);
+      background:#0f172a;color:#fff;padding:10px 20px;border-radius:100px;
+      font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.25);
+      opacity:0;transition:all .25s;z-index:650;white-space:nowrap;
+      max-width:calc(100vw - 40px);text-align:center`;
+    document.body.appendChild(el);
+  }
+  const bg = {ok:'#1D9E75', err:'#e05a2a', warn:'#e0aa2a'}[type] || '#0f172a';
+  el.style.background = bg;
+  el.style.color = type==='warn' ? '#3d2800' : '#fff';
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(_quickTimer);
+  _quickTimer = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(60px)';
+  }, 2500);
 }
 
 function setBtn(id, dis, txt) {
@@ -1539,6 +1794,86 @@ async function doKirimPengumuman() {
 // ══════════════════════════════════════════
 //  UPDATE doSelesaiKBM — tambah latihan mandiri
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  PREVIEW SEBELUM TUTUP SESI
+// ══════════════════════════════════════════
+function showPreview() {
+  if (!sesiAktif) return;
+
+  const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
+  const materi     = document.getElementById('jurnalMateri').value.trim();
+  const metode     = document.getElementById('jurnalMetode').value;
+  const jamSelesai = document.getElementById('jurnalJamSelesai').value;
+  const latJenis   = document.getElementById('jurnalJenisLatihan').value;
+  const latDesk    = document.getElementById('jurnalLatihanMandiri').value.trim();
+  const latDead    = document.getElementById('jurnalDeadline').value;
+
+  // Hitung presensi dari data yang sudah disimpan
+  const pRows = document.querySelectorAll('.prow');
+  let hadir=0, izin=0, alpa=0;
+  document.querySelectorAll('#presensiList .pb.on').forEach(b => {
+    const k = b.dataset.k;
+    if (k==='H') hadir++;
+    else if (k==='I'||k==='S') izin++;
+    else if (k==='A') alpa++;
+  });
+
+  // Isi preview
+  document.getElementById('pvHalaqah').textContent  = h?.nama_halaqah || '–';
+  document.getElementById('pvJenis').textContent    = sesiAktif.jenis_sesi || '–';
+  document.getElementById('pvTanggal').textContent  = fmtDate(sesiAktif.tanggal_pertemuan);
+  document.getElementById('pvWaktu').textContent    =
+    (sesiAktif.jam_mulai||'–') + ' – ' + (jamSelesai||'–');
+  document.getElementById('pvMateri').textContent   = materi || '(belum diisi)';
+  document.getElementById('pvMetode').textContent   = metode || '–';
+  document.getElementById('pvHadir').textContent    = hadir;
+  document.getElementById('pvIzin').textContent     = izin;
+  document.getElementById('pvAlpa').textContent     = alpa;
+
+  // Preview nilai per murid
+  const nilaiList = document.getElementById('pvNilaiList');
+  const nilaiItems = muridSesi.map(m => {
+    const nilai   = document.getElementById('nilai-'   + m.id_murid)?.value || '';
+    const adab    = document.getElementById('adab-'    + m.id_murid)?.value || '';
+    const hadirBadgeEl = document.getElementById('hadirBadge-' + m.id_murid);
+    const hadirStatus  = hadirBadgeEl?.textContent || '–';
+    return { nama: m.nama_murid, nilai, adab, hadir: hadirStatus };
+  });
+
+  // Cek nilai kosong untuk murid hadir
+  const nilaiKosong = nilaiItems.filter(m => m.hadir === 'Hadir' && !m.nilai).length;
+  const warnEl = document.getElementById('pvWarningNilai');
+  if (nilaiKosong > 0) {
+    document.getElementById('pvWarningNilaiTxt').textContent = nilaiKosong;
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.style.display = 'none';
+  }
+
+  nilaiList.innerHTML = nilaiItems.map(m => `
+    <div class="preview-murid-item">
+      <span style="font-weight:600">${esc(m.nama)}</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${m.hadir !== 'Hadir' ? `<span class="badge b-amber">${esc(m.hadir)}</span>` : ''}
+        ${m.nilai ? `<span class="badge b-green" style="font-size:11px">${esc(m.nilai)}</span>` : '<span style="color:var(--text-3);font-size:12px">nilai kosong</span>'}
+        ${m.adab ? `<span class="badge b-blue" style="font-size:11px">${esc(m.adab)}</span>` : ''}
+      </div>
+    </div>`).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';
+
+  // Latihan mandiri
+  const latihanWrap = document.getElementById('pvLatihanWrap');
+  if (latJenis && latDesk) {
+    document.getElementById('pvLatihanJenis').textContent   = latJenis;
+    document.getElementById('pvLatihanDesk').textContent    = latDesk;
+    document.getElementById('pvLatihanDeadline').textContent = latDead ? '📅 Deadline: ' + fmtDate(latDead) : '';
+    latihanWrap.style.display = 'block';
+  } else {
+    latihanWrap.style.display = 'none';
+  }
+
+  openModal('previewModal');
+}
+
 // ══════════════════════════════════════════
 //  GENERATE REKAP
 // ══════════════════════════════════════════
