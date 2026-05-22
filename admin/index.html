@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Portal Admin — Rattililqur'an</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1458A8;--blue-d:#0d3d7a;--blue-l:#e8f0fb;
+  --green:#1D9E75;--green-l:#e1f5ee;
+  --amber:#e0aa2a;--amber-l:#fdf6e3;
+  --red:#e05a2a;--red-l:#fdf0eb;
+  --purple:#7c3aed;--purple-l:#ede9fe;
+  --teal:#0891b2;--teal-l:#e0f2fe;
+  --bg:#f1f5f9;--card:#fff;--text:#0f172a;
+  --text-2:#475569;--text-3:#94a3b8;--border:#e2e8f0;
+  --r:14px;--r-sm:10px;--r-lg:20px;--r-xl:26px;--r-pill:100px;
+  --shadow:0 1px 8px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.04);
+  --shadow-lg:0 8px 32px rgba(15,23,42,.10);
+  --sw:250px;--hh:58px;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
+
+/* AUTH */
+#authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#061a36 0%,#1458A8 100%);padding:20px}
+.auth-box{background:#fff;border-radius:var(--r-xl);padding:36px 32px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.auth-arabic{font-family:'Amiri',serif;font-size:22px;color:var(--blue);text-align:center;margin-bottom:4px}
+.auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
+.auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.auth-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;outline:none;transition:border-color .2s;color:var(--text);margin-bottom:14px}
+.auth-input:focus{border-color:var(--blue)}
+.auth-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s}
+.auth-btn:hover{background:var(--blue-d)}
+#authErr{color:var(--red);font-size:12px;margin-top:8px;text-align:center;display:none}
+
+/* LAYOUT */
+#app{display:none}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100dvh;background:#0f172a;display:flex;flex-direction:column;z-index:100;transition:transform .3s;overflow-y:auto}
+.sb-logo{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-arabic{font-family:'Amiri',serif;font-size:20px;color:#fff}
+.sb-sub{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.sb-user{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:9px}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-name{font-size:12.5px;font-weight:600;color:#fff}
+.sb-role{font-size:9.5px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em}
+.sb-nav{flex:1;padding:8px 0}
+.sb-sec{font-size:9px;font-weight:700;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.1em;padding:10px 18px 4px}
+.nav-btn{display:flex;align-items:center;gap:9px;width:100%;padding:9px 18px;color:rgba(255,255,255,.5);background:none;border:none;border-left:3px solid transparent;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-align:left}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-btn.active{color:#fff;background:rgba(20,88,168,.35);border-left-color:#60a5fa}
+.nav-btn .ni{font-size:14px;flex-shrink:0}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.logout-btn{width:100%;padding:9px;background:rgba(224,90,42,.12);color:#f87c55;border:1px solid rgba(224,90,42,.25);border-radius:var(--r-sm);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .2s}
+.logout-btn:hover{background:rgba(224,90,42,.22)}
+.main{margin-left:var(--sw);min-height:100dvh;display:flex;flex-direction:column}
+.topbar{height:var(--hh);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:15px;font-weight:700;flex:1}
+.hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
+.content{flex:1;padding:20px}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);transition:transform .2s}
+.stat:hover{transform:translateY(-2px)}
+.stat-ico{font-size:24px;margin-bottom:8px}
+.stat-val{font-size:26px;font-weight:800;line-height:1;color:var(--text)}
+.stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:3px;font-weight:500}
+.stat-sub{font-size:11px;margin-top:4px;font-weight:600}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-body{padding:18px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:#f8fafc;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.b-green{background:var(--green-l);color:#0a6b4e}
+.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-amber{background:var(--amber-l);color:#8a6200}
+.b-red{background:var(--red-l);color:#a03010}
+.b-gray{background:#f1f5f9;color:#64748b}
+.b-purple{background:var(--purple-l);color:var(--purple)}
+.b-teal{background:var(--teal-l);color:var(--teal)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#166a52}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b8461e}
+.btn-amber{background:var(--amber);color:#3d2800}.btn-amber:hover{opacity:.88}
+.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}.btn-outline:hover{background:var(--blue-l)}
+.btn-ghost{background:transparent;color:var(--text-3);border:1px solid var(--border)}.btn-ghost:hover{background:#f8fafc}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-lg{padding:12px 24px;font-size:14px;font-weight:700;border-radius:var(--r-pill)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* FORMS */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
+.fc:focus{border-color:var(--blue)}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);padding:0}
+.overlay.open{display:flex}
+@media(min-width:640px){.overlay{align-items:center;padding:20px}}
+.modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:560px;max-height:92dvh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,.15);animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
+@media(min-width:640px){.modal{border-radius:var(--r-xl);animation:fadeIn .25s ease}}
+.modal-lg{max-width:720px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.modal-title{font-size:15px;font-weight:700}
+.modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px;line-height:1}
+.modal-body{padding:18px 22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+
+/* NOTIF */
+.notif-overlay{display:none;position:fixed;inset:0;z-index:700;align-items:center;justify-content:center;background:rgba(15,23,42,.35);backdrop-filter:blur(3px);padding:20px}
+.notif-overlay.show{display:flex}
+.notif-box{background:#fff;border-radius:var(--r-xl);padding:28px 28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:notifPop .28s cubic-bezier(.34,1.56,.64,1);text-align:center}
+@keyframes notifPop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.notif-icon{font-size:44px;margin-bottom:10px;line-height:1}
+.notif-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px}
+.notif-msg{font-size:13.5px;color:var(--text-2);line-height:1.6;margin-bottom:18px}
+.notif-btn{width:100%;padding:12px;border:none;border-radius:var(--r-pill);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.notif-btn:hover{opacity:.88}
+.notif-btn.ok{background:var(--green);color:#fff}
+.notif-btn.err{background:var(--red);color:#fff}
+.notif-btn.warn{background:var(--amber);color:#3d2800}
+.notif-btn.info{background:var(--blue);color:#fff}
+
+/* LOADING */
+.loader{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px)}
+.loader.show{display:flex}
+.spin{width:42px;height:42px;border:3.5px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:rot .75s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loader-txt{color:#fff;font-size:13.5px;font-weight:500}
+
+/* MISC */
+.section-title{font-size:19px;font-weight:800;margin-bottom:4px}
+.section-sub{font-size:12.5px;color:var(--text-3);margin-bottom:16px}
+.empty{text-align:center;padding:48px 20px;color:var(--text-3)}
+.empty-ico{font-size:44px;margin-bottom:10px;opacity:.35}
+.empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab-btn{padding:9px 16px;background:none;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-btn:hover{color:var(--text)}
+.progress-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:100px;transition:width .3s}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--r-pill);font-size:11.5px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s}
+.chip.active-chip{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chip.inactive-chip{background:transparent;color:var(--text-3);border-color:var(--border)}
+
+/* KOMPONEN RAPORT */
+.komponen-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:#fafbfc}
+.komponen-row:last-child{margin-bottom:0}
+.bobot-total{font-size:13px;font-weight:700;padding:8px 14px;border-radius:var(--r-sm);text-align:center;margin-top:10px}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .sb-overlay.show{display:block}.main{margin-left:0}.hamburger{display:block}
+  .content{padding:14px}.f2,.f3{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:380px){.stats-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotif()">
+  <div class="notif-box" onclick="event.stopPropagation()">
+    <div class="notif-icon" id="notifIcon">✅</div>
+    <div class="notif-title" id="notifTitle">Berhasil</div>
+    <div class="notif-msg" id="notifMsg"></div>
+    <button class="notif-btn ok" id="notifBtn" onclick="closeNotif()">OK</button>
+  </div>
+</div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+
+<!-- AUTH -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-arabic">رتيل القرآن</div>
+    <div class="auth-sub">Portal Admin — Rattililqur'an</div>
+    <label class="auth-label" for="nisInput">NIS Admin</label>
+    <input class="auth-input" type="text" id="nisInput" placeholder="USR-ADMIN-001" autocomplete="username" style="text-transform:uppercase">
+    <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk sebagai Admin</button>
+    <div id="authErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-arabic">رتيل القرآن</div>
+      <div class="sb-sub">Portal Admin</div>
+    </div>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">A</div>
+      <div><div class="sb-name" id="sbName">Admin</div><div class="sb-role">Administrator</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sec">Utama</div>
+      <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
+      <button class="nav-btn" onclick="goPage('periode')" data-p="periode"><span class="ni">📅</span>Periode</button>
+
+      <div class="sb-sec">Data Master</div>
+      <button class="nav-btn" onclick="goPage('users')" data-p="users"><span class="ni">👥</span>Manajemen User</button>
+      <button class="nav-btn" onclick="goPage('halaqah')" data-p="halaqah"><span class="ni">📚</span>Halaqah</button>
+      <button class="nav-btn" onclick="goPage('anggota')" data-p="anggota"><span class="ni">📋</span>Anggota Kelas</button>
+
+      <div class="sb-sec">Penilaian</div>
+      <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
+      <button class="nav-btn" onclick="goPage('nilai')" data-p="nilai"><span class="ni">✏️</span>Input Nilai Manual</button>
+      <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni">📄</span>Generate Raport</button>
+
+      <div class="sb-sec">Laporan</div>
+      <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
+      <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
+      <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
+      <button class="nav-btn" onclick="goPage('audit')" data-p="audit"><span class="ni">🔍</span>Audit Log</button>
+    </div>
+    <div class="sb-foot"><button class="logout-btn" onclick="doLogout()">⬅ Keluar</button></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="openSB()">☰</button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <button onclick="refreshPage()" title="Refresh" style="background:none;border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 9px;cursor:pointer;font-size:15px;color:var(--text-3)" id="refreshBtn">🔄</button>
+    </div>
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="section-title" id="greet">Dashboard Admin</div>
+        <div class="section-sub" id="periodeInfo">Memuat data...</div>
+        <div class="stats-grid" id="dashStats">
+          <div class="stat"><div class="stat-ico">👥</div><div class="stat-val" id="st-murid">–</div><div class="stat-lbl">Total Murid Aktif</div></div>
+          <div class="stat"><div class="stat-ico">👨‍🏫</div><div class="stat-val" id="st-guru">–</div><div class="stat-lbl">Total Guru</div></div>
+          <div class="stat"><div class="stat-ico">📚</div><div class="stat-val" id="st-halaqah">–</div><div class="stat-lbl">Halaqah Aktif</div></div>
+          <div class="stat"><div class="stat-ico">📋</div><div class="stat-val" id="st-kbm">–</div><div class="stat-lbl">KBM Bulan Ini</div></div>
+          <div class="stat"><div class="stat-ico">📊</div>
+            <div class="stat-val" id="st-nilai">–</div><div class="stat-lbl">Nilai Terisi</div>
+            <div class="progress-bar"><div class="progress-fill" id="st-nilai-bar" style="background:var(--green);width:0%"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📚 Ringkasan Per Halaqah</div></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Halaqah</th><th>Guru</th><th>Level</th><th>Murid</th><th>Sesi</th><th>Rata Nilai</th><th>% Hadir</th></tr></thead>
+              <tbody id="dashHalaqahTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PERIODE ══ -->
+      <div class="page" id="page-periode">
+        <div class="section-title">Periode / Semester</div>
+        <div class="section-sub">Kelola periode belajar. Semua data KBM diikat ke periode aktif.</div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📅 Daftar Periode</div>
+            <button class="btn btn-primary btn-sm" onclick="openModalPeriode()">+ Periode Baru</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Periode</th><th>Mulai</th><th>Selesai</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="periodeTbl"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ USERS ══ -->
+      <div class="page" id="page-users">
+        <div class="section-title">Manajemen User</div>
+        <div class="section-sub">Kelola akun guru dan murid.</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchUserTab('guru')">👨‍🏫 Guru</button>
+          <button class="tab-btn" onclick="switchUserTab('murid')">🧒 Murid</button>
+          <button class="tab-btn" onclick="switchUserTab('semua')">👥 Semua</button>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title" id="userTabTitle">Daftar Guru</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="openModalUser()">+ User Baru</button>
+              <button class="btn btn-ghost btn-sm" onclick="openBulkImport()">📥 Import CSV</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>NIS</th><th>Nama</th><th>Role</th><th>No HP</th><th>Email</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="usersTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HALAQAH ══ -->
+      <div class="page" id="page-halaqah">
+        <div class="section-title">Manajemen Halaqah</div>
+        <div class="section-sub">Buat dan kelola kelas halaqah.</div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📚 Daftar Halaqah</div>
+            <button class="btn btn-primary btn-sm" onclick="openModalHalaqah()">+ Halaqah Baru</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Halaqah</th><th>Guru</th><th>Level</th><th>Jadwal</th><th>Lokasi</th><th>Murid</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="halaqahTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ANGGOTA ══ -->
+      <div class="page" id="page-anggota">
+        <div class="section-title">Anggota Kelas</div>
+        <div class="section-sub">Daftarkan murid ke halaqah dan atur level.</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="anggotaHalaqahSel" onchange="loadAnggota()" style="max-width:280px">
+            <option value="">— Pilih Halaqah —</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openModalAnggota()">+ Tambah Murid</button>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Murid</th><th>NIS</th><th>Level</th><th>Target Level</th><th>Total Hadir</th><th>Bergabung</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="anggotaTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ KOMPONEN RAPORT ══ -->
+      <div class="page" id="page-komponen">
+        <div class="section-title">Komponen Raport</div>
+        <div class="section-sub">Konfigurasi komponen dan bobot penilaian per periode.</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+          <select class="fc" id="komponenPeriodeSel" onchange="loadKomponen()" style="max-width:240px">
+            <option value="">— Pilih Periode —</option>
+          </select>
+          <span style="font-size:12px;color:var(--text-3)">Total bobot harus = 100%</span>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">⚙️ Konfigurasi Komponen</div>
+            <button class="btn btn-primary btn-sm" onclick="tambahKomponenRow()">+ Tambah Komponen</button>
+          </div>
+          <div class="card-body">
+            <div id="komponenList"></div>
+            <div id="bobotTotal" class="bobot-total"></div>
+            <div style="margin-top:14px;display:flex;gap:10px">
+              <button class="btn btn-green" onclick="saveKomponen()">💾 Simpan Konfigurasi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ NILAI MANUAL ══ -->
+      <div class="page" id="page-nilai">
+        <div class="section-title">Input Nilai Manual</div>
+        <div class="section-sub">Input nilai UAS, Micro Teaching, dan komponen manual lainnya.</div>
+        <div class="f2" style="margin-bottom:14px">
+          <select class="fc" id="nilaiPeriodeSel" onchange="loadNilaiSetup()"><option value="">— Pilih Periode —</option></select>
+          <select class="fc" id="nilaiHalaqahSel" onchange="loadNilaiMurid()"><option value="">— Pilih Halaqah —</option></select>
+        </div>
+        <div class="card" id="nilaiCard" style="display:none">
+          <div class="card-head">
+            <div class="card-title">✏️ Input Nilai</div>
+            <button class="btn btn-green btn-sm" onclick="saveSemuaNilai()">💾 Simpan Semua</button>
+          </div>
+          <div class="card-body" id="nilaiBody"></div>
+        </div>
+      </div>
+
+      <!-- ══ RAPORT ══ -->
+      <div class="page" id="page-raport">
+        <div class="section-title">Generate & Kirim Raport</div>
+        <div class="section-sub">Generate raport per murid atau massal, lalu kirim via email.</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="raportPeriodeSel" onchange="loadRaportList()" style="max-width:240px">
+            <option value="">— Pilih Periode —</option>
+          </select>
+          <button class="btn btn-primary" onclick="doGenerateBulk()">⚡ Generate Semua</button>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Murid</th><th>Halaqah</th><th>Nilai Akhir</th><th>Predikat</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="raportTbl"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Pilih periode</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LAPORAN ══ -->
+      <div class="page" id="page-laporan">
+        <div class="section-title">Laporan Global</div>
+        <div class="section-sub">Ringkasan performa semua halaqah.</div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Halaqah</th><th>Guru</th><th>Level</th><th>Murid</th><th>Sesi</th><th>Avg Nilai</th><th>% Hadir</th></tr></thead>
+              <tbody id="laporanTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ABSENSI ══ -->
+      <div class="page" id="page-absensi">
+        <div class="section-title">Rekap Absensi</div>
+        <div class="section-sub">Akumulasi kehadiran semua murid. H=100%, I/S=50%, A=0%</div>
+        <div style="margin-bottom:14px">
+          <select class="fc" id="absensiHalaqahSel" onchange="loadAbsensi()" style="max-width:280px">
+            <option value="">Semua Halaqah</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Murid</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Total</th><th>% Hadir</th><th>Skor/40</th></tr></thead>
+              <tbody id="absensiTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PENGUMUMAN ══ -->
+      <div class="page" id="page-pengumuman">
+        <div class="section-title">Pengumuman</div>
+        <div class="section-sub">Kirim pengumuman ke semua atau halaqah tertentu.</div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📢 Buat Pengumuman</div></div>
+          <div class="card-body">
+            <div class="fg"><label>Target</label>
+              <select class="fc" id="pngTarget">
+                <option value="semua">Semua (Guru & Murid)</option>
+                <option value="guru">Guru Saja</option>
+                <option value="murid">Murid Saja</option>
+              </select>
+            </div>
+            <div class="fg"><label>Judul</label><input type="text" class="fc" id="pngJudul" placeholder="Judul pengumuman..."></div>
+            <div class="fg"><label>Isi</label><textarea class="fc" id="pngIsi" rows="4" style="resize:vertical" placeholder="Isi pengumuman..."></textarea></div>
+            <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📋 Riwayat Pengumuman</div></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Tanggal</th><th>Judul</th><th>Target</th><th>Pembuat</th></tr></thead>
+              <tbody id="pengumumanTbl"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ AUDIT LOG ══ -->
+      <div class="page" id="page-audit">
+        <div class="section-title">Audit Log</div>
+        <div class="section-sub">Rekam jejak semua aktivitas sistem (100 terakhir).</div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Detail</th></tr></thead>
+              <tbody id="auditTbl"><tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERIODE -->
+<div class="overlay" id="modalPeriode">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">📅 Periode Baru</div><button class="modal-x" onclick="closeModal('modalPeriode')">✕</button></div>
+    <div class="modal-body">
+      <div class="fg"><label>Nama Periode</label><input type="text" class="fc" id="prdNama" placeholder="Contoh: Ganjil 2026, Batch 1 2026"></div>
+      <div class="f2">
+        <div class="fg"><label>Tanggal Mulai</label><input type="date" class="fc" id="prdMulai"></div>
+        <div class="fg"><label>Tanggal Selesai</label><input type="date" class="fc" id="prdSelesai"></div>
+      </div>
+      <div class="fg"><label>Deskripsi</label><input type="text" class="fc" id="prdDesc" placeholder="Deskripsi periode..."></div>
+      <div class="fg">
+        <label>Status</label>
+        <select class="fc" id="prdStatus"><option value="nonaktif">Non-aktif</option><option value="aktif">Aktif (periode berjalan)</option></select>
+      </div>
+      <input type="hidden" id="prdId">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalPeriode')">Batal</button>
+      <button class="btn btn-primary" onclick="savePeriode()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USER -->
+<div class="overlay" id="modalUser">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="modalUserTitle">👤 User Baru</div><button class="modal-x" onclick="closeModal('modalUser')">✕</button></div>
+    <div class="modal-body">
+      <div class="f2">
+        <div class="fg"><label>Nama Lengkap</label><input type="text" class="fc" id="usrNama" placeholder="Nama lengkap"></div>
+        <div class="fg"><label>Role</label>
+          <select class="fc" id="usrRole"><option value="murid">Murid</option><option value="guru">Guru</option><option value="admin">Admin</option></select>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>No HP</label><input type="text" class="fc" id="usrHp" placeholder="08xxxxxxxxxx"></div>
+        <div class="fg"><label>Email</label><input type="email" class="fc" id="usrEmail" placeholder="email@example.com"></div>
+      </div>
+      <div class="fg"><label>Alamat</label><input type="text" class="fc" id="usrAlamat" placeholder="Alamat lengkap"></div>
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="usrStatus"><option value="aktif">Aktif</option><option value="nonaktif">Non-aktif</option></select>
+      </div>
+      <div class="fg"><label>Catatan</label><input type="text" class="fc" id="usrCatatan" placeholder="Catatan tambahan..."></div>
+      <input type="hidden" id="usrId">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalUser')">Batal</button>
+      <button class="btn btn-primary" onclick="saveUser()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HALAQAH -->
+<div class="overlay" id="modalHalaqah">
+  <div class="modal modal-lg">
+    <div class="modal-head"><div class="modal-title" id="modalHalaqahTitle">📚 Halaqah Baru</div><button class="modal-x" onclick="closeModal('modalHalaqah')">✕</button></div>
+    <div class="modal-body">
+      <div class="f2">
+        <div class="fg"><label>Nama Halaqah</label><input type="text" class="fc" id="hqNama" placeholder="Contoh: Halaqah Al-Fatihah"></div>
+        <div class="fg"><label>Guru Pengampu</label>
+          <select class="fc" id="hqGuru"><option value="">— Pilih Guru —</option></select>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Level</label>
+          <select class="fc" id="hqLevel">
+            <option value="Level 1">Level 1</option><option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option><option value="Level 4">Level 4</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+          </select>
+        </div>
+        <div class="fg"><label>Periode</label>
+          <select class="fc" id="hqPeriode"><option value="">— Pilih Periode —</option></select>
+        </div>
+      </div>
+      <div class="f3">
+        <div class="fg"><label>Jadwal Hari</label><input type="text" class="fc" id="hqJadwal" placeholder="Senin, Rabu"></div>
+        <div class="fg"><label>Jam Mulai</label><input type="time" class="fc" id="hqJamMulai"></div>
+        <div class="fg"><label>Jam Selesai</label><input type="time" class="fc" id="hqJamSelesai"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Lokasi</label><input type="text" class="fc" id="hqLokasi" placeholder="Masjid, Aula..."></div>
+        <div class="fg"><label>Kurikulum / Modul</label><input type="text" class="fc" id="hqKurikulum" placeholder="At-Tibyan Jilid 1..."></div>
+      </div>
+      <input type="hidden" id="hqId">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalHalaqah')">Batal</button>
+      <button class="btn btn-primary" onclick="saveHalaqah()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ANGGOTA -->
+<div class="overlay" id="modalAnggota">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">👤 Tambah Murid ke Halaqah</div><button class="modal-x" onclick="closeModal('modalAnggota')">✕</button></div>
+    <div class="modal-body">
+      <div class="fg"><label>Halaqah</label>
+        <select class="fc" id="angHalaqah"><option value="">— Pilih Halaqah —</option></select>
+      </div>
+      <div class="fg"><label>Murid</label>
+        <select class="fc" id="angMurid"><option value="">— Pilih Murid —</option></select>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>Level Saat Ini</label>
+          <select class="fc" id="angLevel">
+            <option value="Level 1">Level 1</option><option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option><option value="Level 4">Level 4</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+          </select>
+        </div>
+        <div class="fg"><label>Target Level</label>
+          <select class="fc" id="angTarget">
+            <option value="Level 2">Level 2</option><option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option><option value="Level Qiyam">Level Qiyam</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalAnggota')">Batal</button>
+      <button class="btn btn-primary" onclick="saveAnggota()">+ Tambah</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BULK IMPORT -->
+<div class="overlay" id="modalImport">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">📥 Import User via CSV</div><button class="modal-x" onclick="closeModal('modalImport')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;color:var(--blue);margin-bottom:14px">
+        <strong>Format CSV:</strong> nama_lengkap, role, no_hp, email, alamat<br>
+        Role: <code>murid</code> / <code>guru</code><br>
+        Baris pertama = header, abaikan otomatis.
+      </div>
+      <div class="fg"><label>Paste Data CSV</label>
+        <textarea class="fc" id="importCSV" rows="8" style="resize:vertical;font-family:monospace;font-size:12px"
+          placeholder="nama_lengkap,role,no_hp,email,alamat&#10;Ahmad Fauzi,guru,08120001,ahmad@email.com,Jl. Mawar 1&#10;Bilal Ibrahim,murid,08130001,bilal@email.com,Jl. Dahlia 2"></textarea>
+      </div>
+      <div id="importPreview" style="font-size:12px;color:var(--text-3)"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalImport')">Batal</button>
+      <button class="btn btn-primary" onclick="doBulkImport()">📥 Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL RAPORT -->
+<div class="overlay" id="modalRaport">
+  <div class="modal modal-lg">
+    <div class="modal-head"><div class="modal-title" id="modalRaportTitle">Detail Raport</div><button class="modal-x" onclick="closeModal('modalRaport')">✕</button></div>
+    <div class="modal-body" id="modalRaportBody"></div>
+    <div class="modal-foot" id="modalRaportFoot"></div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let currentUser = null, token = '';
+let allUsers = [], allHalaqah = [], allPeriode = [];
+let currentUserTab = 'guru';
+let komponenRows = [];
+let nilaiKomponenList = [], nilaiMuridList = [];
+
+const PAGE_TITLES = {
+  dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
+  halaqah:'Halaqah', anggota:'Anggota Kelas', komponen:'Komponen Raport',
+  nilai:'Input Nilai Manual', raport:'Generate Raport',
+  laporan:'Laporan Global', absensi:'Rekap Absensi',
+  pengumuman:'Pengumuman', audit:'Audit Log'
+};
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
+  if (tk && us && us.role === 'admin') { token = tk; currentUser = us; startApp(); return; }
+  document.getElementById('nisInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+});
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const nis = document.getElementById('nisInput').value.trim().toUpperCase();
+  if (!nis) return showErr('NIS wajib diisi');
+  setBtn('loginBtn', true, 'Masuk...');
+  showLoad('Memverifikasi...');
+  try {
+    const d = await window.HQ.Auth.login(nis, 'admin');
+    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
+    if (d.user.role !== 'admin') throw new Error('Akun ini bukan Admin');
+    token = d.token; currentUser = d.user;
+    sessionStorage.setItem('hq_token', token);
+    sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
+    startApp();
+  } catch(e) { showErr(e.message); }
+  finally { hideLoad(); setBtn('loginBtn', false, 'Masuk sebagai Admin'); }
+}
+function doLogout() { window.HQ.Auth.logout(); }
+function showErr(m) { const el=document.getElementById('authErr'); el.textContent='⚠ '+m; el.style.display='block'; }
+
+// ══════════════════════════════════════════
+//  APP START
+// ══════════════════════════════════════════
+async function startApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const nama = currentUser.nama || currentUser.id_user;
+  document.getElementById('sbAvatar').textContent = nama.substring(0,2).toUpperCase();
+  document.getElementById('sbName').textContent   = nama;
+  document.getElementById('greet').textContent    = 'Dashboard — ' + nama;
+  await loadMasterData();
+  loadDashboard();
+}
+
+async function loadMasterData() {
+  try {
+    const [periodeRes, halaqahRes, usersRes] = await Promise.all([
+      window.HQ.AdminAPI.getAllPeriode(),
+      window.HQ.AdminAPI.getAllHalaqah(),
+      window.HQ.AdminAPI.getAllUsers(),
+    ]);
+    allPeriode  = periodeRes.data  || [];
+    allHalaqah  = halaqahRes.data  || [];
+    allUsers    = usersRes.data    || [];
+  } catch(e) { console.error('loadMasterData:', e); }
+}
+
+// ══════════════════════════════════════════
+//  NAVIGASI
+// ══════════════════════════════════════════
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name)?.classList.add('active');
+  document.querySelector('[data-p="'+name+'"]')?.classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
+  closeSB();
+  const loaders = {
+    dashboard : loadDashboard,
+    periode   : loadPeriode,
+    users     : () => loadUsers(currentUserTab),
+    halaqah   : loadHalaqah,
+    anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); },
+    komponen  : () => { populatePeriodeSel('komponenPeriodeSel'); },
+    nilai     : () => { populatePeriodeSel('nilaiPeriodeSel'); populateSel('nilaiHalaqahSel', allHalaqah); },
+    raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
+    laporan   : loadLaporan,
+    absensi   : () => { populateSel('absensiHalaqahSel', allHalaqah, true); loadAbsensi(); },
+    pengumuman: loadPengumuman,
+    audit     : loadAudit,
+  };
+  loaders[name]?.();
+}
+
+function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
+function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
+
+async function refreshPage() {
+  const btn = document.getElementById('refreshBtn');
+  btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s';
+  setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
+  await loadMasterData();
+  const active = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (active) goPage(active);
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+async function loadDashboard() {
+  showLoad('Memuat dashboard...');
+  try {
+    const r = await window.HQ.AdminAPI.getDashboard();
+    const d = r.data;
+    const p = d.periode_aktif;
+    document.getElementById('periodeInfo').textContent =
+      p?.nama_periode ? 'Periode Aktif: ' + p.nama_periode : 'Belum ada periode aktif';
+    document.getElementById('st-murid').textContent   = d.total_murid;
+    document.getElementById('st-guru').textContent    = d.total_guru;
+    document.getElementById('st-halaqah').textContent = d.total_halaqah;
+    document.getElementById('st-kbm').textContent     = d.kbm_bulan_ini;
+    document.getElementById('st-nilai').textContent   = d.pct_nilai_terisi + '%';
+    document.getElementById('st-nilai-bar').style.width = d.pct_nilai_terisi + '%';
+
+    const tbody = document.getElementById('dashHalaqahTbl');
+    tbody.innerHTML = (d.halaqah||[]).map(h => `<tr>
+      <td><strong>${esc(h.nama_halaqah)}</strong></td>
+      <td>${esc(h.nama_guru)}</td>
+      <td><span class="badge b-blue">${esc(h.level)}</span></td>
+      <td>${h.total_murid}</td>
+      <td>${h.total_sesi}</td>
+      <td>${nilaiLabel(h.avg_nilai)}</td>
+      <td>${pctBar(h.pct_hadir||0)}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada data</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PERIODE
+// ══════════════════════════════════════════
+async function loadPeriode() {
+  showLoad('Memuat periode...');
+  try {
+    const r = await window.HQ.AdminAPI.getAllPeriode();
+    allPeriode = r.data || [];
+    const tbody = document.getElementById('periodeTbl');
+    tbody.innerHTML = allPeriode.map(p => `<tr>
+      <td><strong>${esc(p.nama_periode)}</strong>${p.deskripsi?`<br><small style="color:var(--text-3)">${esc(p.deskripsi)}</small>`:''}</td>
+      <td>${p.tanggal_mulai||'–'}</td>
+      <td>${p.tanggal_selesai||'–'}</td>
+      <td>${p.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">✏️</button>
+        ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">▶ Aktifkan</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function openModalPeriode(id) {
+  document.getElementById('prdId').value = '';
+  document.getElementById('prdNama').value = '';
+  document.getElementById('prdMulai').value = '';
+  document.getElementById('prdSelesai').value = '';
+  document.getElementById('prdDesc').value = '';
+  document.getElementById('prdStatus').value = 'nonaktif';
+  openModal('modalPeriode');
+}
+
+function editPeriode(id) {
+  const p = allPeriode.find(x => x.id_periode === id);
+  if (!p) return;
+  document.getElementById('prdId').value      = p.id_periode;
+  document.getElementById('prdNama').value    = p.nama_periode;
+  document.getElementById('prdMulai').value   = p.tanggal_mulai;
+  document.getElementById('prdSelesai').value = p.tanggal_selesai;
+  document.getElementById('prdDesc').value    = p.deskripsi;
+  document.getElementById('prdStatus').value  = p.status;
+  openModal('modalPeriode');
+}
+
+async function aktivasiPeriode(id) {
+  showLoad('Mengaktifkan periode...');
+  try {
+    await window.HQ.AdminAPI.updatePeriode({ id_periode: id, status: 'aktif' });
+    toast('Periode diaktifkan!','ok');
+    await loadMasterData(); loadPeriode();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function savePeriode() {
+  const id   = document.getElementById('prdId').value;
+  const data = {
+    nama_periode   : document.getElementById('prdNama').value.trim(),
+    tanggal_mulai  : document.getElementById('prdMulai').value,
+    tanggal_selesai: document.getElementById('prdSelesai').value,
+    deskripsi      : document.getElementById('prdDesc').value,
+    status         : document.getElementById('prdStatus').value,
+  };
+  if (!data.nama_periode) return toast('Nama periode wajib diisi','err');
+  showLoad('Menyimpan...');
+  try {
+    if (id) { data.id_periode = id; await window.HQ.AdminAPI.updatePeriode(data); }
+    else await window.HQ.AdminAPI.createPeriode(data);
+    closeModal('modalPeriode');
+    toast('Periode disimpan!','ok');
+    await loadMasterData(); loadPeriode();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  USERS
+// ══════════════════════════════════════════
+function switchUserTab(tab) {
+  currentUserTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['guru','murid','semua'][i]===tab));
+  const titles = { guru:'Daftar Guru', murid:'Daftar Murid', semua:'Semua User' };
+  document.getElementById('userTabTitle').textContent = titles[tab];
+  loadUsers(tab);
+}
+
+async function loadUsers(role) {
+  showLoad('Memuat users...');
+  try {
+    const r = await window.HQ.AdminAPI.getAllUsers(role === 'semua' ? '' : role);
+    const rows = r.data || [];
+    const tbody = document.getElementById('usersTbl');
+    tbody.innerHTML = rows.map(u => `<tr>
+      <td><code style="font-size:11.5px">${esc(u.id_user)}</code></td>
+      <td><strong>${esc(u.nama_lengkap)}</strong></td>
+      <td>${roleBadge(u.role)}</td>
+      <td>${esc(u.no_hp||'–')}</td>
+      <td>${esc(u.email||'–')}</td>
+      <td>${u.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="editUser('${esc(u.id_user)}')">✏️</button>
+        ${u.id_user!=='USR-ADMIN-001'?`<button class="btn btn-red btn-sm" onclick="deleteUser('${esc(u.id_user)}','${esc(u.nama_lengkap)}')">🗑</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function openModalUser() {
+  document.getElementById('modalUserTitle').textContent = '👤 User Baru';
+  ['usrNama','usrHp','usrEmail','usrAlamat','usrCatatan'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('usrRole').value = 'murid';
+  document.getElementById('usrStatus').value = 'aktif';
+  document.getElementById('usrId').value = '';
+  openModal('modalUser');
+}
+
+function editUser(id) {
+  const u = allUsers.find(x => x.id_user === id);
+  if (!u) return;
+  document.getElementById('modalUserTitle').textContent = '✏️ Edit User';
+  document.getElementById('usrId').value      = u.id_user;
+  document.getElementById('usrNama').value    = u.nama_lengkap;
+  document.getElementById('usrRole').value    = u.role;
+  document.getElementById('usrHp').value      = u.no_hp || '';
+  document.getElementById('usrEmail').value   = u.email || '';
+  document.getElementById('usrAlamat').value  = u.alamat || '';
+  document.getElementById('usrStatus').value  = u.status;
+  document.getElementById('usrCatatan').value = u.catatan || '';
+  openModal('modalUser');
+}
+
+async function saveUser() {
+  const id   = document.getElementById('usrId').value;
+  const data = {
+    nama_lengkap: document.getElementById('usrNama').value.trim(),
+    role        : document.getElementById('usrRole').value,
+    no_hp       : document.getElementById('usrHp').value,
+    email       : document.getElementById('usrEmail').value,
+    alamat      : document.getElementById('usrAlamat').value,
+    status      : document.getElementById('usrStatus').value,
+    catatan     : document.getElementById('usrCatatan').value,
+  };
+  if (!data.nama_lengkap) return toast('Nama wajib diisi','err');
+  showLoad('Menyimpan...');
+  try {
+    if (id) { data.id_user = id; await window.HQ.AdminAPI.updateUser(data); }
+    else await window.HQ.AdminAPI.createUser(data);
+    closeModal('modalUser');
+    toast(id ? 'User diperbarui!' : 'User baru dibuat!', 'ok');
+    await loadMasterData(); loadUsers(currentUserTab);
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function deleteUser(id, nama) {
+  toast('Nonaktifkan akun ' + nama + '?', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Nonaktifkan';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Menonaktifkan...');
+    try {
+      await window.HQ.AdminAPI.deleteUser(id);
+      toast(nama + ' dinonaktifkan','ok');
+      await loadMasterData(); loadUsers(currentUserTab);
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
+}
+
+// Bulk Import
+function openBulkImport() {
+  document.getElementById('importCSV').value = '';
+  document.getElementById('importPreview').textContent = '';
+  openModal('modalImport');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const csvEl = document.getElementById('importCSV');
+  if (csvEl) csvEl.addEventListener('input', previewImport);
+});
+function previewImport() {
+  const csv = document.getElementById('importCSV').value.trim();
+  if (!csv) return;
+  const rows = csv.split('\n').filter(r=>r.trim());
+  const dataRows = rows[0].toLowerCase().includes('nama') ? rows.slice(1) : rows;
+  document.getElementById('importPreview').textContent = dataRows.length + ' baris data terdeteksi';
+}
+async function doBulkImport() {
+  const csv = document.getElementById('importCSV').value.trim();
+  if (!csv) return toast('CSV kosong','err');
+  const rows = csv.split('\n').filter(r=>r.trim());
+  const dataRows = rows[0].toLowerCase().includes('nama') ? rows.slice(1) : rows;
+  const users = dataRows.map(row => {
+    const cols = row.split(',').map(c=>c.trim());
+    return { nama_lengkap:cols[0], role:cols[1]||'murid', no_hp:cols[2]||'', email:cols[3]||'', alamat:cols[4]||'' };
+  }).filter(u => u.nama_lengkap);
+  if (!users.length) return toast('Tidak ada data valid','err');
+  showLoad('Mengimport ' + users.length + ' user...');
+  try {
+    const r = await window.HQ.AdminAPI.bulkImportUsers({ users });
+    closeModal('modalImport');
+    toast(r.message, 'ok');
+    await loadMasterData(); loadUsers(currentUserTab);
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  HALAQAH
+// ══════════════════════════════════════════
+async function loadHalaqah() {
+  showLoad('Memuat halaqah...');
+  try {
+    const r = await window.HQ.AdminAPI.getAllHalaqah();
+    allHalaqah = r.data || [];
+    const tbody = document.getElementById('halaqahTbl');
+    tbody.innerHTML = allHalaqah.map(h => `<tr>
+      <td><strong>${esc(h.nama_halaqah)}</strong></td>
+      <td>${esc(h.nama_guru)}</td>
+      <td><span class="badge b-blue">${esc(h.level)}</span></td>
+      <td>${esc(h.jadwal_hari||'–')}<br><small style="color:var(--text-3)">${esc(h.jam_mulai||'')}${h.jam_selesai?'–'+esc(h.jam_selesai):''}</small></td>
+      <td>${esc(h.lokasi||'–')}</td>
+      <td>${h.total_murid||0}</td>
+      <td>${h.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="editHalaqah('${esc(h.id_halaqah)}')">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="hapusHalaqah('${esc(h.id_halaqah)}','${esc(h.nama_halaqah)}')">🗑</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada halaqah</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function openModalHalaqah() {
+  document.getElementById('modalHalaqahTitle').textContent = '📚 Halaqah Baru';
+  ['hqNama','hqJadwal','hqLokasi','hqKurikulum'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('hqJamMulai').value = '';
+  document.getElementById('hqJamSelesai').value = '';
+  document.getElementById('hqLevel').value = 'Level 1';
+  document.getElementById('hqId').value = '';
+  // Populate guru dropdown
+  const guruSel = document.getElementById('hqGuru');
+  guruSel.innerHTML = '<option value="">— Pilih Guru —</option>' +
+    allUsers.filter(u=>u.role==='guru'&&u.status==='aktif')
+      .map(u=>`<option value="${esc(u.id_user)}">${esc(u.nama_lengkap)}</option>`).join('');
+  // Populate periode
+  populatePeriodeSel('hqPeriode');
+  openModal('modalHalaqah');
+}
+
+function editHalaqah(id) {
+  const h = allHalaqah.find(x=>x.id_halaqah===id);
+  if (!h) return;
+  openModalHalaqah();
+  document.getElementById('modalHalaqahTitle').textContent = '✏️ Edit Halaqah';
+  document.getElementById('hqId').value       = h.id_halaqah;
+  document.getElementById('hqNama').value     = h.nama_halaqah;
+  document.getElementById('hqGuru').value     = h.id_guru;
+  document.getElementById('hqLevel').value    = h.level;
+  document.getElementById('hqPeriode').value  = h.id_periode||'';
+  document.getElementById('hqJadwal').value   = h.jadwal_hari||'';
+  document.getElementById('hqJamMulai').value = h.jam_mulai||'';
+  document.getElementById('hqJamSelesai').value = h.jam_selesai||'';
+  document.getElementById('hqLokasi').value   = h.lokasi||'';
+  document.getElementById('hqKurikulum').value= h.kurikulum||'';
+}
+
+async function saveHalaqah() {
+  const id   = document.getElementById('hqId').value;
+  const data = {
+    nama_halaqah: document.getElementById('hqNama').value.trim(),
+    id_guru     : document.getElementById('hqGuru').value,
+    level       : document.getElementById('hqLevel').value,
+    id_periode  : document.getElementById('hqPeriode').value,
+    jadwal_hari : document.getElementById('hqJadwal').value,
+    jam_mulai   : document.getElementById('hqJamMulai').value,
+    jam_selesai : document.getElementById('hqJamSelesai').value,
+    lokasi      : document.getElementById('hqLokasi').value,
+    kurikulum   : document.getElementById('hqKurikulum').value,
+  };
+  if (!data.nama_halaqah || !data.id_guru) return toast('Nama dan guru wajib diisi','err');
+  showLoad('Menyimpan...');
+  try {
+    if (id) { data.id_halaqah = id; await window.HQ.AdminAPI.updateHalaqah(data); }
+    else await window.HQ.AdminAPI.createHalaqah(data);
+    closeModal('modalHalaqah');
+    toast('Halaqah disimpan!','ok');
+    await loadMasterData(); loadHalaqah();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function hapusHalaqah(id, nama) {
+  toast('Nonaktifkan halaqah ' + nama + '?', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Nonaktifkan';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Menonaktifkan...');
+    try {
+      await window.HQ.AdminAPI.deleteHalaqah(id);
+      toast('Halaqah dinonaktifkan','ok');
+      await loadMasterData(); loadHalaqah();
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
+}
+
+// ══════════════════════════════════════════
+//  ANGGOTA
+// ══════════════════════════════════════════
+async function loadAnggota() {
+  const id_halaqah = document.getElementById('anggotaHalaqahSel').value;
+  if (!id_halaqah) return;
+  showLoad('Memuat anggota...');
+  try {
+    const r = await window.HQ.AdminAPI.getAllAnggota(id_halaqah);
+    const rows = r.data || [];
+    const tbody = document.getElementById('anggotaTbl');
+    tbody.innerHTML = rows.map(a => `<tr>
+      <td><strong>${esc(a.nama_murid)}</strong></td>
+      <td><code style="font-size:11px">${esc(a.id_murid)}</code></td>
+      <td><span class="badge b-blue">${esc(a.level||'–')}</span></td>
+      <td><span class="badge b-teal">${esc(a.target_level||'–')}</span></td>
+      <td>${a.total_hadir||0}×</td>
+      <td>${esc(a.tgl_bergabung||'–')}</td>
+      <td>${a.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-amber">'+esc(a.status)+'</span>'}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
+        <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${esc(a.nama_murid)}')">🗑</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function openModalAnggota() {
+  populateSel('angHalaqah', allHalaqah);
+  const muridList = allUsers.filter(u=>u.role==='murid'&&u.status==='aktif');
+  document.getElementById('angMurid').innerHTML = '<option value="">— Pilih Murid —</option>' +
+    muridList.map(u=>`<option value="${esc(u.id_user)}">${esc(u.nama_lengkap)} (${esc(u.id_user)})</option>`).join('');
+  openModal('modalAnggota');
+}
+
+function editAnggota(id, level, target) {
+  // Quick edit level via notif
+  const newLevel = prompt('Level baru (Level 1/2/3/4/Level Qiyam):', level);
+  if (!newLevel) return;
+  const newTarget = prompt('Target level baru:', target);
+  showLoad('Menyimpan...');
+  window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget||'' })
+    .then(() => { toast('Level diperbarui!','ok'); loadAnggota(); })
+    .catch(e => toast(e.message,'err'))
+    .finally(() => hideLoad());
+}
+
+async function saveAnggota() {
+  const data = {
+    id_halaqah  : document.getElementById('angHalaqah').value,
+    id_murid    : document.getElementById('angMurid').value,
+    level       : document.getElementById('angLevel').value,
+    target_level: document.getElementById('angTarget').value,
+  };
+  if (!data.id_halaqah || !data.id_murid) return toast('Halaqah dan murid wajib dipilih','err');
+  showLoad('Mendaftarkan...');
+  try {
+    await window.HQ.AdminAPI.addAnggota(data);
+    closeModal('modalAnggota');
+    toast('Murid berhasil didaftarkan!','ok');
+    loadAnggota();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function hapusAnggota(id, nama) {
+  toast('Keluarkan ' + nama + ' dari halaqah?', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Keluarkan';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad();
+    try {
+      await window.HQ.AdminAPI.removeAnggota(id);
+      toast(nama + ' dikeluarkan','ok');
+      loadAnggota();
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
+}
+
+// ══════════════════════════════════════════
+//  KOMPONEN RAPORT
+// ══════════════════════════════════════════
+async function loadKomponen() {
+  const id_periode = document.getElementById('komponenPeriodeSel').value;
+  if (!id_periode) return;
+  showLoad('Memuat komponen...');
+  try {
+    const r = await window.HQ.AdminAPI.getKomponenRaport(id_periode);
+    komponenRows = (r.data||[]).filter(k=>k.status==='aktif');
+    renderKomponenRows();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function renderKomponenRows() {
+  const cont = document.getElementById('komponenList');
+  if (!komponenRows.length) {
+    // Template default
+    komponenRows = [
+      { nama_komponen:'Nilai KBM Harian', bobot:40, tipe:'otomatis' },
+      { nama_komponen:'Kehadiran',         bobot:20, tipe:'otomatis' },
+      { nama_komponen:'Adab',              bobot:10, tipe:'otomatis' },
+      { nama_komponen:'Micro Teaching',    bobot:15, tipe:'manual' },
+      { nama_komponen:'UAS',               bobot:15, tipe:'manual' },
+    ];
+  }
+  cont.innerHTML = komponenRows.map((k,i) => `
+    <div class="komponen-row">
+      <input type="text" class="fc" value="${esc(k.nama_komponen)}" placeholder="Nama komponen"
+        style="flex:2" onchange="komponenRows[${i}].nama_komponen=this.value;updateBobotTotal()">
+      <input type="number" class="fc" value="${k.bobot}" min="0" max="100" placeholder="%"
+        style="width:70px" onchange="komponenRows[${i}].bobot=Number(this.value);updateBobotTotal()">
+      <span style="font-size:12px;color:var(--text-3)">%</span>
+      <select class="fc" style="width:130px" onchange="komponenRows[${i}].tipe=this.value">
+        <option value="otomatis" ${k.tipe==='otomatis'?'selected':''}>🤖 Otomatis</option>
+        <option value="manual"   ${k.tipe==='manual'  ?'selected':''}>✏️ Manual</option>
+      </select>
+      <button class="btn btn-red btn-sm" onclick="hapusKomponenRow(${i})">🗑</button>
+    </div>`).join('');
+  updateBobotTotal();
+}
+
+function tambahKomponenRow() {
+  komponenRows.push({ nama_komponen:'', bobot:0, tipe:'manual' });
+  renderKomponenRows();
+}
+
+function hapusKomponenRow(i) {
+  komponenRows.splice(i, 1);
+  renderKomponenRows();
+}
+
+function updateBobotTotal() {
+  const total = komponenRows.reduce((s,k) => s + Number(k.bobot||0), 0);
+  const el    = document.getElementById('bobotTotal');
+  el.textContent = 'Total Bobot: ' + total + '%';
+  el.style.background = total===100 ? 'var(--green-l)' : 'var(--red-l)';
+  el.style.color      = total===100 ? '#0a6b4e' : '#a03010';
+}
+
+async function saveKomponen() {
+  const id_periode = document.getElementById('komponenPeriodeSel').value;
+  if (!id_periode) return toast('Pilih periode dulu','err');
+  const total = komponenRows.reduce((s,k)=>s+Number(k.bobot||0),0);
+  if (total !== 100) return toast('Total bobot harus 100%, saat ini '+total+'%','err');
+  showLoad('Menyimpan komponen...');
+  try {
+    await window.HQ.AdminAPI.saveKomponenRaport({ id_periode, komponen: komponenRows });
+    toast('Komponen raport disimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  NILAI MANUAL
+// ══════════════════════════════════════════
+async function loadNilaiSetup() {
+  const id_periode = document.getElementById('nilaiPeriodeSel').value;
+  if (!id_periode) return;
+  try {
+    const r = await window.HQ.AdminAPI.getKomponenRaport(id_periode);
+    nilaiKomponenList = (r.data||[]).filter(k=>k.status==='aktif'&&k.tipe==='manual');
+  } catch(e) {}
+}
+
+async function loadNilaiMurid() {
+  const id_periode = document.getElementById('nilaiPeriodeSel').value;
+  const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
+  if (!id_periode || !id_halaqah) return;
+  showLoad('Memuat data nilai...');
+  try {
+    const [anggotaRes, nilaiRes] = await Promise.all([
+      window.HQ.AdminAPI.getAllAnggota(id_halaqah),
+      window.HQ.AdminAPI.getNilaiManual(id_periode),
+    ]);
+    nilaiMuridList = anggotaRes.data || [];
+    const nilaiExisting = nilaiRes.data || [];
+    const card = document.getElementById('nilaiCard');
+    card.style.display = 'block';
+
+    if (!nilaiKomponenList.length) {
+      document.getElementById('nilaiBody').innerHTML =
+        '<div style="color:var(--amber);font-size:13px">⚠️ Belum ada komponen manual. Atur di menu Komponen Raport dulu.</div>';
+      return;
+    }
+
+    document.getElementById('nilaiBody').innerHTML = nilaiMuridList.map(m => `
+      <div style="margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:var(--r-sm)">
+        <div style="font-weight:700;font-size:14px;margin-bottom:10px">👤 ${esc(m.nama_murid)}</div>
+        <div class="f${Math.min(nilaiKomponenList.length,3)} gap">
+          ${nilaiKomponenList.map(k => {
+            const existing = nilaiExisting.find(n => n.id_murid===m.id_murid && n.id_komponen===k.id_komponen);
+            return `<div class="fg" style="margin:0">
+              <label>${esc(k.nama_komponen)} (${k.bobot}%)</label>
+              <input type="number" class="fc" min="0" max="100"
+                id="nilai_${esc(m.id_murid)}_${esc(k.id_komponen)}"
+                value="${existing?.nilai||''}" placeholder="0–100" style="font-size:13px">
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`).join('') || '<div style="color:var(--text-3);text-align:center;padding:24px">Belum ada murid</div>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function saveSemuaNilai() {
+  const id_periode = document.getElementById('nilaiPeriodeSel').value;
+  const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
+  if (!id_periode) return toast('Pilih periode dulu','err');
+  showLoad('Menyimpan nilai...');
+  let saved = 0;
+  try {
+    for (const m of nilaiMuridList) {
+      for (const k of nilaiKomponenList) {
+        const el = document.getElementById('nilai_'+m.id_murid+'_'+k.id_komponen);
+        if (!el || el.value === '') continue;
+        await window.HQ.AdminAPI.saveNilaiManual({
+          id_murid     : m.id_murid,
+          id_halaqah   : id_halaqah,
+          id_periode,
+          id_komponen  : k.id_komponen,
+          nama_komponen: k.nama_komponen,
+          nilai        : Number(el.value),
+        });
+        saved++;
+      }
+    }
+    toast(saved + ' nilai berhasil disimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  RAPORT
+// ══════════════════════════════════════════
+async function loadRaportList() {
+  const id_periode = document.getElementById('raportPeriodeSel').value;
+  if (!id_periode) return;
+  showLoad('Memuat raport...');
+  try {
+    const r = await window.HQ.AdminAPI.getRaportList(id_periode);
+    const rows = r.data || [];
+    const tbody = document.getElementById('raportTbl');
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${esc(r.id_murid)}</strong></td>
+      <td>${esc(r.id_halaqah)}</td>
+      <td><strong>${r.nilai_akhir||'–'}</strong></td>
+      <td>${predikatBadge(r.predikat)}</td>
+      <td>${statusRaportBadge(r.status)}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-outline btn-sm" onclick="lihatRaport('${esc(r.id_raport)}')">👁 Lihat</button>
+        ${r.status==='draft'?`<button class="btn btn-green btn-sm" onclick="publishRaport('${esc(r.id_raport)}')">📢 Publish</button>`:''}
+        <button class="btn btn-primary btn-sm" onclick="kirimEmail('${esc(r.id_raport)}')">📧 Email</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada raport</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function doGenerateBulk() {
+  const id_periode = document.getElementById('raportPeriodeSel').value;
+  if (!id_periode) return toast('Pilih periode dulu','err');
+  toast('Generate raport untuk semua murid?', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Generate';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Generating raport semua murid...');
+    try {
+      const r = await window.HQ.AdminAPI.generateRaportBulk({ id_periode });
+      toast(r.message,'ok');
+      loadRaportList();
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
+}
+
+async function lihatRaport(id_raport) {
+  showLoad('Memuat raport...');
+  try {
+    // Generate ulang untuk dapat detail terbaru
+    const id_periode = document.getElementById('raportPeriodeSel').value;
+    const raportList = await window.HQ.AdminAPI.getRaportList(id_periode);
+    const r = (raportList.data||[]).find(x=>x.id_raport===id_raport);
+    if (!r) return toast('Raport tidak ditemukan','err');
+
+    const komponen = JSON.parse(r.detail_json||'[]');
+    const murid    = allUsers.find(u=>u.id_user===r.id_murid)||{};
+    const hq       = allHalaqah.find(h=>h.id_halaqah===r.id_halaqah)||{};
+    const periode  = allPeriode.find(p=>p.id_periode===r.id_periode)||{};
+
+    document.getElementById('modalRaportTitle').textContent = 'Raport — ' + (murid.nama_lengkap||r.id_murid);
+    document.getElementById('modalRaportBody').innerHTML = `
+      <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;font-weight:700">Murid</div>
+          <div style="font-weight:700">${esc(murid.nama_lengkap||r.id_murid)}</div>
+          <div style="font-size:12px;color:var(--text-3)">${esc(r.id_murid)}</div>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;font-weight:700">Halaqah</div>
+          <div style="font-weight:600">${esc(hq.nama_halaqah||r.id_halaqah)}</div>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;font-weight:700">Periode</div>
+          <div style="font-weight:600">${esc(periode.nama_periode||r.id_periode)}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+        <thead><tr>
+          <th style="padding:8px;border:1px solid var(--border);background:#f8fafc;text-align:left;font-size:11px;color:var(--text-3)">Komponen</th>
+          <th style="padding:8px;border:1px solid var(--border);background:#f8fafc;font-size:11px;color:var(--text-3)">Bobot</th>
+          <th style="padding:8px;border:1px solid var(--border);background:#f8fafc;font-size:11px;color:var(--text-3)">Nilai</th>
+          <th style="padding:8px;border:1px solid var(--border);background:#f8fafc;font-size:11px;color:var(--text-3)">Kontribusi</th>
+        </tr></thead>
+        <tbody>
+          ${komponen.map(k=>`<tr>
+            <td style="padding:8px;border:1px solid var(--border)">${esc(k.nama_komponen)}</td>
+            <td style="padding:8px;border:1px solid var(--border);text-align:center">${k.bobot}%</td>
+            <td style="padding:8px;border:1px solid var(--border);text-align:center;font-weight:700">${k.nilai}</td>
+            <td style="padding:8px;border:1px solid var(--border);text-align:center">${k.nilai_bobot}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot><tr>
+          <td colspan="3" style="padding:10px;border:1px solid var(--border);font-weight:700;background:#f8fafc">NILAI AKHIR</td>
+          <td style="padding:10px;border:1px solid var(--border);text-align:center;font-weight:800;font-size:18px;color:var(--blue)">${r.nilai_akhir}</td>
+        </tr></tfoot>
+      </table>
+      <div style="text-align:center;padding:14px;background:var(--blue-l);border-radius:var(--r);font-size:18px;font-weight:800;color:var(--blue)">
+        Predikat: ${predikatBadge(r.predikat)}
+      </div>`;
+
+    document.getElementById('modalRaportFoot').innerHTML = `
+      <button class="btn btn-ghost" onclick="closeModal('modalRaport')">Tutup</button>
+      ${r.status==='draft'?`<button class="btn btn-green" onclick="publishRaport('${esc(r.id_raport)}')">📢 Publish ke Murid</button>`:''}
+      <button class="btn btn-primary" onclick="kirimEmail('${esc(r.id_raport)}')">📧 Kirim Email</button>`;
+
+    openModal('modalRaport');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function publishRaport(id_raport) {
+  showLoad('Publishing...');
+  try {
+    await window.HQ.AdminAPI.publishRaport(id_raport);
+    toast('Raport dipublikasikan ke murid!','ok');
+    closeModal('modalRaport');
+    loadRaportList();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function kirimEmail(id_raport) {
+  showLoad('Mengirim email...');
+  try {
+    const r = await window.HQ.AdminAPI.kirimRaportEmail(id_raport);
+    toast(r.message,'ok');
+    loadRaportList();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  LAPORAN
+// ══════════════════════════════════════════
+async function loadLaporan() {
+  showLoad('Memuat laporan...');
+  try {
+    const r = await window.HQ.AdminAPI.getLaporanGlobal();
+    const tbody = document.getElementById('laporanTbl');
+    tbody.innerHTML = (r.data||[]).map(h=>`<tr>
+      <td><strong>${esc(h.nama_halaqah)}</strong></td>
+      <td>${esc(h.nama_guru)}</td>
+      <td><span class="badge b-blue">${esc(h.level)}</span></td>
+      <td>${h.total_murid}</td>
+      <td>${h.total_sesi}</td>
+      <td>${nilaiNumLabel(h.avg_nilai)}</td>
+      <td>${pctBar(h.pct_hadir||0)}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  ABSENSI
+// ══════════════════════════════════════════
+async function loadAbsensi() {
+  const id_halaqah = document.getElementById('absensiHalaqahSel').value;
+  showLoad('Memuat absensi...');
+  try {
+    const r = await window.HQ.AdminAPI.getRekapAbsensi(id_halaqah ? { id_halaqah } : {});
+    const tbody = document.getElementById('absensiTbl');
+    tbody.innerHTML = (r.data||[]).map(m => {
+      const pct = m.pct_hadir||0;
+      const color = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+      return `<tr>
+        <td><strong>${esc(m.nama_murid)}</strong></td>
+        <td><span class="badge b-green">${m.H||0}</span></td>
+        <td><span class="badge b-amber">${m.I||0}</span></td>
+        <td><span class="badge b-blue">${m.S||0}</span></td>
+        <td><span class="badge b-red">${m.A||0}</span></td>
+        <td>${m.total||0}</td>
+        <td><span style="font-weight:700;color:${color}">${pct}%</span></td>
+        <td><span style="font-weight:700;color:${pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}">${m.skor_dari_40||0}%</span></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PENGUMUMAN
+// ══════════════════════════════════════════
+async function loadPengumuman() {
+  showLoad();
+  try {
+    const r = await window.HQ.AdminAPI.getAllPengumuman();
+    const tbody = document.getElementById('pengumumanTbl');
+    tbody.innerHTML = (r.data||[]).map(p=>`<tr>
+      <td>${esc(p.tanggal)}</td>
+      <td><strong>${esc(p.judul)}</strong></td>
+      <td><span class="badge b-blue">${esc(p.target)}</span></td>
+      <td>${esc(p.nama_pembuat)}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada pengumuman</td></tr>';
+  } catch(e) {}
+  finally { hideLoad(); }
+}
+
+async function doKirimPengumuman() {
+  const judul  = document.getElementById('pngJudul').value.trim();
+  const isi    = document.getElementById('pngIsi').value.trim();
+  const target = document.getElementById('pngTarget').value;
+  if (!judul || !isi) return toast('Judul dan isi wajib diisi','err');
+  showLoad('Mengirim...');
+  try {
+    await window.HQ.AdminAPI.buatPengumuman({ judul, isi, target });
+    document.getElementById('pngJudul').value = '';
+    document.getElementById('pngIsi').value   = '';
+    toast('Pengumuman terkirim! 📢','ok');
+    loadPengumuman();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  AUDIT LOG
+// ══════════════════════════════════════════
+async function loadAudit() {
+  showLoad();
+  try {
+    const r = await window.HQ.AdminAPI.getAuditLog();
+    const tbody = document.getElementById('auditTbl');
+    tbody.innerHTML = (r.data||[]).map(l=>`<tr>
+      <td style="font-size:12px;white-space:nowrap">${esc(l.timestamp)}</td>
+      <td><code style="font-size:11px">${esc(l.user_id)}</code></td>
+      <td><span class="badge b-blue">${esc(l.action)}</span></td>
+      <td style="font-size:12px;color:var(--text-3)">${esc(l.detail)}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada log</td></tr>';
+  } catch(e) {}
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  HELPERS UI
+// ══════════════════════════════════════════
+function populateSel(selId, list, addAll=false) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const allOpt = addAll ? '<option value="">Semua Halaqah</option>' : '<option value="">— Pilih Halaqah —</option>';
+  sel.innerHTML = allOpt + (list||allHalaqah).map(h =>
+    `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
+}
+
+function populatePeriodeSel(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Periode —</option>' +
+    allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' ✓':''}</option>`).join('');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let _notifTimer;
+function toast(msg, type='', autoDismiss=true) {
+  const icons  = {ok:'✅',err:'❌',warn:'⚠️','':'ℹ️'};
+  const titles = {ok:'Berhasil',err:'Gagal',warn:'Perhatian','':'Info'};
+  document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
+  document.getElementById('notifTitle').textContent = titles[type]||'Info';
+  document.getElementById('notifMsg').textContent   = msg;
+  const btn = document.getElementById('notifBtn');
+  btn.className = 'notif-btn '+(type||'info');
+  btn.textContent = type==='err'?'Tutup':type==='warn'?'Mengerti':'OK';
+  btn.onclick = closeNotif;
+  document.getElementById('notifOverlay').classList.add('show');
+  clearTimeout(_notifTimer);
+  if (autoDismiss && type==='ok') _notifTimer = setTimeout(closeNotif, 2800);
+}
+function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); clearTimeout(_notifTimer); }
+
+function showLoad(msg='Memuat...') { document.getElementById('loaderTxt').textContent=msg; document.getElementById('loader').classList.add('show'); }
+function hideLoad() { document.getElementById('loader').classList.remove('show'); }
+function setBtn(id,dis,txt) { const el=document.getElementById(id); if(!el)return; el.disabled=dis; el.textContent=txt; }
+
+function roleBadge(r) {
+  const m={admin:'b-red',guru:'b-green',murid:'b-blue'};
+  return `<span class="badge ${m[r]||'b-gray'}">${r}</span>`;
+}
+function predikatBadge(p) {
+  const m={'Mumtaz':'b-green','Jayyid Jiddan':'b-blue','Jayyid':'b-amber','Maqbul':'b-red'};
+  return p?`<span class="badge ${m[p]||'b-gray'}">${p}</span>`:'–';
+}
+function statusRaportBadge(s) {
+  const m={draft:'b-amber',published:'b-blue',terkirim:'b-green'};
+  return `<span class="badge ${m[s]||'b-gray'}">${s||'–'}</span>`;
+}
+function nilaiLabel(avg) {
+  const n = Number(avg);
+  if (!n) return '–';
+  if (n>=3.5) return '<span class="badge b-green">Mumtaz</span>';
+  if (n>=2.5) return '<span class="badge b-blue">Jayyid Jiddan</span>';
+  if (n>=1.5) return '<span class="badge b-amber">Jayyid</span>';
+  return '<span class="badge b-red">Maqbul</span>';
+}
+function nilaiNumLabel(avg) {
+  const n = Number(avg);
+  if (!n) return '–';
+  return `<span style="font-weight:700">${n.toFixed(1)}</span>`;
+}
+function pctBar(pct) {
+  const color = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+  return `<div style="display:flex;align-items:center;gap:6px">
+    <div style="flex:1;height:5px;background:var(--border);border-radius:100px;min-width:60px">
+      <div style="height:5px;background:${color};border-radius:100px;width:${Math.min(pct,100)}%"></div>
+    </div>
+    <span style="font-size:11.5px;font-weight:700;color:${color};flex-shrink:0">${pct}%</span>
+  </div>`;
+}
+function fmtDate(d) { if(!d) return '–'; return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
+</script>
+</body>
+</html>
