@@ -107,17 +107,20 @@ const AdminAPI = {
 //  GURU API
 // ════════════════════════════════════════════════
 const GuruAPI = {
-  getDashboard:       ()            => apiGet('getDashboardGuru'),
-  getHalaqahSaya:     ()            => apiGet('getHalaqahGuru'),
-  getMurid:           (id_halaqah)  => apiGet('getMuridByHalaqah', { id_halaqah }),
-  getRiwayatKBM:      (id_halaqah, limit) => apiGet('getKBMByHalaqah', { id_halaqah, limit: limit || 20 }),
-  getHafalanByKBM:    (id_kbm)      => apiGet('getHafalanByKBM', { id_kbm }),
+  getDashboard:       ()                   => apiGet('getDashboardGuru'),
+  getHalaqahSaya:     ()                   => apiGet('getHalaqahGuru'),
+  getMurid:           (id_halaqah)         => apiGet('getMuridByHalaqah', { id_halaqah }),
+  getRiwayatKBM:      (id_halaqah, limit)  => apiGet('getKBMByHalaqah', { id_halaqah, limit: limit || 20 }),
+  getNilaiByKBM:      (id_kbm)             => apiGet('getNilaiByKBM', { id_kbm }),
+  getPresensiByKBM:   (id_kbm)             => apiGet('getPresensiByKBM', { id_kbm }),
 
-  bukaKBM:            (data)        => apiPost('bukaKBM', data),
-  tutupKBM:           (id_kbm)      => apiPost('tutupKBM', { id_kbm }),
-  simpanAbsensi:      (data)        => apiPost('simpanAbsensi', data),
-  simpanHafalan:      (data)        => apiPost('simpanHafalan', data),
-  updateCatatanMurid: (data)        => apiPost('updateCatatanMurid', data),
+  bukaKBM:            (data)               => apiPost('bukaKBM', data),
+  simpanPresensi:     (data)               => apiPost('simpanPresensi', data),
+  editPresensi:       (data)               => apiPost('editPresensi', data),
+  simpanJurnalKBM:    (data)               => apiPost('simpanJurnalKBM', data),
+  simpanNilaiMurid:   (data)               => apiPost('simpanNilaiMurid', data),
+  tutupKBM:           (id_kbm)             => apiPost('tutupKBM', { id_kbm }),
+  updateCatatanMurid: (data)               => apiPost('updateCatatanMurid', data),
 };
 
 // ════════════════════════════════════════════════
