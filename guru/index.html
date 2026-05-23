@@ -1383,55 +1383,57 @@ function renderNilaiMuridStep() {
 
   let terisi = 0;
   cont.innerHTML = muridSesi.map(m => {
-    const status = presensiMap[m.id_murid] || 'H';
-    const isAlpa = status === 'A';
-    const nilaiVal  = document.getElementById('nilai-'  + m.id_murid)?.value || '';
-    const adabVal   = document.getElementById('adab-'   + m.id_murid)?.value || '';
-    const korVal    = document.getElementById('koreksi-'+ m.id_murid)?.value || '';
-    if (nilaiVal) terisi++;
-    return `
-    <div class="nilai-murid-card ${isSkip?'alpa':nilaiVal?'terisi':''}" id="nmcard-${esc(m.id_murid)}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-weight:700;font-size:14px">👤 ${esc(m.nama_murid)}</div>
-        <span class="badge ${HADIR_BADGE[status]||'b-gray'}" style="font-size:11px">
-          ${HADIR_LABEL[status]||status}
-        </span>
-      </div>
-      ${isSkip ? `<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:4px 0">
-        ${isAlpa ? '🔴 Murid alpa — nilai tidak perlu diisi' : '🟡 Murid izin — nilai tidak perlu diisi'}
-      </div>` : `
-      <div class="f2" style="margin-bottom:8px">
-        <div class="fg" style="margin:0">
-          <label>Nilai Tahsin</label>
-          <select class="fc" id="nilai-${esc(m.id_murid)}" style="font-size:13px"
-            onchange="updateNilaiCard('${esc(m.id_murid)}')">
-            <option value="">— Pilih —</option>
-            <option value="Mumtaz" ${nilaiVal==='Mumtaz'?'selected':''}>⭐ Mumtaz</option>
-            <option value="Jayyid" ${nilaiVal==='Jayyid'?'selected':''}>👍 Jayyid</option>
-            <option value="Maqbul" ${nilaiVal==='Maqbul'?'selected':''}>📌 Maqbul</option>
-          </select>
-        </div>
-        <div class="fg" style="margin:0">
-          <label>Adab</label>
-          <select class="fc" id="adab-${esc(m.id_murid)}" style="font-size:13px">
-            <option value="">— Pilih —</option>
-            <option value="Baik" ${adabVal==='Baik'?'selected':''}>😊 Baik</option>
-            <option value="Butuh Perhatian" ${adabVal==='Butuh Perhatian'?'selected':''}>⚠️ Butuh Perhatian</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg" style="margin:0">
-        <label>Koreksi Tahsin</label>
-        <input type="text" class="fc" id="koreksi-${esc(m.id_murid)}"
-          value="${esc(korVal)}"
-          placeholder="Makhraj ح, mad tabi'i, dll..."
-          style="font-size:13px">
-      </div>`}
-    </div>`;
+    const status   = presensiMap[m.id_murid] || 'H';
+    const isAlpa   = status === 'A';
+    const isIzin   = status === 'I';
+    const isSkip   = isAlpa || isIzin;
+    const nilaiVal = document.getElementById('nilai-'  + m.id_murid) ? document.getElementById('nilai-'  + m.id_murid).value : '';
+    const adabVal  = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
+    const korVal   = document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '';
+    if (nilaiVal && !isSkip) terisi++;
+
+    const cardClass = isSkip ? 'nilai-murid-card alpa' : (nilaiVal ? 'nilai-murid-card terisi' : 'nilai-murid-card');
+    const skipMsg   = isAlpa
+      ? '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🔴 Murid alpa — nilai tidak perlu diisi</div>'
+      : '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🟡 Murid izin — nilai tidak perlu diisi</div>';
+
+    const nilaiForm = [
+      '<div class="f2" style="margin-bottom:8px">',
+      '  <div class="fg" style="margin:0">',
+      '    <label>Nilai Tahsin</label>',
+      '    <select class="fc" id="nilai-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard('' + esc(m.id_murid) + '')">',
+      '      <option value="">— Pilih —</option>',
+      '      <option value="Mumtaz"' + (nilaiVal==='Mumtaz' ? ' selected' : '') + '>⭐ Mumtaz</option>',
+      '      <option value="Jayyid"' + (nilaiVal==='Jayyid' ? ' selected' : '') + '>👍 Jayyid</option>',
+      '      <option value="Maqbul"' + (nilaiVal==='Maqbul' ? ' selected' : '') + '>📌 Maqbul</option>',
+      '    </select>',
+      '  </div>',
+      '  <div class="fg" style="margin:0">',
+      '    <label>Adab</label>',
+      '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px">',
+      '      <option value="">— Pilih —</option>',
+      '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
+      '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>⚠️ Butuh Perhatian</option>',
+      '    </select>',
+      '  </div>',
+      '</div>',
+      '<div class="fg" style="margin:0">',
+      '  <label>Koreksi Tahsin</label>',
+      '  <input type="text" class="fc" id="koreksi-' + esc(m.id_murid) + '" value="' + esc(korVal) + '" placeholder="Makhraj ح, mad tabi'i, dll..." style="font-size:13px">',
+      '</div>',
+    ].join('\n');
+
+    return '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+      + '<div style="font-weight:700;font-size:14px">👤 ' + esc(m.nama_murid) + '</div>'
+      + '<span class="badge ' + (HADIR_BADGE[status]||'b-gray') + '" style="font-size:11px">' + (HADIR_LABEL[status]||status) + '</span>'
+      + '</div>'
+      + (isSkip ? skipMsg : nilaiForm)
+      + '</div>';
   }).join('');
 
   // Update progress counter
-  const total  = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
+  const total = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
 
