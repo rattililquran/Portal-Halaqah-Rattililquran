@@ -2079,16 +2079,22 @@ function showPreview() {
 
   // Preview nilai per murid
   const nilaiList = document.getElementById('pvNilaiList');
+  // Ambil presensi map dari step 2
+  const presensiMapPv = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
+    presensiMapPv[btn.dataset.id] = btn.dataset.k;
+  });
+  const LABEL_PV = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+
   const nilaiItems = muridSesi.map(m => {
-    const nilai   = document.getElementById('nilai-'   + m.id_murid)?.value || '';
-    const adab    = document.getElementById('adab-'    + m.id_murid)?.value || '';
-    const hadirBadgeEl = document.getElementById('hadirBadge-' + m.id_murid);
-    const hadirStatus  = hadirBadgeEl?.textContent || '–';
-    return { nama: m.nama_murid, nilai, adab, hadir: hadirStatus };
+    const nilai  = document.getElementById('nilai-'  + m.id_murid) ? document.getElementById('nilai-'  + m.id_murid).value : '';
+    const adab   = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
+    const status = presensiMapPv[m.id_murid] || 'H';
+    return { nama: m.nama_murid, nilai, adab, status, hadir: LABEL_PV[status]||status };
   });
 
-  // Cek nilai kosong untuk murid hadir
-  const nilaiKosong = nilaiItems.filter(m => m.hadir === 'Hadir' && !m.nilai).length;
+  // Cek nilai kosong untuk murid hadir (bukan Alpa/Izin)
+  const nilaiKosong = nilaiItems.filter(m => !['A','I'].includes(m.status) && !m.nilai).length;
   const warnEl = document.getElementById('pvWarningNilai');
   if (nilaiKosong > 0) {
     document.getElementById('pvWarningNilaiTxt').textContent = nilaiKosong;
@@ -2097,15 +2103,18 @@ function showPreview() {
     warnEl.style.display = 'none';
   }
 
-  nilaiList.innerHTML = nilaiItems.map(m => `
-    <div class="preview-murid-item">
-      <span style="font-weight:600">${esc(m.nama)}</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        ${m.hadir !== 'Hadir' ? `<span class="badge b-amber">${esc(m.hadir)}</span>` : ''}
-        ${m.nilai ? `<span class="badge b-green" style="font-size:11px">${esc(m.nilai)}</span>` : '<span style="color:var(--text-3);font-size:12px">nilai kosong</span>'}
-        ${m.adab ? `<span class="badge b-blue" style="font-size:11px">${esc(m.adab)}</span>` : ''}
-      </div>
-    </div>`).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';
+  const BADGE_PV = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
+  nilaiList.innerHTML = nilaiItems.map(m => {
+    const skipStatus = m.status === 'A' || m.status === 'I';
+    return '<div class="preview-murid-item">'
+      + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
+      + '<div style="display:flex;gap:6px;align-items:center">'
+      + (m.status !== 'H' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
+      + (!skipStatus && m.nilai ? '<span class="badge b-green" style="font-size:11px">' + esc(m.nilai) + '</span>' : '')
+      + (!skipStatus && !m.nilai ? '<span style="color:var(--text-3);font-size:12px">nilai kosong</span>' : '')
+      + (m.adab ? '<span class="badge b-blue" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
+      + '</div></div>';
+  }).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';
 
   // Latihan mandiri
   const latihanWrap = document.getElementById('pvLatihanWrap');
