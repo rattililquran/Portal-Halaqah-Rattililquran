@@ -1274,7 +1274,10 @@ function closeSB() { document.getElementById('sidebar').classList.remove('open')
 //  DASHBOARD
 // ══════════════════════════════════════════
 async function loadDashboard() {
-  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  showLoad('Bismillah, memuat dashboard...');
+  // Load jadwal paralel
+  loadJadwal();
+  loadTemplateKoreksi();
   try {
     const r = await window.HQ.GuruAPI.getDashboard();
     const d = r.data;
