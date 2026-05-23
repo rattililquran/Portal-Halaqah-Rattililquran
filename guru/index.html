@@ -2367,6 +2367,7 @@ async function doGenerateRekap(tipe) {
 // ══ #4 JADWAL HARI INI ══════════════════
 var jadwalData = [];
 async function loadJadwal() {
+  var cont = document.getElementById('jadwalList');
   try {
     var r = await window.HQ.GuruAPI.getJadwalHariIni();
     jadwalData = r.data || [];
@@ -2374,7 +2375,14 @@ async function loadJadwal() {
     var el = document.getElementById('dashHariIni');
     if (el) el.textContent = 'Hari ' + hari + ' — Semoga Allah mudahkan perjuangan hari ini.';
     renderJadwal();
-  } catch(e) { console.error('loadJadwal:', e); }
+  } catch(e) {
+    console.error('loadJadwal error:', e);
+    // Tampilkan error di UI agar bisa debug
+    if (cont) cont.innerHTML = '<div style="font-size:12px;color:var(--red);padding:8px 0">'
+      + '⚠️ Gagal memuat jadwal: ' + esc(e.message)
+      + '<br><span style="color:var(--text-3)">Pastikan Code_features.gs sudah diupload ke GAS dan di-deploy ulang.</span>'
+      + '</div>';
+  }
 }
 function renderJadwal() {
   var cont = document.getElementById('jadwalList');
