@@ -288,13 +288,29 @@ tr:hover td{background:#f8fafc}
   display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
 
 /* ── LOADING ── */
-.loader{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);
-  z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px)}
-.loader.show{display:flex}
-.spin{width:42px;height:42px;border:3.5px solid rgba(255,255,255,.18);
-  border-top-color:#fff;border-radius:50%;animation:rot .75s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-.loader-txt{color:#fff;font-size:13.5px;font-weight:500}
+.loader{display:none;position:fixed;inset:0;
+  background:linear-gradient(160deg,rgba(13,27,42,.92),rgba(20,88,168,.88));
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;
+  gap:0;backdrop-filter:blur(8px)}
+.loader.show{display:flex;animation:loaderFadeIn .3s ease}
+@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
+.loader-inner{text-align:center;max-width:300px;padding:0 24px}
+.loader-arabic{font-family:'Amiri',serif;font-size:32px;color:rgba(255,255,255,.9);
+  margin-bottom:20px;line-height:1.6;animation:arabicPulse 2s ease-in-out infinite}
+@keyframes arabicPulse{0%,100%{opacity:.7;transform:scale(.97)}50%{opacity:1;transform:scale(1)}}
+.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.loader-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);
+  animation:dotPulse 1.4s ease-in-out infinite}
+.loader-dot:nth-child(1){animation-delay:0s}
+.loader-dot:nth-child(2){animation-delay:.2s}
+.loader-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);background:rgba(255,255,255,.3)}40%{transform:scale(1);background:#fff}}
+.loader-txt{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;
+  line-height:1.6;letter-spacing:.01em;min-height:44px;
+  animation:txtFadeIn .4s ease}
+@keyframes txtFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* spin tidak dipakai lagi tapi jaga kompatibilitas */
+.spin{display:none}
 
 /* ── NOTIF CENTER ── */
 .notif-overlay{
@@ -377,7 +393,17 @@ tr:hover td{background:#f8fafc}
 </head>
 <body>
 
-<div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-arabic">بِسْمِ اللهِ</div>
+    <div class="loader-dots">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+    <div class="loader-txt" id="loaderTxt">Memuat...</div>
+  </div>
+</div>
 <!-- NOTIF CENTER -->
 <div class="notif-overlay" id="notifOverlay" onclick="closeNotif()">
   <div class="notif-box" onclick="event.stopPropagation()">
@@ -984,7 +1010,7 @@ async function doLogin() {
   const nis = document.getElementById('nisInput').value.trim().toUpperCase();
   if (!nis) return showErr('NIS wajib diisi');
   setBtn('loginBtn', true, 'Masuk...');
-  showLoad('Memverifikasi...');
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
   try {
     const d = await window.HQ.Auth.login(nis, 'guru');
     if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
@@ -1100,7 +1126,7 @@ async function tutupPaksaSesi() {
   document.getElementById('notifBtn').textContent = 'Ya, Batalkan Sesi';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Membatalkan sesi...');
+    showLoad('Baik, sesi dibatalkan...');
     try {
       await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
       sesiAktif      = null;
@@ -1143,7 +1169,7 @@ function closeSB() { document.getElementById('sidebar').classList.remove('open')
 //  DASHBOARD
 // ══════════════════════════════════════════
 async function loadDashboard() {
-  showLoad('Memuat dashboard...');
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
   try {
     const r = await window.HQ.GuruAPI.getDashboard();
     const d = r.data;
@@ -1200,7 +1226,7 @@ async function doBukaKBM() {
   if (sesiAktif)   return toast('Masih ada sesi berjalan. Tutup dulu!','warn');
 
   setBtn('btnMulai', true, '⏳ Membuka sesi...');
-  showLoad('Membuka sesi KBM...');
+  showLoad('Bismillah, kita buka sesi KBM dengan doa terlebih dahulu...');
   try {
     const pertemuanCustom = document.getElementById('kbmPertemuan')?.value;
     const r = await window.HQ.GuruAPI.bukaKBM({
@@ -1321,7 +1347,7 @@ async function doSimpanPresensi() {
   });
   if (!presensi.length) return toast('Isi presensi minimal 1 murid','err');
 
-  showLoad('Menyimpan presensi...');
+  showLoad('Bismillah, menyimpan presensi...');
   try {
     await window.HQ.GuruAPI.simpanPresensi({
       id_kbm: sesiAktif.id_kbm,
@@ -1473,7 +1499,7 @@ async function doSelesaiKBM() {
   const jamSelesai = document.getElementById('jurnalJamSelesai').value;
 
   setBtn('btnSelesai', true, '⏳ Menyimpan...');
-  showLoad('Menyimpan jurnal KBM...');
+  showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
   try {
     // 1. Simpan jurnal
     await window.HQ.GuruAPI.simpanJurnalKBM({
@@ -1554,7 +1580,7 @@ async function doSelesaiKBM() {
 
 async function konfirmasiTutup() {
   if (!confirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.')) return;
-  showLoad('Menutup sesi...');
+  showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
   try {
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     toast(res.message || 'Sesi ditutup','ok');
@@ -1606,7 +1632,7 @@ async function getMurid(id_halaqah) {
 async function loadMurid() {
   const id = document.getElementById('muridHalaqahSel').value;
   if (!id) return;
-  showLoad('Memuat murid...');
+  showLoad('Bismillah, memuat data murid...');
   try {
     muridCache[id] = null;
     const murid = await getMurid(id);
@@ -1650,7 +1676,7 @@ async function loadMurid() {
 async function loadRiwayat() {
   const id = document.getElementById('riwayatHalaqahSel').value;
   if (!id) return;
-  showLoad('Memuat riwayat...');
+  showLoad('Bismillah, memuat riwayat KBM...');
   try {
     const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 30);
     const rows = r.data || [];
@@ -1718,7 +1744,7 @@ function bukaCatatan(id_anggota, nama, catatan) {
 async function simpanCatatan() {
   const id_anggota  = document.getElementById('catatanIdAnggota').value;
   const catatan_guru = document.getElementById('catatanTxt').value;
-  showLoad('Menyimpan...');
+  showLoad('Bismillah, menyimpan...');
   try {
     await window.HQ.GuruAPI.updateCatatanMurid({ id_anggota, catatan_guru });
     closeModal('catatanModal');
@@ -1741,7 +1767,7 @@ function populateSel(selId) {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-function showLoad(msg='Memuat...') {
+function showLoad(msg='Bismillah...') {
   document.getElementById('loaderTxt').textContent = msg;
   document.getElementById('loader').classList.add('show');
 }
@@ -1857,7 +1883,7 @@ async function bukaEditPresensi(id_kbm, tanggal) {
     emptyHTML('⏳','Memuat data...','');
   openModal('editPresensiModal');
 
-  showLoad('Memuat data presensi...');
+  showLoad('Bismillah, memuat data presensi...');
   try {
     const r = await window.HQ.GuruAPI.getPresensiByKBM(id_kbm);
     editPresensiHalaqah = r.kbm?.id_halaqah || '';
@@ -1926,7 +1952,7 @@ async function simpanEditPresensi() {
   });
   if (!presensi.length) return toast('Tidak ada data presensi','err');
 
-  showLoad('Menyimpan perubahan presensi...');
+  showLoad('Bismillah, menyimpan perubahan presensi...');
   try {
     await window.HQ.GuruAPI.editPresensi({
       id_kbm    : editPresensiKBMId,
@@ -2001,7 +2027,7 @@ async function doTambahMurid() {
   if (!id_halaqah) return toast('Pilih halaqah','err');
   if (!id_murid)   return toast('Pilih murid','err');
 
-  showLoad('Menambahkan murid...');
+  showLoad('Bismillah, mendaftarkan murid...');
   try {
     const r = await window.HQ.GuruAPI.addMuridByGuru({ id_halaqah, id_murid, level, target_level });
     closeModal('tambahMuridModal');
@@ -2030,7 +2056,7 @@ async function doKirimPengumuman() {
   if (!judul) return toast('Judul wajib diisi','err');
   if (!isi)   return toast('Isi pengumuman wajib diisi','err');
 
-  showLoad('Mengirim pengumuman...');
+  showLoad('Bismillah, mengirim pengumuman...');
   try {
     await window.HQ.GuruAPI.kirimPengumuman({ judul, isi, target, id_halaqah });
     document.getElementById('pngJudul').value = '';
@@ -2141,7 +2167,7 @@ async function doGenerateRekap(tipe) {
   if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
 
   const label = tipe === 'presensi' ? 'Rekap Presensi' : 'Rekap Nilai';
-  showLoad('Membuat ' + label + '...');
+  showLoad('Bismillah, membuat ' + label.toLowerCase() + '...');
   try {
     const fn = tipe === 'presensi'
       ? window.HQ.GuruAPI.generateRekapPresensi
