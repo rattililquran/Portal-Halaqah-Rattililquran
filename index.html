@@ -3,599 +3,361 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="theme-color" content="#2563EB"/>
+<meta name="theme-color" content="#0d1f35"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="Halaqah"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Rattililqur'an"/>
 <title>Rattililqur'an — Portal Halaqah</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --blue-1: #1e4fd8;
-  --blue-2: #2563EB;
-  --blue-3: #3b82f6;
-  --blue-4: #60a5fa;
-  --blue-5: #bfdbfe;
-  --blue-6: #eff6ff;
-  --text-1: #0f172a;
-  --text-2: #334155;
-  --text-3: #64748b;
-  --text-4: #94a3b8;
-  --border: rgba(148,163,184,0.18);
-  --border-md: rgba(148,163,184,0.28);
-  --white: #ffffff;
-  --bg: #f1f5f9;
-
-  /* Glass */
-  --glass: rgba(255,255,255,0.70);
-  --glass-sm: rgba(255,255,255,0.50);
-  --glass-xs: rgba(255,255,255,0.30);
-  --glass-blur: blur(32px) saturate(1.8) brightness(1.04);
-  --glass-blur-sm: blur(18px) saturate(1.5);
-  --glass-shadow: 0 8px 40px rgba(37,99,235,0.10), 0 2px 8px rgba(0,0,0,0.05);
-  --glass-shadow-lg: 0 24px 64px rgba(37,99,235,0.14), 0 4px 16px rgba(0,0,0,0.07);
-
-  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 26px; --r-2xl: 32px; --r-pill: 100px;
-  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-  --ease-out: cubic-bezier(0.16,1,0.3,1);
-  --t-fast: 160ms; --t-mid: 300ms;
-  --sat: env(safe-area-inset-top,0px);
-  --sab: env(safe-area-inset-bottom,0px);
-}
-
-*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-html { -webkit-text-size-adjust:100%; }
-body {
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text-1);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  min-height:100dvh;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  background:#0d1f35;
 }
 
 /* ── BACKGROUND ── */
-.bg {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-  background: linear-gradient(145deg, #f8faff 0%, #eef3ff 35%, #f0f7ff 65%, #f5f9ff 100%);
-}
-.bg-orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(90px);
-  animation: float var(--d,18s) ease-in-out infinite alternate;
-}
-.bg-orb-1 { width:500px;height:500px;background:#c7dcff;opacity:.55;top:-180px;left:-150px;--d:20s; }
-.bg-orb-2 { width:380px;height:380px;background:#bbf7d0;opacity:.40;bottom:-120px;right:-100px;--d:16s;animation-delay:-7s; }
-.bg-orb-3 { width:260px;height:260px;background:#e0eaff;opacity:.60;top:38%;left:55%;--d:24s;animation-delay:-12s; }
-.bg-orb-4 { width:180px;height:180px;background:#dbeafe;opacity:.70;top:12%;right:14%;--d:14s;animation-delay:-3s; }
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(160deg,#0a1628 0%,#0d2a1e 50%,#0a1628 100%)}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:floatOrb 20s ease-in-out infinite alternate}
+.orb1{width:500px;height:500px;background:rgba(22,155,107,.18);top:-150px;left:-100px;animation-duration:22s}
+.orb2{width:400px;height:400px;background:rgba(20,88,168,.15);bottom:-100px;right:-80px;animation-duration:18s;animation-delay:-8s}
+.orb3{width:250px;height:250px;background:rgba(220,38,38,.08);top:40%;left:60%;animation-duration:26s;animation-delay:-14s}
+@keyframes floatOrb{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,-25px) scale(1.08)}}
 
-@keyframes float { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(28px,-20px) scale(1.06)} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
-@keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(22px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-@keyframes spin { to{transform:rotate(360deg)} }
-@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
-
-/* ── APP ── */
-.app { position:relative; z-index:1; min-height:100dvh; display:flex; flex-direction:column; }
-
-/* ── TOPBAR ── */
-.topbar {
-  position: sticky; top:0; z-index:100;
-  padding: calc(var(--sat) + 10px) 24px 10px;
-  background: rgba(255,255,255,0.68);
-  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid rgba(255,255,255,0.85);
-  box-shadow: 0 1px 16px rgba(37,99,235,0.07);
-  display: flex; align-items:center; justify-content:space-between;
+/* ── LAYOUT ── */
+.wrap{
+  position:relative;z-index:1;
+  min-height:100dvh;
+  display:grid;
+  grid-template-columns:1fr 1fr;
 }
-.brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
-.brand-icon {
-  width:36px; height:36px; border-radius:10px;
-  background: linear-gradient(135deg, var(--blue-2), var(--blue-1));
-  display:flex; align-items:center; justify-content:center; font-size:17px;
-  box-shadow: 0 3px 10px rgba(37,99,235,0.22);
-}
-.brand-name { font-size:14px; font-weight:800; color:var(--blue-2); }
-.brand-sub  { font-size:10px; color:var(--text-3); font-weight:500; }
-.pwa-pill {
-  font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:var(--r-pill);
-  background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.18);
-  color:var(--blue-2); letter-spacing:.06em; text-transform:uppercase;
-}
+@media(max-width:768px){.wrap{grid-template-columns:1fr}}
 
-/* ── MAIN ── */
-.main {
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding: 40px 20px calc(var(--sab)+48px); gap:20px;
-  max-width:1100px; margin:0 auto; width:100%;
+/* ── LEFT PANEL ── */
+.left{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:48px 40px;gap:32px;
+}
+@media(max-width:768px){.left{display:none}}
+
+.logo-wrap{text-align:center}
+.logo-img{width:220px;max-width:90%;filter:drop-shadow(0 4px 24px rgba(0,0,0,.4))}
+.tagline{color:rgba(255,255,255,.55);font-size:13.5px;font-weight:500;
+  text-align:center;line-height:1.7;max-width:280px;margin-top:8px}
+
+.stats-left{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.stat-pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:100px;padding:8px 18px;text-align:center}
+.stat-pill .v{font-size:20px;font-weight:800;color:#fff}
+.stat-pill .l{font-size:10.5px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+
+.features{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
+.feat-item{display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:10px 14px}
+.feat-ico{font-size:18px;flex-shrink:0}
+.feat-txt{font-size:12.5px;color:rgba(255,255,255,.7);font-weight:500}
+
+/* ── RIGHT PANEL (form) ── */
+.right{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;min-height:100dvh;
+}
+@media(max-width:768px){
+  .right{padding:24px 20px;background:transparent}
 }
 
-/* ── LOGIN CARD ── */
-.login-card {
-  width:100%; max-width:400px;
-  background: var(--glass);
-  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(255,255,255,0.90);
-  border-radius: var(--r-2xl);
-  box-shadow: var(--glass-shadow-lg);
-  overflow: hidden;
-  animation: fadeUp var(--t-mid) var(--ease-out) both;
-  position: relative;
+.card{
+  background:rgba(255,255,255,.97);
+  border-radius:24px;
+  padding:36px 32px;
+  width:100%;max-width:400px;
+  box-shadow:0 24px 80px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.1);
 }
-/* Top highlight line */
-.login-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px; z-index:2;
-  background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 50%, transparent 95%);
+@media(max-width:768px){
+  .card{padding:28px 24px;border-radius:20px;max-width:440px}
 }
 
-/* Card header — gradient biru */
-.card-header {
-  padding: 32px 28px 26px;
-  display: flex; flex-direction:column; align-items:center; gap:8px;
-  position: relative; overflow:hidden;
-  transition: background var(--t-mid);
-}
-.card-header::before {
-  content:''; position:absolute; inset:0;
-  background: linear-gradient(160deg, var(--blue-2) 0%, var(--blue-3) 55%, #5b9cf6 100%);
-  z-index:0;
-}
-/* Glass shimmer di header */
-.card-header::after {
-  content:''; position:absolute; inset:0; z-index:1;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
-  background-size: 200% 100%;
-  animation: shimmer 4s linear infinite;
-}
-.card-header.h-guru::before   { background:linear-gradient(160deg,#0F6E56 0%,#1D9E75 55%,#34d399 100%); }
-.card-header.h-murid::before  { background:linear-gradient(160deg,#6d58d6 0%,#7F77DD 55%,#a78bfa 100%); }
+/* Logo mobile */
+.logo-mobile{display:none;text-align:center;margin-bottom:20px}
+.logo-mobile img{width:160px}
+@media(max-width:768px){.logo-mobile{display:block}}
 
-.header-icon-wrap {
-  width:56px; height:56px; border-radius:18px;
-  background: rgba(255,255,255,0.22);
-  border: 1.5px solid rgba(255,255,255,0.40);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter:blur(8px);
-  display:flex; align-items:center; justify-content:center; font-size:26px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.30);
-  position:relative; z-index:2;
-  transition: transform var(--t-mid) var(--ease-spring);
-}
-.login-card:hover .header-icon-wrap { transform:scale(1.06) translateY(-1px); }
+/* Tabs */
+.tabs{display:flex;gap:4px;background:#f1f5f9;border-radius:100px;padding:4px;margin-bottom:24px}
+.tab{flex:1;padding:8px;border-radius:100px;border:none;
+  font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;
+  background:transparent;color:#64748b;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.tab.active{background:#fff;color:#0d1f35;box-shadow:0 1px 6px rgba(0,0,0,.1)}
 
-.header-title { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.02em; position:relative; z-index:2; }
-.header-sub   { font-size:12px; color:rgba(255,255,255,0.72); position:relative; z-index:2; }
+/* Form */
+.form-title{font-size:20px;font-weight:800;color:#0d1f35;margin-bottom:4px}
+.form-sub{font-size:12.5px;color:#64748b;margin-bottom:22px}
 
-/* Role tabs */
-.role-tabs {
-  display:flex; padding:0; margin:0;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.55);
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:#475569;
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.field-wrap{position:relative}
+.field-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+.field-input{
+  width:100%;padding:11px 12px 11px 38px;
+  border:1.5px solid #e2e8f0;border-radius:10px;
+  font-family:inherit;font-size:14px;font-weight:500;
+  color:#0d1f35;background:#fff;outline:none;
+  transition:border-color .2s,box-shadow .2s;
 }
-.role-tab {
-  flex:1; padding:11px 6px; border:none; background:transparent;
-  font-family:inherit; font-size:11.5px; font-weight:600;
-  color:var(--text-3); cursor:pointer; letter-spacing:.03em;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  border-bottom:2.5px solid transparent; margin-bottom:-1px;
-  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
-}
-.role-tab:hover { color:var(--text-2); background:rgba(255,255,255,0.45); }
-.role-tab.active-admin { color:var(--blue-2); border-bottom-color:var(--blue-2); }
-.role-tab.active-guru  { color:#1D9E75;       border-bottom-color:#1D9E75; }
-.role-tab.active-murid { color:#7F77DD;       border-bottom-color:#7F77DD; }
-.tab-icon { font-size:14px; }
+.field-input:focus{border-color:#169B6B;box-shadow:0 0 0 3px rgba(22,155,107,.12)}
+.field-hint{font-size:11px;color:#94a3b8;margin-top:4px}
 
-/* Card body */
-.card-body { padding:22px 28px 28px; display:flex; flex-direction:column; gap:14px; }
-
-/* Toast */
-.toast { font-size:12.5px; font-weight:600; border-radius:var(--r-md); max-height:0; overflow:hidden; padding:0; transition:all var(--t-fast); }
-.toast.error   { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.22); color:#b91c1c; padding:9px 13px; max-height:60px; }
-.toast.success { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.22); color:#065f46; padding:9px 13px; max-height:60px; }
-
-/* Form field */
-.field-label {
-  font-size:11px; font-weight:700; color:var(--text-3);
-  text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; display:block;
+.btn-login{
+  width:100%;padding:14px;margin-top:4px;
+  background:linear-gradient(135deg,#169B6B,#0d5c42);
+  color:#fff;border:none;border-radius:100px;
+  font-family:inherit;font-size:14.5px;font-weight:800;
+  cursor:pointer;letter-spacing:.01em;
+  box-shadow:0 4px 20px rgba(22,155,107,.4),inset 0 1px 0 rgba(255,255,255,.15);
+  transition:all .2s;
 }
-.field-wrap { position:relative; display:flex; align-items:center; }
-.field-icon { position:absolute; left:13px; font-size:14px; color:var(--blue-3); pointer-events:none; }
-.field-input {
-  width:100%; padding:13px 13px 13px 40px;
-  font-family:inherit; font-size:14px; font-weight:600; color:var(--text-1);
-  background: rgba(255,255,255,0.75);
-  border: 1.5px solid rgba(148,163,184,0.22);
-  border-radius: var(--r-md);
-  outline:none; -webkit-appearance:none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.8);
-  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
-}
-.field-input::placeholder { color:var(--text-4); font-weight:400; }
-.field-input:focus {
-  background: rgba(255,255,255,0.95);
-  border-color: var(--blue-3);
-  box-shadow: 0 0 0 3.5px rgba(59,130,246,0.14), 0 2px 6px rgba(0,0,0,0.04);
-}
-.field-input.f-guru:focus  { border-color:#1D9E75; box-shadow:0 0 0 3.5px rgba(29,158,117,0.13); }
-.field-input.f-murid:focus { border-color:#7F77DD; box-shadow:0 0 0 3.5px rgba(127,119,221,0.13); }
-.field-hint { font-size:10.5px; color:var(--text-4); margin-top:4px; padding-left:2px; }
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(22,155,107,.45)}
+.btn-login:active{transform:translateY(0)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
-/* Remember */
-.remember-row { display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none; width:fit-content; }
-.remember-row input[type=checkbox] { width:14px; height:14px; accent-color:var(--blue-2); cursor:pointer; }
-.remember-label { font-size:12px; color:var(--text-3); font-weight:500; }
+.toast-msg{display:none;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;
+  border-radius:10px;padding:10px 14px;font-size:12.5px;font-weight:600;
+  margin-bottom:14px;text-align:center}
+.toast-msg.show{display:block}
 
-/* Submit */
-.btn-submit {
-  width:100%; padding:14px;
-  border:none; border-radius:var(--r-pill); cursor:pointer;
-  font-family:inherit; font-size:14.5px; font-weight:700; color:#fff;
-  background: linear-gradient(135deg, var(--blue-3), var(--blue-1));
-  box-shadow: 0 4px 18px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
-  transition: opacity var(--t-fast), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-fast);
-  margin-top:2px;
+/* Footer */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  text-align:center;padding:12px;
+  font-size:11.5px;color:rgba(255,255,255,.3);
+  font-weight:500;z-index:1;
 }
-.btn-submit:hover  { opacity:.92; transform:scale(1.018); }
-.btn-submit:active { transform:scale(0.98); }
-.btn-submit:disabled { opacity:.5; cursor:not-allowed; transform:none; }
-.btn-submit.s-guru  { background:linear-gradient(135deg,#1D9E75,#0F6E56); box-shadow:0 4px 18px rgba(29,158,117,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
-.btn-submit.s-murid { background:linear-gradient(135deg,#A89FFF,#7F77DD); box-shadow:0 4px 18px rgba(127,119,221,0.30),inset 0 1px 0 rgba(255,255,255,0.18); }
-
-/* ── STATS STRIP ── */
-.stats-row {
-  display:flex; gap:10px; width:100%; max-width:400px; flex-wrap:wrap;
-  animation: fadeUp var(--t-mid) var(--ease-out) 120ms both;
-}
-.stat-pill {
-  flex:1; min-width:80px;
-  background: var(--glass);
-  border: 1px solid rgba(255,255,255,0.85);
-  backdrop-filter: var(--glass-blur-sm); -webkit-backdrop-filter:var(--glass-blur-sm);
-  border-radius: var(--r-lg);
-  padding:14px 10px; text-align:center;
-  box-shadow: var(--glass-shadow);
-  transition: transform var(--t-mid) var(--ease-spring);
-}
-.stat-pill:hover { transform:translateY(-3px); }
-.stat-emoji { font-size:18px; margin-bottom:4px; }
-.stat-num   { font-size:20px; font-weight:800; color:var(--blue-2); letter-spacing:-.03em; }
-.stat-lbl   { font-size:10px; color:var(--text-3); margin-top:2px; line-height:1.4; font-weight:500; }
-
-/* ── FOOTER ── */
-.footer { text-align:center; padding:0 20px calc(var(--sab)+16px); font-size:11px; color:var(--text-4); }
-
-/* ── INSTALL BANNER ── */
-.install-banner {
-  display:none; position:fixed; bottom:calc(var(--sab)+14px); left:50%; transform:translateX(-50%);
-  z-index:200; width:min(360px,calc(100vw - 24px));
-  background:rgba(255,255,255,0.88); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-  border:1px solid rgba(255,255,255,0.90); border-radius:var(--r-xl);
-  padding:12px 14px; box-shadow:var(--glass-shadow-lg);
-  flex-direction:row; align-items:center; gap:10px;
-  animation:slideUp 380ms var(--ease-spring) both;
-}
-.install-banner.show { display:flex; }
-.ibtn { padding:7px 13px; border-radius:var(--r-pill); font-size:11.5px; font-weight:700; border:none; cursor:pointer; font-family:inherit; }
-.ibtn-install { background:linear-gradient(135deg,var(--blue-3),var(--blue-1)); color:#fff; }
-.ibtn-dismiss { background:transparent; border:1px solid var(--border-md); color:var(--text-3); }
 
 /* ── LOADING ── */
-.loading-overlay {
-  display:none; position:fixed; inset:0; z-index:300;
-  background:rgba(241,245,249,0.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  align-items:center; justify-content:center; flex-direction:column; gap:14px;
-}
-.loading-overlay.show { display:flex; }
-.spinner { display:none; }
-.loading-text { font-size:14px; color:rgba(255,255,255,.85); font-weight:500; line-height:1.6; }
-@keyframes arabicPulse{0%,100%{opacity:.7;transform:scale(.97)}50%{opacity:1;transform:scale(1)}}
-@keyframes dotPulse{0%,80%,100%{transform:scale(.6);background:rgba(255,255,255,.3)}40%{transform:scale(1);background:#fff}}
-
-@media(min-width:720px) {
-  .main { flex-direction:row; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap; padding-top:60px; }
-  .login-card { flex:0 0 400px; }
-  .side-info  { flex:1 1 280px; max-width:380px; }
-  .stats-row  { max-width:380px; }
-}
-@media(max-width:480px) {
-  .topbar { padding-left:16px; padding-right:16px; }
-  .card-body,.card-header { padding-left:20px; padding-right:20px; }
-}
-@media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
-}
+.loader{display:none;position:fixed;inset:0;
+  background:linear-gradient(160deg,rgba(13,27,42,.96),rgba(13,42,30,.92));
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;
+  backdrop-filter:blur(8px)}
+.loader.show{display:flex;animation:ldFade .3s ease}
+@keyframes ldFade{from{opacity:0}to{opacity:1}}
+.ld-inner{text-align:center;padding:0 28px;max-width:320px}
+.ld-dots{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.ld-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.5);
+  animation:dotP 1.4s ease-in-out infinite}
+.ld-dot:nth-child(1){animation-delay:0s}
+.ld-dot:nth-child(2){animation-delay:.22s}
+.ld-dot:nth-child(3){animation-delay:.44s}
+@keyframes dotP{0%,80%,100%{transform:scale(.5);background:rgba(255,255,255,.2)}40%{transform:scale(1.1);background:#fff}}
+.ld-txt{color:#fff;font-size:14.5px;font-weight:600;
+  line-height:1.7;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
 
-<div class="bg" aria-hidden="true">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-  <div class="bg-orb bg-orb-4"></div>
+<!-- BG -->
+<div class="bg">
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
 </div>
 
-<div class="app">
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="ld-inner">
+    <div class="ld-dots">
+      <div class="ld-dot"></div>
+      <div class="ld-dot"></div>
+      <div class="ld-dot"></div>
+    </div>
+    <div class="ld-txt" id="loaderTxt">Bismillah, memulai perjuangan menjadi sahabat Al-Qur'an...</div>
+  </div>
+</div>
 
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <a class="brand" href="#">
-      <div class="brand-icon">☪</div>
-      <div>
-        <div class="brand-name">Rattililqur'an</div>
-        <div class="brand-sub">Portal Manajemen Halaqah</div>
-      </div>
-    </a>
-    <span class="pwa-pill">PWA Ready</span>
-  </header>
+<div class="wrap">
 
-  <main class="main">
-
-    <!-- ── SIDE INFO (desktop only) ── -->
-    <div class="side-info" style="display:flex;flex-direction:column;gap:16px;animation:fadeUp 300ms var(--ease-out) both">
-      <div>
-        <p style="font-family:'Amiri',serif;font-size:clamp(16px,3vw,22px);color:var(--blue-2);margin-bottom:8px">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-        <h1 style="font-size:clamp(24px,4vw,36px);font-weight:800;color:var(--text-1);letter-spacing:-.03em;line-height:1.15;margin-bottom:10px">Sistem Manajemen<br/>Halaqah Digital</h1>
-        <p style="font-size:13.5px;color:var(--text-3);line-height:1.75;max-width:320px">Kelola KBM, hafalan Al-Qur'an, absensi, dan perkembangan murid dalam satu platform terintegrasi.</p>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:7px">
-        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📋 Absensi Real-time</span>
-        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📖 Tracking Hafalan</span>
-        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📊 Laporan Otomatis</span>
-        <span style="font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:100px;background:var(--glass);border:1px solid rgba(255,255,255,0.85);backdrop-filter:var(--glass-blur-sm);color:var(--blue-2);box-shadow:var(--glass-shadow)">📵 Offline Ready</span>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-pill"><div class="stat-emoji">🕌</div><div class="stat-num counter" data-target="4">4</div><div class="stat-lbl">Halaqah Aktif</div></div>
-        <div class="stat-pill"><div class="stat-emoji">👨‍🏫</div><div class="stat-num counter" data-target="8">8</div><div class="stat-lbl">Guru / Musyrif</div></div>
-        <div class="stat-pill"><div class="stat-emoji">🧒</div><div class="stat-num counter" data-target="48">48</div><div class="stat-lbl">Murid Terdaftar</div></div>
-        <div class="stat-pill"><div class="stat-emoji">📋</div><div class="stat-num counter" data-target="87" data-suffix="%">87%</div><div class="stat-lbl">Rata-rata Hadir</div></div>
-      </div>
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="logo-wrap">
+      <img class="logo-img" src="assets/images/logo-putih.png" alt="Rattililqur'an">
+      <div class="tagline">Sistem Manajemen Halaqah Tahsin Digital</div>
     </div>
 
-    <!-- ── LOGIN CARD ── -->
-    <div class="login-card" id="login-card">
+    <div class="features">
+      <div class="feat-item"><span class="feat-ico">📋</span><span class="feat-txt">Kelola sesi KBM & presensi realtime</span></div>
+      <div class="feat-item"><span class="feat-ico">📊</span><span class="feat-txt">Laporan & raport otomatis per periode</span></div>
+      <div class="feat-item"><span class="feat-ico">📝</span><span class="feat-txt">Latihan mandiri & progress murid</span></div>
+      <div class="feat-item"><span class="feat-ico">🔒</span><span class="feat-txt">Data aman di Google Spreadsheet</span></div>
+    </div>
+  </div>
 
-      <!-- Header gradient -->
-      <div class="card-header" id="card-header">
-        <div class="header-icon-wrap" id="header-icon">🛡️</div>
-        <div class="header-title" id="header-title">Rattililqur'an</div>
-        <div class="header-sub" id="header-sub">Portal Manajemen Halaqah</div>
-      </div>
+  <!-- RIGHT PANEL -->
+  <div class="right">
+
+    <!-- Logo mobile -->
+    <div class="logo-mobile">
+      <img src="assets/images/logo-abu.png" alt="Rattililqur'an">
+    </div>
+
+    <div class="card">
 
       <!-- Role tabs -->
-      <div class="role-tabs">
-        <button class="role-tab active-admin" id="tab-admin" onclick="selectRole('admin')">
-          <span class="tab-icon">🛡️</span>ADMIN
-        </button>
-        <button class="role-tab" id="tab-guru" onclick="selectRole('guru')">
-          <span class="tab-icon">📖</span>GURU
-        </button>
-        <button class="role-tab" id="tab-murid" onclick="selectRole('murid')">
-          <span class="tab-icon">🌙</span>MURID
-        </button>
+      <div class="tabs" id="tabs">
+        <button class="tab active" onclick="setRole('admin')"   id="tab-admin">🛡 Admin</button>
+        <button class="tab"        onclick="setRole('guru')"    id="tab-guru">📚 Guru</button>
+        <button class="tab"        onclick="setRole('murid')"   id="tab-murid">🌙 Murid</button>
       </div>
 
-      <!-- Body -->
-      <div class="card-body">
+      <div class="form-title" id="formTitle">Masuk sebagai Admin</div>
+      <div class="form-sub"   id="formSub">Kelola halaqah dan data santri</div>
 
-        <div class="toast" id="login-toast" role="alert" aria-live="polite"></div>
+      <div class="toast-msg" id="toastMsg"></div>
 
-        <!-- NIS -->
-        <div>
-          <label class="field-label" for="input-nis">NIS / Nomor Induk Santri</label>
-          <div class="field-wrap">
-            <span class="field-icon">🪪</span>
-            <input class="field-input" type="text" id="input-nis"
-              placeholder="Contoh: USR-ADMIN-001"
-              autocomplete="username" maxlength="30"
-              aria-required="true" aria-describedby="nis-hint"/>
-          </div>
-          <p class="field-hint" id="nis-hint">NIS terdaftar di sistem Rattililqur'an</p>
+      <!-- NIS -->
+      <div class="field">
+        <label for="inputNis">NIS / ID Pengguna</label>
+        <div class="field-wrap">
+          <span class="field-ico">🪪</span>
+          <input class="field-input" type="text" id="inputNis"
+            placeholder="Contoh: USR-ADMIN-001"
+            autocomplete="username" maxlength="30">
         </div>
-
-        <!-- Ingat saya -->
-        <label class="remember-row">
-          <input type="checkbox" id="remember-me"/>
-          <span class="remember-label">Ingat saya</span>
-        </label>
-
-        <!-- Submit -->
-        <button class="btn-submit" id="btn-submit" onclick="doLogin()">
-          <span id="btn-text">Masuk sebagai Admin</span>
-        </button>
-
       </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label for="inputPw">Password</label>
+        <div class="field-wrap">
+          <span class="field-ico">🔒</span>
+          <input class="field-input" type="password" id="inputPw"
+            placeholder="Password akun"
+            autocomplete="current-password" maxlength="50">
+        </div>
+        <div class="field-hint">Kosongkan jika belum diset password</div>
+      </div>
+
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">
+        Masuk
+      </button>
+
     </div>
-
-  </main>
-
-  <footer class="footer">
-    <p>© 2025 Rattililqur'an &nbsp;·&nbsp; Google Apps Script + GitHub Pages</p>
-  </footer>
+  </div>
 
 </div>
 
-<!-- INSTALL BANNER -->
-<div class="install-banner" id="install-banner">
-  <div style="font-size:24px">📲</div>
-  <div style="flex:1">
-    <div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Install Aplikasi Halaqah</div>
-    <div style="font-size:10.5px;color:var(--text-3)">Akses dari layar utama HP</div>
-  </div>
-  <div style="display:flex;gap:6px">
-    <button class="ibtn ibtn-install" onclick="installPWA()">Install</button>
-    <button class="ibtn ibtn-dismiss" onclick="dismissInstall()">✕</button>
-  </div>
-</div>
+<!-- Footer -->
+<footer class="footer">BY RATTILILQUR'AN @2026</footer>
 
-<!-- LOADING -->
-<div class="loading-overlay" id="loading-overlay" role="status">
-  <div style="text-align:center;max-width:300px;padding:0 24px">
-    <div style="font-family:'Amiri',serif;font-size:32px;color:rgba(255,255,255,.9);
-      margin-bottom:20px;line-height:1.6;animation:arabicPulse 2s ease-in-out infinite">بِسْمِ اللهِ</div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px">
-      <div style="width:8px;height:8px;border-radius:50%;animation:dotPulse 1.4s ease-in-out infinite 0s"></div>
-      <div style="width:8px;height:8px;border-radius:50%;animation:dotPulse 1.4s ease-in-out infinite .2s"></div>
-      <div style="width:8px;height:8px;border-radius:50%;animation:dotPulse 1.4s ease-in-out infinite .4s"></div>
-    </div>
-    <div class="loading-text" id="loading-text">Bismillah, memulai perjuangan menjadi sahabat Al-Qur'an...</div>
-  </div>
-</div>
-
+<script src="assets/js/api.js"></script>
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec';
+let currentRole = 'admin';
 
-const ROLES = {
-  admin: {
-    icon:'🛡️', title:'Portal Admin', sub:'Masuk sebagai Administrator',
-    headerClass:'', tabActive:'active-admin', btnClass:'',
-    btnText:'Masuk sebagai Admin', fieldClass:'',
-    nisPlaceholder:'Contoh: USR-ADMIN-001',
-    nisHint:'NIS / ID Admin terdaftar di sistem',
-    redirect:'admin/index.html',
-  },
-  guru: {
-    icon:'📖', title:'Portal Guru', sub:'Masuk sebagai Musyrif / Musyrifah',
-    headerClass:'h-guru', tabActive:'active-guru', btnClass:'s-guru',
-    btnText:'Masuk sebagai Guru', fieldClass:'f-guru',
-    nisPlaceholder:'Contoh: GRU-001',
-    nisHint:'NIS / ID Guru terdaftar di sistem',
-    redirect:'guru/index.html',
-  },
-  murid: {
-    icon:'🌙', title:'Portal Murid', sub:'Masuk sebagai Santri / Peserta',
-    headerClass:'h-murid', tabActive:'active-murid', btnClass:'s-murid',
-    btnText:'Masuk sebagai Murid', fieldClass:'f-murid',
-    nisPlaceholder:'Contoh: MRD-001',
-    nisHint:'Nomor Induk Santri terdaftar di sistem',
-    redirect:'murid/index.html',
-  },
+const ROLE_META = {
+  admin: { title:'Masuk sebagai Admin',  sub:'Kelola halaqah dan data santri',     placeholder:'Contoh: USR-ADMIN-001', redirect:'admin/index.html' },
+  guru:  { title:'Masuk sebagai Guru',   sub:'Kelola sesi KBM dan penilaian murid',placeholder:'Contoh: GRU-001',        redirect:'guru/index.html'  },
+  murid: { title:'Masuk sebagai Murid',  sub:'Lihat progress dan riwayat belajar', placeholder:'Contoh: RTL2418000001',  redirect:'murid/index.html' },
 };
 
-let currentRole = 'admin';
-let deferredInstall = null;
-
-function selectRole(role) {
-  if (!ROLES[role]) return;
+function setRole(role) {
   currentRole = role;
-  const c = ROLES[role];
-
-  // Header
-  document.getElementById('header-icon').textContent  = c.icon;
-  document.getElementById('header-title').textContent = c.title;
-  document.getElementById('header-sub').textContent   = c.sub;
-  const hdr = document.getElementById('card-header');
-  hdr.className = 'card-header ' + c.headerClass;
-
-  // Tabs
-  document.querySelectorAll('.role-tab').forEach(t => t.className = 'role-tab');
-  document.getElementById('tab-' + role).className = 'role-tab ' + c.tabActive;
-
-  // Button
-  document.getElementById('btn-submit').className  = 'btn-submit ' + c.btnClass;
-  document.getElementById('btn-text').textContent  = c.btnText;
-
-  // Field
-  const inp = document.getElementById('input-nis');
-  inp.className = 'field-input ' + c.fieldClass;
-  inp.placeholder = c.nisPlaceholder;
-  document.getElementById('nis-hint').textContent = c.nisHint;
-
-  // Clear toast
-  const t = document.getElementById('login-toast');
-  t.className = 'toast'; t.textContent = '';
-
-  if (window.innerWidth < 720)
-    setTimeout(() => document.getElementById('login-card').scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
+  const m = ROLE_META[role];
+  document.getElementById('formTitle').textContent = m.title;
+  document.getElementById('formSub').textContent   = m.sub;
+  document.getElementById('inputNis').placeholder  = m.placeholder;
+  document.getElementById('inputNis').value        = '';
+  document.getElementById('inputPw').value         = '';
+  document.getElementById('toastMsg').className    = 'toast-msg';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + role).classList.add('active');
+  document.getElementById('inputNis').style.textTransform = role === 'murid' ? 'none' : 'uppercase';
+  setTimeout(() => document.getElementById('inputNis').focus(), 50);
 }
 
 async function doLogin() {
-  const nis = document.getElementById('input-nis').value.trim().toUpperCase();
-  if (!nis) { showToast('NIS wajib diisi.', 'error'); document.getElementById('input-nis').focus(); return; }
+  const nis = document.getElementById('inputNis').value.trim();
+  const pw  = document.getElementById('inputPw').value || '';
+  if (!nis) return showErr('NIS wajib diisi');
 
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  setLoading(true, 'Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  const nisVal = currentRole === 'murid' ? nis : nis.toUpperCase();
+  setLoading(true);
 
   try {
-    const pw   = document.getElementById('input-pw')?.value || '';
-    const res  = await fetch(`${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}&password=${encodeURIComponent(pw)}`, { method:'GET', mode:'cors' });
+    const url = GAS_URL + '?action=login&nis=' + encodeURIComponent(nisVal)
+      + '&role=' + currentRole
+      + '&password=' + encodeURIComponent(pw);
+    const res  = await fetch(url, { method:'GET', mode:'cors' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Login gagal');
+    if (data.user.role !== currentRole) throw new Error('Akun ini bukan role ' + currentRole);
 
-    if (data.status === 'ok') {
-      const store = document.getElementById('remember-me').checked ? localStorage : sessionStorage;
-      store.setItem('hq_token', data.token);
-      store.setItem('hq_user', JSON.stringify(data.user));
-      setLoading(true, 'Alhamdulillah, mari kita mulai...');
-      setTimeout(() => { window.location.href = ROLES[data.user.role]?.redirect || 'index.html'; }, 800);
-    } else {
-      setLoading(false); btn.disabled = false;
-      showToast(data.message || 'NIS tidak ditemukan.', 'error');
-    }
-  } catch(err) {
-    setLoading(false); btn.disabled = false;
-    showToast(GAS_URL.includes('GANTI_') ? '⚠ GAS URL belum dikonfigurasi.' : 'Koneksi gagal: ' + err.message, 'error');
+    // Simpan session
+    sessionStorage.setItem('hq_token', data.token);
+    sessionStorage.setItem('hq_user',  JSON.stringify(data.user));
+
+    setLoading(true, 'Alhamdulillah, mari kita mulai...');
+    setTimeout(() => { window.location.href = ROLE_META[currentRole].redirect; }, 700);
+  } catch(e) {
+    setLoading(false);
+    showErr(e.message);
   }
 }
 
+function showErr(msg) {
+  const el = document.getElementById('toastMsg');
+  el.textContent = '⚠ ' + msg;
+  el.className = 'toast-msg show';
+  document.getElementById('btnLogin').disabled = false;
+  document.getElementById('btnLogin').textContent = 'Masuk';
+}
+
+function setLoading(on, msg) {
+  const loader = document.getElementById('loader');
+  const btn    = document.getElementById('btnLogin');
+  if (on) {
+    document.getElementById('loaderTxt').textContent = msg || 'Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...';
+    loader.classList.add('show');
+    btn.disabled = true;
+    btn.textContent = 'Masuk...';
+  } else {
+    loader.classList.remove('show');
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+  }
+}
+
+// Enter key
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement?.id === 'input-nis') doLogin();
+  if (e.key === 'Enter') {
+    if (document.activeElement?.id === 'inputNis') {
+      document.getElementById('inputPw').focus();
+    } else {
+      doLogin();
+    }
+  }
 });
 
-function showToast(msg, type) {
-  const t = document.getElementById('login-toast');
-  t.textContent = msg; t.className = 'toast ' + type;
-}
-function setLoading(show, text) {
-  const o = document.getElementById('loading-overlay');
-  show ? o.classList.add('show') : o.classList.remove('show');
-  if (text) document.getElementById('loading-text').textContent = text;
-}
-
-// Session restore
-(function() {
-  const token = localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token');
-  const user  = JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
-  if (token && user?.role && ROLES[user.role]) window.location.href = ROLES[user.role].redirect;
-})();
-
-// SW
-if ('serviceWorker' in navigator)
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
-
-// PWA
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredInstall = e;
-  if (!sessionStorage.getItem('hq_nodismiss'))
-    setTimeout(() => document.getElementById('install-banner').classList.add('show'), 3500);
-});
-function installPWA() {
-  if (!deferredInstall) return;
-  deferredInstall.prompt();
-  deferredInstall.userChoice.then(() => { document.getElementById('install-banner').classList.remove('show'); deferredInstall = null; });
-}
-function dismissInstall() {
-  document.getElementById('install-banner').classList.remove('show');
-  sessionStorage.setItem('hq_nodismiss', '1');
-}
-
-// Counter
-function animCount(el) {
-  const target=parseInt(el.dataset.target,10), suf=el.dataset.suffix||'', dur=1400, t0=performance.now();
-  (function s(now){ const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3); el.textContent=Math.round(target*e)+suf; if(p<1)requestAnimationFrame(s); })(t0);
-}
-new IntersectionObserver((en,ob)=>{ en.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('.counter').forEach(animCount); ob.disconnect(); }}); },{threshold:0.2}).observe(document.querySelector('.stats-row'));
-
+// Cek session aktif
 window.addEventListener('DOMContentLoaded', () => {
-  selectRole('admin');
-  if (window.innerWidth >= 720) setTimeout(() => document.getElementById('input-nis')?.focus(), 400);
+  const tk = sessionStorage.getItem('hq_token');
+  const us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+  if (tk && us) {
+    const rd = ROLE_META[us.role]?.redirect;
+    if (rd) { window.location.href = rd; return; }
+  }
+  setTimeout(() => document.getElementById('inputNis').focus(), 300);
 });
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
