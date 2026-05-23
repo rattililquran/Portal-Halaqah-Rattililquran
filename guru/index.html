@@ -1093,18 +1093,22 @@ function updateDraftWarning() {
 
 async function tutupPaksaSesi() {
   if (!sesiAktif) return;
-  toast('Apakah Anda yakin ingin menutup sesi tanpa mengisi jurnal?', 'warn');
-  // Ganti tombol OK notif jadi konfirmasi
-  document.getElementById('notifBtn').textContent = 'Ya, Tutup Paksa';
+
+  // Paksa tutup = TIDAK simpan presensi/nilai
+  // Hanya ubah status KBM jadi 'batal' agar tidak terhitung sebagai sesi selesai
+  toast('Tutup paksa akan membatalkan sesi ini. Presensi dan nilai TIDAK tersimpan.', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Batalkan Sesi';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Menutup sesi...');
+    showLoad('Membatalkan sesi...');
     try {
       await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-      sesiAktif = null; muridSesi = [];
+      sesiAktif      = null;
+      muridSesi      = [];
+      doaSudahMuncul = false;
       updateDraftWarning();
       loadDashboard();
-      quickToast('Sesi ditutup', 'ok');
+      quickToast('Sesi dibatalkan','ok');
     } catch(e) { toast(e.message,'err'); }
     finally { hideLoad(); }
   };
@@ -1511,25 +1515,35 @@ async function doSelesaiKBM() {
     el.classList.add('show');
     setTimeout(closeNotif, 7000);
 
-    // Reset state lengkap
+    // Reset state lengkap — SEBELUM apapun
     sesiAktif      = null;
     muridSesi      = [];
     muridCache     = {};
     doaSudahMuncul = false;
 
-    // Sembunyikan draft warning
-    updateDraftWarning();
+    // Sembunyikan kartu sesi SEGERA
+    const dw = document.getElementById('draftWarning');
+    if (dw) dw.classList.remove('show');
 
-    // Kembali ke halaman KBM, reset form
-    setTimeout(() => {
-      loadDashboard();
-      goPage('kbm');
-      // Reset form buka sesi
-      document.getElementById('kbmHalaqah').value    = '';
-      document.getElementById('kbmPertemuan').value  = '';
+    // Reload dashboard data dan kembali ke form buka sesi
+    setTimeout(async () => {
+      await loadDashboard();       // refresh halaqahList dari server
+      // Pindah ke halaman KBM dengan form bersih
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-kbm')?.classList.add('active');
+      document.querySelector('[data-p="kbm"]')?.classList.add('active');
+      document.getElementById('pageTitle').textContent = 'Sesi KBM';
+      // Reset form
+      const hqSel = document.getElementById('kbmHalaqah');
+      const ptSel = document.getElementById('kbmPertemuan');
+      if (hqSel) hqSel.value = '';
+      if (ptSel) ptSel.value = '';
       populateSel('kbmHalaqah');
-      updateSesiBanner();
-    }, 800);
+      // Pastikan banner tidak muncul
+      const dw2 = document.getElementById('draftWarning');
+      if (dw2) dw2.classList.remove('show');
+    }, 900);
 
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
