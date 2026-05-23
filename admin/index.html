@@ -209,6 +209,9 @@ tr:hover td{background:#f8fafc}
     <div class="auth-sub">Portal Admin — Rattililqur'an</div>
     <label class="auth-label" for="nisInput">NIS Admin</label>
     <input class="auth-input" type="text" id="nisInput" placeholder="USR-ADMIN-001" autocomplete="username" style="text-transform:uppercase">
+    <label class="auth-label" for="pwInput" style="margin-top:0">Password</label>
+    <input class="auth-input" type="password" id="pwInput" placeholder="Password akun" autocomplete="current-password">
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:10px">Kosongkan jika belum diset password</div>
     <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk sebagai Admin</button>
     <div id="authErr"></div>
   </div>
@@ -637,23 +640,72 @@ tr:hover td{background:#f8fafc}
 
 <!-- MODAL BULK IMPORT -->
 <div class="overlay" id="modalImport">
-  <div class="modal">
-    <div class="modal-head"><div class="modal-title">📥 Import User via CSV</div><button class="modal-x" onclick="closeModal('modalImport')">✕</button></div>
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title">📥 Import Data Murid via CSV</div>
+      <button class="modal-x" onclick="closeModal('modalImport')">✕</button>
+    </div>
     <div class="modal-body">
-      <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;color:var(--blue);margin-bottom:14px">
-        <strong>Format CSV:</strong> nama_lengkap, role, no_hp, email, alamat<br>
-        Role: <code>murid</code> / <code>guru</code><br>
-        Baris pertama = header, abaikan otomatis.
+
+      <!-- Cara pakai -->
+      <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Cara Pakai</div>
+        <ol style="font-size:12.5px;color:var(--blue-d);line-height:2;padding-left:16px">
+          <li>Klik <strong>Unduh Template CSV</strong> di bawah.</li>
+          <li>Buka di Excel / Google Sheets, isi data murid.</li>
+          <li>Save As → format <strong>.csv</strong>.</li>
+          <li>Drag file ke area di bawah, atau klik untuk pilih.</li>
+          <li>Periksa preview lalu klik <strong>Import</strong>.</li>
+        </ol>
       </div>
-      <div class="fg"><label>Paste Data CSV</label>
-        <textarea class="fc" id="importCSV" rows="8" style="resize:vertical;font-family:monospace;font-size:12px"
-          placeholder="nama_lengkap,role,no_hp,email,alamat&#10;Ahmad Fauzi,guru,08120001,ahmad@email.com,Jl. Mawar 1&#10;Bilal Ibrahim,murid,08130001,bilal@email.com,Jl. Dahlia 2"></textarea>
+
+      <!-- Format kolom -->
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Format Kolom</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-3)">NIS</div><div style="font-size:11px;color:var(--text-3)">manual atau auto</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--red)">password*</div><div style="font-size:11px;color:var(--text-3)">min 4 karakter</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--red)">nama_lengkap*</div><div style="font-size:11px;color:var(--text-3)">wajib</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--red)">role*</div><div style="font-size:11px;color:var(--text-3)">murid/guru</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">no_hp</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">email</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">level</div><div style="font-size:11px;color:var(--text-3)">Level 1–Qiyam</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">nama_halaqah</div><div style="font-size:11px;color:var(--text-3)">auto-assign</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">nama_guru</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">📥 Unduh Template CSV</button>
+        </div>
       </div>
-      <div id="importPreview" style="font-size:12px;color:var(--text-3)"></div>
+
+      <!-- Drop zone -->
+      <div id="dropZone" style="border:2px dashed var(--border);border-radius:var(--r-lg);padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px"
+        onclick="document.getElementById('csvFileInput').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-l)'"
+        ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
+        ondrop="handleFileDrop(event)">
+        <div style="font-size:40px;margin-bottom:8px">☁️</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8)</div>
+      </div>
+      <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
+
+      <!-- Preview -->
+      <div id="importPreviewBox" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Preview Data</div>
+        <div id="importPreviewInfo" style="font-size:12.5px;color:var(--green);font-weight:600;margin-bottom:8px"></div>
+        <div style="overflow-x:auto;max-height:200px;border:1px solid var(--border);border-radius:var(--r-sm)">
+          <table id="importPreviewTable" style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead id="importPreviewHead"></thead>
+            <tbody id="importPreviewBody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalImport')">Batal</button>
-      <button class="btn btn-primary" onclick="doBulkImport()">📥 Import</button>
+      <button class="btn btn-primary" id="btnImport" onclick="doBulkImport()" disabled>📥 Import Data</button>
     </div>
   </div>
 </div>
@@ -705,7 +757,8 @@ async function doLogin() {
   setBtn('loginBtn', true, 'Masuk...');
   showLoad('Memverifikasi...');
   try {
-    const d = await window.HQ.Auth.login(nis, 'admin');
+    const pw = document.getElementById('pwInput')?.value || '';
+    const d = await window.HQ.Auth.login(nis, 'admin', pw);
     if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
     if (d.user.role !== 'admin') throw new Error('Akun ini bukan Admin');
     token = d.token; currentUser = d.user;
@@ -987,44 +1040,172 @@ async function deleteUser(id, nama) {
   };
 }
 
-// Bulk Import
+// ══════════════════════════════════════════
+//  BULK IMPORT CSV
+// ══════════════════════════════════════════
+let importedUsers = [];
+
 function openBulkImport() {
-  document.getElementById('importCSV').value = '';
-  document.getElementById('importPreview').textContent = '';
+  importedUsers = [];
+  const dz = document.getElementById('dropZone');
+  if (dz) {
+    dz.style.background = '';
+    dz.style.borderColor = 'var(--border)';
+    dz.innerHTML = `<div style="font-size:40px;margin-bottom:8px">☁️</div>
+      <div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8)</div>`;
+  }
+  const box = document.getElementById('importPreviewBox');
+  if (box) box.style.display = 'none';
+  const btn = document.getElementById('btnImport');
+  if (btn) btn.disabled = true;
+  const fi = document.getElementById('csvFileInput');
+  if (fi) fi.value = '';
   openModal('modalImport');
 }
-document.addEventListener('DOMContentLoaded', () => {
-  const csvEl = document.getElementById('importCSV');
-  if (csvEl) csvEl.addEventListener('input', previewImport);
-});
-function previewImport() {
-  const csv = document.getElementById('importCSV').value.trim();
-  if (!csv) return;
-  const rows = csv.split('\n').filter(r=>r.trim());
-  const dataRows = rows[0].toLowerCase().includes('nama') ? rows.slice(1) : rows;
-  document.getElementById('importPreview').textContent = dataRows.length + ' baris data terdeteksi';
+
+function downloadTemplate() {
+  const header = 'NIS,password,nama_lengkap,role,no_hp,email,level,nama_halaqah,nama_guru';
+  const sample = [
+    ',pass1234,Ahmad Fauzi,guru,08120001,ahmad@email.com,,,',
+    ',pass1234,Siti Aminah,guru,08120002,siti@email.com,,,',
+    ',pass1234,Abdullah Azzam,murid,08130001,abdullah@email.com,Level 1,Halaqah Al-Fatihah,Ahmad Fauzi',
+    ',pass1234,Bilal Ibrahim,murid,08130002,bilal@email.com,Level 1,Halaqah Al-Fatihah,Ahmad Fauzi',
+    ',pass1234,Chairul Amin,murid,08130003,chairul@email.com,Level 2,Halaqah Al-Baqarah,Siti Aminah',
+  ].join('\n');
+  const blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'template_import_user.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
-async function doBulkImport() {
-  const csv = document.getElementById('importCSV').value.trim();
-  if (!csv) return toast('CSV kosong','err');
-  const rows = csv.split('\n').filter(r=>r.trim());
-  const dataRows = rows[0].toLowerCase().includes('nama') ? rows.slice(1) : rows;
-  const users = dataRows.map(row => {
-    const cols = row.split(',').map(c=>c.trim());
-    return { nama_lengkap:cols[0], role:cols[1]||'murid', no_hp:cols[2]||'', email:cols[3]||'', alamat:cols[4]||'' };
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  const dz = document.getElementById('dropZone');
+  dz.style.borderColor = 'var(--border)'; dz.style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) parseCSVFile(file);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) parseCSVFile(file);
+}
+
+function parseCSVFile(file) {
+  if (!file.name.endsWith('.csv')) return toast('File harus berformat .csv','err');
+  const reader = new FileReader();
+  reader.onload = (e) => processCSV(e.target.result);
+  reader.readAsText(file, 'UTF-8');
+}
+
+function processCSV(text) {
+  const rows = text.split('\n').map(r => r.trim()).filter(r => r);
+  if (rows.length < 2) return toast('File CSV kosong atau hanya berisi header','err');
+
+  const headers  = rows[0].split(',').map(h => h.trim().toLowerCase());
+  const dataRows = rows.slice(1);
+
+  importedUsers = dataRows.map(row => {
+    const cols = row.split(',').map(cc => cc.trim());
+    const obj  = {};
+    headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
+    return {
+      id_user      : obj['nis'] || obj['id_user'] || '',
+      password     : obj['password'] || '',
+      nama_lengkap : obj['nama_lengkap'] || obj['nama'] || '',
+      role         : obj['role'] || 'murid',
+      no_hp        : obj['no_hp'] || obj['no_wa'] || '',
+      email        : obj['email'] || '',
+      alamat       : obj['alamat'] || '',
+      level        : obj['level'] || '',
+      nama_halaqah : obj['nama_halaqah'] || obj['halaqah'] || '',
+      nama_guru    : obj['nama_guru'] || obj['guru'] || '',
+    };
   }).filter(u => u.nama_lengkap);
-  if (!users.length) return toast('Tidak ada data valid','err');
-  showLoad('Mengimport ' + users.length + ' user...');
+
+  if (!importedUsers.length) return toast('Tidak ada data valid di CSV','err');
+
+  // Preview
+  const box  = document.getElementById('importPreviewBox');
+  const info = document.getElementById('importPreviewInfo');
+  const head = document.getElementById('importPreviewHead');
+  const body = document.getElementById('importPreviewBody');
+
+  if (info) info.textContent = '✅ ' + importedUsers.length + ' baris data siap diimport';
+  if (head) head.innerHTML = '<tr>' +
+    ['NIS','Password','Nama','Role','HP','Email','Level','Halaqah'].map(h =>
+      `<th style="padding:6px 8px;background:#f8fafc;border:1px solid var(--border);font-size:10.5px;white-space:nowrap">${h}</th>`
+    ).join('') + '</tr>';
+  if (body) body.innerHTML = importedUsers.slice(0,5).map(u => `<tr>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px;color:var(--text-3)">${esc(u.id_user||'auto')}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${u.password ? '••••' : '<span style="color:var(--text-3)">-</span>'}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px;font-weight:600">${esc(u.nama_lengkap)}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border)">${roleBadge(u.role)}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.no_hp||'–')}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.email||'–')}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.level||'–')}</td>
+    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.nama_halaqah||'–')}</td>
+  </tr>`).join('') +
+  (importedUsers.length > 5 ? `<tr><td colspan="6" style="padding:5px 8px;text-align:center;font-size:11.5px;color:var(--text-3)">...dan ${importedUsers.length-5} baris lainnya</td></tr>` : '');
+
+  if (box) box.style.display = 'block';
+  const btn = document.getElementById('btnImport');
+  if (btn) btn.disabled = false;
+
+  const dz = document.getElementById('dropZone');
+  if (dz) {
+    dz.style.background = 'var(--green-l)';
+    dz.style.borderColor = 'var(--green)';
+    dz.innerHTML = `<div style="font-size:28px;margin-bottom:6px">✅</div>
+      <div style="font-weight:700;font-size:14px;color:var(--green)">${importedUsers.length} baris siap diimport</div>
+      <div style="font-size:12px;color:#0a6b4e;margin-top:2px;cursor:pointer">Klik untuk ganti file</div>`;
+  }
+}
+
+async function doBulkImport() {
+  if (!importedUsers.length) return toast('Upload file CSV dulu','err');
+  const total = importedUsers.length;
   try {
-    const r = await window.HQ.AdminAPI.bulkImportUsers({ users });
+    // ── BATCH 1: Simpan Users ──
+    showLoad('Batch 1/3: Menyimpan ' + total + ' user...');
+    const b1 = await window.HQ.AdminAPI.bulkImportBatch1({ users: importedUsers });
+    if (b1.status !== 'ok') throw new Error(b1.message);
+
+    // ── BATCH 2: Assign ke Halaqah ──
+    let assigned = 0, notFound = [];
+    if (b1.pending_halaqah && b1.pending_halaqah.length) {
+      showLoad('Batch 2/3: Assign ' + b1.pending_halaqah.length + ' murid ke halaqah...');
+      const b2 = await window.HQ.AdminAPI.bulkImportBatch2({ pending_halaqah: b1.pending_halaqah });
+      assigned = b2.assigned || 0;
+      notFound = b2.not_found || [];
+    }
+
+    // ── BATCH 3: Rekap ──
+    showLoad('Batch 3/3: Menyusun rekap...');
+    const b3 = await window.HQ.AdminAPI.bulkImportSummary({
+      berhasil: b1.berhasil,
+      duplikat: b1.duplikat,
+      gagal   : b1.gagal,
+      assigned,
+    });
+
     closeModal('modalImport');
-    toast(r.message, 'ok');
+    importedUsers = [];
+
+    // Tampilkan notif
+    let msg = b3.message;
+    if (notFound.length) msg += '\n⚠️ Halaqah tidak ditemukan: ' + notFound.join(', ');
+    if (b1.gagal_detail?.length) msg += '\nGagal: ' + b1.gagal_detail.map(g=>'baris '+g.baris+': '+g.alasan).join('; ');
+    toast(msg, 'ok');
+
     await loadMasterData(); loadUsers(currentUserTab);
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
 }
 
-// ══════════════════════════════════════════
 //  HALAQAH
 // ══════════════════════════════════════════
 async function loadHalaqah() {
