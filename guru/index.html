@@ -190,19 +190,68 @@ tr:hover td{background:#f8fafc}
 .nilai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 /* ── STEP INDICATOR ── */
-.steps{display:flex;align-items:center;gap:0;margin-bottom:24px;overflow-x:auto;padding-bottom:4px}
+.steps{display:flex;align-items:center;gap:0;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
 .step{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s}
-.step-num.done{background:var(--green);color:#fff}
-.step-num.active{background:var(--blue);color:#fff}
-.step-num.pending{background:var(--border);color:var(--text-3)}
+.step-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;transition:all .25s;border:2px solid transparent}
+.step-num.done{background:var(--green);color:#fff;border-color:var(--green)}
+.step-num.active{background:var(--blue);color:#fff;border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(20,88,168,.18)}
+.step-num.pending{background:#fff;color:var(--text-3);border-color:var(--border)}
 .step-label{font-size:12px;font-weight:600;white-space:nowrap}
 .step-label.active{color:var(--blue)}
 .step-label.done{color:var(--green)}
 .step-label.pending{color:var(--text-3)}
-.step-line{width:32px;height:2px;background:var(--border);flex-shrink:0}
+.step-line{width:28px;height:2px;background:var(--border);flex-shrink:0;transition:background .3s}
 .step-line.done{background:var(--green)}
+
+/* ── NAV BUTTONS STEP ── */
+.step-nav{display:flex;gap:10px;margin-top:16px}
+.step-nav .btn-back{flex:0 0 auto;padding:12px 22px;font-size:13.5px;
+  background:#fff;border:1.5px solid var(--border);color:var(--text-2);border-radius:var(--r-pill);
+  font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s}
+.step-nav .btn-back:hover{border-color:var(--blue);color:var(--blue)}
+.step-nav .btn-next{flex:1;padding:13px;font-size:14.5px;font-weight:700;
+  background:var(--green);color:#fff;border:none;border-radius:var(--r-pill);
+  font-family:inherit;cursor:pointer;transition:all .15s;
+  box-shadow:0 4px 16px rgba(29,158,117,.25)}
+.step-nav .btn-next:hover{background:#166a52}
+.step-nav .btn-next:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── POPUP DOA ── */
+.doa-overlay{display:none;position:fixed;inset:0;z-index:800;
+  align-items:center;justify-content:center;
+  background:rgba(15,23,42,.65);backdrop-filter:blur(6px);padding:20px}
+.doa-overlay.show{display:flex}
+.doa-box{background:#fff;border-radius:var(--r-xl);padding:32px 28px 28px;
+  width:100%;max-width:420px;text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);
+  animation:doaPop .35s cubic-bezier(.34,1.4,.64,1)}
+@keyframes doaPop{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:none}}
+.doa-arabic{font-family:'Amiri',serif;font-size:28px;color:var(--blue);
+  line-height:1.8;margin-bottom:12px}
+.doa-msg{font-size:13.5px;color:var(--text-2);line-height:1.8;margin-bottom:20px}
+.doa-timer{font-size:48px;font-weight:800;color:var(--blue);line-height:1;margin-bottom:6px}
+.doa-timer-lbl{font-size:11.5px;color:var(--text-3);margin-bottom:18px}
+.doa-btn{width:100%;padding:13px;background:var(--green);color:#fff;
+  border:none;border-radius:var(--r-pill);font-family:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.doa-btn:disabled{background:var(--border);color:var(--text-3);cursor:not-allowed}
+.doa-btn.ready{background:var(--green);animation:pulse-btn .8s ease infinite alternate}
+@keyframes pulse-btn{from{box-shadow:0 4px 12px rgba(29,158,117,.3)}to{box-shadow:0 6px 20px rgba(29,158,117,.5)}}
+
+/* ── PRESENSI ── */
+.pb[data-k="T"]{border-color:#7c3aed;color:#7c3aed}
+.pb[data-k="T"].on{background:#7c3aed;color:#fff}
+
+/* ── NILAI CARD ── */
+.nilai-murid-card{
+  background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
+  padding:16px;margin-bottom:10px;transition:border-color .2s
+}
+.nilai-murid-card:last-child{margin-bottom:0}
+.nilai-murid-card.terisi{border-color:var(--green)}
+.nilai-murid-card.alpa{opacity:.55}
 
 /* ── SESI AKTIF BANNER ── */
 .sesi-banner{background:linear-gradient(135deg,#e1f5ee,#d1fae5);
@@ -339,7 +388,10 @@ tr:hover td{background:#f8fafc}
     <div class="auth-arabic">رتيل القرآن</div>
     <div class="auth-sub">Portal Guru — Halaqah Rattililqur'an</div>
     <label class="auth-label" for="nisInput">NIS (Nomor Induk Santri)</label>
-    <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: GRU-001" autocomplete="username" style="text-transform:uppercase;margin-bottom:14px">
+    <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: GRU-001" autocomplete="username" style="text-transform:uppercase">
+    <label class="auth-label" for="pwInput" style="margin-top:0">Password</label>
+    <input class="auth-input" type="password" id="pwInput" placeholder="Password akun" autocomplete="current-password">
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:12px">Kosongkan jika belum diset password</div>
     <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
     <div id="authErr"></div>
   </div>
@@ -425,12 +477,12 @@ tr:hover td{background:#f8fafc}
         </div>
       </div>
 
-      <!-- ════ SESI KBM ════ -->
+      <!-- ════ STEP 1: BUKA SESI ════ -->
       <div class="page" id="page-kbm">
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Sesi KBM</div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:18px">Kelola sesi tahsin bersama murid.</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Kelola sesi tahsin bersama murid.</div>
 
-        <!-- Sesi aktif -->
+        <!-- Sesi aktif banner -->
         <div class="sesi-banner" id="sesiBanner" style="display:none">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div class="sesi-dot"></div>
@@ -443,7 +495,7 @@ tr:hover td{background:#f8fafc}
           </div>
         </div>
 
-        <!-- Draft Warning Banner -->
+        <!-- Draft Warning -->
         <div class="draft-warning" id="draftWarning">
           <div class="draft-warning-ico">⚠️</div>
           <div class="draft-warning-body">
@@ -458,11 +510,9 @@ tr:hover td{background:#f8fafc}
           </div>
         </div>
 
-        <!-- Form buka KBM baru -->
+        <!-- Form buka sesi -->
         <div class="card" id="formBukaKBM">
-          <div class="card-head">
-            <div class="card-title">▶ KBM Baru</div>
-          </div>
+          <div class="card-head"><div class="card-title">▶ KBM Baru</div></div>
           <div class="card-body">
             <div class="f2">
               <div class="fg">
@@ -474,6 +524,7 @@ tr:hover td{background:#f8fafc}
                 <select class="fc" id="kbmJenis">
                   <option value="KBM Reguler">KBM Reguler</option>
                   <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
+                  <option value="Micro Teaching">Micro Teaching</option>
                   <option value="Lainnya">Lainnya</option>
                 </select>
               </div>
@@ -488,6 +539,11 @@ tr:hover td{background:#f8fafc}
                 <input type="time" class="fc" id="kbmJam">
               </div>
             </div>
+            <div class="fg">
+              <label>Pertemuan ke-</label>
+              <input type="number" class="fc" id="kbmPertemuan" min="1" placeholder="Auto" style="max-width:120px">
+              <div style="font-size:11px;color:var(--text-3);margin-top:4px">Kosongkan untuk auto-hitung</div>
+            </div>
             <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()">
               🌟 Mulai Perjuangan Baru
             </button>
@@ -495,11 +551,10 @@ tr:hover td{background:#f8fafc}
         </div>
       </div>
 
-      <!-- ════ PRESENSI (step 2) ════ -->
+      <!-- ════ STEP 2: PRESENSI ════ -->
       <div class="page" id="page-presensi">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Presensi Murid</div>
-
-        <div class="steps" id="stepBar"></div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:14px">Presensi Murid</div>
+        <div id="stepBarPresensi" class="steps"></div>
 
         <div class="card">
           <div class="card-head">
@@ -507,25 +562,45 @@ tr:hover td{background:#f8fafc}
             <span id="presensiCount" style="font-size:12px;color:var(--text-3)"></span>
           </div>
           <div class="card-body">
-            <div id="presensiList" class="presensi-list"></div>
-            <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-outline btn-sm" onclick="setAllPresensi('H')">✓ Semua Hadir</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green)" onclick="setAllPresensi('H')">✓ Semua Hadir</button>
             </div>
+            <div id="presensiList" class="presensi-list"></div>
           </div>
         </div>
-        <button class="btn btn-green btn-lg" style="width:100%" onclick="doSimpanPresensi()">
-          Lanjut ke Jurnal KBM →
-        </button>
+        <div class="step-nav">
+          <button class="btn-back" onclick="kembaliKeStep1()">← Kembali</button>
+          <button class="btn-next" onclick="doSimpanPresensi()">Lanjut ke Nilai →</button>
+        </div>
       </div>
 
-      <!-- ════ JURNAL KBM (step 3) ════ -->
-      <div class="page" id="page-jurnal">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Jurnal KBM</div>
-
-        <div class="steps" id="stepBar2"></div>
+      <!-- ════ STEP 3: NILAI ════ -->
+      <div class="page" id="page-nilai-murid">
+        <div style="font-size:19px;font-weight:800;margin-bottom:14px">Penilaian Murid</div>
+        <div id="stepBarNilai" class="steps"></div>
 
         <div class="card">
-          <div class="card-head"><div class="card-title">📓 Isi Jurnal Sesi</div></div>
+          <div class="card-head">
+            <div class="card-title">✏️ Nilai per Murid</div>
+            <span style="font-size:12px;color:var(--text-3)" id="nilaiProgress"></span>
+          </div>
+          <div class="card-body">
+            <div id="nilaiMuridList"></div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="kembaliKeStep2()">← Kembali</button>
+          <button class="btn-next" onclick="lanjutKeJurnal()">Lanjut ke Jurnal →</button>
+        </div>
+      </div>
+
+      <!-- ════ STEP 4: JURNAL & LATIHAN ════ -->
+      <div class="page" id="page-jurnal">
+        <div style="font-size:19px;font-weight:800;margin-bottom:14px">Jurnal & Latihan Mandiri</div>
+        <div id="stepBarJurnal" class="steps"></div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">📓 Jurnal Sesi</div></div>
           <div class="card-body">
             <div class="fg">
               <label>Pencapaian Halaman / Modul / Materi</label>
@@ -548,12 +623,12 @@ tr:hover td{background:#f8fafc}
             </div>
             <div class="fg">
               <label>Catatan Umum Sesi</label>
-              <textarea class="fc" id="jurnalCatatan" rows="3" placeholder="Kondisi kelas, progress keseluruhan, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
+              <textarea class="fc" id="jurnalCatatan" rows="3"
+                placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Latihan Mandiri (PR) -->
         <div class="card">
           <div class="card-head">
             <div class="card-title">📝 Latihan Mandiri <span style="font-size:11px;font-weight:500;color:var(--text-3)">(PR untuk murid)</span></div>
@@ -571,7 +646,7 @@ tr:hover td{background:#f8fafc}
             <div class="fg">
               <label>Deskripsi Latihan Mandiri</label>
               <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
-                placeholder="Contoh: Baca halaman 12–15 sebanyak 3x, kirim VN ke WAG sebelum pertemuan berikutnya..."
+                placeholder="Contoh: Baca halaman 12–15, kirim VN ke WAG sebelum pertemuan berikutnya..."
                 style="resize:vertical"></textarea>
             </div>
             <div class="fg">
@@ -584,17 +659,10 @@ tr:hover td{background:#f8fafc}
           </div>
         </div>
 
-        <!-- Nilai per murid -->
-        <div class="card">
-          <div class="card-head"><div class="card-title">✏️ Penilaian per Murid</div></div>
-          <div class="card-body">
-            <div id="nilaiList"></div>
-          </div>
+        <div class="step-nav">
+          <button class="btn-back" onclick="kembaliKeStep3()">← Kembali</button>
+          <button class="btn-next" id="btnSelesai" onclick="showPreview()">✅ Selesaikan Sesi</button>
         </div>
-
-        <button class="btn btn-green btn-lg" style="width:100%" id="btnSelesai" onclick="showPreview()">
-          ✅ Selesaikan & Tutup Sesi
-        </button>
       </div>
 
       <!-- ════ DAFTAR MURID ════ -->
@@ -717,6 +785,21 @@ tr:hover td{background:#f8fafc}
       <button class="btn btn-outline" onclick="closeModal('catatanModal')">Batal</button>
       <button class="btn btn-primary" onclick="simpanCatatan()">💾 Simpan</button>
     </div>
+  </div>
+</div>
+
+<!-- POPUP DOA PEMBUKA -->
+<div class="doa-overlay" id="doaOverlay">
+  <div class="doa-box">
+    <div class="doa-arabic">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <div class="doa-msg">
+      Sebelum kita mulai halaqah, mari berdoa terlebih dahulu, agar Allah bantu kita menyampaikan ilmu yang bermanfaat dan murid-murid kita mendapat ilmu yang manfaat, serta doa-doa kebaikan lainnya.
+    </div>
+    <div class="doa-timer" id="doaTimer">30</div>
+    <div class="doa-timer-lbl">detik untuk berdoa...</div>
+    <button class="doa-btn" id="doaBtn" disabled onclick="tutupDoaDanLanjut()">
+      Menunggu... (30)
+    </button>
   </div>
 </div>
 
@@ -951,6 +1034,49 @@ function startApp() {
 }
 
 // ══════════════════════════════════════════
+//  POPUP DOA PEMBUKA
+// ══════════════════════════════════════════
+let doaTimerInterval = null;
+let doaSudahMuncul   = false;  // flag: hanya muncul sekali per sesi baru
+
+function tampilkanDoa(callback) {
+  if (doaSudahMuncul) { callback(); return; }  // Skip jika kembali dari step lain
+  doaSudahMuncul = true;
+  
+  const overlay = document.getElementById('doaOverlay');
+  const timerEl = document.getElementById('doaTimer');
+  const btn     = document.getElementById('doaBtn');
+  let   sisa    = 30;
+
+  btn.disabled    = true;
+  btn.className   = 'doa-btn';
+  btn.textContent = 'Menunggu... (30)';
+  timerEl.textContent = '30';
+  overlay.classList.add('show');
+
+  clearInterval(doaTimerInterval);
+  doaTimerInterval = setInterval(() => {
+    sisa--;
+    timerEl.textContent = sisa;
+    btn.textContent     = sisa > 0 ? 'Menunggu... (' + sisa + ')' : '🌟 Mulai Halaqah';
+    if (sisa <= 0) {
+      clearInterval(doaTimerInterval);
+      btn.disabled  = false;
+      btn.className = 'doa-btn ready';
+    }
+  }, 1000);
+
+  // Simpan callback untuk dipanggil saat tombol diklik
+  window._doaCallback = callback;
+}
+
+function tutupDoaDanLanjut() {
+  clearInterval(doaTimerInterval);
+  document.getElementById('doaOverlay').classList.remove('show');
+  if (window._doaCallback) { window._doaCallback(); window._doaCallback = null; }
+}
+
+// ══════════════════════════════════════════
 //  DRAFT DETECTION
 // ══════════════════════════════════════════
 function cekSesiDraft() {
@@ -1002,7 +1128,9 @@ async function tutupPaksaSesi() {
 //  NAVIGASI
 // ══════════════════════════════════════════
 const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
-  presensi:'Presensi Murid',jurnal:'Jurnal KBM',
+  presensi:'Presensi — Step 2/4',
+  'nilai-murid':'Nilai — Step 3/4',
+  jurnal:'Jurnal — Step 4/4',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman'};
 
 function goPage(name) {
@@ -1084,15 +1212,33 @@ async function doBukaKBM() {
   setBtn('btnMulai', true, '⏳ Membuka sesi...');
   showLoad('Membuka sesi KBM...');
   try {
-    const r = await window.HQ.GuruAPI.bukaKBM({ id_halaqah, tanggal_pertemuan: tanggal, jam_mulai, jenis_sesi });
-    sesiAktif = r.data;
-    muridSesi = await getMurid(id_halaqah);
-    goPage('presensi');
-    renderPresensi();
-    renderSteps('presensi');
-    toast('Sesi dibuka! Silakan isi presensi.','ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru'); }
+    const pertemuanCustom = document.getElementById('kbmPertemuan')?.value;
+    const r = await window.HQ.GuruAPI.bukaKBM({
+      id_halaqah,
+      tanggal_pertemuan: tanggal,
+      jam_mulai,
+      jenis_sesi,
+      pertemuan_ke_custom: pertemuanCustom ? Number(pertemuanCustom) : null,
+    });
+    sesiAktif     = r.data;
+    muridSesi     = await getMurid(id_halaqah);
+    doaSudahMuncul = false; // Reset agar popup muncul
+
+    hideLoad();
+    setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
+
+    // Tampilkan popup doa, setelah selesai baru ke presensi
+    tampilkanDoa(() => {
+      goPage('presensi');
+      renderPresensi();
+      renderSteps('presensi');
+      quickToast('Sesi dibuka! Silakan isi presensi.','ok');
+    });
+  } catch(e) {
+    toast(e.message,'err');
+    hideLoad();
+    setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
+  }
 }
 
 function updateSesiBanner() {
@@ -1109,10 +1255,18 @@ function updateSesiBanner() {
 
 function lanjutSesi() {
   if (!sesiAktif) return;
-  muridSesi.length ? goToJurnal() : (async () => {
-    muridSesi = await getMurid(sesiAktif.id_halaqah);
+  // Saat lanjutkan sesi, popup DOA tidak muncul lagi
+  doaSudahMuncul = true;
+  if (muridSesi.length) {
     goPage('presensi'); renderPresensi(); renderSteps('presensi');
-  })();
+    document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+  } else {
+    getMurid(sesiAktif.id_halaqah).then(murid => {
+      muridSesi = murid;
+      goPage('presensi'); renderPresensi(); renderSteps('presensi');
+      document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+    });
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1130,9 +1284,10 @@ function renderPresensi() {
         <div class="prow-level">Level: ${esc(m.level||'-')} &nbsp;·&nbsp; ${m.total_hadir||0}× hadir</div>
       </div>
       <div class="prow-btns">
-        ${['H','I','S','A'].map(k=>`
+        ${['H','T','I','A'].map(k=>`
           <button class="pb ${k==='H'?'on':''}" data-k="${k}" data-id="${esc(m.id_murid)}"
-            data-nama="${esc(m.nama_murid)}" onclick="togPresensi(this)">${k}</button>
+            data-nama="${esc(m.nama_murid)}" onclick="togPresensi(this)"
+            title="${{H:'Hadir (100%)',T:'Terlambat (90%)',I:'Izin (70%)',A:'Alpa (0%)'}[k]}">${k}</button>
         `).join('')}
       </div>
     </div>`).join('');
@@ -1155,9 +1310,12 @@ function setAllPresensi(kode) {
 }
 
 function updatePresensiCount() {
-  const hadir = document.querySelectorAll('.pb[data-k="H"].on').length;
+  const H = document.querySelectorAll('.pb[data-k="H"].on').length;
+  const T = document.querySelectorAll('.pb[data-k="T"].on').length;
+  const I = document.querySelectorAll('.pb[data-k="I"].on').length;
+  const A = document.querySelectorAll('.pb[data-k="A"].on').length;
   document.getElementById('presensiCount').textContent =
-    hadir + ' hadir / ' + muridSesi.length + ' murid';
+    `H:${H} T:${T} I:${I} A:${A} / ${muridSesi.length} murid`;
 }
 
 async function doSimpanPresensi() {
@@ -1180,8 +1338,8 @@ async function doSimpanPresensi() {
       id_halaqah: sesiAktif.id_halaqah,
       presensi
     });
-    goToJurnal();
-    toast('Presensi tersimpan!','ok');
+    goToNilai();
+    quickToast('Presensi tersimpan!','ok');
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
 }
@@ -1189,64 +1347,126 @@ async function doSimpanPresensi() {
 // ══════════════════════════════════════════
 //  JURNAL & NILAI
 // ══════════════════════════════════════════
-function goToJurnal() {
-  // Set jam selesai otomatis
-  document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
-  renderNilaiList();
-  goPage('jurnal');
-  renderSteps('jurnal');
+function goToNilai() {
+  renderNilaiMuridStep();
+  goPage('nilai-murid');
+  renderSteps('nilai-murid');
+  document.getElementById('pageTitle').textContent = 'Nilai — Step 3/4';
 }
 
-function renderNilaiList() {
-  const hadir = muridSesi;  // tampilkan semua murid
-  const cont  = document.getElementById('nilaiList');
-  if (!hadir.length) { cont.innerHTML = emptyHTML('👥','Tidak ada murid',''); return; }
+function goToJurnal() {
+  document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
+  goPage('jurnal');
+  renderSteps('jurnal');
+  document.getElementById('pageTitle').textContent = 'Jurnal — Step 4/4';
+}
 
-  cont.innerHTML = hadir.map(m => `
-    <div class="nilai-row">
-      <div class="nilai-murid-name">
-        <span>👤 ${esc(m.nama_murid)}</span>
-        <span id="hadirBadge-${esc(m.id_murid)}" class="badge b-gray" style="font-size:11px">–</span>
+function lanjutKeJurnal() {
+  goToJurnal();
+}
+
+// Navigasi KEMBALI
+function kembaliKeStep1() {
+  // Kembali ke form buka sesi — tidak reset sesiAktif, popup DOA tidak muncul lagi
+  goPage('kbm');
+  document.getElementById('pageTitle').textContent = 'Sesi KBM';
+}
+
+function kembaliKeStep2() {
+  goPage('presensi');
+  renderSteps('presensi');
+  document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+}
+
+function kembaliKeStep3() {
+  goToNilai();
+}
+
+function renderNilaiMuridStep() {
+  const cont = document.getElementById('nilaiMuridList');
+  if (!muridSesi.length) { cont.innerHTML = emptyHTML('👥','Tidak ada murid',''); return; }
+
+  // Ambil status presensi dari step 2
+  const presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+
+  const HADIR_LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+  const HADIR_BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
+
+  let terisi = 0;
+  cont.innerHTML = muridSesi.map(m => {
+    const status = presensiMap[m.id_murid] || 'H';
+    const isAlpa = status === 'A';
+    const nilaiVal  = document.getElementById('nilai-'  + m.id_murid)?.value || '';
+    const adabVal   = document.getElementById('adab-'   + m.id_murid)?.value || '';
+    const korVal    = document.getElementById('koreksi-'+ m.id_murid)?.value || '';
+    if (nilaiVal) terisi++;
+    return `
+    <div class="nilai-murid-card ${isAlpa?'alpa':nilaiVal?'terisi':''}" id="nmcard-${esc(m.id_murid)}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-weight:700;font-size:14px">👤 ${esc(m.nama_murid)}</div>
+        <span class="badge ${HADIR_BADGE[status]||'b-gray'}" style="font-size:11px">
+          ${HADIR_LABEL[status]||status}
+        </span>
       </div>
-      <div class="nilai-grid">
+      ${isAlpa ? `<div style="font-size:12.5px;color:var(--text-3);font-style:italic">Murid tidak hadir — nilai tidak perlu diisi</div>` : `
+      <div class="f2" style="margin-bottom:8px">
         <div class="fg" style="margin:0">
           <label>Nilai Tahsin</label>
-          <select class="fc" id="nilai-${esc(m.id_murid)}" style="font-size:13px">
+          <select class="fc" id="nilai-${esc(m.id_murid)}" style="font-size:13px"
+            onchange="updateNilaiCard('${esc(m.id_murid)}')">
             <option value="">— Pilih —</option>
-            <option value="Mumtaz">⭐ Mumtaz</option>
-            <option value="Jayyid Jiddan">✅ Jayyid Jiddan</option>
-            <option value="Jayyid">👍 Jayyid</option>
-            <option value="Maqbul">📌 Maqbul</option>
+            <option value="Mumtaz" ${nilaiVal==='Mumtaz'?'selected':''}>⭐ Mumtaz</option>
+            <option value="Jayyid Jiddan" ${nilaiVal==='Jayyid Jiddan'?'selected':''}>✅ Jayyid Jiddan</option>
+            <option value="Jayyid" ${nilaiVal==='Jayyid'?'selected':''}>👍 Jayyid</option>
+            <option value="Maqbul" ${nilaiVal==='Maqbul'?'selected':''}>📌 Maqbul</option>
           </select>
         </div>
         <div class="fg" style="margin:0">
           <label>Adab</label>
           <select class="fc" id="adab-${esc(m.id_murid)}" style="font-size:13px">
             <option value="">— Pilih —</option>
-            <option value="Baik">😊 Baik</option>
-            <option value="Cukup">🙂 Cukup</option>
-            <option value="Perlu Perhatian">⚠️ Perlu Perhatian</option>
+            <option value="Baik" ${adabVal==='Baik'?'selected':''}>😊 Baik</option>
+            <option value="Butuh Perhatian" ${adabVal==='Butuh Perhatian'?'selected':''}>⚠️ Butuh Perhatian</option>
           </select>
         </div>
       </div>
-      <div class="fg" style="margin-top:8px">
+      <div class="fg" style="margin:0">
         <label>Koreksi Tahsin</label>
         <input type="text" class="fc" id="koreksi-${esc(m.id_murid)}"
-          placeholder="Contoh: Makhraj ح perlu diperbaiki, mad tabi'i kurang panjang..."
+          value="${esc(korVal)}"
+          placeholder="Makhraj ح, mad tabi'i, dll..."
           style="font-size:13px">
-      </div>
-    </div>`).join('');
+      </div>`}
+    </div>`;
+  }).join('');
 
-  // Update badge hadir dari presensi
-  document.querySelectorAll('.pb.on').forEach(btn => {
-    const el = document.getElementById('hadirBadge-' + btn.dataset.id);
-    if (!el) return;
-    const map = {H:'b-green',I:'b-amber',S:'b-blue',A:'b-red'};
-    const lbl = {H:'Hadir',I:'Izin',S:'Sakit',A:'Alpa'};
-    el.className = 'badge ' + (map[btn.dataset.k]||'b-gray');
-    el.textContent = lbl[btn.dataset.k]||btn.dataset.k;
-  });
+  // Update progress counter
+  const total  = muridSesi.filter(m => (presensiMap[m.id_murid]||'H') !== 'A').length;
+  document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
+
+function updateNilaiCard(id_murid) {
+  const card = document.getElementById('nmcard-' + id_murid);
+  const val  = document.getElementById('nilai-'  + id_murid)?.value;
+  if (card) card.className = 'nilai-murid-card ' + (val ? 'terisi' : '');
+  // Update progress
+  const presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+  const terisi = muridSesi.filter(m => {
+    const status = presensiMap[m.id_murid] || 'H';
+    return status !== 'A' && document.getElementById('nilai-' + m.id_murid)?.value;
+  }).length;
+  const total = muridSesi.filter(m => (presensiMap[m.id_murid]||'H') !== 'A').length;
+  document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
+}
+
+// Legacy alias (dipakai di beberapa tempat lain)
+function renderNilaiList() { renderNilaiMuridStep(); }
 
 async function doSelesaiKBM() {
   if (!sesiAktif) return;
@@ -1321,20 +1541,22 @@ async function konfirmasiTutup() {
 // ══════════════════════════════════════════
 //  STEP INDICATOR
 // ══════════════════════════════════════════
-function renderSteps(current) {
-  const steps = [
-    {id:'kbm',     label:'Buka Sesi'},
-    {id:'presensi',label:'Presensi'},
-    {id:'jurnal',  label:'Jurnal & Nilai'},
-  ];
-  const ci = steps.findIndex(s => s.id === current);
+const STEPS_DEF = [
+  {id:'kbm',         label:'Buka Sesi'},
+  {id:'presensi',    label:'Presensi'},
+  {id:'nilai-murid', label:'Nilai'},
+  {id:'jurnal',      label:'Jurnal'},
+];
 
-  ['stepBar','stepBar2'].forEach(barId => {
+function renderSteps(current) {
+  const ci = STEPS_DEF.findIndex(s => s.id === current);
+  const bars = ['stepBarPresensi','stepBarNilai','stepBarJurnal'];
+  bars.forEach(barId => {
     const bar = document.getElementById(barId);
     if (!bar) return;
-    bar.innerHTML = steps.map((s,i) => {
+    bar.innerHTML = STEPS_DEF.map((s,i) => {
       const state = i < ci ? 'done' : i === ci ? 'active' : 'pending';
-      const line  = i < steps.length-1
+      const line  = i < STEPS_DEF.length-1
         ? `<div class="step-line ${i < ci?'done':''}"></div>` : '';
       return `<div class="step">
         <div class="step-num ${state}">${i < ci ? '✓' : i+1}</div>
@@ -1808,15 +2030,16 @@ function showPreview() {
   const latDesk    = document.getElementById('jurnalLatihanMandiri').value.trim();
   const latDead    = document.getElementById('jurnalDeadline').value;
 
-  // Hitung presensi dari data yang sudah disimpan
-  const pRows = document.querySelectorAll('.prow');
-  let hadir=0, izin=0, alpa=0;
+  // Hitung presensi dari step 2
+  let hadir=0, terlambat=0, izin=0, alpa=0;
   document.querySelectorAll('#presensiList .pb.on').forEach(b => {
     const k = b.dataset.k;
     if (k==='H') hadir++;
-    else if (k==='I'||k==='S') izin++;
+    else if (k==='T') terlambat++;
+    else if (k==='I') izin++;
     else if (k==='A') alpa++;
   });
+  const izinTotal = izin + terlambat;
 
   // Isi preview
   document.getElementById('pvHalaqah').textContent  = h?.nama_halaqah || '–';
@@ -1827,7 +2050,7 @@ function showPreview() {
   document.getElementById('pvMateri').textContent   = materi || '(belum diisi)';
   document.getElementById('pvMetode').textContent   = metode || '–';
   document.getElementById('pvHadir').textContent    = hadir;
-  document.getElementById('pvIzin').textContent     = izin;
+  document.getElementById('pvIzin').textContent     = terlambat + izin;
   document.getElementById('pvAlpa').textContent     = alpa;
 
   // Preview nilai per murid
