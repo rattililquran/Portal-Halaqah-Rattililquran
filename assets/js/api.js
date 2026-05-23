@@ -3,7 +3,7 @@
 //  UPDATE: Selalu upload file ini ke GitHub setiap ada perubahan
 // ============================================================
 
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbwcyQ5UvFxxZHDALehrEpLHv4U1APrTdP7OOfwXqFKW2dscXkbh3RPWOtJHwfo3tGeuPg/exec';
 
 function getToken() {
   return localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token') || '';
