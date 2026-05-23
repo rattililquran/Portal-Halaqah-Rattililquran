@@ -105,6 +105,12 @@ var AdminAPI = {
   // Pengumuman
   buatPengumuman     : function(d)         { return apiPost('buatPengumuman', d); },
   getAllPengumuman    : function()          { return apiGet('getAllPengumuman'); },
+  getLevelList       : function()          { return apiGet('getLevelList'); },
+  saveLevel          : function(d)         { return apiPost('saveLevel', d); },
+  deleteLevel        : function(id)        { return apiPost('deleteLevel', { id_level:id }); },
+  getTemplateKoreksi : function()          { return apiGet('getTemplateKoreksi'); },
+  saveTemplateKoreksi: function(d)         { return apiPost('saveTemplateKoreksi', d); },
+  exportRekapAbsensi : function(p)         { return apiGet('exportRekapAbsensi', p||{}); },
 };
 
 // ─── GURU API ───────────────────────────────────
@@ -126,6 +132,9 @@ var GuruAPI = {
   getMuridBelum         : function(id_h)       { return apiGet('getMuridBelumDiHalaqah', { id_halaqah:id_h }); },
   generateRekapPresensi : function(id_h)       { return apiGet('generateRekapPresensi', { id_halaqah:id_h }); },
   generateRekapNilai    : function(id_h)       { return apiGet('generateRekapNilai', { id_halaqah:id_h }); },
+  getJadwalHariIni      : function()           { return apiGet('getJadwalHariIni'); },
+  getRiwayatMuridKoreksi: function(id_m, lim)  { return apiGet('getRiwayatMuridKoreksi', { id_murid:id_m, limit:lim||10 }); },
+  getTemplateKoreksi    : function()           { return apiGet('getTemplateKoreksi'); },
 };
 
 // ─── MURID API ──────────────────────────────────
@@ -136,6 +145,7 @@ var MuridAPI = {
   getRaport         : function()  { return apiGet('getRaportMurid'); },
   getPengumuman     : function()  { return apiGet('getPengumumanMurid'); },
   updateProfil      : function(d) { return apiPost('updateProfilMurid', d); },
+  getProgressGrafik : function()  { return apiGet('getProgressGrafik'); },
 };
 
 // ─── EKSPOS GLOBAL ──────────────────────────────
