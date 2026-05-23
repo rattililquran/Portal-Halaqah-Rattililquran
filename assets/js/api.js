@@ -160,12 +160,12 @@ const GuruAPI = {
 //  MURID API
 // ════════════════════════════════════════════════
 const MuridAPI = {
-  getDashboard:       ()            => apiGet('getDashboardMurid'),
-  getProgressHafalan: (params)      => apiGet('getProgressHafalan', params || {}),
-  getAbsensi:         ()            => apiGet('getAbsensiMurid'),
-  getJadwal:          ()            => apiGet('getJadwalMurid'),
-  getPengumuman:      ()            => apiGet('getPengumuman'),
-  updateProfil:       (data)        => apiPost('updateProfilMurid', data),
+  getDashboard:       ()     => apiGet('getDashboardMurid'),
+  getRiwayat:         ()     => apiGet('getRiwayatMurid'),
+  getLatihanMandiri:  ()     => apiGet('getLatihanMandiriMurid'),
+  getRaport:          ()     => apiGet('getRaportMurid'),
+  getPengumuman:      ()     => apiGet('getPengumumanMurid'),
+  updateProfil:       (data) => apiPost('updateProfilMurid', data),
 };
 
 // ════════════════════════════════════════════════
