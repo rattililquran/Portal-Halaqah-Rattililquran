@@ -1,199 +1,148 @@
 // ============================================================
-//  js/api.js — API Client untuk Google Apps Script
-//  Portal Halaqah Rattililqur'an
-//  Versi: 1.0.0
-//  Deskripsi: Semua komunikasi frontend ↔ GAS Web App
-//             melalui file ini. Ganti BASE_URL setelah deploy.
+//  assets/js/api.js — API Client Portal Halaqah Rattililqur'an
+//  UPDATE: Selalu upload file ini ke GitHub setiap ada perubahan
 // ============================================================
 
-// ─── GANTI INI SETELAH DEPLOY GAS ───
 const BASE_URL = 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec';
 
-// ─── Helper ambil token dari storage ───
 function getToken() {
   return localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token') || '';
 }
 
-// ─── GET request ───
-async function apiGet(action, params = {}) {
-  const query = new URLSearchParams({ action, token: getToken(), ...params });
-  const res   = await fetch(`${BASE_URL}?${query}`, {
-    method: 'GET',
-    mode:   'cors',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+async function apiGet(action, params) {
+  const p = params || {};
+  const query = new URLSearchParams({ action, token: getToken() });
+  Object.keys(p).forEach(k => { if (p[k] !== undefined && p[k] !== null) query.set(k, p[k]); });
+  const res = await fetch(BASE_URL + '?' + query.toString(), { method:'GET', mode:'cors' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if (data.status === 'error') throw new Error(data.message || 'Terjadi kesalahan');
   return data;
 }
 
-// ─── POST request — pakai GET untuk hindari CORS preflight 405 ───
-async function apiPost(action, body = {}) {
-  // Encode data sebagai JSON dalam query param untuk hindari preflight
+async function apiPost(action, body) {
+  const b = body || {};
   const query = new URLSearchParams({
     action,
-    token: getToken(),
-    payload: JSON.stringify(body),
+    token  : getToken(),
+    payload: JSON.stringify(b),
   });
-  const res = await fetch(`${BASE_URL}?${query}`, {
-    method: 'GET',
-    mode:   'cors',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const res = await fetch(BASE_URL + '?' + query.toString(), { method:'GET', mode:'cors' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if (data.status === 'error') throw new Error(data.message || 'Terjadi kesalahan');
   return data;
 }
 
-// ════════════════════════════════════════════════
-//  AUTH
-// ════════════════════════════════════════════════
-const Auth = {
-  login: (nis, role, password) => apiGet('login', { nis, role, password: password||'' }),
-  getProfile: ()            => apiGet('getProfile'),
-  logout: () => {
+// ─── AUTH ───────────────────────────────────────
+var Auth = {
+  login: function(nis, role, password) {
+    return apiGet('login', { nis: nis, role: role, password: password || '' });
+  },
+  logout: function() {
     localStorage.removeItem('hq_token');
     localStorage.removeItem('hq_user');
     sessionStorage.removeItem('hq_token');
     sessionStorage.removeItem('hq_user');
-    // Deteksi apakah di subfolder atau root
-    const depth = window.location.pathname.split('/').filter(Boolean).length;
+    var depth = window.location.pathname.split('/').filter(Boolean).length;
     window.location.href = depth >= 2 ? '../index.html' : 'index.html';
   },
-  getUser: () => {
+  getUser: function() {
     return JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
   },
-  isLoggedIn: () => !!getToken(),
-  requireRole: (roles) => {
-    const user = Auth.getUser();
-    if (!user || !roles.includes(user.role)) {
-      window.location.href = '/index.html';
-      return false;
-    }
-    return true;
-  },
 };
 
-// ════════════════════════════════════════════════
-//  ADMIN API
-// ════════════════════════════════════════════════
-const AdminAPI = {
+// ─── ADMIN API ──────────────────────────────────
+var AdminAPI = {
   // Dashboard
-  getDashboard:        ()           => apiGet('getDashboardAdmin'),
+  getDashboard       : function()          { return apiGet('getDashboardAdmin'); },
 
   // Periode
-  getAllPeriode:        ()           => apiGet('getAllPeriode'),
-  createPeriode:       (data)       => apiPost('createPeriode', data),
-  updatePeriode:       (data)       => apiPost('updatePeriode', data),
+  getAllPeriode       : function()          { return apiGet('getAllPeriode'); },
+  createPeriode      : function(d)         { return apiPost('createPeriode', d); },
+  updatePeriode      : function(d)         { return apiPost('updatePeriode', d); },
 
   // Users
-  getAllUsers:          (role)       => apiGet('getAllUsers', role ? { role } : {}),
-  createUser:          (data)       => apiPost('createUser', data),
-  updateUser:          (data)       => apiPost('updateUser', data),
-  deleteUser:          (id_user)    => apiPost('deleteUser', { id_user }),
-  bulkImportBatch1:    (data)       => apiPost('bulkImportBatch1', data),
-  bulkImportBatch2:    (data)       => apiPost('bulkImportBatch2', data),
-  bulkImportSummary:   (data)       => apiPost('bulkImportSummary', data),
+  getAllUsers         : function(role)      { return apiGet('getAllUsers', role ? { role:role } : {}); },
+  createUser         : function(d)         { return apiPost('createUser', d); },
+  updateUser         : function(d)         { return apiPost('updateUser', d); },
+  deleteUser         : function(id)        { return apiPost('deleteUser', { id_user:id }); },
+  bulkImportBatch1   : function(d)         { return apiPost('bulkImportBatch1', d); },
+  bulkImportBatch2   : function(d)         { return apiPost('bulkImportBatch2', d); },
+  bulkImportSummary  : function(d)         { return apiPost('bulkImportSummary', d); },
 
   // Halaqah
-  getAllHalaqah:        ()           => apiGet('getAllHalaqah'),
-  createHalaqah:       (data)       => apiPost('createHalaqah', data),
-  updateHalaqah:       (data)       => apiPost('updateHalaqah', data),
-  deleteHalaqah:       (id_halaqah) => apiPost('deleteHalaqah', { id_halaqah }),
+  getAllHalaqah       : function()          { return apiGet('getAllHalaqah'); },
+  createHalaqah      : function(d)         { return apiPost('createHalaqah', d); },
+  updateHalaqah      : function(d)         { return apiPost('updateHalaqah', d); },
+  deleteHalaqah      : function(id)        { return apiPost('deleteHalaqah', { id_halaqah:id }); },
 
   // Anggota
-  getAllAnggota:        (id_halaqah) => apiGet('getAllAnggota', id_halaqah ? { id_halaqah } : {}),
-  addAnggota:          (data)       => apiPost('addAnggota', data),
-  updateAnggota:       (data)       => apiPost('updateAnggota', data),
-  removeAnggota:       (id_anggota) => apiPost('removeAnggota', { id_anggota }),
+  getAllAnggota       : function(id_h)      { return apiGet('getAllAnggota', id_h ? { id_halaqah:id_h } : {}); },
+  addAnggota         : function(d)         { return apiPost('addAnggota', d); },
+  updateAnggota      : function(d)         { return apiPost('updateAnggota', d); },
+  removeAnggota      : function(id)        { return apiPost('removeAnggota', { id_anggota:id }); },
 
   // Laporan
-  getAllKBM:            (params)     => apiGet('getAllKBM', params || {}),
-  getRekapAbsensi:     (params)     => apiGet('getRekapAbsensi', params || {}),
-  getLaporanGlobal:    (params)     => apiGet('getLaporanGlobal', params || {}),
-  getAuditLog:         ()           => apiGet('getAuditLog'),
+  getAllKBM           : function(p)         { return apiGet('getAllKBM', p || {}); },
+  getRekapAbsensi    : function(p)         { return apiGet('getRekapAbsensi', p || {}); },
+  getLaporanGlobal   : function(p)         { return apiGet('getLaporanGlobal', p || {}); },
+  getAuditLog        : function()          { return apiGet('getAuditLog'); },
 
-  // Komponen & Nilai Raport
-  getKomponenRaport:   (id_periode) => apiGet('getKomponenRaport', { id_periode }),
-  saveKomponenRaport:  (data)       => apiPost('saveKomponenRaport', data),
-  getNilaiManual:      (id_periode) => apiGet('getNilaiManual', { id_periode }),
-  saveNilaiManual:     (data)       => apiPost('saveNilaiManual', data),
+  // Komponen & Nilai
+  getKomponenRaport  : function(id_p)      { return apiGet('getKomponenRaport', { id_periode:id_p }); },
+  saveKomponenRaport : function(d)         { return apiPost('saveKomponenRaport', d); },
+  getNilaiManual     : function(id_p)      { return apiGet('getNilaiManual', { id_periode:id_p }); },
+  saveNilaiManual    : function(d)         { return apiPost('saveNilaiManual', d); },
 
   // Raport
-  generateRaport:      (data)       => apiPost('generateRaportMurid', data),
-  generateRaportBulk:  (data)       => apiPost('generateRaportBulk', data),
-  getRaportList:       (id_periode) => apiGet('getRaportList', { id_periode }),
-  publishRaport:       (id_raport)  => apiPost('publishRaport', { id_raport }),
-  kirimRaportEmail:    (id_raport)  => apiPost('kirimRaportEmail', { id_raport }),
+  generateRaport     : function(d)         { return apiPost('generateRaportMurid', d); },
+  generateRaportBulk : function(d)         { return apiPost('generateRaportBulk', d); },
+  getRaportList      : function(id_p)      { return apiGet('getRaportList', { id_periode:id_p }); },
+  publishRaport      : function(id)        { return apiPost('publishRaport', { id_raport:id }); },
+  kirimRaportEmail   : function(id)        { return apiPost('kirimRaportEmail', { id_raport:id }); },
 
   // Pengumuman
-  buatPengumuman:      (data)       => apiPost('buatPengumuman', data),
-  getAllPengumuman:     ()           => apiGet('getAllPengumuman'),
+  buatPengumuman     : function(d)         { return apiPost('buatPengumuman', d); },
+  getAllPengumuman    : function()          { return apiGet('getAllPengumuman'); },
 };
 
-// ════════════════════════════════════════════════
-//  GURU API
-// ════════════════════════════════════════════════
-const GuruAPI = {
-  getDashboard:       ()                   => apiGet('getDashboardGuru'),
-  getHalaqahSaya:     ()                   => apiGet('getHalaqahGuru'),
-  getMurid:           (id_halaqah)         => apiGet('getMuridByHalaqah', { id_halaqah }),
-  getRiwayatKBM:      (id_halaqah, limit)  => apiGet('getKBMByHalaqah', { id_halaqah, limit: limit || 20 }),
-  getNilaiByKBM:      (id_kbm)             => apiGet('getNilaiByKBM', { id_kbm }),
-  getPresensiByKBM:   (id_kbm)             => apiGet('getPresensiByKBM', { id_kbm }),
-
-  bukaKBM:            (data)               => apiPost('bukaKBM', data),
-  simpanPresensi:     (data)               => apiPost('simpanPresensi', data),
-  editPresensi:       (data)               => apiPost('editPresensi', data),
-  simpanJurnalKBM:    (data)               => apiPost('simpanJurnalKBM', data),
-  simpanNilaiMurid:   (data)               => apiPost('simpanNilaiMurid', data),
-  tutupKBM:           (id_kbm)             => apiPost('tutupKBM', { id_kbm }),
-  updateCatatanMurid: (data)               => apiPost('updateCatatanMurid', data),
-  addMuridByGuru:     (data)               => apiPost('addMuridByGuru', data),
-  kirimPengumuman:    (data)               => apiPost('kirimPengumumanGuru', data),
-  getMuridBelum:      (id_halaqah)         => apiGet('getMuridBelumDiHalaqah', { id_halaqah }),
-  generateRekapPresensi: (id_halaqah)      => apiGet('generateRekapPresensi', { id_halaqah }),
-  generateRekapNilai:    (id_halaqah)      => apiGet('generateRekapNilai', { id_halaqah }),
+// ─── GURU API ───────────────────────────────────
+var GuruAPI = {
+  getDashboard          : function()           { return apiGet('getDashboardGuru'); },
+  getHalaqahSaya        : function()           { return apiGet('getHalaqahGuru'); },
+  getMurid              : function(id_h)       { return apiGet('getMuridByHalaqah', { id_halaqah:id_h }); },
+  getRiwayatKBM         : function(id_h, lim)  { return apiGet('getKBMByHalaqah', { id_halaqah:id_h, limit:lim||20 }); },
+  getNilaiByKBM         : function(id_kbm)     { return apiGet('getNilaiByKBM', { id_kbm:id_kbm }); },
+  getPresensiByKBM      : function(id_kbm)     { return apiGet('getPresensiByKBM', { id_kbm:id_kbm }); },
+  bukaKBM               : function(d)          { return apiPost('bukaKBM', d); },
+  simpanPresensi        : function(d)          { return apiPost('simpanPresensi', d); },
+  editPresensi          : function(d)          { return apiPost('editPresensi', d); },
+  simpanJurnalKBM       : function(d)          { return apiPost('simpanJurnalKBM', d); },
+  simpanNilaiMurid      : function(d)          { return apiPost('simpanNilaiMurid', d); },
+  tutupKBM              : function(id_kbm)     { return apiPost('tutupKBM', { id_kbm:id_kbm }); },
+  addMuridByGuru        : function(d)          { return apiPost('addMuridByGuru', d); },
+  kirimPengumuman       : function(d)          { return apiPost('kirimPengumumanGuru', d); },
+  getMuridBelum         : function(id_h)       { return apiGet('getMuridBelumDiHalaqah', { id_halaqah:id_h }); },
+  generateRekapPresensi : function(id_h)       { return apiGet('generateRekapPresensi', { id_halaqah:id_h }); },
+  generateRekapNilai    : function(id_h)       { return apiGet('generateRekapNilai', { id_halaqah:id_h }); },
 };
 
-// ════════════════════════════════════════════════
-//  MURID API
-// ════════════════════════════════════════════════
-const MuridAPI = {
-  getDashboard:       ()     => apiGet('getDashboardMurid'),
-  getRiwayat:         ()     => apiGet('getRiwayatMurid'),
-  getLatihanMandiri:  ()     => apiGet('getLatihanMandiriMurid'),
-  getRaport:          ()     => apiGet('getRaportMurid'),
-  getPengumuman:      ()     => apiGet('getPengumumanMurid'),
-  updateProfil:       (data) => apiPost('updateProfilMurid', data),
+// ─── MURID API ──────────────────────────────────
+var MuridAPI = {
+  getDashboard      : function()  { return apiGet('getDashboardMurid'); },
+  getRiwayat        : function()  { return apiGet('getRiwayatMurid'); },
+  getLatihanMandiri : function()  { return apiGet('getLatihanMandiriMurid'); },
+  getRaport         : function()  { return apiGet('getRaportMurid'); },
+  getPengumuman     : function()  { return apiGet('getPengumumanMurid'); },
+  updateProfil      : function(d) { return apiPost('updateProfilMurid', d); },
 };
 
-// ════════════════════════════════════════════════
-//  SHARED UTILS
-// ════════════════════════════════════════════════
-const Utils = {
-  formatDate: (dateStr) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-  },
-  formatTime: (dateStr) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-  },
-  nilaiColor: (nilai) => {
-    const map = { A:'#1D9E75', B:'#2a8de0', C:'#e0aa2a', D:'#e05a2a' };
-    return map[String(nilai).toUpperCase()] || '#888';
-  },
-  statusHadirLabel: (kode) => {
-    const map = { H:'Hadir', I:'Izin', S:'Sakit', A:'Alpa' };
-    return map[String(kode).toUpperCase()] || '-';
-  },
-  statusHadirColor: (kode) => {
-    const map = { H:'#1D9E75', I:'#e0aa2a', S:'#2a8de0', A:'#e05a2a' };
-    return map[String(kode).toUpperCase()] || '#888';
-  },
+// ─── EKSPOS GLOBAL ──────────────────────────────
+// Ganti apapun yang sudah ada sebelumnya
+window.HQ = {
+  Auth     : Auth,
+  AdminAPI : AdminAPI,
+  GuruAPI  : GuruAPI,
+  MuridAPI : MuridAPI,
 };
-
-// Ekspos global (untuk halaman tanpa module bundler)
-window.HQ = { Auth, AdminAPI, GuruAPI, MuridAPI, Utils };
