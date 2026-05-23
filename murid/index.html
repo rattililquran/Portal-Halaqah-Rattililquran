@@ -192,6 +192,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .nilai-JJ{background:var(--green-l);color:#0a6b4e;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
 .nilai-Maqbul{background:var(--red-l);color:#a03010;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
 
+/* ── GRAFIK ── */
+#grafikCanvas{display:block}
+.grafik-bar-wrap{display:flex;align-items:flex-end;gap:4px;height:100px;
+  border-bottom:1.5px solid var(--border);padding-bottom:0;margin-bottom:8px}
+.grafik-bar{flex:1;border-radius:4px 4px 0 0;min-width:8px;
+  transition:height .4s ease;cursor:pointer;position:relative}
+.grafik-bar:hover::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;
+  transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:3px 7px;
+  border-radius:6px;font-size:10px;white-space:nowrap;z-index:10;margin-bottom:3px}
+.grafik-label{display:flex;gap:4px;overflow:hidden}
+.grafik-label-item{flex:1;text-align:center;font-size:9px;color:var(--text-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.refresh-badge-murid{position:fixed;bottom:76px;right:12px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r-pill);
+  padding:4px 10px;font-size:10.5px;color:var(--text-3);
+  box-shadow:var(--shadow-card);z-index:90;display:none;align-items:center;gap:4px}
+.refresh-badge-murid.show{display:flex}
+
 /* ── EMPTY ── */
 .empty{text-align:center;padding:40px 20px;color:var(--text-3)}
 .empty-ico{font-size:40px;margin-bottom:8px;opacity:.4}
@@ -365,6 +383,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         </div>
       </div>
 
+      <!-- Grafik Progress Nilai -->
+      <div class="card" id="grafikCard" style="display:none">
+        <div class="card-head">
+          <div class="card-title">📈 Grafik Nilai Tahsin</div>
+          <span id="grafikTrend" style="font-size:12px;font-weight:700"></span>
+        </div>
+        <div class="card-body" style="padding:14px 16px">
+          <canvas id="grafikCanvas" height="120" style="width:100%"></canvas>
+          <div id="grafikEmpty" style="text-align:center;padding:20px;color:var(--text-3);display:none">
+            Belum cukup data untuk grafik
+          </div>
+        </div>
+      </div>
+
       <!-- PR Aktif -->
       <div class="card" id="prCard" style="display:none">
         <div class="card-head">
@@ -522,6 +554,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<div class="refresh-badge-murid" id="refreshBadgeMurid">
+  <div style="width:6px;height:6px;border-radius:50%;background:var(--green)" id="muridRefreshDot"></div>
+  <span id="muridRefreshTxt">Sinkron baru</span>
+</div>
 <script src="../assets/js/api.js"></script>
 <script>
 // ══════════════════════════════════════════
@@ -580,7 +616,10 @@ function showErr(m) {
 async function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  resetMuridSession();
+  startMuridAutoRefresh();
   await loadDashboard();
+  loadGrafik();
 }
 
 // ══════════════════════════════════════════
@@ -892,6 +931,122 @@ function emptyHTML(ico, ttl, sub) {
     + (sub ? '<div style="font-size:12.5px">' + esc(sub) + '</div>' : '')
     + '</div>';
 }
+
+
+// ══════════════════════════════════════════
+//  #8 GRAFIK PROGRESS NILAI
+// ══════════════════════════════════════════
+async function loadGrafik() {
+  try {
+    const r = await window.HQ.MuridAPI.getProgressGrafik();
+    const data  = r.data  || [];
+    const trend = r.trend || 'stabil';
+
+    const card = document.getElementById('grafikCard');
+    if (!data.length) { if(card) card.style.display='none'; return; }
+    if (card) card.style.display = 'block';
+
+    // Trend badge
+    const trendEl = document.getElementById('grafikTrend');
+    if (trendEl) {
+      const trendMap = {
+        naik  : { icon:'📈', text:'Naik', color:'var(--green)' },
+        turun : { icon:'📉', text:'Perlu perhatian', color:'var(--red)' },
+        stabil: { icon:'➡️', text:'Stabil', color:'var(--amber)' },
+      };
+      const t = trendMap[trend] || trendMap.stabil;
+      trendEl.innerHTML = '<span style="color:' + t.color + '">' + t.icon + ' ' + t.text + '</span>';
+    }
+
+    renderGrafik(data);
+  } catch(e) { console.error('loadGrafik:', e); }
+}
+
+function renderGrafik(data) {
+  const wrap  = document.getElementById('grafikCanvas');
+  const empty = document.getElementById('grafikEmpty');
+  if (!wrap) return;
+
+  if (data.length < 2) {
+    wrap.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  wrap.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  const NILAI_COLOR = { 100:'#169B6B', 85:'#1458A8', 70:'#D4900A', 55:'#D94F2A' };
+  const NILAI_LABEL = { 100:'Mumtaz', 85:'Jayyid', 70:'Jayyid', 55:'Maqbul' };
+  const maxVal = 100;
+
+  const bars = data.map(function(d) {
+    const height = Math.round((d.nilai_num / maxVal) * 100);
+    const color  = NILAI_COLOR[d.nilai_num] || '#94a3b8';
+    const lbl    = NILAI_LABEL[d.nilai_num] || d.nilai_teks;
+    return '<div class="grafik-bar" style="height:' + height + '%;background:' + color + ';opacity:.85" '
+      + 'data-label="Sesi ' + d.pertemuan + ': ' + lbl + '" title="Sesi ' + d.pertemuan + '"></div>';
+  }).join('');
+
+  const labels = data.map(function(d) {
+    return '<div class="grafik-label-item">' + d.pertemuan + '</div>';
+  }).join('');
+
+  wrap.innerHTML = '<div class="grafik-bar-wrap">' + bars + '</div>'
+    + '<div class="grafik-label">' + labels + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">'
+    + '<span style="font-size:11px;color:var(--text-3)">Sesi ke-</span>'
+    + Object.entries(NILAI_COLOR).map(function(e) {
+        return '<span style="font-size:11px;display:flex;align-items:center;gap:3px">'
+          + '<span style="width:8px;height:8px;border-radius:2px;background:' + e[1] + ';display:inline-block"></span>'
+          + NILAI_LABEL[e[0]] + '</span>';
+      }).join('')
+    + '</div>';
+}
+
+// ══════════════════════════════════════════
+//  #10 AUTO-REFRESH MURID (5 menit)
+// ══════════════════════════════════════════
+var _muridRefreshInterval = null;
+var _muridLastRefresh     = null;
+
+function startMuridAutoRefresh() {
+  clearInterval(_muridRefreshInterval);
+  _muridLastRefresh = new Date();
+  const badge = document.getElementById('refreshBadgeMurid');
+  if (badge) badge.classList.add('show');
+
+  _muridRefreshInterval = setInterval(async function() {
+    const menit = Math.round((new Date() - _muridLastRefresh) / 60000);
+    const el    = document.getElementById('muridRefreshTxt');
+    if (menit >= 5) {
+      try {
+        const dot = document.getElementById('muridRefreshDot');
+        if (dot) dot.style.animation = 'dotWave 1s infinite';
+        await loadDashboard();
+        _muridLastRefresh = new Date();
+        if (el) el.textContent = 'Baru sinkron';
+        if (dot) dot.style.animation = '';
+      } catch(e) {}
+    } else {
+      if (el) el.textContent = menit <= 0 ? 'Baru sinkron' : 'Sinkron ' + menit + ' menit lalu';
+    }
+  }, 30000);
+}
+
+// ══════════════════════════════════════════
+//  #14 SESSION TIMEOUT MURID (8 jam)
+// ══════════════════════════════════════════
+var _muridSession = null;
+function resetMuridSession() {
+  clearTimeout(_muridSession);
+  _muridSession = setTimeout(function() {
+    toast('Sesi berakhir setelah 8 jam tidak aktif.', 'ok');
+    setTimeout(function(){ window.HQ.Auth.logout(); }, 3000);
+  }, 8 * 60 * 60 * 1000);
+}
+['click','touchstart'].forEach(function(ev) {
+  document.addEventListener(ev, resetMuridSession, { passive:true });
+});
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
 </script>
