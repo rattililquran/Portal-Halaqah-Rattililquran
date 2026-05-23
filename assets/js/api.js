@@ -49,7 +49,7 @@ async function apiPost(action, body = {}) {
 //  AUTH
 // ════════════════════════════════════════════════
 const Auth = {
-  login: (nis, role)        => apiGet('login', { nis, role }),
+  login: (nis, role, password) => apiGet('login', { nis, role, password: password||'' }),
   getProfile: ()            => apiGet('getProfile'),
   logout: () => {
     localStorage.removeItem('hq_token');
@@ -91,7 +91,9 @@ const AdminAPI = {
   createUser:          (data)       => apiPost('createUser', data),
   updateUser:          (data)       => apiPost('updateUser', data),
   deleteUser:          (id_user)    => apiPost('deleteUser', { id_user }),
-  bulkImportUsers:     (data)       => apiPost('bulkImportUsers', data),
+  bulkImportBatch1:    (data)       => apiPost('bulkImportBatch1', data),
+  bulkImportBatch2:    (data)       => apiPost('bulkImportBatch2', data),
+  bulkImportSummary:   (data)       => apiPost('bulkImportSummary', data),
 
   // Halaqah
   getAllHalaqah:        ()           => apiGet('getAllHalaqah'),
