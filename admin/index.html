@@ -152,11 +152,27 @@ tr:hover td{background:#f8fafc}
 .notif-btn.info{background:var(--blue);color:#fff}
 
 /* LOADING */
-.loader{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(6px)}
-.loader.show{display:flex}
-.spin{width:42px;height:42px;border:3.5px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:rot .75s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-.loader-txt{color:#fff;font-size:13.5px;font-weight:500}
+.loader{display:none;position:fixed;inset:0;
+  background:linear-gradient(160deg,rgba(13,27,42,.92),rgba(20,88,168,.88));
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;
+  backdrop-filter:blur(8px)}
+.loader.show{display:flex;animation:loaderFadeIn .3s ease}
+@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
+.loader-inner{text-align:center;max-width:300px;padding:0 24px}
+.loader-arabic{font-family:'Amiri',serif;font-size:32px;color:rgba(255,255,255,.9);
+  margin-bottom:20px;line-height:1.6;animation:arabicPulse 2s ease-in-out infinite}
+@keyframes arabicPulse{0%,100%{opacity:.7;transform:scale(.97)}50%{opacity:1;transform:scale(1)}}
+.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.loader-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);
+  animation:dotPulse 1.4s ease-in-out infinite}
+.loader-dot:nth-child(1){animation-delay:0s}
+.loader-dot:nth-child(2){animation-delay:.2s}
+.loader-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);background:rgba(255,255,255,.3)}40%{transform:scale(1);background:#fff}}
+.loader-txt{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;
+  line-height:1.6;letter-spacing:.01em;animation:txtFadeIn .4s ease}
+@keyframes txtFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.spin{display:none}
 
 /* MISC */
 .section-title{font-size:19px;font-weight:800;margin-bottom:4px}
@@ -191,7 +207,17 @@ tr:hover td{background:#f8fafc}
 </head>
 <body>
 
-<div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Memuat...</div></div>
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-arabic">بِسْمِ اللهِ</div>
+    <div class="loader-dots">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+    <div class="loader-txt" id="loaderTxt">Bismillah...</div>
+  </div>
+</div>
 <div class="notif-overlay" id="notifOverlay" onclick="closeNotif()">
   <div class="notif-box" onclick="event.stopPropagation()">
     <div class="notif-icon" id="notifIcon">✅</div>
@@ -755,7 +781,7 @@ async function doLogin() {
   const nis = document.getElementById('nisInput').value.trim().toUpperCase();
   if (!nis) return showErr('NIS wajib diisi');
   setBtn('loginBtn', true, 'Masuk...');
-  showLoad('Memverifikasi...');
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
   try {
     const pw = document.getElementById('pwInput')?.value || '';
     const d = await window.HQ.Auth.login(nis, 'admin', pw);
@@ -841,7 +867,7 @@ async function refreshPage() {
 //  DASHBOARD
 // ══════════════════════════════════════════
 async function loadDashboard() {
-  showLoad('Memuat dashboard...');
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
   try {
     const r = await window.HQ.AdminAPI.getDashboard();
     const d = r.data;
@@ -873,7 +899,7 @@ async function loadDashboard() {
 //  PERIODE
 // ══════════════════════════════════════════
 async function loadPeriode() {
-  showLoad('Memuat periode...');
+  showLoad('Bismillah, memuat data periode...');
   try {
     const r = await window.HQ.AdminAPI.getAllPeriode();
     allPeriode = r.data || [];
@@ -915,7 +941,7 @@ function editPeriode(id) {
 }
 
 async function aktivasiPeriode(id) {
-  showLoad('Mengaktifkan periode...');
+  showLoad('Bismillah, mengaktifkan periode...');
   try {
     await window.HQ.AdminAPI.updatePeriode({ id_periode: id, status: 'aktif' });
     toast('Periode diaktifkan!','ok');
@@ -934,7 +960,7 @@ async function savePeriode() {
     status         : document.getElementById('prdStatus').value,
   };
   if (!data.nama_periode) return toast('Nama periode wajib diisi','err');
-  showLoad('Menyimpan...');
+  showLoad('Bismillah, menyimpan...');
   try {
     if (id) { data.id_periode = id; await window.HQ.AdminAPI.updatePeriode(data); }
     else await window.HQ.AdminAPI.createPeriode(data);
@@ -957,7 +983,7 @@ function switchUserTab(tab) {
 }
 
 async function loadUsers(role) {
-  showLoad('Memuat users...');
+  showLoad('Bismillah, memuat data pengguna...');
   try {
     const r = await window.HQ.AdminAPI.getAllUsers(role === 'semua' ? '' : role);
     const rows = r.data || [];
@@ -1014,7 +1040,7 @@ async function saveUser() {
     catatan     : document.getElementById('usrCatatan').value,
   };
   if (!data.nama_lengkap) return toast('Nama wajib diisi','err');
-  showLoad('Menyimpan...');
+  showLoad('Bismillah, menyimpan...');
   try {
     if (id) { data.id_user = id; await window.HQ.AdminAPI.updateUser(data); }
     else await window.HQ.AdminAPI.createUser(data);
@@ -1030,7 +1056,7 @@ async function deleteUser(id, nama) {
   document.getElementById('notifBtn').textContent = 'Ya, Nonaktifkan';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Menonaktifkan...');
+    showLoad('Bismillah, memproses...');
     try {
       await window.HQ.AdminAPI.deleteUser(id);
       toast(nama + ' dinonaktifkan','ok');
@@ -1170,21 +1196,21 @@ async function doBulkImport() {
   const total = importedUsers.length;
   try {
     // ── BATCH 1: Simpan Users ──
-    showLoad('Batch 1/3: Menyimpan ' + total + ' user...');
+    showLoad('Bismillah, menyimpan data pengguna (' + total + ' user)...');
     const b1 = await window.HQ.AdminAPI.bulkImportBatch1({ users: importedUsers });
     if (b1.status !== 'ok') throw new Error(b1.message);
 
     // ── BATCH 2: Assign ke Halaqah ──
     let assigned = 0, notFound = [];
     if (b1.pending_halaqah && b1.pending_halaqah.length) {
-      showLoad('Batch 2/3: Assign ' + b1.pending_halaqah.length + ' murid ke halaqah...');
+      showLoad('Bismillah, mendaftarkan murid ke halaqah...');
       const b2 = await window.HQ.AdminAPI.bulkImportBatch2({ pending_halaqah: b1.pending_halaqah });
       assigned = b2.assigned || 0;
       notFound = b2.not_found || [];
     }
 
     // ── BATCH 3: Rekap ──
-    showLoad('Batch 3/3: Menyusun rekap...');
+    showLoad('Alhamdulillah, menyusun rekap import...');
     const b3 = await window.HQ.AdminAPI.bulkImportSummary({
       berhasil: b1.berhasil,
       duplikat: b1.duplikat,
@@ -1209,7 +1235,7 @@ async function doBulkImport() {
 //  HALAQAH
 // ══════════════════════════════════════════
 async function loadHalaqah() {
-  showLoad('Memuat halaqah...');
+  showLoad('Bismillah, memuat data halaqah...');
   try {
     const r = await window.HQ.AdminAPI.getAllHalaqah();
     allHalaqah = r.data || [];
@@ -1279,7 +1305,7 @@ async function saveHalaqah() {
     kurikulum   : document.getElementById('hqKurikulum').value,
   };
   if (!data.nama_halaqah || !data.id_guru) return toast('Nama dan guru wajib diisi','err');
-  showLoad('Menyimpan...');
+  showLoad('Bismillah, menyimpan...');
   try {
     if (id) { data.id_halaqah = id; await window.HQ.AdminAPI.updateHalaqah(data); }
     else await window.HQ.AdminAPI.createHalaqah(data);
@@ -1295,7 +1321,7 @@ async function hapusHalaqah(id, nama) {
   document.getElementById('notifBtn').textContent = 'Ya, Nonaktifkan';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Menonaktifkan...');
+    showLoad('Bismillah, memproses...');
     try {
       await window.HQ.AdminAPI.deleteHalaqah(id);
       toast('Halaqah dinonaktifkan','ok');
@@ -1311,7 +1337,7 @@ async function hapusHalaqah(id, nama) {
 async function loadAnggota() {
   const id_halaqah = document.getElementById('anggotaHalaqahSel').value;
   if (!id_halaqah) return;
-  showLoad('Memuat anggota...');
+  showLoad('Bismillah, memuat data anggota kelas...');
   try {
     const r = await window.HQ.AdminAPI.getAllAnggota(id_halaqah);
     const rows = r.data || [];
@@ -1346,7 +1372,7 @@ function editAnggota(id, level, target) {
   const newLevel = prompt('Level baru (Level 1/2/3/4/Level Qiyam):', level);
   if (!newLevel) return;
   const newTarget = prompt('Target level baru:', target);
-  showLoad('Menyimpan...');
+  showLoad('Bismillah, menyimpan...');
   window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget||'' })
     .then(() => { toast('Level diperbarui!','ok'); loadAnggota(); })
     .catch(e => toast(e.message,'err'))
@@ -1361,7 +1387,7 @@ async function saveAnggota() {
     target_level: document.getElementById('angTarget').value,
   };
   if (!data.id_halaqah || !data.id_murid) return toast('Halaqah dan murid wajib dipilih','err');
-  showLoad('Mendaftarkan...');
+  showLoad('Bismillah, mendaftarkan murid...');
   try {
     await window.HQ.AdminAPI.addAnggota(data);
     closeModal('modalAnggota');
@@ -1376,7 +1402,7 @@ async function hapusAnggota(id, nama) {
   document.getElementById('notifBtn').textContent = 'Ya, Keluarkan';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad();
+    showLoad('Bismillah, memproses...');
     try {
       await window.HQ.AdminAPI.removeAnggota(id);
       toast(nama + ' dikeluarkan','ok');
@@ -1392,7 +1418,7 @@ async function hapusAnggota(id, nama) {
 async function loadKomponen() {
   const id_periode = document.getElementById('komponenPeriodeSel').value;
   if (!id_periode) return;
-  showLoad('Memuat komponen...');
+  showLoad('Bismillah, memuat konfigurasi raport...');
   try {
     const r = await window.HQ.AdminAPI.getKomponenRaport(id_periode);
     komponenRows = (r.data||[]).filter(k=>k.status==='aktif');
@@ -1452,7 +1478,7 @@ async function saveKomponen() {
   if (!id_periode) return toast('Pilih periode dulu','err');
   const total = komponenRows.reduce((s,k)=>s+Number(k.bobot||0),0);
   if (total !== 100) return toast('Total bobot harus 100%, saat ini '+total+'%','err');
-  showLoad('Menyimpan komponen...');
+  showLoad('Bismillah, menyimpan konfigurasi raport...');
   try {
     await window.HQ.AdminAPI.saveKomponenRaport({ id_periode, komponen: komponenRows });
     toast('Komponen raport disimpan!','ok');
@@ -1476,7 +1502,7 @@ async function loadNilaiMurid() {
   const id_periode = document.getElementById('nilaiPeriodeSel').value;
   const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
   if (!id_periode || !id_halaqah) return;
-  showLoad('Memuat data nilai...');
+  showLoad('Bismillah, memuat data nilai...');
   try {
     const [anggotaRes, nilaiRes] = await Promise.all([
       window.HQ.AdminAPI.getAllAnggota(id_halaqah),
@@ -1516,7 +1542,7 @@ async function saveSemuaNilai() {
   const id_periode = document.getElementById('nilaiPeriodeSel').value;
   const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
   if (!id_periode) return toast('Pilih periode dulu','err');
-  showLoad('Menyimpan nilai...');
+  showLoad('Bismillah, menyimpan nilai...');
   let saved = 0;
   try {
     for (const m of nilaiMuridList) {
@@ -1545,7 +1571,7 @@ async function saveSemuaNilai() {
 async function loadRaportList() {
   const id_periode = document.getElementById('raportPeriodeSel').value;
   if (!id_periode) return;
-  showLoad('Memuat raport...');
+  showLoad('Bismillah, memuat data raport...');
   try {
     const r = await window.HQ.AdminAPI.getRaportList(id_periode);
     const rows = r.data || [];
@@ -1573,7 +1599,7 @@ async function doGenerateBulk() {
   document.getElementById('notifBtn').textContent = 'Ya, Generate';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Generating raport semua murid...');
+    showLoad('Bismillah, membuat raport untuk semua murid...');
     try {
       const r = await window.HQ.AdminAPI.generateRaportBulk({ id_periode });
       toast(r.message,'ok');
@@ -1584,7 +1610,7 @@ async function doGenerateBulk() {
 }
 
 async function lihatRaport(id_raport) {
-  showLoad('Memuat raport...');
+  showLoad('Bismillah, memuat data raport...');
   try {
     // Generate ulang untuk dapat detail terbaru
     const id_periode = document.getElementById('raportPeriodeSel').value;
@@ -1649,7 +1675,7 @@ async function lihatRaport(id_raport) {
 }
 
 async function publishRaport(id_raport) {
-  showLoad('Publishing...');
+  showLoad('Bismillah, mempublikasikan raport...');
   try {
     await window.HQ.AdminAPI.publishRaport(id_raport);
     toast('Raport dipublikasikan ke murid!','ok');
@@ -1660,7 +1686,7 @@ async function publishRaport(id_raport) {
 }
 
 async function kirimEmail(id_raport) {
-  showLoad('Mengirim email...');
+  showLoad('Bismillah, mengirim raport via email...');
   try {
     const r = await window.HQ.AdminAPI.kirimRaportEmail(id_raport);
     toast(r.message,'ok');
@@ -1673,7 +1699,7 @@ async function kirimEmail(id_raport) {
 //  LAPORAN
 // ══════════════════════════════════════════
 async function loadLaporan() {
-  showLoad('Memuat laporan...');
+  showLoad('Bismillah, memuat laporan global...');
   try {
     const r = await window.HQ.AdminAPI.getLaporanGlobal();
     const tbody = document.getElementById('laporanTbl');
@@ -1695,7 +1721,7 @@ async function loadLaporan() {
 // ══════════════════════════════════════════
 async function loadAbsensi() {
   const id_halaqah = document.getElementById('absensiHalaqahSel').value;
-  showLoad('Memuat absensi...');
+  showLoad('Bismillah, memuat rekap absensi...');
   try {
     const r = await window.HQ.AdminAPI.getRekapAbsensi(id_halaqah ? { id_halaqah } : {});
     const tbody = document.getElementById('absensiTbl');
@@ -1721,7 +1747,7 @@ async function loadAbsensi() {
 //  PENGUMUMAN
 // ══════════════════════════════════════════
 async function loadPengumuman() {
-  showLoad();
+  showLoad('Bismillah, memproses...');
   try {
     const r = await window.HQ.AdminAPI.getAllPengumuman();
     const tbody = document.getElementById('pengumumanTbl');
@@ -1740,7 +1766,7 @@ async function doKirimPengumuman() {
   const isi    = document.getElementById('pngIsi').value.trim();
   const target = document.getElementById('pngTarget').value;
   if (!judul || !isi) return toast('Judul dan isi wajib diisi','err');
-  showLoad('Mengirim...');
+  showLoad('Bismillah, mengirim pengumuman...');
   try {
     await window.HQ.AdminAPI.buatPengumuman({ judul, isi, target });
     document.getElementById('pngJudul').value = '';
@@ -1755,7 +1781,7 @@ async function doKirimPengumuman() {
 //  AUDIT LOG
 // ══════════════════════════════════════════
 async function loadAudit() {
-  showLoad();
+  showLoad('Bismillah, memproses...');
   try {
     const r = await window.HQ.AdminAPI.getAuditLog();
     const tbody = document.getElementById('auditTbl');
@@ -1807,7 +1833,7 @@ function toast(msg, type='', autoDismiss=true) {
 }
 function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); clearTimeout(_notifTimer); }
 
-function showLoad(msg='Memuat...') { document.getElementById('loaderTxt').textContent=msg; document.getElementById('loader').classList.add('show'); }
+function showLoad(msg='Bismillah...') { document.getElementById('loaderTxt').textContent=msg; document.getElementById('loader').classList.add('show'); }
 function hideLoad() { document.getElementById('loader').classList.remove('show'); }
 function setBtn(id,dis,txt) { const el=document.getElementById(id); if(!el)return; el.disabled=dis; el.textContent=txt; }
 
