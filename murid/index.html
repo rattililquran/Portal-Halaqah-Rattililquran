@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Portal Murid — Rattililqur'an</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#169B6B;--green-d:#0d5c42;--green-l:#E3F5EE;
+  --blue:#1458A8;--blue-d:#0d3d7a;--blue-l:#EBF2FF;
+  --amber:#D4900A;--amber-l:#FEF5E0;
+  --red:#D94F2A;--red-l:#FDF0EB;
+  --purple:#6D28D9;--purple-l:#EDE9FE;
+  --teal:#0891b2;--teal-l:#e0f2fe;
+  --bg:#F0F5F2;--card:#fff;--text:#0D1B2A;
+  --text-2:#3D5166;--text-3:#8EA3B8;--border:#DDE6EF;
+  --r:16px;--r-sm:10px;--r-lg:22px;--r-xl:28px;--r-pill:100px;
+  --shadow:0 1px 4px rgba(13,27,42,.05),0 4px 18px rgba(13,27,42,.06);
+  --shadow-lg:0 8px 36px rgba(13,27,42,.11);
+  --shadow-card:0 2px 12px rgba(13,27,42,.07);
+  --hh:58px;--sab:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);
+  font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
+
+/* ── AUTH ── */
+#authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0d1f35 0%,#169B6B 100%);padding:20px}
+.auth-box{background:#fff;border-radius:var(--r-xl);padding:40px 36px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.22)}
+.auth-arabic{font-family:'Amiri',serif;font-size:24px;color:var(--green);text-align:center;margin-bottom:4px}
+.auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
+.auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.auth-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-family:inherit;font-size:14px;font-weight:600;outline:none;color:var(--text);
+  transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
+.auth-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,155,107,.1)}
+.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green-d));
+  color:#fff;border:none;border-radius:var(--r-pill);font-family:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 18px rgba(22,155,107,.35)}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(22,155,107,.4)}
+#authErr{color:var(--red);font-size:12px;margin-top:8px;text-align:center;display:none}
+
+/* ── LAYOUT ── */
+#app{display:none;min-height:100dvh;padding-bottom:calc(var(--sab)+70px)}
+
+/* ── TOP HEADER ── */
+.top-header{background:linear-gradient(135deg,var(--green-d),var(--green));
+  padding:20px 20px 56px;position:relative;overflow:hidden}
+.top-header::before{content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
+.top-header::after{content:'';position:absolute;bottom:-30px;left:-20px;
+  width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)}
+.top-greeting{font-size:12.5px;color:rgba(255,255,255,.75);font-weight:500;margin-bottom:2px}
+.top-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
+.top-halaqah{font-size:12px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:5px}
+.top-avatar{position:absolute;top:20px;right:20px;width:44px;height:44px;
+  border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-weight:800;
+  font-size:16px;display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,.35);cursor:pointer}
+
+/* ── CONTENT ── */
+.content{padding:0 16px;margin-top:-36px;position:relative}
+
+/* ── PROGRESS CARD ── */
+.progress-card{background:#fff;border-radius:var(--r-lg);padding:18px;
+  box-shadow:var(--shadow-lg);margin-bottom:14px;border:1px solid rgba(22,155,107,.12)}
+.progress-level{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.level-badge{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
+  padding:4px 14px;border-radius:var(--r-pill);font-size:12px;font-weight:700}
+.level-target{font-size:11.5px;color:var(--text-3)}
+.progress-bar-wrap{background:#f0f5f2;border-radius:var(--r-pill);height:10px;overflow:hidden;margin-bottom:8px}
+.progress-bar-fill{height:100%;border-radius:var(--r-pill);
+  background:linear-gradient(90deg,var(--green),#22c55e);transition:width .6s ease}
+.progress-meta{display:flex;justify-content:space-between;font-size:11.5px}
+.progress-count{font-weight:700;color:var(--green)}
+.progress-remain{color:var(--text-3)}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-card{background:#fff;border-radius:var(--r);padding:14px 12px;
+  box-shadow:var(--shadow-card);text-align:center;border:1px solid var(--border)}
+.stat-card .ico{font-size:22px;margin-bottom:4px}
+.stat-card .val{font-size:20px;font-weight:800;line-height:1;color:var(--text)}
+.stat-card .lbl{font-size:10.5px;color:var(--text-3);margin-top:3px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em}
+
+/* ── CARD ── */
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);
+  box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden}
+.card-head{padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-body{padding:16px}
+.card-more{font-size:12px;color:var(--green);font-weight:600;cursor:pointer;
+  background:none;border:none;font-family:inherit}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;padding:8px 0 calc(var(--sab)+8px);z-index:100;
+  box-shadow:0 -4px 20px rgba(13,27,42,.08)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:4px 0;
+  font-family:inherit;font-size:10px;font-weight:600;color:var(--text-3);
+  transition:color .15s}
+.nav-item.active{color:var(--green)}
+.nav-item .ni{font-size:22px;line-height:1}
+.nav-item .nl{font-size:10px}
+
+/* ── PAGES ── */
+.page{display:none}.page.active{display:block}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:var(--r-pill);
+  font-size:10.5px;font-weight:700;white-space:nowrap}
+.b-green{background:var(--green-l);color:#0a6b4e}
+.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-amber{background:var(--amber-l);color:#8a6200}
+.b-red{background:var(--red-l);color:#a03010}
+.b-gray{background:#f1f5f9;color:#64748b}
+.b-purple{background:var(--purple-l);color:var(--purple)}
+
+/* ── RIWAYAT KBM ITEM ── */
+.riwayat-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.riwayat-item:last-child{border-bottom:none}
+.riwayat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.riwayat-tgl{font-size:12px;color:var(--text-3)}
+.riwayat-materi{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.riwayat-koreksi{font-size:12.5px;color:var(--text-2);background:var(--amber-l);
+  border-radius:var(--r-sm);padding:8px 10px;margin-top:6px;line-height:1.5}
+
+/* ── PR / LATIHAN MANDIRI ── */
+.pr-item{border-radius:var(--r);border:1.5px solid var(--border);padding:14px;
+  margin-bottom:10px;transition:border-color .2s}
+.pr-item:last-child{margin-bottom:0}
+.pr-item.lewat{border-color:var(--red);background:var(--red-l)}
+.pr-item.hari_ini{border-color:var(--amber);background:var(--amber-l)}
+.pr-item.mepet{border-color:var(--amber)}
+.pr-item.aman{border-color:var(--green)}
+.pr-jenis{font-size:11px;font-weight:700;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.pr-isi{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5}
+.pr-deadline{font-size:12px;font-weight:600}
+
+/* ── PENGUMUMAN ── */
+.peng-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.peng-item:last-child{border-bottom:none}
+.peng-tgl{font-size:11px;color:var(--text-3);margin-bottom:4px}
+.peng-judul{font-size:14px;font-weight:700;margin-bottom:4px}
+.peng-isi{font-size:13px;color:var(--text-2);line-height:1.6}
+.peng-label{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+  border-radius:var(--r-pill);font-size:10px;font-weight:700;margin-bottom:6px}
+.label-penting{background:#fee2e2;color:#991b1b}
+.label-info{background:var(--blue-l);color:var(--blue)}
+.label-event{background:var(--purple-l);color:var(--purple)}
+.label-kelas{background:var(--green-l);color:var(--green-d)}
+
+/* ── RAPORT CARD ── */
+.raport-card{background:linear-gradient(135deg,var(--blue-l),#fff);
+  border:1.5px solid rgba(20,88,168,.2);border-radius:var(--r-lg);padding:18px;margin-bottom:12px}
+.raport-periode{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.05em}
+.raport-nilai{font-size:42px;font-weight:800;color:var(--blue);line-height:1}
+.raport-predikat{font-size:14px;font-weight:700;color:var(--green);margin-top:4px}
+.raport-komponen{margin-top:14px;border-top:1px solid rgba(20,88,168,.1);padding-top:12px}
+.komponen-row{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;font-size:12.5px;border-bottom:1px solid rgba(20,88,168,.06)}
+.komponen-row:last-child{border-bottom:none}
+
+/* ── LINK CARDS ── */
+.links-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.link-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);
+  padding:16px 14px;text-align:center;cursor:pointer;transition:all .2s;
+  box-shadow:var(--shadow-card);text-decoration:none;display:block}
+.link-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--green)}
+.link-card .lc-ico{font-size:28px;margin-bottom:6px}
+.link-card .lc-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px}
+.link-card .lc-sub{font-size:11px;color:var(--text-3)}
+.link-card-full{grid-column:1/-1}
+
+/* ── NILAI BADGE ── */
+.nilai-Mumtaz{background:#fef9c3;color:#854d0e;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
+.nilai-Jayyid{background:var(--blue-l);color:var(--blue);padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
+.nilai-JJ{background:var(--green-l);color:#0a6b4e;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
+.nilai-Maqbul{background:var(--red-l);color:#a03010;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--text-3)}
+.empty-ico{font-size:40px;margin-bottom:8px;opacity:.4}
+.empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+
+/* ── LOADER ── */
+.loader{display:none;position:fixed;inset:0;
+  background:linear-gradient(160deg,rgba(13,27,42,.92),rgba(22,155,107,.85));
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;
+  backdrop-filter:blur(8px)}
+.loader.show{display:flex;animation:loaderFadeIn .3s ease}
+@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
+.loader-inner{text-align:center;max-width:300px;padding:0 24px}
+.loader-arabic{font-family:'Amiri',serif;font-size:32px;color:rgba(255,255,255,.9);
+  margin-bottom:20px;line-height:1.6;animation:arabicPulse 2s ease-in-out infinite}
+@keyframes arabicPulse{0%,100%{opacity:.7;transform:scale(.97)}50%{opacity:1;transform:scale(1)}}
+.loader-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.loader-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);
+  animation:dotPulse 1.4s ease-in-out infinite}
+.loader-dot:nth-child(1){animation-delay:0s}
+.loader-dot:nth-child(2){animation-delay:.2s}
+.loader-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);background:rgba(255,255,255,.3)}40%{transform:scale(1);background:#fff}}
+.loader-txt{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;
+  line-height:1.6;animation:txtFadeIn .4s ease}
+@keyframes txtFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── NOTIF ── */
+.notif-overlay{display:none;position:fixed;inset:0;z-index:700;
+  align-items:center;justify-content:center;background:rgba(13,27,42,.4);
+  backdrop-filter:blur(4px);padding:20px}
+.notif-overlay.show{display:flex}
+.notif-box{background:#fff;border-radius:var(--r-xl);padding:28px 28px 24px;
+  width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  animation:notifPop .28s cubic-bezier(.34,1.56,.64,1);text-align:center}
+@keyframes notifPop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.notif-icon{font-size:44px;margin-bottom:10px}
+.notif-title{font-size:16px;font-weight:800;margin-bottom:6px}
+.notif-msg{font-size:13.5px;color:var(--text-2);line-height:1.6;margin-bottom:18px}
+.notif-btn{width:100%;padding:12px;border:none;border-radius:var(--r-pill);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.notif-btn.ok{background:var(--green);color:#fff}
+.notif-btn.err{background:var(--red);color:#fff}
+.notif-btn.info{background:var(--blue);color:#fff}
+
+/* ── MODAL PROFIL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,42,.5);
+  z-index:300;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;
+  width:100%;max-width:540px;max-height:85dvh;overflow-y:auto;
+  animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-head{padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:#fff;z-index:1}
+.modal-title{font-size:15px;font-weight:700}
+.modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px}
+.modal-body{padding:18px 20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);
+  position:sticky;bottom:0;background:#fff;display:flex;gap:10px;justify-content:flex-end}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
+.fc:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,155,107,.1)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);
+  font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-ghost{background:transparent;color:var(--text-3);border:1.5px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-arabic">بِسْمِ اللهِ</div>
+    <div class="loader-dots">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+    <div class="loader-txt" id="loaderTxt">Bismillah, memulai perjuangan menjadi sahabat Al-Qur'an...</div>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotif()">
+  <div class="notif-box" onclick="event.stopPropagation()">
+    <div class="notif-icon" id="notifIcon">ℹ️</div>
+    <div class="notif-title" id="notifTitle">Info</div>
+    <div class="notif-msg" id="notifMsg"></div>
+    <button class="notif-btn info" id="notifBtn" onclick="closeNotif()">OK</button>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-arabic">رتيل القرآن</div>
+    <div class="auth-sub">Portal Murid — Halaqah Rattililqur'an</div>
+    <label class="auth-label" for="nisInput">NIS (Nomor Induk Santri)</label>
+    <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: RTL2418000001"
+      autocomplete="username" style="text-transform:uppercase">
+    <label class="auth-label" for="pwInput">Password</label>
+    <input class="auth-input" type="password" id="pwInput" placeholder="Password akun"
+      autocomplete="current-password">
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:14px">
+      Kosongkan jika belum diset password
+    </div>
+    <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
+    <div id="authErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="top-greeting" id="topGreeting">Assalamu'alaikum,</div>
+    <div class="top-name" id="topName">Murid</div>
+    <div class="top-halaqah">📚 <span id="topHalaqah">—</span></div>
+    <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ════ DASHBOARD ════ -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Progress Level -->
+      <div class="progress-card">
+        <div class="progress-level">
+          <div>
+            <div style="font-size:11px;color:var(--text-3);font-weight:600;
+              text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Level Saat Ini</div>
+            <span class="level-badge" id="dashLevel">Level 1</span>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:2px">Target</div>
+            <div class="level-target" id="dashTarget">Level 2</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="dashProgressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-meta">
+          <span class="progress-count" id="dashProgressPct">0%</span>
+          <span class="progress-remain" id="dashSisa">dari 40 pertemuan</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="ico">✅</div>
+          <div class="val" id="st-hadir">–</div>
+          <div class="lbl">% Hadir</div>
+        </div>
+        <div class="stat-card">
+          <div class="ico">📋</div>
+          <div class="val" id="st-sesi">–</div>
+          <div class="lbl">Pertemuan</div>
+        </div>
+        <div class="stat-card">
+          <div class="ico">⭐</div>
+          <div class="val" id="st-nilai" style="font-size:13px">–</div>
+          <div class="lbl">Avg Nilai</div>
+        </div>
+      </div>
+
+      <!-- PR Aktif -->
+      <div class="card" id="prCard" style="display:none">
+        <div class="card-head">
+          <div class="card-title">📝 Latihan Mandiri</div>
+          <button class="card-more" onclick="goPage('pr')">Lihat semua →</button>
+        </div>
+        <div class="card-body" id="dashPrPreview"></div>
+      </div>
+
+      <!-- Pengumuman terbaru -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">📢 Pengumuman</div>
+          <button class="card-more" onclick="goPage('pengumuman')">Semua →</button>
+        </div>
+        <div class="card-body" id="dashPengumuman">
+          <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
+      </div>
+
+      <!-- Link Penting -->
+      <div style="font-size:12px;font-weight:700;color:var(--text-3);
+        text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
+        🔗 Akses Cepat
+      </div>
+      <div class="links-grid">
+        <a class="link-card" href="https://rattililquran.github.io/KhatamKu/" target="_blank">
+          <div class="lc-ico">📖</div>
+          <div class="lc-title">KhatamKu</div>
+          <div class="lc-sub">Target khatam Al-Qur'an</div>
+        </a>
+        <a class="link-card" href="https://rattililquran.github.io/KonfirmasiSPP-Rattil/" target="_blank">
+          <div class="lc-ico">💳</div>
+          <div class="lc-title">Portal SPP</div>
+          <div class="lc-sub">Konfirmasi pembayaran</div>
+        </a>
+        <div class="link-card link-card-full" id="linkZoom" style="display:none" onclick="openLinkZoom()">
+          <div class="lc-ico">🎥</div>
+          <div class="lc-title">Zoom Meeting</div>
+          <div class="lc-sub" id="linkZoomSub">Link kelas online</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ════ RIWAYAT KBM ════ -->
+    <div class="page" id="page-riwayat">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Riwayat KBM</div>
+      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
+        Rekap sesi tahsin yang sudah kamu ikuti.
+      </div>
+      <div class="card">
+        <div class="card-body" id="riwayatList" style="padding:0 16px">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ LATIHAN MANDIRI (PR) ════ -->
+    <div class="page" id="page-pr">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Latihan Mandiri</div>
+      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
+        PR dari guru — selesaikan sebelum deadline. 💪
+      </div>
+      <div id="prList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ PENGUMUMAN ════ -->
+    <div class="page" id="page-pengumuman">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Pengumuman</div>
+      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
+        Info terbaru dari guru dan admin.
+      </div>
+      <div class="card">
+        <div class="card-body" id="pengumumanList" style="padding:0 16px">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ RAPORT ════ -->
+    <div class="page" id="page-raport">
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Raport Saya</div>
+      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
+        Nilai akhir yang sudah dipublikasikan.
+      </div>
+      <div id="raportList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="goPage('dashboard')" data-p="dashboard">
+      <span class="ni">🏠</span><span class="nl">Beranda</span>
+    </button>
+    <button class="nav-item" onclick="goPage('riwayat')" data-p="riwayat">
+      <span class="ni">📋</span><span class="nl">Riwayat</span>
+    </button>
+    <button class="nav-item" onclick="goPage('pr')" data-p="pr">
+      <span class="ni">📝</span><span class="nl">PR</span>
+    </button>
+    <button class="nav-item" onclick="goPage('pengumuman')" data-p="pengumuman">
+      <span class="ni">📢</span><span class="nl">Info</span>
+    </button>
+    <button class="nav-item" onclick="goPage('raport')" data-p="raport">
+      <span class="ni">📄</span><span class="nl">Raport</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- MODAL PROFIL -->
+<div class="modal-overlay" id="profilModal">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <div class="modal-title">👤 Profil Saya</div>
+      <button class="modal-x" onclick="closeModal('profilModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:16px 0 20px">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-d));
+          color:#fff;font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;
+          margin:0 auto 12px" id="profilAvatar">M</div>
+        <div style="font-size:18px;font-weight:800" id="profilNama">–</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="profilNIS">–</div>
+        <div style="margin-top:8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap" id="profilBadges"></div>
+      </div>
+      <div class="fg">
+        <label>No HP</label>
+        <input type="tel" class="fc" id="profilHp" placeholder="08xxxxxxxxxx">
+      </div>
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" class="fc" id="profilEmail" placeholder="email@example.com">
+      </div>
+      <div class="fg">
+        <label>Alamat</label>
+        <input type="text" class="fc" id="profilAlamat" placeholder="Alamat lengkap">
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="doLogout()">
+          ⬅ Keluar
+        </button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('profilModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveProfil()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let currentUser = null, token = '';
+let dashData    = null;
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
+  if (tk && us && us.role === 'murid') {
+    token = tk; currentUser = us; startApp(); return;
+  }
+  document.getElementById('nisInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pwInput').focus();
+  });
+  document.getElementById('pwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const nis = document.getElementById('nisInput').value.trim().toUpperCase();
+  const pw  = document.getElementById('pwInput').value || '';
+  if (!nis) return showErr('NIS wajib diisi');
+  setBtn('loginBtn', true, 'Masuk...');
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  try {
+    const d = await window.HQ.Auth.login(nis, 'murid', pw);
+    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
+    if (d.user.role !== 'murid') throw new Error('Akun ini bukan murid');
+    token = d.token; currentUser = d.user;
+    sessionStorage.setItem('hq_token', token);
+    sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
+    startApp();
+  } catch(e) { showErr(e.message); }
+  finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
+}
+
+function doLogout() { window.HQ.Auth.logout(); }
+function showErr(m) {
+  const el = document.getElementById('authErr');
+  el.textContent = '⚠ ' + m; el.style.display = 'block';
+}
+
+// ══════════════════════════════════════════
+//  START APP
+// ══════════════════════════════════════════
+async function startApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  await loadDashboard();
+}
+
+// ══════════════════════════════════════════
+//  NAVIGASI
+// ══════════════════════════════════════════
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name)?.classList.add('active');
+  document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
+  window.scrollTo(0, 0);
+  if (name === 'riwayat'   && !document.getElementById('riwayatList').dataset.loaded)  loadRiwayat();
+  if (name === 'pr'        && !document.getElementById('prList').dataset.loaded)        loadPR();
+  if (name === 'pengumuman'&& !document.getElementById('pengumumanList').dataset.loaded)loadPengumuman();
+  if (name === 'raport'    && !document.getElementById('raportList').dataset.loaded)    loadRaport();
+}
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+async function loadDashboard() {
+  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  try {
+    const r = await window.HQ.MuridAPI.getDashboard();
+    dashData = r.data;
+    const d  = dashData;
+
+    // Header
+    const nama = d.profil.nama || currentUser.nama || 'Murid';
+    const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('topAvatar').textContent  = ini;
+    document.getElementById('topName').textContent    = nama.split(' ')[0];
+    document.getElementById('topHalaqah').textContent = d.halaqah.nama || '—';
+
+    // Greeting
+    const hour = new Date().getHours();
+    const greet = hour < 10 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
+    document.getElementById('topGreeting').textContent = greet + ',';
+
+    // Progress level
+    const skor = d.kehadiran.skor_dari_40;
+    document.getElementById('dashLevel').textContent       = d.anggota.level;
+    document.getElementById('dashTarget').textContent      = '→ ' + d.anggota.target_level;
+    document.getElementById('dashProgressBar').style.width = Math.min(skor, 100) + '%';
+    document.getElementById('dashProgressPct').textContent = skor + '% dari target level';
+    document.getElementById('dashSisa').textContent        = d.kehadiran.sisa_sesi + ' sesi tersisa';
+
+    // Stats
+    document.getElementById('st-hadir').textContent = d.kehadiran.pct_hadir + '%';
+    document.getElementById('st-sesi').textContent  = d.kehadiran.total_sesi;
+    document.getElementById('st-nilai').textContent = d.avg_nilai || '–';
+
+    // PR Aktif
+    if (d.pr_aktif > 0) {
+      document.getElementById('prCard').style.display = 'block';
+      document.getElementById('dashPrPreview').innerHTML =
+        '<div style="font-size:13px;color:var(--amber);font-weight:600">⚠️ ' +
+        d.pr_aktif + ' latihan mandiri menunggu. <button class="card-more" onclick="goPage(\'pr\')">Lihat →</button></div>';
+    }
+
+    // Pengumuman preview
+    renderPengumumanList(d.pengumuman, 'dashPengumuman', 3);
+
+  } catch(e) { toast('Gagal memuat: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  RIWAYAT KBM
+// ══════════════════════════════════════════
+async function loadRiwayat() {
+  const el = document.getElementById('riwayatList');
+  showLoad('Bismillah, memuat riwayat KBM...');
+  try {
+    const r = await window.HQ.MuridAPI.getRiwayat();
+    const rows = r.data || [];
+    el.dataset.loaded = '1';
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada riwayat KBM</div></div>';
+      return;
+    }
+    el.innerHTML = rows.map(k => {
+      const hadir_badge = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'}[k.status_hadir]||'b-gray';
+      const hadir_lbl   = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[k.status_hadir]||k.status_hadir;
+      return '<div class="riwayat-item">'
+        + '<div class="riwayat-header">'
+        + '<span class="riwayat-tgl">' + fmtDate(k.tanggal) + ' · Sesi ke-' + esc(k.pertemuan_ke) + '</span>'
+        + '<span class="badge ' + hadir_badge + '">' + hadir_lbl + '</span>'
+        + '</div>'
+        + (k.materi ? '<div class="riwayat-materi">📖 ' + esc(k.materi) + '</div>' : '')
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+        + (k.nilai ? '<span class="' + nilaiClass(k.nilai) + '">' + esc(k.nilai) + '</span>' : '')
+        + (k.adab  ? '<span class="badge b-blue" style="font-size:11px">' + esc(k.adab) + '</span>' : '')
+        + '</div>'
+        + (k.koreksi_tahsin ? '<div class="riwayat-koreksi">✏️ ' + esc(k.koreksi_tahsin) + '</div>' : '')
+        + (k.latihan_mandiri ? '<div style="margin-top:8px;padding:8px 10px;background:var(--amber-l);border-radius:var(--r-sm);font-size:12.5px">'
+            + '📝 <strong>PR:</strong> ' + esc(k.latihan_mandiri)
+            + (k.deadline ? ' · <span style="color:var(--red)">Deadline: ' + fmtDate(k.deadline) + '</span>' : '')
+            + '</div>' : '')
+        + '</div>';
+    }).join('');
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(e.message) + '</div></div>'; }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  LATIHAN MANDIRI (PR)
+// ══════════════════════════════════════════
+async function loadPR() {
+  const el = document.getElementById('prList');
+  showLoad('Bismillah, memuat latihan mandiri...');
+  try {
+    const r = await window.HQ.MuridAPI.getLatihanMandiri();
+    const rows = r.data || [];
+    el.dataset.loaded = '1';
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">✅</div><div class="empty-ttl">Tidak ada latihan mandiri aktif</div><div style="font-size:12.5px;color:var(--text-3)">Semua latihan sudah selesai atau belum ada yang diberikan</div></div>';
+      return;
+    }
+    const JENIS_ICO = {
+      'VN di WAG':'🎙',
+      'Mendengar rekaman dan baca mandiri':'🎧',
+      'Lainnya':'📌'
+    };
+    const STATUS = {
+      lewat    : { lbl:'Sudah Lewat Deadline', cls:'b-red', emoji:'🔴' },
+      hari_ini : { lbl:'Deadline Hari Ini!',   cls:'b-amber', emoji:'⚠️' },
+      mepet    : { lbl:'Deadline Mepet',        cls:'b-amber', emoji:'🟡' },
+      aman     : { lbl:'',                      cls:'b-green', emoji:'🟢' },
+      none     : { lbl:'',                      cls:'b-gray',  emoji:'' },
+    };
+    el.innerHTML = rows.map(pr => {
+      const s   = STATUS[pr.status_deadline] || STATUS.none;
+      const ico = JENIS_ICO[pr.jenis_latihan] || '📝';
+      return '<div class="pr-item ' + pr.status_deadline + '">'
+        + '<div class="pr-jenis">' + ico + ' ' + esc(pr.jenis_latihan || 'Latihan Mandiri')
+        + ' · Sesi ke-' + esc(pr.pertemuan_ke) + '</div>'
+        + '<div class="pr-isi">' + esc(pr.latihan_mandiri) + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+        + (pr.deadline ? '<div class="pr-deadline" style="color:' + (pr.status_deadline==='lewat'?'var(--red)':pr.status_deadline==='aman'?'var(--green)':'var(--amber)') + '">'
+            + '📅 Deadline: ' + fmtDate(pr.deadline) + '</div>' : '<div></div>')
+        + (s.lbl ? '<span class="badge ' + s.cls + '">' + s.emoji + ' ' + s.lbl + '</span>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(e.message) + '</div></div>'; }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PENGUMUMAN
+// ══════════════════════════════════════════
+async function loadPengumuman() {
+  const el = document.getElementById('pengumumanList');
+  showLoad('Bismillah, memuat pengumuman...');
+  try {
+    const r = await window.HQ.MuridAPI.getPengumuman();
+    el.dataset.loaded = '1';
+    renderPengumumanList(r.data || [], 'pengumumanList');
+  } catch(e) { el.innerHTML = emptyHTML('❌', e.message, ''); }
+  finally { hideLoad(); }
+}
+
+function renderPengumumanList(rows, containerId, limit) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const data = limit ? rows.slice(0, limit) : rows;
+  if (!data.length) {
+    el.innerHTML = emptyHTML('📭', 'Belum ada pengumuman', '');
+    return;
+  }
+  // Kategori otomatis dari judul
+  function getLabel(judul) {
+    const j = (judul||'').toUpperCase();
+    if (j.includes('PENTING') || j.includes('URGENT')) return '<span class="peng-label label-penting">🔴 PENTING</span>';
+    if (j.includes('EVENT') || j.includes('ACARA'))   return '<span class="peng-label label-event">🟣 EVENT</span>';
+    if (j.includes('KELAS') || j.includes('KBM'))     return '<span class="peng-label label-kelas">🟢 INFO KELAS</span>';
+    return '<span class="peng-label label-info">🔵 INFO</span>';
+  }
+  el.innerHTML = data.map(p =>
+    '<div class="peng-item">'
+    + getLabel(p.judul)
+    + '<div class="peng-tgl">' + fmtDate(p.tanggal) + ' · ' + esc(p.nama_pembuat||'Admin') + '</div>'
+    + '<div class="peng-judul">' + esc(p.judul) + '</div>'
+    + '<div class="peng-isi">' + esc(p.isi) + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+// ══════════════════════════════════════════
+//  RAPORT
+// ══════════════════════════════════════════
+async function loadRaport() {
+  const el = document.getElementById('raportList');
+  showLoad('Bismillah, memuat raport...');
+  try {
+    const r = await window.HQ.MuridAPI.getRaport();
+    const rows = r.data || [];
+    el.dataset.loaded = '1';
+    if (!rows.length) {
+      el.innerHTML = emptyHTML('📄', 'Belum ada raport', 'Raport akan muncul setelah dipublikasikan oleh admin');
+      return;
+    }
+    el.innerHTML = rows.map(rp => {
+      const komponen = rp.komponen || [];
+      return '<div class="raport-card">'
+        + '<div class="raport-periode">' + esc(rp.nama_periode) + '</div>'
+        + '<div style="display:flex;align-items:flex-end;gap:12px">'
+        + '<div><div style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:2px">Nilai Akhir</div>'
+        + '<div class="raport-nilai">' + (rp.nilai_akhir||'–') + '</div>'
+        + '<div class="raport-predikat">' + esc(rp.predikat||'–') + '</div></div>'
+        + '</div>'
+        + (komponen.length ? '<div class="raport-komponen">'
+          + komponen.map(k => '<div class="komponen-row">'
+            + '<span>' + esc(k.nama_komponen) + '</span>'
+            + '<span style="display:flex;gap:8px;align-items:center">'
+            + '<span style="color:var(--text-3);font-size:11.5px">' + k.bobot + '%</span>'
+            + '<strong>' + k.nilai + '</strong>'
+            + '</span></div>'
+          ).join('')
+          + '</div>' : '')
+        + '<div style="margin-top:10px;font-size:11.5px;color:var(--text-3)">📅 ' + fmtDate(rp.tanggal_cetak) + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(e) { el.innerHTML = emptyHTML('❌', e.message, ''); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PROFIL
+// ══════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'profilModal' && dashData) {
+    const d = dashData;
+    const nama = d.profil.nama || '';
+    const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('profilAvatar').textContent = ini;
+    document.getElementById('profilNama').textContent   = nama;
+    document.getElementById('profilNIS').textContent    = currentUser.id_user;
+    document.getElementById('profilHp').value           = currentUser.no_hp || '';
+    document.getElementById('profilEmail').value        = d.profil.email || '';
+    document.getElementById('profilAlamat').value       = currentUser.alamat || '';
+    document.getElementById('profilBadges').innerHTML   =
+      '<span class="badge b-blue">' + esc(d.anggota.level) + '</span>'
+      + '<span class="badge b-green">' + esc(d.halaqah.nama) + '</span>';
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function saveProfil() {
+  showLoad('Bismillah, menyimpan profil...');
+  try {
+    await window.HQ.MuridAPI.updateProfil({
+      no_hp  : document.getElementById('profilHp').value,
+      email  : document.getElementById('profilEmail').value,
+      alamat : document.getElementById('profilAlamat').value,
+    });
+    closeModal('profilModal');
+    toast('Profil berhasil diperbarui!', 'ok');
+  } catch(e) { toast(e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+let _notifTimer;
+function toast(msg, type='ok') {
+  const icons  = {ok:'✅',err:'❌',info:'ℹ️'};
+  const titles = {ok:'Berhasil',err:'Gagal',info:'Info'};
+  document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
+  document.getElementById('notifTitle').textContent = titles[type]||'Info';
+  document.getElementById('notifMsg').textContent   = msg;
+  const btn = document.getElementById('notifBtn');
+  btn.className = 'notif-btn ' + (type||'info');
+  btn.textContent = 'OK';
+  btn.onclick = closeNotif;
+  document.getElementById('notifOverlay').classList.add('show');
+  clearTimeout(_notifTimer);
+  if (type === 'ok') _notifTimer = setTimeout(closeNotif, 3000);
+}
+function closeNotif() {
+  document.getElementById('notifOverlay').classList.remove('show');
+  clearTimeout(_notifTimer);
+}
+function showLoad(msg='Bismillah...') {
+  document.getElementById('loaderTxt').textContent = msg;
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoad() { document.getElementById('loader').classList.remove('show'); }
+function setBtn(id, dis, txt) {
+  const el = document.getElementById(id); if(!el)return;
+  el.disabled=dis; el.textContent=txt;
+}
+function nilaiClass(n) {
+  return {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'}[n]||'badge b-gray';
+}
+function fmtDate(d) {
+  if (!d) return '–';
+  return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+}
+function esc(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function emptyHTML(ico, ttl, sub) {
+  return '<div class="empty"><div class="empty-ico">' + ico + '</div>'
+    + '<div class="empty-ttl">' + esc(ttl) + '</div>'
+    + (sub ? '<div style="font-size:12.5px">' + esc(sub) + '</div>' : '')
+    + '</div>';
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
+</script>
+</body>
+</html>
