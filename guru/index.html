@@ -1464,6 +1464,9 @@ function renderNilaiList() { renderNilaiMuridStep(); }
 async function doSelesaiKBM() {
   if (!sesiAktif) return;
 
+  // Tutup modal preview dulu
+  closeModal('previewModal');
+
   const materi     = document.getElementById('jurnalMateri').value.trim();
   const metode     = document.getElementById('jurnalMetode').value;
   const catatan    = document.getElementById('jurnalCatatan').value.trim();
