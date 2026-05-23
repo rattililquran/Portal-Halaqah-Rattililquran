@@ -25,13 +25,13 @@
   --sab:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
 
 /* ── AUTH ── */
 #authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(160deg,#061a36 0%,#1458A8 60%,#1D9E75 100%);padding:20px}
-.auth-box{background:#fff;border-radius:var(--r-xl);padding:36px 32px;width:100%;max-width:360px;
-  box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.auth-box{background:#fff;border-radius:var(--r-xl);padding:40px 36px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.08)}
 .auth-arabic{font-family:'Amiri',serif;font-size:22px;color:var(--blue);text-align:center;margin-bottom:4px}
 .auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
 .auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
@@ -46,7 +46,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── LAYOUT ── */
 #app{display:none}
 .sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100dvh;
-  background:#0f172a;display:flex;flex-direction:column;z-index:100;transition:transform .3s}
+  background:linear-gradient(180deg,#0d1f35 0%,#0a1628 100%);
+  display:flex;flex-direction:column;z-index:100;transition:transform .3s;
+  border-right:1px solid rgba(255,255,255,.05)}
 .sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
 .sb-arabic{font-family:'Amiri',serif;font-size:20px;color:#fff}
 .sb-sub{font-size:9.5px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
@@ -58,11 +60,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .sb-nav{flex:1;padding:10px 0;overflow-y:auto}
 .sb-section{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.22);text-transform:uppercase;
   letter-spacing:.1em;padding:12px 18px 5px}
-.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 18px;
-  color:rgba(255,255,255,.5);background:none;border:none;border-left:3px solid transparent;
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;
+  color:rgba(255,255,255,.48);background:none;border:none;border-radius:10px;margin:1px 8px;width:calc(100% - 16px);
   font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;text-align:left}
-.nav-btn:hover{color:#fff;background:rgba(255,255,255,.05)}
-.nav-btn.active{color:#fff;background:rgba(20,88,168,.35);border-left-color:#60a5fa}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.07)}
+.nav-btn.active{color:#fff;background:rgba(20,88,168,.4);font-weight:700}
 .nav-btn .ni{font-size:15px;flex-shrink:0}
 .sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07)}
 .logout-btn{width:100%;padding:9px;background:rgba(224,90,42,.12);color:#f87c55;
@@ -72,40 +74,44 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 .main{margin-left:var(--sw);min-height:100dvh;display:flex;flex-direction:column}
 .topbar{height:var(--hh);background:var(--card);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 20px;gap:12px;
-  position:sticky;top:0;z-index:50;box-shadow:0 1px 0 var(--border)}
+  display:flex;align-items:center;padding:0 22px;gap:12px;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 1px 0 var(--border),0 4px 12px rgba(13,27,42,.04)}
 .topbar-title{font-size:15px;font-weight:700;flex:1}
 .topbar-date{font-size:11.5px;color:var(--text-3)}
 .hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
-.content{flex:1;padding:20px;max-width:960px;width:100%}
+.content{flex:1;padding:22px 24px;max-width:980px;width:100%}
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
 
 /* ── STAT CARDS ── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
-.stat{background:var(--card);border-radius:var(--r);padding:18px;border:1px solid var(--border);
-  box-shadow:var(--shadow);transition:transform .2s}
-.stat:hover{transform:translateY(-2px)}
-.stat-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:8px}
-.stat-val{font-size:26px;font-weight:800;line-height:1}
-.stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:3px;font-weight:500}
+.stat{background:var(--card);border-radius:var(--r);padding:20px;border:1px solid var(--border);
+  box-shadow:var(--shadow-card);transition:all .2s;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);opacity:.6}
+.stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.stat-val{font-size:28px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 
 /* ── CARD ── */
 .card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
-.card-head{padding:14px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:12px}
-.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
-.card-body{padding:18px}
+  box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden;transition:box-shadow .2s}
+.card:hover{box-shadow:var(--shadow-lg)}
+.card-head{padding:15px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(to bottom,#fafbfc,#fff)}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card-body{padding:20px}
 
 /* ── HALAQAH CARDS ── */
 .hq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .hq-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
-  box-shadow:var(--shadow);padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.hq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  box-shadow:var(--shadow-card);padding:20px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.hq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
   background:linear-gradient(90deg,var(--blue),#60a5fa)}
-.hq-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+.hq-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:rgba(20,88,168,.35)}
 .hq-name{font-size:14px;font-weight:700;margin-bottom:5px}
 .hq-meta{font-size:11.5px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .hq-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid var(--border)}
@@ -147,14 +153,14 @@ tr:hover td{background:#f8fafc}
 .btn-lg{padding:13px 28px;font-size:14.5px;font-weight:700;border-radius:100px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-perjuangan{
-  background:linear-gradient(135deg,var(--green),#0d5c42);
-  color:#fff;font-size:15px;font-weight:800;padding:14px 32px;
+  background:linear-gradient(135deg,#169B6B 0%,#0d5c42 100%);
+  color:#fff;font-size:15px;font-weight:800;padding:15px 32px;
   border-radius:100px;border:none;cursor:pointer;font-family:inherit;
-  box-shadow:0 4px 20px rgba(29,158,117,.35),inset 0 1px 0 rgba(255,255,255,.15);
-  transition:all .2s;width:100%;margin-top:8px
+  box-shadow:0 4px 24px rgba(22,155,107,.4),inset 0 1px 0 rgba(255,255,255,.2);
+  transition:all .22s;width:100%;margin-top:10px;letter-spacing:-.01em;
 }
-.btn-perjuangan:hover{transform:scale(1.02);box-shadow:0 6px 24px rgba(29,158,117,.4)}
-.btn-perjuangan:active{transform:scale(.98)}
+.btn-perjuangan:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(22,155,107,.45)}
+.btn-perjuangan:active{transform:scale(.97)}
 .btn-perjuangan:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
 /* ── FORMS ── */
@@ -162,7 +168,7 @@ tr:hover td{background:#f8fafc}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
   font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
-.fc:focus{border-color:var(--blue)}
+.fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,88,168,.1)}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
@@ -174,8 +180,8 @@ tr:hover td{background:#f8fafc}
 .prow-name{font-weight:600;font-size:14px;flex:1}
 .prow-level{font-size:11px;color:var(--text-3);margin-top:1px}
 .prow-btns{display:flex;gap:4px}
-.pb{padding:6px 11px;border-radius:7px;border:1.5px solid;font-family:inherit;
-  font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent}
+.pb{padding:8px 13px;border-radius:9px;border:1.5px solid;font-family:inherit;
+  font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;min-width:38px}
 .pb[data-k="H"]{border-color:var(--green);color:var(--green)}.pb[data-k="H"].on{background:var(--green);color:#fff}
 .pb[data-k="I"]{border-color:var(--amber);color:#8a6200}.pb[data-k="I"].on{background:var(--amber);color:#fff}
 .pb[data-k="S"]{border-color:var(--blue);color:var(--blue)}.pb[data-k="S"].on{background:var(--blue);color:#fff}
@@ -207,16 +213,16 @@ tr:hover td{background:#f8fafc}
 
 /* ── NAV BUTTONS STEP ── */
 .step-nav{display:flex;gap:10px;margin-top:16px}
-.step-nav .btn-back{flex:0 0 auto;padding:12px 22px;font-size:13.5px;
+.step-nav .btn-back{flex:0 0 auto;padding:13px 24px;font-size:13.5px;
   background:#fff;border:1.5px solid var(--border);color:var(--text-2);border-radius:var(--r-pill);
-  font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s}
-.step-nav .btn-back:hover{border-color:var(--blue);color:var(--blue)}
-.step-nav .btn-next{flex:1;padding:13px;font-size:14.5px;font-weight:700;
-  background:var(--green);color:#fff;border:none;border-radius:var(--r-pill);
-  font-family:inherit;cursor:pointer;transition:all .15s;
-  box-shadow:0 4px 16px rgba(29,158,117,.25)}
-.step-nav .btn-next:hover{background:#166a52}
-.step-nav .btn-next:disabled{opacity:.5;cursor:not-allowed}
+  font-family:inherit;font-weight:600;cursor:pointer;transition:all .18s;box-shadow:var(--shadow-card)}
+.step-nav .btn-back:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 4px 14px rgba(20,88,168,.15)}
+.step-nav .btn-next{flex:1;padding:14px;font-size:14.5px;font-weight:800;letter-spacing:-.01em;
+  background:linear-gradient(135deg,#169B6B,#0d5c42);color:#fff;border:none;border-radius:var(--r-pill);
+  font-family:inherit;cursor:pointer;transition:all .18s;
+  box-shadow:0 4px 18px rgba(22,155,107,.3),inset 0 1px 0 rgba(255,255,255,.15)}
+.step-nav .btn-next:hover{box-shadow:0 6px 24px rgba(22,155,107,.4);transform:translateY(-1px)}
+.step-nav .btn-next:disabled{opacity:.5;cursor:not-allowed;transform:none}
 
 /* ── POPUP DOA ── */
 .doa-overlay{display:none;position:fixed;inset:0;z-index:800;
@@ -247,11 +253,11 @@ tr:hover td{background:#f8fafc}
 /* ── NILAI CARD ── */
 .nilai-murid-card{
   background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:16px;margin-bottom:10px;transition:border-color .2s
+  padding:18px;margin-bottom:10px;transition:all .2s;box-shadow:var(--shadow-card)
 }
 .nilai-murid-card:last-child{margin-bottom:0}
-.nilai-murid-card.terisi{border-color:var(--green)}
-.nilai-murid-card.alpa{opacity:.55}
+.nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#fff)}
+.nilai-murid-card.alpa{opacity:.5;filter:grayscale(.3)}
 
 /* ── SESI AKTIF BANNER ── */
 .sesi-banner{background:linear-gradient(135deg,#e1f5ee,#d1fae5);
@@ -322,10 +328,11 @@ tr:hover td{background:#f8fafc}
 
 /* Draft warning banner */
 .draft-warning{
-  background:linear-gradient(135deg,#fef9c3,#fef3c7);
-  border:2px solid var(--amber);border-radius:var(--r);
+  background:linear-gradient(135deg,#E8F8F2,#d5f5e9);
+  border:2px solid var(--green);border-radius:var(--r);
   padding:16px 18px;margin-bottom:16px;
   display:none;align-items:flex-start;gap:12px;
+  box-shadow:0 2px 12px rgba(22,155,107,.1);
 }
 .draft-warning.show{display:flex}
 .draft-warning-ico{font-size:24px;flex-shrink:0;margin-top:1px}
@@ -482,33 +489,22 @@ tr:hover td{background:#f8fafc}
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Sesi KBM</div>
         <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Kelola sesi tahsin bersama murid.</div>
 
-        <!-- Sesi aktif banner -->
-        <div class="sesi-banner" id="sesiBanner" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <div class="sesi-dot"></div>
-            <strong style="color:#0a6b4e">Sesi Sedang Berjalan</strong>
-            <span id="sesiInfo" style="font-size:12.5px;color:var(--text-2)"></span>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-outline btn-sm" onclick="lanjutSesi()">Lanjutkan Sesi</button>
-            <button class="btn btn-red btn-sm" onclick="konfirmasiTutup()">■ Tutup Sesi</button>
-          </div>
-        </div>
-
-        <!-- Draft Warning -->
+        <!-- Sesi aktif — satu kartu saja -->
         <div class="draft-warning" id="draftWarning">
-          <div class="draft-warning-ico">⚠️</div>
+          <div class="draft-warning-ico">🟢</div>
           <div class="draft-warning-body">
-            <div class="draft-warning-title">Ada Sesi yang Belum Ditutup!</div>
+            <div class="draft-warning-title">Sesi Sedang Berjalan</div>
             <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
             <div class="draft-warning-btns">
-              <button class="btn btn-sm" style="background:var(--amber);color:#fff;font-weight:700"
+              <button class="btn btn-sm" style="background:var(--green);color:#fff;font-weight:700"
                 onclick="lanjutSesi()">▶ Lanjutkan Sesi</button>
               <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
                 onclick="tutupPaksaSesi()">✕ Tutup Paksa</button>
             </div>
           </div>
         </div>
+        <!-- sesiBanner hidden — tidak dipakai lagi -->
+        <div id="sesiBanner" style="display:none"><span id="sesiInfo"></span></div>
 
         <!-- Form buka sesi -->
         <div class="card" id="formBukaKBM">
@@ -606,21 +602,11 @@ tr:hover td{background:#f8fafc}
               <label>Pencapaian Halaman / Modul / Materi</label>
               <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Halaman 12–15, Bab Makhraj Huruf Halq">
             </div>
-            <div class="f2">
-              <div class="fg">
-                <label>Metode</label>
-                <select class="fc" id="jurnalMetode">
-                  <option value="Talaqqi">Talaqqi</option>
-                  <option value="Murajaah">Murajaah</option>
-                  <option value="Materi">Materi</option>
-                  <option value="Campuran">Campuran</option>
-                </select>
-              </div>
-              <div class="fg">
-                <label>Jam Selesai</label>
-                <input type="time" class="fc" id="jurnalJamSelesai">
-              </div>
+            <div class="fg">
+              <label>Jam Selesai</label>
+              <input type="time" class="fc" id="jurnalJamSelesai" style="max-width:180px">
             </div>
+            <input type="hidden" id="jurnalMetode" value="Campuran">
             <div class="fg">
               <label>Catatan Umum Sesi</label>
               <textarea class="fc" id="jurnalCatatan" rows="3"
@@ -1098,10 +1084,10 @@ function updateDraftWarning() {
   if (!banner) return;
   if (!sesiAktif) { banner.classList.remove('show'); return; }
 
-  const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
+  const h    = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
   const nama = h?.nama_halaqah || sesiAktif.id_halaqah;
   document.getElementById('draftWarningInfo').innerHTML =
-    `<strong>${esc(nama)}</strong> · Pertemuan ke-${sesiAktif.pertemuan_ke} · ${fmtDate(sesiAktif.tanggal_pertemuan)}`;
+    `<strong>${esc(nama)}</strong> &nbsp;·&nbsp; ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp; Pertemuan ke-${sesiAktif.pertemuan_ke} &nbsp;·&nbsp; ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''}`;
   banner.classList.add('show');
 }
 
@@ -1404,14 +1390,16 @@ function renderNilaiMuridStep() {
     const korVal    = document.getElementById('koreksi-'+ m.id_murid)?.value || '';
     if (nilaiVal) terisi++;
     return `
-    <div class="nilai-murid-card ${isAlpa?'alpa':nilaiVal?'terisi':''}" id="nmcard-${esc(m.id_murid)}">
+    <div class="nilai-murid-card ${isSkip?'alpa':nilaiVal?'terisi':''}" id="nmcard-${esc(m.id_murid)}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-weight:700;font-size:14px">👤 ${esc(m.nama_murid)}</div>
         <span class="badge ${HADIR_BADGE[status]||'b-gray'}" style="font-size:11px">
           ${HADIR_LABEL[status]||status}
         </span>
       </div>
-      ${isAlpa ? `<div style="font-size:12.5px;color:var(--text-3);font-style:italic">Murid tidak hadir — nilai tidak perlu diisi</div>` : `
+      ${isSkip ? `<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:4px 0">
+        ${isAlpa ? '🔴 Murid alpa — nilai tidak perlu diisi' : '🟡 Murid izin — nilai tidak perlu diisi'}
+      </div>` : `
       <div class="f2" style="margin-bottom:8px">
         <div class="fg" style="margin:0">
           <label>Nilai Tahsin</label>
@@ -1419,7 +1407,6 @@ function renderNilaiMuridStep() {
             onchange="updateNilaiCard('${esc(m.id_murid)}')">
             <option value="">— Pilih —</option>
             <option value="Mumtaz" ${nilaiVal==='Mumtaz'?'selected':''}>⭐ Mumtaz</option>
-            <option value="Jayyid Jiddan" ${nilaiVal==='Jayyid Jiddan'?'selected':''}>✅ Jayyid Jiddan</option>
             <option value="Jayyid" ${nilaiVal==='Jayyid'?'selected':''}>👍 Jayyid</option>
             <option value="Maqbul" ${nilaiVal==='Maqbul'?'selected':''}>📌 Maqbul</option>
           </select>
@@ -1444,7 +1431,7 @@ function renderNilaiMuridStep() {
   }).join('');
 
   // Update progress counter
-  const total  = muridSesi.filter(m => (presensiMap[m.id_murid]||'H') !== 'A').length;
+  const total  = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
 
@@ -1459,9 +1446,9 @@ function updateNilaiCard(id_murid) {
   });
   const terisi = muridSesi.filter(m => {
     const status = presensiMap[m.id_murid] || 'H';
-    return status !== 'A' && document.getElementById('nilai-' + m.id_murid)?.value;
+    return !['A','I'].includes(status) && document.getElementById('nilai-' + m.id_murid)?.value;
   }).length;
-  const total = muridSesi.filter(m => (presensiMap[m.id_murid]||'H') !== 'A').length;
+  const total = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
 
@@ -1509,17 +1496,38 @@ async function doSelesaiKBM() {
 
     // 3. Tutup sesi
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-    toast(res.message || 'Sesi berhasil ditutup! Jazakallah khairan 🌟', 'ok');
+    // Pesan khusus setelah sesi selesai — muncul 7 detik
+    const el = document.getElementById('notifOverlay');
+    document.getElementById('notifIcon').textContent  = '🌟';
+    document.getElementById('notifTitle').textContent = 'Jazaakumullahu Khairan';
+    document.getElementById('notifMsg').textContent   =
+      'Jazaakumullahu Khairan atas jerih payah yang dikeluarkan, semoga Allah terima sebagai amal kebaikan kita.';
+    const btn = document.getElementById('notifBtn');
+    btn.className   = 'notif-btn ok';
+    btn.textContent = 'Aamiin 🤲';
+    btn.onclick     = closeNotif;
+    el.classList.add('show');
+    setTimeout(closeNotif, 7000);
 
-    // Reset state
-    sesiAktif = null; muridSesi = [];
-    muridCache = {};
+    // Reset state lengkap
+    sesiAktif      = null;
+    muridSesi      = [];
+    muridCache     = {};
+    doaSudahMuncul = false;
 
-    // Kembali ke dashboard
+    // Sembunyikan draft warning
+    updateDraftWarning();
+
+    // Kembali ke halaman KBM, reset form
     setTimeout(() => {
       loadDashboard();
-      goPage('dashboard');
-    }, 1200);
+      goPage('kbm');
+      // Reset form buka sesi
+      document.getElementById('kbmHalaqah').value    = '';
+      document.getElementById('kbmPertemuan').value  = '';
+      populateSel('kbmHalaqah');
+      updateSesiBanner();
+    }, 800);
 
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
