@@ -513,7 +513,8 @@ async function doLogin() {
   setLoading(true, 'Memverifikasi akun…');
 
   try {
-    const res  = await fetch(`${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}`, { method:'GET', mode:'cors' });
+    const pw   = document.getElementById('input-pw')?.value || '';
+    const res  = await fetch(`${GAS_URL}?action=login&nis=${encodeURIComponent(nis)}&role=${currentRole}&password=${encodeURIComponent(pw)}`, { method:'GET', mode:'cors' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
