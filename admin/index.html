@@ -215,6 +215,20 @@ tr:hover td{background:#f8fafc}
   animation:barSlide 2s ease-in-out infinite}
 @keyframes barSlide{0%{transform:translateX(-100%)}50%{transform:translateX(0%)}100%{transform:translateX(100%)}}
 .spin{display:none}
+
+/* ── SKELETON LOADING ── */
+.skel{background:linear-gradient(90deg,#f0f2f5 25%,#e4e7ec 50%,#f0f2f5 75%);
+  background-size:200% 100%;animation:skelShimmer 1.4s infinite;
+  border-radius:6px;display:block}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-text{height:14px;margin-bottom:8px;width:80%}
+.skel-text.short{width:50%}
+.skel-text.full{width:100%}
+.skel-num{height:32px;width:60px;border-radius:8px}
+.skel-card{height:80px;border-radius:12px;margin-bottom:10px}
+.skel-row{height:40px;border-radius:6px;margin-bottom:6px}
+.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -290,6 +304,7 @@ tr:hover td{background:#f8fafc}
       <div class="sb-sec">Konfigurasi</div>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
+      <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
     <div class="sb-foot"><button class="logout-btn" onclick="doLogout()">⬅ Keluar</button></div>
   </aside>
@@ -581,6 +596,63 @@ tr:hover td{background:#f8fafc}
             <div style="font-size:12px;color:var(--blue-d);margin-top:4px;line-height:1.6">
               Template ini akan muncul sebagai chip/tombol cepat di portal guru saat guru mengisi koreksi tahsin. Guru cukup tap chip untuk memasukkan teks ke kolom koreksi.
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ARSIP DATA ══ -->
+      <div class="page" id="page-arsip">
+        <div class="section-title">🗄️ Arsip Data</div>
+        <div class="section-sub">Pindahkan data lama ke sheet arsip agar sistem tetap ringan dan cepat.</div>
+
+        <!-- Mode arsip -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">📦 Arsipkan Sekarang</div></div>
+          <div class="card-body">
+            <div class="f2" style="margin-bottom:12px">
+              <div class="fg">
+                <label>Mode Arsip</label>
+                <select class="fc" id="arsipMode" onchange="updateArsipMode()">
+                  <option value="tahunan">📅 Tahunan (data > 1 tahun)</option>
+                  <option value="semester">📆 Per Semester</option>
+                  <option value="periode">📋 Per Periode</option>
+                </select>
+              </div>
+              <div class="fg" id="arsipSemesterWrap" style="display:none">
+                <label>Pilih Semester</label>
+                <select class="fc" id="arsipSemester">
+                  <option value="">-- Pilih --</option>
+                </select>
+              </div>
+              <div class="fg" id="arsipPeriodeWrap" style="display:none">
+                <label>Pilih Periode</label>
+                <select class="fc" id="arsipPeriodeSelect">
+                  <option value="">-- Pilih --</option>
+                </select>
+              </div>
+            </div>
+            <div style="background:var(--amber-l,#fffbeb);border:1px solid #fcd34d;border-radius:var(--r-sm);
+              padding:10px 14px;font-size:12.5px;color:#92400e;margin-bottom:12px">
+              ⚠️ <strong>Perhatian:</strong> Proses arsip memindahkan data ke sheet baru.
+              Data tidak dihapus permanen — tetap bisa dilihat di sheet Arsip. Pastikan sudah backup spreadsheet sebelum arsip.
+            </div>
+            <button class="btn btn-primary" onclick="doArsip()">🗄️ Mulai Arsip</button>
+          </div>
+        </div>
+
+        <!-- Daftar arsip yang ada -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📂 Sheet Arsip Tersedia</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadArsipList()">🔄 Refresh</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama Sheet</th><th>Jumlah Baris</th><th>Aksi</th></tr></thead>
+              <tbody id="arsipTbl">
+                <tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text-3)">Klik Refresh untuk muat data</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -952,6 +1024,7 @@ function goPage(name) {
     audit     : loadAudit,
     level    : loadLevel,
     template : loadTemplate,
+    arsip    : loadArsipPage,
   };
   loaders[name]?.();
 }
@@ -1088,6 +1161,15 @@ function switchUserTab(tab) {
 }
 
 async function loadUsers(role) {
+  // Skeleton sementara fetch
+  var tb = document.getElementById('userTbl');
+  if (tb) tb.innerHTML = [1,2,3,4].map(function(){
+    return '<tr><td><span class="skel skel-text short"></span></td>'
+      + '<td><span class="skel skel-text"></span></td>'
+      + '<td><span class="skel skel-text short"></span></td>'
+      + '<td><span class="skel skel-text short"></span></td>'
+      + '<td><span class="skel skel-text short"></span></td></tr>';
+  }).join('');
   showLoad('Bismillah, memuat data pengguna...');
   try {
     const r = await window.HQ.AdminAPI.getAllUsers(role === 'semua' ? '' : role);
@@ -2266,6 +2348,107 @@ function resetAdminSession() {
 ['click','keydown','touchstart'].forEach(function(ev) {
   document.addEventListener(ev, resetAdminSession, { passive:true });
 });
+
+
+// ══ ARSIP DATA ══════════════════════════════
+var _arsipPeriodeList = [];
+
+async function loadArsipPage() {
+  // Isi dropdown semester
+  var semSel = document.getElementById('arsipSemester');
+  if (semSel && semSel.options.length <= 1) {
+    var now = new Date();
+    var y   = now.getFullYear();
+    [y, y-1, y-2].forEach(function(yr) {
+      ['S2','S1'].forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = yr + '-' + s;
+        opt.textContent = (s==='S1' ? 'Semester 1 (Jan-Jun)' : 'Semester 2 (Jul-Des)') + ' ' + yr;
+        semSel.appendChild(opt);
+      });
+    });
+  }
+  // Isi dropdown periode
+  var perSel = document.getElementById('arsipPeriodeSelect');
+  if (perSel && allPeriode && allPeriode.length && perSel.options.length <= 1) {
+    allPeriode.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id_periode;
+      opt.textContent = p.nama_periode;
+      perSel.appendChild(opt);
+    });
+  }
+  await loadArsipList();
+}
+
+function updateArsipMode() {
+  var mode = document.getElementById('arsipMode').value;
+  var semWrap = document.getElementById('arsipSemesterWrap');
+  var perWrap = document.getElementById('arsipPeriodeWrap');
+  if (semWrap) semWrap.style.display = mode==='semester' ? 'block' : 'none';
+  if (perWrap) perWrap.style.display = mode==='periode'  ? 'block' : 'none';
+}
+
+async function loadArsipList() {
+  var tb = document.getElementById('arsipTbl');
+  if (tb) tb.innerHTML = '<tr><td colspan="3" style="padding:16px;text-align:center"><span class="skel skel-text" style="width:200px;margin:auto;display:block"></span></td></tr>';
+  try {
+    var r = await window.HQ.AdminAPI.getArsipList();
+    var rows = r.data || [];
+    if (!rows.length) {
+      if (tb) tb.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada sheet arsip</td></tr>';
+      return;
+    }
+    if (tb) tb.innerHTML = rows.map(function(a) {
+      return '<tr>'
+        + '<td style="font-weight:600">' + esc(a.nama) + '</td>'
+        + '<td>' + (a.baris||0).toLocaleString() + ' baris</td>'
+        + '<td><a href="' + esc(a.url) + '" target="_blank" class="btn btn-ghost btn-sm">🔗 Buka</a></td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) { toast(e.message,'err'); }
+}
+
+async function doArsip() {
+  var mode = document.getElementById('arsipMode').value;
+  var params = { mode: mode };
+  var label  = '';
+
+  if (mode === 'semester') {
+    var sem = document.getElementById('arsipSemester').value;
+    if (!sem) return toast('Pilih semester dulu','err');
+    params.semester = sem;
+    label = 'semester ' + sem;
+  } else if (mode === 'periode') {
+    var pid = document.getElementById('arsipPeriodeSelect').value;
+    if (!pid) return toast('Pilih periode dulu','err');
+    params.id_periode = pid;
+    var perSel = document.getElementById('arsipPeriodeSelect');
+    label = 'periode ' + (perSel.options[perSel.selectedIndex]?.text || pid);
+  } else {
+    label = 'data > 1 tahun';
+  }
+
+  if (!confirm('Arsipkan ' + label + '? Data akan dipindah ke sheet arsip. Pastikan sudah backup spreadsheet.')) return;
+
+  showLoad('Bismillah, mengarsipkan ' + label + '...');
+  try {
+    // Panggil GAS langsung via fetch — karena ini operasi spreadsheet
+    var token = window.HQ.Auth.getUser ? sessionStorage.getItem('hq_token') : '';
+    var query = new URLSearchParams({
+      action : 'arsipData',
+      token  : sessionStorage.getItem('hq_token') || '',
+      payload: JSON.stringify(params)
+    });
+    var res  = await fetch(window.HQ._baseUrl || 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec?' + query.toString(),
+      { method:'GET', mode:'cors' });
+    var data = await res.json();
+    if (data.status === 'error') throw new Error(data.message);
+    toast('✅ Arsip selesai! Sheet arsip baru dibuat.','ok');
+    await loadArsipList();
+  } catch(e) { toast('Arsip gagal: ' + e.message,'err'); }
+  finally { hideLoad(); }
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
 </script>
