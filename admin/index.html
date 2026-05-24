@@ -720,74 +720,78 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- MODAL BULK IMPORT -->
+<!-- MODAL IMPORT TERINTEGRASI -->
 <div class="overlay" id="modalImport">
   <div class="modal modal-lg">
     <div class="modal-head">
-      <div class="modal-title">📥 Import Data Murid via CSV</div>
+      <div class="modal-title">📥 Import Data via CSV</div>
       <button class="modal-x" onclick="closeModal('modalImport')">✕</button>
     </div>
     <div class="modal-body">
-
-      <!-- Cara pakai -->
       <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Cara Pakai</div>
         <ol style="font-size:12.5px;color:var(--blue-d);line-height:2;padding-left:16px">
           <li>Klik <strong>Unduh Template CSV</strong> di bawah.</li>
-          <li>Buka di Excel / Google Sheets, isi data murid.</li>
-          <li>Save As → format <strong>.csv</strong>.</li>
-          <li>Drag file ke area di bawah, atau klik untuk pilih.</li>
-          <li>Periksa preview lalu klik <strong>Import</strong>.</li>
+          <li>Isi data di Excel/Google Sheets — guru dulu, lalu murid.</li>
+          <li>Kolom <code>nama_halaqah</code> wajib diisi untuk murid agar langsung terdaftar di kelas.</li>
+          <li>Save As → format <strong>.csv (UTF-8)</strong>.</li>
+          <li>Upload file, periksa preview, klik <strong>Import Data</strong>.</li>
         </ol>
+        <div style="margin-top:8px;font-size:12px;color:var(--blue);font-weight:600">
+          ✅ Otomatis: buat halaqah → simpan users → daftarkan ke halaqah — support 300+ murid
+        </div>
       </div>
-
-      <!-- Format kolom -->
       <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Format Kolom</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-3)">NIS</div><div style="font-size:11px;color:var(--text-3)">manual atau auto</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--red)">password*</div><div style="font-size:11px;color:var(--text-3)">min 4 karakter</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--red)">nama_lengkap*</div><div style="font-size:11px;color:var(--text-3)">wajib</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--red)">role*</div><div style="font-size:11px;color:var(--text-3)">murid/guru</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">no_hp</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">email</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">level</div><div style="font-size:11px;color:var(--text-3)">Level 1–Qiyam</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">nama_halaqah</div><div style="font-size:11px;color:var(--text-3)">auto-assign</div></div>
-          <div><div style="font-size:12px;font-weight:700;color:var(--text-2)">nama_guru</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px">
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-3)">NIS</div><div style="font-size:11px;color:var(--text-3)">auto jika kosong</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--amber)">password</div><div style="font-size:11px;color:var(--text-3)">direkomendasikan</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--red)">nama_lengkap*</div><div style="font-size:11px;color:var(--text-3)">wajib</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--red)">role*</div><div style="font-size:11px;color:var(--text-3)">murid/guru</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">no_hp</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">email</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">alamat</div><div style="font-size:11px;color:var(--text-3)">opsional</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--green)">nama_halaqah</div><div style="font-size:11px;color:var(--text-3)">auto-assign murid</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--green)">level</div><div style="font-size:11px;color:var(--text-3)">Level 1-Qiyam</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">nama_guru</div><div style="font-size:11px;color:var(--text-3)">guru halaqah</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">jadwal_hari</div><div style="font-size:11px;color:var(--text-3)">Senin, Rabu</div></div>
+          <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">jam_mulai</div><div style="font-size:11px;color:var(--text-3)">contoh: 08:00</div></div>
         </div>
-        <div style="margin-top:12px">
-          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">📥 Unduh Template CSV</button>
-        </div>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">📥 Unduh Template CSV</button>
       </div>
-
-      <!-- Drop zone -->
-      <div id="dropZone" style="border:2px dashed var(--border);border-radius:var(--r-lg);padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px"
+      <div id="dropZone"
+        style="border:2px dashed var(--border);border-radius:var(--r-lg);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px"
         onclick="document.getElementById('csvFileInput').click()"
         ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-l)'"
         ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
         ondrop="handleFileDrop(event)">
-        <div style="font-size:40px;margin-bottom:8px">☁️</div>
+        <div style="font-size:36px;margin-bottom:8px">☁️</div>
         <div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>
-        <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8)</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8) — support hingga 500 baris</div>
       </div>
       <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
-
-      <!-- Preview -->
+      <div id="importValidasi" style="display:none;margin-bottom:12px"></div>
       <div id="importPreviewBox" style="display:none">
-        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Preview Data</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Preview Data</div>
         <div id="importPreviewInfo" style="font-size:12.5px;color:var(--green);font-weight:600;margin-bottom:8px"></div>
         <div style="overflow-x:auto;max-height:200px;border:1px solid var(--border);border-radius:var(--r-sm)">
-          <table id="importPreviewTable" style="width:100%;border-collapse:collapse;font-size:12px">
+          <table style="width:100%;border-collapse:collapse;font-size:11.5px">
             <thead id="importPreviewHead"></thead>
             <tbody id="importPreviewBody"></tbody>
           </table>
         </div>
       </div>
-
+      <div id="importProgress" style="display:none;margin-top:14px">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:8px" id="importProgressLabel">Memproses...</div>
+        <div style="height:8px;background:var(--border);border-radius:100px;overflow:hidden;margin-bottom:6px">
+          <div id="importProgressBar" style="height:8px;background:linear-gradient(90deg,var(--green),#22c55e);border-radius:100px;width:0%;transition:width .3s"></div>
+        </div>
+        <div id="importProgressDetail" style="font-size:12px;color:var(--text-3)"></div>
+      </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modalImport')">Batal</button>
-      <button class="btn btn-primary" id="btnImport" onclick="doBulkImport()" disabled>📥 Import Data</button>
+      <button class="btn btn-ghost" id="btnBatalImport" onclick="closeModal('modalImport')">Batal</button>
+      <button class="btn btn-primary" id="btnImport" onclick="doImportTerintegrasi()" disabled>📥 Import Data</button>
     </div>
   </div>
 </div>
@@ -1157,169 +1161,261 @@ async function deleteUser(id, nama) {
 }
 
 // ══════════════════════════════════════════
-//  BULK IMPORT CSV
+//  IMPORT CSV TERINTEGRASI
 // ══════════════════════════════════════════
-let importedUsers = [];
+var importedUsers = [];
 
 function openBulkImport() {
   importedUsers = [];
-  const dz = document.getElementById('dropZone');
+  var dz = document.getElementById('dropZone');
   if (dz) {
     dz.style.background = '';
     dz.style.borderColor = 'var(--border)';
-    dz.innerHTML = `<div style="font-size:40px;margin-bottom:8px">☁️</div>
-      <div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>
-      <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8)</div>`;
+    dz.innerHTML = '<div style="font-size:36px;margin-bottom:8px">☁️</div>'
+      + '<div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>'
+      + '<div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8) — support hingga 500 baris</div>';
   }
-  const box = document.getElementById('importPreviewBox');
-  if (box) box.style.display = 'none';
-  const btn = document.getElementById('btnImport');
-  if (btn) btn.disabled = true;
-  const fi = document.getElementById('csvFileInput');
-  if (fi) fi.value = '';
+  var el;
+  el = document.getElementById('importPreviewBox'); if(el) el.style.display='none';
+  el = document.getElementById('importValidasi');   if(el) el.style.display='none';
+  el = document.getElementById('importProgress');   if(el) el.style.display='none';
+  el = document.getElementById('btnImport');        if(el) el.disabled=true;
+  el = document.getElementById('csvFileInput');     if(el) el.value='';
+  el = document.getElementById('btnBatalImport');   if(el) el.disabled=false;
   openModal('modalImport');
 }
 
 function downloadTemplate() {
-  const header = 'NIS,password,nama_lengkap,role,no_hp,email,level,nama_halaqah,nama_guru';
-  const sample = [
-    ',pass1234,Ahmad Fauzi,guru,08120001,ahmad@email.com,,,',
-    ',pass1234,Siti Aminah,guru,08120002,siti@email.com,,,',
-    ',pass1234,Abdullah Azzam,murid,08130001,abdullah@email.com,Level 1,Halaqah Al-Fatihah,Ahmad Fauzi',
-    ',pass1234,Bilal Ibrahim,murid,08130002,bilal@email.com,Level 1,Halaqah Al-Fatihah,Ahmad Fauzi',
-    ',pass1234,Chairul Amin,murid,08130003,chairul@email.com,Level 2,Halaqah Al-Baqarah,Siti Aminah',
+  var header = 'NIS,password,nama_lengkap,role,no_hp,email,alamat,nama_halaqah,level,nama_guru,jadwal_hari,jam_mulai';
+  var sample = [
+    ',guru123,Ustadzah Siti Aminah,guru,08120001,siti@email.com,,,,,,',
+    ',guru123,Ustadz Ahmad Fauzi,guru,08120002,ahmad@email.com,,,,,,',
+    ',murid123,Abdullah Azzam,murid,08130001,azzam@email.com,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,Senin Rabu,08:00',
+    ',murid123,Bilal Ibrahim,murid,08130002,,,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,,',
+    ',murid123,Chairul Amin,murid,08130003,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,Selasa Kamis,09:00',
+    ',murid123,Daud Salman,murid,08130004,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,,',
   ].join('\n');
-  const blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'template_import_user.csv';
+  var blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = 'template_import_rattil.csv';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function handleFileDrop(e) {
   e.preventDefault();
-  const dz = document.getElementById('dropZone');
+  var dz = document.getElementById('dropZone');
   dz.style.borderColor = 'var(--border)'; dz.style.background = '';
-  const file = e.dataTransfer.files[0];
+  var file = e.dataTransfer.files[0];
   if (file) parseCSVFile(file);
 }
-
 function handleFileSelect(e) {
-  const file = e.target.files[0];
+  var file = e.target.files[0];
   if (file) parseCSVFile(file);
 }
-
 function parseCSVFile(file) {
   if (!file.name.endsWith('.csv')) return toast('File harus berformat .csv','err');
-  const reader = new FileReader();
-  reader.onload = (e) => processCSV(e.target.result);
+  var reader = new FileReader();
+  reader.onload = function(e) { processCSV(e.target.result); };
   reader.readAsText(file, 'UTF-8');
 }
 
 function processCSV(text) {
-  const rows = text.split('\n').map(r => r.trim()).filter(r => r);
+  var rows    = text.split('\n').map(function(r){return r.trim();}).filter(function(r){return r;});
   if (rows.length < 2) return toast('File CSV kosong atau hanya berisi header','err');
+  var headers = rows[0].split(',').map(function(h){return h.trim().toLowerCase();});
+  var dataRows = rows.slice(1);
 
-  const headers  = rows[0].split(',').map(h => h.trim().toLowerCase());
-  const dataRows = rows.slice(1);
-
-  importedUsers = dataRows.map(row => {
-    const cols = row.split(',').map(cc => cc.trim());
-    const obj  = {};
-    headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
+  importedUsers = dataRows.map(function(row) {
+    var cols = row.split(',').map(function(cc){return cc.trim();});
+    var obj  = {};
+    headers.forEach(function(h,i){ obj[h] = cols[i] || ''; });
     return {
-      id_user      : obj['nis'] || obj['id_user'] || '',
+      nis          : obj['nis'] || obj['id_user'] || '',
       password     : obj['password'] || '',
       nama_lengkap : obj['nama_lengkap'] || obj['nama'] || '',
       role         : obj['role'] || 'murid',
       no_hp        : obj['no_hp'] || obj['no_wa'] || '',
       email        : obj['email'] || '',
       alamat       : obj['alamat'] || '',
-      level        : obj['level'] || '',
       nama_halaqah : obj['nama_halaqah'] || obj['halaqah'] || '',
+      level        : obj['level'] || 'Level 1',
       nama_guru    : obj['nama_guru'] || obj['guru'] || '',
+      jadwal_hari  : obj['jadwal_hari'] || '',
+      jam_mulai    : obj['jam_mulai'] || '',
     };
-  }).filter(u => u.nama_lengkap);
+  }).filter(function(u){return u.nama_lengkap;});
 
   if (!importedUsers.length) return toast('Tidak ada data valid di CSV','err');
 
-  // Preview
-  const box  = document.getElementById('importPreviewBox');
-  const info = document.getElementById('importPreviewInfo');
-  const head = document.getElementById('importPreviewHead');
-  const body = document.getElementById('importPreviewBody');
+  // Tampilkan preview
+  var box  = document.getElementById('importPreviewBox');
+  var info = document.getElementById('importPreviewInfo');
+  var head = document.getElementById('importPreviewHead');
+  var body = document.getElementById('importPreviewBody');
+  var muridCount = importedUsers.filter(function(u){return u.role==='murid';}).length;
+  var guruCount  = importedUsers.filter(function(u){return u.role==='guru';}).length;
+  var halaqahSet = new Set(importedUsers.filter(function(u){return u.nama_halaqah;}).map(function(u){return u.nama_halaqah;}));
 
-  if (info) info.textContent = '✅ ' + importedUsers.length + ' baris data siap diimport';
-  if (head) head.innerHTML = '<tr>' +
-    ['NIS','Password','Nama','Role','HP','Email','Level','Halaqah'].map(h =>
-      `<th style="padding:6px 8px;background:#f8fafc;border:1px solid var(--border);font-size:10.5px;white-space:nowrap">${h}</th>`
-    ).join('') + '</tr>';
-  if (body) body.innerHTML = importedUsers.slice(0,5).map(u => `<tr>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px;color:var(--text-3)">${esc(u.id_user||'auto')}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${u.password ? '••••' : '<span style="color:var(--text-3)">-</span>'}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px;font-weight:600">${esc(u.nama_lengkap)}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border)">${roleBadge(u.role)}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.no_hp||'–')}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.email||'–')}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.level||'–')}</td>
-    <td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px">${esc(u.nama_halaqah||'–')}</td>
-  </tr>`).join('') +
-  (importedUsers.length > 5 ? `<tr><td colspan="6" style="padding:5px 8px;text-align:center;font-size:11.5px;color:var(--text-3)">...dan ${importedUsers.length-5} baris lainnya</td></tr>` : '');
+  if (info) info.innerHTML = '<span style="color:var(--green)">✅ ' + importedUsers.length + ' baris siap diimport</span>'
+    + ' — ' + muridCount + ' murid, ' + guruCount + ' guru, ' + halaqahSet.size + ' halaqah';
+  if (head) head.innerHTML = '<tr>' + ['NIS','Nama','Role','Halaqah','Level'].map(function(h){
+    return '<th style="padding:6px 8px;background:#f8fafc;border:1px solid var(--border);font-size:10.5px;white-space:nowrap">' + h + '</th>';
+  }).join('') + '</tr>';
+  if (body) body.innerHTML = importedUsers.slice(0,5).map(function(u){
+    return '<tr>'
+      + '<td style="padding:5px 8px;border:1px solid var(--border);font-size:11px;color:var(--text-3)">' + esc(u.nis||'auto') + '</td>'
+      + '<td style="padding:5px 8px;border:1px solid var(--border);font-size:11.5px;font-weight:600">' + esc(u.nama_lengkap) + '</td>'
+      + '<td style="padding:5px 8px;border:1px solid var(--border)">' + roleBadge(u.role) + '</td>'
+      + '<td style="padding:5px 8px;border:1px solid var(--border);font-size:11px">' + esc(u.nama_halaqah||'–') + '</td>'
+      + '<td style="padding:5px 8px;border:1px solid var(--border);font-size:11px">' + esc(u.level||'–') + '</td>'
+      + '</tr>';
+  }).join('')
+  + (importedUsers.length > 5 ? '<tr><td colspan="5" style="padding:5px 8px;text-align:center;font-size:11px;color:var(--text-3)">...dan ' + (importedUsers.length-5) + ' baris lainnya</td></tr>' : '');
 
   if (box) box.style.display = 'block';
-  const btn = document.getElementById('btnImport');
+  var btn = document.getElementById('btnImport');
   if (btn) btn.disabled = false;
 
-  const dz = document.getElementById('dropZone');
+  // Update dropzone
+  var dz = document.getElementById('dropZone');
   if (dz) {
     dz.style.background = 'var(--green-l)';
     dz.style.borderColor = 'var(--green)';
-    dz.innerHTML = `<div style="font-size:28px;margin-bottom:6px">✅</div>
-      <div style="font-weight:700;font-size:14px;color:var(--green)">${importedUsers.length} baris siap diimport</div>
-      <div style="font-size:12px;color:#0a6b4e;margin-top:2px;cursor:pointer">Klik untuk ganti file</div>`;
+    dz.innerHTML = '<div style="font-size:28px;margin-bottom:6px">✅</div>'
+      + '<div style="font-weight:700;font-size:14px;color:var(--green)">' + importedUsers.length + ' baris siap diimport</div>'
+      + '<div style="font-size:12px;color:#0a6b4e;margin-top:2px;cursor:pointer">Klik untuk ganti file</div>';
   }
 }
 
-async function doBulkImport() {
+// ── IMPORT TERINTEGRASI — 3 TAHAP ──
+async function doImportTerintegrasi() {
   if (!importedUsers.length) return toast('Upload file CSV dulu','err');
-  const total = importedUsers.length;
-  try {
-    // ── BATCH 1: Simpan Users ──
-    showLoad('Bismillah, menyimpan data pengguna (' + total + ' user)...');
-    const b1 = await window.HQ.AdminAPI.bulkImportBatch1({ users: importedUsers });
-    if (b1.status !== 'ok') throw new Error(b1.message);
 
-    // ── BATCH 2: Assign ke Halaqah ──
-    let assigned = 0, notFound = [];
-    if (b1.pending_halaqah && b1.pending_halaqah.length) {
-      showLoad('Bismillah, mendaftarkan murid ke halaqah...');
-      const b2 = await window.HQ.AdminAPI.bulkImportBatch2({ pending_halaqah: b1.pending_halaqah });
-      assigned = b2.assigned || 0;
-      notFound = b2.not_found || [];
+  var total = importedUsers.length;
+  var batchSize = 50;
+
+  // Disable tombol
+  var btn = document.getElementById('btnImport');
+  var btnBatal = document.getElementById('btnBatalImport');
+  if (btn) btn.disabled = true;
+  if (btnBatal) btnBatal.disabled = true;
+
+  // Tampilkan progress
+  var progBox   = document.getElementById('importProgress');
+  var progLabel = document.getElementById('importProgressLabel');
+  var progBar   = document.getElementById('importProgressBar');
+  var progDetail = document.getElementById('importProgressDetail');
+  if (progBox) progBox.style.display = 'block';
+
+  function setProgress(pct, label, detail) {
+    if (progBar)   progBar.style.width = pct + '%';
+    if (progLabel) progLabel.textContent = label;
+    if (progDetail) progDetail.textContent = detail || '';
+  }
+
+  var rekap = { halaqah_baru:0, user_berhasil:0, user_duplikat:0, user_gagal:[], assigned:0, not_found:[] };
+
+  try {
+    // ── TAHAP 1: Halaqah ──
+    setProgress(5, 'Tahap 1/3: Memproses halaqah...', '');
+    var halaqahUnik = [];
+    var halaqahSet = {};
+    importedUsers.forEach(function(u) {
+      if (u.nama_halaqah && !halaqahSet[u.nama_halaqah]) {
+        halaqahSet[u.nama_halaqah] = true;
+        halaqahUnik.push({
+          nama_halaqah : u.nama_halaqah,
+          nama_guru    : u.nama_guru,
+          level        : u.level || 'Level 1',
+          jadwal_hari  : u.jadwal_hari,
+          jam_mulai    : u.jam_mulai,
+        });
+      }
+    });
+    if (halaqahUnik.length) {
+      var r1 = await window.HQ.AdminAPI.importTahap1({ halaqah: halaqahUnik });
+      rekap.halaqah_baru = (r1.dibuat || []).length;
+      setProgress(15, 'Tahap 1/3: ' + rekap.halaqah_baru + ' halaqah baru dibuat', r1.message);
+    } else {
+      setProgress(15, 'Tahap 1/3: Tidak ada halaqah baru', '');
     }
 
-    // ── BATCH 3: Rekap ──
-    showLoad('Alhamdulillah, menyusun rekap import...');
-    const b3 = await window.HQ.AdminAPI.bulkImportSummary({
-      berhasil: b1.berhasil,
-      duplikat: b1.duplikat,
-      gagal   : b1.gagal,
-      assigned,
-    });
+    // ── TAHAP 2: Users — batch per 50 ──
+    var offset = 0;
+    var batchNum = 0;
+    var totalBatches = Math.ceil(total / batchSize);
+    while (offset < total) {
+      batchNum++;
+      var pct = 15 + Math.round((offset/total) * 55);
+      setProgress(pct,
+        'Tahap 2/3: Simpan user (batch ' + batchNum + '/' + totalBatches + ')...',
+        'Memproses baris ' + (offset+1) + '–' + Math.min(offset+batchSize, total) + ' dari ' + total
+      );
+      var r2 = await window.HQ.AdminAPI.importTahap2({
+        users: importedUsers, offset: offset, batch_size: batchSize
+      });
+      rekap.user_berhasil += (r2.berhasil || []).length;
+      rekap.user_duplikat += (r2.duplikat || 0);
+      if (r2.gagal && r2.gagal.length) rekap.user_gagal = rekap.user_gagal.concat(r2.gagal);
+      if (r2.selesai) break;
+      offset = r2.next_offset || (offset + batchSize);
+      // Delay kecil antar batch untuk hindari GAS throttle
+      await new Promise(function(res){setTimeout(res, 300);});
+    }
+    setProgress(70, 'Tahap 2/3: ' + rekap.user_berhasil + ' user disimpan', '');
 
-    closeModal('modalImport');
-    importedUsers = [];
+    // ── TAHAP 3: Anggota — batch per 50 ──
+    var anggotaList = importedUsers.filter(function(u){ return u.nama_halaqah && u.role === 'murid'; });
+    if (anggotaList.length) {
+      offset = 0; batchNum = 0;
+      var totalBatches3 = Math.ceil(anggotaList.length / batchSize);
+      while (offset < anggotaList.length) {
+        batchNum++;
+        var pct3 = 70 + Math.round((offset/anggotaList.length) * 25);
+        setProgress(pct3,
+          'Tahap 3/3: Daftarkan ke halaqah (batch ' + batchNum + '/' + totalBatches3 + ')...',
+          'Mendaftarkan ' + (offset+1) + '–' + Math.min(offset+batchSize, anggotaList.length) + ' murid'
+        );
+        var r3 = await window.HQ.AdminAPI.importTahap3({
+          anggota: anggotaList.map(function(u){
+            return { nis: u.nis, nama_lengkap: u.nama_lengkap, nama_halaqah: u.nama_halaqah, level: u.level };
+          }),
+          offset: offset, batch_size: batchSize
+        });
+        rekap.assigned += (r3.assigned || 0);
+        if (r3.not_found) rekap.not_found = rekap.not_found.concat(r3.not_found);
+        if (r3.selesai) break;
+        offset = r3.next_offset || (offset + batchSize);
+        await new Promise(function(res){setTimeout(res, 300);});
+      }
+    }
 
-    // Tampilkan notif
-    let msg = b3.message;
-    if (notFound.length) msg += '\n⚠️ Halaqah tidak ditemukan: ' + notFound.join(', ');
-    if (b1.gagal_detail?.length) msg += '\nGagal: ' + b1.gagal_detail.map(g=>'baris '+g.baris+': '+g.alasan).join('; ');
-    toast(msg, 'ok');
+    setProgress(100, 'Import selesai!', '');
 
-    await loadMasterData(); loadUsers(currentUserTab);
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
+    // Rekap akhir
+    var msg = 'Import selesai!\n'
+      + '🏫 Halaqah baru: ' + rekap.halaqah_baru + '\n'
+      + '✅ User berhasil: ' + rekap.user_berhasil + '\n'
+      + '👥 Didaftarkan ke halaqah: ' + rekap.assigned + '\n'
+      + (rekap.user_duplikat ? '⚠️ Duplikat diskip: ' + rekap.user_duplikat + '\n' : '')
+      + (rekap.user_gagal.length ? '❌ Gagal: ' + rekap.user_gagal.length + '\n' : '')
+      + (rekap.not_found.length ? '⚠️ Halaqah tidak ditemukan: ' + [...new Set(rekap.not_found)].join(', ') : '');
+
+    setTimeout(function() {
+      closeModal('modalImport');
+      importedUsers = [];
+      toast(msg, 'ok');
+      loadMasterData().then(function(){ loadUsers(currentUserTab); });
+    }, 800);
+
+  } catch(e) {
+    setProgress(0, 'Import gagal!', '');
+    toast('Import gagal: ' + e.message, 'err');
+    if (btn) btn.disabled = false;
+    if (btnBatal) btnBatal.disabled = false;
+  }
 }
 
 //  HALAQAH
