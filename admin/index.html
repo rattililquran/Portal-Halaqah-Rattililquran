@@ -1353,16 +1353,18 @@ async function doImportTerintegrasi() {
         'Tahap 2/3: Simpan user (batch ' + batchNum + '/' + totalBatches + ')...',
         'Memproses baris ' + (offset+1) + '–' + Math.min(offset+batchSize, total) + ' dari ' + total
       );
+      // Kirim HANYA slice 50 baris — bukan seluruh array
+      var batchSlice = importedUsers.slice(offset, offset + batchSize);
       var r2 = await window.HQ.AdminAPI.importTahap2({
-        users: importedUsers, offset: offset, batch_size: batchSize
+        users: batchSlice, offset: 0, batch_size: batchSize
       });
       rekap.user_berhasil += (r2.berhasil || []).length;
       rekap.user_duplikat += (r2.duplikat || 0);
       if (r2.gagal && r2.gagal.length) rekap.user_gagal = rekap.user_gagal.concat(r2.gagal);
-      if (r2.selesai) break;
-      offset = r2.next_offset || (offset + batchSize);
+      offset += batchSlice.length;
+      if (offset >= total) break;
       // Delay kecil antar batch untuk hindari GAS throttle
-      await new Promise(function(res){setTimeout(res, 300);});
+      await new Promise(function(res){setTimeout(res, 800);});
     }
     setProgress(70, 'Tahap 2/3: ' + rekap.user_berhasil + ' user disimpan', '');
 
@@ -1378,17 +1380,18 @@ async function doImportTerintegrasi() {
           'Tahap 3/3: Daftarkan ke halaqah (batch ' + batchNum + '/' + totalBatches3 + ')...',
           'Mendaftarkan ' + (offset+1) + '–' + Math.min(offset+batchSize, anggotaList.length) + ' murid'
         );
+        // Kirim HANYA slice batch ini
+      var anggotaSlice = anggotaList.slice(offset, offset + batchSize).map(function(u){
+          return { nis: u.nis, nama_murid: u.nama_lengkap, nama_halaqah: u.nama_halaqah, level: u.level };
+        });
         var r3 = await window.HQ.AdminAPI.importTahap3({
-          anggota: anggotaList.map(function(u){
-            return { nis: u.nis, nama_lengkap: u.nama_lengkap, nama_halaqah: u.nama_halaqah, level: u.level };
-          }),
-          offset: offset, batch_size: batchSize
+          anggota: anggotaSlice, offset: 0, batch_size: batchSize
         });
         rekap.assigned += (r3.assigned || 0);
         if (r3.not_found) rekap.not_found = rekap.not_found.concat(r3.not_found);
-        if (r3.selesai) break;
-        offset = r3.next_offset || (offset + batchSize);
-        await new Promise(function(res){setTimeout(res, 300);});
+        offset += anggotaSlice.length;
+        if (offset >= anggotaList.length) break;
+        await new Promise(function(res){setTimeout(res, 800);});
       }
     }
 
