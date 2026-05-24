@@ -3,7 +3,7 @@
 //  UPDATE: Selalu upload file ini ke GitHub setiap ada perubahan
 // ============================================================
 
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbwcyQ5UvFxxZHDALehrEpLHv4U1APrTdP7OOfwXqFKW2dscXkbh3RPWOtJHwfo3tGeuPg/exec';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbzcTCS-3ikpRjdsSflj4ZUJ7Tc6tUhwnS5rHmFtbsGSulmsU0WOgVXngQNL_cxgJd4tCQ/exec';
 
 function getToken() {
   return localStorage.getItem('hq_token') || sessionStorage.getItem('hq_token') || '';
@@ -70,6 +70,10 @@ var AdminAPI = {
   bulkImportBatch1   : function(d)         { return apiPost('bulkImportBatch1', d); },
   bulkImportBatch2   : function(d)         { return apiPost('bulkImportBatch2', d); },
   bulkImportSummary  : function(d)         { return apiPost('bulkImportSummary', d); },
+  validateImportCSV  : function(d)         { return apiPost('validateImportCSV', d); },
+  importTahap1       : function(d)         { return apiPost('importTahap1Halaqah', d); },
+  importTahap2       : function(d)         { return apiPost('importTahap2Users', d); },
+  importTahap3       : function(d)         { return apiPost('importTahap3Anggota', d); },
 
   // Halaqah
   getAllHalaqah       : function()          { return apiGet('getAllHalaqah'); },
