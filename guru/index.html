@@ -433,6 +433,46 @@ tr:hover td{background:#f8fafc}
 .refresh-badge.show{display:flex}
 .refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
 
+
+/* ── SKELETON LOADING ── */
+.skel{background:linear-gradient(90deg,#f0f2f5 25%,#e4e7ec 50%,#f0f2f5 75%);
+  background-size:200% 100%;animation:skelShimmer 1.4s infinite;
+  border-radius:6px;display:block}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-text{height:14px;margin-bottom:8px;width:80%}
+.skel-text.short{width:50%}
+.skel-text.full{width:100%}
+.skel-num{height:32px;width:60px;border-radius:8px}
+.skel-card{height:80px;border-radius:12px;margin-bottom:10px}
+.skel-row{height:40px;border-radius:6px;margin-bottom:6px}
+.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+
+
+/* ── INLINE LOADING ── */
+.btn-loading{position:relative;pointer-events:none;opacity:.8}
+.btn-loading::after{
+  content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  animation:btnSpin .7s linear infinite}
+@keyframes btnSpin{to{transform:translateY(-50%) rotate(360deg)}}
+
+/* Toast notifikasi non-blocking */
+.toast-inline{
+  position:fixed;bottom:76px;left:50%;transform:translateX(-50%);
+  background:#0d1f35;color:#fff;
+  padding:10px 20px;border-radius:100px;
+  font-size:13px;font-weight:600;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  z-index:999;opacity:0;transition:opacity .25s;
+  white-space:nowrap;display:flex;align-items:center;gap:8px;
+  pointer-events:none}
+.toast-inline.show{opacity:1}
+.toast-inline.ok{background:#166534}
+.toast-inline.err{background:#991b1b}
+.toast-inline.warn{background:#92400e}
+
 </style>
 </head>
 <body>
@@ -1041,6 +1081,7 @@ tr:hover td{background:#f8fafc}
   <div class="refresh-dot" id="refreshDot"></div>
   <span id="refreshTxt">Baru sinkron</span>
 </div>
+<div class="toast-inline" id="toastInline"></div>
 <script src="../assets/js/api.js?v=2.5"></script>
 <script>
 // ══════════════════════════════════════════
@@ -1254,6 +1295,8 @@ async function loadDashboard() {
     document.getElementById('st-murid').textContent   = d.total_murid   ?? '–';
     document.getElementById('st-kbm').textContent     = d.kbm_hari_ini  ?? '–';
     document.getElementById('st-bulan').textContent   = d.kbm_bulan_ini ?? '–';
+    // Hapus skeleton stats
+    document.querySelectorAll('.skel-stat').forEach(function(el){el.remove();});
 
     // Cek sesi draft
     if (d.sesi_draft) {
@@ -2134,7 +2177,7 @@ async function refreshPage() {
 
   muridCache = {};
   const active = document.querySelector('.page.active')?.id?.replace('page-','');
-  if (active === 'dashboard') await loadDashboard();
+  if (active === 'dashboard') { await loadDashboard(); return; }
   else if (active === 'murid' && document.getElementById('muridHalaqahSel').value) await loadMurid();
   else if (active === 'riwayat' && document.getElementById('riwayatHalaqahSel').value) await loadRiwayat();
   else await loadDashboard();
@@ -2505,6 +2548,76 @@ function resetSessionTimer() {
 ['click','keydown','touchstart'].forEach(function(ev) {
   document.addEventListener(ev, resetSessionTimer, {passive:true});
 });
+
+// Muat lebih riwayat KBM (40 data)
+var _riwayatExpanded = false;
+async function muatLebihRiwayat() {
+  if (_riwayatExpanded) return;
+  _riwayatExpanded = true;
+  var btn = document.getElementById('btnMuatLebihRiwayat');
+  if (btn) btn.textContent = 'Memuat...';
+  try {
+    var id_h = document.getElementById('filterRiwayatHalaqah')?.value || (halaqahList[0]?.id_halaqah||'');
+    var r = await window.HQ.GuruAPI.getRiwayatKBM(id_h, 10, 30); // tambah 30
+    if (r.data && r.data.length) {
+      renderRiwayatKBM(r.data);
+      if (btn) btn.style.display = 'none';
+    }
+  } catch(e) { if(btn) btn.textContent = '↓ Muat 40 Riwayat Terakhir'; _riwayatExpanded=false; }
+}
+
+
+// ══ INLINE LOADING UTILITIES ══════════════════
+var _toastTimer = null;
+function showToast(msg, type) {
+  var el = document.getElementById('toastInline');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast-inline show' + (type ? ' ' + type : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ el.className = 'toast-inline'; }, 2800);
+}
+
+// Tampilkan spinner kecil di tombol
+function btnLoad(btnId, txt) {
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.dataset.origText = btn.textContent;
+  btn.textContent = txt || 'Menyimpan...';
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+}
+
+// Reset tombol ke kondisi semula
+function btnReset(btnId, txt) {
+  var btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.textContent = txt || btn.dataset.origText || 'Simpan';
+  btn.classList.remove('btn-loading');
+  btn.disabled = false;
+}
+
+// Smart retry — coba ulang max 2x jika network error
+async function apiWithRetry(fn, maxRetry) {
+  maxRetry = maxRetry || 2;
+  var lastErr;
+  for (var i = 0; i <= maxRetry; i++) {
+    try {
+      return await fn();
+    } catch(e) {
+      lastErr = e;
+      // Hanya retry jika network error, bukan error logika
+      if (e.message && (e.message.includes('503') || e.message.includes('Failed to fetch'))) {
+        if (i < maxRetry) {
+          await new Promise(function(r){ setTimeout(r, 1000 * (i+1)); });
+          continue;
+        }
+      }
+      throw e;
+    }
+  }
+  throw lastErr;
+}
 
 if ('serviceWorker' in navigator)
   navigator.serviceWorker.register('../sw.js').catch(()=>{});
