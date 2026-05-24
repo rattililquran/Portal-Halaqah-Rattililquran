@@ -1294,7 +1294,7 @@ async function doImportTerintegrasi() {
   if (!importedUsers.length) return toast('Upload file CSV dulu','err');
 
   var total = importedUsers.length;
-  var batchSize = 50;
+  var batchSize = 10; // GAS URL limit ~8KB — 10 baris per batch aman
 
   // Disable tombol
   var btn = document.getElementById('btnImport');
@@ -1335,7 +1335,11 @@ async function doImportTerintegrasi() {
       }
     });
     if (halaqahUnik.length) {
-      var r1 = await window.HQ.AdminAPI.importTahap1({ halaqah: halaqahUnik });
+      var halaqahMin = halaqahUnik.map(function(h){
+        return {nama_halaqah:h.nama_halaqah,nama_guru:h.nama_guru,
+          level:h.level||'Level 1',jadwal_hari:h.jadwal_hari||'',jam_mulai:h.jam_mulai||''};
+      });
+      var r1 = await window.HQ.AdminAPI.importTahap1({ halaqah: halaqahMin });
       rekap.halaqah_baru = (r1.dibuat || []).length;
       setProgress(15, 'Tahap 1/3: ' + rekap.halaqah_baru + ' halaqah baru dibuat', r1.message);
     } else {
@@ -1353,18 +1357,19 @@ async function doImportTerintegrasi() {
         'Tahap 2/3: Simpan user (batch ' + batchNum + '/' + totalBatches + ')...',
         'Memproses baris ' + (offset+1) + '–' + Math.min(offset+batchSize, total) + ' dari ' + total
       );
-      // Kirim HANYA slice 50 baris — bukan seluruh array
-      var batchSlice = importedUsers.slice(offset, offset + batchSize);
-      var r2 = await window.HQ.AdminAPI.importTahap2({
-        users: batchSlice, offset: 0, batch_size: batchSize
+      // Kirim HANYA field minimal — kurangi ukuran payload
+      var batchSlice = importedUsers.slice(offset, offset + batchSize).map(function(u) {
+        return { nis:u.nis, password:u.password, nama_lengkap:u.nama_lengkap,
+          role:u.role, no_hp:u.no_hp, email:u.email, alamat:u.alamat };
       });
+      var r2 = await window.HQ.AdminAPI.importTahap2({ users: batchSlice });
       rekap.user_berhasil += (r2.berhasil || []).length;
       rekap.user_duplikat += (r2.duplikat || 0);
       if (r2.gagal && r2.gagal.length) rekap.user_gagal = rekap.user_gagal.concat(r2.gagal);
       offset += batchSlice.length;
       if (offset >= total) break;
       // Delay kecil antar batch untuk hindari GAS throttle
-      await new Promise(function(res){setTimeout(res, 800);});
+      await new Promise(function(res){setTimeout(res, 500);});
     }
     setProgress(70, 'Tahap 2/3: ' + rekap.user_berhasil + ' user disimpan', '');
 
@@ -1380,18 +1385,16 @@ async function doImportTerintegrasi() {
           'Tahap 3/3: Daftarkan ke halaqah (batch ' + batchNum + '/' + totalBatches3 + ')...',
           'Mendaftarkan ' + (offset+1) + '–' + Math.min(offset+batchSize, anggotaList.length) + ' murid'
         );
-        // Kirim HANYA slice batch ini
-      var anggotaSlice = anggotaList.slice(offset, offset + batchSize).map(function(u){
-          return { nis: u.nis, nama_murid: u.nama_lengkap, nama_halaqah: u.nama_halaqah, level: u.level };
+        // Kirim hanya field anggota yang minimal
+        var anggotaSlice = anggotaList.slice(offset, offset + batchSize).map(function(u) {
+          return { nis:u.nis, nama_murid:u.nama_lengkap, nama_halaqah:u.nama_halaqah, level:u.level };
         });
-        var r3 = await window.HQ.AdminAPI.importTahap3({
-          anggota: anggotaSlice, offset: 0, batch_size: batchSize
-        });
+        var r3 = await window.HQ.AdminAPI.importTahap3({ anggota: anggotaSlice });
         rekap.assigned += (r3.assigned || 0);
         if (r3.not_found) rekap.not_found = rekap.not_found.concat(r3.not_found);
         offset += anggotaSlice.length;
         if (offset >= anggotaList.length) break;
-        await new Promise(function(res){setTimeout(res, 800);});
+        await new Promise(function(res){setTimeout(res, 500);});
       }
     }
 
