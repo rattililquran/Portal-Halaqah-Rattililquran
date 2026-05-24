@@ -152,28 +152,7 @@ tr:hover td{background:#f8fafc}
 .notif-btn.info{background:var(--blue);color:#fff}
 
 /* LOADING */
-.loader{display:none;position:fixed;inset:0;
-  background:linear-gradient(160deg,#0a1628 0%,#0d2a1e 60%,#0a1628 100%);
-  z-index:500;align-items:center;justify-content:center;flex-direction:column;
-  backdrop-filter:blur(8px)}
-.loader.show{display:flex;animation:loaderFadeIn .35s ease}
-@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
-.loader-inner{text-align:center;padding:0 32px;max-width:340px}
-.loader-dots{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:12px;margin-bottom:28px}
-.loader-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);
-  animation:dotWave 1.5s ease-in-out infinite}
-.loader-dot:nth-child(1){animation-delay:0s}
-.loader-dot:nth-child(2){animation-delay:.25s}
-.loader-dot:nth-child(3){animation-delay:.5s}
-@keyframes dotWave{0%,60%,100%{transform:translateY(0);background:rgba(255,255,255,.25)}30%{transform:translateY(-10px);background:#fff}}
-  50%{transform:scale(1.3);background:#fff;box-shadow:0 0 12px rgba(255,255,255,.5)}
-}
-.loader-txt{color:#fff;font-size:15px;font-weight:600;
-  line-height:1.75;text-align:center;
-  text-shadow:0 1px 10px rgba(0,0,0,.6);
-  animation:txtSlideUp .5s ease}
-@keyframes txtSlideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.spin{display:none}
+
 
 /* MISC */
 .section-title{font-size:19px;font-weight:800;margin-bottom:4px}
@@ -204,6 +183,38 @@ tr:hover td{background:#f8fafc}
   .stats-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:380px){.stats-grid{grid-template-columns:1fr}}
+/* ── LOADER ── */
+.loader{display:none;position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#0a1628 0%,#0d2a1e 100%);
+  align-items:center;justify-content:center;flex-direction:column;
+  backdrop-filter:blur(12px)}
+.loader.show{display:flex;animation:loaderFadeIn .3s ease}
+@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
+.loader-inner{display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:0 32px;max-width:320px}
+.loader-dots{display:flex;flex-direction:row;align-items:center;
+  justify-content:center;gap:12px;margin-bottom:24px}
+.loader-dot{width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.25);
+  animation:dotWave 1.5s ease-in-out infinite;flex-shrink:0}
+.loader-dot:nth-child(1){animation-delay:0s}
+.loader-dot:nth-child(2){animation-delay:.18s}
+.loader-dot:nth-child(3){animation-delay:.36s}
+@keyframes dotWave{
+  0%,60%,100%{transform:translateY(0);background:rgba(255,255,255,.25)}
+  30%{transform:translateY(-10px);background:#fff}}
+.loader-txt{color:#fff;font-size:14.5px;font-weight:600;
+  line-height:1.75;text-align:center;
+  text-shadow:0 2px 16px rgba(0,0,0,.7);
+  animation:txtFadeIn .4s ease .1s both;min-height:40px}
+@keyframes txtFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.loader-bar{width:120px;height:2px;background:rgba(255,255,255,.12);
+  border-radius:100px;margin-top:18px;overflow:hidden}
+.loader-bar-fill{height:100%;border-radius:100px;
+  background:linear-gradient(90deg,#169B6B,#22c55e);
+  animation:barSlide 2s ease-in-out infinite}
+@keyframes barSlide{0%{transform:translateX(-100%)}50%{transform:translateX(0%)}100%{transform:translateX(100%)}}
+.spin{display:none}
 </style>
 </head>
 <body>
@@ -232,7 +243,7 @@ tr:hover td{background:#f8fafc}
 <!-- AUTH -->
 <div id="authScreen">
   <div class="auth-box">
-    <div class="auth-arabic">رتيل القرآن</div>
+    <div class="auth-arabic">رتل القرآن</div>
     <div class="auth-sub">Portal Admin — Rattililqur'an</div>
     <label class="auth-label" for="nisInput">NIS Admin</label>
     <input class="auth-input" type="text" id="nisInput" placeholder="USR-ADMIN-001" autocomplete="username" style="text-transform:uppercase">
@@ -248,7 +259,7 @@ tr:hover td{background:#f8fafc}
 <div id="app">
   <aside class="sidebar" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-arabic">رتيل القرآن</div>
+      <div class="sb-arabic">رتل القرآن</div>
       <div class="sb-sub">Portal Admin</div>
     </div>
     <div class="sb-user">
