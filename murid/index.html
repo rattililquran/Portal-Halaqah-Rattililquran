@@ -1147,7 +1147,9 @@ function renderKalender() {
     else if (status === 'A') cls = 'alpa';
     else if (status === 'I' || status === 'T') cls = 'izin';
     var isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
-    html += '<div class="kal-day '+ cls + (isToday?' today':'') + '">' + d + '</div>';
+    // Tanggal berwarna = ada sesi, bisa diklik
+    var onclick = status ? ' onclick="bukaKalDetail(\'' + dateStr + '\')" style="cursor:pointer"' : '';
+    html += '<div class="kal-day '+ cls + (isToday?' today':'') + '"' + onclick + '>' + d + '</div>';
   }
 
   var grid = document.getElementById('kalGrid');
