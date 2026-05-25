@@ -881,14 +881,18 @@ async function loadDashboard() {
     }
     document.getElementById('dashTarget').textContent = tLevel ? '→ ' + tLevel : '–';
 
-    var target = Number(kh.target_pertemuan || 40);
-    var hadir  = Number(kh.skor_hadir_raw || kh.total_hadir || 0);
-    var pct    = target > 0 ? Math.min(Math.round((hadir/target)*100),100) : 0;
+    // GAS kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir
+    var target  = 40;
+    var hadir   = Number(kh.skor_hadir   || 0);  // jumlah skor hadir (float)
+    var skor40  = Number(kh.skor_dari_40 || 0);  // % dari 40 pertemuan
+    var pct     = skor40 > 0 ? Math.min(skor40, 100)
+                : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
     document.getElementById('dashProgressBar').style.width = pct + '%';
-    document.getElementById('dashProgressPct').textContent = pct + '% dari target level';
+    document.getElementById('dashProgressPct').textContent = pct + '% dari 40 sesi target';
     var sisa = Number(kh.sisa_sesi);
-    document.getElementById('dashSisa').textContent = isNaN(sisa)||sisa<0
-      ? 'dari ' + target + ' pertemuan' : sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!';
+    document.getElementById('dashSisa').textContent = !isNaN(sisa) && sisa >= 0
+      ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
+      : 'dari 40 pertemuan';
 
     // Stats
     document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
@@ -1209,12 +1213,16 @@ function renderPengumumanList(rows, containerId, limit) {
     return ['label-info','INFO'];
   }
   el.innerHTML = data.map(function(p) {
-    var lb = getLabel(p.judul);
+    var lb  = getLabel(p.judul);
+    // Field tanggal bisa tgl_dibuat atau tanggal tergantung sheet
+    var tgl = p.tgl_dibuat || p.tanggal || p.timestamp || p.submitted_at || '';
+    // Field isi bisa isi atau konten
+    var isi = p.isi || p.konten || p.deskripsi || '';
     return '<div class="peng-item">'
       + '<span class="peng-label '+lb[0]+'">'+lb[1]+'</span>'
-      + '<div class="peng-tgl">'+fmtDate(p.tgl_dibuat||p.tanggal||'')+'</div>'
-      + '<div class="peng-judul">'+esc(p.judul||'')+'</div>'
-      + '<div class="peng-isi">'+esc(p.isi||p.konten||'')+'</div>'
+      + '<div class="peng-tgl">'+fmtDate(tgl)+'</div>'
+      + '<div class="peng-judul">'+esc(p.judul||p.judul_pengumuman||'')+'</div>'
+      + '<div class="peng-isi">'+esc(isi)+'</div>'
       + '</div>';
   }).join('');
 }
