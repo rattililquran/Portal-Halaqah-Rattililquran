@@ -72,7 +72,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── TOP HEADER ── */
 .top-header{
   background:linear-gradient(135deg,#0d5c42 0%,#169B6B 60%,#1e8a5e 100%);
-  padding:20px 18px 56px;position:relative;overflow:hidden;
+  padding:20px 18px 48px;position:relative;overflow:hidden;
 }
 .top-header::before{content:'';position:absolute;top:-60px;right:-50px;
   width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
@@ -81,11 +81,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .top-row{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
 .top-left{}
 .top-greet{font-size:12.5px;color:rgba(255,255,255,.75);font-weight:500;margin-bottom:1px}
-.top-name{font-size:21px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:3px}
+.top-greet{font-size:12px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:1px}
+.top-name{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px;
+  text-shadow:0 2px 12px rgba(0,0,0,.2)}
 .top-badge{display:inline-flex;align-items:center;gap:5px;
-  background:rgba(255,255,255,.18);backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.25);border-radius:100px;
-  padding:3px 10px;font-size:11.5px;color:rgba(255,255,255,.9);font-weight:600}
+  background:rgba(255,255,255,.2);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.3);border-radius:100px;
+  padding:4px 12px;font-size:12px;color:#fff;font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .top-avatar{width:46px;height:46px;border-radius:50%;
   background:rgba(255,255,255,.2);backdrop-filter:blur(8px);
   border:2px solid rgba(255,255,255,.35);color:#fff;
@@ -94,15 +98,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .top-avatar:hover{background:rgba(255,255,255,.3)}
 
 /* ── CONTENT ── */
-.content{padding:0 14px;margin-top:-36px;position:relative}
+.content{padding:0 14px 80px;margin-top:-28px;position:relative}
 
 /* ── PROGRESS CARD ── */
 .progress-card{
-  background:rgba(255,255,255,.92);
+  background:rgba(255,255,255,.95);
   backdrop-filter:blur(20px) saturate(1.8);
   -webkit-backdrop-filter:blur(20px) saturate(1.8);
   border-radius:22px;padding:18px 20px;
-  box-shadow:0 4px 24px rgba(13,27,42,.1),0 0 0 1px rgba(255,255,255,.7);
+  box-shadow:0 6px 28px rgba(13,27,42,.12),0 0 0 1px rgba(255,255,255,.8);
   margin-bottom:14px;
 }
 .prog-level-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -169,8 +173,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
-.page-title{font-size:18px;font-weight:800;padding-top:8px;margin-bottom:2px}
-.page-sub{font-size:12.5px;color:var(--text-3);margin-bottom:14px}
+.page-header{
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-radius:16px;padding:12px 16px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 2px 12px rgba(13,27,42,.07);
+}
+.page-header-ico{font-size:22px;flex-shrink:0}
+.page-title{font-size:17px;font-weight:800;color:var(--text);line-height:1.2}
+.page-sub{font-size:12px;color:var(--text-3);margin-top:1px}
 
 /* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;
@@ -395,8 +408,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .loader-txt{color:#fff;font-size:14.5px;font-weight:600;line-height:1.75;
   text-shadow:0 2px 16px rgba(0,0,0,.7);animation:slideUp .4s ease .1s both;min-height:40px}
 @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.loader-bar{width:120px;height:2px;background:rgba(255,255,255,.12);
-  border-radius:100px;margin-top:18px;overflow:hidden}
+.loader-bar{width:200px;height:3px;background:rgba(255,255,255,.12);
+  border-radius:100px;margin-top:20px;overflow:hidden;margin-left:auto;margin-right:auto}
 .loader-bar-fill{height:100%;border-radius:100px;
   background:linear-gradient(90deg,var(--green),#34d399);
   animation:barSlide 2s ease-in-out infinite}
@@ -460,10 +473,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div id="app">
 
   <!-- TOP HEADER -->
-  <div class="top-header">
+  <div class="top-header" id="topHeader">
     <div class="top-row">
       <div class="top-left">
-        <div class="top-greet" id="topGreeting">Assalamu'alaikum,</div>
+        <div class="top-greet" id="topGreeting">Assalamu'alaikum 👋</div>
         <div class="top-name" id="topName">Murid</div>
         <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
       </div>
@@ -560,8 +573,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ RIWAYAT KBM ════ -->
     <div class="page" id="page-riwayat">
-      <div class="page-title">Riwayat KBM</div>
-      <div class="page-sub">Rekap sesi tahsin yang sudah kamu ikuti.</div>
+      <div class="page-header"><div class="page-header-ico">📋</div><div><div class="page-title">Riwayat KBM</div><div class="page-sub">Rekap sesi tahsin yang sudah kamu ikuti.</div></div></div>
 
       <!-- Kalender Kehadiran -->
       <div class="kalender-wrap" id="kalenderWrap">
@@ -592,8 +604,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ LATIHAN MANDIRI (PR) ════ -->
     <div class="page" id="page-pr">
-      <div class="page-title">Latihan Mandiri</div>
-      <div class="page-sub">PR dari guru — selesaikan sebelum deadline. 💪</div>
+      <div class="page-header"><div class="page-header-ico">📝</div><div><div class="page-title">Latihan Mandiri</div><div class="page-sub">PR dari guru — selesaikan sebelum deadline.</div></div></div>
       <div id="prList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
@@ -601,8 +612,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ PENGUMUMAN ════ -->
     <div class="page" id="page-pengumuman">
-      <div class="page-title">Pengumuman</div>
-      <div class="page-sub">Info terbaru dari guru dan admin.</div>
+      <div class="page-header"><div class="page-header-ico">📢</div><div><div class="page-title">Pengumuman</div><div class="page-sub">Info terbaru dari guru dan admin.</div></div></div>
       <div class="card">
         <div class="card-body" id="pengumumanList" style="padding:0 16px">
           <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
@@ -612,8 +622,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ INFO / MATERI LEVEL ════ -->
     <div class="page" id="page-info">
-      <div class="page-title">Materi Level</div>
-      <div class="page-sub">Pelajari materi sesuai levelmu dan tips tajwid dari guru.</div>
+      <div class="page-header"><div class="page-header-ico">📚</div><div><div class="page-title">Materi Level</div><div class="page-sub">Panduan belajar dan tips tajwid dari guru.</div></div></div>
       <div class="level-filter" id="materiLevelFilter"></div>
       <div id="materiList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
@@ -622,8 +631,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ RAPORT ════ -->
     <div class="page" id="page-raport">
-      <div class="page-title">Raport Saya</div>
-      <div class="page-sub">Nilai akhir yang sudah dipublikasikan.</div>
+      <div class="page-header"><div class="page-header-ico">📄</div><div><div class="page-title">Raport Saya</div><div class="page-sub">Nilai akhir yang sudah dipublikasikan.</div></div></div>
       <div id="raportList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
@@ -775,7 +783,7 @@ function startApp() {
   var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
   document.getElementById('topAvatar').textContent = ini;
   document.getElementById('topName').textContent   = nama;
-  document.getElementById('topGreeting').textContent = "Assalamu'alaikum, " + nama + ' 👋';
+  document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   resetMuridSession();
   startMuridAutoRefresh();
   loadDashboard();
@@ -820,7 +828,14 @@ async function loadDashboard() {
     var kh  = d.kehadiran || {};
 
     // Header
-    document.getElementById('topHalaqah').textContent = '📚 ' + (ang.nama_halaqah || d.halaqah || 'Halaqah');
+    // Ambil nama halaqah dari semua kemungkinan field
+    var _hqNama = '';
+    if (ang.nama_halaqah) _hqNama = ang.nama_halaqah;
+    else if (d.nama_halaqah) _hqNama = d.nama_halaqah;
+    else if (typeof d.halaqah === 'string') _hqNama = d.halaqah;
+    else if (d.halaqah && typeof d.halaqah === 'object') _hqNama = d.halaqah.nama_halaqah || JSON.stringify(d.halaqah).substring(0,20);
+    var _lvl = ang.level || d.level || '';
+    document.getElementById('topHalaqah').textContent = '📚 ' + (_hqNama||'Halaqah') + (_lvl?' · '+_lvl:'');
 
     // Progress level
     document.getElementById('dashLevel').textContent = ang.level || d.level || '–';
