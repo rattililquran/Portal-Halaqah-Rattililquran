@@ -246,6 +246,7 @@ var MuridAPI = {
   updateProfil      : function(d)             { return apiPost('updateProfilMurid', d); },
   getProgressGrafik : function()              { return apiGet('getProgressGrafik'); },
   getMateriLevel    : function(lv)            { return apiGet('getMateriLevel', lv ? {level:lv} : {}); },
+  getSPPStatus      : function()             { return apiGet('getSPPStatus'); },
 };
 
 // ─── EKSPOS GLOBAL ────────────────────────────────
