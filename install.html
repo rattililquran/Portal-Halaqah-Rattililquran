@@ -469,17 +469,17 @@ body {
   <!-- PORTAL LINKS -->
   <div class="section-heading">Pilih Portal untuk Diinstall</div>
   <div class="portal-grid">
-    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-rattililquran/murid/" target="_blank">
+    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/murid/" target="_blank">
       <div class="pc-ico">🎓</div>
       <div class="pc-title">Portal Murid</div>
       <div class="pc-url">murid/</div>
     </a>
-    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-rattililquran/guru/" target="_blank">
+    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/guru/" target="_blank">
       <div class="pc-ico">👩‍🏫</div>
       <div class="pc-title">Portal Guru</div>
       <div class="pc-url">guru/</div>
     </a>
-    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-rattililquran/admin/" target="_blank">
+    <a class="portal-card" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/admin/" target="_blank">
       <div class="pc-ico">⚙️</div>
       <div class="pc-title">Portal Admin</div>
       <div class="pc-url">admin/</div>
@@ -670,41 +670,39 @@ body {
   <!-- PORTAL URL BOXES -->
   <div class="section-heading" style="margin-top:20px">Alamat URL Portal</div>
 
-  <div class="url-box">
-    <div>
-      <div class="url-label">🎓 Murid</div>
-      <div class="url-text">rattililquran.github.io/Portal-Halaqah-rattililquran/murid/</div>
+  <a class="url-box" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/murid/" target="_blank" style="text-decoration:none;display:flex">
+    <div style="flex:1">
+      <div class="url-label">🎓 Portal Murid</div>
+      <div class="url-text">rattililquran.github.io/Portal-Halaqah-Rattililquran/murid/</div>
     </div>
-    <button class="url-copy" onclick="copyUrl('rattililquran.github.io/Portal-Halaqah-rattililquran/murid/')">Salin</button>
-  </div>
+    <span class="url-copy">Buka →</span>
+  </a>
 
-  <div class="url-box">
-    <div>
-      <div class="url-label">👩‍🏫 Guru</div>
-      <div class="url-text">rattililquran.github.io/Portal-Halaqah-rattililquran/guru/</div>
+  <a class="url-box" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/guru/" target="_blank" style="text-decoration:none;display:flex">
+    <div style="flex:1">
+      <div class="url-label">👩‍🏫 Portal Guru</div>
+      <div class="url-text">rattililquran.github.io/Portal-Halaqah-Rattililquran/guru/</div>
     </div>
-    <button class="url-copy" onclick="copyUrl('rattililquran.github.io/Portal-Halaqah-rattililquran/guru/')">Salin</button>
-  </div>
+    <span class="url-copy">Buka →</span>
+  </a>
 
-  <div class="url-box">
-    <div>
-      <div class="url-label">⚙️ Admin</div>
-      <div class="url-text">rattililquran.github.io/Portal-Halaqah-rattililquran/admin/</div>
+  <a class="url-box" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/admin/" target="_blank" style="text-decoration:none;display:flex">
+    <div style="flex:1">
+      <div class="url-label">⚙️ Portal Admin</div>
+      <div class="url-text">rattililquran.github.io/Portal-Halaqah-Rattililquran/admin/</div>
     </div>
-    <button class="url-copy" onclick="copyUrl('rattililquran.github.io/Portal-Halaqah-rattililquran/admin/')">Salin</button>
-  </div>
+    <span class="url-copy">Buka →</span>
+  </a>
 
   <!-- FOOTER -->
   <div class="footer">
     Panduan ini berlaku untuk<br>
     <strong>Android 8+</strong> · <strong>iOS 14+</strong> · <strong>iPadOS 14+</strong><br><br>
-    <a href="https://rattililquran.github.io/Portal-Halaqah-rattililquran/">← Kembali ke Portal Utama</a>
+    <a href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/">← Kembali ke Portal Utama</a>
   </div>
 
 </div><!-- /content -->
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
 
 <script>
 function switchOS(os) {
@@ -714,27 +712,7 @@ function switchOS(os) {
   document.getElementById('guide-'+os).classList.add('active');
 }
 
-function copyUrl(url) {
-  var full = 'https://' + url;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(full).then(function(){ showToast('URL disalin! ✅'); });
-  } else {
-    var ta = document.createElement('textarea');
-    ta.value = full; document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('URL disalin! ✅');
-  }
-}
-
 var _toastTimer;
-function showToast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2500);
-}
 
 // Auto-detect OS dan switch tab
 (function() {
