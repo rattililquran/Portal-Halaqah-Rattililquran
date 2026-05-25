@@ -427,6 +427,27 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   padding:4px 10px;font-size:10.5px;color:var(--text-3);
   box-shadow:0 2px 10px rgba(13,27,42,.08);z-index:90;display:none;align-items:center;gap:4px}
 .refresh-badge-murid.show{display:flex}
+
+/* ── SPP STATUS CARD ── */
+.spp-card{
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(16px);
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden;
+}
+.spp-head{padding:14px 16px 0;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:10px}
+.spp-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.spp-body{padding:0 16px 16px}
+.spp-bulan-grid{display:flex;gap:6px;flex-wrap:wrap}
+.spp-bulan{display:inline-flex;align-items:center;gap:4px;
+  padding:5px 12px;border-radius:100px;font-size:12.5px;font-weight:700}
+.spp-lunas{background:var(--green-l);color:#0a6b4e}
+.spp-belum{background:var(--red-l);color:#a03010}
+.spp-msg{font-size:12.5px;color:var(--text-2);margin-top:10px;font-weight:500}
+.spp-msg.ok{color:var(--green-d)}
+.spp-msg.warn{color:var(--red)}
+
 </style>
 </head>
 <body>
@@ -521,6 +542,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           <div class="ico">⭐</div>
           <div class="val stat-val" id="st-nilai" style="font-size:13px">–</div>
           <div class="lbl">Avg Adab</div>
+        </div>
+      </div>
+
+      <!-- SPP Status -->
+      <div class="spp-card" id="sppCard" style="display:none">
+        <div class="spp-head">
+          <div class="spp-title">💳 Status SPP</div>
+          <span id="sppBadge"></span>
+        </div>
+        <div class="spp-body">
+          <div class="spp-bulan-grid" id="sppBulanGrid"></div>
+          <div class="spp-msg" id="sppMsg"></div>
         </div>
       </div>
 
@@ -899,6 +932,9 @@ async function loadDashboard() {
       riwayatData = d.riwayat_singkat;
       renderKalender();
     }
+
+    // Load SPP secara async — tidak blokir dashboard
+    loadSPP();
 
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { hideLoad(); }
@@ -1402,6 +1438,52 @@ function fmtDate(d) {
 function nilaiClass(n) {
   var m = {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'};
   return m[n] || 'badge b-gray';
+}
+
+
+// ══ SPP STATUS ════════════════════════════
+async function loadSPP() {
+  try {
+    var r = await window.HQ.MuridAPI.getSPPStatus();
+    if (!r || !r.data) return; // SPP belum dikonfigurasi
+    renderSPP(r.data);
+  } catch(e) {
+    // SPP error tidak ganggu dashboard — silent fail
+    console.log('SPP load skipped:', e.message);
+  }
+}
+
+function renderSPP(data) {
+  if (!data) return;
+  var card  = document.getElementById('sppCard');
+  var grid  = document.getElementById('sppBulanGrid');
+  var msg   = document.getElementById('sppMsg');
+  var badge = document.getElementById('sppBadge');
+  if (!card || !grid) return;
+
+  // Tampilkan card
+  card.style.display = 'block';
+
+  // Bulan pills
+  var periode = data.periode || (data.lunas||[]).concat(data.belum_lunas||[]);
+  grid.innerHTML = periode.map(function(b) {
+    var lunas = (data.lunas||[]).includes(b);
+    return '<span class="spp-bulan ' + (lunas?'spp-lunas':'spp-belum') + '">'
+      + (lunas ? '✅ ' : '❌ ') + b + '</span>';
+  }).join('');
+
+  // Badge
+  var belum = (data.belum_lunas||[]).length;
+  if (badge) {
+    badge.className = 'badge ' + (belum===0?'b-green':'b-red');
+    badge.textContent = belum===0 ? '✅ Lunas' : '⚠️ ' + belum + ' bulan';
+  }
+
+  // Pesan
+  if (msg) {
+    msg.textContent = data.pesan || '';
+    msg.className   = 'spp-msg ' + (belum===0?'ok':'warn');
+  }
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
