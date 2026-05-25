@@ -3,7 +3,7 @@
 //  Cache sessionStorage + load_more support
 // ============================================================
 
-var BASE_URL = 'https://script.google.com/macros/s/AKfycbze-SSb0kHv1eS032TG7Tqws7Z0q3mk1JI3Tpx1c_mnJaleUzQTjst4GNuJf89OtcPcRg/exec';
+var BASE_URL = 'https://script.google.com/macros/s/AKfycbyfA2WGeYRgf29EtadBXMC4LVBZ43Nwo7tYHFRkonBWl-yNbneL8HYbl7phMgeSiN0GxQ/exec';
 
 // ─── CACHE ───────────────────────────────────────
 // TTL per action (detik). 0 = tidak di-cache
