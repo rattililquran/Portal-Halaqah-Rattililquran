@@ -829,19 +829,19 @@ async function loadDashboard() {
 
     // Header
     // Ambil nama halaqah dari semua kemungkinan field
-    var _hqNama = '';
-    if (ang.nama_halaqah) _hqNama = ang.nama_halaqah;
-    else if (d.nama_halaqah) _hqNama = d.nama_halaqah;
-    else if (typeof d.halaqah === 'string') _hqNama = d.halaqah;
-    else if (d.halaqah && typeof d.halaqah === 'object') _hqNama = d.halaqah.nama_halaqah || JSON.stringify(d.halaqah).substring(0,20);
-    var _lvl = ang.level || d.level || '';
+    // d.halaqah = { nama, guru, jadwal, jam }
+    // d.anggota = { level, target_level }
+    // d.profil  = { nama, email }
+    var _hqNama = (d.halaqah && d.halaqah.nama) || '';
+    var _lvl    = (d.anggota && d.anggota.level) || '';
     document.getElementById('topHalaqah').textContent = '📚 ' + (_hqNama||'Halaqah') + (_lvl?' · '+_lvl:'');
 
-    // Progress level
-    document.getElementById('dashLevel').textContent = ang.level || d.level || '–';
+    // Progress level — d.anggota.level
+    var _level = ang.level || '–';
+    document.getElementById('dashLevel').textContent = _level;
     var tLevel = ang.target_level || '';
-    if (!tLevel) {
-      var lvlNum = parseInt(String(ang.level||'').replace(/[^0-9]/g,''));
+    if (!tLevel && _level !== '–') {
+      var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
       tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
     }
     document.getElementById('dashTarget').textContent = tLevel ? '→ ' + tLevel : '–';
@@ -882,10 +882,11 @@ async function loadDashboard() {
     // Pengumuman preview
     renderPengumumanList(d.pengumuman || [], 'dashPengumuman', 2);
 
-    // Profil modal data
+    // Profil modal data — dari d.profil
+    var _namaProfil = prof.nama || d.profil?.nama || '';
     document.getElementById('profilAvatar').textContent =
-      (ang.nama_murid||d.nama||'M').split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
-    document.getElementById('profilName').textContent = ang.nama_murid || d.nama || '';
+      _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
+    document.getElementById('profilName').textContent = _namaProfil;
     document.getElementById('profilNis').textContent  = d.id_murid || '';
     document.getElementById('profilHp').value    = d.no_hp || '';
     document.getElementById('profilEmail').value = d.email || '';
@@ -1201,9 +1202,12 @@ async function loadMateri() {
     _materiLevel = levels[0] || '';
     renderMateri(_materiLevel);
   } catch(e) {
+    console.error('loadMateri error:', e);
     el.innerHTML = '<div class="empty"><div class="empty-ico">📚</div>'
       + '<div class="empty-ttl">Materi belum tersedia</div>'
-      + '<div class="empty-sub">Admin belum menambahkan materi level</div></div>';
+      + '<div class="empty-sub">Admin belum menambahkan materi level</div>'
+      + '<div style="margin-top:10px;font-size:11px;color:var(--red)">' + esc(e.message) + '</div>'
+      + '</div>';
   }
   finally { hideLoad(); }
 }
