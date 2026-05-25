@@ -3,7 +3,7 @@
 //  Cache sessionStorage + load_more support
 // ============================================================
 
-var BASE_URL = 'https://script.google.com/macros/s/AKfycbxVV9oPblFqyX_A7DRmY49X95VJOValepoa9hV_iDezCw3CKEzzrM1yyK2kC4g1fMea2g/exec';
+var BASE_URL = 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec';
 
 // ─── CACHE ───────────────────────────────────────
 // TTL per action (detik). 0 = tidak di-cache
@@ -188,7 +188,9 @@ var AdminAPI = {
   getNilaiManual     : function(id_p)      { return apiGet('getNilaiManual', { id_periode:id_p }); },
   saveNilaiManual    : function(d)         { return apiPost('saveNilaiManual', d); },
   generateRaport     : function(d)         { return apiPost('generateRaportMurid', d); },
-  generateRaportBulk : function(d)         { return apiPost('generateRaportBulk', d); },
+  generateRaportBulk     : function(d) { return apiPost('generateRaportBulk', d); },
+  generateRaportByHalaqah: function(d) { return apiPost('generateRaportByHalaqah', d); },
+  generateRaportByLevel  : function(d) { return apiPost('generateRaportByLevel', d); },
   getRaportList      : function(id_p)      { return apiGet('getRaportList', { id_periode:id_p }); },
   publishRaport      : function(id)        { return apiPost('publishRaport', { id_raport:id }); },
   kirimRaportEmail   : function(id)        { return apiPost('kirimRaportEmail', { id_raport:id }); },
@@ -201,6 +203,7 @@ var AdminAPI = {
   saveTemplateKoreksi: function(d)         { return apiPost('saveTemplateKoreksi', d); },
   exportRekapAbsensi : function(p)         { return apiGet('exportRekapAbsensi', p || {}); },
   getArsipList       : function()          { return apiGet('getArsipList'); },
+  arsipData          : function(p)         { return apiPost('arsipData', p||{}); },
 };
 
 // ─── GURU API ─────────────────────────────────────
