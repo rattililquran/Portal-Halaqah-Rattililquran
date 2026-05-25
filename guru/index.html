@@ -948,15 +948,22 @@ tr:hover td{background:#f8fafc}
       <!-- ════ DAFTAR MURID ════ -->
       <div class="page" id="page-murid">
         <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
-        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="muridLevelSel" onchange="filterMuridHalaqah()" style="max-width:150px">
+        <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="muridLevelSel" onchange="filterMuridHalaqah()" style="max-width:140px">
             <option value="">— Semua Level —</option>
           </select>
-          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:220px">
+          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:200px">
             <option value="">— Pilih Halaqah —</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah Murid</button>
+          <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah</button>
           <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄</button>
+        </div>
+        <!-- Search bar -->
+        <div style="position:relative;margin-bottom:14px">
+          <input type="search" id="muridSearchInput" class="fc"
+            placeholder="🔍 Cari nama atau NIS murid..."
+            oninput="filterMuridSearch()"
+            style="padding-left:16px;font-size:13px">
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -1337,7 +1344,7 @@ function startApp() {
   document.getElementById('sbName').textContent   = nama;
   // Tampilkan nama lengkap di header gradient
   document.getElementById('dashNama').textContent = nama;
-  document.getElementById('greet').textContent    = "Assalamu'alaikum, " + nama + ' 👋';
+  document.getElementById('greet').textContent    = "Assalamu'alaikum 👋";
   loadDashboard();
   // Cek sesi draft setelah dashboard load
   setTimeout(cekSesiDraft, 1500);
@@ -2057,11 +2064,16 @@ async function loadMurid() {
   try {
     muridCache[id] = null;
     const murid = await getMurid(id);
+    // Simpan untuk search
+    window._muridAllRows = murid;
     const tbody = document.getElementById('muridTbl');
     if (!murid.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
       return;
     }
+    // Kosongkan search saat halaqah berganti
+    var srch = document.getElementById('muridSearchInput');
+    if (srch) srch.value = '';
     tbody.innerHTML = murid.map(m => {
       const pct = m.pct_hadir ?? 0;
       const s40 = m.skor_dari_40 ?? 0;
@@ -2658,11 +2670,8 @@ function renderJadwal() {
       + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + '</span>'
       + '</div>'
       + '<div class="hq-pertemuan">'
-      + '<div style="font-size:10px;color:var(--text-3);font-weight:600;text-align:right;margin-bottom:2px">Pertemuan</div>'
-      + '<div style="display:flex;align-items:baseline;justify-content:flex-end;gap:2px">'
+      + '<div style="font-size:9px;color:var(--text-3);font-weight:600;text-align:right;margin-bottom:1px">Pertemuan berikutnya</div>'
       + '<div class="hq-pertemuan-num">ke-' + h.pertemuan_ke + '</div>'
-      + '</div>'
-      + '<div class="hq-pertemuan-lbl" style="font-size:9px">berikutnya</div>'
       + '</div>'
       + '</div>'
       + '<div class="hq-meta">'
@@ -2989,6 +2998,54 @@ function autoFillPertemuan() {
     var jam = document.getElementById('kbmJam');
     if (jam && !jam.value && h.jam_mulai) jam.value = h.jam_mulai;
   }
+}
+
+
+// ══ PENCARIAN MURID ══════════════════════
+function filterMuridSearch() {
+  var q     = (document.getElementById('muridSearchInput')?.value || '').toLowerCase().trim();
+  var rows  = window._muridAllRows || [];
+  var tbody = document.getElementById('muridTbl');
+  if (!tbody) return;
+
+  var filtered = q
+    ? rows.filter(function(m) {
+        return (m.nama_murid||'').toLowerCase().includes(q)
+            || (m.id_murid||'').toLowerCase().includes(q)
+            || (m.level||'').toLowerCase().includes(q);
+      })
+    : rows;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">'
+      + 'Tidak ditemukan murid "' + esc(q) + '"</td></tr>';
+    return;
+  }
+
+  // Re-render dengan rows yang filtered
+  var tempRows = window._muridAllRows;
+  window._muridAllRows = filtered;
+  // Render manual
+  tbody.innerHTML = filtered.map(function(m) {
+    var pct  = m.pct_hadir || 0;
+    var s40  = m.skor_dari_40 || 0;
+    var pctC = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+    return '<tr>'
+      + '<td><strong>' + esc(m.nama_murid) + '</strong>'
+      + '<div style="font-size:10.5px;color:var(--text-3)">' + esc(m.id_murid||'') + '</div></td>'
+      + '<td><span class="badge b-blue">' + esc(m.level||'-') + '</span></td>'
+      + '<td><span class="badge b-green">' + (m.total_hadir||0) + '×</span></td>'
+      + '<td>' + (m.total_sesi||0) + '</td>'
+      + '<td><span style="font-weight:700;color:' + pctC + '">' + pct + '%</span>'
+      + '<div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">'
+      + '<div style="height:4px;background:' + pctC + ';border-radius:4px;width:' + Math.min(pct,100) + '%"></div></div></td>'
+      + '<td><span style="font-weight:700;color:' + (s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)') + '">' + s40 + '%</span>'
+      + '<div style="font-size:10.5px;color:var(--text-3)">' + (m.skor_hadir_raw?m.skor_hadir_raw.toFixed(1):'–') + '/40</div></td>'
+      + '<td>' + nilaiLabel(m.avg_nilai) + '</td>'
+      + '<td><button class="btn btn-outline btn-sm" data-id="' + esc(m.id_anggota) + '" data-nama="' + esc(m.nama_murid) + '" data-cat="' + esc((m.catatan_guru||'')) + '" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button></td>'
+      + '</tr>';
+  }).join('');
+  window._muridAllRows = tempRows;
 }
 
 if ('serviceWorker' in navigator)
