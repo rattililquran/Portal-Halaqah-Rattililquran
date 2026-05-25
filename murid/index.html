@@ -706,7 +706,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <span id="muridRefreshTxt">Baru sinkron</span>
 </div>
 
-<script src="../assets/js/api.js?v=2.5"></script>
+<script src="../assets/js/api.js?v=2.6"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -824,8 +824,10 @@ async function loadDashboard() {
     var r = await window.HQ.MuridAPI.getDashboard();
     dashData = r.data;
     var d = dashData;
-    var ang = d.anggota || {};
-    var kh  = d.kehadiran || {};
+    var ang  = d.anggota   || {};  // { level, target_level }
+    var hq   = d.halaqah   || {};  // { nama, guru, jadwal, jam }
+    var prof = d.profil    || {};  // { nama, email }
+    var kh   = d.kehadiran || {};
 
     // Header
     // Ambil nama halaqah dari semua kemungkinan field
@@ -883,7 +885,7 @@ async function loadDashboard() {
     renderPengumumanList(d.pengumuman || [], 'dashPengumuman', 2);
 
     // Profil modal data — dari d.profil
-    var _namaProfil = prof.nama || d.profil?.nama || '';
+    var _namaProfil = prof.nama || (d.profil && d.profil.nama) || '';
     document.getElementById('profilAvatar').textContent =
       _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
     document.getElementById('profilName').textContent = _namaProfil;
