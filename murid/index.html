@@ -247,6 +247,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   animation:barSlide 2s ease-in-out infinite}
 @keyframes barSlide{0%{transform:translateX(-100%)}50%{transform:translateX(0%)}100%{transform:translateX(100%)}}
 .spin{display:none}
+
+/* ── SKELETON LOADING ── */
+.skel{background:linear-gradient(90deg,#f0f2f5 25%,#e4e7ec 50%,#f0f2f5 75%);
+  background-size:200% 100%;animation:skelShimmer 1.4s infinite;
+  border-radius:6px;display:block}
+@keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-text{height:14px;margin-bottom:8px;width:80%}
+.skel-text.short{width:50%}
+.skel-text.full{width:100%}
+.skel-num{height:32px;width:60px;border-radius:8px}
+.skel-card{height:80px;border-radius:12px;margin-bottom:10px}
+.skel-row{height:40px;border-radius:6px;margin-bottom:6px}
+.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -610,6 +624,12 @@ function goPage(name) {
 // ══════════════════════════════════════════
 async function loadDashboard() {
   showLoad('Bismillah, memuat dashboard...');
+  // Tampilkan skeleton di stats saat loading
+  document.querySelectorAll('.stat-val').forEach(function(el) {
+    if (el.textContent === '–' || !el.textContent.trim()) {
+      el.innerHTML = '<span class="skel skel-num"></span>';
+    }
+  });
   try {
     const r = await window.HQ.MuridAPI.getDashboard();
     dashData = r.data;
@@ -1015,6 +1035,23 @@ function resetMuridSession() {
 ['click','touchstart'].forEach(function(ev) {
   document.addEventListener(ev, resetMuridSession, { passive:true });
 });
+
+var _muridRiwayatExpanded = false;
+async function muatLebihRiwayatMurid() {
+  if (_muridRiwayatExpanded) return;
+  _muridRiwayatExpanded = true;
+  var btn = document.getElementById('btnMuatLebihMurid');
+  if (btn) btn.textContent = 'Memuat...';
+  try {
+    var r = await window.HQ.MuridAPI.getRiwayat(10, 30);
+    if (r.data && r.data.length) {
+      renderRiwayat(r.data);
+      if (btn) btn.style.display = 'none';
+    }
+  } catch(e) {
+    if (btn) { btn.textContent = '↓ Muat 40 Riwayat Terakhir'; _muridRiwayatExpanded = false; }
+  }
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
 </script>
