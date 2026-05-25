@@ -473,6 +473,175 @@ tr:hover td{background:#f8fafc}
 .toast-inline.err{background:#991b1b}
 .toast-inline.warn{background:#92400e}
 
+
+/* ── HALAQAH COLORS — identitas per halaqah ── */
+:root{
+  --hq-c1:#169B6B; --hq-c1-l:#E3F5EE;
+  --hq-c2:#1458A8; --hq-c2-l:#EBF2FF;
+  --hq-c3:#7C3AED; --hq-c3-l:#EDE9FE;
+  --hq-c4:#D97706; --hq-c4-l:#FEF3C7;
+  --hq-c5:#DC2626; --hq-c5-l:#FEE2E2;
+  --hq-c6:#0891B2; --hq-c6-l:#E0F2FE;
+}
+
+/* ── GLASS CARD (iOS-style) ── */
+.glass-card{
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(20px) saturate(1.8);
+  -webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:20px;
+  box-shadow:0 4px 24px rgba(13,27,42,.08),
+             0 1px 0 rgba(255,255,255,.9) inset;
+}
+
+/* ── STATS BARU (dipindah ke atas) ── */
+.stats-top{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:18px;
+}
+@media(max-width:600px){.stats-top{grid-template-columns:repeat(2,1fr)}}
+.stat-top{
+  background:rgba(255,255,255,.8);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.6);
+  border-radius:16px;padding:14px 12px;
+  text-align:center;cursor:default;
+  box-shadow:0 2px 12px rgba(13,27,42,.06);
+  transition:all .2s;
+}
+.stat-top.clickable{cursor:pointer}
+.stat-top.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,27,42,.1)}
+.stat-top .ico{font-size:20px;margin-bottom:4px}
+.stat-top .val{font-size:22px;font-weight:800;line-height:1;color:var(--text)}
+.stat-top .lbl{font-size:10px;color:var(--text-3);margin-top:3px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.04em}
+
+/* ── HALAQAH CARD BARU ── */
+.hq-card-new{
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(18px) saturate(1.6);
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.6);
+  border-radius:20px;padding:18px;margin-bottom:12px;
+  cursor:pointer;transition:all .25s;
+  box-shadow:0 3px 16px rgba(13,27,42,.07);
+  position:relative;overflow:hidden;
+}
+.hq-card-new::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  border-radius:20px 20px 0 0;
+}
+.hq-card-new:hover{transform:translateY(-3px);
+  box-shadow:0 8px 32px rgba(13,27,42,.12)}
+.hq-card-new:active{transform:translateY(-1px)}
+
+/* Warna per halaqah */
+.hq-c1::before{background:var(--hq-c1)}
+.hq-c2::before{background:var(--hq-c2)}
+.hq-c3::before{background:var(--hq-c3)}
+.hq-c4::before{background:var(--hq-c4)}
+.hq-c5::before{background:var(--hq-c5)}
+.hq-c6::before{background:var(--hq-c6)}
+
+.hq-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
+  border-radius:100px;font-size:12px;font-weight:700;margin-bottom:10px}
+.hq-c1 .hq-chip{background:var(--hq-c1-l);color:var(--hq-c1)}
+.hq-c2 .hq-chip{background:var(--hq-c2-l);color:var(--hq-c2)}
+.hq-c3 .hq-chip{background:var(--hq-c3-l);color:var(--hq-c3)}
+.hq-c4 .hq-chip{background:var(--hq-c4-l);color:var(--hq-c4)}
+.hq-c5 .hq-chip{background:var(--hq-c5-l);color:var(--hq-c5)}
+.hq-c6 .hq-chip{background:var(--hq-c6-l);color:var(--hq-c6)}
+
+.hq-name{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px}
+.hq-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.hq-meta-item{font-size:12px;color:var(--text-3);
+  display:flex;align-items:center;gap:4px}
+
+.hq-progress-wrap{margin-bottom:10px}
+.hq-progress-bar{height:6px;background:rgba(13,27,42,.08);
+  border-radius:100px;overflow:hidden;margin-bottom:4px}
+.hq-progress-fill{height:6px;border-radius:100px;transition:width .5s ease}
+.hq-c1 .hq-progress-fill{background:var(--hq-c1)}
+.hq-c2 .hq-progress-fill{background:var(--hq-c2)}
+.hq-c3 .hq-progress-fill{background:var(--hq-c3)}
+.hq-c4 .hq-progress-fill{background:var(--hq-c4)}
+.hq-c5 .hq-progress-fill{background:var(--hq-c5)}
+.hq-c6 .hq-progress-fill{background:var(--hq-c6)}
+
+.hq-footer{display:flex;align-items:center;justify-content:space-between}
+.hq-sesi-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:100px;font-size:12px;font-weight:700;
+  background:rgba(13,27,42,.06);color:var(--text-2);
+}
+.hq-pertemuan{text-align:right}
+.hq-pertemuan-num{font-size:28px;font-weight:800;line-height:1}
+.hq-pertemuan-lbl{font-size:10px;color:var(--text-3);font-weight:600}
+.hq-c1 .hq-pertemuan-num{color:var(--hq-c1)}
+.hq-c2 .hq-pertemuan-num{color:var(--hq-c2)}
+.hq-c3 .hq-pertemuan-num{color:var(--hq-c3)}
+.hq-c4 .hq-pertemuan-num{color:var(--hq-c4)}
+.hq-c5 .hq-pertemuan-num{color:var(--hq-c5)}
+.hq-c6 .hq-pertemuan-num{color:var(--hq-c6)}
+
+/* Filter level pill */
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto;
+  padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.filter-pill{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:700;
+  border:1.5px solid var(--border);background:rgba(255,255,255,.8);
+  color:var(--text-3);cursor:pointer;transition:all .15s;white-space:nowrap;
+  backdrop-filter:blur(8px)}
+.filter-pill.active{border-color:var(--green);background:var(--green-l);color:var(--green-d)}
+
+/* Badge hari ini */
+.badge-hari-ini{background:var(--green);color:#fff;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:100px;margin-left:6px;
+  animation:pulse-badge 2s ease-in-out infinite}
+@keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* Dashboard header gradient baru */
+.dash-header-gradient{
+  background:linear-gradient(135deg,#0d1f35 0%,#1458A8 50%,#169B6B 100%);
+  border-radius:20px;padding:20px;margin-bottom:18px;
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 32px rgba(13,27,42,.18);
+}
+.dash-header-gradient::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.dash-header-gradient::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.dash-greet{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:2px}
+.dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
+.dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
+
+/* Sinkron badge — posisi tidak ganggu tombol */
+.refresh-badge{position:fixed;bottom:16px;left:16px !important;right:auto !important;
+  background:rgba(255,255,255,.9);border:1px solid var(--border);
+  border-radius:100px;padding:5px 12px;font-size:11px;color:var(--text-3);
+  box-shadow:0 2px 12px rgba(13,27,42,.1);z-index:90;
+  display:none;align-items:center;gap:5px;
+  backdrop-filter:blur(8px)}
+.refresh-badge.show{display:flex}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* Step 1 — Halaqah selector baru (dropdown level + nama) */
+.hq-selector{
+  background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);
+  padding:12px;margin-bottom:10px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.hq-selector.selected{border-color:var(--green);background:var(--green-l)}
+.hq-selector-name{font-weight:700;font-size:14px}
+.hq-selector-meta{font-size:12px;color:var(--text-3)}
+
 </style>
 </head>
 <body>
@@ -531,7 +700,6 @@ tr:hover td{background:#f8fafc}
     <div class="sb-nav">
       <div class="sb-section">Menu</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
-      <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni">📋</span>Sesi KBM</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
@@ -557,50 +725,49 @@ tr:hover td{background:#f8fafc}
 
       <!-- ════ DASHBOARD ════ -->
       <div class="page active" id="page-dashboard">
-        <div style="font-size:19px;font-weight:800;margin-bottom:2px" id="greet">Selamat datang!</div>
-        <div id="dashHariIni" style="font-size:12.5px;color:var(--text-3);margin-bottom:12px">Ringkasan aktivitas halaqah Anda hari ini.</div>
 
-        <!-- Jadwal & progress per halaqah -->
-        <div id="jadwalSection" style="margin-bottom:16px">
-          <div style="font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;
-            letter-spacing:.07em;margin-bottom:8px">📅 Halaqah Saya</div>
-          <div id="jadwalList">
-            <div style="color:var(--text-3);font-size:13px;padding:8px 0">Memuat jadwal...</div>
+        <!-- Header gradient -->
+        <div class="dash-header-gradient">
+          <div class="dash-greet" id="greet">Assalamu'alaikum,</div>
+          <div class="dash-name" id="dashNama">Guru</div>
+          <div class="dash-hari" id="dashHariIni">Semoga Allah mudahkan perjuangan hari ini.</div>
+        </div>
+
+        <!-- Stats 4 kartu — KBM hari ini bisa diklik -->
+        <div class="stats-top">
+          <div class="stat-top">
+            <div class="ico">📚</div>
+            <div class="val" id="st-halaqah">–</div>
+            <div class="lbl">Halaqah</div>
+          </div>
+          <div class="stat-top">
+            <div class="ico">👥</div>
+            <div class="val" id="st-murid">–</div>
+            <div class="lbl">Total Murid</div>
+          </div>
+          <div class="stat-top clickable" onclick="goPage('kbm')" title="Mulai KBM hari ini">
+            <div class="ico">📋</div>
+            <div class="val" id="st-kbm">–</div>
+            <div class="lbl">KBM Hari Ini ↗</div>
+          </div>
+          <div class="stat-top">
+            <div class="ico">🏆</div>
+            <div class="val" id="st-bulan">–</div>
+            <div class="lbl">Sesi Bulan Ini</div>
           </div>
         </div>
 
-        <div class="stats-row">
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--blue-l)">📚</div>
-            <div class="stat-val" id="st-halaqah">–</div>
-            <div class="stat-lbl">Halaqah Diampu</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--green-l)">👥</div>
-            <div class="stat-val" id="st-murid">–</div>
-            <div class="stat-lbl">Total Murid</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--amber-l)">📋</div>
-            <div class="stat-val" id="st-kbm">–</div>
-            <div class="stat-lbl">KBM Hari Ini</div>
-          </div>
-          <div class="stat">
-            <div class="stat-ico" style="background:var(--purple-l)">🏆</div>
-            <div class="stat-val" id="st-bulan">–</div>
-            <div class="stat-lbl">Sesi Bulan Ini</div>
+        <!-- Halaqah Saya — gabungan jadwal + halaqah diampu -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text-2)">📅 Halaqah Saya</div>
+          <div class="filter-pills" id="levelFilterPills" style="margin-bottom:0"></div>
+        </div>
+        <div id="jadwalList">
+          <div style="color:var(--text-3);font-size:13px;padding:12px 0;text-align:center">
+            Memuat halaqah...
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📚 Halaqah yang Diampu</div>
-            <button class="btn btn-primary btn-sm" onclick="goPage('kbm')">+ Sesi KBM</button>
-          </div>
-          <div class="card-body" id="dashHalaqah">
-            <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
-          </div>
-        </div>
       </div>
 
       <!-- ════ STEP 1: BUKA SESI ════ -->
@@ -631,18 +798,26 @@ tr:hover td{background:#f8fafc}
           <div class="card-body">
             <div class="f2">
               <div class="fg">
-                <label>Pilih Halaqah</label>
-                <select class="fc" id="kbmHalaqah"><option value="">— Pilih —</option></select>
-              </div>
-              <div class="fg">
-                <label>Jenis Sesi</label>
-                <select class="fc" id="kbmJenis">
-                  <option value="KBM Reguler">KBM Reguler</option>
-                  <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
-                  <option value="Micro Teaching">Micro Teaching</option>
-                  <option value="Lainnya">Lainnya</option>
+                <label>Level</label>
+                <select class="fc" id="kbmLevel" onchange="filterKbmHalaqah()">
+                  <option value="">— Semua Level —</option>
                 </select>
               </div>
+              <div class="fg">
+                <label>Pilih Halaqah</label>
+                <select class="fc" id="kbmHalaqah" onchange="autoFillPertemuan()">
+                  <option value="">— Pilih Halaqah —</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg">
+              <label>Jenis Sesi</label>
+              <select class="fc" id="kbmJenis">
+                <option value="KBM Reguler">KBM Reguler</option>
+                <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
+                <option value="Micro Teaching">Micro Teaching</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
             </div>
             <div class="f2">
               <div class="fg">
@@ -773,12 +948,15 @@ tr:hover td{background:#f8fafc}
       <!-- ════ DAFTAR MURID ════ -->
       <div class="page" id="page-murid">
         <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
-        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:280px">
+        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="muridLevelSel" onchange="filterMuridHalaqah()" style="max-width:150px">
+            <option value="">— Semua Level —</option>
+          </select>
+          <select class="fc" id="muridHalaqahSel" onchange="loadMurid()" style="max-width:220px">
             <option value="">— Pilih Halaqah —</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah Murid</button>
-          <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄 Refresh</button>
+          <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄</button>
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -825,8 +1003,11 @@ tr:hover td{background:#f8fafc}
       <!-- ════ RIWAYAT KBM ════ -->
       <div class="page" id="page-riwayat">
         <div style="font-size:19px;font-weight:800;margin-bottom:16px">Riwayat KBM</div>
-        <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:280px">
+        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="riwayatLevelSel" onchange="filterRiwayatHalaqah()" style="max-width:150px">
+            <option value="">— Semua Level —</option>
+          </select>
+          <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:220px">
             <option value="">— Pilih Halaqah —</option>
           </select>
           <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
@@ -911,7 +1092,7 @@ tr:hover td{background:#f8fafc}
   <div class="doa-box">
     <div class="doa-arabic">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
     <div class="doa-msg">
-      Sebelum kita mulai halaqah, mari berdoa terlebih dahulu, agar Allah bantu kita menyampaikan ilmu yang bermanfaat dan murid-murid kita mendapat ilmu yang manfaat, serta doa-doa kebaikan lainnya.
+      <strong>Mari perbaiki niat dan berdoa terlebih dahulu, agar Allah bantu kita menyampaikan ilmu yang bermanfaat dan murid-murid kita mendapat ilmu yang bermanfaat, serta doa-doa kebaikan lainnya. Kita tidak mungkin berhasil tanpa pertolongan-Nya.</strong>
     </div>
     <div class="doa-timer" id="doaTimer">30</div>
     <div class="doa-timer-lbl">detik untuk berdoa...</div>
@@ -1148,6 +1329,8 @@ function startApp() {
   document.getElementById('app').style.display = 'block';
   resetSessionTimer();
   startAutoRefresh();
+  // Isi level dropdown setelah halaqahList loaded
+  setTimeout(fillLevelDropdowns, 2000);
   const nama = currentUser.nama || currentUser.id_user;
   const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('sbAvatar').textContent = ini;
@@ -1290,6 +1473,24 @@ async function loadDashboard() {
     const r = await window.HQ.GuruAPI.getDashboard();
     const d = r.data;
     halaqahList = d.halaqah || [];
+    // Isi semua dropdown setelah data loaded
+    fillLevelDropdowns();
+    // Isi dropdown halaqah di semua page
+    var selMurid = document.getElementById('muridHalaqahSel');
+    var selRiwayat = document.getElementById('riwayatHalaqahSel');
+    var selKbm = document.getElementById('kbmHalaqah');
+    [selMurid, selRiwayat, selKbm].forEach(function(sel) {
+      if (!sel) return;
+      var val = sel.value;
+      sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
+      halaqahList.forEach(function(h) {
+        var o = document.createElement('option');
+        o.value = h.id_halaqah;
+        o.textContent = h.nama_halaqah;
+        if (h.id_halaqah === val) o.selected = true;
+        sel.appendChild(o);
+      });
+    });
 
     document.getElementById('st-halaqah').textContent = d.total_halaqah ?? '–';
     document.getElementById('st-murid').textContent   = d.total_murid   ?? '–';
@@ -1556,6 +1757,20 @@ function goToJurnal() {
 }
 
 function lanjutKeJurnal() {
+  // Simpan nilai ke cache sebelum pindah halaman
+  if (typeof muridSesi !== 'undefined') {
+    if (!window._nilaiCache) window._nilaiCache = {};
+    muridSesi.forEach(function(m) {
+      var adabEl = document.getElementById('adab-'    + m.id_murid);
+      var korEl  = document.getElementById('koreksi-' + m.id_murid);
+      var catEl  = document.getElementById('catatan-' + m.id_murid);
+      window._nilaiCache[m.id_murid] = {
+        adab    : adabEl ? adabEl.value : '',
+        koreksi : korEl  ? korEl.value  : '',
+        catatan : catEl  ? catEl.value  : '',
+      };
+    });
+  }
   goToJurnal();
 }
 
@@ -1573,7 +1788,23 @@ function kembaliKeStep2() {
 }
 
 function kembaliKeStep3() {
+function kembaliKeStep3() {
   goToNilai();
+  // Restore nilai dari cache setelah re-render
+  setTimeout(function() {
+    if (window._nilaiCache) {
+      Object.keys(window._nilaiCache).forEach(function(id_murid) {
+        var cached = window._nilaiCache[id_murid];
+        var adabEl = document.getElementById('adab-'    + id_murid);
+        var korEl  = document.getElementById('koreksi-' + id_murid);
+        var catEl  = document.getElementById('catatan-' + id_murid);
+        if (adabEl && cached.adab)    adabEl.value = cached.adab;
+        if (korEl  && cached.koreksi) korEl.value  = cached.koreksi;
+        if (catEl  && cached.catatan) catEl.value  = cached.catatan;
+      });
+    }
+  }, 100);
+}
 }
 
 function renderNilaiMuridStep() {
@@ -1595,27 +1826,22 @@ function renderNilaiMuridStep() {
     const isAlpa   = status === 'A';
     const isIzin   = status === 'I';
     const isSkip   = isAlpa || isIzin;
-    const nilaiVal = document.getElementById('nilai-'  + m.id_murid) ? document.getElementById('nilai-'  + m.id_murid).value : '';
-    const adabVal  = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
-    const korVal   = document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '';
-    if (nilaiVal && !isSkip) terisi++;
+    // Ambil dari DOM atau cache
+    var _cache  = (window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
+    const adabVal = (document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '') || _cache.adab || '';
+    const korVal  = (document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '') || _cache.koreksi || '';
+    const catVal  = (document.getElementById('catatan-'+ m.id_murid) ? document.getElementById('catatan-'+ m.id_murid).value : '') || _cache.catatan || '';
+    const nilaiVal = '';  // dropdown nilai dihapus
+    if (adabVal && !isSkip) terisi++;
 
-    const cardClass = isSkip ? 'nilai-murid-card alpa' : (nilaiVal ? 'nilai-murid-card terisi' : 'nilai-murid-card');
+    const cardClass = isSkip ? 'nilai-murid-card alpa' : (adabVal ? 'nilai-murid-card terisi' : 'nilai-murid-card');
     const skipMsg   = isAlpa
       ? '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🔴 Murid alpa — nilai tidak perlu diisi</div>'
       : '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🟡 Murid izin — nilai tidak perlu diisi</div>';
 
     const nilaiForm = [
-      '<div class="f2" style="margin-bottom:8px">',
+      '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
-      '    <label>Nilai Tahsin</label>',
-      '    <select class="fc" id="nilai-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\"' + esc(m.id_murid) + '\")">',
-      '      <option value="">— Pilih —</option>',
-      '      <option value="Mumtaz"' + (nilaiVal==='Mumtaz' ? ' selected' : '') + '>⭐ Mumtaz</option>',
-      '      <option value="Jayyid"' + (nilaiVal==='Jayyid' ? ' selected' : '') + '>👍 Jayyid</option>',
-      '      <option value="Maqbul"' + (nilaiVal==='Maqbul' ? ' selected' : '') + '>📌 Maqbul</option>',
-      '    </select>',
-      '  </div>',
       '  <div class="fg" style="margin:0">',
       '    <label>Adab</label>',
       '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px">',
@@ -1633,6 +1859,10 @@ function renderNilaiMuridStep() {
       '    <button type="button" onclick="bukaRiwayatKoreksi(this.getAttribute(\"data-mid\"),this.getAttribute(\"data-mnm\"))" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" style="background:var(--blue-l);border:1px solid var(--blue);color:var(--blue);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">📋</button>',
       '  </div>',
       '</div>',
+      '<div class="fg" style="margin-top:10px">',
+      '  <label style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Catatan Lainnya <span style="font-weight:400;font-size:10px">(opsional)</span></label>',
+      '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + catVal + '</textarea>',
+      '</div>',
     ].join('\n');
 
     return '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
@@ -1645,7 +1875,7 @@ function renderNilaiMuridStep() {
   }).join('');
 
   // Update progress counter
-  const total = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
+  const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
 
@@ -1662,7 +1892,7 @@ function updateNilaiCard(id_murid) {
     const status = presensiMap[m.id_murid] || 'H';
     return !['A','I'].includes(status) && document.getElementById('nilai-' + m.id_murid)?.value;
   }).length;
-  const total = muridSesi.filter(m => !['A','I'].includes(presensiMap[m.id_murid]||'H')).length;
+  const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
 }
 
@@ -2398,31 +2628,85 @@ function renderJadwal() {
   var cont = document.getElementById('jadwalList');
   if (!cont) return;
   if (!jadwalData.length) {
-    cont.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:8px 0">Belum ada halaqah</div>';
+    cont.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:20px;text-align:center">Belum ada halaqah terdaftar</div>';
+    renderLevelPills([]);
     return;
   }
-  cont.innerHTML = jadwalData.map(function(h) {
-    var pct = Math.min(Math.round((h.total_sesi / 40) * 100), 100);
-    return '<div class="jadwal-card' + (h.is_hari_ini ? ' hari-ini' : '') + '" onclick="pilihHalaqahDashboard(' + "'" + esc(h.id_halaqah) + "'" + ')">'
-      + '<div style="flex:1">'
-      + '<div class="jadwal-nama">' + esc(h.nama_halaqah)
-      + (h.is_hari_ini ? '<span class="hari-ini-badge">Hari ini</span>' : '')
+  // Kumpulkan level unik
+  var levels = [];
+  jadwalData.forEach(function(h){ if(h.level && levels.indexOf(h.level)<0) levels.push(h.level); });
+  levels.sort();
+  renderLevelPills(levels);
+
+  // Sort: hari ini dulu, lalu jam terdekat
+  var sorted = jadwalData.slice().sort(function(a,b) {
+    if (a.is_hari_ini && !b.is_hari_ini) return -1;
+    if (!a.is_hari_ini && b.is_hari_ini) return 1;
+    return (a.jam_mulai||'99:99').localeCompare(b.jam_mulai||'99:99');
+  });
+  if (_activeLevel) sorted = sorted.filter(function(h){ return h.level === _activeLevel; });
+
+  if (!sorted.length) {
+    cont.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:20px;text-align:center">Tidak ada halaqah di level ' + esc(_activeLevel) + '</div>';
+    return;
+  }
+
+  cont.innerHTML = sorted.map(function(h) {
+    var pct   = Math.min(Math.round((h.total_sesi / 40) * 100), 100);
+    var color = getHqColor(h.id_halaqah);
+    var jamInfo = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '\u2013'+h.jam_selesai : '')) : '';
+
+    return '<div class="hq-card-new ' + color + '" onclick="pilihHalaqahDashboard(\'' + esc(h.id_halaqah) + '\')">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+      + '<div>'
+      + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + '</span>'
       + '</div>'
-      + '<div class="jadwal-info"><span>' + esc(h.level) + '</span>'
-      + ' <span>' + h.total_murid + ' murid</span>'
-      + (h.jam_mulai ? ' <span>' + esc(h.jam_mulai) + '</span>' : '')
+      + '<div class="hq-pertemuan">'
+      + '<div class="hq-pertemuan-num">' + h.pertemuan_ke + '</div>'
+      + '<div class="hq-pertemuan-lbl">Pertemuan<br>berikutnya</div>'
       + '</div>'
-      + '<div style="margin-top:7px;height:4px;background:var(--border);border-radius:100px;overflow:hidden">'
-      + '<div style="height:4px;background:var(--green);width:' + pct + '%;border-radius:100px"></div>'
       + '</div>'
-      + '<div style="font-size:10.5px;color:var(--text-3);margin-top:2px">' + h.total_sesi + ' dari 40 sesi reguler</div>'
+      + '<div class="hq-meta">'
+      + '<span class="hq-meta-item">\ud83c\udfc6 ' + esc(h.level||'\u2013') + '</span>'
+      + '<span class="hq-meta-item">\ud83d\udc65 ' + h.total_murid + ' murid</span>'
+      + (jamInfo ? '<span class="hq-meta-item">\ud83d\udd50 ' + esc(jamInfo) + '</span>' : '')
+      + (h.jadwal_hari ? '<span class="hq-meta-item">\ud83d\udcc5 ' + esc(h.jadwal_hari) + '</span>' : '')
       + '</div>'
-      + '<div style="text-align:center;flex-shrink:0">'
-      + '<div class="pertemuan-num">' + h.pertemuan_ke + '</div>'
-      + '<div class="pertemuan-label">Pertemuan<br>berikutnya</div>'
-      + '</div></div>';
+      + '<div class="hq-progress-wrap">'
+      + '<div class="hq-progress-bar"><div class="hq-progress-fill" style="width:' + pct + '%"></div></div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">'
+      + '<span class="hq-sesi-chip">\ud83d\udccb ' + h.total_sesi + ' dari 40 sesi reguler</span>'
+      + '<span style="font-size:11px;color:var(--text-3);font-weight:600">' + pct + '%</span>'
+      + '</div>'
+      + '</div>'
+      + '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(13,27,42,.07);text-align:center">'
+      + '<span style="font-size:12px;font-weight:600;color:var(--text-3)">Ketuk untuk mulai Sesi KBM \u2192</span>'
+      + '</div>'
+      + '</div>';
   }).join('');
 }
+
+var HQ_COLORS = ['hq-c1','hq-c2','hq-c3','hq-c4','hq-c5','hq-c6'];
+var _hqColorMap = {};
+function getHqColor(id_halaqah) {
+  if (!_hqColorMap[id_halaqah]) {
+    var idx = Object.keys(_hqColorMap).length % HQ_COLORS.length;
+    _hqColorMap[id_halaqah] = HQ_COLORS[idx];
+  }
+  return _hqColorMap[id_halaqah];
+}
+var _activeLevel = '';
+function renderLevelPills(levels) {
+  var cont = document.getElementById('levelFilterPills');
+  if (!cont) return;
+  var pills = '<button class="filter-pill' + (!_activeLevel ? ' active' : '') + '" onclick="setLevelFilter(\'\')">Semua</button>';
+  levels.forEach(function(l){
+    pills += '<button class="filter-pill' + (_activeLevel===l?' active':'') + '" onclick="setLevelFilter(\'' + esc(l) + '\')">' + esc(l) + '</button>';
+  });
+  cont.innerHTML = pills;
+}
+function setLevelFilter(level) { _activeLevel = level; renderJadwal(); }
+
 function pilihHalaqahDashboard(id_halaqah) {
   goPage('kbm');
   setTimeout(function() {
@@ -2617,6 +2901,95 @@ async function apiWithRetry(fn, maxRetry) {
     }
   }
   throw lastErr;
+}
+
+
+// ══ LEVEL FILTER HELPERS ══════════════════
+
+function fillLevelDropdowns() {
+  var levels = [...new Set((halaqahList||[]).map(function(h){return h.level;}).filter(Boolean))].sort();
+
+  // Step 1 level dropdown
+  var kbmLvl = document.getElementById('kbmLevel');
+  if (kbmLvl) {
+    kbmLvl.innerHTML = '<option value="">— Semua Level —</option>';
+    levels.forEach(function(l){
+      var o = document.createElement('option'); o.value=l; o.textContent=l;
+      kbmLvl.appendChild(o);
+    });
+  }
+
+  // Daftar Murid level
+  var mLvl = document.getElementById('muridLevelSel');
+  if (mLvl) {
+    mLvl.innerHTML = '<option value="">— Semua Level —</option>';
+    levels.forEach(function(l){
+      var o = document.createElement('option'); o.value=l; o.textContent=l;
+      mLvl.appendChild(o);
+    });
+  }
+
+  // Riwayat KBM level
+  var rLvl = document.getElementById('riwayatLevelSel');
+  if (rLvl) {
+    rLvl.innerHTML = '<option value="">— Semua Level —</option>';
+    levels.forEach(function(l){
+      var o = document.createElement('option'); o.value=l; o.textContent=l;
+      rLvl.appendChild(o);
+    });
+  }
+}
+
+function filterKbmHalaqah() {
+  var level = document.getElementById('kbmLevel')?.value;
+  var sel   = document.getElementById('kbmHalaqah');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
+  var filtered = halaqahList.filter(function(h){
+    return !level || h.level === level;
+  });
+  filtered.forEach(function(h){
+    var o = document.createElement('option');
+    o.value = h.id_halaqah;
+    o.textContent = h.nama_halaqah + (h.jam_mulai ? ' (' + h.jam_mulai + ')' : '');
+    sel.appendChild(o);
+  });
+}
+
+function filterMuridHalaqah() {
+  var level = document.getElementById('muridLevelSel')?.value;
+  var sel   = document.getElementById('muridHalaqahSel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
+  halaqahList.filter(function(h){ return !level || h.level === level; })
+    .forEach(function(h){
+      var o = document.createElement('option');
+      o.value = h.id_halaqah; o.textContent = h.nama_halaqah;
+      sel.appendChild(o);
+    });
+}
+
+function filterRiwayatHalaqah() {
+  var level = document.getElementById('riwayatLevelSel')?.value;
+  var sel   = document.getElementById('riwayatHalaqahSel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
+  halaqahList.filter(function(h){ return !level || h.level === level; })
+    .forEach(function(h){
+      var o = document.createElement('option');
+      o.value = h.id_halaqah; o.textContent = h.nama_halaqah;
+      sel.appendChild(o);
+    });
+}
+
+function autoFillPertemuan() {
+  var id_h = document.getElementById('kbmHalaqah')?.value;
+  if (!id_h) return;
+  var h = jadwalData.find(function(x){ return x.id_halaqah === id_h; });
+  if (h) {
+    var jam = document.getElementById('kbmJam');
+    if (jam && !jam.value && h.jam_mulai) jam.value = h.jam_mulai;
+  }
 }
 
 if ('serviceWorker' in navigator)
