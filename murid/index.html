@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d5c42">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Portal Murid — Rattililqur'an</title>
 <link rel="manifest" href="../manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,13 +18,13 @@
   --red:#D94F2A;--red-l:#FDF0EB;
   --purple:#6D28D9;--purple-l:#EDE9FE;
   --teal:#0891b2;--teal-l:#e0f2fe;
-  --bg:#F0F5F2;--card:#fff;--text:#0D1B2A;
-  --text-2:#3D5166;--text-3:#8EA3B8;--border:#DDE6EF;
+  --bg:#F0F4F8;--card:#fff;--text:#0D1B2A;
+  --text-2:#3D5166;--text-3:#8EA3B8;--border:#E2EAF0;
   --r:16px;--r-sm:10px;--r-lg:22px;--r-xl:28px;--r-pill:100px;
-  --shadow:0 1px 4px rgba(13,27,42,.05),0 4px 18px rgba(13,27,42,.06);
-  --shadow-lg:0 8px 36px rgba(13,27,42,.11);
-  --shadow-card:0 2px 12px rgba(13,27,42,.07);
-  --hh:58px;--sab:env(safe-area-inset-bottom,0px);
+  --shadow:0 1px 3px rgba(13,27,42,.04),0 4px 16px rgba(13,27,42,.06);
+  --shadow-lg:0 8px 32px rgba(13,27,42,.12);
+  --shadow-card:0 2px 10px rgba(13,27,42,.06);
+  --sab:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);
@@ -30,347 +32,388 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* ── AUTH ── */
 #authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,#0d1f35 0%,#169B6B 100%);padding:20px;
-  overflow-y:auto}
-@media(max-height:600px){
-  #authScreen{align-items:flex-start;padding-top:40px}
-}
-.auth-box{background:#fff;border-radius:var(--r-xl);padding:40px 36px;width:100%;max-width:380px;
-  box-shadow:0 20px 60px rgba(0,0,0,.22)}
-.auth-arabic{font-family:'Amiri',serif;font-size:24px;color:var(--green);text-align:center;margin-bottom:4px}
-.auth-sub{text-align:center;color:var(--text-3);font-size:12px;margin-bottom:28px}
+  background:linear-gradient(145deg,#0a1628 0%,#0d3a28 40%,#169B6B 100%);
+  padding:20px;overflow-y:auto}
+@media(max-height:600px){#authScreen{align-items:flex-start;padding-top:40px}}
+.auth-box{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);
+  border-radius:28px;padding:36px 32px;width:100%;max-width:380px;
+  box-shadow:0 24px 80px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.5)}
+.auth-arabic{font-family:'Amiri',serif;font-size:26px;color:var(--green);
+  text-align:center;margin-bottom:4px;direction:rtl}
+.auth-sub{text-align:center;color:var(--text-3);font-size:12.5px;margin-bottom:28px}
 .auth-label{display:block;font-size:11px;font-weight:700;color:var(--text-2);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.auth-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.auth-input{width:100%;padding:13px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
   font-family:inherit;font-size:14px;font-weight:600;outline:none;color:var(--text);
-  transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
-.auth-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,155,107,.1)}
-.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--green),var(--green-d));
+  background:#fafbfc;transition:all .2s;margin-bottom:14px}
+.auth-input:focus{border-color:var(--green);background:#fff;
+  box-shadow:0 0 0 4px rgba(22,155,107,.1)}
+.auth-hint{font-size:11.5px;color:var(--text-3);margin-top:-10px;margin-bottom:14px}
+.auth-btn{width:100%;padding:15px;
+  background:linear-gradient(135deg,var(--green),var(--green-d));
   color:#fff;border:none;border-radius:var(--r-pill);font-family:inherit;
-  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;
-  box-shadow:0 4px 18px rgba(22,155,107,.35)}
-.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(22,155,107,.4)}
-#authErr{color:var(--red);font-size:12px;margin-top:8px;text-align:center;display:none}
+  font-size:15px;font-weight:800;cursor:pointer;
+  box-shadow:0 6px 20px rgba(22,155,107,.4),inset 0 1px 0 rgba(255,255,255,.15);
+  transition:all .2s;letter-spacing:.01em}
+.auth-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(22,155,107,.45)}
+.auth-btn:active{transform:translateY(0)}
+#authErr{color:var(--red);font-size:12.5px;margin-top:10px;text-align:center;display:none;
+  background:var(--red-l);padding:8px 12px;border-radius:8px}
 
-/* ── LAYOUT ── */
-#app{display:none;min-height:100dvh;padding-bottom:calc(var(--sab)+70px)}
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100dvh;padding-bottom:calc(var(--sab)+68px)}
+@media(min-width:768px){
+  body{background:#dde5f0}
+  #app{max-width:500px;margin:0 auto;background:var(--bg);
+    box-shadow:0 0 50px rgba(13,27,42,.12);min-height:100dvh}
+}
 
 /* ── TOP HEADER ── */
-.top-header{background:linear-gradient(135deg,var(--green-d),var(--green));
-  padding:20px 20px 56px;position:relative;overflow:hidden}
-.top-header::before{content:'';position:absolute;top:-40px;right:-40px;
-  width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
-.top-header::after{content:'';position:absolute;bottom:-30px;left:-20px;
-  width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)}
-.top-greeting{font-size:12.5px;color:rgba(255,255,255,.75);font-weight:500;margin-bottom:2px}
-.top-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
-.top-halaqah{font-size:12px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:5px}
-.top-avatar{position:absolute;top:20px;right:20px;width:44px;height:44px;
-  border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-weight:800;
-  font-size:16px;display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,.35);cursor:pointer}
+.top-header{
+  background:linear-gradient(135deg,#0d5c42 0%,#169B6B 60%,#1e8a5e 100%);
+  padding:20px 18px 56px;position:relative;overflow:hidden;
+}
+.top-header::before{content:'';position:absolute;top:-60px;right:-50px;
+  width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
+.top-header::after{content:'';position:absolute;bottom:-40px;left:-30px;
+  width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.05)}
+.top-row{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
+.top-left{}
+.top-greet{font-size:12.5px;color:rgba(255,255,255,.75);font-weight:500;margin-bottom:1px}
+.top-name{font-size:21px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:3px}
+.top-badge{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.18);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.25);border-radius:100px;
+  padding:3px 10px;font-size:11.5px;color:rgba(255,255,255,.9);font-weight:600}
+.top-avatar{width:46px;height:46px;border-radius:50%;
+  background:rgba(255,255,255,.2);backdrop-filter:blur(8px);
+  border:2px solid rgba(255,255,255,.35);color:#fff;
+  font-weight:800;font-size:17px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.top-avatar:hover{background:rgba(255,255,255,.3)}
 
 /* ── CONTENT ── */
-.content{padding:0 16px 80px;margin-top:-36px;position:relative}
+.content{padding:0 14px;margin-top:-36px;position:relative}
 
 /* ── PROGRESS CARD ── */
-.progress-card{background:#fff;border-radius:var(--r-lg);padding:18px;
-  box-shadow:var(--shadow-lg);margin-bottom:14px;border:1px solid rgba(22,155,107,.12)}
-.progress-level{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.progress-card{
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(20px) saturate(1.8);
+  -webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border-radius:22px;padding:18px 20px;
+  box-shadow:0 4px 24px rgba(13,27,42,.1),0 0 0 1px rgba(255,255,255,.7);
+  margin-bottom:14px;
+}
+.prog-level-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .level-badge{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
-  padding:4px 14px;border-radius:var(--r-pill);font-size:12px;font-weight:700}
-.level-target{font-size:11.5px;color:var(--text-3)}
-.progress-bar-wrap{background:#f0f5f2;border-radius:var(--r-pill);height:10px;overflow:hidden;margin-bottom:8px}
-.progress-bar-fill{height:100%;border-radius:var(--r-pill);
-  background:linear-gradient(90deg,var(--green),#22c55e);transition:width .6s ease}
-.progress-meta{display:flex;justify-content:space-between;font-size:11.5px}
-.progress-count{font-weight:700;color:var(--green)}
-.progress-remain{color:var(--text-3)}
+  padding:5px 16px;border-radius:100px;font-size:12.5px;font-weight:700;
+  box-shadow:0 2px 10px rgba(22,155,107,.3)}
+.level-target{font-size:12px;color:var(--text-3);font-weight:500;
+  display:flex;align-items:center;gap:4px}
+.prog-bar-wrap{background:#f0f5f2;border-radius:100px;height:10px;overflow:hidden;margin-bottom:8px}
+.prog-bar-fill{height:100%;border-radius:100px;
+  background:linear-gradient(90deg,var(--green),#34d399);transition:width .7s ease}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px}
+.prog-count{font-weight:700;color:var(--green)}
+.prog-sisa{color:var(--text-3)}
 
-/* ── STAT CARDS ── */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.stat-card{background:#fff;border-radius:var(--r);padding:14px 12px;
-  box-shadow:var(--shadow-card);text-align:center;border:1px solid var(--border)}
-.stat-card .ico{font-size:22px;margin-bottom:4px}
-.stat-card .val{font-size:20px;font-weight:800;line-height:1;color:var(--text)}
-.stat-card .lbl{font-size:10.5px;color:var(--text-3);margin-top:3px;font-weight:600;
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-card{
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(16px);
+  border-radius:16px;padding:14px 10px;text-align:center;
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow-card);
+}
+.stat-card .ico{font-size:20px;margin-bottom:4px}
+.stat-card .val{font-size:20px;font-weight:800;line-height:1.1;color:var(--text)}
+.stat-card .lbl{font-size:10px;color:var(--text-3);margin-top:2px;font-weight:600;
   text-transform:uppercase;letter-spacing:.04em}
 
 /* ── CARD ── */
-.card{background:#fff;border-radius:var(--r);border:1px solid var(--border);
-  box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden}
-.card-head{padding:14px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px}
-.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
-.card-body{padding:16px}
-.card-more{font-size:12px;color:var(--green);font-weight:600;cursor:pointer;
-  background:none;border:none;font-family:inherit}
+.card{
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(16px);
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow-card);margin-bottom:14px;overflow:hidden;
+}
+.card-head{padding:14px 16px 0;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.card-body{padding:0 16px 16px}
+.card-more{font-size:12px;color:var(--green);font-weight:700;
+  background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
 
 /* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;
-  background:#fff;border-top:1px solid var(--border);
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px) saturate(1.8);
+  -webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border-top:1px solid rgba(255,255,255,.6);
   display:flex;padding:8px 0 calc(var(--sab)+8px);z-index:100;
-  box-shadow:0 -4px 20px rgba(13,27,42,.08)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  box-shadow:0 -4px 24px rgba(13,27,42,.08)}
+@media(min-width:768px){.bottom-nav{max-width:500px;left:50%;transform:translateX(-50%)}}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:none;cursor:pointer;padding:4px 0;
   font-family:inherit;font-size:10px;font-weight:600;color:var(--text-3);
-  transition:color .15s}
+  transition:color .15s;position:relative}
 .nav-item.active{color:var(--green)}
 .nav-item .ni{font-size:22px;line-height:1}
 .nav-item .nl{font-size:10px}
+/* Badge PR */
+.nav-badge{position:absolute;top:0;right:calc(50% - 18px);
+  background:var(--red);color:#fff;border-radius:100px;
+  font-size:9px;font-weight:800;padding:1px 5px;min-width:16px;text-align:center;
+  border:2px solid var(--bg)}
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
+.page-title{font-size:18px;font-weight:800;padding-top:8px;margin-bottom:2px}
+.page-sub{font-size:12.5px;color:var(--text-3);margin-bottom:14px}
 
 /* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:var(--r-pill);
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;
   font-size:10.5px;font-weight:700;white-space:nowrap}
 .b-green{background:var(--green-l);color:#0a6b4e}
-.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-blue{background:var(--blue-l);color:var(--blue-d)}
 .b-amber{background:var(--amber-l);color:#8a6200}
 .b-red{background:var(--red-l);color:#a03010}
 .b-gray{background:#f1f5f9;color:#64748b}
 .b-purple{background:var(--purple-l);color:var(--purple)}
+.b-teal{background:var(--teal-l);color:var(--teal)}
 
-/* ── RIWAYAT KBM ITEM ── */
-.riwayat-item{padding:14px 0;border-bottom:1px solid var(--border)}
-.riwayat-item:last-child{border-bottom:none}
-.riwayat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.riwayat-tgl{font-size:12px;color:var(--text-3)}
-.riwayat-materi{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
-.riwayat-koreksi{font-size:12.5px;color:var(--text-2);background:var(--amber-l);
-  border-radius:var(--r-sm);padding:8px 10px;margin-top:6px;line-height:1.5}
+/* ── RIWAYAT ITEM (expandable) ── */
+.riwayat-item{border-radius:14px;border:1.5px solid var(--border);
+  background:#fff;margin-bottom:10px;overflow:hidden;transition:all .2s}
+.riwayat-item:last-child{margin-bottom:0}
+.riwayat-summary{padding:14px;cursor:pointer;display:flex;align-items:flex-start;
+  justify-content:space-between;gap:10px}
+.riwayat-summary:hover{background:#fafbfc}
+.riwayat-left{flex:1}
+.riwayat-tgl{font-size:11.5px;color:var(--text-3);margin-bottom:3px}
+.riwayat-materi{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4}
+.riwayat-chevron{font-size:12px;color:var(--text-3);transition:transform .2s;
+  flex-shrink:0;margin-top:2px}
+.riwayat-item.expanded .riwayat-chevron{transform:rotate(180deg)}
+.riwayat-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.riwayat-item.expanded .riwayat-detail{display:block}
+.detail-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;
+  border-bottom:1px solid #f1f5f9;font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.detail-val{color:var(--text-2);line-height:1.5;flex:1}
+.detail-label{font-size:11px;font-weight:700;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;margin-top:10px}
+.koreksi-box{background:var(--amber-l);border-radius:10px;
+  padding:10px 12px;font-size:12.5px;color:#7a5500;line-height:1.6}
 
-/* ── PR / LATIHAN MANDIRI ── */
-.pr-item{border-radius:var(--r);border:1.5px solid var(--border);padding:14px;
-  margin-bottom:10px;transition:border-color .2s}
-.pr-item:last-child{margin-bottom:0}
+/* ── PR ITEM ── */
+.pr-item{border-radius:14px;border:1.5px solid var(--border);
+  background:#fff;padding:15px;margin-bottom:10px;transition:all .2s}
 .pr-item.lewat{border-color:var(--red);background:var(--red-l)}
 .pr-item.hari_ini{border-color:var(--amber);background:var(--amber-l)}
 .pr-item.mepet{border-color:var(--amber)}
-.pr-item.aman{border-color:var(--green)}
+.pr-item.aman{border-color:var(--green);background:var(--green-l)}
 .pr-jenis{font-size:11px;font-weight:700;color:var(--text-3);
-  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.pr-isi{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.5}
-.pr-deadline{font-size:12px;font-weight:600}
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.pr-isi{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.5}
+.pr-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.pr-deadline{font-size:12.5px;font-weight:600}
+
+/* ── KALENDER ── */
+.kalender-wrap{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:14px}
+.kal-header{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px}
+.kal-month{font-size:14px;font-weight:700}
+.kal-nav{background:none;border:1.5px solid var(--border);border-radius:8px;
+  padding:4px 10px;cursor:pointer;font-size:16px;color:var(--text-2)}
+.kal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 12px 14px}
+.kal-day-name{text-align:center;font-size:10px;font-weight:700;color:var(--text-3);
+  padding:4px 0;text-transform:uppercase}
+.kal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:default}
+.kal-day.hadir{background:var(--green-l);color:#0a6b4e}
+.kal-day.alpa{background:var(--red-l);color:#a03010}
+.kal-day.izin{background:var(--amber-l);color:#8a6200}
+.kal-day.terlambat{background:var(--purple-l);color:var(--purple)}
+.kal-day.today{outline:2px solid var(--green);outline-offset:1px}
+.kal-day.empty{opacity:0}
+.kal-legend{display:flex;gap:12px;flex-wrap:wrap;padding:0 16px 12px}
+.kal-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3)}
+.kal-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* ── MATERI LEVEL (Info Tab) ── */
+.materi-card{border-radius:14px;border:1.5px solid var(--border);
+  background:#fff;margin-bottom:10px;overflow:hidden}
+.materi-head{padding:14px 16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between}
+.materi-head:hover{background:#fafbfc}
+.materi-kat{font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:3px}
+.materi-judul{font-size:14px;font-weight:700;color:var(--text)}
+.materi-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.materi-card.expanded .materi-body{display:block}
+.materi-isi{font-size:13.5px;color:var(--text-2);line-height:1.75;white-space:pre-wrap}
+.level-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.lf-btn{padding:6px 16px;border-radius:100px;font-size:12.5px;font-weight:700;
+  border:1.5px solid var(--border);background:#fff;color:var(--text-3);cursor:pointer;white-space:nowrap}
+.lf-btn.active{border-color:var(--green);background:var(--green-l);color:var(--green-d)}
 
 /* ── PENGUMUMAN ── */
-.peng-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.peng-item{padding:15px 0;border-bottom:1px solid var(--border)}
 .peng-item:last-child{border-bottom:none}
 .peng-tgl{font-size:11px;color:var(--text-3);margin-bottom:4px}
-.peng-judul{font-size:14px;font-weight:700;margin-bottom:4px}
-.peng-isi{font-size:13px;color:var(--text-2);line-height:1.6}
-.peng-label{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
-  border-radius:var(--r-pill);font-size:10px;font-weight:700;margin-bottom:6px}
+.peng-judul{font-size:14.5px;font-weight:700;margin-bottom:5px}
+.peng-isi{font-size:13px;color:var(--text-2);line-height:1.65}
+.peng-label{display:inline-flex;align-items:center;padding:2px 9px;
+  border-radius:100px;font-size:10px;font-weight:700;margin-bottom:7px}
 .label-penting{background:#fee2e2;color:#991b1b}
-.label-info{background:var(--blue-l);color:var(--blue)}
+.label-info{background:var(--blue-l);color:var(--blue-d)}
 .label-event{background:var(--purple-l);color:var(--purple)}
 .label-kelas{background:var(--green-l);color:var(--green-d)}
 
-/* ── RAPORT CARD ── */
-.raport-card{background:linear-gradient(135deg,var(--blue-l),#fff);
-  border:1.5px solid rgba(20,88,168,.2);border-radius:var(--r-lg);padding:18px;margin-bottom:12px}
-.raport-periode{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;
-  text-transform:uppercase;letter-spacing:.05em}
-.raport-nilai{font-size:42px;font-weight:800;color:var(--blue);line-height:1}
+/* ── RAPORT ── */
+.raport-card{background:linear-gradient(135deg,#EBF2FF,#fff);
+  border:1.5px solid rgba(20,88,168,.15);border-radius:20px;
+  padding:20px;margin-bottom:14px}
+.raport-periode{font-size:11.5px;font-weight:700;color:var(--blue);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.raport-nilai{font-size:46px;font-weight:800;color:var(--blue);line-height:1}
 .raport-predikat{font-size:14px;font-weight:700;color:var(--green);margin-top:4px}
-.raport-komponen{margin-top:14px;border-top:1px solid rgba(20,88,168,.1);padding-top:12px}
 .komponen-row{display:flex;justify-content:space-between;align-items:center;
-  padding:6px 0;font-size:12.5px;border-bottom:1px solid rgba(20,88,168,.06)}
+  padding:7px 0;font-size:13px;border-bottom:1px solid rgba(20,88,168,.07)}
 .komponen-row:last-child{border-bottom:none}
 
-/* ── LINK CARDS ── */
+/* ── QUICK LINKS ── */
 .links-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.link-card{background:#fff;border-radius:var(--r);border:1.5px solid var(--border);
-  padding:16px 14px;text-align:center;cursor:pointer;transition:all .2s;
+.link-card{background:#fff;border-radius:16px;border:1.5px solid var(--border);
+  padding:16px;text-align:center;cursor:pointer;transition:all .2s;
   box-shadow:var(--shadow-card);text-decoration:none;display:block}
 .link-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--green)}
 .link-card .lc-ico{font-size:28px;margin-bottom:6px}
 .link-card .lc-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px}
 .link-card .lc-sub{font-size:11px;color:var(--text-3)}
-.link-card-full{grid-column:1/-1}
+.link-full{grid-column:1/-1}
+
+/* ── GRAFIK ── */
+.grafik-bars{display:flex;align-items:flex-end;gap:4px;height:90px;
+  border-bottom:1.5px solid var(--border);padding-bottom:0;margin-bottom:6px}
+.grafik-bar{flex:1;border-radius:5px 5px 0 0;min-width:6px;
+  transition:height .5s ease;cursor:pointer;position:relative}
+.grafik-bar:hover::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;
+  transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:3px 8px;
+  border-radius:6px;font-size:10px;white-space:nowrap;z-index:10;margin-bottom:3px}
+.grafik-labels{display:flex;gap:4px}
+.grafik-lbl{flex:1;text-align:center;font-size:9px;color:var(--text-3);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
 
 /* ── NILAI BADGE ── */
 .nilai-Mumtaz{background:#fef9c3;color:#854d0e;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
-.nilai-Jayyid{background:var(--blue-l);color:var(--blue);padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
+.nilai-Jayyid{background:var(--blue-l);color:var(--blue-d);padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
 .nilai-JJ{background:var(--green-l);color:#0a6b4e;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
 .nilai-Maqbul{background:var(--red-l);color:#a03010;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px}
 
-/* ── GRAFIK ── */
-#grafikCanvas{display:block}
-.grafik-bar-wrap{display:flex;align-items:flex-end;gap:4px;height:100px;
-  border-bottom:1.5px solid var(--border);padding-bottom:0;margin-bottom:8px}
-.grafik-bar{flex:1;border-radius:4px 4px 0 0;min-width:8px;
-  transition:height .4s ease;cursor:pointer;position:relative}
-.grafik-bar:hover::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;
-  transform:translateX(-50%);background:#0d1b2a;color:#fff;padding:3px 7px;
-  border-radius:6px;font-size:10px;white-space:nowrap;z-index:10;margin-bottom:3px}
-.grafik-label{display:flex;gap:4px;overflow:hidden}
-.grafik-label-item{flex:1;text-align:center;font-size:9px;color:var(--text-3);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.refresh-badge-murid{position:fixed;bottom:76px;right:12px;
-  background:var(--card);border:1px solid var(--border);border-radius:var(--r-pill);
-  padding:4px 10px;font-size:10.5px;color:var(--text-3);
-  box-shadow:var(--shadow-card);z-index:90;display:none;align-items:center;gap:4px}
-.refresh-badge-murid.show{display:flex}
-
 /* ── EMPTY ── */
-.empty{text-align:center;padding:40px 20px;color:var(--text-3)}
-.empty-ico{font-size:40px;margin-bottom:8px;opacity:.4}
+.empty{text-align:center;padding:36px 20px;color:var(--text-3)}
+.empty-ico{font-size:38px;margin-bottom:8px;opacity:.5}
 .empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+.empty-sub{font-size:12.5px}
 
-/* ── NOTIF / TOAST MODAL ── */
+/* ── NOTIF MODAL ── */
 .notif-overlay{display:none;position:fixed;inset:0;z-index:10000;
-  background:rgba(13,27,42,.55);align-items:center;justify-content:center;
-  padding:20px;backdrop-filter:blur(4px)}
-.notif-overlay.show{display:flex;animation:loaderFadeIn .25s ease}
-.notif-box{background:#fff;border-radius:22px;padding:28px 24px 22px;
+  background:rgba(13,27,42,.5);align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(6px)}
+.notif-overlay.show{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.notif-box{background:#fff;border-radius:24px;padding:28px 24px 22px;
   width:100%;max-width:320px;text-align:center;
-  box-shadow:0 16px 60px rgba(13,27,42,.25)}
+  box-shadow:0 20px 60px rgba(13,27,42,.2)}
 .notif-icon{font-size:38px;margin-bottom:8px}
 .notif-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px}
 .notif-msg{font-size:13.5px;color:var(--text-2);line-height:1.6;margin-bottom:18px}
-.notif-btn{width:100%;padding:13px;border:none;border-radius:var(--r-pill);
+.notif-btn{width:100%;padding:13px;border:none;border-radius:100px;
   font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
 .notif-btn.ok{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff}
 .notif-btn.err{background:linear-gradient(135deg,#d94f2a,#b43a1e);color:#fff}
 .notif-btn.info{background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff}
 .notif-btn.warn{background:linear-gradient(135deg,var(--amber),#b87a00);color:#fff}
 
-/* ── PROFIL MODAL ── */
-.overlay{display:none;position:fixed;inset:0;z-index:9000;
-  background:rgba(13,27,42,.45);align-items:flex-end;justify-content:center;
-  backdrop-filter:blur(4px)}
-.overlay.open{display:flex;animation:loaderFadeIn .25s ease}
-.modal{background:#fff;border-radius:24px 24px 0 0;
-  width:100%;max-width:480px;max-height:85dvh;
-  overflow-y:auto;padding:24px 20px 32px}
-@media(min-width:600px){
-  .overlay{align-items:center}
-  .modal{border-radius:24px;max-height:80dvh}
-}
-.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.modal-title{font-size:16px;font-weight:800;color:var(--text)}
+/* ── MODAL SHEET ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:9000;
+  background:rgba(13,27,42,.45);backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .2s ease}
+@media(min-width:600px){.modal-overlay.open{align-items:center}}
+.modal-sheet{background:#fff;border-radius:24px 24px 0 0;
+  width:100%;max-width:500px;max-height:90dvh;overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(13,27,42,.15)}
+@media(min-width:600px){.modal-sheet{border-radius:24px;max-height:85dvh}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px 0}
+.modal-title{font-size:16px;font-weight:800}
 .modal-x{background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer;
   width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .modal-x:hover{background:var(--border)}
-.profil-avatar{width:64px;height:64px;border-radius:50%;
-  background:linear-gradient(135deg,var(--green),var(--green-d));
-  color:#fff;font-weight:800;font-size:24px;
-  display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
-.profil-name{font-size:16px;font-weight:800;text-align:center;margin-bottom:2px}
-.profil-nis{font-size:12px;color:var(--text-3);text-align:center;margin-bottom:20px}
-.field-label{font-size:11px;font-weight:700;color:var(--text-3);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
-.field-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);
-  border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:500;
-  outline:none;color:var(--text);margin-bottom:12px;
-  transition:border-color .2s,box-shadow .2s}
-.field-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,155,107,.1)}
-.btn-save{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green-d));
-  color:#fff;border:none;border-radius:var(--r-pill);font-family:inherit;
-  font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
-.btn-batal{width:100%;padding:12px;background:none;border:1.5px solid var(--border);
-  border-radius:var(--r-pill);font-family:inherit;font-size:14px;
-  font-weight:600;color:var(--text-2);cursor:pointer;margin-top:8px}
-
-/* ── MODAL SHEET (bottom sheet) ── */
-.modal-overlay{display:none;position:fixed;inset:0;z-index:9000;
-  background:rgba(13,27,42,.5);backdrop-filter:blur(4px)}
-.modal-overlay.open{display:flex;align-items:flex-end;justify-content:center;
-  animation:loaderFadeIn .2s ease}
-@media(min-width:600px){.modal-overlay.open{align-items:center}}
-.modal-sheet{background:#fff;border-radius:24px 24px 0 0;
-  width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;
-  box-shadow:0 -8px 40px rgba(13,27,42,.15)}
-@media(min-width:600px){.modal-sheet{border-radius:24px;max-height:85dvh}}
-.modal-body{padding:0 20px 8px}
-.modal-foot{position:sticky;bottom:0;background:#fff;
-  border-top:1px solid var(--border);padding:12px 20px;
-  display:flex;gap:8px}
+.modal-body{padding:16px 20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;gap:8px;position:sticky;bottom:0;background:#fff}
 .modal-foot .btn{flex:1;justify-content:center}
 .fg{margin-bottom:12px}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-3);
   text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .fc{width:100%;padding:11px 14px;border:1.5px solid var(--border);
   border-radius:var(--r-sm);font-family:inherit;font-size:14px;
-  font-weight:500;outline:none;color:var(--text);
-  transition:border-color .2s,box-shadow .2s;background:#fff}
+  font-weight:500;outline:none;color:var(--text);background:#fff;
+  transition:all .2s}
 .fc:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,155,107,.1)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;
-  border-radius:var(--r-pill);font-family:inherit;font-size:13.5px;
-  font-weight:700;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
-.btn-primary{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
-  box-shadow:0 3px 12px rgba(22,155,107,.3)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 18px;
+  border-radius:100px;font-family:inherit;font-size:13.5px;
+  font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff}
 .btn-ghost{background:none;border:1.5px solid var(--border);color:var(--text-2)}
-.btn-ghost:hover{background:var(--border)}
-
 .btn-logout{width:100%;padding:12px;background:var(--red-l);border:none;
-  border-radius:var(--r-pill);font-family:inherit;font-size:14px;
+  border-radius:100px;font-family:inherit;font-size:14px;
   font-weight:700;color:var(--red);cursor:pointer;margin-top:8px}
-
-/* ── DESKTOP RESPONSIVE ── */
-@media(min-width:768px){
-  body{background:#e8eef5}
-  #app{max-width:520px;margin:0 auto;background:var(--bg);
-    box-shadow:0 0 40px rgba(13,27,42,.1);min-height:100dvh}
-  .top-header{border-radius:0}
-  .bottom-nav{max-width:520px;left:50%;transform:translateX(-50%)}
-  .refresh-badge-murid{right:calc(50% - 250px)}
-}
-
-/* ── AUTH DESKTOP ── */
-@media(min-width:768px){
-  #authScreen{padding:40px 20px}
-  .auth-box{padding:48px 44px}
-}
 
 /* ── LOADER ── */
 .loader{display:none;position:fixed;inset:0;z-index:9999;
   background:linear-gradient(160deg,#0a1628 0%,#0d2a1e 100%);
   align-items:center;justify-content:center;flex-direction:column;
   backdrop-filter:blur(12px)}
-.loader.show{display:flex;animation:loaderFadeIn .3s ease}
-@keyframes loaderFadeIn{from{opacity:0}to{opacity:1}}
-.loader-inner{display:flex;flex-direction:column;align-items:center;
-  text-align:center;padding:0 32px;max-width:320px}
+.loader.show{display:flex;animation:fadeIn .3s ease}
+.loader-inner{text-align:center;padding:0 32px;max-width:320px}
 .loader-dots{display:flex;flex-direction:row;align-items:center;
   justify-content:center;gap:12px;margin-bottom:24px}
-.loader-dot{width:10px;height:10px;border-radius:50%;
-  background:rgba(255,255,255,.25);
+.loader-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);
   animation:dotWave 1.5s ease-in-out infinite;flex-shrink:0}
 .loader-dot:nth-child(1){animation-delay:0s}
 .loader-dot:nth-child(2){animation-delay:.18s}
 .loader-dot:nth-child(3){animation-delay:.36s}
-@keyframes dotWave{
-  0%,60%,100%{transform:translateY(0);background:rgba(255,255,255,.25)}
+@keyframes dotWave{0%,60%,100%{transform:translateY(0);background:rgba(255,255,255,.25)}
   30%{transform:translateY(-10px);background:#fff}}
-.loader-txt{color:#fff;font-size:14.5px;font-weight:600;
-  line-height:1.75;text-align:center;
-  text-shadow:0 2px 16px rgba(0,0,0,.7);
-  animation:txtFadeIn .4s ease .1s both;min-height:40px}
-@keyframes txtFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.loader-txt{color:#fff;font-size:14.5px;font-weight:600;line-height:1.75;
+  text-shadow:0 2px 16px rgba(0,0,0,.7);animation:slideUp .4s ease .1s both;min-height:40px}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .loader-bar{width:120px;height:2px;background:rgba(255,255,255,.12);
   border-radius:100px;margin-top:18px;overflow:hidden}
 .loader-bar-fill{height:100%;border-radius:100px;
-  background:linear-gradient(90deg,#169B6B,#22c55e);
+  background:linear-gradient(90deg,var(--green),#34d399);
   animation:barSlide 2s ease-in-out infinite}
 @keyframes barSlide{0%{transform:translateX(-100%)}50%{transform:translateX(0%)}100%{transform:translateX(100%)}}
-.spin{display:none}
 
-/* ── SKELETON LOADING ── */
+/* ── SKELETON ── */
 .skel{background:linear-gradient(90deg,#f0f2f5 25%,#e4e7ec 50%,#f0f2f5 75%);
-  background-size:200% 100%;animation:skelShimmer 1.4s infinite;
-  border-radius:6px;display:block}
+  background-size:200% 100%;animation:skelShimmer 1.4s infinite;border-radius:6px;display:block}
 @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skel-text{height:14px;margin-bottom:8px;width:80%}
-.skel-text.short{width:50%}
-.skel-text.full{width:100%}
-.skel-num{height:32px;width:60px;border-radius:8px}
-.skel-card{height:80px;border-radius:12px;margin-bottom:10px}
-.skel-row{height:40px;border-radius:6px;margin-bottom:6px}
-.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
 
+/* ── SINKRON BADGE ── */
+.refresh-badge-murid{position:fixed;bottom:72px;left:14px;
+  background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
+  border:1px solid var(--border);border-radius:100px;
+  padding:4px 10px;font-size:10.5px;color:var(--text-3);
+  box-shadow:0 2px 10px rgba(13,27,42,.08);z-index:90;display:none;align-items:center;gap:4px}
+.refresh-badge-murid.show{display:flex}
 </style>
 </head>
 <body>
@@ -379,9 +422,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="loader" id="loader">
   <div class="loader-inner">
     <div class="loader-dots">
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
+      <div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div>
     </div>
     <div class="loader-txt" id="loaderTxt">Bismillah...</div>
     <div class="loader-bar"><div class="loader-bar-fill"></div></div>
@@ -409,9 +450,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <label class="auth-label" for="pwInput">Password</label>
     <input class="auth-input" type="password" id="pwInput" placeholder="Password akun"
       autocomplete="current-password">
-    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:14px">
-      Kosongkan jika belum diset password
-    </div>
+    <div class="auth-hint">Kosongkan jika belum diset password</div>
     <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
     <div id="authErr"></div>
   </div>
@@ -422,10 +461,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
   <!-- TOP HEADER -->
   <div class="top-header">
-    <div class="top-greeting" id="topGreeting">Assalamu'alaikum,</div>
-    <div class="top-name" id="topName">Murid</div>
-    <div class="top-halaqah">📚 <span id="topHalaqah">—</span></div>
-    <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+    <div class="top-row">
+      <div class="top-left">
+        <div class="top-greet" id="topGreeting">Assalamu'alaikum,</div>
+        <div class="top-name" id="topName">Murid</div>
+        <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
+      </div>
+      <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+    </div>
   </div>
 
   <!-- CONTENT -->
@@ -436,123 +479,121 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
       <!-- Progress Level -->
       <div class="progress-card">
-        <div class="progress-level">
-          <div>
-            <div style="font-size:11px;color:var(--text-3);font-weight:600;
-              text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Level Saat Ini</div>
-            <span class="level-badge" id="dashLevel">Level 1</span>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text-3);margin-bottom:2px">Target</div>
-            <div class="level-target" id="dashTarget">Level 2</div>
-          </div>
+        <div class="prog-level-row">
+          <span class="level-badge" id="dashLevel">Level 1</span>
+          <span class="level-target" id="dashTarget">→ Level 2</span>
         </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="dashProgressBar" style="width:0%"></div>
+        <div class="prog-bar-wrap">
+          <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
         </div>
-        <div class="progress-meta">
-          <span class="progress-count" id="dashProgressPct">0%</span>
-          <span class="progress-remain" id="dashSisa">dari 40 pertemuan</span>
+        <div class="prog-meta">
+          <span class="prog-count" id="dashProgressPct">0% dari target level</span>
+          <span class="prog-sisa" id="dashSisa">40 sesi tersisa</span>
         </div>
       </div>
 
       <!-- Stats -->
-      <div class="stats-row">
+      <div class="stats-grid">
         <div class="stat-card">
           <div class="ico">✅</div>
-          <div class="val" id="st-hadir">–</div>
+          <div class="val stat-val" id="st-hadir">–</div>
           <div class="lbl">% Hadir</div>
         </div>
         <div class="stat-card">
           <div class="ico">📋</div>
-          <div class="val" id="st-sesi">–</div>
+          <div class="val stat-val" id="st-sesi">–</div>
           <div class="lbl">Pertemuan</div>
         </div>
         <div class="stat-card">
           <div class="ico">⭐</div>
-          <div class="val" id="st-nilai" style="font-size:13px">–</div>
-          <div class="lbl">Avg Nilai</div>
+          <div class="val stat-val" id="st-nilai" style="font-size:13px">–</div>
+          <div class="lbl">Avg Adab</div>
         </div>
       </div>
 
-      <!-- Grafik Progress Nilai -->
+      <!-- Grafik -->
       <div class="card" id="grafikCard" style="display:none">
         <div class="card-head">
           <div class="card-title">📈 Grafik Nilai Tahsin</div>
           <span id="grafikTrend" style="font-size:12px;font-weight:700"></span>
         </div>
-        <div class="card-body" style="padding:14px 16px">
-          <canvas id="grafikCanvas" height="120" style="width:100%"></canvas>
-          <div id="grafikEmpty" style="text-align:center;padding:20px;color:var(--text-3);display:none">
-            Belum cukup data untuk grafik
-          </div>
+        <div class="card-body">
+          <div id="grafikCanvas"></div>
         </div>
       </div>
 
       <!-- PR Aktif -->
       <div class="card" id="prCard" style="display:none">
         <div class="card-head">
-          <div class="card-title">📝 Latihan Mandiri</div>
-          <button class="card-more" onclick="goPage('pr')">Lihat semua →</button>
+          <div class="card-title">📝 Latihan Mandiri Aktif</div>
+          <button class="card-more" onclick="goPage('pr')">Lihat →</button>
         </div>
         <div class="card-body" id="dashPrPreview"></div>
       </div>
 
-      <!-- Pengumuman terbaru -->
+      <!-- Pengumuman preview -->
       <div class="card">
         <div class="card-head">
           <div class="card-title">📢 Pengumuman</div>
           <button class="card-more" onclick="goPage('pengumuman')">Semua →</button>
         </div>
         <div class="card-body" id="dashPengumuman">
-          <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Memuat...</div></div>
+          <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
         </div>
       </div>
 
-      <!-- Link Penting -->
-      <div style="font-size:12px;font-weight:700;color:var(--text-3);
-        text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
-        🔗 Akses Cepat
-      </div>
+      <!-- Akses Cepat -->
       <div class="links-grid">
         <a class="link-card" href="https://rattililquran.github.io/KhatamKu/" target="_blank">
           <div class="lc-ico">📖</div>
           <div class="lc-title">KhatamKu</div>
-          <div class="lc-sub">Target khatam Al-Qur'an</div>
+          <div class="lc-sub">Tracker khatam Al-Qur'an</div>
         </a>
         <a class="link-card" href="https://rattililquran.github.io/KonfirmasiSPP-Rattil/" target="_blank">
           <div class="lc-ico">💳</div>
           <div class="lc-title">Portal SPP</div>
           <div class="lc-sub">Konfirmasi pembayaran</div>
         </a>
-        <div class="link-card link-card-full" id="linkZoom" style="display:none" onclick="openLinkZoom()">
-          <div class="lc-ico">🎥</div>
-          <div class="lc-title">Zoom Meeting</div>
-          <div class="lc-sub" id="linkZoomSub">Link kelas online</div>
-        </div>
       </div>
 
-    </div>
+    </div><!-- /dashboard -->
 
     <!-- ════ RIWAYAT KBM ════ -->
     <div class="page" id="page-riwayat">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Riwayat KBM</div>
-      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
-        Rekap sesi tahsin yang sudah kamu ikuti.
-      </div>
-      <div class="card">
-        <div class="card-body" id="riwayatList" style="padding:0 16px">
-          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      <div class="page-title">Riwayat KBM</div>
+      <div class="page-sub">Rekap sesi tahsin yang sudah kamu ikuti.</div>
+
+      <!-- Kalender Kehadiran -->
+      <div class="kalender-wrap" id="kalenderWrap">
+        <div class="kal-header">
+          <button class="kal-nav" onclick="kalNav(-1)">‹</button>
+          <div class="kal-month" id="kalMonth"></div>
+          <button class="kal-nav" onclick="kalNav(1)">›</button>
+        </div>
+        <div class="kal-grid" id="kalGrid"></div>
+        <div class="kal-legend">
+          <div class="kal-leg"><div class="kal-dot" style="background:var(--green-l);border:1px solid var(--green)"></div>Hadir</div>
+          <div class="kal-leg"><div class="kal-dot" style="background:var(--red-l);border:1px solid var(--red)"></div>Alpa</div>
+          <div class="kal-leg"><div class="kal-dot" style="background:var(--amber-l);border:1px solid var(--amber)"></div>Izin/T</div>
         </div>
       </div>
+
+      <!-- List Riwayat -->
+      <div id="riwayatList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+      <button id="btnMuatLebihMurid" onclick="muatLebihRiwayatMurid()"
+        style="display:none;width:100%;padding:12px;margin-top:4px;margin-bottom:8px;
+        background:#fff;border:1.5px solid var(--border);border-radius:14px;
+        font-size:13px;font-weight:700;color:var(--blue);cursor:pointer">
+        ↓ Muat 40 Riwayat Terakhir
+      </button>
     </div>
 
     <!-- ════ LATIHAN MANDIRI (PR) ════ -->
     <div class="page" id="page-pr">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Latihan Mandiri</div>
-      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
-        PR dari guru — selesaikan sebelum deadline. 💪
-      </div>
+      <div class="page-title">Latihan Mandiri</div>
+      <div class="page-sub">PR dari guru — selesaikan sebelum deadline. 💪</div>
       <div id="prList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
@@ -560,10 +601,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <!-- ════ PENGUMUMAN ════ -->
     <div class="page" id="page-pengumuman">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Pengumuman</div>
-      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
-        Info terbaru dari guru dan admin.
-      </div>
+      <div class="page-title">Pengumuman</div>
+      <div class="page-sub">Info terbaru dari guru dan admin.</div>
       <div class="card">
         <div class="card-body" id="pengumumanList" style="padding:0 16px">
           <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
@@ -571,12 +610,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
 
+    <!-- ════ INFO / MATERI LEVEL ════ -->
+    <div class="page" id="page-info">
+      <div class="page-title">Materi Level</div>
+      <div class="page-sub">Pelajari materi sesuai levelmu dan tips tajwid dari guru.</div>
+      <div class="level-filter" id="materiLevelFilter"></div>
+      <div id="materiList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ RAPORT ════ -->
     <div class="page" id="page-raport">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;padding-top:8px">Raport Saya</div>
-      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">
-        Nilai akhir yang sudah dipublikasikan.
-      </div>
+      <div class="page-title">Raport Saya</div>
+      <div class="page-sub">Nilai akhir yang sudah dipublikasikan.</div>
       <div id="raportList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
@@ -592,11 +639,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <button class="nav-item" onclick="goPage('riwayat')" data-p="riwayat">
       <span class="ni">📋</span><span class="nl">Riwayat</span>
     </button>
-    <button class="nav-item" onclick="goPage('pr')" data-p="pr">
+    <button class="nav-item" onclick="goPage('pr')" data-p="pr" id="navPr">
       <span class="ni">📝</span><span class="nl">PR</span>
     </button>
-    <button class="nav-item" onclick="goPage('pengumuman')" data-p="pengumuman">
-      <span class="ni">📢</span><span class="nl">Info</span>
+    <button class="nav-item" onclick="goPage('info')" data-p="info">
+      <span class="ni">📚</span><span class="nl">Materi</span>
     </button>
     <button class="nav-item" onclick="goPage('raport')" data-p="raport">
       <span class="ni">📄</span><span class="nl">Raport</span>
@@ -604,6 +651,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </nav>
 
 </div><!-- /app -->
+
 
 <!-- MODAL PROFIL -->
 <div class="modal-overlay" id="profilModal">
@@ -613,65 +661,80 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <button class="modal-x" onclick="closeModal('profilModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="text-align:center;padding:16px 0 20px">
-        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-d));
-          color:#fff;font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;
-          margin:0 auto 12px" id="profilAvatar">M</div>
-        <div style="font-size:18px;font-weight:800" id="profilNama">–</div>
-        <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="profilNIS">–</div>
-        <div style="margin-top:8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap" id="profilBadges"></div>
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:64px;height:64px;border-radius:50%;
+          background:linear-gradient(135deg,var(--green),var(--green-d));
+          color:#fff;font-weight:800;font-size:24px;
+          display:flex;align-items:center;justify-content:center;
+          margin:0 auto 8px" id="profilAvatar">M</div>
+        <div style="font-size:16px;font-weight:800" id="profilName"></div>
+        <div style="font-size:12px;color:var(--text-3)" id="profilNis"></div>
       </div>
       <div class="fg">
-        <label>No HP</label>
-        <input type="tel" class="fc" id="profilHp" placeholder="08xxxxxxxxxx">
+        <label for="profilHp">No HP</label>
+        <input type="tel" id="profilHp" class="fc" placeholder="08xxxxxxxxxx">
       </div>
       <div class="fg">
-        <label>Email</label>
-        <input type="email" class="fc" id="profilEmail" placeholder="email@example.com">
+        <label for="profilEmail">Email</label>
+        <input type="email" id="profilEmail" class="fc" placeholder="email@example.com">
       </div>
       <div class="fg">
-        <label>Alamat</label>
-        <input type="text" class="fc" id="profilAlamat" placeholder="Alamat lengkap">
-      </div>
-      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
-        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="doLogout()">
-          ⬅ Keluar
-        </button>
+        <label for="profilAlamat">Alamat</label>
+        <input type="text" id="profilAlamat" class="fc" placeholder="Alamat lengkap">
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('profilModal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveProfil()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="saveProfil()" id="btnSaveProfil">💾 Simpan</button>
+    </div>
+    <div style="padding:0 20px 20px">
+      <button onclick="doLogout()" class="btn-logout">→ Keluar</button>
     </div>
   </div>
 </div>
 
 <div class="refresh-badge-murid" id="refreshBadgeMurid">
   <div style="width:6px;height:6px;border-radius:50%;background:var(--green)" id="muridRefreshDot"></div>
-  <span id="muridRefreshTxt">Sinkron baru</span>
+  <span id="muridRefreshTxt">Baru sinkron</span>
 </div>
-<script src="../assets/js/api.js"></script>
+
+<script src="../assets/js/api.js?v=2.5"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-let currentUser = null, token = '';
-let dashData    = null;
+var dashData = null;
+var riwayatData = [];
+var prData = [];
+var materiData = {};
+var _kalDate = new Date();
+var _muridTabLoaded = {};
+var _muridRiwayatExpanded = false;
+var _rfInterval = null, _rfLast = null;
+var _sTimeout = null;
 
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
-  if (tk && us && us.role === 'murid') {
-    token = tk; currentUser = us; startApp(); return;
-  }
-  document.getElementById('nisInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('pwInput').focus();
-  });
-  document.getElementById('pwInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
+window.addEventListener('DOMContentLoaded', function() {
+  var now = new Date();
+  var HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var BLAN = ['Januari','Februari','Maret','April','Mei','Juni',
+               'Juli','Agustus','September','Oktober','November','Desember'];
+
+  // Cek session
+  var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+  var us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
+  if (tk && us && us.role === 'murid') { startApp(); return; }
+
+  document.getElementById('nisInput').focus();
+  ['nisInput','pwInput'].forEach(function(id) {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        if (id === 'nisInput') document.getElementById('pwInput').focus();
+        else doLogin();
+      }
+    });
   });
 });
 
@@ -679,54 +742,66 @@ window.addEventListener('DOMContentLoaded', () => {
 //  AUTH
 // ══════════════════════════════════════════
 async function doLogin() {
-  const nis = document.getElementById('nisInput').value.trim().toUpperCase();
-  const pw  = document.getElementById('pwInput').value || '';
-  if (!nis) return showErr('NIS wajib diisi');
-  setBtn('loginBtn', true, 'Masuk...');
-  showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  var nis = document.getElementById('nisInput').value.trim().toUpperCase();
+  var pw  = document.getElementById('pwInput').value || '';
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('authErr');
+  if (!nis) { showAuthErr('NIS wajib diisi'); return; }
+  btn.disabled = true; btn.textContent = 'Masuk...';
+  err.style.display = 'none';
   try {
-    const d = await window.HQ.Auth.login(nis, 'murid', pw);
-    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
-    if (d.user.role !== 'murid') throw new Error('Akun ini bukan murid');
-    token = d.token; currentUser = d.user;
-    sessionStorage.setItem('hq_token', token);
-    sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
+    var r = await window.HQ.Auth.login(nis, 'murid', pw);
+    if (r.status !== 'ok') throw new Error(r.message || 'Login gagal');
+    sessionStorage.setItem('hq_token', r.token);
+    sessionStorage.setItem('hq_user',  JSON.stringify(r.user));
     startApp();
-  } catch(e) { showErr(e.message); }
-  finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
+  } catch(e) { showAuthErr(e.message); btn.disabled=false; btn.textContent='Masuk'; }
 }
-
-function doLogout() { window.HQ.Auth.logout(); }
-function showErr(m) {
-  const el = document.getElementById('authErr');
+function showAuthErr(m) {
+  var el = document.getElementById('authErr');
   el.textContent = '⚠ ' + m; el.style.display = 'block';
 }
+function doLogout() { closeModal('profilModal'); window.HQ.Auth.logout(); }
 
 // ══════════════════════════════════════════
-//  START APP
+//  APP START
 // ══════════════════════════════════════════
-async function startApp() {
+function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  var us = window.HQ.Auth.getUser();
+  if (!us) return;
+  var nama = us.nama_lengkap || us.nama || us.id_user;
+  var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
+  document.getElementById('topAvatar').textContent = ini;
+  document.getElementById('topName').textContent   = nama;
+  document.getElementById('topGreeting').textContent = "Assalamu'alaikum, " + nama + ' 👋';
   resetMuridSession();
   startMuridAutoRefresh();
-  await loadDashboard();
+  loadDashboard();
   loadGrafik();
 }
 
 // ══════════════════════════════════════════
-//  NAVIGASI
+//  NAVIGATE
 // ══════════════════════════════════════════
 function goPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name)?.classList.add('active');
-  document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
+  var page = document.getElementById('page-' + name);
+  var btn  = document.querySelector('[data-p="' + name + '"]');
+  if (page) page.classList.add('active');
+  if (btn)  btn.classList.add('active');
   window.scrollTo(0, 0);
-  if (name === 'riwayat'   && !document.getElementById('riwayatList').dataset.loaded)  loadRiwayat();
-  if (name === 'pr'        && !document.getElementById('prList').dataset.loaded)        loadPR();
-  if (name === 'pengumuman'&& !document.getElementById('pengumumanList').dataset.loaded)loadPengumuman();
-  if (name === 'raport'    && !document.getElementById('raportList').dataset.loaded)    loadRaport();
+
+  // Lazy load — hanya load sekali
+  if (_muridTabLoaded[name]) return;
+  _muridTabLoaded[name] = true;
+  if (name === 'riwayat') { loadRiwayat(); }
+  else if (name === 'pr') { loadPR(); }
+  else if (name === 'pengumuman') { loadPengumuman(); }
+  else if (name === 'raport') { loadRaport(); }
+  else if (name === 'info') { loadMateri(); }
 }
 
 // ══════════════════════════════════════════
@@ -734,34 +809,20 @@ function goPage(name) {
 // ══════════════════════════════════════════
 async function loadDashboard() {
   showLoad('Bismillah, memuat dashboard...');
-  // Tampilkan skeleton di stats saat loading
   document.querySelectorAll('.stat-val').forEach(function(el) {
-    if (el.textContent === '–' || !el.textContent.trim()) {
-      el.innerHTML = '<span class="skel skel-num"></span>';
-    }
+    el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
   });
   try {
-    const r = await window.HQ.MuridAPI.getDashboard();
+    var r = await window.HQ.MuridAPI.getDashboard();
     dashData = r.data;
-    const d  = dashData;
+    var d = dashData;
+    var ang = d.anggota || {};
+    var kh  = d.kehadiran || {};
 
     // Header
-    const nama = d.profil.nama || currentUser.nama || 'Murid';
-    const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('topAvatar').textContent  = ini;
-    document.getElementById('topName').textContent    = nama.split(' ')[0];
-    document.getElementById('topHalaqah').textContent = d.halaqah.nama || '—';
-
-    // Greeting
-    const hour = new Date().getHours();
-    const greet = hour < 10 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
-    document.getElementById('topGreeting').textContent = greet + ',';
+    document.getElementById('topHalaqah').textContent = '📚 ' + (ang.nama_halaqah || d.halaqah || 'Halaqah');
 
     // Progress level
-    var kh   = d.kehadiran || {};
-    var ang  = d.anggota  || {};
-    var skor = Number(kh.skor_dari_40 || 0);
-    var target_sesi = Number(kh.target_pertemuan || 40);
     document.getElementById('dashLevel').textContent = ang.level || d.level || '–';
     var tLevel = ang.target_level || '';
     if (!tLevel) {
@@ -769,398 +830,168 @@ async function loadDashboard() {
       tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
     }
     document.getElementById('dashTarget').textContent = tLevel ? '→ ' + tLevel : '–';
-    var pct = Math.min(Math.round(skor), 100);
+
+    var target = Number(kh.target_pertemuan || 40);
+    var hadir  = Number(kh.skor_hadir_raw || kh.total_hadir || 0);
+    var pct    = target > 0 ? Math.min(Math.round((hadir/target)*100),100) : 0;
     document.getElementById('dashProgressBar').style.width = pct + '%';
     document.getElementById('dashProgressPct').textContent = pct + '% dari target level';
     var sisa = Number(kh.sisa_sesi);
-    document.getElementById('dashSisa').textContent = isNaN(sisa) || sisa < 0
-      ? 'dari ' + target_sesi + ' pertemuan'
-      : sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!';
+    document.getElementById('dashSisa').textContent = isNaN(sisa)||sisa<0
+      ? 'dari ' + target + ' pertemuan' : sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!';
 
     // Stats
-    document.getElementById('st-hadir').textContent = (kh.pct_hadir !== undefined ? kh.pct_hadir : '–') + (kh.pct_hadir !== undefined ? '%' : '');
+    document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
     document.getElementById('st-sesi').textContent  = kh.total_sesi !== undefined ? kh.total_sesi : '–';
     document.getElementById('st-nilai').textContent = d.avg_nilai || '–';
 
-    // PR Aktif
-    if (d.pr_aktif > 0) {
-      document.getElementById('prCard').style.display = 'block';
-      document.getElementById('dashPrPreview').innerHTML =
-        '<div style="font-size:13px;color:var(--amber);font-weight:600">⚠️ ' +
-        d.pr_aktif + ' latihan mandiri menunggu. <button class="card-more" onclick="goPage(\'pr\')">Lihat →</button></div>';
+    // PR preview
+    var prAktif = d.pr_aktif || [];
+    checkPRBadge(prAktif);
+    if (prAktif.length) {
+      var prCard = document.getElementById('prCard');
+      var prPrev = document.getElementById('dashPrPreview');
+      if (prCard) prCard.style.display = 'block';
+      if (prPrev) {
+        prPrev.innerHTML = prAktif.slice(0,2).map(function(pr) {
+          var cls = pr.status_deadline === 'lewat' ? 'var(--red)' :
+                    pr.status_deadline === 'hari_ini' ? 'var(--amber)' : 'var(--text-2)';
+          return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+            + '<div style="font-size:13.5px;font-weight:600">' + esc(pr.latihan_mandiri||'') + '</div>'
+            + (pr.deadline ? '<div style="font-size:12px;color:'+cls+'">📅 '+fmtDate(pr.deadline)+'</div>' : '')
+            + '</div>';
+        }).join('') + (prAktif.length > 2 ? '<div style="font-size:12px;color:var(--text-3);padding-top:6px">+' + (prAktif.length-2) + ' latihan lainnya</div>' : '');
+      }
     }
 
     // Pengumuman preview
-    renderPengumumanList(d.pengumuman, 'dashPengumuman', 3);
+    renderPengumumanList(d.pengumuman || [], 'dashPengumuman', 2);
 
-  } catch(e) { toast('Gagal memuat: ' + e.message, 'err'); }
-  finally { hideLoad(); }
-}
+    // Profil modal data
+    document.getElementById('profilAvatar').textContent =
+      (ang.nama_murid||d.nama||'M').split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
+    document.getElementById('profilName').textContent = ang.nama_murid || d.nama || '';
+    document.getElementById('profilNis').textContent  = d.id_murid || '';
+    document.getElementById('profilHp').value    = d.no_hp || '';
+    document.getElementById('profilEmail').value = d.email || '';
+    document.getElementById('profilAlamat').value= d.alamat || '';
 
-// ══════════════════════════════════════════
-//  RIWAYAT KBM
-// ══════════════════════════════════════════
-async function loadRiwayat() {
-  const el = document.getElementById('riwayatList');
-  showLoad('Bismillah, memuat riwayat KBM...');
-  try {
-    const r = await window.HQ.MuridAPI.getRiwayat();
-    const rows = r.data || [];
-    el.dataset.loaded = '1';
-    if (!rows.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada riwayat KBM</div></div>';
-      return;
+    // Kalender dari riwayat jika ada
+    if (d.riwayat_singkat) {
+      riwayatData = d.riwayat_singkat;
+      renderKalender();
     }
-    el.innerHTML = rows.map(k => {
-      const hadir_badge = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'}[k.status_hadir]||'b-gray';
-      const hadir_lbl   = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[k.status_hadir]||k.status_hadir;
-      return '<div class="riwayat-item">'
-        + '<div class="riwayat-header">'
-        + '<span class="riwayat-tgl">' + fmtDate(k.tanggal) + ' · Sesi ke-' + esc(k.pertemuan_ke) + '</span>'
-        + '<span class="badge ' + hadir_badge + '">' + hadir_lbl + '</span>'
-        + '</div>'
-        + (k.materi ? '<div class="riwayat-materi">📖 ' + esc(k.materi) + '</div>' : '')
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
-        + (k.nilai ? '<span class="' + nilaiClass(k.nilai) + '">' + esc(k.nilai) + '</span>' : '')
-        + (k.adab  ? '<span class="badge b-blue" style="font-size:11px">' + esc(k.adab) + '</span>' : '')
-        + '</div>'
-        + (k.koreksi_tahsin ? '<div class="riwayat-koreksi">✏️ ' + esc(k.koreksi_tahsin) + '</div>' : '')
-        + (k.latihan_mandiri ? '<div style="margin-top:8px;padding:8px 10px;background:var(--amber-l);border-radius:var(--r-sm);font-size:12.5px">'
-            + '📝 <strong>PR:</strong> ' + esc(k.latihan_mandiri)
-            + (k.deadline ? ' · <span style="color:var(--red)">Deadline: ' + fmtDate(k.deadline) + '</span>' : '')
-            + '</div>' : '')
-        + '</div>';
-    }).join('');
-  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(e.message) + '</div></div>'; }
+
+  } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { hideLoad(); }
 }
 
 // ══════════════════════════════════════════
-//  LATIHAN MANDIRI (PR)
-// ══════════════════════════════════════════
-async function loadPR() {
-  const el = document.getElementById('prList');
-  showLoad('Bismillah, memuat latihan mandiri...');
-  try {
-    const r = await window.HQ.MuridAPI.getLatihanMandiri();
-    const rows = r.data || [];
-    el.dataset.loaded = '1';
-    if (!rows.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-ico">✅</div><div class="empty-ttl">Tidak ada latihan mandiri aktif</div><div style="font-size:12.5px;color:var(--text-3)">Semua latihan sudah selesai atau belum ada yang diberikan</div></div>';
-      return;
-    }
-    const JENIS_ICO = {
-      'VN di WAG':'🎙',
-      'Mendengar rekaman dan baca mandiri':'🎧',
-      'Lainnya':'📌'
-    };
-    const STATUS = {
-      lewat    : { lbl:'Sudah Lewat Deadline', cls:'b-red', emoji:'🔴' },
-      hari_ini : { lbl:'Deadline Hari Ini!',   cls:'b-amber', emoji:'⚠️' },
-      mepet    : { lbl:'Deadline Mepet',        cls:'b-amber', emoji:'🟡' },
-      aman     : { lbl:'',                      cls:'b-green', emoji:'🟢' },
-      none     : { lbl:'',                      cls:'b-gray',  emoji:'' },
-    };
-    el.innerHTML = rows.map(pr => {
-      const s   = STATUS[pr.status_deadline] || STATUS.none;
-      const ico = JENIS_ICO[pr.jenis_latihan] || '📝';
-      return '<div class="pr-item ' + pr.status_deadline + '">'
-        + '<div class="pr-jenis">' + ico + ' ' + esc(pr.jenis_latihan || 'Latihan Mandiri')
-        + ' · Sesi ke-' + esc(pr.pertemuan_ke) + '</div>'
-        + '<div class="pr-isi">' + esc(pr.latihan_mandiri) + '</div>'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
-        + (pr.deadline ? '<div class="pr-deadline" style="color:' + (pr.status_deadline==='lewat'?'var(--red)':pr.status_deadline==='aman'?'var(--green)':'var(--amber)') + '">'
-            + '📅 Deadline: ' + fmtDate(pr.deadline) + '</div>' : '<div></div>')
-        + (s.lbl ? '<span class="badge ' + s.cls + '">' + s.emoji + ' ' + s.lbl + '</span>' : '')
-        + '</div>'
-        + '</div>';
-    }).join('');
-  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(e.message) + '</div></div>'; }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  PENGUMUMAN
-// ══════════════════════════════════════════
-async function loadPengumuman() {
-  const el = document.getElementById('pengumumanList');
-  showLoad('Bismillah, memuat pengumuman...');
-  try {
-    const r = await window.HQ.MuridAPI.getPengumuman();
-    el.dataset.loaded = '1';
-    renderPengumumanList(r.data || [], 'pengumumanList');
-  } catch(e) { el.innerHTML = emptyHTML('❌', e.message, ''); }
-  finally { hideLoad(); }
-}
-
-function renderPengumumanList(rows, containerId, limit) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  const data = limit ? rows.slice(0, limit) : rows;
-  if (!data.length) {
-    el.innerHTML = emptyHTML('📭', 'Belum ada pengumuman', '');
-    return;
-  }
-  // Kategori otomatis dari judul
-  function getLabel(judul) {
-    const j = (judul||'').toUpperCase();
-    if (j.includes('PENTING') || j.includes('URGENT')) return '<span class="peng-label label-penting">🔴 PENTING</span>';
-    if (j.includes('EVENT') || j.includes('ACARA'))   return '<span class="peng-label label-event">🟣 EVENT</span>';
-    if (j.includes('KELAS') || j.includes('KBM'))     return '<span class="peng-label label-kelas">🟢 INFO KELAS</span>';
-    return '<span class="peng-label label-info">🔵 INFO</span>';
-  }
-  el.innerHTML = data.map(p =>
-    '<div class="peng-item">'
-    + getLabel(p.judul)
-    + '<div class="peng-tgl">' + fmtDate(p.tanggal) + ' · ' + esc(p.nama_pembuat||'Admin') + '</div>'
-    + '<div class="peng-judul">' + esc(p.judul) + '</div>'
-    + '<div class="peng-isi">' + esc(p.isi) + '</div>'
-    + '</div>'
-  ).join('');
-}
-
-// ══════════════════════════════════════════
-//  RAPORT
-// ══════════════════════════════════════════
-async function loadRaport() {
-  const el = document.getElementById('raportList');
-  showLoad('Bismillah, memuat raport...');
-  try {
-    const r = await window.HQ.MuridAPI.getRaport();
-    const rows = r.data || [];
-    el.dataset.loaded = '1';
-    if (!rows.length) {
-      el.innerHTML = emptyHTML('📄', 'Belum ada raport', 'Raport akan muncul setelah dipublikasikan oleh admin');
-      return;
-    }
-    el.innerHTML = rows.map(rp => {
-      const komponen = rp.komponen || [];
-      return '<div class="raport-card">'
-        + '<div class="raport-periode">' + esc(rp.nama_periode) + '</div>'
-        + '<div style="display:flex;align-items:flex-end;gap:12px">'
-        + '<div><div style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:2px">Nilai Akhir</div>'
-        + '<div class="raport-nilai">' + (rp.nilai_akhir||'–') + '</div>'
-        + '<div class="raport-predikat">' + esc(rp.predikat||'–') + '</div></div>'
-        + '</div>'
-        + (komponen.length ? '<div class="raport-komponen">'
-          + komponen.map(k => '<div class="komponen-row">'
-            + '<span>' + esc(k.nama_komponen) + '</span>'
-            + '<span style="display:flex;gap:8px;align-items:center">'
-            + '<span style="color:var(--text-3);font-size:11.5px">' + k.bobot + '%</span>'
-            + '<strong>' + k.nilai + '</strong>'
-            + '</span></div>'
-          ).join('')
-          + '</div>' : '')
-        + '<div style="margin-top:10px;font-size:11.5px;color:var(--text-3)">📅 ' + fmtDate(rp.tanggal_cetak) + '</div>'
-        + '</div>';
-    }).join('');
-  } catch(e) { el.innerHTML = emptyHTML('❌', e.message, ''); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  PROFIL
-// ══════════════════════════════════════════
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  if (id === 'profilModal' && dashData) {
-    const d = dashData;
-    const nama = d.profil.nama || '';
-    const ini  = nama.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('profilAvatar').textContent = ini;
-    document.getElementById('profilNama').textContent   = nama;
-    document.getElementById('profilNIS').textContent    = currentUser.id_user;
-    document.getElementById('profilHp').value           = currentUser.no_hp || '';
-    document.getElementById('profilEmail').value        = d.profil.email || '';
-    document.getElementById('profilAlamat').value       = currentUser.alamat || '';
-    document.getElementById('profilBadges').innerHTML   =
-      '<span class="badge b-blue">' + esc(d.anggota.level) + '</span>'
-      + '<span class="badge b-green">' + esc(d.halaqah.nama) + '</span>';
-  }
-}
-function closeModal(id) {
-  var el = document.getElementById(id);
-  if (el) el.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-async function saveProfil() {
-  showLoad('Bismillah, menyimpan profil...');
-  try {
-    await window.HQ.MuridAPI.updateProfil({
-      no_hp  : document.getElementById('profilHp').value,
-      email  : document.getElementById('profilEmail').value,
-      alamat : document.getElementById('profilAlamat').value,
-    });
-    closeModal('profilModal');
-    toast('Profil berhasil diperbarui!', 'ok');
-  } catch(e) { toast(e.message, 'err'); }
-  finally { hideLoad(); }
-}
-
-// ══════════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════════
-let _notifTimer;
-function toast(msg, type='ok') {
-  const icons  = {ok:'✅',err:'❌',info:'ℹ️'};
-  const titles = {ok:'Berhasil',err:'Gagal',info:'Info'};
-  document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
-  document.getElementById('notifTitle').textContent = titles[type]||'Info';
-  document.getElementById('notifMsg').textContent   = msg;
-  const btn = document.getElementById('notifBtn');
-  btn.className = 'notif-btn ' + (type||'info');
-  btn.textContent = 'OK';
-  btn.onclick = closeNotif;
-  document.getElementById('notifOverlay').classList.add('show');
-  clearTimeout(_notifTimer);
-  if (type === 'ok') _notifTimer = setTimeout(closeNotif, 3000);
-}
-function closeNotif() {
-  document.getElementById('notifOverlay').classList.remove('show');
-  clearTimeout(_notifTimer);
-}
-function showLoad(msg='Bismillah...') {
-  document.getElementById('loaderTxt').textContent = msg;
-  document.getElementById('loader').classList.add('show');
-}
-function hideLoad() { document.getElementById('loader').classList.remove('show'); }
-function setBtn(id, dis, txt) {
-  const el = document.getElementById(id); if(!el)return;
-  el.disabled=dis; el.textContent=txt;
-}
-function nilaiClass(n) {
-  return {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'}[n]||'badge b-gray';
-}
-function fmtDate(d) {
-  if (!d) return '–';
-  return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
-}
-function esc(s) {
-  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function emptyHTML(ico, ttl, sub) {
-  return '<div class="empty"><div class="empty-ico">' + ico + '</div>'
-    + '<div class="empty-ttl">' + esc(ttl) + '</div>'
-    + (sub ? '<div style="font-size:12.5px">' + esc(sub) + '</div>' : '')
-    + '</div>';
-}
-
-
-// ══════════════════════════════════════════
-//  #8 GRAFIK PROGRESS NILAI
+//  GRAFIK NILAI
 // ══════════════════════════════════════════
 async function loadGrafik() {
   try {
-    const r = await window.HQ.MuridAPI.getProgressGrafik();
-    const data  = r.data  || [];
-    const trend = r.trend || 'stabil';
-
-    const card = document.getElementById('grafikCard');
-    if (!data.length) { if(card) card.style.display='none'; return; }
+    var r = await window.HQ.MuridAPI.getProgressGrafik();
+    var data  = r.data  || [];
+    var trend = r.trend || 'stabil';
+    var card  = document.getElementById('grafikCard');
+    if (data.length < 2) return;
     if (card) card.style.display = 'block';
-
-    // Trend badge
-    const trendEl = document.getElementById('grafikTrend');
+    var trendEl = document.getElementById('grafikTrend');
     if (trendEl) {
-      const trendMap = {
-        naik  : { icon:'📈', text:'Naik', color:'var(--green)' },
-        turun : { icon:'📉', text:'Perlu perhatian', color:'var(--red)' },
-        stabil: { icon:'➡️', text:'Stabil', color:'var(--amber)' },
-      };
-      const t = trendMap[trend] || trendMap.stabil;
-      trendEl.innerHTML = '<span style="color:' + t.color + '">' + t.icon + ' ' + t.text + '</span>';
+      var tMap = {naik:{t:'📈 Naik',c:'var(--green)'},turun:{t:'📉 Perlu Perhatian',c:'var(--red)'},stabil:{t:'➡️ Stabil',c:'var(--amber)'}};
+      var tm = tMap[trend] || tMap.stabil;
+      trendEl.innerHTML = '<span style="color:'+tm.c+'">'+tm.t+'</span>';
     }
-
     renderGrafik(data);
-  } catch(e) { console.error('loadGrafik:', e); }
+  } catch(e) {}
+}
+function renderGrafik(data) {
+  var wrap = document.getElementById('grafikCanvas');
+  if (!wrap || data.length < 2) return;
+  var COLORS = {100:'#169B6B',85:'#1458A8',70:'#D4900A',55:'#D94F2A'};
+  var LABELS = {100:'Mumtaz',85:'Jayyid Jiddan',70:'Jayyid',55:'Maqbul'};
+  var maxV = 100;
+  var bars = data.map(function(d) {
+    var h = Math.round((d.nilai_num/maxV)*100);
+    var col = COLORS[d.nilai_num] || '#94a3b8';
+    return '<div class="grafik-bar" style="height:'+h+'%;background:'+col+'" data-label="Sesi '+d.pertemuan+': '+(LABELS[d.nilai_num]||d.nilai_teks)+'"></div>';
+  }).join('');
+  var lbls = data.map(function(d){return '<div class="grafik-lbl">'+d.pertemuan+'</div>';}).join('');
+  wrap.innerHTML = '<div class="grafik-bars">'+bars+'</div><div class="grafik-labels">'+lbls+'</div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'
+    + Object.entries(COLORS).map(function(e){
+        return '<span style="font-size:11px;display:flex;align-items:center;gap:3px">'
+          +'<span style="width:8px;height:8px;border-radius:2px;background:'+e[1]+';display:inline-block"></span>'
+          +LABELS[e[0]]+'</span>';
+      }).join('') + '</div>';
 }
 
-function renderGrafik(data) {
-  const wrap  = document.getElementById('grafikCanvas');
-  const empty = document.getElementById('grafikEmpty');
-  if (!wrap) return;
+// ══════════════════════════════════════════
+//  RIWAYAT KBM — EXPANDABLE
+// ══════════════════════════════════════════
+async function loadRiwayat() {
+  var el = document.getElementById('riwayatList');
+  showLoad('Bismillah, memuat riwayat KBM...');
+  try {
+    var r = await window.HQ.MuridAPI.getRiwayat(10, 0);
+    riwayatData = r.data || [];
+    renderRiwayat(riwayatData);
+    var mBtn = document.getElementById('btnMuatLebihMurid');
+    if (mBtn) mBtn.style.display = (r.has_more || riwayatData.length >= 10) ? 'block' : 'none';
+    renderKalender();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
+  }
+  finally { hideLoad(); }
+}
 
-  if (data.length < 2) {
-    wrap.style.display = 'none';
-    if (empty) empty.style.display = 'block';
+function renderRiwayat(rows) {
+  var el = document.getElementById('riwayatList');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada riwayat KBM</div></div>';
     return;
   }
-  wrap.style.display = 'block';
-  if (empty) empty.style.display = 'none';
-
-  const NILAI_COLOR = { 100:'#169B6B', 85:'#1458A8', 70:'#D4900A', 55:'#D94F2A' };
-  const NILAI_LABEL = { 100:'Mumtaz', 85:'Jayyid', 70:'Jayyid', 55:'Maqbul' };
-  const maxVal = 100;
-
-  const bars = data.map(function(d) {
-    const height = Math.round((d.nilai_num / maxVal) * 100);
-    const color  = NILAI_COLOR[d.nilai_num] || '#94a3b8';
-    const lbl    = NILAI_LABEL[d.nilai_num] || d.nilai_teks;
-    return '<div class="grafik-bar" style="height:' + height + '%;background:' + color + ';opacity:.85" '
-      + 'data-label="Sesi ' + d.pertemuan + ': ' + lbl + '" title="Sesi ' + d.pertemuan + '"></div>';
+  var HADIR_BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
+  var HADIR_LBL   = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+  el.innerHTML = rows.map(function(k, idx) {
+    var hBadge = HADIR_BADGE[k.status_hadir] || 'b-gray';
+    var hLbl   = HADIR_LBL[k.status_hadir]   || k.status_hadir;
+    var adabBadge = k.adab ? (k.adab==='Baik'?'b-green':'b-amber') : '';
+    return '<div class="riwayat-item" id="riwayat-'+idx+'">'
+      // Summary — tap untuk expand
+      + '<div class="riwayat-summary" onclick="toggleRiwayat('+idx+')">'
+      + '<div class="riwayat-left">'
+      + '<div class="riwayat-tgl">'+fmtDate(k.tanggal)+' &middot; Sesi ke-'+esc(k.pertemuan_ke)+'</div>'
+      + '<div class="riwayat-materi">'+(k.materi||'(Belum ada materi)')+'</div>'
+      + '<div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">'
+      + '<span class="badge '+hBadge+'">'+hLbl+'</span>'
+      + (k.adab ? '<span class="badge '+adabBadge+'">'+esc(k.adab)+'</span>' : '')
+      + '</div>'
+      + '</div>'
+      + '<div class="riwayat-chevron">▼</div>'
+      + '</div>'
+      // Detail — tersembunyi
+      + '<div class="riwayat-detail">'
+      + (k.materi ? '<div class="detail-label">📖 Materi</div><div class="detail-row"><div class="detail-val">'+esc(k.materi)+'</div></div>' : '')
+      + (k.koreksi_tahsin ? '<div class="detail-label">✏️ Koreksi Tahsin dari Guru</div>'
+          + '<div class="koreksi-box">'+esc(k.koreksi_tahsin)+'</div>' : '')
+      + (k.adab ? '<div class="detail-label">😊 Adab</div><div class="detail-row"><div class="detail-val">'+esc(k.adab)+'</div></div>' : '')
+      + (k.catatan_murid ? '<div class="detail-label">📝 Catatan Guru</div><div class="detail-row"><div class="detail-val">'+esc(k.catatan_murid)+'</div></div>' : '')
+      + (k.latihan_mandiri ? '<div class="detail-label">💪 PR / Latihan Mandiri</div>'
+          + '<div style="background:var(--amber-l);border-radius:10px;padding:10px 12px;font-size:13px">'
+          + esc(k.latihan_mandiri)
+          + (k.deadline ? '<br><span style="color:var(--red);font-weight:600">Deadline: '+fmtDate(k.deadline)+'</span>' : '')
+          + '</div>' : '')
+      + '</div>'
+      + '</div>';
   }).join('');
-
-  const labels = data.map(function(d) {
-    return '<div class="grafik-label-item">' + d.pertemuan + '</div>';
-  }).join('');
-
-  wrap.innerHTML = '<div class="grafik-bar-wrap">' + bars + '</div>'
-    + '<div class="grafik-label">' + labels + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">'
-    + '<span style="font-size:11px;color:var(--text-3)">Sesi ke-</span>'
-    + Object.entries(NILAI_COLOR).map(function(e) {
-        return '<span style="font-size:11px;display:flex;align-items:center;gap:3px">'
-          + '<span style="width:8px;height:8px;border-radius:2px;background:' + e[1] + ';display:inline-block"></span>'
-          + NILAI_LABEL[e[0]] + '</span>';
-      }).join('')
-    + '</div>';
 }
 
-// ══════════════════════════════════════════
-//  #10 AUTO-REFRESH MURID (5 menit)
-// ══════════════════════════════════════════
-var _muridRefreshInterval = null;
-var _muridLastRefresh     = null;
-
-function startMuridAutoRefresh() {
-  clearInterval(_muridRefreshInterval);
-  _muridLastRefresh = new Date();
-  const badge = document.getElementById('refreshBadgeMurid');
-  if (badge) badge.classList.add('show');
-
-  _muridRefreshInterval = setInterval(async function() {
-    const menit = Math.round((new Date() - _muridLastRefresh) / 60000);
-    const el    = document.getElementById('muridRefreshTxt');
-    if (menit >= 5) {
-      try {
-        const dot = document.getElementById('muridRefreshDot');
-        if (dot) dot.style.animation = 'dotWave 1s infinite';
-        await loadDashboard();
-        _muridLastRefresh = new Date();
-        if (el) el.textContent = 'Baru sinkron';
-        if (dot) dot.style.animation = '';
-      } catch(e) {}
-    } else {
-      if (el) el.textContent = menit <= 0 ? 'Baru sinkron' : 'Sinkron ' + menit + ' menit lalu';
-    }
-  }, 30000);
+function toggleRiwayat(idx) {
+  var el = document.getElementById('riwayat-' + idx);
+  if (el) el.classList.toggle('expanded');
 }
-
-// ══════════════════════════════════════════
-//  #14 SESSION TIMEOUT MURID (8 jam)
-// ══════════════════════════════════════════
-var _muridSession = null;
-function resetMuridSession() {
-  clearTimeout(_muridSession);
-  _muridSession = setTimeout(function() {
-    toast('Sesi berakhir setelah 8 jam tidak aktif.', 'ok');
-    setTimeout(function(){ window.HQ.Auth.logout(); }, 3000);
-  }, 8 * 60 * 60 * 1000);
-}
-['click','touchstart'].forEach(function(ev) {
-  document.addEventListener(ev, resetMuridSession, { passive:true });
-});
 
 var _muridRiwayatExpanded = false;
 async function muatLebihRiwayatMurid() {
@@ -1171,15 +1002,388 @@ async function muatLebihRiwayatMurid() {
   try {
     var r = await window.HQ.MuridAPI.getRiwayat(10, 30);
     if (r.data && r.data.length) {
+      riwayatData = r.data;
       renderRiwayat(r.data);
+      renderKalender();
       if (btn) btn.style.display = 'none';
     }
-  } catch(e) {
-    if (btn) { btn.textContent = '↓ Muat 40 Riwayat Terakhir'; _muridRiwayatExpanded = false; }
+  } catch(e) { if(btn){btn.textContent='↓ Muat 40 Riwayat Terakhir';_muridRiwayatExpanded=false;} }
+}
+
+// ══════════════════════════════════════════
+//  KALENDER KEHADIRAN
+// ══════════════════════════════════════════
+function renderKalender() {
+  var HARI_NAMES = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  var BLAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+                     'Juli','Agustus','September','Oktober','November','Desember'];
+  var y = _kalDate.getFullYear();
+  var m = _kalDate.getMonth();
+
+  document.getElementById('kalMonth').textContent = BLAN_NAMES[m] + ' ' + y;
+
+  // Build map tanggal → status dari riwayatData
+  var dateMap = {};
+  riwayatData.forEach(function(k) {
+    if (!k.tanggal) return;
+    var d = k.tanggal.substring(0,10); // yyyy-mm-dd
+    dateMap[d] = k.status_hadir;
+  });
+
+  var html = HARI_NAMES.map(function(d){
+    return '<div class="kal-day-name">'+d+'</div>';
+  }).join('');
+
+  var firstDay = new Date(y, m, 1).getDay();
+  var daysInMonth = new Date(y, m+1, 0).getDate();
+  var today = new Date();
+
+  // Empty cells sebelum hari pertama
+  for (var i = 0; i < firstDay; i++) {
+    html += '<div class="kal-day empty"></div>';
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var status  = dateMap[dateStr];
+    var cls     = '';
+    if (status === 'H') cls = 'hadir';
+    else if (status === 'A') cls = 'alpa';
+    else if (status === 'I' || status === 'T') cls = 'izin';
+    var isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    html += '<div class="kal-day '+ cls + (isToday?' today':'') + '">' + d + '</div>';
+  }
+
+  var grid = document.getElementById('kalGrid');
+  if (grid) grid.innerHTML = html;
+}
+
+function kalNav(dir) {
+  _kalDate.setMonth(_kalDate.getMonth() + dir);
+  renderKalender();
+}
+
+// ══════════════════════════════════════════
+//  PR / LATIHAN MANDIRI
+// ══════════════════════════════════════════
+async function loadPR() {
+  var el = document.getElementById('prList');
+  showLoad('Bismillah, memuat latihan mandiri...');
+  try {
+    var r = await window.HQ.MuridAPI.getLatihanMandiri();
+    prData = r.data || [];
+    renderPR(prData);
+    checkPRBadge(prData);
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>'; }
+  finally { hideLoad(); }
+}
+
+function renderPR(rows) {
+  var el = document.getElementById('prList');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">✅</div>'
+      + '<div class="empty-ttl">Tidak ada latihan aktif</div>'
+      + '<div class="empty-sub">Semua latihan selesai atau belum ada yang diberikan 😊</div></div>';
+    return;
+  }
+  var JENIS_ICO = {'VN di WAG':'🎙','Mendengar rekaman dan baca mandiri':'🎧','Lainnya':'📌'};
+  var STATUS = {
+    lewat   :{lbl:'Sudah Lewat Deadline',cls:'b-red',emoji:'🔴'},
+    hari_ini:{lbl:'Deadline Hari Ini!',  cls:'b-amber',emoji:'⚠️'},
+    mepet   :{lbl:'Deadline Mepet',      cls:'b-amber',emoji:'🟡'},
+    aman    :{lbl:'',                    cls:'b-green', emoji:'🟢'},
+    none    :{lbl:'',                    cls:'b-gray',  emoji:''},
+  };
+  el.innerHTML = rows.map(function(pr) {
+    var s   = STATUS[pr.status_deadline] || STATUS.none;
+    var ico = JENIS_ICO[pr.jenis_latihan] || '📝';
+    var dlColor = pr.status_deadline==='lewat'?'var(--red)':pr.status_deadline==='aman'?'var(--green)':'var(--amber)';
+    return '<div class="pr-item '+(pr.status_deadline||'none')+'">'
+      + '<div class="pr-jenis">'+ico+' '+esc(pr.jenis_latihan||'Latihan Mandiri')+' &middot; Sesi ke-'+esc(pr.pertemuan_ke)+'</div>'
+      + '<div class="pr-isi">'+esc(pr.latihan_mandiri)+'</div>'
+      + '<div class="pr-footer">'
+      + (pr.deadline ? '<div class="pr-deadline" style="color:'+dlColor+'">📅 '+fmtDate(pr.deadline)+'</div>' : '<div></div>')
+      + (s.lbl ? '<span class="badge '+s.cls+'">'+s.emoji+' '+s.lbl+'</span>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function checkPRBadge(rows) {
+  var urgent = (rows||[]).filter(function(pr){
+    return pr.status_deadline === 'lewat' || pr.status_deadline === 'hari_ini';
+  }).length;
+  var nav = document.getElementById('navPr');
+  if (!nav) return;
+  // Hapus badge lama
+  var old = nav.querySelector('.nav-badge');
+  if (old) old.remove();
+  if (urgent > 0) {
+    var badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.textContent = urgent;
+    nav.appendChild(badge);
   }
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
+// ══════════════════════════════════════════
+//  PENGUMUMAN
+// ══════════════════════════════════════════
+async function loadPengumuman() {
+  var el = document.getElementById('pengumumanList');
+  showLoad('Bismillah, memuat pengumuman...');
+  try {
+    var r = await window.HQ.MuridAPI.getPengumuman();
+    renderPengumumanList(r.data || [], 'pengumumanList');
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>'; }
+  finally { hideLoad(); }
+}
+
+function renderPengumumanList(rows, containerId, limit) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>';
+    return;
+  }
+  var data = limit ? rows.slice(0, limit) : rows;
+  function getLabel(judul) {
+    var j = (judul||'').toLowerCase();
+    if (j.includes('penting') || j.includes('urgent')) return ['label-penting','PENTING'];
+    if (j.includes('event') || j.includes('acara'))    return ['label-event','EVENT'];
+    if (j.includes('kelas') || j.includes('halaqah'))  return ['label-kelas','INFO KELAS'];
+    return ['label-info','INFO'];
+  }
+  el.innerHTML = data.map(function(p) {
+    var lb = getLabel(p.judul);
+    return '<div class="peng-item">'
+      + '<span class="peng-label '+lb[0]+'">'+lb[1]+'</span>'
+      + '<div class="peng-tgl">'+fmtDate(p.tgl_dibuat||p.tanggal||'')+'</div>'
+      + '<div class="peng-judul">'+esc(p.judul||'')+'</div>'
+      + '<div class="peng-isi">'+esc(p.isi||p.konten||'')+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  MATERI LEVEL (Tab Info)
+// ══════════════════════════════════════════
+var _materiLevel = '';
+async function loadMateri() {
+  var el = document.getElementById('materiList');
+  showLoad('Bismillah, memuat materi...');
+  try {
+    var r = await window.HQ.MuridAPI.getMateriLevel();
+    materiData = r.data || {};
+    var levels = Object.keys(materiData).sort();
+    // Filter pills
+    var filterEl = document.getElementById('materiLevelFilter');
+    if (filterEl) {
+      filterEl.innerHTML = levels.map(function(lv, i) {
+        return '<button class="lf-btn'+(i===0?' active':'')+'" onclick="setMateriLevel(\''+esc(lv)+'\',this)">'+esc(lv)+'</button>';
+      }).join('');
+    }
+    _materiLevel = levels[0] || '';
+    renderMateri(_materiLevel);
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📚</div>'
+      + '<div class="empty-ttl">Materi belum tersedia</div>'
+      + '<div class="empty-sub">Admin belum menambahkan materi level</div></div>';
+  }
+  finally { hideLoad(); }
+}
+
+function setMateriLevel(level, btn) {
+  _materiLevel = level;
+  document.querySelectorAll('.lf-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+  renderMateri(level);
+}
+
+function renderMateri(level) {
+  var el = document.getElementById('materiList');
+  var items = materiData[level] || [];
+  if (!items.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📚</div><div class="empty-ttl">Belum ada materi untuk '+esc(level)+'</div></div>';
+    return;
+  }
+  var KAT_COLOR = {
+    'Deskripsi':'var(--blue)', 'Target':'var(--green)', 
+    'Tips':'var(--amber)', 'Materi':'var(--purple)', 'Doa':'var(--teal)'
+  };
+  el.innerHTML = items.map(function(item, idx) {
+    var katColor = KAT_COLOR[item.kategori] || 'var(--text-3)';
+    return '<div class="materi-card" id="mat-'+idx+'">'
+      + '<div class="materi-head" onclick="toggleMateri('+idx+')">'
+      + '<div>'
+      + '<div class="materi-kat" style="color:'+katColor+'">'+esc(item.kategori)+'</div>'
+      + '<div class="materi-judul">'+esc(item.judul)+'</div>'
+      + '</div>'
+      + '<div style="font-size:14px;color:var(--text-3);transition:transform .2s" class="mat-chev-'+idx+'">▼</div>'
+      + '</div>'
+      + '<div class="materi-body">'
+      + '<div class="materi-isi">'+esc(item.isi)+'</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+  // Buka item pertama otomatis
+  toggleMateri(0);
+}
+
+function toggleMateri(idx) {
+  var el  = document.getElementById('mat-' + idx);
+  var chev = document.querySelector('.mat-chev-'+idx);
+  if (el) el.classList.toggle('expanded');
+  if (chev) chev.style.transform = el && el.classList.contains('expanded') ? 'rotate(180deg)' : '';
+}
+
+// ══════════════════════════════════════════
+//  RAPORT
+// ══════════════════════════════════════════
+async function loadRaport() {
+  var el = document.getElementById('raportList');
+  showLoad('Bismillah, memuat raport...');
+  try {
+    var r = await window.HQ.MuridAPI.getRaport();
+    var rows = r.data || [];
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">📄</div>'
+        + '<div class="empty-ttl">Belum ada raport</div>'
+        + '<div class="empty-sub">Raport akan muncul setelah dipublikasikan oleh admin</div></div>';
+      return;
+    }
+    el.innerHTML = rows.map(function(rp) {
+      var nilaiNum = Number(rp.nilai_akhir) || 0;
+      var predikat = nilaiNum>=90?'Mumtaz ⭐':nilaiNum>=75?'Jayyid Jiddan 👍':nilaiNum>=60?'Jayyid 📌':'Maqbul 📝';
+      var kompHTML = (rp.komponen||[]).map(function(k){
+        return '<div class="komponen-row">'
+          + '<span>'+esc(k.nama)+'</span>'
+          + '<div style="display:flex;gap:8px;align-items:center">'
+          + '<span style="font-size:12px;color:var(--text-3)">Bobot '+k.bobot+'%</span>'
+          + '<span style="font-weight:700">'+k.nilai+'</span>'
+          + '</div></div>';
+      }).join('');
+      return '<div class="raport-card">'
+        + '<div class="raport-periode">📅 '+esc(rp.nama_periode||rp.id_periode||'')+'</div>'
+        + '<div class="raport-nilai">'+nilaiNum.toFixed(1)+'</div>'
+        + '<div class="raport-predikat">'+predikat+'</div>'
+        + (kompHTML ? '<div style="margin-top:14px;border-top:1px solid rgba(20,88,168,.1);padding-top:12px">'+kompHTML+'</div>' : '')
+        + '</div>';
+    }).join('');
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>'; }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  PROFIL
+// ══════════════════════════════════════════
+async function saveProfil() {
+  setBtn('btnSaveProfil', true, 'Menyimpan...');
+  try {
+    await window.HQ.MuridAPI.updateProfil({
+      no_hp  : document.getElementById('profilHp').value,
+      email  : document.getElementById('profilEmail').value,
+      alamat : document.getElementById('profilAlamat').value,
+    });
+    closeModal('profilModal');
+    toast('Profil berhasil disimpan ✅', 'ok');
+  } catch(e) { toast(e.message, 'err'); }
+  finally { setBtn('btnSaveProfil', false, '💾 Simpan'); }
+}
+
+// ══════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (el) { el.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) { el.classList.remove('open'); document.body.style.overflow=''; }
+}
+
+// ══════════════════════════════════════════
+//  TOAST / NOTIF
+// ══════════════════════════════════════════
+function toast(msg, type) {
+  type = type || 'ok';
+  var icons = {ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'};
+  document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
+  document.getElementById('notifTitle').textContent = type==='err'?'Gagal':type==='warn'?'Perhatian':'Info';
+  document.getElementById('notifMsg').textContent   = msg;
+  var btn = document.getElementById('notifBtn');
+  btn.className = 'notif-btn ' + (type==='err'?'err':type==='warn'?'warn':type==='ok'?'ok':'info');
+  document.getElementById('notifOverlay').classList.add('show');
+}
+function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); }
+function showLoad(m) {
+  document.getElementById('loaderTxt').textContent = m || 'Bismillah...';
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoad() { document.getElementById('loader').classList.remove('show'); }
+function setBtn(id, dis, txt) {
+  var b = document.getElementById(id);
+  if (b) { b.disabled = dis; b.textContent = txt; }
+}
+
+// ══════════════════════════════════════════
+//  AUTO-REFRESH & SESSION
+// ══════════════════════════════════════════
+function startMuridAutoRefresh() {
+  clearInterval(_rfInterval);
+  _rfLast = new Date();
+  var badge = document.getElementById('refreshBadgeMurid');
+  if (badge) badge.classList.add('show');
+  _rfInterval = setInterval(function() {
+    var el    = document.getElementById('muridRefreshTxt');
+    var menit = Math.round((new Date()-_rfLast)/60000);
+    if (menit >= 5) {
+      var dot = document.getElementById('muridRefreshDot');
+      if (dot) dot.style.animation='dotWave 1s infinite';
+      loadDashboard().then(function(){
+        _rfLast=new Date();
+        if(el) el.textContent='Baru sinkron';
+        if(dot) dot.style.animation='';
+      }).catch(function(){});
+    } else {
+      if (el) el.textContent = menit<=0?'Baru sinkron':'Sinkron '+menit+' menit lalu';
+    }
+  }, 30000);
+}
+
+function resetMuridSession() {
+  clearTimeout(_sTimeout);
+  _sTimeout = setTimeout(function(){
+    toast('Sesi berakhir setelah 8 jam tidak aktif.','info');
+    setTimeout(function(){ window.HQ.Auth.logout(); },3000);
+  }, 8*60*60*1000);
+}
+['click','touchstart'].forEach(function(ev){
+  document.addEventListener(ev, resetMuridSession, {passive:true});
+});
+
+// ══════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(d) {
+  if (!d) return '';
+  var BLAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  try {
+    var dt = new Date(String(d).substring(0,10));
+    if (isNaN(dt.getTime())) return String(d).substring(0,10);
+    return dt.getDate() + ' ' + BLAN[dt.getMonth()] + ' ' + dt.getFullYear();
+  } catch(e) { return String(d).substring(0,10); }
+}
+function nilaiClass(n) {
+  var m = {'Mumtaz':'nilai-Mumtaz','Jayyid Jiddan':'nilai-JJ','Jayyid':'nilai-Jayyid','Maqbul':'nilai-Maqbul'};
+  return m[n] || 'badge b-gray';
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
 </script>
 </body>
 </html>
