@@ -2059,11 +2059,28 @@ async function getMurid(id_halaqah) {
 
 async function loadMurid() {
   const id = document.getElementById('muridHalaqahSel').value;
-  if (!id) return;
+  // Boleh kosong = semua halaqah, tapi harus sudah ada halaqahList
+  if (!id && !halaqahList.length) return;
   showLoad('Bismillah, memuat data murid...');
   try {
     muridCache[id] = null;
-    const murid = await getMurid(id);
+    // Jika id kosong = gabungkan murid dari semua halaqah
+    let murid = [];
+    if (!id) {
+      const semua = await Promise.all(
+        halaqahList.map(function(h){ return getMurid(h.id_halaqah); })
+      );
+      // Gabung + deduplikasi berdasarkan id_murid
+      var seen = {};
+      semua.forEach(function(arr){
+        (arr||[]).forEach(function(m){
+          if (!seen[m.id_murid]) { seen[m.id_murid]=true; murid.push(m); }
+        });
+      });
+      murid.sort(function(a,b){ return (a.nama_murid||'').localeCompare(b.nama_murid||''); });
+    } else {
+      murid = await getMurid(id);
+    }
     // Simpan untuk search
     window._muridAllRows = murid;
     const tbody = document.getElementById('muridTbl');
