@@ -448,6 +448,30 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .spp-msg.ok{color:var(--green-d)}
 .spp-msg.warn{color:var(--red)}
 
+
+/* ── KALENDER POPUP ── */
+.kal-popup{
+  position:fixed;inset:0;z-index:5000;display:flex;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(13,27,42,.4);backdrop-filter:blur(4px);
+  animation:fadeIn .2s ease;
+}
+.kal-popup-box{
+  background:#fff;border-radius:20px;padding:22px 20px;
+  width:100%;max-width:340px;
+  box-shadow:0 16px 60px rgba(13,27,42,.2);
+}
+.kal-popup-head{display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:14px}
+.kal-popup-tgl{font-size:15px;font-weight:800}
+.kal-popup-x{background:none;border:none;font-size:20px;
+  cursor:pointer;color:var(--text-3);line-height:1}
+.kal-sesi-item{padding:10px 0;border-bottom:1px solid var(--border)}
+.kal-sesi-item:last-child{border-bottom:none}
+.kal-sesi-materi{font-size:13.5px;font-weight:600;margin-bottom:5px}
+.kal-sesi-meta{font-size:12px;color:var(--text-3);
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
 </style>
 </head>
 <body>
@@ -734,12 +758,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- POPUP DETAIL KALENDER -->
+<div class="kal-popup" id="kalPopup" style="display:none" onclick="tutupKalPopup()">
+  <div class="kal-popup-box" onclick="event.stopPropagation()">
+    <div class="kal-popup-head">
+      <div class="kal-popup-tgl" id="kalPopupTgl"></div>
+      <button class="kal-popup-x" onclick="tutupKalPopup()">✕</button>
+    </div>
+    <div id="kalPopupContent"></div>
+  </div>
+</div>
+
 <div class="refresh-badge-murid" id="refreshBadgeMurid">
   <div style="width:6px;height:6px;border-radius:50%;background:var(--green)" id="muridRefreshDot"></div>
   <span id="muridRefreshTxt">Baru sinkron</span>
 </div>
 
-<script src="../assets/js/api.js?v=2.6"></script>
+<script src="../assets/js/api.js?v=2.7"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -934,6 +969,7 @@ async function loadDashboard() {
     // Kalender dari riwayat jika ada
     if (d.riwayat_singkat) {
       riwayatData = d.riwayat_singkat;
+      buildKalSesiMap();
       renderKalender();
     }
 
@@ -997,6 +1033,7 @@ async function loadRiwayat() {
     renderRiwayat(riwayatData);
     var mBtn = document.getElementById('btnMuatLebihMurid');
     if (mBtn) mBtn.style.display = (r.has_more || riwayatData.length >= 10) ? 'block' : 'none';
+    buildKalSesiMap();
     renderKalender();
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
@@ -1062,6 +1099,7 @@ async function muatLebihRiwayatMurid() {
     if (r.data && r.data.length) {
       riwayatData = r.data;
       renderRiwayat(r.data);
+      buildKalSesiMap();
       renderKalender();
       if (btn) btn.style.display = 'none';
     }
@@ -1492,6 +1530,65 @@ function renderSPP(data) {
     msg.textContent = data.pesan || '';
     msg.className   = 'spp-msg ' + (belum===0?'ok':'warn');
   }
+}
+
+
+// ══ KALENDER POPUP ════════════════════════
+// Map dateStr → array sesi
+var _kalDateSesiMap = {};
+
+function buildKalSesiMap() {
+  _kalDateSesiMap = {};
+  riwayatData.forEach(function(k) {
+    if (!k.tanggal) return;
+    var d = String(k.tanggal).substring(0,10);
+    if (!_kalDateSesiMap[d]) _kalDateSesiMap[d] = [];
+    _kalDateSesiMap[d].push(k);
+  });
+}
+
+function bukaKalDetail(dateStr) {
+  var popup   = document.getElementById('kalPopup');
+  var tglEl   = document.getElementById('kalPopupTgl');
+  var content = document.getElementById('kalPopupContent');
+  if (!popup || !tglEl || !content) return;
+
+  // Format tanggal
+  var BLAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  var dt   = new Date(dateStr);
+  var HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  tglEl.textContent = HARI[dt.getDay()] + ', ' + dt.getDate() + ' ' + BLAN[dt.getMonth()] + ' ' + dt.getFullYear();
+
+  // Cari sesi di tanggal ini
+  var sesiList = _kalDateSesiMap[dateStr] || [];
+  if (!sesiList.length) {
+    content.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">Tidak ada sesi di tanggal ini</div>';
+  } else {
+    var HADIR_LBL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+    var HADIR_CLR = {H:'var(--green)',T:'var(--purple)',I:'var(--amber)',A:'var(--red)'};
+    content.innerHTML = sesiList.map(function(k) {
+      var hClr = HADIR_CLR[k.status_hadir] || 'var(--text-3)';
+      var hLbl = HADIR_LBL[k.status_hadir] || k.status_hadir;
+      return '<div class="kal-sesi-item">'
+        + '<div class="kal-sesi-materi">' + esc(k.materi || '(Belum ada materi)') + '</div>'
+        + '<div class="kal-sesi-meta">'
+        + '<span style="font-weight:700;color:'+hClr+'">'+hLbl+'</span>'
+        + ' · Sesi ke-' + esc(k.pertemuan_ke)
+        + (k.adab ? ' · Adab: <strong>'+esc(k.adab)+'</strong>' : '')
+        + '</div>'
+        + (k.koreksi_tahsin ? '<div style="margin-top:6px;font-size:12px;background:var(--amber-l);border-radius:8px;padding:7px 10px;color:#7a5500">✏️ '+esc(k.koreksi_tahsin)+'</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  popup.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function tutupKalPopup() {
+  var popup = document.getElementById('kalPopup');
+  if (popup) popup.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
