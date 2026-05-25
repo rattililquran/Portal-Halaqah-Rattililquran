@@ -470,11 +470,36 @@ tr:hover td{background:#f8fafc}
       <div class="page" id="page-raport">
         <div class="section-title">Generate & Kirim Raport</div>
         <div class="section-sub">Generate raport per murid atau massal, lalu kirim via email.</div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-          <select class="fc" id="raportPeriodeSel" onchange="loadRaportList()" style="max-width:240px">
-            <option value="">— Pilih Periode —</option>
-          </select>
-          <button class="btn btn-primary" onclick="doGenerateBulk()">⚡ Generate Semua</button>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase">Periode</div>
+            <select class="fc" id="raportPeriodeSel" onchange="loadRaportList()" style="min-width:180px">
+              <option value="">— Pilih Periode —</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase">Generate untuk</div>
+            <select class="fc" id="genRaportMode" onchange="updateGenRaportMode()" style="min-width:140px">
+              <option value="semua">📋 Semua Murid</option>
+              <option value="halaqah">🏫 Per Kelas</option>
+              <option value="level">🏆 Per Level</option>
+            </select>
+          </div>
+          <div id="genHalaqahWrap" style="display:none">
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase">Kelas</div>
+            <select class="fc" id="genRaportHalaqah" style="min-width:180px">
+              <option value="">Pilih kelas...</option>
+            </select>
+          </div>
+          <div id="genLevelWrap" style="display:none">
+            <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase">Level</div>
+            <select class="fc" id="genRaportLevel" style="min-width:140px">
+              <option value="">Pilih level...</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btnGenRaport" onclick="doGenerateBulk()" style="align-self:flex-end">
+            ⚡ Generate
+          </button>
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -1877,17 +1902,76 @@ async function loadRaportList() {
   finally { hideLoad(); }
 }
 
+// Update dropdown halaqah & level saat mode berubah
+function updateGenRaportMode() {
+  var mode = document.getElementById('genRaportMode').value;
+  var hWrap = document.getElementById('genHalaqahWrap');
+  var lWrap = document.getElementById('genLevelWrap');
+  if (hWrap) hWrap.style.display = mode === 'halaqah' ? 'block' : 'none';
+  if (lWrap) lWrap.style.display = mode === 'level'   ? 'block' : 'none';
+
+  // Isi dropdown halaqah
+  if (mode === 'halaqah') {
+    var sel = document.getElementById('genRaportHalaqah');
+    sel.innerHTML = '<option value="">Pilih kelas...</option>';
+    (allHalaqah||[]).filter(function(h){return h.status==='aktif';}).forEach(function(h){
+      var opt = document.createElement('option');
+      opt.value = h.id_halaqah;
+      opt.textContent = h.nama_halaqah;
+      sel.appendChild(opt);
+    });
+  }
+  // Isi dropdown level
+  if (mode === 'level') {
+    var selL = document.getElementById('genRaportLevel');
+    selL.innerHTML = '<option value="">Pilih level...</option>';
+    window.HQ.AdminAPI.getLevelList().then(function(r) {
+      (r.data||[]).filter(function(l){return l.status==='aktif';}).forEach(function(l){
+        var opt = document.createElement('option');
+        opt.value = l.nama_level;
+        opt.textContent = l.nama_level;
+        selL.appendChild(opt);
+      });
+    }).catch(function(){});
+  }
+}
+
 async function doGenerateBulk() {
   const id_periode = document.getElementById('raportPeriodeSel').value;
   if (!id_periode) return toast('Pilih periode dulu','err');
-  toast('Generate raport untuk semua murid?', 'warn');
+
+  const mode = document.getElementById('genRaportMode')?.value || 'semua';
+  let label  = 'semua murid';
+  let params = { id_periode };
+
+  if (mode === 'halaqah') {
+    const id_halaqah = document.getElementById('genRaportHalaqah')?.value;
+    if (!id_halaqah) return toast('Pilih kelas dulu','err');
+    const hq = (allHalaqah||[]).find(h => h.id_halaqah === id_halaqah);
+    label    = 'kelas ' + (hq?.nama_halaqah || id_halaqah);
+    params   = { id_periode, id_halaqah };
+  } else if (mode === 'level') {
+    const level = document.getElementById('genRaportLevel')?.value;
+    if (!level) return toast('Pilih level dulu','err');
+    label  = 'level ' + level;
+    params = { id_periode, level };
+  }
+
+  toast('Generate raport untuk ' + label + '?', 'warn');
   document.getElementById('notifBtn').textContent = 'Ya, Generate';
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
-    showLoad('Bismillah, membuat raport untuk semua murid...');
+    showLoad('Bismillah, membuat raport untuk ' + label + '...');
     try {
-      const r = await window.HQ.AdminAPI.generateRaportBulk({ id_periode });
-      toast(r.message,'ok');
+      let r;
+      if (mode === 'halaqah') {
+        r = await window.HQ.AdminAPI.generateRaportByHalaqah(params);
+      } else if (mode === 'level') {
+        r = await window.HQ.AdminAPI.generateRaportByLevel(params);
+      } else {
+        r = await window.HQ.AdminAPI.generateRaportBulk(params);
+      }
+      toast(r.message, 'ok');
       loadRaportList();
     } catch(e) { toast(e.message,'err'); }
     finally { hideLoad(); }
@@ -2433,18 +2517,9 @@ async function doArsip() {
 
   showLoad('Bismillah, mengarsipkan ' + label + '...');
   try {
-    // Panggil GAS langsung via fetch — karena ini operasi spreadsheet
-    var token = window.HQ.Auth.getUser ? sessionStorage.getItem('hq_token') : '';
-    var query = new URLSearchParams({
-      action : 'arsipData',
-      token  : sessionStorage.getItem('hq_token') || '',
-      payload: JSON.stringify(params)
-    });
-    var res  = await fetch(window.HQ._baseUrl || 'https://script.google.com/macros/s/AKfycbxx3dy_yOdyuNi51YZD_acDOHYPP5casOuzPqn0vwZarcOrmlhjf7nf9qy0An04tOBb_A/exec?' + query.toString(),
-      { method:'GET', mode:'cors' });
-    var data = await res.json();
-    if (data.status === 'error') throw new Error(data.message);
-    toast('✅ Arsip selesai! Sheet arsip baru dibuat.','ok');
+    // Gunakan apiPost standar
+    var data = await window.HQ.AdminAPI.arsipData(params);
+    toast('✅ ' + (data.message || 'Arsip selesai! Sheet arsip baru dibuat.'),'ok');
     await loadArsipList();
   } catch(e) { toast('Arsip gagal: ' + e.message,'err'); }
   finally { hideLoad(); }
