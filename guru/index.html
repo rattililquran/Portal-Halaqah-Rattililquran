@@ -672,6 +672,36 @@ tr:hover td{background:#f8fafc}
 .chip-koreksi:hover{background:var(--blue-l);border-color:var(--blue);color:var(--blue)}
 .chip-koreksi.selected{background:var(--blue);border-color:var(--blue);color:#fff}
 
+
+/* ── NAMA MURID CARD HEADER ── */
+.nm-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px;
+  background:linear-gradient(135deg,#0d1f35 0%,#1458A8 100%);
+  border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0;
+  margin:-14px -14px 14px;
+}
+.nm-nama{
+  font-size:16px;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:8px;
+  text-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.nm-nama-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  border:2px solid rgba(255,255,255,.35);
+  color:#fff;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nm-badge-hadir{
+  padding:5px 14px;border-radius:100px;font-size:12px;font-weight:700;
+}
+.nm-badge-H{background:#22c55e;color:#fff}
+.nm-badge-T{background:#a855f7;color:#fff}
+.nm-badge-I{background:#f59e0b;color:#fff}
+.nm-badge-A{background:#ef4444;color:#fff}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1902,13 +1932,17 @@ function renderNilaiMuridStep() {
       '</div>',
     ].join('\n');
 
+    var initials = m.nama_murid.split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
+    var badgeCls = {'H':'nm-badge-H','T':'nm-badge-T','I':'nm-badge-I','A':'nm-badge-A'}[status] || 'nm-badge-H';
     return '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-      + '<div style="font-weight:700;font-size:14px">👤 ' + esc(m.nama_murid) + '</div>'
-      + '<span class="badge ' + (HADIR_BADGE[status]||'b-gray') + '" style="font-size:11px">' + (HADIR_LABEL[status]||status) + '</span>'
+      + '<div class="nm-header">'
+      + '<div class="nm-nama">'
+      + '<div class="nm-nama-avatar">' + initials + '</div>'
+      + esc(m.nama_murid)
+      + '</div>'
+      + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
       + '</div>'
       + (isSkip ? skipMsg : nilaiForm)
-      + '</div>';
   }).join('');
 
   // Update progress counter
