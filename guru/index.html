@@ -646,6 +646,32 @@ tr:hover td{background:#f8fafc}
 .hq-selector-name{font-weight:700;font-size:14px}
 .hq-selector-meta{font-size:12px;color:var(--text-3)}
 
+
+/* ── TEMPLATE KOREKSI ACCORDION ── */
+.kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
+  border:1px solid var(--border)}
+.kor-acc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;cursor:pointer;background:#fff;
+  font-size:11px;font-weight:700;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:.07em;
+  transition:background .15s;user-select:none;
+}
+.kor-acc-head:hover{background:var(--bg)}
+.kor-acc-head.open{background:var(--blue-l);color:var(--blue)}
+.kor-acc-arrow{font-size:10px;transition:transform .2s;color:var(--text-3)}
+.kor-acc-head.open .kor-acc-arrow{transform:rotate(180deg)}
+.kor-acc-body{display:none;padding:8px 10px 10px;
+  border-top:1px solid var(--border);background:#fafbfc;
+  flex-wrap:wrap;gap:6px}
+.kor-acc-body.open{display:flex}
+.chip-koreksi{display:inline-flex;align-items:center;padding:5px 12px;
+  border-radius:100px;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--border);background:#fff;color:var(--text-2);
+  transition:all .15s;white-space:nowrap}
+.chip-koreksi:hover{background:var(--blue-l);border-color:var(--blue);color:var(--blue)}
+.chip-koreksi.selected{background:var(--blue);border-color:var(--blue);color:#fff}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1212,7 +1238,7 @@ tr:hover td{background:#f8fafc}
       <div id="pvWarningNilai" style="display:none;margin-top:12px;
         background:var(--red-l);border:1px solid var(--red);border-radius:var(--r-sm);
         padding:10px 13px;font-size:12.5px;color:#a03010">
-        ⚠️ <strong id="pvWarningNilaiTxt"></strong> murid hadir belum diisi nilainya.
+        ⚠️ <strong id="pvWarningNilaiTxt"></strong> murid hadir belum diisi adabnya.
       </div>
     </div>
     <div class="modal-foot">
@@ -1864,10 +1890,10 @@ function renderNilaiMuridStep() {
       '</div>',
       '<div class="fg" style="margin:0">',
       '  <label>Koreksi Tahsin</label>',
-      '  <div id="chips-' + esc(m.id_murid) + '" style="display:flex;flex-wrap:wrap;margin-bottom:5px"></div>',
-      '  <div style="display:flex;gap:6px;align-items:center">',
-      '    <input type="text" class="fc" id="koreksi-' + esc(m.id_murid) + '" value="' + esc(korVal) + '" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;flex:1">',
-      '    <button type="button" onclick="bukaRiwayatKoreksi(this.getAttribute(\"data-mid\"),this.getAttribute(\"data-mnm\"))" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" style="background:var(--blue-l);border:1px solid var(--blue);color:var(--blue);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">📋</button>',
+      '  <div id="chips-' + esc(m.id_murid) + '" style="margin-bottom:8px"></div>',
+      '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this)" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;resize:vertical;min-height:72px">' + esc(korVal) + '</textarea>',
+      '  <div style="display:flex;justify-content:flex-end;margin-top:4px">',
+      '    <button type="button" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)" style="background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;display:block">📋 Lihat Riwayat Koreksi Sebelumnya</button>',
       '  </div>',
       '</div>',
       '<div class="fg" style="margin-top:10px">',
@@ -2580,11 +2606,11 @@ function showPreview() {
     return { nama: m.nama_murid, nilai, adab, status, hadir: LABEL_PV[status]||status };
   });
 
-  // Cek nilai kosong untuk murid hadir (bukan Alpa/Izin)
-  const nilaiKosong = nilaiItems.filter(m => !['A','I'].includes(m.status) && !m.nilai).length;
+  // Cek adab kosong untuk murid hadir (bukan Alpa/Izin)
+  const adabKosong = nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && !m.adab; }).length;
   const warnEl = document.getElementById('pvWarningNilai');
-  if (nilaiKosong > 0) {
-    document.getElementById('pvWarningNilaiTxt').textContent = nilaiKosong;
+  if (adabKosong > 0) {
+    document.getElementById('pvWarningNilaiTxt').textContent = adabKosong;
     warnEl.style.display = 'block';
   } else {
     warnEl.style.display = 'none';
@@ -2597,9 +2623,8 @@ function showPreview() {
       + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
       + '<div style="display:flex;gap:6px;align-items:center">'
       + (m.status !== 'H' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
-      + (!skipStatus && m.nilai ? '<span class="badge b-green" style="font-size:11px">' + esc(m.nilai) + '</span>' : '')
-      + (!skipStatus && !m.nilai ? '<span style="color:var(--text-3);font-size:12px">nilai kosong</span>' : '')
-      + (m.adab ? '<span class="badge b-blue" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
+      + (!skipStatus && m.adab ? '<span class="badge b-green" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
+      + (!skipStatus && !m.adab ? '<span style="color:var(--text-3);font-size:12px">adab kosong</span>' : '')
       + '</div></div>';
   }).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';
 
@@ -2760,25 +2785,76 @@ function renderChipsKoreksi(id_murid) {
   var cont = document.getElementById('chips-' + id_murid);
   if (!cont || !Object.keys(templateKoreksi).length) return;
   var html = '';
-  Object.keys(templateKoreksi).forEach(function(kat) {
-    html += '<div class="chip-group-label">' + esc(kat) + '</div>';
+  var kats = Object.keys(templateKoreksi);
+  kats.forEach(function(kat, ki) {
+    var headId = 'kor-head-' + id_murid + '-' + ki;
+    var bodyId = 'kor-body-' + id_murid + '-' + ki;
+    html += '<div class="kor-accordion">';
+    html += '<div class="kor-acc-head" id="' + headId + '" data-hid="' + headId + '" data-bid="' + bodyId + '" onclick="toggleKorAcc(this.dataset.hid,this.dataset.bid)">';
+    html += esc(kat);
+    html += '<span class="kor-acc-arrow">▼</span>';
+    html += '</div>';
+    html += '<div class="kor-acc-body" id="' + bodyId + '">';
     templateKoreksi[kat].forEach(function(item) {
       html += '<button type="button" class="chip-koreksi" data-teks="' + esc(item.teks) + '" data-mid="' + esc(id_murid) + '" onclick="toggleChip(this)">' + esc(item.teks) + '</button>';
     });
+    html += '</div>';
+    html += '</div>';
   });
   cont.innerHTML = html;
+
+  // Restore chip selected dari nilai textarea saat ini
+  var textarea = document.getElementById('koreksi-' + id_murid);
+  if (textarea && textarea.value) {
+    var active = textarea.value.split(String.fromCharCode(10)).map(function(t){ return t.trim(); });
+    cont.querySelectorAll('.chip-koreksi').forEach(function(btn) {
+      if (active.indexOf(btn.getAttribute('data-teks').trim()) >= 0) {
+        btn.classList.add('selected');
+      }
+    });
+  }
+}
+
+function toggleKorAcc(headId, bodyId) {
+  var head = document.getElementById(headId);
+  var body = document.getElementById(bodyId);
+  if (!head || !body) return;
+  var isOpen = body.classList.contains('open');
+  // Tutup semua accordion dalam card yang sama
+  var card = head.closest('.nilai-murid-card');
+  if (card) {
+    card.querySelectorAll('.kor-acc-head').forEach(function(h){ h.classList.remove('open'); });
+    card.querySelectorAll('.kor-acc-body').forEach(function(b){ b.classList.remove('open'); });
+  }
+  // Toggle yang diklik
+  if (!isOpen) {
+    head.classList.add('open');
+    body.classList.add('open');
+  }
 }
 function toggleChip(btn) {
   btn.classList.toggle('selected');
   var id_murid = btn.getAttribute('data-mid');
-  var teks = btn.getAttribute('data-teks');
-  var input = document.getElementById('koreksi-' + id_murid);
-  if (!input) return;
+  var teks     = btn.getAttribute('data-teks');
+  var textarea = document.getElementById('koreksi-' + id_murid);
+  if (!textarea) return;
+  var cur = textarea.value.trim();
   if (btn.classList.contains('selected')) {
-    input.value = input.value ? input.value + '; ' + teks : teks;
+    // Tambah teks ke textarea — pisah dengan newline agar mudah dibaca
+    textarea.value = cur ? cur + String.fromCharCode(10) + teks : teks;
   } else {
-    input.value = input.value.split('; ').filter(function(t){return t.trim() !== teks.trim();}).join('; ');
+    // Hapus teks dari textarea
+    textarea.value = cur.split(String.fromCharCode(10))
+      .filter(function(t){ return t.trim() !== teks.trim(); })
+      .join(String.fromCharCode(10)).trim();
   }
+  // Auto-resize textarea
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.max(72, textarea.scrollHeight) + 'px';
+  // Sync cache
+  if (!window._nilaiCache) window._nilaiCache = {};
+  if (!window._nilaiCache[id_murid]) window._nilaiCache[id_murid] = {};
+  window._nilaiCache[id_murid].koreksi = textarea.value;
 }
 // Patch renderNilaiMuridStep untuk render chips setelahnya
 var _origRenderNilai = typeof renderNilaiMuridStep === 'function' ? renderNilaiMuridStep : null;
@@ -2821,7 +2897,7 @@ async function bukaRiwayatKoreksi(id_murid, nama_murid) {
       return '<div class="koreksi-item">'
         + '<div class="koreksi-tgl">Sesi ke-' + esc(row.pertemuan_ke) + ' \u00b7 ' + fmtDate(row.tanggal) + '</div>'
         + '<div class="koreksi-teks">\u270f\ufe0f ' + esc(row.koreksi_tahsin) + '</div>'
-        + (row.nilai ? '<div style="margin-top:4px"><span class="' + nilaiClass(row.nilai) + '">' + esc(row.nilai) + '</span></div>' : '')
+        + (row.adab ? '<div style="margin-top:5px"><span class="badge ' + (row.adab==='Baik'?'b-green':'b-amber') + '" style="font-size:11px">Adab: ' + esc(row.adab) + '</span></div>' : '')
         + '</div>';
     }).join('');
   } catch(e) {
@@ -3071,6 +3147,11 @@ function filterMuridSearch() {
       + '</tr>';
   }).join('');
   window._muridAllRows = tempRows;
+}
+
+function autoResizeKor(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
 }
 
 if ('serviceWorker' in navigator)
