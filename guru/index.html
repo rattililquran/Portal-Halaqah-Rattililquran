@@ -257,8 +257,10 @@ tr:hover td{background:#f8fafc}
 /* ── NILAI CARD ── */
 .nilai-murid-card{
   background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:18px;margin-bottom:10px;transition:all .2s;box-shadow:var(--shadow-card)
+  padding:0 0 14px 0;margin-bottom:12px;transition:all .2s;
+  box-shadow:0 2px 10px rgba(13,27,42,.06);overflow:hidden
 }
+.nilai-murid-card .nm-body{padding:0 16px}
 .nilai-murid-card:last-child{margin-bottom:0}
 .nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#fff)}
 .nilai-murid-card.alpa{opacity:.5;filter:grayscale(.3)}
@@ -679,7 +681,7 @@ tr:hover td{background:#f8fafc}
   padding:13px 14px;
   background:linear-gradient(135deg,#0d1f35 0%,#1458A8 100%);
   border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0;
-  margin:-14px -14px 14px;
+  margin-bottom:14px;
 }
 .nm-nama{
   font-size:16px;font-weight:800;color:#fff;
@@ -1942,7 +1944,9 @@ function renderNilaiMuridStep() {
       + '</div>'
       + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
       + '</div>'
+      + '<div class="nm-body">'
       + (isSkip ? skipMsg : nilaiForm)
+      + '</div>'
   }).join('');
 
   // Update progress counter
