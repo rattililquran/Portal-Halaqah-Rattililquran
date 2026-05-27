@@ -2106,6 +2106,14 @@ function renderNilaiMuridStep() {
       + '</div>'
   }).join('');
 
+  // Render chips koreksi per murid setelah innerHTML selesai
+  muridSesi.forEach(function(m) {
+    var status = presensiMap[m.id_murid] || 'H';
+    if (!['A','I'].includes(status)) {
+      renderChipsKoreksi(m.id_murid);
+    }
+  });
+
   // Update progress counter
   const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
