@@ -163,6 +163,158 @@ body{
 @keyframes dotP{0%,80%,100%{transform:scale(.5);background:rgba(255,255,255,.2)}40%{transform:scale(1.1);background:#fff}}
 .ld-txt{color:#fff;font-size:14.5px;font-weight:600;
   line-height:1.7;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+
+/* ══ AMOLED DARK MODE ══════════════════════════════════════
+   Otomatis aktif jika HP diset ke Dark Mode
+   Pure black = pixel AMOLED mati = hemat baterai maksimal
+═══════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Background — pure AMOLED black */
+    --bg:       #000000;
+    --card:     #0d0d0d;
+    --bg-2:     #111111;
+
+    /* Text */
+    --text:     #f0f0f0;
+    --text-2:   #a0aec0;
+    --text-3:   #4a5568;
+
+    /* Border */
+    --border:   #1f1f1f;
+
+    /* Warna tetap cerah agar kontras */
+    --green-l:  #0a2e1f;
+    --blue-l:   #0a1628;
+    --amber-l:  #2a1f00;
+    --red-l:    #2a0800;
+    --purple-l: #1a0a3a;
+    --teal-l:   #002a35;
+
+    /* Shadow hitam */
+    --shadow:         0 1px 3px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.4);
+    --shadow-lg:      0 8px 32px rgba(0,0,0,.6);
+    --shadow-card:    0 2px 10px rgba(0,0,0,.5);
+  }
+
+  /* Body background */
+  body { background: #000000 !important; }
+
+  /* Card — dark glass */
+  .card, .stat-card, .progress-card, .spp-card,
+  .riwayat-item, .pr-item, .materi-card, .raport-card,
+  .url-box, .benefit-card, .portal-card, .guide-card,
+  .kalender-wrap, .kal-popup-box, .peng-item {
+    background: #0d0d0d !important;
+    border-color: #1f1f1f !important;
+  }
+
+  /* Input, select, textarea */
+  .fc, .auth-input, input, select, textarea {
+    background: #111111 !important;
+    border-color: #2a2a2a !important;
+    color: #f0f0f0 !important;
+  }
+  .fc:focus, .auth-input:focus {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 3px rgba(22,155,107,.2) !important;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    background: rgba(0,0,0,.92) !important;
+    border-top-color: #1a1a1a !important;
+  }
+
+  /* Modal */
+  .modal-sheet, .modal-overlay .modal,
+  .notif-box, .kal-popup-box {
+    background: #0d0d0d !important;
+  }
+  .modal-foot { background: #0d0d0d !important; border-top-color: #1f1f1f !important; }
+
+  /* Auth box */
+  .auth-box { background: rgba(13,13,13,.97) !important; }
+
+  /* Accordion koreksi */
+  .kor-acc-head { background: #111 !important; }
+  .kor-acc-head:hover { background: #1a1a1a !important; }
+  .kor-acc-head.open { background: #0a1628 !important; }
+  .kor-acc-body { background: #0a0a0a !important; border-top-color: #1f1f1f !important; }
+  .chip-koreksi { background: #111 !important; border-color: #2a2a2a !important; color: #a0aec0 !important; }
+  .chip-koreksi:hover { background: #0a1628 !important; }
+  .chip-koreksi.selected { background: var(--blue) !important; }
+
+  /* Table */
+  table { color: #f0f0f0 !important; }
+  th { background: #111 !important; color: #a0aec0 !important; border-color: #1f1f1f !important; }
+  td { border-color: #1a1a1a !important; }
+  tr:hover td { background: #111 !important; }
+
+  /* Sidebar guru/admin */
+  .sidebar { background: #000 !important; border-color: #1a1a1a !important; }
+  .nav-btn { color: #a0aec0 !important; }
+  .nav-btn:hover { background: #111 !important; }
+  .nav-btn.active { background: #0a1628 !important; color: #fff !important; }
+
+  /* Steps KBM */
+  .step-item { background: #111 !important; border-color: #1f1f1f !important; }
+  .step-item.active { background: #0a1628 !important; }
+
+  /* Kalender */
+  .kal-day { color: #a0aec0 !important; }
+  .kal-day.today { outline-color: var(--green) !important; }
+  .kal-day-name { color: #4a5568 !important; }
+
+  /* Nilai murid card header tetap berwarna (kontras bagus di dark) */
+  /* Badge tetap berwarna */
+
+  /* Refresh badge */
+  .refresh-badge, .refresh-badge-murid {
+    background: rgba(13,13,13,.9) !important;
+    border-color: #1f1f1f !important;
+    color: #a0aec0 !important;
+  }
+
+  /* Loader */
+  .loader { background: linear-gradient(160deg,#000 0%,#000 100%) !important; }
+
+  /* Scroll bar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 100px; }
+
+  /* Teks pada elemen yang perlu override */
+  .page-title, .card-title, h1, h2, h3 { color: #f0f0f0 !important; }
+  .page-sub, .card-sub, label { color: #a0aec0 !important; }
+  .empty-ttl { color: #a0aec0 !important; }
+  .empty-sub { color: #4a5568 !important; }
+
+  /* Section title */
+  .section-heading { color: #4a5568 !important; }
+
+  /* Chip/badge — warna tetap tapi lebih gelap */
+  .badge.b-green { background: #0a2e1f !important; color: #34d399 !important; }
+  .badge.b-blue  { background: #0a1628 !important; color: #60a5fa !important; }
+  .badge.b-amber { background: #2a1f00 !important; color: #fbbf24 !important; }
+  .badge.b-red   { background: #2a0800 !important; color: #f87171 !important; }
+  .badge.b-gray  { background: #1a1a1a !important; color: #9ca3af !important; }
+
+  /* Koreksi box */
+  .koreksi-box { background: #2a1f00 !important; color: #fbbf24 !important; }
+
+  /* Sinkron dot */
+  .refresh-dot { background: var(--green) !important; }
+
+  /* Tombol ghost */
+  .btn-ghost { border-color: #2a2a2a !important; color: #a0aec0 !important; }
+  .btn-ghost:hover { background: #111 !important; }
+
+  /* URL box di install.html */
+  .url-text { color: #34d399 !important; }
+}
+
+
 </style>
 </head>
 <body>
@@ -289,7 +441,7 @@ function setRole(role) {
 async function doLogin() {
   const nis = document.getElementById('inputNis').value.trim();
   const pw  = document.getElementById('inputPw').value || '';
-  if (!nis) return showErr('NIS wajib diisi');
+  if (!nis) return showErr('ID akun wajib diisi');
 
   const nisVal = currentRole === 'murid' ? nis : nis.toUpperCase();
   setLoading(true);
@@ -302,14 +454,17 @@ async function doLogin() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message || 'Login gagal');
-    if (data.user.role !== currentRole) throw new Error('Akun ini bukan role ' + currentRole);
 
     // Simpan session
     sessionStorage.setItem('hq_token', data.token);
     sessionStorage.setItem('hq_user',  JSON.stringify(data.user));
 
+    // Redirect berdasarkan role server
+    var serverRole = data.user.role || currentRole;
+    var redirect   = ROLE_META[serverRole] ? ROLE_META[serverRole].redirect : ROLE_META[currentRole].redirect;
+
     setLoading(true, 'Alhamdulillah, mari kita mulai...');
-    setTimeout(() => { window.location.href = ROLE_META[currentRole].redirect; }, 700);
+    setTimeout(function() { window.location.href = redirect; }, 700);
   } catch(e) {
     setLoading(false);
     showErr(e.message);
@@ -340,9 +495,10 @@ function setLoading(on, msg) {
 }
 
 // Enter key
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
-    if (document.activeElement?.id === 'inputNis') {
+    var activeId = document.activeElement ? document.activeElement.id : '';
+    if (activeId === 'inputNis') {
       document.getElementById('inputPw').focus();
     } else {
       doLogin();
@@ -351,15 +507,79 @@ document.addEventListener('keydown', e => {
 });
 
 // Cek session aktif
-window.addEventListener('DOMContentLoaded', () => {
-  const tk = sessionStorage.getItem('hq_token');
-  const us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+window.addEventListener('DOMContentLoaded', function() {
+  var tk = sessionStorage.getItem('hq_token');
+  var us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+
   if (tk && us) {
-    const rd = ROLE_META[us.role]?.redirect;
+    // Cek apakah user kembali via tombol Back
+    var navType = '';
+    try {
+      navType = performance.getEntriesByType('navigation')[0].type || '';
+    } catch(e) {}
+    var isBack = navType === 'back_forward';
+
+    if (isBack) {
+      // Kembali via Back → tampilkan opsi lanjut/ganti akun
+      showResumeCard(us);
+      return;
+    }
+
+    // Buka fresh → auto redirect ke portal
+    var rd = ROLE_META[us.role] ? ROLE_META[us.role].redirect : null;
     if (rd) { window.location.href = rd; return; }
   }
-  setTimeout(() => document.getElementById('inputNis').focus(), 300);
+
+  setTimeout(function() { document.getElementById('inputNis').focus(); }, 300);
 });
+
+function showResumeCard(us) {
+  var nama = us.nama_lengkap || us.nama || us.id_user || '';
+  var role = us.role || '';
+  var roleLabel = role === 'guru' ? '👩‍🏫 Guru' : role === 'murid' ? '🎓 Murid' : '🛡 Admin';
+  var rd = ROLE_META[role] ? ROLE_META[role].redirect : null;
+
+  // Sembunyikan form login
+  var authBox = document.querySelector('.auth-box');
+  if (!authBox) return;
+
+  // Buat resume card
+  var card = document.createElement('div');
+  card.innerHTML = '<div style="text-align:center;padding:28px 20px">'
+    + '<div style="font-size:42px;margin-bottom:12px">👋</div>'
+    + '<div style="font-size:13px;color:#8ea3b8;margin-bottom:4px">Masuk sebagai</div>'
+    + '<div style="font-size:20px;font-weight:800;margin-bottom:4px">' + esc(nama) + '</div>'
+    + '<div style="font-size:13px;color:#8ea3b8;margin-bottom:20px">' + roleLabel + '</div>'
+    + '<button onclick="resumeSession()" '
+    + 'style="width:100%;padding:13px;background:linear-gradient(135deg,#169B6B,#0d5c42);'
+    + 'border:none;border-radius:100px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px">'
+    + 'Lanjutkan ➜</button>'
+    + '<button onclick="gantiAkun()" '
+    + 'style="width:100%;padding:11px;background:none;border:1.5px solid #e2eaf0;'
+    + 'border-radius:100px;color:#8ea3b8;font-size:13px;font-weight:600;cursor:pointer">'
+    + 'Ganti Akun</button>'
+    + '</div>';
+
+  authBox.innerHTML = '';
+  authBox.appendChild(card);
+}
+
+function resumeSession() {
+  var us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+  if (!us) return gantiAkun();
+  var rd = ROLE_META[us.role] ? ROLE_META[us.role].redirect : null;
+  if (rd) window.location.href = rd;
+}
+
+function gantiAkun() {
+  sessionStorage.removeItem('hq_token');
+  sessionStorage.removeItem('hq_user');
+  window.location.reload();
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
