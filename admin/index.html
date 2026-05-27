@@ -1070,7 +1070,7 @@ async function refreshPage() {
   btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s';
   setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
   await loadMasterData();
-  const active = document.querySelector('.page.active')?.id?.replace('page-','');
+  const active = document.querySelector('.page.active')?.id && id.replace('page-','');
   if (active) goPage(active);
 }
 
@@ -1084,7 +1084,7 @@ async function loadDashboard() {
     const d = r.data;
     const p = d.periode_aktif;
     document.getElementById('periodeInfo').textContent =
-      p?.nama_periode ? 'Periode Aktif: ' + p.nama_periode : 'Belum ada periode aktif';
+      (p && p.nama_periode) ? 'Periode Aktif: ' + p.nama_periode : 'Belum ada periode aktif';
     document.getElementById('st-murid').textContent   = d.total_murid;
     document.getElementById('st-guru').textContent    = d.total_guru;
     document.getElementById('st-halaqah').textContent = d.total_halaqah;
@@ -1195,7 +1195,7 @@ function switchUserTab(tab) {
 
 async function loadUsers(role) {
   // Skeleton sementara fetch
-  var tb = document.getElementById('userTbl');
+  var tb = document.getElementById('usersTbl');
   if (tb) tb.innerHTML = [1,2,3,4].map(function(){
     return '<tr><td><span class="skel skel-text short"></span></td>'
       + '<td><span class="skel skel-text"></span></td>'
@@ -1847,7 +1847,7 @@ async function loadNilaiMurid() {
               <label>${esc(k.nama_komponen)} (${k.bobot}%)</label>
               <input type="number" class="fc" min="0" max="100"
                 id="nilai_${esc(m.id_murid)}_${esc(k.id_komponen)}"
-                value="${existing?.nilai||''}" placeholder="0–100" style="font-size:13px">
+                value="${(existing && existing.nilai)||''}" placeholder="0–100" style="font-size:13px">
             </div>`;
           }).join('')}
         </div>
@@ -1956,7 +1956,7 @@ async function doGenerateBulk() {
     const id_halaqah = document.getElementById('genRaportHalaqah')?.value;
     if (!id_halaqah) return toast('Pilih kelas dulu','err');
     const hq = (allHalaqah||[]).find(h => h.id_halaqah === id_halaqah);
-    label    = 'kelas ' + (hq?.nama_halaqah || id_halaqah);
+    label    = 'kelas ' + ((hq && hq.nama_halaqah) || id_halaqah);
     params   = { id_periode, id_halaqah };
   } else if (mode === 'level') {
     const level = document.getElementById('genRaportLevel')?.value;
@@ -2516,7 +2516,7 @@ async function doArsip() {
     if (!pid) return toast('Pilih periode dulu','err');
     params.id_periode = pid;
     var perSel = document.getElementById('arsipPeriodeSelect');
-    label = 'periode ' + (perSel.options[perSel.selectedIndex]?.text || pid);
+    label = 'periode ' + ((perSel.options[perSel.selectedIndex] ? perSel.options[perSel.selectedIndex].text : '') || pid);
   } else {
     label = 'data > 1 tahun';
   }
