@@ -253,16 +253,15 @@ tr:hover td{background:#f8fafc}
 /* ── PRESENSI ── */
 .pb[data-k="T"]{border-color:#7c3aed;color:#7c3aed}
 .pb[data-k="T"].on{background:#7c3aed;color:#fff}
-
 /* ── NILAI CARD ── */
 .nilai-murid-card{
   background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
   padding:0;margin-bottom:12px;transition:all .2s;
   box-shadow:0 2px 10px rgba(13,27,42,.06);overflow:hidden
 }
-.nm-body{padding:14px}
-.nm-body:empty{padding:0;display:none}
-.nilai-murid-card .nm-body{padding:0 16px}
+/* nm-body: satu definisi saja — konten dalam card setelah header */
+.nm-body{padding:14px 14px 4px}
+.nm-body:empty{display:none}
 .nilai-murid-card:last-child{margin-bottom:0}
 .nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#fff)}
 .nilai-murid-card.alpa{opacity:.5;filter:grayscale(.3)}
@@ -683,7 +682,7 @@ tr:hover td{background:#f8fafc}
   padding:13px 14px;
   background:linear-gradient(135deg,#0d1f35 0%,#1458A8 100%);
   border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0;
-  margin-bottom:14px;
+  margin-bottom:0;
 }
 .nm-nama{
   font-size:16px;font-weight:800;color:#fff;
@@ -705,6 +704,162 @@ tr:hover td{background:#f8fafc}
 .nm-badge-T{background:#a855f7;color:#fff}
 .nm-badge-I{background:#f59e0b;color:#fff}
 .nm-badge-A{background:#ef4444;color:#fff}
+
+
+/* ══ AMOLED DARK MODE ══════════════════════════════════════
+   Otomatis aktif jika HP diset ke Dark Mode
+   Pure black = pixel AMOLED mati = hemat baterai maksimal
+═══════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Background — pure AMOLED black */
+    --bg:       #000000;
+    --card:     #0d0d0d;
+    --bg-2:     #111111;
+
+    /* Text */
+    --text:     #f0f0f0;
+    --text-2:   #a0aec0;
+    --text-3:   #4a5568;
+
+    /* Border */
+    --border:   #1f1f1f;
+
+    /* Warna tetap cerah agar kontras */
+    --green-l:  #0a2e1f;
+    --blue-l:   #0a1628;
+    --amber-l:  #2a1f00;
+    --red-l:    #2a0800;
+    --purple-l: #1a0a3a;
+    --teal-l:   #002a35;
+
+    /* Shadow hitam */
+    --shadow:         0 1px 3px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.4);
+    --shadow-lg:      0 8px 32px rgba(0,0,0,.6);
+    --shadow-card:    0 2px 10px rgba(0,0,0,.5);
+  }
+
+  /* Body background */
+  body { background: #000000 !important; }
+
+  /* Card — dark glass */
+  .card, .stat-card, .progress-card, .spp-card,
+  .riwayat-item, .pr-item, .materi-card, .raport-card,
+  .url-box, .benefit-card, .portal-card, .guide-card,
+  .kalender-wrap, .kal-popup-box, .peng-item,
+  .nilai-murid-card {
+    background: #0d0d0d !important;
+    border-color: #1f1f1f !important;
+  }
+  .nilai-murid-card.terisi {
+    background: #001a0e !important;
+    border-color: var(--green) !important;
+  }
+
+  /* Input, select, textarea */
+  .fc, .auth-input, input, select, textarea {
+    background: #111111 !important;
+    border-color: #2a2a2a !important;
+    color: #f0f0f0 !important;
+  }
+  .fc:focus, .auth-input:focus {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 3px rgba(22,155,107,.2) !important;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    background: rgba(0,0,0,.92) !important;
+    border-top-color: #1a1a1a !important;
+  }
+
+  /* Modal */
+  .modal-sheet, .modal-overlay .modal,
+  .notif-box, .kal-popup-box {
+    background: #0d0d0d !important;
+  }
+  .modal-foot { background: #0d0d0d !important; border-top-color: #1f1f1f !important; }
+
+  /* Auth box */
+  .auth-box { background: rgba(13,13,13,.97) !important; }
+
+  /* Accordion koreksi */
+  .kor-acc-head { background: #111 !important; }
+  .kor-acc-head:hover { background: #1a1a1a !important; }
+  .kor-acc-head.open { background: #0a1628 !important; }
+  .kor-acc-body { background: #0a0a0a !important; border-top-color: #1f1f1f !important; }
+  .chip-koreksi { background: #111 !important; border-color: #2a2a2a !important; color: #a0aec0 !important; }
+  .chip-koreksi:hover { background: #0a1628 !important; }
+  .chip-koreksi.selected { background: var(--blue) !important; }
+
+  /* Table */
+  table { color: #f0f0f0 !important; }
+  th { background: #111 !important; color: #a0aec0 !important; border-color: #1f1f1f !important; }
+  td { border-color: #1a1a1a !important; }
+  tr:hover td { background: #111 !important; }
+
+  /* Sidebar guru/admin */
+  .sidebar { background: #000 !important; border-color: #1a1a1a !important; }
+  .nav-btn { color: #a0aec0 !important; }
+  .nav-btn:hover { background: #111 !important; }
+  .nav-btn.active { background: #0a1628 !important; color: #fff !important; }
+
+  /* Steps KBM */
+  .step-item { background: #111 !important; border-color: #1f1f1f !important; }
+  .step-item.active { background: #0a1628 !important; }
+
+  /* Kalender */
+  .kal-day { color: #a0aec0 !important; }
+  .kal-day.today { outline-color: var(--green) !important; }
+  .kal-day-name { color: #4a5568 !important; }
+
+  /* Nilai murid card header tetap berwarna (kontras bagus di dark) */
+  /* Badge tetap berwarna */
+
+  /* Refresh badge */
+  .refresh-badge, .refresh-badge-murid {
+    background: rgba(13,13,13,.9) !important;
+    border-color: #1f1f1f !important;
+    color: #a0aec0 !important;
+  }
+
+  /* Loader */
+  .loader { background: linear-gradient(160deg,#000 0%,#000 100%) !important; }
+
+  /* Scroll bar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 100px; }
+
+  /* Teks pada elemen yang perlu override */
+  .page-title, .card-title, h1, h2, h3 { color: #f0f0f0 !important; }
+  .page-sub, .card-sub, label { color: #a0aec0 !important; }
+  .empty-ttl { color: #a0aec0 !important; }
+  .empty-sub { color: #4a5568 !important; }
+
+  /* Section title */
+  .section-heading { color: #4a5568 !important; }
+
+  /* Chip/badge — warna tetap tapi lebih gelap */
+  .badge.b-green { background: #0a2e1f !important; color: #34d399 !important; }
+  .badge.b-blue  { background: #0a1628 !important; color: #60a5fa !important; }
+  .badge.b-amber { background: #2a1f00 !important; color: #fbbf24 !important; }
+  .badge.b-red   { background: #2a0800 !important; color: #f87171 !important; }
+  .badge.b-gray  { background: #1a1a1a !important; color: #9ca3af !important; }
+
+  /* Koreksi box */
+  .koreksi-box { background: #2a1f00 !important; color: #fbbf24 !important; }
+
+  /* Sinkron dot */
+  .refresh-dot { background: var(--green) !important; }
+
+  /* Tombol ghost */
+  .btn-ghost { border-color: #2a2a2a !important; color: #a0aec0 !important; }
+  .btn-ghost:hover { background: #111 !important; }
+
+  /* URL box di install.html */
+  .url-text { color: #34d399 !important; }
+}
 
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
