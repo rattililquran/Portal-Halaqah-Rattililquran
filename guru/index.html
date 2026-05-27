@@ -171,7 +171,7 @@ tr:hover td{background:#f8fafc}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
-  font-family:inherit;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .2s}
+  font-family:inherit;font-size:14px;outline:none;background:var(--card,#fff);color:var(--text);transition:border-color .2s}
 .fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,88,168,.1)}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
@@ -207,7 +207,7 @@ tr:hover td{background:#f8fafc}
 .step-num.done{background:var(--green);color:#fff;border-color:var(--green)}
 .step-num.active{background:var(--blue);color:#fff;border-color:var(--blue);
   box-shadow:0 0 0 3px rgba(20,88,168,.18)}
-.step-num.pending{background:#fff;color:var(--text-3);border-color:var(--border)}
+.step-num.pending{background:var(--card,#fff);color:var(--text-3);border-color:var(--border)}
 .step-label{font-size:12px;font-weight:600;white-space:nowrap}
 .step-label.active{color:var(--blue)}
 .step-label.done{color:var(--green)}
@@ -233,7 +233,7 @@ tr:hover td{background:#f8fafc}
   align-items:center;justify-content:center;
   background:rgba(15,23,42,.65);backdrop-filter:blur(6px);padding:20px}
 .doa-overlay.show{display:flex}
-.doa-box{background:#fff;border-radius:var(--r-xl);padding:32px 28px 28px;
+.doa-box{background:var(--card,#fff);border-radius:var(--r-xl);padding:32px 28px 28px;
   width:100%;max-width:420px;text-align:center;
   box-shadow:0 24px 64px rgba(0,0,0,.25);
   animation:doaPop .35s cubic-bezier(.34,1.4,.64,1)}
@@ -255,15 +255,14 @@ tr:hover td{background:#f8fafc}
 .pb[data-k="T"].on{background:#7c3aed;color:#fff}
 /* ── NILAI CARD ── */
 .nilai-murid-card{
-  background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:0;margin-bottom:12px;transition:all .2s;
+  background:var(--card,#fff);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:0;margin-bottom:14px;transition:all .2s;
   box-shadow:0 2px 10px rgba(13,27,42,.06);overflow:hidden
 }
-/* nm-body: satu definisi saja — konten dalam card setelah header */
-.nm-body{padding:14px 14px 4px}
+.nm-body{padding:12px 14px 14px}
 .nm-body:empty{display:none}
 .nilai-murid-card:last-child{margin-bottom:0}
-.nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#fff)}
+.nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#f8fffe)}
 .nilai-murid-card.alpa{opacity:.5;filter:grayscale(.3)}
 
 /* ── SESI AKTIF BANNER ── */
@@ -279,7 +278,7 @@ tr:hover td{background:#f8fafc}
   backdrop-filter:blur(4px);padding:0}
 .overlay.open{display:flex}
 @media(min-width:640px){.overlay{align-items:center;padding:20px}}
-.modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:560px;
+.modal{background:var(--card,#fff);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:560px;
   max-height:92dvh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,.15);
   animation:slideUp .28s cubic-bezier(.16,1,.3,1)}
 @media(min-width:640px){.modal{border-radius:var(--r-xl);animation:fadeInModal .25s ease}}
@@ -287,12 +286,12 @@ tr:hover td{background:#f8fafc}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 @keyframes fadeInModal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card,#fff);z-index:1}
 .modal-title{font-size:15px;font-weight:700}
 .modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-3);padding:4px;line-height:1}
 .modal-body{padding:18px 22px}
 .modal-foot{padding:14px 22px;border-top:1px solid var(--border);
-  display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+  display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--card,#fff)}
 
 /* ── LOADER ── */
 .loader{display:none;position:fixed;inset:0;z-index:9999;
@@ -751,9 +750,15 @@ tr:hover td{background:#f8fafc}
     background: #0d0d0d !important;
     border-color: #1f1f1f !important;
   }
+  .nilai-murid-card .nm-body {
+    background: #0d0d0d !important;
+  }
   .nilai-murid-card.terisi {
     background: #001a0e !important;
     border-color: var(--green) !important;
+  }
+  .nilai-murid-card.terisi .nm-body {
+    background: #001a0e !important;
   }
 
   /* Input, select, textarea */
@@ -2107,12 +2112,20 @@ function renderNilaiMuridStep() {
   }).join('');
 
   // Render chips koreksi per murid setelah innerHTML selesai
-  muridSesi.forEach(function(m) {
-    var status = presensiMap[m.id_murid] || 'H';
-    if (!['A','I'].includes(status)) {
-      renderChipsKoreksi(m.id_murid);
-    }
-  });
+  function doRenderChips() {
+    muridSesi.forEach(function(m) {
+      var status = presensiMap[m.id_murid] || 'H';
+      if (!['A','I'].includes(status)) {
+        renderChipsKoreksi(m.id_murid);
+      }
+    });
+  }
+  if (Object.keys(templateKoreksi).length > 0) {
+    doRenderChips();
+  } else {
+    // Template belum datang dari server — retry setelah load selesai
+    loadTemplateKoreksi().then(function() { doRenderChips(); });
+  }
 
   // Update progress counter
   const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
@@ -2987,7 +3000,11 @@ async function loadTemplateKoreksi() {
   try {
     var r = await window.HQ.GuruAPI.getTemplateKoreksi();
     templateKoreksi = r.data || {};
-  } catch(e) {}
+  } catch(e) {
+    console.warn('loadTemplateKoreksi error:', e.message);
+  }
+  // Selalu return templateKoreksi agar .then() bisa mengakses
+  return templateKoreksi;
 }
 function renderChipsKoreksi(id_murid) {
   var cont = document.getElementById('chips-' + id_murid);
