@@ -147,7 +147,7 @@ var Auth = {
     sessionStorage.removeItem('hq_token');
     sessionStorage.removeItem('hq_user');
     var depth = window.location.pathname.split('/').filter(Boolean).length;
-    window.location.href = depth >= 2 ? '../index.html' : 'index.html';
+    window.location.replace(depth >= 2 ? '../index.html' : 'index.html');
   },
   getUser: function() {
     return JSON.parse(localStorage.getItem('hq_user') || sessionStorage.getItem('hq_user') || 'null');
