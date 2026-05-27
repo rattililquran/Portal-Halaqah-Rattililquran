@@ -257,9 +257,11 @@ tr:hover td{background:#f8fafc}
 /* ── NILAI CARD ── */
 .nilai-murid-card{
   background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
-  padding:0 0 14px 0;margin-bottom:12px;transition:all .2s;
+  padding:0;margin-bottom:12px;transition:all .2s;
   box-shadow:0 2px 10px rgba(13,27,42,.06);overflow:hidden
 }
+.nm-body{padding:14px}
+.nm-body:empty{padding:0;display:none}
 .nilai-murid-card .nm-body{padding:0 16px}
 .nilai-murid-card:last-child{margin-bottom:0}
 .nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#fff)}
@@ -1465,7 +1467,7 @@ function tutupDoaDanLanjut() {
 function cekSesiDraft() {
   if (!sesiAktif) return;
   const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
-  const nama = h?.nama_halaqah || sesiAktif.id_halaqah;
+  const nama = (h && h.nama_halaqah) || sesiAktif.id_halaqah;
 
   // Tampilkan di halaman KBM jika aktif, atau simpan state
   updateDraftWarning();
@@ -1482,7 +1484,7 @@ function updateDraftWarning() {
   if (!sesiAktif) { banner.classList.remove('show'); return; }
 
   const h    = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
-  const nama = h?.nama_halaqah || sesiAktif.id_halaqah;
+  const nama = (h && h.nama_halaqah) || sesiAktif.id_halaqah;
   document.getElementById('draftWarningInfo').innerHTML =
     `<strong>${esc(nama)}</strong> &nbsp;·&nbsp; ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp; Pertemuan ke-${sesiAktif.pertemuan_ke} &nbsp;·&nbsp; ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''}`;
   banner.classList.add('show');
@@ -1523,8 +1525,8 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name)?.classList.add('active');
-  document.querySelector('[data-p="' + name + '"]')?.classList.add('active');
+  document.getElementById('page-' + name) && document.getElementById('page-' + name).classList.add('active');
+  document.querySelector('[data-p="' + name + '"]') && document.querySelector('[data-p="' + name + '"]').classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
   if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); }
@@ -1619,7 +1621,7 @@ async function doBukaKBM() {
   setBtn('btnMulai', true, '⏳ Membuka sesi...');
   showLoad('Bismillah, kita buka sesi KBM dengan doa terlebih dahulu...');
   try {
-    const pertemuanCustom = document.getElementById('kbmPertemuan')?.value;
+    const pertemuanCustom = (document.getElementById('kbmPertemuan') ? document.getElementById('kbmPertemuan').value : '');
     const r = await window.HQ.GuruAPI.bukaKBM({
       id_halaqah,
       tanggal_pertemuan: tanggal,
@@ -1653,7 +1655,7 @@ function updateSesiBanner() {
   if (!sesiAktif) { b.style.display='none'; return; }
   const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
   document.getElementById('sesiInfo').innerHTML =
-    `<strong>${esc(h?.nama_halaqah||sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
+    `<strong>${esc((h && h.nama_halaqah)||sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
      ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp;
      ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''} &nbsp;·&nbsp;
      Pertemuan ke-${sesiAktif.pertemuan_ke}`;
@@ -1956,7 +1958,8 @@ function renderNilaiMuridStep() {
 
 function updateNilaiCard(id_murid) {
   const card = document.getElementById('nmcard-' + id_murid);
-  const val  = document.getElementById('nilai-'  + id_murid)?.value;
+  var adabEl = document.getElementById('adab-' + id_murid);
+  var val    = adabEl ? adabEl.value : '';
   if (card) card.className = 'nilai-murid-card ' + (val ? 'terisi' : '');
   // Update progress
   const presensiMap = {};
@@ -1965,7 +1968,7 @@ function updateNilaiCard(id_murid) {
   });
   const terisi = muridSesi.filter(m => {
     const status = presensiMap[m.id_murid] || 'H';
-    return !['A','I'].includes(status) && document.getElementById('nilai-' + m.id_murid)?.value;
+    return !['A','I'].includes(status) && document.getElementById('adab-'+m.id_murid) && document.getElementById('adab-'+m.id_murid).value;
   }).length;
   const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
   document.getElementById('nilaiProgress').textContent = terisi + '/' + total + ' terisi';
@@ -2003,16 +2006,20 @@ async function doSelesaiKBM() {
 
     // 2. Simpan nilai per murid
     for (const m of muridSesi) {
-      const nilai   = document.getElementById('nilai-'   + m.id_murid)?.value || '';
-      const adab    = document.getElementById('adab-'    + m.id_murid)?.value || '';
-      const koreksi = document.getElementById('koreksi-' + m.id_murid)?.value || '';
+      const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
+      const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
+      const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
       if (nilai || adab || koreksi) {
+        const catatan = document.getElementById('catatan-'+m.id_murid);
         await window.HQ.GuruAPI.simpanNilaiMurid({
-          id_kbm    : sesiAktif.id_kbm,
-          id_halaqah: sesiAktif.id_halaqah,
-          id_murid  : m.id_murid,
-          nama_murid: m.nama_murid,
-          nilai, adab, koreksi_tahsin: koreksi,
+          id_kbm       : sesiAktif.id_kbm,
+          id_halaqah   : sesiAktif.id_halaqah,
+          id_murid     : m.id_murid,
+          nama_murid   : m.nama_murid,
+          nilai        : nilai,
+          adab         : adab,
+          koreksi_tahsin: koreksi,
+          catatan_murid: catatan ? catatan.value.trim() : '',
         });
       }
     }
@@ -2048,8 +2055,8 @@ async function doSelesaiKBM() {
       // Pindah ke halaman KBM dengan form bersih
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('page-kbm')?.classList.add('active');
-      document.querySelector('[data-p="kbm"]')?.classList.add('active');
+      document.getElementById('page-kbm') && document.getElementById('page-kbm').classList.add('active');
+      document.querySelector('[data-p="kbm"]') && document.querySelector('[data-p="kbm"]').classList.add('active');
       document.getElementById('pageTitle').textContent = 'Sesi KBM';
       // Reset form
       const hqSel = document.getElementById('kbmHalaqah');
@@ -2180,7 +2187,7 @@ async function loadMurid() {
         </td>
         <td>
           <span style="font-weight:700;color:${s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)'}">${s40}%</span>
-          <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw?.toFixed?.(1)||'–'}/40</div>
+          <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw ? Number(m.skor_hadir_raw).toFixed(1) : '–'}/40</div>
         </td>
         <td>${nilaiLabel(m.avg_nilai)}</td>
         <td><button class="btn btn-outline btn-sm"
@@ -2408,7 +2415,7 @@ async function bukaEditPresensi(id_kbm, tanggal) {
   showLoad('Bismillah, memuat data presensi...');
   try {
     const r = await window.HQ.GuruAPI.getPresensiByKBM(id_kbm);
-    editPresensiHalaqah = r.kbm?.id_halaqah || '';
+    editPresensiHalaqah = (r.kbm && r.kbm.id_halaqah) || '';
     const data = r.data || [];
 
     if (!data.length) {
@@ -2503,7 +2510,7 @@ async function refreshPage() {
   setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
 
   muridCache = {};
-  const active = document.querySelector('.page.active')?.id?.replace('page-','');
+  const active = document.querySelector('.page.active') ? document.querySelector('.page.active').id.replace('page-','') : '';
   if (active === 'dashboard') { await loadDashboard(); return; }
   else if (active === 'murid' && document.getElementById('muridHalaqahSel').value) await loadMurid();
   else if (active === 'riwayat' && document.getElementById('riwayatHalaqahSel').value) await loadRiwayat();
@@ -2617,7 +2624,7 @@ function showPreview() {
   const izinTotal = izin + terlambat;
 
   // Isi preview
-  document.getElementById('pvHalaqah').textContent  = h?.nama_halaqah || '–';
+  document.getElementById('pvHalaqah').textContent  = (h && h.nama_halaqah) || '–';
   document.getElementById('pvJenis').textContent    = sesiAktif.jenis_sesi || '–';
   document.getElementById('pvTanggal').textContent  = fmtDate(sesiAktif.tanggal_pertemuan);
   document.getElementById('pvWaktu').textContent    =
@@ -2894,29 +2901,6 @@ function toggleChip(btn) {
   if (!window._nilaiCache[id_murid]) window._nilaiCache[id_murid] = {};
   window._nilaiCache[id_murid].koreksi = textarea.value;
 }
-// Patch renderNilaiMuridStep untuk render chips setelahnya
-var _origRenderNilai = typeof renderNilaiMuridStep === 'function' ? renderNilaiMuridStep : null;
-window.addEventListener('load', function() {
-  if (typeof renderNilaiMuridStep === 'function') {
-    var orig = renderNilaiMuridStep;
-    window.renderNilaiMuridStep = function() {
-      orig();
-      setTimeout(function() {
-        var presensiMap = {};
-        document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
-          presensiMap[btn.dataset.id] = btn.dataset.k;
-        });
-        if (typeof muridSesi !== 'undefined') {
-          muridSesi.forEach(function(m) {
-            var status = presensiMap[m.id_murid] || 'H';
-            if (!['A','I'].includes(status)) renderChipsKoreksi(m.id_murid);
-          });
-        }
-      }, 100);
-    };
-  }
-});
-
 // ══ #6 RIWAYAT KOREKSI ══════════════════
 async function bukaRiwayatKoreksi(id_murid, nama_murid) {
   var namaEl = document.getElementById('koreksiNamaMurid');
@@ -2988,7 +2972,7 @@ async function muatLebihRiwayat() {
   var btn = document.getElementById('btnMuatLebihRiwayat');
   if (btn) btn.textContent = 'Memuat...';
   try {
-    var id_h = document.getElementById('filterRiwayatHalaqah')?.value || (halaqahList[0]?.id_halaqah||'');
+    var id_h = (document.getElementById('filterRiwayatHalaqah') ? document.getElementById('filterRiwayatHalaqah').value : '') || ((halaqahList[0] ? halaqahList[0].id_halaqah : '')||'');
     var r = await window.HQ.GuruAPI.getRiwayatKBM(id_h, 10, 30); // tambah 30
     if (r.data && r.data.length) {
       renderRiwayatKBM(r.data);
@@ -3088,7 +3072,7 @@ function fillLevelDropdowns() {
 }
 
 function filterKbmHalaqah() {
-  var level = document.getElementById('kbmLevel')?.value;
+  var level = document.getElementById('kbmLevel') ? document.getElementById('kbmLevel').value : '';
   var sel   = document.getElementById('kbmHalaqah');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
@@ -3104,7 +3088,7 @@ function filterKbmHalaqah() {
 }
 
 function filterMuridHalaqah() {
-  var level = document.getElementById('muridLevelSel')?.value;
+  var level = document.getElementById('muridLevelSel') ? document.getElementById('muridLevelSel').value : '';
   var sel   = document.getElementById('muridHalaqahSel');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
@@ -3117,7 +3101,7 @@ function filterMuridHalaqah() {
 }
 
 function filterRiwayatHalaqah() {
-  var level = document.getElementById('riwayatLevelSel')?.value;
+  var level = document.getElementById('riwayatLevelSel') ? document.getElementById('riwayatLevelSel').value : '';
   var sel   = document.getElementById('riwayatHalaqahSel');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
