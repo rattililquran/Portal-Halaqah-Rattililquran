@@ -649,6 +649,79 @@ tr:hover td{background:#f8fafc}
 .hq-selector-meta{font-size:12px;color:var(--text-3)}
 
 
+/* ── PERSIAPAN MENGAJAR CHECKLIST ── */
+.persiapan-wrap{
+  background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
+  border:1.5px solid #86efac;border-radius:var(--r);
+  padding:16px 18px;margin-bottom:16px;
+}
+.persiapan-title{
+  font-size:12px;font-weight:800;color:#166534;
+  text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:4px;display:flex;align-items:center;gap:6px;
+}
+.persiapan-sub{
+  font-size:12px;color:#15803d;margin-bottom:14px;font-style:italic;line-height:1.5;
+}
+.persiapan-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 12px;border-radius:10px;margin-bottom:6px;
+  border:1.5px solid transparent;cursor:pointer;
+  transition:all .2s;background:rgba(255,255,255,.6);
+  user-select:none;
+}
+.persiapan-item:last-child{margin-bottom:0}
+.persiapan-item:hover{background:rgba(255,255,255,.9);border-color:#86efac}
+.persiapan-item.checked{
+  background:rgba(255,255,255,.9);
+  border-color:#22c55e;
+}
+.persiapan-cb{
+  width:22px;height:22px;border-radius:6px;
+  border:2px solid #86efac;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;transition:all .2s;
+  font-size:13px;
+}
+.persiapan-item.checked .persiapan-cb{
+  background:var(--green);border-color:var(--green);
+}
+.persiapan-item-text{flex:1}
+.persiapan-item-label{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4}
+.persiapan-item.checked .persiapan-item-label{color:#166534}
+.persiapan-item-desc{font-size:11.5px;color:var(--text-3);margin-top:2px;line-height:1.4}
+.persiapan-item.checked .persiapan-item-desc{color:#15803d}
+.persiapan-link{
+  color:var(--blue);text-decoration:underline;cursor:pointer;
+  font-weight:700;font-size:12px;
+}
+.persiapan-footer{
+  margin-top:12px;padding-top:12px;border-top:1px solid #bbf7d0;
+  font-size:12px;color:#166534;text-align:center;font-style:italic;
+  display:none;
+}
+.persiapan-footer.show{display:block}
+.persiapan-progress{
+  height:4px;background:#bbf7d0;border-radius:100px;margin-top:12px;overflow:hidden;
+}
+.persiapan-progress-fill{
+  height:4px;background:var(--green);border-radius:100px;
+  transition:width .35s cubic-bezier(.34,1.4,.64,1);
+}
+@media(prefers-color-scheme:dark){
+  .persiapan-wrap{background:linear-gradient(135deg,#0a2e1f,#052e16)!important;border-color:#166534!important}
+  .persiapan-title{color:#34d399!important}
+  .persiapan-sub{color:#6ee7b7!important}
+  .persiapan-item{background:rgba(0,0,0,.3)!important}
+  .persiapan-item:hover{background:rgba(0,0,0,.5)!important;border-color:#166534!important}
+  .persiapan-item.checked{background:rgba(22,101,52,.2)!important;border-color:#22c55e!important}
+  .persiapan-cb{background:#111!important;border-color:#166534!important}
+  .persiapan-item-label{color:#f0f0f0!important}
+  .persiapan-item.checked .persiapan-item-label{color:#34d399!important}
+  .persiapan-footer{color:#34d399!important;border-top-color:#166534!important}
+  .persiapan-progress{background:#0a2e1f!important}
+}
+
 /* ── TEMPLATE KOREKSI ACCORDION ── */
 .kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
   border:1px solid var(--border)}
@@ -931,6 +1004,7 @@ tr:hover td{background:#f8fafc}
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
+      <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">⬅ Keluar</button>
@@ -1062,6 +1136,56 @@ tr:hover td{background:#f8fafc}
               <input type="number" class="fc" id="kbmPertemuan" min="1" placeholder="Auto" style="max-width:120px">
               <div style="font-size:11px;color:var(--text-3);margin-top:4px">Kosongkan untuk auto-hitung</div>
             </div>
+
+            <!-- ── PERSIAPAN SEBELUM MENGAJAR ── -->
+            <div class="persiapan-wrap" id="persiapanWrap">
+              <div class="persiapan-title">☑ Persiapan Sebelum Mengajar</div>
+              <div class="persiapan-sub">Sebelum kita berjuang menjadi manusia terbaik,<br>sudahkan kita melakukan ikhtiar ini semua?</div>
+
+              <div class="persiapan-item" id="pItem0" onclick="togglePersiapan(0)">
+                <div class="persiapan-cb" id="pCb0"></div>
+                <div class="persiapan-item-text">
+                  <div class="persiapan-item-label">🤲 Doa</div>
+                  <div class="persiapan-item-desc">Awali dengan doa sebelum memulai mengajar</div>
+                </div>
+              </div>
+
+              <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
+                <div class="persiapan-cb" id="pCb1"></div>
+                <div class="persiapan-item-text">
+                  <div class="persiapan-item-label">💚 Memperbaiki Niat</div>
+                  <div class="persiapan-item-desc">Luruskan niat — mengajar karena Allah semata</div>
+                </div>
+              </div>
+
+              <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
+                <div class="persiapan-cb" id="pCb2"></div>
+                <div class="persiapan-item-text">
+                  <div class="persiapan-item-label">📖 Membaca Silabus</div>
+                  <div class="persiapan-item-desc">
+                    Tinjau silabus & berkas pengajaran sebelum kelas dimulai —
+                    <span class="persiapan-link" onclick="event.stopPropagation();bukaTabBerkas()">📂 Lihat Berkas Pengajar</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="persiapan-item" id="pItem3" onclick="togglePersiapan(3)">
+                <div class="persiapan-cb" id="pCb3"></div>
+                <div class="persiapan-item-text">
+                  <div class="persiapan-item-label">💬 Menyiapkan 1 Nasihat</div>
+                  <div class="persiapan-item-desc">Siapkan satu nasihat bermakna untuk disampaikan kepada murid hari ini</div>
+                </div>
+              </div>
+
+              <div class="persiapan-progress">
+                <div class="persiapan-progress-fill" id="persiapanBar" style="width:0%"></div>
+              </div>
+              <div class="persiapan-footer" id="persiapanFooter">
+                Semoga Allah mudahkan ikhtiar hari ini. Baarakallahu fiikum 🌿
+              </div>
+            </div>
+            <!-- ── END PERSIAPAN ── -->
+
             <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()">
               🌟 Mulai Perjuangan Baru
             </button>
@@ -1272,6 +1396,75 @@ tr:hover td{background:#f8fafc}
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BERKAS PENGAJAR -->
+<div class="overlay" id="berkasOverlay" onclick="if(event.target===this)tutupTabBerkas()">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title">📂 Berkas Pengajar</div>
+      <button class="modal-x" onclick="tutupTabBerkas()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">
+        Kumpulan berkas penting pengajar. Klik berkas untuk membuka.
+      </div>
+
+      <!-- Silabus -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📘 Silabus & Kurikulum</div>
+        <a href="https://drive.google.com" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;gap:12px;padding:13px 14px;
+          background:var(--blue-l);border:1.5px solid rgba(20,88,168,.2);
+          border-radius:var(--r);text-decoration:none;transition:all .15s;margin-bottom:6px"
+          onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='rgba(20,88,168,.2)'">
+          <span style="font-size:24px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:var(--blue)">Silabus Rattililqur'an</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">Google Drive · Klik untuk membuka</div>
+          </div>
+          <span style="font-size:13px;color:var(--blue)">↗</span>
+        </a>
+      </div>
+
+      <!-- SOP -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 SOP & Panduan</div>
+        <a href="https://drive.google.com" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;gap:12px;padding:13px 14px;
+          background:var(--green-l);border:1.5px solid rgba(29,158,117,.2);
+          border-radius:var(--r);text-decoration:none;transition:all .15s;margin-bottom:6px"
+          onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='rgba(29,158,117,.2)'">
+          <span style="font-size:24px">📋</span>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#0a6b4e">SOP Pengajaran</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">Google Drive · Klik untuk membuka</div>
+          </div>
+          <span style="font-size:13px;color:var(--green)">↗</span>
+        </a>
+        <a href="https://drive.google.com" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;gap:12px;padding:13px 14px;
+          background:var(--amber-l);border:1.5px solid rgba(224,170,42,.2);
+          border-radius:var(--r);text-decoration:none;transition:all .15s"
+          onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='rgba(224,170,42,.2)'">
+          <span style="font-size:24px">📝</span>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#8a6200">Panduan Penilaian</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">Google Drive · Klik untuk membuka</div>
+          </div>
+          <span style="font-size:13px;color:var(--amber)">↗</span>
+        </a>
+      </div>
+
+      <div style="margin-top:14px;padding:10px 12px;background:var(--bg);border-radius:var(--r-sm);
+        font-size:11.5px;color:var(--text-3);line-height:1.6">
+        💡 Hubungi admin untuk menambah atau mengupdate berkas pengajar.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="tutupTabBerkas()">Tutup</button>
     </div>
   </div>
 </div>
@@ -1689,7 +1882,7 @@ function goPage(name) {
   document.querySelector('[data-p="' + name + '"]') && document.querySelector('[data-p="' + name + '"]').classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
-  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); }
+  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); resetPersiapan(); }
   if (name === 'murid')      populateSel('muridHalaqahSel');
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
@@ -3355,6 +3548,57 @@ function filterMuridSearch() {
 function autoResizeKor(ta) {
   ta.style.height = 'auto';
   ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
+}
+
+// ══ PERSIAPAN SEBELUM MENGAJAR ═══════════════
+var _persiapanState = [false, false, false, false];
+
+function togglePersiapan(idx) {
+  _persiapanState[idx] = !_persiapanState[idx];
+  var item = document.getElementById('pItem' + idx);
+  var cb   = document.getElementById('pCb' + idx);
+  if (!item || !cb) return;
+  if (_persiapanState[idx]) {
+    item.classList.add('checked');
+    cb.textContent = '✓';
+  } else {
+    item.classList.remove('checked');
+    cb.textContent = '';
+  }
+  // Update progress bar
+  var done = _persiapanState.filter(Boolean).length;
+  var pct  = Math.round((done / _persiapanState.length) * 100);
+  var bar  = document.getElementById('persiapanBar');
+  var foot = document.getElementById('persiapanFooter');
+  if (bar)  bar.style.width = pct + '%';
+  if (foot) {
+    if (pct === 100) foot.classList.add('show');
+    else             foot.classList.remove('show');
+  }
+}
+
+function resetPersiapan() {
+  _persiapanState = [false, false, false, false];
+  for (var i = 0; i < 4; i++) {
+    var item = document.getElementById('pItem' + i);
+    var cb   = document.getElementById('pCb' + i);
+    if (item) item.classList.remove('checked');
+    if (cb)   cb.textContent = '';
+  }
+  var bar  = document.getElementById('persiapanBar');
+  var foot = document.getElementById('persiapanFooter');
+  if (bar)  bar.style.width = '0%';
+  if (foot) foot.classList.remove('show');
+}
+
+// ── BERKAS PENGAJAR MODAL ────────────────────
+function bukaTabBerkas() {
+  var overlay = document.getElementById('berkasOverlay');
+  if (overlay) overlay.classList.add('open');
+}
+function tutupTabBerkas() {
+  var overlay = document.getElementById('berkasOverlay');
+  if (overlay) overlay.classList.remove('open');
 }
 
 if ('serviceWorker' in navigator)
