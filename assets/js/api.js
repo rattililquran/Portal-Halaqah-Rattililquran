@@ -1,9 +1,9 @@
 // ============================================================
-//  assets/js/api.js — v3.1
+//  assets/js/api.js — v3.3
 //  Cache sessionStorage + load_more support
 // ============================================================
 
-var BASE_URL = 'https://script.google.com/macros/s/AKfycbyfA2WGeYRgf29EtadBXMC4LVBZ43Nwo7tYHFRkonBWl-yNbneL8HYbl7phMgeSiN0GxQ/exec';
+var BASE_URL = 'https://script.google.com/macros/s/AKfycbzW9iOqD5U9TbGxeoVDfYA21Tq5CGsB2i5mrDRdfDYvCrYymlDtXg3RlMavf-FjmXnc9Q/exec';
 
 // ─── CACHE ───────────────────────────────────────
 // TTL per action (detik). 0 = tidak di-cache
