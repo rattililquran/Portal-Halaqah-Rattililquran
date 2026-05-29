@@ -339,7 +339,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   background:rgba(15,23,42,.7);backdrop-filter:blur(8px);
   align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .raport-preview-overlay.open{display:flex;animation:fadeIn .25s ease}
-.raport-preview-box{background:#fff;border-radius:16px;width:100%;max-width:560px;
+.raport-preview-box{background:#fff;border-radius:16px;width:100%;max-width:840px;
   max-height:90dvh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);
   border:1px solid rgba(255,255,255,0.5)}
 .raport-preview-head{display:flex;align-items:center;justify-content:space-between;
@@ -348,62 +348,70 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .raport-preview-title{font-size:15px;font-weight:800;color:var(--text)}
 .raport-preview-actions{display:flex;gap:8px}
 
+#raportPdfContent {
+  padding: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #f1f5f9;
+  display: flex;
+  justify-content: center;
+}
+
 /* ── RAPORT PDF RENDER ── */
-.raport-pdf{padding:40px 36px;font-family:'Plus Jakarta Sans',sans-serif;
-  background:#fff;color:#1a1a2e;font-size:13px;line-height:1.6}
-.raport-pdf .rp-header{text-align:center;margin-bottom:28px;padding-bottom:20px;
-  border-bottom:3px solid #065f46}
-.raport-pdf .rp-logo{max-height:56px;margin-bottom:10px}
-.raport-pdf .rp-lembaga{font-size:22px;font-weight:800;color:#065f46;margin-bottom:2px;
-  letter-spacing:0.02em}
-.raport-pdf .rp-subtitle{font-size:14px;font-weight:700;color:#475569;margin-bottom:4px}
-.raport-pdf .rp-periode-label{font-size:12px;color:#94a3b8;font-weight:600}
-.raport-pdf .rp-identity{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;
-  margin-bottom:24px;padding:16px 20px;background:#f0fdf4;border-radius:12px;
-  border:1px solid rgba(16,185,129,0.15)}
-.raport-pdf .rp-id-item{}
-.raport-pdf .rp-id-label{font-size:10.5px;font-weight:800;color:#94a3b8;
-  text-transform:uppercase;letter-spacing:0.08em}
-.raport-pdf .rp-id-value{font-size:14px;font-weight:700;color:#1a1a2e}
-.raport-pdf .rp-section-title{font-size:14px;font-weight:800;color:#065f46;
-  margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #d1fae5;
-  display:flex;align-items:center;gap:8px}
+.raport-pdf{width:794px;padding:48px 54px;font-family:'Plus Jakarta Sans',sans-serif;
+  background:#fff;color:#1e293b;font-size:13px;line-height:1.6;box-sizing:border-box;
+  flex-shrink:0;box-shadow:0 4px 15px rgba(0,0,0,0.05);margin:10px 0}
+.raport-pdf .rp-header{display:flex;align-items:center;gap:24px;border-bottom:4px double #065f46;
+  padding-bottom:16px;margin-bottom:24px}
+.raport-pdf .rp-header.no-logo{justify-content:center;text-align:center}
+.raport-pdf .rp-header.has-logo{justify-content:flex-start;text-align:left}
+.raport-pdf .rp-header-logo-container{width:80px;height:80px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.raport-pdf .rp-logo{max-height:80px;max-width:80px;object-fit:contain}
+.raport-pdf .rp-header-text{flex-grow:1}
+.raport-pdf .rp-lembaga{font-size:24px;font-weight:800;color:#065f46;margin-bottom:2px;
+  letter-spacing:0.01em;text-transform:uppercase}
+.raport-pdf .rp-sublembaga{font-size:13px;font-weight:700;color:#334155;margin-bottom:3px}
+.raport-pdf .rp-kontak{font-size:11px;color:#64748b;font-weight:500;letter-spacing:0.01em}
+
+.raport-pdf .rp-title-section{text-align:center;margin-bottom:24px}
+.raport-pdf .rp-title{font-size:16px;font-weight:800;color:#0f172a;letter-spacing:0.04em;
+  text-transform:uppercase;margin-bottom:4px}
+.raport-pdf .rp-periode-label{font-size:12px;color:#475569;font-weight:700}
+
+.raport-pdf .rp-identity-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.raport-pdf .rp-identity-table td{padding:4px 0;border:none;font-size:13px;vertical-align:middle}
+
+.raport-pdf .rp-section-title{font-size:13px;font-weight:800;color:#065f46;
+  margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid #d1fae5;
+  text-transform:uppercase;letter-spacing:0.05em}
+
 .raport-pdf .rp-table{width:100%;border-collapse:collapse;margin-bottom:24px;
-  border-radius:12px;overflow:hidden;border:1px solid #e2e8f0}
-.raport-pdf .rp-table th{background:#065f46;color:#fff;padding:10px 14px;
-  text-align:left;font-size:12px;font-weight:800;letter-spacing:0.04em}
-.raport-pdf .rp-table td{padding:10px 14px;border-bottom:1px solid #f1f5f9;
+  border:1px solid #cbd5e1}
+.raport-pdf .rp-table th{background:#065f46;color:#fff;padding:8px 12px;
+  text-align:left;font-size:12px;font-weight:800;letter-spacing:0.03em;
+  border:1px solid #065f46;text-transform:uppercase}
+.raport-pdf .rp-table td{padding:8px 12px;border:1px solid #cbd5e1;
   font-size:13px;font-weight:500}
-.raport-pdf .rp-table tr:last-child td{border-bottom:none}
 .raport-pdf .rp-table tr:nth-child(even){background:#f8fafc}
-.raport-pdf .rp-table .rp-nilai-cell{font-weight:800;text-align:center;font-size:15px}
-.raport-pdf .rp-table .rp-bobot-cell{text-align:center;color:#64748b;font-weight:700}
-.raport-pdf .rp-summary{display:flex;align-items:center;justify-content:center;
-  gap:20px;margin:24px 0;padding:20px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
-  border-radius:16px;border:1.5px solid rgba(16,185,129,0.2)}
-.raport-pdf .rp-final-score{text-align:center}
-.raport-pdf .rp-final-number{font-size:48px;font-weight:800;color:#065f46;line-height:1}
-.raport-pdf .rp-final-label{font-size:11px;color:#94a3b8;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.08em;margin-top:4px}
-.raport-pdf .rp-predikat-badge{padding:8px 24px;border-radius:100px;
-  font-size:16px;font-weight:800;color:#fff;
-  background:linear-gradient(135deg,#10b981,#065f46);
-  box-shadow:0 4px 14px rgba(16,185,129,0.3)}
-.raport-pdf .rp-catatan{background:#fffbeb;border:1px solid rgba(245,158,11,0.2);
-  border-radius:12px;padding:16px 18px;margin-bottom:24px;
-  font-size:13px;color:#78350f;line-height:1.7;font-weight:500}
-.raport-pdf .rp-catatan-title{font-size:12px;font-weight:800;color:#b45309;
-  margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em}
-.raport-pdf .rp-pesan{text-align:center;font-style:italic;color:#065f46;
-  font-size:14px;font-weight:600;margin:20px 0;padding:16px;
-  background:#f0fdf4;border-radius:12px;border:1px solid rgba(16,185,129,0.1);
-  line-height:1.7}
-.raport-pdf .rp-footer{text-align:center;margin-top:32px;padding-top:20px;
-  border-top:2px solid #e2e8f0}
-.raport-pdf .rp-ttd-nama{font-size:14px;font-weight:800;color:#1a1a2e;margin-top:40px}
-.raport-pdf .rp-ttd-jabatan{font-size:12px;color:#64748b;font-weight:600}
-.raport-pdf .rp-watermark{text-align:center;margin-top:16px;
-  font-size:10px;color:#cbd5e1;font-weight:600}
+
+.raport-pdf .rp-catatan{border-left:4px solid #10b981;background-color:#f0fdf4;
+  padding:12px 16px;border-radius:4px;margin-top:15px;margin-bottom:15px;
+  font-size:13px;color:#1e293b;line-height:1.6}
+.raport-pdf .rp-catatan-title{font-size:11px;font-weight:800;color:#065f46;
+  text-transform:uppercase;margin-bottom:4px;letter-spacing:0.05em}
+.raport-pdf .rp-pesan{text-align:center;font-style:italic;color:#475569;
+  font-size:12px;margin:15px 0;line-height:1.5}
+
+.raport-pdf .rp-signature-container{display:flex;justify-content:flex-end;margin-top:35px}
+.raport-pdf .rp-signature-block{width:250px;text-align:center;font-size:13px;color:#1e293b}
+.raport-pdf .rp-sig-date{margin-bottom:4px}
+.raport-pdf .rp-sig-title{font-weight:600}
+.raport-pdf .rp-sig-role{font-weight:600;margin-bottom:60px}
+.raport-pdf .rp-sig-name{font-weight:700;text-decoration:underline}
+
+.raport-pdf .rp-watermark{text-align:center;margin-top:24px;
+  font-size:9px;color:#94a3b8;font-weight:500;letter-spacing:0.02em}
 
 /* ── QUICK LINKS ── */
 .links-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
@@ -919,8 +927,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="../assets/js/jspdf.umd.min.js"></script>
+<script src="../assets/js/html2canvas.min.js"></script>
 <script src="../assets/js/api.js?v=2.8"></script>
 <script>
 // ══════════════════════════════════════════
@@ -1555,58 +1563,101 @@ function previewRaportPDF(idx) {
   _currentPreviewIdx = idx;
   var cfg = _raportConfig || {};
   var nilaiNum = Number(rp.nilai_akhir) || 0;
-  var predikatText = nilaiNum>=90?'Mumtaz':nilaiNum>=75?'Jayyid Jiddan':nilaiNum>=60?'Jayyid':'Maqbul';
+  var predikatText = nilaiNum >= 90 ? 'Mumtaz' : nilaiNum >= 75 ? 'Jayyid Jiddan' : nilaiNum >= 60 ? 'Jayyid' : 'Maqbul';
 
-  var logoHTML = cfg.logo_url
-    ? '<img class="rp-logo" src="'+esc(cfg.logo_url)+'" alt="Logo" crossorigin="anonymous">'
-    : '';
+  var logoHTML = '';
+  if (cfg.logo_url) {
+    logoHTML = '<div class="rp-header-logo-container">'
+      + '<img class="rp-logo" src="'+esc(cfg.logo_url)+'" alt="Logo" crossorigin="anonymous">'
+      + '</div>';
+  }
+
+  var headerClass = cfg.logo_url ? 'has-logo' : 'no-logo';
+  var subNamaLembaga = cfg.sub_nama_lembaga || "Lembaga Tahsin & Tahfidz Al-Qur'an Online";
+  var kontakLembaga = cfg.kontak_lembaga || "Website: www.rattililquran.com | Email: info@rattililquran.com";
+
+  var headerHTML = '<div class="rp-header ' + headerClass + '">'
+    + logoHTML
+    + '<div class="rp-header-text">'
+    + '<div class="rp-lembaga">'+esc(cfg.nama_lembaga || "Rattililqur'an")+'</div>'
+    + '<div class="rp-sublembaga">'+esc(subNamaLembaga)+'</div>'
+    + '<div class="rp-kontak">'+esc(kontakLembaga)+'</div>'
+    + '</div>'
+    + '</div>';
+
+  var titleHTML = '<div class="rp-title-section">'
+    + '<div class="rp-title">LAPORAN PERKEMBANGAN BELAJAR (RAPORT) TAHASIN</div>'
+    + '<div class="rp-periode-label">Periode: '+esc(rp.nama_periode||'')+'</div>'
+    + '</div>';
+
+  var identityHTML = '<table class="rp-identity-table">'
+    + '<tr>'
+    + '<td style="width: 16%; font-weight: 700; color: #475569;">Nama Lengkap</td>'
+    + '<td style="width: 34%; font-weight: 600;">: ' + esc(rp.nama_murid||'-') + '</td>'
+    + '<td style="width: 14%; font-weight: 700; color: #475569;">Halaqah</td>'
+    + '<td style="width: 36%; font-weight: 600;">: ' + esc(rp.halaqah_nama||'-') + '</td>'
+    + '</tr>'
+    + '<tr>'
+    + '<td style="font-weight: 700; color: #475569;">Materi/Level</td>'
+    + '<td style="font-weight: 600;">: ' + esc(rp.level||'-') + '</td>'
+    + '<td style="font-weight: 700; color: #475569;">Guru Pengajar</td>'
+    + '<td style="font-weight: 600;">: ' + esc(rp.guru_nama||'-') + '</td>'
+    + '</tr>'
+    + '</table>';
 
   var komponenHTML = (rp.komponen||[]).map(function(k, i) {
     return '<tr>'
-      + '<td style="font-weight:700">'+(i+1)+'</td>'
-      + '<td style="font-weight:600">'+esc(k.nama)+'</td>'
-      + '<td class="rp-bobot-cell">'+k.bobot+'%</td>'
-      + '<td class="rp-nilai-cell">'+k.nilai+'</td>'
+      + '<td style="text-align:center; font-weight:700; width:8%">'+(i+1)+'</td>'
+      + '<td style="font-weight:600; width:62%">'+esc(k.nama)+'</td>'
+      + '<td style="text-align:center; font-weight:700; color:#475569; width:15%">'+k.bobot+'%</td>'
+      + '<td style="text-align:center; font-weight:800; color:#0f172a; width:15%">'+k.nilai+'</td>'
       + '</tr>';
   }).join('');
 
   var catatanHTML = cfg.catatan_halaqah
-    ? '<div class="rp-catatan"><div class="rp-catatan-title">💬 Catatan Guru</div>'+esc(cfg.catatan_halaqah)+'</div>'
+    ? '<div class="rp-catatan"><div class="rp-catatan-title">Catatan Guru (Wali Halaqah)</div>'+esc(cfg.catatan_halaqah)+'</div>'
     : '';
 
   var pesanHTML = cfg.pesan_penutup
     ? '<div class="rp-pesan">"'+esc(cfg.pesan_penutup)+'"</div>'
     : '';
 
+  var ttdKota = cfg.kota_terbit || 'Jakarta';
+  var ttdTanggal = ttdKota + ', ' + (new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}));
+
+  var signatureHTML = '<div class="rp-signature-container">'
+    + '<div class="rp-signature-block">'
+    + '<div class="rp-sig-date">' + esc(ttdTanggal) + '</div>'
+    + '<div class="rp-sig-title">Mengetahui,</div>'
+    + '<div class="rp-sig-role">' + esc(cfg.ttd_jabatan || 'Koordinator Akademik') + '</div>'
+    + '<div class="rp-sig-space"></div>'
+    + '<div class="rp-sig-name">' + esc(cfg.ttd_nama || 'Tim Akademik') + '</div>'
+    + '</div>'
+    + '</div>';
+
   var html = '<div class="raport-pdf" id="raportPdfRender">'
-    + '<div class="rp-header">'
-    + logoHTML
-    + '<div class="rp-lembaga">'+esc(cfg.nama_lembaga || "Rattililqur'an")+'</div>'
-    + '<div class="rp-subtitle">Raport Perkembangan Murid</div>'
-    + '<div class="rp-periode-label">'+esc(rp.nama_periode||'')+'</div>'
-    + '</div>'
-    + '<div class="rp-identity">'
-    + '<div class="rp-id-item"><div class="rp-id-label">Nama Lengkap</div><div class="rp-id-value">'+esc(rp.nama_murid||'-')+'</div></div>'
-    + '<div class="rp-id-item"><div class="rp-id-label">Halaqah</div><div class="rp-id-value">'+esc(rp.halaqah_nama||'-')+'</div></div>'
-    + '<div class="rp-id-item"><div class="rp-id-label">Level</div><div class="rp-id-value">'+esc(rp.level||'-')+'</div></div>'
-    + '<div class="rp-id-item"><div class="rp-id-label">Guru</div><div class="rp-id-value">'+esc(rp.guru_nama||'-')+'</div></div>'
-    + '</div>'
-    + '<div class="rp-section-title">📊 Detail Nilai</div>'
+    + headerHTML
+    + titleHTML
+    + identityHTML
+    + '<div class="rp-section-title">Detail Komponen Nilai</div>'
     + '<table class="rp-table">'
-    + '<thead><tr><th>No</th><th>Komponen</th><th style="text-align:center">Bobot</th><th style="text-align:center">Nilai</th></tr></thead>'
+    + '<thead><tr><th style="text-align:center">No</th><th>Komponen Evaluasi</th><th style="text-align:center">Bobot</th><th style="text-align:center">Nilai</th></tr></thead>'
     + '<tbody>'+komponenHTML+'</tbody>'
+    + '<tfoot>'
+    + '<tr style="font-weight: bold; background-color: #f0fdf4;">'
+    + '<td colspan="3" style="text-align: right; border: 1px solid #cbd5e1; padding: 8px 12px; color: #065f46;">NILAI AKHIR :</td>'
+    + '<td style="text-align: center; border: 1px solid #cbd5e1; padding: 8px 12px; font-size: 15px; color: #065f46; font-weight: 800;">' + nilaiNum.toFixed(1) + '</td>'
+    + '</tr>'
+    + '<tr style="font-weight: bold; background-color: #f0fdf4;">'
+    + '<td colspan="3" style="text-align: right; border: 1px solid #cbd5e1; padding: 8px 12px; color: #065f46;">PREDIKAT :</td>'
+    + '<td style="text-align: center; border: 1px solid #cbd5e1; padding: 8px 12px; font-size: 13px; color: #065f46; font-weight: 800;">' + predikatText.toUpperCase() + '</td>'
+    + '</tr>'
+    + '</tfoot>'
     + '</table>'
-    + '<div class="rp-summary">'
-    + '<div class="rp-final-score"><div class="rp-final-number">'+nilaiNum.toFixed(1)+'</div><div class="rp-final-label">Nilai Akhir</div></div>'
-    + '<div class="rp-predikat-badge">'+predikatText+'</div>'
-    + '</div>'
     + catatanHTML
     + pesanHTML
-    + '<div class="rp-footer">'
-    + '<div class="rp-ttd-nama">'+esc(cfg.ttd_nama||'Tim Akademik')+'</div>'
-    + '<div class="rp-ttd-jabatan">'+esc(cfg.ttd_jabatan||'')+'</div>'
-    + '<div class="rp-watermark">Dicetak dari Portal Murid '+esc(cfg.nama_lembaga || "Rattililqur'an")+' — '+(new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}))+'</div>'
-    + '</div>'
+    + signatureHTML
+    + '<div class="rp-watermark">Dicetak otomatis dari Portal Murid '+esc(cfg.nama_lembaga || "Rattililqur'an")+' — '+(new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}))+'</div>'
     + '</div>';
 
   document.getElementById('raportPdfContent').innerHTML = html;

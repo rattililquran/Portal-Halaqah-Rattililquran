@@ -13,6 +13,8 @@ const STATIC_CACHE = [
   BASE + '/admin/index.html',
   BASE + '/manifest.json',
   BASE + '/assets/js/api.js',
+  BASE + '/assets/js/jspdf.umd.min.js',
+  BASE + '/assets/js/html2canvas.min.js',
   BASE + '/assets/images/logo-putih.png',
   BASE + '/assets/images/logo-abu.png',
   // Fonts lokal
