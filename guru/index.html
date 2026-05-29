@@ -1752,6 +1752,18 @@ tr:hover td{background:#f8fafc}
   <span id="refreshTxt">Baru sinkron</span>
 </div>
 <div class="toast-inline" id="toastInline"></div>
+<script>
+if ('serviceWorker' in navigator) {
+  var swVer = localStorage.getItem('hq_sw_version') || '0';
+  if (swVer !== '3.0') {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      for (let reg of regs) reg.unregister();
+      localStorage.setItem('hq_sw_version', '3.0');
+      window.location.reload();
+    });
+  }
+}
+</script>
 <script src="../assets/js/api.js?v=3.4"></script>
 <script>
 // ══════════════════════════════════════════
