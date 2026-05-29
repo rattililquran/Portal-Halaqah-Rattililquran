@@ -2203,10 +2203,12 @@ function lanjutKeJurnal() {
     if (!window._nilaiCache) window._nilaiCache = {};
     muridSesi.forEach(function(m) {
       var adabEl = document.getElementById('adab-'    + m.id_murid);
+      var kamEl  = document.getElementById('kamera-'  + m.id_murid);
       var korEl  = document.getElementById('koreksi-' + m.id_murid);
       var catEl  = document.getElementById('catatan-' + m.id_murid);
       window._nilaiCache[m.id_murid] = {
         adab    : adabEl ? adabEl.value : '',
+        kamera  : kamEl  ? kamEl.value  : '',
         koreksi : korEl  ? korEl.value  : '',
         catatan : catEl  ? catEl.value  : '',
       };
@@ -2236,9 +2238,11 @@ function kembaliKeStep3() {
       Object.keys(window._nilaiCache).forEach(function(id_murid) {
         var cached = window._nilaiCache[id_murid];
         var adabEl = document.getElementById('adab-'    + id_murid);
+        var kamEl  = document.getElementById('kamera-'  + id_murid);
         var korEl  = document.getElementById('koreksi-' + id_murid);
         var catEl  = document.getElementById('catatan-' + id_murid);
         if (adabEl && cached.adab)    adabEl.value = cached.adab;
+        if (kamEl  && cached.kamera)  kamEl.value  = cached.kamera;
         if (korEl  && cached.koreksi) korEl.value  = cached.koreksi;
         if (catEl  && cached.catatan) catEl.value  = cached.catatan;
       });
@@ -2268,6 +2272,7 @@ function renderNilaiMuridStep() {
     // Ambil dari DOM atau cache
     var _cache  = (window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
     const adabVal = (document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '') || _cache.adab || '';
+    const kamVal  = (document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '') || _cache.kamera || '';
     const korVal  = (document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '') || _cache.koreksi || '';
     const catVal  = (document.getElementById('catatan-'+ m.id_murid) ? document.getElementById('catatan-'+ m.id_murid).value : '') || _cache.catatan || '';
     const nilaiVal = '';  // dropdown nilai dihapus
@@ -2282,10 +2287,21 @@ function renderNilaiMuridStep() {
       '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
       '    <label>Adab</label>',
-      '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px">',
+      '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\')">',
       '      <option value="">— Pilih —</option>',
       '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
       '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>⚠️ Butuh Perhatian</option>',
+      '    </select>',
+      '  </div>',
+      '</div>',
+      '<div style="margin-bottom:8px">',
+      '  <div class="fg" style="margin:0">',
+      '    <label>Kamera Murid</label>',
+      '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px">',
+      '      <option value="">— Pilih —</option>',
+      '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
+      '      <option value="kamera sering tertutup"' + (kamVal==='kamera sering tertutup' ? ' selected' : '') + '>📷 kamera sering tertutup</option>',
+      '      <option value="kamera selalu tertutup"' + (kamVal==='kamera selalu tertutup' ? ' selected' : '') + '>📷 kamera selalu tertutup</option>',
       '    </select>',
       '  </div>',
       '</div>',
@@ -2392,8 +2408,9 @@ async function doSelesaiKBM() {
     for (const m of muridSesi) {
       const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
       const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
+      const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
       const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-      if (nilai || adab || koreksi) {
+      if (nilai || adab || kamera || koreksi) {
         const catatan = document.getElementById('catatan-'+m.id_murid);
         await window.HQ.GuruAPI.simpanNilaiMurid({
           id_kbm       : sesiAktif.id_kbm,
@@ -2402,6 +2419,7 @@ async function doSelesaiKBM() {
           nama_murid   : m.nama_murid,
           nilai        : nilai,
           adab         : adab,
+          kamera_murid : kamera,
           koreksi_tahsin: koreksi,
           catatan_murid: catatan ? catatan.value.trim() : '',
         });
@@ -2638,6 +2656,7 @@ async function lihatDetail(id_kbm, tgl) {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
           ${n.nilai ? nilaiLabel(n.nilai) : ''}
           ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
+          ${n.kamera_murid ? `<span class="badge b-purple">Kamera: ${esc(n.kamera_murid)}</span>` : ''}
         </div>
         ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
       </div>`).join('');
@@ -3067,8 +3086,9 @@ function showPreview() {
   const nilaiItems = muridSesi.map(m => {
     const nilai  = document.getElementById('nilai-'  + m.id_murid) ? document.getElementById('nilai-'  + m.id_murid).value : '';
     const adab   = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
+    const kamera = document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '';
     const status = presensiMapPv[m.id_murid] || 'H';
-    return { nama: m.nama_murid, nilai, adab, status, hadir: LABEL_PV[status]||status };
+    return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status };
   });
 
   // Cek adab kosong untuk murid hadir (bukan Alpa/Izin)
@@ -3089,6 +3109,7 @@ function showPreview() {
       + '<div style="display:flex;gap:6px;align-items:center">'
       + (m.status !== 'H' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
       + (!skipStatus && m.adab ? '<span class="badge b-green" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
+      + (!skipStatus && m.kamera ? '<span class="badge b-blue" style="font-size:11px">' + esc(m.kamera) + '</span>' : '')
       + (!skipStatus && !m.adab ? '<span style="color:var(--text-3);font-size:12px">adab kosong</span>' : '')
       + '</div></div>';
   }).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';

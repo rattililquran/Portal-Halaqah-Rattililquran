@@ -166,7 +166,7 @@ function getKBMByHalaqah(params) {
 function getNilaiByKBM(params) {
   if (!params.id_kbm) return { status:'error', message:'id_kbm wajib diisi' };
   const FIELDS = ['id_nilai','id_kbm','id_murid','nama_murid',
-    'jenis_sesi','status_hadir','nilai','adab','koreksi_tahsin','catatan_murid'];
+    'jenis_sesi','status_hadir','nilai','adab','kamera_murid','koreksi_tahsin','catatan_murid'];
   const rows = sheetToObjects(getSheet(CONFIG.SHEET.NILAI_KBM))
     .filter(n => n.id_kbm === params.id_kbm)
     .map(n => pickFields(n, FIELDS));
@@ -259,6 +259,7 @@ function simpanPresensi(data, user) {
       status_hadir  : item.status_hadir || 'H',
       nilai         : '',
       adab          : '',
+      kamera_murid  : '',
       koreksi_tahsin: '',
       catatan_murid : '',
       timestamp     : nowISO(),
@@ -370,6 +371,7 @@ function simpanNilaiMurid(data, user) {
     adab          : data.adab           || '',
     koreksi_tahsin: data.koreksi_tahsin || '',
     catatan_murid : data.catatan_murid  || '',
+    kamera_murid  : data.kamera_murid   || '',
     timestamp     : nowISO(),
   };
 
@@ -393,6 +395,7 @@ function simpanNilaiMurid(data, user) {
     id_murid      : data.id_murid,
     nilai         : data.nilai || '',
     adab          : data.adab || '',
+    kamera_murid  : data.kamera_murid || '',
     koreksi_tahsin: data.koreksi_tahsin || '',
     catatan_murid : data.catatan_murid || '',
   });
@@ -463,7 +466,7 @@ function editPresensi(data, user) {
         id_murid      : item.id_murid,
         nama_murid    : item.nama_murid || '',
         status_hadir  : item.status_hadir || 'H',
-        nilai: '', adab: '', koreksi_tahsin: '', catatan_murid: '',
+        nilai: '', adab: '', kamera_murid: '', koreksi_tahsin: '', catatan_murid: '',
         timestamp     : nowISO(),
       });
     }
