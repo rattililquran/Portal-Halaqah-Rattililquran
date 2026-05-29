@@ -1514,16 +1514,30 @@ function renderSPP(data) {
   // Tampilkan card
   card.style.display = 'block';
 
+  // Cek apakah murid sudah membayar SPP Pribadi
+  var hasPaid = data.has_paid || (data.lunas && data.lunas.length > 0);
+
   // Bulan pills
-  var periode = data.periode || (data.lunas||[]).concat(data.belum_lunas||[]);
-  grid.innerHTML = periode.map(function(b) {
-    var lunas = (data.lunas||[]).includes(b);
-    return '<span class="spp-bulan ' + (lunas?'spp-lunas':'spp-belum') + '">'
-      + (lunas ? '✅ ' : '❌ ') + b + '</span>';
-  }).join('');
+  if (!hasPaid) {
+    // Hilangkan nama-nama bulannya jika belum bayar sama sekali
+    grid.innerHTML = '';
+  } else {
+    // Munculkan nama bulan jika murid sudah bayar
+    var periode = data.periode || [];
+    grid.innerHTML = periode.map(function(b) {
+      var lunas = (data.lunas||[]).includes(b);
+      return '<span class="spp-bulan ' + (lunas?'spp-lunas':'spp-belum') + '">'
+        + (lunas ? '✅ ' : '❌ ') + b + '</span>';
+    }).join('');
+  }
+
+  // Jumlah bulan belum lunas
+  var belum = (data.belum_lunas||[]).length;
+  if (!hasPaid) {
+    belum = 5; // Paksa 5 bulan jika belum bayar sama sekali
+  }
 
   // Badge
-  var belum = (data.belum_lunas||[]).length;
   if (badge) {
     badge.className = 'badge ' + (belum===0?'b-green':'b-red');
     badge.textContent = belum===0 ? '✅ Lunas' : '⚠️ ' + belum + ' bulan';
@@ -1531,7 +1545,11 @@ function renderSPP(data) {
 
   // Pesan
   if (msg) {
-    msg.textContent = data.pesan || '';
+    if (!hasPaid) {
+      msg.textContent = "Ada 5 bulan amanah yang belum ditunaikan, semoga Allah mudahkan.";
+    } else {
+      msg.textContent = data.pesan || '';
+    }
     msg.className   = 'spp-msg ' + (belum===0?'ok':'warn');
   }
 }
