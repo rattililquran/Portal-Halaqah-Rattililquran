@@ -1145,21 +1145,13 @@ tr:hover td{background:#f8fafc}
               <div class="persiapan-item" id="pItem0" onclick="togglePersiapan(0)">
                 <div class="persiapan-cb" id="pCb0"></div>
                 <div class="persiapan-item-text">
-                  <div class="persiapan-item-label">🤲 Doa</div>
-                  <div class="persiapan-item-desc">Awali dengan doa sebelum memulai mengajar</div>
-                </div>
-              </div>
-
-              <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
-                <div class="persiapan-cb" id="pCb1"></div>
-                <div class="persiapan-item-text">
                   <div class="persiapan-item-label">💚 Memperbaiki Niat</div>
                   <div class="persiapan-item-desc">Luruskan niat — mengajar karena Allah semata</div>
                 </div>
               </div>
 
-              <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
-                <div class="persiapan-cb" id="pCb2"></div>
+              <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
+                <div class="persiapan-cb" id="pCb1"></div>
                 <div class="persiapan-item-text">
                   <div class="persiapan-item-label">📖 Membaca Silabus</div>
                   <div class="persiapan-item-desc">
@@ -1169,8 +1161,8 @@ tr:hover td{background:#f8fafc}
                 </div>
               </div>
 
-              <div class="persiapan-item" id="pItem3" onclick="togglePersiapan(3)">
-                <div class="persiapan-cb" id="pCb3"></div>
+              <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
+                <div class="persiapan-cb" id="pCb2"></div>
                 <div class="persiapan-item-text">
                   <div class="persiapan-item-label">💬 Menyiapkan 1 Nasihat</div>
                   <div class="persiapan-item-desc">Siapkan satu nasihat bermakna untuk disampaikan kepada murid hari ini</div>
@@ -2456,6 +2448,7 @@ async function doSelesaiKBM() {
       if (hqSel) hqSel.value = '';
       if (ptSel) ptSel.value = '';
       populateSel('kbmHalaqah');
+      resetPersiapan();
       // Pastikan banner tidak muncul
       const dw2 = document.getElementById('draftWarning');
       if (dw2) dw2.classList.remove('show');
@@ -2472,6 +2465,7 @@ async function konfirmasiTutup() {
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     toast(res.message || 'Sesi ditutup','ok');
     sesiAktif = null; muridSesi = [];
+    resetPersiapan();
     updateSesiBanner();
     loadDashboard();
   } catch(e) { toast(e.message,'err'); }
@@ -3627,7 +3621,7 @@ function filterMuridSearch() {
 }
 
 // ══ PERSIAPAN SEBELUM MENGAJAR ══════════════════
-var _persiapanState = [false, false, false, false];
+var _persiapanState = [false, false, false];
 
 function togglePersiapan(idx) {
   _persiapanState[idx] = !_persiapanState[idx];
@@ -3670,8 +3664,8 @@ function _updatePersiapanUI() {
 }
 
 function resetPersiapan() {
-  _persiapanState = [false, false, false, false];
-  for (var i = 0; i < 4; i++) {
+  _persiapanState = [false, false, false];
+  for (var i = 0; i < 3; i++) {
     var item = document.getElementById('pItem' + i);
     var cb   = document.getElementById('pCb' + i);
     if (item) item.classList.remove('checked');
