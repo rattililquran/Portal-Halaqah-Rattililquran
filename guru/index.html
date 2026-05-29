@@ -1084,10 +1084,10 @@ tr:hover td{background:#f8fafc}
             <div class="draft-warning-title">Sesi Sedang Berjalan</div>
             <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
             <div class="draft-warning-btns">
-              <button class="btn btn-sm" style="background:var(--green);color:#fff;font-weight:700"
+              <button class="btn btn-sm" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700"
                 onclick="lanjutSesi()">▶ Lanjutkan Sesi</button>
-              <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
-                onclick="tutupPaksaSesi()">✕ Tutup Paksa</button>
+              <button class="btn btn-outline btn-sm" id="btnDraftHapus" style="color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05)"
+                onclick="hapusSesiDraft()">🗑️ Hapus Sesi</button>
             </div>
           </div>
         </div>
@@ -1858,30 +1858,34 @@ function updateDraftWarning() {
   const nama = (h && h.nama_halaqah) || sesiAktif.id_halaqah;
   document.getElementById('draftWarningInfo').innerHTML =
     `<strong>${esc(nama)}</strong> &nbsp;·&nbsp; ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp; Pertemuan ke-${sesiAktif.pertemuan_ke} &nbsp;·&nbsp; ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''}`;
+  
+  const btnLanjut = document.getElementById('btnDraftLanjut');
+  if (btnLanjut) {
+    btnLanjut.textContent = `▶ Lanjutkan KBM Pertemuan ${sesiAktif.pertemuan_ke}`;
+  }
   banner.classList.add('show');
 }
 
-async function tutupPaksaSesi() {
+async function hapusSesiDraft() {
   if (!sesiAktif) return;
 
-  // Paksa tutup = TIDAK simpan presensi/nilai
-  // Hanya ubah status KBM jadi 'batal' agar tidak terhitung sebagai sesi selesai
-  toast('Tutup paksa akan membatalkan sesi ini. Presensi dan nilai TIDAK tersimpan.', 'warn');
-  document.getElementById('notifBtn').textContent = 'Ya, Batalkan Sesi';
-  document.getElementById('notifBtn').onclick = async () => {
-    closeNotif();
-    showLoad('Baik, sesi dibatalkan...');
-    try {
-      await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-      sesiAktif      = null;
-      muridSesi      = [];
-      doaSudahMuncul = false;
-      updateDraftWarning();
-      loadDashboard();
-      quickToast('Sesi dibatalkan','ok');
-    } catch(e) { toast(e.message,'err'); }
-    finally { hideLoad(); }
-  };
+  const confirmMsg = `Apakah Anda yakin ingin membatalkan dan menghapus sesi KBM Pertemuan ${sesiAktif.pertemuan_ke} ini? Seluruh data presensi yang sudah diisi sementara pada sesi ini akan dihapus permanen.`;
+  if (!confirm(confirmMsg)) return;
+
+  showLoad('Bismillah, membatalkan dan menghapus sesi...');
+  try {
+    await window.HQ.GuruAPI.hapusKBM(sesiAktif.id_kbm);
+    sesiAktif      = null;
+    muridSesi      = [];
+    doaSudahMuncul = false;
+    updateDraftWarning();
+    loadDashboard();
+    toast('Sesi KBM berhasil dihapus dan dibatalkan!','ok');
+  } catch(e) { 
+    toast(e.message,'err'); 
+  } finally { 
+    hideLoad(); 
+  }
 }
 
 // ══════════════════════════════════════════
