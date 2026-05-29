@@ -1310,14 +1310,14 @@ function openBulkImport() {
 }
 
 function downloadTemplate() {
-  var header = 'NIS,password,nama_lengkap,role,no_hp,email,alamat,nama_halaqah,level,nama_guru,jadwal_hari,jam_mulai';
+  var header = 'NIS,password,nama_lengkap,role,no_hp,email,alamat,nama_halaqah,level,nama_guru,jadwal_hari,jam_mulai,jam_selesai';
   var sample = [
-    ',guru123,Ustadzah Siti Aminah,guru,08120001,siti@email.com,,,,,,',
-    ',guru123,Ustadz Ahmad Fauzi,guru,08120002,ahmad@email.com,,,,,,',
-    ',murid123,Abdullah Azzam,murid,08130001,azzam@email.com,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,Senin Rabu,08:00',
-    ',murid123,Bilal Ibrahim,murid,08130002,,,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,,',
-    ',murid123,Chairul Amin,murid,08130003,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,Selasa Kamis,09:00',
-    ',murid123,Daud Salman,murid,08130004,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,,',
+    ',guru123,Ustadzah Siti Aminah,guru,08120001,siti@email.com,,,,,,,',
+    ',guru123,Ustadz Ahmad Fauzi,guru,08120002,ahmad@email.com,,,,,,,',
+    ',murid123,Abdullah Azzam,murid,08130001,azzam@email.com,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,Senin Rabu,08:00,09:30',
+    ',murid123,Bilal Ibrahim,murid,08130002,,,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,,,',
+    ',murid123,Chairul Amin,murid,08130003,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,Selasa Kamis,09:00,10:30',
+    ',murid123,Daud Salman,murid,08130004,,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,,,',
   ].join('\n');
   var blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
   var url  = URL.createObjectURL(blob);
@@ -1368,6 +1368,7 @@ function processCSV(text) {
       nama_guru    : obj['nama_guru'] || obj['guru'] || '',
       jadwal_hari  : obj['jadwal_hari'] || '',
       jam_mulai    : obj['jam_mulai'] || '',
+      jam_selesai  : obj['jam_selesai'] || '',
     };
   }).filter(function(u){return u.nama_lengkap;});
 
@@ -1455,13 +1456,14 @@ async function doImportTerintegrasi() {
           level        : u.level || 'Level 1',
           jadwal_hari  : u.jadwal_hari,
           jam_mulai    : u.jam_mulai,
+          jam_selesai  : u.jam_selesai,
         });
       }
     });
     if (halaqahUnik.length) {
       var halaqahMin = halaqahUnik.map(function(h){
         return {nama_halaqah:h.nama_halaqah,nama_guru:h.nama_guru,
-          level:h.level||'Level 1',jadwal_hari:h.jadwal_hari||'',jam_mulai:h.jam_mulai||''};
+          level:h.level||'Level 1',jadwal_hari:h.jadwal_hari||'',jam_mulai:h.jam_mulai||'',jam_selesai:h.jam_selesai||''};
       });
       var r1 = await window.HQ.AdminAPI.importTahap1({ halaqah: halaqahMin });
       rekap.halaqah_baru = (r1.dibuat || []).length;
