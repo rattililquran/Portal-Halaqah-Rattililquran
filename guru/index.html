@@ -3949,24 +3949,30 @@ async function saveSemuaNilai() {
   const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
   if (!id_periode) return toast('Pilih periode terlebih dahulu','err');
   showLoad('Bismillah, menyimpan nilai...');
-  let saved = 0;
   try {
+    const nilaiList = [];
     for (const m of nilaiMuridList) {
       for (const k of nilaiKomponenList) {
         const el = document.getElementById('nilai_'+m.id_murid+'_'+k.id_komponen);
         if (!el || el.value === '') continue;
-        await window.HQ.GuruAPI.saveNilaiManual({
+        nilaiList.push({
           id_murid     : m.id_murid,
-          id_halaqah   : id_halaqah,
-          id_periode,
           id_komponen  : k.id_komponen,
           nama_komponen: k.nama_komponen,
           nilai        : Number(el.value),
         });
-        saved++;
       }
     }
-    toast(saved + ' nilai berhasil disimpan!','ok');
+    if (nilaiList.length > 0) {
+      await window.HQ.GuruAPI.saveNilaiManualBatch({
+        id_periode,
+        id_halaqah,
+        nilai_list: nilaiList,
+      });
+      toast(nilaiList.length + ' nilai berhasil disimpan!','ok');
+    } else {
+      toast('Tidak ada nilai untuk disimpan.','warn');
+    }
   } catch(e) { 
     toast(e.message,'err'); 
   } finally { 

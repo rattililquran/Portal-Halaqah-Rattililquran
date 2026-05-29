@@ -131,6 +131,7 @@ async function apiPost(action, body) {
     'saveTemplateKoreksi': ['getTemplateKoreksi'],
     'buatPengumuman'     : ['getAllPengumuman','getPengumuman'],
     'kirimPengumumanGuru': ['getAllPengumuman','getPengumuman'],
+    'saveNilaiManualBatch': ['getNilaiManual'],
   };
   if (invalidateMap[action]) cacheInvalidate(invalidateMap[action]);
 
@@ -242,6 +243,7 @@ var GuruAPI = {
   getKomponenRaport     : function(id_p)          { return apiGet('getKomponenRaport', { id_periode:id_p }); },
   getNilaiManual        : function(id_p)          { return apiGet('getNilaiManual', { id_periode:id_p }); },
   saveNilaiManual       : function(d)             { return apiPost('saveNilaiManual', d); },
+  saveNilaiManualBatch  : function(d)             { return apiPost('saveNilaiManualBatch', d); },
 };
 
 // ─── MURID API ────────────────────────────────────
