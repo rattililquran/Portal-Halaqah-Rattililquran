@@ -227,6 +227,7 @@ var GuruAPI = {
   simpanJurnalKBM       : function(d)             { return apiPost('simpanJurnalKBM', d); },
   simpanNilaiMurid      : function(d)             { return apiPost('simpanNilaiMurid', d); },
   tutupKBM              : function(id_kbm)        { return apiPost('tutupKBM', { id_kbm:id_kbm }); },
+  hapusKBM              : function(id_kbm)        { return apiPost('hapusKBM', { id_kbm:id_kbm }); },
   addMuridByGuru        : function(d)             { return apiPost('addMuridByGuru', d); },
   kirimPengumuman       : function(d)             { return apiPost('kirimPengumumanGuru', d); },
   getMuridBelum         : function(id_h)          { return apiGet('getMuridBelumDiHalaqah', { id_halaqah:id_h }); },

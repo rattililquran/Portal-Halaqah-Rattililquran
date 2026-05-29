@@ -14,7 +14,7 @@
 :root{
   --blue:#1458A8;--blue-d:#0d3d7a;--blue-l:#e8f0fb;
   --green:#1D9E75;--green-l:#e1f5ee;
-  --amber:#e0aa2a;--amber-l:#fdf6e3;
+  --amber:#e0aa2a;--amber-l:#fdf6e3;--amber-txt:#8a6200;
   --red:#e05a2a;--red-l:#fdf0eb;
   --purple:#7c3aed;--purple-l:#ede9fe;
   --bg:#f1f5f9;--card:#fff;--text:#0f172a;
@@ -133,7 +133,7 @@ tr:hover td{background:#f8fafc}
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;white-space:nowrap}
 .b-green{background:var(--green-l);color:#0a6b4e}
 .b-blue{background:var(--blue-l);color:var(--blue)}
-.b-amber{background:var(--amber-l);color:#8a6200}
+.b-amber{background:var(--amber-l);color:var(--amber-txt)}
 .b-red{background:var(--red-l);color:#a03010}
 .b-gray{background:#f1f5f9;color:#64748b}
 .b-purple{background:var(--purple-l);color:var(--purple)}
@@ -185,8 +185,8 @@ tr:hover td{background:#f8fafc}
 .pb{padding:8px 13px;border-radius:9px;border:1.5px solid;font-family:inherit;
   font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;min-width:38px}
 .pb[data-k="H"]{border-color:var(--green);color:var(--green)}.pb[data-k="H"].on{background:var(--green);color:#fff}
-.pb[data-k="I"]{border-color:var(--amber);color:#8a6200}.pb[data-k="I"].on{background:var(--amber);color:#fff}
-.pb[data-k="S"]{border-color:var(--blue);color:var(--blue)}.pb[data-k="S"].on{background:var(--blue);color:#fff}
+.pb[data-k="T"]{border-color:var(--purple);color:var(--purple)}.pb[data-k="T"].on{background:var(--purple);color:#fff}
+.pb[data-k="I"]{border-color:var(--amber);color:var(--amber-txt)}.pb[data-k="I"].on{background:var(--amber);color:#fff}
 .pb[data-k="A"]{border-color:var(--red);color:var(--red)}.pb[data-k="A"].on{background:var(--red);color:#fff}
 
 /* ── NILAI INPUT ── */
@@ -366,8 +366,8 @@ tr:hover td{background:#f8fafc}
 .draft-warning.show{display:flex}
 .draft-warning-ico{font-size:24px;flex-shrink:0;margin-top:1px}
 .draft-warning-body{flex:1}
-.draft-warning-title{font-size:14px;font-weight:700;color:#8a6200;margin-bottom:3px}
-.draft-warning-sub{font-size:12.5px;color:#a37a00;margin-bottom:10px}
+.draft-warning-title{font-size:14px;font-weight:700;color:var(--amber-txt);margin-bottom:3px}
+.draft-warning-sub{font-size:12.5px;color:var(--text-2);margin-bottom:10px}
 .draft-warning-btns{display:flex;gap:8px;flex-wrap:wrap}
 
 /* Preview modal */
@@ -787,7 +787,7 @@ tr:hover td{background:#f8fafc}
     /* Text */
     --text:     #f0f0f0;
     --text-2:   #a0aec0;
-    --text-3:   #4a5568;
+    --text-3:   #718096;
 
     /* Border */
     --border:   #1f1f1f;
@@ -796,6 +796,7 @@ tr:hover td{background:#f8fafc}
     --green-l:  #0a2e1f;
     --blue-l:   #0a1628;
     --amber-l:  #2a1f00;
+    --amber-txt: #fbbf24;
     --red-l:    #2a0800;
     --purple-l: #1a0a3a;
     --teal-l:   #002a35;
@@ -1448,7 +1449,7 @@ tr:hover td{background:#f8fafc}
           onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='rgba(224,170,42,.2)'">
           <span style="font-size:24px">📝</span>
           <div style="flex:1">
-            <div style="font-size:13.5px;font-weight:700;color:#8a6200">Panduan Penilaian</div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--amber-txt)">Panduan Penilaian</div>
             <div style="font-size:11px;color:var(--text-3);margin-top:2px">Google Drive · Klik untuk membuka</div>
           </div>
           <span style="font-size:13px;color:var(--amber)">↗</span>
@@ -1536,7 +1537,7 @@ tr:hover td{background:#f8fafc}
     </div>
     <div class="modal-body">
       <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
-        padding:10px 14px;font-size:12.5px;color:#8a6200;margin-bottom:16px">
+        padding:10px 14px;font-size:12.5px;color:var(--amber-txt);margin-bottom:16px">
         ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
       </div>
       
@@ -1554,9 +1555,12 @@ tr:hover td{background:#f8fafc}
 
       <div id="editPresensiList" class="presensi-list"></div>
     </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
-      <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn btn-danger" onclick="konfirmasiHapusKBM()" style="background:#dc2626;color:#fff;border:none;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;font-weight:600">🗑️ Hapus Sesi</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
+        <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1609,7 +1613,7 @@ tr:hover td{background:#f8fafc}
         </div>
         <div style="flex:1;background:var(--amber-l);border-radius:var(--r-sm);padding:10px;text-align:center">
           <div style="font-size:22px;font-weight:800;color:var(--amber)" id="pvIzin">0</div>
-          <div style="font-size:11px;color:#8a6200;font-weight:600">Izin/Sakit</div>
+          <div style="font-size:11px;color:var(--amber-txt);font-weight:600">Terlambat/Izin</div>
         </div>
         <div style="flex:1;background:var(--red-l);border-radius:var(--r-sm);padding:10px;text-align:center">
           <div style="font-size:22px;font-weight:800;color:var(--red)" id="pvAlpa">0</div>
@@ -1625,7 +1629,7 @@ tr:hover td{background:#f8fafc}
         <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;
           letter-spacing:.06em;margin-bottom:6px">Latihan Mandiri</div>
         <div style="background:var(--amber-l);border-radius:var(--r-sm);padding:10px;font-size:13px">
-          <div style="font-weight:600;color:#8a6200" id="pvLatihanJenis"></div>
+          <div style="font-weight:600;color:var(--amber-txt)" id="pvLatihanJenis"></div>
           <div style="color:var(--text-2);margin-top:3px" id="pvLatihanDesk"></div>
           <div style="color:var(--text-3);font-size:12px;margin-top:3px" id="pvLatihanDeadline"></div>
         </div>
@@ -2604,7 +2608,7 @@ async function loadRiwayat() {
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
         <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
-          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Presensi</button>
+          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Edit KBM</button>
       </td>
     </tr>`).join('');
   } catch(e) { toast('Gagal: '+e.message,'err'); }
@@ -2888,6 +2892,30 @@ async function simpanEditPresensi() {
     if (mSel) loadMurid();
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
+}
+
+async function konfirmasiHapusKBM() {
+  if (!editPresensiKBMId) return;
+  if (!confirm('Apakah Anda yakin ingin menghapus sesi KBM ini? Semua data presensi, nilai, jurnal, dan pencapaian modul pada sesi ini akan terhapus permanen dari sistem dan Google Sheets.')) {
+    return;
+  }
+  
+  showLoad('Bismillah, menghapus sesi KBM...');
+  try {
+    await window.HQ.GuruAPI.hapusKBM(editPresensiKBMId);
+    closeModal('editPresensiModal');
+    toast('Sesi KBM berhasil dihapus!','ok');
+    // Refresh riwayat & murid
+    muridCache = {};
+    const rSel = document.getElementById('riwayatHalaqahSel').value;
+    if (rSel) loadRiwayat();
+    const mSel = document.getElementById('muridHalaqahSel').value;
+    if (mSel) loadMurid();
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    hideLoad();
+  }
 }
 
 // ══════════════════════════════════════════
