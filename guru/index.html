@@ -3185,7 +3185,7 @@ function renderJadwal() {
     var color = getHqColor(h.id_halaqah);
     var jamInfo = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '\u2013'+h.jam_selesai : '')) : '';
 
-    return '<div class="hq-card-new ' + color + '" onclick="pilihHalaqahDashboard(\'' + esc(h.id_halaqah) + '\')">'
+    return '<div class="hq-card-new ' + color + '" style="cursor:default">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
       + '<div>'
       + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + '</span>'
@@ -3208,8 +3208,13 @@ function renderJadwal() {
       + '<span style="font-size:11px;color:var(--text-3);font-weight:600">' + pct + '%</span>'
       + '</div>'
       + '</div>'
-      + '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(13,27,42,.07);text-align:center">'
-      + '<span style="font-size:12px;font-weight:600;color:var(--text-3)">Ketuk untuk mulai Sesi KBM \u2192</span>'
+      + '<div style="display:grid;grid-template-columns:1fr 1.2fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(13,27,42,.07)">'
+      + '<button class="btn btn-outline btn-sm" onclick="lihatRiwayatHalaqah(\'' + esc(h.id_halaqah) + '\')" style="justify-content:center;font-size:12px;padding:8px 10px;border-radius:10px;font-weight:600">'
+      + '📚 Riwayat KBM'
+      + '</button>'
+      + '<button class="btn btn-primary btn-sm" onclick="mulaiSesiHalaqah(\'' + esc(h.id_halaqah) + '\', ' + h.pertemuan_ke + ')" style="justify-content:center;font-size:12px;padding:8px 10px;border-radius:10px;font-weight:700">'
+      + '▶ Lanjut Sesi ke-' + h.pertemuan_ke
+      + '</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -3236,12 +3241,32 @@ function renderLevelPills(levels) {
 }
 function setLevelFilter(level) { _activeLevel = level; renderJadwal(); }
 
-function pilihHalaqahDashboard(id_halaqah) {
+function lihatRiwayatHalaqah(id_halaqah) {
+  const sel = document.getElementById('riwayatHalaqahSel');
+  if (sel) {
+    sel.value = id_halaqah;
+    loadRiwayat();
+  }
+  goPage('riwayat');
+}
+
+function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
+  if (sesiAktif) {
+    toast('Masih ada sesi berjalan. Selesaikan atau hapus terlebih dahulu!', 'warn');
+    goPage('kbm');
+    return;
+  }
+  const sel = document.getElementById('kbmHalaqah');
+  if (sel) {
+    sel.value = id_halaqah;
+    const event = new Event('change');
+    sel.dispatchEvent(event);
+  }
+  const ptInput = document.getElementById('kbmPertemuan');
+  if (ptInput) {
+    ptInput.value = pertemuan_ke;
+  }
   goPage('kbm');
-  setTimeout(function() {
-    var sel = document.getElementById('kbmHalaqah');
-    if (sel) sel.value = id_halaqah;
-  }, 150);
 }
 
 // ══ #5 TEMPLATE KOREKSI ══════════════════
