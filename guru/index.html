@@ -1752,7 +1752,7 @@ tr:hover td{background:#f8fafc}
   <span id="refreshTxt">Baru sinkron</span>
 </div>
 <div class="toast-inline" id="toastInline"></div>
-<script src="../assets/js/api.js?v=2.8"></script>
+<script src="../assets/js/api.js?v=3.4"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -3993,34 +3993,14 @@ async function mulaiSesiBaruCepat() {
     return toast('Anda tidak memiliki halaqah aktif.', 'err');
   }
 
-  const buatSesiInstan = async (id_halaqah) => {
-    goPage('kbm');
-    document.getElementById('kbmHalaqah').value = id_halaqah;
-    const today = new Date().toISOString().substring(0, 10);
-    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-    
-    document.getElementById('kbmTanggal').value = today;
-    document.getElementById('kbmJam').value = nowTime;
-    document.getElementById('kbmJenis').value = 'KBM Reguler';
-    if (document.getElementById('kbmPertemuan')) {
-      document.getElementById('kbmPertemuan').value = '';
-    }
-
-    // Auto checklist persiapan
-    _persiapanState = [true, true, true];
-    for (let i = 0; i < 3; i++) {
-      const cb = document.getElementById('pCb' + i);
-      const item = document.getElementById('pItem' + i);
-      if (cb) cb.classList.add('checked');
-      if (item) item.classList.add('checked');
-    }
-    _updatePersiapanUI();
-
-    await doBukaKBM();
+  const buatSesiInstan = (id_halaqah) => {
+    const h = halaqahList.find(x => x.id_halaqah === id_halaqah);
+    if (!h) return;
+    mulaiSesiHalaqah(h.id_halaqah, h.pertemuan_ke);
   };
 
   if (halaqahList.length === 1) {
-    await buatSesiInstan(halaqahList[0].id_halaqah);
+    buatSesiInstan(halaqahList[0].id_halaqah);
   } else {
     const pilihanHtml = halaqahList.map(h => 
       `<button class="btn btn-outline" style="width:100%;margin-bottom:8px;justify-content:center;padding:12px;font-weight:700" ` +
