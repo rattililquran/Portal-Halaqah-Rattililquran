@@ -260,6 +260,8 @@ var MuridAPI = {
   getProgressGrafik : function()              { return apiGet('getProgressGrafik'); },
   getMateriLevel    : function(lv)            { return apiGet('getMateriLevel', lv ? {level:lv} : {}); },
   getSPPStatus      : function()             { return apiGet('getSPPStatus'); },
+  changePassword    : function(d)            { return apiPost('changePasswordMurid', d); },
+  getKonfigurasiRaport: function()           { return apiGet('getKonfigurasiRaport'); },
 };
 
 // ─── EKSPOS GLOBAL ────────────────────────────────
