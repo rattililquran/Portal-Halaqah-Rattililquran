@@ -1074,6 +1074,7 @@ function renderRiwayat(rows) {
       + (k.koreksi_tahsin ? '<div class="detail-label">✏️ Koreksi Tahsin dari Guru</div>'
           + '<div class="koreksi-box">'+esc(k.koreksi_tahsin)+'</div>' : '')
       + (k.adab ? '<div class="detail-label">😊 Adab</div><div class="detail-row"><div class="detail-val">'+esc(k.adab)+'</div></div>' : '')
+      + (k.kamera_murid ? '<div class="detail-label">📷 Kamera Murid</div><div class="detail-row"><div class="detail-val">'+esc(k.kamera_murid)+'</div></div>' : '')
       + (k.catatan_murid ? '<div class="detail-label">📝 Catatan Guru</div><div class="detail-row"><div class="detail-val">'+esc(k.catatan_murid)+'</div></div>' : '')
       + (k.latihan_mandiri ? '<div class="detail-label">💪 PR / Latihan Mandiri</div>'
           + '<div style="background:var(--amber-l);border-radius:10px;padding:10px 12px;font-size:13px">'
@@ -1600,6 +1601,7 @@ function bukaKalDetail(dateStr) {
         + '<span style="font-weight:700;color:'+hClr+'">'+hLbl+'</span>'
         + ' · Sesi ke-' + esc(k.pertemuan_ke)
         + (k.adab ? ' · Adab: <strong>'+esc(k.adab)+'</strong>' : '')
+        + (k.kamera_murid ? ' · Kamera: <strong>'+esc(k.kamera_murid)+'</strong>' : '')
         + '</div>'
         + (k.koreksi_tahsin ? '<div style="margin-top:6px;font-size:12px;background:var(--amber-l);border-radius:8px;padding:7px 10px;color:#7a5500">✏️ '+esc(k.koreksi_tahsin)+'</div>' : '')
         + '</div>';
