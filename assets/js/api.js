@@ -23,6 +23,8 @@ var CACHE_TTL = {
   'getJadwalHariIni'    : 60,
   'getMuridByHalaqah'   : 120,
   'getAllAnggota'        : 120,
+  // Data semi-statis — cache sedang
+  'getSPPStatus'        : 120,  // 2 menit
   // Data real-time — tidak di-cache
   'getKBMByHalaqah'     : 0,
   'getRiwayatMurid'     : 0,
@@ -75,7 +77,8 @@ function getToken() {
 async function apiGet(action, params, skipCache) {
   var p = params || {};
   var cacheKey = action + '_' + JSON.stringify(p);
-  var ttl = CACHE_TTL[action];
+  // Gunakan 0 sebagai default jika action tidak terdaftar di CACHE_TTL
+  var ttl = (action in CACHE_TTL) ? CACHE_TTL[action] : 0;
 
   // Cache hit
   if (!skipCache && ttl > 0) {

@@ -1492,11 +1492,14 @@ function nilaiClass(n) {
 
 
 // ══ SPP STATUS ════════════════════════════
+var _sppLoaded = false; // hanya load sekali per sesi
 async function loadSPP() {
+  if (_sppLoaded) return; // skip jika sudah dimuat (hindari CORS spam saat auto-refresh)
   try {
     var r = await window.HQ.MuridAPI.getSPPStatus();
     if (!r || !r.data) return; // SPP belum dikonfigurasi
     renderSPP(r.data);
+    _sppLoaded = true; // tandai sudah berhasil
   } catch(e) {
     // SPP error tidak ganggu dashboard — silent fail
     console.log('SPP load skipped:', e.message);
