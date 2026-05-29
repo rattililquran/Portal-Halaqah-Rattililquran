@@ -243,6 +243,7 @@ function simpanPresensi(data, user) {
   const newRows    = [];   // rows baru yang belum ada
   const updateMap  = {};   // id_nilai → status_hadir untuk update
 
+  const allRowData = [];
   data.presensi.forEach(item => {
     const id_nilai = generateId('NLI');
     const rowData  = {
@@ -265,8 +266,7 @@ function simpanPresensi(data, user) {
       timestamp     : nowISO(),
     };
 
-    // Sheet per kelas
-    upsertKBMSheetRow(data.id_halaqah, rowData);
+    allRowData.push(rowData);
 
     // Cek apakah sudah ada di Nilai_KBM
     const lama = existing.find(r => r.id_kbm === data.id_kbm && r.id_murid === item.id_murid);
@@ -276,6 +276,9 @@ function simpanPresensi(data, user) {
       newRows.push(headers.map(h => rowData[h] !== undefined ? rowData[h] : ''));
     }
   });
+
+  // Sheet per kelas (Batch)
+  upsertKBMSheetRows(data.id_halaqah, allRowData);
 
   // Batch append semua rows baru sekaligus
   if (newRows.length > 0) {
@@ -515,7 +518,8 @@ function editPresensi(data, user) {
   // Recalculate total_hadir semua murid di halaqah ini
   _updateTotalHadirHalaqah(data.id_halaqah);
 
-  // Sync ke sheet per kelas
+  // Sync ke sheet per kelas (Batch)
+  const allSyncData = [];
   data.presensi.forEach(item => {
     const syncData = {
       id_kbm      : data.id_kbm,
@@ -528,8 +532,9 @@ function editPresensi(data, user) {
     if (data.pertemuan_ke !== undefined && data.pertemuan_ke !== null && data.pertemuan_ke !== '') {
       syncData.pertemuan_ke = Number(data.pertemuan_ke);
     }
-    upsertKBMSheetRow(data.id_halaqah, syncData);
+    allSyncData.push(syncData);
   });
+  upsertKBMSheetRows(data.id_halaqah, allSyncData);
 
   writeAuditLog(user.id_user, 'editPresensi', { id_kbm: data.id_kbm });
   return {

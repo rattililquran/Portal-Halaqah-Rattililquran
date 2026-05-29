@@ -1,0 +1,487 @@
+// ============================================================
+//  Code_kbm_sheet.gs — Manajemen Sheet Per Kelas
+//  Rattililqur'an Portal
+//  Versi: 1.0.0
+//
+//  Sheet naming convention:
+//    KBM_[nama_halaqah]    ← data per murid per sesi
+//    Presensi_[nama_halaqah] ← matriks rekap presensi (generated)
+// ============================================================
+
+// ─────────────────────────────────────────────
+//  HELPERS SHEET PER KELAS
+// ─────────────────────────────────────────────
+
+/**
+ * Sanitasi nama halaqah untuk nama sheet
+ * Contoh: "Halaqah Al-Fatihah" → "Al-Fatihah"
+ */
+function _sanitasiNamaSheet(namaHalaqah) {
+  return String(namaHalaqah || '')
+    .replace(/^halaqah\s+/i, '')   // hapus prefix "Halaqah "
+    .replace(/[^\w\s\-]/g, '')     // hapus karakter spesial kecuali - dan spasi
+    .replace(/\s+/g, '-')          // spasi → -
+    .substring(0, 25)              // max 25 karakter
+    .trim();
+}
+
+/**
+ * Nama sheet KBM per kelas
+ */
+function _namaSheetKBM(namaHalaqah) {
+  return 'KBM_' + _sanitasiNamaSheet(namaHalaqah);
+}
+
+/**
+ * Nama sheet Presensi per kelas
+ */
+function _namaSheetPresensi(namaHalaqah) {
+  return 'Presensi_' + _sanitasiNamaSheet(namaHalaqah);
+}
+
+/**
+ * Ambil atau buat sheet KBM per kelas.
+ * Otomatis buat sheet baru dengan header jika belum ada.
+ */
+function getOrCreateKBMSheet(namaHalaqah) {
+  const ss   = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const nama = _namaSheetKBM(namaHalaqah);
+  let sheet  = ss.getSheetByName(nama);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(nama);
+    const headers = [
+      'id_nilai','id_kbm','id_halaqah','pertemuan_ke',
+      'tanggal','jam_mulai','jam_selesai','jenis_sesi',
+      'id_murid','nama_murid',
+      'status_hadir',           // H / I / S / A
+      'nilai',                  // Mumtaz / Jayyid Jiddan / Jayyid / Maqbul
+      'adab',                   // Baik / Cukup / Perlu Perhatian
+      'koreksi_tahsin',         // teks bebas
+      'catatan_murid',          // catatan khusus per murid
+      'kamera_murid',           // kamera terbuka / kamera sering tertutup / kamera selalu tertutup
+      'timestamp',
+    ];
+    sheet.appendRow(headers);
+
+    // Format header
+    const hRange = sheet.getRange(1, 1, 1, headers.length);
+    hRange.setBackground('#1a6fc4')
+          .setFontColor('#ffffff')
+          .setFontWeight('bold');
+    sheet.setFrozenRows(1);
+
+    // Lebar kolom
+    sheet.setColumnWidth(1, 120);   // id_nilai
+    sheet.setColumnWidth(2, 120);   // id_kbm
+    sheet.setColumnWidth(10, 160);  // nama_murid
+    sheet.setColumnWidth(13, 180);  // koreksi_tahsin
+    sheet.setColumnWidth(14, 180);  // catatan_murid
+
+    // Conditional formatting untuk nilai & kehadiran
+    try {
+      const nilaiRange = sheet.getRange(2, 12, 1000, 1);
+      const hadirRange = sheet.getRange(2, 11, 1000, 1);
+      const rules = [
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('Mumtaz').setBackground('#d4edda').setFontColor('#155724')
+          .setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('Jayyid Jiddan').setBackground('#cce5ff').setFontColor('#004085')
+          .setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('Jayyid').setBackground('#fff3cd').setFontColor('#856404')
+          .setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('Maqbul').setBackground('#f8d7da').setFontColor('#721c24')
+          .setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('H').setBackground('#d4edda').setFontColor('#155724')
+          .setRanges([hadirRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('I').setBackground('#fff3cd').setFontColor('#856404')
+          .setRanges([hadirRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('S').setBackground('#cce5ff').setFontColor('#004085')
+          .setRanges([hadirRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('A').setBackground('#f8d7da').setFontColor('#721c24')
+          .setRanges([hadirRange]).build(),
+      ];
+      sheet.setConditionalFormatRules(rules);
+    } catch(e) {
+      Logger.log('[CF Warning] ' + e.message);
+    }
+
+    Logger.log('[Sheet] Dibuat: ' + nama);
+  }
+
+  return sheet;
+}
+
+/**
+ * Resolve nama halaqah dari id_halaqah
+ */
+function _getNamaHalaqah(id_halaqah) {
+  const rows = sheetToObjects(getSheet(CONFIG.SHEET.HALAQAH));
+  const hq   = rows.find(r => r.id_halaqah === id_halaqah);
+  return hq ? hq.nama_halaqah : id_halaqah;
+}
+
+// ─────────────────────────────────────────────
+//  SIMPAN DATA KE SHEET PER KELAS
+// ─────────────────────────────────────────────
+
+/**
+ * Simpan atau update baris di sheet KBM per kelas.
+ * Dipanggil setelah simpanPresensi dan simpanNilaiMurid.
+ */
+function upsertKBMSheetRow(id_halaqah, rowData) {
+  upsertKBMSheetRows(id_halaqah, [rowData]);
+}
+
+function upsertKBMSheetRows(id_halaqah, rowsData) {
+  if (!rowsData || rowsData.length === 0) return;
+  const namaHalaqah = _getNamaHalaqah(id_halaqah);
+  const sheet       = getOrCreateKBMSheet(namaHalaqah);
+  const existing    = sheetToObjects(sheet);
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+    .map(h => String(h).trim());
+
+  const newRows = [];
+  const updateMap = {};
+
+  rowsData.forEach(rowData => {
+    const idx = existing.findIndex(r =>
+      r.id_kbm === rowData.id_kbm && r.id_murid === rowData.id_murid
+    );
+
+    if (idx !== -1) {
+      const rowNum = idx + 2;
+      updateMap[rowNum] = { ...existing[idx], ...rowData };
+    } else {
+      newRows.push(rowData);
+    }
+  });
+
+  // Tulis data updates
+  for (const rowNum in updateMap) {
+    const updatedObj = updateMap[rowNum];
+    const rowValues = headers.map(h => updatedObj[h] !== undefined ? updatedObj[h] : '');
+    sheet.getRange(Number(rowNum), 1, 1, headers.length).setValues([rowValues]);
+  }
+
+  // Tulis data newRows
+  if (newRows.length > 0) {
+    const appendValues = newRows.map(rowData => 
+      headers.map(h => rowData[h] !== undefined ? rowData[h] : '')
+    );
+    sheet.getRange(sheet.getLastRow() + 1, 1, appendValues.length, headers.length).setValues(appendValues);
+  }
+}
+
+/**
+ * Baca semua data dari sheet KBM per kelas.
+ * Fallback ke Nilai_KBM global jika sheet per kelas belum ada.
+ */
+function readKBMSheet(id_halaqah) {
+  const namaHalaqah = _getNamaHalaqah(id_halaqah);
+  const ss   = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+
+  // Coba sheet per kelas dulu
+  const namaPerKelas = _namaSheetKBM(namaHalaqah);
+  const sheetPerKelas = ss.getSheetByName(namaPerKelas);
+  if (sheetPerKelas && sheetPerKelas.getLastRow() > 1) {
+    return sheetToObjects(sheetPerKelas);
+  }
+
+  // Fallback ke Nilai_KBM global — filter by id_halaqah
+  // Join dengan KBM_Log untuk dapat info pertemuan_ke, tanggal, jenis_sesi
+  const nilaiSheet = ss.getSheetByName(CONFIG.SHEET.NILAI_KBM);
+  if (!nilaiSheet) return [];
+
+  const nilaiData = sheetToObjects(nilaiSheet)
+    .filter(r => r.id_halaqah === id_halaqah);
+
+  if (!nilaiData.length) return [];
+
+  // Ambil info KBM dari KBM_Log
+  const kbmLog = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG))
+    .filter(k => k.id_halaqah === id_halaqah);
+
+  // Gabungkan data
+  return nilaiData.map(n => {
+    const kbm = kbmLog.find(k => k.id_kbm === n.id_kbm) || {};
+    return {
+      id_nilai     : n.id_nilai || '',
+      id_kbm       : n.id_kbm || '',
+      id_halaqah   : n.id_halaqah || '',
+      pertemuan_ke : kbm.pertemuan_ke || '',
+      tanggal      : kbm.tanggal_pertemuan || '',
+      jam_mulai    : kbm.jam_mulai || '',
+      jam_selesai  : kbm.jam_selesai || '',
+      jenis_sesi   : kbm.jenis_sesi || '',
+      id_murid     : n.id_murid || '',
+      nama_murid   : n.nama_murid || '',
+      status_hadir : n.status_hadir || '',
+      nilai        : n.nilai || '',
+      adab         : n.adab || '',
+      koreksi_tahsin: n.koreksi_tahsin || '',
+      catatan_murid: n.catatan_murid || '',
+      timestamp    : n.timestamp || '',
+    };
+  });
+}
+
+// ─────────────────────────────────────────────
+//  GENERATE REKAP PRESENSI (MATRIKS)
+// ─────────────────────────────────────────────
+
+/**
+ * Generate sheet Presensi_[nama] dalam format matriks:
+ * Baris = murid, Kolom = pertemuan ke-1, ke-2, ..., Total, %
+ *
+ * Bisa dipanggil dari portal guru/admin.
+ */
+function generateRekapPresensi(params) {
+  const id_halaqah = params.id_halaqah;
+  if (!id_halaqah) return { status: 'error', message: 'id_halaqah wajib diisi' };
+
+  const namaHalaqah = _getNamaHalaqah(id_halaqah);
+  const data        = readKBMSheet(id_halaqah);
+
+  if (!data.length) {
+    return { status: 'error', message: 'Belum ada data KBM untuk halaqah ini' };
+  }
+
+  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheetNama = _namaSheetPresensi(namaHalaqah);
+
+  // Hapus sheet lama jika ada
+  const lama = ss.getSheetByName(sheetNama);
+  if (lama) ss.deleteSheet(lama);
+
+  const sheet = ss.insertSheet(sheetNama);
+
+  // Kumpulkan semua sesi unik (sort by pertemuan_ke)
+  const sesiMap = {};
+  data.forEach(r => {
+    const key = r.id_kbm;
+    if (!sesiMap[key]) {
+      sesiMap[key] = {
+        id_kbm       : r.id_kbm,
+        pertemuan_ke : Number(r.pertemuan_ke) || 0,
+        tanggal      : r.tanggal || '',
+        jenis_sesi   : r.jenis_sesi || '',
+      };
+    }
+  });
+  const sesiList = Object.values(sesiMap)
+    .sort((a,b) => a.pertemuan_ke - b.pertemuan_ke);
+
+  // Kumpulkan semua murid unik
+  const muridMap = {};
+  data.forEach(r => {
+    if (!muridMap[r.id_murid]) {
+      muridMap[r.id_murid] = r.nama_murid || r.id_murid;
+    }
+  });
+  const muridList = Object.entries(muridMap)
+    .sort((a,b) => a[1].localeCompare(b[1]));
+
+  // ── Baris header ──
+  // Baris 1: Judul
+  sheet.appendRow([namaHalaqah + ' — Rekap Presensi']);
+  sheet.getRange(1, 1).setFontSize(13).setFontWeight('bold');
+
+  // Baris 2: Tanggal sesi
+  const tglRow = ['', 'NIS', 'Nama Murid',
+    ...sesiList.map(s => _safeDate(s.tanggal)),
+    'Total Hadir', '% Hadir', 'Skor/40'
+  ];
+  sheet.appendRow(tglRow);
+
+  // Baris 3: Header pertemuan ke-
+  const hdrRow = ['No', 'NIS', 'Nama',
+    ...sesiList.map(s => 'P-' + s.pertemuan_ke),
+    'Hadir', '%', 'Skor'
+  ];
+  sheet.appendRow(hdrRow);
+
+  // Format header
+  const totalCols = 3 + sesiList.length + 3;
+  sheet.getRange(2, 1, 2, totalCols)
+    .setBackground('#1a6fc4').setFontColor('#ffffff').setFontWeight('bold');
+  sheet.setFrozenRows(3);
+  sheet.setFrozenColumns(3);
+
+  // ── Baris data murid ──
+  muridList.forEach(([id_murid, nama_murid], idx) => {
+    const row = [idx + 1, id_murid, nama_murid];
+
+    let skorTotal = 0;
+    sesiList.forEach(sesi => {
+      const rec = data.find(r => r.id_kbm === sesi.id_kbm && r.id_murid === id_murid);
+      const status = rec ? String(rec.status_hadir || '').toUpperCase() : '-';
+      row.push(status);
+      if (status === 'H') skorTotal += 1.0;
+      else if (status === 'T') skorTotal += 0.7;
+      else if (status === 'I') skorTotal += 0.5;
+    });
+
+    const pct   = sesiList.length > 0 ? Math.round((skorTotal / sesiList.length) * 100) : 0;
+    const skor40 = Math.round((skorTotal / 40) * 100);
+
+    row.push(
+      Math.floor(skorTotal),   // Total hadir (H only)
+      pct + '%',
+      skor40 + '%'
+    );
+    sheet.appendRow(row);
+  });
+
+  // ── Format baris data ──
+  const dataRange = sheet.getRange(4, 1, muridList.length, totalCols);
+
+  // Alternating row colors
+  for (let i = 0; i < muridList.length; i++) {
+    const rowRange = sheet.getRange(4 + i, 1, 1, totalCols);
+    rowRange.setBackground(i % 2 === 0 ? '#ffffff' : '#f8fafc');
+  }
+
+  // Conditional formatting presensi — hanya jika ada data murid dan sesi
+  if (muridList.length > 0 && sesiList.length > 0) {
+    try {
+      const cfRules = [
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('H').setBackground('#d4edda').setFontColor('#155724')
+          .setRanges([sheet.getRange(4, 4, muridList.length, sesiList.length)]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('I').setBackground('#fff3cd').setFontColor('#856404')
+          .setRanges([sheet.getRange(4, 4, muridList.length, sesiList.length)]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('S').setBackground('#cce5ff').setFontColor('#004085')
+          .setRanges([sheet.getRange(4, 4, muridList.length, sesiList.length)]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('A').setBackground('#f8d7da').setFontColor('#721c24')
+          .setRanges([sheet.getRange(4, 4, muridList.length, sesiList.length)]).build(),
+        SpreadsheetApp.newConditionalFormatRule()
+          .whenTextEqualTo('-').setBackground('#f1f5f9').setFontColor('#94a3b8')
+          .setRanges([sheet.getRange(4, 4, muridList.length, sesiList.length)]).build(),
+      ];
+      sheet.setConditionalFormatRules(cfRules);
+    } catch(e) {
+      Logger.log('[CF Warning] ' + e.message);
+    }
+  }
+
+  // Auto-resize kolom
+  sheet.autoResizeColumns(1, totalCols);
+
+  // Tambah timestamp generate
+  sheet.appendRow(['']);
+  sheet.appendRow(['Generated:', new Date().toLocaleString('id-ID'), '', 'H=Hadir(100%) | T=Terlambat(70%) | I=Izin(50%) | A=Alpa(0%)']);
+
+  Logger.log('[Rekap] Sheet presensi dibuat: ' + sheetNama);
+  return {
+    status     : 'ok',
+    message    : 'Rekap presensi berhasil dibuat: ' + sheetNama,
+    sheet_nama : sheetNama,
+    total_sesi : sesiList.length,
+    total_murid: muridList.length,
+  };
+}
+
+// ─────────────────────────────────────────────
+//  GENERATE REKAP NILAI (MATRIKS)
+// ─────────────────────────────────────────────
+
+/**
+ * Generate sheet Nilai_[nama] dalam format matriks ringkasan:
+ * Baris = murid, Kolom = pertemuan, isi = nilai tahsin
+ */
+function generateRekapNilai(params) {
+  const id_halaqah  = params.id_halaqah;
+  if (!id_halaqah) return { status: 'error', message: 'id_halaqah wajib diisi' };
+
+  const namaHalaqah = _getNamaHalaqah(id_halaqah);
+  const data        = readKBMSheet(id_halaqah);
+  if (!data.length) return { status: 'error', message: 'Belum ada data KBM' };
+
+  const ss        = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheetNama = 'Nilai_' + _sanitasiNamaSheet(namaHalaqah);
+
+  const lama = ss.getSheetByName(sheetNama);
+  if (lama) ss.deleteSheet(lama);
+  const sheet = ss.insertSheet(sheetNama);
+
+  // Sesi & murid unik
+  const sesiMap = {};
+  data.forEach(r => {
+    if (!sesiMap[r.id_kbm]) sesiMap[r.id_kbm] = {
+      id_kbm: r.id_kbm, pertemuan_ke: Number(r.pertemuan_ke)||0, tanggal: r.tanggal
+    };
+  });
+  const sesiList = Object.values(sesiMap).sort((a,b) => a.pertemuan_ke - b.pertemuan_ke);
+
+  const muridMap = {};
+  data.forEach(r => { if (!muridMap[r.id_murid]) muridMap[r.id_murid] = r.nama_murid || r.id_murid; });
+  const muridList = Object.entries(muridMap).sort((a,b) => a[1].localeCompare(b[1]));
+
+  // Header
+  sheet.appendRow([namaHalaqah + ' — Rekap Nilai Tahsin']);
+  sheet.getRange(1,1).setFontSize(13).setFontWeight('bold');
+
+  const tglRow = ['','NIS','Nama',...sesiList.map(s=>_safeDate(s.tanggal)),'Rata-rata'];
+  const hdrRow = ['No','NIS','Nama',...sesiList.map(s=>'P-'+s.pertemuan_ke),'Avg'];
+  sheet.appendRow(tglRow);
+  sheet.appendRow(hdrRow);
+
+  const totalCols = 3 + sesiList.length + 1;
+  sheet.getRange(2,1,2,totalCols).setBackground('#0F6E56').setFontColor('#fff').setFontWeight('bold');
+  sheet.setFrozenRows(3); sheet.setFrozenColumns(3);
+
+  const NILAI_NUM = {'Mumtaz':4,'Jayyid Jiddan':3,'Jayyid':2,'Maqbul':1};
+  const NUM_NILAI = {4:'Mumtaz',3:'Jayyid Jiddan',2:'Jayyid',1:'Maqbul'};
+
+  muridList.forEach(([id_murid, nama_murid], idx) => {
+    const row = [idx+1, id_murid, nama_murid];
+    const nums = [];
+    sesiList.forEach(sesi => {
+      const rec = data.find(r => r.id_kbm === sesi.id_kbm && r.id_murid === id_murid);
+      const nilai = rec?.nilai || '-';
+      row.push(nilai);
+      if (NILAI_NUM[nilai]) nums.push(NILAI_NUM[nilai]);
+    });
+    const avg = nums.length ? NUM_NILAI[Math.round(nums.reduce((a,b)=>a+b,0)/nums.length)] || '-' : '-';
+    row.push(avg);
+    sheet.appendRow(row);
+    sheet.getRange(4+idx,1,1,totalCols).setBackground(idx%2===0?'#fff':'#f8fafc');
+  });
+
+  // CF untuk nilai — hanya jika ada data
+  if (muridList.length > 0 && sesiList.length > 0) {
+    try {
+      const nilaiRange = sheet.getRange(4, 4, muridList.length, sesiList.length + 1);
+      const cfRules = [
+        SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Mumtaz')
+          .setBackground('#d4edda').setFontColor('#155724').setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Jayyid Jiddan')
+          .setBackground('#cce5ff').setFontColor('#004085').setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Jayyid')
+          .setBackground('#fff3cd').setFontColor('#856404').setRanges([nilaiRange]).build(),
+        SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Maqbul')
+          .setBackground('#f8d7da').setFontColor('#721c24').setRanges([nilaiRange]).build(),
+      ];
+      sheet.setConditionalFormatRules(cfRules);
+    } catch(e) {
+      Logger.log('[CF Warning] ' + e.message);
+    }
+  }
+  sheet.autoResizeColumns(1, totalCols);
+  sheet.appendRow(['']);
+  sheet.appendRow(['Generated:', new Date().toLocaleString('id-ID'), '', '', '', '']);
+
+  return { status:'ok', message:'Rekap nilai dibuat: '+sheetNama, sheet_nama: sheetNama };
+}
