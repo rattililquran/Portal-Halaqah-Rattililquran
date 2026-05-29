@@ -237,6 +237,11 @@ var GuruAPI = {
   generateRekapNilai    : function(id_h)          { return apiGet('generateRekapNilai', { id_halaqah:id_h }); },
   getRiwayatMuridKoreksi: function(id_m, lim)     { return apiGet('getRiwayatMuridKoreksi', { id_murid:id_m, limit:lim||10 }); },
   getTemplateKoreksi    : function()              { return apiGet('getTemplateKoreksi'); },
+  changePassword        : function(d)             { return apiPost('changePassword', d); },
+  getAllPeriode         : function()              { return apiGet('getAllPeriode'); },
+  getKomponenRaport     : function(id_p)          { return apiGet('getKomponenRaport', { id_periode:id_p }); },
+  getNilaiManual        : function(id_p)          { return apiGet('getNilaiManual', { id_periode:id_p }); },
+  saveNilaiManual       : function(d)             { return apiPost('saveNilaiManual', d); },
 };
 
 // ─── MURID API ────────────────────────────────────

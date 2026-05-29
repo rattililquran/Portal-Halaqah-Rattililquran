@@ -999,12 +999,19 @@ tr:hover td{background:#f8fafc}
       </div>
     </div>
     <div class="sb-nav">
+      <div style="padding: 0 14px 10px 14px;">
+        <button class="btn btn-primary" onclick="mulaiSesiBaruCepat()" style="width:100%; justify-content:center; padding:10px; font-weight:800; border-radius:12px; font-size:13px; background:var(--blue); border:none; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(37,99,235,0.25); cursor:pointer;">
+          <span>🚀</span> Mulai Sesi Baru
+        </button>
+      </div>
       <div class="sb-section">Menu</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
+      <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
+      <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni">🔑</span>Ganti Password</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">⬅ Keluar</button>
@@ -1318,10 +1325,10 @@ tr:hover td{background:#f8fafc}
             <table>
               <thead><tr>
                 <th>Nama Murid</th><th>Level</th><th>Hadir</th>
-                <th>Sesi</th><th>% Kehadiran</th><th>Skor/40</th><th>Rata-rata Nilai</th><th>Aksi</th>
+                <th>Sesi</th><th>% Kehadiran</th><th>Skor/40</th><th>Poin Adab</th><th>Poin Kamera</th><th>Aksi</th>
               </tr></thead>
               <tbody id="muridTbl">
-                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
+                <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
               </tbody>
             </table>
           </div>
@@ -1388,6 +1395,46 @@ tr:hover td{background:#f8fafc}
                 <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ NILAI MANUAL ════ -->
+      <div class="page" id="page-nilai-manual">
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Input Nilai Manual</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Input nilai UAS, Micro Teaching, dan komponen manual lainnya untuk murid di halaqah Anda.</div>
+        <div class="f2" style="margin-bottom:14px">
+          <select class="fc" id="nilaiPeriodeSel" onchange="loadNilaiSetup()"><option value="">— Pilih Periode —</option></select>
+          <select class="fc" id="nilaiHalaqahSel" onchange="loadNilaiMurid()"><option value="">— Pilih Halaqah —</option></select>
+        </div>
+        <div class="card" id="nilaiCard" style="display:none">
+          <div class="card-head">
+            <div class="card-title">✏️ Input Nilai</div>
+            <button class="btn btn-green btn-sm" onclick="saveSemuaNilai()">💾 Simpan Semua</button>
+          </div>
+          <div class="card-body" id="nilaiBody"></div>
+        </div>
+      </div>
+
+      <!-- ════ GANTI PASSWORD MANDIRI ════ -->
+      <div class="page" id="page-password">
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Ganti Password</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Ubah password akun Anda untuk menjaga keamanan akses portal.</div>
+        <div class="card" style="max-width:450px;margin:0 auto">
+          <div class="card-body" style="padding:20px">
+            <div class="fg" style="margin-bottom:12px">
+              <label>Password Lama</label>
+              <input type="password" class="fc" id="pwOld" placeholder="Masukkan password lama">
+            </div>
+            <div class="fg" style="margin-bottom:12px">
+              <label>Password Baru</label>
+              <input type="password" class="fc" id="pwNew" placeholder="Minimal 4 karakter">
+            </div>
+            <div class="fg" style="margin-bottom:20px">
+              <label>Konfirmasi Password Baru</label>
+              <input type="password" class="fc" id="pwConfirm" placeholder="Masukkan kembali password baru">
+            </div>
+            <button class="btn btn-primary" onclick="doGantiPassword()" id="btnGantiPw" style="width:100%;justify-content:center;padding:12px;font-weight:700">💾 Simpan Password Baru</button>
           </div>
         </div>
       </div>
@@ -1634,8 +1681,12 @@ tr:hover td{background:#f8fafc}
       <!-- Warning nilai kosong -->
       <div id="pvWarningNilai" style="display:none;margin-top:12px;
         background:var(--red-l);border:1px solid var(--red);border-radius:var(--r-sm);
-        padding:10px 13px;font-size:12.5px;color:#a03010">
-        ⚠️ <strong id="pvWarningNilaiTxt"></strong> murid hadir belum diisi adabnya.
+        padding:12px 14px;font-size:12.5px;color:#a03010;line-height:1.5">
+        <strong>⚠️ PENTING: Pengisian Nilai Belum Lengkap!</strong><br>
+        Ada <strong id="pvWarningNilaiTxt"></strong> murid hadir yang belum diinput nilai Adab atau Kameranya.
+        <div style="margin-top:6px;font-size:12px;color:#b23b18">
+          Nilai yang belum lengkap akan langsung memengaruhi raport akhir santri. Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan <strong>amanah</strong> kita sebagai guru dalam membimbing santri. Silakan edit kembali untuk melengkapi.
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1887,7 +1938,8 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   presensi:'Presensi — Step 2/4',
   'nilai-murid':'Nilai — Step 3/4',
   jurnal:'Jurnal — Step 4/4',
-  murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman'};
+  murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
+  'nilai-manual':'Input Nilai Manual',password:'Ganti Password'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1897,9 +1949,33 @@ function goPage(name) {
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
   if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); resetPersiapan(); }
-  if (name === 'murid')      populateSel('muridHalaqahSel');
+  if (name === 'murid')      {
+    populateSel('muridHalaqahSel');
+    // Default show all students
+    var sel = document.getElementById('muridHalaqahSel');
+    if (sel) sel.value = '';
+    loadMurid();
+  }
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
+  if (name === 'nilai-manual') {
+    // Load setup and period dropdowns
+    loadNilaiSetup();
+    var sel = document.getElementById('nilaiHalaqahSel');
+    if (sel) {
+      sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
+      halaqahList.forEach(function(h) {
+        var opt = document.createElement('option');
+        opt.value = h.id_halaqah; opt.textContent = h.nama_halaqah;
+        sel.appendChild(opt);
+      });
+    }
+  }
+  if (name === 'password') {
+    document.getElementById('pwOld').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+  }
 }
 
 function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
@@ -2380,6 +2456,29 @@ function renderNilaiList() { renderNilaiMuridStep(); }
 async function doSelesaiKBM() {
   if (!sesiAktif) return;
 
+  // Cek adab atau kamera kosong untuk murid hadir
+  const presensiMapPv = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
+    presensiMapPv[btn.dataset.id] = btn.dataset.k;
+  });
+
+  const incompleteCount = muridSesi.filter(m => {
+    const status = presensiMapPv[m.id_murid] || 'H';
+    const adab = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
+    const kamera = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
+    return !['A','I'].includes(status) && (!adab || !kamera);
+  }).length;
+
+  if (incompleteCount > 0) {
+    const confirmMsg = `Peringatan: Ada ${incompleteCount} murid hadir yang belum lengkap nilai Adab atau Kameranya.\n\n` +
+      `Nilai yang belum lengkap akan langsung memengaruhi raport akhir santri.\n` +
+      `Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan AMANAH kita sebagai guru.\n\n` +
+      `Apakah Anda yakin tetap ingin menutup sesi ini?`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+  }
+
   // Tutup modal preview dulu
   closeModal('previewModal');
 
@@ -2539,6 +2638,20 @@ function renderSteps(current) {
 // ══════════════════════════════════════════
 //  DAFTAR MURID
 // ══════════════════════════════════════════
+function getPoinAdabBadge(poin) {
+  const p = Number(poin) || 0;
+  const colorClass = p > 0 ? 'b-green' : 'b-gray';
+  const prefix = p > 0 ? '+' : '';
+  return `<span class="badge ${colorClass}">${prefix}${p}</span>`;
+}
+
+function getPoinKameraBadge(poin) {
+  const p = Number(poin) || 0;
+  const colorClass = p > 0 ? 'b-purple' : p < 0 ? 'b-red' : 'b-gray';
+  const prefix = p > 0 ? '+' : '';
+  return `<span class="badge ${colorClass}">${prefix}${p}</span>`;
+}
+
 async function getMurid(id_halaqah) {
   if (muridCache[id_halaqah]) return muridCache[id_halaqah];
   const r = await window.HQ.GuruAPI.getMurid(id_halaqah);
@@ -2574,7 +2687,7 @@ async function loadMurid() {
     window._muridAllRows = murid;
     const tbody = document.getElementById('muridTbl');
     if (!murid.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
       return;
     }
     // Kosongkan search saat halaqah berganti
@@ -2599,7 +2712,8 @@ async function loadMurid() {
           <span style="font-weight:700;color:${s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)'}">${s40}%</span>
           <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw ? Number(m.skor_hadir_raw).toFixed(1) : '–'}/40</div>
         </td>
-        <td>${nilaiLabel(m.avg_nilai)}</td>
+        <td>${getPoinAdabBadge(m.poin_adab)}</td>
+        <td>${getPoinKameraBadge(m.poin_kamera)}</td>
         <td><button class="btn btn-outline btn-sm"
           onclick="bukaCatatan('${esc(m.id_anggota)}','${esc(m.nama_murid)}','${esc((m.catatan_guru||'').replace(/'/g,"&#39;"))}')">
           📝 Catatan</button></td>
@@ -3097,11 +3211,11 @@ function showPreview() {
     return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status };
   });
 
-  // Cek adab kosong untuk murid hadir (bukan Alpa/Izin)
-  const adabKosong = nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && !m.adab; }).length;
+  // Cek adab atau kamera kosong untuk murid hadir (bukan Alpa/Izin)
+  const adabKameraKosong = nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && (!m.adab || !m.kamera); }).length;
   const warnEl = document.getElementById('pvWarningNilai');
-  if (adabKosong > 0) {
-    document.getElementById('pvWarningNilaiTxt').textContent = adabKosong;
+  if (adabKameraKosong > 0) {
+    document.getElementById('pvWarningNilaiTxt').textContent = adabKameraKosong;
     warnEl.style.display = 'block';
   } else {
     warnEl.style.display = 'none';
@@ -3116,7 +3230,7 @@ function showPreview() {
       + (m.status !== 'H' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
       + (!skipStatus && m.adab ? '<span class="badge b-green" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
       + (!skipStatus && m.kamera ? '<span class="badge b-blue" style="font-size:11px">' + esc(m.kamera) + '</span>' : '')
-      + (!skipStatus && !m.adab ? '<span style="color:var(--text-3);font-size:12px">adab kosong</span>' : '')
+      + (!skipStatus && (!m.adab || !m.kamera) ? '<span style="color:var(--red);font-size:12px;font-weight:600">' + (!m.adab && !m.kamera ? 'adab & kamera kosong' : (!m.adab ? 'adab kosong' : 'kamera kosong')) + '</span>' : '')
       + '</div></div>';
   }).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';
 
@@ -3616,7 +3730,7 @@ function filterMuridSearch() {
     : rows;
 
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">'
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">'
       + 'Tidak ditemukan murid "' + esc(q) + '"</td></tr>';
     return;
   }
@@ -3640,7 +3754,8 @@ function filterMuridSearch() {
       + '<div style="height:4px;background:' + pctC + ';border-radius:4px;width:' + Math.min(pct,100) + '%"></div></div></td>'
       + '<td><span style="font-weight:700;color:' + (s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)') + '">' + s40 + '%</span>'
       + '<div style="font-size:10.5px;color:var(--text-3)">' + (m.skor_hadir_raw?m.skor_hadir_raw.toFixed(1):'–') + '/40</div></td>'
-      + '<td>' + nilaiLabel(m.avg_nilai) + '</td>'
+      + '<td>' + getPoinAdabBadge(m.poin_adab) + '</td>'
+      + '<td>' + getPoinKameraBadge(m.poin_kamera) + '</td>'
       + '<td><button class="btn btn-outline btn-sm" data-id="' + esc(m.id_anggota) + '" data-nama="' + esc(m.nama_murid) + '" data-cat="' + esc((m.catatan_guru||'')) + '" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button></td>'
       + '</tr>';
   }).join('');
@@ -3714,6 +3829,229 @@ function tutupTabBerkas() {
 function autoResizeKor(ta) {
   ta.style.height = 'auto';
   ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
+}
+
+// ══════════════════════════════════════════
+//  GANTI PASSWORD & NILAI MANUAL & INSTANT SESI HELPERS
+// ══════════════════════════════════════════
+
+async function doGantiPassword() {
+  const oldPassword = document.getElementById('pwOld').value.trim();
+  const newPassword = document.getElementById('pwNew').value.trim();
+  const confirmPassword = document.getElementById('pwConfirm').value.trim();
+
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    return toast('Semua field password wajib diisi', 'err');
+  }
+  if (newPassword !== confirmPassword) {
+    return toast('Konfirmasi password baru tidak cocok', 'err');
+  }
+  if (newPassword.length < 4) {
+    return toast('Password baru minimal 4 karakter', 'err');
+  }
+
+  setBtn('btnGantiPw', true, '⏳ Memproses...');
+  showLoad('Bismillah, memperbarui password...');
+  try {
+    const res = await window.HQ.GuruAPI.changePassword({ oldPassword, newPassword, confirmPassword });
+    if (res.status === 'ok') {
+      toast('Password berhasil diubah!', 'ok');
+      document.getElementById('pwOld').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwConfirm').value = '';
+      goPage('dashboard');
+    } else {
+      toast(res.message || 'Gagal mengubah password', 'err');
+    }
+  } catch (e) {
+    toast(e.message, 'err');
+  } finally {
+    hideLoad();
+    setBtn('btnGantiPw', false, '💾 Simpan Password Baru');
+  }
+}
+
+let allPeriode = [];
+let nilaiKomponenList = [];
+let nilaiMuridList = [];
+
+async function loadNilaiSetup() {
+  const pSel = document.getElementById('nilaiPeriodeSel');
+  if (pSel && pSel.options.length <= 1) {
+    try {
+      showLoad('Bismillah, memuat data periode...');
+      const r = await window.HQ.GuruAPI.getAllPeriode();
+      allPeriode = r.data || [];
+      pSel.innerHTML = '<option value="">— Pilih Periode —</option>' +
+        allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' ✓':''}</option>`).join('');
+    } catch(e) {
+      toast('Gagal memuat periode: ' + e.message, 'err');
+    } finally {
+      hideLoad();
+    }
+  }
+
+  const id_periode = pSel.value;
+  if (!id_periode) return;
+  try {
+    const r = await window.HQ.GuruAPI.getKomponenRaport(id_periode);
+    nilaiKomponenList = (r.data || []).filter(k => k.status === 'aktif' && k.tipe === 'manual');
+  } catch(e) {
+    console.error('Gagal memuat komponen:', e);
+  }
+}
+
+async function loadNilaiMurid() {
+  const id_periode = document.getElementById('nilaiPeriodeSel').value;
+  const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
+  if (!id_periode || !id_halaqah) return;
+  showLoad('Bismillah, memuat data nilai...');
+  try {
+    const [anggotaRes, nilaiRes] = await Promise.all([
+      window.HQ.GuruAPI.getMurid(id_halaqah),
+      window.HQ.GuruAPI.getNilaiManual(id_periode),
+    ]);
+    nilaiMuridList = anggotaRes.data || [];
+    const nilaiExisting = nilaiRes.data || [];
+    const card = document.getElementById('nilaiCard');
+    card.style.display = 'block';
+
+    if (!nilaiKomponenList.length) {
+      document.getElementById('nilaiBody').innerHTML =
+        '<div style="color:var(--amber);font-size:13px">⚠️ Belum ada komponen manual yang dikonfigurasi admin untuk periode ini.</div>';
+      return;
+    }
+
+    document.getElementById('nilaiBody').innerHTML = nilaiMuridList.map(m => `
+      <div style="margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:var(--r-sm)">
+        <div style="font-weight:700;font-size:14px;margin-bottom:10px">👤 ${esc(m.nama_murid)}</div>
+        <div class="f${Math.min(nilaiKomponenList.length,3)} gap">
+          ${nilaiKomponenList.map(k => {
+            const existing = nilaiExisting.find(n => n.id_murid===m.id_murid && n.id_komponen===k.id_komponen);
+            return `<div class="fg" style="margin:0">
+              <label>${esc(k.nama_komponen)} (${k.bobot}%)</label>
+              <input type="number" class="fc" min="0" max="100"
+                id="nilai_${esc(m.id_murid)}_${esc(k.id_komponen)}"
+                value="${(existing && existing.nilai)||''}" placeholder="0–100" style="font-size:13px">
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`).join('') || '<div style="color:var(--text-3);text-align:center;padding:24px">Belum ada murid di halaqah ini</div>';
+  } catch(e) { 
+    toast('Gagal: '+e.message,'err'); 
+  } finally { 
+    hideLoad(); 
+  }
+}
+
+async function saveSemuaNilai() {
+  const id_periode = document.getElementById('nilaiPeriodeSel').value;
+  const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
+  if (!id_periode) return toast('Pilih periode terlebih dahulu','err');
+  showLoad('Bismillah, menyimpan nilai...');
+  let saved = 0;
+  try {
+    for (const m of nilaiMuridList) {
+      for (const k of nilaiKomponenList) {
+        const el = document.getElementById('nilai_'+m.id_murid+'_'+k.id_komponen);
+        if (!el || el.value === '') continue;
+        await window.HQ.GuruAPI.saveNilaiManual({
+          id_murid     : m.id_murid,
+          id_halaqah   : id_halaqah,
+          id_periode,
+          id_komponen  : k.id_komponen,
+          nama_komponen: k.nama_komponen,
+          nilai        : Number(el.value),
+        });
+        saved++;
+      }
+    }
+    toast(saved + ' nilai berhasil disimpan!','ok');
+  } catch(e) { 
+    toast(e.message,'err'); 
+  } finally { 
+    hideLoad(); 
+  }
+}
+
+async function mulaiSesiBaruCepat() {
+  if (sesiAktif) {
+    toast('Mengarahkan ke sesi KBM yang sedang berjalan...', 'ok');
+    if (sesiAktif.status === 'draft') {
+      goPage('presensi');
+      renderPresensi();
+      renderSteps('presensi');
+    }
+    return;
+  }
+
+  if (!halaqahList || !halaqahList.length) {
+    await loadDashboard();
+  }
+
+  if (!halaqahList || !halaqahList.length) {
+    return toast('Anda tidak memiliki halaqah aktif.', 'err');
+  }
+
+  const buatSesiInstan = async (id_halaqah) => {
+    document.getElementById('kbmHalaqah').value = id_halaqah;
+    const today = new Date().toISOString().substring(0, 10);
+    const nowTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
+    
+    document.getElementById('kbmTanggal').value = today;
+    document.getElementById('kbmJam').value = nowTime;
+    document.getElementById('kbmJenis').value = 'KBM Reguler';
+    if (document.getElementById('kbmPertemuan')) {
+      document.getElementById('kbmPertemuan').value = '';
+    }
+
+    // Auto checklist persiapan
+    _persiapanState = [true, true, true];
+    for (let i = 0; i < 3; i++) {
+      const cb = document.getElementById('pCb' + i);
+      const item = document.getElementById('pItem' + i);
+      if (cb) cb.classList.add('checked');
+      if (item) item.classList.add('checked');
+    }
+    _updatePersiapanUI();
+
+    goPage('kbm');
+    await doBukaKBM();
+  };
+
+  if (halaqahList.length === 1) {
+    await buatSesiInstan(halaqahList[0].id_halaqah);
+  } else {
+    const pilihanHtml = halaqahList.map(h => 
+      `<button class="btn btn-outline" style="width:100%;margin-bottom:8px;justify-content:center;padding:12px;font-weight:700" ` +
+      `onclick="closeModal('modalPilihHalaqahSesi'); window._mulaiSesiBaruCepatHalaqah('${h.id_halaqah}')">` +
+      `📚 ${esc(h.nama_halaqah)}` +
+      `</button>`
+    ).join('');
+
+    let modalEl = document.getElementById('modalPilihHalaqahSesi');
+    if (!modalEl) {
+      const div = document.createElement('div');
+      div.id = 'modalPilihHalaqahSesi';
+      div.className = 'overlay';
+      div.innerHTML = `
+        <div class="modal" style="max-width:400px">
+          <div class="modal-head">
+            <div class="modal-title">Pilih Halaqah</div>
+            <button class="modal-x" onclick="closeModal('modalPilihHalaqahSesi')">×</button>
+          </div>
+          <div class="modal-body" style="padding-top:12px" id="pilihanHalaqahSesiBody">
+          </div>
+        </div>
+      `;
+      document.body.appendChild(div);
+      modalEl = div;
+    }
+    
+    document.getElementById('pilihanHalaqahSesiBody').innerHTML = pilihanHtml;
+    window._mulaiSesiBaruCepatHalaqah = buatSesiInstan;
+    openModal('modalPilihHalaqahSesi');
+  }
 }
 
 if ('serviceWorker' in navigator)
