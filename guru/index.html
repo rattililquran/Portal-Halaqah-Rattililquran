@@ -2404,7 +2404,8 @@ async function doSelesaiKBM() {
       deadline_latihan : document.getElementById('jurnalDeadline').value,
     });
 
-    // 2. Simpan nilai per murid
+    // 2. Simpan nilai per murid (Batch)
+    const nilaiList = [];
     for (const m of muridSesi) {
       const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
       const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
@@ -2412,9 +2413,7 @@ async function doSelesaiKBM() {
       const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
       if (nilai || adab || kamera || koreksi) {
         const catatan = document.getElementById('catatan-'+m.id_murid);
-        await window.HQ.GuruAPI.simpanNilaiMurid({
-          id_kbm       : sesiAktif.id_kbm,
-          id_halaqah   : sesiAktif.id_halaqah,
+        nilaiList.push({
           id_murid     : m.id_murid,
           nama_murid   : m.nama_murid,
           nilai        : nilai,
@@ -2424,6 +2423,13 @@ async function doSelesaiKBM() {
           catatan_murid: catatan ? catatan.value.trim() : '',
         });
       }
+    }
+    if (nilaiList.length > 0) {
+      await window.HQ.GuruAPI.simpanNilaiMuridBatch({
+        id_kbm    : sesiAktif.id_kbm,
+        id_halaqah: sesiAktif.id_halaqah,
+        nilai_list: nilaiList,
+      });
     }
 
     // 3. Tutup sesi
