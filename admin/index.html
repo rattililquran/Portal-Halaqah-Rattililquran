@@ -537,7 +537,7 @@ tr:hover td{background:#f8fafc}
           <div class="section-title">Rekap Absensi</div>
           <button class="btn btn-green btn-sm" onclick="doExportAbsensi()">📥 Export ke Sheet</button>
         </div>
-        <div class="section-sub">Akumulasi kehadiran semua murid. H=100%, I/S=50%, A=0%</div>
+        <div class="section-sub">Akumulasi kehadiran semua murid. H=100%, T=70%, I=50%, A=0%</div>
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
           <select class="fc" id="absensiHalaqahSel" onchange="loadAbsensi()" style="max-width:240px">
             <option value="">Semua Halaqah</option>
@@ -552,7 +552,7 @@ tr:hover td{background:#f8fafc}
         <div class="card">
           <div class="tbl-wrap">
             <table>
-              <thead><tr><th>Nama Murid</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Total</th><th>% Hadir</th><th>Skor/40</th></tr></thead>
+              <thead><tr><th>Nama Murid</th><th>Hadir</th><th>Terlambat</th><th>Izin</th><th>Alpa</th><th>Total</th><th>% Hadir</th><th>Skor/40</th></tr></thead>
               <tbody id="absensiTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
@@ -2110,8 +2110,8 @@ async function loadAbsensi() {
       return `<tr>
         <td><strong>${esc(m.nama_murid)}</strong></td>
         <td><span class="badge b-green">${m.H||0}</span></td>
+        <td><span class="badge b-purple">${m.T||0}</span></td>
         <td><span class="badge b-amber">${m.I||0}</span></td>
-        <td><span class="badge b-blue">${m.S||0}</span></td>
         <td><span class="badge b-red">${m.A||0}</span></td>
         <td>${m.total||0}</td>
         <td><span style="font-weight:700;color:${color}">${pct}%</span></td>

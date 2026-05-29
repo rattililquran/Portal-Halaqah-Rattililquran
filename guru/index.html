@@ -1539,6 +1539,19 @@ tr:hover td{background:#f8fafc}
         padding:10px 14px;font-size:12.5px;color:#8a6200;margin-bottom:16px">
         ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
       </div>
+      
+      <!-- Date & Sesi Ke- Edit Inputs -->
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <div class="fg" style="flex:1;margin:0">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Tanggal Pertemuan</label>
+          <input type="date" class="fc" id="editPresensiTanggal" style="font-size:13px;padding:8px 12px">
+        </div>
+        <div class="fg" style="width:120px;margin:0">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Pertemuan Ke-</label>
+          <input type="number" class="fc" id="editPresensiPertemuanKe" min="1" style="font-size:13px;padding:8px 12px">
+        </div>
+      </div>
+
       <div id="editPresensiList" class="presensi-list"></div>
     </div>
     <div class="modal-foot">
@@ -2778,12 +2791,17 @@ async function bukaEditPresensi(id_kbm, tanggal) {
   document.getElementById('editPresensiList').innerHTML =
     emptyHTML('⏳','Memuat data...','');
   openModal('editPresensiModal');
-
   showLoad('Bismillah, memuat data presensi...');
   try {
     const r = await window.HQ.GuruAPI.getPresensiByKBM(id_kbm);
     editPresensiHalaqah = (r.kbm && r.kbm.id_halaqah) || '';
     const data = r.data || [];
+
+    // Populate date and pertemuan_ke inputs
+    if (r.kbm) {
+      document.getElementById('editPresensiTanggal').value = String(r.kbm.tanggal_pertemuan || '').substring(0, 10);
+      document.getElementById('editPresensiPertemuanKe').value = r.kbm.pertemuan_ke || '';
+    }
 
     if (!data.length) {
       // Jika belum ada data nilai, ambil dari daftar murid halaqah
@@ -2801,7 +2819,7 @@ async function bukaEditPresensi(id_kbm, tanggal) {
             <div class="prow-level">Level: ${esc(m.level||'-')}</div>
           </div>
           <div class="prow-btns">
-            ${['H','I','S','A'].map(k => `
+            ${['H','T','I','A'].map(k => `
               <button class="pb ${k==='H'?'on':''}" data-k="${k}"
                 data-id="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}"
                 onclick="togEditPresensi(this)">${k}</button>`).join('')}
@@ -2818,7 +2836,7 @@ async function bukaEditPresensi(id_kbm, tanggal) {
           <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
         </div>
         <div class="prow-btns">
-          ${['H','I','S','A'].map(k => `
+          ${['H','T','I','A'].map(k => `
             <button class="pb ${k===status?'on':''}" data-k="${k}"
               data-id="${esc(n.id_murid)}" data-nama="${esc(n.nama_murid||n.id_murid)}"
               onclick="togEditPresensi(this)">${k}</button>`).join('')}
@@ -2850,9 +2868,14 @@ async function simpanEditPresensi() {
 
   showLoad('Bismillah, menyimpan perubahan presensi...');
   try {
+    const tanggal_pertemuan = document.getElementById('editPresensiTanggal').value;
+    const pertemuan_ke = Number(document.getElementById('editPresensiPertemuanKe').value) || null;
+
     await window.HQ.GuruAPI.editPresensi({
       id_kbm    : editPresensiKBMId,
       id_halaqah: editPresensiHalaqah,
+      tanggal_pertemuan,
+      pertemuan_ke,
       presensi,
     });
     closeModal('editPresensiModal');
