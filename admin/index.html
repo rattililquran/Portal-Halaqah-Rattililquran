@@ -1484,7 +1484,8 @@ async function doImportTerintegrasi() {
       // Kirim HANYA field minimal — kurangi ukuran payload
       var batchSlice = importedUsers.slice(offset, offset + batchSize).map(function(u) {
         return { nis:u.nis, password:u.password, nama_lengkap:u.nama_lengkap,
-          role:u.role, no_hp:u.no_hp, email:u.email, alamat:u.alamat };
+          role:u.role, no_hp:u.no_hp, email:u.email, alamat:u.alamat,
+          nama_guru:u.nama_guru, nama_halaqah:u.nama_halaqah };
       });
       var r2 = await window.HQ.AdminAPI.importTahap2({ users: batchSlice });
       rekap.user_berhasil += (r2.berhasil || []).length;
