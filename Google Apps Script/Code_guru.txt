@@ -1,0 +1,865 @@
+// ============================================================
+//  Code_guru.gs — Fungsi Portal Guru (Tahsin)
+//  Portal Manajemen Halaqah Rattililqur'an
+//  Versi: 2.0.0
+// ============================================================
+
+// ─────────────────────────────────────────────
+//  DASHBOARD GURU
+// ─────────────────────────────────────────────
+function getDashboardGuru(user) {
+  const halaqahList = sheetToObjects(getSheet(CONFIG.SHEET.HALAQAH))
+    .filter(h => h.id_guru === user.id_user && h.status === 'aktif');
+
+  const anggota = sheetToObjects(getSheet(CONFIG.SHEET.ANGGOTA))
+    .filter(a => a.status === 'aktif');
+
+  // Baca 200 baris terakhir — cukup untuk statistik dashboard
+  const kbmLog   = sheetToObjectsLimited(getSheet(CONFIG.SHEET.KBM_LOG), 200);
+  const nilaiLog = sheetToObjectsLimited(getSheet(CONFIG.SHEET.NILAI_KBM), 500);
+
+  const hariIni = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+
+  const halaqahDetail = halaqahList.map(h => {
+    const muridHalaqah = anggota.filter(a => a.id_halaqah === h.id_halaqah);
+    const kbmHalaqah   = kbmLog.filter(k => k.id_halaqah === h.id_halaqah && k.status === 'selesai');
+    const kbmHariIni   = kbmLog.filter(k => {
+      const tgl = Utilities.formatDate(new Date(k.tanggal_pertemuan), TZ, 'yyyy-MM-dd');
+      return k.id_halaqah === h.id_halaqah && tgl === hariIni;
+    });
+    return _cleanRow({
+      ...h,
+      total_murid  : muridHalaqah.length,
+      total_sesi   : kbmHalaqah.length,
+      ada_kbm_hari_ini: kbmHariIni.length > 0,
+      sesi_terakhir: kbmHalaqah.length > 0
+        ? _safeDate(String(kbmHalaqah[kbmHalaqah.length-1].tanggal_pertemuan).substring(0,10)) : null,
+    });
+  });
+
+  // Total KBM bulan ini oleh guru ini
+  const now = new Date();
+  const bulanIni = now.getMonth(); const tahunIni = now.getFullYear();
+  const kbmBulanIni = kbmLog.filter(k => {
+    const d = new Date(k.tanggal_pertemuan);
+    return k.id_guru === user.id_user &&
+           d.getMonth() === bulanIni && d.getFullYear() === tahunIni &&
+           k.status === 'selesai';
+  });
+
+  // Total murid diampu
+  const totalMurid = anggota.filter(a =>
+    halaqahList.some(h => h.id_halaqah === a.id_halaqah)
+  ).length;
+
+  // KBM hari ini
+  const kbmHariIniGuru = kbmLog.filter(k => {
+    const tgl = Utilities.formatDate(new Date(k.tanggal_pertemuan), TZ, 'yyyy-MM-dd');
+    return k.id_guru === user.id_user && tgl === hariIni;
+  });
+
+  // Sesi draft (belum ditutup)
+  const sesiDraft = kbmLog.find(k => k.id_guru === user.id_user && k.status === 'draft');
+
+  return {
+    status: 'ok',
+    data: {
+      guru          : { nama: user.nama },
+      total_halaqah : halaqahList.length,
+      total_murid   : totalMurid,
+      kbm_hari_ini  : kbmHariIniGuru.length,
+      kbm_bulan_ini : kbmBulanIni.length,
+      halaqah       : halaqahDetail,
+      sesi_draft    : sesiDraft ? _cleanRow(sesiDraft) : null,
+    }
+  };
+}
+
+// ─────────────────────────────────────────────
+//  DATA HALAQAH & MURID
+// ─────────────────────────────────────────────
+function getHalaqahGuru(user) {
+  const rows = sheetToObjects(getSheet(CONFIG.SHEET.HALAQAH))
+    .filter(h => h.id_guru === user.id_user && h.status === 'aktif');
+  return { status: 'ok', data: rows, total: rows.length };
+}
+
+function getMuridByHalaqah(params) {
+  if (!params.id_halaqah) return { status: 'error', message: 'id_halaqah wajib diisi' };
+
+  const anggota = sheetToObjects(getSheet(CONFIG.SHEET.ANGGOTA))
+    .filter(a => a.id_halaqah === params.id_halaqah && a.status === 'aktif');
+
+  // Hanya field profil yang dibutuhkan
+  const USER_FIELDS = ['id_user','nama_lengkap','no_hp'];
+  const users   = sheetToObjects(getSheet(CONFIG.SHEET.USERS))
+    .map(u => pickFields(u, USER_FIELDS));
+  const nilaiLog = sheetToObjectsLimited(getSheet(CONFIG.SHEET.NILAI_KBM), 500);
+
+  const result = anggota.map(a => {
+    const profil  = users.find(u => u.id_user === a.id_murid) || {};
+    const riwayat = nilaiLog.filter(n => n.id_murid === a.id_murid && n.id_halaqah === a.id_halaqah);
+
+    // Akumulasi nilai tahsin
+    const nilaiList = riwayat.map(n => _nilaiToNum(n.nilai)).filter(x => x > 0);
+    const avgNilai  = nilaiList.length > 0
+      ? _numToNilai(nilaiList.reduce((s,n) => s+n, 0) / nilaiList.length) : '-';
+
+    // Persentase kehadiran: H=100%, I=50%, T=70%, A=0%
+    // Dari 40 pertemuan (1 level)
+    const totalSesi = riwayat.length;
+    // H=100%, T=70%, I=50%, A=0%
+    const skorHadir = riwayat.reduce((s, n) => {
+      const k = String(n.status_hadir).toUpperCase();
+      if (k === 'H') return s + 1.0;
+      if (k === 'T') return s + 0.7;
+      if (k === 'I') return s + 0.5;
+      return s; // A = 0
+    }, 0);
+    const pctHadir = totalSesi > 0
+      ? Math.round((skorHadir / totalSesi) * 100) : 0;
+
+    // Kehadiran relatif terhadap 40 pertemuan (1 level penuh)
+    const TARGET_PERTEMUAN = 40;
+    const skorDari40 = Math.round((skorHadir / TARGET_PERTEMUAN) * 100);
+
+    return {
+      id_anggota    : a.id_anggota,
+      id_murid      : a.id_murid,
+      nama_murid    : a.nama_murid,
+      level         : a.level || '-',
+      target_level  : a.target_level || '-',
+      total_hadir   : Number(a.total_hadir) || 0,
+      total_sesi    : totalSesi,
+      avg_nilai     : avgNilai,
+      pct_hadir     : pctHadir,       // % dari sesi yang sudah berjalan
+      skor_dari_40  : skorDari40,     // skor akumulasi dari 40 pertemuan
+      skor_hadir_raw: skorHadir,      // angka mentah (untuk raport)
+      catatan_guru  : a.catatan_guru || '',
+    };
+  });
+
+  return { status: 'ok', data: result, total: result.length };
+}
+
+function getKBMByHalaqah(params) {
+  if (!params.id_halaqah) return { status:'error', message:'id_halaqah wajib diisi' };
+
+  const limit    = Number(params.limit)     || 10;
+  const loadMore = Number(params.load_more) || 0;
+  const take     = limit + loadMore;
+
+  // Hanya field yang dipakai frontend
+  const KBM_FIELDS = ['id_kbm','id_halaqah','tanggal_pertemuan','pertemuan_ke',
+    'jenis_sesi','jumlah_hadir','jumlah_alpa','pencapaian_modul',
+    'jam_mulai','jam_selesai','status','catatan_umum',
+    'latihan_mandiri','jenis_latihan','deadline_latihan'];
+
+  const rows = sheetToObjectsLimited(getSheet(CONFIG.SHEET.KBM_LOG), take)
+    .filter(k => k.id_halaqah === params.id_halaqah)
+    .map(k => pickFields(k, KBM_FIELDS));
+
+  const has_more = rows.length >= take;
+  return { status:'ok', data: rows.slice(0, take), has_more, total: rows.length };
+}
+
+function getNilaiByKBM(params) {
+  if (!params.id_kbm) return { status:'error', message:'id_kbm wajib diisi' };
+  const FIELDS = ['id_nilai','id_kbm','id_murid','nama_murid',
+    'jenis_sesi','status_hadir','nilai','adab','koreksi_tahsin','catatan_murid'];
+  const rows = sheetToObjects(getSheet(CONFIG.SHEET.NILAI_KBM))
+    .filter(n => n.id_kbm === params.id_kbm)
+    .map(n => pickFields(n, FIELDS));
+  return { status:'ok', data: rows };
+}
+
+// ─────────────────────────────────────────────
+//  BUKA SESI KBM
+// ─────────────────────────────────────────────
+function bukaKBM(data, user) {
+  if (!data.id_halaqah) return { status: 'error', message: 'id_halaqah wajib diisi' };
+
+  const shKBM  = getSheet(CONFIG.SHEET.KBM_LOG);
+  const kbmAll = sheetToObjects(shKBM);
+
+  // Cek sesi draft yang masih terbuka oleh guru ini
+  const sesiTerbuka = kbmAll.find(k => k.id_guru === user.id_user && k.status === 'draft');
+  if (sesiTerbuka) {
+    return { status: 'error', message: 'Masih ada sesi yang belum ditutup: ' + sesiTerbuka.id_kbm };
+  }
+
+  // Pastikan tanggal tersimpan sebagai string yyyy-MM-dd, bukan Date object
+  let tglInput = String(data.tanggal_pertemuan || '').substring(0, 10);
+  if (!tglInput) tglInput = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+
+  const sesiSebelumnya = kbmAll.filter(k => k.id_halaqah === data.id_halaqah);
+  const pertemuanKe   = data.pertemuan_ke_custom
+    ? Number(data.pertemuan_ke_custom)
+    : sesiSebelumnya.length + 1;
+
+  const newKBM = {
+    id_kbm            : generateId('KBM'),
+    id_halaqah        : data.id_halaqah,
+    id_guru           : user.id_user,
+    nama_guru         : user.nama,
+    tanggal_pertemuan : _safeDate(tglInput),
+    jam_mulai         : data.jam_mulai || '',
+    jam_selesai       : '',
+    pertemuan_ke      : pertemuanKe,
+    jenis_sesi        : data.jenis_sesi || 'KBM Reguler',
+    pencapaian_modul  : '',
+    metode            : '',
+    catatan_umum      : '',
+    jumlah_hadir      : 0,
+    jumlah_alpa       : 0,
+    status            : 'draft',
+    timestamp_dibuat  : nowISO(),
+  };
+
+  appendRow(shKBM, newKBM);
+  writeAuditLog(user.id_user, 'bukaKBM', { id_kbm: newKBM.id_kbm });
+
+  return { status: 'ok', message: 'Sesi KBM berhasil dibuka', data: _cleanRow(newKBM) };
+}
+
+// ─────────────────────────────────────────────
+//  SIMPAN PRESENSI
+// ─────────────────────────────────────────────
+function simpanPresensi(data, user) {
+  if (!data.id_kbm || !data.id_halaqah || !Array.isArray(data.presensi)) {
+    return { status: 'error', message: 'id_kbm, id_halaqah, dan presensi[] wajib diisi' };
+  }
+
+  const shNilai   = getSheet(CONFIG.SHEET.NILAI_KBM);
+  const existing  = sheetToObjects(shNilai);
+
+  // Ambil info KBM untuk nama sheet
+  const kbmInfo = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG))
+    .find(k => k.id_kbm === data.id_kbm) || {};
+
+  // Batch: siapkan semua rows dulu, lalu tulis sekaligus
+  const headers    = shNilai.getRange(1,1,1,shNilai.getLastColumn()).getValues()[0]
+    .map(h => String(h).trim());
+  const newRows    = [];   // rows baru yang belum ada
+  const updateMap  = {};   // id_nilai → status_hadir untuk update
+
+  data.presensi.forEach(item => {
+    const id_nilai = generateId('NLI');
+    const rowData  = {
+      id_nilai      : id_nilai,
+      id_kbm        : data.id_kbm,
+      id_halaqah    : data.id_halaqah,
+      pertemuan_ke  : kbmInfo.pertemuan_ke || '',
+      tanggal       : kbmInfo.tanggal_pertemuan || '',
+      jam_mulai     : kbmInfo.jam_mulai || '',
+      jam_selesai   : kbmInfo.jam_selesai || '',
+      jenis_sesi    : kbmInfo.jenis_sesi || '',
+      id_murid      : item.id_murid,
+      nama_murid    : item.nama_murid || '',
+      status_hadir  : item.status_hadir || 'H',
+      nilai         : '',
+      adab          : '',
+      koreksi_tahsin: '',
+      catatan_murid : '',
+      timestamp     : nowISO(),
+    };
+
+    // Sheet per kelas
+    upsertKBMSheetRow(data.id_halaqah, rowData);
+
+    // Cek apakah sudah ada di Nilai_KBM
+    const lama = existing.find(r => r.id_kbm === data.id_kbm && r.id_murid === item.id_murid);
+    if (lama) {
+      updateMap[lama.id_nilai] = item.status_hadir;
+    } else {
+      newRows.push(headers.map(h => rowData[h] !== undefined ? rowData[h] : ''));
+    }
+  });
+
+  // Batch append semua rows baru sekaligus
+  if (newRows.length > 0) {
+    shNilai.getRange(shNilai.getLastRow()+1, 1, newRows.length, headers.length)
+      .setValues(newRows);
+  }
+
+  // Update status_hadir yang sudah ada
+  if (Object.keys(updateMap).length > 0) {
+    const allData  = shNilai.getDataRange().getValues();
+    const idCol    = allData[0].map(h=>String(h).trim()).indexOf('id_nilai');
+    const statCol  = allData[0].map(h=>String(h).trim()).indexOf('status_hadir');
+    if (idCol >= 0 && statCol >= 0) {
+      allData.forEach((row, i) => {
+        if (i === 0) return;
+        const id = String(row[idCol]);
+        if (updateMap[id]) {
+          shNilai.getRange(i+1, statCol+1).setValue(updateMap[id]);
+        }
+      });
+    }
+  }
+
+  // Update jumlah_hadir di KBM_Log
+  const hadir = data.presensi.filter(p => ['H','T'].includes(p.status_hadir)).length;
+  const alpa  = data.presensi.filter(p => p.status_hadir === 'A').length;
+  updateRowWhere(getSheet(CONFIG.SHEET.KBM_LOG), 'id_kbm', data.id_kbm, {
+    jumlah_hadir: hadir, jumlah_alpa: alpa,
+  });
+
+  // Update total hadir — HANYA untuk KBM Reguler (bukan Kajian/Micro Teaching)
+  const isReguler = (kbmInfo.jenis_sesi || 'KBM Reguler') === 'KBM Reguler';
+  if (isReguler) {
+    _updateTotalHadirHalaqah(data.id_halaqah);
+  }
+
+  writeAuditLog(user.id_user, 'simpanPresensi', { id_kbm: data.id_kbm, total: data.presensi.length });
+  return { status: 'ok', message: 'Presensi berhasil disimpan', jumlah_hadir: hadir };
+}
+
+// ─────────────────────────────────────────────
+//  SIMPAN JURNAL KBM
+// ─────────────────────────────────────────────
+function simpanJurnalKBM(data, user) {
+  if (!data.id_kbm) return { status: 'error', message: 'id_kbm wajib diisi' };
+
+  // Validasi: jurnal hanya untuk KBM Reguler
+  const kbmCheck = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG))
+    .find(k => k.id_kbm === data.id_kbm) || {};
+  const jenisSesi = kbmCheck.jenis_sesi || 'KBM Reguler';
+  if (jenisSesi !== 'KBM Reguler') {
+    return { status: 'error', message: 'Jurnal hanya untuk sesi KBM Reguler' };
+  }
+
+  const shKBM = getSheet(CONFIG.SHEET.KBM_LOG);
+  const updated = updateRowWhere(shKBM, 'id_kbm', data.id_kbm, {
+    pencapaian_modul  : data.pencapaian_modul   || '',
+    metode            : data.metode             || 'campuran',
+    catatan_umum      : data.catatan_umum       || '',
+    jam_selesai       : data.jam_selesai        || '',
+    latihan_mandiri   : data.latihan_mandiri    || '',
+    jenis_latihan     : data.jenis_latihan      || '',
+    deadline_latihan  : data.deadline_latihan   || '',
+  });
+
+  if (!updated) return { status: 'error', message: 'Sesi KBM tidak ditemukan' };
+
+  writeAuditLog(user.id_user, 'simpanJurnal', { id_kbm: data.id_kbm });
+  return { status: 'ok', message: 'Jurnal KBM berhasil disimpan' };
+}
+
+// ─────────────────────────────────────────────
+//  SIMPAN NILAI PER MURID
+// ─────────────────────────────────────────────
+function simpanNilaiMurid(data, user) {
+  if (!data.id_kbm || !data.id_murid) {
+    return { status: 'error', message: 'id_kbm dan id_murid wajib diisi' };
+  }
+
+  // Nilai hanya untuk KBM Reguler
+  const kbmN = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG))
+    .find(k => k.id_kbm === data.id_kbm) || {};
+  if ((kbmN.jenis_sesi || 'KBM Reguler') !== 'KBM Reguler') {
+    return { status: 'error', message: 'Nilai hanya untuk sesi KBM Reguler' };
+  }
+
+  const shNilai  = getSheet(CONFIG.SHEET.NILAI_KBM);
+  const existing = sheetToObjects(shNilai);
+  const lama     = existing.find(r => r.id_kbm === data.id_kbm && r.id_murid === data.id_murid);
+
+  const fields = {
+    nilai         : data.nilai          || '',
+    adab          : data.adab           || '',
+    koreksi_tahsin: data.koreksi_tahsin || '',
+    catatan_murid : data.catatan_murid  || '',
+    timestamp     : nowISO(),
+  };
+
+  if (lama) {
+    updateRowWhere(shNilai, 'id_nilai', lama.id_nilai, fields);
+  } else {
+    appendRow(shNilai, {
+      id_nilai   : generateId('NLI'),
+      id_kbm     : data.id_kbm,
+      id_halaqah : data.id_halaqah || '',
+      id_murid   : data.id_murid,
+      nama_murid : data.nama_murid || '',
+      status_hadir: 'H',
+      ...fields,
+    });
+  }
+
+  // Sync ke sheet per kelas
+  upsertKBMSheetRow(data.id_halaqah, {
+    id_kbm        : data.id_kbm,
+    id_murid      : data.id_murid,
+    nilai         : data.nilai || '',
+    adab          : data.adab || '',
+    koreksi_tahsin: data.koreksi_tahsin || '',
+    catatan_murid : data.catatan_murid || '',
+  });
+
+  writeAuditLog(user.id_user, 'simpanNilai', { id_kbm: data.id_kbm, id_murid: data.id_murid });
+  return { status: 'ok', message: 'Nilai murid berhasil disimpan' };
+}
+
+// ─────────────────────────────────────────────
+//  GET PRESENSI PER SESI (untuk edit)
+// ─────────────────────────────────────────────
+function getPresensiByKBM(params) {
+  if (!params.id_kbm) return { status: 'error', message: 'id_kbm wajib diisi' };
+
+  const kbmLog = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG));
+  const kbm    = kbmLog.find(k => k.id_kbm === params.id_kbm);
+  if (!kbm) return { status: 'error', message: 'Sesi tidak ditemukan' };
+
+  const nilaiLog = sheetToObjects(getSheet(CONFIG.SHEET.NILAI_KBM))
+    .filter(n => n.id_kbm === params.id_kbm);
+
+  return {
+    status : 'ok',
+    data   : nilaiLog,
+    kbm    : _cleanRow(kbm),
+    total  : nilaiLog.length
+  };
+}
+
+// ─────────────────────────────────────────────
+//  EDIT PRESENSI SESI LAMA
+// ─────────────────────────────────────────────
+/**
+ * Guru bisa mengedit presensi sesi yang sudah selesai.
+ * data: {
+ *   id_kbm    : string,
+ *   id_halaqah: string,
+ *   presensi  : [{ id_murid, nama_murid, status_hadir }]
+ * }
+ */
+function editPresensi(data, user) {
+  if (!data.id_kbm || !data.id_halaqah || !Array.isArray(data.presensi)) {
+    return { status: 'error', message: 'id_kbm, id_halaqah, dan presensi[] wajib diisi' };
+  }
+
+  // Verifikasi sesi milik guru ini
+  const kbmLog = sheetToObjects(getSheet(CONFIG.SHEET.KBM_LOG));
+  const kbm    = kbmLog.find(k => k.id_kbm === data.id_kbm);
+  if (!kbm) return { status: 'error', message: 'Sesi tidak ditemukan' };
+  if (kbm.id_guru !== user.id_user) {
+    return { status: 'error', message: 'Anda tidak berhak mengedit sesi ini' };
+  }
+
+  const shNilai  = getSheet(CONFIG.SHEET.NILAI_KBM);
+  const existing = sheetToObjects(shNilai);
+
+  data.presensi.forEach(item => {
+    const lama = existing.find(r => r.id_kbm === data.id_kbm && r.id_murid === item.id_murid);
+    if (lama) {
+      updateRowWhere(shNilai, 'id_nilai', lama.id_nilai, {
+        status_hadir: item.status_hadir
+      });
+    } else {
+      appendRow(shNilai, {
+        id_nilai      : generateId('NLI'),
+        id_kbm        : data.id_kbm,
+        id_halaqah    : data.id_halaqah,
+        id_murid      : item.id_murid,
+        nama_murid    : item.nama_murid || '',
+        status_hadir  : item.status_hadir || 'H',
+        nilai: '', adab: '', koreksi_tahsin: '', catatan_murid: '',
+        timestamp     : nowISO(),
+      });
+    }
+  });
+
+  // Update KBM_Log (termasuk tanggal_pertemuan & pertemuan_ke jika dikirim)
+  const hadir = data.presensi.filter(p => ['H','T'].includes(p.status_hadir)).length;
+  const alpa  = data.presensi.filter(p => p.status_hadir === 'A').length;
+  
+  const updateData = {
+    jumlah_hadir: hadir,
+    jumlah_alpa : alpa,
+  };
+  if (data.tanggal_pertemuan) {
+    updateData.tanggal_pertemuan = _safeDate(data.tanggal_pertemuan);
+  }
+  if (data.pertemuan_ke !== undefined && data.pertemuan_ke !== null && data.pertemuan_ke !== '') {
+    updateData.pertemuan_ke = Number(data.pertemuan_ke);
+  }
+  updateRowWhere(getSheet(CONFIG.SHEET.KBM_LOG), 'id_kbm', data.id_kbm, updateData);
+
+  // Update Nilai_KBM (tanggal & pertemuan_ke)
+  const allNilaiData = shNilai.getDataRange().getValues();
+  const idKbmCol = allNilaiData[0].map(h => String(h).trim()).indexOf('id_kbm');
+  const tglCol = allNilaiData[0].map(h => String(h).trim()).indexOf('tanggal');
+  const pertCol = allNilaiData[0].map(h => String(h).trim()).indexOf('pertemuan_ke');
+  
+  if (idKbmCol >= 0) {
+    allNilaiData.forEach((row, i) => {
+      if (i === 0) return;
+      if (String(row[idKbmCol]) === data.id_kbm) {
+        const updateRow = {};
+        if (tglCol >= 0 && data.tanggal_pertemuan) {
+          updateRow.tanggal = _safeDate(data.tanggal_pertemuan);
+        }
+        if (pertCol >= 0 && data.pertemuan_ke !== undefined && data.pertemuan_ke !== null && data.pertemuan_ke !== '') {
+          updateRow.pertemuan_ke = Number(data.pertemuan_ke);
+        }
+        if (Object.keys(updateRow).length > 0) {
+          updateRowWhere(shNilai, 'id_nilai', String(row[0]), updateRow); // id_nilai = index 0
+        }
+      }
+    });
+  }
+
+  // Recalculate total_hadir semua murid di halaqah ini
+  _updateTotalHadirHalaqah(data.id_halaqah);
+
+  // Sync ke sheet per kelas
+  data.presensi.forEach(item => {
+    const syncData = {
+      id_kbm      : data.id_kbm,
+      id_murid    : item.id_murid,
+      status_hadir: item.status_hadir,
+    };
+    if (data.tanggal_pertemuan) {
+      syncData.tanggal = _safeDate(data.tanggal_pertemuan);
+    }
+    if (data.pertemuan_ke !== undefined && data.pertemuan_ke !== null && data.pertemuan_ke !== '') {
+      syncData.pertemuan_ke = Number(data.pertemuan_ke);
+    }
+    upsertKBMSheetRow(data.id_halaqah, syncData);
+  });
+
+  writeAuditLog(user.id_user, 'editPresensi', { id_kbm: data.id_kbm });
+  return {
+    status  : 'ok',
+    message : 'Presensi berhasil diperbarui',
+    jumlah_hadir: hadir
+  };
+}
+
+
+// ─────────────────────────────────────────────
+//  GURU: TAMBAH MURID KE HALAQAH
+// ─────────────────────────────────────────────
+function addMuridByGuru(data, user) {
+  if (!data.id_halaqah || !data.id_murid)
+    return { status: 'error', message: 'id_halaqah dan id_murid wajib diisi' };
+
+  // Verifikasi halaqah milik guru ini
+  const halaqah = sheetToObjects(getSheet(CONFIG.SHEET.HALAQAH));
+  const hq = halaqah.find(h => h.id_halaqah === data.id_halaqah);
+  if (!hq) return { status: 'error', message: 'Halaqah tidak ditemukan' };
+  if (hq.id_guru !== user.id_user)
+    return { status: 'error', message: 'Anda tidak berhak mengelola halaqah ini' };
+
+  // Cek murid ada di sistem
+  const users = sheetToObjects(getSheet(CONFIG.SHEET.USERS));
+  const murid = users.find(u => u.id_user === data.id_murid && u.role === 'murid');
+  if (!murid) return { status: 'error', message: 'Murid tidak ditemukan di sistem' };
+
+  // Cek sudah terdaftar
+  const anggota = sheetToObjects(getSheet(CONFIG.SHEET.ANGGOTA));
+  const sudahAda = anggota.find(a => a.id_halaqah === data.id_halaqah && a.id_murid === data.id_murid && a.status === 'aktif');
+  if (sudahAda) return { status: 'error', message: 'Murid sudah terdaftar di halaqah ini' };
+
+  const newAnggota = {
+    id_anggota   : generateId('ANG'),
+    id_halaqah   : data.id_halaqah,
+    id_murid     : data.id_murid,
+    nama_murid   : murid.nama_lengkap,
+    tgl_bergabung: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'),
+    level        : data.level || hq.level || 'Level 1',
+    target_level : data.target_level || '',
+    total_hadir  : 0,
+    status       : 'aktif',
+    catatan_guru : '',
+  };
+
+  appendRow(getSheet(CONFIG.SHEET.ANGGOTA), newAnggota);
+  writeAuditLog(user.id_user, 'addMuridByGuru', { id_halaqah: data.id_halaqah, id_murid: data.id_murid });
+  return { status: 'ok', message: murid.nama_lengkap + ' berhasil ditambahkan ke halaqah', data: newAnggota };
+}
+
+// ─────────────────────────────────────────────
+//  GURU: KIRIM PENGUMUMAN
+// ─────────────────────────────────────────────
+function kirimPengumumanGuru(data, user) {
+  if (!data.judul || !data.isi)
+    return { status: 'error', message: 'Judul dan isi pengumuman wajib diisi' };
+
+  const pengumuman = {
+    id_pengumuman : generateId('PNG'),
+    judul         : data.judul,
+    isi           : data.isi,
+    target        : data.target || 'semua',   // semua / id_halaqah
+    id_halaqah    : data.id_halaqah || '',
+    dibuat_oleh   : user.id_user,
+    nama_pembuat  : user.nama,
+    tanggal       : Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'),
+    status        : 'aktif',
+  };
+
+  appendRow(getSheet(CONFIG.SHEET.PENGUMUMAN), pengumuman);
+  writeAuditLog(user.id_user, 'kirimPengumuman', { id: pengumuman.id_pengumuman });
+  return { status: 'ok', message: 'Pengumuman berhasil dikirim', data: pengumuman };
+}
+
+// ─────────────────────────────────────────────
+//  GURU: GET MURID YANG BELUM DI HALAQAH (untuk tambah)
+// ─────────────────────────────────────────────
+function getMuridBelumDiHalaqah(params, user) {
+  if (!params.id_halaqah) return { status: 'error', message: 'id_halaqah wajib diisi' };
+
+  const anggota  = sheetToObjects(getSheet(CONFIG.SHEET.ANGGOTA))
+    .filter(a => a.id_halaqah === params.id_halaqah && a.status === 'aktif')
+    .map(a => a.id_murid);
+
+  const users = sheetToObjects(getSheet(CONFIG.SHEET.USERS))
+    .filter(u => u.role === 'murid' && u.status === 'aktif' && !anggota.includes(u.id_user));
+
+  return { status: 'ok', data: users.map(u => ({ id_murid: u.id_user, nama_murid: u.nama_lengkap })), total: users.length };
+}
+
+// ─────────────────────────────────────────────
+//  TUTUP SESI KBM
+// ─────────────────────────────────────────────
+function tutupKBM(data, user) {
+  if (!data.id_kbm) return { status: 'error', message: 'id_kbm wajib diisi' };
+
+  const shKBM    = getSheet(CONFIG.SHEET.KBM_LOG);
+  const shNilai  = getSheet(CONFIG.SHEET.NILAI_KBM);
+  const nilaiLog = sheetToObjects(shNilai)
+    .filter(n => n.id_kbm === data.id_kbm);
+
+  const totalPresensi = nilaiLog.length;
+
+  // Jika total presensi == 0 (sesi kosong), batalkan/hapus otomatis dari log KBM
+  if (totalPresensi === 0) {
+    deleteRowsWhere(shKBM, 'id_kbm', data.id_kbm);
+    writeAuditLog(user.id_user, 'hapusKBM_Kosong', { id_kbm: data.id_kbm });
+    return {
+      status : 'empty_cancelled',
+      message: 'Sesi dibatalkan secara otomatis karena tidak ada absensi murid yang disimpan.'
+    };
+  }
+
+  const jumlahHadir = nilaiLog.filter(n => ['H','T'].includes(n.status_hadir)).length;
+  const jumlahAlpa  = nilaiLog.filter(n => n.status_hadir === 'A').length;
+
+  const jamSelesai = Utilities.formatDate(new Date(), TZ, 'HH:mm');
+
+  const updated = updateRowWhere(shKBM, 'id_kbm', data.id_kbm, {
+    status      : 'selesai',
+    jam_selesai : jamSelesai,
+    jumlah_hadir: jumlahHadir,
+    jumlah_alpa : jumlahAlpa,
+  });
+
+  if (!updated) return { status: 'error', message: 'Sesi KBM tidak ditemukan' };
+
+  // Update jam_selesai di sheet kelas individual
+  try {
+    const kbm = sheetToObjects(shKBM).find(k => k.id_kbm === data.id_kbm);
+    if (kbm) {
+      const namaHalaqah = _getNamaHalaqah(kbm.id_halaqah);
+      const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+      const namaPerKelas = _namaSheetKBM(namaHalaqah);
+      const sheetPerKelas = ss.getSheetByName(namaPerKelas);
+      if (sheetPerKelas) {
+        const dataKelas = sheetPerKelas.getDataRange().getValues();
+        const headersKelas = dataKelas[0].map(h => String(h).trim());
+        const idKbmCol = headersKelas.indexOf('id_kbm');
+        const jamSelesaiCol = headersKelas.indexOf('jam_selesai');
+        if (idKbmCol >= 0 && jamSelesaiCol >= 0) {
+          for (let i = 1; i < dataKelas.length; i++) {
+            if (String(dataKelas[i][idKbmCol]) === data.id_kbm) {
+              sheetPerKelas.getRange(i + 1, jamSelesaiCol + 1).setValue(jamSelesai);
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Abaikan jika error
+  }
+
+  writeAuditLog(user.id_user, 'tutupKBM', { id_kbm: data.id_kbm });
+  return {
+    status : 'ok',
+    message: 'Sesi KBM berhasil ditutup. Jazakallah khairan atas dedikasi mengajar hari ini! 🌟',
+    data   : { id_kbm: data.id_kbm, jumlah_hadir: jumlahHadir, jumlah_alpa: jumlahAlpa }
+  };
+}
+
+// ─────────────────────────────────────────────
+//  UPDATE CATATAN MURID
+// ─────────────────────────────────────────────
+function updateCatatanMurid(data, user) {
+  if (!data.id_anggota) return { status: 'error', message: 'id_anggota wajib diisi' };
+  const sheet   = getSheet(CONFIG.SHEET.ANGGOTA);
+  const updated = updateRowWhere(sheet, 'id_anggota', data.id_anggota, {
+    catatan_guru: data.catatan_guru || '',
+  });
+  if (!updated) return { status: 'error', message: 'Data anggota tidak ditemukan' };
+  writeAuditLog(user.id_user, 'updateCatatan', { id_anggota: data.id_anggota });
+  return { status: 'ok', message: 'Catatan murid berhasil diperbarui' };
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS PRIVATE
+// ─────────────────────────────────────────────
+function _updateTotalHadir(idMurid, idHalaqah) {
+  if (!idMurid || !idHalaqah) return;
+  const nilaiLog   = readKBMSheet(idHalaqah);
+  const totalHadir = nilaiLog.filter(n =>
+    n.id_murid === idMurid &&
+    ['H','T'].includes(n.status_hadir) &&
+    (n.jenis_sesi === 'KBM Reguler' || !n.jenis_sesi)
+  ).length;
+  const shAnggota = getSheet(CONFIG.SHEET.ANGGOTA);
+  const record    = sheetToObjects(shAnggota).find(a =>
+    a.id_murid === idMurid && a.id_halaqah === idHalaqah && a.status === 'aktif'
+  );
+  if (record) updateRowWhere(shAnggota, 'id_anggota', record.id_anggota, { total_hadir: totalHadir });
+}
+
+function _updateTotalHadirHalaqah(idHalaqah) {
+  if (!idHalaqah) return;
+  const nilaiLog = readKBMSheet(idHalaqah);
+  const shAnggota = getSheet(CONFIG.SHEET.ANGGOTA);
+  const anggotaRows = shAnggota.getDataRange().getValues();
+  const headers = anggotaRows[0].map(h => String(h).trim());
+  const idMuridCol = headers.indexOf('id_murid');
+  const idHalaqahCol = headers.indexOf('id_halaqah');
+  const statusCol = headers.indexOf('status');
+  const totalHadirCol = headers.indexOf('total_hadir');
+  
+  if (idMuridCol < 0 || idHalaqahCol < 0 || totalHadirCol < 0) return;
+  
+  for (let i = 1; i < anggotaRows.length; i++) {
+    const row = anggotaRows[i];
+    if (String(row[idHalaqahCol]) === idHalaqah && String(row[statusCol] || 'aktif') === 'aktif') {
+      const idMurid = String(row[idMuridCol]);
+      const totalHadir = nilaiLog.filter(n =>
+        n.id_murid === idMurid &&
+        ['H','T'].includes(n.status_hadir) &&
+        (n.jenis_sesi === 'KBM Reguler' || !n.jenis_sesi)
+      ).length;
+      shAnggota.getRange(i + 1, totalHadirCol + 1).setValue(totalHadir);
+    }
+  }
+}
+
+// Konversi nilai ke string aman (hindari auto-parse Date oleh Sheets)
+function _safeDate(val) {
+  if (!val) return '';
+  const s = String(val);
+  return s.length >= 10 ? s.substring(0, 10) : s;
+}
+
+// Konversi jam — handle angka desimal Sheets (0.5 = 12:00) maupun string
+function _formatJam(val) {
+  if (!val && val !== 0) return '';
+  // Jika angka desimal (dari Sheets time cell)
+  if (typeof val === 'number') {
+    const totalMin = Math.round(val * 24 * 60);
+    const h = Math.floor(totalMin / 60) % 24;
+    const m = totalMin % 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+  // Jika Date object (1899-12-30...)
+  if (val instanceof Date) {
+    const h = val.getHours();
+    const m = val.getMinutes();
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+  // Jika string — bersihkan dari ISO
+  const s = String(val);
+  if (s.includes('T')) {
+    // ISO string: ambil jam dari UTC
+    const d = new Date(s);
+    if (!isNaN(d)) {
+      const h = d.getUTCHours();
+      const m = d.getUTCMinutes();
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+  }
+  // Sudah format HH:mm
+  if (/^\d{1,2}:\d{2}/.test(s)) return s.substring(0,5);
+  return s;
+}
+
+// Bersihkan seluruh object dari nilai waktu yang corrupt
+function _cleanRow(row) {
+  const timeFields = ['jam_mulai','jam_selesai'];
+  const dateFields = ['tanggal_pertemuan','tgl_bergabung','tgl_daftar','tgl_dibuat','timestamp','timestamp_dibuat'];
+  const obj = Object.assign({}, row);
+  timeFields.forEach(f => { if (f in obj) obj[f] = _formatJam(obj[f]); });
+  dateFields.forEach(f => { if (f in obj) obj[f] = _safeDate(String(obj[f]||'').substring(0,10)); });
+  return obj;
+}
+
+function _nilaiToNum(nilai) {
+  const map = { 'Mumtaz':4, 'Jayyid Jiddan':3, 'Jayyid':2, 'Maqbul':1 };
+  return map[nilai] || 0;
+}
+
+function _numToNilai(num) {
+  if (num >= 3.5) return 'Mumtaz';
+  if (num >= 2.5) return 'Jayyid Jiddan';
+  if (num >= 1.5) return 'Jayyid';
+  return 'Maqbul';
+}
+
+/**
+ * Menghapus sesi KBM beserta nilai murid dan data di sheet per kelas.
+ * data: { id_kbm: string }
+ */
+function hapusKBM(data, user) {
+  if (!data.id_kbm) return { status: 'error', message: 'id_kbm wajib diisi' };
+
+  // 1. Verifikasi KBM & kepemilikan guru
+  const shKBM = getSheet(CONFIG.SHEET.KBM_LOG);
+  const kbmLog = sheetToObjects(shKBM);
+  const kbm = kbmLog.find(k => k.id_kbm === data.id_kbm);
+  if (!kbm) return { status: 'error', message: 'Sesi tidak ditemukan' };
+  
+  if (kbm.id_guru !== user.id_user) {
+    return { status: 'error', message: 'Anda tidak berhak menghapus sesi ini' };
+  }
+
+  const id_halaqah = kbm.id_halaqah;
+
+  // 2. Ambil semua murid yang nilainya ada di KBM ini untuk re-kalkulasi kehadiran nanti
+  const shNilai = getSheet(CONFIG.SHEET.NILAI_KBM);
+  const nilaiList = sheetToObjects(shNilai).filter(n => n.id_kbm === data.id_kbm);
+  const muridIds = nilaiList.map(n => n.id_murid);
+
+  // 3. Hapus dari KBM_LOG
+  deleteRowsWhere(shKBM, 'id_kbm', data.id_kbm);
+
+  // 4. Hapus dari NILAI_KBM
+  deleteRowsWhere(shNilai, 'id_kbm', data.id_kbm);
+
+  // 5. Hapus dari Sheet per kelas (jika ada sheet per kelas)
+  try {
+    const namaHalaqah = _getNamaHalaqah(id_halaqah);
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const namaPerKelas = _namaSheetKBM(namaHalaqah);
+    const sheetPerKelas = ss.getSheetByName(namaPerKelas);
+    if (sheetPerKelas) {
+      deleteRowsWhere(sheetPerKelas, 'id_kbm', data.id_kbm);
+    }
+  } catch (e) {
+    // Abaikan jika sheet kelas tidak ada/error
+  }
+
+  // 6. Recalculate total_hadir semua murid yang terlibat di halaqah ini
+  try {
+    _updateTotalHadirHalaqah(id_halaqah);
+  } catch (e) {
+    // Abaikan jika error
+  }
+
+  writeAuditLog(user.id_user, 'hapusKBM', { id_kbm: data.id_kbm });
+  return { status: 'ok', message: 'Sesi KBM berhasil dihapus' };
+}
