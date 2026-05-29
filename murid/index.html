@@ -648,6 +648,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <!-- ════ DASHBOARD ════ -->
     <div class="page active" id="page-dashboard">
 
+      <!-- Keaktifan Alert Box -->
+      <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;"></div>
+
       <!-- Progress Level -->
       <div class="progress-card">
         <div class="prog-level-row">
@@ -1131,9 +1134,49 @@ async function loadDashboard() {
 
     // Load SPP secara async — tidak blokir dashboard
     loadSPP();
+    // Load keaktifan alerts secara async
+    loadKeaktifanAlertsMurid();
 
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { hideLoad(); }
+}
+
+async function loadKeaktifanAlertsMurid() {
+  try {
+    var r = await window.HQ.MuridAPI.getKeaktifanAlerts();
+    var container = document.getElementById('keaktifanAlertBox');
+    if (!container) return;
+
+    if (r.status === 'ok' && r.data && r.data.alerts && r.data.alerts.length > 0) {
+      var html = '';
+      r.data.alerts.forEach(function(alert) {
+        var isKritis = alert.tipe === 'absen_kritis';
+        var bg = isKritis ? 'var(--red-l)' : 'var(--amber-l)';
+        var border = isKritis ? 'var(--red)' : 'var(--amber)';
+        var iconColor = isKritis ? 'var(--red)' : '#d97706';
+        var icon = '⚠️';
+        var borderTopColor = isKritis ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.2)';
+
+        html += '<div style="background:' + bg + '; border:1.5px solid ' + border + '; border-radius:var(--r-sm); padding:16px; margin-bottom:12px; display:flex; gap:12px; align-items:flex-start; box-shadow:var(--shadow-card);">'
+          + '<div style="font-size:24px; line-height:1; color:' + iconColor + ';">' + icon + '</div>'
+          + '<div style="flex:1; text-align:left;">'
+          + '<div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:4px;">' + esc(alert.judul) + '</div>'
+          + '<div style="font-size:13px; color:var(--text-2); margin-bottom:8px; line-height:1.5;">' + esc(alert.pesan) + '</div>'
+          + '<div style="font-size:11px; font-weight:700; color:var(--text-3); display:flex; align-items:center; gap:4px; padding-top:6px; border-top:1px solid ' + borderTopColor + ';">'
+          + '<span>📊</span> <span>' + esc(alert.detail) + '</span>'
+          + '</div>'
+          + '</div>'
+          + '</div>';
+      });
+      container.innerHTML = html;
+      container.style.display = 'block';
+    } else {
+      container.style.display = 'none';
+      container.innerHTML = '';
+    }
+  } catch (e) {
+    console.error('Gagal memuat alert keaktifan:', e);
+  }
 }
 
 // ══════════════════════════════════════════

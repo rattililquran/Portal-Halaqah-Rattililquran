@@ -1007,6 +1007,7 @@ tr:hover td{background:#f8fafc}
       <div class="sb-section">Menu</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
+      <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni">🚨</span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
@@ -1359,6 +1360,46 @@ tr:hover td{background:#f8fafc}
             </div>
             <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim Pengumuman</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ════ KEAKTIFAN MURID ════ -->
+      <div class="page" id="page-keaktifan">
+        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Keaktifan Murid (Evaluasi 40 Sesi Terakhir)</div>
+        
+        <!-- Summary cards -->
+        <div class="keaktifan-summary-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
+          <div class="card" style="border-left: 5px solid var(--red); padding:16px; border-radius:12px; background:#fff; box-shadow: var(--shadow); display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:12px; color:var(--text-3); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Murid Kritis 🔴</div>
+            <div style="font-size:32px; font-weight:800; color:var(--red); line-height:1.2; margin-top:4px;" id="countKritis">0</div>
+          </div>
+          <div class="card" style="border-left: 5px solid var(--amber); padding:16px; border-radius:12px; background:#fff; box-shadow: var(--shadow); display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:12px; color:var(--amber-txt); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Peringatan 🟡</div>
+            <div style="font-size:32px; font-weight:800; color:var(--amber); line-height:1.2; margin-top:4px;" id="countPeringatan">0</div>
+          </div>
+          <div class="card" style="border-left: 5px solid var(--green); padding:16px; border-radius:12px; background:#fff; box-shadow: var(--shadow); display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:12px; color:var(--green); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Aktif Normal 🟢</div>
+            <div style="font-size:32px; font-weight:800; color:var(--green); line-height:1.2; margin-top:4px;" id="countNormal">0</div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <input type="text" class="fc" id="searchKeaktifanMurid" placeholder="🔍 Cari nama murid..." oninput="filterKeaktifanCards()" style="max-width:250px;">
+          <select class="fc" id="filterKeaktifanStatus" onchange="filterKeaktifanCards()" style="max-width:200px;">
+            <option value="">— Semua Status —</option>
+            <option value="kritis">🔴 Status Kritis</option>
+            <option value="peringatan">🟡 Status Peringatan</option>
+            <option value="normal">🟢 Status Normal</option>
+          </select>
+          <select class="fc" id="filterKeaktifanHalaqah" onchange="filterKeaktifanCards()" style="max-width:220px;">
+            <option value="">— Semua Halaqah —</option>
+          </select>
+        </div>
+
+        <!-- Grid Cards -->
+        <div class="keaktifan-grid" id="keaktifanGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+          <!-- Murid keaktifan cards will be appended here -->
         </div>
       </div>
 
@@ -1951,7 +1992,8 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'nilai-murid':'Nilai — Step 3/4',
   jurnal:'Jurnal — Step 4/4',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
-  'nilai-manual':'Input Nilai Manual',password:'Ganti Password'};
+  'nilai-manual':'Input Nilai Manual',password:'Ganti Password',
+  keaktifan:'Keaktifan Murid'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1970,6 +2012,7 @@ function goPage(name) {
   }
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
+  if (name === 'keaktifan')  loadKeaktifanPage();
   if (name === 'nilai-manual') {
     // Load setup and period dropdowns
     loadNilaiSetup();
@@ -4050,6 +4093,246 @@ async function mulaiSesiBaruCepat() {
     window._mulaiSesiBaruCepatHalaqah = buatSesiInstan;
     openModal('modalPilihHalaqahSesi');
   }
+}
+
+// ══════════════════════════════════════════
+//  KEAKTIFAN MURID
+// ══════════════════════════════════════════
+var _keaktifanData = null;
+
+async function loadKeaktifanPage() {
+  showLoad('Bismillah, memuat data keaktifan...');
+  try {
+    var r = await window.HQ.GuruAPI.getKeaktifanAlerts();
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal memuat data');
+    _keaktifanData = r.data;
+    
+    // Populate halaqah filter dropdown
+    var sel = document.getElementById('filterKeaktifanHalaqah');
+    if (sel) {
+      sel.innerHTML = '<option value="">— Semua Halaqah —</option>';
+      var uniqHalaqahs = {};
+      _keaktifanData.alerts.forEach(function(item) {
+        if (item.id_halaqah && !uniqHalaqahs[item.id_halaqah]) {
+          uniqHalaqahs[item.id_halaqah] = item.nama_halaqah;
+          var opt = document.createElement('option');
+          opt.value = item.id_halaqah;
+          opt.textContent = item.nama_halaqah;
+          sel.appendChild(opt);
+        }
+      });
+    }
+
+    renderKeaktifanPage();
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function renderKeaktifanPage() {
+  if (!_keaktifanData) return;
+  document.getElementById('countKritis').textContent = _keaktifanData.summary.kritis;
+  document.getElementById('countPeringatan').textContent = _keaktifanData.summary.peringatan;
+  document.getElementById('countNormal').textContent = _keaktifanData.summary.normal;
+
+  filterKeaktifanCards();
+}
+
+function filterKeaktifanCards() {
+  if (!_keaktifanData) return;
+  var q = document.getElementById('searchKeaktifanMurid').value.toLowerCase().trim();
+  var st = document.getElementById('filterKeaktifanStatus').value;
+  var hl = document.getElementById('filterKeaktifanHalaqah').value;
+
+  var grid = document.getElementById('keaktifanGrid');
+  grid.innerHTML = '';
+
+  var filtered = _keaktifanData.alerts.filter(function(item) {
+    if (q && item.nama_murid.toLowerCase().indexOf(q) === -1) return false;
+    if (st && item.status !== st) return false;
+    if (hl && item.id_halaqah !== hl) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-3); font-weight:600;">Tidak ada data murid yang cocok.</div>';
+    return;
+  }
+
+  filtered.forEach(function(m) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    
+    var borderColor = 'var(--green)';
+    var statusLabel = 'Normal 🟢';
+    if (m.status === 'kritis') {
+      borderColor = 'var(--red)';
+      statusLabel = 'Kritis 🔴';
+    } else if (m.status === 'peringatan') {
+      borderColor = 'var(--amber)';
+      statusLabel = 'Peringatan 🟡';
+    }
+
+    card.style = 'border-radius:16px; background:#card; padding:18px; box-shadow:var(--shadow); border-left: 6px solid ' + borderColor + '; display:flex; flex-direction:column; gap:12px; transition: transform .2s, box-shadow .2s; position:relative; background:#fff;';
+
+    var cardHead = '<div style="display:flex; justify-content:space-between; align-items:flex-start;">'
+      + '<div>'
+      + '<div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:2px;">' + esc(m.nama_murid) + '</div>'
+      + '<div style="font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.04em;">' + esc(m.nama_halaqah) + ' • Level ' + esc(m.level) + '</div>'
+      + '</div>'
+      + '<span class="badge" style="font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; background:' + (m.status === 'kritis' ? 'var(--red-l)' : m.status === 'peringatan' ? 'var(--amber-l)' : 'var(--green-l)') + '; color:' + (m.status === 'kritis' ? 'var(--red)' : m.status === 'peringatan' ? 'var(--amber-txt)' : 'var(--green)') + ';">' + statusLabel + '</span>'
+      + '</div>';
+
+    var metricItems = '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; background:var(--bg); padding:10px; border-radius:10px; text-align:center; font-size:12px;">'
+      + '<div><div style="color:var(--text-3); font-weight:600;">Absen</div><div style="font-size:16px; font-weight:800; color:' + (m.metrics.absen > 0 ? 'var(--red)' : 'var(--text)') + '">' + m.metrics.absen + '</div></div>'
+      + '<div><div style="color:var(--text-3); font-weight:600;">Terlambat</div><div style="font-size:16px; font-weight:800; color:' + (m.metrics.terlambat >= 2 ? 'var(--amber)' : 'var(--text)') + '">' + m.metrics.terlambat + '</div></div>'
+      + '<div><div style="color:var(--text-3); font-weight:600;">Kamera</div><div style="font-size:16px; font-weight:800; color:' + (m.metrics.kamera_tertutup >= 2 ? 'var(--amber)' : 'var(--text)') + '">' + m.metrics.kamera_tertutup + '</div></div>'
+      + '</div>';
+
+    var dots = (m.riwayat || []).map(function(s) {
+      var color = '#10b981';
+      var title = s.tanggal + ': Hadir';
+      if (s.warna === 'merah') {
+        color = '#ef4444';
+        title = s.tanggal + ': Absen/Alpa';
+      } else if (s.warna === 'kuning') {
+        color = '#f59e0b';
+        title = s.tanggal + ': Terlambat';
+      } else if (s.warna === 'coklat') {
+        color = '#b45309';
+        title = s.tanggal + ': Kamera Tertutup';
+      }
+      return '<span style="width:10px; height:10px; border-radius:50%; background:' + color + '; display:inline-block; margin:0 3px; cursor:pointer;" title="' + title + '"></span>';
+    }).join('');
+
+    var historyDiv = '<div style="margin:4px 0;">'
+      + '<div style="font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Riwayat Kehadiran (Terbaru → Kanan)</div>'
+      + '<div style="display:flex; flex-wrap:wrap; align-items:center; min-height:16px;">' + (dots || '<span style="color:var(--text-3); font-style:italic; font-size:12px;">Belum ada sesi</span>') + '</div>'
+      + '</div>';
+
+    var flagsHTML = '';
+    if (m.flags && m.flags.length > 0) {
+      flagsHTML += '<div style="display:flex; flex-direction:column; gap:6px; margin:4px 0;">';
+      m.flags.forEach(function(f) {
+        var flagColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber)';
+        var btnColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber-txt)';
+        var btnBg = f.tipe === 'absen' ? 'var(--red-l)' : 'var(--amber-l)';
+
+        flagsHTML += '<div style="display:flex; justify-content:space-between; align-items:center; background:' + btnBg + '; padding:6px 12px; border-radius:8px; border: 1px solid rgba(0,0,0,0.03);">'
+          + '<span style="font-size:12px; font-weight:700; color:' + btnColor + ';">⚠️ ' + esc(f.label) + ' <small>(' + f.detail + ')</small></span>'
+          + '<button onclick="doMarkContacted(\'' + m.id_murid + '\', \'' + f.tipe + '\', ' + f.count + ')" style="background:var(--blue); color:#fff; border:none; border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:2px; transition:opacity .15s;">'
+          + '✓ Sudah Dihubungi'
+          + '</button>'
+          + '</div>';
+      });
+      flagsHTML += '</div>';
+    } else if (m.status !== 'normal') {
+      flagsHTML += '<div style="background:var(--green-l); color:var(--green); padding:8px 12px; border-radius:8px; font-size:12px; font-weight:700; text-align:center; margin:4px 0;">'
+        + '✅ Tindak lanjut teratasi (Sudah Dihubungi)'
+        + '</div>';
+    }
+
+    var actionsHTML = '<div style="display:flex; gap:8px; margin-top:auto; padding-top:6px; border-top:1px solid var(--border);">'
+      + '<button class="btn btn-outline" onclick="showKeaktifanDetailModal(' + _keaktifanData.alerts.indexOf(m) + ')" style="flex:1; justify-content:center; padding:8px; font-size:12px; font-weight:700; cursor:pointer; border-radius:8px; gap:4px; display:flex; align-items:center;">'
+      + '📜 Detail Riwayat'
+      + '</button>'
+      + '</div>';
+
+    card.innerHTML = cardHead + metricItems + historyDiv + flagsHTML + actionsHTML;
+    grid.appendChild(card);
+  });
+}
+
+async function doMarkContacted(idMurid, tipeAlert, value) {
+  if (!confirm('Tandai bahwa murid ini sudah dihubungi terkait alert ' + tipeAlert + ' dengan ' + value + ' kejadian?')) {
+    return;
+  }
+  showLoad('Menyimpan followup...');
+  try {
+    var r = await window.HQ.GuruAPI.simpanFollowupKeaktifan({
+      id_murid: idMurid,
+      id_periode: _keaktifanData.id_periode,
+      tipe_alert: tipeAlert,
+      value: value
+    });
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menyimpan');
+    toast('Berhasil diperbarui!', 'ok');
+    await loadKeaktifanPage();
+  } catch(e) {
+    toast(e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function showKeaktifanDetailModal(idx) {
+  var m = _keaktifanData.alerts[idx];
+  if (!m) return;
+  
+  var modalId = 'modalDetailKeaktifan';
+  var modalEl = document.getElementById(modalId);
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = modalId;
+    modalEl.className = 'overlay';
+    document.body.appendChild(modalEl);
+  }
+
+  var riwayatRows = (m.riwayat || []).map(function(s, i) {
+    var statusText = 'Hadir';
+    var statusStyle = 'color:var(--green); font-weight:700;';
+    if (s.status_hadir === 'A') {
+      statusText = 'Absen/Alpa';
+      statusStyle = 'color:var(--red); font-weight:700;';
+    } else if (s.status_hadir === 'T') {
+      statusText = 'Terlambat';
+      statusStyle = 'color:var(--amber); font-weight:700;';
+    }
+    
+    var cameraText = s.kamera_murid || 'kamera terbuka';
+    var cameraStyle = 'color:var(--green);';
+    if (cameraText.indexOf('tertutup') !== -1) {
+      cameraStyle = 'color:#b45309; font-weight:600;';
+    }
+
+    return '<tr>'
+      + '<td style="padding:10px; border-bottom:1px solid var(--border); text-align:center;">' + (i + 1) + '</td>'
+      + '<td style="padding:10px; border-bottom:1px solid var(--border); text-align:center; font-weight:600;">' + s.tanggal + '</td>'
+      + '<td style="padding:10px; border-bottom:1px solid var(--border); ' + statusStyle + '">' + statusText + '</td>'
+      + '<td style="padding:10px; border-bottom:1px solid var(--border); ' + cameraStyle + '">' + cameraText + '</td>'
+      + '</tr>';
+  }).join('');
+
+  if (!riwayatRows) {
+    riwayatRows = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-3);">Belum ada riwayat sesi tercatat.</td></tr>';
+  }
+
+  modalEl.innerHTML = '<div class="modal" style="max-width:600px; width:95%;">'
+    + '<div class="modal-head">'
+    + '<div class="modal-title">Riwayat Sesi ' + esc(m.nama_murid) + '</div>'
+    + '<button class="modal-x" onclick="closeModal(\'' + modalId + '\')">×</button>'
+    + '</div>'
+    + '<div class="modal-body" style="padding:16px; max-height:70vh; overflow-y:auto;">'
+    + '<div style="margin-bottom:14px; font-size:13px; color:var(--text-2);">'
+    + 'Halaqah: <strong>' + esc(m.nama_halaqah) + '</strong> | Level: <strong>' + esc(m.level) + '</strong>'
+    + '</div>'
+    + '<table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">'
+    + '<thead>'
+    + '<tr style="background:var(--bg);">'
+    + '<th style="padding:10px; border-bottom:2px solid var(--border); text-align:center; width:10%;">No</th>'
+    + '<th style="padding:10px; border-bottom:2px solid var(--border); text-align:center; width:30%;">Tanggal</th>'
+    + '<th style="padding:10px; border-bottom:2px solid var(--border); width:30%;">Kehadiran</th>'
+    + '<th style="padding:10px; border-bottom:2px solid var(--border); width:30%;">Kamera</th>'
+    + '</tr>'
+    + '</thead>'
+    + '<tbody>' + riwayatRows + '</tbody>'
+    + '</table>'
+    + '</div>'
+    + '</div>';
+
+  openModal(modalId);
 }
 
 if ('serviceWorker' in navigator)

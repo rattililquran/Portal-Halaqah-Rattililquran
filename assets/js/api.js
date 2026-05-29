@@ -244,6 +244,8 @@ var GuruAPI = {
   getNilaiManual        : function(id_p)          { return apiGet('getNilaiManual', { id_periode:id_p }); },
   saveNilaiManual       : function(d)             { return apiPost('saveNilaiManual', d); },
   saveNilaiManualBatch  : function(d)             { return apiPost('saveNilaiManualBatch', d); },
+  getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlerts'); },
+  simpanFollowupKeaktifan: function(d)             { return apiPost('simpanFollowupKeaktifan', d); },
 };
 
 // ─── MURID API ────────────────────────────────────
@@ -262,6 +264,7 @@ var MuridAPI = {
   getSPPStatus      : function()             { return apiGet('getSPPStatus'); },
   changePassword    : function(d)            { return apiPost('changePasswordMurid', d); },
   getKonfigurasiRaport: function()           { return apiGet('getKonfigurasiRaport'); },
+  getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlertsMurid'); },
 };
 
 // ─── EKSPOS GLOBAL ────────────────────────────────
