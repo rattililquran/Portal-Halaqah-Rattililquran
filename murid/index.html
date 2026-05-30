@@ -175,35 +175,75 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── CONTENT ── */
 .content{padding:14px 16px 80px;margin-top:0;position:relative;z-index:2}
 
-/* ── PROGRESS CARD ── */
+/* ── PROGRESS CARD — KhatamKu blue gradient style ── */
 .progress-card{
-  background:rgba(255,255,255,0.7);
-  backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
-  border-radius:24px;padding:20px 22px;
-  box-shadow:var(--shadow-card);
-  border:1px solid rgba(255,255,255,0.9);
-  margin-bottom:16px;cursor:pointer;
+  background:linear-gradient(135deg,#0ea5e9 0%,#2563eb 100%);
+  border-radius:24px;padding:20px 20px 0;
+  box-shadow:0 10px 30px rgba(14,165,233,.35);
+  border:1px solid rgba(255,255,255,.2);
+  margin-bottom:16px;cursor:pointer;overflow:hidden;
+  position:relative;
   transition:transform .3s ease,box-shadow .3s ease;
 }
-.progress-card:hover{transform:translateY(-2px);box-shadow:0 15px 40px rgba(14,165,233,.2)}
-.progress-card:active{transform:scale(.98)}
-.prog-level-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.level-badge{
-  background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;
-  padding:6px 18px;border-radius:100px;font-size:12.5px;font-weight:800;
-  box-shadow:0 4px 12px rgba(14,165,233,.3);
+.progress-card::before{
+  content:'';position:absolute;top:-50px;right:-50px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.08);pointer-events:none;
 }
-.level-target{font-size:12px;color:var(--text-3);font-weight:600;
-  display:inline-flex;align-items:center;gap:4px}
-.prog-bar-wrap{background:#e2e8f0;border-radius:100px;height:10px;overflow:hidden;margin-bottom:10px}
+.progress-card::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:110px;height:110px;border-radius:50%;
+  background:rgba(0,0,0,.06);pointer-events:none;
+}
+.progress-card:active{transform:scale(.98)}
+/* judul atas */
+.prog-title{font-size:10px;font-weight:800;color:rgba(255,255,255,.7);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;position:relative;z-index:1}
+/* baris level: chip level sekarang + chip level target */
+.prog-level-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;position:relative;z-index:1}
+.level-badge{
+  background:rgba(255,255,255,.25);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;padding:6px 16px;border-radius:100px;font-size:13px;font-weight:800;
+  border:1.5px solid rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
+}
+.level-arrow{color:rgba(255,255,255,.6);font-size:14px;font-weight:700}
+.level-target-chip{
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:rgba(255,255,255,.85);padding:6px 16px;border-radius:100px;
+  font-size:13px;font-weight:700;
+  border:1.5px solid rgba(255,255,255,.25);
+}
+/* kartu putih dalam */
+.prog-inner-card{
+  background:#fff;border-radius:18px 18px 0 0;
+  padding:16px 16px 18px;margin-top:4px;
+  position:relative;z-index:1;
+}
+.prog-inner-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.prog-book-ico{
+  width:44px;height:44px;background:rgba(14,165,233,.08);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.prog-bar-wrap{
+  background:#e2e8f0;border-radius:100px;height:8px;overflow:hidden;
+  margin:6px 0 0;box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
+}
 .prog-bar-fill{
   height:100%;border-radius:100px;
-  background:linear-gradient(90deg,var(--blue),#38bdf8);
-  transition:width .7s cubic-bezier(0.4,0,0.2,1);
+  background:linear-gradient(90deg,#f59e0b,#f97316);
+  transition:width .8s cubic-bezier(0.4,0,0.2,1);
 }
-.prog-meta{display:flex;justify-content:space-between;font-size:12px}
+.prog-inner-title{font-size:14px;font-weight:800;color:#0f172a}
+.prog-pct-txt{font-size:13px;font-weight:700;color:var(--blue)}
+.prog-meta{display:flex;justify-content:space-between;font-size:11.5px;margin-top:8px}
 .prog-count{font-weight:700;color:var(--blue)}
 .prog-sisa{color:var(--text-3);font-weight:500}
+.prog-motivasi-outer{font-size:11px;color:rgba(255,255,255,.75);font-weight:500;
+  text-align:center;padding:8px 0 10px;position:relative;z-index:1}
 
 /* ── STATS GRID ── */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
@@ -970,7 +1010,14 @@ html.theme-dark body{background:#0b1329}
 /* Glass cards */
 html.theme-dark .card,
 html.theme-dark .stat-card,
-html.theme-dark .progress-card,
+html.theme-dark .progress-card{background:linear-gradient(135deg,#0369a1 0%,#1e40af 100%) !important;box-shadow:0 10px 30px rgba(0,0,0,.4) !important}
+html.theme-dark .prog-inner-card{background:#1c2438 !important}
+html.theme-dark .prog-inner-title{color:#f0f4ff !important}
+html.theme-dark .prog-book-ico{background:rgba(56,189,248,.12) !important}
+html.theme-dark .prog-bar-wrap{background:rgba(255,255,255,.08) !important}
+html.theme-dark .prog-meta .prog-count{color:#38bdf8 !important}
+html.theme-dark .prog-meta .prog-sisa{color:rgba(255,255,255,.4) !important}
+/* other cards keep glass override */
 html.theme-dark .spp-card,
 html.theme-dark .riwayat-item,
 html.theme-dark .pr-item,
@@ -1202,21 +1249,39 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
 
       <!-- Progress Level -->
       <div class="progress-card" onclick="openProgressBreakdown()">
+        <!-- Judul -->
+        <div class="prog-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Perjalananku Bersama Al-Qur'an
+        </div>
+        <!-- Chip level sekarang → chip level target -->
         <div class="prog-level-row">
           <span class="level-badge" id="dashLevel">Level 1</span>
-          <span class="level-target" id="dashTarget">→ Level 2</span>
+          <span class="level-arrow">→</span>
+          <span class="level-target-chip" id="dashTarget">Level 2</span>
         </div>
-        <div class="prog-bar-wrap" style="position:relative">
-          <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
-          <div class="prog-tick" style="position:absolute;left:25%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
-          <div class="prog-tick" style="position:absolute;left:50%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
-          <div class="prog-tick" style="position:absolute;left:75%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
+        <!-- Motivasi (di atas kartu putih) -->
+        <div class="prog-motivasi-outer" id="dashMotivasi"></div>
+        <!-- Inner white card -->
+        <div class="prog-inner-card">
+          <div class="prog-inner-row">
+            <div class="prog-book-ico">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="prog-inner-title" id="dashProgressPct">0% dari 40 sesi target</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <span class="prog-pct-txt" id="dashProgressPctNum">0%</span>
+                <div class="prog-bar-wrap" style="flex:1;margin:0">
+                  <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="prog-meta">
+            <span class="prog-count" id="dashSisa">40 sesi tersisa</span>
+          </div>
         </div>
-        <div class="prog-meta">
-          <span class="prog-count" id="dashProgressPct">0% dari target level</span>
-          <span class="prog-sisa" id="dashSisa">40 sesi tersisa</span>
-        </div>
-        <div class="prog-motivasi" id="dashMotivasi" style="margin-top:12px; font-size:12.5px; font-weight:600; text-align:center;"></div>
       </div>
 
       <!-- Stats -->
@@ -2272,7 +2337,8 @@ async function loadDashboard() {
       var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
       tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
     }
-    document.getElementById('dashTarget').textContent = tLevel ? '→ ' + tLevel : '–';
+    // dashTarget sekarang chip — hanya nama level tanpa panah (panah di HTML)
+    document.getElementById('dashTarget').textContent = tLevel || '–';
 
     // GAS kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir
     var target  = 40;
@@ -2303,7 +2369,10 @@ async function loadDashboard() {
 
     var progressPct = document.getElementById('dashProgressPct');
     progressPct.textContent = pct + '% dari 40 sesi target';
-    progressPct.style.color = textColor;
+    progressPct.style.color = '#0f172a';
+    // Update persentase di inner card
+    var pctNum = document.getElementById('dashProgressPctNum');
+    if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = textColor; }
 
     var sisa = Number(kh.sisa_sesi);
     document.getElementById('dashSisa').textContent = !isNaN(sisa) && sisa >= 0
@@ -2339,7 +2408,7 @@ async function loadDashboard() {
     var motivEl = document.getElementById('dashMotivasi');
     if (motivEl) {
       motivEl.textContent = motivText;
-      motivEl.style.color = textColor;
+      motivEl.style.color = ''; // warna diatur via .prog-motivasi-outer CSS
     }
 
     // Trigger confetti once per session when target is reached (100%)
