@@ -109,65 +109,56 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 }
 
 /* ── TOP HEADER ── */
+/* ── TOP HEADER — KhatamKu white glass ── */
 .top-header{
-  background:rgba(14,165,233,0.78);
-  backdrop-filter:blur(28px) saturate(1.8);
-  -webkit-backdrop-filter:blur(28px) saturate(1.8);
-  border-bottom:1px solid rgba(255,255,255,.15);
-  box-shadow:0 2px 16px rgba(14,165,233,.15),inset 0 1px 0 rgba(255,255,255,.2);
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(60px) saturate(180%);
+  -webkit-backdrop-filter:blur(60px) saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,.6);
+  box-shadow:0 -1px 0 rgba(255,255,255,.9) inset,0 4px 20px rgba(14,165,233,.06);
   padding:calc(8px + var(--sat)) 14px 8px;
-  position:sticky;top:0;z-index:50;overflow:hidden;
+  position:sticky;top:0;z-index:50;
 }
-.top-header::before{
-  content:'';position:absolute;top:-30px;right:-30px;
-  width:110px;height:110px;border-radius:50%;
-  background:rgba(255,255,255,.07);pointer-events:none;
-}
-.top-header .top-specular{
-  position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
-}
-/* single row: [☰] [info] [actions] */
-.top-row{
-  display:flex;align-items:center;gap:10px;
-  position:relative;z-index:1;
-}
+.top-header .top-specular{display:none}
+/* row: [☰] [info] [actions] */
+.top-row{display:flex;align-items:center;gap:10px}
 /* Hamburger kiri */
 .top-hamburger{
-  width:32px;height:32px;border-radius:9px;flex-shrink:0;
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);
-  color:#fff;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:rgba(14,165,233,.08);border:none;
+  color:#475569;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;
 }
-.top-hamburger:active{background:rgba(255,255,255,.28)}
+.top-hamburger:active{background:rgba(14,165,233,.16)}
 /* nama + halaqah tengah */
 .top-left{flex:1;min-width:0}
-.top-greet{font-size:10px;color:rgba(255,255,255,.7);font-weight:500;line-height:1;margin-bottom:1px}
-.top-name{font-size:15px;font-weight:800;color:#fff;line-height:1.2;
+.top-greet{font-size:10.5px;color:#64748b;font-weight:500;line-height:1;margin-bottom:1px}
+.top-name{font-size:16px;font-weight:800;color:#0f172a;line-height:1.2;
   letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-badge{
-  display:inline-flex;align-items:center;gap:4px;margin-top:3px;
-  background:rgba(255,255,255,.15);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.2);border-radius:100px;
-  padding:2px 9px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600;
+  display:inline-flex;align-items:center;gap:4px;margin-top:4px;
+  background:rgba(14,165,233,.08);
+  border:1px solid rgba(14,165,233,.12);border-radius:100px;
+  padding:3px 10px;font-size:10.5px;color:#0284c7;font-weight:700;
 }
 /* action buttons kanan */
-.top-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.top-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .top-action-btn{
-  width:32px;height:32px;border-radius:9px;
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);
-  color:#fff;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(14,165,233,.08);border:none;
+  color:#475569;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:background .15s;position:relative;
   -webkit-tap-highlight-color:transparent;
 }
-.top-action-btn:active{background:rgba(255,255,255,.28)}
+.top-action-btn:active{background:rgba(14,165,233,.16)}
+#bell-badge{border-color:rgba(248,250,252,1) !important}
 .top-avatar{
-  width:32px;height:32px;border-radius:9px;overflow:hidden;
-  background:rgba(255,255,255,.22);
-  border:1.5px solid rgba(255,255,255,.35);color:#fff;
-  font-weight:800;font-size:13px;display:flex;align-items:center;
-  justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;
+  width:36px;height:36px;border-radius:50%;overflow:hidden;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d));
+  color:#fff;font-weight:800;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(14,165,233,.3);
 }
 .top-avatar:active{transform:scale(.9)}
 .avatar-wrapper{position:relative;width:64px;height:64px;margin:0 auto 8px;cursor:pointer}
@@ -1020,15 +1011,16 @@ html.theme-dark .auth-input{background:rgba(44,44,54,0.7) !important;color:#F2F2
 
 /* Top header */
 html.theme-dark .top-header{
-  background:rgba(11,19,41,0.88) !important;
+  background:rgba(11,19,41,0.85) !important;
   border-bottom:1px solid rgba(255,255,255,.08) !important;
-  box-shadow:0 2px 16px rgba(0,0,0,.3) !important;
+  box-shadow:0 4px 20px rgba(0,0,0,.3) !important;
 }
+html.theme-dark .top-greet{color:rgba(255,255,255,.5) !important}
+html.theme-dark .top-name{color:#f0f4ff !important}
+html.theme-dark .top-badge{background:rgba(56,189,248,.1) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
 html.theme-dark .top-hamburger,
-html.theme-dark .top-action-btn,
-html.theme-dark .top-avatar{
-  background:rgba(255,255,255,.08) !important;
-  border-color:rgba(255,255,255,.12) !important;
+html.theme-dark .top-action-btn{
+  background:rgba(255,255,255,.07) !important;color:rgba(255,255,255,.6) !important;
 }
 
 /* Bottom nav */
