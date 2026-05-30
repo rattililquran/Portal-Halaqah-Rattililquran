@@ -1194,6 +1194,11 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
     </div>
   </div>
 
+  <!-- topAvatar ghost element — dipertahankan untuk kompatibilitas kode JS -->
+  <div id="topAvatar" style="display:none;width:32px;height:32px;border-radius:9px;overflow:hidden;
+    background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.35);color:#fff;
+    font-weight:800;font-size:13px;align-items:center;justify-content:center;"></div>
+
   <!-- CONTENT -->
   <div class="content">
 
@@ -2154,14 +2159,23 @@ function startApp() {
   // (akan diperbarui dari server saat loadDashboard selesai)
   var namaDisplay = nama || '…';
   var ini  = nama ? nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M' : 'M';
+
+  // Set nama terlebih dahulu — sebelum apapun yang bisa crash
+  document.getElementById('topName').textContent = namaDisplay;
+
   var savedAvatar = localStorage.getItem('murid_avatar_' + us.id_user);
   var savedFoto   = localStorage.getItem('murid_foto_' + us.id_user);
+  var topAv = document.getElementById('topAvatar');
   if (savedFoto) {
     renderAvatar('topAvatar', savedFoto, null);
-  } else {
-    document.getElementById('topAvatar').textContent = savedAvatar || ini;
+  } else if (topAv) {
+    topAv.textContent = savedAvatar || ini;
   }
-  document.getElementById('topName').textContent   = namaDisplay;
+  // Sync nav profile center
+  var navWrap = document.getElementById('navProfileWrap');
+  if (navWrap) navWrap.innerHTML = savedFoto
+    ? '<img src="'+savedFoto+'" class="nav-profile-avatar" alt="">'
+    : '<span id="navProfileIni" style="font-size:19px;font-weight:800;color:#fff;line-height:1">'+(savedAvatar||ini)+'</span>';
   document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   updateSidebarInfo();
   // Tampilkan badge lonceng dari log lokal sebelum API selesai
