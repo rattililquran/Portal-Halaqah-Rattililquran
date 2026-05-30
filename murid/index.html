@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+(function(){const t=localStorage.getItem('theme')||'system';if(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('theme-dark');})();
+</script>
 <meta charset="UTF-8">
 <link rel="icon" type="image/x-icon" href="../favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="../assets/icons/icon-192.png">
@@ -586,31 +589,59 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .kal-sesi-meta{font-size:12px;color:var(--text-3);
   display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-weight:600}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:       #000000;
-    --card:     #0d0d0d;
-    --bg-2:     #111111;
-    --text:     #f0f0f0;
-    --text-2:   #a0aec0;
-    --text-3:   #4a5568;
-    --border:   #1f1f1f;
-    --green-l:  #0a2e1f;
-    --blue-l:   #0a1628;
-    --amber-l:  #2a1f00;
-    --red-l:    #2a0800;
-    --purple-l: #1a0a3a;
-    --teal-l:   #002a35;
-    --shadow:   0 1px 3px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.4);
-    --shadow-lg:0 8px 32px rgba(0,0,0,.6);
-  }
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.theme-toggle-btn:hover {
+  transform: scale(1.15) rotate(15deg);
+}
+
+/* Transitions for Theme Toggling */
+body, .card, .stat-card, .progress-card, .spp-card,
+.riwayat-item, .pr-item, .materi-card, .raport-card,
+.url-box, .benefit-card, .portal-card, .guide-card,
+.kalender-wrap, .kal-popup-box, .peng-item,
+input, select, textarea, button, table, td, th {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+html.theme-dark {
+  --bg:       #000000;
+  --card:     #161e2e;
+  --bg-2:     #111111;
+  --text:     #f0f0f0;
+  --text-2:   #a0aec0;
+  --text-3:   #718096;
+  --border:   #1f1f1f;
+  --green-l:  #0a2e1f;
+  --blue-l:   #0a1628;
+  --amber-l:  #2a1f00;
+  --red-l:    #2a0800;
+  --purple-l: #1a0a3a;
+  --teal-l:   #002a35;
+  --shadow:   0 1px 3px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.6);
+
   body { background: #000000 !important; }
+  
+  /* Cards with high contrast dark glass */
   .card, .stat-card, .progress-card, .spp-card,
   .riwayat-item, .pr-item, .materi-card, .raport-card,
   .url-box, .benefit-card, .portal-card, .guide-card,
   .kalender-wrap, .kal-popup-box, .peng-item {
-    background: #0d0d0d !important;
-    border-color: #1f1f1f !important;
+    background: rgba(22, 28, 45, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
   }
   .fc, input, select, textarea {
     background: #111111 !important;
@@ -632,14 +663,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     color: var(--green) !important;
   }
   .modal-sheet, .modal-overlay .modal {
-    background: #0d0d0d !important;
+    background: #161e2e !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
   }
-  .modal-foot { background: #0d0d0d !important; border-top-color: #1f1f1f !important; }
-  .notif-box { background: #0d0d0d !important; border: 1px solid #1f1f1f !important; }
+  .modal-foot { background: #161e2e !important; border-top-color: rgba(255, 255, 255, 0.16) !important; }
+  .notif-box { background: #161e2e !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; }
   
   .spp-card {
-    background: #0d0d0d !important;
-    border-color: #1f1f1f !important;
+    background: rgba(22, 28, 45, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
   }
   .spp-lunas { background: #0a2e1f !important; color: #34d399 !important; border-color: rgba(16,185,129,0.1) !important; }
   .spp-belum { background: #2a0800 !important; color: #f87171 !important; border-color: rgba(239,68,68,0.1) !important; }
@@ -649,11 +681,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   .kal-day { color: #a0aec0 !important; }
   .kal-day.today { outline-color: var(--green) !important; }
   .kal-day-name { color: #4a5568 !important; }
-  .kal-popup-box { background: #0d0d0d !important; border-color: #1f1f1f !important; }
+  .kal-popup-box { background: rgba(22, 28, 45, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; }
   
   .refresh-badge-murid {
-    background: rgba(13,13,13,.9) !important;
-    border-color: #1f1f1f !important;
+    background: rgba(22, 28, 45, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
     color: #a0aec0 !important;
   }
   .top-header {
@@ -720,7 +752,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="top-name" id="topName">Murid</div>
         <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
       </div>
-      <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Tema"
+          style="border:1px solid rgba(255,255,255,0.3);border-radius:50%;
+          width:36px;height:36px;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;
+          display:flex;align-items:center;justify-content:center;font-size:18px;">☀️</button>
+        <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+      </div>
     </div>
   </div>
 
@@ -2102,6 +2140,39 @@ function tutupKalPopup() {
   if (popup) popup.style.display = 'none';
   document.body.style.overflow = '';
 }
+
+function initThemeToggle() {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  function updateIcon(isDark) {
+    btn.textContent = isDark ? '🌙' : '☀️';
+  }
+  let isDark = document.documentElement.classList.contains('theme-dark');
+  updateIcon(isDark);
+  btn.addEventListener('click', function() {
+    isDark = !isDark;
+    if (isDark) {
+      document.documentElement.classList.add('theme-dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('theme-dark');
+      localStorage.setItem('theme', 'light');
+    }
+    updateIcon(isDark);
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
+      if (e.matches) {
+        document.documentElement.classList.add('theme-dark');
+        updateIcon(true);
+      } else {
+        document.documentElement.classList.remove('theme-dark');
+        updateIcon(false);
+      }
+    }
+  });
+}
+initThemeToggle();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
 </script>
