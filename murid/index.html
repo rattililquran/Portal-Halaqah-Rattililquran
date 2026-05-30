@@ -271,11 +271,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   display:flex;align-items:center;justify-content:center;
   border:2px solid #fff;box-shadow:0 0 8px rgba(239,68,68,.4);
 }
-.avatar-opt{font-size:24px;cursor:pointer;padding:6px;border-radius:50%;
-  background:var(--bg);border:1px solid var(--border);
-  transition:all .2s ease;width:38px;height:38px;
-  display:flex;align-items:center;justify-content:center}
-.avatar-opt:hover,.avatar-opt.active{background:var(--blue-l);border-color:var(--blue);transform:scale(1.1)}
+/* .avatar-opt dihapus — emoji picker sudah tidak digunakan */
 .menu-item-hover{transition:background .2s ease}
 .menu-item-hover:hover{background:rgba(14,165,233,.05)!important}
 .stat-card .ico{font-size:22px;margin-bottom:4px}
@@ -1193,6 +1189,20 @@ html.theme-dark table{color:#e8eaf0 !important}
 html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
 html.theme-dark td{border-color:rgba(255,255,255,.05) !important}
 html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
+
+/* Raport PDF preview modal */
+html.theme-dark .raport-preview-overlay{background:rgba(0,0,0,.75) !important}
+html.theme-dark .raport-preview-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important;box-shadow:0 8px 32px rgba(0,0,0,.5) !important}
+html.theme-dark .raport-preview-head{background:#1e2128 !important;border-bottom:1px solid rgba(255,255,255,.07) !important}
+html.theme-dark .raport-preview-title{color:#f0f2f8 !important}
+html.theme-dark #raportPdfContent{background:#252830 !important}
+html.theme-dark .btn-pdf{background:linear-gradient(135deg,#38bdf8,#0ea5e9) !important}
+
+/* Skeleton shimmer — warna gelap di dark mode */
+html.theme-dark .skel{
+  background:linear-gradient(90deg,#252830 25%,#2d3038 50%,#252830 75%) !important;
+  background-size:200% 100% !important;
+}
 
 /* Sembunyikan blobs di dark mode */
 html.theme-dark .bg-blobs{display:none}
@@ -2553,9 +2563,6 @@ async function loadDashboard() {
       var _display = savedAvatar || _iniAvatar;
       document.getElementById('profilAvatar').textContent = _display;
       document.getElementById('topAvatar').textContent    = _display;
-      document.querySelectorAll('.avatar-opt').forEach(function(opt) {
-        opt.classList.toggle('active', opt.textContent === savedAvatar);
-      });
     }
 
     // Kalender dari riwayat jika ada
@@ -3545,8 +3552,6 @@ function handleFotoSelect(input) {
     _pendingFotoBase64 = base64;
     renderAvatar('profilAvatar', base64, null);
     renderAvatar('topAvatar', base64, null);
-    // Reset active state emoji
-    document.querySelectorAll('.avatar-opt').forEach(function(opt){ opt.classList.remove('active'); });
   });
   input.value = '';
 }
@@ -3598,21 +3603,7 @@ async function saveProfil() {
   finally { setBtn('btnSaveProfil', false, '💾 Simpan'); }
 }
 
-function selectAvatar(emoji) {
-  if (!dashData) return;
-  var idMurid = dashData.id_murid || '';
-  // Pilih emoji = batalkan foto pending dan hapus foto tersimpan
-  _pendingFotoBase64 = null;
-  localStorage.removeItem('murid_foto_' + idMurid);
-  if (dashData.profil) dashData.profil.foto = '';
-  localStorage.setItem('murid_avatar_' + idMurid, emoji);
-  document.getElementById('profilAvatar').textContent = emoji;
-  var topAv = document.getElementById('topAvatar');
-  if (topAv) topAv.textContent = emoji;
-  document.querySelectorAll('.avatar-opt').forEach(function(opt) {
-    opt.classList.toggle('active', opt.textContent === emoji);
-  });
-}
+/* selectAvatar() dihapus — emoji picker sudah tidak digunakan */
 // ══════════════════════════════════════════
 //  GANTI PASSWORD
 // ══════════════════════════════════════════
