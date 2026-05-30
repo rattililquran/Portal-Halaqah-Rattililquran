@@ -32,7 +32,7 @@ var CACHE_TTL = {
   'getAuditLog'         : 0,
   'getRekapAbsensi'     : 0,
   'getAssessmentItems'  : 600, // 10 menit — jarang berubah
-  'getAssessmentMurid'  : 0,   // real-time, murid bisa edit kapanpun
+  'getAssessmentMurid'  : 60,  // 1 menit — cukup fresh tanpa hit network tiap kunjungan tab
   'getAssessmentRekap'  : 0,   // real-time untuk guru
 };
 

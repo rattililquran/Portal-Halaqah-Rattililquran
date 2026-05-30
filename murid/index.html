@@ -1013,7 +1013,7 @@ html.theme-dark {
   --border:     rgba(255,255,255,0.08);
   --blue:#38bdf8;--blue-d:#0ea5e9;
   --blue-l:rgba(56,189,248,0.1);--blue-m:rgba(56,189,248,0.14);
-  --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,0.1);
+  --green:#34d399;--green-d:#059669;--green-l:rgba(34,211,153,0.12);
   --amber-l:rgba(251,191,36,0.1);
   --red-l:rgba(248,113,113,0.1);
   --shadow:0 2px 8px rgba(0,0,0,.4);
@@ -2346,7 +2346,14 @@ function goPage(name, swipeDir) {
   // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
   // karena dashData.anggota.level bisa belum tersedia saat pertama kali diklik,
   // dan level user bisa berubah antar sesi)
-  if (name === 'assessment') { loadAssessment(); return; }
+  if (name === 'assessment') {
+    // Debounce: cegah double-load dari rapid tap (e.g. swipe + tap)
+    if (_assessmentLoading) return;
+    _assessmentLoading = true;
+    setTimeout(function(){ _assessmentLoading = false; }, 1000);
+    loadAssessment();
+    return;
+  }
   if (_muridTabLoaded[name]) return;
   _muridTabLoaded[name] = true;
   if (name === 'riwayat') { loadRiwayat(); }
@@ -3129,6 +3136,7 @@ var _assessmentItems   = null; // { level: { kategori: [items] } }
 var _assessmentJawaban = {};   // { id_item: status }
 var _assessmentDirty   = false;
 var _assessmentLevel   = '';
+var _assessmentLoading = false; // debounce flag cegah double-load
 
 var ASMT_VALID_LEVELS = ['Level 1', 'Level 2'];
 
@@ -3136,14 +3144,20 @@ async function loadAssessment() {
   var el = document.getElementById('assessmentContent');
   if (!el) return;
 
-  // Jika dashData belum tersedia (tab diklik sebelum dashboard selesai load),
-  // tampilkan loading sementara dan coba lagi setelah 800ms
+  // Jika dashData belum tersedia, tunggu dashboard selesai load (max 5x × 800ms = 4 detik)
   if (!dashData) {
+    if ((loadAssessment._retry = (loadAssessment._retry || 0) + 1) > 5) {
+      loadAssessment._retry = 0;
+      el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
+        + '<div class="empty-ttl">Gagal memuat — coba lagi</div></div>';
+      return;
+    }
     el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
       + '<div class="empty-ttl">Memuat data...</div></div>';
     setTimeout(loadAssessment, 800);
     return;
   }
+  loadAssessment._retry = 0; // reset counter setelah berhasil
 
   // Cek level murid
   var level = (dashData.anggota && dashData.anggota.level) || '';
@@ -3673,23 +3687,15 @@ function setBtn(id, dis, txt) {
 function startMuridAutoRefresh() {
   clearInterval(_rfInterval);
   _rfLast = new Date();
-  var badge = document.getElementById('refreshBadgeMurid');
-  if (badge) badge.classList.add('show');
+  // Refresh dashboard data diam-diam setiap 5 menit (badge sinkron disembunyikan untuk murid)
   _rfInterval = setInterval(function() {
-    var el    = document.getElementById('muridRefreshTxt');
-    var menit = Math.round((new Date()-_rfLast)/60000);
+    var menit = Math.round((new Date() - _rfLast) / 60000);
     if (menit >= 5) {
-      var dot = document.getElementById('muridRefreshDot');
-      if (dot) dot.style.animation='dotWave 1s infinite';
-      loadDashboard().then(function(){
-        _rfLast=new Date();
-        if(el) el.textContent='Baru sinkron';
-        if(dot) dot.style.animation='';
+      loadDashboard(true).then(function(){ // silent=true: tidak tampilkan loader
+        _rfLast = new Date();
       }).catch(function(){});
-    } else {
-      if (el) el.textContent = menit<=0?'Baru sinkron':'Sinkron '+menit+' menit lalu';
     }
-  }, 30000);
+  }, 60000); // cek tiap 1 menit, refresh kalau sudah >= 5 menit
 }
 
 function resetMuridSession() {

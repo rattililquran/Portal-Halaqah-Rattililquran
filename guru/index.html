@@ -1052,7 +1052,12 @@ html.theme-dark .kal-day.today{background:linear-gradient(135deg,#0ea5e9,#2563eb
 html.theme-dark .koreksi-box{background:rgba(251,191,36,.08) !important;color:#fbbf24 !important;border:1px solid rgba(251,191,36,.2) !important}
 
 /* Presensi buttons */
-html.theme-dark .pb{background:transparent !important}
+/* .pb default: transparan. Tapi .on state harus tetap berwarna */
+html.theme-dark .pb:not(.on){background:transparent !important}
+html.theme-dark .pb[data-k="H"].on{background:var(--green) !important;color:#fff !important}
+html.theme-dark .pb[data-k="T"].on{background:#7c3aed !important;color:#fff !important}
+html.theme-dark .pb[data-k="I"].on{background:var(--amber) !important;color:#fff !important}
+html.theme-dark .pb[data-k="A"].on{background:var(--red) !important;color:#fff !important}
 html.theme-dark .prow{background:transparent !important;border-bottom-color:rgba(255,255,255,.06) !important}
 html.theme-dark .prow-name{color:#f0f2f8 !important}
 html.theme-dark .prow-level{color:#6b7280 !important}
