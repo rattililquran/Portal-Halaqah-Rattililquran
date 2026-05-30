@@ -96,13 +96,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   border:1px solid rgba(255,255,255,.3);border-radius:100px;
   padding:4px 14px;font-size:12px;color:#fff;font-weight:700;
   box-shadow:0 2px 10px rgba(0,0,0,.1)}
-.top-avatar{width:48px;height:48px;border-radius:50%;
+.top-avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;
   background:rgba(255,255,255,.25);backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
   border:2px solid rgba(255,255,255,.4);color:#fff;
   font-weight:800;font-size:18px;display:flex;align-items:center;
   justify-content:center;cursor:pointer;transition:all .2s ease;flex-shrink:0}
 .top-avatar:hover{background:rgba(255,255,255,.35);transform:scale(1.05)}
+.avatar-wrapper{position:relative;width:64px;height:64px;margin:0 auto 8px;cursor:pointer}
+.avatar-wrapper:active .avatar-cam{opacity:1}
+.avatar-circle{width:64px;height:64px;border-radius:50%;overflow:hidden;
+  background:linear-gradient(135deg,var(--green),var(--green-d));
+  color:#fff;font-weight:800;font-size:24px;
+  display:flex;align-items:center;justify-content:center}
+.avatar-cam{position:absolute;bottom:0;right:0;width:22px;height:22px;
+  background:var(--green);border-radius:50%;border:2px solid var(--card);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;opacity:.9;pointer-events:none}
 
 /* ── CONTENT ── */
 .content{padding:0 16px 80px;margin-top:-32px;position:relative;z-index:2}
@@ -1139,23 +1149,14 @@ html.theme-dark .lf-btn.active {
     <div class="modal-body">
       <!-- Header Profil & Avatar Custom -->
       <div style="text-align:center;margin-bottom:15px">
-        <div style="width:64px;height:64px;border-radius:50%;
-          background:linear-gradient(135deg,var(--green),var(--green-d));
-          color:#fff;font-weight:800;font-size:24px;
-          display:flex;align-items:center;justify-content:center;
-          margin:0 auto 8px" id="profilAvatar">M</div>
+        <div class="avatar-wrapper" onclick="document.getElementById('fotoInput').click()" title="Ganti foto profil">
+          <div class="avatar-circle" id="profilAvatar">M</div>
+          <div class="avatar-cam">📷</div>
+        </div>
+        <input type="file" id="fotoInput" accept="image/*" style="display:none" onchange="handleFotoSelect(this)">
         <div style="font-size:16px;font-weight:800" id="profilName"></div>
         <div style="font-size:12px;color:var(--text-3)" id="profilNis"></div>
-      </div>
-      
-      <!-- Pemilihan Emoji Avatar -->
-      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
-        <span class="avatar-opt" onclick="selectAvatar('🕌')">🕌</span>
-        <span class="avatar-opt" onclick="selectAvatar('🕋')">🕋</span>
-        <span class="avatar-opt" onclick="selectAvatar('📖')">📖</span>
-        <span class="avatar-opt" onclick="selectAvatar('📿')">📿</span>
-        <span class="avatar-opt" onclick="selectAvatar('🌙')">🌙</span>
-        <span class="avatar-opt" onclick="selectAvatar('🌴')">🌴</span>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px">Ketuk foto untuk mengganti</div>
       </div>
 
       <!-- Informasi Akademik Halaqah -->
@@ -1602,7 +1603,12 @@ function startApp() {
   var nama = us.nama_lengkap || us.nama || us.id_user;
   var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
   var savedAvatar = localStorage.getItem('murid_avatar_' + us.id_user);
-  document.getElementById('topAvatar').textContent = savedAvatar || ini;
+  var savedFoto   = localStorage.getItem('murid_foto_' + us.id_user);
+  if (savedFoto) {
+    renderAvatar('topAvatar', savedFoto, null);
+  } else {
+    document.getElementById('topAvatar').textContent = savedAvatar || ini;
+  }
   document.getElementById('topName').textContent   = nama;
   document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   resetMuridSession();
@@ -1787,22 +1793,28 @@ async function loadDashboard() {
     document.getElementById('profilGuruName').textContent = hq.guru || '–';
     document.getElementById('profilJadwal').textContent = (hq.jadwal && hq.jam) ? (hq.jadwal + ', ' + hq.jam) : (hq.jadwal || '–');
 
-    // Avatar custom
-    var savedAvatar = localStorage.getItem('murid_avatar_' + (d.id_murid || ''));
-    if (savedAvatar) {
-      document.getElementById('profilAvatar').textContent = savedAvatar;
-      document.querySelectorAll('.avatar-opt').forEach(function(opt) {
-        if (opt.textContent === savedAvatar) {
-          opt.classList.add('active');
-        } else {
-          opt.classList.remove('active');
-        }
-      });
+    // Avatar — prioritas: foto dari server > foto localStorage > emoji > inisial
+    var _idMurid    = d.id_murid || '';
+    var _fotoServer = (d.profil && d.profil.foto) ? d.profil.foto : '';
+    var _fotoLocal  = localStorage.getItem('murid_foto_' + _idMurid) || '';
+    var _fotoAktif  = _fotoServer || _fotoLocal;
+    var _iniAvatar  = _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
+
+    if (_fotoServer) {
+      // Sinkronkan foto dari server ke localStorage
+      localStorage.setItem('murid_foto_' + _idMurid, _fotoServer);
+    }
+
+    if (_fotoAktif) {
+      renderAvatar('profilAvatar', _fotoAktif, null);
+      renderAvatar('topAvatar', _fotoAktif, null);
     } else {
-      var ini = _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
-      document.getElementById('profilAvatar').textContent = ini;
+      var savedAvatar = localStorage.getItem('murid_avatar_' + _idMurid);
+      var _display = savedAvatar || _iniAvatar;
+      document.getElementById('profilAvatar').textContent = _display;
+      document.getElementById('topAvatar').textContent    = _display;
       document.querySelectorAll('.avatar-opt').forEach(function(opt) {
-        opt.classList.remove('active');
+        opt.classList.toggle('active', opt.textContent === savedAvatar);
       });
     }
 
@@ -2464,16 +2476,79 @@ async function doDownloadPDF() {
 }
 
 // ══════════════════════════════════════════
+//  FOTO PROFIL
+// ══════════════════════════════════════════
+var _pendingFotoBase64 = null;
+
+function renderAvatar(elId, fotoBase64, fallback) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  if (fotoBase64) {
+    el.innerHTML = '<img src="' + fotoBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="foto">';
+  } else {
+    el.innerHTML = '';
+    el.textContent = fallback || '';
+  }
+}
+
+function handleFotoSelect(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  // Validasi tipe
+  if (!file.type.startsWith('image/')) { toast('File harus berupa gambar', 'err'); return; }
+  // Batasi ukuran asli maksimal 10MB
+  if (file.size > 10 * 1024 * 1024) { toast('Ukuran file maksimal 10MB', 'err'); return; }
+  compressImage(file, 96, 0.7, function(base64) {
+    _pendingFotoBase64 = base64;
+    renderAvatar('profilAvatar', base64, null);
+    renderAvatar('topAvatar', base64, null);
+    // Reset active state emoji
+    document.querySelectorAll('.avatar-opt').forEach(function(opt){ opt.classList.remove('active'); });
+  });
+  input.value = '';
+}
+
+function compressImage(file, maxSize, quality, callback) {
+  var reader = new FileReader();
+  reader.onerror = function() { toast('Gagal membaca file', 'err'); };
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onerror = function() { toast('Format gambar tidak didukung', 'err'); };
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      var ratio = Math.min(maxSize / w, maxSize / h, 1);
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(w * ratio);
+      canvas.height = Math.round(h * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════
 //  PROFIL
 // ══════════════════════════════════════════
 async function saveProfil() {
   setBtn('btnSaveProfil', true, 'Menyimpan...');
   try {
-    await window.HQ.MuridAPI.updateProfil({
+    var payload = {
       no_hp  : document.getElementById('profilHp').value,
       email  : document.getElementById('profilEmail').value,
       alamat : document.getElementById('profilAlamat').value,
-    });
+    };
+    if (_pendingFotoBase64) {
+      payload.foto = _pendingFotoBase64;
+    }
+    await window.HQ.MuridAPI.updateProfil(payload);
+    if (_pendingFotoBase64) {
+      var idMurid = dashData ? (dashData.id_murid || '') : '';
+      localStorage.setItem('murid_foto_' + idMurid, _pendingFotoBase64);
+      if (dashData && dashData.profil) dashData.profil.foto = _pendingFotoBase64;
+      _pendingFotoBase64 = null;
+    }
     closeModal('profilModal');
     toast('Profil berhasil disimpan ✅', 'ok');
   } catch(e) { toast(e.message, 'err'); }
@@ -2483,20 +2558,16 @@ async function saveProfil() {
 function selectAvatar(emoji) {
   if (!dashData) return;
   var idMurid = dashData.id_murid || '';
+  // Pilih emoji = batalkan foto pending dan hapus foto tersimpan
+  _pendingFotoBase64 = null;
+  localStorage.removeItem('murid_foto_' + idMurid);
+  if (dashData.profil) dashData.profil.foto = '';
   localStorage.setItem('murid_avatar_' + idMurid, emoji);
   document.getElementById('profilAvatar').textContent = emoji;
-  
-  // Update header top avatar too!
   var topAv = document.getElementById('topAvatar');
   if (topAv) topAv.textContent = emoji;
-  
-  // Update active class
   document.querySelectorAll('.avatar-opt').forEach(function(opt) {
-    if (opt.textContent === emoji) {
-      opt.classList.add('active');
-    } else {
-      opt.classList.remove('active');
-    }
+    opt.classList.toggle('active', opt.textContent === emoji);
   });
 }
 // ══════════════════════════════════════════
