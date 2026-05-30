@@ -31,6 +31,9 @@ var CACHE_TTL = {
   'getProgressGrafik'   : 0,
   'getAuditLog'         : 0,
   'getRekapAbsensi'     : 0,
+  'getAssessmentItems'  : 600, // 10 menit — jarang berubah
+  'getAssessmentMurid'  : 0,   // real-time, murid bisa edit kapanpun
+  'getAssessmentRekap'  : 0,   // real-time untuk guru
 };
 
 function cacheGet(key) {
@@ -132,6 +135,7 @@ async function apiPost(action, body) {
     'buatPengumuman'     : ['getAllPengumuman','getPengumuman'],
     'kirimPengumumanGuru': ['getAllPengumuman','getPengumuman'],
     'saveNilaiManualBatch': ['getNilaiManual'],
+    'saveAssessmentMurid' : ['getAssessmentMurid', 'getAssessmentRekap'],
   };
   if (invalidateMap[action]) cacheInvalidate(invalidateMap[action]);
 
@@ -246,6 +250,7 @@ var GuruAPI = {
   saveNilaiManualBatch  : function(d)             { return apiPost('saveNilaiManualBatch', d); },
   getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlerts'); },
   simpanFollowupKeaktifan: function(d)             { return apiPost('simpanFollowupKeaktifan', d); },
+  getAssessmentRekap    : function(id_h)          { return apiGet('getAssessmentRekap', { id_halaqah: id_h }); },
 };
 
 // ─── MURID API ────────────────────────────────────
@@ -265,6 +270,9 @@ var MuridAPI = {
   changePassword    : function(d)            { return apiPost('changePasswordMurid', d); },
   getKonfigurasiRaport: function()           { return apiGet('getKonfigurasiRaport'); },
   getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlertsMurid'); },
+  getAssessmentItems    : function(lv)            { return apiGet('getAssessmentItems', lv ? {level:lv} : {}); },
+  getAssessmentMurid    : function()              { return apiGet('getAssessmentMurid'); },
+  saveAssessment        : function(d)             { return apiPost('saveAssessmentMurid', d); },
 };
 
 // ─── EKSPOS GLOBAL ────────────────────────────────

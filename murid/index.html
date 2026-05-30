@@ -392,6 +392,40 @@ html.theme-dark #bell-badge{border-color:#0b1329!important}
 .pw-link:hover{background:#dbeafe}
 .pw-info{font-size:11.5px;color:var(--text-3);margin-top:-8px;margin-bottom:14px;font-weight:500}
 
+/* ── ASSESSMENT ── */
+.asmt-kategori{margin-bottom:20px}
+.asmt-kat-title{font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.asmt-item{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-radius:14px;border:1.5px solid var(--border);
+  background:var(--card);margin-bottom:8px;gap:10px;transition:border-color .15s}
+.asmnt-item-text{flex:1;min-width:0}
+.asmnt-arab{font-family:'Amiri',serif;font-size:18px;color:var(--text);line-height:1.4;direction:rtl}
+.asmnt-latin{font-size:13px;font-weight:700;color:var(--text);margin-top:1px}
+.asmnt-ket{font-size:11px;color:var(--text-3);margin-top:2px;line-height:1.4}
+.asmnt-btns{display:flex;gap:5px;flex-shrink:0}
+.asmnt-btn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);
+  background:transparent;font-size:16px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center}
+.asmnt-btn.on-paham{background:#d1fae5;border-color:#10b981}
+.asmnt-btn.on-ragu{background:#fef3c7;border-color:#f59e0b}
+.asmnt-btn.on-belum{background:#fee2e2;border-color:#ef4444}
+.asmnt-btn:hover{transform:scale(1.1)}
+.asmnt-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;
+  padding:12px 14px;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.asmnt-legend-item{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--text-2)}
+.asmnt-progress{margin-bottom:16px}
+.asmnt-prog-bar{height:6px;border-radius:100px;background:var(--border);overflow:hidden;margin-top:4px}
+.asmnt-prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--green),#0ea5e9);
+  transition:width .4s ease}
+.asmnt-save-btn{width:100%;padding:14px;border-radius:14px;border:none;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:800;
+  background:linear-gradient(135deg,var(--green),#0ea5e9);color:#fff;
+  box-shadow:0 4px 16px rgba(16,185,129,.3);transition:all .2s;margin-top:8px}
+.asmnt-save-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(16,185,129,.4)}
+.asmnt-save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.asmnt-locked{text-align:center;padding:40px 20px;color:var(--text-3)}
+
 /* ── RAPORT PDF PREVIEW MODAL ── */
 .raport-preview-overlay{display:none;position:fixed;inset:0;z-index:9500;
   background:rgba(15,23,42,.7);backdrop-filter:blur(8px);
@@ -1112,6 +1146,20 @@ html.theme-dark .lf-btn.active {
       </div>
     </div>
 
+    <!-- ════ ASSESSMENT ════ -->
+    <div class="page" id="page-assessment">
+      <div class="page-header">
+        <div class="page-header-ico">✍️</div>
+        <div>
+          <div class="page-title">Assessment Mandiri</div>
+          <div class="page-sub">Ukur pemahamanmu sebelum sesi berikutnya.</div>
+        </div>
+      </div>
+      <div id="assessmentContent">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ GANTI PASSWORD ════ -->
     <div class="page" id="page-password">
       <div class="page-header"><div class="page-header-ico">🔐</div><div><div class="page-title">Ganti Password</div><div class="page-sub">Ubah password akun kamu secara mandiri.</div></div></div>
@@ -1147,6 +1195,9 @@ html.theme-dark .lf-btn.active {
     </button>
     <button class="nav-item" onclick="goPage('pr')" data-p="pr" id="navPr">
       <span class="ni">📝</span><span class="nl">PR</span>
+    </button>
+    <button class="nav-item" onclick="goPage('assessment')" data-p="assessment" id="navAssessment" style="display:none">
+      <span class="ni">✍️</span><span class="nl">Assessment</span>
     </button>
     <button class="nav-item" onclick="goPage('info')" data-p="info">
       <span class="ni">📚</span><span class="nl">Materi</span>
@@ -1662,6 +1713,7 @@ function goPage(name) {
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); }
   else if (name === 'info') { loadMateri(); }
+  else if (name === 'assessment') { loadAssessment(); }
   else if (name === 'password') { /* static page, no load needed */ }
 }
 
@@ -1694,6 +1746,9 @@ async function loadDashboard() {
     // Progress level — d.anggota.level
     var _level = ang.level || '–';
     document.getElementById('dashLevel').textContent = _level;
+    // Tampilkan tab Assessment hanya untuk Level 1 & 2
+    var navAsmt = document.getElementById('navAssessment');
+    if (navAsmt) navAsmt.style.display = ['Level 1','Level 2'].includes(_level) ? 'flex' : 'none';
     var tLevel = ang.target_level || '';
     if (!tLevel && _level !== '–') {
       var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
@@ -2370,6 +2425,159 @@ function toggleMateri(idx) {
   var chev = document.querySelector('.mat-chev-'+idx);
   if (el) el.classList.toggle('expanded');
   if (chev) chev.style.transform = el && el.classList.contains('expanded') ? 'rotate(180deg)' : '';
+}
+
+// ══════════════════════════════════════════
+//  ASSESSMENT MANDIRI
+// ══════════════════════════════════════════
+var _assessmentItems   = null; // { level: { kategori: [items] } }
+var _assessmentJawaban = {};   // { id_item: status }
+var _assessmentDirty   = false;
+var _assessmentLevel   = '';
+
+var ASMT_VALID_LEVELS = ['Level 1', 'Level 2'];
+
+async function loadAssessment() {
+  var el = document.getElementById('assessmentContent');
+  if (!el) return;
+
+  // Cek level murid
+  var level = (dashData && dashData.anggota && dashData.anggota.level) || '';
+  _assessmentLevel = level;
+
+  if (!ASMT_VALID_LEVELS.includes(level)) {
+    el.innerHTML = '<div class="asmnt-locked">'
+      + '<div style="font-size:48px;margin-bottom:12px">🎓</div>'
+      + '<div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px">Assessment tidak tersedia</div>'
+      + '<div style="font-size:13px">Fitur ini hanya aktif untuk Level 1 dan Level 2.</div>'
+      + '</div>';
+    return;
+  }
+
+  showLoad('Bismillah, memuat assessment...');
+  try {
+    var [rItems, rJawaban] = await Promise.allSettled([
+      window.HQ.MuridAPI.getAssessmentItems(level),
+      window.HQ.MuridAPI.getAssessmentMurid()
+    ]);
+
+    _assessmentItems   = (rItems.status === 'fulfilled' && rItems.value.data) ? rItems.value.data : {};
+    _assessmentJawaban = (rJawaban.status === 'fulfilled' && rJawaban.value.data) ? rJawaban.value.data : {};
+    _assessmentDirty   = false;
+
+    renderAssessment();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
+      + '<div class="empty-ttl">Gagal memuat assessment</div></div>';
+  } finally {
+    hideLoad();
+  }
+}
+
+function renderAssessment() {
+  var el = document.getElementById('assessmentContent');
+  if (!el || !_assessmentItems) return;
+
+  var levelData = _assessmentItems[_assessmentLevel] || {};
+  var kategoriList = Object.keys(levelData);
+  if (!kategoriList.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div>'
+      + '<div class="empty-ttl">Belum ada poin assessment untuk level ini</div></div>';
+    return;
+  }
+
+  // Hitung progress
+  var allItems = kategoriList.reduce(function(acc, k) { return acc.concat(levelData[k]); }, []);
+  var totalItems = allItems.length;
+  var dijawab = allItems.filter(function(item) { return !!_assessmentJawaban[item.id_item]; }).length;
+  var pctDone = totalItems > 0 ? Math.round((dijawab / totalItems) * 100) : 0;
+
+  var html = '';
+
+  // Legend
+  html += '<div class="asmnt-legend">'
+    + '<div class="asmnt-legend-item"><span>✅</span> Sudah paham</div>'
+    + '<div class="asmnt-legend-item"><span>🟡</span> Paham tapi ragu</div>'
+    + '<div class="asmnt-legend-item"><span>❌</span> Belum paham</div>'
+    + '</div>';
+
+  // Progress bar
+  html += '<div class="asmnt-progress">'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">'
+    + '<span>Progress Pengisian</span><span>' + dijawab + ' / ' + totalItems + ' (' + pctDone + '%)</span>'
+    + '</div>'
+    + '<div class="asmnt-prog-bar"><div class="asmnt-prog-fill" id="asmtProgFill" style="width:' + pctDone + '%"></div></div>'
+    + '</div>';
+
+  // Poin per kategori
+  kategoriList.forEach(function(kat) {
+    var items = levelData[kat];
+    html += '<div class="asmt-kategori">'
+      + '<div class="asmt-kat-title">📖 ' + esc(kat) + ' <span style="font-weight:500;color:var(--text-3)">(' + items.length + ' poin)</span></div>';
+
+    items.forEach(function(item) {
+      var jawaban = _assessmentJawaban[item.id_item] || '';
+      html += '<div class="asmt-item" id="asmt-row-' + esc(item.id_item) + '">'
+        + '<div class="asmnt-item-text">'
+        + (item.teks_arab ? '<div class="asmnt-arab">' + esc(item.teks_arab) + '</div>' : '')
+        + '<div class="asmnt-latin">' + esc(item.teks_latin) + '</div>'
+        + (item.keterangan ? '<div class="asmnt-ket">' + esc(item.keterangan) + '</div>' : '')
+        + '</div>'
+        + '<div class="asmnt-btns">'
+        + '<button class="asmnt-btn' + (jawaban === 'paham' ? ' on-paham' : '') + '" title="Sudah paham" onclick="setAssessment(\'' + esc(item.id_item) + '\',\'paham\')">✅</button>'
+        + '<button class="asmnt-btn' + (jawaban === 'ragu'  ? ' on-ragu'  : '') + '" title="Paham tapi ragu" onclick="setAssessment(\'' + esc(item.id_item) + '\',\'ragu\')">🟡</button>'
+        + '<button class="asmnt-btn' + (jawaban === 'belum' ? ' on-belum' : '') + '" title="Belum paham" onclick="setAssessment(\'' + esc(item.id_item) + '\',\'belum\')">❌</button>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  });
+
+  // Tombol simpan
+  html += '<button class="asmnt-save-btn" id="asmtSaveBtn" onclick="saveAssessment()">💾 Simpan Assessment</button>';
+  html += '<div style="height:20px"></div>';
+
+  el.innerHTML = html;
+}
+
+function setAssessment(idItem, status) {
+  _assessmentJawaban[idItem] = status;
+  _assessmentDirty = true;
+
+  // Update visual baris ini
+  var row = document.getElementById('asmt-row-' + idItem);
+  if (row) {
+    var btns = row.querySelectorAll('.asmnt-btn');
+    var map  = ['paham','ragu','belum'];
+    btns.forEach(function(btn, i) {
+      btn.className = 'asmnt-btn' + (_assessmentJawaban[idItem] === map[i] ? ' on-' + map[i] : '');
+    });
+  }
+
+  // Update progress bar
+  var levelData = (_assessmentItems && _assessmentItems[_assessmentLevel]) || {};
+  var allItems = Object.values(levelData).reduce(function(acc, arr) { return acc.concat(arr); }, []);
+  var dijawab = allItems.filter(function(item) { return !!_assessmentJawaban[item.id_item]; }).length;
+  var pct = allItems.length > 0 ? Math.round((dijawab / allItems.length) * 100) : 0;
+  var fill = document.getElementById('asmtProgFill');
+  if (fill) fill.style.width = pct + '%';
+  var prog = document.querySelector('.asmnt-progress span:last-child');
+  if (prog) prog.textContent = dijawab + ' / ' + allItems.length + ' (' + pct + '%)';
+}
+
+async function saveAssessment() {
+  if (!_assessmentDirty) { toast('Tidak ada perubahan', 'warn'); return; }
+  var btn = document.getElementById('asmtSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  try {
+    await window.HQ.MuridAPI.saveAssessment({ jawaban: _assessmentJawaban });
+    _assessmentDirty = false;
+    toast('Assessment berhasil disimpan ✅', 'ok');
+  } catch(e) {
+    toast(e.message || 'Gagal menyimpan', 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan Assessment'; }
+  }
 }
 
 // ══════════════════════════════════════════

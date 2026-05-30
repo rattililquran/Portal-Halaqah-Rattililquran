@@ -1100,6 +1100,7 @@ html.theme-dark .url-text { color: #34d399 !important; }
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni">🚨</span>Keaktifan Murid</button>
+      <button class="nav-btn" onclick="goPage('assessment')" data-p="assessment"><span class="ni">✍️</span>Assessment</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
@@ -1466,6 +1467,26 @@ html.theme-dark .url-text { color: #34d399 !important; }
               <textarea class="fc" id="pngIsi" rows="4" placeholder="Tulis isi pengumuman di sini..." style="resize:vertical"></textarea>
             </div>
             <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim Pengumuman</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ASSESSMENT ════ -->
+      <div class="page" id="page-assessment">
+        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Assessment Mandiri Murid</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Rekap self-assessment Makharijul & Sifaatul Huruf (Level 1 & 2).</div>
+
+        <div class="fg" style="margin-bottom:16px">
+          <label>Pilih Halaqah</label>
+          <select class="fc" id="asmtHalaqahSel" onchange="loadAssessmentRekap()">
+            <option value="">— Pilih Halaqah —</option>
+          </select>
+        </div>
+
+        <div id="asmtRekapContent">
+          <div class="empty" style="padding:40px 0">
+            <div class="empty-ico">✍️</div>
+            <div class="empty-ttl">Pilih halaqah untuk melihat rekap</div>
           </div>
         </div>
       </div>
@@ -2100,7 +2121,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   jurnal:'Jurnal — Step 4/4',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
   'nilai-manual':'Input Nilai Manual',password:'Ganti Password',
-  keaktifan:'Keaktifan Murid'};
+  keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2120,6 +2141,7 @@ function goPage(name) {
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
   if (name === 'keaktifan')  loadKeaktifanPage();
+  if (name === 'assessment') { populateSel('asmtHalaqahSel'); }
   if (name === 'nilai-manual') {
     // Load setup and period dropdowns
     loadNilaiSetup();
@@ -4220,6 +4242,119 @@ async function mulaiSesiBaruCepat() {
     window._mulaiSesiBaruCepatHalaqah = buatSesiInstan;
     openModal('modalPilihHalaqahSesi');
   }
+}
+
+// ══════════════════════════════════════════
+//  ASSESSMENT REKAP
+// ══════════════════════════════════════════
+
+async function loadAssessmentRekap() {
+  var idHalaqah = document.getElementById('asmtHalaqahSel') && document.getElementById('asmtHalaqahSel').value;
+  var el = document.getElementById('asmtRekapContent');
+  if (!el) return;
+  if (!idHalaqah) {
+    el.innerHTML = '<div class="empty" style="padding:40px 0"><div class="empty-ico">✍️</div>'
+      + '<div class="empty-ttl">Pilih halaqah untuk melihat rekap</div></div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="empty" style="padding:24px 0"><div class="empty-ico">⏳</div>'
+    + '<div class="empty-ttl">Memuat rekap...</div></div>';
+  try {
+    var r = await window.HQ.GuruAPI.getAssessmentRekap(idHalaqah);
+    if (r.status !== 'ok') throw new Error(r.message);
+    renderAssessmentRekap(r.data, r.total_items, r.level);
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
+      + '<div class="empty-ttl">' + esc(e.message) + '</div></div>';
+  }
+}
+
+function renderAssessmentRekap(data, totalItems, level) {
+  var el = document.getElementById('asmtRekapContent');
+  if (!el) return;
+
+  if (!data || !data.length) {
+    el.innerHTML = '<div class="empty" style="padding:40px 0"><div class="empty-ico">📭</div>'
+      + '<div class="empty-ttl">Belum ada data assessment untuk halaqah ini</div></div>';
+    return;
+  }
+
+  var JAWABAN_LABEL = {paham:'✅ Paham', ragu:'🟡 Ragu', belum:'❌ Belum', null:'—'};
+
+  var html = '<div style="font-size:12px;color:var(--text-3);margin-bottom:12px;font-weight:600">'
+    + level + ' · ' + totalItems + ' poin · ' + data.length + ' murid</div>';
+
+  data.forEach(function(m) {
+    var s = m.summary;
+    var belumPct = totalItems > 0 ? Math.round(((s.belum + s.kosong) / totalItems) * 100) : 0;
+    var pahamPct = m.pct_paham;
+    var barColor = pahamPct >= 80 ? 'var(--green)' : pahamPct >= 50 ? 'var(--amber)' : 'var(--red)';
+    var lastUpd  = m.last_update ? m.last_update.substring(0,10) : '–';
+
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div class="card-head" style="cursor:pointer" onclick="toggleAsmtDetail(\'' + esc(m.id_murid) + '\')">'
+      + '<div class="card-title" style="flex:1;gap:8px">'
+      + '<span>' + esc(m.nama_murid) + '</span>'
+      + '<span style="font-size:11px;font-weight:600;color:var(--text-3)">' + esc(m.level) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700">'
+      + '<span style="color:var(--green)">✅ ' + s.paham + '</span>'
+      + '<span style="color:var(--amber)">🟡 ' + s.ragu + '</span>'
+      + '<span style="color:var(--red)">❌ ' + (s.belum + s.kosong) + '</span>'
+      + '</div>'
+      + '<span style="color:var(--text-3);font-size:14px;margin-left:6px">▾</span>'
+      + '</div>'
+      + '<div style="padding:0 20px 8px">'
+      + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:3px">'
+      + '<span>Pemahaman</span><span>' + pahamPct + '% paham · Update ' + lastUpd + '</span>'
+      + '</div>'
+      + '<div style="height:5px;border-radius:100px;background:var(--border);overflow:hidden">'
+      + '<div style="height:100%;width:' + pahamPct + '%;background:' + barColor + ';border-radius:100px;transition:width .4s"></div>'
+      + '</div>'
+      + '</div>'
+      // Detail expand section
+      + '<div id="asmtDetail-' + esc(m.id_murid) + '" style="display:none;padding:0 20px 16px">'
+      + renderAsmtDetailTable(m.detail)
+      + '</div>'
+      + '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function renderAsmtDetailTable(detail) {
+  if (!detail || !detail.length) return '';
+  var grouped = {};
+  detail.forEach(function(d) {
+    if (!grouped[d.kategori]) grouped[d.kategori] = [];
+    grouped[d.kategori].push(d);
+  });
+
+  var html = '';
+  Object.keys(grouped).forEach(function(kat) {
+    html += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;'
+      + 'letter-spacing:.06em;margin:10px 0 6px">' + esc(kat) + '</div>';
+    grouped[kat].forEach(function(item) {
+      var j = item.jawaban;
+      var bg = j === 'paham' ? 'rgba(16,185,129,.08)' : j === 'ragu' ? 'rgba(245,158,11,.08)' : j === 'belum' ? 'rgba(239,68,68,.08)' : 'transparent';
+      var icon = j === 'paham' ? '✅' : j === 'ragu' ? '🟡' : j === 'belum' ? '❌' : '○';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;background:' + bg + ';margin-bottom:4px">'
+        + '<span style="font-size:14px;flex-shrink:0">' + icon + '</span>'
+        + '<div style="flex:1;min-width:0">'
+        + (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:15px;direction:rtl;margin-right:6px">' + esc(item.teks_arab) + '</span>' : '')
+        + '<span style="font-size:12px;font-weight:700;color:var(--text)">' + esc(item.teks_latin) + '</span>'
+        + '</div>'
+        + '</div>';
+    });
+  });
+  return html;
+}
+
+function toggleAsmtDetail(idMurid) {
+  var el = document.getElementById('asmtDetail-' + idMurid);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 // ══════════════════════════════════════════
