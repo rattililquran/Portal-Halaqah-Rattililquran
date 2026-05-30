@@ -385,7 +385,18 @@ html.theme-dark .badge.b-red   { background: #2a0800 !important; color: #f87171 
 html.theme-dark .badge.b-gray  { background: #1a1a1a !important; color: #9ca3af !important; }
 
 /* Koreksi box */
-html.theme-dark .koreksi-box { background: #2a1f00 !important; color: #fbbf24 !important; }
+html.theme-dark .koreksi-box { 
+  background: rgba(245, 158, 11, 0.15) !important; 
+  color: #fbbf24 !important; 
+  border: 1px solid rgba(245, 158, 11, 0.3) !important; 
+}
+
+/* Toast message error */
+html.theme-dark .toast-msg {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
 
 /* Sinkron dot */
 html.theme-dark .refresh-dot { background: var(--green) !important; }
@@ -641,7 +652,7 @@ function showResumeCard(us) {
   var rd = ROLE_META[role] ? ROLE_META[role].redirect : null;
 
   // Sembunyikan form login
-  var authBox = document.querySelector('.auth-box');
+  var authBox = document.querySelector('.card');
   if (!authBox) return;
 
   // Buat resume card
