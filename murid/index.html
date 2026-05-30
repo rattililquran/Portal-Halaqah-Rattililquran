@@ -2081,8 +2081,9 @@ function startApp() {
   document.getElementById('app').style.display = 'block';
   var us = window.HQ.Auth.getUser();
   if (!us) return;
-  var nama = us.nama_lengkap || us.nama || us.id_user;
-  var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
+  // Support semua format field nama yang mungkin ada di storage
+  var nama = us.nama_lengkap || us.nama || us.name || us.id_user || 'Murid';
+  var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
   var savedAvatar = localStorage.getItem('murid_avatar_' + us.id_user);
   var savedFoto   = localStorage.getItem('murid_foto_' + us.id_user);
   if (savedFoto) {
@@ -2282,6 +2283,8 @@ async function loadDashboard() {
     // Profil modal data — dari d.profil
     var _namaProfil = prof.nama || (d.profil && d.profil.nama) || '';
     document.getElementById('profilName').textContent = _namaProfil;
+    // Update topName dari data server (sumber paling akurat, fix bug "Murid" muncul)
+    if (_namaProfil) document.getElementById('topName').textContent = _namaProfil;
     document.getElementById('profilNis').textContent  = d.id_murid || '';
     document.getElementById('profilHp').value    = d.no_hp || '';
     document.getElementById('profilEmail').value = d.email || '';
