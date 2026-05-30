@@ -1001,41 +1001,32 @@ input, select, textarea, button, table, td, th {
 }
 
 html.theme-dark {
-  --bg:       #0b1329;
-  --card:     rgba(22, 28, 45, 0.75);
-  --bg-2:     #111c30;
-  --glass:    rgba(22, 28, 45, 0.75);
-  --glass-border:rgba(255,255,255,0.12);
-  --text:     #f0f4ff;
-  --text-2:   #a0aec0;
-  --text-3:   #718096;
-  --border:   rgba(255, 255, 255, 0.1);
-  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,0.1);--blue-m:rgba(56,189,248,0.15);
-  --green-l:  #0a2e1f;
-  --blue-l:   rgba(56,189,248,0.1);
-  --amber-l:  #2a1f00;
-  --red-l:    #2a0800;
-  --shadow:   0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
-  --shadow-card:0 4px 16px rgba(0,0,0,.3);
-  --shadow-blue:0 8px 24px rgba(56,189,248,0.2);
+  /* Palette gelap bersih — tidak terlalu navy */
+  --bg:         #111318;
+  --bg-2:       #1a1d24;
+  --card:       #1e2128;
+  --glass:      #1e2128;
+  --glass-border:rgba(255,255,255,0.07);
+  --text:       #e8eaf0;
+  --text-2:     #9ca3af;
+  --text-3:     #6b7280;
+  --border:     rgba(255,255,255,0.08);
+  --blue:#38bdf8;--blue-d:#0ea5e9;
+  --blue-l:rgba(56,189,248,0.1);--blue-m:rgba(56,189,248,0.14);
+  --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,0.1);
+  --amber-l:rgba(251,191,36,0.1);
+  --red-l:rgba(248,113,113,0.1);
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.5);
+  --shadow-card:0 2px 8px rgba(0,0,0,.35);
 }
 
 /* ══ DARK MODE ══════════════════════════════════════════════════════ */
-html.theme-dark body{background:#0b1329}
+html.theme-dark body{background:#111318}
 
-/* Glass cards */
+/* Semua cards — solid, tidak glass blur */
 html.theme-dark .card,
 html.theme-dark .stat-card,
-html.theme-dark .progress-card{background:linear-gradient(135deg,#0369a1 0%,#1e40af 100%) !important;box-shadow:0 10px 30px rgba(0,0,0,.4) !important}
-html.theme-dark .prog-inner-wrap{background:rgba(255,255,255,.12) !important}
-html.theme-dark .prog-inner-card{background:#1c2438 !important}
-html.theme-dark .prog-inner-title{color:#f0f4ff !important}
-html.theme-dark .prog-book-ico{background:rgba(56,189,248,.12) !important}
-html.theme-dark .prog-bar-wrap{background:rgba(255,255,255,.08) !important}
-html.theme-dark .prog-meta .prog-count{color:#38bdf8 !important}
-html.theme-dark .prog-meta .prog-sisa{color:rgba(255,255,255,.4) !important}
-/* other cards keep glass override */
 html.theme-dark .spp-card,
 html.theme-dark .riwayat-item,
 html.theme-dark .pr-item,
@@ -1045,128 +1036,146 @@ html.theme-dark .link-card,
 html.theme-dark .kalender-wrap,
 html.theme-dark .kal-popup-box,
 html.theme-dark .peng-item,
-html.theme-dark .page-header {
-  background:rgba(22,28,45,0.75) !important;
-  backdrop-filter:blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter:blur(20px) saturate(180%) !important;
-  border:1px solid rgba(255,255,255,0.12) !important;
-  box-shadow:0 16px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12) !important;
+html.theme-dark .page-header,
+html.theme-dark .asmt-item,
+html.theme-dark .asmnt-legend {
+  background:#1e2128 !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border:1px solid rgba(255,255,255,0.07) !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
 }
-html.theme-dark .link-card:hover{border-color:var(--green) !important}
+html.theme-dark .card:hover,html.theme-dark .stat-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
+html.theme-dark .link-card:hover{border-color:rgba(56,189,248,.3) !important}
+html.theme-dark .card-head{background:rgba(255,255,255,.03) !important;border-bottom-color:rgba(255,255,255,.06) !important}
 
-/* Inputs */
+/* Progress card — tetap biru tapi lebih gelap dan solid */
+html.theme-dark .progress-card{
+  background:linear-gradient(135deg,#0c4a6e 0%,#075985 60%,#0369a1 100%) !important;
+  box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+html.theme-dark .prog-inner-wrap{background:rgba(255,255,255,.1) !important}
+html.theme-dark .prog-inner-card{background:#162032 !important;border:none !important}
+html.theme-dark .prog-inner-title{color:#e2e8f0 !important}
+html.theme-dark .prog-book-ico{background:rgba(56,189,248,.15) !important}
+html.theme-dark .prog-bar-wrap{background:rgba(255,255,255,.1) !important;box-shadow:none !important}
+html.theme-dark .prog-meta .prog-count{color:#38bdf8 !important}
+html.theme-dark .prog-meta .prog-sisa{color:rgba(255,255,255,.4) !important}
+
+/* Stat card icons */
+html.theme-dark .stat-card .val{color:#e8eaf0 !important}
+html.theme-dark .stat-card .lbl{color:#6b7280 !important}
+
+/* Riwayat detail */
+html.theme-dark .riwayat-detail{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .riwayat-summary:hover{background:rgba(255,255,255,.03) !important}
+html.theme-dark .detail-row{border-bottom-color:rgba(255,255,255,.05) !important}
+html.theme-dark .koreksi-box{background:rgba(251,191,36,.08) !important;color:#fbbf24 !important;border-color:rgba(251,191,36,.15) !important}
+
+/* PR items */
+html.theme-dark .pr-item.lewat{background:#2a1515 !important;border-color:rgba(248,113,113,.2) !important}
+html.theme-dark .pr-item.hari_ini{background:#2a2010 !important;border-color:rgba(251,191,36,.2) !important}
+html.theme-dark .pr-item.aman{background:#122a1e !important;border-color:rgba(52,211,153,.2) !important}
+
+/* Pengumuman */
+html.theme-dark .peng-item-body{background:transparent !important}
+html.theme-dark .peng-judul{color:#e2e8f0 !important}
+html.theme-dark .peng-isi{color:#9ca3af !important}
+
+/* Kalender */
+html.theme-dark .kal-day{color:#9ca3af !important}
+html.theme-dark .kal-day-name{color:#4b5563 !important}
+html.theme-dark .kal-day.hadir{background:rgba(52,211,153,.12) !important;color:#34d399 !important;border-color:rgba(52,211,153,.2) !important}
+html.theme-dark .kal-day.alpa{background:rgba(248,113,113,.12) !important;color:#f87171 !important;border-color:rgba(248,113,113,.2) !important}
+html.theme-dark .kal-day.izin{background:rgba(251,191,36,.1) !important;color:#fbbf24 !important}
+html.theme-dark .kal-day.terlambat{background:rgba(167,139,250,.12) !important;color:#a78bfa !important}
+html.theme-dark .kal-day.today{background:linear-gradient(135deg,var(--blue),var(--blue-d)) !important;color:#fff !important}
+html.theme-dark .kal-nav{background:#252830 !important;color:#9ca3af !important}
+
+/* Materi */
+html.theme-dark .materi-head:hover{background:rgba(255,255,255,.03) !important}
+html.theme-dark .materi-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .lf-btn{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#9ca3af !important}
+html.theme-dark .lf-btn.active{background:rgba(56,189,248,.15) !important;border-color:rgba(56,189,248,.3) !important;color:#38bdf8 !important}
+
+/* SPP */
+html.theme-dark .spp-lunas{background:rgba(52,211,153,.12) !important;color:#34d399 !important;border-color:rgba(52,211,153,.2) !important}
+html.theme-dark .spp-belum{background:rgba(248,113,113,.12) !important;color:#f87171 !important;border-color:rgba(248,113,113,.2) !important}
+html.theme-dark .spp-msg.ok{color:#34d399 !important}
+html.theme-dark .spp-msg.warn{color:#f87171 !important}
+
+/* Inputs — solid, tidak transparan */
 html.theme-dark .fc,
 html.theme-dark input,
 html.theme-dark select,
-html.theme-dark textarea {
-  background:rgba(44,44,54,0.7) !important;
-  border-color:rgba(255,255,255,0.1) !important;
-  color:#F2F2F7 !important;
-}
-html.theme-dark .fc:focus{border-color:var(--blue) !important;box-shadow:0 0 0 3px rgba(10,132,255,.2) !important}
+html.theme-dark textarea{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#e8eaf0 !important}
+html.theme-dark .fc:focus{border-color:#38bdf8 !important;box-shadow:0 0 0 3px rgba(56,189,248,.15) !important}
 
 /* Auth */
-html.theme-dark .auth-box{
-  background:rgba(28,28,36,0.85) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
-}
-html.theme-dark .auth-arabic{color:#0A84FF !important}
-html.theme-dark .auth-sub,html.theme-dark .auth-hint{color:var(--text-3) !important}
-html.theme-dark .auth-input{background:rgba(44,44,54,0.7) !important;color:#F2F2F7 !important;border-color:rgba(255,255,255,.1) !important}
+html.theme-dark .auth-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.1) !important;backdrop-filter:none !important}
+html.theme-dark .auth-arabic{color:#38bdf8 !important}
+html.theme-dark .auth-input{background:#252830 !important;color:#e8eaf0 !important;border-color:rgba(255,255,255,.1) !important}
 
 /* Top header */
-html.theme-dark .top-header{
-  background:rgba(11,19,41,0.85) !important;
-  border-bottom:1px solid rgba(255,255,255,.08) !important;
-  box-shadow:0 4px 20px rgba(0,0,0,.3) !important;
-}
-html.theme-dark .top-greet{color:rgba(255,255,255,.5) !important}
-html.theme-dark .top-name{color:#f0f4ff !important}
-html.theme-dark .top-badge{background:rgba(56,189,248,.1) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
-html.theme-dark .top-hamburger,
-html.theme-dark .top-action-btn{
-  background:rgba(255,255,255,.07) !important;color:rgba(255,255,255,.6) !important;
-}
+html.theme-dark .top-header{background:#1a1d24 !important;border-bottom:1px solid rgba(255,255,255,.07) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+html.theme-dark .top-greet{color:rgba(255,255,255,.45) !important}
+html.theme-dark .top-name{color:#e8eaf0 !important}
+html.theme-dark .top-badge{background:rgba(56,189,248,.12) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
+html.theme-dark .top-hamburger,html.theme-dark .top-action-btn{background:#252830 !important;color:rgba(255,255,255,.55) !important;border:none !important}
 
-/* Bottom nav */
-html.theme-dark .bottom-nav{
-  background:rgba(11,19,41,0.9) !important;
-  backdrop-filter:blur(20px) !important;
-  -webkit-backdrop-filter:blur(20px) !important;
-  border-top-color:rgba(255,255,255,.1) !important;
-}
-html.theme-dark .nav-item{color:#718096 !important}
-html.theme-dark .nav-item.active{color:var(--green) !important}
-html.theme-dark .nav-badge{border-color:rgba(11,19,41,0.9) !important}
+/* Bottom nav — solid, tidak blur */
+html.theme-dark .bottom-nav{background:#1a1d24 !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;border-top:1px solid rgba(255,255,255,.07) !important}
+html.theme-dark .nav-item{color:#6b7280 !important}
+html.theme-dark .nav-item.active{color:#38bdf8 !important}
+html.theme-dark .nav-item.active .ni{background:rgba(56,189,248,.12) !important}
+html.theme-dark .nav-badge{border-color:#1a1d24 !important}
+html.theme-dark .nav-profile-wrap{box-shadow:0 4px 14px rgba(56,189,248,.25),0 0 0 2.5px #1a1d24 !important}
 
 /* Sidebar */
-html.theme-dark .sidebar-drawer{background:#0d1525 !important}
-html.theme-dark .sidebar-top-wave{background:#0d1525 !important}
-html.theme-dark .sidebar-item{color:rgba(255,255,255,.72)}
-html.theme-dark .sidebar-item:hover{background:rgba(14,165,233,.1);color:#38bdf8}
-html.theme-dark .sidebar-item.ico-blue .sidebar-item-ico{background:rgba(14,165,233,.15);color:#38bdf8}
-html.theme-dark .sidebar-item.ico-green .sidebar-item-ico{background:rgba(16,185,129,.15);color:#34d399}
-html.theme-dark .sidebar-item.ico-amber .sidebar-item-ico{background:rgba(245,158,11,.15);color:#fbbf24}
-html.theme-dark .sidebar-item.ico-purple .sidebar-item-ico{background:rgba(139,92,246,.15);color:#a78bfa}
-html.theme-dark .sidebar-item.ico-slate .sidebar-item-ico{background:rgba(255,255,255,.07);color:rgba(255,255,255,.45)}
+html.theme-dark .sidebar-drawer{background:#161920 !important}
+html.theme-dark .sidebar-top-wave{background:#161920 !important}
+html.theme-dark .sidebar-item{color:rgba(255,255,255,.68)}
+html.theme-dark .sidebar-item:hover{background:rgba(56,189,248,.08);color:#38bdf8}
+html.theme-dark .sidebar-item.ico-blue .sidebar-item-ico{background:rgba(56,189,248,.12);color:#38bdf8}
+html.theme-dark .sidebar-item.ico-green .sidebar-item-ico{background:rgba(52,211,153,.12);color:#34d399}
+html.theme-dark .sidebar-item.ico-amber .sidebar-item-ico{background:rgba(251,191,36,.12);color:#fbbf24}
+html.theme-dark .sidebar-item.ico-purple .sidebar-item-ico{background:rgba(167,139,250,.12);color:#a78bfa}
+html.theme-dark .sidebar-item.ico-slate .sidebar-item-ico{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4)}
 html.theme-dark .sidebar-item.danger{color:#f87171}
-html.theme-dark .sidebar-item.danger .sidebar-item-ico{background:rgba(239,68,68,.12);color:#f87171}
-html.theme-dark .sidebar-divider{background:rgba(255,255,255,.07) !important}
-html.theme-dark .sidebar-section{color:rgba(255,255,255,.28) !important}
-html.theme-dark .sidebar-item.danger:hover{background:rgba(239,68,68,.12)}
-html.theme-dark .sidebar-divider{background:rgba(255,255,255,.07)}
-html.theme-dark .sidebar-section{color:rgba(255,255,255,.3)}
+html.theme-dark .sidebar-item.danger .sidebar-item-ico{background:rgba(248,113,113,.12);color:#f87171}
+html.theme-dark .sidebar-item.danger:hover{background:rgba(248,113,113,.08)}
+html.theme-dark .sidebar-divider{background:rgba(255,255,255,.06) !important}
+html.theme-dark .sidebar-section{color:#4b5563 !important}
+html.theme-dark .sb-nav,.sidebar-nav{background:#161920}
 
-/* Modals */
-html.theme-dark .modal-sheet,
-html.theme-dark .modal-overlay .modal{
-  background:#161e2e !important;
-  border:1px solid rgba(255,255,255,.16) !important;
-}
-html.theme-dark .modal-foot{background:#161e2e !important;border-top-color:rgba(255,255,255,.1) !important}
-html.theme-dark .notif-box{background:#161e2e !important;border:1px solid rgba(255,255,255,.16) !important}
+/* Modals — solid */
+html.theme-dark .modal-sheet,html.theme-dark .modal-overlay .modal{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important;backdrop-filter:none !important}
+html.theme-dark .modal-head{background:#1e2128 !important;border-bottom-color:rgba(255,255,255,.07) !important}
+html.theme-dark .modal-foot{background:#1e2128 !important;border-top-color:rgba(255,255,255,.07) !important}
+html.theme-dark .notif-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important}
+html.theme-dark .modal-body label{color:#9ca3af !important}
+html.theme-dark .fg label{color:#9ca3af !important}
 
-/* SPP */
-html.theme-dark .spp-lunas{background:rgba(48,209,88,.12) !important;color:#30D158 !important;border-color:rgba(48,209,88,.15) !important}
-html.theme-dark .spp-belum{background:rgba(255,69,58,.12) !important;color:#FF453A !important;border-color:rgba(255,69,58,.15) !important}
-html.theme-dark .spp-msg.ok{color:#30D158 !important}
-html.theme-dark .spp-msg.warn{color:#FF453A !important}
+/* Tentang */
+html.theme-dark .tentang-desc{background:#252830;border-color:rgba(255,255,255,.07)}
+html.theme-dark .program-item{background:#252830;border-color:rgba(255,255,255,.07);color:#e8eaf0}
+html.theme-dark .sosmed-btn{background:#252830;border-color:rgba(255,255,255,.08);color:rgba(232,234,240,.8)}
+html.theme-dark .sosmed-btn:hover{background:rgba(56,189,248,.12);border-color:#38bdf8;color:#38bdf8}
 
-/* Kalender */
-html.theme-dark .kal-day{color:#AEAEB2 !important}
-html.theme-dark .kal-day-name{color:#48484A !important}
-html.theme-dark .kal-popup-box{background:rgba(28,28,36,0.95) !important;border:1px solid rgba(255,255,255,.09) !important}
+/* Misc */
+html.theme-dark .refresh-badge-murid{background:#1e2128 !important;border-color:rgba(255,255,255,.08) !important;color:#9ca3af !important}
+html.theme-dark #bell-badge{border-color:#1a1d24 !important}
+html.theme-dark .empty-ttl{color:#9ca3af !important}
+html.theme-dark .prog-motivasi-outer{color:rgba(255,255,255,.65) !important}
+html.theme-dark table{color:#e8eaf0 !important}
+html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark td{border-color:rgba(255,255,255,.05) !important}
+html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
 
-/* Riwayat & PR */
-html.theme-dark .riwayat-detail{background:rgba(0,0,5,0.3) !important;border-top-color:rgba(255,255,255,.06) !important}
-html.theme-dark .riwayat-summary:hover,html.theme-dark .materi-head:hover{background:rgba(255,255,255,.03) !important}
-html.theme-dark .koreksi-box{background:rgba(255,159,10,.12) !important;color:#FF9F0A !important;border:1px solid rgba(255,159,10,.2) !important}
-html.theme-dark .materi-body{background:rgba(0,0,5,0.25) !important;border-top-color:rgba(255,255,255,.06) !important}
-
-/* Level filter */
-html.theme-dark .lf-btn{background:rgba(44,44,54,.7) !important;border-color:rgba(255,255,255,.1) !important;color:#AEAEB2 !important}
-html.theme-dark .lf-btn.active{background:rgba(10,132,255,.15) !important;border-color:var(--blue) !important;color:#0A84FF !important}
-
-/* Tentang modal */
-html.theme-dark .tentang-desc{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)}
-html.theme-dark .program-item{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)}
-html.theme-dark .sosmed-btn{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:rgba(242,242,247,.8)}
-html.theme-dark .sosmed-btn:hover{background:rgba(10,132,255,.15);border-color:var(--blue);color:#0A84FF}
-
-/* Refresh badge */
-html.theme-dark .refresh-badge-murid{background:rgba(28,28,36,.95) !important;border-color:rgba(255,255,255,.1) !important}
-
-/* #bell-badge border */
-html.theme-dark #bell-badge{border-color:#000005 !important}
-
-/* Progress motivasi */
-html.theme-dark .prog-motivasi{color:rgba(242,242,247,.7) !important}
-
-/* Assessment */
-html.theme-dark .asmt-item{background:rgba(28,28,36,.78);border-color:rgba(255,255,255,.09)}
-html.theme-dark .asmnt-legend{background:rgba(28,28,36,.78);border-color:rgba(255,255,255,.09)}
-html.theme-dark .asmnt-btn{border-color:rgba(255,255,255,.12);background:rgba(44,44,54,.5)}
-html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
+/* Sembunyikan blobs di dark mode */
+html.theme-dark .bg-blobs{display:none}
+html.theme-dark .bg-blobs-guru{display:none}
 </style>
 </head>
 <body>
