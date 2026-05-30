@@ -157,6 +157,10 @@ html.theme-dark .progress-card:hover{
 .stat-card.clickable{cursor:pointer}
 .stat-card.clickable:hover{border-color:rgba(16,185,129,.4)}
 html.theme-dark .stat-card.clickable:hover{border-color:rgba(16,185,129,.5)!important}
+.avatar-opt{font-size:24px;cursor:pointer;padding:6px;border-radius:50%;background:var(--bg);border:1px solid var(--border);transition:all .2s ease;width:38px;height:38px;display:flex;align-items:center;justify-content:center}
+.avatar-opt:hover,.avatar-opt.active{background:var(--green-l);border-color:var(--green);transform:scale(1.1)}
+.menu-item-hover{transition:background .2s ease}
+.menu-item-hover:hover{background:rgba(16,185,129,.05)!important}
 .stat-card .ico{font-size:22px;margin-bottom:4px}
 .stat-card .val{font-size:22px;font-weight:800;line-height:1.1;color:var(--text)}
 .stat-card .lbl{font-size:10px;color:var(--text-3);margin-top:4px;font-weight:700;
@@ -1118,7 +1122,8 @@ html.theme-dark .lf-btn.active {
       <button class="modal-x" onclick="closeModal('profilModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="text-align:center;margin-bottom:20px">
+      <!-- Header Profil & Avatar Custom -->
+      <div style="text-align:center;margin-bottom:15px">
         <div style="width:64px;height:64px;border-radius:50%;
           background:linear-gradient(135deg,var(--green),var(--green-d));
           color:#fff;font-weight:800;font-size:24px;
@@ -1127,6 +1132,35 @@ html.theme-dark .lf-btn.active {
         <div style="font-size:16px;font-weight:800" id="profilName"></div>
         <div style="font-size:12px;color:var(--text-3)" id="profilNis"></div>
       </div>
+      
+      <!-- Pemilihan Emoji Avatar -->
+      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+        <span class="avatar-opt" onclick="selectAvatar('🧕')">🧕</span>
+        <span class="avatar-opt" onclick="selectAvatar('🧑‍🎓')">🧑‍🎓</span>
+        <span class="avatar-opt" onclick="selectAvatar('👩‍🎓')">👩‍🎓</span>
+        <span class="avatar-opt" onclick="selectAvatar('🧔')">🧔</span>
+        <span class="avatar-opt" onclick="selectAvatar('🕌')">🕌</span>
+        <span class="avatar-opt" onclick="selectAvatar('📖')">📖</span>
+      </div>
+
+      <!-- Informasi Akademik Halaqah -->
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 16px; margin-bottom:20px;">
+        <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">🏫 Informasi Halaqah</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+          <span style="color:var(--text-2); font-weight:600;">Halaqah:</span>
+          <span style="color:var(--text); font-weight:700;" id="profilHalaqahName">-</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+          <span style="color:var(--text-2); font-weight:600;">Guru:</span>
+          <span style="color:var(--text); font-weight:700;" id="profilGuruName">-</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span style="color:var(--text-2); font-weight:600;">Jadwal:</span>
+          <span style="color:var(--text); font-weight:700;" id="profilJadwal">-</span>
+        </div>
+      </div>
+
+      <!-- Data Kontak Editable -->
       <div class="fg">
         <label for="profilHp">No HP</label>
         <input type="tel" id="profilHp" class="fc" placeholder="08xxxxxxxxxx">
@@ -1139,16 +1173,25 @@ html.theme-dark .lf-btn.active {
         <label for="profilAlamat">Alamat</label>
         <input type="text" id="profilAlamat" class="fc" placeholder="Alamat lengkap">
       </div>
+
+      <!-- Pengaturan Akun ala Mobile List -->
+      <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+        <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">⚙️ Pengaturan Akun</div>
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+          <div onclick="closeModal('profilModal');goPage('password')" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; border-bottom:1px solid var(--border);" class="menu-item-hover">
+            <span style="font-weight:600; color:var(--text); font-size:13.5px;">🔐 Ganti Password</span>
+            <span style="color:var(--text-3); font-weight:700;">&rsaquo;</span>
+          </div>
+          <div onclick="doLogout()" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer;" class="menu-item-hover">
+            <span style="font-weight:600; color:var(--red); font-size:13.5px;">🚪 Keluar dari Aplikasi</span>
+            <span style="color:var(--red); font-weight:700;">&rsaquo;</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('profilModal')">Batal</button>
       <button class="btn btn-primary" onclick="saveProfil()" id="btnSaveProfil">💾 Simpan</button>
-    </div>
-    <div style="padding:0 20px 20px">
-      <div class="pw-section">
-        <button onclick="closeModal('profilModal');goPage('password')" class="pw-link">🔐 Ganti Password</button>
-      </div>
-      <button onclick="doLogout()" class="btn-logout" style="margin-top:10px">→ Keluar</button>
     </div>
   </div>
 </div>
@@ -1526,7 +1569,8 @@ function startApp() {
   if (!us) return;
   var nama = us.nama_lengkap || us.nama || us.id_user;
   var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase();
-  document.getElementById('topAvatar').textContent = ini;
+  var savedAvatar = localStorage.getItem('murid_avatar_' + us.id_user);
+  document.getElementById('topAvatar').textContent = savedAvatar || ini;
   document.getElementById('topName').textContent   = nama;
   document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   resetMuridSession();
@@ -1699,13 +1743,36 @@ async function loadDashboard() {
 
     // Profil modal data — dari d.profil
     var _namaProfil = prof.nama || (d.profil && d.profil.nama) || '';
-    document.getElementById('profilAvatar').textContent =
-      _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
     document.getElementById('profilName').textContent = _namaProfil;
     document.getElementById('profilNis').textContent  = d.id_murid || '';
     document.getElementById('profilHp').value    = d.no_hp || '';
     document.getElementById('profilEmail').value = d.email || '';
     document.getElementById('profilAlamat').value= d.alamat || '';
+
+    // Akademik Halaqah
+    var hq = d.halaqah || {};
+    document.getElementById('profilHalaqahName').textContent = hq.nama || '–';
+    document.getElementById('profilGuruName').textContent = hq.guru || '–';
+    document.getElementById('profilJadwal').textContent = (hq.jadwal && hq.jam) ? (hq.jadwal + ', ' + hq.jam) : (hq.jadwal || '–');
+
+    // Avatar custom
+    var savedAvatar = localStorage.getItem('murid_avatar_' + (d.id_murid || ''));
+    if (savedAvatar) {
+      document.getElementById('profilAvatar').textContent = savedAvatar;
+      document.querySelectorAll('.avatar-opt').forEach(function(opt) {
+        if (opt.textContent === savedAvatar) {
+          opt.classList.add('active');
+        } else {
+          opt.classList.remove('active');
+        }
+      });
+    } else {
+      var ini = _namaProfil.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
+      document.getElementById('profilAvatar').textContent = ini;
+      document.querySelectorAll('.avatar-opt').forEach(function(opt) {
+        opt.classList.remove('active');
+      });
+    }
 
     // Kalender dari riwayat jika ada
     if (d.riwayat_singkat) {
@@ -2333,6 +2400,26 @@ async function saveProfil() {
     toast('Profil berhasil disimpan ✅', 'ok');
   } catch(e) { toast(e.message, 'err'); }
   finally { setBtn('btnSaveProfil', false, '💾 Simpan'); }
+}
+
+function selectAvatar(emoji) {
+  if (!dashData) return;
+  var idMurid = dashData.id_murid || '';
+  localStorage.setItem('murid_avatar_' + idMurid, emoji);
+  document.getElementById('profilAvatar').textContent = emoji;
+  
+  // Update header top avatar too!
+  var topAv = document.getElementById('topAvatar');
+  if (topAv) topAv.textContent = emoji;
+  
+  // Update active class
+  document.querySelectorAll('.avatar-opt').forEach(function(opt) {
+    if (opt.textContent === emoji) {
+      opt.classList.add('active');
+    } else {
+      opt.classList.remove('active');
+    }
+  });
 }
 // ══════════════════════════════════════════
 //  GANTI PASSWORD
