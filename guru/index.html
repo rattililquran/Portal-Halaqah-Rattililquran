@@ -2130,8 +2130,8 @@ function closeSB() { document.getElementById('sidebar').classList.remove('open')
 // ══════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════
-async function loadDashboard() {
-  showLoad('Bismillah, memuat dashboard...');
+async function loadDashboard(silent = false) {
+  if (!silent) showLoad('Bismillah, memuat dashboard...');
   // Load jadwal paralel
   loadJadwal();
   loadTemplateKoreksi();
@@ -2175,7 +2175,7 @@ async function loadDashboard() {
     // Pastikan jadwalList render ulang jika data sudah ada
     if (jadwalData.length) renderJadwal();
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
-  finally { hideLoad(); }
+  finally { if (!silent) hideLoad(); }
 }
 
 function hqCard(h) {
@@ -2704,7 +2704,7 @@ async function doSelesaiKBM() {
 
     // Reload dashboard data dan kembali ke form buka sesi
     setTimeout(async () => {
-      await loadDashboard();       // refresh halaqahList dari server
+      await loadDashboard(true);    // refresh halaqahList dari server (silent, popup ucapan terima kasih tetap tampil)
       // Pindah ke halaman KBM dengan form bersih
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
