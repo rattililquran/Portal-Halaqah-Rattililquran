@@ -2957,11 +2957,12 @@ async function simpanCatatan() {
 // ══════════════════════════════════════════
 //  HELPERS — UI
 // ══════════════════════════════════════════
-function populateSel(selId) {
+function populateSel(selId, preserveValue) {
   const sel = document.getElementById(selId);
   if (!sel) return;
+  const val = preserveValue !== undefined ? preserveValue : sel.value;
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' +
-    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}">${esc(h.nama_halaqah)}</option>`).join('');
+    halaqahList.map(h => `<option value="${esc(h.id_halaqah)}"${h.id_halaqah === val ? ' selected' : ''}>${esc(h.nama_halaqah)}</option>`).join('');
 }
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -3537,17 +3538,16 @@ function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
     goPage('kbm');
     return;
   }
-  const sel = document.getElementById('kbmHalaqah');
-  if (sel) {
-    sel.value = id_halaqah;
-    const event = new Event('change');
-    sel.dispatchEvent(event);
-  }
-  const ptInput = document.getElementById('kbmPertemuan');
-  if (ptInput) {
-    ptInput.value = pertemuan_ke;
-  }
   goPage('kbm');
+  setTimeout(function() {
+    const sel = document.getElementById('kbmHalaqah');
+    if (sel) {
+      sel.value = id_halaqah;
+      sel.dispatchEvent(new Event('change'));
+    }
+    const ptInput = document.getElementById('kbmPertemuan');
+    if (ptInput) ptInput.value = pertemuan_ke;
+  }, 0);
 }
 
 // ══ #5 TEMPLATE KOREKSI ══════════════════
