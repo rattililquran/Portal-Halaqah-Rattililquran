@@ -154,6 +154,9 @@ html.theme-dark .progress-card:hover{
   transition:all 0.2s ease;
 }
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-card.clickable{cursor:pointer}
+.stat-card.clickable:hover{border-color:rgba(16,185,129,.4)}
+html.theme-dark .stat-card.clickable:hover{border-color:rgba(16,185,129,.5)!important}
 .stat-card .ico{font-size:22px;margin-bottom:4px}
 .stat-card .val{font-size:22px;font-weight:800;line-height:1.1;color:var(--text)}
 .stat-card .lbl{font-size:10px;color:var(--text-3);margin-top:4px;font-weight:700;
@@ -932,12 +935,12 @@ html.theme-dark .lf-btn.active {
           <div class="val stat-val" id="st-sesi">–</div>
           <div class="lbl">Sesi</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card clickable" onclick="openAdabDetail()">
           <div class="ico">⭐</div>
           <div class="val stat-val" id="st-adab">–</div>
           <div class="lbl">Poin Adab</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card clickable" onclick="openKameraDetail()">
           <div class="ico">📷</div>
           <div class="val stat-val" id="st-kamera">–</div>
           <div class="lbl">Poin Kamera</div>
@@ -1205,6 +1208,84 @@ html.theme-dark .lf-btn.active {
   </div>
 </div>
 
+<!-- MODAL RINCIAN POIN ADAB -->
+<div class="modal-overlay" id="adabDetailModal" onclick="closeModal('adabDetailModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">⭐ Rincian Poin Adab</div>
+      <button class="modal-x" onclick="closeModal('adabDetailModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:20px;background:rgba(245,158,11,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(245,158,11,0.2)">
+        <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Total Poin Adab</div>
+        <div style="font-size:32px;font-weight:800;color:var(--amber);" id="modalAdabVal">0 Poin</div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Penilaian Adab</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🟢 Adab Baik (skor +1)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalAdabBaik">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px">
+            <span style="font-weight:600;color:var(--text-2)">🟡 Adab Cukup (skor +0)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalAdabCukup">0 Sesi</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02));border:1px solid rgba(245,158,11,0.15);padding:14px;border-radius:12px;">
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">💡 Informasi Skor</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-2);line-height:1.4">
+          Adab yang dinilai Baik selama KBM memberikan tambahan 1 poin. Tetap pertahankan adab mulia selama belajar Al-Qur'an!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RINCIAN POIN KAMERA -->
+<div class="modal-overlay" id="kameraDetailModal" onclick="closeModal('kameraDetailModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">📷 Rincian Poin Kamera</div>
+      <button class="modal-x" onclick="closeModal('kameraDetailModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:20px;background:rgba(59,130,246,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(59,130,246,0.2)">
+        <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Total Poin Kamera</div>
+        <div style="font-size:32px;font-weight:800;color:var(--blue);" id="modalKameraVal">0 Poin</div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Status Kamera</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🟢 Kamera Terbuka (skor +1)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalKameraTerbuka">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🟡 Kamera Sering Tertutup (skor +0)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalKameraSeringTertutup">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px">
+            <span style="font-weight:600;color:var(--text-2)">🔴 Kamera Selalu Tertutup (skor -1)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalKameraSelaluTertutup">0 Sesi</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.15);padding:14px;border-radius:12px;">
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">💡 Informasi Skor</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-2);line-height:1.4">
+          Mengaktifkan kamera membantu ustadz/ustadzah menyimak bacaan dengan lebih optimal. Kamera yang selalu tertutup akan mengurangi skor kamera.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- POPUP DETAIL KALENDER -->
 <div class="kal-popup" id="kalPopup" style="display:none" onclick="tutupKalPopup()">
   <div class="kal-popup-box" onclick="event.stopPropagation()">
@@ -1356,6 +1437,33 @@ function openProgressBreakdown() {
     document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
   }
   openModal('progressBreakdownModal');
+}
+
+// Open Adab Detail Modal
+function openAdabDetail() {
+  if (!dashData) return;
+  var adabDetail = dashData.poin_adab_detail || {};
+  var totalAdab = dashData.poin_adab !== undefined ? dashData.poin_adab : 0;
+  
+  document.getElementById('modalAdabVal').textContent = totalAdab + ' Poin';
+  document.getElementById('modalAdabBaik').textContent = (adabDetail.baik || 0) + ' Sesi';
+  document.getElementById('modalAdabCukup').textContent = (adabDetail.cukup || 0) + ' Sesi';
+  
+  openModal('adabDetailModal');
+}
+
+// Open Kamera Detail Modal
+function openKameraDetail() {
+  if (!dashData) return;
+  var kameraDetail = dashData.poin_kamera_detail || {};
+  var totalKamera = dashData.poin_kamera !== undefined ? dashData.poin_kamera : 0;
+  
+  document.getElementById('modalKameraVal').textContent = totalKamera + ' Poin';
+  document.getElementById('modalKameraTerbuka').textContent = (kameraDetail.terbuka || 0) + ' Sesi';
+  document.getElementById('modalKameraSelaluTertutup').textContent = (kameraDetail.selalu_tertutup || 0) + ' Sesi';
+  document.getElementById('modalKameraSeringTertutup').textContent = (kameraDetail.sering_tertutup || 0) + ' Sesi';
+  
+  openModal('kameraDetailModal');
 }
 
 // ══════════════════════════════════════════
