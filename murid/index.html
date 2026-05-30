@@ -2383,12 +2383,13 @@ async function loadRaport() {
   var el = document.getElementById('raportList');
   showLoad('Bismillah, memuat raport...');
   try {
-    var rr = await Promise.all([
+    var [rMain, rKonfig] = await Promise.allSettled([
       window.HQ.MuridAPI.getRaport(),
       window.HQ.MuridAPI.getKonfigurasiRaport()
     ]);
-    var r = rr[0];
-    _raportConfig = (rr[1] && rr[1].data) ? rr[1].data : {};
+    if (rMain.status === 'rejected') throw new Error(rMain.reason?.message || 'Gagal memuat raport');
+    var r = rMain.value;
+    _raportConfig = (rKonfig.status === 'fulfilled' && rKonfig.value?.data) ? rKonfig.value.data : {};
     var rows = r.data || [];
     _raportData = rows;
     if (!rows.length) {
