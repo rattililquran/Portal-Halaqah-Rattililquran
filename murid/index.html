@@ -130,7 +130,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .prog-sisa{color:var(--text-3);font-weight:500}
 
 /* ── STATS GRID ── */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+}
 .stat-card{
   background:rgba(255,255,255,.95);
   backdrop-filter:blur(16px);
@@ -802,12 +805,17 @@ html.theme-dark {
         <div class="stat-card">
           <div class="ico">📋</div>
           <div class="val stat-val" id="st-sesi">–</div>
-          <div class="lbl">Pertemuan</div>
+          <div class="lbl">Sesi</div>
         </div>
         <div class="stat-card">
           <div class="ico">⭐</div>
-          <div class="val stat-val" id="st-nilai" style="font-size:13px">–</div>
-          <div class="lbl">Avg Adab</div>
+          <div class="val stat-val" id="st-adab">–</div>
+          <div class="lbl">Poin Adab</div>
+        </div>
+        <div class="stat-card">
+          <div class="ico">📷</div>
+          <div class="val stat-val" id="st-kamera">–</div>
+          <div class="lbl">Poin Kamera</div>
         </div>
       </div>
 
@@ -1217,7 +1225,8 @@ async function loadDashboard() {
     // Stats
     document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
     document.getElementById('st-sesi').textContent  = kh.total_sesi !== undefined ? kh.total_sesi : '–';
-    document.getElementById('st-nilai').textContent = d.avg_nilai || '–';
+    document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
+    document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
     // PR preview
     var prAktif = d.pr_aktif || [];
@@ -1385,6 +1394,13 @@ function renderRiwayat(rows) {
       else if (k.kamera_murid === 'kamera selalu tertutup') kamBadge = 'b-red';
       else kamBadge = 'b-gray';
     }
+    
+    // Status Kamera Readable
+    var kamText = '–';
+    if (k.kamera_murid === 'kamera terbuka') kamText = 'Terbuka';
+    else if (k.kamera_murid === 'kamera sering tertutup') kamText = 'Sering Tertutup';
+    else if (k.kamera_murid === 'kamera selalu tertutup') kamText = 'Selalu Tertutup';
+
     return '<div class="riwayat-item" id="riwayat-'+idx+'">'
       // Summary — tap untuk expand
       + '<div class="riwayat-summary" onclick="toggleRiwayat('+idx+')">'
@@ -1394,24 +1410,35 @@ function renderRiwayat(rows) {
       + '<div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">'
       + '<span class="badge '+hBadge+'">'+hLbl+'</span>'
       + (k.adab ? '<span class="badge '+adabBadge+'">'+esc(k.adab)+'</span>' : '')
-      + (k.kamera_murid ? '<span class="badge '+kamBadge+'">📷 '+(k.kamera_murid==='kamera terbuka'?'Kamera Terbuka':k.kamera_murid==='kamera sering tertutup'?'Kamera Sering Tertutup':'Kamera Selalu Tertutup')+'</span>' : '')
+      + (k.kamera_murid ? '<span class="badge '+kamBadge+'">📷 '+kamText+'</span>' : '')
       + '</div>'
       + '</div>'
       + '<div class="riwayat-chevron">▼</div>'
       + '</div>'
       // Detail — tersembunyi
-      + '<div class="riwayat-detail">'
-      + (k.materi ? '<div class="detail-label">📖 Materi</div><div class="detail-row"><div class="detail-val">'+esc(k.materi)+'</div></div>' : '')
-      + (k.koreksi_tahsin ? '<div class="detail-label">✏️ Koreksi Tahsin dari Guru</div>'
-          + '<div class="koreksi-box">'+esc(k.koreksi_tahsin)+'</div>' : '')
-      + (k.adab ? '<div class="detail-label">😊 Adab</div><div class="detail-row"><div class="detail-val">'+esc(k.adab)+'</div></div>' : '')
-      + (k.kamera_murid ? '<div class="detail-label">📷 Kamera Murid</div><div class="detail-row"><div class="detail-val">'+esc(k.kamera_murid)+'</div></div>' : '')
-      + (k.catatan_murid ? '<div class="detail-label">📝 Catatan Guru</div><div class="detail-row"><div class="detail-val">'+esc(k.catatan_murid)+'</div></div>' : '')
-      + (k.latihan_mandiri ? '<div class="detail-label">💪 PR / Latihan Mandiri</div>'
-          + '<div style="background:var(--amber-l);border-radius:10px;padding:10px 12px;font-size:13px">'
-          + esc(k.latihan_mandiri)
-          + (k.deadline ? '<br><span style="color:var(--red);font-weight:600">Deadline: '+fmtDate(k.deadline)+'</span>' : '')
-          + '</div>' : '')
+      + '<div class="riwayat-detail" style="padding:15px; background:rgba(var(--primary-rgb),0.01); border-top:1px solid var(--border)">'
+      // Grid Parameter
+      + '<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px">'
+      + '  <div style="background:rgba(255,255,255,0.5); border:1px solid var(--border); border-radius:12px; padding:8px 12px; display:flex; align-items:center; gap:8px">'
+      + '    <span style="font-size:18px">😊</span>'
+      + '    <div>'
+      + '      <div style="font-size:9px; color:var(--text-3); font-weight:700; text-transform:uppercase">Adab Sesi</div>'
+      + '      <div style="font-size:12.5px; font-weight:800; color:' + (k.adab==='Baik'?'var(--green)':'var(--amber)') + '">' + esc(k.adab || '–') + '</div>'
+      + '    </div>'
+      + '  </div>'
+      + '  <div style="background:rgba(255,255,255,0.5); border:1px solid var(--border); border-radius:12px; padding:8px 12px; display:flex; align-items:center; gap:8px">'
+      + '    <span style="font-size:18px">📷</span>'
+      + '    <div>'
+      + '      <div style="font-size:9px; color:var(--text-3); font-weight:700; text-transform:uppercase">Kamera Murid</div>'
+      + '      <div style="font-size:12.5px; font-weight:800; color:' + (k.kamera_murid==='kamera terbuka'?'var(--green)':k.kamera_murid==='kamera selalu tertutup'?'var(--red)':'var(--amber)') + '">' + esc(kamText) + '</div>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>'
+      // Detail Content
+      + (k.materi ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">📖 Materi Belajar</div><div style="font-size:13px; color:var(--text); font-weight:500; padding:4px 0">' + esc(k.materi) + '</div></div>' : '')
+      + (k.koreksi_tahsin ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">✏️ Koreksi Tahsin dari Guru</div><div style="background:rgba(124,58,237,0.06); border-left:3.5px solid var(--primary); border-radius:0 12px 12px 0; padding:10px 14px; font-size:13px; color:var(--text); font-weight:500; line-height:1.5">' + esc(k.koreksi_tahsin) + '</div></div>' : '')
+      + (k.catatan_murid ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">📝 Catatan Guru</div><div style="background:rgba(15,23,42,0.02); border:1px dashed var(--border); border-radius:12px; padding:10px 14px; font-size:13px; color:var(--text-2); line-height:1.4">' + esc(k.catatan_murid) + '</div></div>' : '')
+      + (k.latihan_mandiri ? '<div style="margin-bottom:4px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">💪 PR / Latihan Mandiri</div><div style="background:linear-gradient(135deg, rgba(245,158,11,0.07), rgba(245,158,11,0.02)); border:1px solid rgba(245,158,11,0.18); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--text)"><div style="font-weight:700; margin-bottom:4px; color:#c2410c">' + esc(k.latihan_mandiri) + '</div>' + (k.deadline ? '<div style="font-size:11px; color:var(--red); font-weight:700; display:flex; align-items:center; gap:3px">⏰ Deadline: ' + fmtDate(k.deadline) + '</div>' : '') + '</div></div>' : '')
       + '</div>'
       + '</div>';
   }).join('');
