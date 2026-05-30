@@ -116,6 +116,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   box-shadow:0 10px 25px -5px rgba(15,23,42,0.06), 0 8px 10px -6px rgba(15,23,42,0.04);
   border:1px solid rgba(255,255,255,0.7);
   margin-bottom:16px;
+  cursor:pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.progress-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(15,23,42,0.08), 0 8px 16px rgba(15,23,42,0.04);
+  border-color:rgba(16,185,129,0.3);
+}
+html.theme-dark .progress-card:hover{
+  border-color:rgba(16,185,129,0.4) !important;
 }
 .prog-level-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .level-badge{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
@@ -892,18 +902,22 @@ html.theme-dark .lf-btn.active {
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;"></div>
 
       <!-- Progress Level -->
-      <div class="progress-card">
+      <div class="progress-card" onclick="openProgressBreakdown()">
         <div class="prog-level-row">
           <span class="level-badge" id="dashLevel">Level 1</span>
           <span class="level-target" id="dashTarget">→ Level 2</span>
         </div>
-        <div class="prog-bar-wrap">
+        <div class="prog-bar-wrap" style="position:relative">
           <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
+          <div class="prog-tick" style="position:absolute;left:25%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
+          <div class="prog-tick" style="position:absolute;left:50%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
+          <div class="prog-tick" style="position:absolute;left:75%;top:0;width:2px;height:100%;background:#fff;opacity:0.6;z-index:2"></div>
         </div>
         <div class="prog-meta">
           <span class="prog-count" id="dashProgressPct">0% dari target level</span>
           <span class="prog-sisa" id="dashSisa">40 sesi tersisa</span>
         </div>
+        <div class="prog-motivasi" id="dashMotivasi" style="margin-top:12px; font-size:12.5px; font-weight:600; text-align:center;"></div>
       </div>
 
       <!-- Stats -->
@@ -1136,6 +1150,61 @@ html.theme-dark .lf-btn.active {
   </div>
 </div>
 
+<!-- MODAL RINCIAN PROGRES -->
+<div class="modal-overlay" id="progressBreakdownModal" onclick="closeModal('progressBreakdownModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">📈 Rincian Progres Belajar</div>
+      <button class="modal-x" onclick="closeModal('progressBreakdownModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:20px;background:rgba(16,185,129,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(16,185,129,0.2)">
+        <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Progres Saat Ini</div>
+        <div style="font-size:32px;font-weight:800;color:var(--green);" id="modalProgPct">0%</div>
+        <div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:4px" id="modalProgSkor">0 dari 40 target skor</div>
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:var(--bg);padding:12px;border-radius:12px;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Level Saat Ini</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text);margin-top:2px" id="modalProgLvl">-</div>
+        </div>
+        <div style="background:var(--bg);padding:12px;border-radius:12px;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Target Level</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text);margin-top:2px" id="modalProgTarget">-</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Skor Pertemuan (KBM)</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🟢 Hadir Tepat Waktu (skor 1.0)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalCountH">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🟡 Terlambat Hadir (skor 0.5)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalCountT">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;color:var(--text-2)">🔵 Izin Belajar (skor 0.5)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalCountI">0 Sesi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px">
+            <span style="font-weight:600;color:var(--text-2)">🔴 Alpa / Tidak Hadir (skor 0.0)</span>
+            <span style="font-weight:700;color:var(--text)" id="modalCountA">0 Sesi</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.15);padding:14px;border-radius:12px;" id="modalEstWrap">
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">📅 Perkiraan Selesai Level</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)" id="modalEstDate">Memuat estimasi...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- POPUP DETAIL KALENDER -->
 <div class="kal-popup" id="kalPopup" style="display:none" onclick="tutupKalPopup()">
   <div class="kal-popup-box" onclick="event.stopPropagation()">
@@ -1182,6 +1251,112 @@ var _muridTabLoaded = {};
 var _muridRiwayatExpanded = false;
 var _rfInterval = null, _rfLast = null;
 var _sTimeout = null;
+
+// Confetti Effect
+function triggerConfetti() {
+  var canvas = document.getElementById('confettiCanvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '9999';
+    document.body.appendChild(canvas);
+  }
+  var ctx = canvas.getContext('2d');
+  var width = canvas.width = window.innerWidth;
+  var height = canvas.height = window.innerHeight;
+  var particles = [];
+  var colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+  for (var i = 0; i < 150; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height - height,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * width,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+      tiltAngle: 0
+    });
+  }
+  var start = Date.now();
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    var active = false;
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.tiltAngle += p.tiltAngleIncremental;
+      p.y += (Math.cos(p.d) + 3 + p.r * 0.5) * 0.5;
+      p.x += Math.sin(p.tiltAngle);
+      p.tilt = Math.sin(p.tiltAngle - i * 0.333) * 15;
+      if (p.y <= height) active = true;
+      ctx.beginPath();
+      ctx.lineWidth = p.r * 0.5;
+      ctx.strokeStyle = p.color;
+      ctx.moveTo(p.x + p.tilt + p.r * 0.5, p.y);
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r * 0.5);
+      ctx.stroke();
+    }
+    if (active && Date.now() - start < 4000) {
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, width, height);
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    }
+  }
+  draw();
+}
+
+// Open Progress Breakdown Modal
+function openProgressBreakdown() {
+  if (!dashData) return;
+  var kh = dashData.kehadiran || {};
+  var ang = dashData.anggota || {};
+  var hq = dashData.halaqah || {};
+  var target = 40;
+  var hadir = Number(kh.skor_hadir || 0);
+  var skor40 = Number(kh.skor_dari_40 || 0);
+  var pct = skor40 > 0 ? Math.min(skor40, 100) : (target > 0 ? Math.min(Math.round((hadir / target) * 100), 100) : 0);
+  var _level = ang.level || '–';
+  var tLevel = ang.target_level || '';
+  if (!tLevel && _level !== '–') {
+    var lvlNum = parseInt(String(_level).replace(/[^0-9]/g, ''));
+    tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
+  }
+  document.getElementById('modalProgPct').textContent = pct + '%';
+  document.getElementById('modalProgSkor').textContent = hadir + ' dari 40 target skor';
+  document.getElementById('modalProgLvl').textContent = _level;
+  document.getElementById('modalProgTarget').textContent = tLevel || '–';
+  document.getElementById('modalCountH').textContent = (kh.count_h || 0) + ' Sesi';
+  document.getElementById('modalCountT').textContent = (kh.count_t || 0) + ' Sesi';
+  document.getElementById('modalCountI').textContent = (kh.count_i || 0) + ' Sesi';
+  document.getElementById('modalCountA').textContent = (kh.count_a || 0) + ' Sesi';
+  var sisa = Number(kh.sisa_sesi);
+  if (!isNaN(sisa) && sisa > 0) {
+    document.getElementById('modalEstWrap').style.display = 'block';
+    var daysPerWeek = 1;
+    if (hq.jadwal) {
+      var parts = hq.jadwal.split(/[,&]|\bdan\b/);
+      daysPerWeek = Math.max(1, parts.filter(p => p.trim()).length);
+    }
+    var weeksRemaining = sisa / daysPerWeek;
+    var daysRemaining = Math.ceil(weeksRemaining * 7);
+    var targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysRemaining);
+    var options = { year: 'numeric', month: 'long', day: 'numeric' };
+    var formattedDate = targetDate.toLocaleDateString('id-ID', options);
+    document.getElementById('modalEstDate').textContent = '± ' + formattedDate + ' (' + sisa + ' sesi tersisa, ' + daysPerWeek + 'x seminggu)';
+  } else {
+    document.getElementById('modalEstWrap').style.display = 'block';
+    document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
+  }
+  openModal('progressBreakdownModal');
+}
 
 // ══════════════════════════════════════════
 //  INIT
@@ -1316,12 +1491,75 @@ async function loadDashboard() {
     var skor40  = Number(kh.skor_dari_40 || 0);  // % dari 40 pertemuan
     var pct     = skor40 > 0 ? Math.min(skor40, 100)
                 : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
-    document.getElementById('dashProgressBar').style.width = pct + '%';
-    document.getElementById('dashProgressPct').textContent = pct + '% dari 40 sesi target';
+
+    // Dynamic color progression for progress bar and percentage text
+    var barColor, textColor;
+    if (pct < 30) {
+      barColor = 'linear-gradient(90deg, #ef4444, #f97316)';
+      textColor = '#ef4444';
+    } else if (pct < 70) {
+      barColor = 'linear-gradient(90deg, #f59e0b, #eab308)';
+      textColor = '#f59e0b';
+    } else if (pct < 100) {
+      barColor = 'linear-gradient(90deg, #06b6d4, #3b82f6)';
+      textColor = '#3b82f6';
+    } else {
+      barColor = 'linear-gradient(90deg, #10b981, #34d399)';
+      textColor = '#10b981';
+    }
+
+    var progressBar = document.getElementById('dashProgressBar');
+    progressBar.style.width = pct + '%';
+    progressBar.style.background = barColor;
+
+    var progressPct = document.getElementById('dashProgressPct');
+    progressPct.textContent = pct + '% dari 40 sesi target';
+    progressPct.style.color = textColor;
+
     var sisa = Number(kh.sisa_sesi);
     document.getElementById('dashSisa').textContent = !isNaN(sisa) && sisa >= 0
       ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
       : 'dari 40 pertemuan';
+
+    // Dynamic motivational subtext
+    var defaultMotivasi = {
+      motivasi_0: "Bismillah, mari mulai perjuangan menjadi sahabat Al-Qur'an! 💪",
+      motivasi_30: "Langkah pertama yang luar biasa! Tetap istikamah ya. ✨",
+      motivasi_60: "Masya Allah, kamu sudah berjalan sejauh ini. Pertahankan! 🌟",
+      motivasi_90: "Sedikit lagi! Gurumu bersiap menyambut kenaikan levelmu. 🚀",
+      motivasi_99: "Sangat dekat! Sempurnakan langkah terakhirmu. 🎓",
+      motivasi_100: "Barakallah! Target KBM tercapai untuk level ini. 🏆"
+    };
+
+    var motiv = d.motivasi || {};
+    var motivText = "";
+    if (pct === 0) {
+      motivText = motiv.motivasi_0 || defaultMotivasi.motivasi_0;
+    } else if (pct <= 30) {
+      motivText = motiv.motivasi_30 || defaultMotivasi.motivasi_30;
+    } else if (pct <= 60) {
+      motivText = motiv.motivasi_60 || defaultMotivasi.motivasi_60;
+    } else if (pct <= 90) {
+      motivText = motiv.motivasi_90 || defaultMotivasi.motivasi_90;
+    } else if (pct <= 99) {
+      motivText = motiv.motivasi_99 || defaultMotivasi.motivasi_99;
+    } else {
+      motivText = motiv.motivasi_100 || defaultMotivasi.motivasi_100;
+    }
+
+    var motivEl = document.getElementById('dashMotivasi');
+    if (motivEl) {
+      motivEl.textContent = motivText;
+      motivEl.style.color = textColor;
+    }
+
+    // Trigger confetti once per session when target is reached (100%)
+    if (pct === 100 && !sessionStorage.getItem('hq_confetti_fired')) {
+      setTimeout(function() {
+        triggerConfetti();
+        sessionStorage.setItem('hq_confetti_fired', 'true');
+      }, 800);
+    }
 
     // Stats
     document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
