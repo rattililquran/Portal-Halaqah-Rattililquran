@@ -509,6 +509,7 @@ tr:hover td{background:#f8fafc}
   gap:10px;margin-bottom:18px;
 }
 @media(max-width:600px){.stats-top{grid-template-columns:repeat(2,1fr)}}
+.stats-top-2col{grid-template-columns:repeat(2,1fr) !important}
 .stat-top{
   background:rgba(255,255,255,.8);
   backdrop-filter:blur(16px);
@@ -1155,6 +1156,21 @@ html.theme-dark .url-text { color: #34d399 !important; }
             <div class="ico">🏆</div>
             <div class="val" id="st-bulan">–</div>
             <div class="lbl">Sesi Bulan Ini</div>
+          </div>
+        </div>
+
+        <!-- Kartu akses cepat baris 2 -->
+        <div class="stats-top stats-top-2col" style="margin-bottom:18px">
+          <div class="stat-top clickable" onclick="goPage('keaktifan')" title="Lihat keaktifan murid">
+            <div class="ico">🚨</div>
+            <div class="val" id="st-keaktifan-kritis">–</div>
+            <div class="lbl">Butuh Perhatian ↗</div>
+            <div id="st-keaktifan-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
+          </div>
+          <div class="stat-top clickable" onclick="bukaTabBerkas()" title="Buka berkas pengajar">
+            <div class="ico">📂</div>
+            <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Berkas</div>
+            <div class="lbl">Berkas Pengajar ↗</div>
           </div>
         </div>
 
@@ -2174,6 +2190,26 @@ async function loadDashboard(silent = false) {
     // jadwalList sudah di-render oleh loadJadwal()
     // Pastikan jadwalList render ulang jika data sudah ada
     if (jadwalData.length) renderJadwal();
+
+    // Load summary keaktifan di background
+    window.HQ.GuruAPI.getKeaktifanAlerts().then(function(kr) {
+      if (kr.status !== 'ok') return;
+      _keaktifanData = kr.data;
+      var s = kr.data.summary;
+      var butuhPerhatian = (s.kritis || 0) + (s.peringatan || 0);
+      var elVal = document.getElementById('st-keaktifan-kritis');
+      var elSub = document.getElementById('st-keaktifan-sub');
+      if (elVal) {
+        elVal.textContent = butuhPerhatian;
+        elVal.style.color = butuhPerhatian > 0 ? 'var(--red)' : 'var(--green)';
+      }
+      if (elSub) {
+        elSub.textContent = s.kritis > 0
+          ? s.kritis + ' kritis · ' + s.peringatan + ' peringatan'
+          : s.peringatan > 0 ? s.peringatan + ' peringatan'
+          : 'Semua murid aktif';
+      }
+    }).catch(function() {});
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { if (!silent) hideLoad(); }
 }
