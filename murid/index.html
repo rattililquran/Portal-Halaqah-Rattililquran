@@ -831,16 +831,7 @@ html.theme-dark {
         </div>
       </div>
 
-      <!-- Grafik -->
-      <div class="card" id="grafikCard" style="display:none">
-        <div class="card-head">
-          <div class="card-title">📈 Grafik Nilai Tahsin</div>
-          <span id="grafikTrend" style="font-size:12px;font-weight:700"></span>
-        </div>
-        <div class="card-body">
-          <div id="grafikCanvas"></div>
-        </div>
-      </div>
+
 
       <!-- PR Aktif -->
       <div class="card" id="prCard" style="display:none">
@@ -1147,7 +1138,6 @@ function startApp() {
   resetMuridSession();
   startMuridAutoRefresh();
   loadDashboard();
-  loadGrafik();
 }
 
 // ══════════════════════════════════════════
@@ -1314,46 +1304,7 @@ async function loadKeaktifanAlertsMurid() {
   }
 }
 
-// ══════════════════════════════════════════
-//  GRAFIK NILAI
-// ══════════════════════════════════════════
-async function loadGrafik() {
-  try {
-    var r = await window.HQ.MuridAPI.getProgressGrafik();
-    var data  = r.data  || [];
-    var trend = r.trend || 'stabil';
-    var card  = document.getElementById('grafikCard');
-    if (data.length < 2) return;
-    if (card) card.style.display = 'block';
-    var trendEl = document.getElementById('grafikTrend');
-    if (trendEl) {
-      var tMap = {naik:{t:'📈 Naik',c:'var(--green)'},turun:{t:'📉 Perlu Perhatian',c:'var(--red)'},stabil:{t:'➡️ Stabil',c:'var(--amber)'}};
-      var tm = tMap[trend] || tMap.stabil;
-      trendEl.innerHTML = '<span style="color:'+tm.c+'">'+tm.t+'</span>';
-    }
-    renderGrafik(data);
-  } catch(e) {}
-}
-function renderGrafik(data) {
-  var wrap = document.getElementById('grafikCanvas');
-  if (!wrap || data.length < 2) return;
-  var COLORS = {100:'#169B6B',85:'#1458A8',70:'#D4900A',55:'#D94F2A'};
-  var LABELS = {100:'Mumtaz',85:'Jayyid Jiddan',70:'Jayyid',55:'Maqbul'};
-  var maxV = 100;
-  var bars = data.map(function(d) {
-    var h = Math.round((d.nilai_num/maxV)*100);
-    var col = COLORS[d.nilai_num] || '#94a3b8';
-    return '<div class="grafik-bar" style="height:'+h+'%;background:'+col+'" data-label="Sesi '+d.pertemuan+': '+(LABELS[d.nilai_num]||d.nilai_teks)+'"></div>';
-  }).join('');
-  var lbls = data.map(function(d){return '<div class="grafik-lbl">'+d.pertemuan+'</div>';}).join('');
-  wrap.innerHTML = '<div class="grafik-bars">'+bars+'</div><div class="grafik-labels">'+lbls+'</div>'
-    + '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">'
-    + Object.entries(COLORS).map(function(e){
-        return '<span style="font-size:11px;display:flex;align-items:center;gap:3px">'
-          +'<span style="width:8px;height:8px;border-radius:2px;background:'+e[1]+';display:inline-block"></span>'
-          +LABELS[e[0]]+'</span>';
-      }).join('') + '</div>';
-}
+
 
 // ══════════════════════════════════════════
 //  RIWAYAT KBM — EXPANDABLE
