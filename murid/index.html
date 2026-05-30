@@ -375,9 +375,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .sidebar-drawer.open{transform:translateX(0);transition-timing-function:cubic-bezier(.25,.46,.45,.94)}
 /* Sidebar header */
 .sidebar-top{
-  padding:calc(var(--sat)+24px) 20px 28px;
+  padding:calc(var(--sat)+24px) 20px 32px;
   background:linear-gradient(135deg,#0284c7 0%,#0ea5e9 55%,#38bdf8 100%);
-  position:relative;overflow:hidden;text-align:center;
+  position:relative;text-align:center;
+  /* overflow dilepas agar chip tidak terpotong; dekorasi pakai pointer-events:none */
 }
 .sidebar-top::before{
   content:'';position:absolute;top:-40px;right:-40px;
