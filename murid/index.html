@@ -1448,7 +1448,7 @@ html.theme-dark .bg-blobs-guru{display:none}
         style="display:none;width:100%;padding:12px;margin-top:4px;margin-bottom:8px;
         background:#fff;border:1.5px solid var(--border);border-radius:14px;
         font-size:13px;font-weight:700;color:var(--blue);cursor:pointer">
-        ↓ Muat 40 Riwayat Terakhir
+        ↓ Muat Lebih Banyak
       </button>
     </div>
 
@@ -2366,7 +2366,7 @@ function goPage(name, swipeDir) {
   }
   if (_muridTabLoaded[name]) return;
   _muridTabLoaded[name] = true;
-  if (name === 'riwayat') { loadRiwayat(); }
+  if (name === 'riwayat') { _riwayatOffset = 8; loadRiwayat(); }
   else if (name === 'pr') { loadPR(); }
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); }
@@ -2764,11 +2764,11 @@ async function loadRiwayat() {
   var el = document.getElementById('riwayatList');
   showLoad('Bismillah, memuat riwayat KBM...');
   try {
-    var r = await window.HQ.MuridAPI.getRiwayat(10, 0);
+    var r = await window.HQ.MuridAPI.getRiwayat(8, 0); // default 8 pertemuan terakhir
     riwayatData = r.data || [];
     renderRiwayat(riwayatData);
     var mBtn = document.getElementById('btnMuatLebihMurid');
-    if (mBtn) mBtn.style.display = (r.has_more || riwayatData.length >= 10) ? 'block' : 'none';
+    if (mBtn) mBtn.style.display = r.has_more ? 'block' : 'none';
     buildKalSesiMap();
     renderKalender();
   } catch(e) {
@@ -2853,22 +2853,29 @@ function toggleRiwayat(idx) {
 
 
 
-var _muridRiwayatExpanded = false;
+var _riwayatOffset = 8; // track posisi data yang sudah dimuat
 async function muatLebihRiwayatMurid() {
-  if (_muridRiwayatExpanded) return;
-  _muridRiwayatExpanded = true;
   var btn = document.getElementById('btnMuatLebihMurid');
-  if (btn) btn.textContent = 'Memuat...';
+  var prevText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '⏳ Memuat...'; btn.disabled = true; }
   try {
-    var r = await window.HQ.MuridAPI.getRiwayat(10, 30);
+    // Muat 20 sesi berikutnya mulai dari offset saat ini
+    var r = await window.HQ.MuridAPI.getRiwayat(20, _riwayatOffset);
     if (r.data && r.data.length) {
-      riwayatData = r.data;
-      renderRiwayat(r.data);
+      // Append ke data yang sudah ada (bukan replace)
+      riwayatData = riwayatData.concat(r.data);
+      _riwayatOffset += r.data.length;
+      renderRiwayat(riwayatData);
       buildKalSesiMap();
       renderKalender();
-      if (btn) btn.style.display = 'none';
     }
-  } catch(e) { if(btn){btn.textContent='↓ Muat 40 Riwayat Terakhir';_muridRiwayatExpanded=false;} }
+    // Sembunyikan tombol jika tidak ada data lagi
+    if (btn) btn.style.display = r.has_more ? 'block' : 'none';
+  } catch(e) {
+    toast('Gagal memuat riwayat', 'err');
+  } finally {
+    if (btn) { btn.textContent = prevText; btn.disabled = false; }
+  }
 }
 
 // ══════════════════════════════════════════
