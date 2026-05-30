@@ -2950,9 +2950,14 @@ function getPoinKameraBadge(poin) {
 
 async function getMurid(id_halaqah) {
   if (muridCache[id_halaqah]) return muridCache[id_halaqah];
-  const r = await window.HQ.GuruAPI.getMurid(id_halaqah);
-  muridCache[id_halaqah] = r.data || [];
-  return muridCache[id_halaqah];
+  try {
+    const r = await window.HQ.GuruAPI.getMurid(id_halaqah);
+    muridCache[id_halaqah] = r.data || [];
+    return muridCache[id_halaqah];
+  } catch(e) {
+    console.error('getMurid error:', e.message);
+    return []; // return empty agar tidak crash caller
+  }
 }
 
 async function loadMurid() {
