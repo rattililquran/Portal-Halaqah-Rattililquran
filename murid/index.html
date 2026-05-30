@@ -1730,7 +1730,8 @@ async function loadRaport() {
     }
     el.innerHTML = rows.map(function(rp, idx) {
       var nilaiNum = Number(rp.nilai_akhir) || 0;
-      var predikat = nilaiNum>=90?'Mumtaz ⭐':nilaiNum>=75?'Jayyid Jiddan 👍':nilaiNum>=60?'Jayyid 📌':'Maqbul 📝';
+      var pred = String(rp.predikat || '').trim();
+      var predikat = pred + (pred.indexOf('Mumtaz') === 0 ? ' ⭐' : pred.indexOf('Jayyid Jiddan') === 0 ? ' 👍' : pred.indexOf('Jayyid') === 0 ? ' 📌' : ' 📝');
       var kompHTML = (rp.komponen||[]).map(function(k){
         return '<div class="komponen-row">'
           + '<span>'+esc(k.nama)+'</span>'
