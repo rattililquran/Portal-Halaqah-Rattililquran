@@ -912,213 +912,180 @@ body, .card, .stat-card, .progress-card, .spp-card, .nilai-murid-card, .sidebar,
    Aktif jika kelas html.theme-dark terdeteksi
 ═══════════════════════════════════════════════════════════ */
 html.theme-dark {
-  --bg:       #0b1329;
-  --card:     rgba(22, 28, 45, 0.6);
-  --bg-2:     #111c30;
-  --text:     #f0f0f0;
-  --text-2:   #a0aec0;
-  --text-3:   #718096;
-  --border:   rgba(255, 255, 255, 0.1);
-  --green-l:  #0a2e1f;
-  --blue-l:   #0a1628;
-  --amber-l:  #2a1f00;
-  --amber-txt: #fbbf24;
-  --red-l:    #2a0800;
-  --purple-l: #1a0a3a;
-  --teal-l:   #002a35;
-  --shadow:         0 4px 20px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
-  --shadow-lg:      0 8px 32px rgba(0,0,0,.5);
-  --shadow-card:    0 4px 12px rgba(0,0,0,.4);
+  /* Palette solid seragam dengan murid */
+  --bg:         #111318;
+  --bg-2:       #1a1d24;
+  --card:       #1e2128;
+  --glass:      #1e2128;
+  --glass-border:rgba(255,255,255,0.07);
+  --text:       #f0f2f8;
+  --text-2:     #b0b7c3;
+  --text-3:     #6b7280;
+  --border:     rgba(255,255,255,0.08);
+  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,0.1);
+  --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,0.1);
+  --amber-l:rgba(251,191,36,0.1);--amber-txt:#fbbf24;
+  --red-l:rgba(248,113,113,0.1);
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.5);
+  --shadow-card:0 2px 8px rgba(0,0,0,.35);
 }
 
-html.theme-dark body { background: #0b1329 !important; }
+/* ══ GURU DARK MODE — solid, no glass blur ══ */
+html.theme-dark body{background:#111318 !important}
 
-/* Cards with high contrast dark glass */
-html.theme-dark .card, 
-html.theme-dark .stat-card, 
-html.theme-dark .progress-card, 
-html.theme-dark .spp-card,
-html.theme-dark .riwayat-item, 
-html.theme-dark .pr-item, 
-html.theme-dark .materi-card, 
-html.theme-dark .raport-card,
-html.theme-dark .url-box, 
-html.theme-dark .benefit-card, 
-html.theme-dark .portal-card, 
-html.theme-dark .guide-card,
-html.theme-dark .kalender-wrap, 
-html.theme-dark .kal-popup-box, 
-html.theme-dark .peng-item,
-html.theme-dark .nilai-murid-card,
+/* Semua cards — solid */
+html.theme-dark .card,
+html.theme-dark .stat,
 html.theme-dark .stat-top,
-html.theme-dark .hq-card-new {
-  background: rgba(22, 28, 45, 0.6) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+html.theme-dark .hq-card,
+html.theme-dark .hq-card-new,
+html.theme-dark .nilai-murid-card,
+html.theme-dark .draft-warning,
+html.theme-dark .prow,
+html.theme-dark .nilai-row {
+  background:#1e2128 !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  border:1px solid rgba(255,255,255,.07) !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
+}
+html.theme-dark .card:hover,.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
+html.theme-dark .card-head{background:rgba(255,255,255,.03) !important;border-bottom-color:rgba(255,255,255,.06) !important}
+html.theme-dark .card-title{color:#f0f2f8 !important}
+
+/* Stat accent bar */
+html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc) !important}
+
+/* nilai-murid-card states */
+html.theme-dark .nilai-murid-card.terisi{background:rgba(52,211,153,.12) !important;border-color:rgba(52,211,153,.25) !important}
+html.theme-dark .nilai-murid-card .nm-body{background:transparent !important}
+
+/* Inputs — solid */
+html.theme-dark .fc,
+html.theme-dark .auth-input,
+html.theme-dark input:not([type=range]),
+html.theme-dark select,
+html.theme-dark textarea{
+  background:#252830 !important;
+  border-color:rgba(56,189,248,.2) !important;
+  color:#f0f2f8 !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+}
+html.theme-dark .fc:focus,html.theme-dark .auth-input:focus{
+  border-color:#38bdf8 !important;
+  box-shadow:0 0 0 3px rgba(56,189,248,.25) !important;
 }
 
-html.theme-dark .card-head {
-  background: transparent !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
+/* Auth */
+html.theme-dark .auth-box{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.1) !important}
+html.theme-dark .auth-arabic{color:#38bdf8 !important}
+html.theme-dark .auth-sub,html.theme-dark .auth-hint{color:#b0b7c3 !important}
+html.theme-dark .auth-label,html.theme-dark label{color:#d1d5db !important}
 
-html.theme-dark .nilai-murid-card .nm-body {
-  background: transparent !important;
-}
+/* Topbar */
+html.theme-dark .topbar{background:#1a1d24 !important;backdrop-filter:none !important;border-bottom:1px solid rgba(255,255,255,.07) !important}
+html.theme-dark .topbar-title{color:#f0f2f8 !important}
+html.theme-dark .topbar-date{color:#6b7280 !important}
 
-html.theme-dark .nilai-murid-card.terisi {
-  background: rgba(16, 185, 129, 0.15) !important;
-  border-color: var(--green) !important;
-}
+/* Sidebar */
+html.theme-dark .sidebar{background:#161920 !important}
+html.theme-dark .sb-wave{background:#161920 !important}
+html.theme-dark .nav-btn{color:rgba(255,255,255,.78) !important}
+html.theme-dark .nav-btn .ni{background:rgba(56,189,248,.1) !important;color:#7dd3fc !important}
+html.theme-dark .nav-btn:hover{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
+html.theme-dark .nav-btn.active{background:rgba(56,189,248,.15) !important;color:#38bdf8 !important;box-shadow:inset 2px 0 0 #38bdf8 !important}
+html.theme-dark .sb-section{color:#4b5563 !important}
+html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .logout-btn{background:rgba(248,113,113,.08) !important;color:#f87171 !important;border-color:rgba(248,113,113,.2) !important}
 
-html.theme-dark .nilai-murid-card.terisi .nm-body {
-  background: transparent !important;
-}
+/* Modals — solid */
+html.theme-dark .overlay{background:rgba(0,0,0,.6) !important;backdrop-filter:blur(4px) !important}
+html.theme-dark .modal{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.08) !important;box-shadow:0 8px 32px rgba(0,0,0,.5) !important}
+html.theme-dark .modal-head{background:#1e2128 !important;border-bottom-color:rgba(255,255,255,.07) !important;color:#f0f2f8 !important}
+html.theme-dark .modal-foot{background:#1e2128 !important;border-top-color:rgba(255,255,255,.07) !important}
+html.theme-dark .notif-overlay .notif-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important}
+html.theme-dark .notif-title{color:#f0f2f8 !important}
+html.theme-dark .notif-msg{color:#b0b7c3 !important}
 
-/* Input, select, textarea */
-html.theme-dark .fc, 
-html.theme-dark .auth-input, 
-html.theme-dark input, 
-html.theme-dark select, 
-html.theme-dark textarea {
-  background: rgba(15, 23, 42, 0.6) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #f0f0f0 !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-}
+/* Tabel */
+html.theme-dark table{color:#f0f2f8 !important}
+html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark td{border-color:rgba(255,255,255,.05) !important;color:#e2e5ed !important}
+html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
 
-html.theme-dark .fc:focus, 
-html.theme-dark .auth-input:focus {
-  border-color: var(--green) !important;
-  box-shadow: 0 0 0 3px rgba(22,155,107,.2) !important;
-}
+/* Badges */
+html.theme-dark .badge.b-green{background:rgba(52,211,153,.12) !important;color:#34d399 !important}
+html.theme-dark .badge.b-blue{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
+html.theme-dark .badge.b-amber{background:rgba(251,191,36,.1) !important;color:#fbbf24 !important}
+html.theme-dark .badge.b-red{background:rgba(248,113,113,.12) !important;color:#f87171 !important}
+html.theme-dark .badge.b-gray{background:rgba(255,255,255,.07) !important;color:#9ca3af !important}
+html.theme-dark .badge.b-purple{background:rgba(167,139,250,.12) !important;color:#a78bfa !important}
 
-/* Bottom nav */
-html.theme-dark .bottom-nav {
-  background: rgba(11, 19, 41, 0.9) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-top-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Modal */
-html.theme-dark .modal-sheet, 
-html.theme-dark .modal-overlay .modal,
-html.theme-dark .notif-box, 
-html.theme-dark .kal-popup-box {
-  background: #161e2e !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-}
-
-html.theme-dark .modal-foot { 
-  background: #161e2e !important; 
-  border-top-color: rgba(255, 255, 255, 0.1) !important; 
-}
-
-/* Auth box */
-html.theme-dark .auth-box { 
-  background: rgba(22, 28, 45, 0.7) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-}
-html.theme-dark .auth-arabic { color: #60a5fa !important; }
-html.theme-dark .auth-sub { color: #a0aec0 !important; }
-html.theme-dark .auth-label { color: #9ca3af !important; }
+/* Nilai badges */
+html.theme-dark .nilai-Mumtaz{background:rgba(251,191,36,.12) !important;color:#fbbf24 !important}
+html.theme-dark .nilai-JJ{background:rgba(52,211,153,.12) !important;color:#34d399 !important}
+html.theme-dark .nilai-Jayyid{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
+html.theme-dark .nilai-Maqbul{background:rgba(248,113,113,.12) !important;color:#f87171 !important}
 
 /* Accordion koreksi */
-html.theme-dark .kor-acc-head { background: rgba(30, 41, 59, 0.5) !important; }
-html.theme-dark .kor-acc-head:hover { background: rgba(30, 41, 59, 0.7) !important; }
-html.theme-dark .kor-acc-head.open { background: #0a1628 !important; }
-html.theme-dark .kor-acc-body { background: rgba(15, 23, 42, 0.4) !important; border-top-color: rgba(255, 255, 255, 0.1) !important; }
-html.theme-dark .chip-koreksi { background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important; color: #a0aec0 !important; }
-html.theme-dark .chip-koreksi:hover { background: #0a1628 !important; }
-html.theme-dark .chip-koreksi.selected { background: var(--blue) !important; }
-
-/* Table */
-html.theme-dark table { color: #f0f0f0 !important; }
-html.theme-dark th { background: rgba(15, 23, 42, 0.7) !important; color: #a0aec0 !important; border-color: rgba(255, 255, 255, 0.1) !important; }
-html.theme-dark td { border-color: rgba(255, 255, 255, 0.06) !important; }
-html.theme-dark tr:hover td { background: rgba(255, 255, 255, 0.03) !important; }
-
-/* Sidebar guru/admin */
-html.theme-dark .sidebar{background:#0d1525 !important}
-html.theme-dark .sb-wave{background:#0d1525 !important}
-html.theme-dark .nav-btn{color:rgba(255,255,255,.7) !important}
-html.theme-dark .nav-btn .ni{background:rgba(14,165,233,.12) !important;color:#38bdf8 !important}
-html.theme-dark .nav-btn:hover{background:rgba(14,165,233,.1) !important;color:#38bdf8 !important}
-html.theme-dark .nav-btn.active{background:rgba(14,165,233,.15) !important;color:#38bdf8 !important}
-html.theme-dark .sb-section{color:rgba(255,255,255,.28) !important}
-html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.07) !important}
-html.theme-dark .logout-btn{background:rgba(239,68,68,.1) !important;color:#f87171 !important;border-color:rgba(239,68,68,.2) !important}
+html.theme-dark .kor-acc-head{background:#252830 !important;color:#e2e5ed !important}
+html.theme-dark .kor-acc-head:hover{background:#2d3038 !important}
+html.theme-dark .kor-acc-head.open{background:#1a2a3a !important;color:#7dd3fc !important}
+html.theme-dark .kor-acc-body{background:#1a1d24 !important;border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .chip-koreksi{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#b0b7c3 !important}
+html.theme-dark .chip-koreksi:hover{background:#2d3038 !important}
+html.theme-dark .chip-koreksi.selected{background:#0ea5e9 !important;color:#fff !important}
 
 /* Steps KBM */
-html.theme-dark .step-item { background: rgba(30, 41, 59, 0.4) !important; border-color: rgba(255, 255, 255, 0.08) !important; }
-html.theme-dark .step-item.active { background: #0a1628 !important; }
+html.theme-dark .step-item{background:#252830 !important;border-color:rgba(255,255,255,.08) !important}
+html.theme-dark .step-item.active{background:#162032 !important;border-color:rgba(56,189,248,.3) !important}
+html.theme-dark .step-num{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
+html.theme-dark .step-num.done{background:#059669 !important;border-color:#059669 !important;color:#fff !important}
+html.theme-dark .step-num.active{background:#0ea5e9 !important;border-color:#0ea5e9 !important;color:#fff !important}
 
 /* Kalender */
-html.theme-dark .kal-day { color: #a0aec0 !important; }
-html.theme-dark .kal-day.today { outline-color: var(--green) !important; }
-html.theme-dark .kal-day-name { color: #4a5568 !important; }
+html.theme-dark .kal-day{color:#9ca3af !important}
+html.theme-dark .kal-day-name{color:#4b5563 !important}
+html.theme-dark .kal-day.today{background:linear-gradient(135deg,#0ea5e9,#2563eb) !important;color:#fff !important;box-shadow:0 2px 8px rgba(14,165,233,.4) !important}
 
-/* Refresh badge */
-html.theme-dark .refresh-badge, 
-html.theme-dark .refresh-badge-murid {
-  background: rgba(22, 28, 45, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
-  color: #a0aec0 !important;
-}
+/* Koreksi & PR box */
+html.theme-dark .koreksi-box{background:rgba(251,191,36,.08) !important;color:#fbbf24 !important;border:1px solid rgba(251,191,36,.2) !important}
+
+/* Presensi buttons */
+html.theme-dark .pb{background:transparent !important}
+html.theme-dark .prow{background:transparent !important;border-bottom-color:rgba(255,255,255,.06) !important}
+html.theme-dark .prow-name{color:#f0f2f8 !important}
+html.theme-dark .prow-level{color:#6b7280 !important}
+
+/* Text overrides */
+html.theme-dark .page-title,html.theme-dark h1,html.theme-dark h2,html.theme-dark h3{color:#f0f2f8 !important}
+html.theme-dark .page-sub,html.theme-dark .card-sub{color:#b0b7c3 !important}
+html.theme-dark .empty-ttl{color:#d1d5db !important}
+html.theme-dark .empty-sub{color:#9ca3af !important}
+html.theme-dark .section-title{color:#f0f2f8 !important}
+html.theme-dark .section-sub{color:#9ca3af !important}
+html.theme-dark .hq-name{color:#f0f2f8 !important}
+html.theme-dark .hq-meta{color:#6b7280 !important}
+html.theme-dark .hq-stat .v{color:#38bdf8 !important}
 
 /* Loader */
-html.theme-dark .loader { background: linear-gradient(160deg,#090d16 0%,#000 100%) !important; }
+html.theme-dark .loader{background:#111318 !important}
+html.theme-dark .loader-txt{color:#7dd3fc !important}
+html.theme-dark .loader-dot{background:rgba(56,189,248,.3) !important}
+html.theme-dark .loader-bar{background:rgba(56,189,248,.15) !important}
 
-/* Scroll bar */
-html.theme-dark ::-webkit-scrollbar-track { background: #0b1329; }
-html.theme-dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); }
+/* Scrollbar */
+html.theme-dark ::-webkit-scrollbar-track{background:#111318}
+html.theme-dark ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 
-/* Teks pada elemen yang perlu override */
-html.theme-dark .page-title, 
-html.theme-dark .card-title, 
-html.theme-dark h1, 
-html.theme-dark h2, 
-html.theme-dark h3 { 
-  color: #f0f0f0 !important; 
-}
-
-html.theme-dark .page-sub, 
-html.theme-dark .card-sub, 
-html.theme-dark label { 
-  color: #a0aec0 !important; 
-}
-
-html.theme-dark .empty-ttl { color: #a0aec0 !important; }
-html.theme-dark .empty-sub { color: #718096 !important; }
-
-/* Section title */
-html.theme-dark .section-heading { color: #718096 !important; }
-
-/* Chip/badge — warna tetap tapi lebih gelap */
-html.theme-dark .badge.b-green { background: #0a2e1f !important; color: #34d399 !important; }
-html.theme-dark .badge.b-blue  { background: #0a1628 !important; color: #60a5fa !important; }
-html.theme-dark .badge.b-amber { background: #2a1f00 !important; color: #fbbf24 !important; }
-html.theme-dark .badge.b-red   { background: #2a0800 !important; color: #f87171 !important; }
-html.theme-dark .badge.b-gray  { background: rgba(255, 255, 255, 0.08) !important; color: #9ca3af !important; }
-
-/* Koreksi box */
-html.theme-dark .koreksi-box { 
-  background: rgba(245, 158, 11, 0.15) !important; 
-  color: #fbbf24 !important; 
-  border: 1px solid rgba(245, 158, 11, 0.3) !important; 
-}
-
-/* Sinkron dot */
-html.theme-dark .refresh-dot { background: var(--green) !important; }
-
-/* Tombol ghost */
-html.theme-dark .btn-ghost { border-color: rgba(255, 255, 255, 0.1) !important; color: #a0aec0 !important; }
+/* Misc */
+html.theme-dark .btn-ghost{background:transparent !important;border-color:rgba(255,255,255,.12) !important;color:#b0b7c3 !important}
+html.theme-dark .btn-outline{background:transparent !important;border-color:#38bdf8 !important;color:#38bdf8 !important}
+html.theme-dark .refresh-badge,html.theme-dark .refresh-badge-murid{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#d1d5db !important}
+html.theme-dark .refresh-dot{background:#34d399 !important}
+html.theme-dark .bg-blobs-guru{display:none}
+html.theme-dark .sb-name{color:#f0f2f8 !important}
+html.theme-dark .sb-role{color:rgba(255,255,255,.55) !important}
 html.theme-dark .btn-ghost:hover { background: rgba(255, 255, 255, 0.05) !important; }
 
 /* URL box di install.html */
