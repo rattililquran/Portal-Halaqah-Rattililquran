@@ -319,6 +319,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   font-family:inherit;font-size:9px;font-weight:700;letter-spacing:.03em;
   color:#94a3b8;transition:all .25s ease;position:relative;
 }
+/* Tab ujung (Beranda & Materi) lebih rapat ke tengah */
+.nav-item.nav-edge{flex:.7}
 .nav-item:hover{color:var(--blue)}
 .nav-item.active{color:var(--blue)}
 .nav-item.active .ni{transform:scale(1.15)}
@@ -1472,7 +1474,7 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
 
   <!-- BOTTOM NAV — 5 tab -->
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="goPage('dashboard')" data-p="dashboard">
+    <button class="nav-item nav-edge active" onclick="goPage('dashboard')" data-p="dashboard">
       <span class="ni">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       </span>
@@ -1487,7 +1489,8 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
     <!-- Menu center (profil FAB) -->
     <button class="nav-item-profile" onclick="openSidebar()">
       <div class="nav-profile-wrap" id="navProfileWrap">
-        <span id="navProfileIni" style="font-size:19px;font-weight:800;color:#fff;line-height:1">M</span>
+        <img src="../assets/images/logo-abu.png" id="navProfileIni" class="nav-profile-avatar"
+          style="width:100%;height:100%;object-fit:cover;border-radius:15px" alt="Rattil">
       </div>
       <span class="nav-profile-label">Menu</span>
     </button>
@@ -1497,7 +1500,7 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
       </span>
       <span class="nl">PR</span>
     </button>
-    <button class="nav-item" onclick="goPage('info')" data-p="info">
+    <button class="nav-item nav-edge" onclick="goPage('info')" data-p="info">
       <span class="ni">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       </span>
@@ -1511,7 +1514,9 @@ html.theme-dark .asmnt-prog-bar{background:rgba(255,255,255,.08)}
   <!-- SIDEBAR DRAWER -->
   <div class="sidebar-drawer" id="sidebarDrawer">
     <div class="sidebar-top">
-      <div class="sidebar-avatar" id="sidebarAvatar">M</div>
+      <div class="sidebar-avatar" id="sidebarAvatar">
+        <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">
+      </div>
       <div class="sidebar-name" id="sidebarName">Murid</div>
       <div class="sidebar-halaqah-chip" id="sidebarHalaqah">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -2237,11 +2242,12 @@ function startApp() {
   } else if (topAv) {
     topAv.textContent = savedAvatar || ini;
   }
-  // Sync nav profile center
+  // Sync nav profile center — fallback ke logo Rattil
+  var _logoSrc = '../assets/images/logo-abu.png';
   var navWrap = document.getElementById('navProfileWrap');
   if (navWrap) navWrap.innerHTML = savedFoto
     ? '<img src="'+savedFoto+'" class="nav-profile-avatar" alt="">'
-    : '<span id="navProfileIni" style="font-size:19px;font-weight:800;color:#fff;line-height:1">'+(savedAvatar||ini)+'</span>';
+    : '<img src="'+_logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
   document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   updateSidebarInfo();
   // Tampilkan badge lonceng dari log lokal sebelum API selesai
@@ -2661,23 +2667,20 @@ function updateSidebarInfo() {
   var nama = us.nama_lengkap || us.nama || us.name || '';
   var ini  = nama ? nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M' : 'M';
 
+  var logoSrc = '../assets/images/logo-abu.png';
+  var foto = localStorage.getItem('murid_foto_' + us.id_user);
+
   // Avatar sidebar
   var sbAv = document.getElementById('sidebarAvatar');
-  var foto = localStorage.getItem('murid_foto_' + us.id_user);
-  if (foto && sbAv) {
-    sbAv.innerHTML = '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
-  } else if (sbAv) {
-    sbAv.textContent = ini;
-  }
+  if (sbAv) sbAv.innerHTML = foto
+    ? '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
+    : '<img src="'+logoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">';
 
   // Avatar bottom nav center
   var navWrap = document.getElementById('navProfileWrap');
-  var navIni  = document.getElementById('navProfileIni');
-  if (foto && navWrap) {
-    navWrap.innerHTML = '<img src="'+foto+'" class="nav-profile-avatar" alt="">';
-  } else if (navIni) {
-    navIni.textContent = ini;
-  }
+  if (navWrap) navWrap.innerHTML = foto
+    ? '<img src="'+foto+'" class="nav-profile-avatar" alt="">'
+    : '<img src="'+logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
 
   if (document.getElementById('sidebarName')) document.getElementById('sidebarName').textContent = nama || '…';
 
@@ -3459,12 +3462,13 @@ function renderAvatar(elId, fotoBase64, fallback) {
   if (elId === 'topAvatar') {
     var navWrap = document.getElementById('navProfileWrap');
     var sbAv    = document.getElementById('sidebarAvatar');
+    var logoSrc = '../assets/images/logo-abu.png';
     if (navWrap) navWrap.innerHTML = fotoBase64
       ? '<img src="'+fotoBase64+'" class="nav-profile-avatar" alt="">'
-      : '<span id="navProfileIni" style="font-size:18px;font-weight:800;color:#fff">'+(fallback||'M')+'</span>';
+      : '<img src="'+logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
     if (sbAv) sbAv.innerHTML = fotoBase64
       ? '<img src="'+fotoBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
-      : (fallback||'M');
+      : '<img src="'+logoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">';
   }
 }
 
