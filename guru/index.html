@@ -2185,7 +2185,14 @@ function goPage(name) {
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
   if (name === 'keaktifan')  loadKeaktifanPage();
-  if (name === 'assessment') { populateSel('asmtHalaqahSel'); }
+  if (name === 'assessment') {
+    populateSel('asmtHalaqahSel');
+    // Jika hanya ada satu halaqah, langsung pilih dan load rekap tanpa menunggu user
+    if (halaqahList && halaqahList.length === 1) {
+      var asmtSel = document.getElementById('asmtHalaqahSel');
+      if (asmtSel) { asmtSel.value = halaqahList[0].id_halaqah; loadAssessmentRekap(); }
+    }
+  }
   if (name === 'nilai-manual') {
     // Load setup and period dropdowns
     loadNilaiSetup();

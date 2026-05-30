@@ -1008,7 +1008,7 @@ html.theme-dark .bottom-nav{
 }
 html.theme-dark .nav-item{color:#718096 !important}
 html.theme-dark .nav-item.active{color:var(--green) !important}
-html.theme-dark .nav-badge{border-color:#0b1329 !important}
+html.theme-dark .nav-badge{border-color:rgba(11,19,41,0.9) !important}
 
 /* Sidebar */
 html.theme-dark .sidebar-drawer{
@@ -2116,7 +2116,10 @@ function goPage(name) {
   if (btn)  btn.classList.add('active');
   window.scrollTo(0, 0);
 
-  // Lazy load — hanya load sekali
+  // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
+  // karena dashData.anggota.level bisa belum tersedia saat pertama kali diklik,
+  // dan level user bisa berubah antar sesi)
+  if (name === 'assessment') { loadAssessment(); return; }
   if (_muridTabLoaded[name]) return;
   _muridTabLoaded[name] = true;
   if (name === 'riwayat') { loadRiwayat(); }
@@ -2124,7 +2127,6 @@ function goPage(name) {
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); }
   else if (name === 'info') { loadMateri(); }
-  else if (name === 'assessment') { loadAssessment(); }
   else if (name === 'password') { /* static page, no load needed */ }
 }
 
@@ -2904,8 +2906,17 @@ async function loadAssessment() {
   var el = document.getElementById('assessmentContent');
   if (!el) return;
 
+  // Jika dashData belum tersedia (tab diklik sebelum dashboard selesai load),
+  // tampilkan loading sementara dan coba lagi setelah 800ms
+  if (!dashData) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
+      + '<div class="empty-ttl">Memuat data...</div></div>';
+    setTimeout(loadAssessment, 800);
+    return;
+  }
+
   // Cek level murid
-  var level = (dashData && dashData.anggota && dashData.anggota.level) || '';
+  var level = (dashData.anggota && dashData.anggota.level) || '';
   _assessmentLevel = level;
 
   if (!ASMT_VALID_LEVELS.includes(level)) {
@@ -3263,8 +3274,10 @@ function renderAvatar(elId, fotoBase64, fallback) {
     el.innerHTML = '';
     el.textContent = fallback || '';
   }
-  // Sync nav profile center & sidebar avatar
-  if (elId === 'topAvatar' || elId === 'profilAvatar') {
+  // Sync nav profile center & sidebar avatar — hanya dari topAvatar agar tidak double-write
+  // (handleFotoSelect memanggil profilAvatar lalu topAvatar; keduanya dulunya sync,
+  //  kini hanya topAvatar yang menjadi source of truth untuk nav/sidebar)
+  if (elId === 'topAvatar') {
     var navWrap = document.getElementById('navProfileWrap');
     var sbAv    = document.getElementById('sidebarAvatar');
     if (navWrap) navWrap.innerHTML = fotoBase64
