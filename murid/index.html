@@ -196,25 +196,79 @@ html.theme-dark #bell-badge{border-color:#0b1329!important}
 .card-more:hover{background:var(--green-l)}
 
 /* ── BOTTOM NAV ── */
+/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;
-  background:rgba(255,255,255,.88);backdrop-filter:blur(24px) saturate(1.8);
+  background:rgba(255,255,255,.92);backdrop-filter:blur(24px) saturate(1.8);
   -webkit-backdrop-filter:blur(24px) saturate(1.8);
-  border-top:1px solid rgba(255,255,255,.5);
-  display:flex;padding:8px 0 calc(var(--sab)+8px);z-index:100;
-  box-shadow:0 -4px 30px rgba(15,23,42,.04)}
+  border-top:1px solid rgba(0,0,0,.06);
+  display:flex;align-items:flex-end;padding:6px 4px calc(var(--sab)+6px);z-index:100;
+  box-shadow:0 -4px 30px rgba(15,23,42,.06)}
 @media(min-width:768px){.bottom-nav{max-width:500px;left:50%;transform:translateX(-50%)}}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:none;border:none;cursor:pointer;padding:4px 0;
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:6px 2px 2px;
+  font-family:inherit;font-size:10px;font-weight:600;color:var(--text-3);
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;border-radius:14px}
+.nav-item:active{transform:scale(.9)}
+.nav-item.active{color:var(--green)}
+.nav-item .ni{width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:10px;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.nav-item.active .ni{background:var(--green-l);transform:translateY(-2px)}
+.nav-item .nl{font-size:10px;font-weight:700;letter-spacing:-.01em}
+/* Profil center button */
+.nav-item-profile{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;padding:2px 2px 2px;
   font-family:inherit;font-size:10px;font-weight:700;color:var(--text-3);
-  transition:all .2s ease;position:relative}
-.nav-item.active{color:var(--green);transform:translateY(-1px)}
-.nav-item .ni{font-size:24px;line-height:1}
-.nav-item .nl{font-size:10.5px}
+  transition:all .2s;position:relative}
+.nav-item-profile:active{transform:scale(.9)}
+.nav-profile-wrap{width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green),#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(16,185,129,.35);margin-top:-14px;
+  border:3px solid var(--card);overflow:hidden;transition:all .2s}
+.nav-item-profile:active .nav-profile-wrap{transform:scale(.9)}
+.nav-profile-avatar{width:100%;height:100%;object-fit:cover;border-radius:50%}
 /* Badge PR */
-.nav-badge{position:absolute;top:0;right:calc(50% - 20px);
+.nav-badge{position:absolute;top:2px;right:calc(50% - 22px);
   background:var(--red);color:#fff;border-radius:100px;
   font-size:9px;font-weight:800;padding:1px 5px;min-width:16px;text-align:center;
   border:2px solid var(--card)}
+
+/* ── SIDEBAR ── */
+.sidebar-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.sidebar-overlay.open{opacity:1;pointer-events:all}
+.sidebar-drawer{position:fixed;top:0;left:0;width:78vw;max-width:300px;height:100dvh;
+  background:var(--card);z-index:201;
+  transform:translateX(-100%);transition:transform .3s cubic-bezier(.32,0,.67,0);
+  display:flex;flex-direction:column;
+  box-shadow:8px 0 40px rgba(15,23,42,.15)}
+.sidebar-drawer.open{transform:translateX(0);transition-timing-function:cubic-bezier(.33,1,.68,1)}
+.sidebar-top{padding:calc(var(--sat)+20px) 20px 16px;
+  background:linear-gradient(135deg,#0a1628 0%,#0f2d1e 100%);
+  border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-avatar{width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green),#0ea5e9);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:20px;color:#fff;margin-bottom:10px;
+  border:2px solid rgba(255,255,255,.15);overflow:hidden}
+.sidebar-name{font-size:16px;font-weight:800;color:#fff;line-height:1.2}
+.sidebar-halaqah{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;font-weight:500}
+.sidebar-nav{flex:1;overflow-y:auto;padding:12px 10px}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border-radius:14px;cursor:pointer;transition:all .2s;
+  font-size:14px;font-weight:600;color:var(--text-2);border:none;background:none;
+  font-family:inherit;width:100%;text-align:left}
+.sidebar-item:hover{background:var(--green-l);color:var(--green)}
+.sidebar-item:active{transform:scale(.97)}
+.sidebar-item-ico{width:36px;height:36px;border-radius:10px;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;transition:background .2s}
+.sidebar-item:hover .sidebar-item-ico{background:rgba(16,185,129,.15)}
+.sidebar-divider{height:1px;background:var(--border);margin:8px 10px}
+.sidebar-item.danger{color:var(--red)}
+.sidebar-item.danger:hover{background:var(--red-l);color:var(--red)}
+.sidebar-item.danger:hover .sidebar-item-ico{background:rgba(239,68,68,.12)}
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
@@ -781,6 +835,13 @@ html.theme-dark .auth-label { color: #9ca3af !important; }
 html.theme-dark .auth-hint { color: #718096 !important; }
 
 
+html.theme-dark .sidebar-drawer{background:#0f1623;border-right:1px solid rgba(255,255,255,.08)}
+html.theme-dark .sidebar-item{color:rgba(255,255,255,.65)}
+html.theme-dark .sidebar-item:hover{background:rgba(16,185,129,.12);color:var(--green)}
+html.theme-dark .sidebar-item-ico{background:rgba(255,255,255,.06)}
+html.theme-dark .sidebar-item.danger:hover{background:rgba(239,68,68,.12)}
+html.theme-dark .sidebar-divider{background:rgba(255,255,255,.08)}
+html.theme-dark .nav-profile-wrap{border-color:#0f1623}
 html.theme-dark .bottom-nav {
   background: rgba(11, 19, 41, 0.9) !important;
   backdrop-filter: blur(20px) !important;
@@ -975,7 +1036,7 @@ html.theme-dark .lf-btn.active {
           style="border:1px solid rgba(255,255,255,0.3);border-radius:50%;
           width:36px;height:36px;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;
           display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s ease;"></button>
-        <div class="top-avatar" id="topAvatar" onclick="openModal('profilModal')">M</div>
+        <div class="top-avatar" id="topAvatar" onclick="openSidebar()" style="cursor:pointer">M</div>
       </div>
     </div>
   </div>
@@ -1188,24 +1249,96 @@ html.theme-dark .lf-btn.active {
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="goPage('dashboard')" data-p="dashboard">
-      <span class="ni">🏠</span><span class="nl">Beranda</span>
+      <span class="ni">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </span>
+      <span class="nl">Beranda</span>
     </button>
     <button class="nav-item" onclick="goPage('riwayat')" data-p="riwayat">
-      <span class="ni">📋</span><span class="nl">Riwayat</span>
+      <span class="ni">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </span>
+      <span class="nl">Riwayat</span>
     </button>
     <button class="nav-item" onclick="goPage('pr')" data-p="pr" id="navPr">
-      <span class="ni">📝</span><span class="nl">PR</span>
+      <span class="ni">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </span>
+      <span class="nl">PR</span>
     </button>
-    <button class="nav-item" onclick="goPage('assessment')" data-p="assessment" id="navAssessment" style="display:none">
-      <span class="ni">✍️</span><span class="nl">Assessment</span>
+    <!-- Profil center -->
+    <button class="nav-item-profile" onclick="openSidebar()" title="Menu">
+      <div class="nav-profile-wrap" id="navProfileWrap">
+        <span id="navProfileIni" style="font-size:18px;font-weight:800;color:#fff">M</span>
+      </div>
+      <span style="font-size:10px;font-weight:700;color:var(--text-3);margin-top:2px">Menu</span>
     </button>
     <button class="nav-item" onclick="goPage('info')" data-p="info">
-      <span class="ni">📚</span><span class="nl">Materi</span>
+      <span class="ni">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </span>
+      <span class="nl">Materi</span>
     </button>
     <button class="nav-item" onclick="goPage('raport')" data-p="raport">
-      <span class="ni">📄</span><span class="nl">Raport</span>
+      <span class="ni">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </span>
+      <span class="nl">Raport</span>
     </button>
   </nav>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR DRAWER -->
+  <div class="sidebar-drawer" id="sidebarDrawer">
+    <div class="sidebar-top">
+      <div class="sidebar-avatar" id="sidebarAvatar">M</div>
+      <div class="sidebar-name" id="sidebarName">Murid</div>
+      <div class="sidebar-halaqah" id="sidebarHalaqah">Halaqah —</div>
+    </div>
+    <div class="sidebar-nav">
+      <button class="sidebar-item" onclick="closeSidebar();openModal('profilModal')">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        Profil Saya
+      </button>
+      <button class="sidebar-item" onclick="closeSidebar();openNotifications()">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <span style="flex:1">Notifikasi</span>
+        <span id="sidebarBellBadge" style="display:none;background:var(--red);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 6px"></span>
+      </button>
+      <button class="sidebar-item" onclick="closeSidebar();goPage('pengumuman')">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.5c0-3.5-5-6-10-6S2 5 2 8.5c0 2.5 2 4.5 5 5.5l-1 4 4-2c.7.1 1.3.1 2 .1 5 0 10-2.5 10-7.6z"/></svg>
+        </div>
+        Pengumuman
+      </button>
+      <button class="sidebar-item" id="sidebarAssessmentBtn" onclick="closeSidebar();goPage('assessment')" style="display:none">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        Assessment Mandiri
+      </button>
+      <div class="sidebar-divider"></div>
+      <button class="sidebar-item" onclick="closeSidebar();goPage('password')">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        Ganti Password
+      </button>
+      <div class="sidebar-divider"></div>
+      <button class="sidebar-item danger" onclick="closeSidebar();window.HQ.Auth.logout()">
+        <div class="sidebar-item-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </div>
+        Keluar
+      </button>
+    </div>
+  </div>
 
 </div><!-- /app -->
 
@@ -1661,7 +1794,21 @@ function showAuthErr(m) {
   var el = document.getElementById('authErr');
   el.textContent = '⚠ ' + m; el.style.display = 'block';
 }
-function doLogout() { closeModal('profilModal'); window.HQ.Auth.logout(); }
+function doLogout() { closeSidebar(); closeModal('profilModal'); window.HQ.Auth.logout(); }
+
+// Swipe kiri→kanan untuk buka sidebar
+(function() {
+  var startX = 0, startY = 0;
+  document.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = Math.abs(e.changedTouches[0].clientY - startY);
+    if (startX < 30 && dx > 60 && dy < 80) openSidebar();
+  }, {passive:true});
+})();
 
 // ══════════════════════════════════════════
 //  APP START
@@ -1682,6 +1829,7 @@ function startApp() {
   }
   document.getElementById('topName').textContent   = nama;
   document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
+  updateSidebarInfo();
   // Tampilkan badge lonceng dari log lokal sebelum API selesai
   var _logEarly = _loadNotifLog();
   if (_logEarly.length > 0) {
@@ -1742,13 +1890,19 @@ async function loadDashboard() {
     var _hqNama = (d.halaqah && d.halaqah.nama) || '';
     var _lvl    = (d.anggota && d.anggota.level) || '';
     document.getElementById('topHalaqah').textContent = '📚 ' + (_hqNama||'Halaqah') + (_lvl?' · '+_lvl:'');
+    // Sync sidebar halaqah & assessment visibility
+    var sbHq = document.getElementById('sidebarHalaqah');
+    if (sbHq) sbHq.textContent = (_hqNama||'Halaqah') + (_lvl?' · '+_lvl:'');
+    var sbAsmt = document.getElementById('sidebarAssessmentBtn');
+    if (sbAsmt) sbAsmt.style.display = ['Level 1','Level 2'].includes(_lvl) ? 'flex' : 'none';
 
     // Progress level — d.anggota.level
     var _level = ang.level || '–';
     document.getElementById('dashLevel').textContent = _level;
     // Tampilkan tab Assessment hanya untuk Level 1 & 2
-    var navAsmt = document.getElementById('navAssessment');
-    if (navAsmt) navAsmt.style.display = ['Level 1','Level 2'].includes(_level) ? 'flex' : 'none';
+    // Assessment di sidebar — update visibility
+    var sbAsmt2 = document.getElementById('sidebarAssessmentBtn');
+    if (sbAsmt2) sbAsmt2.style.display = ['Level 1','Level 2'].includes(_level) ? 'flex' : 'none';
     var tLevel = ang.target_level || '';
     if (!tLevel && _level !== '–') {
       var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
@@ -2044,6 +2198,52 @@ async function loadKeaktifanAlertsMurid() {
 function openNotifications() {
   _renderNotifModal();
   openModal('notificationModal');
+}
+
+// ── SIDEBAR ─────────────────────────────────
+function openSidebar() {
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.getElementById('sidebarDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.getElementById('sidebarDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function updateSidebarInfo() {
+  var us = window.HQ.Auth.getUser();
+  if (!us) return;
+  var nama = us.nama_lengkap || us.nama || us.id_user || 'Murid';
+  var ini  = nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M';
+
+  // Avatar sidebar
+  var sbAv = document.getElementById('sidebarAvatar');
+  var foto = localStorage.getItem('murid_foto_' + us.id_user);
+  if (foto && sbAv) {
+    sbAv.innerHTML = '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
+  } else if (sbAv) {
+    sbAv.textContent = ini;
+  }
+
+  // Avatar bottom nav center
+  var navWrap = document.getElementById('navProfileWrap');
+  var navIni  = document.getElementById('navProfileIni');
+  if (foto && navWrap) {
+    navWrap.innerHTML = '<img src="'+foto+'" class="nav-profile-avatar" alt="">';
+  } else if (navIni) {
+    navIni.textContent = ini;
+  }
+
+  if (document.getElementById('sidebarName')) document.getElementById('sidebarName').textContent = nama;
+
+  // Badge notif di sidebar
+  var log = _loadNotifLog();
+  var sbBadge = document.getElementById('sidebarBellBadge');
+  if (sbBadge && log.length > 0) {
+    sbBadge.textContent = log.length;
+    sbBadge.style.display = 'inline-block';
+  }
 }
 
 
@@ -2799,6 +2999,17 @@ function renderAvatar(elId, fotoBase64, fallback) {
   } else {
     el.innerHTML = '';
     el.textContent = fallback || '';
+  }
+  // Sync nav profile center & sidebar avatar
+  if (elId === 'topAvatar' || elId === 'profilAvatar') {
+    var navWrap = document.getElementById('navProfileWrap');
+    var sbAv    = document.getElementById('sidebarAvatar');
+    if (navWrap) navWrap.innerHTML = fotoBase64
+      ? '<img src="'+fotoBase64+'" class="nav-profile-avatar" alt="">'
+      : '<span id="navProfileIni" style="font-size:18px;font-weight:800;color:#fff">'+(fallback||'M')+'</span>';
+    if (sbAv) sbAv.innerHTML = fotoBase64
+      ? '<img src="'+fotoBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
+      : (fallback||'M');
   }
 }
 
