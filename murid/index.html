@@ -590,6 +590,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   border:2px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;
   white-space:nowrap;transition:all .2s ease;flex-shrink:0}
 .atf-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+/* Pin card — Kajian Terbaru */
+.at-card-pin{border-radius:20px;border:2px solid #ef4444;
+  background:linear-gradient(135deg,#fff5f5 0%,#fff 100%);
+  margin-bottom:6px;overflow:hidden;box-shadow:0 4px 18px rgba(239,68,68,.15)}
+.at-pin-banner{display:flex;align-items:center;gap:7px;
+  padding:9px 16px;background:linear-gradient(90deg,#ef4444,#dc2626);
+  color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.at-pin-dot{width:7px;height:7px;border-radius:50%;background:#fff;
+  animation:pin-pulse 1.6s ease-in-out infinite}
+@keyframes pin-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
 .at-card{border-radius:20px;border:1px solid var(--border);
   background:#fff;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-card)}
 .at-card-head{padding:16px;cursor:pointer;
@@ -1220,6 +1230,7 @@ html.theme-dark .kal-nav{background:#252830 !important;color:#9ca3af !important}
 html.theme-dark .materi-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .materi-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
 /* At-Tibyan dark */
+html.theme-dark .at-card-pin{background:linear-gradient(135deg,#2d1515 0%,#1e2128 100%) !important;border-color:#ef4444 !important}
 html.theme-dark .at-card{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
 html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
@@ -3418,6 +3429,49 @@ var _AT_COL_LABELS = {
   'pemateri': 'Pemateri / Ustadz',
 };
 
+function _buildAtCard(row, idx, isPinned) {
+  var ptm     = row['pertemuan_ke'] || '';
+  var tanggal = row['tanggal'] || '';
+  var materi  = row['materi_pembahasan'] || '';
+
+  var fieldCols = _attibyanColumns.filter(function(c) {
+    return _AT_SKIP_COLS.indexOf(c) === -1 && row[c] && String(row[c]).trim();
+  });
+  var fieldsHtml = fieldCols.map(function(c) {
+    var label = _AT_COL_LABELS[c] || c.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+    return '<div class="at-field">'
+      + '<div class="at-field-label">' + esc(label) + '</div>'
+      + '<div class="at-field-val">' + esc(String(row[c])) + '</div>'
+      + '</div>';
+  }).join('');
+
+  var pinBanner = isPinned
+    ? '<div class="at-pin-banner"><span class="at-pin-dot"></span>Kajian Terbaru</div>'
+    : '';
+  var cardClass = isPinned ? 'at-card-pin' : 'at-card';
+
+  return '<div class="' + cardClass + '" id="atc-' + idx + '">'
+    + pinBanner
+    + '<div class="at-card-head" onclick="toggleAtCard(' + idx + ')">'
+    + '<span class="at-card-badge"' + (isPinned ? ' style="background:#ef4444"' : '') + '>Pertemuan ' + esc(ptm) + '</span>'
+    + '<span class="at-card-title">' + (materi ? esc(materi) : (tanggal ? esc(tanggal) : 'Kajian ' + esc(ptm))) + '</span>'
+    + '<span class="at-card-chevron">▼</span>'
+    + '</div>'
+    + '<div class="at-card-body">'
+    + (tanggal ? '<div class="at-field"><div class="at-field-label">Tanggal</div><div class="at-field-val">📅 ' + esc(tanggal) + '</div></div>' : '')
+    + fieldsHtml
+    + '<div class="at-actions">'
+    + '<button class="at-btn at-btn-copy" onclick="copyAtTibyan(' + idx + ')">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Salin'
+    + '</button>'
+    + '<button class="at-btn at-btn-share" onclick="shareAtTibyan(' + idx + ')">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Bagikan'
+    + '</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
 function renderAtTibyan() {
   var listEl = document.getElementById('attibyanList');
   var rows = _attibyanFilter === 'all'
@@ -3429,47 +3483,46 @@ function renderAtTibyan() {
     return;
   }
 
-  listEl.innerHTML = rows.map(function(row, idx) {
-    var ptm    = row['pertemuan_ke'] || '';
-    var tanggal = row['tanggal'] || '';
-    var materi  = row['materi_pembahasan'] || '';
+  // Cari pertemuan_ke tertinggi (numerik) sebagai yang di-pin
+  var maxPtm = rows.reduce(function(max, r) {
+    var n = parseInt(r['pertemuan_ke'], 10) || 0;
+    return n > max ? n : max;
+  }, 0);
 
-    // Field-field yang akan ditampilkan dalam body
-    var fieldCols = _attibyanColumns.filter(function(c) {
-      return _AT_SKIP_COLS.indexOf(c) === -1 && row[c] && String(row[c]).trim();
+  var html = '';
+  // Jika filter "Semua", tampilkan pin card dulu, lalu sisanya dari terbaru ke terlama
+  if (_attibyanFilter === 'all') {
+    var pinnedRow = null, pinnedOrigIdx = -1;
+    _attibyanData.forEach(function(r, i) {
+      if ((parseInt(r['pertemuan_ke'], 10) || 0) === maxPtm && pinnedRow === null) {
+        pinnedRow = r; pinnedOrigIdx = i;
+      }
     });
+    if (pinnedRow) html += _buildAtCard(pinnedRow, pinnedOrigIdx, true);
 
-    var fieldsHtml = fieldCols.map(function(c) {
-      var label = _AT_COL_LABELS[c] || c.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
-      return '<div class="at-field">'
-        + '<div class="at-field-label">' + esc(label) + '</div>'
-        + '<div class="at-field-val">' + esc(String(row[c])) + '</div>'
-        + '</div>';
-    }).join('');
+    // Sisanya diurutkan descending (terbaru dulu), skip yang sudah di-pin
+    var rest = rows.slice().sort(function(a, b) {
+      return (parseInt(b['pertemuan_ke'], 10) || 0) - (parseInt(a['pertemuan_ke'], 10) || 0);
+    });
+    rest.forEach(function(row) {
+      var origIdx = _attibyanData.indexOf(row);
+      if (origIdx === pinnedOrigIdx) return; // skip pin
+      html += _buildAtCard(row, origIdx, false);
+    });
+  } else {
+    rows.forEach(function(row) {
+      var origIdx = _attibyanData.indexOf(row);
+      html += _buildAtCard(row, origIdx, false);
+    });
+  }
 
-    return '<div class="at-card" id="atc-' + idx + '">'
-      + '<div class="at-card-head" onclick="toggleAtCard(' + idx + ')">'
-      + '<span class="at-card-badge">Pertemuan ' + esc(ptm) + '</span>'
-      + '<span class="at-card-title">' + (materi ? esc(materi) : (tanggal ? esc(tanggal) : 'Kajian ' + esc(ptm))) + '</span>'
-      + '<span class="at-card-chevron">▼</span>'
-      + '</div>'
-      + '<div class="at-card-body">'
-      + (tanggal ? '<div class="at-field"><div class="at-field-label">Tanggal</div><div class="at-field-val">📅 ' + esc(tanggal) + '</div></div>' : '')
-      + fieldsHtml
-      + '<div class="at-actions">'
-      + '<button class="at-btn at-btn-copy" onclick="copyAtTibyan(' + idx + ')">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Salin'
-      + '</button>'
-      + '<button class="at-btn at-btn-share" onclick="shareAtTibyan(' + idx + ')">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Bagikan'
-      + '</button>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-
-  // Buka card pertama otomatis
-  toggleAtCard(0);
+  listEl.innerHTML = html;
+  // Buka pin card (atau card pertama) otomatis
+  toggleAtCard(_attibyanFilter === 'all' ? (function(){
+    var m = 0, mi = 0;
+    _attibyanData.forEach(function(r,i){ var n=parseInt(r['pertemuan_ke'],10)||0; if(n>m){m=n;mi=i;} });
+    return mi;
+  })() : _attibyanData.indexOf(rows[0]));
 }
 
 function toggleAtCard(idx) {
