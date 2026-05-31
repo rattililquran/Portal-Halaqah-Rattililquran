@@ -2777,31 +2777,37 @@ async function doSelesaiKBM() {
     presensiMapPv[btn.dataset.id] = btn.dataset.k;
   });
 
-  const incompleteCount = muridSesi.filter(m => {
-    const status = presensiMapPv[m.id_murid] || 'H';
-    const adab = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
-    const kamera = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
-    return !['A','I'].includes(status) && (!adab || !kamera);
-  }).length;
+  const isRegulerSesi = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
 
-  if (incompleteCount > 0) {
-    const confirmMsg = `Peringatan: Ada ${incompleteCount} murid hadir yang belum lengkap nilai Adab atau Kameranya.\n\n` +
-      `Nilai yang belum lengkap akan langsung memengaruhi raport akhir santri.\n` +
-      `Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan AMANAH kita sebagai guru.\n\n` +
-      `Apakah Anda yakin tetap ingin menutup sesi ini?`;
-    if (!confirm(confirmMsg)) {
-      return;
+  // Validasi kelengkapan adab/kamera hanya untuk KBM Reguler
+  if (isRegulerSesi) {
+    const incompleteCount = muridSesi.filter(m => {
+      const status = presensiMapPv[m.id_murid] || 'H';
+      const adab   = (document.getElementById('adab-'+m.id_murid)   ? document.getElementById('adab-'+m.id_murid).value   : '') || '';
+      const kamera = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
+      return !['A','I'].includes(status) && (!adab || !kamera);
+    }).length;
+
+    if (incompleteCount > 0) {
+      const confirmMsg = `Peringatan: Ada ${incompleteCount} murid hadir yang belum lengkap nilai Adab atau Kameranya.\n\n` +
+        `Nilai yang belum lengkap akan langsung memengaruhi raport akhir santri.\n` +
+        `Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan AMANAH kita sebagai guru.\n\n` +
+        `Apakah Anda yakin tetap ingin menutup sesi ini?`;
+      if (!confirm(confirmMsg)) return;
     }
   }
 
   // Tutup modal preview dulu
   closeModal('previewModal');
 
-  const isRegulerSesi = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
   const materi     = isRegulerSesi ? document.getElementById('jurnalMateri').value.trim() : '';
   const metode     = isRegulerSesi ? document.getElementById('jurnalMetode').value : '';
   const catatan    = isRegulerSesi ? document.getElementById('jurnalCatatan').value.trim() : '';
   const jamSelesai = isRegulerSesi ? document.getElementById('jurnalJamSelesai').value : new Date().toTimeString().slice(0,5);
+  // Latihan mandiri hanya berlaku untuk KBM Reguler
+  const latihanMandiri  = isRegulerSesi ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
+  const jenisLatihan    = isRegulerSesi ? document.getElementById('jurnalJenisLatihan').value : '';
+  const deadlineLatihan = isRegulerSesi ? document.getElementById('jurnalDeadline').value : '';
 
   setBtn('btnSelesai', true, '⏳ Menyimpan...');
   showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
@@ -2813,9 +2819,9 @@ async function doSelesaiKBM() {
       metode,
       catatan_umum     : catatan,
       jam_selesai      : jamSelesai,
-      latihan_mandiri  : document.getElementById('jurnalLatihanMandiri').value.trim(),
-      jenis_latihan    : document.getElementById('jurnalJenisLatihan').value,
-      deadline_latihan : document.getElementById('jurnalDeadline').value,
+      latihan_mandiri  : latihanMandiri,
+      jenis_latihan    : jenisLatihan,
+      deadline_latihan : deadlineLatihan,
     });
 
     // 2. Simpan nilai per murid (Batch)
