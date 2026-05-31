@@ -69,34 +69,81 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* LAYOUT */
 #app{display:none}
+
+/* ── Sidebar — seragam dengan guru/murid ── */
 .sidebar{
   position:fixed;top:0;left:0;width:var(--sw);height:100dvh;
-  background:linear-gradient(180deg,#0284c7 0%,#0369a1 40%,#1e3a8a 100%);
+  background:#f0f7ff;
   display:flex;flex-direction:column;z-index:100;transition:transform .3s;
-  overflow-y:auto;border-right:1px solid rgba(255,255,255,.12);
-  box-shadow:4px 0 24px rgba(14,165,233,.2)}
-.sb-logo{padding:calc(24px + var(--sat)) 20px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
-.sb-arabic{font-family:'Amiri',serif;font-size:22px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.2)}
-.sb-sub{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
-.sb-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px}
-.sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:13px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  border:1.5px solid rgba(255,255,255,.4);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.sb-name{font-size:13px;font-weight:700;color:#fff}
-.sb-role{font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.07em}
-.sb-nav{flex:1;padding:12px 0}
-.sb-sec{font-size:9px;font-weight:800;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;padding:12px 20px 6px}
-.nav-btn{display:flex;align-items:center;gap:10px;width:calc(100% - 24px);margin:3px 12px;padding:10px 14px;
-  color:rgba(255,255,255,.7);background:none;border:none;border-radius:10px;
-  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-align:left}
-.nav-btn:hover{color:#fff;background:rgba(255,255,255,.12);transform:translateX(2px)}
-.nav-btn.active{color:#fff;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.3)}
-.nav-btn .ni{font-size:14px;flex-shrink:0}
-.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.1)}
-.logout-btn{width:100%;padding:9px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);
-  border:1px solid rgba(255,255,255,.2);border-radius:var(--r-sm);
-  font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s}
-.logout-btn:hover{background:rgba(239,68,68,.2);color:#fca5a5;border-color:rgba(239,68,68,.3)}
+  overflow-y:auto;box-shadow:4px 0 24px rgba(14,165,233,.12);
+}
+/* Header gradient */
+.sb-top{
+  background:linear-gradient(145deg,#0284c7 0%,#0ea5e9 60%,#38bdf8 100%);
+  padding:calc(var(--sat)+52px) 16px 0;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.sb-top::before{
+  content:'';position:absolute;top:-50px;right:-50px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.07);pointer-events:none;
+}
+.sb-profile-row{display:flex;align-items:center;gap:12px;position:relative;z-index:1;margin-bottom:14px}
+.sb-avatar{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:#fff;overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,.18),0 0 0 2px rgba(255,255,255,.5);
+}
+.sb-info{flex:1;min-width:0}
+.sb-name{font-size:14px;font-weight:800;color:#fff;line-height:1.2;
+  letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-role{
+  display:inline-flex;align-items:center;gap:4px;margin-top:4px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);
+  border-radius:100px;padding:2px 9px;
+  font-size:10px;color:rgba(255,255,255,.9);font-weight:700;
+}
+.sb-wave{height:18px;background:#f0f7ff;border-radius:18px 18px 0 0;position:relative;z-index:1}
+
+/* Nav */
+.sb-nav{flex:1;padding:6px 12px 16px}
+.sb-sec{
+  font-size:9.5px;font-weight:800;color:#94a3b8;
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:14px 4px 6px;display:block;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:12px;
+  width:100%;padding:10px 12px;border-radius:14px;
+  color:#374151;background:none;border:none;
+  font-family:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;transition:background .15s,color .15s;text-align:left;
+}
+.nav-btn:hover{background:rgba(14,165,233,.1);color:#0284c7}
+.nav-btn.active{background:rgba(14,165,233,.12);color:#0284c7;
+  box-shadow:inset 2px 0 0 #0ea5e9}
+.nav-btn .ni{
+  width:34px;height:34px;border-radius:10px;
+  background:rgba(14,165,233,.1);color:#0284c7;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:15px;transition:background .15s;
+}
+.nav-btn.active .ni{background:rgba(14,165,233,.18)}
+.nav-btn:hover .ni{background:rgba(14,165,233,.16)}
+
+.sb-foot{padding:12px 12px 16px;border-top:1px solid #e2eaf5}
+.logout-btn{
+  width:100%;padding:10px 14px;
+  background:#fef2f2;color:#dc2626;
+  border:1px solid #fecaca;border-radius:12px;
+  font-family:inherit;font-size:12.5px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:8px;
+}
+.logout-btn:hover{background:#fee2e2;border-color:#fca5a5}
+
+/* Legacy — hide old elements */
+.sb-logo,.sb-user{display:none}
 .main{margin-left:var(--sw);min-height:100dvh;display:flex;flex-direction:column;background:var(--bg)}
 .topbar{
   height:calc(var(--hh) + var(--sat));
@@ -334,46 +381,87 @@ html.theme-dark {
   --green-l:#0a2e1f;--amber-l:#2a1f00;--red-l:#2a0800;
   --shadow:0 4px 20px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
 }
-html.theme-dark body{background:#0b1329 !important}
-html.theme-dark .bg-blobs-admin{opacity:.06}
+/* ══ DARK MODE — solid, seragam murid/guru ══ */
+html.theme-dark{
+  --bg:#111318;--bg-2:#1a1d24;--card:#1e2128;
+  --text:#f0f2f8;--text-2:#b0b7c3;--text-3:#6b7280;
+  --border:rgba(255,255,255,.08);
+  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,.1);
+  --green-l:rgba(52,211,153,.1);--amber-l:rgba(251,191,36,.1);--red-l:rgba(248,113,113,.1);
+  --shadow:0 2px 8px rgba(0,0,0,.4);--shadow-lg:0 8px 24px rgba(0,0,0,.5);
+}
+html.theme-dark body{background:#111318}
+html.theme-dark .bg-blobs-admin{display:none}
+/* Cards — solid, no blur */
 html.theme-dark .card,html.theme-dark .stat{
-  background:rgba(22,28,45,0.75) !important;
-  backdrop-filter:blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter:blur(20px) saturate(180%) !important;
-  border:1px solid rgba(255,255,255,0.12) !important;
-  box-shadow:0 16px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12) !important;
+  background:#1e2128 !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  border:1px solid rgba(255,255,255,.07) !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
 }
-html.theme-dark .fc,html.theme-dark input,html.theme-dark select,html.theme-dark textarea{
-  background:rgba(15,23,42,0.6) !important;
-  border-color:rgba(255,255,255,0.1) !important;
-  color:#f0f0f0 !important;
+html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
+html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc) !important}
+/* Inputs */
+html.theme-dark .fc,html.theme-dark input:not([type=range]),html.theme-dark select,html.theme-dark textarea{
+  background:#252830 !important;border-color:rgba(56,189,248,.2) !important;color:#f0f2f8 !important;
+  backdrop-filter:none !important;
 }
-html.theme-dark .fc:focus{border-color:#38bdf8 !important;box-shadow:0 0 0 3px rgba(56,189,248,.2) !important}
-html.theme-dark .sidebar{
-  background:linear-gradient(180deg,#0c1a2e 0%,#0a1f35 55%,#0d2040 100%) !important;
-  border-right-color:rgba(255,255,255,.08) !important;
-}
-html.theme-dark .topbar{background:rgba(11,19,41,0.9) !important;border-bottom-color:rgba(255,255,255,.1) !important}
-html.theme-dark .nav-btn{color:rgba(255,255,255,.65) !important}
-html.theme-dark .nav-btn:hover{background:rgba(255,255,255,.08) !important;color:#fff !important}
-html.theme-dark .nav-btn.active{background:rgba(255,255,255,.18) !important;color:#fff !important}
-html.theme-dark table{color:#f0f0f0 !important}
-html.theme-dark th{background:rgba(15,23,42,0.7) !important;color:#a0aec0 !important;border-color:rgba(255,255,255,.1) !important}
-html.theme-dark td{border-color:rgba(255,255,255,.06) !important}
-html.theme-dark tr:hover td{background:rgba(255,255,255,.03) !important}
-html.theme-dark .modal{background:#161e2e !important;border:1px solid rgba(255,255,255,.16) !important}
-html.theme-dark .modal-head,html.theme-dark .modal-foot{background:#161e2e !important;border-color:rgba(255,255,255,.1) !important}
-html.theme-dark .notif-box{background:#161e2e !important;border:1px solid rgba(255,255,255,.16) !important}
-html.theme-dark .tab-btn{color:#718096 !important}
-html.theme-dark .tab-btn:hover{color:#f0f0f0 !important}
+html.theme-dark .fc:focus{border-color:#38bdf8 !important;box-shadow:0 0 0 3px rgba(56,189,248,.25) !important}
+/* Sidebar */
+html.theme-dark .sidebar{background:#161920 !important}
+html.theme-dark .sb-wave{background:#161920 !important}
+html.theme-dark .sb-sec{color:#4b5563 !important}
+html.theme-dark .nav-btn{color:rgba(255,255,255,.75) !important}
+html.theme-dark .nav-btn .ni{background:rgba(56,189,248,.1) !important;color:#7dd3fc !important}
+html.theme-dark .nav-btn:hover{background:rgba(56,189,248,.1) !important;color:#7dd3fc !important}
+html.theme-dark .nav-btn.active{background:rgba(56,189,248,.15) !important;color:#38bdf8 !important;box-shadow:inset 2px 0 0 #38bdf8 !important}
+html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .logout-btn{background:rgba(248,113,113,.08) !important;color:#f87171 !important;border-color:rgba(248,113,113,.2) !important}
+/* Topbar */
+html.theme-dark .topbar{background:#1a1d24 !important;backdrop-filter:none !important;border-bottom-color:rgba(255,255,255,.07) !important}
+html.theme-dark .topbar-title{color:#f0f2f8 !important}
+/* Table */
+html.theme-dark table{color:#f0f2f8 !important}
+html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark td{border-color:rgba(255,255,255,.05) !important;color:#e2e5ed !important}
+html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
+/* Modals */
+html.theme-dark .modal{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.08) !important}
+html.theme-dark .modal-head,html.theme-dark .modal-foot{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark .notif-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important}
+html.theme-dark .overlay{background:rgba(0,0,0,.6) !important}
+/* Tabs & chips */
+html.theme-dark .tab-btn{color:#6b7280 !important}
+html.theme-dark .tab-btn:hover{color:#f0f2f8 !important}
 html.theme-dark .tab-btn.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
-html.theme-dark .komponen-row{background:rgba(15,23,42,0.6) !important;border-color:rgba(255,255,255,.1) !important}
-html.theme-dark .auth-box{background:rgba(22,28,45,0.85) !important;border:1px solid rgba(255,255,255,.16) !important}
+html.theme-dark .tab-bar{background:rgba(255,255,255,.04) !important;border-color:rgba(255,255,255,.07) !important}
+/* Komponen & misc */
+html.theme-dark .komponen-row{background:#252830 !important;border-color:rgba(255,255,255,.08) !important}
+html.theme-dark .bobot-total{background:#252830 !important;color:#f0f2f8 !important}
+html.theme-dark .progress-bar{background:rgba(255,255,255,.08) !important}
+html.theme-dark .progress-fill{opacity:.9}
+html.theme-dark .badge.b-green{background:rgba(52,211,153,.12) !important;color:#34d399 !important}
+html.theme-dark .badge.b-blue{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
+html.theme-dark .badge.b-amber{background:rgba(251,191,36,.1) !important;color:#fbbf24 !important}
+html.theme-dark .badge.b-red{background:rgba(248,113,113,.12) !important;color:#f87171 !important}
+html.theme-dark .badge.b-gray{background:rgba(255,255,255,.07) !important;color:#9ca3af !important}
+html.theme-dark .badge.b-purple{background:rgba(167,139,250,.12) !important;color:#a78bfa !important}
+/* Auth */
+html.theme-dark .auth-box{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.1) !important}
 html.theme-dark .auth-arabic{color:#38bdf8 !important}
-html.theme-dark .auth-sub,html.theme-dark .auth-label{color:#a0aec0 !important}
-html.theme-dark .loader{background:rgba(11,19,41,.9) !important}
-html.theme-dark .loader-dot{background:rgba(56,189,248,.25) !important}
-html.theme-dark .loader-txt{color:#38bdf8 !important}
+html.theme-dark .auth-sub,html.theme-dark .auth-label{color:#b0b7c3 !important}
+html.theme-dark .auth-input{background:#252830 !important;color:#f0f2f8 !important;border-color:rgba(56,189,248,.2) !important}
+/* Loader */
+html.theme-dark .loader{background:#111318 !important}
+html.theme-dark .loader-dot{background:rgba(56,189,248,.3) !important}
+html.theme-dark .loader-txt{color:#7dd3fc !important}
+html.theme-dark .loader-bar{background:rgba(56,189,248,.15) !important}
+/* Text overrides */
+html.theme-dark .section-title{color:#f0f2f8 !important}
+html.theme-dark label{color:#d1d5db !important}
+html.theme-dark .empty-ttl{color:#d1d5db !important}
+html.theme-dark .empty{color:#9ca3af !important}
+html.theme-dark .topbar-date{color:#6b7280 !important}
 
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -428,14 +516,23 @@ html.theme-dark .loader-txt{color:#38bdf8 !important}
 <!-- APP -->
 <div id="app">
   <aside class="sidebar" id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-arabic">رتل القرآن</div>
-      <div class="sb-sub">Portal Admin</div>
+    <!-- Header gradient + profile row -->
+    <div class="sb-top">
+      <div class="sb-profile-row">
+        <div class="sb-avatar" id="sbAvatar">
+          <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:12px" alt="Rattil">
+        </div>
+        <div class="sb-info">
+          <div class="sb-name" id="sbName">–</div>
+          <div class="sb-role">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Administrator
+          </div>
+        </div>
+      </div>
+      <div class="sb-wave"></div>
     </div>
-    <div class="sb-user">
-      <div class="sb-avatar" id="sbAvatar">A</div>
-      <div><div class="sb-name" id="sbName">Admin</div><div class="sb-role">Administrator</div></div>
-    </div>
+
     <div class="sb-nav">
       <div class="sb-sec">Utama</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
@@ -462,7 +559,12 @@ html.theme-dark .loader-txt{color:#38bdf8 !important}
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
-    <div class="sb-foot"><button class="logout-btn" onclick="doLogout()">⬅ Keluar</button></div>
+    <div class="sb-foot">
+      <button class="logout-btn" onclick="doLogout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Keluar dari Aplikasi
+      </button>
+    </div>
   </aside>
 
   <div class="main">
@@ -1163,8 +1265,8 @@ async function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   const nama = currentUser.nama || currentUser.id_user;
-  document.getElementById('sbAvatar').textContent = nama.substring(0,2).toUpperCase();
-  document.getElementById('sbName').textContent   = nama;
+  // sbAvatar sekarang berisi img logo — tidak perlu set textContent
+  document.getElementById('sbName').textContent = nama || 'Admin';
   document.getElementById('greet').textContent    = 'Dashboard — ' + nama;
   await loadMasterData();
   loadDashboard();
