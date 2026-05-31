@@ -796,28 +796,6 @@ tr:hover td{background:#f8fafc}
   margin-top:6px;display:none;
 }
 .persiapan-hint.show{display:block}
-html.theme-dark .persiapan-wrap { background:linear-gradient(135deg,#0a2e1f,#052e16)!important;border-color:#166534!important }
-html.theme-dark .persiapan-title { color:#34d399!important }
-html.theme-dark .persiapan-sub { color:#6ee7b7!important }
-html.theme-dark .persiapan-item { background:rgba(0,0,0,.3)!important;border-color:transparent!important }
-html.theme-dark .persiapan-item:hover { background:rgba(0,0,0,.5)!important;border-color:#166534!important }
-html.theme-dark .persiapan-item.checked { background:rgba(22,101,52,.2)!important;border-color:#22c55e!important }
-html.theme-dark .persiapan-cb { background:#111!important;border-color:#166534!important }
-html.theme-dark .persiapan-item-label { color:#f0f0f0!important }
-html.theme-dark .persiapan-item.checked .persiapan-item-label { color:#34d399!important }
-html.theme-dark .persiapan-footer { color:#34d399!important;border-top-color:#166534!important }
-html.theme-dark .persiapan-progress { background:#0a2e1f!important }
-
-/* Dark mode overrides for preview modal boxes */
-html.theme-dark .preview-box {
-  background: rgba(15, 23, 42, 0.65) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-html.theme-dark .preview-row,
-html.theme-dark .preview-murid-item {
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-}
-
 /* ── TEMPLATE KOREKSI ACCORDION ── */
 .kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
   border:1px solid var(--border)}
@@ -908,193 +886,172 @@ body, .card, .stat-card, .progress-card, .spp-card, .nilai-murid-card, .sidebar,
   transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
-/* ══ AMOLED DARK MODE ══════════════════════════════════════
-   Aktif jika kelas html.theme-dark terdeteksi
-═══════════════════════════════════════════════════════════ */
+/* ── DARK MODE ── */
 html.theme-dark {
-  /* Palette solid seragam dengan murid */
-  --bg:         #111318;
-  --bg-2:       #1a1d24;
-  --card:       #1e2128;
-  --glass:      #1e2128;
-  --glass-border:rgba(255,255,255,0.07);
-  --text:       #f0f2f8;
-  --text-2:     #b0b7c3;
-  --text-3:     #6b7280;
-  --border:     rgba(255,255,255,0.08);
-  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,0.1);
-  --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,0.1);
-  --amber-l:rgba(251,191,36,0.1);--amber-txt:#fbbf24;
-  --red-l:rgba(248,113,113,0.1);
+  --bg:#111318;--bg-2:#1a1d24;--card:#1e2128;--glass:#1e2128;
+  --glass-border:rgba(255,255,255,.07);
+  --text:#f0f2f8;--text-2:#b0b7c3;--text-3:#6b7280;
+  --border:rgba(255,255,255,.08);
+  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,.1);
+  --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,.1);
+  --amber-l:rgba(251,191,36,.1);--amber-txt:#fbbf24;
+  --red-l:rgba(248,113,113,.1);
   --shadow:0 2px 8px rgba(0,0,0,.4);
   --shadow-lg:0 8px 24px rgba(0,0,0,.5);
   --shadow-card:0 2px 8px rgba(0,0,0,.35);
 }
-
-/* ══ GURU DARK MODE — solid, no glass blur ══ */
-html.theme-dark body{background:#111318 !important}
-
-/* Semua cards — solid */
-html.theme-dark .card,
-html.theme-dark .stat,
-html.theme-dark .stat-top,
-html.theme-dark .hq-card,
-html.theme-dark .hq-card-new,
-html.theme-dark .nilai-murid-card,
-html.theme-dark .draft-warning,
-html.theme-dark .prow,
-html.theme-dark .nilai-row {
-  background:#1e2128 !important;
-  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
-  border:1px solid rgba(255,255,255,.07) !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
-}
-html.theme-dark .card:hover,.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
-html.theme-dark .card-head{background:rgba(255,255,255,.03) !important;border-bottom-color:rgba(255,255,255,.06) !important}
-html.theme-dark .card-title{color:#f0f2f8 !important}
-
-/* Stat accent bar */
-html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc) !important}
-
-/* nilai-murid-card states */
-html.theme-dark .nilai-murid-card.terisi{background:rgba(52,211,153,.12) !important;border-color:rgba(52,211,153,.25) !important}
-html.theme-dark .nilai-murid-card .nm-body{background:transparent !important}
-
-/* Inputs — solid */
-html.theme-dark .fc,
-html.theme-dark .auth-input,
-html.theme-dark input:not([type=range]),
-html.theme-dark select,
-html.theme-dark textarea{
-  background:#252830 !important;
-  border-color:rgba(56,189,248,.2) !important;
-  color:#f0f2f8 !important;
-  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
-}
+html.theme-dark body{background:#111318!important}
+html.theme-dark .card,html.theme-dark .stat,html.theme-dark .stat-top,
+html.theme-dark .hq-card,html.theme-dark .hq-card-new,
+html.theme-dark .nilai-murid-card,html.theme-dark .draft-warning,
+html.theme-dark .prow,html.theme-dark .nilai-row{
+  background:#1e2128!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  border:1px solid rgba(255,255,255,.07)!important;box-shadow:0 2px 8px rgba(0,0,0,.3)!important}
+html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45)!important}
+html.theme-dark .card-head{background:rgba(255,255,255,.03)!important;border-bottom-color:rgba(255,255,255,.06)!important}
+html.theme-dark .card-title{color:#f0f2f8!important}
+html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc)!important}
+html.theme-dark .nilai-murid-card.terisi{background:rgba(52,211,153,.12)!important;border-color:rgba(52,211,153,.25)!important}
+html.theme-dark .nilai-murid-card .nm-body{background:transparent!important}
+html.theme-dark .fc,html.theme-dark .auth-input,
+html.theme-dark input:not([type=range]),html.theme-dark select,html.theme-dark textarea{
+  background:#252830!important;border-color:rgba(56,189,248,.2)!important;
+  color:#f0f2f8!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html.theme-dark .fc:focus,html.theme-dark .auth-input:focus{
-  border-color:#38bdf8 !important;
-  box-shadow:0 0 0 3px rgba(56,189,248,.25) !important;
-}
-
-/* Auth */
-html.theme-dark .auth-box{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.1) !important}
-html.theme-dark .auth-arabic{color:#38bdf8 !important}
-html.theme-dark .auth-sub,html.theme-dark .auth-hint{color:#b0b7c3 !important}
-html.theme-dark .auth-label,html.theme-dark label{color:#d1d5db !important}
-
-/* Topbar */
-html.theme-dark .topbar{background:#1a1d24 !important;backdrop-filter:none !important;border-bottom:1px solid rgba(255,255,255,.07) !important}
-html.theme-dark .topbar-title{color:#f0f2f8 !important}
-html.theme-dark .topbar-date{color:#6b7280 !important}
-
-/* Sidebar */
-html.theme-dark .sidebar{background:#161920 !important}
-html.theme-dark .sb-wave{background:#161920 !important}
-html.theme-dark .nav-btn{color:rgba(255,255,255,.78) !important}
-html.theme-dark .nav-btn .ni{background:rgba(56,189,248,.1) !important;color:#7dd3fc !important}
-html.theme-dark .nav-btn:hover{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
-html.theme-dark .nav-btn.active{background:rgba(56,189,248,.15) !important;color:#38bdf8 !important;box-shadow:inset 2px 0 0 #38bdf8 !important}
-html.theme-dark .sb-section{color:#4b5563 !important}
-html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
-html.theme-dark .logout-btn{background:rgba(248,113,113,.08) !important;color:#f87171 !important;border-color:rgba(248,113,113,.2) !important}
-
-/* Modals — solid */
-html.theme-dark .overlay{background:rgba(0,0,0,.6) !important;backdrop-filter:blur(4px) !important}
-html.theme-dark .modal{background:#1e2128 !important;backdrop-filter:none !important;border:1px solid rgba(255,255,255,.08) !important;box-shadow:0 8px 32px rgba(0,0,0,.5) !important}
-html.theme-dark .modal-head{background:#1e2128 !important;border-bottom-color:rgba(255,255,255,.07) !important;color:#f0f2f8 !important}
-html.theme-dark .modal-foot{background:#1e2128 !important;border-top-color:rgba(255,255,255,.07) !important}
-html.theme-dark .notif-overlay .notif-box{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important}
-html.theme-dark .notif-title{color:#f0f2f8 !important}
-html.theme-dark .notif-msg{color:#b0b7c3 !important}
-
-/* Tabel */
-html.theme-dark table{color:#f0f2f8 !important}
-html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
-html.theme-dark td{border-color:rgba(255,255,255,.05) !important;color:#e2e5ed !important}
-html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
-
-/* Badges */
-html.theme-dark .badge.b-green{background:rgba(52,211,153,.12) !important;color:#34d399 !important}
-html.theme-dark .badge.b-blue{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
-html.theme-dark .badge.b-amber{background:rgba(251,191,36,.1) !important;color:#fbbf24 !important}
-html.theme-dark .badge.b-red{background:rgba(248,113,113,.12) !important;color:#f87171 !important}
-html.theme-dark .badge.b-gray{background:rgba(255,255,255,.07) !important;color:#9ca3af !important}
-html.theme-dark .badge.b-purple{background:rgba(167,139,250,.12) !important;color:#a78bfa !important}
-
-/* Nilai badges */
-html.theme-dark .nilai-Mumtaz{background:rgba(251,191,36,.12) !important;color:#fbbf24 !important}
-html.theme-dark .nilai-JJ{background:rgba(52,211,153,.12) !important;color:#34d399 !important}
-html.theme-dark .nilai-Jayyid{background:rgba(56,189,248,.12) !important;color:#7dd3fc !important}
-html.theme-dark .nilai-Maqbul{background:rgba(248,113,113,.12) !important;color:#f87171 !important}
-
-/* Accordion koreksi */
-html.theme-dark .kor-acc-head{background:#252830 !important;color:#e2e5ed !important}
-html.theme-dark .kor-acc-head:hover{background:#2d3038 !important}
-html.theme-dark .kor-acc-head.open{background:#1a2a3a !important;color:#7dd3fc !important}
-html.theme-dark .kor-acc-body{background:#1a1d24 !important;border-top-color:rgba(255,255,255,.06) !important}
-html.theme-dark .chip-koreksi{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#b0b7c3 !important}
-html.theme-dark .chip-koreksi:hover{background:#2d3038 !important}
-html.theme-dark .chip-koreksi.selected{background:#0ea5e9 !important;color:#fff !important}
-
-/* Steps KBM */
-html.theme-dark .step-item{background:#252830 !important;border-color:rgba(255,255,255,.08) !important}
-html.theme-dark .step-item.active{background:#162032 !important;border-color:rgba(56,189,248,.3) !important}
-html.theme-dark .step-num{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
-html.theme-dark .step-num.done{background:#059669 !important;border-color:#059669 !important;color:#fff !important}
-html.theme-dark .step-num.active{background:#0ea5e9 !important;border-color:#0ea5e9 !important;color:#fff !important}
-
-/* Kalender */
-html.theme-dark .kal-day{color:#9ca3af !important}
-html.theme-dark .kal-day-name{color:#4b5563 !important}
-html.theme-dark .kal-day.today{background:linear-gradient(135deg,#0ea5e9,#2563eb) !important;color:#fff !important;box-shadow:0 2px 8px rgba(14,165,233,.4) !important}
-
-/* Koreksi & PR box */
-html.theme-dark .koreksi-box{background:rgba(251,191,36,.08) !important;color:#fbbf24 !important;border:1px solid rgba(251,191,36,.2) !important}
-
-/* Presensi buttons */
-/* .pb default: transparan. Tapi .on state harus tetap berwarna */
-html.theme-dark .pb:not(.on){background:transparent !important}
-html.theme-dark .pb[data-k="H"].on{background:var(--green) !important;color:#fff !important}
-html.theme-dark .pb[data-k="T"].on{background:#7c3aed !important;color:#fff !important}
-html.theme-dark .pb[data-k="I"].on{background:var(--amber) !important;color:#fff !important}
-html.theme-dark .pb[data-k="A"].on{background:var(--red) !important;color:#fff !important}
-html.theme-dark .prow{background:transparent !important;border-bottom-color:rgba(255,255,255,.06) !important}
-html.theme-dark .prow-name{color:#f0f2f8 !important}
-html.theme-dark .prow-level{color:#6b7280 !important}
-
-/* Text overrides */
-html.theme-dark .page-title,html.theme-dark h1,html.theme-dark h2,html.theme-dark h3{color:#f0f2f8 !important}
-html.theme-dark .page-sub,html.theme-dark .card-sub{color:#b0b7c3 !important}
-html.theme-dark .empty-ttl{color:#d1d5db !important}
-html.theme-dark .empty-sub{color:#9ca3af !important}
-html.theme-dark .section-title{color:#f0f2f8 !important}
-html.theme-dark .section-sub{color:#9ca3af !important}
-html.theme-dark .hq-name{color:#f0f2f8 !important}
-html.theme-dark .hq-meta{color:#6b7280 !important}
-html.theme-dark .hq-stat .v{color:#38bdf8 !important}
-
-/* Loader */
-html.theme-dark .loader{background:#111318 !important}
-html.theme-dark .loader-txt{color:#7dd3fc !important}
-html.theme-dark .loader-dot{background:rgba(56,189,248,.3) !important}
-html.theme-dark .loader-bar{background:rgba(56,189,248,.15) !important}
-
-/* Scrollbar */
+  border-color:#38bdf8!important;box-shadow:0 0 0 3px rgba(56,189,248,.25)!important}
+html.theme-dark .auth-box{background:#1e2128!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.1)!important}
+html.theme-dark .auth-arabic{color:#38bdf8!important}
+html.theme-dark .auth-sub,html.theme-dark .auth-hint{color:#b0b7c3!important}
+html.theme-dark .auth-label,html.theme-dark label{color:#d1d5db!important}
+html.theme-dark .topbar{background:#1a1d24!important;backdrop-filter:none!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
+html.theme-dark .topbar-title{color:#f0f2f8!important}
+html.theme-dark .topbar-date{color:#6b7280!important}
+html.theme-dark .sidebar{background:#161920!important}
+html.theme-dark .sb-wave{background:#161920!important}
+html.theme-dark .nav-btn{color:rgba(255,255,255,.78)!important}
+html.theme-dark .nav-btn .ni{background:rgba(56,189,248,.1)!important;color:#7dd3fc!important}
+html.theme-dark .nav-btn:hover{background:rgba(56,189,248,.12)!important;color:#7dd3fc!important}
+html.theme-dark .nav-btn.active{background:rgba(56,189,248,.15)!important;color:#38bdf8!important;box-shadow:inset 2px 0 0 #38bdf8!important}
+html.theme-dark .sb-section{color:#4b5563!important}
+html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06)!important}
+html.theme-dark .logout-btn{background:rgba(248,113,113,.08)!important;color:#f87171!important;border-color:rgba(248,113,113,.2)!important}
+html.theme-dark .overlay{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(4px)!important}
+html.theme-dark .modal{background:#1e2128!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
+html.theme-dark .modal-head{background:#1e2128!important;border-bottom-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
+html.theme-dark .modal-foot{background:#1e2128!important;border-top-color:rgba(255,255,255,.07)!important}
+html.theme-dark .notif-overlay .notif-box{background:#1e2128!important;border:1px solid rgba(255,255,255,.08)!important}
+html.theme-dark .notif-title{color:#f0f2f8!important}
+html.theme-dark .notif-msg{color:#b0b7c3!important}
+html.theme-dark table{color:#f0f2f8!important}
+html.theme-dark th{background:#252830!important;color:#9ca3af!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark td{border-color:rgba(255,255,255,.05)!important;color:#e2e5ed!important}
+html.theme-dark tr:hover td{background:rgba(255,255,255,.02)!important}
+html.theme-dark .empty-ttl{color:#d1d5db!important}
+html.theme-dark .empty-sub{color:#9ca3af!important}
+html.theme-dark .page-title,html.theme-dark h1,html.theme-dark h2,html.theme-dark h3{color:#f0f2f8!important}
+html.theme-dark .page-sub,html.theme-dark .card-sub{color:#b0b7c3!important}
+html.theme-dark .hq-name{color:#f0f2f8!important}
+html.theme-dark .hq-meta{color:#6b7280!important}
+html.theme-dark .hq-stat .v{color:#38bdf8!important}
+html.theme-dark .loader{background:#111318!important}
+html.theme-dark .loader-txt{color:#7dd3fc!important}
+html.theme-dark .loader-dot{background:rgba(56,189,248,.3)!important}
+html.theme-dark .loader-bar{background:rgba(56,189,248,.15)!important}
 html.theme-dark ::-webkit-scrollbar-track{background:#111318}
 html.theme-dark ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
-
-/* Misc */
-html.theme-dark .btn-ghost{background:transparent !important;border-color:rgba(255,255,255,.12) !important;color:#b0b7c3 !important}
-html.theme-dark .btn-outline{background:transparent !important;border-color:#38bdf8 !important;color:#38bdf8 !important}
-html.theme-dark .refresh-badge,html.theme-dark .refresh-badge-murid{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#d1d5db !important}
-html.theme-dark .refresh-dot{background:#34d399 !important}
+html.theme-dark .btn-ghost{background:transparent!important;border-color:rgba(255,255,255,.12)!important;color:#b0b7c3!important}
+html.theme-dark .btn-ghost:hover{background:rgba(255,255,255,.05)!important}
+html.theme-dark .btn-outline{background:transparent!important;border-color:#38bdf8!important;color:#38bdf8!important}
+html.theme-dark .sb-name{color:#f0f2f8!important}
+html.theme-dark .sb-role{color:rgba(255,255,255,.55)!important}
+html.theme-dark .refresh-badge,html.theme-dark .refresh-badge-murid{background:#252830!important;border-color:rgba(255,255,255,.1)!important;color:#d1d5db!important}
+html.theme-dark .refresh-dot{background:#34d399!important}
 html.theme-dark .bg-blobs-guru{display:none}
-html.theme-dark .sb-name{color:#f0f2f8 !important}
-html.theme-dark .sb-role{color:rgba(255,255,255,.55) !important}
-html.theme-dark .btn-ghost:hover { background: rgba(255, 255, 255, 0.05) !important; }
+html.theme-dark .pb[data-k="H"].on{background:var(--green)!important;color:#fff!important}
+html.theme-dark .pb[data-k="T"].on{background:#7c3aed!important;color:#fff!important}
+html.theme-dark .pb[data-k="I"].on{background:var(--amber-txt)!important;color:#0f172a!important}
+html.theme-dark .pb[data-k="A"].on{background:var(--red)!important;color:#fff!important}
+html.theme-dark .prow{background:transparent!important;border-bottom-color:rgba(255,255,255,.06)!important}
+html.theme-dark .prow-name{color:#f0f2f8!important}
+html.theme-dark .prow-level{color:#6b7280!important}
+html.theme-dark .section-title{color:#f0f2f8!important}
+html.theme-dark .section-sub{color:#9ca3af!important}
+html.theme-dark .persiapan-wrap{background:linear-gradient(135deg,#0a2e1f,#052e16)!important;border-color:#166534!important}
+html.theme-dark .persiapan-title{color:#34d399!important}
+html.theme-dark .persiapan-sub{color:#6ee7b7!important}
+html.theme-dark .persiapan-item{background:rgba(0,0,0,.3)!important;border-color:transparent!important}
+html.theme-dark .persiapan-item:hover{background:rgba(0,0,0,.5)!important;border-color:#166534!important}
+html.theme-dark .persiapan-item.checked{background:rgba(22,101,52,.2)!important;border-color:#22c55e!important}
+html.theme-dark .persiapan-cb{background:#111!important;border-color:#166534!important}
+html.theme-dark .persiapan-item-label{color:#f0f0f0!important}
+html.theme-dark .persiapan-item.checked .persiapan-item-label{color:#34d399!important}
+html.theme-dark .persiapan-footer{color:#34d399!important;border-top-color:#166534!important}
+html.theme-dark .persiapan-progress{background:#0a2e1f!important}
+html.theme-dark .preview-box{background:rgba(15,23,42,.65)!important;border:1px solid rgba(255,255,255,.08)!important}
+html.theme-dark .preview-row,html.theme-dark .preview-murid-item{border-bottom-color:rgba(255,255,255,.08)!important}
 
-/* URL box di install.html */
-html.theme-dark .url-text { color: #34d399 !important; }
+/* ── REFRESH BTN (guru) ── */
+.guru-refresh-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+  border-radius:100px;border:1.5px solid var(--border);background:transparent;
+  font-size:11.5px;font-weight:700;color:var(--text-2);cursor:pointer;
+  transition:all .2s ease;flex-shrink:0}
+.guru-refresh-btn:hover{background:var(--bg-2,#f8fafc);border-color:var(--blue);color:var(--blue)}
+.guru-refresh-btn:active{transform:scale(.94)}
+.guru-refresh-btn.spinning svg{animation:guru-spin .7s linear infinite}
+@keyframes guru-spin{to{transform:rotate(360deg)}}
+html.theme-dark .guru-refresh-btn{border-color:rgba(255,255,255,.1)!important;color:#9ca3af!important}
+html.theme-dark .guru-refresh-btn:hover{border-color:#38bdf8!important;color:#38bdf8!important;background:#1a2535!important}
+
+/* ── PAGE TITLE ROW (judul + refresh kanan) ── */
+.page-title-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.page-title-row > span{font-size:19px;font-weight:800;color:var(--text);flex:1;min-width:0}
+
+/* ── EMPTY STATE (guru) ── */
+.guru-empty{text-align:center;padding:40px 20px;color:var(--text-3)}
+.guru-empty-ico{font-size:48px;margin-bottom:12px;opacity:.4;line-height:1}
+.guru-empty-ttl{font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:6px}
+.guru-empty-sub{font-size:12.5px;font-weight:500;line-height:1.7;max-width:280px;margin:0 auto}
+
+/* ── ASSESSMENT SUMMARY ── */
+.asmt-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.asmt-summary-card{border-radius:14px;padding:14px 12px;text-align:center;border:1px solid transparent}
+.asmt-summary-card .asmt-s-num{font-size:28px;font-weight:900;line-height:1;margin-bottom:4px}
+.asmt-summary-card .asmt-s-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.asmt-s-paham{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.15)}
+.asmt-s-paham .asmt-s-num{color:#059669}
+.asmt-s-paham .asmt-s-lbl{color:#065f46}
+.asmt-s-ragu{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.15)}
+.asmt-s-ragu .asmt-s-num{color:#b45309}
+.asmt-s-ragu .asmt-s-lbl{color:#78350f}
+.asmt-s-belum{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.15)}
+.asmt-s-belum .asmt-s-num{color:#dc2626}
+.asmt-s-belum .asmt-s-lbl{color:#7f1d1d}
+.asmt-dist-bar{height:8px;border-radius:100px;background:var(--border);overflow:hidden;
+  display:flex;gap:2px;margin-bottom:6px}
+.asmt-dist-seg{border-radius:100px;transition:width .5s ease}
+.asmt-dist-labels{display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:16px}
+html.theme-dark .asmt-summary-card{background:rgba(255,255,255,.04)!important}
+html.theme-dark .asmt-s-paham .asmt-s-lbl{color:#34d399!important}
+html.theme-dark .asmt-s-ragu .asmt-s-lbl{color:#fbbf24!important}
+html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
+
+/* ── FORM VALIDATION ── */
+.fc.field-error{border-color:#ef4444!important;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.field-error-msg{font-size:11px;color:#ef4444;font-weight:600;margin-top:3px;display:none}
+.field-error-msg.show{display:block}
+
+/* ── MOBILE RESPONSIVITAS ── */
+@media(max-width:640px){
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:600px}
+  .page-title-row > span{font-size:16px}
+  .f2{grid-template-columns:1fr!important}
+  .keaktifan-summary-cards{grid-template-columns:1fr!important}
+  .keaktifan-grid{grid-template-columns:1fr!important}
+  .asmt-summary{grid-template-columns:repeat(3,1fr)}
+  .topbar-title{font-size:13px!important;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
 
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1496,7 +1453,12 @@ html.theme-dark .url-text { color: #34d399 !important; }
 
       <!-- ════ DAFTAR MURID ════ -->
       <div class="page" id="page-murid">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Daftar Murid</div>
+        <div class="page-title-row">
+          <span>Daftar Murid</span>
+          <button class="guru-refresh-btn" id="btnRefreshMurid" onclick="guruRefresh('murid')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
         <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="muridLevelSel" onchange="filterMuridHalaqah()" style="max-width:140px">
             <option value="">— Semua Level —</option>
@@ -1558,8 +1520,13 @@ html.theme-dark .url-text { color: #34d399 !important; }
 
       <!-- ════ ASSESSMENT ════ -->
       <div class="page" id="page-assessment">
-        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Assessment Mandiri Murid</div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Rekap self-assessment Makharijul & Sifaatul Huruf (Level 1 & 2).</div>
+        <div class="page-title-row">
+          <span>Assessment Mandiri</span>
+          <button class="guru-refresh-btn" id="btnRefreshAsmt" onclick="guruRefresh('assessment')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Rekap self-assessment Makharijul &amp; Sifaatul Huruf (Level 1 &amp; 2).</div>
 
         <div class="fg" style="margin-bottom:16px">
           <label>Pilih Halaqah</label>
@@ -1568,6 +1535,7 @@ html.theme-dark .url-text { color: #34d399 !important; }
           </select>
         </div>
 
+        <div id="asmtSummary" style="display:none"></div>
         <div id="asmtRekapContent">
           <div class="empty" style="padding:40px 0">
             <div class="empty-ico">✍️</div>
@@ -1578,7 +1546,13 @@ html.theme-dark .url-text { color: #34d399 !important; }
 
       <!-- ════ KEAKTIFAN MURID ════ -->
       <div class="page" id="page-keaktifan">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Keaktifan Murid (Evaluasi 40 Sesi Terakhir)</div>
+        <div class="page-title-row">
+          <span>Keaktifan Murid</span>
+          <button class="guru-refresh-btn" id="btnRefreshKeaktifan" onclick="guruRefresh('keaktifan')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
+        <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-top:-10px;margin-bottom:16px">Evaluasi 40 sesi terakhir per murid</div>
         
         <!-- Summary cards -->
         <div class="keaktifan-summary-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
@@ -1618,7 +1592,12 @@ html.theme-dark .url-text { color: #34d399 !important; }
 
       <!-- ════ RIWAYAT KBM ════ -->
       <div class="page" id="page-riwayat">
-        <div style="font-size:19px;font-weight:800;margin-bottom:16px">Riwayat KBM</div>
+        <div class="page-title-row">
+          <span>Riwayat KBM</span>
+          <button class="guru-refresh-btn" id="btnRefreshRiwayat" onclick="guruRefresh('riwayat')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
         <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="riwayatLevelSel" onchange="filterRiwayatHalaqah()" style="max-width:150px">
             <option value="">— Semua Level —</option>
@@ -1626,11 +1605,11 @@ html.theme-dark .url-text { color: #34d399 !important; }
           <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:220px">
             <option value="">— Pilih Halaqah —</option>
           </select>
-          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
+          <button id="btnRekapPresensi" class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
             style="color:var(--green);border-color:var(--green)">
             📊 Rekap Presensi
           </button>
-          <button class="btn btn-outline btn-sm" onclick="doGenerateRekap('nilai')"
+          <button id="btnRekapNilai" class="btn btn-outline btn-sm" onclick="doGenerateRekap('nilai')"
             style="color:var(--purple);border-color:var(--purple)">
             🏆 Rekap Nilai
           </button>
@@ -2347,15 +2326,55 @@ function hqCard(h) {
 // ══════════════════════════════════════════
 //  BUKA KBM
 // ══════════════════════════════════════════
+// ── FORM VALIDATION ──────────────────────
+function validateFields(fields) {
+  var ok = true;
+  fields.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    if (!el) return;
+    el.classList.remove('field-error');
+    var isEmpty = !el.value || !el.value.trim();
+    if (isEmpty) {
+      el.classList.add('field-error');
+      setTimeout(function(){ el.classList.remove('field-error'); }, 800);
+      ok = false;
+    }
+  });
+  if (!ok) {
+    var missing = fields.filter(function(f){
+      var el = document.getElementById(f.id);
+      return el && (!el.value || !el.value.trim());
+    }).map(function(f){ return f.label; });
+    toast('Field wajib belum diisi: ' + missing.join(', '), 'err');
+  }
+  return ok;
+}
+
+// ── REFRESH PER TAB ───────────────────────
+var _guruTabLoaded = {};
+function guruRefresh(tab) {
+  var btnMap = {murid:'btnRefreshMurid',riwayat:'btnRefreshRiwayat',keaktifan:'btnRefreshKeaktifan',assessment:'btnRefreshAsmt'};
+  var btn = document.getElementById(btnMap[tab] || '');
+  if (btn) { btn.classList.add('spinning'); setTimeout(function(){ btn.classList.remove('spinning'); }, 1200); }
+  delete _guruTabLoaded[tab];
+  if (tab === 'murid')      loadMurid();
+  else if (tab === 'riwayat')   loadRiwayat();
+  else if (tab === 'keaktifan') { _keaktifanData = null; loadKeaktifanPage(); }
+  else if (tab === 'assessment') loadAssessmentRekap();
+}
+
 async function doBukaKBM() {
   const id_halaqah = document.getElementById('kbmHalaqah').value;
   const tanggal    = document.getElementById('kbmTanggal').value;
   const jam_mulai  = document.getElementById('kbmJam').value;
   const jenis_sesi = document.getElementById('kbmJenis').value;
 
-  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
-  if (!tanggal)    return toast('Tanggal wajib diisi','err');
-  if (sesiAktif)   return toast('Masih ada sesi berjalan. Tutup dulu!','warn');
+  if (sesiAktif) return toast('Masih ada sesi berjalan. Tutup dulu!','warn');
+  if (!validateFields([
+    {id:'kbmHalaqah', label:'Halaqah'},
+    {id:'kbmTanggal', label:'Tanggal'},
+    {id:'kbmJenis',   label:'Jenis Sesi'},
+  ])) return;
 
   setBtn('btnMulai', true, '⏳ Membuka sesi...');
   showLoad('Bismillah, kita buka sesi KBM dengan doa terlebih dahulu...');
@@ -2962,8 +2981,9 @@ async function getMurid(id_halaqah) {
 
 async function loadMurid() {
   const id = document.getElementById('muridHalaqahSel').value;
-  // Boleh kosong = semua halaqah, tapi harus sudah ada halaqahList
   if (!id && !halaqahList.length) return;
+  const tbody = document.getElementById('muridTbl');
+  if (tbody) tbody.innerHTML = Array(4).fill(`<tr>${Array(9).fill('<td><div class="skel skel-text" style="height:12px;border-radius:6px"></div></td>').join('')}</tr>`).join('');
   showLoad('Bismillah, memuat data murid...');
   try {
     muridCache[id] = null;
@@ -2988,7 +3008,7 @@ async function loadMurid() {
     window._muridAllRows = murid;
     const tbody = document.getElementById('muridTbl');
     if (!murid.length) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="guru-empty"><div class="guru-empty-ico">👥</div><div class="guru-empty-ttl">Belum ada murid di halaqah ini</div><div class="guru-empty-sub">Murid baru dapat ditambahkan oleh Admin melalui portal admin.</div></div></td></tr>`;
       return;
     }
     // Kosongkan search saat halaqah berganti
@@ -3030,13 +3050,14 @@ async function loadMurid() {
 async function loadRiwayat() {
   const id = document.getElementById('riwayatHalaqahSel').value;
   if (!id) return;
+  const tbody = document.getElementById('riwayatTbl');
+  if (tbody) tbody.innerHTML = Array(5).fill(`<tr>${Array(7).fill('<td><div class="skel skel-row" style="height:12px;border-radius:6px"></div></td>').join('')}</tr>`).join('');
   showLoad('Bismillah, memuat riwayat KBM...');
   try {
     const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 30);
     const rows = r.data || [];
-    const tbody = document.getElementById('riwayatTbl');
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada riwayat</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="guru-empty"><div class="guru-empty-ico">📋</div><div class="guru-empty-ttl">Belum ada riwayat KBM</div><div class="guru-empty-sub">Riwayat akan muncul setelah sesi KBM pertama diselesaikan dan disubmit.</div></div></td></tr>`;
       return;
     }
     tbody.innerHTML = rows.map(k => `<tr>
@@ -3558,15 +3579,23 @@ async function doGenerateRekap(tipe) {
   if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
 
   const label = tipe === 'presensi' ? 'Rekap Presensi' : 'Rekap Nilai';
+  const btnId = tipe === 'presensi' ? 'btnRekapPresensi' : 'btnRekapNilai';
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.disabled = true; btn.classList.add('btn-loading'); }
   showLoad('Bismillah, membuat ' + label.toLowerCase() + '...');
   try {
     const fn = tipe === 'presensi'
       ? window.HQ.GuruAPI.generateRekapPresensi
       : window.HQ.GuruAPI.generateRekapNilai;
     const r = await fn(id_halaqah);
-    toast('✅ ' + r.message, 'ok');
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
+    var hq = halaqahList.find(function(h){ return h.id_halaqah === id_halaqah; });
+    var namaHalaqah = hq ? hq.nama_halaqah : 'halaqah ini';
+    toast('✅ ' + label + ' untuk ' + namaHalaqah + ' berhasil dibuat di Google Sheets.', 'ok');
+  } catch(e) { toast('Gagal membuat rekap: ' + e.message,'err'); }
+  finally {
+    hideLoad();
+    if (btn) { btn.disabled = false; btn.classList.remove('btn-loading'); }
+  }
 }
 
 
@@ -4351,15 +4380,18 @@ async function mulaiSesiBaruCepat() {
 async function loadAssessmentRekap() {
   var idHalaqah = document.getElementById('asmtHalaqahSel') && document.getElementById('asmtHalaqahSel').value;
   var el = document.getElementById('asmtRekapContent');
+  var sumEl = document.getElementById('asmtSummary');
   if (!el) return;
   if (!idHalaqah) {
-    el.innerHTML = '<div class="empty" style="padding:40px 0"><div class="empty-ico">✍️</div>'
-      + '<div class="empty-ttl">Pilih halaqah untuk melihat rekap</div></div>';
+    if (sumEl) sumEl.style.display = 'none';
+    el.innerHTML = '<div class="guru-empty" style="padding:40px 0"><div class="guru-empty-ico">✍️</div>'
+      + '<div class="guru-empty-ttl">Pilih halaqah untuk melihat rekap</div>'
+      + '<div class="guru-empty-sub">Assessment tersedia untuk murid Level 1 &amp; 2.</div></div>';
     return;
   }
 
-  el.innerHTML = '<div class="empty" style="padding:24px 0"><div class="empty-ico">⏳</div>'
-    + '<div class="empty-ttl">Memuat rekap...</div></div>';
+  if (sumEl) sumEl.style.display = 'none';
+  el.innerHTML = Array(3).fill('<div class="skel skel-card" style="height:90px;border-radius:16px;margin-bottom:12px"></div>').join('');
   try {
     var r = await window.HQ.GuruAPI.getAssessmentRekap(idHalaqah);
     if (r.status !== 'ok') throw new Error(r.message);
@@ -4372,12 +4404,45 @@ async function loadAssessmentRekap() {
 
 function renderAssessmentRekap(data, totalItems, level) {
   var el = document.getElementById('asmtRekapContent');
+  var sumEl = document.getElementById('asmtSummary');
   if (!el) return;
 
   if (!data || !data.length) {
-    el.innerHTML = '<div class="empty" style="padding:40px 0"><div class="empty-ico">📭</div>'
-      + '<div class="empty-ttl">Belum ada data assessment untuk halaqah ini</div></div>';
+    if (sumEl) sumEl.style.display = 'none';
+    el.innerHTML = '<div class="guru-empty" style="padding:40px 0"><div class="guru-empty-ico">📭</div>'
+      + '<div class="guru-empty-ttl">Belum ada data assessment</div>'
+      + '<div class="guru-empty-sub">Murid di halaqah ini belum mengisi assessment mandiri.</div></div>';
     return;
+  }
+
+  // #10 — Summary halaqah keseluruhan
+  var totPaham=0, totRagu=0, totBelum=0, totKosong=0, sudahIsi=0;
+  data.forEach(function(m){
+    var s=m.summary;
+    totPaham+=s.paham; totRagu+=s.ragu; totBelum+=s.belum; totKosong+=s.kosong;
+    if (m.last_update) sudahIsi++;
+  });
+  var totAll = totPaham+totRagu+totBelum+totKosong || 1;
+  var pctP=Math.round(totPaham/totAll*100), pctR=Math.round(totRagu/totAll*100), pctB=Math.round((totBelum+totKosong)/totAll*100);
+  var belumIsi = data.length - sudahIsi;
+  if (sumEl) {
+    sumEl.style.display = 'block';
+    sumEl.innerHTML =
+      '<div style="font-size:12.5px;color:var(--text-3);font-weight:700;margin-bottom:10px">'
+      + level + ' · ' + data.length + ' murid · ' + totalItems + ' poin assessment'
+      + (belumIsi > 0 ? ' · <span style="color:var(--red);font-weight:800">'+belumIsi+' belum isi</span>' : ' · <span style="color:var(--green);font-weight:800">semua sudah isi ✅</span>')
+      + '</div>'
+      + '<div class="asmt-summary">'
+      + '<div class="asmt-summary-card asmt-s-paham"><div class="asmt-s-num">'+pctP+'%</div><div class="asmt-s-lbl">Paham</div></div>'
+      + '<div class="asmt-summary-card asmt-s-ragu"><div class="asmt-s-num">'+pctR+'%</div><div class="asmt-s-lbl">Ragu</div></div>'
+      + '<div class="asmt-summary-card asmt-s-belum"><div class="asmt-s-num">'+pctB+'%</div><div class="asmt-s-lbl">Belum</div></div>'
+      + '</div>'
+      + '<div class="asmt-dist-bar">'
+      + '<div class="asmt-dist-seg" style="width:'+pctP+'%;background:#10b981"></div>'
+      + '<div class="asmt-dist-seg" style="width:'+pctR+'%;background:#f59e0b"></div>'
+      + '<div class="asmt-dist-seg" style="width:'+pctB+'%;background:#ef4444"></div>'
+      + '</div>'
+      + '<div class="asmt-dist-labels"><span style="color:#10b981">✅ Paham '+pctP+'%</span><span style="color:#f59e0b">🟡 Ragu '+pctR+'%</span><span style="color:#ef4444">❌ Perlu fokus '+pctB+'%</span></div>';
   }
 
   var JAWABAN_LABEL = {paham:'✅ Paham', ragu:'🟡 Ragu', belum:'❌ Belum', null:'—'};
@@ -4463,6 +4528,8 @@ function toggleAsmtDetail(idMurid) {
 var _keaktifanData = null;
 
 async function loadKeaktifanPage() {
+  var grid = document.getElementById('keaktifanGrid');
+  if (grid) grid.innerHTML = Array(4).fill('<div class="skel skel-card" style="height:120px;border-radius:16px"></div>').join('');
   showLoad('Bismillah, memuat data keaktifan...');
   try {
     var r = await window.HQ.GuruAPI.getKeaktifanAlerts();
@@ -4519,7 +4586,14 @@ function filterKeaktifanCards() {
   });
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-3); font-weight:600;">Tidak ada data murid yang cocok.</div>';
+    var isFiltered = q || st || hl;
+    var allNormal = _keaktifanData && _keaktifanData.summary.kritis === 0 && _keaktifanData.summary.peringatan === 0;
+    var emptyMsg = isFiltered
+      ? '<div class="guru-empty-ico">🔍</div><div class="guru-empty-ttl">Tidak ada murid yang cocok</div><div class="guru-empty-sub">Coba ubah atau hapus filter pencarian.</div>'
+      : allNormal
+        ? '<div class="guru-empty-ico">🌟</div><div class="guru-empty-ttl">Alhamdulillah, semua murid aktif!</div><div class="guru-empty-sub">Tidak ada murid dengan status kritis atau peringatan. Tetap semangat menjaga kehadiran!</div>'
+        : '<div class="guru-empty-ico">📭</div><div class="guru-empty-ttl">Belum ada data keaktifan</div><div class="guru-empty-sub">Data akan muncul setelah ada riwayat KBM yang tercatat.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1"><div class="guru-empty">' + emptyMsg + '</div></div>';
     return;
   }
 
