@@ -1253,21 +1253,25 @@ html.theme-dark .draft-orphan-alert{background:linear-gradient(135deg,#2d1f00,#3
       <!-- ════ DASHBOARD ════ -->
       <div class="page active" id="page-dashboard">
         <!-- Alert: ada draft KBM terbengkalai -->
-        <div class="draft-orphan-alert" id="draftOrphanAlert" onclick="goPage('riwayat')" style="flex-direction:column;gap:10px">
-          <div style="display:flex;align-items:center;gap:12px;width:100%">
+        <div class="draft-orphan-alert" id="draftOrphanAlert" style="flex-direction:column;gap:10px">
+          <!-- Baris atas: judul + tombol -->
+          <div style="display:flex;align-items:center;gap:12px;width:100%;cursor:pointer" onclick="goPage('riwayat')">
             <div style="font-size:26px;flex-shrink:0">⚠️</div>
             <div style="flex:1">
               <div style="font-size:13.5px;font-weight:800;color:#92400e" id="draftOrphanTitle">Ada sesi KBM yang belum diselesaikan</div>
-              <div style="font-size:12px;color:#b45309;margin-top:2px;font-weight:600">Buka Riwayat KBM → hapus atau selesaikan sesi draft tersebut</div>
+              <div style="font-size:12px;color:#b45309;margin-top:2px;font-weight:600">Ketuk untuk buka Riwayat KBM → hapus atau selesaikan</div>
             </div>
             <div style="font-size:12px;font-weight:800;color:#d97706;flex-shrink:0">Lihat →</div>
           </div>
+          <!-- Detail per halaqah -->
+          <div id="draftOrphanDetail" style="display:none;background:rgba(217,119,6,.08);border-radius:10px;padding:10px 12px;width:100%;box-sizing:border-box;border:1px solid rgba(217,119,6,.2)"></div>
+          <!-- Dampak -->
           <div style="background:rgba(217,119,6,.1);border-radius:10px;padding:10px 12px;width:100%;box-sizing:border-box">
             <div style="font-size:11.5px;font-weight:800;color:#92400e;margin-bottom:6px">⛔ Dampak jika dibiarkan:</div>
             <div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:#b45309;font-weight:600;line-height:1.5">
-              <div>📊 Data presensi & nilai murid <b>tidak tersimpan</b> — statistik kehadiran murid tidak akurat</div>
+              <div>📊 Data presensi & nilai murid <b>tidak tersimpan</b> — statistik kehadiran tidak akurat</div>
               <div>🔒 Tidak bisa membuka sesi KBM baru selama masih ada draft aktif</div>
-              <div>📋 Riwayat KBM halaqah menjadi tidak lengkap dan memengaruhi rekap raport</div>
+              <div>📋 Riwayat KBM tidak lengkap dan memengaruhi rekap raport</div>
               <div>📈 Progres "0 dari 40 sesi" tidak bertambah meskipun KBM sudah berjalan</div>
             </div>
           </div>
@@ -3287,34 +3291,66 @@ async function _checkDraftViaRiwayat(halaqahList) {
     var results = await Promise.all(
       halaqahList.map(function(h) {
         return window.HQ.GuruAPI.getRiwayatKBM(h.id_halaqah, 100, 0)
-          .then(function(r) { return r.data || []; })
-          .catch(function() { return []; });
+          .then(function(r) {
+            return { nama: h.nama_halaqah, rows: r.data || [] };
+          })
+          .catch(function() { return { nama: h.nama_halaqah, rows: [] }; });
       })
     );
     var totalDraft = 0;
-    results.forEach(function(rows) {
-      rows.forEach(function(k) {
-        if (String(k.status).toLowerCase() === 'draft') totalDraft++;
+    var draftPerHalaqah = []; // [{nama, count, detail:[{pertemuan_ke, jenis, tanggal}]}]
+    results.forEach(function(res) {
+      var drafts = res.rows.filter(function(k) {
+        return String(k.status).toLowerCase() === 'draft';
       });
+      if (drafts.length) {
+        totalDraft += drafts.length;
+        draftPerHalaqah.push({
+          nama  : res.nama,
+          count : drafts.length,
+          detail: drafts.map(function(k) {
+            return { pertemuan_ke: k.pertemuan_ke, jenis: k.jenis_sesi || 'KBM', tanggal: k.tanggal_pertemuan };
+          }),
+        });
+      }
     });
-    _updateDraftOrphanAlert(totalDraft);
+    _updateDraftOrphanAlert(totalDraft, draftPerHalaqah);
   } catch(e) { /* silent */ }
 }
 
-function _updateDraftOrphanAlert(totalDraft) {
-  var alert = document.getElementById('draftOrphanAlert');
-  var badge = document.getElementById('navDraftBadge');
-  var title = document.getElementById('draftOrphanTitle');
-  if (!alert) return;
+function _updateDraftOrphanAlert(totalDraft, draftPerHalaqah) {
+  var alertEl = document.getElementById('draftOrphanAlert');
+  var badge   = document.getElementById('navDraftBadge');
+  var title   = document.getElementById('draftOrphanTitle');
+  var detail  = document.getElementById('draftOrphanDetail');
+  if (!alertEl) return;
+
   if (totalDraft > 0) {
     var label = totalDraft === 1
       ? 'Ada 1 sesi KBM belum diselesaikan'
       : 'Ada ' + totalDraft + ' sesi KBM belum diselesaikan';
     if (title) title.textContent = label;
-    alert.classList.add('show');
+
+    // Tampilkan detail per halaqah
+    if (detail && draftPerHalaqah && draftPerHalaqah.length) {
+      detail.innerHTML = draftPerHalaqah.map(function(h) {
+        var items = h.detail.map(function(d) {
+          return '<span style="background:rgba(217,119,6,.15);border-radius:6px;padding:2px 8px;font-size:10.5px;font-weight:700;color:#92400e;white-space:nowrap">'
+            + esc(d.jenis) + ' ke-' + esc(String(d.pertemuan_ke)) + ' · ' + fmtDate(d.tanggal)
+            + '</span>';
+        }).join(' ');
+        return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px">'
+          + '<div style="font-size:12px;font-weight:800;color:#92400e;white-space:nowrap;min-width:80px">📚 ' + esc(h.nama) + '</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:4px">' + items + '</div>'
+          + '</div>';
+      }).join('');
+      detail.style.display = 'block';
+    }
+
+    alertEl.classList.add('show');
     if (badge) { badge.textContent = totalDraft; badge.classList.add('show'); }
   } else {
-    alert.classList.remove('show');
+    alertEl.classList.remove('show');
     if (badge) badge.classList.remove('show');
   }
 }
