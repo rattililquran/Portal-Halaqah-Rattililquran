@@ -225,29 +225,57 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   border-radius:20px;padding:8px;
   margin-top:4px;position:relative;z-index:1;
 }
+/* ── Inner card — KhatamKu donut ring style ── */
 .prog-inner-card{
   background:#fff;border-radius:14px;
-  padding:16px 16px 18px;
+  padding:16px 16px 16px;
 }
-.prog-inner-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.prog-book-ico{
-  width:44px;height:44px;background:rgba(14,165,233,.08);border-radius:14px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+.prog-inner-row{display:flex;align-items:center;gap:16px}
+
+/* Donut ring — conic-gradient persis KhatamKu */
+.prog-donut-wrap{
+  position:relative;width:90px;height:90px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background 1s ease-out;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.1),0 5px 15px rgba(0,0,0,.05);
+}
+.prog-donut-inner{
+  width:64px;height:64px;border-radius:50%;
+  background:rgba(255,255,255,.65);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.06);
+  border:1px solid rgba(255,255,255,.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.prog-donut-pct{font-size:16px;font-weight:900;line-height:1;letter-spacing:-.03em}
+.prog-donut-lbl{font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+
+/* Info kanan donut */
+.prog-info-right{flex:1;min-width:0}
+.prog-info-title{font-size:13.5px;font-weight:800;color:#0f172a;line-height:1.3;margin-bottom:6px}
+.prog-info-sesi{font-size:12px;color:#64748b;font-weight:600;margin-bottom:8px}
+.prog-info-estimasi{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.15);
+  border-radius:100px;padding:4px 10px;
+  font-size:10.5px;font-weight:700;color:#0284c7;
 }
 .prog-bar-wrap{
-  background:#e2e8f0;border-radius:100px;height:8px;overflow:hidden;
-  margin:6px 0 0;box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
+  background:#e2e8f0;border-radius:100px;height:6px;overflow:hidden;
+  margin-top:8px;box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
 }
 .prog-bar-fill{
   height:100%;border-radius:100px;
   background:linear-gradient(90deg,#f59e0b,#f97316);
   transition:width .8s cubic-bezier(0.4,0,0.2,1);
 }
-.prog-inner-title{font-size:14px;font-weight:800;color:#0f172a}
-.prog-pct-txt{font-size:13px;font-weight:700;color:var(--blue)}
-.prog-meta{display:flex;justify-content:space-between;font-size:11.5px;margin-top:8px}
+.prog-meta{display:flex;justify-content:space-between;font-size:11px;margin-top:6px}
 .prog-count{font-weight:700;color:var(--blue)}
 .prog-sisa{color:var(--text-3);font-weight:500}
+/* Kept for compat */
+.prog-inner-title{font-size:13.5px;font-weight:800;color:#0f172a}
+.prog-pct-txt{font-size:13px;font-weight:700;color:var(--blue)}
 .prog-motivasi-outer{font-size:11px;color:rgba(255,255,255,.75);font-weight:500;
   text-align:center;padding:8px 0 10px;position:relative;z-index:1}
 
@@ -1054,9 +1082,17 @@ html.theme-dark .progress-card{
 html.theme-dark .prog-inner-wrap{background:rgba(255,255,255,.1) !important}
 html.theme-dark .prog-inner-card{background:#162032 !important;border:none !important}
 html.theme-dark .prog-inner-title{color:#e2e8f0 !important}
-html.theme-dark .prog-book-ico{background:rgba(56,189,248,.15) !important}
+html.theme-dark .prog-donut-inner{
+  background:rgba(22,32,50,.8) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.3) !important;
+}
+html.theme-dark .prog-donut-lbl{color:#475569 !important}
 html.theme-dark .prog-bar-wrap{background:rgba(255,255,255,.1) !important;box-shadow:none !important}
 html.theme-dark .prog-meta .prog-count{color:#7dd3fc !important}
+html.theme-dark .prog-info-title{color:#e2e8f0 !important}
+html.theme-dark .prog-info-sesi{color:#64748b !important}
+html.theme-dark .prog-info-estimasi{background:rgba(56,189,248,.1) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
 html.theme-dark .prog-meta .prog-sisa{color:rgba(255,255,255,.55) !important}
 
 /* Stat card icons */
@@ -1323,25 +1359,30 @@ html.theme-dark .bg-blobs-guru{display:none}
         </div>
         <!-- Motivasi (di atas kartu putih) -->
         <div class="prog-motivasi-outer" id="dashMotivasi"></div>
-        <!-- Inner white card dibungkus wrapper biru -->
+        <!-- Inner white card — donut ring KhatamKu style -->
         <div class="prog-inner-wrap">
         <div class="prog-inner-card">
           <div class="prog-inner-row">
-            <div class="prog-book-ico">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            </div>
-            <div style="flex:1;min-width:0">
-              <div class="prog-inner-title" id="dashProgressPct">0% dari 40 sesi target</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-                <span class="prog-pct-txt" id="dashProgressPctNum">0%</span>
-                <div class="prog-bar-wrap" style="flex:1;margin:0">
-                  <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
-                </div>
+            <!-- Donut ring -->
+            <div class="prog-donut-wrap" id="dashDonutRing"
+              style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+              <div class="prog-donut-inner">
+                <span class="prog-donut-pct" id="dashProgressPctNum" style="color:#94a3b8">0%</span>
+                <span class="prog-donut-lbl">level</span>
               </div>
             </div>
-          </div>
-          <div class="prog-meta">
-            <span class="prog-count" id="dashSisa">40 sesi tersisa</span>
+            <!-- Info kanan -->
+            <div class="prog-info-right">
+              <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
+              <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
+              <div class="prog-info-estimasi" id="dashEstimasi" style="display:none">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="dashEstimasiTxt">–</span>
+              </div>
+              <div class="prog-bar-wrap">
+                <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
+              </div>
+            </div>
           </div>
         </div>
         </div><!-- /prog-inner-wrap -->
@@ -2427,37 +2468,50 @@ async function loadDashboard() {
     var pct     = skor40 > 0 ? Math.min(skor40, 100)
                 : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
 
-    // Dynamic color progression for progress bar and percentage text
-    var barColor, textColor;
-    if (pct < 30) {
-      barColor = 'linear-gradient(90deg, #ef4444, #f97316)';
-      textColor = '#ef4444';
-    } else if (pct < 70) {
-      barColor = 'linear-gradient(90deg, #f59e0b, #eab308)';
-      textColor = '#f59e0b';
-    } else if (pct < 100) {
-      barColor = 'linear-gradient(90deg, #06b6d4, #3b82f6)';
-      textColor = '#3b82f6';
-    } else {
-      barColor = 'linear-gradient(90deg, #10b981, #34d399)';
-      textColor = '#10b981';
+    // Warna dinamis KhatamKu style — merah→amber→biru→hijau→emas
+    var ringColor, barColor;
+    if (pct < 25)       { ringColor = '#ef4444'; barColor = 'linear-gradient(90deg,#ef4444,#f97316)'; }
+    else if (pct < 50)  { ringColor = '#f59e0b'; barColor = 'linear-gradient(90deg,#f59e0b,#eab308)'; }
+    else if (pct < 75)  { ringColor = '#3b82f6'; barColor = 'linear-gradient(90deg,#3b82f6,#06b6d4)'; }
+    else if (pct < 100) { ringColor = '#10b981'; barColor = 'linear-gradient(90deg,#10b981,#34d399)'; }
+    else                { ringColor = '#fbbf24'; barColor = 'linear-gradient(90deg,#fbbf24,#f59e0b)'; }
+
+    // Update donut ring — conic-gradient persis KhatamKu
+    var donutRing = document.getElementById('dashDonutRing');
+    if (donutRing) {
+      donutRing.style.background =
+        'conic-gradient(' + ringColor + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
     }
-
-    var progressBar = document.getElementById('dashProgressBar');
-    progressBar.style.width = pct + '%';
-    progressBar.style.background = barColor;
-
-    var progressPct = document.getElementById('dashProgressPct');
-    progressPct.textContent = pct + '% dari 40 sesi target';
-    progressPct.style.color = '#0f172a';
-    // Update persentase di inner card
     var pctNum = document.getElementById('dashProgressPctNum');
-    if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = textColor; }
+    if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = ringColor; }
 
+    // Progress bar
+    var progressBar = document.getElementById('dashProgressBar');
+    if (progressBar) { progressBar.style.width = pct + '%'; progressBar.style.background = barColor; }
+
+    // Info teks
     var sisa = Number(kh.sisa_sesi);
-    document.getElementById('dashSisa').textContent = !isNaN(sisa) && sisa >= 0
+    var sisaTeks = !isNaN(sisa) && sisa >= 0
       ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
       : 'dari 40 pertemuan';
+    var hadirCount = Number(kh.skor_hadir || 0);
+    document.getElementById('dashProgressPct').textContent =
+      Math.round(hadirCount) + ' dari 40 sesi';
+    document.getElementById('dashSisa').textContent = sisaTeks;
+
+    // Estimasi selesai (jika ada target harian)
+    var reqDailyPages = d.profil && d.profil.target_harian ? Number(d.profil.target_harian) : 0;
+    var estimasiEl = document.getElementById('dashEstimasi');
+    var estimasiTxt = document.getElementById('dashEstimasiTxt');
+    if (estimasiEl && estimasiTxt && sisa > 0 && reqDailyPages > 0) {
+      var selesaiHari = Math.ceil(sisa / (reqDailyPages / 7)); // asumsi target per minggu
+      var tgl = new Date(); tgl.setDate(tgl.getDate() + selesaiHari);
+      var opsi = { day:'numeric', month:'short', year:'numeric' };
+      estimasiTxt.textContent = tgl.toLocaleDateString('id-ID', opsi);
+      estimasiEl.style.display = 'inline-flex';
+    } else if (estimasiEl) {
+      estimasiEl.style.display = 'none';
+    }
 
     // Dynamic motivational subtext
     var defaultMotivasi = {
