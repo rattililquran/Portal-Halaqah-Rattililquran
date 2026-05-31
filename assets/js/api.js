@@ -251,6 +251,7 @@ var GuruAPI = {
   saveNilaiManual       : function(d)             { return apiPost('saveNilaiManual', d); },
   saveNilaiManualBatch  : function(d)             { return apiPost('saveNilaiManualBatch', d); },
   getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlerts'); },
+  getDraftCount         : function()              { return apiGet('getDraftCount'); },
   simpanFollowupKeaktifan: function(d)             { return apiPost('simpanFollowupKeaktifan', d); },
   getAssessmentRekap    : function(id_h)          { return apiGet('getAssessmentRekap', { id_halaqah: id_h }); },
   // At-Tibyan

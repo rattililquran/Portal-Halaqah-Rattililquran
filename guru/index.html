@@ -2166,7 +2166,7 @@ if ('serviceWorker' in navigator) {
   }
 }
 </script>
-<script src="../assets/js/api.js?v=3.5"></script>
+<script src="../assets/js/api.js?v=3.6"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -2450,8 +2450,21 @@ async function loadDashboard(silent = false) {
       updateSesiBanner();
     }
 
-    // Cek draft terbengkalai (total_draft > 1 atau ada draft tapi guru tidak sadar)
-    _updateDraftOrphanAlert(d.total_draft || (d.sesi_draft ? 1 : 0));
+    // Cek draft dari dashboard (jika GAS sudah update)
+    if (typeof d.total_draft !== 'undefined') {
+      _updateDraftOrphanAlert(d.total_draft);
+    }
+    // Selalu query ulang getDraftCount secara terpisah — tidak bergantung versi GAS
+    window.HQ.GuruAPI.getDraftCount().then(function(dr) {
+      if (dr && typeof dr.total !== 'undefined') {
+        _updateDraftOrphanAlert(dr.total);
+        // Sinkronkan sesiAktif jika belum ter-set tapi ada draft
+        if (!sesiAktif && dr.total > 0 && dr.drafts && dr.drafts[0]) {
+          sesiAktif = dr.drafts[0];
+          updateSesiBanner();
+        }
+      }
+    }).catch(function() { /* silent */ });
 
     // jadwalList sudah di-render oleh loadJadwal()
     // Pastikan jadwalList render ulang jika data sudah ada
