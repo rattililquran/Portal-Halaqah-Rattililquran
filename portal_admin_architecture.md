@@ -1,103 +1,98 @@
 # Arsitektur Portal Admin — Rattililqur'an
 
-> Dokumentasi teknis lengkap Portal Admin untuk pengelolaan sistem halaqah, raport, dan data master.
+> Dokumentasi teknis lengkap Portal Admin per Juni 2026.
 
 ---
 
-## Daftar Isi
+## 1. Gambaran Umum
 
-1. [Gambaran Umum](#gambaran-umum)
-2. [Menu dan Fitur](#menu-dan-fitur)
-3. [Manajemen Data Master](#manajemen-data-master)
-4. [Sistem Raport](#sistem-raport)
-5. [GAS Endpoints Admin](#gas-endpoints-admin)
-6. [Google Sheets Structure](#google-sheets-structure)
+Portal Admin adalah pusat kendali seluruh sistem: manajemen data master, konfigurasi raport, generate dan publish raport, serta monitoring global. Hanya bisa diakses oleh role `admin`.
 
 ---
 
-## Gambaran Umum
-
-Portal Admin adalah antarmuka pengelolaan pusat seluruh sistem Rattililqur'an. Diakses oleh admin (role: `admin`) dan berjalan di atas Google Apps Script sebagai backend.
-
-**Teknologi:**
-- Frontend: HTML/CSS/JS statis di GitHub Pages
-- Backend: Google Apps Script (GAS) Web App
-- Database: Google Sheets
-
----
-
-## Menu dan Fitur
+## 2. Menu dan Fitur
 
 | Menu | Fungsi |
 |------|--------|
-| Dashboard | Statistik: total murid, guru, halaqah, KBM bulan ini, % nilai terisi |
-| Periode/Semester | Buat & kelola periode aktif (Semester 1, Semester 2, dll) |
+| Dashboard | Statistik global: murid, guru, halaqah, KBM bulan ini, % nilai terisi |
+| Periode/Semester | Create/Update/Activate periode — hanya satu periode aktif sekaligus |
 | Users | CRUD guru dan murid — generate NIS otomatis |
-| Halaqah | CRUD halaqah — assign guru, set jadwal, level |
-| Anggota | Kelola murid per halaqah — level, target level, catatan |
+| Halaqah | CRUD halaqah — assign guru, set jadwal, level, periode |
+| Anggota | Kelola murid per halaqah — level, target, catatan |
 | Komponen Raport | Setup komponen nilai per periode (otomatis/manual + bobot) |
-| Nilai Manual | Entry nilai manual (UAS, Micro Teaching, dll) |
-| Raport | Generate + publish raport — bulk, per halaqah, per level |
-| Laporan Global | Rekap absensi & nilai lintas halaqah |
-| Pengumuman | Broadcast pengumuman ke guru/murid |
+| Nilai Manual | Entry nilai UAS, Micro Teaching, dll per murid |
+| Raport | Generate + publish raport — bulk/per halaqah/per level |
+| Laporan Global | Rekap kehadiran dan nilai lintas halaqah |
+| Pengumuman | Broadcast ke guru/murid |
 | Level | Master data level tahsin |
-| Template Koreksi | Upload template koreksi tahsin untuk guru |
+| Template Koreksi | Template koreksi tahsin untuk guru |
 
 ---
 
-## Manajemen Data Master
+## 3. Manajemen Data Master
 
-### Users
-- Generate NIS otomatis format `RTL{YY}{MM}{NNNNN}` untuk murid
-- Guru: `GRU-NNN`, Admin: `ADM-NNN`
-- Soft delete (status: `nonaktif`)
+### NIS Generation
+Format otomatis: `RTL{YY}{MM}{NNNNN}`
+Guru: `GRU-NNN` | Admin: `ADM-NNN`
 
 ### Halaqah
 - Satu guru bisa pegang banyak halaqah
-- Jadwal hari + jam (contoh: `Rabu,Jumat` | `15:00-16:30`)
-- Status: `aktif` / `nonaktif`
+- Halaqah harus diasosiasikan ke `id_periode` untuk filter raport yang benar
 
 ### Periode
-- Hanya satu periode yang bisa `aktif` sekaligus
+- Hanya satu periode `aktif` sekaligus
 - Periode aktif menentukan komponen raport yang berlaku
 
 ---
 
-## Sistem Raport
+## 4. Sistem Raport
 
-### Alur Generate Raport
+### Alur Generate
 
 ```
 Admin pilih murid + periode → generateRaportMurid()
     ↓
-Baca Komponen_Raport (aktif, sesuai periode)
+Baca kbmPeriode: id_kbm dari KBM_Log yang selesai + halaqah di periode ini
     ↓
-Per komponen:
+Baca nilaiKBM: filter by id_murid + halaqahInPeriode + kbmPeriode
+    ↓
+Per komponen (Komponen_Raport):
   tipe = otomatis → keyword detection dari nama_komponen
-  tipe = manual   → ambil dari sheet Nilai_Manual
+  tipe = manual   → ambil dari Nilai_Manual
     ↓
-nilai_komponen = nilai_angka × bobot / 100
-nilai_akhir = Σ semua nilai_komponen
+nilai_komponen = nilai_angka x bobot / 100
+nilai_akhir = sigma semua nilai_komponen
     ↓
-Bonus Perfect Attendance: +5 jika 0 Alpa (max 100)
+Bonus Perfect Attendance: +N jika 0 Alpa (max 100)
+Jika total sesi = 0 → predikat = 'Belum Ada Data'
     ↓
 Tentukan predikat → simpan ke sheet Raport
 ```
 
-### Komponen Otomatis — Keyword Detection
+### Keyword Detection — Komponen Otomatis
 
-| Keyword di Nama Komponen | Data Sumber | Formula |
-|--------------------------|-------------|---------|
-| `kehadiran` (tanpa `tibyan`) | Nilai_KBM | `(skor_hadir / total_sesi) × 100` — H=1.0, T=0.7, I=0.5, A=0 |
-| `kbm` atau `harian` | Nilai_KBM | Rata-rata `(adab×70% + kamera×30%)` per sesi hadir |
+| Keyword di nama_komponen | Sumber | Formula |
+|--------------------------|--------|---------|
+| `kehadiran` (tanpa `tibyan`) | Nilai_KBM | `skor_hadir / total_sesi x 100` (H=1.0, T=0.7, I=0.5, A=0) |
+| `kbm` atau `harian` | Nilai_KBM | Rata-rata `(adab x 70% + kamera x 30%)` per sesi hadir |
 | `adab` | Nilai_KBM | `% sesi Baik / total sesi hadir` |
-| `kamera` | Nilai_KBM | Rata-rata score kamera: Terbuka=100, Setengah=50, Tertutup=0 |
-| `latihan` / `pr` / `mandiri` | KBM_Log | 80 jika ada PR di periode, else 0 |
-| `tibyan` / `at-tibyan` | At-Tibyan_Log | `(hadir_at / total_sesi_at) × 100` |
+| `kamera` | Nilai_KBM | Rata-rata score: terbuka=100, sering=50, selalu=0 |
+| `latihan` / `pr` / `mandiri` | KBM_Log | 80 jika ada PR, else 0 |
+| `tibyan` / `at-tibyan` | At-Tibyan_Log | `hadir_at / total_sesi_at x 100` |
 
-### Predikat Nilai
+### Konfigurasi Komponen (per Juni 2026)
 
-Threshold dikonfigurasi di sheet `Konfigurasi_Raport` (key-value):
+| Komponen | Bobot | Tipe |
+|----------|-------|------|
+| Nilai KBM Harian | 30% | otomatis |
+| Kehadiran | 20% | otomatis |
+| Adab dan Kamera | 10% | otomatis |
+| Micro Teaching | 10% | manual |
+| UAS | 20% | manual |
+| Kehadiran At-Tibyan | 10% | otomatis |
+| **Total** | **100%** | |
+
+### Predikat (threshold dari Konfigurasi_Raport)
 
 | Key | Default | Predikat |
 |-----|---------|---------|
@@ -105,107 +100,128 @@ Threshold dikonfigurasi di sheet `Konfigurasi_Raport` (key-value):
 | `grade_jayyid_jiddan` | 80 | Jayyid Jiddan |
 | `grade_jayyid` | 70 | Jayyid |
 | < grade_jayyid | — | Maqbul |
+| total sesi = 0 | — | Belum Ada Data |
 
-### Konfigurasi Dinamis (`Konfigurasi_Raport`)
+### Konfigurasi Dinamis (Konfigurasi_Raport sheet)
 
 | Key | Default | Keterangan |
 |-----|---------|-----------|
-| `grade_mumtaz` | 90 | Batas nilai Mumtaz |
-| `grade_jayyid_jiddan` | 80 | Batas Jayyid Jiddan |
-| `grade_jayyid` | 70 | Batas Jayyid |
+| `grade_mumtaz` | 90 | Nilai min Mumtaz |
+| `grade_jayyid_jiddan` | 80 | Nilai min Jayyid Jiddan |
+| `grade_jayyid` | 70 | Nilai min Jayyid |
 | `bobot_adab` | 70 | Bobot adab dalam KBM Harian |
 | `bobot_kamera` | 30 | Bobot kamera dalam KBM Harian |
 | `bonus_perfect_attendance` | 5 | Bonus poin jika 0 Alpa |
+| `nama_lembaga` | Rattililqur'an | Nama di header raport |
+| `ttd_nama` | Tim Akademik | Nama penanda tangan |
+| `kota_terbit` | Jakarta | Kota tanggal cetak |
 
-### Sheet Raport
+### Bug Fix generateRaportMurid
 
-| Sheet | Kolom Utama | Fungsi |
-|-------|-------------|--------|
-| `Komponen_Raport` | id_komponen, nama_komponen, bobot, tipe, id_periode, status | Definisi komponen per periode |
-| `Nilai_Manual` | id_murid, id_komponen, id_periode, nilai | Entry manual admin/guru |
-| `Konfigurasi_Raport` | key, value | Threshold & parameter dinamis |
-| `Raport` | id_raport, id_murid, id_periode, nilai_akhir, predikat, detail_json | Output final |
-| `Catatan_Raport` | id_murid, id_periode, catatan | Catatan per murid per periode |
+Perbaikan penting yang sudah diterapkan:
+
+1. **Filter periode KBM**: `nilaiKBM` difilter by `kbmPeriode` (id_kbm selesai di halaqah periode ini) — mencegah nilai KBM dari periode lain masuk raport
+2. **Type-safe comparison**: semua `id_murid`, `id_periode`, `id_halaqah` pakai `String().trim()`
+3. **Zero sesi**: jika `totalSesi === 0` → predikat `'Belum Ada Data'`
+4. **Batch update type mismatch**: `saveNilaiManualBatch` pakai `String().trim()` di semua sisi
 
 ---
 
-## GAS Endpoints Admin
+## 5. Bug Fix getLaporanGlobal
 
-### Read (doGet)
-
-```
-getDashboardAdmin        — Statistik dashboard
-getAllPeriode             — List semua periode
-getAllUsers               — List semua user (tanpa password)
-getAllHalaqah             — List semua halaqah
-getAllAnggota             — List anggota per halaqah
-getKomponenRaport        — Komponen raport aktif per periode
-getNilaiManual           — Nilai manual per murid/periode
-getRaportList            — List raport tergenerate
-getAllPengumuman          — List pengumuman
-getRekapAbsensi          — Rekap absensi lintas halaqah
-getLaporanGlobal         — Laporan nilai global
-getAuditLog              — Log aktivitas sistem
+```javascript
+// Filter yang benar: cek id_periode halaqah, bukan double-check id_halaqah
+const halaqahMatchesPeriode = !id_periode ||
+  String(h.id_periode || '').trim() === String(id_periode).trim();
+const kbmHalaqah = halaqahMatchesPeriode ? kbmLog.filter(...) : [];
+const kbmIds = new Set(kbmHalaqah.map(k => k.id_kbm));
+// Nilai hanya dari KBM di periode ini
+const nilaiHalaqah = nilaiKBM.filter(n => kbmIds.has(n.id_kbm));
 ```
 
-### Write (doPost)
+---
 
+## 6. publishRaport — Proteksi Double Publish
+
+```javascript
+// Validasi sebelum publish
+const raport = raportList.find(r => r.id_raport === data.id_raport);
+if (!raport) return error('Raport tidak ditemukan');
+if (raport.status === 'published') return error('Raport sudah dipublikasikan');
+// Lanjut update...
 ```
-createUser / updateUser / deleteUser
-createHalaqah / updateHalaqah / deleteHalaqah
-createPeriode / updatePeriode
+
+---
+
+## 7. GAS Endpoints Admin
+
+### Read
+```
+getDashboardAdmin, getAllPeriode, getAllUsers, getAllHalaqah, getAllAnggota
+getKomponenRaport, getNilaiManual, getRaportList, getAllPengumuman
+getRekapAbsensi, getLaporanGlobal, getAuditLog
+```
+
+### Write
+```
+createUser/updateUser/deleteUser
+createHalaqah/updateHalaqah/deleteHalaqah
+createPeriode/updatePeriode
 updateAnggota
 saveKomponenRaport
-simpanNilaiManual
-generateRaportMurid      — Generate raport satu murid
-generateRaportBulk       — Generate raport semua murid satu periode
-generateRaportByHalaqah  — Generate per halaqah
-generateRaportByLevel    — Generate per level
-publishRaport            — Publikasikan raport ke murid
-kirimRaportEmail         — Kirim raport via email
-kirimPengumuman          — Broadcast pengumuman
+simpanNilaiManual / saveNilaiManualBatch
+generateRaportMurid / generateRaportBulk / generateRaportByHalaqah / generateRaportByLevel
+publishRaport
+kirimRaportEmail
+kirimPengumuman
 ```
 
 ---
 
-## Google Sheets Structure
+## 8. Google Sheets Structure
 
 ### Sheet Master
-
 | Sheet | Kolom Kunci |
 |-------|------------|
 | `Users` | id_user, nama_lengkap, role, password, no_hp, status |
-| `Halaqah` | id_halaqah, nama_halaqah, id_guru, jadwal_hari, jam_mulai, level, status |
+| `Halaqah` | id_halaqah, nama_halaqah, id_guru, id_periode, jadwal_hari, level, status |
 | `Anggota` | id_anggota, id_murid, id_halaqah, level, target_level, total_hadir, status |
 | `Level` | id_level, nama_level, deskripsi |
 | `Periode` | id_periode, nama_periode, tanggal_mulai, tanggal_selesai, status |
 
 ### Sheet KBM
-
 | Sheet | Kolom Kunci |
 |-------|------------|
-| `KBM_Log` | id_kbm, id_guru, id_halaqah, tanggal_pertemuan, jenis_sesi, pertemuan_ke, status (draft/selesai), pencapaian_modul, latihan_mandiri, deadline_latihan |
-| `Nilai_KBM` | id_nilai, id_kbm, id_murid, id_halaqah, jenis_sesi, status_hadir (H/T/I/A), adab, kamera_murid, nilai, koreksi_tahsin |
+| `KBM_Log` | id_kbm, id_guru, id_halaqah, pertemuan_ke, jenis_sesi, status (draft/selesai), latihan_mandiri |
+| `Nilai_KBM` | id_kbm, id_murid, id_halaqah, jenis_sesi, status_hadir, adab, kamera_murid, koreksi_tahsin |
 
 ### Sheet At-Tibyan
-
 | Sheet | Kolom Kunci |
 |-------|------------|
-| `At-Tibyan_Sesi` | id_sesi, pertemuan_ke, tanggal, id_guru, total_hadir, total_murid, status |
-| `At-Tibyan_Log` | id_log, id_sesi, pertemuan_ke, tanggal, id_murid, nama_murid, id_halaqah, level, status_hadir |
+| `At-Tibyan_Sesi` | id_sesi, pertemuan_ke, tanggal, total_hadir, total_murid, status |
+| `At-Tibyan_Log` | id_sesi, id_murid, id_halaqah, level, status_hadir |
+
+### Sheet Raport
+| Sheet | Kolom Kunci |
+|-------|------------|
+| `Komponen_Raport` | id_komponen, id_periode, nama_komponen, bobot, tipe, urutan, status |
+| `Nilai_Manual` | id_murid, id_komponen, id_periode, nilai |
+| `Konfigurasi_Raport` | key, value (parameter dinamis) |
+| `Raport` | id_raport, id_murid, id_periode, nilai_akhir, predikat, detail_json, status |
+| `Catatan_Raport` | id_halaqah, catatan (ditampilkan di raport murid) |
 
 ### Sheet Lainnya
-
 | Sheet | Fungsi |
 |-------|--------|
-| `Pengumuman` | Broadcast dari admin/guru ke murid |
-| `Template_Koreksi` | Template koreksi tahsin yang dipakai guru |
-| `Audit_Log` | Log semua aksi penting di sistem |
-| `Assessment_Items` | Item penilaian diri murid Level 1 & 2 |
-| `Keaktifan_Followup` | Catatan tindak lanjut murid yang kurang aktif |
+| `Pengumuman` | Broadcast dari admin/guru |
+| `Template_Koreksi` | Template chip koreksi tahsin |
+| `Audit_Log` | Log semua aksi penting |
+| `Assessment_Items` | Item penilaian mandiri Level 1 & 2 |
+| `Keaktifan_Followup` | Tracking tindak lanjut guru per murid |
+| `at-tibyan` | Konten materi kajian At-Tibyan (dibaca portal murid) |
 
 **Spreadsheet ID:** `19Lbdtdt3cjTsWzwYw6bhyVWCCFzSsF2x7r-Unk7-Ks0`
 
 ---
 
-*Dokumentasi ini mencerminkan kondisi sistem per Juni 2026. Update seiring penambahan fitur.*
+*Dokumentasi per Juni 2026.*
