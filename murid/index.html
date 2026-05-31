@@ -900,6 +900,68 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   background:var(--bg-2,#f1f5f9);border-radius:100px;
   padding:5px 12px;font-size:11px;font-weight:700;color:var(--text-2)}
 
+/* ── REFRESH BUTTON ── */
+.btn-refresh{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;
+  border-radius:100px;border:1.5px solid var(--border);background:transparent;
+  font-size:11.5px;font-weight:700;color:var(--text-2);cursor:pointer;
+  transition:all .2s ease;margin-left:auto;flex-shrink:0}
+.btn-refresh:hover{background:var(--bg-2);border-color:var(--blue);color:var(--blue)}
+.btn-refresh:active{transform:scale(.94)}
+.btn-refresh.spinning svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Page header flex: judul kiri, tombol kanan */
+.page-header-inner{flex:1;min-width:0}
+
+/* ── SKELETON LOADING ── */
+.skel-card{border-radius:16px;background:var(--border);overflow:hidden;margin-bottom:12px;
+  animation:skel-pulse 1.4s ease-in-out infinite}
+.skel-line{height:12px;border-radius:6px;background:rgba(0,0,0,.07);margin-bottom:8px}
+.skel-line.lg{height:18px}
+.skel-line.sm{height:9px;width:60%}
+@keyframes skel-pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── AT-TIBYAN SEARCH ── */
+.at-search-wrap{position:relative;margin-bottom:14px}
+.at-search-input{width:100%;padding:10px 16px 10px 38px;border-radius:14px;
+  border:1.5px solid var(--border);background:var(--bg-2);
+  font-size:13.5px;font-weight:500;color:var(--text);outline:none;
+  transition:border-color .2s;box-sizing:border-box}
+.at-search-input:focus{border-color:var(--blue)}
+.at-search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--text-3);pointer-events:none}
+.at-search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:var(--text-3);color:#fff;border:none;border-radius:50%;
+  width:18px;height:18px;font-size:10px;cursor:pointer;display:none;
+  align-items:center;justify-content:center;font-weight:700}
+.at-search-clear.visible{display:flex}
+
+/* ── GRAFIK TOOLTIP MOBILE ── */
+.grafik-tooltip{position:fixed;background:#0f172a;color:#fff;
+  padding:10px 13px;border-radius:12px;font-size:11px;font-weight:600;
+  line-height:1.7;z-index:999;pointer-events:none;white-space:pre;
+  box-shadow:0 6px 24px rgba(0,0,0,.35);transform:translateX(-50%);
+  transition:opacity .15s;opacity:0}
+.grafik-tooltip.show{opacity:1}
+
+/* ── ARABIC RTL ── */
+.at-field-val.is-arabic{direction:rtl;text-align:right;
+  font-family:'Amiri','Traditional Arabic',serif;font-size:16px;line-height:2}
+
+/* ── TABLET / DESKTOP ── */
+@media(min-width:768px){
+  #app{max-width:600px !important}
+  .stats-grid{grid-template-columns:repeat(4,1fr)}
+  .links-grid{grid-template-columns:repeat(2,1fr)}
+  .at-actions{gap:12px}
+  .at-btn{font-size:13px;padding:10px 20px}
+  .page-title{font-size:20px}
+  .grafik-bars{height:160px}
+  .grafik-bar-bg{height:160px}
+}
+@media(min-width:1024px){
+  #app{max-width:700px !important}
+}
+
 /* ── NILAI BADGE ── */
 .nilai-Mumtaz{background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(245,158,11,0.2)}
 .nilai-Jayyid{background:var(--blue-l);color:#1d4ed8;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(59,130,246,0.2)}
@@ -1253,6 +1315,13 @@ html.theme-dark .attibyan-dash-title{color:#fde68a !important}
 html.theme-dark .attibyan-dash-sub{color:#fbbf24 !important}
 html.theme-dark .attibyan-dash-arr{color:#fbbf24 !important}
 html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
+html.theme-dark .btn-refresh{border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
+html.theme-dark .btn-refresh:hover{border-color:#38bdf8 !important;color:#38bdf8 !important;background:#1a2535 !important}
+html.theme-dark .at-search-input{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#e8eaf0 !important}
+html.theme-dark .at-search-input:focus{border-color:#38bdf8 !important}
+html.theme-dark .skel-card{background:#252830 !important}
+html.theme-dark .skel-line{background:rgba(255,255,255,.07) !important}
+html.theme-dark .grafik-tooltip{background:#f0f2f8;color:#0f172a}
 html.theme-dark .lf-btn{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#9ca3af !important}
 html.theme-dark .lf-btn.active{background:rgba(56,189,248,.15) !important;border-color:rgba(56,189,248,.3) !important;color:#38bdf8 !important}
 
@@ -1628,7 +1697,13 @@ html.theme-dark .bg-blobs-guru{display:none}
 
     <!-- ════ RIWAYAT KBM ════ -->
     <div class="page" id="page-riwayat">
-      <div class="page-header"><div class="page-header-ico">📋</div><div><div class="page-title">Riwayat KBM</div><div class="page-sub">Rekap sesi tahsin yang sudah kamu ikuti.</div></div></div>
+      <div class="page-header">
+        <div class="page-header-ico">📋</div>
+        <div class="page-header-inner"><div class="page-title">Riwayat KBM</div><div class="page-sub">Rekap sesi tahsin yang sudah kamu ikuti.</div></div>
+        <button class="btn-refresh" id="btnRefreshRiwayat" onclick="refreshTab('riwayat')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
 
       <!-- Kalender Kehadiran -->
       <div class="kalender-wrap" id="kalenderWrap">
@@ -1659,7 +1734,13 @@ html.theme-dark .bg-blobs-guru{display:none}
 
     <!-- ════ LATIHAN MANDIRI (PR) ════ -->
     <div class="page" id="page-pr">
-      <div class="page-header"><div class="page-header-ico">📝</div><div><div class="page-title">Latihan Mandiri</div><div class="page-sub">PR dari guru — selesaikan sebelum deadline.</div></div></div>
+      <div class="page-header">
+        <div class="page-header-ico">📝</div>
+        <div class="page-header-inner"><div class="page-title">Latihan Mandiri</div><div class="page-sub">PR dari guru — selesaikan sebelum deadline.</div></div>
+        <button class="btn-refresh" id="btnRefreshPR" onclick="refreshTab('pr')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
       <div id="prList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
@@ -1686,23 +1767,35 @@ html.theme-dark .bg-blobs-guru{display:none}
     <div class="page" id="page-attibyan">
       <div class="page-header">
         <div class="page-header-ico">📖</div>
-        <div>
+        <div class="page-header-inner">
           <div class="page-title">At-Tibyan</div>
           <div class="page-sub">Kajian mingguan untuk para murid Rattililqur'an.</div>
         </div>
+        <button class="btn-refresh" id="btnRefreshAtTibyan" onclick="refreshTab('attibyan')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
+      <div class="at-search-wrap">
+        <span class="at-search-ico">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="search" class="at-search-input" id="atSearchInput" placeholder="Cari materi atau nasihat..." oninput="onAtSearch(this.value)" autocomplete="off">
+        <button class="at-search-clear" id="atSearchClear" onclick="clearAtSearch()">✕</button>
       </div>
       <div class="attibyan-filter" id="attibyanFilter"></div>
-      <div id="attibyanList">
-        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
-      </div>
+      <div id="attibyanList"></div>
     </div>
 
     <!-- ════ RAPORT ════ -->
     <div class="page" id="page-raport">
-      <div class="page-header"><div class="page-header-ico">📄</div><div><div class="page-title">Raport Saya</div><div class="page-sub">Nilai akhir yang sudah dipublikasikan.</div></div></div>
-      <div id="raportList">
-        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      <div class="page-header">
+        <div class="page-header-ico">📄</div>
+        <div class="page-header-inner"><div class="page-title">Raport Saya</div><div class="page-sub">Nilai akhir yang sudah dipublikasikan.</div></div>
+        <button class="btn-refresh" id="btnRefreshRaport" onclick="refreshTab('raport')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
       </div>
+      <div id="raportList"></div>
     </div>
 
     <!-- ════ ASSESSMENT ════ -->
@@ -3023,7 +3116,11 @@ async function loadRiwayat() {
 function renderRiwayat(rows) {
   var el = document.getElementById('riwayatList');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada riwayat KBM</div></div>';
+    el.innerHTML = '<div class="empty">'
+      + '<div class="empty-ico">🌱</div>'
+      + '<div class="empty-ttl">Sesi pertamamu belum tercatat</div>'
+      + '<div class="empty-sub">Riwayat KBM akan muncul di sini setelah sesi halaqah pertama berlangsung dan guru mencatatnya.<br><br>Semangat menunggu sesi pertamamu! 💪</div>'
+      + '</div>';
     return;
   }
   var HADIR_BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
@@ -3185,6 +3282,7 @@ function kalNav(dir) {
 // ══════════════════════════════════════════
 async function loadPR() {
   var el = document.getElementById('prList');
+  el.innerHTML = skelCards(2, 3);
   showLoad('Bismillah, memuat latihan mandiri...');
   try {
     var r = await window.HQ.MuridAPI.getLatihanMandiri();
@@ -3399,6 +3497,7 @@ var _attibyanFilter  = 'all';
 
 async function loadAtTibyan() {
   var listEl = document.getElementById('attibyanList');
+  listEl.innerHTML = skelCards(3, 4);
   showLoad('Memuat kajian At-Tibyan...');
   try {
     var r = await window.HQ.MuridAPI.getAtTibyan();
@@ -3461,9 +3560,11 @@ function _buildAtCard(row, idx, isPinned) {
   });
   var fieldsHtml = fieldCols.map(function(c) {
     var label = _AT_COL_LABELS[c] || c.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+    var val = String(row[c]);
+    var arabicClass = isArabic(val) ? ' is-arabic' : '';
     return '<div class="at-field">'
       + '<div class="at-field-label">' + esc(label) + '</div>'
-      + '<div class="at-field-val">' + esc(String(row[c])) + '</div>'
+      + '<div class="at-field-val' + arabicClass + '"' + (arabicClass ? ' dir="auto"' : '') + '>' + esc(val) + '</div>'
       + '</div>';
   }).join('');
 
@@ -3500,8 +3601,20 @@ function renderAtTibyan() {
     ? _attibyanData
     : _attibyanData.filter(function(r){ return String(r['pertemuan_ke'] || '').trim() === _attibyanFilter; });
 
+  // Search filter
+  if (_atSearchQuery) {
+    var q = _atSearchQuery;
+    rows = rows.filter(function(r) {
+      return _attibyanColumns.some(function(c) {
+        return String(r[c] || '').toLowerCase().indexOf(q) !== -1;
+      });
+    });
+  }
+
   if (!rows.length) {
-    listEl.innerHTML = '<div class="empty"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada kajian</div></div>';
+    listEl.innerHTML = _atSearchQuery
+      ? '<div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">Tidak ditemukan</div><div class="empty-sub">Coba kata kunci lain atau hapus pencarian</div></div>'
+      : '<div class="empty"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada kajian</div><div class="empty-sub">Admin belum menambahkan data At-Tibyan</div></div>';
     return;
   }
 
@@ -3578,11 +3691,14 @@ function _buildAtTibyanText(idx) {
   return lines.join('\n');
 }
 
+function _haptic(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms||40); }catch(e){} }
+
 function copyAtTibyan(idx) {
   var txt = _buildAtTibyanText(idx);
   if (!txt) return;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(txt).then(function() {
+      _haptic(40);
       toast('Berhasil disalin ke clipboard ✅', 'ok');
     }).catch(function() { _copyFallback(txt); });
   } else { _copyFallback(txt); }
@@ -3594,7 +3710,7 @@ function _copyFallback(txt) {
   ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
   document.body.appendChild(ta);
   ta.focus(); ta.select();
-  try { document.execCommand('copy'); toast('Berhasil disalin ✅', 'ok'); }
+  try { document.execCommand('copy'); _haptic(40); toast('Berhasil disalin ✅', 'ok'); }
   catch(e) { toast('Gagal menyalin teks', 'err'); }
   document.body.removeChild(ta);
 }
@@ -3603,6 +3719,7 @@ function shareAtTibyan(idx) {
   var txt = _buildAtTibyanText(idx);
   if (!txt) return;
   if (navigator.share) {
+    _haptic(30);
     navigator.share({ text: txt }).catch(function(e) {
       if (e.name !== 'AbortError') copyAtTibyan(idx);
     });
@@ -3611,6 +3728,102 @@ function shareAtTibyan(idx) {
     toast('Share tidak tersedia, teks sudah disalin ✅', 'ok');
   }
 }
+
+// ══════════════════════════════════════════
+//  REFRESH TAB
+// ══════════════════════════════════════════
+function refreshTab(name) {
+  var btnId = { riwayat:'btnRefreshRiwayat', pr:'btnRefreshPR', raport:'btnRefreshRaport', attibyan:'btnRefreshAtTibyan' }[name];
+  var btn = btnId ? document.getElementById(btnId) : null;
+  if (btn) { btn.classList.add('spinning'); setTimeout(function(){ btn.classList.remove('spinning'); }, 1200); }
+  delete _muridTabLoaded[name];
+  // Reset relevant state
+  if (name === 'riwayat') { _riwayatOffset = 8; loadRiwayat(); }
+  else if (name === 'pr') { loadPR(); }
+  else if (name === 'raport') { loadRaport(); }
+  else if (name === 'attibyan') {
+    _attibyanData = []; _attibyanColumns = []; _attibyanFilter = 'all'; _atSearchQuery = '';
+    var si = document.getElementById('atSearchInput'); if(si) si.value='';
+    var sc = document.getElementById('atSearchClear'); if(sc) sc.classList.remove('visible');
+    loadAtTibyan();
+  }
+  _muridTabLoaded[name] = true;
+}
+
+// ══════════════════════════════════════════
+//  AT-TIBYAN SEARCH
+// ══════════════════════════════════════════
+var _atSearchQuery = '';
+
+function onAtSearch(val) {
+  _atSearchQuery = (val || '').trim().toLowerCase();
+  var clearBtn = document.getElementById('atSearchClear');
+  if (clearBtn) clearBtn.classList.toggle('visible', _atSearchQuery.length > 0);
+  renderAtTibyan();
+}
+
+function clearAtSearch() {
+  _atSearchQuery = '';
+  var si = document.getElementById('atSearchInput'); if(si) si.value='';
+  var sc = document.getElementById('atSearchClear'); if(sc) sc.classList.remove('visible');
+  renderAtTibyan();
+}
+
+// ══════════════════════════════════════════
+//  GRAFIK TOOLTIP MOBILE
+// ══════════════════════════════════════════
+var _grafikTooltipEl = null;
+var _grafikTooltipTimer = null;
+
+function initGrafikMobileTooltip() {
+  if (_grafikTooltipEl) return;
+  _grafikTooltipEl = document.createElement('div');
+  _grafikTooltipEl.className = 'grafik-tooltip';
+  document.body.appendChild(_grafikTooltipEl);
+
+  document.addEventListener('click', function(e) {
+    var col = e.target.closest('.grafik-bar-col');
+    if (col) {
+      showGrafikTooltip(col, e.clientX, e.clientY);
+    } else {
+      hideGrafikTooltip();
+    }
+  }, true);
+}
+
+function showGrafikTooltip(col, x, y) {
+  if (!_grafikTooltipEl) return;
+  var tip = col.getAttribute('data-tip');
+  if (!tip) return;
+  _grafikTooltipEl.textContent = tip;
+  _grafikTooltipEl.style.left = Math.min(x, window.innerWidth - 160) + 'px';
+  _grafikTooltipEl.style.top  = (y - 100) + 'px';
+  _grafikTooltipEl.classList.add('show');
+  clearTimeout(_grafikTooltipTimer);
+  _grafikTooltipTimer = setTimeout(hideGrafikTooltip, 3500);
+}
+
+function hideGrafikTooltip() {
+  if (_grafikTooltipEl) _grafikTooltipEl.classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+//  SKELETON LOADING HELPER
+// ══════════════════════════════════════════
+function skelCards(n, lines) {
+  lines = lines || 3;
+  var linesHtml = '<div class="skel-line lg"></div>';
+  for (var i=0; i<lines-1; i++) linesHtml += '<div class="skel-line'+(i===lines-2?' sm':'')+'"></div>';
+  var out = '';
+  for (var j=0; j<n; j++) out += '<div class="skel-card" style="padding:16px;height:'+(52+lines*14)+'px">' + linesHtml + '</div>';
+  return out;
+}
+
+// ══════════════════════════════════════════
+//  ARABIC RTL DETECTION
+// ══════════════════════════════════════════
+var _arabicRe = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+function isArabic(str) { return _arabicRe.test(str || ''); }
 
 // ══════════════════════════════════════════
 //  ASSESSMENT MANDIRI
@@ -3790,6 +4003,7 @@ var _currentPreviewIdx = -1;
 
 async function loadRaport() {
   var el = document.getElementById('raportList');
+  el.innerHTML = skelCards(2, 4);
   showLoad('Bismillah, memuat raport...');
   try {
     var [rMain, rKonfig] = await Promise.allSettled([
@@ -4310,21 +4524,23 @@ function renderGrafikKehadiran(rows) {
     var hT   = Math.round(pctT * CHART_H);
     var isCur = key === curKey;
 
-    var color = pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
-    var pctLabel = b.total > 0 ? pct+'%' : '–';
-    var pctLabelColor = pct >= 80 ? '#059669' : pct >= 50 ? '#b45309' : '#ef4444';
+    var isEmpty = b.total === 0;
+    var color = isEmpty ? '#cbd5e1' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    var pctLabel = isEmpty ? 'Libur' : pct+'%';
+    var pctLabelColor = isEmpty ? '#94a3b8' : pct >= 80 ? '#059669' : pct >= 50 ? '#b45309' : '#ef4444';
 
     var tip = (isCur ? '📍 Bulan ini\n' : '') + b.label
-      + '\n✅ Hadir: '+b.H+'  ⏰ Terlambat: '+b.T
-      + '\n❌ Alpa: '+b.A+'  📆 Total: '+b.total+' sesi'
-      + '\n📊 Kehadiran: '+pctLabel;
+      + (isEmpty ? '\n🏖️ Tidak ada sesi (libur)' :
+        '\n✅ Hadir: '+b.H+'  ⏰ Terlambat: '+b.T
+        + '\n❌ Alpa: '+b.A+'  📆 Total: '+b.total+' sesi'
+        + '\n📊 Kehadiran: '+pctLabel);
 
     barsHtml +=
       '<div class="grafik-bar-col'+(isCur?' cur-month':'')+'" data-tip="'+tip+'" tabindex="0">'
       + '<div class="grafik-bar-bg">'
       + '<div class="grafik-bar-pct" style="color:'+pctLabelColor+(b.total===0?';opacity:.35':'')+'">'+(isCur?'<b>'+pctLabel+'</b>':pctLabel)+'</div>'
       + (hT > 0 ? '<div class="grafik-bar-t" style="height:'+hT+'px;background:rgba(139,92,246,.55);width:100%;border-radius:'+(hH?'5px 5px 0 0':'5px 5px 0 0')+'"></div>' : '')
-      + '<div class="grafik-bar-h" style="height:'+Math.max(hH,b.total>0?3:0)+'px;background:'+color+';width:100%;border-radius:'+(hT?'0 ':'')+'5px 5px 0 0'+(isCur?';box-shadow:0 0 0 2px '+color+'33':'')+'"'+(hH===0&&b.total>0?' title="0 hadir"':'')+'></div>'
+      + '<div class="grafik-bar-h" style="height:'+Math.max(hH,isEmpty?18:b.total>0?3:0)+'px;background:'+color+';width:100%;border-radius:'+(hT?'0 ':'')+'5px 5px 0 0'+(isCur?';box-shadow:0 0 0 2px '+color+'33':'')+'"'+(hH===0&&b.total>0?' title="0 hadir"':'')+'></div>'
       + '</div>'
       + '</div>';
     labelsHtml += '<div class="grafik-lbl'+(isCur?' cur-month':'')+'">'+b.label+(isCur?' ●':'')+'</div>';
@@ -4337,7 +4553,7 @@ function renderGrafikKehadiran(rows) {
     + '<div class="grafik-grid-line" style="top:'+Math.round((1-.5)*CHART_H)+'px;border-color:rgba(245,158,11,.3)">'
     + '<span class="grafik-grid-lbl" style="color:#f59e0b">50%</span></div>';
 
-  if (wrap) wrap.innerHTML = gridLines + '<div class="grafik-bars">'+barsHtml+'</div>';
+  if (wrap) { wrap.innerHTML = gridLines + '<div class="grafik-bars">'+barsHtml+'</div>'; initGrafikMobileTooltip(); }
   if (labelsEl) labelsEl.innerHTML = labelsHtml;
 
   if (summaryEl) summaryEl.innerHTML =
