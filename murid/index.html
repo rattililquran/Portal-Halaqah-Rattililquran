@@ -775,16 +775,57 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .link-full{grid-column:1/-1}
 
 /* ── GRAFIK ── */
-.grafik-bars{display:flex;align-items:flex-end;gap:6px;height:90px;
-  border-bottom:1.5px solid var(--border);padding-bottom:0;margin-bottom:8px}
-.grafik-bar{flex:1;border-radius:6px 6px 0 0;min-width:8px;
-  transition:height .5s ease;cursor:pointer;position:relative}
-.grafik-bar:hover::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;
-  transform:translateX(-50%);background:#0f172a;color:#fff;padding:4px 8px;
-  border-radius:8px;font-size:10px;white-space:nowrap;z-index:10;margin-bottom:4px;font-weight:700}
-.grafik-labels{display:flex;gap:6px}
+/* ── GRAFIK KEHADIRAN BULANAN ── */
+.grafik-card{
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  border-radius:var(--r);border:1px solid rgba(255,255,255,.9);
+  box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden;
+  padding:16px 18px 14px;
+}
+.grafik-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.grafik-title{font-size:13.5px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px}
+.grafik-trend{display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:100px;font-size:10.5px;font-weight:700}
+.grafik-trend.up{background:rgba(16,185,129,.1);color:#059669}
+.grafik-trend.down{background:rgba(239,68,68,.1);color:#dc2626}
+.grafik-trend.flat{background:rgba(100,116,139,.1);color:#64748b}
+/* Chart area */
+.grafik-chart-wrap{position:relative;padding-bottom:4px}
+.grafik-target-line{
+  position:absolute;border-top:1.5px dashed rgba(100,116,139,.4);
+  left:0;right:0;pointer-events:none;z-index:1;
+}
+.grafik-target-lbl{
+  position:absolute;right:0;font-size:8px;font-weight:700;
+  color:var(--text-3);transform:translateY(-10px);
+}
+.grafik-bars{display:flex;align-items:flex-end;gap:5px;height:80px;
+  padding-bottom:0;margin-bottom:6px;position:relative}
+.grafik-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;cursor:pointer;
+  gap:1px;position:relative;z-index:2}
+.grafik-bar-h{width:100%;border-radius:5px 5px 0 0;min-height:4px;
+  transition:height .6s cubic-bezier(.34,1.56,.64,1);position:relative}
+.grafik-bar-t{width:100%;min-height:0;
+  transition:height .6s cubic-bezier(.34,1.56,.64,1) .05s}
+.grafik-bar-wrap:active .grafik-bar-h{opacity:.75}
+/* Tooltip on tap */
+.grafik-bar-wrap::before{
+  content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);background:#0f172a;color:#fff;
+  padding:5px 8px;border-radius:8px;font-size:9.5px;white-space:pre;
+  z-index:10;font-weight:600;pointer-events:none;opacity:0;
+  transition:opacity .15s;line-height:1.5;text-align:center;
+}
+.grafik-bar-wrap:hover::before,.grafik-bar-wrap:focus::before{opacity:1}
+.grafik-labels{display:flex;gap:5px;margin-bottom:10px}
 .grafik-lbl{flex:1;text-align:center;font-size:9px;color:var(--text-3);overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+/* Summary chips */
+.grafik-summary{display:flex;gap:6px;flex-wrap:wrap}
+.grafik-chip{display:inline-flex;align-items:center;gap:4px;
+  background:var(--bg-2,#f1f5f9);border-radius:100px;
+  padding:3px 10px;font-size:10.5px;font-weight:700;color:var(--text-2)}
 
 /* ── NILAI BADGE ── */
 .nilai-Mumtaz{background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(245,158,11,0.2)}
@@ -1199,6 +1240,11 @@ html.theme-dark .sosmed-btn:hover{background:rgba(56,189,248,.12);border-color:#
 html.theme-dark .refresh-badge-murid{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#d1d5db !important}
 html.theme-dark #bell-badge{border-color:#1a1d24 !important}
 html.theme-dark .empty-ttl{color:#d1d5db !important}
+html.theme-dark .grafik-card{background:#1e2128 !important;backdrop-filter:none !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark .grafik-title{color:#f0f2f8 !important}
+html.theme-dark .grafik-lbl{color:#6b7280 !important}
+html.theme-dark .grafik-chip{background:#252830 !important;color:#b0b7c3 !important}
+html.theme-dark .grafik-bar-wrap::before{background:#f0f2f8;color:#0f172a}
 html.theme-dark .empty-sub{color:#9ca3af !important}
 /* Notif title/msg override */
 html.theme-dark .notif-title{color:#f0f2f8 !important}
@@ -1410,6 +1456,22 @@ html.theme-dark .bg-blobs-guru{display:none}
           <div class="val stat-val" id="st-kamera">–</div>
           <div class="lbl">Poin Kamera</div>
         </div>
+      </div>
+
+      <!-- Grafik Kehadiran Bulanan -->
+      <div class="grafik-card" id="grafikCard" style="display:none">
+        <div class="grafik-title-row">
+          <div class="grafik-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Kehadiran 6 Bulan
+          </div>
+          <span class="grafik-trend flat" id="grafikTrend"></span>
+        </div>
+        <div class="grafik-chart-wrap" id="grafikChartWrap">
+          <!-- target line & bars diisi JS -->
+        </div>
+        <div class="grafik-labels" id="grafikLabels"></div>
+        <div class="grafik-summary" id="grafikSummary"></div>
       </div>
 
       <!-- SPP Status -->
@@ -2626,10 +2688,10 @@ async function loadDashboard() {
       renderKalender();
     }
 
-    // Load SPP secara async — tidak blokir dashboard
+    // Load async — tidak blokir dashboard
     loadSPP();
-    // Load keaktifan alerts secara async
     loadKeaktifanAlertsMurid();
+    loadGrafikKehadiran(); // grafik kehadiran bulanan
 
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { hideLoad(); }
@@ -3784,6 +3846,117 @@ function nilaiClass(n) {
 
 // ══ SPP STATUS ════════════════════════════
 var _sppLoaded = false; // hanya load sekali per sesi
+// ══════════════════════════════════════════
+//  GRAFIK KEHADIRAN BULANAN (Dashboard)
+// ══════════════════════════════════════════
+async function loadGrafikKehadiran() {
+  try {
+    // Muat cukup data untuk 6 bulan (±50 sesi)
+    var r = await window.HQ.MuridAPI.getRiwayat(50, 0);
+    var rows = r.data || [];
+    if (!rows.length) return;
+    renderGrafikKehadiran(rows);
+  } catch(e) { /* silent — grafik opsional */ }
+}
+
+function renderGrafikKehadiran(rows) {
+  var card = document.getElementById('grafikCard');
+  if (!card) return;
+
+  // Kelompokkan per bulan (6 bulan terakhir)
+  var bulanMap = {};
+  var now = new Date();
+  for (var m = 5; m >= 0; m--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0');
+    bulanMap[key] = { H:0, T:0, I:0, A:0, total:0,
+      label: d.toLocaleDateString('id-ID',{month:'short'}) };
+  }
+
+  rows.forEach(function(k) {
+    if (!k.tanggal) return;
+    var key = k.tanggal.substring(0,7);
+    if (!bulanMap[key]) return;
+    var s = k.status_hadir || '';
+    bulanMap[key][s] = (bulanMap[key][s] || 0) + 1;
+    bulanMap[key].total++;
+  });
+
+  var keys = Object.keys(bulanMap);
+  var maxTotal = Math.max.apply(null, keys.map(function(k){ return bulanMap[k].total || 1; }));
+  var TARGET = 80; // garis target persen
+
+  // Hitung trend (3 bulan terakhir vs 3 sebelumnya)
+  var recent = keys.slice(3).map(function(k){
+    var b=bulanMap[k]; return b.total>0?Math.round((b.H+b.T)/b.total*100):0;
+  });
+  var older = keys.slice(0,3).map(function(k){
+    var b=bulanMap[k]; return b.total>0?Math.round((b.H+b.T)/b.total*100):0;
+  });
+  var avgRecent = recent.reduce(function(a,b){return a+b;},0)/recent.length;
+  var avgOlder  = older.reduce(function(a,b){return a+b;},0)/older.length;
+  var diff = Math.round(avgRecent - avgOlder);
+  var trendEl = document.getElementById('grafikTrend');
+  if (trendEl) {
+    if (diff > 3)       { trendEl.textContent='↑ +'+diff+'%'; trendEl.className='grafik-trend up'; }
+    else if (diff < -3) { trendEl.textContent='↓ '+diff+'%'; trendEl.className='grafik-trend down'; }
+    else                { trendEl.textContent='→ Stabil';      trendEl.className='grafik-trend flat'; }
+  }
+
+  // Build bars HTML
+  var barsHtml = '';
+  var labelsHtml = '';
+  var totalH=0, totalT=0, totalI=0, totalA=0;
+
+  keys.forEach(function(key) {
+    var b = bulanMap[key];
+    var pct    = b.total > 0 ? Math.round((b.H + b.T) / b.total * 100) : 0;
+    var pctH   = b.total > 0 ? (b.H / b.total) : 0;
+    var pctT   = b.total > 0 ? (b.T / b.total) : 0;
+    var hH     = Math.round(pctH * 80); // max height 80px
+    var hT     = Math.round(pctT * 80);
+
+    var color;
+    if (pct < 50)       color = '#ef4444';
+    else if (pct < 80)  color = '#f59e0b';
+    else                color = '#10b981';
+
+    var tip = b.label+'\\n✅ '+b.H+' Hadir  ⏰ '+b.T+' Terlambat\\n❌ '+b.A+' Alpa  📅 '+b.total+' sesi';
+
+    barsHtml += '<div class="grafik-bar-wrap" data-tip="'+tip+'" tabindex="0">'
+      + '<div class="grafik-bar-t" style="height:'+hT+'px;background:rgba(139,92,246,.55);width:100%;border-radius:'+(hH?'0':'5px 5px 0 0')+'"></div>'
+      + '<div class="grafik-bar-h" style="height:'+hH+'px;background:'+color+';width:100%;border-radius:'+(hT?'0 ':'')+'5px 5px 0 0"></div>'
+      + '</div>';
+    labelsHtml += '<div class="grafik-lbl">'+b.label+'</div>';
+
+    totalH+=b.H; totalT+=b.T; totalI+=b.I; totalA+=b.A;
+  });
+
+  // Target line position
+  var targetPct = TARGET / 100;
+  var targetTop = Math.round((1 - targetPct) * 80);
+
+  var wrap = document.getElementById('grafikChartWrap');
+  if (wrap) wrap.innerHTML =
+    '<div class="grafik-target-line" style="top:'+targetTop+'px">'
+    +'<span class="grafik-target-lbl">'+TARGET+'%</span></div>'
+    +'<div class="grafik-bars">'+barsHtml+'</div>';
+
+  var labelsEl = document.getElementById('grafikLabels');
+  if (labelsEl) labelsEl.innerHTML = labelsHtml;
+
+  // Summary chips
+  var total = totalH+totalT+totalI+totalA;
+  var summaryEl = document.getElementById('grafikSummary');
+  if (summaryEl) summaryEl.innerHTML =
+    '<span class="grafik-chip">📅 '+keys.length+' bulan</span>'
+    +'<span class="grafik-chip" style="color:#059669">✅ '+totalH+' hadir</span>'
+    +'<span class="grafik-chip" style="color:#7c3aed">⏰ '+totalT+' terlambat</span>'
+    +(totalA>0?'<span class="grafik-chip" style="color:#dc2626">❌ '+totalA+' alpa</span>':'');
+
+  card.style.display = 'block';
+}
+
 async function loadSPP() {
   if (_sppLoaded) return; // skip jika sudah dimuat (hindari CORS spam saat auto-refresh)
   try {
