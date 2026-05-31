@@ -268,6 +268,7 @@ var MuridAPI = {
   updateProfil      : function(d)             { return apiPost('updateProfilMurid', d); },
   getProgressGrafik : function()              { return apiGet('getProgressGrafik'); },
   getMateriLevel    : function(lv)            { return apiGet('getMateriLevel', lv ? {level:lv} : {}); },
+  getAtTibyan       : function(ptm)           { return apiGet('getAtTibyan', ptm ? {pertemuan:ptm} : {}); },
   getSPPStatus      : function()             { return apiGet('getSPPStatus'); },
   changePassword    : function(d)            { return apiPost('changePasswordMurid', d); },
   getKonfigurasiRaport: function()           { return apiGet('getKonfigurasiRaport'); },

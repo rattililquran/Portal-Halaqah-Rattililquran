@@ -582,6 +582,53 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .materi-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);background:#fafbfc}
 .materi-card.expanded .materi-body{display:block}
 .materi-isi{font-size:13.5px;color:var(--text-2);line-height:1.75;white-space:pre-wrap;font-weight:500}
+
+/* ── At-Tibyan ── */
+.attibyan-filter{display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.attibyan-filter::-webkit-scrollbar{display:none}
+.atf-btn{padding:8px 16px;border-radius:100px;font-size:12.5px;font-weight:800;
+  border:2px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;
+  white-space:nowrap;transition:all .2s ease;flex-shrink:0}
+.atf-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.at-card{border-radius:20px;border:1px solid var(--border);
+  background:#fff;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-card)}
+.at-card-head{padding:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.at-card-head:hover{background:#fafbfc}
+.at-card-badge{font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.08em;color:#fff;background:var(--blue);
+  border-radius:100px;padding:3px 10px;white-space:nowrap;flex-shrink:0}
+.at-card-title{font-size:14px;font-weight:800;color:var(--text);flex:1;line-height:1.35}
+.at-card-chevron{color:var(--text-3);transition:transform .25s ease;flex-shrink:0}
+.at-card.expanded .at-card-chevron{transform:rotate(180deg)}
+.at-card-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);background:#fafbfc}
+.at-card.expanded .at-card-body{display:block}
+.at-field{margin-top:14px}
+.at-field-label{font-size:10.5px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--text-3);margin-bottom:4px}
+.at-field-val{font-size:13.5px;color:var(--text-2);line-height:1.75;white-space:pre-wrap;font-weight:500}
+.at-actions{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.at-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:12px;
+  font-size:12.5px;font-weight:800;border:none;cursor:pointer;transition:all .2s ease;flex:1;justify-content:center}
+.at-btn-copy{background:#f1f5f9;color:var(--text-2)}
+.at-btn-copy:hover{background:#e2e8f0}
+.at-btn-share{background:var(--blue);color:#fff}
+.at-btn-share:hover{opacity:.9}
+/* Dashboard card At-Tibyan */
+.attibyan-dash-card{border-radius:20px;border:1px solid rgba(14,165,233,.2);
+  background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);
+  padding:16px;margin-bottom:14px;cursor:pointer;
+  box-shadow:0 2px 12px rgba(14,165,233,.08);transition:transform .15s ease,box-shadow .15s ease}
+.attibyan-dash-card:active{transform:scale(.98)}
+.attibyan-dash-card-row{display:flex;align-items:center;gap:12px}
+.attibyan-dash-ico{width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,#0ea5e9,#0284c7);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}
+.attibyan-dash-text{flex:1}
+.attibyan-dash-title{font-size:15px;font-weight:900;color:#0c4a6e;line-height:1.2}
+.attibyan-dash-sub{font-size:12px;font-weight:600;color:#0ea5e9;margin-top:2px}
+.attibyan-dash-arr{color:#0ea5e9;font-size:18px;font-weight:700}
+
 .level-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
 .lf-btn{padding:8px 18px;border-radius:100px;font-size:12.5px;font-weight:800;
   border:1.5px solid var(--border);background:#fff;color:var(--text-3);cursor:pointer;white-space:nowrap;transition:all 0.15s ease}
@@ -1170,6 +1217,14 @@ html.theme-dark .kal-nav{background:#252830 !important;color:#9ca3af !important}
 /* Materi */
 html.theme-dark .materi-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .materi-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
+/* At-Tibyan dark */
+html.theme-dark .at-card{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
+html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
+html.theme-dark .at-btn-copy{background:#252830 !important;color:#9ca3af !important}
+html.theme-dark .attibyan-dash-card{background:linear-gradient(135deg,#1e2d3d 0%,#1a2840 100%) !important;border-color:rgba(14,165,233,.25) !important}
+html.theme-dark .attibyan-dash-title{color:#bae6fd !important}
+html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
 html.theme-dark .lf-btn{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#9ca3af !important}
 html.theme-dark .lf-btn.active{background:rgba(56,189,248,.15) !important;border-color:rgba(56,189,248,.3) !important;color:#38bdf8 !important}
 
@@ -1506,6 +1561,18 @@ html.theme-dark .bg-blobs-guru{display:none}
         </div>
       </div>
 
+      <!-- At-Tibyan -->
+      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
+        <div class="attibyan-dash-card-row">
+          <div class="attibyan-dash-ico">📖</div>
+          <div class="attibyan-dash-text">
+            <div class="attibyan-dash-title">At-Tibyan</div>
+            <div class="attibyan-dash-sub">Kajian mingguan · Materi &amp; Nasihat</div>
+          </div>
+          <div class="attibyan-dash-arr">›</div>
+        </div>
+      </div>
+
       <!-- Akses Cepat -->
       <div class="links-grid">
         <a class="link-card" href="https://rattililquran.github.io/KhatamKu/" target="_blank">
@@ -1574,6 +1641,21 @@ html.theme-dark .bg-blobs-guru{display:none}
       <div class="page-header"><div class="page-header-ico">📚</div><div><div class="page-title">Materi Level</div><div class="page-sub">Panduan belajar dan tips tajwid dari guru.</div></div></div>
       <div class="level-filter" id="materiLevelFilter"></div>
       <div id="materiList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ AT-TIBYAN ════ -->
+    <div class="page" id="page-attibyan">
+      <div class="page-header">
+        <div class="page-header-ico">📖</div>
+        <div>
+          <div class="page-title">At-Tibyan</div>
+          <div class="page-sub">Kajian mingguan untuk para murid Rattililqur'an.</div>
+        </div>
+      </div>
+      <div class="attibyan-filter" id="attibyanFilter"></div>
+      <div id="attibyanList">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
     </div>
@@ -1698,6 +1780,12 @@ html.theme-dark .bg-blobs-guru{display:none}
         <span id="sidebarBellBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
       <div class="sidebar-section">Belajar</div>
+      <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('attibyan')" data-p="attibyan">
+        <div class="sidebar-item-ico">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        At-Tibyan
+      </button>
       <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('raport')" data-p="raport">
         <div class="sidebar-item-ico">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
@@ -2472,6 +2560,7 @@ function goPage(name, swipeDir) {
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); }
   else if (name === 'info') { loadMateri(); }
+  else if (name === 'attibyan') { loadAtTibyan(); }
   else if (name === 'password') { /* static page, no load needed */ }
 }
 
@@ -3262,6 +3351,186 @@ function toggleMateri(idx) {
   var chev = document.querySelector('.mat-chev-'+idx);
   if (el) el.classList.toggle('expanded');
   if (chev) chev.style.transform = el && el.classList.contains('expanded') ? 'rotate(180deg)' : '';
+}
+
+// ══════════════════════════════════════════
+//  AT-TIBYAN
+// ══════════════════════════════════════════
+var _attibyanData    = [];   // semua rows dari server
+var _attibyanColumns = [];   // headers dinamis
+var _attibyanFilter  = 'all';
+
+async function loadAtTibyan() {
+  var listEl = document.getElementById('attibyanList');
+  showLoad('Memuat kajian At-Tibyan...');
+  try {
+    var r = await window.HQ.MuridAPI.getAtTibyan();
+    _attibyanData    = r.data    || [];
+    _attibyanColumns = r.columns || [];
+
+    // Buat filter pills berdasarkan pertemuan_ke unik
+    var ptms = [];
+    _attibyanData.forEach(function(row) {
+      var p = String(row['pertemuan_ke'] || '').trim();
+      if (p && ptms.indexOf(p) === -1) ptms.push(p);
+    });
+    // Urutkan numerik
+    ptms.sort(function(a, b) { return parseInt(a, 10) - parseInt(b, 10); });
+
+    var filterEl = document.getElementById('attibyanFilter');
+    if (filterEl) {
+      var pills = '<button class="atf-btn active" onclick="setAtTibyanFilter(\'all\',this)">Semua</button>';
+      pills += ptms.map(function(p) {
+        return '<button class="atf-btn" onclick="setAtTibyanFilter(\'' + esc(p) + '\',this)">Pertemuan ' + esc(p) + '</button>';
+      }).join('');
+      filterEl.innerHTML = pills;
+    }
+
+    _attibyanFilter = 'all';
+    renderAtTibyan();
+  } catch(e) {
+    console.error('loadAtTibyan error:', e);
+    listEl.innerHTML = '<div class="empty"><div class="empty-ico">📖</div>'
+      + '<div class="empty-ttl">Kajian belum tersedia</div>'
+      + '<div class="empty-sub">Admin belum menambahkan data At-Tibyan</div>'
+      + '<div style="margin-top:10px;font-size:11px;color:var(--red)">' + esc(e.message) + '</div>'
+      + '</div>';
+  } finally { hideLoad(); }
+}
+
+function setAtTibyanFilter(val, btn) {
+  _attibyanFilter = val;
+  document.querySelectorAll('.atf-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderAtTibyan();
+}
+
+// Kolom yang tidak perlu ditampilkan sebagai field (sudah ada di header card)
+var _AT_SKIP_COLS = ['pertemuan_ke', 'tanggal'];
+// Label ramah untuk nama kolom
+var _AT_COL_LABELS = {
+  'materi_pembahasan': 'Materi Pembahasan',
+  'nasihat_aplikatif': 'Nasihat Aplikatif',
+  'pemateri': 'Pemateri / Ustadz',
+};
+
+function renderAtTibyan() {
+  var listEl = document.getElementById('attibyanList');
+  var rows = _attibyanFilter === 'all'
+    ? _attibyanData
+    : _attibyanData.filter(function(r){ return String(r['pertemuan_ke'] || '').trim() === _attibyanFilter; });
+
+  if (!rows.length) {
+    listEl.innerHTML = '<div class="empty"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada kajian</div></div>';
+    return;
+  }
+
+  listEl.innerHTML = rows.map(function(row, idx) {
+    var ptm    = row['pertemuan_ke'] || '';
+    var tanggal = row['tanggal'] || '';
+    var materi  = row['materi_pembahasan'] || '';
+
+    // Field-field yang akan ditampilkan dalam body
+    var fieldCols = _attibyanColumns.filter(function(c) {
+      return _AT_SKIP_COLS.indexOf(c) === -1 && row[c] && String(row[c]).trim();
+    });
+
+    var fieldsHtml = fieldCols.map(function(c) {
+      var label = _AT_COL_LABELS[c] || c.replace(/_/g, ' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+      return '<div class="at-field">'
+        + '<div class="at-field-label">' + esc(label) + '</div>'
+        + '<div class="at-field-val">' + esc(String(row[c])) + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="at-card" id="atc-' + idx + '">'
+      + '<div class="at-card-head" onclick="toggleAtCard(' + idx + ')">'
+      + '<span class="at-card-badge">Pertemuan ' + esc(ptm) + '</span>'
+      + '<span class="at-card-title">' + (materi ? esc(materi) : (tanggal ? esc(tanggal) : 'Kajian ' + esc(ptm))) + '</span>'
+      + '<span class="at-card-chevron">▼</span>'
+      + '</div>'
+      + '<div class="at-card-body">'
+      + (tanggal ? '<div class="at-field"><div class="at-field-label">Tanggal</div><div class="at-field-val">📅 ' + esc(tanggal) + '</div></div>' : '')
+      + fieldsHtml
+      + '<div class="at-actions">'
+      + '<button class="at-btn at-btn-copy" onclick="copyAtTibyan(' + idx + ')">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Salin'
+      + '</button>'
+      + '<button class="at-btn at-btn-share" onclick="shareAtTibyan(' + idx + ')">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Bagikan'
+      + '</button>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Buka card pertama otomatis
+  toggleAtCard(0);
+}
+
+function toggleAtCard(idx) {
+  var el = document.getElementById('atc-' + idx);
+  if (el) el.classList.toggle('expanded');
+}
+
+function _buildAtTibyanText(idx) {
+  var rows = _attibyanFilter === 'all'
+    ? _attibyanData
+    : _attibyanData.filter(function(r){ return String(r['pertemuan_ke'] || '').trim() === _attibyanFilter; });
+  var row = rows[idx];
+  if (!row) return '';
+
+  var lines = ['📖 *At-Tibyan — Pertemuan ' + (row['pertemuan_ke'] || '') + '*'];
+  if (row['tanggal'])             lines.push('📅 ' + row['tanggal']);
+  if (row['pemateri'])            lines.push('👤 ' + row['pemateri']);
+  if (row['materi_pembahasan'])   lines.push('\n📚 *Materi Pembahasan*\n' + row['materi_pembahasan']);
+  if (row['nasihat_aplikatif'])   lines.push('\n💡 *Nasihat Aplikatif*\n' + row['nasihat_aplikatif']);
+
+  // Kolom tambahan
+  _attibyanColumns.forEach(function(c) {
+    var known = ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'];
+    if (known.indexOf(c) === -1 && row[c] && String(row[c]).trim()) {
+      var label = _AT_COL_LABELS[c] || c.replace(/_/g, ' ');
+      lines.push('\n📌 *' + label + '*\n' + row[c]);
+    }
+  });
+
+  lines.push('\n— Rattililqur\'an');
+  return lines.join('\n');
+}
+
+function copyAtTibyan(idx) {
+  var txt = _buildAtTibyanText(idx);
+  if (!txt) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      toast('Berhasil disalin ke clipboard ✅', 'ok');
+    }).catch(function() { _copyFallback(txt); });
+  } else { _copyFallback(txt); }
+}
+
+function _copyFallback(txt) {
+  var ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); toast('Berhasil disalin ✅', 'ok'); }
+  catch(e) { toast('Gagal menyalin teks', 'err'); }
+  document.body.removeChild(ta);
+}
+
+function shareAtTibyan(idx) {
+  var txt = _buildAtTibyanText(idx);
+  if (!txt) return;
+  if (navigator.share) {
+    navigator.share({ text: txt }).catch(function(e) {
+      if (e.name !== 'AbortError') copyAtTibyan(idx);
+    });
+  } else {
+    copyAtTibyan(idx);
+    toast('Share tidak tersedia, teks sudah disalin ✅', 'ok');
+  }
 }
 
 // ══════════════════════════════════════════
