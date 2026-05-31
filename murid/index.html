@@ -1346,17 +1346,10 @@ html.theme-dark .bg-blobs-guru{display:none}
   <div class="top-header" id="topHeader">
     <div class="top-specular"></div>
     <div class="top-row">
-      <!-- Hamburger kiri -->
-      <button class="top-hamburger" onclick="openSidebar()" title="Menu" aria-label="Buka menu">
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <line x1="1" y1="3.5" x2="14" y2="3.5"/>
-          <line x1="1" y1="7.5" x2="14" y2="7.5"/>
-          <line x1="1" y1="11.5" x2="14" y2="11.5"/>
-        </svg>
-      </button>
+      <!-- Avatar Kiri (Pengganti Hamburger) -->
+      <div id="topAvatar" class="top-avatar" onclick="openSidebar()" title="Menu" aria-label="Buka menu"></div>
       <!-- Info tengah -->
-      <div class="top-left">
-        <div class="top-greet" id="topGreeting">Assalamu'alaikum 👋</div>
+      <div class="top-left" style="margin-left: 4px;">
         <div class="top-name" id="topName">–</div>
         <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
       </div>
@@ -1376,11 +1369,6 @@ html.theme-dark .bg-blobs-guru{display:none}
       </div>
     </div>
   </div>
-
-  <!-- topAvatar ghost element — dipertahankan untuk kompatibilitas kode JS -->
-  <div id="topAvatar" style="display:none;width:32px;height:32px;border-radius:9px;overflow:hidden;
-    background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.35);color:#fff;
-    font-weight:800;font-size:13px;align-items:center;justify-content:center;"></div>
 
   <!-- CONTENT -->
   <div class="content">
@@ -2391,10 +2379,11 @@ function startApp() {
   // Jika nama masih kosong, gunakan id_user sebagai placeholder sementara
   // (akan diperbarui dari server saat loadDashboard selesai)
   var namaDisplay = nama || '…';
+  var firstName   = namaDisplay.split(' ')[0];
   var ini  = nama ? nama.split(' ').map(function(n){return n[0]||'';}).join('').substring(0,2).toUpperCase() || 'M' : 'M';
 
   // Set nama terlebih dahulu — sebelum apapun yang bisa crash
-  document.getElementById('topName').textContent = namaDisplay;
+  document.getElementById('topName').textContent = "Ahlan, " + firstName;
 
   var savedAvatar = localStorage.getItem('murid_avatar_' + us.id_user);
   var savedFoto   = localStorage.getItem('murid_foto_' + us.id_user);
@@ -2410,7 +2399,6 @@ function startApp() {
   if (navWrap) navWrap.innerHTML = savedFoto
     ? '<img src="'+savedFoto+'" class="nav-profile-avatar" alt="">'
     : '<img src="'+_logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
-  document.getElementById('topGreeting').textContent = "Assalamu'alaikum 👋";
   updateSidebarInfo();
   // Tampilkan badge lonceng dari log lokal sebelum API selesai
   var _logEarly = _loadNotifLog();
@@ -2648,7 +2636,10 @@ async function loadDashboard() {
     var _namaProfil = prof.nama || (d.profil && d.profil.nama) || '';
     document.getElementById('profilName').textContent = _namaProfil;
     // Update topName dari data server (sumber paling akurat, fix bug "Murid" muncul)
-    if (_namaProfil) document.getElementById('topName').textContent = _namaProfil;
+    if (_namaProfil) {
+      var _first = _namaProfil.split(' ')[0];
+      document.getElementById('topName').textContent = "Ahlan, " + _first;
+    }
     document.getElementById('profilNis').textContent  = d.id_murid || '';
     document.getElementById('profilHp').value    = d.no_hp || '';
     document.getElementById('profilEmail').value = d.email || '';
