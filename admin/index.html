@@ -456,6 +456,9 @@ html.theme-dark .loader{background:#111318 !important}
 html.theme-dark .loader-dot{background:rgba(56,189,248,.3) !important}
 html.theme-dark .loader-txt{color:#7dd3fc !important}
 html.theme-dark .loader-bar{background:rgba(56,189,248,.15) !important}
+html.theme-dark .skel{background:linear-gradient(90deg,#252830 25%,#2d3038 50%,#252830 75%) !important;background-size:200% 100% !important}
+html.theme-dark .chip.inactive-chip{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
+html.theme-dark .refresh-badge{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#d1d5db !important}
 /* Text overrides */
 html.theme-dark .section-title{color:#f0f2f8 !important}
 html.theme-dark label{color:#d1d5db !important}
@@ -1322,11 +1325,15 @@ function closeSB() { document.getElementById('sidebar').classList.remove('open')
 
 async function refreshPage() {
   const btn = document.getElementById('refreshBtn');
-  btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s';
-  setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
-  await loadMasterData();
-  const active = document.querySelector('.page.active')?.id && id.replace('page-','');
-  if (active) goPage(active);
+  if (btn) { btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s'; }
+  setTimeout(() => { if(btn){btn.style.transform='';btn.style.transition='';} }, 700);
+  try {
+    await loadMasterData();
+    // Fix: variable 'id' tidak terdefinisi — ambil dari element id
+    const activePage = document.querySelector('.page.active');
+    const activeName = activePage ? activePage.id.replace('page-','') : '';
+    if (activeName) goPage(activeName);
+  } catch(e) { toast('Gagal refresh: ' + e.message, 'err'); }
 }
 
 // ══════════════════════════════════════════
@@ -1944,15 +1951,49 @@ function openModalAnggota() {
 }
 
 function editAnggota(id, level, target) {
-  // Quick edit level via notif
-  const newLevel = prompt('Level baru (Level 1/2/3/4/Level Qiyam):', level);
-  if (!newLevel) return;
-  const newTarget = prompt('Target level baru:', target);
+  // Buka overlay modal edit — tidak pakai prompt() agar tidak blocking dan lebih aman
+  var existing = document.getElementById('_angEditOverlay');
+  if (existing) existing.remove();
+
+  var ov = document.createElement('div');
+  ov.id = '_angEditOverlay';
+  ov.className = 'overlay open';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title">Edit Level Anggota</div>
+        <button class="modal-x" onclick="document.getElementById('_angEditOverlay').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="fg"><label>Level Saat Ini</label>
+          <input id="_angEditLevel" class="fc" value="${esc(level)}" placeholder="Level 1">
+        </div>
+        <div class="fg"><label>Target Level</label>
+          <input id="_angEditTarget" class="fc" value="${esc(target||'')}" placeholder="Level 2">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('_angEditOverlay').remove()">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditAnggota('${esc(id)}')">💾 Simpan</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', () => ov.remove());
+  document.body.appendChild(ov);
+  document.getElementById('_angEditLevel').focus();
+}
+
+async function saveEditAnggota(id) {
+  const newLevel  = document.getElementById('_angEditLevel').value.trim();
+  const newTarget = document.getElementById('_angEditTarget').value.trim();
+  if (!newLevel) return toast('Level tidak boleh kosong','err');
+  document.getElementById('_angEditOverlay').remove();
   showLoad('Bismillah, menyimpan...');
-  window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget||'' })
-    .then(() => { toast('Level diperbarui!','ok'); loadAnggota(); })
-    .catch(e => toast(e.message,'err'))
-    .finally(() => hideLoad());
+  try {
+    await window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget });
+    toast('Level diperbarui!','ok');
+    loadAnggota();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
 }
 
 async function saveAnggota() {
