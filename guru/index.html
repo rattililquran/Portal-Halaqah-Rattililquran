@@ -1053,6 +1053,71 @@ html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
   .topbar-title{font-size:13px!important;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
+/* ══ AT-TIBYAN GURU ══════════════════════════════════════════ */
+.at-tab-bar{display:flex;gap:6px;margin-bottom:18px;background:#f1f5f9;border-radius:12px;padding:4px}
+.at-tab-btn{flex:1;padding:8px;border:none;border-radius:9px;background:transparent;
+  font-size:12.5px;font-weight:700;color:var(--text-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.at-tab-btn.active{background:#fff;color:#0c4a6e;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+html.theme-dark .at-tab-bar{background:#252830!important}
+html.theme-dark .at-tab-btn.active{background:#1e2128!important;color:#bae6fd!important}
+
+/* Presensi bulk */
+.at-halaqah-group{margin-bottom:20px}
+.at-halaqah-head{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text-3);padding:6px 0 8px;border-bottom:2px solid var(--border);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px}
+.at-murid-row{display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.at-murid-row:last-child{border-bottom:none}
+.at-murid-name{flex:1;font-size:13.5px;font-weight:700;color:var(--text)}
+.at-murid-level{font-size:10.5px;color:var(--text-3);font-weight:600;margin-top:1px}
+.at-pb{padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);
+  background:transparent;font-size:11px;font-weight:800;cursor:pointer;
+  transition:all .15s;color:var(--text-2)}
+.at-pb.on-H{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.at-pb.on-T{background:#ede9fe;border-color:#7c3aed;color:#6d28d9}
+.at-pb.on-I{background:#fef3c7;border-color:#d97706;color:#b45309}
+.at-pb.on-A{background:#fee2e2;border-color:#dc2626;color:#b91c1c}
+html.theme-dark .at-pb.on-H{background:rgba(22,163,74,.2)!important;border-color:#16a34a!important;color:#4ade80!important}
+html.theme-dark .at-pb.on-T{background:rgba(124,58,237,.2)!important;border-color:#7c3aed!important;color:#a78bfa!important}
+html.theme-dark .at-pb.on-I{background:rgba(217,119,6,.2)!important;border-color:#d97706!important;color:#fbbf24!important}
+html.theme-dark .at-pb.on-A{background:rgba(220,38,38,.2)!important;border-color:#dc2626!important;color:#f87171!important}
+
+/* Riwayat sesi */
+.at-sesi-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.at-sesi-row:last-child{border-bottom:none}
+.at-sesi-row:hover{opacity:.8}
+.at-sesi-badge{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#0284c7);
+  color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.at-sesi-info{flex:1}
+.at-sesi-title{font-size:13.5px;font-weight:800;color:var(--text)}
+.at-sesi-meta{font-size:11.5px;color:var(--text-3);font-weight:600;margin-top:2px}
+.at-sesi-stat{font-size:12px;font-weight:800;color:var(--green)}
+
+/* Keaktifan At-Tibyan */
+.at-keaktifan-card{border-radius:16px;background:#fff;border:1px solid var(--border);
+  padding:16px;box-shadow:var(--shadow);margin-bottom:12px;
+  border-left:5px solid var(--green)}
+.at-keaktifan-card.kritis{border-left-color:var(--red)}
+.at-keaktifan-card.peringatan{border-left-color:var(--amber)}
+.at-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.at-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.at-dot.hadir{background:#10b981}
+.at-dot.absen{background:#ef4444}
+.at-dot.null{background:#e2e8f0}
+html.theme-dark .at-keaktifan-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .at-dot.null{background:#374151!important}
+
+/* Rekap At-Tibyan */
+.at-rekap-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.at-rekap-row:last-child{border-bottom:none}
+.at-rekap-name{flex:1;font-size:13px;font-weight:700;color:var(--text)}
+.at-rekap-meta{font-size:11px;color:var(--text-3);font-weight:600}
+.at-rekap-pct{font-size:14px;font-weight:900;min-width:42px;text-align:right}
+.at-rekap-bar{height:4px;border-radius:100px;background:var(--border);margin-top:4px;overflow:hidden;width:80px}
+.at-rekap-fill{height:100%;border-radius:100px}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1138,6 +1203,8 @@ html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni">🚨</span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('assessment')" data-p="assessment"><span class="ni">✍️</span>Assessment</button>
+      <div class="sb-section">Kajian</div>
+      <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni">📖</span>At-Tibyan</button>
       <div class="sb-section">KBM</div>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM</button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
@@ -1274,7 +1341,6 @@ html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
               <label>Jenis Sesi</label>
               <select class="fc" id="kbmJenis">
                 <option value="KBM Reguler">KBM Reguler</option>
-                <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
                 <option value="Micro Teaching">Micro Teaching</option>
                 <option value="Lainnya">Lainnya</option>
               </select>
@@ -1587,6 +1653,85 @@ html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
         <!-- Grid Cards -->
         <div class="keaktifan-grid" id="keaktifanGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
           <!-- Murid keaktifan cards will be appended here -->
+        </div>
+      </div>
+
+      <!-- ════ AT-TIBYAN GURU ════ -->
+      <div class="page" id="page-attibyan-guru">
+        <div class="page-title-row">
+          <span>At-Tibyan</span>
+          <button class="guru-refresh-btn" id="btnRefreshAtTibyanGuru" onclick="guruRefresh('attibyan-guru')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
+        <div class="at-tab-bar">
+          <button class="at-tab-btn active" id="atTabSesi" onclick="switchAtTab('sesi',this)">📋 Riwayat Sesi</button>
+          <button class="at-tab-btn" id="atTabKeaktifan" onclick="switchAtTab('keaktifan',this)">🚨 Keaktifan</button>
+          <button class="at-tab-btn" id="atTabRekap" onclick="switchAtTab('rekap',this)">📊 Rekap</button>
+        </div>
+        <!-- Panel: Riwayat Sesi -->
+        <div id="atPanelSesi">
+          <button class="btn btn-primary" onclick="bukaFormAtTibyan()" style="width:100%;justify-content:center;margin-bottom:16px;padding:12px">
+            ＋ Sesi At-Tibyan Baru
+          </button>
+          <div id="atSesiList">
+            <div class="guru-empty"><div class="guru-empty-ico">⏳</div><div class="guru-empty-ttl">Memuat...</div></div>
+          </div>
+        </div>
+        <!-- Panel: Keaktifan -->
+        <div id="atPanelKeaktifan" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--red)">
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kritis 🔴</div>
+              <div style="font-size:28px;font-weight:900;color:var(--red)" id="atKritisCount">–</div>
+            </div>
+            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--amber)">
+              <div style="font-size:11px;color:var(--amber-txt);font-weight:700;text-transform:uppercase">Peringatan 🟡</div>
+              <div style="font-size:28px;font-weight:900;color:var(--amber)" id="atPeringatanCount">–</div>
+            </div>
+            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--green)">
+              <div style="font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase">Normal 🟢</div>
+              <div style="font-size:28px;font-weight:900;color:var(--green)" id="atNormalCount">–</div>
+            </div>
+          </div>
+          <input type="search" class="fc" id="atKeaktifanSearch" placeholder="🔍 Cari murid..." oninput="filterAtKeaktifan()" style="margin-bottom:12px">
+          <div id="atKeaktifanGrid"></div>
+        </div>
+        <!-- Panel: Rekap -->
+        <div id="atPanelRekap" style="display:none">
+          <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+            <select class="fc" id="atRekapHalaqah" onchange="loadAtRekap()" style="max-width:220px">
+              <option value="">— Semua Halaqah —</option>
+            </select>
+          </div>
+          <div id="atRekapContent">
+            <div class="guru-empty"><div class="guru-empty-ico">📊</div><div class="guru-empty-ttl">Pilih halaqah atau lihat semua</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Form At-Tibyan Sesi -->
+      <div class="overlay" id="atFormOverlay" onclick="if(event.target===this)tutupFormAtTibyan()" style="display:none">
+        <div class="modal" style="max-width:600px;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+          <div class="modal-head" id="atFormTitle">Sesi At-Tibyan Baru</div>
+          <div style="padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);flex-shrink:0">
+            <div class="fg" style="flex:1;min-width:140px;margin-bottom:0">
+              <label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Tanggal</label>
+              <input type="date" class="fc" id="atFormTanggal" style="margin-top:4px">
+            </div>
+            <div style="font-size:13px;color:var(--text-3);font-weight:700" id="atFormPertemuanInfo"></div>
+          </div>
+          <div style="padding:12px 16px 4px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+            <button class="btn btn-outline btn-sm" onclick="setAllAtPresensi('H')">✅ Semua Hadir</button>
+            <button class="btn btn-outline btn-sm" onclick="setAllAtPresensi('A')">❌ Semua Alpa</button>
+            <input type="search" class="fc" id="atFormSearch" placeholder="🔍 Cari murid..." oninput="filterAtFormMurid(this.value)" style="max-width:200px;font-size:12.5px;padding:6px 10px">
+            <div style="margin-left:auto;font-size:12px;font-weight:700;color:var(--text-3)" id="atFormCount"></div>
+          </div>
+          <div style="overflow-y:auto;flex:1;padding:8px 16px" id="atFormList"></div>
+          <div class="modal-foot" style="flex-shrink:0">
+            <button class="btn btn-outline" onclick="tutupFormAtTibyan()">Batal</button>
+            <button class="btn btn-green" id="atFormSimpan" onclick="simpanAtTibyan()">💾 Simpan Sesi</button>
+          </div>
         </div>
       </div>
 
@@ -2204,7 +2349,8 @@ function goPage(name) {
   }
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
-  if (name === 'keaktifan')  loadKeaktifanPage();
+  if (name === 'keaktifan')      loadKeaktifanPage();
+  if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); }
   if (name === 'assessment') {
     populateSel('asmtHalaqahSel');
     // Jika hanya ada satu halaqah, langsung pilih dan load rekap tanpa menunggu user
@@ -2361,6 +2507,10 @@ function guruRefresh(tab) {
   else if (tab === 'riwayat')   loadRiwayat();
   else if (tab === 'keaktifan') { _keaktifanData = null; loadKeaktifanPage(); }
   else if (tab === 'assessment') loadAssessmentRekap();
+  else if (tab === 'attibyan-guru') {
+    _atTabLoaded = {}; _atSesiData = []; _atKeaktifanData = null;
+    loadAtTibyanGuru();
+  }
 }
 
 async function doBukaKBM() {
@@ -4902,6 +5052,326 @@ initThemeToggle();
 
 if ('serviceWorker' in navigator)
   navigator.serviceWorker.register('../sw.js').catch(()=>{});
+
+// ══════════════════════════════════════════════════════════════
+//  AT-TIBYAN GURU
+// ══════════════════════════════════════════════════════════════
+var _atMuridAll     = [];  // semua murid aktif (loaded once)
+var _atSesiData     = [];  // riwayat sesi
+var _atKeaktifanData= null;
+var _atEditId       = null; // id_sesi saat mode edit
+var _atCurrentTab   = 'sesi';
+var _atTabLoaded    = {};
+
+function switchAtTab(tab, btn) {
+  _atCurrentTab = tab;
+  document.querySelectorAll('.at-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.getElementById('atPanelSesi').style.display      = tab === 'sesi'      ? '' : 'none';
+  document.getElementById('atPanelKeaktifan').style.display = tab === 'keaktifan' ? '' : 'none';
+  document.getElementById('atPanelRekap').style.display     = tab === 'rekap'     ? '' : 'none';
+  if (!_atTabLoaded[tab]) {
+    _atTabLoaded[tab] = true;
+    if (tab === 'sesi')      loadAtSesi();
+    if (tab === 'keaktifan') loadAtKeaktifan();
+    if (tab === 'rekap')     loadAtRekap();
+  }
+}
+
+async function loadAtTibyanGuru() {
+  // Load riwayat sesi (tab pertama)
+  if (!_atTabLoaded['sesi']) { _atTabLoaded['sesi'] = true; await loadAtSesi(); }
+  // Populate halaqah filter di rekap
+  _populateAtHalaqahFilter();
+}
+
+function _populateAtHalaqahFilter() {
+  var sel = document.getElementById('atRekapHalaqah');
+  if (!sel || !halaqahList.length) return;
+  sel.innerHTML = '<option value="">— Semua Halaqah —</option>'
+    + halaqahList.map(function(h){ return '<option value="'+esc(h.id_halaqah)+'">'+esc(h.nama_halaqah)+'</option>'; }).join('');
+}
+
+async function loadAtSesi() {
+  var el = document.getElementById('atSesiList');
+  el.innerHTML = Array(3).fill('<div class="skel skel-card" style="height:64px;border-radius:12px;margin-bottom:10px"></div>').join('');
+  try {
+    var r = await window.HQ.GuruAPI.getAtTibyanSesi();
+    _atSesiData = r.data || [];
+    renderAtSesi();
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+}
+
+function renderAtSesi() {
+  var el = document.getElementById('atSesiList');
+  if (!_atSesiData.length) {
+    el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">📖</div><div class="guru-empty-ttl">Belum ada sesi At-Tibyan</div><div class="guru-empty-sub">Tekan tombol di atas untuk mulai sesi pertama.</div></div>';
+    return;
+  }
+  el.innerHTML = '<div class="card"><div style="padding:8px 16px">'
+    + _atSesiData.map(function(s) {
+      var pct = s.total_murid > 0 ? Math.round(s.total_hadir / s.total_murid * 100) : 0;
+      var col = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+      return '<div class="at-sesi-row" onclick="lihatDetailAtSesi(\''+esc(s.id_sesi)+'\',\''+esc(s.pertemuan_ke)+'\')">'
+        + '<div class="at-sesi-badge">'+esc(s.pertemuan_ke)+'</div>'
+        + '<div class="at-sesi-info">'
+        + '<div class="at-sesi-title">Pertemuan ke-'+esc(s.pertemuan_ke)+'</div>'
+        + '<div class="at-sesi-meta">📅 '+fmtDate(s.tanggal)+'</div>'
+        + '</div>'
+        + '<div style="text-align:right">'
+        + '<div class="at-sesi-stat" style="color:'+col+'">'+s.total_hadir+'/'+s.total_murid+'</div>'
+        + '<div style="font-size:10.5px;color:var(--text-3);font-weight:600">'+pct+'% hadir</div>'
+        + '</div>'
+        + '<button class="btn btn-outline btn-sm" style="margin-left:8px;padding:5px 10px" onclick="event.stopPropagation();editAtSesi(\''+esc(s.id_sesi)+'\',\''+esc(s.tanggal)+'\',\''+esc(s.pertemuan_ke)+'\')">✏️</button>'
+        + '</div>';
+    }).join('') + '</div></div>';
+}
+
+async function loadAtKeaktifan() {
+  var el = document.getElementById('atKeaktifanGrid');
+  el.innerHTML = Array(4).fill('<div class="skel skel-card" style="height:100px;border-radius:16px;margin-bottom:10px"></div>').join('');
+  try {
+    var r = await window.HQ.GuruAPI.getAtTibyanKeaktifan();
+    _atKeaktifanData = r.data;
+    document.getElementById('atKritisCount').textContent    = r.data.summary.kritis;
+    document.getElementById('atPeringatanCount').textContent= r.data.summary.peringatan;
+    document.getElementById('atNormalCount').textContent    = r.data.summary.normal;
+    filterAtKeaktifan();
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+}
+
+function filterAtKeaktifan() {
+  var el = document.getElementById('atKeaktifanGrid');
+  if (!_atKeaktifanData) return;
+  var q = (document.getElementById('atKeaktifanSearch').value || '').toLowerCase().trim();
+  var list = _atKeaktifanData.alerts.filter(function(m) {
+    return !q || (m.nama_murid || '').toLowerCase().indexOf(q) !== -1;
+  });
+  if (!list.length) {
+    el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">🌟</div>'
+      + '<div class="guru-empty-ttl">Alhamdulillah, semua murid aktif hadir!</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(m) {
+    var borderColor = m.status === 'kritis' ? 'var(--red)' : m.status === 'peringatan' ? 'var(--amber)' : 'var(--green)';
+    var badge = m.status === 'kritis' ? '<span class="badge b-red">Kritis 🔴</span>'
+      : m.status === 'peringatan' ? '<span class="badge b-amber">Peringatan 🟡</span>'
+      : '<span class="badge b-green">Normal 🟢</span>';
+    var dots = (m.riwayat || []).map(function(r) {
+      return '<div class="at-dot '+(r.warna === 'hijau' ? 'hadir' : 'absen')+'" title="'+esc(r.tanggal)+'"></div>';
+    }).join('');
+    return '<div class="at-keaktifan-card '+m.status+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div><div style="font-size:14px;font-weight:800;color:var(--text)">'+esc(m.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3);font-weight:600;margin-top:2px">'+esc(m.nama_halaqah)+' · '+esc(m.level)+'</div></div>'
+      + badge + '</div>'
+      + '<div style="font-size:12px;color:var(--text-2);font-weight:600;margin-top:8px">Hadir '+m.hadir+' dari '+m.total_sesi+' sesi ('+m.pct_hadir+'%) · Absen '+m.absen+'×</div>'
+      + '<div class="at-dots">'+dots+'</div></div>';
+  }).join('');
+}
+
+async function loadAtRekap() {
+  var el = document.getElementById('atRekapContent');
+  var id_h = document.getElementById('atRekapHalaqah').value;
+  el.innerHTML = Array(4).fill('<div class="skel skel-row" style="height:48px;border-radius:8px;margin-bottom:8px"></div>').join('');
+  try {
+    var r = await window.HQ.GuruAPI.getAtTibyanRekap(id_h || null);
+    var rows = r.data || [];
+    var totalSesi = r.total_sesi || 0;
+    if (!rows.length) {
+      el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">📊</div><div class="guru-empty-ttl">Belum ada data rekap</div></div>';
+      return;
+    }
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-3);font-weight:700;margin-bottom:12px">Total '
+      + totalSesi + ' sesi At-Tibyan</div>'
+      + '<div class="card"><div style="padding:8px 16px">'
+      + rows.map(function(m) {
+        var col = m.pct_hadir >= 80 ? '#10b981' : m.pct_hadir >= 60 ? '#f59e0b' : '#ef4444';
+        return '<div class="at-rekap-row">'
+          + '<div style="flex:1"><div class="at-rekap-name">'+esc(m.nama_murid)+'</div>'
+          + '<div class="at-rekap-meta">'+esc(m.nama_halaqah)+' · '+esc(m.level)+'</div>'
+          + '<div class="at-rekap-bar"><div class="at-rekap-fill" style="width:'+m.pct_hadir+'%;background:'+col+'"></div></div></div>'
+          + '<div style="text-align:right"><div class="at-rekap-pct" style="color:'+col+'">'+m.pct_hadir+'%</div>'
+          + '<div style="font-size:10.5px;color:var(--text-3);font-weight:600">'+m.hadir+'/'+totalSesi+'</div></div>'
+          + '</div>';
+      }).join('') + '</div></div>';
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+}
+
+async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
+  toast('Memuat detail...','info');
+  try {
+    var r = await window.HQ.GuruAPI.getAtTibyanDetail(id_sesi);
+    var rows = r.data || [];
+    // Kelompokkan per level → halaqah
+    var groups = {};
+    rows.forEach(function(m) {
+      var key = (m.level || '-') + '||' + (m.nama_halaqah || '-');
+      if (!groups[key]) groups[key] = { level: m.level, halaqah: m.nama_halaqah, murid: [] };
+      groups[key].murid.push(m);
+    });
+    var LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+    var BADGE  = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
+    var html = Object.values(groups).map(function(g) {
+      return '<div class="at-halaqah-group"><div class="at-halaqah-head">'+esc(g.level)+' — '+esc(g.halaqah)+'</div>'
+        + g.murid.map(function(m) {
+          var sh = String(m.status_hadir || '').toUpperCase();
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
+            + '<span style="font-size:13px;font-weight:700">'+esc(m.nama_murid)+'</span>'
+            + '<span class="badge '+(BADGE[sh]||'b-gray')+'">'+( LABEL[sh]||sh)+'</span></div>';
+        }).join('') + '</div>';
+    }).join('');
+    // Tampilkan di notif overlay atau gunakan modal sederhana
+    var win = window.open('','_self');
+    toast('Pertemuan ke-'+pertemuan_ke+' — '+rows.length+' murid tercatat','ok');
+    // Gunakan alert sementara, bisa dikembangkan jadi modal
+    var total = rows.length;
+    var hadir = rows.filter(function(r){ return ['H','T'].includes(String(r.status_hadir).toUpperCase()); }).length;
+    toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir. Tekan Edit (✏️) untuk ubah data.','info');
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// ── Form At-Tibyan ──────────────────────────────
+async function bukaFormAtTibyan() {
+  _atEditId = null;
+  document.getElementById('atFormTitle').textContent = 'Sesi At-Tibyan Baru';
+  document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
+  var ptKe = _atSesiData.length + 1;
+  document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + ptKe;
+  await _loadAtFormMurid();
+  document.getElementById('atFormOverlay').style.display = 'flex';
+}
+
+async function editAtSesi(id_sesi, tanggal, pertemuan_ke) {
+  _atEditId = id_sesi;
+  document.getElementById('atFormTitle').textContent = 'Edit Sesi At-Tibyan ke-' + pertemuan_ke;
+  document.getElementById('atFormTanggal').value = String(tanggal).substring(0,10);
+  document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + pertemuan_ke;
+  await _loadAtFormMurid(id_sesi);
+  document.getElementById('atFormOverlay').style.display = 'flex';
+}
+
+async function _loadAtFormMurid(id_sesi_edit) {
+  var listEl = document.getElementById('atFormList');
+  listEl.innerHTML = Array(4).fill('<div class="skel skel-card" style="height:52px;border-radius:10px;margin-bottom:8px"></div>').join('');
+  try {
+    // Load semua murid jika belum ada
+    if (!_atMuridAll.length) {
+      var r = await window.HQ.GuruAPI.getAllMuridAktif();
+      _atMuridAll = r.data || [];
+    }
+    // Jika mode edit, ambil status hadir existing
+    var existingMap = {};
+    if (id_sesi_edit) {
+      var rd = await window.HQ.GuruAPI.getAtTibyanDetail(id_sesi_edit);
+      (rd.data || []).forEach(function(m) { existingMap[m.id_murid] = String(m.status_hadir).toUpperCase(); });
+    }
+    // Default semua H
+    _atMuridAll.forEach(function(m) {
+      if (!existingMap[m.id_murid]) existingMap[m.id_murid] = 'H';
+    });
+    window._atPresensiMap = existingMap;
+    renderAtFormList(_atMuridAll);
+  } catch(e) { listEl.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+}
+
+function renderAtFormList(murid) {
+  var listEl = document.getElementById('atFormList');
+  // Kelompokkan level → halaqah
+  var groups = {};
+  murid.forEach(function(m) {
+    var key = (m.level||'-')+'||'+(m.nama_halaqah||'-');
+    if (!groups[key]) groups[key] = {level:m.level, halaqah:m.nama_halaqah, murid:[]};
+    groups[key].murid.push(m);
+  });
+  var STATUS = ['H','T','I','A'];
+  var LABEL  = {H:'H',T:'T',I:'I',A:'A'};
+  listEl.innerHTML = Object.values(groups).map(function(g) {
+    return '<div class="at-halaqah-group"><div class="at-halaqah-head">'
+      + esc(g.level) + ' — ' + esc(g.halaqah) + '</div>'
+      + g.murid.map(function(m) {
+        var cur = (window._atPresensiMap && window._atPresensiMap[m.id_murid]) || 'H';
+        var btns = STATUS.map(function(s) {
+          return '<button class="at-pb'+(cur===s?' on-'+s:'')+'" data-id="'+esc(m.id_murid)+'" data-s="'+s+'" onclick="setAtStatus(this,\''+esc(m.id_murid)+'\',\''+s+'\')">'+s+'</button>';
+        }).join('');
+        return '<div class="at-murid-row" data-name="'+esc((m.nama_murid||'').toLowerCase())+'">'
+          +'<div><div class="at-murid-name">'+esc(m.nama_murid)+'</div>'
+          +'<div class="at-murid-level">'+esc(m.nama_halaqah)+'</div></div>'
+          +'<div style="display:flex;gap:4px">'+btns+'</div>'
+          +'</div>';
+      }).join('') + '</div>';
+  }).join('');
+  _updateAtFormCount();
+}
+
+function setAtStatus(btn, id_murid, status) {
+  if (!window._atPresensiMap) window._atPresensiMap = {};
+  window._atPresensiMap[id_murid] = status;
+  // Update semua tombol di baris ini
+  document.querySelectorAll('[data-id="'+id_murid+'"]').forEach(function(b) {
+    b.className = 'at-pb' + (b.dataset.s === status ? ' on-'+status : '');
+  });
+  _updateAtFormCount();
+}
+
+function setAllAtPresensi(status) {
+  if (!window._atPresensiMap) window._atPresensiMap = {};
+  _atMuridAll.forEach(function(m) { window._atPresensiMap[m.id_murid] = status; });
+  document.querySelectorAll('.at-pb').forEach(function(b) {
+    b.className = 'at-pb' + (b.dataset.s === status ? ' on-'+status : '');
+  });
+  _updateAtFormCount();
+}
+
+function filterAtFormMurid(q) {
+  q = (q || '').toLowerCase();
+  document.querySelectorAll('#atFormList .at-murid-row').forEach(function(row) {
+    row.style.display = !q || (row.dataset.name || '').indexOf(q) !== -1 ? '' : 'none';
+  });
+}
+
+function _updateAtFormCount() {
+  var map = window._atPresensiMap || {};
+  var hadir = Object.values(map).filter(function(s){ return ['H','T'].includes(s); }).length;
+  var total = _atMuridAll.length;
+  var el = document.getElementById('atFormCount');
+  if (el) el.textContent = hadir + '/' + total + ' hadir';
+}
+
+function tutupFormAtTibyan() {
+  document.getElementById('atFormOverlay').style.display = 'none';
+  _atEditId = null;
+}
+
+async function simpanAtTibyan() {
+  var tanggal = document.getElementById('atFormTanggal').value;
+  if (!tanggal) return toast('Tanggal wajib diisi','err');
+  var map = window._atPresensiMap || {};
+  var presensi = _atMuridAll.map(function(m) {
+    return { id_murid: m.id_murid, id_halaqah: m.id_halaqah, status_hadir: map[m.id_murid] || 'H' };
+  });
+  var btn = document.getElementById('atFormSimpan');
+  if (btn) { btn.disabled = true; btn.classList.add('btn-loading'); }
+  try {
+    if (_atEditId) {
+      await window.HQ.GuruAPI.editAtTibyan({ id_sesi: _atEditId, presensi });
+      toast('Presensi berhasil diperbarui ✅','ok');
+    } else {
+      await window.HQ.GuruAPI.simpanAtTibyan({ tanggal, presensi });
+      toast('Sesi At-Tibyan berhasil disimpan ✅','ok');
+    }
+    tutupFormAtTibyan();
+    // Refresh data
+    _atTabLoaded = {};
+    _atSesiData = [];
+    _atKeaktifanData = null;
+    _atTabLoaded['sesi'] = true;
+    await loadAtSesi();
+  } catch(e) { toast(e.message,'err'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.classList.remove('btn-loading'); }
+  }
+}
 </script>
 </body>
 </html>

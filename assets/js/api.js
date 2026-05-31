@@ -253,6 +253,14 @@ var GuruAPI = {
   getKeaktifanAlerts    : function()              { return apiGet('getKeaktifanAlerts'); },
   simpanFollowupKeaktifan: function(d)             { return apiPost('simpanFollowupKeaktifan', d); },
   getAssessmentRekap    : function(id_h)          { return apiGet('getAssessmentRekap', { id_halaqah: id_h }); },
+  // At-Tibyan
+  getAllMuridAktif       : function()              { return apiGet('getAllMuridAktif'); },
+  simpanAtTibyan        : function(d)             { return apiPost('simpanAtTibyanBulk', d); },
+  editAtTibyan          : function(d)             { return apiPost('editAtTibyanSesi', d); },
+  getAtTibyanSesi       : function()              { return apiGet('getAtTibyanSesi'); },
+  getAtTibyanDetail     : function(id_sesi)       { return apiGet('getAtTibyanDetail', { id_sesi }); },
+  getAtTibyanRekap      : function(id_h)          { return apiGet('getAtTibyanRekap', id_h ? { id_halaqah: id_h } : {}); },
+  getAtTibyanKeaktifan  : function()              { return apiGet('getAtTibyanKeaktifan'); },
 };
 
 // ─── MURID API ────────────────────────────────────
@@ -269,6 +277,7 @@ var MuridAPI = {
   getProgressGrafik : function()              { return apiGet('getProgressGrafik'); },
   getMateriLevel    : function(lv)            { return apiGet('getMateriLevel', lv ? {level:lv} : {}); },
   getAtTibyan       : function(ptm)           { return apiGet('getAtTibyan', ptm ? {pertemuan:ptm} : {}); },
+  getAtTibyanMurid  : function()              { return apiGet('getAtTibyanMurid'); },
   getSPPStatus      : function()             { return apiGet('getSPPStatus'); },
   changePassword    : function(d)            { return apiPost('changePasswordMurid', d); },
   getKonfigurasiRaport: function()           { return apiGet('getKonfigurasiRaport'); },

@@ -1857,15 +1857,29 @@ html.theme-dark .bg-blobs-guru{display:none}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
         </button>
       </div>
-      <div class="at-search-wrap">
-        <span class="at-search-ico">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </span>
-        <input type="search" class="at-search-input" id="atSearchInput" placeholder="Cari materi atau nasihat..." oninput="onAtSearch(this.value)" autocomplete="off">
-        <button class="at-search-clear" id="atSearchClear" onclick="clearAtSearch()">✕</button>
+      <!-- Tab bar -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;background:#f1f5f9;border-radius:12px;padding:4px">
+        <button class="atf-btn active" id="atTabKajian" onclick="switchAtMuridTab('kajian',this)" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s">📚 Kajian</button>
+        <button class="atf-btn" id="atTabKehadiran" onclick="switchAtMuridTab('kehadiran',this)" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s">✅ Kehadiranku</button>
       </div>
-      <div class="attibyan-filter" id="attibyanFilter"></div>
-      <div id="attibyanList"></div>
+      <!-- Panel Kajian -->
+      <div id="atPanelKajian">
+        <div class="at-search-wrap">
+          <span class="at-search-ico">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input type="search" class="at-search-input" id="atSearchInput" placeholder="Cari materi atau nasihat..." oninput="onAtSearch(this.value)" autocomplete="off">
+          <button class="at-search-clear" id="atSearchClear" onclick="clearAtSearch()">✕</button>
+        </div>
+        <div class="attibyan-filter" id="attibyanFilter"></div>
+        <div id="attibyanList"></div>
+      </div>
+      <!-- Panel Kehadiranku -->
+      <div id="atPanelKehadiran" style="display:none">
+        <div id="atKehadiranContent">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
+      </div>
     </div>
 
     <!-- ════ RAPORT ════ -->
@@ -3992,8 +4006,11 @@ function refreshTab(name) {
   else if (name === 'raport') { loadRaport(); }
   else if (name === 'attibyan') {
     _attibyanData = []; _attibyanColumns = []; _attibyanFilter = 'all'; _atSearchQuery = '';
+    _atMuridTabLoaded = false;
     var si = document.getElementById('atSearchInput'); if(si) si.value='';
     var sc = document.getElementById('atSearchClear'); if(sc) sc.classList.remove('visible');
+    // Reset ke tab Kajian
+    switchAtMuridTab('kajian', document.getElementById('atTabKajian'));
     loadAtTibyan();
   }
   _muridTabLoaded[name] = true;
@@ -4009,6 +4026,63 @@ function onAtSearch(val) {
   var clearBtn = document.getElementById('atSearchClear');
   if (clearBtn) clearBtn.classList.toggle('visible', _atSearchQuery.length > 0);
   renderAtTibyan();
+}
+
+// ── Tab Kehadiranku At-Tibyan ──────────────────
+var _atMuridTabLoaded = false;
+
+function switchAtMuridTab(tab, btn) {
+  document.getElementById('atTabKajian').classList.toggle('active', tab === 'kajian');
+  document.getElementById('atTabKehadiran').classList.toggle('active', tab === 'kehadiran');
+  document.getElementById('atPanelKajian').style.display    = tab === 'kajian'    ? '' : 'none';
+  document.getElementById('atPanelKehadiran').style.display = tab === 'kehadiran' ? '' : 'none';
+  if (tab === 'kehadiran' && !_atMuridTabLoaded) {
+    _atMuridTabLoaded = true;
+    loadAtKehadiranMurid();
+  }
+}
+
+async function loadAtKehadiranMurid() {
+  var el = document.getElementById('atKehadiranContent');
+  el.innerHTML = skelCards(3, 3);
+  try {
+    var r = await window.HQ.MuridAPI.getAtTibyanMurid();
+    var rows = r.data || [];
+    var sum  = r.summary || {hadir:0, total:0, pct:0};
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">📖</div>'
+        + '<div class="empty-ttl">Belum ada sesi At-Tibyan</div>'
+        + '<div class="empty-sub">Riwayat kehadiranmu akan muncul di sini setelah sesi pertama berlangsung.</div></div>';
+      return;
+    }
+    var pctColor = sum.pct >= 80 ? '#059669' : sum.pct >= 60 ? '#b45309' : '#dc2626';
+    var pctBg    = sum.pct >= 80 ? 'linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:rgba(16,185,129,.15)'
+      : sum.pct >= 60 ? 'linear-gradient(135deg,#fffbeb,#fef3c7);border-color:rgba(245,158,11,.15)'
+      : 'linear-gradient(135deg,#fff5f5,#fee2e2);border-color:rgba(239,68,68,.15)';
+    var pctDesc  = sum.pct >= 80 ? 'Kehadiran At-Tibyan sangat baik!' : sum.pct >= 60 ? 'Usahakan hadir lebih sering.' : 'Kehadiran At-Tibyan perlu ditingkatkan.';
+    var LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
+    var BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
+    el.innerHTML =
+      '<div style="background:'+pctBg+';border:1px solid;border-radius:16px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">'
+      + '<div style="font-size:36px;font-weight:900;color:'+pctColor+'">'+sum.pct+'%</div>'
+      + '<div><div style="font-size:13px;font-weight:800;color:'+pctColor+'">Hadir '+sum.hadir+' dari '+sum.total+' sesi</div>'
+      + '<div style="font-size:11.5px;font-weight:600;color:var(--text-3);margin-top:2px">'+pctDesc+'</div></div>'
+      + '</div>'
+      + '<div class="card"><div style="padding:8px 16px">'
+      + rows.map(function(s) {
+        if (!s.status_hadir) return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
+          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Pertemuan ke-'+esc(String(s.pertemuan_ke))+'</div>'
+          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">'+esc(String(s.tanggal||''))+'</div></div>'
+          + '<span class="badge b-gray" style="font-size:10.5px">–</span></div>';
+        var sh = String(s.status_hadir).toUpperCase();
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
+          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Pertemuan ke-'+esc(String(s.pertemuan_ke))+'</div>'
+          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">📅 '+esc(String(s.tanggal||''))+'</div></div>'
+          + '<span class="badge '+(BADGE[sh]||'b-gray')+'">'+(LABEL[sh]||sh)+'</span></div>';
+      }).join('') + '</div></div>';
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
+  }
 }
 
 function clearAtSearch() {
