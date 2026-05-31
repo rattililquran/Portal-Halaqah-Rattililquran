@@ -2450,21 +2450,14 @@ async function loadDashboard(silent = false) {
       updateSesiBanner();
     }
 
-    // Cek draft dari dashboard (jika GAS sudah update)
+    // Cek draft dari dashboard (jika GAS sudah update dengan total_draft)
     if (typeof d.total_draft !== 'undefined') {
       _updateDraftOrphanAlert(d.total_draft);
     }
-    // Selalu query ulang getDraftCount secara terpisah — tidak bergantung versi GAS
-    window.HQ.GuruAPI.getDraftCount().then(function(dr) {
-      if (dr && typeof dr.total !== 'undefined') {
-        _updateDraftOrphanAlert(dr.total);
-        // Sinkronkan sesiAktif jika belum ter-set tapi ada draft
-        if (!sesiAktif && dr.total > 0 && dr.drafts && dr.drafts[0]) {
-          sesiAktif = dr.drafts[0];
-          updateSesiBanner();
-        }
-      }
-    }).catch(function() { /* silent */ });
+
+    // Fallback: pakai getKBMByHalaqah yang sudah ada di GAS lama
+    // Cek semua halaqah milik guru ini secara paralel (limit besar untuk dapat semua draft)
+    _checkDraftViaRiwayat(d.halaqah || []);
 
     // jadwalList sudah di-render oleh loadJadwal()
     // Pastikan jadwalList render ulang jika data sudah ada
@@ -3273,6 +3266,28 @@ async function loadRiwayat() {
     </tr>`).join('');
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
+}
+
+// Cek draft via getKBMByHalaqah yang sudah ada di GAS lama
+// Dipanggil setelah halaqahList tersedia — tidak perlu GAS update
+async function _checkDraftViaRiwayat(halaqahList) {
+  if (!halaqahList || !halaqahList.length) return;
+  try {
+    var results = await Promise.all(
+      halaqahList.map(function(h) {
+        return window.HQ.GuruAPI.getRiwayatKBM(h.id_halaqah, 100, 0)
+          .then(function(r) { return r.data || []; })
+          .catch(function() { return []; });
+      })
+    );
+    var totalDraft = 0;
+    results.forEach(function(rows) {
+      rows.forEach(function(k) {
+        if (String(k.status).toLowerCase() === 'draft') totalDraft++;
+      });
+    });
+    _updateDraftOrphanAlert(totalDraft);
+  } catch(e) { /* silent */ }
 }
 
 function _updateDraftOrphanAlert(totalDraft) {
