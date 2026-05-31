@@ -4597,7 +4597,7 @@ function filterKeaktifanCards() {
     var showWA = (m.status === 'kritis' || m.status === 'peringatan');
     var waBtn = '';
     if (showWA) {
-      var hasHp = m.no_hp && m.no_hp.replace(/\D/g,'').length >= 9;
+      var hasHp = m.no_hp && String(m.no_hp).replace(/\D/g,'').length >= 9;
       waBtn = '<button onclick="openWAKeaktifan(' + mIdx + ')" title="' + (hasHp ? 'Hubungi via WhatsApp' : 'Nomor HP tidak tersedia') + '" style="'
         + 'background:' + (hasHp ? 'linear-gradient(135deg,#25D366,#128C7E)' : 'rgba(0,0,0,0.08)') + ';'
         + 'color:' + (hasHp ? '#fff' : 'var(--text-3)') + ';'
@@ -4671,7 +4671,7 @@ function openWAKeaktifan(idx) {
   var m = _keaktifanData && _keaktifanData.alerts[idx];
   if (!m) return;
 
-  var raw = (m.no_hp || '').replace(/[^0-9]/g, '');
+  var raw = String(m.no_hp || '').replace(/[^0-9]/g, '');
   if (!raw || raw.length < 9) {
     toast('Nomor HP murid ini belum tersedia di data pengguna.', 'warn');
     return;
