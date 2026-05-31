@@ -1346,10 +1346,16 @@ html.theme-dark .bg-blobs-guru{display:none}
   <div class="top-header" id="topHeader">
     <div class="top-specular"></div>
     <div class="top-row">
-      <!-- Avatar Kiri (Pengganti Hamburger) -->
-      <div id="topAvatar" class="top-avatar" onclick="openSidebar()" title="Menu" aria-label="Buka menu"></div>
+      <!-- Hamburger kiri -->
+      <button class="top-hamburger" onclick="openSidebar()" title="Menu" aria-label="Buka menu">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="1" y1="3.5" x2="14" y2="3.5"/>
+          <line x1="1" y1="7.5" x2="14" y2="7.5"/>
+          <line x1="1" y1="11.5" x2="14" y2="11.5"/>
+        </svg>
+      </button>
       <!-- Info tengah -->
-      <div class="top-left" style="margin-left: 4px;">
+      <div class="top-left">
         <div class="top-name" id="topName">–</div>
         <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
       </div>
@@ -1369,6 +1375,9 @@ html.theme-dark .bg-blobs-guru{display:none}
       </div>
     </div>
   </div>
+
+  <!-- topAvatar ghost element — dipertahankan untuk kompatibilitas kode JS -->
+  <div id="topAvatar" style="display:none"></div>
 
   <!-- CONTENT -->
   <div class="content">
