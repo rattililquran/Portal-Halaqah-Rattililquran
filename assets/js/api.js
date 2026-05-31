@@ -19,7 +19,7 @@ var CACHE_TTL = {
   // Data dinamis — cache pendek
   'getDashboardGuru'    : 60,
   'getDashboardAdmin'   : 60,
-  'getDashboardMurid'   : 60,
+  'getDashboardMurid'   : 30, // turun dari 60s agar presensi baru lebih cepat terlihat murid
   'getJadwalHariIni'    : 60,
   'getMuridByHalaqah'   : 120,
   'getAllAnggota'        : 120,
@@ -121,9 +121,11 @@ async function apiPost(action, body) {
   var invalidateMap = {
     'bukaKBM'            : ['getDashboard','getJadwal','getKBM'],
     'simpanPresensi'     : ['getDashboard','getKBM','getRiwayat'],
+    'editPresensi'       : ['getDashboard','getKBM','getRiwayat','getProgress'], // fix: was missing
     'simpanNilaiMurid'   : ['getDashboard','getRiwayat','getProgress'],
     'simpanNilaiMuridBatch': ['getDashboard','getRiwayat','getProgress'],
     'tutupKBM'           : ['getDashboard','getJadwal','getKBM','getRiwayat'],
+    'hapusKBM'           : ['getDashboard','getJadwal','getKBM','getRiwayat'],
     'simpanJurnalKBM'    : ['getKBM'],
     'createUser'         : ['getAllUsers','getDashboard'],
     'updateUser'         : ['getAllUsers'],
