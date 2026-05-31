@@ -3227,9 +3227,26 @@ async function loadRiwayat() {
         <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
         <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
           onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Edit KBM</button>
+        ${k.status === 'draft' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
+          onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">🗑 Hapus Draft</button>` : ''}
       </td>
     </tr>`).join('');
   } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function hapusDraftKBM(id_kbm, pertemuan_ke, jenis) {
+  if (!confirm('Hapus sesi draft ' + jenis + ' ke-' + pertemuan_ke + '?\n\nSesi ini belum selesai dan tidak ada data presensi/nilai yang tersimpan.')) return;
+  showLoad('Menghapus sesi draft...');
+  try {
+    await window.HQ.GuruAPI.hapusKBM(id_kbm);
+    toast('Sesi draft berhasil dihapus ✅', 'ok');
+    // Reload riwayat
+    delete _guruTabLoaded['riwayat'];
+    loadRiwayat();
+    // Refresh dashboard agar banner draft hilang jika sesi itu sedang aktif
+    loadDashboard(true);
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
   finally { hideLoad(); }
 }
 
