@@ -615,19 +615,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .at-btn-share{background:var(--blue);color:#fff}
 .at-btn-share:hover{opacity:.9}
 /* Dashboard card At-Tibyan */
-.attibyan-dash-card{border-radius:20px;border:1px solid rgba(14,165,233,.2);
-  background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);
+.attibyan-dash-card{border-radius:20px;border:1px solid rgba(217,119,6,.25);
+  background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 60%,#fde68a 100%);
   padding:16px;margin-bottom:14px;cursor:pointer;
-  box-shadow:0 2px 12px rgba(14,165,233,.08);transition:transform .15s ease,box-shadow .15s ease}
+  box-shadow:0 4px 16px rgba(217,119,6,.15);transition:transform .15s ease,box-shadow .15s ease}
+.attibyan-dash-card:hover{box-shadow:0 6px 20px rgba(217,119,6,.22)}
 .attibyan-dash-card:active{transform:scale(.98)}
 .attibyan-dash-card-row{display:flex;align-items:center;gap:12px}
-.attibyan-dash-ico{width:44px;height:44px;border-radius:14px;
-  background:linear-gradient(135deg,#0ea5e9,#0284c7);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}
+.attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;
+  box-shadow:0 3px 10px rgba(217,119,6,.35)}
 .attibyan-dash-text{flex:1}
-.attibyan-dash-title{font-size:15px;font-weight:900;color:#0c4a6e;line-height:1.2}
-.attibyan-dash-sub{font-size:12px;font-weight:600;color:#0ea5e9;margin-top:2px}
-.attibyan-dash-arr{color:#0ea5e9;font-size:18px;font-weight:700}
+.attibyan-dash-title{font-size:16px;font-weight:900;color:#78350f;line-height:1.2;letter-spacing:-.01em}
+.attibyan-dash-sub{font-size:12px;font-weight:700;color:#b45309;margin-top:3px}
+.attibyan-dash-arr{color:#d97706;font-size:20px;font-weight:900;line-height:1}
 
 .level-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
 .lf-btn{padding:8px 18px;border-radius:100px;font-size:12.5px;font-weight:800;
@@ -1222,8 +1224,10 @@ html.theme-dark .at-card{background:#1e2128 !important;border-color:rgba(255,255
 html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .at-btn-copy{background:#252830 !important;color:#9ca3af !important}
-html.theme-dark .attibyan-dash-card{background:linear-gradient(135deg,#1e2d3d 0%,#1a2840 100%) !important;border-color:rgba(14,165,233,.25) !important}
-html.theme-dark .attibyan-dash-title{color:#bae6fd !important}
+html.theme-dark .attibyan-dash-card{background:linear-gradient(135deg,#2d1f00 0%,#3b2500 60%,#4a2e00 100%) !important;border-color:rgba(251,191,36,.2) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
+html.theme-dark .attibyan-dash-title{color:#fde68a !important}
+html.theme-dark .attibyan-dash-sub{color:#fbbf24 !important}
+html.theme-dark .attibyan-dash-arr{color:#fbbf24 !important}
 html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
 html.theme-dark .lf-btn{background:#252830 !important;border-color:rgba(255,255,255,.08) !important;color:#9ca3af !important}
 html.theme-dark .lf-btn.active{background:rgba(56,189,248,.15) !important;border-color:rgba(56,189,248,.3) !important;color:#38bdf8 !important}
@@ -1511,6 +1515,18 @@ html.theme-dark .bg-blobs-guru{display:none}
         </div>
       </div>
 
+      <!-- At-Tibyan -->
+      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
+        <div class="attibyan-dash-card-row">
+          <div class="attibyan-dash-ico">📖</div>
+          <div class="attibyan-dash-text">
+            <div class="attibyan-dash-title">At-Tibyan</div>
+            <div class="attibyan-dash-sub">Kajian mingguan · Materi &amp; Nasihat</div>
+          </div>
+          <div class="attibyan-dash-arr">›</div>
+        </div>
+      </div>
+
       <!-- Grafik Kehadiran Bulanan -->
       <div class="grafik-card" id="grafikCard" style="display:none">
         <div class="grafik-title-row">
@@ -1558,18 +1574,6 @@ html.theme-dark .bg-blobs-guru{display:none}
         </div>
         <div class="card-body" id="dashPengumuman">
           <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
-        </div>
-      </div>
-
-      <!-- At-Tibyan -->
-      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
-        <div class="attibyan-dash-card-row">
-          <div class="attibyan-dash-ico">📖</div>
-          <div class="attibyan-dash-text">
-            <div class="attibyan-dash-title">At-Tibyan</div>
-            <div class="attibyan-dash-sub">Kajian mingguan · Materi &amp; Nasihat</div>
-          </div>
-          <div class="attibyan-dash-arr">›</div>
         </div>
       </div>
 
