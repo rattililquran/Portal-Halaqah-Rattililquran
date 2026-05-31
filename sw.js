@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v3.3
+//  Cache version: v3.4
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v3.3';
+const CACHE_NAME   = 'halaqah-v3.4';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -59,9 +59,8 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   var url = e.request.url;
 
-  // GAS API — selalu network, jangan cache
+  // GAS API — selalu network, jangan cache, biarkan browser menangani secara native
   if (url.includes('script.google.com')) {
-    e.respondWith(fetch(e.request));
     return;
   }
 
