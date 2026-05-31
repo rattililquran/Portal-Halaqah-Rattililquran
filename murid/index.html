@@ -4772,8 +4772,19 @@ function fmtDate(d) {
   if (!d) return '';
   var BLAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
   try {
-    var dt = new Date(String(d).substring(0,10));
-    if (isNaN(dt.getTime())) return String(d).substring(0,10);
+    var s = String(d);
+    // Jika ISO UTC (misal 2026-05-30T17:00:00.000Z), konversi ke WIB (+7) sebelum format
+    var dt;
+    if (s.length > 10 && (s.indexOf('T') !== -1 || s.indexOf('Z') !== -1)) {
+      var utcMs = new Date(s).getTime();
+      var wibMs = utcMs + (7 * 60 * 60 * 1000);
+      dt = new Date(wibMs);
+    } else {
+      // yyyy-MM-dd — parse sebagai lokal (bukan UTC) agar tidak bergeser
+      var parts = s.substring(0,10).split('-');
+      dt = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]));
+    }
+    if (isNaN(dt.getTime())) return s.substring(0,10);
     return dt.getDate() + ' ' + BLAN[dt.getMonth()] + ' ' + dt.getFullYear();
   } catch(e) { return String(d).substring(0,10); }
 }

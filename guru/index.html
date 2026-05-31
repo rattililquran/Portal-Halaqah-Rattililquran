@@ -3388,7 +3388,19 @@ function nilaiLabel(n) {
 
 function fmtDate(d) {
   if (!d) return '–';
-  return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  try {
+    var s = String(d);
+    var dt;
+    // ISO UTC → konversi ke WIB (+7) sebelum format
+    if (s.length > 10 && (s.indexOf('T') !== -1 || s.indexOf('Z') !== -1)) {
+      dt = new Date(new Date(s).getTime() + 7 * 3600000);
+    } else {
+      var p = s.substring(0,10).split('-');
+      dt = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+    }
+    if (isNaN(dt.getTime())) return s.substring(0,10);
+    return dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+  } catch(e) { return String(d).substring(0,10); }
 }
 
 function esc(s) {
