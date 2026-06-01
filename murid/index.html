@@ -693,7 +693,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .komponen-row{display:flex;justify-content:space-between;align-items:center;
   padding:8px 0;font-size:13.5px;border-bottom:1px solid rgba(59,130,246,.08);font-weight:500}
 .komponen-row:last-child{border-bottom:none}
-.raport-actions{margin-top:16px;display:flex;gap:8px}
+.raport-actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
 .btn-pdf{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;
   border-radius:100px;font-family:inherit;font-size:13px;font-weight:800;
   border:none;cursor:pointer;transition:all .15s ease;
@@ -701,6 +701,42 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   box-shadow:0 4px 12px rgba(59,130,246,0.25)}
 .btn-pdf:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(59,130,246,0.35)}
 .btn-pdf:disabled{opacity:.6;pointer-events:none}
+/* Modal Rincian Raport */
+.rincian-overlay{display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;padding:0}
+@media(min-width:600px){.rincian-overlay{align-items:center;padding:20px}}
+.rincian-modal{background:var(--card);width:100%;max-width:640px;
+  max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
+  border-radius:24px 24px 0 0}
+@media(min-width:600px){.rincian-modal{border-radius:20px;max-height:88vh}}
+.rincian-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:linear-gradient(135deg,#1e3a5f,#334155)}
+.rincian-head-title{font-size:13.5px;font-weight:900;color:#fff;line-height:1.2}
+.rincian-head-sub{font-size:10.5px;color:#94a3b8;margin-top:2px}
+.rincian-close{background:none;border:none;cursor:pointer;color:#94a3b8;
+  font-size:20px;padding:0 4px;line-height:1}
+.rincian-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--card)}
+.rincian-tab{flex:1;padding:12px 8px;border:none;background:none;cursor:pointer;
+  font-size:12px;font-weight:700;color:var(--text-3);
+  border-bottom:2px solid transparent;font-family:inherit;transition:all .15s}
+.rincian-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.rincian-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.rincian-footer{padding:10px 14px;border-top:1px solid var(--border);
+  display:flex;gap:8px;flex-shrink:0;background:var(--card)}
+.rincian-hero{text-align:center;padding:20px 16px 14px;
+  background:linear-gradient(135deg,var(--blue-l),var(--card));
+  border-radius:14px;margin:14px 14px 10px}
+.rincian-hero-val{font-size:52px;font-weight:900;color:var(--blue);line-height:1}
+.rincian-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 10px}
+.rincian-stat{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.rincian-stat-val{font-size:22px;font-weight:900}
+.rincian-stat-lbl{font-size:9.5px;color:var(--text-3);font-weight:700;margin-top:2px}
+.rincian-sesi-table{width:100%;border-collapse:collapse;font-size:11.5px;min-width:400px}
+.rincian-sesi-table th{background:#334155;color:#fff;padding:7px 6px;font-size:10.5px;
+  font-weight:700;white-space:nowrap;position:sticky;top:0;z-index:1}
+.rincian-sesi-table td{padding:7px 6px;border-bottom:1px solid var(--border)}
+.rincian-sesi-table tr:nth-child(even) td{background:var(--bg)}
 
 /* ── PASSWORD FORM ── */
 .pw-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
@@ -2850,9 +2886,35 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   </div>
 </div>
 
+<!-- Modal Rincian Raport -->
+<div class="rincian-overlay" id="rincianOverlay" onclick="if(event.target===this)closeRincianModal()">
+  <div class="rincian-modal">
+    <div class="rincian-head">
+      <div>
+        <div class="rincian-head-title" id="rincianTitle">Rincian Raport</div>
+        <div class="rincian-head-sub" id="rincianSubtitle"></div>
+      </div>
+      <button class="rincian-close" onclick="closeRincianModal()">✕</button>
+    </div>
+    <div class="rincian-tabs">
+      <button class="rincian-tab active" id="rincianTab0" onclick="switchRincianTab(0,this)">📊 Nilai & Komponen</button>
+      <button class="rincian-tab" id="rincianTab1" onclick="switchRincianTab(1,this)">📋 Sesi KBM (<span id="rincianSesiCount">-</span>)</button>
+    </div>
+    <div class="rincian-body" id="rincianBody">
+      <div style="padding:40px;text-align:center;color:var(--text-3)">Memuat data...</div>
+    </div>
+    <div class="rincian-footer">
+      <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="closeRincianModal()">Tutup</button>
+      <button class="btn btn-primary" style="flex:2;justify-content:center;font-weight:800" id="btnPDFResmi" onclick="downloadPDFResmi()">
+        📥 Unduh PDF Resmi
+      </button>
+    </div>
+  </div>
+</div>
+
 <script src="../assets/js/jspdf.umd.min.js"></script>
 <script src="../assets/js/html2canvas.min.js"></script>
-<script src="../assets/js/api.js?v=3.9"></script>
+<script src="../assets/js/api.js?v=4.2"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -5202,7 +5264,7 @@ async function loadRaport() {
         + '<div class="raport-predikat">'+predikat+'</div>'
         + (kompHTML ? '<div style="margin-top:14px;border-top:1px solid rgba(20,88,168,.1);padding-top:12px">'+kompHTML+'</div>' : '')
         + '<div class="raport-actions">'
-        + '<button class="btn-pdf" onclick="previewRaportPDF('+idx+')">📥 Unduh PDF</button>'
+        + '<button class="btn-pdf" onclick="lihatRincianRaport('+idx+')" style="background:linear-gradient(135deg,#1e3a5f,#334155)">📊 Rincian & PDF</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -5979,6 +6041,237 @@ function _clearRaportBadge() {
   var badge = document.getElementById('raportNavBadge');
   if (badge) badge.style.display = 'none';
   localStorage.setItem(_RAPORT_SEEN_KEY, Date.now());
+}
+
+// ══════════════════════════════════════════════════════════
+//  MODAL RINCIAN RAPORT
+// ══════════════════════════════════════════════════════════
+var _rincianData  = null;
+var _rincianTab   = 0;
+var _rincianIdx   = -1;
+
+var HADIR_LABEL = { H:'Hadir', T:'Terlambat', I:'Izin', A:'Alpa' };
+var HADIR_COLOR = { H:'var(--green)', T:'var(--amber)', I:'var(--blue)', A:'var(--red)' };
+var HADIR_ICON  = { H:'✓', T:'T', I:'I', A:'✗' };
+
+async function lihatRincianRaport(idx) {
+  _rincianIdx = idx;
+  var rp = _raportData && _raportData[idx];
+  if (!rp) return;
+
+  document.getElementById('rincianTitle').textContent = 'Rincian Raport';
+  document.getElementById('rincianSubtitle').textContent = rp.nama_periode || '';
+  document.getElementById('rincianBody').innerHTML =
+    '<div style="padding:48px;text-align:center"><div style="font-size:28px;margin-bottom:8px">⏳</div><div style="color:var(--text-3);font-size:13px">Memuat rincian...</div></div>';
+  document.getElementById('rincianOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    var r = await window.HQ.MuridAPI.getRincianRaport(rp.id_raport);
+    _rincianData = r.data;
+    _rincianTab = 0;
+    document.getElementById('rincianSesiCount').textContent = (_rincianData.sesi || []).length;
+    document.querySelectorAll('.rincian-tab').forEach(function(b,i){ b.classList.toggle('active', i===0); });
+    _renderRincianBody();
+  } catch(e) {
+    document.getElementById('rincianBody').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--red)">❌ Gagal: '+esc(e.message)+'</div>';
+  }
+}
+
+function closeRincianModal() {
+  document.getElementById('rincianOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function switchRincianTab(tabIdx, btn) {
+  _rincianTab = tabIdx;
+  document.querySelectorAll('.rincian-tab').forEach(function(b,i){ b.classList.toggle('active', i===tabIdx); });
+  _renderRincianBody();
+}
+
+function _renderRincianBody() {
+  if (!_rincianData) return;
+  document.getElementById('rincianBody').innerHTML =
+    _rincianTab === 0 ? _htmlRincianNilai(_rincianData) : _htmlRincianSesi(_rincianData);
+}
+
+function _htmlRincianNilai(data) {
+  var rp  = data.raport;
+  var num = Number(rp.nilai_akhir) || 0;
+  var pred = String(rp.predikat || '');
+  var predBg  = pred === 'Mumtaz'        ? 'var(--green)'
+              : pred === 'Jayyid Jiddan' ? 'var(--blue)'
+              : pred === 'Jayyid'         ? 'var(--amber)' : 'var(--red)';
+
+  var h = '<div class="rincian-hero">'
+    + '<div class="rincian-hero-val" style="color:'+predBg+'">'+num.toFixed(1)+'</div>'
+    + '<div style="font-size:15px;font-weight:800;color:'+predBg+';margin-top:4px">'+esc(pred)+'</div>'
+    + '<div style="font-size:10px;color:var(--text-3);margin-top:4px">'+esc(rp.periode||'')+'</div>'
+    + '</div>';
+
+  // Tabel komponen
+  h += '<div style="padding:0 14px 6px">'
+    + '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Komponen Penilaian</div>'
+    + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<thead><tr style="background:#1e3a5f;color:#fff">'
+    + '<th style="padding:8px;text-align:left;border-radius:8px 0 0 0">Komponen</th>'
+    + '<th style="padding:8px;text-align:center">Bobot</th>'
+    + '<th style="padding:8px;text-align:center">Nilai</th>'
+    + '<th style="padding:8px;text-align:center;border-radius:0 8px 0 0">× Bobot</th>'
+    + '</tr></thead><tbody>';
+
+  (rp.komponen || []).forEach(function(k, i) {
+    var nb  = k.nilai_bobot !== undefined ? k.nilai_bobot
+            : Math.round(Number(k.nilai||0)*Number(k.bobot||0)/100*10)/10;
+    var bg  = i%2===0 ? 'var(--card)' : 'var(--bg)';
+    var vColor = Number(k.nilai) >= 80 ? 'var(--green)' : Number(k.nilai) >= 60 ? 'var(--amber)' : 'var(--red)';
+    h += '<tr style="background:'+bg+'">'
+      + '<td style="padding:9px 8px;font-weight:600">'+esc(k.nama_komponen||k.nama||'-')
+        +'<span style="font-size:9px;color:var(--text-3);margin-left:6px;font-weight:400">'+(k.tipe==='manual'?'manual':'otomatis')+'</span></td>'
+      + '<td style="padding:9px;text-align:center;color:var(--text-3)">'+k.bobot+'%</td>'
+      + '<td style="padding:9px;text-align:center;font-weight:800;font-size:14px;color:'+vColor+'">'+k.nilai+'</td>'
+      + '<td style="padding:9px;text-align:center;font-weight:700;color:var(--blue)">'+nb+'</td>'
+      + '</tr>';
+  });
+
+  h += '<tr style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">'
+    + '<td colspan="3" style="padding:10px 8px;font-weight:800;color:var(--green);text-align:right">NILAI AKHIR</td>'
+    + '<td style="padding:10px;text-align:center;font-weight:900;font-size:16px;color:var(--green)">'+num.toFixed(1)+'</td>'
+    + '</tr>';
+  h += '</tbody></table></div>';
+
+  // Nilai manual jika ada
+  if (data.nilai_manual && data.nilai_manual.length) {
+    h += '<div style="margin-top:14px">'
+      + '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Nilai Ujian</div>';
+    data.nilai_manual.forEach(function(n) {
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px">'
+        + '<span style="font-weight:600;font-size:13px">'+esc(n.nama_komponen||'-')+'</span>'
+        + '<span style="font-weight:900;font-size:16px;color:var(--blue)">'+n.nilai+'</span>'
+        + '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function _htmlRincianSesi(data) {
+  var sum  = data.summary || {};
+  var sesi = data.sesi    || [];
+
+  // Summary stats
+  var h = '<div class="rincian-stat-grid">';
+  var stats = [
+    { val: sum.total_sesi||0,  lbl:'Total Sesi',    color:'var(--blue)' },
+    { val: sum.total_hadir||0, lbl:'Hadir',          color:'var(--green)' },
+    { val: sum.total_alpa||0,  lbl:'Alpa',           color:(sum.total_alpa>0?'var(--red)':'var(--text-3)') },
+    { val: (sum.pct_hadir||0)+'%', lbl:'% Kehadiran',
+      color: sum.pct_hadir>=80?'var(--green)':sum.pct_hadir>=60?'var(--amber)':'var(--red)' },
+  ];
+  stats.forEach(function(s) {
+    h += '<div class="rincian-stat">'
+      + '<div class="rincian-stat-val" style="color:'+s.color+'">'+s.val+'</div>'
+      + '<div class="rincian-stat-lbl">'+s.lbl+'</div>'
+      + '</div>';
+  });
+  h += '</div>';
+
+  if (!sesi.length) {
+    h += '<div style="padding:40px;text-align:center;color:var(--text-3)">Belum ada data sesi KBM</div>';
+    return h;
+  }
+
+  // Tabel per sesi
+  h += '<div style="overflow-x:auto;padding:0 0 4px">'
+    + '<table class="rincian-sesi-table">'
+    + '<thead><tr>'
+    + '<th style="text-align:center">#</th>'
+    + '<th style="text-align:left">Tanggal</th>'
+    + '<th style="text-align:left">Materi</th>'
+    + '<th style="text-align:center">Hadir</th>'
+    + '<th style="text-align:center">Adab</th>'
+    + '<th style="text-align:center">Kamera</th>'
+    + '</tr></thead><tbody>';
+
+  sesi.forEach(function(s) {
+    var hColor = HADIR_COLOR[s.status_hadir] || 'var(--text)';
+    var hIcon  = HADIR_ICON[s.status_hadir]  || s.status_hadir;
+    var isAlpa = s.status_hadir === 'A';
+
+    var adabHTML = isAlpa ? '<span style="color:var(--text-3)">—</span>'
+      : s.adab === 'Baik'
+        ? '<span style="color:var(--green);font-weight:700">✓</span>'
+        : s.adab === 'Butuh Perhatian'
+          ? '<span style="color:var(--amber);font-size:9.5px;font-weight:700">⚠ Perhatian</span>'
+          : '<span style="color:var(--text-3)">—</span>';
+
+    var kamera = String(s.kamera||'');
+    var kamHTML = isAlpa ? '<span style="color:var(--text-3)">—</span>'
+      : kamera.indexOf('terbuka') !== -1
+        ? '<span style="color:var(--green);font-size:10px">Terbuka</span>'
+        : kamera.indexOf('selalu') !== -1
+          ? '<span style="color:var(--red);font-size:10px">Tertutup</span>'
+          : kamera.indexOf('sering') !== -1
+            ? '<span style="color:var(--amber);font-size:10px">Sering Tutup</span>'
+            : '<span style="color:var(--text-3)">—</span>';
+
+    h += '<tr>'
+      + '<td style="text-align:center;color:var(--text-3);font-size:10px">'+esc(String(s.pertemuan_ke))+'</td>'
+      + '<td style="white-space:nowrap">'+esc(fmtDate ? fmtDate(s.tanggal) : s.tanggal)+'</td>'
+      + '<td style="font-size:10.5px;color:var(--text-2);max-width:140px;word-break:break-word">'+esc(s.materi||'-')+'</td>'
+      + '<td style="text-align:center;font-weight:800;font-size:13px;color:'+hColor+'">'+hIcon+'</td>'
+      + '<td style="text-align:center">'+adabHTML+'</td>'
+      + '<td style="text-align:center">'+kamHTML+'</td>'
+      + '</tr>';
+
+    // Baris catatan murid (jika ada)
+    if (s.catatan_murid) {
+      h += '<tr><td></td>'
+        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--blue);font-style:italic;background:var(--blue-l)">'
+        + '💬 '+esc(s.catatan_murid)+'</td></tr>';
+    }
+    // Baris koreksi (jika ada)
+    if (s.koreksi && !isAlpa) {
+      h += '<tr><td></td>'
+        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--amber);background:#fffbeb">'
+        + '✏️ '+esc(s.koreksi)+'</td></tr>';
+    }
+  });
+
+  h += '</tbody></table></div>';
+  return h;
+}
+
+async function downloadPDFResmi() {
+  if (!_rincianData) return;
+  var rp = _rincianData.raport;
+  var btn = document.getElementById('btnPDFResmi');
+
+  // Gunakan cache jika ada
+  if (rp.url_pdf && rp.url_pdf.indexOf('drive.google.com') !== -1) {
+    window.open(rp.url_pdf, '_blank');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Membuat PDF...';
+  try {
+    var r = await window.HQ.MuridAPI.generateRaportPDF(rp.id_raport);
+    var url = r.data && r.data.url;
+    if (url) {
+      _rincianData.raport.url_pdf = url;
+      if (_rincianIdx >= 0 && _raportData && _raportData[_rincianIdx])
+        _raportData[_rincianIdx].url_pdf = url;
+      window.open(url, '_blank');
+      toast('PDF berhasil dibuat!', 'ok');
+    }
+  } catch(e) { toast('Gagal membuat PDF: '+e.message, 'err'); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = '📥 Unduh PDF Resmi';
+  }
 }
 </script>
 </body>

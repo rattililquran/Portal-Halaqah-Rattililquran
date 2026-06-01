@@ -268,6 +268,9 @@ var GuruAPI = {
   generateRaportHalaqah      : function(d)          { return apiPost('generateRaportHalaqahGuru', d); },
   publishAllRaportHalaqah    : function(d)          { return apiPost('publishAllRaportHalaqahGuru', d); },
   saveCatatanHalaqah         : function(d)          { return apiPost('saveCatatanHalaqahGuru', d); },
+  // Rincian & PDF (guru akses halaqahnya)
+  getRincianRaport           : function(id_r)       { return apiGet('getRincianRaport', { id_raport:id_r }); },
+  generateRaportPDF          : function(id_r, force){ return apiPost('generateRaportPDF', { id_raport:id_r, force:force||false }); },
 };
 
 // ─── MURID API ────────────────────────────────────
@@ -279,6 +282,8 @@ var MuridAPI = {
   },
   getLatihanMandiri : function()              { return apiGet('getLatihanMandiriMurid'); },
   getRaport         : function()              { return apiGet('getRaportMurid'); },
+  getRincianRaport  : function(id_r)          { return apiGet('getRincianRaport', { id_raport:id_r }); },
+  generateRaportPDF : function(id_r, force)   { return apiPost('generateRaportPDF', { id_raport:id_r, force:force||false }); },
   getPengumuman     : function()              { return apiGet('getPengumumanMurid'); },
   updateProfil      : function(d)             { return apiPost('updateProfilMurid', d); },
   getProgressGrafik : function()              { return apiGet('getProgressGrafik'); },
