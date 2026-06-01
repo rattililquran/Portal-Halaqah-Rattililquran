@@ -2612,7 +2612,7 @@ function renderObsDetail() {
 async function loadAudit() {
   showLoad('Bismillah, memproses...');
   try {
-    const r = await window.HQ.AdminAPI.getAuditLog();
+    const r = await window.HQ.SuperAdminAPI.getAuditLog();
     const tbody = document.getElementById('auditTbl');
     tbody.innerHTML = (r.data||[]).map(l=>`<tr>
       <td style="font-size:12px;white-space:nowrap">${esc(l.timestamp)}</td>

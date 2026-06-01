@@ -193,7 +193,7 @@ var AdminAPI = {
   getAllKBM           : function(p)         { return apiGet('getAllKBM', p || {}); },
   getRekapAbsensi    : function(p)         { return apiGet('getRekapAbsensi', p || {}); },
   getLaporanGlobal   : function(p)         { return apiGet('getLaporanGlobal', p || {}); },
-  getAuditLog        : function(p)         { return apiGet('getAuditLog', p || {}); },
+  // getAuditLog dipindah ke SuperAdminAPI -- hanya superadmin yang bisa akses
   getKomponenRaport  : function(id_p)      { return apiGet('getKomponenRaport', { id_periode:id_p }); },
   saveKomponenRaport : function(d)         { return apiPost('saveKomponenRaport', d); },
   getNilaiManual     : function(id_p)      { return apiGet('getNilaiManual', { id_periode:id_p }); },
