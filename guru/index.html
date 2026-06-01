@@ -2322,15 +2322,26 @@ function cekSesiDraft() {
 }
 
 function updateDraftWarning() {
-  const banner = document.getElementById('draftWarning');
+  const banner      = document.getElementById('draftWarning');
+  const formBukaKBM = document.getElementById('formBukaKBM');
   if (!banner) return;
-  if (!sesiAktif) { banner.classList.remove('show'); return; }
+
+  if (!sesiAktif) {
+    banner.classList.remove('show');
+    // Tidak ada sesi aktif — tampilkan form buka sesi + checklist
+    if (formBukaKBM) formBukaKBM.style.display = '';
+    return;
+  }
+
+  // Ada sesi aktif: sembunyikan form buka sesi (checklist tidak perlu diisi ulang)
+  // Guru cukup lanjutkan sesi via banner atau hapus sesi draft
+  if (formBukaKBM) formBukaKBM.style.display = 'none';
 
   const h    = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
   const nama = (h && h.nama_halaqah) || sesiAktif.id_halaqah;
   document.getElementById('draftWarningInfo').innerHTML =
     `<strong>${esc(nama)}</strong> &nbsp;·&nbsp; ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp; Pertemuan ke-${sesiAktif.pertemuan_ke} &nbsp;·&nbsp; ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''}`;
-  
+
   const btnLanjut = document.getElementById('btnDraftLanjut');
   if (btnLanjut) {
     btnLanjut.textContent = `▶ Lanjutkan KBM Pertemuan ${sesiAktif.pertemuan_ke}`;
@@ -2378,7 +2389,16 @@ function goPage(name) {
   document.querySelector('[data-p="' + name + '"]') && document.querySelector('[data-p="' + name + '"]').classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
   closeSB();
-  if (name === 'kbm')        { populateSel('kbmHalaqah'); updateSesiBanner(); updateDraftWarning(); resetPersiapan(); }
+  if (name === 'kbm') {
+    populateSel('kbmHalaqah');
+    updateSesiBanner();
+    // updateDraftWarning menyembunyikan formBukaKBM jika ada sesiAktif,
+    // atau menampilkannya kembali jika tidak ada sesi aktif
+    updateDraftWarning();
+    // Reset checklist hanya jika tidak ada sesi aktif
+    // (jika ada sesi aktif, form sudah disembunyikan — reset tidak perlu)
+    if (!sesiAktif) resetPersiapan();
+  }
   if (name === 'murid')      {
     populateSel('muridHalaqahSel');
     // Default show all students
