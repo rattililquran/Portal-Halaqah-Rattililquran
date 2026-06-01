@@ -1504,8 +1504,12 @@ html.theme-dark .draft-orphan-alert{background:linear-gradient(135deg,#2d1f00,#3
           <div class="card-head"><div class="card-title">📓 Jurnal Sesi</div></div>
           <div class="card-body">
             <div class="fg">
-              <label>Pencapaian Halaman / Modul / Materi</label>
-              <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Halaman 12–15, Bab Makhraj Huruf Halq">
+              <label>Topik / Materi yang Dipelajari</label>
+              <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
+            </div>
+            <div class="fg">
+              <label>Halaman / Modul</label>
+              <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
             </div>
             <div class="fg">
               <label>Jam Selesai</label>
@@ -3020,6 +3024,7 @@ async function doSelesaiKBM() {
   closeModal('previewModal');
 
   const materi     = isRegulerSesi ? document.getElementById('jurnalMateri').value.trim() : '';
+  const halaman    = isRegulerSesi ? (document.getElementById('jurnalHalaman') ? document.getElementById('jurnalHalaman').value.trim() : '') : '';
   const metode     = isRegulerSesi ? document.getElementById('jurnalMetode').value : '';
   const catatan    = isRegulerSesi ? document.getElementById('jurnalCatatan').value.trim() : '';
   const jamSelesai = isRegulerSesi ? document.getElementById('jurnalJamSelesai').value : new Date().toTimeString().slice(0,5);
@@ -3035,6 +3040,7 @@ async function doSelesaiKBM() {
     await window.HQ.GuruAPI.simpanJurnalKBM({
       id_kbm           : sesiAktif.id_kbm,
       pencapaian_modul : materi,
+      halaman_modul    : halaman,
       metode,
       catatan_umum     : catatan,
       jam_selesai      : jamSelesai,
