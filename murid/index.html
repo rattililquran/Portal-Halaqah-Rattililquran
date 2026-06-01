@@ -1555,6 +1555,9 @@ html.theme-dark table{color:#e8eaf0 !important}
 html.theme-dark th{background:#252830 !important;color:#9ca3af !important;border-color:rgba(255,255,255,.07) !important}
 html.theme-dark td{border-color:rgba(255,255,255,.05) !important}
 html.theme-dark tr:hover td{background:rgba(255,255,255,.02) !important}
+/* Rincian table header — override global th agar tetap biru gelap */
+html.theme-dark .rincian-sesi-table th{background:#0f172a !important;color:#94a3b8 !important}
+html.theme-dark .rincian-body table th{background:#0f172a !important;color:#e2e8f0 !important}
 
 /* Raport PDF preview modal */
 html.theme-dark .raport-preview-overlay{background:rgba(0,0,0,.75) !important}
@@ -1573,6 +1576,40 @@ html.theme-dark .skel{
 /* Sembunyikan blobs di dark mode */
 html.theme-dark .bg-blobs{display:none}
 html.theme-dark .bg-blobs-guru{display:none}
+
+/* ══ RINCIAN RAPORT MODAL — dark mode lengkap ══════════════ */
+html.theme-dark .rincian-overlay{background:rgba(0,0,0,.75) !important}
+html.theme-dark .rincian-modal{background:#1e2128 !important;border:1px solid rgba(255,255,255,.08) !important}
+html.theme-dark .rincian-head{background:linear-gradient(135deg,#0f172a,#1e2d4a) !important}
+html.theme-dark .rincian-tabs{background:#1e2128 !important;border-bottom-color:rgba(255,255,255,.07) !important}
+html.theme-dark .rincian-tab{color:rgba(255,255,255,.45) !important}
+html.theme-dark .rincian-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
+html.theme-dark .rincian-body{background:#1e2128 !important}
+html.theme-dark .rincian-footer{background:#1a1d24 !important;border-top-color:rgba(255,255,255,.07) !important}
+html.theme-dark .rincian-close{color:rgba(255,255,255,.45) !important}
+
+/* Stat grid */
+html.theme-dark .rincian-stat-grid{background:#1e2128 !important}
+
+/* Sesi table */
+html.theme-dark .rincian-sesi-table th{background:#0f172a !important}
+html.theme-dark .rincian-sesi-table td{background:#1e2128 !important;border-bottom-color:rgba(255,255,255,.06) !important}
+html.theme-dark .rincian-sesi-table tr:nth-child(even) td{background:#212736 !important}
+
+/* ══ RAPORT CARD — dark mode ═══════════════════════════════ */
+html.theme-dark .raport-card{background:linear-gradient(135deg,#1a2d4a,#1e2128) !important}
+html.theme-dark .raport-periode{color:#94a3b8 !important}
+html.theme-dark .raport-nilai{color:#38bdf8 !important}
+html.theme-dark .komponen-row{border-bottom-color:rgba(255,255,255,.06) !important}
+
+/* ══ BUTTON PDF — dark mode ════════════════════════════════ */
+html.theme-dark .btn-pdf{background:linear-gradient(135deg,#1e3a5f,#0f172a) !important;
+  box-shadow:0 4px 12px rgba(14,165,233,.2) !important}
+
+/* ══ TABEL KOMPONEN di JS (override global th/td conflict) ══ */
+html.theme-dark .rincian-body th{background:#0f172a !important;color:#94a3b8 !important}
+html.theme-dark .rincian-body td{background:#1e2128 !important;border-color:rgba(255,255,255,.06) !important}
+html.theme-dark .rincian-body tr:last-child td{background:#0d2d1e !important;color:#34d399 !important}
 
 /* ── Template Reminder ── */
 .reminder-card{border-radius:14px;background:#fff;border:1px solid var(--border);
@@ -6101,7 +6138,12 @@ function _renderRincianBody() {
     _rincianTab === 0 ? _htmlRincianNilai(_rincianData) : _htmlRincianSesi(_rincianData);
 }
 
+function _isDarkMode() {
+  return document.documentElement.classList.contains('theme-dark');
+}
+
 function _htmlRincianNilai(data) {
+  var dark = _isDarkMode();
   var rp  = data.raport;
   var num = Number(rp.nilai_akhir) || 0;
   var pred = String(rp.predikat || '');
@@ -6116,23 +6158,29 @@ function _htmlRincianNilai(data) {
     + '</div>';
 
   // Tabel komponen
+  var thBg    = dark ? '#0f172a'  : '#1e3a5f';
+  var rowOdd  = dark ? '#1e2128'  : '#ffffff';
+  var rowEven = dark ? '#212736'  : '#f8fafc';
+  var rowLast = dark ? '#0d2d1e'  : 'linear-gradient(135deg,#f0fdf4,#dcfce7)';
+  var nilaiUjianBg = dark ? '#1e2535' : '#f1f5f9';
+
   h += '<div style="padding:0 14px 6px">'
     + '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Komponen Penilaian</div>'
     + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
-    + '<thead><tr style="background:#1e3a5f;color:#fff">'
+    + '<thead><tr style="background:'+thBg+';color:#fff">'
     + '<th style="padding:8px;text-align:left;border-radius:8px 0 0 0">Komponen</th>'
     + '<th style="padding:8px;text-align:center">Bobot</th>'
     + '<th style="padding:8px;text-align:center">Nilai</th>'
-    + '<th style="padding:8px;text-align:center;border-radius:0 8px 0 0">× Bobot</th>'
+    + '<th style="padding:8px;text-align:center;border-radius:0 8px 0 0">x Bobot</th>'
     + '</tr></thead><tbody>';
 
   (rp.komponen || []).forEach(function(k, i) {
     var nb  = k.nilai_bobot !== undefined ? k.nilai_bobot
             : Math.round(Number(k.nilai||0)*Number(k.bobot||0)/100*10)/10;
-    var bg  = i%2===0 ? '#ffffff' : '#f8fafc';
+    var bg  = i%2===0 ? rowOdd : rowEven;
     var vColor = Number(k.nilai) >= 80 ? 'var(--green)' : Number(k.nilai) >= 60 ? 'var(--amber)' : 'var(--red)';
     h += '<tr style="background:'+bg+'">'
-      + '<td style="padding:9px 8px;font-weight:600">'+esc(k.nama_komponen||k.nama||'-')
+      + '<td style="padding:9px 8px;font-weight:600;color:var(--text)">'+esc(k.nama_komponen||k.nama||'-')
         +'<span style="font-size:9px;color:var(--text-3);margin-left:6px;font-weight:400">'+(k.tipe==='manual'?'manual':'otomatis')+'</span></td>'
       + '<td style="padding:9px;text-align:center;color:var(--text-3)">'+k.bobot+'%</td>'
       + '<td style="padding:9px;text-align:center;font-weight:800;font-size:14px;color:'+vColor+'">'+k.nilai+'</td>'
@@ -6140,7 +6188,7 @@ function _htmlRincianNilai(data) {
       + '</tr>';
   });
 
-  h += '<tr style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">'
+  h += '<tr style="background:'+rowLast+'">'
     + '<td colspan="3" style="padding:10px 8px;font-weight:800;color:var(--green);text-align:right">NILAI AKHIR</td>'
     + '<td style="padding:10px;text-align:center;font-weight:900;font-size:16px;color:var(--green)">'+num.toFixed(1)+'</td>'
     + '</tr>';
@@ -6151,7 +6199,7 @@ function _htmlRincianNilai(data) {
     h += '<div style="margin-top:14px">'
       + '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Nilai Ujian</div>';
     data.nilai_manual.forEach(function(n) {
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f1f5f9;border-radius:10px;margin-bottom:6px">'
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+nilaiUjianBg+';border-radius:10px;margin-bottom:6px">'
         + '<span style="font-weight:600;font-size:13px">'+esc(n.nama_komponen||'-')+'</span>'
         + '<span style="font-weight:900;font-size:16px;color:var(--blue)">'+n.nilai+'</span>'
         + '</div>';
@@ -6163,8 +6211,13 @@ function _htmlRincianNilai(data) {
 }
 
 function _htmlRincianSesi(data) {
+  var dark = _isDarkMode();
   var sum  = data.summary || {};
   var sesi = data.sesi    || [];
+  var trOdd  = dark ? '#1e2128' : '#ffffff';
+  var trEven = dark ? '#212736' : '#f8fafc';
+  var catatanBg = dark ? '#1a2744' : '#eff6ff';
+  var koreksBg  = dark ? '#2a1e00' : '#fffbeb';
 
   // Summary stats
   var h = '<div class="rincian-stat-grid">';
@@ -6224,25 +6277,26 @@ function _htmlRincianSesi(data) {
 
     var noSesi  = s.pertemuan_ke || s.no || (sesi.indexOf(s)+1);
     var tglSesi = s.tanggal ? (typeof fmtDate==='function' ? fmtDate(s.tanggal) : s.tanggal) : '-';
-    h += '<tr>'
-      + '<td style="text-align:center;color:var(--text-3);font-size:10px">'+esc(String(noSesi))+'</td>'
-      + '<td style="white-space:nowrap">'+esc(tglSesi)+'</td>'
-      + '<td style="font-size:10.5px;color:var(--text-2);max-width:140px;word-break:break-word">'+esc(s.materi||'-')+'</td>'
-      + '<td style="text-align:center;font-weight:800;font-size:13px;color:'+hColor+'">'+hIcon+'</td>'
-      + '<td style="text-align:center">'+adabHTML+'</td>'
-      + '<td style="text-align:center">'+kamHTML+'</td>'
+    var trBg = sesi.indexOf(s)%2===0 ? trOdd : trEven;
+    h += '<tr style="background:'+trBg+'">'
+      + '<td style="text-align:center;color:var(--text-3);font-size:10px;background:'+trBg+'">'+esc(String(noSesi))+'</td>'
+      + '<td style="white-space:nowrap;background:'+trBg+'">'+esc(tglSesi)+'</td>'
+      + '<td style="font-size:10.5px;color:var(--text-2);max-width:140px;word-break:break-word;background:'+trBg+'">'+esc(s.materi||'-')+'</td>'
+      + '<td style="text-align:center;font-weight:800;font-size:13px;color:'+hColor+';background:'+trBg+'">'+hIcon+'</td>'
+      + '<td style="text-align:center;background:'+trBg+'">'+adabHTML+'</td>'
+      + '<td style="text-align:center;background:'+trBg+'">'+kamHTML+'</td>'
       + '</tr>';
 
     // Baris catatan murid (jika ada)
     if (s.catatan_murid) {
-      h += '<tr><td></td>'
-        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--blue);font-style:italic;background:var(--blue-l)">'
+      h += '<tr><td style="background:'+catatanBg+'"></td>'
+        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--blue);font-style:italic;background:'+catatanBg+'">'
         + '💬 '+esc(s.catatan_murid)+'</td></tr>';
     }
     // Baris koreksi (jika ada)
     if (s.koreksi && !isAlpa) {
-      h += '<tr><td></td>'
-        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--amber);background:#fffbeb">'
+      h += '<tr><td style="background:'+koreksBg+'"></td>'
+        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--amber);background:'+koreksBg+'">'
         + '✏️ '+esc(s.koreksi)+'</td></tr>';
     }
   });
