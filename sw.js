@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v3.8
+//  Cache version: v4.1
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v4.0';
+const CACHE_NAME   = 'halaqah-v4.1';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
