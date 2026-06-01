@@ -21,6 +21,10 @@
 12. [Install Aplikasi (PWA)](#12-install-aplikasi-pwa)
 13. [Fitur Tentang (Donasi & Sosmed)](#13-fitur-tentang-donasi--sosmed)
 14. [Tips Umum](#14-tips-umum)
+15. [Panduan Khusus Ketua Kelas](#15-panduan-khusus-ketua-kelas)
+12. [Install Aplikasi (PWA)](#12-install-aplikasi-pwa)
+13. [Fitur Tentang (Donasi & Sosmed)](#13-fitur-tentang-donasi--sosmed)
+14. [Tips Umum](#14-tips-umum)
 
 ---
 
@@ -319,3 +323,128 @@ Sidebar → **Tentang Rattililqur'an**:
 ---
 
 *Panduan ini mencerminkan fitur per Juni 2026. Hubungi guru atau admin jika ada kendala. Barakallahu fiikum.*
+
+---
+
+## 15. Panduan Khusus Ketua Kelas
+
+> Bagian ini hanya berlaku untuk murid yang ditunjuk sebagai **Ketua Kelas** oleh admin. Menu Ketua Kelas akan muncul otomatis di sidebar setelah status ketua diaktifkan.
+
+Menu Ketua Kelas memiliki dua fungsi utama: **memantau keaktifan anggota** dan **mengisi observasi KBM** secara rahasia untuk admin.
+
+---
+
+### A. Sistem Pengingat (Reminder)
+
+Ketua kelas bertanggung jawab mengirimkan tiga jenis pengingat ke grup WhatsApp kelas:
+
+#### 1. Pengingat H-1 (Malam Sebelum Sesi)
+- **Kapan:** Malam hari sebelum jadwal KBM, **maksimal pukul 21.00 WIB**
+- **Media:** Grup WhatsApp kelas
+- **Isi:** Pengingat jadwal kelas besok — hari, jam, dan link Zoom
+
+#### 2. Pengingat Hari-H (1 Jam Sebelum Kelas)
+- **Kapan:** Tepat **1 jam sebelum kelas dimulai**
+- **Media:** Broadcast di grup WhatsApp kelas
+- **Isi:** Pengingat kelas segera dimulai, pastikan siap dan tepat waktu
+
+#### 3. Pengingat Latihan Mandiri (H+1 Setelah Sesi)
+- **Kapan:** Sehari setelah sesi selesai (**H+1**)
+- **Media:** Grup WhatsApp kelas
+- **Isi:** Pesan motivasi untuk mengerjakan latihan mandiri di rumah
+
+> 💡 Gunakan tombol **WA Reminder** di tab "Pantau Anggota" untuk mengirim pengingat personal kepada anggota yang statusnya Kritis atau Peringatan.
+
+---
+
+### B. Rekapitulasi Sesi (Pasca-Kelas)
+
+#### 1. Pencatatan Selama Kelas
+Selama KBM berlangsung, ketua kelas mencatat:
+- Materi yang dipelajari secara ringkas
+- Halaman modul yang dibahas
+- Pesan atau arahan khusus dari guru/ustadz
+- Instruksi tugas latihan mandiri (jika ada)
+
+#### 2. Batas Waktu Pengiriman Rekap
+Ketua kelas wajib menyusun dan mengirimkan **teks rekapitulasi** ke grup WhatsApp kelas **maksimal 2 jam setelah kelas ditutup**.
+
+#### 3. Format Baku Pesan Rekapitulasi
+
+Salin template berikut dan isi bagian dalam tanda `[...]`:
+
+```
+Assalamu'alaikum Warahmatullahi Wabarakatuh.
+
+Berikut Rekapitulasi Halaqah Tahsin [Level]
+
+Hari/Tanggal  : [Isi Hari & Tanggal]
+Pertemuan Ke  : [Isi Angka]
+
+1. CAPAIAN MATERI TEORI:
+   [Nama Bab/Modul], Halaman [Isi Hal].
+
+2. CATATAN PENTING USTADZ/USTADZAH:
+   [Isi catatan khusus dari guru, misal: Tekankan sifat
+   jahar pada huruf zai]
+
+3. TUGAS LATIHAN MANDIRI:
+   [Isi instruksi latihan, misal: Berlatih secara mandiri
+   ayat 1-10 modul di rumah]
+
+Mari kita istiqomah berlatih.
+Sampai jumpa di pertemuan berikutnya.
+Jazakumullah khairan.
+```
+
+---
+
+### C. Observasi KBM (Tab Observasi KBM)
+
+Ketua kelas mengisi form observasi setelah setiap sesi selesai. **Data ini hanya dilihat admin — bukan guru.**
+
+#### Window Pengisian
+| Status | Arti |
+|--------|------|
+| **Terbuka** | Sesi bisa diobservasi — isi segera |
+| **Terkunci** | Guru sudah buka sesi berikutnya, window tertutup |
+| **Sudah Diobservasi** | Form sudah terkirim |
+
+> ⚠️ Window otomatis tertutup begitu guru membuka sesi KBM berikutnya. Isi observasi **sesegera mungkin** setelah sesi selesai.
+
+#### Form Observasi — 5 Poin
+
+| No | Poin | Pilihan |
+|----|------|---------|
+| 1 | **Kondisi kelas** | Kondusif / Kurang Kondusif / Tidak Kondusif |
+| 2 | **Guru memberikan latihan mandiri?** | Ya / Tidak |
+| 3 | **Ketepatan waktu guru** | Tepat Waktu / Guru Terlambat / Diakhiri Lebih Awal / Keduanya |
+| 4 | **Keadaan kamera sebagian besar peserta** | Sebagian Besar Terbuka / Campuran / Sebagian Besar Tertutup |
+| 5 | **Catatan lain** | Teks bebas (opsional) |
+
+> 💡 Jika guru terlambat atau KBM diakhiri lebih awal, isi perkiraan berapa menit.
+
+#### Setelah Submit
+- Observasi **tidak bisa diedit** setelah dikirim
+- Data tersimpan aman dan hanya bisa diakses admin
+- Tab Pantau Anggota tetap bisa digunakan seperti biasa
+
+---
+
+### D. Pantau Keaktifan Anggota (Tab Pantau Anggota)
+
+Ketua kelas dapat memantau keaktifan anggota halaqah:
+
+| Status | Kriteria KBM | Kriteria At-Tibyan |
+|--------|--------------|--------------------|
+| Kritis | Alpa >= 2 kali dari 40 sesi | Absen >= 2 kali |
+| Peringatan | Alpa 1 kali / Terlambat >= 2 kali | Absen 1 kali |
+| Normal | Tidak ada kriteria di atas | 0 absen |
+
+Untuk anggota Kritis atau Peringatan, ketua bisa mengirim **WA Reminder** langsung dari portal dengan pesan terformat otomatis.
+
+> ⚠️ Ketua kelas hanya bisa melihat **status keaktifan** (Kritis/Peringatan/Normal) dan persentase hadir — **tidak bisa melihat nilai, koreksi guru, atau catatan pribadi** anggota.
+
+---
+
+*Semoga Allah mudahkan amanah sebagai ketua kelas. Barakallahu fiikum.*
