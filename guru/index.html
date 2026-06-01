@@ -2365,6 +2365,7 @@ async function hapusSesiDraft() {
     sesiAktif      = null;
     muridSesi      = [];
     doaSudahMuncul = false;
+    window._nilaiCache = {};
     updateDraftWarning();
     loadDashboard();
     toast('Sesi KBM berhasil dihapus dan dibatalkan!','ok');
@@ -2609,9 +2610,10 @@ async function doBukaKBM() {
       jenis_sesi,
       pertemuan_ke_custom: pertemuanCustom ? Number(pertemuanCustom) : null,
     });
-    sesiAktif     = r.data;
-    muridSesi     = await getMurid(id_halaqah);
-    doaSudahMuncul = false; // Reset agar popup muncul
+    sesiAktif      = r.data;
+    muridSesi      = await getMurid(id_halaqah);
+    doaSudahMuncul = false;       // Reset agar popup muncul
+    window._nilaiCache = {};      // Pastikan cache nilai bersih untuk sesi baru
 
     hideLoad();
     setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
@@ -3131,7 +3133,7 @@ async function konfirmasiTutup() {
   try {
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     toast(res.message || 'Sesi ditutup','ok');
-    sesiAktif = null; muridSesi = [];
+    sesiAktif = null; muridSesi = []; window._nilaiCache = {};
     resetPersiapan();
     updateSesiBanner();
     loadDashboard();
