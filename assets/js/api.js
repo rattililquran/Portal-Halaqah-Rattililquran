@@ -262,6 +262,12 @@ var GuruAPI = {
   getAtTibyanDetail     : function(id_sesi)       { return apiGet('getAtTibyanDetail', { id_sesi }); },
   getAtTibyanRekap      : function(id_h)          { return apiGet('getAtTibyanRekap', id_h ? { id_halaqah: id_h } : {}); },
   getAtTibyanKeaktifan  : function()              { return apiGet('getAtTibyanKeaktifan'); },
+  // Raport Halaqah (guru)
+  getRaportListGuru          : function(id_h, id_p) { return apiGet('getRaportListGuru', { id_halaqah:id_h, id_periode:id_p }); },
+  getCatatanHalaqah          : function(id_h)       { return apiGet('getCatatanHalaqah', { id_halaqah:id_h }); },
+  generateRaportHalaqah      : function(d)          { return apiPost('generateRaportHalaqahGuru', d); },
+  publishAllRaportHalaqah    : function(d)          { return apiPost('publishAllRaportHalaqahGuru', d); },
+  saveCatatanHalaqah         : function(d)          { return apiPost('saveCatatanHalaqahGuru', d); },
 };
 
 // ─── MURID API ────────────────────────────────────

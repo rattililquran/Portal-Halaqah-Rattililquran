@@ -1223,6 +1223,7 @@ html.theme-dark .draft-orphan-alert{background:linear-gradient(135deg,#2d1f00,#3
       <div class="sb-section">KBM</div>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
+      <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni">📄</span>Raport Halaqah</button>
       <div class="sb-section">Lainnya</div>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
@@ -1837,6 +1838,69 @@ html.theme-dark .draft-orphan-alert{background:linear-gradient(135deg,#2d1f00,#3
         </div>
       </div>
 
+      <!-- ════ RAPORT HALAQAH ════ -->
+      <div class="page" id="page-raport">
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Raport Halaqah</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Generate, review, dan publish raport murid di halaqah Anda.</div>
+
+        <!-- Pilih Periode & Halaqah -->
+        <div class="f2" style="margin-bottom:14px">
+          <select class="fc" id="raportPeriodeSel" onchange="onRaportPeriodeChange()"><option value="">— Pilih Periode —</option></select>
+          <select class="fc" id="raportHalaqahSel" onchange="onRaportHalaqahChange()"><option value="">— Pilih Halaqah —</option></select>
+        </div>
+
+        <!-- Nilai Manual -->
+        <div class="card" id="raportNilaiCard" style="display:none;margin-bottom:12px">
+          <div class="card-head">
+            <div class="card-title">✏️ Nilai Manual</div>
+            <button class="btn btn-green btn-sm" onclick="raportSimpanNilai()">💾 Simpan</button>
+          </div>
+          <div class="card-body" id="raportNilaiBody">
+            <div style="color:var(--text-3);font-size:13px">Memuat...</div>
+          </div>
+        </div>
+
+        <!-- Catatan Wali Halaqah -->
+        <div class="card" id="raportCatatanCard" style="display:none;margin-bottom:12px">
+          <div class="card-head">
+            <div class="card-title">📝 Catatan Wali Halaqah</div>
+            <button class="btn btn-outline btn-sm" onclick="raportSimpanCatatan()">💾 Simpan Catatan</button>
+          </div>
+          <div class="card-body">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:8px">Catatan ini ditampilkan di seluruh raport murid halaqah Anda.</div>
+            <textarea class="fc" id="raportCatatanTa" rows="4" style="font-size:13px;resize:vertical" placeholder="Contoh: Alhamdulillah, perjalanan belajar semester ini berjalan dengan baik..."></textarea>
+          </div>
+        </div>
+
+        <!-- Tombol Generate -->
+        <div id="raportGenerateWrap" style="display:none;margin-bottom:16px">
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:14px;font-weight:800" onclick="raportGenerate()">
+            ⚙️ Generate Raport Semua Murid
+          </button>
+        </div>
+
+        <!-- Preview / Review -->
+        <div class="card" id="raportPreviewCard" style="display:none">
+          <div class="card-head">
+            <div class="card-title" id="raportPreviewTitle">Preview Raport</div>
+            <span id="raportPublishStatus" style="font-size:11px;color:var(--text-3)"></span>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div id="raportPreviewTable"></div>
+          </div>
+          <!-- Alert double-check -->
+          <div id="raportAlertBox" style="display:none;margin:0 16px 16px;padding:14px 16px;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:12px">
+            <div style="font-size:13px;font-weight:800;color:#92400e;margin-bottom:6px">⚠️ Periksa Sebelum Publish</div>
+            <div style="font-size:12px;color:#78350f;line-height:1.7" id="raportAlertBody"></div>
+          </div>
+          <div id="raportPublishWrap" style="display:none;padding:16px;padding-top:0">
+            <button class="btn btn-green" style="width:100%;justify-content:center;padding:13px;font-size:14px;font-weight:800" onclick="raportPublishSemua()">
+              📢 Publish Semua Raport ke Murid
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- ════ GANTI PASSWORD MANDIRI ════ -->
       <div class="page" id="page-password">
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Ganti Password</div>
@@ -2384,7 +2448,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'nilai-murid':'Nilai — Step 3/4',
   jurnal:'Jurnal — Step 4/4',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
-  'nilai-manual':'Input Nilai Manual',password:'Ganti Password',
+  'nilai-manual':'Input Nilai Manual','raport':'Raport Halaqah',password:'Ganti Password',
   keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri'};
 
 function goPage(name) {
@@ -2436,6 +2500,7 @@ function goPage(name) {
       });
     }
   }
+  if (name === 'raport') initRaportPage();
   if (name === 'password') {
     document.getElementById('pwOld').value = '';
     document.getElementById('pwNew').value = '';
@@ -5631,6 +5696,287 @@ async function simpanAtTibyan() {
   finally {
     if (btn) { btn.disabled = false; btn.classList.remove('btn-loading'); }
   }
+}
+
+// ══════════════════════════════════════════════════════════
+//  RAPORT HALAQAH
+// ══════════════════════════════════════════════════════════
+var _raportPeriode    = '';
+var _raportHalaqah   = '';
+var _raportKomponen  = [];  // komponen manual
+var _raportMuridList = [];
+var _raportData      = [];  // hasil generate
+
+async function onRaportPeriodeChange() {
+  var pSel = document.getElementById('raportPeriodeSel');
+  _raportPeriode = pSel.value;
+  _raportData    = [];
+
+  // Isi halaqah dropdown dari halaqahList yang sudah dimuat
+  var hSel = document.getElementById('raportHalaqahSel');
+  hSel.innerHTML = '<option value="">— Pilih Halaqah —</option>'
+    + (halaqahList || []).map(function(h) {
+        return '<option value="'+esc(h.id_halaqah)+'">'+esc(h.nama_halaqah)+'</option>';
+      }).join('');
+
+  // Auto-select jika hanya satu halaqah
+  if (halaqahList && halaqahList.length === 1) {
+    hSel.value = halaqahList[0].id_halaqah;
+    await onRaportHalaqahChange();
+  } else {
+    _hideRaportSections();
+  }
+
+  if (!_raportPeriode) return;
+  // Muat komponen manual untuk periode ini
+  try {
+    var r = await window.HQ.GuruAPI.getKomponenRaport(_raportPeriode);
+    _raportKomponen = (r.data || []).filter(function(k) {
+      return k.status === 'aktif' && k.tipe === 'manual';
+    });
+  } catch(e) {
+    _raportKomponen = [];
+  }
+}
+
+async function onRaportHalaqahChange() {
+  _raportHalaqah = document.getElementById('raportHalaqahSel').value;
+  _raportData    = [];
+  _hideRaportSections();
+  if (!_raportPeriode || !_raportHalaqah) return;
+
+  showLoad('Memuat data murid dan nilai...');
+  try {
+    var [muridRes, nilaiRes, catatanRes] = await Promise.all([
+      window.HQ.GuruAPI.getMurid(_raportHalaqah),
+      window.HQ.GuruAPI.getNilaiManual(_raportPeriode),
+      window.HQ.GuruAPI.getCatatanHalaqah(_raportHalaqah),
+    ]);
+    _raportMuridList = muridRes.data || [];
+    var nilaiExisting = nilaiRes.data || [];
+
+    // Render nilai manual
+    var nilaiCard = document.getElementById('raportNilaiCard');
+    if (_raportKomponen.length) {
+      document.getElementById('raportNilaiBody').innerHTML = _raportMuridList.map(function(m) {
+        return '<div style="margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px">'
+          + '<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">👤 '+esc(m.nama_murid)+'</div>'
+          + '<div class="f'+Math.min(_raportKomponen.length,3)+' gap">'
+          + _raportKomponen.map(function(k) {
+              var ex = nilaiExisting.find(function(n) { return n.id_murid===m.id_murid && n.id_komponen===k.id_komponen; });
+              return '<div class="fg" style="margin:0">'
+                + '<label style="font-size:11.5px">'+esc(k.nama_komponen)+' ('+k.bobot+'%)</label>'
+                + '<input type="number" class="fc" min="0" max="100" id="rn_'+esc(m.id_murid)+'_'+esc(k.id_komponen)+'"'
+                + ' value="'+((ex && ex.nilai !== undefined && ex.nilai !== '') ? ex.nilai : '')+'"'
+                + ' placeholder="0-100" style="font-size:13px">'
+                + '</div>';
+            }).join('')
+          + '</div></div>';
+      }).join('') || '<div style="color:var(--text-3);padding:12px">Belum ada murid aktif</div>';
+      nilaiCard.style.display = '';
+    } else {
+      nilaiCard.style.display = 'none';
+    }
+
+    // Render catatan
+    document.getElementById('raportCatatanTa').value = (catatanRes.data && catatanRes.data.catatan) || '';
+    document.getElementById('raportCatatanCard').style.display = '';
+    document.getElementById('raportGenerateWrap').style.display = '';
+
+    // Cek apakah sudah ada raport sebelumnya
+    try {
+      var listRes = await window.HQ.GuruAPI.getRaportListGuru(_raportHalaqah, _raportPeriode);
+      if (listRes.data && listRes.data.length) {
+        _raportData = listRes.data;
+        _renderRaportPreview(true);
+      }
+    } catch(e) {}
+
+  } catch(e) {
+    toast('Gagal memuat data: '+e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function _hideRaportSections() {
+  ['raportNilaiCard','raportCatatanCard','raportGenerateWrap','raportPreviewCard'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+async function raportSimpanNilai() {
+  if (!_raportPeriode) return toast('Pilih periode dulu','err');
+  if (!_raportHalaqah) return toast('Pilih halaqah dulu','err');
+  showLoad('Menyimpan nilai manual...');
+  try {
+    var nilaiList = [];
+    _raportMuridList.forEach(function(m) {
+      _raportKomponen.forEach(function(k) {
+        var el = document.getElementById('rn_'+m.id_murid+'_'+k.id_komponen);
+        if (!el || el.value === '') return;
+        nilaiList.push({ id_murid:m.id_murid, id_komponen:k.id_komponen, nama_komponen:k.nama_komponen, nilai:Number(el.value) });
+      });
+    });
+    if (!nilaiList.length) return toast('Tidak ada nilai untuk disimpan','warn');
+    await window.HQ.GuruAPI.saveNilaiManualBatch({ id_periode:_raportPeriode, id_halaqah:_raportHalaqah, nilai_list:nilaiList });
+    toast(nilaiList.length+' nilai disimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function raportSimpanCatatan() {
+  if (!_raportHalaqah) return toast('Pilih halaqah dulu','err');
+  var catatan = document.getElementById('raportCatatanTa').value.trim();
+  showLoad('Menyimpan catatan...');
+  try {
+    await window.HQ.GuruAPI.saveCatatanHalaqah({ id_halaqah:_raportHalaqah, catatan:catatan });
+    toast('Catatan halaqah disimpan!','ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+async function raportGenerate() {
+  if (!_raportPeriode) return toast('Pilih periode dulu','err');
+  if (!_raportHalaqah) return toast('Pilih halaqah dulu','err');
+  showLoad('Generating raport... (bisa 10-30 detik)');
+  try {
+    var r = await window.HQ.GuruAPI.generateRaportHalaqah({ id_halaqah:_raportHalaqah, id_periode:_raportPeriode });
+    _raportData = r.data && r.data.berhasil ? r.data.berhasil : [];
+    if (r.data && r.data.gagal && r.data.gagal.length) {
+      toast(r.data.gagal.length+' murid gagal di-generate: '+r.data.gagal.map(function(g){return g.nama;}).join(', '), 'warn');
+    }
+    _renderRaportPreview(false);
+    toast(r.message || 'Raport berhasil digenerate!', 'ok');
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function _renderRaportPreview(isExisting) {
+  var card  = document.getElementById('raportPreviewCard');
+  var table = document.getElementById('raportPreviewTable');
+  var wrap  = document.getElementById('raportPublishWrap');
+  var alert = document.getElementById('raportAlertBox');
+  card.style.display = '';
+
+  if (!_raportData.length) {
+    table.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-3)">Belum ada data raport</div>';
+    wrap.style.display = 'none';
+    alert.style.display = 'none';
+    return;
+  }
+
+  // Hitung status
+  var draftCount     = _raportData.filter(function(r){ return r.status === 'draft' || !r.status; }).length;
+  var publishedCount = _raportData.filter(function(r){ return r.status === 'published'; }).length;
+  var statusEl = document.getElementById('raportPublishStatus');
+  if (statusEl) statusEl.textContent = publishedCount+' sudah publish · '+draftCount+' draft';
+
+  // Header kolom komponen dari data pertama
+  var firstKomponen = (_raportData[0] && _raportData[0].detail) || (_raportData[0] && _raportData[0].komponen) || [];
+  var kompHeaders = firstKomponen.map(function(k){ return k.nama_komponen; });
+
+  var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+    + '<thead><tr style="background:var(--blue);color:#fff">'
+    + '<th style="padding:8px 10px;text-align:left;white-space:nowrap">Nama Murid</th>'
+    + kompHeaders.map(function(n){ return '<th style="padding:8px 6px;text-align:center;white-space:nowrap">'+esc(n)+'</th>'; }).join('')
+    + '<th style="padding:8px 10px;text-align:center">Nilai</th>'
+    + '<th style="padding:8px 10px;text-align:center">Predikat</th>'
+    + '<th style="padding:8px 10px;text-align:center">Status</th>'
+    + '</tr></thead><tbody>';
+
+  _raportData.forEach(function(r, i) {
+    var komp = r.detail || r.komponen || [];
+    var isPublished = r.status === 'published';
+    html += '<tr style="background:'+(i%2===0?'var(--card)':'var(--bg)')+'">'
+      + '<td style="padding:8px 10px;font-weight:700">'+esc(r.nama_murid)+'</td>'
+      + komp.map(function(k){
+          var bg = k.nilai >= 80 ? '#f0fdf4' : k.nilai >= 60 ? '#fffbeb' : '#fff1f2';
+          return '<td style="padding:8px 6px;text-align:center;background:'+bg+';font-weight:700">'+k.nilai+'</td>';
+        }).join('')
+      + '<td style="padding:8px 10px;text-align:center;font-weight:800;font-size:14px">'+r.nilai_akhir+'</td>'
+      + '<td style="padding:8px 10px;text-align:center">'
+        + '<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'
+          + (r.predikat==='Mumtaz'?'#dcfce7;color:#166534'
+            :r.predikat==='Jayyid Jiddan'?'#dbeafe;color:#1e40af'
+            :r.predikat==='Jayyid'?'#fef9c3;color:#854d0e'
+            :'#fee2e2;color:#991b1b')+'">'+esc(r.predikat)+'</span>'
+        + '</td>'
+      + '<td style="padding:8px 10px;text-align:center">'
+        + '<span style="font-size:11px;font-weight:700;color:'+(isPublished?'var(--green)':'var(--amber)')+'">'+
+          (isPublished ? '✓ Published' : '● Draft')+'</span>'
+        + '</td>'
+      + '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  table.innerHTML = html;
+
+  // Alert double check (hanya jika ada yang draft)
+  if (draftCount > 0) {
+    var halaqahNama = (halaqahList || []).find(function(h){ return h.id_halaqah===_raportHalaqah; });
+    var periodeNama = (allPeriode   || []).find(function(p){ return p.id_periode===_raportPeriode; });
+    document.getElementById('raportAlertBody').innerHTML =
+      '• <b>Halaqah:</b> '+esc(halaqahNama ? halaqahNama.nama_halaqah : _raportHalaqah)+'<br>'
+      + '• <b>Periode:</b> '+esc(periodeNama ? periodeNama.nama_periode : _raportPeriode)+'<br>'
+      + '• <b>Jumlah murid:</b> '+_raportData.length+' murid<br>'
+      + '• <b>Siap publish:</b> '+draftCount+' raport (draft → published)<br><br>'
+      + 'Pastikan <b>nama murid</b>, <b>nilai setiap komponen</b>, dan <b>catatan wali halaqah</b> '
+      + 'sudah benar sebelum dipublish. Raport yang sudah dipublish akan langsung terlihat oleh murid. '
+      + 'Publish adalah tanggung jawab guru wali halaqah.';
+    alert.style.display = '';
+    wrap.style.display  = '';
+  } else {
+    alert.style.display = 'none';
+    wrap.style.display  = 'none';
+  }
+}
+
+async function raportPublishSemua() {
+  if (!_raportHalaqah || !_raportPeriode) return;
+  var draftCount = _raportData.filter(function(r){ return r.status==='draft'||!r.status; }).length;
+  if (!draftCount) return toast('Semua raport sudah dipublish','warn');
+  if (!confirm('Publish '+draftCount+' raport ke murid?\n\nRaport yang sudah dipublish akan langsung terlihat oleh murid di portal mereka. Pastikan semua nilai dan catatan sudah benar.')) return;
+  showLoad('Mempublish raport...');
+  try {
+    var r = await window.HQ.GuruAPI.publishAllRaportHalaqah({ id_halaqah:_raportHalaqah, id_periode:_raportPeriode });
+    toast(r.message || 'Raport berhasil dipublish!', 'ok');
+    // Refresh list
+    var listRes = await window.HQ.GuruAPI.getRaportListGuru(_raportHalaqah, _raportPeriode);
+    _raportData = listRes.data || [];
+    _renderRaportPreview(true);
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// Init raport page: isi dropdown periode saat halaman dibuka
+async function initRaportPage() {
+  var pSel = document.getElementById('raportPeriodeSel');
+  if (pSel.options.length > 1) {
+    // Sudah terisi (dari loadNilaiSetup atau sebelumnya)
+    if (!allPeriode.length) return;
+  }
+  try {
+    if (!allPeriode.length) {
+      var r = await window.HQ.GuruAPI.getAllPeriode();
+      allPeriode = r.data || [];
+    }
+    pSel.innerHTML = '<option value="">— Pilih Periode —</option>'
+      + allPeriode.map(function(p) {
+          return '<option value="'+esc(p.id_periode)+'"'+(p.status==='aktif'?' selected':'')+'>'+esc(p.nama_periode)+(p.status==='aktif'?' ✓':'')+'</option>';
+        }).join('');
+
+    // Isi halaqah dari halaqahList
+    var hSel = document.getElementById('raportHalaqahSel');
+    hSel.innerHTML = '<option value="">— Pilih Halaqah —</option>'
+      + (halaqahList || []).map(function(h) {
+          return '<option value="'+esc(h.id_halaqah)+'">'+esc(h.nama_halaqah)+'</option>';
+        }).join('');
+
+    // Auto-select aktif periode dan single halaqah
+    if (pSel.value) await onRaportPeriodeChange();
+  } catch(e) { console.error('initRaportPage:', e); }
 }
 </script>
 </body>
