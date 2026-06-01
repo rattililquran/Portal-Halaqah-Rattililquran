@@ -555,7 +555,9 @@ html.theme-dark .topbar-date{color:#6b7280 !important}
       <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
       <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
-      <button class="nav-btn" onclick="goPage('audit')" data-p="audit"><span class="ni">🔍</span>Audit Log</button>
+      <!-- Hanya superadmin -->
+      <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
+      <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔍</span>Audit Log</button>
 
       <div class="sb-sec">Konfigurasi</div>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
@@ -946,6 +948,45 @@ html.theme-dark .topbar-date{color:#6b7280 !important}
         </div>
       </div>
 
+      <!-- ══ OBSERVASI GURU (Superadmin only) ══ -->
+      <div class="page" id="page-observasi">
+        <div class="section-title">Observasi Guru</div>
+        <div class="section-sub">Data observasi KBM rahasia dari ketua kelas. Hanya Super Admin yang bisa melihat.</div>
+
+        <!-- Filter -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+          <select class="fc" id="obsFilterGuru" onchange="loadObservasi()" style="max-width:220px">
+            <option value="">— Semua Guru —</option>
+          </select>
+          <select class="fc" id="obsFilterHalaqah" onchange="loadObservasi()" style="max-width:200px">
+            <option value="">— Semua Halaqah —</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadObservasi()">🔄 Refresh</button>
+        </div>
+
+        <!-- Rekap Statistik per Guru -->
+        <div id="obsStatsWrap" style="margin-bottom:20px"></div>
+
+        <!-- Detail per Sesi -->
+        <div class="section-title" style="font-size:14px;margin-bottom:10px">Detail Observasi per Sesi</div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Tgl/Sesi</th><th>Halaqah</th><th>Guru</th>
+                <th>Kondisi Kelas</th><th>Latihan</th><th>Ketepatan</th>
+                <th>Kamera Peserta</th><th>Catatan</th>
+              </tr></thead>
+              <tbody id="obsDetailTbl">
+                <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Pilih filter atau klik Refresh</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ASSIGN KETUA (panel di halaman Anggota) sudah terintegrasi ══ -->
+
       <!-- ══ AUDIT LOG ══ -->
       <div class="page" id="page-audit">
         <div class="section-title">Audit Log</div>
@@ -1208,7 +1249,7 @@ html.theme-dark .topbar-date{color:#6b7280 !important}
   </div>
 </div>
 
-<script src="../assets/js/api.js"></script>
+<script src="../assets/js/api.js?v=3.9"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -1234,7 +1275,7 @@ const PAGE_TITLES = {
 window.addEventListener('DOMContentLoaded', () => {
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
-  if (tk && us && us.role === 'admin') { token = tk; currentUser = us; startApp(); return; }
+  if (tk && us && ['admin','superadmin'].includes(us.role)) { token = tk; currentUser = us; startApp(); return; }
   document.getElementById('nisInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 });
 
@@ -1250,7 +1291,7 @@ async function doLogin() {
     const pw = document.getElementById('pwInput')?.value || '';
     const d = await window.HQ.Auth.login(nis, 'admin', pw);
     if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
-    if (d.user.role !== 'admin') throw new Error('Akun ini bukan Admin');
+    if (!['admin','superadmin'].includes(d.user.role)) throw new Error('Akun ini bukan Admin');
     token = d.token; currentUser = d.user;
     sessionStorage.setItem('hq_token', token);
     sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
@@ -1268,9 +1309,18 @@ async function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   const nama = currentUser.nama || currentUser.id_user;
-  // sbAvatar sekarang berisi img logo — tidak perlu set textContent
-  document.getElementById('sbName').textContent = nama || 'Admin';
-  document.getElementById('greet').textContent    = 'Dashboard — ' + nama;
+  document.getElementById('sbName').textContent  = nama || 'Admin';
+  document.getElementById('greet').textContent   = 'Dashboard — ' + nama;
+
+  // Tampilkan menu superadmin jika role superadmin
+  if (currentUser.role === 'superadmin') {
+    document.querySelectorAll('.nav-superadmin').forEach(function(el) {
+      el.style.display = '';
+    });
+    var sbRole = document.getElementById('sbRole');
+    if (sbRole) sbRole.textContent = 'Super Admin';
+  }
+
   await loadMasterData();
   loadDashboard();
   startAdminAutoRefresh();
@@ -1312,6 +1362,7 @@ function goPage(name) {
     laporan   : loadLaporan,
     absensi   : () => { populateSel('absensiHalaqahSel', allHalaqah, true); loadAbsensi(); },
     pengumuman: loadPengumuman,
+    observasi : loadObservasi,
     audit     : loadAudit,
     level    : loadLevel,
     template : loadTemplate,
@@ -1933,8 +1984,11 @@ async function loadAnggota() {
       <td>${a.total_hadir||0}×</td>
       <td>${esc(a.tgl_bergabung||'–')}</td>
       <td>${a.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-amber">'+esc(a.status)+'</span>'}</td>
-      <td style="display:flex;gap:5px">
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
+        ${currentUser && currentUser.role === 'superadmin'
+          ? `<button class="btn btn-sm" style="background:${a.is_ketua==='TRUE'?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${esc(a.nama_murid)}')">${a.is_ketua==='TRUE'?'👑 Ketua':'Jadikan Ketua'}</button>`
+          : ''}
         <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${esc(a.nama_murid)}')">🗑</button>
       </td>
     </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>';
@@ -2460,6 +2514,101 @@ async function doKirimPengumuman() {
 // ══════════════════════════════════════════
 //  AUDIT LOG
 // ══════════════════════════════════════════
+// ══ ASSIGN KETUA KELAS (superadmin) ═════════════════
+async function toggleKetua(idAnggota, currentStatus, nama) {
+  var isKetua = String(currentStatus).toUpperCase() === 'TRUE';
+  var msg = isKetua
+    ? 'Cabut status ketua kelas dari ' + nama + '?'
+    : 'Jadikan ' + nama + ' sebagai ketua kelas halaqah ini?\n(Ketua lama akan otomatis diganti)';
+  if (!confirm(msg)) return;
+  showLoad('Memproses...');
+  try {
+    await window.HQ.SuperAdminAPI.assignKetuaKelas({ id_anggota: idAnggota, assign: !isKetua });
+    toast(isKetua ? 'Status ketua dicabut' : 'Ketua kelas berhasil ditunjuk', 'ok');
+    loadAnggota();
+  } catch(e) { toast(e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+// ══ OBSERVASI GURU (superadmin) ══════════════════════
+var _obsData  = [];
+var _obsStats = [];
+
+async function loadObservasi() {
+  var idGuru    = document.getElementById('obsFilterGuru').value;
+  var idHalaqah = document.getElementById('obsFilterHalaqah').value;
+  showLoad('Memuat observasi...');
+  try {
+    var params = {};
+    if (idGuru)    params.id_guru    = idGuru;
+    if (idHalaqah) params.id_halaqah = idHalaqah;
+    var [rDet, rStat] = await Promise.all([
+      window.HQ.SuperAdminAPI.getObservasiKBM(params),
+      window.HQ.SuperAdminAPI.getObservasiStats(params),
+    ]);
+    _obsData  = rDet.data   || [];
+    _obsStats = rStat.data  || [];
+
+    // Populate filter guru
+    var guruSel = document.getElementById('obsFilterGuru');
+    var existing = new Set(Array.from(guruSel.options).map(o=>o.value).filter(v=>v));
+    _obsData.forEach(function(r) {
+      if (r.id_guru && !existing.has(r.id_guru)) {
+        var o = document.createElement('option'); o.value = r.id_guru; o.textContent = r.nama_guru || r.id_guru;
+        guruSel.appendChild(o); existing.add(r.id_guru);
+      }
+    });
+
+    renderObsStats();
+    renderObsDetail();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+function renderObsStats() {
+  var el = document.getElementById('obsStatsWrap');
+  if (!_obsStats.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="section-title" style="font-size:14px;margin-bottom:10px">Rekap per Guru</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px">'
+    + _obsStats.map(function(g) {
+      var cKondusif = g.pct_kondusif >= 80 ? '#059669' : g.pct_kondusif >= 60 ? '#b45309' : '#dc2626';
+      var cWaktu    = g.pct_tepat_waktu >= 90 ? '#059669' : g.pct_tepat_waktu >= 70 ? '#b45309' : '#dc2626';
+      var cLatihan  = g.pct_ada_latihan >= 70 ? '#059669' : g.pct_ada_latihan >= 50 ? '#b45309' : '#dc2626';
+      return '<div class="card" style="padding:16px">'
+        + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px">'+esc(g.nama_guru)+'</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">'
+        + '<div><div style="color:var(--text-3);font-weight:600">Kondisi Kondusif</div><div style="font-size:20px;font-weight:900;color:'+cKondusif+'">'+g.pct_kondusif+'%</div><div style="color:var(--text-3);font-size:10.5px">'+g.kondusif+' dari '+g.total+' sesi</div></div>'
+        + '<div><div style="color:var(--text-3);font-weight:600">Tepat Waktu</div><div style="font-size:20px;font-weight:900;color:'+cWaktu+'">'+g.pct_tepat_waktu+'%</div><div style="color:var(--text-3);font-size:10.5px">Terlambat: '+g.terlambat+'× rata '+g.rata_menit_telat+' mnt</div></div>'
+        + '<div><div style="color:var(--text-3);font-weight:600">Ada Latihan</div><div style="font-size:20px;font-weight:900;color:'+cLatihan+'">'+g.pct_ada_latihan+'%</div><div style="color:var(--text-3);font-size:10.5px">'+g.ada_latihan+' dari '+g.total+' sesi</div></div>'
+        + '<div><div style="color:var(--text-3);font-weight:600">Kamera Terbuka</div><div style="font-size:20px;font-weight:900;color:var(--blue)">'+g.kamera_sebagian_besar_terbuka+'</div><div style="color:var(--text-3);font-size:10.5px">Campuran: '+g.kamera_campuran+' | Tertutup: '+g.kamera_sebagian_besar_tertutup+'</div></div>'
+        + '</div></div>';
+    }).join('') + '</div>';
+}
+
+function renderObsDetail() {
+  var tbody = document.getElementById('obsDetailTbl');
+  if (!_obsData.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi</td></tr>';
+    return;
+  }
+  var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
+  var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
+  var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
+  tbody.innerHTML = _obsData.map(function(r) {
+    var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' mnt)' : '';
+    return '<tr>'
+      + '<td>'+fmtDate(r.tanggal)+'<br><small style="color:var(--text-3)">ke-'+esc(String(r.pertemuan_ke||''))+'</small></td>'
+      + '<td>'+esc(r.nama_halaqah||r.id_halaqah)+'</td>'
+      + '<td style="font-weight:700">'+esc(r.nama_guru||r.id_guru)+'</td>'
+      + '<td><span class="badge '+(COND_COLOR[r.kondisi_kelas]||'b-gray')+'" style="font-size:10.5px">'+esc(r.kondisi_kelas||'-')+'</span></td>'
+      + '<td><span class="badge '+(r.ada_latihan==='Ya'?'b-green':'b-red')+'" style="font-size:10.5px">'+esc(r.ada_latihan||'-')+'</span></td>'
+      + '<td><span class="badge '+(WAKTU_COLOR[r.ketepatan_waktu]||'b-gray')+'" style="font-size:10.5px">'+esc(r.ketepatan_waktu||'-')+menitInfo+'</span></td>'
+      + '<td><span class="badge '+(KAMERA_COLOR[r.kamera_peserta]||'b-gray')+'" style="font-size:10.5px">'+esc(r.kamera_peserta||'-')+'</span></td>'
+      + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">'+esc(r.catatan_lain||'–')+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
 async function loadAudit() {
   showLoad('Bismillah, memproses...');
   try {

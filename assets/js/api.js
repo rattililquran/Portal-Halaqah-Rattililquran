@@ -288,6 +288,14 @@ var MuridAPI = {
   saveAssessment        : function(d)             { return apiPost('saveAssessmentMurid', d); },
 };
 
+// ─── SUPER ADMIN API (data sensitif) ─────────────
+var SuperAdminAPI = {
+  getObservasiKBM   : function(p)  { return apiGet('getObservasiKBM', p || {}); },
+  getObservasiStats : function(p)  { return apiGet('getObservasiStats', p || {}); },
+  getAuditLog       : function()   { return apiGet('getAuditLog'); },
+  assignKetuaKelas  : function(d)  { return apiPost('assignKetuaKelas', d); },
+};
+
 // ─── KETUA KELAS API ──────────────────────────────
 var KetuaAPI = {
   getInfo              : function()     { return apiGet('getKetuaInfo'); },
@@ -303,10 +311,11 @@ var KetuaAPI = {
 
 // ─── EKSPOS GLOBAL ────────────────────────────────
 window.HQ = {
-  Auth     : Auth,
-  AdminAPI : AdminAPI,
-  GuruAPI  : GuruAPI,
-  MuridAPI : MuridAPI,
-  KetuaAPI : KetuaAPI,
-  cache    : { invalidate: cacheInvalidate }, // expose untuk debug
+  Auth          : Auth,
+  AdminAPI      : AdminAPI,
+  SuperAdminAPI : SuperAdminAPI,
+  GuruAPI       : GuruAPI,
+  MuridAPI      : MuridAPI,
+  KetuaAPI      : KetuaAPI,
+  cache         : { invalidate: cacheInvalidate },
 };
