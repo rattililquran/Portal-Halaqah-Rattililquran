@@ -2878,8 +2878,9 @@ function renderNilaiMuridStep() {
     const isAlpa   = status === 'A';
     const isIzin   = status === 'I';
     const isSkip   = isAlpa || isIzin;
-    // Ambil dari DOM atau cache
-    var _cache  = (window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
+    // Ambil dari DOM atau cache — cache hanya dipakai saat dalam sesi yang sama
+    // (navigasi maju-mundur step). Tidak boleh terbawa ke sesi berbeda.
+    var _cache  = (sesiAktif && window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
     const adabVal = (document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '') || _cache.adab || '';
     const kamVal  = (document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '') || _cache.kamera || '';
     const korVal  = (document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '') || _cache.koreksi || '';
@@ -3091,11 +3092,12 @@ async function doSelesaiKBM() {
     el.classList.add('show');
     setTimeout(closeNotif, 7000);
 
-    // Reset state lengkap
-    sesiAktif      = null;
-    muridSesi      = [];
-    muridCache     = {};
-    doaSudahMuncul = false;
+    // Reset state lengkap — termasuk cache nilai agar sesi berikutnya bersih
+    sesiAktif        = null;
+    muridSesi        = [];
+    muridCache       = {};
+    doaSudahMuncul   = false;
+    window._nilaiCache = {}; // hapus cache nilai agar tidak terbawa ke sesi berikutnya
 
     // Sembunyikan banner draft
     const dw = document.getElementById('draftWarning');
