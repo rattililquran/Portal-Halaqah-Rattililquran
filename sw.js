@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v3.5
+//  Cache version: v3.8
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v3.7';
+const CACHE_NAME   = 'halaqah-v3.8';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -13,8 +13,8 @@ const STATIC_CACHE = [
   BASE + '/admin/index.html',
   BASE + '/manifest.json',
   BASE + '/assets/js/api.js',
-  BASE + '/assets/js/jspdf.umd.min.js',
-  BASE + '/assets/js/html2canvas.min.js',
+  // jspdf dan html2canvas dimuat lazy (on-demand), tidak dicache saat install
+  // karena file bisa tidak ada dan menyebabkan SW install gagal
   BASE + '/assets/images/logo-putih.png',
   BASE + '/assets/images/logo-abu.png',
   // Fonts lokal
