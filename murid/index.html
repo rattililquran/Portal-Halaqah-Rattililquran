@@ -1983,25 +1983,25 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
         </button>
       </div>
-      <!-- Tab bar -->
+      <!-- Tab bar — 3 tab -->
       <div class="ketua-tab-bar">
         <button class="ketua-tab-btn active" id="ketuaTabPantau" onclick="switchKetuaTab('pantau',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Pantau Anggota
+          Pantau
         </button>
         <button class="ketua-tab-btn" id="ketuaTabObservasi" onclick="switchKetuaTab('observasi',this)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Observasi KBM
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Observasi
           <span class="ketua-badge" id="obsBadge" style="display:none">0</span>
         </button>
+        <button class="ketua-tab-btn" id="ketuaTabReminder" onclick="switchKetuaTab('reminder',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.34 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.27 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Reminder
+        </button>
       </div>
-      <!-- Panel Pantau -->
+
+      <!-- Panel Pantau — BERSIH tanpa reminder -->
       <div id="ketuaPanelPantau">
-        <!-- Template Reminder -->
-        <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.34 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.27 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          Template Reminder
-        </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
           <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--red)">
             <div style="font-size:10px;color:var(--red);font-weight:700;text-transform:uppercase">Kritis</div>
@@ -2016,41 +2016,56 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
             <div style="font-size:24px;font-weight:900;color:var(--green)" id="ketuaNormal">–</div>
           </div>
         </div>
-        <!-- 3 reminder cards -->
-        <div id="reminderCards">
-          <div class="reminder-card">
-            <div class="reminder-title" style="color:#0284c7">H-1 · Malam Sebelum Kelas</div>
-            <div class="reminder-desc">Kirim ke grup WA malam sebelum sesi, maksimal pukul 21.00 WIB</div>
-            <button class="reminder-copy-btn" id="btnReminderH1" onclick="copyReminder('h1',this)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Salin Template H-1
-            </button>
-          </div>
-          <div class="reminder-card">
-            <div class="reminder-title" style="color:#059669">Hari-H · 1 Jam Sebelum Kelas</div>
-            <div class="reminder-desc">Kirim broadcast ke grup WA tepat 1 jam sebelum kelas dimulai</div>
-            <button class="reminder-copy-btn" id="btnReminderHariH" onclick="copyReminder('harih',this)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Salin Template Hari-H
-            </button>
-          </div>
-          <div class="reminder-card">
-            <div class="reminder-title" style="color:#7c3aed">H+1 · Reminder Latihan Mandiri</div>
-            <div class="reminder-desc">Kirim sehari setelah sesi selesai untuk motivasi latihan di rumah</div>
-            <button class="reminder-copy-btn" id="btnReminderH1Plus" onclick="copyReminder('h1plus',this)" id="btnReminderH1Plus">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Salin Template H+1 Latihan
-            </button>
-          </div>
-        </div>
-        <div style="font-size:13px;font-weight:800;color:var(--text);margin:18px 0 10px;display:flex;align-items:center;gap:6px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Keaktifan Anggota
-        </div>
         <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:8px">KBM Reguler</div>
         <div id="ketuaMemberListKBM"></div>
         <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin:14px 0 8px">At-Tibyan</div>
         <div id="ketuaMemberListAT"></div>
+      </div>
+
+      <!-- Panel Reminder — template yang bisa dikonfigurasi -->
+      <div id="ketuaPanelReminder" style="display:none">
+        <div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid rgba(14,165,233,.15);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:11.5px;color:#0369a1;font-weight:600;line-height:1.6">
+          Edit teks template di bawah sesuai gaya bahasa kamu. Perubahan tersimpan otomatis di HP ini. Tombol <b>Reset</b> mengembalikan ke teks bawaan.
+        </div>
+        <!-- H-1 -->
+        <div class="reminder-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="reminder-title" style="color:#0284c7;margin-bottom:0">H-1 · Malam Sebelum Kelas</div>
+            <button onclick="resetTemplate('h1')" style="font-size:10.5px;font-weight:700;color:var(--text-3);background:none;border:none;cursor:pointer;padding:2px 6px">Reset</button>
+          </div>
+          <div class="reminder-desc">Kirim ke grup WA malam sebelum sesi, maksimal pukul 21.00 WIB</div>
+          <textarea id="tmplH1" class="fc" rows="5" oninput="simpanTemplate('h1',this.value)" style="font-size:12.5px;resize:vertical;margin-bottom:8px"></textarea>
+          <button class="reminder-copy-btn" id="btnReminderH1" onclick="copyReminderFromTextarea('tmplH1',this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Salin Template H-1
+          </button>
+        </div>
+        <!-- Hari-H -->
+        <div class="reminder-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="reminder-title" style="color:#059669;margin-bottom:0">Hari-H · 1 Jam Sebelum Kelas</div>
+            <button onclick="resetTemplate('harih')" style="font-size:10.5px;font-weight:700;color:var(--text-3);background:none;border:none;cursor:pointer;padding:2px 6px">Reset</button>
+          </div>
+          <div class="reminder-desc">Kirim broadcast ke grup WA tepat 1 jam sebelum kelas dimulai</div>
+          <textarea id="tmplHariH" class="fc" rows="5" oninput="simpanTemplate('harih',this.value)" style="font-size:12.5px;resize:vertical;margin-bottom:8px"></textarea>
+          <button class="reminder-copy-btn" id="btnReminderHariH" onclick="copyReminderFromTextarea('tmplHariH',this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Salin Template Hari-H
+          </button>
+        </div>
+        <!-- H+1 -->
+        <div class="reminder-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="reminder-title" style="color:#7c3aed;margin-bottom:0">H+1 · Reminder Latihan Mandiri</div>
+            <button onclick="resetTemplate('h1plus')" style="font-size:10.5px;font-weight:700;color:var(--text-3);background:none;border:none;cursor:pointer;padding:2px 6px">Reset</button>
+          </div>
+          <div class="reminder-desc">Kirim sehari setelah sesi selesai untuk motivasi latihan di rumah</div>
+          <textarea id="tmplH1Plus" class="fc" rows="5" oninput="simpanTemplate('h1plus',this.value)" style="font-size:12.5px;resize:vertical;margin-bottom:8px"></textarea>
+          <button class="reminder-copy-btn" id="btnReminderH1Plus" onclick="copyReminderFromTextarea('tmplH1Plus',this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Salin Template H+1 Latihan
+          </button>
+        </div>
       </div>
       <!-- Panel Observasi -->
       <div id="ketuaPanelObservasi" style="display:none">
@@ -4415,12 +4430,14 @@ function switchKetuaTab(tab, btn) {
   _ketuaCurrentTab = tab;
   document.querySelectorAll('.ketua-tab-btn').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
-  document.getElementById('ketuaPanelPantau').style.display    = tab === 'pantau'    ? '' : 'none';
-  document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi' ? '' : 'none';
+  document.getElementById('ketuaPanelPantau').style.display    = tab === 'pantau'   ? '' : 'none';
+  document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi'? '' : 'none';
+  document.getElementById('ketuaPanelReminder').style.display  = tab === 'reminder' ? '' : 'none';
   if (!_ketuaTabLoaded[tab]) {
     _ketuaTabLoaded[tab] = true;
     if (tab === 'pantau')    loadKetuaPantau();
     if (tab === 'observasi') loadKetuaObservasi();
+    if (tab === 'reminder')  initReminderTab();
   }
 }
 
@@ -4822,6 +4839,80 @@ async function _loadRekapStatus() {
     var r = await window.HQ.KetuaAPI.getRekapStatus();
     _rekapSudahDikirim = new Set(r.data || []);
   } catch(e) { /* silent */ }
+}
+
+// ── REMINDER TAB — Template yang bisa dikonfigurasi ──────────
+var _TMPL_KEY = {
+  h1     : 'ketua_tmpl_h1',
+  harih  : 'ketua_tmpl_harih',
+  h1plus : 'ketua_tmpl_h1plus',
+};
+
+function _defaultTemplate(type) {
+  return _buildReminderText(type);
+}
+
+function initReminderTab() {
+  // Load template dari localStorage atau pakai default
+  var ids = { h1:'tmplH1', harih:'tmplHariH', h1plus:'tmplH1Plus' };
+  Object.keys(ids).forEach(function(type) {
+    var el = document.getElementById(ids[type]);
+    if (!el) return;
+    var saved = localStorage.getItem(_TMPL_KEY[type]);
+    el.value = saved !== null ? saved : _defaultTemplate(type);
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  });
+}
+
+function simpanTemplate(type, val) {
+  localStorage.setItem(_TMPL_KEY[type], val);
+}
+
+function resetTemplate(type) {
+  var ids = { h1:'tmplH1', harih:'tmplHariH', h1plus:'tmplH1Plus' };
+  var el = document.getElementById(ids[type]);
+  if (!el) return;
+  localStorage.removeItem(_TMPL_KEY[type]);
+  el.value = _defaultTemplate(type);
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+  toast('Template di-reset ke teks bawaan', 'ok');
+}
+
+function copyReminderFromTextarea(textareaId, btn) {
+  var el = document.getElementById(textareaId);
+  if (!el) return;
+  var txt = el.value.trim();
+  if (!txt) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      _haptic(40);
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }).catch(function() { _copyFallback(txt); });
+  } else { _copyFallback(txt); }
+}
+
+// copyReminder (untuk WA personal dari tab Pantau) — tetap pakai template dari localStorage jika ada
+function copyReminder(type, btn) {
+  var ids = { h1:'tmplH1', harih:'tmplHariH', h1plus:'tmplH1Plus' };
+  var el  = document.getElementById(ids[type]);
+  // Pakai teks dari textarea jika tab reminder pernah dibuka, else pakai default
+  var saved = localStorage.getItem(_TMPL_KEY[type]);
+  var txt = (el && el.value.trim()) || (saved !== null ? saved : _buildReminderText(type));
+  if (!txt) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      _haptic(40);
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }).catch(function() { _copyFallback(txt); });
+  } else { _copyFallback(txt); }
 }
 
 function refreshKetuaPage() {
