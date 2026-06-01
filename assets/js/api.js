@@ -296,6 +296,9 @@ var KetuaAPI = {
   getObservasiPending  : function()     { return apiGet('getObservasiPending'); },
   getObservasiHistory  : function()     { return apiGet('getObservasiHistory'); },
   submitObservasi      : function(d)    { return apiPost('submitObservasi', d); },
+  getKBMJurnal         : function(id)   { return apiGet('getKBMJurnal', { id_kbm: id }); },
+  getRekapStatus       : function()     { return apiGet('getRekapStatus'); },
+  simpanRekapStatus    : function(d)    { return apiPost('simpanRekapStatus', d); },
 };
 
 // ─── EKSPOS GLOBAL ────────────────────────────────

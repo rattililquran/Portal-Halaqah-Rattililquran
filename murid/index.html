@@ -1533,6 +1533,33 @@ html.theme-dark .skel{
 html.theme-dark .bg-blobs{display:none}
 html.theme-dark .bg-blobs-guru{display:none}
 
+/* ── Template Reminder ── */
+.reminder-card{border-radius:14px;background:#fff;border:1px solid var(--border);
+  padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-card)}
+.reminder-title{font-size:12px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:4px}
+.reminder-desc{font-size:11.5px;color:var(--text-3);font-weight:600;margin-bottom:10px;line-height:1.5}
+.reminder-copy-btn{display:flex;align-items:center;gap:6px;width:100%;padding:9px 14px;
+  border-radius:10px;border:1.5px solid var(--border);background:transparent;
+  font-size:12px;font-weight:700;color:var(--text-2);cursor:pointer;justify-content:center;
+  transition:all .2s}
+.reminder-copy-btn:hover{border-color:var(--blue);color:var(--blue);background:#f0f9ff}
+.reminder-copy-btn.copied{border-color:var(--green);color:var(--green);background:#f0fdf4}
+
+/* Rekap status badge */
+.rekap-badge-pending{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:100px;font-size:10.5px;font-weight:700;
+  background:rgba(245,158,11,.1);color:#b45309}
+.rekap-badge-done{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:100px;font-size:10.5px;font-weight:700;
+  background:rgba(16,185,129,.1);color:#059669}
+
+/* Modal rekap form */
+.rekap-form-wrap{padding:16px}
+html.theme-dark .reminder-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .reminder-copy-btn{border-color:rgba(255,255,255,.12)!important;color:#9ca3af!important}
+html.theme-dark .reminder-copy-btn:hover{border-color:#38bdf8!important;color:#38bdf8!important;background:#1a2535!important}
+
 /* ══ KETUA KELAS ══════════════════════════════════════════ */
 .ketua-tab-bar{display:flex;gap:6px;margin-bottom:16px;background:#f1f5f9;border-radius:12px;padding:4px}
 .ketua-tab-btn{flex:1;padding:8px;border:none;border-radius:9px;background:transparent;
@@ -1970,6 +1997,11 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
       </div>
       <!-- Panel Pantau -->
       <div id="ketuaPanelPantau">
+        <!-- Template Reminder -->
+        <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.34 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.27 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Template Reminder
+        </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
           <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--red)">
             <div style="font-size:10px;color:var(--red);font-weight:700;text-transform:uppercase">Kritis</div>
@@ -1984,9 +2016,40 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
             <div style="font-size:24px;font-weight:900;color:var(--green)" id="ketuaNormal">–</div>
           </div>
         </div>
-        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:10px">KBM Reguler</div>
+        <!-- 3 reminder cards -->
+        <div id="reminderCards">
+          <div class="reminder-card">
+            <div class="reminder-title" style="color:#0284c7">H-1 · Malam Sebelum Kelas</div>
+            <div class="reminder-desc">Kirim ke grup WA malam sebelum sesi, maksimal pukul 21.00 WIB</div>
+            <button class="reminder-copy-btn" id="btnReminderH1" onclick="copyReminder('h1',this)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Salin Template H-1
+            </button>
+          </div>
+          <div class="reminder-card">
+            <div class="reminder-title" style="color:#059669">Hari-H · 1 Jam Sebelum Kelas</div>
+            <div class="reminder-desc">Kirim broadcast ke grup WA tepat 1 jam sebelum kelas dimulai</div>
+            <button class="reminder-copy-btn" id="btnReminderHariH" onclick="copyReminder('harih',this)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Salin Template Hari-H
+            </button>
+          </div>
+          <div class="reminder-card">
+            <div class="reminder-title" style="color:#7c3aed">H+1 · Reminder Latihan Mandiri</div>
+            <div class="reminder-desc">Kirim sehari setelah sesi selesai untuk motivasi latihan di rumah</div>
+            <button class="reminder-copy-btn" id="btnReminderH1Plus" onclick="copyReminder('h1plus',this)" id="btnReminderH1Plus">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Salin Template H+1 Latihan
+            </button>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:var(--text);margin:18px 0 10px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Keaktifan Anggota
+        </div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:8px">KBM Reguler</div>
         <div id="ketuaMemberListKBM"></div>
-        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin:14px 0 10px">At-Tibyan</div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin:14px 0 8px">At-Tibyan</div>
         <div id="ketuaMemberListAT"></div>
       </div>
       <!-- Panel Observasi -->
@@ -1998,6 +2061,29 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
           </div>
         </div>
         <div id="ketuaObsList"></div>
+      </div>
+    </div>
+
+    <!-- Modal Generate Rekap -->
+    <div class="modal-overlay" id="rekapModal" onclick="if(event.target===this)closeModal('rekapModal')">
+      <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+        <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="font-size:15px;font-weight:900;color:var(--text)" id="rekapTitle">Generate Rekap KBM</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="rekapSubtitle"></div>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:16px 20px" id="rekapBody">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat data jurnal...</div></div>
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+          <button class="btn btn-outline" style="flex:1" onclick="closeModal('rekapModal')">Tutup</button>
+          <button class="btn btn-primary" style="flex:2" id="rekapCopyBtn" onclick="copyRekap()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Salin Rekap
+          </button>
+          <button class="btn btn-green btn-sm" id="rekapTandaiBtn" onclick="tandaiRekapTerkirim()" style="font-size:12px;padding:10px 14px">
+            Tandai Terkirim
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2750,7 +2836,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 <script src="../assets/js/jspdf.umd.min.js"></script>
 <script src="../assets/js/html2canvas.min.js"></script>
-<script src="../assets/js/api.js?v=3.7"></script>
+<script src="../assets/js/api.js?v=3.9"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -4409,8 +4495,12 @@ async function loadKetuaObservasi() {
   var el = document.getElementById('ketuaObsList');
   el.innerHTML = skelCards(3,2);
   try {
-    var r = await window.HQ.KetuaAPI.getObservasiPending();
-    _ketuaObsPending = r.data || [];
+    var [rObs, rRekap] = await Promise.all([
+      window.HQ.KetuaAPI.getObservasiPending(),
+      window.HQ.KetuaAPI.getRekapStatus(),
+    ]);
+    _ketuaObsPending    = rObs.data || [];
+    _rekapSudahDikirim  = new Set(rRekap.data || []);
     var pending = _ketuaObsPending.filter(function(s) { return s.window_status === 'terbuka'; });
     _updateKetuaBadge(pending.length);
     renderKetuaObsList();
@@ -4427,22 +4517,33 @@ function renderKetuaObsList() {
   }
   el.innerHTML = '<div class="card"><div style="padding:8px 16px">'
     + _ketuaObsPending.map(function(s) {
-      var numCls = s.window_status === 'selesai' ? 'selesai' : s.window_status === 'terkunci' ? 'terkunci' : '';
-      var chip = s.window_status === 'terbuka'
+      var numCls    = s.window_status === 'selesai' ? 'selesai' : s.window_status === 'terkunci' ? 'terkunci' : '';
+      var obsChip   = s.window_status === 'terbuka'
         ? '<span class="obs-window-chip obs-window-terbuka">Terbuka</span>'
         : s.window_status === 'terkunci'
-        ? '<span class="obs-window-chip obs-window-terkunci">Terkunci — '+esc(s.kunci_info||'')+'</span>'
+        ? '<span class="obs-window-chip obs-window-terkunci">Terkunci - '+esc(s.kunci_info||'')+'</span>'
         : '<span class="obs-window-chip obs-window-selesai">Sudah diobservasi</span>';
-      var btn = s.window_status === 'terbuka'
-        ? '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:11.5px;padding:6px 12px" onclick="bukaFormObservasi(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Isi Observasi</button>'
+      var sudahRekap = _rekapSudahDikirim.has(String(s.id_kbm));
+      var rekapChip  = sudahRekap
+        ? '<span class="rekap-badge-done">Rekap terkirim</span>'
+        : s.window_status !== 'terkunci'
+        ? '<span class="rekap-badge-pending">Rekap belum dikirim</span>'
+        : '';
+      var btnObs = s.window_status === 'terbuka'
+        ? '<button class="btn btn-primary btn-sm" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="bukaFormObservasi(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Observasi</button>'
+        : '';
+      var btnRekap = !sudahRekap && s.window_status !== 'terkunci'
+        ? '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:5px 10px;white-space:nowrap;color:var(--green);border-color:var(--green)" onclick="bukaModalRekap(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Rekap</button>'
         : '';
       return '<div class="obs-sesi-item">'
         + '<div class="obs-sesi-num '+numCls+'">'+s.pertemuan_ke+'</div>'
         + '<div style="flex:1">'
         + '<div style="font-size:13px;font-weight:800;color:var(--text)">Sesi ke-'+s.pertemuan_ke+'</div>'
         + '<div style="font-size:11.5px;color:var(--text-3);font-weight:600">'+fmtDate(s.tanggal)+'</div>'
-        + '<div style="margin-top:4px">'+chip+'</div>'
-        + '</div>'+btn+'</div>';
+        + '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+obsChip+rekapChip+'</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">'+btnObs+btnRekap+'</div>'
+        + '</div>';
     }).join('') + '</div></div>';
 }
 
@@ -4555,6 +4656,172 @@ async function doSubmitObservasi() {
     toast('Gagal: ' + e.message, 'err');
     if (btn) { btn.disabled = false; btn.textContent = 'Kirim Observasi'; }
   }
+}
+
+// ── TEMPLATE REMINDER ────────────────────────────
+function _buildReminderText(type) {
+  var info  = _ketuaData && _ketuaData.halaqah ? _ketuaData.halaqah : {};
+  var nama  = info.nama  || 'Maryam';
+  var level = info.level || 'Level 1';
+  var jam   = info.jam_mulai || '15:00';
+  var jamM1 = _jamMinus1(jam);
+
+  var hari  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
+  var tgl   = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  var besok = new Date(); besok.setDate(besok.getDate()+1);
+  var hariBesok = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][besok.getDay()];
+  var tglBesok  = besok.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+
+  if (type === 'h1') {
+    return "Assalamualaikum warahmatullahi wabarakatuh.\n\n" +
+      "Diingatkan untuk sesi Halaqah Tahsin " + nama + " (" + level + ")\n" +
+      "akan berlangsung besok, " + hariBesok + " " + tglBesok + "\n" +
+      "pukul " + jam + " WIB via Zoom.\n\n" +
+      "Harap bersiap dan hadir tepat waktu ya.\n" +
+      "Jazakumullahu khairan.";
+  }
+  if (type === 'harih') {
+    return "Assalamualaikum warahmatullahi wabarakatuh.\n\n" +
+      "Halaqah Tahsin " + nama + " (" + level + ") akan dimulai\n" +
+      "dalam 1 jam lagi, pukul " + jam + " WIB.\n\n" +
+      "Segera persiapkan diri, buka Zoom, dan pastikan\n" +
+      "kamera siap dibuka. Barakallahu fiikum!";
+  }
+  if (type === 'h1plus') {
+    return "Assalamualaikum warahmatullahi wabarakatuh.\n\n" +
+      "Semangat berlatih di rumah ya, jangan sampai ilmu\n" +
+      "yang sudah dipelajari kemarin terlupakan.\n\n" +
+      "Yuk luangkan waktu minimal 10-15 menit hari ini\n" +
+      "untuk berlatih mandiri sesuai arahan ustadz/ustadzah.\n\n" +
+      "Istiqomah adalah kunci. Semangat!\n" +
+      "Jazakumullahu khairan.";
+  }
+  return '';
+}
+
+function _jamMinus1(jam) {
+  var parts = String(jam).split(':');
+  var h = parseInt(parts[0]) - 1;
+  if (h < 0) h = 0;
+  return String(h).padStart(2,'0') + ':' + (parts[1] || '00');
+}
+
+function copyReminder(type, btn) {
+  var txt = _buildReminderText(type);
+  if (!txt) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() {
+      _haptic(40);
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }).catch(function() { _copyFallback(txt); });
+  } else { _copyFallback(txt); }
+}
+
+// ── GENERATE REKAP KBM ────────────────────────────
+var _rekapIdKBM       = null;
+var _rekapText        = '';
+var _rekapSudahDikirim= new Set(); // id_kbm yang sudah rekap
+
+async function bukaModalRekap(idKBM, pertemuanKe, tanggal) {
+  _rekapIdKBM = idKBM;
+  document.getElementById('rekapTitle').textContent    = 'Rekap Sesi ke-' + pertemuanKe;
+  document.getElementById('rekapSubtitle').textContent = fmtDate(tanggal);
+  document.getElementById('rekapBody').innerHTML =
+    '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat data jurnal...</div></div>';
+  document.getElementById('rekapTandaiBtn').style.display =
+    _rekapSudahDikirim.has(idKBM) ? 'none' : '';
+  openModal('rekapModal');
+
+  try {
+    var r = await window.HQ.KetuaAPI.getKBMJurnal(idKBM);
+    var d = r.data;
+    _renderRekapForm(d);
+  } catch(e) {
+    document.getElementById('rekapBody').innerHTML =
+      '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
+  }
+}
+
+function _renderRekapForm(d) {
+  var hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date(d.tanggal+'T00:00:00').getDay()];
+  var tglFmt = hari + ', ' + fmtDate(d.tanggal);
+  document.getElementById('rekapBody').innerHTML =
+    '<div style="background:#f0fdf4;border:1.5px solid rgba(16,185,129,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:#065f46;font-weight:600;line-height:1.7">' +
+    'Data diambil otomatis dari jurnal guru. Tambahkan Catatan Ustadz jika ada, lalu salin teks rekap.' +
+    '</div>' +
+    '<div class="obs-form-section">' +
+    '<div class="obs-form-label">Catatan Penting Ustadz/Ustadzah</div>' +
+    '<textarea class="fc" id="rekapCatatanUstadz" rows="3" placeholder="Contoh: Tekankan sifat jahar pada huruf zai. Perbaiki makhraj qaf..." style="resize:vertical"></textarea>' +
+    '</div>' +
+    '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:4px">' +
+    '<div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:8px">Preview Rekap</div>' +
+    '<div id="rekapPreview" style="font-size:12px;color:var(--text-2);white-space:pre-wrap;line-height:1.8;font-family:monospace"></div>' +
+    '</div>';
+
+  // Render preview saat catatan diubah
+  var ta = document.getElementById('rekapCatatanUstadz');
+  ta.addEventListener('input', function() { _updateRekapPreview(d, tglFmt); });
+  _updateRekapPreview(d, tglFmt);
+}
+
+function _updateRekapPreview(d, tglFmt) {
+  var catatan = (document.getElementById('rekapCatatanUstadz') || {}).value || '-';
+  var latihan = d.latihan_mandiri || '-';
+  var deadline = d.deadline_latihan ? (' (deadline: ' + fmtDate(d.deadline_latihan) + ')') : '';
+
+  _rekapText =
+    "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\n" +
+    "Berikut Rekapitulasi Halaqah Tahsin " + esc(d.level) + "\n\n" +
+    "Hari/Tanggal  : " + tglFmt + "\n" +
+    "Pertemuan Ke  : " + d.pertemuan_ke + "\n\n" +
+    "1. CAPAIAN MATERI TEORI:\n   " + (d.pencapaian_modul || '-') + "\n\n" +
+    "2. CATATAN PENTING USTADZ/USTADZAH:\n   " + catatan + "\n\n" +
+    "3. TUGAS LATIHAN MANDIRI:\n   " + latihan + deadline + "\n\n" +
+    "Mari kita istiqomah berlatih.\n" +
+    "Sampai jumpa di pertemuan berikutnya.\n" +
+    "Jazakumullah khairan.";
+
+  var prev = document.getElementById('rekapPreview');
+  if (prev) prev.textContent = _rekapText;
+}
+
+function copyRekap() {
+  if (!_rekapText) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(_rekapText).then(function() {
+      _haptic(40);
+      toast('Rekap berhasil disalin! Tempel di grup WA.', 'ok');
+    }).catch(function() { _copyFallback(_rekapText); });
+  } else { _copyFallback(_rekapText); }
+}
+
+async function tandaiRekapTerkirim() {
+  if (!_rekapIdKBM) return;
+  var catatan = (document.getElementById('rekapCatatanUstadz') || {}).value || '';
+  var btn = document.getElementById('rekapTandaiBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  try {
+    await window.HQ.KetuaAPI.simpanRekapStatus({ id_kbm: _rekapIdKBM, catatan_ustadz: catatan });
+    _rekapSudahDikirim.add(_rekapIdKBM);
+    if (btn) btn.style.display = 'none';
+    toast('Rekap ditandai sudah dikirim ✅', 'ok');
+    renderKetuaObsList(); // refresh badge di list
+    closeModal('rekapModal');
+  } catch(e) {
+    toast(e.message, 'err');
+    if (btn) { btn.disabled = false; btn.textContent = 'Tandai Terkirim'; }
+  }
+}
+
+// Load rekap status saat observasi panel dibuka
+async function _loadRekapStatus() {
+  try {
+    var r = await window.HQ.KetuaAPI.getRekapStatus();
+    _rekapSudahDikirim = new Set(r.data || []);
+  } catch(e) { /* silent */ }
 }
 
 function refreshKetuaPage() {
