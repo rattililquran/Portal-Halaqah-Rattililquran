@@ -3,7 +3,7 @@
 //  Cache version: v3.8
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v3.9';
+const CACHE_NAME   = 'halaqah-v4.0';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
