@@ -6,26 +6,53 @@
 
 ## 1. Gambaran Umum
 
-Portal Admin adalah pusat kendali seluruh sistem: manajemen data master, konfigurasi raport, generate dan publish raport, serta monitoring global. Hanya bisa diakses oleh role `admin`.
+Portal Admin adalah pusat kendali seluruh sistem. Berjalan di atas Google Apps Script backend dengan dua level akses: `admin` (operasional) dan `superadmin` (data sensitif).
+
+### Dua Level Akses
+
+| Role | Akses |
+|------|-------|
+| `admin` | Semua fitur operasional: users, halaqah, raport, laporan, pengumuman |
+| `superadmin` | Semua fitur admin + Observasi Guru + Audit Log + Assign Ketua Kelas |
+
+**Route guard di GAS:**
+```javascript
+function routeAdmin(user, fn) {
+  // admin + superadmin
+  if (!['admin','superadmin'].includes(user.role)) return error(403);
+  return jsonResponse(fn());
+}
+function routeSuperAdmin(user, fn) {
+  // hanya superadmin
+  if (user.role !== 'superadmin') return error(403);
+  return jsonResponse(fn());
+}
+```
+
+**Cara buat superadmin:** Sheet `Users` → kolom `role` → isi `superadmin`.
 
 ---
 
 ## 2. Menu dan Fitur
 
-| Menu | Fungsi |
-|------|--------|
-| Dashboard | Statistik global: murid, guru, halaqah, KBM bulan ini, % nilai terisi |
-| Periode/Semester | Create/Update/Activate periode — hanya satu periode aktif sekaligus |
-| Users | CRUD guru dan murid — generate NIS otomatis |
-| Halaqah | CRUD halaqah — assign guru, set jadwal, level, periode |
-| Anggota | Kelola murid per halaqah — level, target, catatan |
-| Komponen Raport | Setup komponen nilai per periode (otomatis/manual + bobot) |
-| Nilai Manual | Entry nilai UAS, Micro Teaching, dll per murid |
-| Raport | Generate + publish raport — bulk/per halaqah/per level |
-| Laporan Global | Rekap kehadiran dan nilai lintas halaqah |
-| Pengumuman | Broadcast ke guru/murid |
-| Level | Master data level tahsin |
-| Template Koreksi | Template koreksi tahsin untuk guru |
+| Menu | Fungsi | Akses |
+|------|--------|-------|
+| Dashboard | Statistik global | Admin + Superadmin |
+| Periode/Semester | Create/Update/Activate periode | Admin + Superadmin |
+| Users | CRUD guru dan murid — NIS otomatis | Admin + Superadmin |
+| Halaqah | CRUD halaqah — assign guru, jadwal, level | Admin + Superadmin |
+| Anggota | Kelola murid per halaqah + **Assign Ketua Kelas** | Admin (tanpa ketua) / Superadmin (dengan ketua) |
+| Komponen Raport | Setup komponen nilai per periode | Admin + Superadmin |
+| Nilai Manual | Entry nilai UAS, Micro Teaching, dll | Admin + Superadmin |
+| Raport | Generate + publish raport | Admin + Superadmin |
+| Laporan Global | Rekap kehadiran dan nilai lintas halaqah | Admin + Superadmin |
+| Rekap Absensi | Export ke Google Sheets | Admin + Superadmin |
+| Pengumuman | Broadcast ke guru/murid | Admin + Superadmin |
+| Arsip Data | Pindah data lama ke spreadsheet terpisah | Admin + Superadmin |
+| Level | Master data level tahsin | Admin + Superadmin |
+| Template Koreksi | Template chip koreksi untuk guru | Admin + Superadmin |
+| **Observasi Guru** | Data rahasia observasi KBM dari ketua kelas | **Superadmin only** |
+| **Audit Log** | Rekam jejak aktivitas sistem | **Superadmin only** |
 
 ---
 
@@ -153,7 +180,33 @@ if (raport.status === 'published') return error('Raport sudah dipublikasikan');
 
 ---
 
-## 7. GAS Endpoints Admin
+## 7. Observasi Guru & Assign Ketua (Superadmin)
+
+Data observasi KBM dari ketua kelas. Admin biasa tidak bisa akses.
+
+### Alur Data
+```
+Ketua kelas isi form observasi di portal murid
+    -> sheet Observasi_KBM
+    -> Superadmin baca via getObservasiKBM / getObservasiStats
+```
+
+### Assign Ketua Kelas
+- Superadmin klik tombol "Jadikan Ketua" di tabel Anggota
+- `assignKetuaKelas()` otomatis cabut ketua lama di halaqah yang sama
+- Sheet: `Anggota` kolom `is_ketua` = `TRUE`
+
+### GAS Endpoints Superadmin
+```
+getObservasiKBM    -> routeSuperAdmin -> getObservasiKBM(params)
+getObservasiStats  -> routeSuperAdmin -> getObservasiStats(params)
+getAuditLog        -> routeSuperAdmin -> getAuditLog()
+assignKetuaKelas   -> routeSuperAdmin -> assignKetuaKelas(data)
+```
+
+---
+
+## 8. GAS Endpoints Admin
 
 ### Read
 ```
