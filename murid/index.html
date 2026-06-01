@@ -703,12 +703,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .btn-pdf:disabled{opacity:.6;pointer-events:none}
 /* Modal Rincian Raport */
 .rincian-overlay{display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;padding:0}
+  background:rgba(0,0,0,.65);align-items:flex-end;justify-content:center;padding:0}
 @media(min-width:600px){.rincian-overlay{align-items:center;padding:20px}}
 .rincian-modal{background:var(--card);width:100%;max-width:640px;
   max-height:92vh;display:flex;flex-direction:column;overflow:hidden;
-  border-radius:24px 24px 0 0}
-@media(min-width:600px){.rincian-modal{border-radius:20px;max-height:88vh}}
+  border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+@media(min-width:600px){.rincian-modal{border-radius:20px;max-height:88vh;box-shadow:0 8px 40px rgba(0,0,0,.25)}}
 .rincian-head{display:flex;align-items:center;justify-content:space-between;
   padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
   background:linear-gradient(135deg,#1e3a5f,#334155)}
@@ -6217,9 +6217,11 @@ function _htmlRincianSesi(data) {
             ? '<span style="color:var(--amber);font-size:10px">Sering Tutup</span>'
             : '<span style="color:var(--text-3)">—</span>';
 
+    var noSesi  = s.pertemuan_ke || s.no || (sesi.indexOf(s)+1);
+    var tglSesi = s.tanggal ? (typeof fmtDate==='function' ? fmtDate(s.tanggal) : s.tanggal) : '-';
     h += '<tr>'
-      + '<td style="text-align:center;color:var(--text-3);font-size:10px">'+esc(String(s.pertemuan_ke))+'</td>'
-      + '<td style="white-space:nowrap">'+esc(fmtDate ? fmtDate(s.tanggal) : s.tanggal)+'</td>'
+      + '<td style="text-align:center;color:var(--text-3);font-size:10px">'+esc(String(noSesi))+'</td>'
+      + '<td style="white-space:nowrap">'+esc(tglSesi)+'</td>'
       + '<td style="font-size:10.5px;color:var(--text-2);max-width:140px;word-break:break-word">'+esc(s.materi||'-')+'</td>'
       + '<td style="text-align:center;font-weight:800;font-size:13px;color:'+hColor+'">'+hIcon+'</td>'
       + '<td style="text-align:center">'+adabHTML+'</td>'
