@@ -112,7 +112,6 @@ function doGet(e) {
       case 'getMuridByHalaqah':     return routeGuru(user, () => getMuridByHalaqah(params));
       case 'getJadwalHariIni':      return routeGuru(user, () => getJadwalHariIni(user));
       case 'getRiwayatMuridKoreksi':return routeGuru(user, () => getRiwayatMuridKoreksi(params));
-      case 'getTemplateKoreksi':    return jsonResponse(getTemplateKoreksi());
       case 'getKBMByHalaqah':    return routeGuru(user, () => getKBMByHalaqah(params));
       case 'getNilaiByKBM':      return routeGuru(user, () => getNilaiByKBM(params));
       case 'getPresensiByKBM':   return routeGuru(user, () => getPresensiByKBM(params));
