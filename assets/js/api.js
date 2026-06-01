@@ -288,11 +288,22 @@ var MuridAPI = {
   saveAssessment        : function(d)             { return apiPost('saveAssessmentMurid', d); },
 };
 
+// ─── KETUA KELAS API ──────────────────────────────
+var KetuaAPI = {
+  getInfo              : function()     { return apiGet('getKetuaInfo'); },
+  getKeaktifanAnggota  : function()     { return apiGet('getKeaktifanAnggota'); },
+  getAtTibyanAnggota   : function()     { return apiGet('getAtTibyanAnggota'); },
+  getObservasiPending  : function()     { return apiGet('getObservasiPending'); },
+  getObservasiHistory  : function()     { return apiGet('getObservasiHistory'); },
+  submitObservasi      : function(d)    { return apiPost('submitObservasi', d); },
+};
+
 // ─── EKSPOS GLOBAL ────────────────────────────────
 window.HQ = {
   Auth     : Auth,
   AdminAPI : AdminAPI,
   GuruAPI  : GuruAPI,
   MuridAPI : MuridAPI,
+  KetuaAPI : KetuaAPI,
   cache    : { invalidate: cacheInvalidate }, // expose untuk debug
 };

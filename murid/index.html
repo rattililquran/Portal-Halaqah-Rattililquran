@@ -1532,6 +1532,68 @@ html.theme-dark .skel{
 /* Sembunyikan blobs di dark mode */
 html.theme-dark .bg-blobs{display:none}
 html.theme-dark .bg-blobs-guru{display:none}
+
+/* ══ KETUA KELAS ══════════════════════════════════════════ */
+.ketua-tab-bar{display:flex;gap:6px;margin-bottom:16px;background:#f1f5f9;border-radius:12px;padding:4px}
+.ketua-tab-btn{flex:1;padding:8px;border:none;border-radius:9px;background:transparent;
+  font-size:12.5px;font-weight:700;color:var(--text-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.ketua-tab-btn.active{background:#fff;color:#0c4a6e;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.ketua-badge{background:#ef4444;color:#fff;border-radius:100px;font-size:9px;
+  font-weight:900;padding:1px 6px;line-height:1.5;margin-left:4px}
+
+/* Kartu anggota keaktifan */
+.ketua-member-card{border-radius:14px;background:#fff;border:1px solid var(--border);
+  padding:14px;margin-bottom:10px;box-shadow:var(--shadow-card);
+  border-left:4px solid var(--green)}
+.ketua-member-card.kritis{border-left-color:var(--red)}
+.ketua-member-card.peringatan{border-left-color:var(--amber)}
+.ketua-wa-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;
+  border:none;cursor:pointer;font-size:12px;font-weight:700;margin-top:10px;width:100%;
+  justify-content:center;transition:opacity .15s}
+.ketua-wa-btn.aktif{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff}
+.ketua-wa-btn.nonaktif{background:rgba(0,0,0,.07);color:var(--text-3)}
+
+/* Form observasi */
+.obs-form-section{margin-bottom:18px}
+.obs-form-label{font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px}
+.obs-options{display:flex;flex-direction:column;gap:6px}
+.obs-radio{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;
+  border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all .2s}
+.obs-radio:hover{border-color:var(--blue);background:#f0f9ff}
+.obs-radio.selected{border-color:var(--blue);background:#eff6ff}
+.obs-radio input[type=radio]{display:none}
+.obs-radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);
+  flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.obs-radio.selected .obs-radio-dot{border-color:var(--blue);background:var(--blue)}
+.obs-radio.selected .obs-radio-dot::after{content:'';width:6px;height:6px;
+  border-radius:50%;background:#fff}
+.obs-radio-label{font-size:13px;font-weight:600;color:var(--text)}
+
+/* Window status chips */
+.obs-window-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:100px;font-size:10.5px;font-weight:700}
+.obs-window-terbuka{background:rgba(16,185,129,.1);color:#059669}
+.obs-window-terkunci{background:rgba(100,116,139,.1);color:#64748b}
+.obs-window-selesai{background:rgba(14,165,233,.1);color:#0284c7}
+
+/* Sesi observasi list */
+.obs-sesi-item{display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--border)}
+.obs-sesi-item:last-child{border-bottom:none}
+.obs-sesi-num{width:36px;height:36px;border-radius:10px;background:var(--blue);
+  color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.obs-sesi-num.terkunci{background:var(--border);color:var(--text-3)}
+.obs-sesi-num.selesai{background:var(--green);color:#fff}
+
+/* Dark mode */
+html.theme-dark .ketua-tab-bar{background:#252830!important}
+html.theme-dark .ketua-tab-btn.active{background:#1e2128!important;color:#bae6fd!important}
+html.theme-dark .ketua-member-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .obs-radio{background:#1e2128!important;border-color:rgba(255,255,255,.1)!important}
+html.theme-dark .obs-radio:hover{border-color:#38bdf8!important;background:#1a2535!important}
+html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1a2535!important}
 </style>
 </head>
 <body>
@@ -1882,6 +1944,82 @@ html.theme-dark .bg-blobs-guru{display:none}
       </div>
     </div>
 
+    <!-- ════ KETUA KELAS ════ -->
+    <div class="page" id="page-ketua" style="display:none">
+      <div class="page-header">
+        <div class="page-header-ico">👥</div>
+        <div class="page-header-inner">
+          <div class="page-title">Ketua Kelas</div>
+          <div class="page-sub" id="ketuaHalaqahInfo">Halaqah saya</div>
+        </div>
+        <button class="btn-refresh" onclick="refreshKetuaPage()" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
+      <!-- Tab bar -->
+      <div class="ketua-tab-bar">
+        <button class="ketua-tab-btn active" id="ketuaTabPantau" onclick="switchKetuaTab('pantau',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Pantau Anggota
+        </button>
+        <button class="ketua-tab-btn" id="ketuaTabObservasi" onclick="switchKetuaTab('observasi',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Observasi KBM
+          <span class="ketua-badge" id="obsBadge" style="display:none">0</span>
+        </button>
+      </div>
+      <!-- Panel Pantau -->
+      <div id="ketuaPanelPantau">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--red)">
+            <div style="font-size:10px;color:var(--red);font-weight:700;text-transform:uppercase">Kritis</div>
+            <div style="font-size:24px;font-weight:900;color:var(--red)" id="ketuaKritis">–</div>
+          </div>
+          <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--amber)">
+            <div style="font-size:10px;color:var(--amber-txt);font-weight:700;text-transform:uppercase">Peringatan</div>
+            <div style="font-size:24px;font-weight:900;color:var(--amber)" id="ketuaPeringatan">–</div>
+          </div>
+          <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--green)">
+            <div style="font-size:10px;color:var(--green);font-weight:700;text-transform:uppercase">Normal</div>
+            <div style="font-size:24px;font-weight:900;color:var(--green)" id="ketuaNormal">–</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:10px">KBM Reguler</div>
+        <div id="ketuaMemberListKBM"></div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin:14px 0 10px">At-Tibyan</div>
+        <div id="ketuaMemberListAT"></div>
+      </div>
+      <!-- Panel Observasi -->
+      <div id="ketuaPanelObservasi" style="display:none">
+        <div class="card" style="margin-bottom:14px;padding:14px 16px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid rgba(217,119,6,.2)">
+          <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px">Panduan Observasi</div>
+          <div style="font-size:11.5px;color:#b45309;font-weight:600;line-height:1.6">
+            Isi observasi setelah setiap sesi KBM selesai. Window pengisian akan otomatis tertutup saat guru membuka sesi berikutnya. Data ini <b>hanya dilihat admin</b> — bukan guru.
+          </div>
+        </div>
+        <div id="ketuaObsList"></div>
+      </div>
+    </div>
+
+    <!-- Modal Form Observasi -->
+    <div class="modal-overlay" id="obsFormModal" onclick="if(event.target===this)closeModal('obsFormModal')">
+      <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+        <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="font-size:15px;font-weight:900;color:var(--text)" id="obsFormTitle">Observasi Sesi</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="obsFormSubtitle"></div>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:16px 20px" id="obsFormBody">
+          <!-- Diisi JS -->
+        </div>
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+          <button class="btn btn-outline" style="flex:1" onclick="closeModal('obsFormModal')">Batal</button>
+          <button class="btn btn-primary" style="flex:2" id="obsSubmitBtn" onclick="doSubmitObservasi()">
+            Kirim Observasi
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ════ RAPORT ════ -->
     <div class="page" id="page-raport">
       <div class="page-header">
@@ -2006,6 +2144,13 @@ html.theme-dark .bg-blobs-guru{display:none}
         <span id="sidebarBellBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
       <div class="sidebar-section">Belajar</div>
+      <div class="sidebar-item ico-purple" id="sidebarKetuaBtn" onclick="closeSidebar();goPage('ketua')" style="display:none">
+        <div class="sidebar-item-ico">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <span style="flex:1">Ketua Kelas</span>
+        <span class="ketua-badge" id="sidebarKetuaBadge" style="display:none">0</span>
+      </div>
       <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('attibyan')" data-p="attibyan">
         <div class="sidebar-item-ico">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -2605,7 +2750,7 @@ html.theme-dark .bg-blobs-guru{display:none}
 
 <script src="../assets/js/jspdf.umd.min.js"></script>
 <script src="../assets/js/html2canvas.min.js"></script>
-<script src="../assets/js/api.js?v=3.5"></script>
+<script src="../assets/js/api.js?v=3.7"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -2954,6 +3099,7 @@ function goPage(name, swipeDir) {
   else if (name === 'raport') { loadRaport(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
+  else if (name === 'ketua')    { if (!_ketuaTabLoaded['pantau']) loadKetuaPage(); }
   else if (name === 'password') { /* static page, no load needed */ }
 }
 
@@ -2987,6 +3133,8 @@ async function loadDashboard() {
     if (sbHq) sbHq.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' + esc((_hqNama||'Halaqah') + (_lvl?' · '+_lvl:''));
     var sbAsmt = document.getElementById('sidebarAssessmentBtn');
     if (sbAsmt) sbAsmt.style.display = ['Level 1','Level 2'].includes(_lvl) ? 'flex' : 'none';
+    // Init ketua kelas jika is_ketua = true
+    initKetua(ang.is_ketua || false, ang.halaqah_ketua || null);
 
     // Progress level — d.anggota.level
     var _level = ang.level || '–';
@@ -4147,6 +4295,277 @@ function skelCards(n, lines) {
 // ══════════════════════════════════════════
 var _arabicRe = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
 function isArabic(str) { return _arabicRe.test(str || ''); }
+
+// ══════════════════════════════════════════
+//  KETUA KELAS
+// ══════════════════════════════════════════
+var _ketuaData        = null;   // info ketua dari server
+var _ketuaKBMAlerts   = null;
+var _ketuaATAlerts    = null;
+var _ketuaObsPending  = null;
+var _ketuaCurrentTab  = 'pantau';
+var _ketuaObsIdKBM    = null;   // id_kbm yang sedang diisi form observasi
+var _ketuaTabLoaded   = {};
+
+function initKetua(isKetua, halaqahKetua) {
+  if (!isKetua) return;
+  var btn = document.getElementById('sidebarKetuaBtn');
+  if (btn) btn.style.display = '';
+  // Lazy load badge
+  window.HQ.KetuaAPI.getObservasiPending().then(function(r) {
+    var pending = (r.data || []).filter(function(s) { return s.window_status === 'terbuka'; });
+    _updateKetuaBadge(pending.length);
+  }).catch(function() {});
+}
+
+function _updateKetuaBadge(n) {
+  var badge1 = document.getElementById('sidebarKetuaBadge');
+  var badge2 = document.getElementById('obsBadge');
+  if (badge1) { badge1.textContent = n; badge1.style.display = n > 0 ? '' : 'none'; }
+  if (badge2) { badge2.textContent = n; badge2.style.display = n > 0 ? '' : 'none'; }
+}
+
+function switchKetuaTab(tab, btn) {
+  _ketuaCurrentTab = tab;
+  document.querySelectorAll('.ketua-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.getElementById('ketuaPanelPantau').style.display    = tab === 'pantau'    ? '' : 'none';
+  document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi' ? '' : 'none';
+  if (!_ketuaTabLoaded[tab]) {
+    _ketuaTabLoaded[tab] = true;
+    if (tab === 'pantau')    loadKetuaPantau();
+    if (tab === 'observasi') loadKetuaObservasi();
+  }
+}
+
+async function loadKetuaPage() {
+  var hqInfo = document.getElementById('ketuaHalaqahInfo');
+  try {
+    var r = await window.HQ.KetuaAPI.getInfo();
+    _ketuaData = r;
+    if (hqInfo) hqInfo.textContent = (r.halaqah && r.halaqah.nama) ? 'Halaqah ' + r.halaqah.nama : 'Halaqah saya';
+  } catch(e) { /* silent */ }
+  if (!_ketuaTabLoaded['pantau']) { _ketuaTabLoaded['pantau'] = true; loadKetuaPantau(); }
+}
+
+async function loadKetuaPantau() {
+  document.getElementById('ketuaMemberListKBM').innerHTML = skelCards(3,3);
+  document.getElementById('ketuaMemberListAT').innerHTML  = skelCards(2,3);
+  try {
+    var [rKBM, rAT] = await Promise.all([
+      window.HQ.KetuaAPI.getKeaktifanAnggota(),
+      window.HQ.KetuaAPI.getAtTibyanAnggota(),
+    ]);
+    _ketuaKBMAlerts = rKBM.data || {};
+    _ketuaATAlerts  = rAT.data  || {};
+    var sumKBM = _ketuaKBMAlerts.summary || {};
+    document.getElementById('ketuaKritis').textContent    = sumKBM.kritis    || 0;
+    document.getElementById('ketuaPeringatan').textContent= sumKBM.peringatan|| 0;
+    document.getElementById('ketuaNormal').textContent    = sumKBM.normal    || 0;
+    renderKetuaMemberList('ketuaMemberListKBM', _ketuaKBMAlerts.alerts || [], 'kbm');
+    renderKetuaMemberList('ketuaMemberListAT',  _ketuaATAlerts.alerts  || [], 'at');
+  } catch(e) {
+    document.getElementById('ketuaMemberListKBM').innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
+  }
+}
+
+function renderKetuaMemberList(elId, list, type) {
+  var el = document.getElementById(elId);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">🌟</div><div class="empty-ttl">Alhamdulillah semua aktif!</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(m, idx) {
+    var dots = (m.riwayat || []).map(function(r) {
+      var cls = r.warna === 'hijau' ? 'hadir' : r.warna === 'merah' ? 'absen' : 'null';
+      return '<div class="at-dot '+cls+'" title="'+esc(r.tanggal||'')+'"></div>';
+    }).join('');
+    var badge = m.status === 'kritis'
+      ? '<span class="badge b-red" style="font-size:10px">Kritis 🔴</span>'
+      : m.status === 'peringatan'
+      ? '<span class="badge b-amber" style="font-size:10px">Peringatan 🟡</span>'
+      : '<span class="badge b-green" style="font-size:10px">Normal 🟢</span>';
+    var hasHp = m.no_hp && String(m.no_hp).replace(/\D/g,'').length >= 9;
+    var waBtnCls = (m.status === 'kritis' || m.status === 'peringatan') ? '' : 'style="display:none"';
+    var waMsg = type === 'kbm'
+      ? 'Assalamualaikum ' + m.nama_murid + ', diingatkan untuk hadir di halaqah ya. Kehadiran kamu penting. Semangat!'
+      : 'Assalamualaikum ' + m.nama_murid + ', jangan lupa hadir di kajian At-Tibyan minggu ini ya. Barakallahu fiikum!';
+    var waUrl = hasHp ? 'https://wa.me/62' + String(m.no_hp).replace(/\D/g,'').replace(/^0/,'') + '?text=' + encodeURIComponent(waMsg) : '#';
+    return '<div class="ketua-member-card '+m.status+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div><div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(m.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3);font-weight:600;margin-top:2px">'
+      + 'Hadir '+m.pct_hadir+'% · Absen '+m.absen+'× dari '+m.total_sesi+' sesi'
+      + '</div></div>' + badge + '</div>'
+      + '<div class="at-dots" style="margin-top:8px">'+dots+'</div>'
+      + (m.status !== 'normal' ? '<button class="ketua-wa-btn '+(hasHp?'aktif':'nonaktif')+'" onclick="'+(hasHp?'window.open(\''+waUrl+'\',\'_blank\')':'alert(\'No HP tidak tersedia\')')+'">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.535 4.057 1.475 5.77L.057 23.784l6.162-1.396A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.797a9.8 9.8 0 01-4.988-1.361l-.36-.213-3.654.828.844-3.549-.235-.375A9.789 9.789 0 012.203 12C2.203 6.583 6.583 2.203 12 2.203S21.797 6.583 21.797 12 17.417 21.797 12 21.797z"/></svg>'
+      + (hasHp ? 'Kirim Reminder WA' : 'No HP Tidak Tersedia') + '</button>' : '')
+      + '</div>';
+  }).join('');
+}
+
+async function loadKetuaObservasi() {
+  var el = document.getElementById('ketuaObsList');
+  el.innerHTML = skelCards(3,2);
+  try {
+    var r = await window.HQ.KetuaAPI.getObservasiPending();
+    _ketuaObsPending = r.data || [];
+    var pending = _ketuaObsPending.filter(function(s) { return s.window_status === 'terbuka'; });
+    _updateKetuaBadge(pending.length);
+    renderKetuaObsList();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>';
+  }
+}
+
+function renderKetuaObsList() {
+  var el = document.getElementById('ketuaObsList');
+  if (!_ketuaObsPending || !_ketuaObsPending.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Belum ada sesi KBM</div></div>';
+    return;
+  }
+  el.innerHTML = '<div class="card"><div style="padding:8px 16px">'
+    + _ketuaObsPending.map(function(s) {
+      var numCls = s.window_status === 'selesai' ? 'selesai' : s.window_status === 'terkunci' ? 'terkunci' : '';
+      var chip = s.window_status === 'terbuka'
+        ? '<span class="obs-window-chip obs-window-terbuka">Terbuka</span>'
+        : s.window_status === 'terkunci'
+        ? '<span class="obs-window-chip obs-window-terkunci">Terkunci — '+esc(s.kunci_info||'')+'</span>'
+        : '<span class="obs-window-chip obs-window-selesai">Sudah diobservasi</span>';
+      var btn = s.window_status === 'terbuka'
+        ? '<button class="btn btn-primary btn-sm" style="flex-shrink:0;font-size:11.5px;padding:6px 12px" onclick="bukaFormObservasi(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Isi Observasi</button>'
+        : '';
+      return '<div class="obs-sesi-item">'
+        + '<div class="obs-sesi-num '+numCls+'">'+s.pertemuan_ke+'</div>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:13px;font-weight:800;color:var(--text)">Sesi ke-'+s.pertemuan_ke+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-weight:600">'+fmtDate(s.tanggal)+'</div>'
+        + '<div style="margin-top:4px">'+chip+'</div>'
+        + '</div>'+btn+'</div>';
+    }).join('') + '</div></div>';
+}
+
+function bukaFormObservasi(idKBM, pertemuanKe, tanggal) {
+  _ketuaObsIdKBM = idKBM;
+  document.getElementById('obsFormTitle').textContent = 'Observasi Sesi ke-' + pertemuanKe;
+  document.getElementById('obsFormSubtitle').textContent = fmtDate(tanggal);
+
+  // Reset semua pilihan
+  _obsSelected = {};
+  document.getElementById('obsSubmitBtn').disabled = false;
+
+  document.getElementById('obsFormBody').innerHTML =
+    _obsSection('kondisi_kelas', 'Kondisi Kelas saat KBM', [
+      { val:'Kondusif',          label:'Kondusif', desc:'Kelas aktif, murid fokus dan responsif' },
+      { val:'Kurang Kondusif',   label:'Kurang Kondusif', desc:'Ada beberapa gangguan, tapi masih berjalan' },
+      { val:'Tidak Kondusif',    label:'Tidak Kondusif', desc:'Kelas tidak berjalan dengan baik' },
+    ]) +
+    _obsSection('ada_latihan', 'Guru Memberikan Latihan Mandiri (PR)?', [
+      { val:'Ya',    label:'Ya — Ada latihan/PR diberikan' },
+      { val:'Tidak', label:'Tidak — Tidak ada latihan/PR' },
+    ]) +
+    _obsSection('ketepatan_waktu', 'Ketepatan Waktu Guru', [
+      { val:'Tepat Waktu',           label:'Tepat Waktu', desc:'Guru hadir dan mengakhiri sesuai jadwal' },
+      { val:'Guru Terlambat',        label:'Guru Terlambat Hadir' },
+      { val:'Diakhiri Lebih Awal',   label:'KBM Diakhiri Lebih Awal dari Jadwal' },
+      { val:'Keduanya',              label:'Keduanya (Terlambat + Lebih Awal)' },
+    ]) +
+    '<div class="obs-form-section" id="obsMenitWrap" style="display:none">'
+    + '<div class="obs-form-label">Perkiraan Berapa Menit?</div>'
+    + '<input type="number" class="fc" id="obsMenit" min="1" max="60" placeholder="Contoh: 10" style="max-width:140px">'
+    + '</div>'
+    + _obsSection('kamera_peserta', 'Keadaan Kamera Sebagian Besar Peserta', [
+      { val:'Sebagian Besar Terbuka',   label:'Sebagian Besar Terbuka', desc:'Lebih dari 50% peserta kamera terbuka' },
+      { val:'Campuran',                 label:'Campuran', desc:'Sekitar sama banyak yang terbuka dan tertutup' },
+      { val:'Sebagian Besar Tertutup',  label:'Sebagian Besar Tertutup', desc:'Lebih dari 50% peserta kamera tertutup' },
+    ]) +
+    '<div class="obs-form-section">'
+    + '<div class="obs-form-label">Catatan Lain (Opsional)</div>'
+    + '<textarea class="fc" id="obsCatatanLain" rows="3" placeholder="Hal lain yang perlu dilaporkan..." style="resize:vertical"></textarea>'
+    + '</div>';
+
+  openModal('obsFormModal');
+}
+
+var _obsSelected = {};
+
+function _obsSection(key, label, options) {
+  return '<div class="obs-form-section">'
+    + '<div class="obs-form-label">'+esc(label)+'</div>'
+    + '<div class="obs-options">'
+    + options.map(function(o) {
+      return '<div class="obs-radio" id="obs-'+key+'-'+esc(o.val)+'" onclick="selectObs(\''+key+'\',\''+esc(o.val)+'\')">'
+        + '<div class="obs-radio-dot"></div>'
+        + '<div><div class="obs-radio-label">'+esc(o.label)+'</div>'
+        + (o.desc ? '<div style="font-size:11px;color:var(--text-3);margin-top:2px">'+esc(o.desc)+'</div>' : '')
+        + '</div></div>';
+    }).join('')
+    + '</div></div>';
+}
+
+function selectObs(key, val) {
+  _obsSelected[key] = val;
+  // Clear semua pilihan di section ini lalu tandai yang dipilih
+  document.querySelectorAll('[id^="obs-'+key+'-"]').forEach(function(el) {
+    el.classList.remove('selected');
+  });
+  var sel = document.getElementById('obs-'+key+'-'+val);
+  if (sel) sel.classList.add('selected');
+  // Tampilkan input menit jika terlambat/keduanya
+  if (key === 'ketepatan_waktu') {
+    var wrap = document.getElementById('obsMenitWrap');
+    if (wrap) wrap.style.display = (val === 'Guru Terlambat' || val === 'Keduanya') ? '' : 'none';
+  }
+}
+
+async function doSubmitObservasi() {
+  var wajib = ['kondisi_kelas','ada_latihan','ketepatan_waktu','kamera_peserta'];
+  for (var i = 0; i < wajib.length; i++) {
+    if (!_obsSelected[wajib[i]]) {
+      toast('Lengkapi semua pilihan terlebih dahulu', 'warn');
+      return;
+    }
+  }
+  var btn = document.getElementById('obsSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+  try {
+    var menit = 0;
+    var menitEl = document.getElementById('obsMenit');
+    if (menitEl && menitEl.value) menit = Number(menitEl.value);
+    var catatan = document.getElementById('obsCatatanLain');
+
+    await window.HQ.KetuaAPI.submitObservasi({
+      id_kbm          : _ketuaObsIdKBM,
+      kondisi_kelas   : _obsSelected['kondisi_kelas'],
+      ada_latihan     : _obsSelected['ada_latihan'],
+      ketepatan_waktu : _obsSelected['ketepatan_waktu'],
+      estimasi_menit  : menit,
+      kamera_peserta  : _obsSelected['kamera_peserta'],
+      catatan_lain    : catatan ? catatan.value.trim() : '',
+    });
+    closeModal('obsFormModal');
+    toast('Observasi berhasil dikirim. Jazakallahu khairan!', 'ok');
+    // Reload list
+    delete _ketuaTabLoaded['observasi'];
+    _ketuaObsPending = null;
+    _ketuaTabLoaded['observasi'] = true;
+    loadKetuaObservasi();
+  } catch(e) {
+    toast('Gagal: ' + e.message, 'err');
+    if (btn) { btn.disabled = false; btn.textContent = 'Kirim Observasi'; }
+  }
+}
+
+function refreshKetuaPage() {
+  _ketuaTabLoaded = {};
+  _ketuaKBMAlerts = null;
+  _ketuaATAlerts  = null;
+  _ketuaObsPending = null;
+  _ketuaTabLoaded[_ketuaCurrentTab] = true;
+  if (_ketuaCurrentTab === 'pantau') loadKetuaPantau();
+  else loadKetuaObservasi();
+}
 
 // ══════════════════════════════════════════
 //  ASSESSMENT MANDIRI
