@@ -3071,8 +3071,14 @@ async function doSelesaiKBM() {
     }
 
     // 3. Tutup sesi
-    const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-    // Pesan khusus setelah sesi selesai — muncul 7 detik
+    const idHalaqahSelesai = sesiAktif.id_halaqah; // simpan sebelum di-null
+    await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
+
+    // Sembunyikan loading SEBELUM popup muncul agar tidak tertutup overlay
+    hideLoad();
+    setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi');
+
+    // Tampilkan popup ucapan terima kasih
     const el = document.getElementById('notifOverlay');
     document.getElementById('notifIcon').textContent  = '🌟';
     document.getElementById('notifTitle').textContent = 'Jazaakumullahu Khairan';
@@ -3085,39 +3091,30 @@ async function doSelesaiKBM() {
     el.classList.add('show');
     setTimeout(closeNotif, 7000);
 
-    // Reset state lengkap — SEBELUM apapun
+    // Reset state lengkap
     sesiAktif      = null;
     muridSesi      = [];
     muridCache     = {};
     doaSudahMuncul = false;
 
-    // Sembunyikan kartu sesi SEGERA
+    // Sembunyikan banner draft
     const dw = document.getElementById('draftWarning');
     if (dw) dw.classList.remove('show');
 
-    // Reload dashboard data dan kembali ke form buka sesi
+    // Refresh data di background lalu arahkan ke Riwayat KBM
+    // agar guru bisa langsung cek hasil KBM yang baru diselesaikan
     setTimeout(async () => {
-      await loadDashboard(true);    // refresh halaqahList dari server (silent, popup ucapan terima kasih tetap tampil)
-      // Pindah ke halaman KBM dengan form bersih
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('page-kbm') && document.getElementById('page-kbm').classList.add('active');
-      document.querySelector('[data-p="kbm"]') && document.querySelector('[data-p="kbm"]').classList.add('active');
-      document.getElementById('pageTitle').textContent = 'Sesi KBM';
-      // Reset form
-      const hqSel = document.getElementById('kbmHalaqah');
-      const ptSel = document.getElementById('kbmPertemuan');
-      if (hqSel) hqSel.value = '';
-      if (ptSel) ptSel.value = '';
-      populateSel('kbmHalaqah');
-      resetPersiapan();
-      // Pastikan banner tidak muncul
-      const dw2 = document.getElementById('draftWarning');
-      if (dw2) dw2.classList.remove('show');
-    }, 900);
+      await loadDashboard(true); // silent — tidak tampilkan loading
+      // Arahkan ke Riwayat KBM dan prefill halaqah yang baru diselesaikan
+      goPage('riwayat');
+      const riwayatSel = document.getElementById('riwayatHalaqahSel');
+      if (riwayatSel && idHalaqahSelesai) {
+        riwayatSel.value = idHalaqahSelesai;
+        loadRiwayat();
+      }
+    }, 1000);
 
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
+  } catch(e) { toast(e.message,'err'); hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
 }
 
 async function konfirmasiTutup() {
