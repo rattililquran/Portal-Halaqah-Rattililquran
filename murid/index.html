@@ -3336,7 +3336,11 @@ function goPage(name, swipeDir) {
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
-  else if (name === 'ketua')    { if (!_ketuaTabLoaded['pantau']) loadKetuaPage(); }
+  else if (name === 'ketua')    {
+    // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
+    _ketuaObsIdKBM = null;
+    if (!_ketuaTabLoaded['pantau']) loadKetuaPage();
+  }
   else if (name === 'password') { /* static page, no load needed */ }
 }
 
@@ -4553,7 +4557,7 @@ function initKetua(isKetua, halaqahKetua) {
   window.HQ.KetuaAPI.getObservasiPending().then(function(r) {
     var pending = (r.data || []).filter(function(s) { return s.window_status === 'terbuka'; });
     _updateKetuaBadge(pending.length);
-  }).catch(function() {});
+  }).catch(function(e) { console.warn('Ketua badge load failed:', e && e.message); });
 }
 
 function _updateKetuaBadge(n) {
@@ -4570,6 +4574,15 @@ function switchKetuaTab(tab, btn) {
   document.getElementById('ketuaPanelPantau').style.display    = tab === 'pantau'   ? '' : 'none';
   document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi'? '' : 'none';
   document.getElementById('ketuaPanelReminder').style.display  = tab === 'reminder' ? '' : 'none';
+
+  // Observasi selalu refresh agar badge dan status tidak stale
+  if (tab === 'observasi') {
+    _ketuaObsPending   = null;
+    _rekapSudahDikirim = new Set();
+    _ketuaObsIdKBM     = null;
+    _ketuaTabLoaded['observasi'] = false;
+  }
+
   if (!_ketuaTabLoaded[tab]) {
     _ketuaTabLoaded[tab] = true;
     if (tab === 'pantau')    loadKetuaPantau();

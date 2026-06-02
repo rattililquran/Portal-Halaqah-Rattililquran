@@ -5798,7 +5798,7 @@ async function onRaportHalaqahChange() {
               var ex = nilaiExisting.find(function(n) { return n.id_murid===m.id_murid && n.id_komponen===k.id_komponen; });
               return '<div class="fg" style="margin:0">'
                 + '<label style="font-size:11.5px">'+esc(k.nama_komponen)+' ('+k.bobot+'%)</label>'
-                + '<input type="number" class="fc" min="0" max="100" id="rn_'+esc(m.id_murid)+'_'+esc(k.id_komponen)+'"'
+                + '<input type="number" class="fc" min="0" max="100" id="rn_'+m.id_murid+'_'+k.id_komponen+'"'
                 + ' value="'+((ex && ex.nilai !== undefined && ex.nilai !== '') ? ex.nilai : '')+'"'
                 + ' placeholder="0-100" style="font-size:13px">'
                 + '</div>';
