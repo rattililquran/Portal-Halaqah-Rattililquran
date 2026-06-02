@@ -429,11 +429,41 @@ var GuruAPI = {
     return { status: 'ok', data: grouped };
   },
 
+  // ── Riwayat KBM ───────────────────────────
+  getRiwayatKBM: async function(id_halaqah, limit, offset) {
+    var q = _sb.from('kbm_log').select('*')
+      .eq('id_halaqah', id_halaqah)
+      .order('tanggal_pertemuan', { ascending: false })
+      .limit(limit || 30);
+    if (offset) q = q.range(offset, offset + (limit || 30) - 1);
+    var { data, error } = await q;
+    _check(error, 'getRiwayatKBM');
+    return { status: 'ok', data: data || [] };
+  },
+
   // ── Keaktifan ──────────────────────────────
   getKeaktifanAlerts: async function() {
     var { data, error } = await _sb.rpc('get_keaktifan_alerts', { p_id_guru: _uid() });
     _check(error, 'getKeaktifanAlerts');
-    return { status: 'ok', data: data || { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } } };
+    var raw = data || { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } };
+    // Transform RPC result ke format yang diharapkan frontend
+    var alerts = (raw.alerts || []).map(function(m) {
+      return {
+        id_murid    : m.id_murid,
+        nama_murid  : m.nama,
+        id_halaqah  : m.id_halaqah,
+        nama_halaqah: m.nama_halaqah || '',
+        level       : m.level || '',
+        status      : m.status,
+        riwayat     : [],
+        metrics: {
+          absen           : m.alpa || 0,
+          terlambat       : m.terlambat || 0,
+          kamera_tertutup : m.kamera_buruk || 0,
+        },
+      };
+    });
+    return { status: 'ok', data: { alerts: alerts, summary: raw.summary } };
   },
 
   simpanFollowupKeaktifan: async function(d) {

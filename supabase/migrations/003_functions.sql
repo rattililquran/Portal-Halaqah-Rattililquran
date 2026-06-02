@@ -50,14 +50,13 @@ declare
   v_result jsonb;
 begin
   with halaqah_guru as (
-    select id_halaqah from public.halaqah
+    select id_halaqah, nama_halaqah, level from public.halaqah
     where id_guru = p_id_guru and status = 'aktif'
   ),
   murid_stats as (
     select
-      a.id_murid,
-      a.nama_murid,
-      a.id_halaqah,
+      a.id_murid, a.nama_murid, a.id_halaqah,
+      h.nama_halaqah, h.level,
       count(*) filter (where n.status_hadir = 'A') as alpa,
       count(*) filter (where n.status_hadir = 'T') as terlambat,
       count(*) filter (where n.kamera_murid ilike '%selalu%' or n.kamera_murid ilike '%sering%') as kamera_buruk,
@@ -66,7 +65,7 @@ begin
     join halaqah_guru h on h.id_halaqah = a.id_halaqah
     left join public.nilai_kbm n on n.id_murid = a.id_murid and n.id_halaqah = a.id_halaqah
     where a.status = 'aktif'
-    group by a.id_murid, a.nama_murid, a.id_halaqah
+    group by a.id_murid, a.nama_murid, a.id_halaqah, h.nama_halaqah, h.level
   ),
   classified as (
     select *,
@@ -80,13 +79,16 @@ begin
   select jsonb_build_object(
     'alerts', coalesce(jsonb_agg(
       jsonb_build_object(
-        'id_murid',   id_murid,
-        'nama',       nama_murid,
-        'id_halaqah', id_halaqah,
-        'status',     status_keaktifan,
-        'alpa',       alpa,
-        'terlambat',  terlambat,
-        'total_sesi', total_sesi
+        'id_murid',     id_murid,
+        'nama',         nama_murid,
+        'id_halaqah',   id_halaqah,
+        'nama_halaqah', nama_halaqah,
+        'level',        level,
+        'status',       status_keaktifan,
+        'alpa',         alpa,
+        'terlambat',    terlambat,
+        'kamera_buruk', kamera_buruk,
+        'total_sesi',   total_sesi
       ) order by status_keaktifan, alpa desc
     ) filter (where status_keaktifan != 'normal'), '[]'::jsonb),
     'summary', jsonb_build_object(
