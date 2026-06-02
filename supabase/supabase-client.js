@@ -242,14 +242,18 @@ var GuruAPI = {
       var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
       var adabData   = hadir.filter(function(n) { return n.adab; });
       var kameraData = hadir.filter(function(n) { return n.kamera_murid; });
+      var hadirCount = hadir.length;
       return Object.assign({}, a, {
-        no_hp       : a.users && a.users.no_hp,
-        email       : a.users && a.users.email,
-        jumlah_hadir: hadir.length,
-        total_sesi  : nm.length,
-        pct_hadir   : nm.length > 0 ? Math.round(hadir.length / nm.length * 100) : 0,
-        poin_adab   : adabData.length > 0 ? Math.round(adabData.filter(function(n){return n.adab==='Baik';}).length / adabData.length * 100) : 0,
-        poin_kamera : kameraData.length > 0 ? Math.round(kameraData.filter(function(n){return n.kamera_murid==='kamera terbuka';}).length / kameraData.length * 100) : 0,
+        no_hp         : a.users && a.users.no_hp,
+        email         : a.users && a.users.email,
+        jumlah_hadir  : hadirCount,
+        total_hadir   : hadirCount,
+        total_sesi    : nm.length,
+        pct_hadir     : nm.length > 0 ? Math.round(hadirCount / nm.length * 100) : 0,
+        skor_hadir_raw: hadirCount,
+        skor_dari_40  : Math.min(Math.round(hadirCount / 40 * 100), 100),
+        poin_adab     : adabData.length > 0 ? Math.round(adabData.filter(function(n){return n.adab==='Baik';}).length / adabData.length * 100) : 0,
+        poin_kamera   : kameraData.length > 0 ? Math.round(kameraData.filter(function(n){return n.kamera_murid==='kamera terbuka';}).length / kameraData.length * 100) : 0,
       });
     })};
   },
