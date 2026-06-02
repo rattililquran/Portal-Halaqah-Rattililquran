@@ -590,7 +590,7 @@ var GuruAPI = {
 
   getAtTibyanSesi: async function() {
     var { data, error } = await _sb.from('at_tibyan_sesi')
-      .select('*').order('tanggal', { ascending: false }).limit(30);
+      .select('*').eq('id_guru', _uid()).order('tanggal', { ascending: false }).limit(30);
     _check(error, 'getAtTibyanSesi');
     return { status: 'ok', data };
   },
@@ -604,29 +604,73 @@ var GuruAPI = {
   },
 
   getAtTibyanRekap: async function(id_halaqah) {
-    var { data, error } = await _sb.from('at_tibyan_log')
-      .select('id_murid, nama_murid, status_hadir, id_halaqah, nama_halaqah');
+    var id_guru = _uid();
+    var { data: sesiList } = await _sb.from('at_tibyan_sesi')
+      .select('id_sesi').eq('id_guru', id_guru).eq('status', 'selesai');
+    var sesiIds = (sesiList || []).map(function(s){ return s.id_sesi; });
+    var totalSesi = sesiIds.length;
+    if (!sesiIds.length) return { status: 'ok', data: [], total_sesi: 0, summary: { pct_keseluruhan: 0, total_murid: 0, total_hadir: 0, total_absen: 0 } };
+    var q = _sb.from('at_tibyan_log')
+      .select('id_murid, nama_murid, status_hadir, id_halaqah, nama_halaqah')
+      .in('id_sesi', sesiIds);
+    if (id_halaqah) q = q.eq('id_halaqah', id_halaqah);
+    var { data, error } = await q;
     _check(error, 'getAtTibyanRekap');
-    return { status: 'ok', data };
+    var muridMap = {};
+    (data || []).forEach(function(r) {
+      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, nama_halaqah: r.nama_halaqah, level: '', hadir: 0, absen: 0, total: 0 };
+      var m = muridMap[r.id_murid];
+      m.total++;
+      if (['H','T'].includes(r.status_hadir)) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
+    });
+    var rows = Object.values(muridMap).map(function(m) {
+      return Object.assign(m, { pct_hadir: m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0 });
+    }).sort(function(a,b){ return (a.nama_murid||'').localeCompare(b.nama_murid||''); });
+    var totalHadir = rows.reduce(function(s,m){ return s+m.hadir; }, 0);
+    var totalAbsen = rows.reduce(function(s,m){ return s+m.absen; }, 0);
+    var totalEntries = rows.reduce(function(s,m){ return s+m.total; }, 0);
+    return { status: 'ok', data: rows, total_sesi: totalSesi,
+      summary: { pct_keseluruhan: totalEntries > 0 ? Math.round(totalHadir/totalEntries*100) : 0, total_murid: rows.length, total_hadir: totalHadir, total_absen: totalAbsen } };
   },
 
   getAtTibyanKeaktifan: async function() {
     var id_guru = _uid();
-    var { data: hq } = await _sb.from('halaqah').select('id_halaqah').eq('id_guru', id_guru);
-    var hqIds = (hq || []).map(function(h) { return h.id_halaqah; });
+    var { data: sesiList } = await _sb.from('at_tibyan_sesi')
+      .select('id_sesi').eq('id_guru', id_guru).eq('status', 'selesai');
+    var sesiIds = (sesiList || []).map(function(s){ return s.id_sesi; });
+    var totalSesi = sesiIds.length;
+    if (!sesiIds.length) return { status: 'ok', data: { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } } };
     var { data, error } = await _sb.from('at_tibyan_log')
-      .select('id_murid, nama_murid, id_halaqah, status_hadir')
-      .in('id_halaqah', hqIds);
+      .select('id_murid, nama_murid, id_halaqah, nama_halaqah, status_hadir, tanggal')
+      .in('id_sesi', sesiIds).order('tanggal', { ascending: true });
     _check(error, 'getAtTibyanKeaktifan');
-    // Hitung alpa per murid
     var muridMap = {};
     (data || []).forEach(function(r) {
-      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama: r.nama_murid, alpa: 0, total: 0 };
-      muridMap[r.id_murid].total++;
-      if (r.status_hadir === 'A') muridMap[r.id_murid].alpa++;
+      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = {
+        id_murid: r.id_murid, nama_murid: r.nama_murid, nama_halaqah: r.nama_halaqah,
+        level: '', hadir: 0, absen: 0, total: 0, riwayat: []
+      };
+      var m = muridMap[r.id_murid]; m.total++;
+      var hadir = ['H','T'].includes(r.status_hadir);
+      if (hadir) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
+      m.riwayat.push({ warna: hadir ? 'hijau' : 'merah', tanggal: r.tanggal });
     });
-    var alerts = Object.values(muridMap).filter(function(m) { return m.alpa > 0; });
-    return { status: 'ok', data: { alerts, summary: {} } };
+    // Ambil no_hp + level dari users
+    var muridIds = Object.keys(muridMap);
+    if (muridIds.length) {
+      var { data: users } = await _sb.from('users').select('id_user, no_hp, level').in('id_user', muridIds);
+      (users || []).forEach(function(u) {
+        if (muridMap[u.id_user]) { muridMap[u.id_user].no_hp = u.no_hp; muridMap[u.id_user].level = u.level || ''; }
+      });
+    }
+    var summary = { kritis: 0, peringatan: 0, normal: 0 };
+    var alerts = Object.values(muridMap).map(function(m) {
+      var pct_hadir = m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0;
+      var status = m.absen >= 2 ? 'kritis' : m.absen === 1 ? 'peringatan' : 'normal';
+      summary[status]++;
+      return Object.assign(m, { pct_hadir, total_sesi: totalSesi, status });
+    });
+    return { status: 'ok', data: { alerts, summary } };
   },
 
   simpanAtTibyan: async function(d) {
@@ -1111,15 +1155,44 @@ var MuridAPI = {
   getMateriLevel: async function() { return { status: 'ok', data: [] }; },
   getAtTibyan: async function() { return { status: 'ok', data: [] }; },
   getAtTibyanMurid: async function() {
-    var { data } = await _sb.from('at_tibyan_log').select('*').eq('id_murid', _uid()).order('tanggal',{ascending:false});
-    return { status: 'ok', data };
+    var id_murid = _uid();
+    var { data: logs } = await _sb.from('at_tibyan_log')
+      .select('id_sesi, status_hadir, tanggal').eq('id_murid', id_murid).order('tanggal', { ascending: false });
+    if (!logs || !logs.length) return { status: 'ok', data: [], summary: { hadir: 0, total: 0, pct: 0 } };
+    var sesiIds = logs.map(function(r){ return r.id_sesi; }).filter(Boolean);
+    var sesiMap = {};
+    if (sesiIds.length) {
+      var { data: sesiList } = await _sb.from('at_tibyan_sesi').select('id_sesi, pertemuan_ke').in('id_sesi', sesiIds);
+      (sesiList || []).forEach(function(s){ sesiMap[s.id_sesi] = s.pertemuan_ke; });
+    }
+    var rows = logs.map(function(r) {
+      return { id_sesi: r.id_sesi, status_hadir: r.status_hadir, tanggal: r.tanggal, pertemuan_ke: sesiMap[r.id_sesi] || null };
+    });
+    var total = rows.length;
+    var hadir = rows.filter(function(r){ return ['H','T'].includes(r.status_hadir); }).length;
+    var pct   = total > 0 ? Math.round(hadir / total * 100) : 0;
+    return { status: 'ok', data: rows, summary: { hadir, total, pct } };
   },
   getKonfigurasiRaport: async function() {
     var { data } = await _sb.from('konfigurasi_raport').select('*');
     var cfg = {}; (data||[]).forEach(function(r){cfg[r.key]=r.value;});
     return { status: 'ok', data: cfg };
   },
-  getKeaktifanAlerts: async function() { return { status: 'ok', data: { alerts: [] } }; },
+  getKeaktifanAlerts: async function() {
+    var id_murid = _uid();
+    var [kbmRes, atRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('status_hadir').eq('id_murid', id_murid).eq('status_hadir', 'A'),
+      _sb.from('at_tibyan_log').select('status_hadir').eq('id_murid', id_murid).eq('status_hadir', 'A'),
+    ]);
+    var kbmAlpa = (kbmRes.data || []).length;
+    var atAlpa  = (atRes.data  || []).length;
+    var alerts  = [];
+    if (kbmAlpa >= 2) alerts.push({ tipe: 'absen_kritis',     judul: 'Kehadiran KBM Kritis!',       pesan: 'Kamu sudah alpa '+kbmAlpa+'× di KBM halaqah. Segera hubungi guru ya.' });
+    else if (kbmAlpa === 1) alerts.push({ tipe: 'absen_peringatan', judul: 'Peringatan Kehadiran KBM', pesan: 'Kamu sudah alpa 1× di KBM. Jaga kehadiranmu!' });
+    if (atAlpa >= 2) alerts.push({ tipe: 'absen_kritis',     judul: 'Kehadiran At-Tibyan Kritis!',  pesan: 'Kamu sudah alpa '+atAlpa+'× di At-Tibyan. Semangat hadir ya!' });
+    else if (atAlpa === 1) alerts.push({ tipe: 'absen_peringatan', judul: 'Peringatan At-Tibyan',       pesan: 'Kamu sudah alpa 1× di At-Tibyan. Jaga kehadiranmu!' });
+    return { status: 'ok', data: { alerts } };
+  },
 
   getAssessmentItems: async function(level) {
     var q = _sb.from('assessment_items').select('id_item,level,kategori,teks_latin,teks_arab,keterangan,urutan').eq('status','aktif').order('urutan');
