@@ -6518,141 +6518,189 @@ function _htmlRincianSesi(data) {
 
 async function downloadPDFResmi() {
   if (!_rincianData) return;
-  var rp = _rincianData.raport;
+  var rp  = _rincianData.raport;
   var btn = document.getElementById('btnPDFResmi');
-  btn.disabled = true;
-  btn.textContent = '⏳ Membuat PDF...';
+  btn.disabled = true; btn.textContent = '⏳ Membuat PDF...';
   try {
-    var doc = new jspdf.jsPDF('p', 'mm', 'a4');
-    var W = 210, mar = 18, y = 20;
+    var doc = new jspdf.jsPDF('p','mm','a4');
+    var W = 210, mar = 18, y = 0;
 
-    // KOP
-    doc.setFillColor(30, 58, 100);
-    doc.rect(0, 0, W, 32, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(14);
-    doc.text('RATTILILQUR\'AN', mar, 13);
-    doc.setFontSize(9);
-    doc.setFont('helvetica','normal');
-    doc.text('Portal Halaqah Tahsin Al-Qur\'an', mar, 20);
-    doc.setFontSize(11);
-    doc.setFont('helvetica','bold');
-    doc.text('RAPORT HALAQAH', W/2, 13, {align:'center'});
-    doc.setFontSize(9);
-    doc.setFont('helvetica','normal');
-    doc.text(rp.periode || '', W/2, 20, {align:'center'});
-    y = 42;
+    // ── Palette ──
+    var G  = [26,92,58];    // hijau tua
+    var GL = [240,253,244]; // hijau muda
+    var Au = [197,155,32];  // emas
+    var Dk = [15,23,42];    // teks gelap
+    var Md = [71,85,105];   // teks medium
+    var Lt = [148,163,184]; // teks terang
+    var Wh = [255,255,255];
 
-    // BIODATA
-    doc.setTextColor(30,58,100);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10);
-    doc.text('DATA MURID', mar, y); y += 6;
-    doc.setDrawColor(30,58,100);
-    doc.setLineWidth(0.4);
-    doc.line(mar, y, W-mar, y); y += 5;
-    doc.setFont('helvetica','normal');
-    doc.setTextColor(40,40,40);
-    doc.setFontSize(9);
+    // ── Accent top bar ──
+    doc.setFillColor(26,92,58); doc.rect(0,0,W,2,'F');
+    doc.setFillColor(197,155,32); doc.rect(0,2,W,1,'F');
+
+    // ── Header area ──
+    doc.setFillColor(...GL); doc.rect(0,3,W,30,'F');
+    // Nama lembaga
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(16);
+    doc.text("Rattililqur'an", mar, 16);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...Md);
+    doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", mar, 22);
+    doc.setFontSize(8); doc.setTextColor(...Lt);
+    doc.text('rattililquran.com', mar, 27);
+    // Divider vertikal emas
+    doc.setDrawColor(...Au); doc.setLineWidth(0.8);
+    doc.line(W/2+10, 8, W/2+10, 30);
+    // Kanan: judul raport
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text('RAPORT HALAQAH', W-mar, 16, {align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...Md);
+    doc.text(rp.periode || '', W-mar, 22, {align:'right'});
+    // Garis bawah header
+    doc.setDrawColor(...G); doc.setLineWidth(0.3);
+    doc.line(0,33,W,33);
+    y = 43;
+
+    // ── Identity section ──
+    doc.setFillColor(248,250,252); doc.rect(0,33,W,28,'F');
     var bio = [
-      ['Nama', rp.nama_murid || '-'],
-      ['Halaqah', rp.halaqah || '-'],
-      ['Pembimbing', rp.guru || '-'],
-      ['Periode', rp.periode || '-'],
+      ['Nama Murid', rp.nama_murid||'-', W/2-2],
+      ['Halaqah',    rp.halaqah_nama||rp.halaqah||'-', W/2-2],
+      ['Pembimbing', rp.guru_nama||rp.guru||'-', W-mar],
+      ['Periode',    rp.periode||'-', W-mar],
     ];
-    bio.forEach(function(b) {
-      doc.setFont('helvetica','bold'); doc.text(b[0], mar, y);
-      doc.setFont('helvetica','normal'); doc.text(': ' + b[1], mar+30, y);
-      y += 5.5;
+    bio.forEach(function(b, i) {
+      var x0 = i < 2 ? mar : W/2+mar/2;
+      var yy = i < 2 ? 40 : 40 + (i-2)*7;
+      if (i === 2) yy = 40;
+      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...Lt);
+      doc.text(b[0].toUpperCase(), x0, yy);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Dk);
+      doc.text(b[1], x0, yy+5);
     });
-    y += 4;
+    doc.setDrawColor(...G); doc.setLineWidth(0.3);
+    doc.line(0,61,W,61);
+    y = 71;
 
-    // NILAI AKHIR BOX
-    doc.setFillColor(240,247,255);
-    doc.roundedRect(mar, y, W-mar*2, 22, 3, 3, 'F');
-    doc.setTextColor(30,58,100);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(22);
-    doc.text(String(rp.nilai_akhir || '-'), W/2, y+12, {align:'center'});
-    doc.setFontSize(10);
-    doc.text(rp.predikat || '', W/2, y+19, {align:'center'});
-    y += 28;
+    // ── Nilai akhir & predikat ──
+    var nilaiNum = Number(rp.nilai_akhir||0);
+    var predikat = rp.predikat || (nilaiNum>=90?'Mumtaz':nilaiNum>=75?'Jayyid Jiddan':nilaiNum>=60?'Jayyid':'Maqbul');
+    var predikatDesc = nilaiNum>=90?'Sangat Memuaskan':nilaiNum>=75?'Memuaskan':nilaiNum>=60?'Baik':'Cukup';
 
-    // TABEL KOMPONEN
-    doc.setTextColor(30,58,100);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10);
-    doc.text('KOMPONEN PENILAIAN', mar, y); y += 6;
-    doc.line(mar, y, W-mar, y); y += 4;
+    // Score box kiri
+    doc.setFillColor(...G); doc.roundedRect(mar, y, 40, 28, 3, 3, 'F');
+    doc.setTextColor(...Wh); doc.setFont('helvetica','bold'); doc.setFontSize(26);
+    doc.text(nilaiNum.toFixed(0), mar+20, y+18, {align:'center'});
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('NILAI AKHIR', mar+20, y+25, {align:'center'});
 
-    var cols = [80, 20, 20, 25];
-    var headers = ['Komponen', 'Bobot', 'Nilai', 'x Bobot'];
-    doc.setFillColor(30,58,100);
-    doc.rect(mar, y, W-mar*2, 7, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(8.5);
+    // Predikat box kanan
+    doc.setDrawColor(...G); doc.setLineWidth(0.5);
+    doc.roundedRect(mar+44, y, W-mar*2-44, 28, 3, 3, 'S');
+    doc.setTextColor(...Lt); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+    doc.text('PREDIKAT PENCAPAIAN', mar+48, y+7);
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text(predikat, mar+48, y+18);
+    doc.setTextColor(...Md); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.text(predikatDesc + '  ·  Nilai ' + nilaiNum.toFixed(1) + ' / 100', mar+48, y+25);
+    y += 36;
+
+    // ── Section: Komponen ──
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text('KOMPONEN PENILAIAN', mar, y);
+    doc.setDrawColor(...GL[0]===240?[209,250,229]:[209,250,229]); doc.setLineWidth(0.3);
+    doc.line(mar+50, y-1, W-mar, y-1);
+    y += 6;
+
+    // Header tabel
+    var cw = [W-mar*2-52, 17, 17, 18];
+    doc.setFillColor(...G); doc.rect(mar, y, W-mar*2, 7, 'F');
+    doc.setTextColor(...Wh); doc.setFontSize(8); doc.setFont('helvetica','bold');
     var cx = mar+2;
-    headers.forEach(function(h,i) { doc.text(h, cx, y+5); cx += cols[i]; });
+    ['Komponen Penilaian','Bobot','Nilai','x Bobot'].forEach(function(h,i){
+      doc.text(h, cx, y+5); cx += cw[i];
+    });
     y += 7;
 
     var komp = rp.komponen || [];
     komp.forEach(function(k, idx) {
-      doc.setFillColor(idx%2===0 ? 248:255, idx%2===0 ? 250:255, idx%2===0 ? 255:255);
+      var isEven = idx%2===0;
+      doc.setFillColor(isEven?248:255, isEven?250:255, isEven?252:255);
       doc.rect(mar, y, W-mar*2, 6.5, 'F');
-      doc.setTextColor(40,40,40);
-      doc.setFont('helvetica', k.tipe==='manual'?'italic':'normal');
+      doc.setTextColor(...Dk); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
       cx = mar+2;
-      var nm = k.nama + (k.tipe==='otomatis'?' (otomatis)':' (manual)');
-      doc.text(nm, cx, y+4.5); cx += cols[0];
-      doc.setFont('helvetica','normal');
-      doc.text((k.bobot||0)+'%', cx, y+4.5); cx += cols[1];
-      doc.text(String(k.nilai||0), cx, y+4.5); cx += cols[2];
-      doc.text(String(k.nilai_x_bobot||0), cx, y+4.5);
+      // FIX: gunakan nama_komponen bukan nama
+      var nm = k.nama_komponen || k.nama || '–';
+      doc.text(nm, cx, y+4.5); cx += cw[0];
+      doc.setTextColor(...Md);
+      doc.text((k.bobot||0)+'%', cx, y+4.5, {align:'left'}); cx += cw[1];
+      doc.text(String(k.nilai||0), cx, y+4.5); cx += cw[2];
+      doc.text(String(k.nilai_bobot||k.nilai_x_bobot||0), cx, y+4.5);
       y += 6.5;
     });
-
-    // Total baris
-    doc.setFillColor(30,58,100);
-    doc.rect(mar, y, W-mar*2, 7, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(9);
+    // Total row
+    doc.setFillColor(...G); doc.rect(mar, y, W-mar*2, 7, 'F');
+    doc.setTextColor(...Wh); doc.setFont('helvetica','bold'); doc.setFontSize(9);
     doc.text('NILAI AKHIR', mar+2, y+5);
-    doc.text(String(rp.nilai_akhir||0), W-mar-18, y+5);
+    doc.text(nilaiNum.toFixed(1), W-mar-2, y+5, {align:'right'});
     y += 14;
 
-    // CATATAN GURU
-    if (rp.catatan_guru) {
-      doc.setTextColor(30,58,100);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(9.5);
-      doc.text('CATATAN PEMBIMBING', mar, y); y += 5;
-      doc.setDrawColor(200,200,200);
-      doc.line(mar, y, W-mar, y); y += 4;
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(40,40,40);
-      doc.setFontSize(9);
-      var lines = doc.splitTextToSize(rp.catatan_guru, W-mar*2);
-      doc.text(lines, mar, y);
-      y += lines.length * 5 + 6;
+    // ── Catatan ──
+    var catatan = rp.catatan_guru || '';
+    if (catatan) {
+      doc.setFillColor(255,251,235);
+      var lines = doc.splitTextToSize(catatan, W-mar*2-8);
+      var boxH = lines.length*4.8 + 12;
+      doc.roundedRect(mar, y, W-mar*2, boxH, 2, 2, 'F');
+      doc.setFillColor(...Au); doc.rect(mar, y, 2, boxH, 'F');
+      doc.setTextColor(146,64,14); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+      doc.text('CATATAN WALI HALAQAH', mar+5, y+6);
+      doc.setTextColor(...Dk); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+      doc.text(lines, mar+5, y+11);
+      y += boxH + 8;
     }
 
-    // FOOTER
-    var now = new Date();
-    var tgl = now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-    doc.setFontSize(8);
-    doc.setTextColor(150,150,150);
-    doc.text('Dicetak: ' + tgl + ' • Portal Halaqah Rattililqur\'an', W/2, 285, {align:'center'});
+    // ── Pesan penutup ──
+    var pesan = '"Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti."';
+    doc.setDrawColor(...Lt); doc.setLineWidth(0.3);
+    doc.setLineDash([1,1]);
+    doc.line(mar, y, W-mar, y); y += 5;
+    doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(8.5);
+    var pesanLines = doc.splitTextToSize(pesan, W-mar*2-10);
+    doc.text(pesanLines, W/2, y, {align:'center'});
+    y += pesanLines.length*4.5 + 4;
+    doc.line(mar, y, W-mar, y);
+    doc.setLineDash([]);
+    y += 8;
 
-    var fname = 'Raport_' + (rp.nama_murid||'Murid').replace(/\s+/g,'-') + '_' + (rp.periode||'').replace(/\s+/g,'-') + '.pdf';
+    // ── TTD ──
+    var ttdX = W-mar-55;
+    doc.setDrawColor(226,232,240); doc.setFillColor(248,250,252);
+    doc.roundedRect(ttdX, y, 55, 36, 2, 2, 'FD');
+    doc.setTextColor(...Md); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    var tgl = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    doc.text(tgl, ttdX+27.5, y+6, {align:'center'});
+    doc.text('Mengetahui,', ttdX+27.5, y+10, {align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...G);
+    doc.text('Koordinator Akademik', ttdX+27.5, y+14, {align:'center'});
+    doc.setDrawColor(...G); doc.setLineWidth(0.5);
+    doc.line(ttdX+5, y+30, ttdX+50, y+30);
+    doc.setTextColor(...Dk); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.text('Tim Akademik', ttdX+27.5, y+35, {align:'center'});
+
+    // ── Bottom bar ──
+    doc.setFillColor(248,250,252); doc.rect(0,284,W,13,'F');
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3);
+    doc.line(0,284,W,284);
+    doc.setTextColor(...Lt); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+    doc.text('Dicetak otomatis • '+tgl+" • Portal Murid Rattililqur'an", mar, 290);
+    doc.setTextColor(...G); doc.setFont('helvetica','bold');
+    doc.text("RATTILILQUR'AN", W-mar, 290, {align:'right'});
+
+    var fname = 'Raport_'+(rp.nama_murid||'Murid').replace(/\s+/g,'-')+'_'+(rp.periode||'').replace(/\s+/g,'-')+'.pdf';
     doc.save(fname);
     toast('PDF berhasil diunduh!', 'ok');
   } catch(e) { toast('Gagal membuat PDF: '+e.message, 'err'); }
-  finally {
-    btn.disabled = false;
-    btn.textContent = '📥 Unduh PDF Resmi';
-  }
+  finally { btn.disabled=false; btn.textContent='📥 Unduh PDF Resmi'; }
 }
 </script>
 </body>
