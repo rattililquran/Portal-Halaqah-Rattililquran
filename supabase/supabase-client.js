@@ -330,7 +330,7 @@ var GuruAPI = {
 
   simpanNilaiMuridBatch: async function(d) {
     var updates = (d.nilai_list || d.nilai || []).map(function(n) { return {
-      id_kbm: d.id_kbm, id_murid: n.id_murid,
+      id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: n.id_murid,
       adab: n.adab, kamera_murid: n.kamera_murid,
       koreksi_tahsin: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
     }; });
