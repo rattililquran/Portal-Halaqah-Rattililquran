@@ -3179,8 +3179,8 @@ function openProgressBreakdown() {
     document.getElementById('modalEstWrap').style.display = 'block';
     var daysPerWeek = 1;
     if (hq.jadwal) {
-      var parts = hq.jadwal.split(/[,&]|\bdan\b/);
-      daysPerWeek = Math.max(1, parts.filter(p => p.trim()).length);
+      var parts = hq.jadwal.trim().split(/\s+|[,&]|\bdan\b/).filter(p => p.trim().length > 0);
+      daysPerWeek = Math.max(1, parts.length);
     }
     var weeksRemaining = sisa / daysPerWeek;
     var daysRemaining = Math.ceil(weeksRemaining * 7);

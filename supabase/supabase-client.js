@@ -852,8 +852,8 @@ var MuridAPI = {
       halaqah : {
         nama  : hq.nama_halaqah || '',
         level : hq.level        || '',
-        jadwal: hq.jadwal       || '',
-        jam   : hq.jam_mulai    || '',
+        jadwal: hq.jadwal_hari  || '',
+        jam   : hq.jam_mulai ? String(hq.jam_mulai).substring(0, 5) : '',
         id_halaqah: hq.id_halaqah || '',
       },
       kehadiran: {
