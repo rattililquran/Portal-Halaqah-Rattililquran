@@ -1220,8 +1220,8 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             </div>
             <div style="background:var(--amber-l,#fffbeb);border:1px solid #fcd34d;border-radius:var(--r-sm);
               padding:10px 14px;font-size:12.5px;color:#92400e;margin-bottom:12px">
-              ⚠️ <strong>Perhatian:</strong> Proses arsip memindahkan data ke sheet baru.
-              Data tidak dihapus permanen — tetap bisa dilihat di sheet Arsip. Pastikan sudah backup spreadsheet sebelum arsip.
+              ⚠️ <strong>Perhatian:</strong> Proses arsip memindahkan data ke tabel arsip.
+              Data tidak dihapus permanen — tetap bisa dilihat di arsip database. Pastikan sudah konfirmasi data sebelum arsip.
             </div>
             <button class="btn btn-primary" onclick="doArsip()">🗄️ Mulai Arsip</button>
           </div>
@@ -1441,7 +1441,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Cara Pakai</div>
         <ol style="font-size:12.5px;color:var(--blue-d);line-height:2;padding-left:16px">
           <li>Klik <strong>Unduh Template CSV</strong> di bawah.</li>
-          <li>Isi data di Excel/Google Sheets — guru dulu, lalu murid.</li>
+          <li>Isi data di Excel atau aplikasi spreadsheet — guru dulu, lalu murid.</li>
           <li>Kolom <code>nama_halaqah</code> wajib diisi untuk murid agar langsung terdaftar di kelas.</li>
           <li>Save As → format <strong>.csv (UTF-8)</strong>.</li>
           <li>Upload file, periksa preview, klik <strong>Import Data</strong>.</li>
@@ -3376,7 +3376,7 @@ async function doExportAbsensi() {
     if (id_halaqah) params.id_halaqah = id_halaqah;
     if (jenis_sesi) params.jenis_sesi = jenis_sesi;
     const r = await window.HQ.AdminAPI.exportRekapAbsensi(params);
-    toast('✅ ' + r.message + ' — buka Spreadsheet untuk lihat.', 'ok');
+    toast('✅ ' + r.message + ' — data tersimpan di sistem.', 'ok');
     if (r.url) setTimeout(() => window.open(r.url, '_blank'), 1000);
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
@@ -3491,7 +3491,7 @@ async function doArsip() {
     label = 'data > 1 tahun';
   }
 
-  if (!confirm('Arsipkan ' + label + '? Data akan dipindah ke sheet arsip. Pastikan sudah backup spreadsheet.')) return;
+  if (!confirm('Arsipkan ' + label + '? Data akan dipindah ke arsip database. Pastikan sudah backup data terlebih dahulu.')) return;
 
   showLoad('Bismillah, mengarsipkan ' + label + '...');
   try {

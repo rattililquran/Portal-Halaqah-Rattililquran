@@ -1933,7 +1933,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           </button>
         </div>
         <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
-          💡 Rekap akan otomatis dibuat sebagai sheet baru di Google Spreadsheet Anda
+          💡 Rekap akan otomatis tersimpan ke dalam database sistem Rattililqur'an
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -2042,7 +2042,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             </div>
             <div class="fg" style="margin-bottom:12px">
               <label>Password Baru</label>
-              <input type="password" class="fc" id="pwNew" placeholder="Minimal 4 karakter">
+              <input type="password" class="fc" id="pwNew" placeholder="Minimal 6 karakter">
             </div>
             <div class="fg" style="margin-bottom:20px">
               <label>Konfirmasi Password Baru</label>
@@ -3896,7 +3896,7 @@ async function simpanEditPresensi() {
 
 async function konfirmasiHapusKBM() {
   if (!editPresensiKBMId) return;
-  if (!confirm('Apakah Anda yakin ingin menghapus sesi KBM ini? Semua data presensi, nilai, jurnal, dan pencapaian modul pada sesi ini akan terhapus permanen dari sistem dan Google Sheets.')) {
+  if (!confirm('Apakah Anda yakin ingin menghapus sesi KBM ini? Semua data presensi, nilai, jurnal, dan pencapaian modul pada sesi ini akan terhapus permanen dari database sistem.')) {
     return;
   }
   
@@ -4126,7 +4126,7 @@ async function doGenerateRekap(tipe) {
     const r = await fn(id_halaqah);
     var hq = halaqahList.find(function(h){ return h.id_halaqah === id_halaqah; });
     var namaHalaqah = hq ? hq.nama_halaqah : 'halaqah ini';
-    toast('✅ ' + label + ' untuk ' + namaHalaqah + ' berhasil dibuat di Google Sheets.', 'ok');
+    toast('✅ ' + label + ' untuk ' + namaHalaqah + ' berhasil dibuat dan tersimpan di sistem.', 'ok');
   } catch(e) { toast('Gagal membuat rekap: ' + e.message,'err'); }
   finally {
     hideLoad();
@@ -4721,8 +4721,8 @@ async function doGantiPassword() {
   if (newPassword !== confirmPassword) {
     return toast('Konfirmasi password baru tidak cocok', 'err');
   }
-  if (newPassword.length < 4) {
-    return toast('Password baru minimal 4 karakter', 'err');
+  if (newPassword.length < 6) {
+    return toast('Password baru minimal 6 karakter', 'err');
   }
 
   setBtn('btnGantiPw', true, '⏳ Memproses...');

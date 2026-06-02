@@ -2687,8 +2687,8 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
           </div>
           <div class="fg">
             <label for="pwNew">Password Baru</label>
-            <input type="password" id="pwNew" class="fc" placeholder="Minimal 4 karakter">
-            <div class="pw-info">Password baru minimal 4 karakter</div>
+            <input type="password" id="pwNew" class="fc" placeholder="Minimal 6 karakter">
+            <div class="pw-info">Password baru minimal 6 karakter</div>
           </div>
           <div class="fg">
             <label for="pwConfirm">Konfirmasi Password Baru</label>
@@ -6083,7 +6083,7 @@ async function doChangePassword() {
 
   if (!oldPw) { toast('Password lama wajib diisi', 'err'); return; }
   if (!newPw) { toast('Password baru wajib diisi', 'err'); return; }
-  if (newPw.length < 4) { toast('Password baru minimal 4 karakter', 'err'); return; }
+  if (newPw.length < 6) { toast('Password baru minimal 6 karakter', 'err'); return; }
   if (newPw !== confirmPw) { toast('Konfirmasi password tidak cocok', 'err'); return; }
 
   setBtn('btnChangePassword', true, 'Mengubah...');
