@@ -1118,8 +1118,14 @@ var KetuaAPI = {
       _sb.from('observasi_kbm').select('id_kbm').eq('id_ketua', id_ketua),
     ]);
     var sudahObsIds = new Set((obsRes.data || []).map(function(o) { return o.id_kbm; }));
-    var pending = (kbmRes.data || []).filter(function(k) { return !sudahObsIds.has(k.id_kbm); });
-    return { status: 'ok', data: pending };
+    var allSesi = (kbmRes.data || []).map(function(k) {
+      var sudah = sudahObsIds.has(k.id_kbm);
+      return Object.assign({}, k, {
+        tanggal      : k.tanggal_pertemuan,
+        window_status: sudah ? 'selesai' : 'terbuka',
+      });
+    });
+    return { status: 'ok', data: allSesi };
   },
 
   getObservasiHistory: async function() {
@@ -1143,7 +1149,8 @@ var KetuaAPI = {
       .eq('id_halaqah', info.halaqah.id_halaqah)
       .order('created_at', { ascending: false }).limit(10);
     if (error) return { status: 'ok', data: [] };
-    return { status: 'ok', data: data || [] };
+    // Return array id_kbm agar Set.has(id_kbm) bekerja di frontend
+    return { status: 'ok', data: (data || []).map(function(r) { return r.id_kbm; }) };
   },
 
   submitObservasi: async function(d) {
