@@ -1251,7 +1251,9 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   animation:fadeIn .2s ease}
 @media(min-width:600px){.modal-overlay.open{align-items:center}}
 .modal-sheet{background:#fff;border-radius:28px 28px 0 0;
-  width:100%;max-width:500px;max-height:90dvh;overflow-y:auto;
+  width:100%;max-width:500px;
+  max-height:calc(100dvh - 72px - env(safe-area-inset-bottom));
+  overflow-y:auto;
   box-shadow:0 -10px 40px rgba(15,23,42,.15);border:1px solid rgba(255,255,255,0.7)}
 @media(min-width:600px){.modal-sheet{border-radius:28px;max-height:85dvh}}
 .modal-head{display:flex;align-items:center;justify-content:space-between;
@@ -1261,8 +1263,9 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
 .modal-x:hover{background:var(--border)}
 .modal-body{padding:18px 22px}
-.modal-foot{padding:14px 22px;border-top:1px solid var(--border);
-  display:flex;gap:8px;position:sticky;bottom:0;background:#fff;z-index:10}
+.modal-foot{padding:14px 22px 16px;border-top:1px solid var(--border);
+  display:flex;gap:8px;position:sticky;bottom:0;background:#fff;z-index:10;
+  box-shadow:0 -4px 16px rgba(0,0,0,0.06)}
 .modal-foot .btn{flex:1;justify-content:center}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:11px;font-weight:800;color:var(--text-3);
@@ -2210,15 +2213,15 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
                 Foto Bukti Transfer
                 <span style="font-weight:500;color:var(--text-3);font-size:11px"> · maks 5 MB</span>
               </label>
-              <label id="sppBuktiLabel" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:14px;cursor:pointer;background:var(--bg);transition:all .2s">
+              <label id="sppBuktiLabel" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:14px;cursor:pointer;background:var(--bg);transition:all .2s;font-size:13px">
                 <div style="width:40px;height:40px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 </div>
                 <div style="flex:1;min-width:0">
                   <div id="sppBuktiName" style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Klik untuk pilih foto</div>
-                  <div style="font-size:11px;color:var(--text-3);margin-top:1px">JPG · PNG · WebP · HEIC</div>
+                  <div style="font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500">JPG · PNG · WebP · HEIC · maks 5 MB</div>
                 </div>
-                <input type="file" id="sppFormBuktiFile" accept="image/*" style="display:none" onchange="handleSppBuktiFile(this)">
+                <input type="file" id="sppFormBuktiFile" accept="image/*" capture="environment" style="display:none;font-size:13px" onchange="handleSppBuktiFile(this)">
               </label>
               <!-- Preview -->
               <div id="sppBuktiPreview" style="display:none;margin-top:10px;position:relative">
