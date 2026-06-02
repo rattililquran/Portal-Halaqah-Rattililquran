@@ -70,8 +70,10 @@ var Auth = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id_user: id_user.trim().toUpperCase(), password: password }),
     });
-    var data = await res.json();
+    var data;
+    try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons dengan benar. Coba lagi.'); }
     if (data.status === 'error') throw new Error(data.message);
+    if (!data.user || !data.access_token) throw new Error('Respons login tidak lengkap. Coba lagi.');
     await _sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
     _currentUser = data.user;
     localStorage.setItem('hq_user',    JSON.stringify(data.user));
