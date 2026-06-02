@@ -875,7 +875,7 @@ var MuridAPI = {
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
       _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
       _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
-      _sb.from('nilai_kbm').select('status_hadir').eq('id_murid', id_murid),
+      _sb.from('nilai_kbm').select('status_hadir, adab, kamera_murid').eq('id_murid', id_murid),
     ]);
     var anggota    = anggotaRes.data;
     var user       = userRes.data;
@@ -907,9 +907,19 @@ var MuridAPI = {
     var countT  = nilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
     var countI  = nilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
     var countA  = nilai.filter(function(n) { return n.status_hadir === 'A'; }).length;
-    var totalHadir = countH + countT;
-    var totalSesi  = nilai.length;
-    var pctHadir   = totalSesi > 0 ? Math.round(totalHadir / totalSesi * 100) : 0;
+    var totalHadir  = countH + countT;
+    var totalSesi   = nilai.length;
+    var pctHadir    = totalSesi > 0 ? Math.round(totalHadir / totalSesi * 100) : 0;
+    // Poin Adab & Kamera — hanya dari sesi hadir yang sudah dinilai
+    var hadirNilai  = nilai.filter(function(n){ return ['H','T'].includes(n.status_hadir); });
+    var adabData    = hadirNilai.filter(function(n){ return n.adab; });
+    var adabBaik    = adabData.filter(function(n){ return n.adab==='Baik'; }).length;
+    var poinAdab    = adabData.length > 0 ? Math.round(adabBaik/adabData.length*100) : undefined;
+    var kameraData  = hadirNilai.filter(function(n){ return n.kamera_murid; });
+    var kamTerbuka  = kameraData.filter(function(n){ return n.kamera_murid==='kamera terbuka'; }).length;
+    var kamSeltup   = kameraData.filter(function(n){ return n.kamera_murid==='kamera selalu tertutup'; }).length;
+    var kamSegtup   = kameraData.filter(function(n){ return n.kamera_murid==='kamera sering tertutup'; }).length;
+    var poinKamera  = kameraData.length > 0 ? Math.round(kamTerbuka/kameraData.length*100) : undefined;
     var hq = (anggota && anggota.halaqah) || {};
     return { status: 'ok', data: {
       anggota,
@@ -933,8 +943,12 @@ var MuridAPI = {
         count_i     : countI,
         count_a     : countA,
       },
-      pengumuman: pengumuman || [],
-      pr_aktif  : prAktif,
+      poin_adab  : poinAdab,
+      poin_kamera: poinKamera,
+      poin_adab_detail  : { baik: adabBaik, cukup: adabData.length - adabBaik },
+      poin_kamera_detail: { terbuka: kamTerbuka, selalu_tertutup: kamSeltup, sering_tertutup: kamSegtup },
+      pengumuman : pengumuman || [],
+      pr_aktif   : prAktif,
     }};
   },
 
