@@ -885,7 +885,24 @@ var MuridAPI = {
     var pengumumanQuery = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(5);
     if (id_halaqah) pengumumanQuery = pengumumanQuery.or('target.in.(semua,all),id_halaqah.eq.'+id_halaqah);
     else pengumumanQuery = pengumumanQuery.in('target',['semua','all']);
-    var { data: pengumuman } = await pengumumanQuery;
+    var prQuery = _sb.from('nilai_kbm')
+      .select('tanggal, pertemuan_ke, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar)')
+      .eq('id_murid', id_murid).in('status_hadir',['H','T'])
+      .not('kbm_log.latihan_mandiri','is',null)
+      .order('tanggal',{ascending:false}).limit(10);
+    var [{ data: pengumuman }, { data: prRaw }] = await Promise.all([pengumumanQuery, prQuery]);
+    var today = new Date().toISOString().slice(0,10);
+    var prAktif = (prRaw||[])
+      .filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; })
+      .map(function(n) {
+        var dl = n.kbm_log.deadline_latihan;
+        return Object.assign({}, n.kbm_log, {
+          tanggal: n.tanggal, pertemuan_ke: n.pertemuan_ke,
+          deadline: dl,
+          status_deadline: !dl ? 'aktif' : dl < today ? 'lewat' : dl === today ? 'hari_ini' : 'aktif',
+        });
+      })
+      .filter(function(n){ return n.status_deadline !== 'lewat'; });
     var countH  = nilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
     var countT  = nilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
     var countI  = nilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
@@ -917,6 +934,7 @@ var MuridAPI = {
         count_a     : countA,
       },
       pengumuman: pengumuman || [],
+      pr_aktif  : prAktif,
     }};
   },
 

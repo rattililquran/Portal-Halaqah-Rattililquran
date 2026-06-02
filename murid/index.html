@@ -1249,14 +1249,14 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   background:rgba(15,23,42,.5);backdrop-filter:blur(6px)}
 .modal-overlay.open{display:flex;align-items:flex-end;justify-content:center;
   animation:fadeIn .2s ease;
-  /* Beri ruang agar modal tidak tertutup bottom nav */
+  padding-top:calc(env(safe-area-inset-top) + 8px);
   padding-bottom:calc(68px + env(safe-area-inset-bottom))}
-@media(min-width:600px){.modal-overlay.open{align-items:center;padding-bottom:0}}
+@media(min-width:600px){.modal-overlay.open{align-items:center;padding-top:0;padding-bottom:0}}
 .modal-sheet{background:#fff;border-radius:28px 28px 0 0;
   width:100%;max-width:500px;
-  max-height:calc(100dvh - 68px - env(safe-area-inset-bottom) - 16px);
+  max-height:100%;
   overflow-y:auto;
-  box-shadow:0 -10px 40px rgba(15,23,42,.15);border:1px solid rgba(255,255,255,0.7)}
+  box-shadow:0 -10px 40px rgba(15,23,42,.15)}
 @media(min-width:600px){.modal-sheet{border-radius:28px;max-height:85dvh}}
 .modal-head{display:flex;align-items:center;justify-content:space-between;
   padding:20px 22px 0}
