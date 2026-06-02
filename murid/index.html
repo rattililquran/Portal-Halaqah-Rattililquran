@@ -1353,6 +1353,15 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 .spp-jenis-tab{flex:1;padding:9px 6px;border-radius:10px;border:2px solid var(--border);
   background:#fff;font-size:12px;font-weight:700;cursor:pointer;text-align:center;color:var(--text-2)}
 .spp-jenis-tab.active{border-color:#1a5c3a;background:#f0fdf4;color:#1a5c3a}
+/* Metode bayar card */
+.spp-metode-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.spp-metode-bank{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.spp-metode-nomor{font-size:18px;font-weight:900;color:var(--text);letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.spp-metode-nama{font-size:12px;color:var(--text-2);font-weight:600;margin-top:1px}
+.spp-salin-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--green-l);color:#065f46;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px;transition:background .15s}
+.spp-salin-btn:hover{background:#bbf7d0}
+.spp-salin-btn.copied{background:#bbf7d0;color:#065f46}
+.spp-qris-img{width:100%;max-width:200px;border-radius:10px;border:1px solid var(--border);display:block;margin:8px auto 0}
 /* Infaq history */
 .spp-infaq-item{display:flex;justify-content:space-between;align-items:center;
   padding:9px 0;border-bottom:1px solid var(--border-l)}
@@ -2147,6 +2156,13 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
           <!-- Body scroll -->
           <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+
+            <!-- Info Metode Pembayaran -->
+            <div id="sppMetodeInfo" style="display:none">
+              <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Transfer ke</div>
+              <div id="sppMetodeList" style="display:flex;flex-direction:column;gap:8px"></div>
+              <div style="height:1px;background:var(--border);margin:14px 0"></div>
+            </div>
 
             <!-- Jenis -->
             <div class="fg">
@@ -6338,12 +6354,22 @@ function clearSppBukti() {
   document.getElementById('sppBuktiLabel').style.borderColor = '';
 }
 
-function bukaModalKonfirmasiSPP() {
+function salinNomor(nomor, btnId) {
+  navigator.clipboard.writeText(nomor).then(function() {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✅ Disalin!'; btn.className = 'spp-salin-btn copied';
+    setTimeout(function(){ btn.innerHTML = orig; btn.className = 'spp-salin-btn'; }, 2000);
+  }).catch(function() { alert('Salin manual: ' + nomor); });
+}
+
+async function bukaModalKonfirmasiSPP() {
   _sppFormJenis = 'SPP Pribadi';
   _sppBuktiBlob = null;
   document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
   document.getElementById('sppFormBulanWrap').style.display = '';
-  document.getElementById('sppFormBulan').value   = '';
+  document.getElementById('sppFormBulan').value    = '';
   document.getElementById('sppFormNominal').value  = '';
   document.getElementById('sppFormCatatan').value  = '';
   document.getElementById('sppFormBuktiFile').value = '';
@@ -6352,6 +6378,39 @@ function bukaModalKonfirmasiSPP() {
   document.getElementById('sppBuktiLabel').style.borderColor = '';
   document.getElementById('sppFormErr').style.display = 'none';
   openModal('sppKonfirmasiModal');
+
+  // Load metode bayar
+  try {
+    var r = await window.HQ.MuridAPI.getMetodeBayar();
+    var metode = r.data || [];
+    var wrap = document.getElementById('sppMetodeInfo');
+    var list = document.getElementById('sppMetodeList');
+    if (!metode.length) { wrap.style.display='none'; return; }
+    wrap.style.display = '';
+    list.innerHTML = metode.map(function(m, i) {
+      var btnId = 'salinBtn' + i;
+      if (m.jenis === 'qris') {
+        return '<div class="spp-metode-card" style="text-align:center">'
+          + '<div class="spp-metode-bank">QRIS · ' + esc(m.nama) + '</div>'
+          + (m.atas_nama ? '<div class="spp-metode-nama">' + esc(m.atas_nama) + '</div>' : '')
+          + (m.qris_url
+            ? '<img src="' + esc(m.qris_url) + '" class="spp-qris-img" alt="QR Code" loading="lazy">'
+            : '<div style="margin:10px 0;padding:14px;background:#f1f5f9;border-radius:8px;font-size:12px;color:var(--text-3)">QR Code belum tersedia</div>')
+          + '</div>';
+      }
+      return '<div class="spp-metode-card">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        + '<div>'
+        + '<div class="spp-metode-bank">' + esc(m.bank||m.nama) + '</div>'
+        + '<div class="spp-metode-nomor">' + esc(m.nomor||'—') + '</div>'
+        + (m.atas_nama ? '<div class="spp-metode-nama">a/n ' + esc(m.atas_nama) + '</div>' : '')
+        + '</div>'
+        + (m.nomor ? '<button class="spp-salin-btn" id="' + btnId + '" onclick="salinNomor(\'' + esc(m.nomor) + '\',\'' + btnId + '\')">'
+          + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'
+          + ' Salin</button>' : '')
+        + '</div></div>';
+    }).join('');
+  } catch(e) { /* silent */ }
 }
 
 function tutupModalKonfirmasiSPP() { closeModal('sppKonfirmasiModal'); }

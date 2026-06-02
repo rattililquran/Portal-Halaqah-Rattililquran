@@ -1000,6 +1000,11 @@ var MuridAPI = {
     }};
   },
 
+  getMetodeBayar: async function() {
+    var { data } = await _sb.from('spp_metode_bayar').select('*').eq('aktif',true).order('urutan');
+    return { status:'ok', data: data||[] };
+  },
+
   konfirmasiSPP: async function(d) {
     var id_murid = _uid();
     var user = _currentUser || {};
@@ -1198,6 +1203,25 @@ var AdminAPI = {
   },
   getAuditLog: async function() { var {data,error}=await _sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100); _check(error,'getAuditLog'); return {status:'ok',data}; },
   getObservasiKBM: async function() { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiKBM'); return {status:'ok',data}; },
+  // ── SPP Metode Bayar ───────────────────────
+  getMetodeBayar: async function() {
+    var { data, error } = await _sb.from('spp_metode_bayar').select('*').eq('aktif',true).order('urutan');
+    _check(error,'getMetodeBayar'); return { status:'ok', data: data||[] };
+  },
+  saveMetodeBayar: async function(d) {
+    var { id, ...fields } = d;
+    if (id) {
+      var { error } = await _sb.from('spp_metode_bayar').update(fields).eq('id',id);
+      _check(error,'saveMetodeBayar'); return { status:'ok' };
+    }
+    var { error } = await _sb.from('spp_metode_bayar').insert(fields);
+    _check(error,'saveMetodeBayar'); return { status:'ok' };
+  },
+  deleteMetodeBayar: async function(id) {
+    var { error } = await _sb.from('spp_metode_bayar').update({aktif:false}).eq('id',id);
+    _check(error,'deleteMetodeBayar'); return { status:'ok' };
+  },
+
   // ── SPP Admin ──────────────────────────────
   getSPPPending: async function() {
     var { data, error } = await _sb.from('spp_pembayaran').select('*').eq('status','menunggu').order('created_at',{ascending:false});
