@@ -50,12 +50,15 @@ body{
 /* ── LEFT PANEL ── */
 .left{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:48px 40px;gap:32px;
-  background:linear-gradient(155deg,#0284c7 0%,#0ea5e9 55%,#38bdf8 100%);
+  padding:48px 40px;gap:28px;
+  background:linear-gradient(145deg,#0c4a6e 0%,#0369a1 35%,#0ea5e9 70%,#38bdf8 100%);
   position:relative;overflow:hidden;
 }
-.left::before{content:'';position:absolute;top:-80px;right:-80px;width:250px;height:250px;border-radius:50%;background:rgba(255,255,255,.08)}
-.left::after{content:'';position:absolute;bottom:-60px;left:-40px;width:180px;height:180px;border-radius:50%;background:rgba(0,0,0,.06)}
+.left::before{content:'';position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.06)}
+.left::after{content:'';position:absolute;bottom:-60px;left:-40px;width:220px;height:220px;border-radius:50%;background:rgba(0,0,0,.08)}
+.left-deco1{position:absolute;top:30%;right:-60px;width:180px;height:180px;border-radius:50%;border:2px solid rgba(255,255,255,.08);pointer-events:none}
+.left-deco2{position:absolute;bottom:25%;left:-50px;width:140px;height:140px;border-radius:50%;border:2px solid rgba(255,255,255,.06);pointer-events:none}
+.left-deco3{position:absolute;top:15%;left:20%;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none}
 @media(max-width:768px){.left{display:none}}
 
 .logo-wrap{text-align:center}
@@ -69,13 +72,73 @@ body{
 .stat-pill .v{font-size:20px;font-weight:800;color:#fff}
 .stat-pill .l{font-size:10.5px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
 
-.features{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;position:relative;z-index:1}
+.features{display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;position:relative;z-index:1}
 .feat-item{display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-radius:12px;padding:10px 14px}
-.feat-ico{font-size:18px;flex-shrink:0}
-.feat-txt{font-size:12.5px;color:rgba(255,255,255,.85);font-weight:500}
+  border-radius:12px;padding:9px 14px;transition:background 0.2s}
+.feat-item:hover{background:rgba(255,255,255,.18)}
+.feat-ico{font-size:17px;flex-shrink:0}
+.feat-txt{font-size:12px;color:rgba(255,255,255,.88);font-weight:600;line-height:1.4}
+
+/* ── STATS INFOGRAFIS ── */
+.stats-infografis{width:100%;max-width:300px;position:relative;z-index:1}
+.stats-infografis-title{
+  font-size:10px;font-weight:800;color:rgba(255,255,255,.5);
+  text-transform:uppercase;letter-spacing:.12em;text-align:center;margin-bottom:10px;
+}
+.stats-row{display:flex;gap:8px}
+.stat-box{
+  flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;padding:12px 8px;text-align:center;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:background 0.2s;
+}
+.stat-box:hover{background:rgba(255,255,255,.18)}
+.stat-num{font-size:26px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em}
+.stat-num.loading{opacity:.4;font-size:18px}
+.stat-ico{font-size:14px;margin-bottom:2px}
+.stat-lbl{font-size:9.5px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+
+/* ── MODAL LUPA PASSWORD ── */
+.modal-lupa{
+  display:none;position:fixed;inset:0;z-index:600;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(6px);padding:20px;
+}
+.modal-lupa.show{display:flex;animation:ldFade .25s ease}
+.modal-lupa-box{
+  background:#fff;border-radius:20px;padding:28px 24px;
+  width:100%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.modal-lupa-title{font-size:18px;font-weight:800;color:#0f172a;margin-bottom:4px}
+.modal-lupa-sub{font-size:12.5px;color:#64748b;margin-bottom:20px;line-height:1.5}
+.modal-lupa-field{margin-bottom:12px}
+.modal-lupa-field label{display:block;font-size:10.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.modal-lupa-field input{
+  width:100%;padding:10px 12px;border:1.5px solid rgba(14,165,233,.2);border-radius:10px;
+  font-family:inherit;font-size:14px;font-weight:500;color:#0f172a;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.modal-lupa-field input:focus{border-color:#0ea5e9;box-shadow:0 0 0 4px rgba(14,165,233,.1)}
+.modal-lupa-note{font-size:11px;color:#94a3b8;margin-bottom:16px;line-height:1.5;padding:10px 12px;background:#f8fafc;border-radius:8px}
+.btn-wa{
+  width:100%;padding:12px;margin-bottom:8px;
+  background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);
+  color:#fff;border:none;border-radius:100px;
+  font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;
+  box-shadow:0 4px 16px rgba(37,211,102,.35);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all 0.25s ease;
+}
+.btn-wa:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,211,102,.45)}
+.btn-tutup-modal{
+  width:100%;padding:10px;background:none;border:1.5px solid #e2e8f0;
+  border-radius:100px;font-family:inherit;font-size:13px;font-weight:600;
+  color:#64748b;cursor:pointer;transition:background .2s;
+}
+.btn-tutup-modal:hover{background:#f8fafc}
 
 /* ── RIGHT PANEL (form) ── */
 .right{
@@ -427,6 +490,20 @@ html.theme-dark .tab.active {
 html.theme-dark .field-hint {
   color: #64748b !important;
 }
+html.theme-dark .modal-lupa-box {
+  background: #0d1f35 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+html.theme-dark .modal-lupa-title { color: #f0f0f0 !important; }
+html.theme-dark .modal-lupa-sub  { color: #a0aec0 !important; }
+html.theme-dark .modal-lupa-note { background: rgba(255,255,255,0.05) !important; color: #718096 !important; }
+html.theme-dark .modal-lupa-field label { color: #a0aec0 !important; }
+html.theme-dark .modal-lupa-field input {
+  background: rgba(15,23,42,0.6) !important; border-color: rgba(255,255,255,0.1) !important; color: #f0f0f0 !important;
+}
+html.theme-dark .btn-tutup-modal { border-color: #2a2a2a !important; color: #718096 !important; }
+html.theme-dark .stat-box { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.12) !important; }
+html.theme-dark .stats-infografis-title { color: rgba(255,255,255,0.35) !important; }
 
 
 </style>
@@ -457,16 +534,42 @@ html.theme-dark .field-hint {
 
   <!-- LEFT PANEL -->
   <div class="left">
+    <div class="left-deco1"></div>
+    <div class="left-deco2"></div>
+    <div class="left-deco3"></div>
+
     <div class="logo-wrap">
       <img class="logo-img" src="assets/images/logo-putih.png" alt="Rattililqur'an" loading="eager" onerror="this.style.display='none'">
       <div class="tagline">Sistem Manajemen Halaqah Tahsin Digital</div>
+    </div>
+
+    <!-- RATTIL DALAM ANGKA -->
+    <div class="stats-infografis">
+      <div class="stats-infografis-title">✦ Rattil Dalam Angka ✦</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-ico">🎓</div>
+          <div class="stat-num loading" id="statMurid">...</div>
+          <div class="stat-lbl">Murid</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-ico">📖</div>
+          <div class="stat-num loading" id="statHalaqah">...</div>
+          <div class="stat-lbl">Halaqah</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-ico">👩‍🏫</div>
+          <div class="stat-num loading" id="statGuru">...</div>
+          <div class="stat-lbl">Guru</div>
+        </div>
+      </div>
     </div>
 
     <div class="features">
       <div class="feat-item"><span class="feat-ico">📋</span><span class="feat-txt">Kelola sesi KBM & presensi realtime</span></div>
       <div class="feat-item"><span class="feat-ico">📊</span><span class="feat-txt">Laporan & raport otomatis per periode</span></div>
       <div class="feat-item"><span class="feat-ico">📝</span><span class="feat-txt">Latihan mandiri & progress murid</span></div>
-      <div class="feat-item"><span class="feat-ico">🔒</span><span class="feat-txt">Data aman di Google Spreadsheet</span></div>
+      <div class="feat-item"><span class="feat-ico">🛡️</span><span class="feat-txt">Data terenkripsi & tersinkronisasi aman</span></div>
     </div>
   </div>
 
@@ -512,7 +615,12 @@ html.theme-dark .field-hint {
             placeholder="Password akun"
             autocomplete="current-password" maxlength="50">
         </div>
-        <div class="field-hint">Kosongkan jika belum diset password</div>
+        <div class="field-hint" style="text-align:right">
+          <button type="button" onclick="showLupaPassword()"
+            style="background:none;border:none;color:#0ea5e9;font-size:11.5px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px">
+            Lupa Password?
+          </button>
+        </div>
       </div>
 
       <button class="btn-login" id="btnLogin" onclick="doLogin()">
@@ -522,6 +630,28 @@ html.theme-dark .field-hint {
     </div>
   </div>
 
+</div>
+
+<!-- MODAL LUPA PASSWORD -->
+<div class="modal-lupa" id="modalLupa" onclick="if(event.target===this)closeLupaPassword()">
+  <div class="modal-lupa-box">
+    <div class="modal-lupa-title">🔑 Lupa Password</div>
+    <div class="modal-lupa-sub" id="lupaSub">Isi form berikut, lalu kirim ke admin via WhatsApp untuk reset password akun Anda.</div>
+    <div class="modal-lupa-field">
+      <label>Nama Lengkap</label>
+      <input type="text" id="lupaNama" placeholder="Nama lengkap Anda" autocomplete="name">
+    </div>
+    <div class="modal-lupa-field">
+      <label id="lupaIdLabel">NIS / ID Pengguna</label>
+      <input type="text" id="lupaId" placeholder="Contoh: USR-ADMIN-001" style="text-transform:uppercase">
+    </div>
+    <div class="modal-lupa-note" id="lupaNoteRole">Permintaan reset akan diteruskan ke admin melalui WhatsApp. Pastikan data yang diisi sesuai dengan akun Anda.</div>
+    <button class="btn-wa" onclick="kirimLupaPassword()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Kirim ke Admin via WhatsApp
+    </button>
+    <button class="btn-tutup-modal" onclick="closeLupaPassword()">Batal</button>
+  </div>
 </div>
 
 <!-- Footer -->
@@ -566,14 +696,25 @@ async function doLogin() {
     // Login via Supabase Edge Function
     const data = await window.HQ.Auth.login(nisVal, pw);
 
-    // Simpan ke localStorage (Supabase client sudah simpan otomatis,
-    // ini untuk kompatibilitas kode portal yang cek hq_token/hq_user)
+    // Simpan ke localStorage
     localStorage.setItem('hq_token', data.access_token);
     localStorage.setItem('hq_user',  JSON.stringify(data.user));
 
-    // Redirect berdasarkan role
+    // Validasi: role akun harus sesuai tab yang dipilih
     const serverRole = data.user.role || currentRole;
-    const redirect   = ROLE_META[serverRole]
+    if (serverRole !== currentRole) {
+      const roleLabel = { admin: 'Admin', guru: 'Guru', murid: 'Murid' };
+      localStorage.removeItem('hq_token');
+      localStorage.removeItem('hq_user');
+      await window.HQ.supabase.auth.signOut();
+      setLoading(false);
+      showErr('Akun ini adalah ' + (roleLabel[serverRole]||serverRole) + '. Silakan pilih tab "' + (roleLabel[serverRole]||serverRole) + '" untuk masuk.');
+      // Arahkan ke tab yang benar secara otomatis
+      setTimeout(function() { setRole(serverRole); }, 1800);
+      return;
+    }
+
+    const redirect = ROLE_META[serverRole]
       ? ROLE_META[serverRole].redirect
       : ROLE_META[currentRole].redirect;
 
@@ -645,6 +786,7 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   setTimeout(function() { document.getElementById('inputNis').focus(); }, 300);
+  fetchStats();
 });
 
 function showResumeCard(us) {
@@ -694,6 +836,74 @@ function gantiAkun() {
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── LUPA PASSWORD ──────────────────────────────
+const LUPA_WA_ADMIN = '6282316993233';
+const LUPA_ROLE_INFO = {
+  admin: { label:'NIS / ID Admin', note:'Permintaan akan dikirim ke Koordinator Pusat Rattililqur\'an. Pastikan data sesuai akun admin Anda.' },
+  guru:  { label:'ID Guru (GRU-XXX)', note:'Permintaan akan dikirim ke Admin Rattililqur\'an. Pastikan data sesuai akun guru Anda.' },
+  murid: { label:'NIS Murid (RTL...)', note:'Permintaan akan dikirim ke Admin. Jika tidak tahu NIS, tanyakan ke guru halaqah Anda terlebih dahulu.' },
+};
+
+function showLupaPassword() {
+  var info = LUPA_ROLE_INFO[currentRole] || LUPA_ROLE_INFO.murid;
+  document.getElementById('lupaIdLabel').textContent = info.label;
+  document.getElementById('lupaNoteRole').textContent = info.note;
+  document.getElementById('lupaId').placeholder = document.getElementById('inputNis').placeholder;
+  document.getElementById('lupaNama').value = '';
+  document.getElementById('lupaId').value = document.getElementById('inputNis').value || '';
+  document.getElementById('modalLupa').classList.add('show');
+  setTimeout(function() { document.getElementById('lupaNama').focus(); }, 100);
+}
+
+function closeLupaPassword() {
+  document.getElementById('modalLupa').classList.remove('show');
+}
+
+function kirimLupaPassword() {
+  var nama = document.getElementById('lupaNama').value.trim();
+  var id   = document.getElementById('lupaId').value.trim().toUpperCase();
+  if (!nama) { alert('Nama lengkap wajib diisi'); return; }
+  if (!id)   { alert('NIS / ID pengguna wajib diisi'); return; }
+  var roleLabel = { admin:'Admin', guru:'Guru', murid:'Murid' }[currentRole] || 'Pengguna';
+  var pesan = encodeURIComponent(
+    'Assalamualaikum Admin Rattililquran,\n\n'
+    + 'Saya ingin meminta reset password akun saya:\n'
+    + '- Nama   : ' + nama + '\n'
+    + '- ID/NIS : ' + id + '\n'
+    + '- Role   : ' + roleLabel + '\n\n'
+    + 'Mohon bantuannya. Jazakumullahu khairan.'
+  );
+  window.open('https://wa.me/' + LUPA_WA_ADMIN + '?text=' + pesan, '_blank');
+  closeLupaPassword();
+}
+
+// ── STATS RATTIL DALAM ANGKA ───────────────────
+async function fetchStats() {
+  try {
+    var sb = window.HQ && window.HQ.supabase;
+    if (!sb) return;
+    var [muridRes, guruRes, halaqahRes] = await Promise.all([
+      sb.from('users').select('*', { count:'exact', head:true }).eq('role','murid').eq('status','aktif'),
+      sb.from('users').select('*', { count:'exact', head:true }).eq('role','guru').eq('status','aktif'),
+      sb.from('halaqah').select('*', { count:'exact', head:true }).eq('status','aktif'),
+    ]);
+    var set = function(id, val) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('loading');
+      el.textContent = (val !== null && val !== undefined && val >= 0) ? val : '--';
+    };
+    set('statMurid',   muridRes.count);
+    set('statGuru',    guruRes.count);
+    set('statHalaqah', halaqahRes.count);
+  } catch(e) {
+    ['statMurid','statGuru','statHalaqah'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.remove('loading'); el.textContent = '--'; }
+    });
+  }
 }
 
 function initThemeToggle() {
