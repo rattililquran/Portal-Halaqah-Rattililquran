@@ -663,7 +663,7 @@ var GuruAPI = {
     return { status: 'ok', data: (data || []).map(function(r) { return Object.assign({}, r, {
       nama_murid: r.users && r.users.nama_lengkap,
       email     : r.users && r.users.email,
-      detail    : r.detail_json ? (typeof r.detail_json === 'string' ? JSON.parse(r.detail_json) : r.detail_json) : [],
+      detail    : r.detail_json ? (typeof r.detail_json === 'string' ? (function(){try{return JSON.parse(r.detail_json);}catch(e){return [];}})() : r.detail_json) : [],
     }); }) };
   },
 
@@ -736,7 +736,7 @@ var GuruAPI = {
     var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah).order('tanggal');
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_murid', raport.id_murid).eq('id_periode', raport.id_periode);
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
-    var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? JSON.parse(raport.detail_json) : raport.detail_json) : [];
+    var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? (function(){try{return JSON.parse(raport.detail_json);}catch(e){return [];}})() : raport.detail_json) : [];
     var hadirList = (nilaiKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
     var totalSesi = (nilaiKBM || []).length;
     return { status: 'ok', data: {
@@ -830,18 +830,44 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
 var MuridAPI = {
   getDashboard: async function() {
     var id_murid = _uid();
-    var { data: anggota } = await _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').single();
-    var { data: user } = await _sb.from('users').select('*').eq('id_user', id_murid).single();
-    var { count: totalHadir } = await _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid', id_murid).in('status_hadir',['H','T']);
-    var { count: totalSesi } = await _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid', id_murid);
-    var pctHadir = totalSesi > 0 ? Math.round((totalHadir||0)/(totalSesi||1)*100) : 0;
+    var [anggotaRes, userRes, nilaiRes] = await Promise.all([
+      _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
+      _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
+      _sb.from('nilai_kbm').select('status_hadir').eq('id_murid', id_murid),
+    ]);
+    var anggota = anggotaRes.data;
+    var user    = userRes.data;
+    var nilai   = nilaiRes.data || [];
+    var countH  = nilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
+    var countT  = nilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
+    var countI  = nilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
+    var countA  = nilai.filter(function(n) { return n.status_hadir === 'A'; }).length;
+    var totalHadir = countH + countT;
+    var totalSesi  = nilai.length;
+    var pctHadir   = totalSesi > 0 ? Math.round(totalHadir / totalSesi * 100) : 0;
+    var hq = (anggota && anggota.halaqah) || {};
     return { status: 'ok', data: {
-      anggota, profil: user,
-      skor_hadir: ((totalHadir||0)/40*100).toFixed(1),
-      pct_hadir: pctHadir,
-      total_hadir: totalHadir || 0,
-      total_sesi: totalSesi || 0,
-      sisa_sesi: Math.max(0, 40 - (totalSesi||0)),
+      anggota,
+      profil  : user,
+      halaqah : {
+        nama  : hq.nama_halaqah || '',
+        level : hq.level        || '',
+        jadwal: hq.jadwal       || '',
+        jam   : hq.jam_mulai    || '',
+        id_halaqah: hq.id_halaqah || '',
+      },
+      kehadiran: {
+        skor_hadir  : totalHadir,
+        skor_dari_40: Math.min(Math.round(totalHadir / 40 * 100), 100),
+        pct_hadir   : pctHadir,
+        total_hadir : totalHadir,
+        total_sesi  : totalSesi,
+        sisa_sesi   : Math.max(0, 40 - totalSesi),
+        count_h     : countH,
+        count_t     : countT,
+        count_i     : countI,
+        count_a     : countA,
+      },
     }};
   },
 
@@ -1036,7 +1062,7 @@ var AdminAPI = {
 var KetuaAPI = {
   getInfo: async function() {
     var id_murid = _uid();
-    var { data: anggota } = await _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('is_ketua', true).single();
+    var { data: anggota } = await _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('is_ketua', true).maybeSingle();
     if (!anggota) return { status: 'error', message: 'Bukan ketua kelas' };
     return { status: 'ok', halaqah: anggota.halaqah, anggota };
   },
