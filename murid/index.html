@@ -6953,35 +6953,52 @@ async function downloadPDFResmi() {
     doc.setFillColor(26,92,58); doc.rect(0,0,W,2,'F');
     doc.setFillColor(197,155,32); doc.rect(0,2,W,1,'F');
 
+    // ── Coba load logo ──
+    var logoDataUrl = null;
+    try {
+      var logoResp = await fetch('https://iili.io/fbAHOOl.png', {mode:'cors'});
+      if (logoResp.ok) {
+        var logoBlob = await logoResp.blob();
+        logoDataUrl = await new Promise(function(res) {
+          var fr = new FileReader(); fr.onload = function(e){res(e.target.result);}; fr.readAsDataURL(logoBlob);
+        });
+      }
+    } catch(e) { /* skip logo jika gagal load */ }
+
     // ── Header area ──
-    doc.setFillColor(...GL); doc.rect(0,3,W,30,'F');
-    // Nama lembaga
-    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(16);
-    doc.text("Rattililqur'an", mar, 16);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...Md);
-    doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", mar, 22);
-    doc.setFontSize(8); doc.setTextColor(...Lt);
-    doc.text('rattililquran.com', mar, 27);
+    doc.setFillColor(...GL); doc.rect(0,3,W,32,'F');
+    var textX = mar;
+    if (logoDataUrl) {
+      try { doc.addImage(logoDataUrl,'PNG', mar, 7, 18, 18); } catch(e){}
+      textX = mar + 22;
+    }
+    // Nama lembaga (lebih bold & besar)
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(20);
+    doc.text("Rattililqur'an", textX, 17);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Md);
+    doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textX, 23);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...Lt);
+    doc.text('rattililquran.com', textX, 29);
     // Divider vertikal emas
     doc.setDrawColor(...Au); doc.setLineWidth(0.8);
-    doc.line(W/2+10, 8, W/2+10, 30);
-    // Kanan: judul raport
-    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-    doc.text('RAPORT HALAQAH', W-mar, 16, {align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...Md);
-    doc.text(rp.periode || '', W-mar, 22, {align:'right'});
+    doc.line(W/2+10, 8, W/2+10, 31);
+    // Kanan: judul raport (lebih bold)
+    doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+    doc.text('RAPORT HALAQAH', W-mar, 17, {align:'right'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Md);
+    doc.text(rp.periode || '', W-mar, 23, {align:'right'});
     // Garis bawah header
     doc.setDrawColor(...G); doc.setLineWidth(0.3);
-    doc.line(0,33,W,33);
-    y = 43;
+    doc.line(0,35,W,35);
+    y = 45;
 
     // ── Identity section (2 kolom × 2 baris) ──
-    doc.setFillColor(248,250,252); doc.rect(0,33,W,32,'F');
+    doc.setFillColor(248,250,252); doc.rect(0,35,W,32,'F');
     var bioRows = [
       [['Nama Murid', rp.nama_murid||'-'], ['Halaqah', rp.halaqah_nama||rp.halaqah||'-']],
       [['Pembimbing', rp.guru_nama||rp.guru||'-'], ['Periode', rp.periode||'-']],
     ];
-    var bioYStart = 40;
+    var bioYStart = 42;
     bioRows.forEach(function(row, ri) {
       row.forEach(function(col, ci) {
         var x0 = ci === 0 ? mar : W/2+mar/2;
@@ -6993,8 +7010,8 @@ async function downloadPDFResmi() {
       });
     });
     doc.setDrawColor(...G); doc.setLineWidth(0.3);
-    doc.line(0,65,W,65);
-    y = 75;
+    doc.line(0,67,W,67);
+    y = 77;
 
     // ── Nilai akhir & predikat ──
     var nilaiNum = Number(rp.nilai_akhir||0);
@@ -7224,20 +7241,7 @@ async function downloadPDFResmi() {
         y2 += 8;
       }
 
-      // ── D. Catatan Guru di halaman rincian ──
-      if (rp.catatan_guru && sesi.length) {
-        if (y2 > 240) { doc.addPage(); y2 = 20; }
-        doc.setFillColor(...G); doc.rect(mar-2, y2-4, W-mar*2+4, 8, 'F');
-        doc.setTextColor(...Wh); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-        doc.text('D.  CATATAN GURU (WALI HALAQAH)', mar, y2+1);
-        y2 += 10;
-        doc.setFillColor(255,251,235);
-        var cLines = doc.splitTextToSize(rp.catatan_guru, W-mar*2-8);
-        doc.roundedRect(mar, y2, W-mar*2, cLines.length*4.8+10, 2, 2, 'F');
-        doc.setFillColor(...Au); doc.rect(mar, y2, 2, cLines.length*4.8+10, 'F');
-        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...Dk);
-        doc.text(cLines, mar+5, y2+7);
-      }
+      // Catatan guru sudah ada di halaman 1 — tidak perlu duplikat di halaman rincian
 
       // Footer halaman rincian
       doc.setFillColor(248,250,252); doc.rect(0,284,W,13,'F');
