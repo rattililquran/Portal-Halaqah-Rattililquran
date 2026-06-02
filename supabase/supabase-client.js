@@ -977,29 +977,50 @@ var MuridAPI = {
 var AdminAPI = {
   getDashboard: async function() {
     var bulanIni = new Date().toISOString().slice(0,7)+'-01';
-    var [usersRes, hqRes, kbmRes, periodeRes, nilaiRes, anggotaRes] = await Promise.all([
+    var [usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes] = await Promise.all([
       _sb.from('users').select('role').eq('status','aktif'),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, level').eq('status','aktif'),
       _sb.from('kbm_log').select('id_kbm',{count:'exact',head:true}).eq('status','selesai').gte('tanggal_pertemuan', bulanIni),
       _sb.from('periode').select('id_periode, nama_periode').eq('status','aktif').order('created_at',{ascending:false}).limit(1).maybeSingle(),
-      _sb.from('nilai_kbm').select('id_halaqah, adab').not('adab','is',null),
+      _sb.from('nilai_kbm').select('id_halaqah, status_hadir'),
       _sb.from('anggota').select('id_halaqah').eq('status','aktif'),
+      _sb.from('kbm_log').select('id_halaqah').eq('status','selesai'),
+      _sb.from('raport').select('id_halaqah, nilai_akhir').not('nilai_akhir','is',null),
     ]);
-    var roles = {}; (usersRes.data||[]).forEach(function(u){roles[u.role]=(roles[u.role]||0)+1;});
-    var totalNilai = (nilaiRes.data||[]).length;
-    var totalSesiPossible = (anggotaRes.data||[]).length;
-    var pctNilai = totalSesiPossible > 0 ? Math.round(totalNilai/totalSesiPossible*100) : 0;
-    // Agregasi per halaqah
-    var anggotaMap={}, nilaiMap={};
+    var roles = {};
+    (usersRes.data||[]).forEach(function(u){roles[u.role]=(roles[u.role]||0)+1;});
+    // Aggregate per halaqah
+    var anggotaMap={}, nilaiMap={}, sesiMap={}, raportMap={};
     (anggotaRes.data||[]).forEach(function(a){ anggotaMap[a.id_halaqah]=(anggotaMap[a.id_halaqah]||0)+1; });
+    (nilaiRes.data||[]).forEach(function(n){
+      if (!nilaiMap[n.id_halaqah]) nilaiMap[n.id_halaqah]={hadir:0,total:0};
+      nilaiMap[n.id_halaqah].total++;
+      if (['H','T'].includes(n.status_hadir)) nilaiMap[n.id_halaqah].hadir++;
+    });
+    (kbmSesiRes.data||[]).forEach(function(k){ sesiMap[k.id_halaqah]=(sesiMap[k.id_halaqah]||0)+1; });
+    (raportRes.data||[]).forEach(function(r){
+      if (!raportMap[r.id_halaqah]) raportMap[r.id_halaqah]={sum:0,count:0};
+      raportMap[r.id_halaqah].sum+=Number(r.nilai_akhir||0);
+      raportMap[r.id_halaqah].count++;
+    });
+    var totalNilaiIsi = (nilaiRes.data||[]).filter(function(n){return n.status_hadir;}).length;
+    var totalAnggota  = (anggotaRes.data||[]).length;
     var halaqah = (hqRes.data||[]).map(function(h) {
-      return { nama_halaqah:h.nama_halaqah, nama_guru:h.nama_guru, level:h.level, id_halaqah:h.id_halaqah, total_murid:anggotaMap[h.id_halaqah]||0, total_sesi:0, avg_nilai:0, pct_hadir:0 };
+      var nm = nilaiMap[h.id_halaqah]||{hadir:0,total:0};
+      var rm = raportMap[h.id_halaqah]||{sum:0,count:0};
+      return {
+        nama_halaqah: h.nama_halaqah, nama_guru: h.nama_guru, level: h.level, id_halaqah: h.id_halaqah,
+        total_murid: anggotaMap[h.id_halaqah]||0,
+        total_sesi : sesiMap[h.id_halaqah]||0,
+        avg_nilai  : rm.count>0 ? Math.round(rm.sum/rm.count) : 0,
+        pct_hadir  : nm.total>0 ? Math.round(nm.hadir/nm.total*100) : 0,
+      };
     });
     return { status:'ok', data:{
-      total_murid:roles.murid||0, total_guru:roles.guru||0,
-      total_halaqah:(hqRes.data||[]).length, kbm_bulan_ini:kbmRes.count||0,
-      pct_nilai_terisi: Math.min(pctNilai, 100),
-      periode_aktif: periodeRes.data || null,
+      total_murid: roles.murid||0, total_guru: roles.guru||0,
+      total_halaqah: (hqRes.data||[]).length, kbm_bulan_ini: kbmBulanRes.count||0,
+      pct_nilai_terisi: totalAnggota>0 ? Math.min(Math.round(totalNilaiIsi/totalAnggota*100),100) : 0,
+      periode_aktif: periodeRes.data||null,
       halaqah: halaqah,
     }};
   },
@@ -1077,10 +1098,113 @@ var AdminAPI = {
   arsipData: async function() { return {status:'ok',message:'Arsip data belum diimplementasi'}; },
   getArsipList: async function() { return {status:'ok',data:[]}; },
   deleteLevel: async function(id) { var {error}=await _sb.from('level').update({status:'nonaktif'}).eq('id_level',id); _check(error,'deleteLevel'); return {status:'ok'}; },
-  // Import bulk — TODO: implementasi penuh
-  importTahap1: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah halaqah secara manual.'); },
-  importTahap2: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah user secara manual.'); },
-  importTahap3: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah anggota secara manual.'); },
+  // ── Import Bulk CSV — 3 Tahap ────────────────────────────────
+  importTahap1: async function(d) {
+    var halaqah = d.halaqah || [];
+    var dibuat = [], skipped = [];
+    // Ambil semua halaqah existing untuk cek duplikat
+    var { data: existing } = await _sb.from('halaqah').select('nama_halaqah');
+    var existingSet = new Set((existing||[]).map(function(h){return h.nama_halaqah.toLowerCase();}));
+    // Ambil semua guru untuk mapping nama → id_user
+    var { data: gurus } = await _sb.from('users').select('id_user, nama_lengkap').eq('role','guru');
+    var guruMap = {};
+    (gurus||[]).forEach(function(g){ guruMap[g.nama_lengkap.toLowerCase()] = g.id_user; });
+    for (var i = 0; i < halaqah.length; i++) {
+      var h = halaqah[i];
+      if (existingSet.has(h.nama_halaqah.toLowerCase())) { skipped.push(h.nama_halaqah); continue; }
+      var id_guru = guruMap[h.nama_guru.toLowerCase()] || null;
+      var suffix  = h.nama_halaqah.replace(/^halaqah\s*/i,'').replace(/^al-?/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,12);
+      var id_halaqah = 'HQ-' + (suffix || String(Date.now()).slice(-6));
+      var { error } = await _sb.from('halaqah').insert({
+        id_halaqah, nama_halaqah:h.nama_halaqah, id_guru, nama_guru:h.nama_guru,
+        level:h.level||'Level 1', jadwal_hari:h.jadwal_hari||null,
+        jam_mulai:h.jam_mulai||null, jam_selesai:h.jam_selesai||null, status:'aktif',
+      });
+      if (!error) { dibuat.push(h.nama_halaqah); existingSet.add(h.nama_halaqah.toLowerCase()); }
+      else skipped.push(h.nama_halaqah + ' (error: ' + error.message + ')');
+    }
+    return { status:'ok', dibuat, skipped, message: dibuat.length + ' halaqah dibuat, ' + skipped.length + ' dilewati' };
+  },
+
+  importTahap2: async function(d) {
+    var users = d.users || [];
+    var berhasil = [], duplikat = 0, gagal = [];
+    if (!users.length) return { status:'ok', berhasil, duplikat, gagal };
+    // Cek duplikat secara batch
+    var nisExisting = users.filter(function(u){return u.nis;}).map(function(u){return u.nis.toUpperCase().trim();});
+    var existingSet = new Set();
+    if (nisExisting.length) {
+      var { data: ex } = await _sb.from('users').select('id_user').in('id_user', nisExisting);
+      (ex||[]).forEach(function(u){ existingSet.add(u.id_user); });
+    }
+    // Cari max murid ID untuk auto-generate
+    var yearPrefix = 'RTL' + new Date().getFullYear().toString().slice(2);
+    var { data: lastMurid } = await _sb.from('users').select('id_user').like('id_user', yearPrefix+'%').order('id_user',{ascending:false}).limit(1);
+    var lastNum = 0;
+    if (lastMurid && lastMurid[0]) {
+      var m = lastMurid[0].id_user.replace(yearPrefix,'');
+      lastNum = parseInt(m) || 0;
+    }
+    for (var i = 0; i < users.length; i++) {
+      var u = users[i];
+      try {
+        var id_user = u.nis ? u.nis.toUpperCase().trim() : '';
+        if (!id_user) {
+          if ((u.role||'murid') === 'murid') {
+            lastNum++;
+            id_user = yearPrefix + String(lastNum).padStart(6,'0');
+          } else {
+            // Guru: ambil kata-kata bermakna dari nama
+            id_user = u.nama_lengkap.replace(/^(al-|al |ustadz|ustadzah)\s*/gi,'').split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g,'').substring(0,8);
+          }
+        }
+        if (existingSet.has(id_user)) { duplikat++; continue; }
+        var { error } = await _sb.from('users').insert({
+          id_user, nama_lengkap:u.nama_lengkap, role:u.role||'murid',
+          no_hp:u.no_hp||null, email:u.email||null,
+          nama_guru:u.nama_guru||null, nama_halaqah:u.nama_halaqah||null,
+          status:'aktif',
+        });
+        if (error) { gagal.push({nis:id_user, error:error.message}); continue; }
+        if (u.password) await _sb.rpc('set_user_password', { p_id_user:id_user, p_password:u.password });
+        existingSet.add(id_user);
+        berhasil.push(id_user);
+      } catch(e) { gagal.push({nis:u.nis||u.nama_lengkap, error:e.message}); }
+    }
+    return { status:'ok', berhasil, duplikat, gagal };
+  },
+
+  importTahap3: async function(d) {
+    var anggota = d.anggota || [];
+    var assigned = 0, not_found = [];
+    if (!anggota.length) return { status:'ok', assigned, not_found };
+    // Load halaqah map
+    var { data: allHQ } = await _sb.from('halaqah').select('id_halaqah, nama_halaqah').eq('status','aktif');
+    var hqMap = {};
+    (allHQ||[]).forEach(function(h){ hqMap[h.nama_halaqah.toLowerCase()] = h.id_halaqah; });
+    // Load existing anggota untuk cek duplikat
+    var { data: existAnggota } = await _sb.from('anggota').select('id_murid, id_halaqah');
+    var existSet = new Set((existAnggota||[]).map(function(a){return a.id_murid+'|'+a.id_halaqah;}));
+    for (var i = 0; i < anggota.length; i++) {
+      var a = anggota[i];
+      var id_halaqah = hqMap[(a.nama_halaqah||'').toLowerCase()];
+      if (!id_halaqah) { not_found.push('Halaqah tidak ditemukan: '+a.nama_halaqah); continue; }
+      var id_murid = (a.nis||'').toUpperCase().trim();
+      // Jika NIS kosong, cari berdasarkan nama
+      if (!id_murid) {
+        var { data: found } = await _sb.from('users').select('id_user').eq('nama_lengkap',a.nama_murid).eq('role','murid').maybeSingle();
+        if (found) id_murid = found.id_user;
+        else { not_found.push('User tidak ditemukan: '+a.nama_murid); continue; }
+      }
+      if (existSet.has(id_murid+'|'+id_halaqah)) { assigned++; continue; }
+      var { error } = await _sb.from('anggota').insert({
+        id_murid, nama_murid:a.nama_murid, id_halaqah, level:a.level||'Level 1', status:'aktif',
+      });
+      if (!error) { assigned++; existSet.add(id_murid+'|'+id_halaqah); }
+      else not_found.push(id_murid+' (error: '+error.message+')');
+    }
+    return { status:'ok', assigned, not_found };
+  },
   // Raport bulk — TODO: implementasi penuh
   generateRaportByHalaqah: async function(p) { return GuruAPI.generateRaportHalaqah ? GuruAPI.generateRaportHalaqah(p) : {status:'ok',data:[]}; },
   generateRaportByLevel: async function(p) { throw new Error('Generate raport per level belum diimplementasi.'); },
