@@ -290,7 +290,7 @@ var GuruAPI = {
   simpanPresensi: async function(d) {
     var rows = d.presensi.map(function(p) { return {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: p.id_murid,
-      nama_murid: p.nama_murid, status_hadir: p.status_hadir,
+      status_hadir: p.status_hadir,
       pertemuan_ke: d.pertemuan_ke, tanggal: d.tanggal || d.tanggal_pertemuan,
       jenis_sesi: d.jenis_sesi || 'KBM Reguler',
     }; });
@@ -383,9 +383,15 @@ var GuruAPI = {
   },
 
   getPresensiByKBM: async function(id_kbm) {
-    var { data, error } = await _sb.from('nilai_kbm').select('id_murid,nama_murid,status_hadir').eq('id_kbm', id_kbm);
+    var { data, error } = await _sb.from('nilai_kbm')
+      .select('id_murid, status_hadir, anggota!nilai_kbm_id_murid_fkey(nama_murid)')
+      .eq('id_kbm', id_kbm);
     _check(error, 'getPresensiByKBM');
-    return { status: 'ok', data };
+    // Flatten nama_murid dari join
+    var flat = (data || []).map(function(r) {
+      return { id_murid: r.id_murid, status_hadir: r.status_hadir, nama_murid: r.anggota && r.anggota.nama_murid };
+    });
+    return { status: 'ok', data: flat };
   },
 
   getRiwayatMuridKoreksi: async function(id_murid, limit) {
