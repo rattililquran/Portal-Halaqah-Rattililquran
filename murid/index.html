@@ -3071,7 +3071,8 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 <script src="../assets/js/jspdf.umd.min.js"></script>
 <script src="../assets/js/html2canvas.min.js"></script>
-<script src="../assets/js/api.js?v=4.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase/supabase-client.js"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -3256,18 +3257,26 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Masuk...';
   err.style.display = 'none';
   try {
-    var r = await window.HQ.Auth.login(nis, 'murid', pw);
-    if (r.status !== 'ok') throw new Error(r.message || 'Login gagal');
-    sessionStorage.setItem('hq_token', r.token);
-    sessionStorage.setItem('hq_user',  JSON.stringify(r.user));
+    var r = await window.HQ.Auth.login(nis, pw);
+    if (r.user.role !== 'murid') throw new Error('Akun ini bukan murid');
+    localStorage.setItem('hq_token', r.access_token);
+    localStorage.setItem('hq_user',  JSON.stringify(r.user));
     startApp();
-  } catch(e) { showAuthErr(e.message); btn.disabled=false; btn.textContent='Masuk'; }
+  } catch(e) { showAuthErr(e.message || 'NIS atau password salah'); btn.disabled=false; btn.textContent='Masuk'; }
 }
 function showAuthErr(m) {
   var el = document.getElementById('authErr');
   el.textContent = '⚠ ' + m; el.style.display = 'block';
 }
-function doLogout() { closeSidebar(); closeModal('profilModal'); window.HQ.Auth.logout(); }
+function doLogout() {
+  closeSidebar();
+  try { closeModal('profilModal'); } catch(e) {}
+  localStorage.removeItem('hq_token');
+  localStorage.removeItem('hq_user');
+  window.HQ.supabase.auth.signOut().finally(function() {
+    window.location.href = '../index.html';
+  });
+}
 
 function copyRekening(noRek, bank) {
   navigator.clipboard.writeText(noRek).then(function() {

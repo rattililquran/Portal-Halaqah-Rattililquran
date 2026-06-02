@@ -524,9 +524,10 @@ html.theme-dark .field-hint {
 <!-- Footer -->
 <footer class="footer">BY RATTILILQUR'AN @2026</footer>
 
-<script src="assets/js/api.js?v=2.5"></script>
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase/supabase-client.js"></script>
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby6J2EUqs9YNxM7x5a4nfSRmQlERWxkYq8bvx1wZbAjKgGwWxhhwFh73LhKxHwqM6FHiA/exec';
 let currentRole = 'admin';
 
 const ROLE_META = {
@@ -555,31 +556,29 @@ async function doLogin() {
   const pw  = document.getElementById('inputPw').value || '';
   if (!nis) return showErr('ID akun wajib diisi');
 
-  const nisVal = currentRole === 'murid' ? nis : nis.toUpperCase();
+  const nisVal = nis.toUpperCase();
   setLoading(true);
 
   try {
-    const url = GAS_URL + '?action=login&nis=' + encodeURIComponent(nisVal)
-      + '&role=' + currentRole
-      + '&password=' + encodeURIComponent(pw);
-    const res  = await fetch(url, { method:'GET', mode:'cors' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message || 'Login gagal');
+    // Login via Supabase Edge Function
+    const data = await window.HQ.Auth.login(nisVal, pw);
 
-    // Simpan session
-    sessionStorage.setItem('hq_token', data.token);
-    sessionStorage.setItem('hq_user',  JSON.stringify(data.user));
+    // Simpan ke localStorage (Supabase client sudah simpan otomatis,
+    // ini untuk kompatibilitas kode portal yang cek hq_token/hq_user)
+    localStorage.setItem('hq_token', data.access_token);
+    localStorage.setItem('hq_user',  JSON.stringify(data.user));
 
-    // Redirect berdasarkan role server
-    var serverRole = data.user.role || currentRole;
-    var redirect   = ROLE_META[serverRole] ? ROLE_META[serverRole].redirect : ROLE_META[currentRole].redirect;
+    // Redirect berdasarkan role
+    const serverRole = data.user.role || currentRole;
+    const redirect   = ROLE_META[serverRole]
+      ? ROLE_META[serverRole].redirect
+      : ROLE_META[currentRole].redirect;
 
     setLoading(true, 'Alhamdulillah, mari kita mulai...');
     setTimeout(function() { window.location.href = redirect; }, 700);
   } catch(e) {
     setLoading(false);
-    showErr(e.message);
+    showErr(e.message || 'ID atau password salah');
   }
 }
 
@@ -620,8 +619,8 @@ document.addEventListener('keydown', function(e) {
 
 // Cek session aktif
 window.addEventListener('DOMContentLoaded', function() {
-  var tk = sessionStorage.getItem('hq_token');
-  var us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+  var tk = localStorage.getItem('hq_token');
+  var us = JSON.parse(localStorage.getItem('hq_user') || 'null');
 
   if (tk && us) {
     // Cek apakah user kembali via tombol Back
@@ -677,15 +676,16 @@ function showResumeCard(us) {
 }
 
 function resumeSession() {
-  var us = JSON.parse(sessionStorage.getItem('hq_user') || 'null');
+  var us = JSON.parse(localStorage.getItem('hq_user') || 'null');
   if (!us) return gantiAkun();
   var rd = ROLE_META[us.role] ? ROLE_META[us.role].redirect : null;
   if (rd) window.location.href = rd;
 }
 
 function gantiAkun() {
-  sessionStorage.removeItem('hq_token');
-  sessionStorage.removeItem('hq_user');
+  localStorage.removeItem('hq_token');
+  localStorage.removeItem('hq_user');
+  window.HQ && window.HQ.Auth && window.HQ.Auth.logout && window.HQ.supabase.auth.signOut();
   window.location.reload();
 }
 

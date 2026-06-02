@@ -2355,7 +2355,8 @@ if ('serviceWorker' in navigator) {
   }
 }
 </script>
-<script src="../assets/js/api.js?v=3.6"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../supabase/supabase-client.js"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -2395,15 +2396,15 @@ async function doLogin() {
   if (!nis) return showErr('NIS wajib diisi');
   setBtn('loginBtn', true, 'Masuk...');
   showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
+  const pw = document.getElementById('pwInput')?.value || '';
   try {
-    const d = await window.HQ.Auth.login(nis, 'guru');
-    if (d.status !== 'ok') throw new Error(d.message || 'Login gagal');
+    const d = await window.HQ.Auth.login(nis, pw);
     if (d.user.role !== 'guru') throw new Error('Akun ini bukan role Guru');
-    token = d.token; currentUser = d.user;
-    sessionStorage.setItem('hq_token', token);
-    sessionStorage.setItem('hq_user', JSON.stringify(currentUser));
+    token = d.access_token; currentUser = d.user;
+    localStorage.setItem('hq_token', token);
+    localStorage.setItem('hq_user', JSON.stringify(currentUser));
     startApp();
-  } catch(e) { showErr(e.message); }
+  } catch(e) { showErr(e.message || 'Login gagal'); }
   finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
 }
 
