@@ -973,16 +973,50 @@ var MuridAPI = {
 
   getSPPStatus: async function() {
     var id_murid = _uid();
+    var tahunIni = new Date().getFullYear();
     var { data, error } = await _sb.from('spp_pembayaran')
-      .select('*').eq('id_murid', id_murid).order('tahun',{ascending:false});
-    _check(error, 'getSPPStatus');
-    var lunas = (data||[]).filter(function(s){return s.status==='lunas';}).map(function(s){return s.bulan;});
-    var hasPaid = lunas.length > 0;
+      .select('*').eq('id_murid', id_murid)
+      .order('tahun',{ascending:false}).order('created_at',{ascending:false});
+    if (error) return { status: 'ok', data: { rows: [], lunas_bulan: [], tunggakan: 0, total_nominal: 0 } };
+    var rows = data || [];
+    var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    // Tahun aktif: tahun ini atau tahun terakhir ada data
+    var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
+    var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
+    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas'; }).map(function(r){ return r.bulan; });
+    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu'; }).map(function(r){ return r.bulan; });
+    var bulanGrid   = BULAN.map(function(b) {
+      var l = lunasBulan.includes(b);
+      var m = menunggu.includes(b);
+      return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
+    });
+    var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    var bulanBerjalan = new Date().getMonth() + 1; // 1-12
+    var tunggakan = Math.max(0, bulanBerjalan - lunasBulan.length);
     return { status: 'ok', data: {
-      has_paid: hasPaid, lunas, belum_lunas: hasPaid ? [] : ['Bulan 1','Bulan 2','Bulan 3','Bulan 4','Bulan 5'],
-      pesan: hasPaid ? 'Jazakumullahu khairan, seluruh SPP telah lunas.' : 'Ada 5 bulan amanah yang belum ditunaikan.',
-      periode: lunas,
+      rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
+      bulan_grid: bulanGrid, tunggakan, total_nominal: totalNominal,
+      tahun_aktif: tahunAktif, has_paid: lunasBulan.length > 0,
     }};
+  },
+
+  konfirmasiSPP: async function(d) {
+    var id_murid = _uid();
+    var user = _currentUser || {};
+    var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid',id_murid).eq('status','aktif').maybeSingle();
+    var id_spp = 'SPP-' + id_murid + '-' + d.bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
+    var { error } = await _sb.from('spp_pembayaran').upsert({
+      id_spp, id_murid, nama_murid: user.nama || '',
+      id_halaqah: anggota && anggota.id_halaqah || '',
+      bulan: d.bulan, tahun: Number(d.tahun),
+      jenis: d.jenis || 'SPP Pribadi',
+      status: 'menunggu',
+      nominal: Number(d.nominal||0),
+      bukti_url: d.bukti_url || '',
+      catatan: d.catatan || '',
+    }, { onConflict: 'id_spp' });
+    _check(error, 'konfirmasiSPP');
+    return { status: 'ok', message: 'Konfirmasi pembayaran terkirim, menunggu validasi admin.' };
   },
 
   getProgressGrafik: async function() { return { status: 'ok', data: [] }; },
@@ -1164,6 +1198,55 @@ var AdminAPI = {
   },
   getAuditLog: async function() { var {data,error}=await _sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100); _check(error,'getAuditLog'); return {status:'ok',data}; },
   getObservasiKBM: async function() { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiKBM'); return {status:'ok',data}; },
+  // ── SPP Admin ──────────────────────────────
+  getSPPPending: async function() {
+    var { data, error } = await _sb.from('spp_pembayaran').select('*').eq('status','menunggu').order('created_at',{ascending:false});
+    _check(error,'getSPPPending'); return { status:'ok', data: data||[] };
+  },
+  validasiSPP: async function(id_spp, aksi) {
+    // aksi: 'lunas' | 'ditolak'
+    var { error } = await _sb.from('spp_pembayaran').update({
+      status: aksi, validated_by: _uid(), validated_at: new Date().toISOString(),
+    }).eq('id_spp', id_spp);
+    _check(error,'validasiSPP'); return { status:'ok' };
+  },
+  getSPPRekap: async function(p) {
+    // p: { tahun, id_halaqah, bulan }
+    var tahun = p && p.tahun ? Number(p.tahun) : new Date().getFullYear();
+    // Hanya SPP Pribadi yang direkap per bulan; Infaq dicatat tapi tidak masuk rekap tunggakan
+    var q = _sb.from('spp_pembayaran').select('*').eq('tahun', tahun).eq('status','lunas').eq('jenis','SPP Pribadi');
+    if (p && p.id_halaqah) q = q.eq('id_halaqah', p.id_halaqah);
+    if (p && p.bulan)      q = q.eq('bulan', p.bulan);
+    var { data: sppData, error } = await q;
+    _check(error,'getSPPRekap');
+    // Ambil semua anggota aktif untuk cross-check
+    var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, halaqah(nama_halaqah), users!anggota_id_murid_fkey(no_hp)').eq('status','aktif');
+    if (p && p.id_halaqah) anggotaQ = anggotaQ.eq('id_halaqah', p.id_halaqah);
+    var { data: anggota } = await anggotaQ;
+    var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    var bulanBerjalan = new Date().getMonth() + 1;
+    // Map id_murid → bulan lunas
+    var lunasMap = {};
+    (sppData||[]).forEach(function(s){
+      if (!lunasMap[s.id_murid]) lunasMap[s.id_murid] = [];
+      lunasMap[s.id_murid].push(s.bulan);
+    });
+    var muridList = (anggota||[]).map(function(a) {
+      var lunasBulan = lunasMap[a.id_murid] || [];
+      var tunggakan  = Math.max(0, bulanBerjalan - lunasBulan.length);
+      var bulanBelum = BULAN.slice(0, bulanBerjalan).filter(function(b){ return !lunasBulan.includes(b); });
+      return {
+        id_murid: a.id_murid, nama_murid: a.nama_murid,
+        id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
+        level: a.level, no_hp: a.users && a.users.no_hp || '',
+        lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
+      };
+    }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
+    var totalNominal = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    var lunas  = muridList.filter(function(m){ return m.tunggakan===0; }).length;
+    var menunggak = muridList.filter(function(m){ return m.tunggakan>0; }).length;
+    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalNominal, lunas, menunggak, tahun } };
+  },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { return {status:'ok',message:'Arsip data belum diimplementasi'}; },
   getArsipList: async function() { return {status:'ok',data:[]}; },

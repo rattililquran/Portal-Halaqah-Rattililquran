@@ -672,6 +672,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
       <div class="sb-sec">Laporan</div>
       <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
       <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
+      <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <!-- Hanya superadmin -->
       <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
@@ -934,6 +935,74 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               <tbody id="absensiTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- ══ SPP & INFAQ ══ -->
+      <div class="page" id="page-spp">
+        <div class="section-title">💳 SPP &amp; Infaq</div>
+
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px" id="sppStatRow">
+          <div class="stat" style="text-align:center;padding:18px 12px">
+            <div style="font-size:22px;font-weight:900;color:#1a5c3a" id="sppStatLunas">—</div>
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Murid Lunas</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:18px 12px">
+            <div style="font-size:22px;font-weight:900;color:#b91c1c" id="sppStatTunggak">—</div>
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Menunggak</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:18px 12px">
+            <div style="font-size:18px;font-weight:900;color:#0369a1" id="sppStatTotal">—</div>
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Total SPP Pribadi</div>
+          </div>
+        </div>
+
+        <!-- Filter -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+          <select id="sppFilterTahun" class="fc" style="width:auto" onchange="loadSPPAdmin()">
+            <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+          </select>
+          <select id="sppFilterHalaqah" class="fc" style="width:auto" onchange="loadSPPAdmin()">
+            <option value="">Semua Halaqah</option>
+          </select>
+          <select id="sppFilterBulan" class="fc" style="width:auto" onchange="filterSPPTable()">
+            <option value="">Semua Bulan</option>
+            <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
+            <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
+            <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadSPPAdmin()">🔄 Refresh</button>
+        </div>
+
+        <!-- Pending validasi -->
+        <div id="sppPendingSection" style="display:none;margin-bottom:20px">
+          <div style="font-size:12px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+            ⏳ Menunggu Validasi
+          </div>
+          <div id="sppPendingList"></div>
+        </div>
+
+        <!-- Rekap tunggakan (SPP Pribadi saja) -->
+        <div style="font-size:12px;font-weight:800;color:#1a5c3a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+          📋 Rekap SPP Pribadi
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">Infaq/Operasional dicatat tapi tidak masuk rekap tunggakan per bulan.</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:13px" id="sppRekapTable">
+            <thead>
+              <tr style="background:#1a5c3a;color:#fff">
+                <th style="padding:10px 12px;text-align:left;font-weight:700">Nama Murid</th>
+                <th style="padding:10px 8px;text-align:left;font-weight:700">Halaqah</th>
+                <th style="padding:10px 8px;text-align:center;font-weight:700">Tunggakan</th>
+                <th style="padding:10px 8px;text-align:left;font-weight:700">Bulan Belum Lunas</th>
+                <th style="padding:10px 8px;text-align:center;font-weight:700">Reminder</th>
+              </tr>
+            </thead>
+            <tbody id="sppRekapBody">
+              <tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Pilih tahun dan klik Refresh</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1479,6 +1548,7 @@ function goPage(name) {
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
     laporan   : loadLaporan,
     absensi   : () => { populateSel('absensiHalaqahSel', allHalaqah, true); loadAbsensi(); },
+    spp       : loadSPPAdmin,
     pengumuman: loadPengumuman,
     observasi : loadObservasi,
     audit     : loadAudit,
@@ -2592,6 +2662,124 @@ async function loadAbsensi() {
       </tr>`;
     }).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
   } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  SPP & INFAQ ADMIN
+// ══════════════════════════════════════════
+var _sppRekapData = [];
+
+async function loadSPPAdmin() {
+  var tahun     = document.getElementById('sppFilterTahun').value;
+  var idHalaqah = document.getElementById('sppFilterHalaqah').value;
+  showLoad('Memuat data SPP...');
+  try {
+    // Isi dropdown halaqah jika belum
+    var hqSel = document.getElementById('sppFilterHalaqah');
+    if (hqSel.options.length <= 1) {
+      var hqRes = await window.HQ.AdminAPI.getAllHalaqah();
+      (hqRes.data||[]).forEach(function(h) {
+        var opt = document.createElement('option');
+        opt.value = h.id_halaqah; opt.textContent = h.nama_halaqah;
+        hqSel.appendChild(opt);
+      });
+    }
+
+    var [rekapRes, pendingRes] = await Promise.all([
+      window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined }),
+      window.HQ.AdminAPI.getSPPPending(),
+    ]);
+
+    var rekap   = rekapRes.data || {};
+    _sppRekapData = rekap.murid_list || [];
+
+    // Stats
+    document.getElementById('sppStatLunas').textContent  = rekap.lunas || 0;
+    document.getElementById('sppStatTunggak').textContent = rekap.menunggak || 0;
+    document.getElementById('sppStatTotal').textContent  =
+      'Rp ' + ((rekap.total_nominal||0)).toLocaleString('id-ID');
+
+    // Pending validasi
+    var pending = pendingRes.data || [];
+    var pendSec = document.getElementById('sppPendingSection');
+    var pendList= document.getElementById('sppPendingList');
+    if (pending.length) {
+      pendSec.style.display = '';
+      pendList.innerHTML = pending.map(function(p) {
+        var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
+        var jenisBadge = p.jenis === 'SPP Pribadi'
+          ? '<span style="background:#f0fdf4;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
+          : '<span style="background:#fffbeb;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
+        var buktiLink = p.bukti_url ? '<a href="'+esc(p.bukti_url)+'" target="_blank" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>' : '';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:6px;flex-wrap:wrap">'
+          + '<div style="flex:1;min-width:160px">'
+          + '<div style="font-size:13px;font-weight:700">'+esc(p.nama_murid||p.id_murid)+'</div>'
+          + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+jenisBadge+' '+esc(p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'')+' · '+nominal+'</div>'
+          + (p.catatan ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:2px">'+esc(p.catatan)+'</div>' : '')
+          + (buktiLink ? '<div style="margin-top:3px">'+buktiLink+'</div>' : '')
+          + '</div>'
+          + '<div style="display:flex;gap:6px;flex-shrink:0">'
+          + '<button class="btn btn-sm" style="background:#1a5c3a;color:#fff;font-size:11px;padding:5px 10px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
+          + '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;font-size:11px;padding:5px 10px;border:none" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
+          + '</div></div>';
+      }).join('');
+    } else {
+      pendSec.style.display = 'none';
+    }
+
+    filterSPPTable();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function filterSPPTable() {
+  var bulanFilter = document.getElementById('sppFilterBulan').value;
+  var tbody = document.getElementById('sppRekapBody');
+  var data  = bulanFilter
+    ? _sppRekapData.filter(function(m){ return m.bulan_belum.includes(bulanFilter) || m.tunggakan > 0; })
+    : _sppRekapData;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(function(m, i) {
+    var tBg = i%2===0?'#fff':'#f8fafc';
+    var tCls = m.tunggakan===0
+      ? 'style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"'
+      : m.tunggakan>=3
+      ? 'style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"'
+      : 'style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"';
+    var bulanBelum = m.bulan_belum.length
+      ? m.bulan_belum.map(function(b){ return '<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:10.5px;font-weight:600;margin-right:3px">'+b+'</span>'; }).join('')
+      : '<span style="color:#10b981;font-size:11px;font-weight:700">✅ Lunas</span>';
+    var waLink = '';
+    if (m.no_hp && m.tunggakan > 0) {
+      var num = m.no_hp.replace(/\D/g,'');
+      if (num.startsWith('0')) num = '62'+num.slice(1);
+      var msg = 'Assalamualaikum '+m.nama_murid+', kami ingatkan kembali untuk amanah SPP '+m.bulan_belum.join(', ')+'. Semoga Allah mudahkan. Jazakumullahu khairan 🤲';
+      waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">💬 WA</a>';
+    }
+    return '<tr style="background:'+tBg+';border-bottom:1px solid #f1f5f9">'
+      + '<td style="padding:10px 12px"><div style="font-size:13px;font-weight:700">'+esc(m.nama_murid)+'</div>'
+      + '<div style="font-size:10.5px;color:#94a3b8">'+esc(m.id_murid)+' · '+esc(m.level||'')+'</div></td>'
+      + '<td style="padding:10px 8px;font-size:12px;color:#475569">'+esc(m.nama_halaqah||m.id_halaqah||'—')+'</td>'
+      + '<td style="padding:10px 8px;text-align:center"><span '+tCls+'>'+m.tunggakan+'</span></td>'
+      + '<td style="padding:10px 8px">'+bulanBelum+'</td>'
+      + '<td style="padding:10px 8px;text-align:center">'+waLink+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function validasiSPP(id_spp, aksi) {
+  showLoad(aksi==='lunas'?'Mengkonfirmasi...':'Menolak...');
+  try {
+    await window.HQ.AdminAPI.validasiSPP(id_spp, aksi);
+    toast(aksi==='lunas'?'Pembayaran dikonfirmasi ✅':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
+    loadSPPAdmin();
+  } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
 }
 

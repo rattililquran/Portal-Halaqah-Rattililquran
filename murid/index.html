@@ -1322,24 +1322,43 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 .refresh-badge-murid.show{display:flex}
 
 /* ── SPP STATUS CARD ── */
-.spp-card{
-  background:rgba(255,255,255,.95);
-  backdrop-filter:blur(16px);
+.spp-card{background:rgba(255,255,255,.95);backdrop-filter:blur(16px);
   border-radius:var(--r);border:1px solid rgba(255,255,255,.7);
-  box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden;
-}
+  box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden}
 .spp-head{padding:16px 18px 0;display:flex;align-items:center;
-  justify-content:space-between;margin-bottom:12px}
+  justify-content:space-between;margin-bottom:10px}
 .spp-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
-.spp-body{padding:0 18px 18px}
-.spp-bulan-grid{display:flex;gap:6px;flex-wrap:wrap}
-.spp-bulan{display:inline-flex;align-items:center;gap:4px;
-  padding:6px 14px;border-radius:100px;font-size:12.5px;font-weight:800}
-.spp-lunas{background:var(--green-l);color:#065f46;border:1px solid rgba(16,185,129,0.15)}
-.spp-belum{background:var(--red-l);color:#991b1b;border:1px solid rgba(239,68,68,0.15)}
-.spp-msg{font-size:13px;color:var(--text-2);margin-top:12px;font-weight:600}
-.spp-msg.ok{color:#065f46}
-.spp-msg.warn{color:#b91c1c}
+.spp-body{padding:0 18px 16px}
+/* Bulan grid (hanya SPP Pribadi) */
+.spp-bulan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.spp-bulan{display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:7px 4px;border-radius:10px;font-size:10px;font-weight:700;text-align:center;border:1px solid transparent}
+.spp-lunas{background:#f0fdf4;color:#065f46;border-color:rgba(16,185,129,.2)}
+.spp-menunggu{background:#fffbeb;color:#92400e;border-color:rgba(245,158,11,.2)}
+.spp-belum{background:#fafafa;color:#94a3b8;border-color:rgba(0,0,0,.06)}
+.spp-bulan-ico{font-size:14px;line-height:1}
+/* Donut SVG tunggakan */
+.spp-donut-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.spp-donut-info{flex:1}
+.spp-donut-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
+.spp-donut-sub{font-size:11.5px;color:var(--text-3);font-weight:500}
+/* Konfirmasi form */
+.spp-konfirm-btn{display:flex;align-items:center;gap:6px;padding:10px 14px;
+  background:linear-gradient(135deg,#1a5c3a,#2d8a5a);color:#fff;
+  border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+  width:100%;justify-content:center;margin-top:8px}
+.spp-konfirm-btn:hover{opacity:.9}
+/* Jenis tab */
+.spp-jenis-tabs{display:flex;gap:6px;margin-bottom:12px}
+.spp-jenis-tab{flex:1;padding:9px 6px;border-radius:10px;border:2px solid var(--border);
+  background:#fff;font-size:12px;font-weight:700;cursor:pointer;text-align:center;color:var(--text-2)}
+.spp-jenis-tab.active{border-color:#1a5c3a;background:#f0fdf4;color:#1a5c3a}
+/* Infaq history */
+.spp-infaq-item{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border-l)}
+.spp-infaq-item:last-child{border-bottom:none}
+.spp-msg{font-size:12.5px;color:var(--text-2);margin-top:8px;font-weight:600;padding:8px 12px;border-radius:8px;background:var(--green-l)}
+.spp-msg.warn{background:var(--red-l);color:#991b1b}
 
 /* ── KALENDER POPUP ── */
 .kal-popup{
@@ -2076,12 +2095,104 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
       <!-- SPP Status -->
       <div class="spp-card" id="sppCard" style="display:none">
         <div class="spp-head">
-          <div class="spp-title">💳 Status SPP</div>
+          <div class="spp-title">💳 Pembayaran SPP</div>
           <span id="sppBadge"></span>
         </div>
         <div class="spp-body">
-          <div class="spp-bulan-grid" id="sppBulanGrid"></div>
-          <div class="spp-msg" id="sppMsg"></div>
+          <!-- Tab: SPP Pribadi | Infaq -->
+          <div class="spp-jenis-tabs">
+            <div class="spp-jenis-tab active" id="sppTabSpp" onclick="switchSppTab('spp')">🏠 SPP Pribadi</div>
+            <div class="spp-jenis-tab" id="sppTabInfaq" onclick="switchSppTab('infaq')">💛 Infaq / Operasional</div>
+          </div>
+          <!-- Panel SPP Pribadi -->
+          <div id="sppPanelSpp">
+            <div class="spp-donut-row">
+              <svg width="56" height="56" viewBox="0 0 40 40" id="sppDonut">
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#f1f5f9" stroke-width="5"/>
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="5"
+                  stroke-linecap="round" id="sppDonutArc"
+                  stroke-dasharray="0 94.25" stroke-dashoffset="23.56"/>
+                <text x="20" y="24" text-anchor="middle" font-size="10" font-weight="800" id="sppDonutNum" fill="#1e293b">0</text>
+              </svg>
+              <div class="spp-donut-info">
+                <div class="spp-donut-title" id="sppDonutTitle">Memuat...</div>
+                <div class="spp-donut-sub" id="sppDonutSub"></div>
+              </div>
+            </div>
+            <div class="spp-bulan-grid" id="sppBulanGrid"></div>
+            <div class="spp-msg" id="sppMsg" style="display:none"></div>
+          </div>
+          <!-- Panel Infaq -->
+          <div id="sppPanelInfaq" style="display:none">
+            <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-bottom:10px">Riwayat Infaq / Operasional</div>
+            <div id="sppInfaqList"><div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div></div>
+          </div>
+          <!-- Tombol konfirmasi -->
+          <button class="spp-konfirm-btn" onclick="bukaModalKonfirmasiSPP()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Konfirmasi Pembayaran
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Konfirmasi SPP -->
+      <div class="overlay" id="sppKonfirmasiModal" onclick="if(event.target===this)tutupModalKonfirmasiSPP()">
+        <div class="modal" style="max-width:400px">
+          <div class="modal-head">
+            <div class="modal-title">Konfirmasi Pembayaran</div>
+            <button class="modal-x" onclick="tutupModalKonfirmasiSPP()">✕</button>
+          </div>
+          <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:12px">
+            <!-- Jenis -->
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Jenis Pembayaran</div>
+              <div class="spp-jenis-tabs" id="sppFormJenisTab">
+                <div class="spp-jenis-tab active" onclick="setSppFormJenis('SPP Pribadi',this)">🏠 SPP Pribadi</div>
+                <div class="spp-jenis-tab" onclick="setSppFormJenis('Infaq/Operasional',this)">💛 Infaq / Operasional</div>
+              </div>
+            </div>
+            <!-- Bulan (hanya muncul untuk SPP Pribadi) -->
+            <div id="sppFormBulanWrap">
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Bulan <span style="color:var(--red)">*</span></div>
+              <select id="sppFormBulan" class="fc" style="width:100%">
+                <option value="">— Pilih Bulan —</option>
+                <option>Januari</option><option>Februari</option><option>Maret</option>
+                <option>April</option><option>Mei</option><option>Juni</option>
+                <option>Juli</option><option>Agustus</option><option>September</option>
+                <option>Oktober</option><option>November</option><option>Desember</option>
+              </select>
+            </div>
+            <!-- Tahun -->
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Tahun <span style="color:var(--red)">*</span></div>
+              <select id="sppFormTahun" class="fc" style="width:100%">
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+              </select>
+            </div>
+            <!-- Nominal -->
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Nominal (Rp)</div>
+              <input type="number" id="sppFormNominal" class="fc" placeholder="Contoh: 50000" min="0" style="width:100%">
+            </div>
+            <!-- Bukti -->
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Link Bukti Transfer (opsional)</div>
+              <input type="url" id="sppFormBukti" class="fc" placeholder="https://drive.google.com/..." style="width:100%">
+              <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">Upload foto bukti ke Google Drive lalu paste link-nya</div>
+            </div>
+            <!-- Catatan -->
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Catatan (opsional)</div>
+              <textarea id="sppFormCatatan" class="fc" rows="2" placeholder="Catatan tambahan..." style="width:100%;resize:none"></textarea>
+            </div>
+            <div id="sppFormErr" style="display:none;font-size:12px;color:var(--red);font-weight:600;padding:8px 10px;background:var(--red-l);border-radius:8px"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="submitKonfirmasiSPP()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+              Kirim Konfirmasi
+            </button>
+          </div>
         </div>
       </div>
 
@@ -6119,54 +6230,128 @@ async function loadSPP() {
   }
 }
 
+var _sppData = null;
+var _sppFormJenis = 'SPP Pribadi';
+
+function switchSppTab(tab) {
+  document.getElementById('sppTabSpp').className   = 'spp-jenis-tab' + (tab==='spp'?' active':'');
+  document.getElementById('sppTabInfaq').className = 'spp-jenis-tab' + (tab==='infaq'?' active':'');
+  document.getElementById('sppPanelSpp').style.display   = tab==='spp'?'':'none';
+  document.getElementById('sppPanelInfaq').style.display = tab==='infaq'?'':'none';
+}
+
+function setSppFormJenis(jenis, el) {
+  _sppFormJenis = jenis;
+  document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t){ t.className='spp-jenis-tab'; });
+  el.className = 'spp-jenis-tab active';
+  var bulanWrap = document.getElementById('sppFormBulanWrap');
+  if (bulanWrap) bulanWrap.style.display = jenis==='SPP Pribadi' ? '' : 'none';
+}
+
+function bukaModalKonfirmasiSPP() {
+  _sppFormJenis = 'SPP Pribadi';
+  document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
+  document.getElementById('sppFormBulanWrap').style.display = '';
+  document.getElementById('sppFormBulan').value  = '';
+  document.getElementById('sppFormNominal').value = '';
+  document.getElementById('sppFormBukti').value  = '';
+  document.getElementById('sppFormCatatan').value = '';
+  document.getElementById('sppFormErr').style.display = 'none';
+  openModal('sppKonfirmasiModal');
+}
+
+function tutupModalKonfirmasiSPP() { closeModal('sppKonfirmasiModal'); }
+
+async function submitKonfirmasiSPP() {
+  var jenis   = _sppFormJenis;
+  var bulan   = document.getElementById('sppFormBulan').value;
+  var tahun   = document.getElementById('sppFormTahun').value;
+  var nominal = document.getElementById('sppFormNominal').value;
+  var bukti   = document.getElementById('sppFormBukti').value.trim();
+  var catatan = document.getElementById('sppFormCatatan').value.trim();
+  var errEl   = document.getElementById('sppFormErr');
+
+  if (jenis === 'SPP Pribadi' && !bulan) { errEl.textContent='Pilih bulan terlebih dahulu.'; errEl.style.display=''; return; }
+  errEl.style.display = 'none';
+
+  showLoad('Mengirim konfirmasi...');
+  try {
+    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan: bulan||'-', tahun, nominal, bukti_url: bukti, catatan });
+    tutupModalKonfirmasiSPP();
+    toast('Konfirmasi terkirim, menunggu validasi admin ✅', 'ok');
+    _sppLoaded = false;
+    loadSPP();
+  } catch(e) { errEl.textContent = e.message||'Gagal mengirim.'; errEl.style.display=''; }
+  finally { hideLoad(); }
+}
+
 function renderSPP(data) {
   if (!data) return;
+  _sppData = data;
   var card  = document.getElementById('sppCard');
   var grid  = document.getElementById('sppBulanGrid');
-  var msg   = document.getElementById('sppMsg');
   var badge = document.getElementById('sppBadge');
   if (!card || !grid) return;
-
-  // Tampilkan card
   card.style.display = 'block';
 
-  // Cek apakah murid sudah membayar SPP Pribadi
-  var hasPaid = data.has_paid || (data.lunas && data.lunas.length > 0);
+  var bulanGrid    = data.bulan_grid || [];
+  var lunasBulan   = data.lunas_bulan || [];
+  var menungguBulan= data.menunggu_bulan || [];
+  var tunggakan    = data.tunggakan || 0;
+  var bulanBerjalan= new Date().getMonth() + 1;
+  var lunasCount   = lunasBulan.length;
 
-  // Bulan pills
-  if (!hasPaid) {
-    // Hilangkan nama-nama bulannya jika belum bayar sama sekali
-    grid.innerHTML = '';
-  } else {
-    // Munculkan nama bulan jika murid sudah bayar
-    var periode = data.periode || [];
-    grid.innerHTML = periode.map(function(b) {
-      var lunas = (data.lunas||[]).includes(b);
-      return '<span class="spp-bulan ' + (lunas?'spp-lunas':'spp-belum') + '">'
-        + (lunas ? '✅ ' : '❌ ') + b + '</span>';
-    }).join('');
+  // ── Donut chart ──
+  var circ = 2 * Math.PI * 15; // 94.25
+  var pct  = bulanBerjalan > 0 ? (lunasCount / bulanBerjalan) : 0;
+  var arc  = document.getElementById('sppDonutArc');
+  var num  = document.getElementById('sppDonutNum');
+  var titleEl = document.getElementById('sppDonutTitle');
+  var subEl   = document.getElementById('sppDonutSub');
+  if (arc) {
+    var dashLen = pct * circ;
+    arc.setAttribute('stroke-dasharray', dashLen + ' ' + (circ - dashLen));
+    arc.setAttribute('stroke', tunggakan===0?'#10b981': tunggakan>=3?'#ef4444':'#f59e0b');
   }
-
-  // Jumlah bulan belum lunas
-  var belum = (data.belum_lunas||[]).length;
-  if (!hasPaid) {
-    belum = 5; // Paksa 5 bulan jika belum bayar sama sekali
-  }
+  if (num) num.textContent = tunggakan;
+  if (titleEl) titleEl.textContent = tunggakan===0 ? 'SPP Lunas ✅' : tunggakan + ' bulan belum lunas';
+  if (subEl)   subEl.textContent = lunasCount + ' dari ' + bulanBerjalan + ' bulan sudah terbayar';
 
   // Badge
   if (badge) {
-    badge.className = 'badge ' + (belum===0?'b-green':'b-red');
-    badge.textContent = belum===0 ? '✅ Lunas' : '⚠️ ' + belum + ' bulan';
+    badge.className = 'badge ' + (tunggakan===0?'b-green':tunggakan>=3?'b-red':'b-amber');
+    badge.textContent = tunggakan===0 ? '✅ Lunas' : '⚠ ' + tunggakan + ' bulan';
   }
 
-  // Pesan
-  if (msg) {
-    if (!hasPaid) {
-      msg.textContent = "Ada 5 bulan amanah yang belum ditunaikan, semoga Allah mudahkan.";
-    } else {
-      msg.textContent = data.pesan || '';
-    }
-    msg.className   = 'spp-msg ' + (belum===0?'ok':'warn');
+  // ── Grid 12 bulan (hanya tampilkan s.d. bulan berjalan) ──
+  var BNAME = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  grid.innerHTML = (bulanGrid || []).map(function(b, i) {
+    var past = (i + 1) <= bulanBerjalan;
+    var ico  = b.status==='lunas' ? '✅' : b.status==='menunggu' ? '⏳' : (past ? '❌' : '○');
+    var cls  = b.status==='lunas' ? 'spp-lunas' : b.status==='menunggu' ? 'spp-menunggu' : 'spp-belum';
+    return '<div class="spp-bulan ' + cls + '" title="' + b.bulan + '">'
+      + '<span class="spp-bulan-ico">' + ico + '</span>'
+      + '<span>' + BNAME[i] + '</span>'
+      + '</div>';
+  }).join('');
+
+  // ── Infaq list ──
+  var rows     = data.rows || [];
+  var infaqRows= rows.filter(function(r){ return r.jenis !== 'SPP Pribadi'; });
+  var infaqEl  = document.getElementById('sppInfaqList');
+  if (infaqEl) {
+    infaqEl.innerHTML = !infaqRows.length
+      ? '<div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div>'
+      : infaqRows.map(function(r) {
+          var statusCls = r.status==='lunas'?'color:#065f46':r.status==='menunggu'?'color:#92400e':'color:#991b1b';
+          var nominal = r.nominal ? 'Rp ' + Number(r.nominal).toLocaleString('id-ID') : '—';
+          return '<div class="spp-infaq-item">'
+            + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(r.jenis||'Infaq') + '</div>'
+            + '<div style="font-size:11px;color:var(--text-3)">' + esc(r.catatan||r.bulan||'') + ' · ' + (r.tanggal_bayar||r.created_at||'').substring(0,10) + '</div></div>'
+            + '<div style="text-align:right"><div style="font-size:13px;font-weight:800;color:var(--text)">' + nominal + '</div>'
+            + '<div style="font-size:10px;font-weight:700;' + statusCls + '">' + (r.status==='lunas'?'✅ Terkonfirmasi':r.status==='menunggu'?'⏳ Menunggu':'❌ Ditolak') + '</div></div>'
+            + '</div>';
+        }).join('');
   }
 }
 
