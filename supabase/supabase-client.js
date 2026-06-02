@@ -711,8 +711,12 @@ var GuruAPI = {
 
   generateRaportHalaqah: async function(d) {
     // Kalkulasi raport semua murid di halaqah
-    var { data: anggota } = await _sb.from('anggota').select('id_murid, nama_murid').eq('id_halaqah', d.id_halaqah).eq('status', 'aktif');
-    var { data: komponen } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
+    var { data: anggota, error: errAnggota } = await _sb.from('anggota').select('id_murid, nama_murid').eq('id_halaqah', d.id_halaqah).eq('status', 'aktif');
+    _check(errAnggota, 'generateRaportHalaqah:anggota');
+    if (!anggota || !anggota.length) return { status: 'error', message: 'Tidak ada murid aktif di halaqah ini.' };
+    var { data: komponen, error: errKomp } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
+    _check(errKomp, 'generateRaportHalaqah:komponen');
+    if (!komponen || !komponen.length) return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode);
     var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_halaqah', d.id_halaqah);
     var { data: atLog } = await _sb.from('at_tibyan_log').select('id_murid, status_hadir');
@@ -943,6 +947,10 @@ var MuridAPI = {
         count_i     : countI,
         count_a     : countA,
       },
+      // Fields profil di root agar frontend bisa akses langsung (d.id_murid, d.no_hp, d.email)
+      id_murid   : id_murid,
+      no_hp      : user && user.no_hp  || '',
+      email      : user && user.email  || '',
       poin_adab  : poinAdab,
       poin_kamera: poinKamera,
       poin_adab_detail  : { baik: adabBaik, cukup: adabData.length - adabBaik },
@@ -961,10 +969,12 @@ var MuridAPI = {
       .range(offset||0, (offset||0)+(limit||8)-1);
     _check(error, 'getRiwayat');
     var mapped = (data||[]).map(function(n) { return Object.assign({}, n, {
-      tanggal: n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
-      pertemuan_ke: n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
-      materi_belajar: n.kbm_log && n.kbm_log.materi_belajar,
-      latihan_mandiri: n.kbm_log && n.kbm_log.latihan_mandiri,
+      tanggal         : n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
+      pertemuan_ke    : (n.kbm_log && n.kbm_log.pertemuan_ke) || n.pertemuan_ke,
+      materi_belajar  : n.kbm_log && n.kbm_log.materi_belajar,
+      latihan_mandiri : n.kbm_log && n.kbm_log.latihan_mandiri,
+      jenis_latihan   : n.kbm_log && n.kbm_log.jenis_latihan,
+      deadline_latihan: n.kbm_log && n.kbm_log.deadline_latihan,
     }); });
     return { status: 'ok', data: mapped, total: count, has_more: (offset||0)+(limit||8) < (count||0) };
   },
@@ -1480,6 +1490,7 @@ var KetuaAPI = {
       _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status', 'aktif'),
       _sb.from('nilai_kbm').select('id_murid, status_hadir, kamera_murid, tanggal').eq('id_halaqah', id_halaqah).order('tanggal', { ascending: false }),
     ]);
+    if (anggotaRes.error) return { status: 'ok', data: { summary: { kritis:0, peringatan:0, normal:0 }, alerts: [] } };
     var ids = (anggotaRes.data || []).map(function(a) { return a.id_murid; });
     var hpMap = {};
     if (ids.length > 0) {
