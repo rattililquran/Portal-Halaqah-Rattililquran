@@ -14,8 +14,8 @@
 // ─────────────────────────────────────────────
 //  KONFIGURASI — ISI SETELAH PROJECT SUPABASE DIBUAT
 // ─────────────────────────────────────────────
-const SUPABASE_URL  = 'https://XXXXXXXXXXXX.supabase.co';   // ganti dengan Project URL
-const SUPABASE_ANON = 'eyJhbGci...';                        // ganti dengan anon key
+const SUPABASE_URL  = 'https://zefriybfrirrtsulogta.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplZnJpeWJmcmlycnRzdWxvZ3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNTk1MzIsImV4cCI6MjA5NTkzNTUzMn0.AmB43YG-fCYqATdh5BrfLJmGITI_UeX8csOYyjd9i_U';
 
 // ─────────────────────────────────────────────
 //  INISIALISASI SUPABASE CLIENT
@@ -110,7 +110,7 @@ var Auth = {
 
 // ─────────────────────────────────────────────
 //  ADMIN API
--- ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
 var AdminAPI = {
   // ── Dashboard ──
   getDashboard: async function() {
