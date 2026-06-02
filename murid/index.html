@@ -1248,11 +1248,13 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:9000;
   background:rgba(15,23,42,.5);backdrop-filter:blur(6px)}
 .modal-overlay.open{display:flex;align-items:flex-end;justify-content:center;
-  animation:fadeIn .2s ease}
-@media(min-width:600px){.modal-overlay.open{align-items:center}}
+  animation:fadeIn .2s ease;
+  /* Beri ruang agar modal tidak tertutup bottom nav */
+  padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+@media(min-width:600px){.modal-overlay.open{align-items:center;padding-bottom:0}}
 .modal-sheet{background:#fff;border-radius:28px 28px 0 0;
   width:100%;max-width:500px;
-  max-height:calc(100dvh - 72px - env(safe-area-inset-bottom));
+  max-height:calc(100dvh - 68px - env(safe-area-inset-bottom) - 16px);
   overflow-y:auto;
   box-shadow:0 -10px 40px rgba(15,23,42,.15);border:1px solid rgba(255,255,255,0.7)}
 @media(min-width:600px){.modal-sheet{border-radius:28px;max-height:85dvh}}
@@ -2221,7 +2223,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
                   <div id="sppBuktiName" style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Klik untuk pilih foto</div>
                   <div style="font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500">JPG · PNG · WebP · HEIC · maks 5 MB</div>
                 </div>
-                <input type="file" id="sppFormBuktiFile" accept="image/*" capture="environment" style="display:none;font-size:13px" onchange="handleSppBuktiFile(this)">
+                <input type="file" id="sppFormBuktiFile" accept="image/*" style="display:none;font-size:13px" onchange="handleSppBuktiFile(this)">
               </label>
               <!-- Preview -->
               <div id="sppBuktiPreview" style="display:none;margin-top:10px;position:relative">
