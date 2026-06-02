@@ -3902,7 +3902,9 @@ async function loadDashboard() {
     var hq = d.halaqah || {};
     document.getElementById('profilHalaqahName').textContent = hq.nama || '–';
     document.getElementById('profilGuruName').textContent = hq.guru || '–';
-    document.getElementById('profilJadwal').textContent = (hq.jadwal && hq.jam) ? (hq.jadwal + ', ' + hq.jam) : (hq.jadwal || '–');
+    var jadwalTeks = hq.jadwal || '';
+    if (hq.jam) jadwalTeks += (jadwalTeks ? ', ' : '') + hq.jam + (hq.jam_selesai ? ' – ' + hq.jam_selesai : '');
+    document.getElementById('profilJadwal').textContent = jadwalTeks || '–';
 
     // Avatar — prioritas: foto dari server > foto localStorage > emoji > inisial
     var _idMurid    = d.id_murid || '';

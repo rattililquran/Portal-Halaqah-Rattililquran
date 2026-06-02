@@ -929,11 +929,13 @@ var MuridAPI = {
       anggota,
       profil  : user,
       halaqah : {
-        nama  : hq.nama_halaqah || '',
-        level : hq.level        || '',
-        jadwal: hq.jadwal_hari  || '',
-        jam   : hq.jam_mulai ? String(hq.jam_mulai).substring(0, 5) : '',
-        id_halaqah: hq.id_halaqah || '',
+        nama      : hq.nama_halaqah || '',
+        guru      : hq.nama_guru    || '',
+        level     : hq.level        || '',
+        jadwal    : hq.jadwal_hari  || '',
+        jam       : hq.jam_mulai    ? String(hq.jam_mulai).substring(0, 5)    : '',
+        jam_selesai: hq.jam_selesai ? String(hq.jam_selesai).substring(0, 5)  : '',
+        id_halaqah: hq.id_halaqah   || '',
       },
       kehadiran: {
         skor_hadir  : totalHadir,
