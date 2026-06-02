@@ -1035,40 +1035,66 @@ var KetuaAPI = {
 
   getKeaktifanAnggota: async function() {
     var info = await KetuaAPI.getInfo();
-    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    if (info.status !== 'ok') return { status: 'ok', data: { summary: { kritis:0, peringatan:0, normal:0 }, alerts: [] } };
     var id_halaqah = info.halaqah.id_halaqah;
     var [anggotaRes, nilaiRes] = await Promise.all([
       _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status', 'aktif'),
-      _sb.from('nilai_kbm').select('id_murid, status_hadir, adab, kamera_murid').eq('id_halaqah', id_halaqah),
+      _sb.from('nilai_kbm').select('id_murid, status_hadir, kamera_murid, tanggal').eq('id_halaqah', id_halaqah).order('tanggal', { ascending: false }),
     ]);
+    var ids = (anggotaRes.data || []).map(function(a) { return a.id_murid; });
+    var hpMap = {};
+    if (ids.length > 0) {
+      var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
+      (users || []).forEach(function(u) { hpMap[u.id_user] = u.no_hp; });
+    }
     var nilaiAll = nilaiRes.data || [];
-    var data = (anggotaRes.data || []).map(function(a) {
+    var summary = { kritis: 0, peringatan: 0, normal: 0 };
+    var alerts = [];
+    (anggotaRes.data || []).forEach(function(a) {
       var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
       var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
-      return {
-        id_murid: a.id_murid, nama_murid: a.nama_murid, level: a.level,
-        total_hadir: hadir.length, total_sesi: nm.length,
-        total_alpa: nm.filter(function(n){return n.status_hadir==='A';}).length,
-        pct_hadir: nm.length > 0 ? Math.round(hadir.length/nm.length*100) : 0,
-      };
+      var alpa = nm.filter(function(n) { return n.status_hadir === 'A'; }).length;
+      var terlambat = nm.filter(function(n) { return n.status_hadir === 'T'; }).length;
+      var kamera_buruk = nm.filter(function(n) { return n.kamera_murid && (n.kamera_murid.toLowerCase().indexOf('selalu') >= 0 || n.kamera_murid.toLowerCase().indexOf('sering') >= 0); }).length;
+      var status = alpa >= 2 ? 'kritis' : (alpa === 1 || terlambat >= 2 || kamera_buruk >= 2) ? 'peringatan' : 'normal';
+      summary[status]++;
+      if (status !== 'normal') alerts.push({
+        id_murid  : a.id_murid,
+        nama_murid: a.nama_murid,
+        status    : status,
+        pct_hadir : nm.length > 0 ? Math.round(hadir.length / nm.length * 100) : 0,
+        absen     : alpa,
+        total_sesi: nm.length,
+        no_hp     : hpMap[a.id_murid] || '',
+        riwayat   : nm.slice(0, 8).map(function(n) {
+          return { warna: ['H','T'].includes(n.status_hadir) ? 'hijau' : n.status_hadir === 'A' ? 'merah' : 'abu', tanggal: n.tanggal };
+        }),
+      });
     });
-    return { status: 'ok', data };
+    return { status: 'ok', data: { summary: summary, alerts: alerts } };
   },
 
   getAtTibyanAnggota: async function() {
     var info = await KetuaAPI.getInfo();
-    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    if (info.status !== 'ok') return { status: 'ok', data: { alerts: [] } };
     var { data, error } = await _sb.from('at_tibyan_log')
-      .select('id_murid, nama_murid, status_hadir')
-      .eq('id_halaqah', info.halaqah.id_halaqah);
-    if (error) return { status: 'ok', data: [] };
+      .select('id_murid, nama_murid, status_hadir, tanggal')
+      .eq('id_halaqah', info.halaqah.id_halaqah)
+      .order('tanggal', { ascending: false });
+    if (error) return { status: 'ok', data: { alerts: [] } };
     var map = {};
     (data || []).forEach(function(r) {
-      if (!map[r.id_murid]) map[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, hadir: 0, total: 0 };
+      if (!map[r.id_murid]) map[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, hadir: 0, total: 0, riwayat: [] };
       map[r.id_murid].total++;
       if (['H','T'].includes(r.status_hadir)) map[r.id_murid].hadir++;
+      if (map[r.id_murid].riwayat.length < 8) map[r.id_murid].riwayat.push({ warna: ['H','T'].includes(r.status_hadir) ? 'hijau' : 'merah', tanggal: r.tanggal });
     });
-    return { status: 'ok', data: Object.values(map) };
+    var alerts = Object.values(map).map(function(m) {
+      var alpa = m.total - m.hadir;
+      var status = alpa >= 2 ? 'kritis' : alpa === 1 ? 'peringatan' : 'normal';
+      return { id_murid: m.id_murid, nama_murid: m.nama_murid, status: status, pct_hadir: m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0, absen: alpa, total_sesi: m.total, riwayat: m.riwayat };
+    }).filter(function(m) { return m.status !== 'normal'; });
+    return { status: 'ok', data: { alerts: alerts } };
   },
 
   getObservasiPending: async function() {
