@@ -386,10 +386,17 @@ var GuruAPI = {
 
   editPresensi: async function(d) {
     var rows = d.presensi.map(function(p) { return {
-      id_kbm: d.id_kbm, id_murid: p.id_murid, status_hadir: p.status_hadir,
+      id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: p.id_murid, status_hadir: p.status_hadir,
     }; });
     var { error } = await _sb.from('nilai_kbm').upsert(rows, { onConflict: 'id_kbm,id_murid' });
     _check(error, 'editPresensi');
+    // Update tanggal & pertemuan_ke di kbm_log jika berubah
+    if (d.tanggal_pertemuan || d.pertemuan_ke) {
+      var upd = {};
+      if (d.tanggal_pertemuan) upd.tanggal_pertemuan = d.tanggal_pertemuan;
+      if (d.pertemuan_ke)      upd.pertemuan_ke      = d.pertemuan_ke;
+      await _sb.from('kbm_log').update(upd).eq('id_kbm', d.id_kbm);
+    }
     return { status: 'ok', message: 'Presensi berhasil diperbarui' };
   },
 
@@ -1022,14 +1029,119 @@ var KetuaAPI = {
     if (!anggota) return { status: 'error', message: 'Bukan ketua kelas' };
     return { status: 'ok', halaqah: anggota.halaqah, anggota };
   },
-  getKeaktifanAnggota: async function() { return { status: 'ok', data: [] }; },
-  getAtTibyanAnggota: async function() { return { status: 'ok', data: [] }; },
-  getObservasiPending: async function() { return { status: 'ok', data: [] }; },
-  getObservasiHistory: async function() { return { status: 'ok', data: [] }; },
-  getKBMJurnal: async function() { return { status: 'ok', data: [] }; },
-  getRekapStatus: async function() { return { status: 'ok', data: [] }; },
-  submitObservasi: async function() { return { status: 'ok' }; },
-  simpanRekapStatus: async function() { return { status: 'ok' }; },
+
+  getKeaktifanAnggota: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var id_halaqah = info.halaqah.id_halaqah;
+    var [anggotaRes, nilaiRes] = await Promise.all([
+      _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status', 'aktif'),
+      _sb.from('nilai_kbm').select('id_murid, status_hadir, adab, kamera_murid').eq('id_halaqah', id_halaqah),
+    ]);
+    var nilaiAll = nilaiRes.data || [];
+    var data = (anggotaRes.data || []).map(function(a) {
+      var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
+      var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
+      return {
+        id_murid: a.id_murid, nama_murid: a.nama_murid, level: a.level,
+        total_hadir: hadir.length, total_sesi: nm.length,
+        total_alpa: nm.filter(function(n){return n.status_hadir==='A';}).length,
+        pct_hadir: nm.length > 0 ? Math.round(hadir.length/nm.length*100) : 0,
+      };
+    });
+    return { status: 'ok', data };
+  },
+
+  getAtTibyanAnggota: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var { data, error } = await _sb.from('at_tibyan_log')
+      .select('id_murid, nama_murid, status_hadir')
+      .eq('id_halaqah', info.halaqah.id_halaqah);
+    if (error) return { status: 'ok', data: [] };
+    var map = {};
+    (data || []).forEach(function(r) {
+      if (!map[r.id_murid]) map[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, hadir: 0, total: 0 };
+      map[r.id_murid].total++;
+      if (['H','T'].includes(r.status_hadir)) map[r.id_murid].hadir++;
+    });
+    return { status: 'ok', data: Object.values(map) };
+  },
+
+  getObservasiPending: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var id_halaqah = info.halaqah.id_halaqah;
+    var id_ketua   = _uid();
+    // KBM selesai yang belum diobservasi ketua ini
+    var [kbmRes, obsRes] = await Promise.all([
+      _sb.from('kbm_log').select('id_kbm, tanggal_pertemuan, pertemuan_ke, jumlah_hadir')
+        .eq('id_halaqah', id_halaqah).eq('status', 'selesai')
+        .order('tanggal_pertemuan', { ascending: false }).limit(20),
+      _sb.from('observasi_kbm').select('id_kbm').eq('id_ketua', id_ketua),
+    ]);
+    var sudahObsIds = new Set((obsRes.data || []).map(function(o) { return o.id_kbm; }));
+    var pending = (kbmRes.data || []).filter(function(k) { return !sudahObsIds.has(k.id_kbm); });
+    return { status: 'ok', data: pending };
+  },
+
+  getObservasiHistory: async function() {
+    var id_ketua = _uid();
+    var { data, error } = await _sb.from('observasi_kbm').select('*, kbm_log(tanggal_pertemuan, pertemuan_ke)')
+      .eq('id_ketua', id_ketua).order('created_at', { ascending: false }).limit(20);
+    if (error) return { status: 'ok', data: [] };
+    return { status: 'ok', data: data || [] };
+  },
+
+  getKBMJurnal: async function(id_kbm) {
+    var { data, error } = await _sb.from('kbm_log').select('*').eq('id_kbm', id_kbm).single();
+    if (error) return { status: 'ok', data: null };
+    return { status: 'ok', data };
+  },
+
+  getRekapStatus: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var { data, error } = await _sb.from('rekap_status').select('*')
+      .eq('id_halaqah', info.halaqah.id_halaqah)
+      .order('created_at', { ascending: false }).limit(10);
+    if (error) return { status: 'ok', data: [] };
+    return { status: 'ok', data: data || [] };
+  },
+
+  submitObservasi: async function(d) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var kbm = await _sb.from('kbm_log').select('tanggal_pertemuan, pertemuan_ke')
+      .eq('id_kbm', d.id_kbm).single();
+    var { error } = await _sb.from('observasi_kbm').insert({
+      id_kbm          : d.id_kbm,
+      id_halaqah      : info.halaqah.id_halaqah,
+      id_ketua        : _uid(),
+      pertemuan_ke    : kbm.data && kbm.data.pertemuan_ke,
+      tanggal         : kbm.data && kbm.data.tanggal_pertemuan,
+      kondisi_kelas   : d.kondisi_kelas,
+      ada_latihan     : d.ada_latihan,
+      ketepatan_waktu : d.ketepatan_waktu,
+      catatan_tambahan: d.catatan_lain || d.catatan_tambahan,
+      status          : 'submitted',
+    });
+    _check(error, 'submitObservasi');
+    return { status: 'ok', message: 'Observasi berhasil dikirim' };
+  },
+
+  simpanRekapStatus: async function(d) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var { error } = await _sb.from('rekap_status').insert({
+      id_halaqah   : info.halaqah.id_halaqah,
+      id_kbm       : d.id_kbm,
+      id_ketua     : _uid(),
+      catatan_ustadz: d.catatan_ustadz || '',
+    });
+    _check(error, 'simpanRekapStatus');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
