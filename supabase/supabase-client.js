@@ -989,7 +989,24 @@ var MuridAPI = {
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
     _check(error, 'getLatihanMandiri');
-    return { status: 'ok', data: (data||[]).filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; }) };
+    var today = new Date().toISOString().slice(0,10);
+    var rows = (data||[])
+      .filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; })
+      .map(function(n) {
+        var dl = n.kbm_log.deadline_latihan;
+        var daysLeft = dl ? Math.ceil((new Date(dl) - new Date(today)) / 86400000) : null;
+        var status = !dl ? 'none' : dl < today ? 'lewat' : dl === today ? 'hari_ini' : daysLeft <= 3 ? 'mepet' : 'aman';
+        return {
+          tanggal        : n.tanggal,
+          pertemuan_ke   : n.pertemuan_ke,
+          latihan_mandiri: n.kbm_log.latihan_mandiri,
+          jenis_latihan  : n.kbm_log.jenis_latihan,
+          deadline       : dl,
+          materi_belajar : n.kbm_log.materi_belajar,
+          status_deadline: status,
+        };
+      });
+    return { status: 'ok', data: rows };
   },
 
   getRaport: async function() {

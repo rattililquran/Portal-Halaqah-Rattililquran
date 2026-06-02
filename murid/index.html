@@ -1929,6 +1929,55 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .bottom-nav{opacity:.85}
 }
 
+/* ── Desktop persistent sidebar ≥1024px ── */
+@media(min-width:1024px){
+  body{overflow:hidden}
+  #app{
+    display:flex !important;
+    flex-direction:row !important;
+    max-width:100% !important;
+    width:100% !important;
+    height:100dvh;
+    overflow:hidden;
+    position:fixed;
+    inset:0;
+  }
+  /* Sidebar selalu tampil di kiri */
+  .sidebar-drawer{
+    position:relative !important;
+    transform:none !important;
+    width:256px !important;
+    min-width:256px !important;
+    max-width:256px !important;
+    height:100dvh;
+    flex-shrink:0;
+    border-radius:0 !important;
+    box-shadow:1px 0 0 var(--border);
+    order:-1;
+  }
+  .sidebar-overlay{display:none !important}
+  /* Panel kanan: header + konten */
+  #main-panel{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    min-width:0;
+    max-width:860px;
+  }
+  .top-header{position:sticky;top:0;z-index:50}
+  .top-hamburger{display:none !important}
+  .content{
+    flex:1;
+    overflow-y:auto;
+    height:0;
+    padding-bottom:16px;
+  }
+  .bottom-nav{display:none !important}
+  /* Sidebar item semua bisa diklik tanpa closeSidebar mengganggu */
+  .sidebar-item{cursor:pointer}
+}
+
 </style>
 </head>
 <body>
@@ -1980,6 +2029,9 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 <!-- APP -->
 <div id="app">
+
+  <!-- MAIN PANEL (kanan sidebar di desktop) -->
+  <div id="main-panel">
 
   <!-- TOP HEADER — compact sticky glass -->
   <div class="top-header" id="topHeader">
@@ -2645,7 +2697,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
   </div><!-- /content -->
 
-  <!-- BOTTOM NAV — 5 tab -->
+  <!-- BOTTOM NAV — 5 tab (mobile only, hidden on desktop) -->
   <nav class="bottom-nav">
     <button class="nav-item nav-edge active" onclick="goPage('dashboard')" data-p="dashboard">
       <span class="ni">
@@ -2681,7 +2733,9 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
     </button>
   </nav>
 
-  <!-- SIDEBAR OVERLAY -->
+  </div><!-- /main-panel -->
+
+  <!-- SIDEBAR OVERLAY (mobile only) -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- SIDEBAR DRAWER -->
@@ -4076,12 +4130,15 @@ function openNotifications() {
 }
 
 // ── SIDEBAR ─────────────────────────────────
+function _isDesktop() { return window.innerWidth >= 1024; }
 function openSidebar() {
+  if (_isDesktop()) return;
   document.getElementById('sidebarOverlay').classList.add('open');
   document.getElementById('sidebarDrawer').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeSidebar() {
+  if (_isDesktop()) return;
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('sidebarDrawer').classList.remove('open');
   document.body.style.overflow = '';
