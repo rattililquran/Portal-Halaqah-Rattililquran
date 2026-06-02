@@ -1358,6 +1358,24 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 .spp-jenis-tab{flex:1;padding:9px 6px;border-radius:10px;border:2px solid var(--border);
   background:#fff;font-size:12px;font-weight:700;cursor:pointer;text-align:center;color:var(--text-2)}
 .spp-jenis-tab.active{border-color:#1a5c3a;background:#f0fdf4;color:#1a5c3a}
+/* Checkbox bulan multi-pilih */
+.spp-bulan-check{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;
+  font-size:12px;font-weight:700;color:var(--text-2);gap:4px;transition:all .15s;
+  user-select:none;-webkit-user-select:none}
+.spp-bulan-check input{display:none}
+.spp-bulan-check span{font-size:12px;font-weight:700}
+.spp-bulan-check:has(input:checked){background:#f0fdf4;border-color:#1a5c3a;color:#1a5c3a}
+.spp-bulan-check::before{content:'○';font-size:14px;color:var(--text-3)}
+.spp-bulan-check:has(input:checked)::before{content:'✓';color:#1a5c3a}
+/* Radio metode pembayaran */
+.spp-metode-radio{display:flex;align-items:center;gap:8px;padding:10px 12px;
+  border-radius:10px;border:1.5px solid var(--border);cursor:pointer;
+  font-size:13px;font-weight:600;color:var(--text-2);transition:all .15s;
+  user-select:none;-webkit-user-select:none}
+.spp-metode-radio input{display:none}
+.spp-metode-radio:has(input:checked){background:#f0fdf4;border-color:#1a5c3a;color:#1a5c3a}
+.spp-metode-radio span{font-size:13px}
 /* Metode bayar card */
 .spp-metode-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
 .spp-metode-bank{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
@@ -2178,25 +2196,49 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
               </div>
             </div>
 
-            <!-- Bulan + Tahun (grid) -->
-            <div id="sppFormBulanWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div class="fg" style="margin:0">
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Bulan <span style="color:var(--red)">*</span></label>
-                <select id="sppFormBulan" class="fc" style="width:100%">
-                  <option value="">— Pilih —</option>
-                  <option>Januari</option><option>Februari</option><option>Maret</option>
-                  <option>April</option><option>Mei</option><option>Juni</option>
-                  <option>Juli</option><option>Agustus</option><option>September</option>
-                  <option>Oktober</option><option>November</option><option>Desember</option>
-                </select>
+            <!-- Bulan (multi-pilih) -->
+            <div id="sppFormBulanWrap">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <label style="font-size:12px;font-weight:700;color:var(--text-2)">Bulan yang Dibayar <span style="color:var(--red)">*</span></label>
+                <span style="font-size:11px;color:var(--text-3)" id="sppBulanCount">Pilih 1 atau lebih</span>
               </div>
-              <div class="fg" style="margin:0">
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun <span style="color:var(--red)">*</span></label>
-                <select id="sppFormTahun" class="fc" style="width:100%">
-                  <option value="2025">2025</option>
-                  <option value="2026" selected>2026</option>
-                  <option value="2027">2027</option>
-                </select>
+              <div id="sppBulanGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                <label class="spp-bulan-check"><input type="checkbox" value="Januari" onchange="updateSppBulanCount()"><span>Jan</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Februari" onchange="updateSppBulanCount()"><span>Feb</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Maret" onchange="updateSppBulanCount()"><span>Mar</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="April" onchange="updateSppBulanCount()"><span>Apr</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Mei" onchange="updateSppBulanCount()"><span>Mei</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Juni" onchange="updateSppBulanCount()"><span>Jun</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Juli" onchange="updateSppBulanCount()"><span>Jul</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Agustus" onchange="updateSppBulanCount()"><span>Agu</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="September" onchange="updateSppBulanCount()"><span>Sep</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Oktober" onchange="updateSppBulanCount()"><span>Okt</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="November" onchange="updateSppBulanCount()"><span>Nov</span></label>
+                <label class="spp-bulan-check"><input type="checkbox" value="Desember" onchange="updateSppBulanCount()"><span>Des</span></label>
+              </div>
+              <div id="sppBulanNominalHint" style="display:none;margin-top:6px;font-size:11px;color:#0369a1;font-weight:600;padding:6px 10px;background:#f0f9ff;border-radius:8px">
+                ℹ️ Nominal akan dibagi rata per bulan yang dipilih
+              </div>
+            </div>
+
+            <!-- Tahun -->
+            <div class="fg" style="margin:0">
+              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun <span style="color:var(--red)">*</span></label>
+              <select id="sppFormTahun" class="fc" style="width:100%">
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+              </select>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="fg" style="margin:0">
+              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:8px">Metode Pembayaran <span style="color:var(--red)">*</span></label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="sppMetodeTransferGrid">
+                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BSI" onchange="updateSppMetode(this)"><span>🏦 TF BSI</span></label>
+                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BCA" onchange="updateSppMetode(this)"><span>🏦 TF BCA</span></label>
+                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Cash" onchange="updateSppMetode(this)"><span>💵 Cash</span></label>
+                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Lainnya" onchange="updateSppMetode(this)"><span>💳 Lainnya</span></label>
               </div>
             </div>
 
@@ -6369,12 +6411,28 @@ function salinNomor(nomor, btnId) {
   }).catch(function() { alert('Salin manual: ' + nomor); });
 }
 
+function updateSppBulanCount() {
+  var n = document.querySelectorAll('#sppBulanGrid input:checked').length;
+  document.getElementById('sppBulanCount').textContent = n === 0 ? 'Pilih 1 atau lebih' : n + ' bulan dipilih';
+  document.getElementById('sppBulanNominalHint').style.display = n > 1 ? '' : 'none';
+}
+function getSppBulanSelected() {
+  return Array.from(document.querySelectorAll('#sppBulanGrid input:checked')).map(function(c){ return c.value; });
+}
+function getSppMetodeSelected() {
+  var el = document.querySelector('input[name="sppMetodeTransfer"]:checked');
+  return el ? el.value : '';
+}
+
 async function bukaModalKonfirmasiSPP() {
   _sppFormJenis = 'SPP Pribadi';
   _sppBuktiBlob = null;
   document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
   document.getElementById('sppFormBulanWrap').style.display = '';
-  document.getElementById('sppFormBulan').value    = '';
+  // Reset checkboxes & radio
+  document.querySelectorAll('#sppBulanGrid input').forEach(function(c){ c.checked=false; });
+  document.querySelectorAll('input[name="sppMetodeTransfer"]').forEach(function(r){ r.checked=false; });
+  updateSppBulanCount();
   document.getElementById('sppFormNominal').value  = '';
   document.getElementById('sppFormCatatan').value  = '';
   document.getElementById('sppFormBuktiFile').value = '';
@@ -6422,13 +6480,15 @@ function tutupModalKonfirmasiSPP() { closeModal('sppKonfirmasiModal'); }
 
 async function submitKonfirmasiSPP() {
   var jenis   = _sppFormJenis;
-  var bulan   = document.getElementById('sppFormBulan').value;
+  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : ['-'];
+  var metode  = getSppMetodeSelected();
   var tahun   = document.getElementById('sppFormTahun').value;
   var nominal = document.getElementById('sppFormNominal').value;
   var catatan = document.getElementById('sppFormCatatan').value.trim();
   var errEl   = document.getElementById('sppFormErr');
 
-  if (jenis === 'SPP Pribadi' && !bulan) { errEl.textContent='Pilih bulan terlebih dahulu.'; errEl.style.display=''; return; }
+  if (jenis === 'SPP Pribadi' && !bulan.length) { errEl.textContent='Pilih minimal 1 bulan.'; errEl.style.display=''; return; }
+  if (!metode) { errEl.textContent='Pilih metode pembayaran.'; errEl.style.display=''; return; }
   errEl.style.display = 'none';
 
   showLoad('Mengunggah bukti...');
@@ -6446,7 +6506,7 @@ async function submitKonfirmasiSPP() {
     }
 
     showLoad('Mengirim konfirmasi...');
-    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan: bulan||'-', tahun, nominal, bukti_url: buktiUrl, catatan });
+    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan, metode_transfer: metode, tahun, nominal, bukti_url: buktiUrl, catatan });
     tutupModalKonfirmasiSPP();
     toast('Konfirmasi terkirim, menunggu validasi admin ✅', 'ok');
     _sppLoaded = false;

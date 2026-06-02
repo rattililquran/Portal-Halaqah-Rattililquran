@@ -1015,19 +1015,28 @@ var MuridAPI = {
     var id_murid = _uid();
     var user = _currentUser || {};
     var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid',id_murid).eq('status','aktif').maybeSingle();
-    var id_spp = 'SPP-' + id_murid + '-' + d.bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
-    var { error } = await _sb.from('spp_pembayaran').upsert({
-      id_spp, id_murid, nama_murid: user.nama || '',
-      id_halaqah: anggota && anggota.id_halaqah || '',
-      bulan: d.bulan, tahun: Number(d.tahun),
-      jenis: d.jenis || 'SPP Pribadi',
-      status: 'menunggu',
-      nominal: Number(d.nominal||0),
-      bukti_url: d.bukti_url || '',
-      catatan: d.catatan || '',
-    }, { onConflict: 'id_spp' });
+    var id_halaqah = anggota && anggota.id_halaqah || '';
+    // Support multi-bulan: d.bulan bisa array atau string
+    var bulanList = Array.isArray(d.bulan) ? d.bulan : (d.bulan && d.bulan !== '-' ? [d.bulan] : ['-']);
+    if (!bulanList.length) bulanList = ['-'];
+    var rows = bulanList.map(function(bulan) {
+      return {
+        id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun,
+        id_murid, nama_murid: user.nama || '',
+        id_halaqah,
+        bulan, tahun: Number(d.tahun),
+        jenis: d.jenis || 'SPP Pribadi',
+        status: 'menunggu',
+        nominal: bulanList.length > 1 ? Math.round(Number(d.nominal||0) / bulanList.length) : Number(d.nominal||0),
+        metode_transfer: d.metode_transfer || '',
+        bukti_url: d.bukti_url || '',
+        catatan: d.catatan || '',
+      };
+    });
+    var { error } = await _sb.from('spp_pembayaran').upsert(rows, { onConflict: 'id_spp' });
     _check(error, 'konfirmasiSPP');
-    return { status: 'ok', message: 'Konfirmasi pembayaran terkirim, menunggu validasi admin.' };
+    var jumlah = bulanList.length > 1 ? bulanList.length + ' bulan' : 'pembayaran';
+    return { status: 'ok', message: 'Konfirmasi ' + jumlah + ' terkirim, menunggu validasi admin.' };
   },
 
   getProgressGrafik: async function() { return { status: 'ok', data: [] }; },
