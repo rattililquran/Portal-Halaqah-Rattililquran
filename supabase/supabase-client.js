@@ -618,11 +618,22 @@ var GuruAPI = {
     _check(error, 'getAtTibyanRekap');
     var muridMap = {};
     (data || []).forEach(function(r) {
-      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, nama_halaqah: r.nama_halaqah, level: '', hadir: 0, absen: 0, total: 0 };
+      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid || '', nama_halaqah: r.nama_halaqah, level: '', hadir: 0, absen: 0, total: 0 };
       var m = muridMap[r.id_murid];
       m.total++;
       if (['H','T'].includes(r.status_hadir)) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
     });
+    // Ambil nama_lengkap & level dari users agar nama selalu akurat
+    var muridIds = Object.keys(muridMap);
+    if (muridIds.length) {
+      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap, level').in('id_user', muridIds);
+      (users || []).forEach(function(u) {
+        if (muridMap[u.id_user]) {
+          if (u.nama_lengkap) muridMap[u.id_user].nama_murid = u.nama_lengkap;
+          muridMap[u.id_user].level = u.level || '';
+        }
+      });
+    }
     var rows = Object.values(muridMap).map(function(m) {
       return Object.assign(m, { pct_hadir: m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0 });
     }).sort(function(a,b){ return (a.nama_murid||'').localeCompare(b.nama_murid||''); });
@@ -655,12 +666,16 @@ var GuruAPI = {
       if (hadir) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
       m.riwayat.push({ warna: hadir ? 'hijau' : 'merah', tanggal: r.tanggal });
     });
-    // Ambil no_hp + level dari users
+    // Ambil nama_lengkap, no_hp, level dari users agar selalu akurat
     var muridIds = Object.keys(muridMap);
     if (muridIds.length) {
-      var { data: users } = await _sb.from('users').select('id_user, no_hp, level').in('id_user', muridIds);
+      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap, no_hp, level').in('id_user', muridIds);
       (users || []).forEach(function(u) {
-        if (muridMap[u.id_user]) { muridMap[u.id_user].no_hp = u.no_hp; muridMap[u.id_user].level = u.level || ''; }
+        if (muridMap[u.id_user]) {
+          if (u.nama_lengkap) muridMap[u.id_user].nama_murid = u.nama_lengkap;
+          muridMap[u.id_user].no_hp  = u.no_hp  || '';
+          muridMap[u.id_user].level  = u.level  || '';
+        }
       });
     }
     var summary = { kritis: 0, peringatan: 0, normal: 0 };
@@ -692,12 +707,16 @@ var GuruAPI = {
   },
 
   editAtTibyan: async function(d) {
+    // Ambil tanggal dari sesi agar log tetap punya tanggal yang benar
+    var { data: sesiData } = await _sb.from('at_tibyan_sesi').select('tanggal').eq('id_sesi', d.id_sesi).single();
+    var tanggal = (sesiData && sesiData.tanggal) || d.tanggal || null;
     await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
     var hadirCount = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
     await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
     var logRows = d.presensi.map(function(p) { return {
       id_sesi: d.id_sesi, id_murid: p.id_murid, nama_murid: p.nama_murid,
-      id_halaqah: p.id_halaqah, status_hadir: p.status_hadir,
+      id_halaqah: p.id_halaqah, nama_halaqah: p.nama_halaqah || '',
+      status_hadir: p.status_hadir, tanggal: tanggal,
     }; });
     await _sb.from('at_tibyan_log').insert(logRows);
     return { status: 'ok' };
