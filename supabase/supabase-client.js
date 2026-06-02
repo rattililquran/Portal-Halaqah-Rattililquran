@@ -83,6 +83,7 @@ var Auth = {
       ? '../index.html' : 'index.html';
   },
 
+  getUser: function() { return _currentUser; },
   getProfile: function() { return Promise.resolve({ status: 'ok', data: _currentUser }); },
 
   changePassword: async function(d) {
