@@ -338,8 +338,8 @@ var GuruAPI = {
   tutupKBM: async function(id_kbm) {
     var { count } = await _sb.from('nilai_kbm').select('*', { count: 'exact', head: true }).eq('id_kbm', id_kbm);
     if (!count) {
-      await _sb.from('kbm_log').delete().eq('id_kbm', id_kbm);
-      return { status: 'empty_cancelled', message: 'Sesi dibatalkan karena tidak ada presensi murid' };
+      // Tidak auto-delete — guru harus aktif memilih hapus via hapusKBM()
+      return { status: 'error', message: 'Belum ada presensi murid. Isi presensi dulu atau hapus sesi secara manual.' };
     }
     var { data: kbm } = await _sb.from('nilai_kbm').select('status_hadir').eq('id_kbm', id_kbm);
     var hadir = (kbm || []).filter(function(n) { return ['H','T'].includes(n.status_hadir); }).length;
