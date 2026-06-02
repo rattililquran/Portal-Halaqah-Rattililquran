@@ -427,16 +427,18 @@ var GuruAPI = {
   },
 
   getPresensiByKBM: async function(id_kbm) {
-    var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_murid, status_hadir').eq('id_kbm', id_kbm);
-    _check(error, 'getPresensiByKBM');
-    var ids = (data || []).map(function(r) { return r.id_murid; });
+    var [nilaiRes, kbmRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('id_murid, status_hadir').eq('id_kbm', id_kbm),
+      _sb.from('kbm_log').select('id_kbm, id_halaqah, tanggal_pertemuan, pertemuan_ke').eq('id_kbm', id_kbm).maybeSingle(),
+    ]);
+    _check(nilaiRes.error, 'getPresensiByKBM');
+    var ids = (nilaiRes.data || []).map(function(r) { return r.id_murid; });
     var namaMap = {};
     if (ids.length > 0) {
       var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
       (users || []).forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
     }
-    return { status: 'ok', data: (data || []).map(function(r) {
+    return { status: 'ok', kbm: kbmRes.data || null, data: (nilaiRes.data || []).map(function(r) {
       return { id_murid: r.id_murid, status_hadir: r.status_hadir, nama_murid: namaMap[r.id_murid] || r.id_murid };
     })};
   },

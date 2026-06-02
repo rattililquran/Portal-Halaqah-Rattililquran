@@ -3,7 +3,7 @@
 //  Cache version: v4.1
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v4.7';
+const CACHE_NAME   = 'halaqah-v4.8';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -92,6 +92,9 @@ self.addEventListener('fetch', function(e) {
     );
     return;
   }
+
+  // Hanya GET yang di-cache — POST/PUT/PATCH jangan pernah dicache
+  if (e.request.method !== 'GET') return;
 
   // HTML pages — network first, fallback cache
   e.respondWith(
