@@ -940,124 +940,83 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 
       <!-- ══ SPP & INFAQ ══ -->
       <div class="page" id="page-spp">
-        <div class="section-title">💳 SPP &amp; Infaq</div>
 
-        <!-- Metode Pembayaran -->
-        <div style="margin-bottom:24px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="font-size:12px;font-weight:800;color:#1a5c3a;text-transform:uppercase;letter-spacing:.5px">🏦 Metode Pembayaran</div>
-            <button class="btn btn-outline btn-sm" onclick="bukaFormMetode()">+ Tambah</button>
+        <!-- ── Header ── -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div class="section-title" style="margin:0">💳 SPP &amp; Infaq</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:3px">Kelola pembayaran dan rekap tunggakan murid</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadSPPAdmin()" style="display:flex;align-items:center;gap:6px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- ── Stats ── -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #10b981">
+            <div style="font-size:28px;font-weight:900;color:#065f46;line-height:1" id="sppStatLunas">—</div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">✅ Lunas</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #ef4444">
+            <div style="font-size:28px;font-weight:900;color:#b91c1c;line-height:1" id="sppStatTunggak">—</div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">⚠ Menunggak</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #3b82f6">
+            <div style="font-size:15px;font-weight:900;color:#1d4ed8;line-height:1.2" id="sppStatTotal">—</div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💰 Total SPP</div>
+          </div>
+        </div>
+
+        <!-- ── Metode Pembayaran ── -->
+        <div class="card" style="padding:16px 20px;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">🏦 Metode Pembayaran</div>
+            <button class="btn btn-primary btn-sm" onclick="bukaFormMetode()" style="font-size:12px;padding:6px 12px">+ Tambah</button>
           </div>
           <div id="sppMetodeAdminList" style="display:flex;flex-direction:column;gap:8px">
-            <div style="text-align:center;padding:16px;color:#94a3b8;font-size:13px">Memuat...</div>
+            <div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Memuat...</div>
           </div>
         </div>
 
-        <!-- Modal Tambah/Edit Metode -->
-        <div class="modal-overlay" id="modalMetode" onclick="if(event.target===this)tutupFormMetode()">
-          <div class="modal-sheet" style="max-width:420px">
-            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
-              <div class="section-title" style="margin:0;font-size:14px" id="modalMetodeTitle">Tambah Metode Bayar</div>
-              <button class="btn-icon" onclick="tutupFormMetode()">✕</button>
-            </div>
-            <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
-              <input type="hidden" id="metodeId">
-              <div>
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Jenis</label>
-                <div style="display:flex;gap:8px" id="metodeJenisTabs">
-                  <div style="flex:1;padding:9px;border-radius:10px;border:2px solid #1a5c3a;background:#f0fdf4;color:#1a5c3a;font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)">🏦 Rekening</div>
-                  <div style="flex:1;padding:9px;border-radius:10px;border:2px solid var(--border);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)">📱 QRIS</div>
-                </div>
-              </div>
-              <input type="hidden" id="metodeJenis" value="rekening">
-              <div class="fg" style="margin:0">
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Nama / Label</label>
-                <input id="metodeNama" class="fc" placeholder="Cth: Bank BSI, Dana, QRIS Rattil" style="width:100%">
-              </div>
-              <div id="metodeRekeningFields">
-                <div class="fg" style="margin:0 0 10px">
-                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Nama Bank</label>
-                  <input id="metodeBank" class="fc" placeholder="Cth: BSI, BCA, Dana" style="width:100%">
-                </div>
-                <div class="fg" style="margin:0 0 10px">
-                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Nomor Rekening</label>
-                  <input id="metodeNomor" class="fc" placeholder="Cth: 7123456789" style="width:100%">
-                </div>
-                <div class="fg" style="margin:0">
-                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Atas Nama</label>
-                  <input id="metodeAtasNama" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
-                </div>
-              </div>
-              <div id="metodeQrisFields" style="display:none">
-                <div class="fg" style="margin:0 0 10px">
-                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Atas Nama</label>
-                  <input id="metodeAtasNamaQris" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
-                </div>
-                <div class="fg" style="margin:0">
-                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">URL Gambar QRIS</label>
-                  <input id="metodeQrisUrl" class="fc" placeholder="https://..." style="width:100%">
-                  <div style="font-size:11px;color:#94a3b8;margin-top:4px">Upload gambar QRIS ke Supabase Storage atau Google Drive, paste URL-nya di sini. Bisa diisi nanti.</div>
-                </div>
-              </div>
-              <div class="fg" style="margin:0">
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:5px">Urutan Tampil</label>
-                <input type="number" id="metodeUrutan" class="fc" value="1" min="1" style="width:100%">
-              </div>
-            </div>
-            <div class="modal-foot">
-              <button class="btn btn-outline" onclick="tutupFormMetode()">Batal</button>
-              <button class="btn btn-primary" onclick="simpanMetode()">💾 Simpan</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats row -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px" id="sppStatRow">
-          <div class="stat" style="text-align:center;padding:18px 12px">
-            <div style="font-size:22px;font-weight:900;color:#1a5c3a" id="sppStatLunas">—</div>
-            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Murid Lunas</div>
-          </div>
-          <div class="stat" style="text-align:center;padding:18px 12px">
-            <div style="font-size:22px;font-weight:900;color:#b91c1c" id="sppStatTunggak">—</div>
-            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Menunggak</div>
-          </div>
-          <div class="stat" style="text-align:center;padding:18px 12px">
-            <div style="font-size:18px;font-weight:900;color:#0369a1" id="sppStatTotal">—</div>
-            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:4px">Total SPP Pribadi</div>
-          </div>
-        </div>
-
-        <!-- Filter -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
-          <select id="sppFilterTahun" class="fc" style="width:auto" onchange="loadSPPAdmin()">
-            <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
-          </select>
-          <select id="sppFilterHalaqah" class="fc" style="width:auto" onchange="loadSPPAdmin()">
-            <option value="">Semua Halaqah</option>
-          </select>
-          <select id="sppFilterBulan" class="fc" style="width:auto" onchange="filterSPPTable()">
-            <option value="">Semua Bulan</option>
-            <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
-            <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
-            <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
-          </select>
-          <button class="btn btn-outline btn-sm" onclick="loadSPPAdmin()">🔄 Refresh</button>
-        </div>
-
-        <!-- Pending validasi -->
+        <!-- ── Pending Validasi ── -->
         <div id="sppPendingSection" style="display:none;margin-bottom:20px">
-          <div style="font-size:12px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
-            ⏳ Menunggu Validasi
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px">
+            <span style="font-size:16px">⏳</span>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#92400e">Menunggu Validasi</div>
+              <div style="font-size:11px;color:#b45309">Periksa bukti transfer sebelum konfirmasi</div>
+            </div>
           </div>
-          <div id="sppPendingList"></div>
+          <div id="sppPendingList" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
 
-        <!-- Rekap tunggakan (SPP Pribadi saja) -->
-        <div style="font-size:12px;font-weight:800;color:#1a5c3a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
-          📋 Rekap SPP Pribadi
-        </div>
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">Infaq/Operasional dicatat tapi tidak masuk rekap tunggakan per bulan.</div>
+        <!-- ── Rekap Tunggakan ── -->
         <div class="card" style="padding:0;overflow:hidden">
+          <!-- Header rekap -->
+          <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)">📋 Rekap SPP Pribadi</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Infaq tidak masuk rekap tunggakan per bulan</div>
+            </div>
+            <!-- Filter -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <select id="sppFilterTahun" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="loadSPPAdmin()">
+                <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+              </select>
+              <select id="sppFilterHalaqah" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="loadSPPAdmin()">
+                <option value="">Semua Halaqah</option>
+              </select>
+              <select id="sppFilterBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
+                <option value="">Semua Bulan</option>
+                <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
+                <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
+                <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:13px" id="sppRekapTable">
             <thead>
               <tr style="background:#1a5c3a;color:#fff">
@@ -1072,8 +1031,68 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               <tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Pilih tahun dan klik Refresh</td></tr>
             </tbody>
           </table>
+          </div><!-- /overflow-x -->
+        </div><!-- /card rekap -->
+
+        <!-- Modal Tambah/Edit Metode -->
+        <div class="modal-overlay" id="modalMetode" onclick="if(event.target===this)tutupFormMetode()">
+          <div class="modal-sheet" style="max-width:420px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalMetodeTitle">Tambah Metode Bayar</div>
+              <button class="btn-icon" onclick="tutupFormMetode()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+              <input type="hidden" id="metodeId">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:8px">Jenis</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="metodeJenisTabs">
+                  <div style="padding:10px;border-radius:10px;border:2px solid #1a5c3a;background:#f0fdf4;color:#1a5c3a;font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)">🏦 Rekening Bank</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)">📱 QRIS</div>
+                </div>
+              </div>
+              <input type="hidden" id="metodeJenis" value="rekening">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nama / Label</label>
+                <input id="metodeNama" class="fc" placeholder="Cth: Bank BSI, Dana, QRIS Rattil" style="width:100%">
+              </div>
+              <div id="metodeRekeningFields" style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nama Bank</label>
+                  <input id="metodeBank" class="fc" placeholder="Cth: BSI, BCA, Dana" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nomor Rekening</label>
+                  <input id="metodeNomor" class="fc" placeholder="Cth: 7123456789" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Atas Nama</label>
+                  <input id="metodeAtasNama" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
+                </div>
+              </div>
+              <div id="metodeQrisFields" style="display:none;flex-direction:column;gap:12px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Atas Nama</label>
+                  <input id="metodeAtasNamaQris" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">URL Gambar QRIS</label>
+                  <input id="metodeQrisUrl" class="fc" placeholder="https://..." style="width:100%">
+                  <div style="font-size:11px;color:#94a3b8;margin-top:5px">Paste URL dari Google Drive atau Supabase Storage. Bisa diisi nanti.</div>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Urutan Tampil</label>
+                <input type="number" id="metodeUrutan" class="fc" value="1" min="1" style="width:80px">
+              </div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-outline" onclick="tutupFormMetode()">Batal</button>
+              <button class="btn btn-primary" onclick="simpanMetode()">Simpan</button>
+            </div>
+          </div>
         </div>
-      </div>
+
+      </div><!-- /page-spp -->
 
       <!-- ══ PENGUMUMAN ══ -->
       <div class="page" id="page-pengumuman">
