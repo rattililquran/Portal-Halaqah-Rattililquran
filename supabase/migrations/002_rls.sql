@@ -229,7 +229,7 @@ create policy "admin_all_pengumuman" on public.pengumuman
 
 -- Guru: buat pengumuman + lihat pengumuman halaqahnya
 create policy "guru_write_pengumuman" on public.pengumuman
-  for insert using (is_guru() and dibuat_oleh = current_user_id());
+  for insert with check (is_guru() and dibuat_oleh = current_user_id());
 
 create policy "guru_read_pengumuman" on public.pengumuman
   for select using (
@@ -339,7 +339,7 @@ create policy "superadmin_all_observasi" on public.observasi_kbm
 
 -- Ketua kelas: buat dan lihat observasi dirinya
 create policy "ketua_write_observasi" on public.observasi_kbm
-  for insert using (
+  for insert with check (
     is_murid() and
     exists(
       select 1 from public.anggota
@@ -374,7 +374,7 @@ create policy "superadmin_read_audit" on public.audit_log
 
 -- Semua user authenticated bisa insert (untuk logging)
 create policy "all_insert_audit" on public.audit_log
-  for insert using (auth.uid() is not null);
+  for insert with check (auth.uid() is not null);
 
 -- ============================================================
 --  TABEL: SPP PEMBAYARAN
