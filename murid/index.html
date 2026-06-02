@@ -1929,6 +1929,10 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .bottom-nav{opacity:.85}
 }
 
+/* Sidebar active nav item */
+.sidebar-item[data-p].active{background:rgba(59,130,246,.1)!important;color:var(--blue)!important}
+.sidebar-item[data-p].active .sidebar-item-ico{background:rgba(59,130,246,.15)!important;color:var(--blue)!important}
+
 /* ── Desktop persistent sidebar ≥1024px ── */
 @media(min-width:1024px){
   body{overflow:hidden}
@@ -2757,6 +2761,25 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
       <div class="sidebar-top-wave"></div>
     </div>
     <div class="sidebar-nav">
+      <div class="sidebar-section">Navigasi</div>
+      <button class="sidebar-item ico-blue" id="sidebarNavDashboard" onclick="closeSidebar();goPage('dashboard')" data-p="dashboard">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        Beranda
+      </button>
+      <button class="sidebar-item ico-blue" id="sidebarNavRiwayat" onclick="closeSidebar();goPage('riwayat')" data-p="riwayat">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        Riwayat KBM
+      </button>
+      <button class="sidebar-item ico-blue" id="sidebarNavPr" onclick="closeSidebar();goPage('pr')" data-p="pr">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <span style="flex:1">Latihan Mandiri</span>
+        <span id="sidebarPrBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
+      </button>
+      <button class="sidebar-item ico-blue" id="sidebarNavMateri" onclick="closeSidebar();goPage('info')" data-p="info">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        Materi
+      </button>
+      <div class="sidebar-divider"></div>
       <div class="sidebar-section">Akun</div>
       <button class="sidebar-item ico-blue" onclick="closeSidebar();openModal('profilModal')">
         <div class="sidebar-item-ico">
@@ -3725,10 +3748,9 @@ function goPage(name, swipeDir) {
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active','slide-in-left','slide-in-right');
   });
-  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.nav-item,[data-p]').forEach(function(b){ b.classList.remove('active'); });
 
   var page = document.getElementById('page-' + name);
-  var btn  = document.querySelector('[data-p="' + name + '"]');
   if (page) {
     page.classList.add('active');
     // Animasi arah berdasarkan swipe atau posisi tab
@@ -3741,7 +3763,7 @@ function goPage(name, swipeDir) {
       }
     }
   }
-  if (btn) btn.classList.add('active');
+  document.querySelectorAll('[data-p="' + name + '"]').forEach(function(b){ b.classList.add('active'); });
   window.scrollTo(0, 0);
 
   // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
@@ -4412,17 +4434,21 @@ function checkPRBadge(rows) {
   var urgent = (rows||[]).filter(function(pr){
     return pr.status_deadline === 'lewat' || pr.status_deadline === 'hari_ini';
   }).length;
+  // Bottom nav badge
   var nav = document.getElementById('navPr');
-  if (!nav) return;
-  // Hapus badge lama
-  var old = nav.querySelector('.nav-badge');
-  if (old) old.remove();
-  if (urgent > 0) {
-    var badge = document.createElement('span');
-    badge.className = 'nav-badge';
-    badge.textContent = urgent;
-    nav.appendChild(badge);
+  if (nav) {
+    var old = nav.querySelector('.nav-badge');
+    if (old) old.remove();
+    if (urgent > 0) {
+      var badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      badge.textContent = urgent;
+      nav.appendChild(badge);
+    }
   }
+  // Sidebar badge
+  var sb = document.getElementById('sidebarPrBadge');
+  if (sb) { sb.textContent = urgent; sb.style.display = urgent > 0 ? '' : 'none'; }
 }
 
 // ══════════════════════════════════════════
