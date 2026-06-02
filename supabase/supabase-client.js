@@ -533,8 +533,38 @@ var GuruAPI = {
 
   // ── Assessment ─────────────────────────────
   getAssessmentRekap: async function(id_halaqah) {
-    // Assessment mandiri belum ada tabel khusus — return empty agar frontend tampil "belum ada data"
-    return { status: 'ok', data: [], total_items: 0, level: '' };
+    var { data: anggota } = await _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status','aktif');
+    if (!anggota || !anggota.length) return { status:'ok', data:[], total_items:0, level:'' };
+    var level    = anggota[0].level || 'Level 1';
+    var muridIds = anggota.map(function(a){ return a.id_murid; });
+    var [itemsRes, jawabanRes] = await Promise.all([
+      _sb.from('assessment_items').select('id_item').eq('level', level).eq('status','aktif'),
+      _sb.from('assessment_murid').select('id_murid, id_item, status, updated_at').in('id_murid', muridIds),
+    ]);
+    var items      = itemsRes.data  || [];
+    var totalItems = items.length;
+    var itemSet    = new Set(items.map(function(i){ return i.id_item; }));
+    // Group jawaban per murid
+    var jawabanMap = {};
+    (jawabanRes.data || []).forEach(function(j) {
+      if (!jawabanMap[j.id_murid]) jawabanMap[j.id_murid] = { items:{}, last_update: null };
+      jawabanMap[j.id_murid].items[j.id_item] = j.status;
+      if (!jawabanMap[j.id_murid].last_update || j.updated_at > jawabanMap[j.id_murid].last_update)
+        jawabanMap[j.id_murid].last_update = j.updated_at;
+    });
+    var data = anggota.map(function(m) {
+      var mj = jawabanMap[m.id_murid] || { items:{}, last_update: null };
+      var paham=0, ragu=0, belum=0, kosong=0;
+      itemSet.forEach(function(id_item) {
+        var s = mj.items[id_item];
+        if      (s === 'paham') paham++;
+        else if (s === 'ragu' ) ragu++;
+        else if (s === 'belum') belum++;
+        else kosong++;
+      });
+      return { id_murid:m.id_murid, nama_murid:m.nama_murid, summary:{paham,ragu,belum,kosong}, pct_paham:totalItems>0?Math.round(paham/totalItems*100):0, last_update:mj.last_update };
+    }).sort(function(a,b){ return a.pct_paham - b.pct_paham; });
+    return { status:'ok', data, total_items: totalItems, level };
   },
 
   // ── At-Tibyan ──────────────────────────────
@@ -960,9 +990,41 @@ var MuridAPI = {
     return { status: 'ok', data: cfg };
   },
   getKeaktifanAlerts: async function() { return { status: 'ok', data: { alerts: [] } }; },
-  getAssessmentItems: async function() { return { status: 'ok', data: {} }; },
-  getAssessmentMurid: async function() { return { status: 'ok', data: {} }; },
-  saveAssessment: async function() { return { status: 'ok' }; },
+
+  getAssessmentItems: async function(level) {
+    var q = _sb.from('assessment_items').select('id_item,level,kategori,teks_latin,teks_arab,keterangan,urutan').eq('status','aktif').order('urutan');
+    if (level) q = q.eq('level', level);
+    var { data, error } = await q;
+    if (error || !data || !data.length) return { status: 'ok', data: {} };
+    var grouped = {};
+    (data || []).forEach(function(item) {
+      if (!grouped[item.level]) grouped[item.level] = {};
+      if (!grouped[item.level][item.kategori]) grouped[item.level][item.kategori] = [];
+      grouped[item.level][item.kategori].push(item);
+    });
+    return { status: 'ok', data: grouped };
+  },
+
+  getAssessmentMurid: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('assessment_murid').select('id_item, status').eq('id_murid', id_murid);
+    if (error) return { status: 'ok', data: {} };
+    var jawaban = {};
+    (data || []).forEach(function(r) { jawaban[r.id_item] = r.status; });
+    return { status: 'ok', data: jawaban };
+  },
+
+  saveAssessment: async function(d) {
+    var id_murid = _uid();
+    var jawaban  = d.jawaban || {};
+    var rows = Object.keys(jawaban).filter(function(k){ return jawaban[k]; }).map(function(id_item) {
+      return { id_murid, id_item, status: jawaban[id_item], updated_at: new Date().toISOString() };
+    });
+    if (!rows.length) return { status: 'ok' };
+    var { error } = await _sb.from('assessment_murid').upsert(rows, { onConflict: 'id_murid,id_item' });
+    _check(error, 'saveAssessment');
+    return { status: 'ok', message: rows.length + ' jawaban disimpan' };
+  },
   changePassword: async function(d) { return Auth.changePassword(d); },
   updateProfil: async function(d) {
     var { error } = await _sb.from('users').update({ no_hp: d.no_hp, email: d.email }).eq('id_user', _uid());
