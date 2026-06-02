@@ -6953,10 +6953,10 @@ async function downloadPDFResmi() {
     doc.setFillColor(26,92,58); doc.rect(0,0,W,2,'F');
     doc.setFillColor(197,155,32); doc.rect(0,2,W,1,'F');
 
-    // ── Coba load logo ──
+    // ── Coba load logo (lokal, abu) ──
     var logoDataUrl = null;
     try {
-      var logoResp = await fetch('https://iili.io/fbAHOOl.png', {mode:'cors'});
+      var logoResp = await fetch('../assets/images/logo-abu.png');
       if (logoResp.ok) {
         var logoBlob = await logoResp.blob();
         logoDataUrl = await new Promise(function(res) {
@@ -6969,16 +6969,14 @@ async function downloadPDFResmi() {
     doc.setFillColor(...GL); doc.rect(0,3,W,32,'F');
     var textX = mar;
     if (logoDataUrl) {
-      try { doc.addImage(logoDataUrl,'PNG', mar, 7, 18, 18); } catch(e){}
-      textX = mar + 22;
+      try { doc.addImage(logoDataUrl,'PNG', mar, 6, 22, 22); } catch(e){}
+      textX = mar + 26;
     }
-    // Nama lembaga (lebih bold & besar)
+    // Nama lembaga
     doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(20);
-    doc.text("Rattililqur'an", textX, 17);
+    doc.text("RATTILILQUR'AN", textX, 17);
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Md);
-    doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textX, 23);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...Lt);
-    doc.text('rattililquran.com', textX, 29);
+    doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textX, 24);
     // Divider vertikal emas
     doc.setDrawColor(...Au); doc.setLineWidth(0.8);
     doc.line(W/2+10, 8, W/2+10, 31);
@@ -6986,7 +6984,7 @@ async function downloadPDFResmi() {
     doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(15);
     doc.text('RAPORT HALAQAH', W-mar, 17, {align:'right'});
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Md);
-    doc.text(rp.periode || '', W-mar, 23, {align:'right'});
+    doc.text(rp.periode || '', W-mar, 24, {align:'right'});
     // Garis bawah header
     doc.setDrawColor(...G); doc.setLineWidth(0.3);
     doc.line(0,35,W,35);
