@@ -991,12 +991,18 @@ var MuridAPI = {
       return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
     });
     var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    var bulanBerjalan = new Date().getMonth(); // bulan yang sudah selesai (Juni=5 → Jan-Mei)
-    var tunggakan = Math.max(0, bulanBerjalan - lunasBulan.length);
+    var TOTAL_REKAP  = 5;
+    var bulanSelesai = new Date().getMonth(); // bulan yg sudah lewat (Juni=5 → Jan-Mei selesai)
+    // Bulan pertama = bulan pertama yang dibayar; jika belum ada, mundur TOTAL_REKAP dari sekarang
+    var paidIndices = lunasBulan.map(function(b){ return BULAN.indexOf(b); }).filter(function(i){ return i>=0 && i<bulanSelesai; });
+    var startIdx = paidIndices.length > 0 ? Math.min.apply(null, paidIndices) : Math.max(0, bulanSelesai - TOTAL_REKAP);
+    var endIdx   = Math.min(startIdx + TOTAL_REKAP, bulanSelesai);
+    var tunggakan = Math.max(0, endIdx - startIdx - lunasBulan.filter(function(b){ var i=BULAN.indexOf(b); return i>=startIdx&&i<endIdx; }).length);
     return { status: 'ok', data: {
       rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
       bulan_grid: bulanGrid, tunggakan, total_nominal: totalNominal,
       tahun_aktif: tahunAktif, has_paid: lunasBulan.length > 0,
+      start_bulan: BULAN[startIdx], end_bulan: BULAN[endIdx-1],
     }};
   },
 
@@ -1255,8 +1261,9 @@ var AdminAPI = {
       (usersHp||[]).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    // getMonth() = 0-11; tanpa +1 = jumlah bulan yang sudah selesai (Juni baru mulai = 5 bulan Jan-Mei)
-    var bulanBerjalan = new Date().getMonth();
+    var TOTAL_REKAP   = 5;
+    // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → 5 bulan = Jan-Mei sudah lewat)
+    var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif (Juni baru mulai → 5)
     // Map id_murid → bulan lunas
     var lunasMap = {};
     (sppData||[]).forEach(function(s){
@@ -1265,8 +1272,16 @@ var AdminAPI = {
     });
     var muridList = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
-      var tunggakan  = Math.max(0, bulanBerjalan - lunasBulan.length);
-      var bulanBelum = BULAN.slice(0, bulanBerjalan).filter(function(b){ return !lunasBulan.includes(b); });
+      // Cari bulan pertama yang dibayar; jika belum ada, mulai dari bulan terlama di window
+      var paidIndices = lunasBulan.map(function(b){ return BULAN.indexOf(b); }).filter(function(i){ return i>=0 && i<bulanSelesai; });
+      var startIdx = paidIndices.length > 0
+        ? Math.min.apply(null, paidIndices)
+        : Math.max(0, bulanSelesai - TOTAL_REKAP); // jika belum bayar, mulai dari (selesai - 5)
+      // Window: startIdx sampai min(startIdx+TOTAL_REKAP, bulanSelesai)
+      var endIdx    = Math.min(startIdx + TOTAL_REKAP, bulanSelesai);
+      var bulanRekap = BULAN.slice(startIdx, endIdx);
+      var bulanBelum = bulanRekap.filter(function(b){ return !lunasBulan.includes(b); });
+      var tunggakan  = bulanBelum.length;
       return {
         id_murid: a.id_murid, nama_murid: a.nama_murid,
         id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
