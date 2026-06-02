@@ -393,12 +393,17 @@ var GuruAPI = {
   },
 
   getNilaiByKBM: async function(id_kbm) {
-    var { data, error } = await _sb.from('nilai_kbm')
-      .select('*, users!nilai_kbm_id_murid_fkey(nama_lengkap)')
-      .eq('id_kbm', id_kbm);
+    var { data, error } = await _sb.from('nilai_kbm').select('*').eq('id_kbm', id_kbm);
     _check(error, 'getNilaiByKBM');
+    // Ambil nama murid terpisah untuk hindari ambiguitas FK join
+    var ids = (data || []).map(function(r) { return r.id_murid; });
+    var namaMap = {};
+    if (ids.length > 0) {
+      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
+      (users || []).forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
+    }
     return { status: 'ok', data: (data || []).map(function(r) {
-      return Object.assign({}, r, { nama_murid: r.users && r.users.nama_lengkap });
+      return Object.assign({}, r, { nama_murid: namaMap[r.id_murid] || r.id_murid });
     })};
   },
 
