@@ -218,13 +218,28 @@ var GuruAPI = {
 
   // ── Murid ──────────────────────────────────
   getMurid: async function(id_halaqah) {
-    var { data, error } = await _sb.from('anggota')
-      .select('*, users!anggota_id_murid_fkey(no_hp, email)')
-      .eq('id_halaqah', id_halaqah).eq('status', 'aktif').order('nama_murid');
-    _check(error, 'getMurid');
-    // Flatten untuk kompatibilitas dengan portal lama
-    return { status: 'ok', data: (data || []).map(function(a) {
-      return Object.assign({}, a, { no_hp: a.users && a.users.no_hp, email: a.users && a.users.email });
+    var [anggotaRes, nilaiRes] = await Promise.all([
+      _sb.from('anggota').select('*, users!anggota_id_murid_fkey(no_hp, email)')
+        .eq('id_halaqah', id_halaqah).eq('status', 'aktif').order('nama_murid'),
+      _sb.from('nilai_kbm').select('id_murid, status_hadir, adab, kamera_murid')
+        .eq('id_halaqah', id_halaqah),
+    ]);
+    _check(anggotaRes.error, 'getMurid');
+    var nilaiAll = nilaiRes.data || [];
+    return { status: 'ok', data: (anggotaRes.data || []).map(function(a) {
+      var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
+      var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
+      var adabData   = hadir.filter(function(n) { return n.adab; });
+      var kameraData = hadir.filter(function(n) { return n.kamera_murid; });
+      return Object.assign({}, a, {
+        no_hp       : a.users && a.users.no_hp,
+        email       : a.users && a.users.email,
+        jumlah_hadir: hadir.length,
+        total_sesi  : nm.length,
+        pct_hadir   : nm.length > 0 ? Math.round(hadir.length / nm.length * 100) : 0,
+        poin_adab   : adabData.length > 0 ? Math.round(adabData.filter(function(n){return n.adab==='Baik';}).length / adabData.length * 100) : 0,
+        poin_kamera : kameraData.length > 0 ? Math.round(kameraData.filter(function(n){return n.kamera_murid==='kamera terbuka';}).length / kameraData.length * 100) : 0,
+      });
     })};
   },
 
@@ -378,9 +393,13 @@ var GuruAPI = {
   },
 
   getNilaiByKBM: async function(id_kbm) {
-    var { data, error } = await _sb.from('nilai_kbm').select('*').eq('id_kbm', id_kbm);
+    var { data, error } = await _sb.from('nilai_kbm')
+      .select('*, anggota!nilai_kbm_id_murid_fkey(nama_murid)')
+      .eq('id_kbm', id_kbm);
     _check(error, 'getNilaiByKBM');
-    return { status: 'ok', data };
+    return { status: 'ok', data: (data || []).map(function(r) {
+      return Object.assign({}, r, { nama_murid: r.anggota && r.anggota.nama_murid });
+    })};
   },
 
   getPresensiByKBM: async function(id_kbm) {
@@ -477,9 +496,8 @@ var GuruAPI = {
 
   // ── Assessment ─────────────────────────────
   getAssessmentRekap: async function(id_halaqah) {
-    // Murid di halaqah
-    var { data: anggota } = await _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status', 'aktif');
-    return { status: 'ok', data: anggota || [], total_items: 0, level: '' };
+    // Assessment mandiri belum ada tabel khusus — return empty agar frontend tampil "belum ada data"
+    return { status: 'ok', data: [], total_items: 0, level: '' };
   },
 
   // ── At-Tibyan ──────────────────────────────
