@@ -394,11 +394,11 @@ var GuruAPI = {
 
   getNilaiByKBM: async function(id_kbm) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('*, anggota!nilai_kbm_id_murid_fkey(nama_murid)')
+      .select('*, users!nilai_kbm_id_murid_fkey(nama_lengkap)')
       .eq('id_kbm', id_kbm);
     _check(error, 'getNilaiByKBM');
     return { status: 'ok', data: (data || []).map(function(r) {
-      return Object.assign({}, r, { nama_murid: r.anggota && r.anggota.nama_murid });
+      return Object.assign({}, r, { nama_murid: r.users && r.users.nama_lengkap });
     })};
   },
 
