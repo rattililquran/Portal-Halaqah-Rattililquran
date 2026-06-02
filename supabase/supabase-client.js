@@ -426,14 +426,17 @@ var GuruAPI = {
 
   getPresensiByKBM: async function(id_kbm) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_murid, status_hadir, anggota!nilai_kbm_id_murid_fkey(nama_murid)')
-      .eq('id_kbm', id_kbm);
+      .select('id_murid, status_hadir').eq('id_kbm', id_kbm);
     _check(error, 'getPresensiByKBM');
-    // Flatten nama_murid dari join
-    var flat = (data || []).map(function(r) {
-      return { id_murid: r.id_murid, status_hadir: r.status_hadir, nama_murid: r.anggota && r.anggota.nama_murid };
-    });
-    return { status: 'ok', data: flat };
+    var ids = (data || []).map(function(r) { return r.id_murid; });
+    var namaMap = {};
+    if (ids.length > 0) {
+      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
+      (users || []).forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
+    }
+    return { status: 'ok', data: (data || []).map(function(r) {
+      return { id_murid: r.id_murid, status_hadir: r.status_hadir, nama_murid: namaMap[r.id_murid] || r.id_murid };
+    })};
   },
 
   getRiwayatMuridKoreksi: async function(id_murid, limit) {
