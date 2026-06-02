@@ -15,19 +15,23 @@
 -- ─────────────────────────────────────────────
 
 -- Ambil id_user dari JWT claim
+-- Catatan: user_metadata karena top-level 'sub' adalah UUID Supabase Auth,
+-- bukan id_user kita. Fallback ke DB jika metadata tidak ada.
 create or replace function public.current_user_id()
 returns text language sql stable security definer as $$
   select coalesce(
-    current_setting('request.jwt.claims', true)::json->>'id_user',
+    current_setting('request.jwt.claims', true)::json->'user_metadata'->>'id_user',
     (select id_user from public.users where auth_id = auth.uid() limit 1)
   );
 $$;
 
 -- Ambil role dari JWT claim
+-- Catatan: top-level 'role' di JWT Supabase = 'authenticated' (bukan role kita).
+-- Role kita ada di user_metadata yang di-set saat createUser di Edge Function.
 create or replace function public.current_user_role()
 returns text language sql stable security definer as $$
   select coalesce(
-    current_setting('request.jwt.claims', true)::json->>'role',
+    current_setting('request.jwt.claims', true)::json->'user_metadata'->>'role',
     (select role::text from public.users where auth_id = auth.uid() limit 1)
   );
 $$;
