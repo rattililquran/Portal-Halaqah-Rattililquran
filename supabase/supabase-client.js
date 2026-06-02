@@ -1244,9 +1244,16 @@ var AdminAPI = {
     var { data: sppData, error } = await q;
     _check(error,'getSPPRekap');
     // Ambil semua anggota aktif untuk cross-check
-    var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, halaqah(nama_halaqah), users!anggota_id_murid_fkey(no_hp)').eq('status','aktif');
+    var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, halaqah(nama_halaqah)').eq('status','aktif');
     if (p && p.id_halaqah) anggotaQ = anggotaQ.eq('id_halaqah', p.id_halaqah);
     var { data: anggota } = await anggotaQ;
+    // Ambil no_hp terpisah untuk hindari FK join error
+    var muridIds = (anggota||[]).map(function(a){ return a.id_murid; });
+    var hpMap = {};
+    if (muridIds.length) {
+      var { data: usersHp } = await _sb.from('users').select('id_user, no_hp').in('id_user', muridIds);
+      (usersHp||[]).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
+    }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var bulanBerjalan = new Date().getMonth() + 1;
     // Map id_murid → bulan lunas
@@ -1262,7 +1269,7 @@ var AdminAPI = {
       return {
         id_murid: a.id_murid, nama_murid: a.nama_murid,
         id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
-        level: a.level, no_hp: a.users && a.users.no_hp || '',
+        level: a.level, no_hp: hpMap[a.id_murid] || '',
         lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });

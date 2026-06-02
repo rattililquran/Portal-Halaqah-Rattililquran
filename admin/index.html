@@ -2852,49 +2852,58 @@ async function loadSPPAdmin() {
       });
     }
 
-    var [rekapRes, pendingRes] = await Promise.all([
-      window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined }),
-      window.HQ.AdminAPI.getSPPPending(),
-    ]);
-
-    var rekap   = rekapRes.data || {};
-    _sppRekapData = rekap.murid_list || [];
-
-    // Stats
-    document.getElementById('sppStatLunas').textContent  = rekap.lunas || 0;
-    document.getElementById('sppStatTunggak').textContent = rekap.menunggak || 0;
-    document.getElementById('sppStatTotal').textContent  =
-      'Rp ' + ((rekap.total_nominal||0)).toLocaleString('id-ID');
-
-    // Pending validasi
-    var pending = pendingRes.data || [];
-    var pendSec = document.getElementById('sppPendingSection');
-    var pendList= document.getElementById('sppPendingList');
-    if (pending.length) {
-      pendSec.style.display = '';
-      pendList.innerHTML = pending.map(function(p) {
-        var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
-        var jenisBadge = p.jenis === 'SPP Pribadi'
-          ? '<span style="background:#f0fdf4;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
-          : '<span style="background:#fffbeb;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
-        var buktiLink = p.bukti_url ? '<a href="'+esc(p.bukti_url)+'" target="_blank" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>' : '';
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:6px;flex-wrap:wrap">'
-          + '<div style="flex:1;min-width:160px">'
-          + '<div style="font-size:13px;font-weight:700">'+esc(p.nama_murid||p.id_murid)+'</div>'
-          + '<div style="font-size:11px;color:#64748b;margin-top:2px">'+jenisBadge+' '+esc(p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'')+' · '+nominal+'</div>'
-          + (p.catatan ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:2px">'+esc(p.catatan)+'</div>' : '')
-          + (buktiLink ? '<div style="margin-top:3px">'+buktiLink+'</div>' : '')
-          + '</div>'
-          + '<div style="display:flex;gap:6px;flex-shrink:0">'
-          + '<button class="btn btn-sm" style="background:#1a5c3a;color:#fff;font-size:11px;padding:5px 10px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
-          + '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;font-size:11px;padding:5px 10px;border:none" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
-          + '</div></div>';
-      }).join('');
-    } else {
-      pendSec.style.display = 'none';
+    // ── Load pending (independent) ──
+    try {
+      var pendingRes = await window.HQ.AdminAPI.getSPPPending();
+      var pending  = pendingRes.data || [];
+      var pendSec  = document.getElementById('sppPendingSection');
+      var pendList = document.getElementById('sppPendingList');
+      if (pending.length) {
+        pendSec.style.display = '';
+        pendList.innerHTML = pending.map(function(p) {
+          var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
+          var jenisBadge = p.jenis === 'SPP Pribadi'
+            ? '<span style="background:#f0fdf4;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
+            : '<span style="background:#fffbeb;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
+          var buktiLink = p.bukti_url
+            ? '<a href="'+esc(p.bukti_url)+'" target="_blank" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+            : '<span style="font-size:11px;color:#94a3b8">Tidak ada bukti</span>';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:8px;flex-wrap:wrap">'
+            + '<div style="flex:1;min-width:160px">'
+            + '<div style="font-size:13.5px;font-weight:800">'+esc(p.nama_murid||p.id_murid)+'</div>'
+            + '<div style="font-size:11px;color:#64748b;margin-top:3px">'+jenisBadge
+              +' <span style="margin-left:4px">'+esc(p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'')+'</span>'
+              +' &nbsp;·&nbsp; <strong>'+nominal+'</strong></div>'
+            + (p.catatan ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:3px;font-style:italic">'+esc(p.catatan)+'</div>' : '')
+            + '<div style="margin-top:4px">'+buktiLink+'</div>'
+            + '</div>'
+            + '<div style="display:flex;gap:6px;flex-shrink:0">'
+            + '<button class="btn btn-sm" style="background:#1a5c3a;color:#fff;font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
+            + '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;font-size:12px;padding:7px 12px;border:1px solid #fca5a5" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
+            + '</div></div>';
+        }).join('');
+      } else {
+        pendSec.style.display = 'none';
+      }
+    } catch(ePend) {
+      console.error('getSPPPending error:', ePend);
+      toast('Gagal memuat pending: '+ePend.message, 'err');
     }
 
-    filterSPPTable();
+    // ── Load rekap (independent) ──
+    try {
+      var rekapRes = await window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined });
+      var rekap = rekapRes.data || {};
+      _sppRekapData = rekap.murid_list || [];
+      document.getElementById('sppStatLunas').textContent   = rekap.lunas || 0;
+      document.getElementById('sppStatTunggak').textContent  = rekap.menunggak || 0;
+      document.getElementById('sppStatTotal').textContent   = 'Rp ' + (rekap.total_nominal||0).toLocaleString('id-ID');
+      filterSPPTable();
+    } catch(eRekap) {
+      console.error('getSPPRekap error:', eRekap);
+      document.getElementById('sppRekapBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--red);font-size:12px">Gagal memuat rekap: '+esc(eRekap.message)+'</td></tr>';
+    }
+
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
