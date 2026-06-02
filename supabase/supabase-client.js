@@ -418,9 +418,15 @@ var GuruAPI = {
   // ── Template koreksi ───────────────────────
   getTemplateKoreksi: async function() {
     var { data, error } = await _sb.from('template_koreksi')
-      .select('*').eq('status', 'aktif').order('urutan');
+      .select('kategori, teks, urutan').eq('status', 'aktif').order('urutan');
     _check(error, 'getTemplateKoreksi');
-    return { status: 'ok', data };
+    // Frontend expects: { 'Tajwid': [{teks:...}, ...], 'Makhraj': [...] }
+    var grouped = {};
+    (data || []).forEach(function(row) {
+      if (!grouped[row.kategori]) grouped[row.kategori] = [];
+      grouped[row.kategori].push({ teks: row.teks });
+    });
+    return { status: 'ok', data: grouped };
   },
 
   // ── Keaktifan ──────────────────────────────
