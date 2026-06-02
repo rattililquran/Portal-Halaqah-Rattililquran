@@ -2176,11 +2176,30 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
               <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Nominal (Rp)</div>
               <input type="number" id="sppFormNominal" class="fc" placeholder="Contoh: 50000" min="0" style="width:100%">
             </div>
-            <!-- Bukti -->
+            <!-- Bukti Upload -->
             <div>
-              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">Link Bukti Transfer (opsional)</div>
-              <input type="url" id="sppFormBukti" class="fc" placeholder="https://drive.google.com/..." style="width:100%">
-              <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">Upload foto bukti ke Google Drive lalu paste link-nya</div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:6px">
+                Foto Bukti Transfer
+                <span style="font-weight:500;color:var(--text-3);font-size:11px"> (maks 5 MB · JPG/PNG/WebP)</span>
+              </div>
+              <label id="sppBuktiLabel" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px dashed var(--border);border-radius:12px;cursor:pointer;background:#f8fafc;transition:border-color .2s">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div>
+                  <div id="sppBuktiName" style="font-size:13px;font-weight:600;color:var(--text-2)">Klik untuk pilih foto</div>
+                  <div style="font-size:10.5px;color:var(--text-3)">atau drag &amp; drop di sini</div>
+                </div>
+                <input type="file" id="sppFormBuktiFile" accept="image/*" style="display:none" onchange="handleSppBuktiFile(this)">
+              </label>
+              <!-- Preview -->
+              <div id="sppBuktiPreview" style="display:none;margin-top:8px;position:relative;display:none">
+                <img id="sppBuktiImg" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--border)" alt="preview">
+                <button type="button" onclick="clearSppBukti()" style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
+                <div id="sppBuktiSize" style="font-size:10.5px;color:var(--text-3);margin-top:4px;text-align:right"></div>
+              </div>
+              <div style="font-size:10.5px;color:#f59e0b;margin-top:6px;display:flex;align-items:flex-start;gap:4px">
+                <span>⚠</span>
+                <span>Pastikan tanggal dan nominal terlihat jelas. Admin akan memverifikasi keaslian bukti.</span>
+              </div>
             </div>
             <!-- Catatan -->
             <div>
@@ -2225,11 +2244,11 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
           <div class="lc-title">KhatamKu</div>
           <div class="lc-sub">Tracker khatam Al-Qur'an</div>
         </a>
-        <a class="link-card" href="https://rattililquran.github.io/KonfirmasiSPP-Rattil/" target="_blank">
+        <div class="link-card" onclick="bukaModalKonfirmasiSPP()" style="cursor:pointer">
           <div class="lc-ico">💳</div>
-          <div class="lc-title">Portal SPP</div>
-          <div class="lc-sub">Konfirmasi pembayaran</div>
-        </a>
+          <div class="lc-title">Konfirmasi SPP</div>
+          <div class="lc-sub">Bayar SPP & Infaq</div>
+        </div>
       </div>
 
     </div><!-- /dashboard -->
@@ -6248,14 +6267,66 @@ function setSppFormJenis(jenis, el) {
   if (bulanWrap) bulanWrap.style.display = jenis==='SPP Pribadi' ? '' : 'none';
 }
 
+var _sppBuktiBlob = null; // compressed image blob
+
+function handleSppBuktiFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var MAX = 5 * 1024 * 1024;
+  if (file.size > MAX) {
+    alert('Ukuran foto melebihi 5 MB. Pilih foto yang lebih kecil.');
+    input.value = ''; return;
+  }
+  // Compress via canvas (target ≤ 1 MB, max 1200px)
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var MAX_PX = 1200;
+      var w = img.width, h = img.height;
+      if (w > MAX_PX || h > MAX_PX) {
+        var scale = Math.min(MAX_PX/w, MAX_PX/h);
+        w = Math.round(w*scale); h = Math.round(h*scale);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(function(blob) {
+        _sppBuktiBlob = blob;
+        // Preview
+        var url = URL.createObjectURL(blob);
+        document.getElementById('sppBuktiImg').src = url;
+        document.getElementById('sppBuktiPreview').style.display = '';
+        document.getElementById('sppBuktiName').textContent = file.name;
+        document.getElementById('sppBuktiLabel').style.borderColor = '#1a5c3a';
+        document.getElementById('sppBuktiSize').textContent = 'Ukuran setelah kompresi: ' + (blob.size/1024).toFixed(0) + ' KB';
+      }, 'image/jpeg', 0.82);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearSppBukti() {
+  _sppBuktiBlob = null;
+  document.getElementById('sppFormBuktiFile').value = '';
+  document.getElementById('sppBuktiPreview').style.display = 'none';
+  document.getElementById('sppBuktiName').textContent = 'Klik untuk pilih foto';
+  document.getElementById('sppBuktiLabel').style.borderColor = '';
+}
+
 function bukaModalKonfirmasiSPP() {
   _sppFormJenis = 'SPP Pribadi';
+  _sppBuktiBlob = null;
   document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
   document.getElementById('sppFormBulanWrap').style.display = '';
-  document.getElementById('sppFormBulan').value  = '';
-  document.getElementById('sppFormNominal').value = '';
-  document.getElementById('sppFormBukti').value  = '';
-  document.getElementById('sppFormCatatan').value = '';
+  document.getElementById('sppFormBulan').value   = '';
+  document.getElementById('sppFormNominal').value  = '';
+  document.getElementById('sppFormCatatan').value  = '';
+  document.getElementById('sppFormBuktiFile').value = '';
+  document.getElementById('sppBuktiPreview').style.display = 'none';
+  document.getElementById('sppBuktiName').textContent = 'Klik untuk pilih foto';
+  document.getElementById('sppBuktiLabel').style.borderColor = '';
   document.getElementById('sppFormErr').style.display = 'none';
   openModal('sppKonfirmasiModal');
 }
@@ -6267,16 +6338,28 @@ async function submitKonfirmasiSPP() {
   var bulan   = document.getElementById('sppFormBulan').value;
   var tahun   = document.getElementById('sppFormTahun').value;
   var nominal = document.getElementById('sppFormNominal').value;
-  var bukti   = document.getElementById('sppFormBukti').value.trim();
   var catatan = document.getElementById('sppFormCatatan').value.trim();
   var errEl   = document.getElementById('sppFormErr');
 
   if (jenis === 'SPP Pribadi' && !bulan) { errEl.textContent='Pilih bulan terlebih dahulu.'; errEl.style.display=''; return; }
   errEl.style.display = 'none';
 
-  showLoad('Mengirim konfirmasi...');
+  showLoad('Mengunggah bukti...');
   try {
-    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan: bulan||'-', tahun, nominal, bukti_url: bukti, catatan });
+    var buktiUrl = '';
+    // Upload foto ke Supabase Storage jika ada
+    if (_sppBuktiBlob) {
+      var uid    = window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user || 'unknown';
+      var fname  = uid + '/' + Date.now() + '.jpg';
+      var { data: upData, error: upErr } = await window.HQ.supabase.storage
+        .from('bukti-spp').upload(fname, _sppBuktiBlob, { contentType:'image/jpeg', upsert:true });
+      if (upErr) throw new Error('Upload foto gagal: ' + upErr.message);
+      var { data: urlData } = window.HQ.supabase.storage.from('bukti-spp').getPublicUrl(fname);
+      buktiUrl = urlData && urlData.publicUrl || '';
+    }
+
+    showLoad('Mengirim konfirmasi...');
+    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan: bulan||'-', tahun, nominal, bukti_url: buktiUrl, catatan });
     tutupModalKonfirmasiSPP();
     toast('Konfirmasi terkirim, menunggu validasi admin ✅', 'ok');
     _sppLoaded = false;
