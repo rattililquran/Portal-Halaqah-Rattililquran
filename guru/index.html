@@ -5416,10 +5416,11 @@ if ('serviceWorker' in navigator)
 // ══════════════════════════════════════════════════════════════
 //  AT-TIBYAN GURU
 // ══════════════════════════════════════════════════════════════
-var _atMuridAll     = [];  // semua murid aktif (loaded once)
-var _atSesiData     = [];  // riwayat sesi
-var _atKeaktifanData= null;
-var _atEditId       = null; // id_sesi saat mode edit
+var _atMuridAll      = [];   // semua murid aktif (loaded once)
+var _atSesiData      = [];   // riwayat sesi
+var _atKeaktifanData = null;
+var _atEditId        = null; // id_sesi saat mode edit
+var _atNextPertemuan = 1;    // pertemuan_ke berikutnya
 var _atCurrentTab   = 'sesi';
 var _atTabLoaded    = {};
 
@@ -5680,8 +5681,10 @@ async function bukaFormAtTibyan() {
   _atEditId = null;
   document.getElementById('atFormTitle').textContent = 'Sesi At-Tibyan Baru';
   document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
-  var ptKe = _atSesiData.length + 1;
-  document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + ptKe;
+  _atNextPertemuan = _atSesiData.length > 0
+    ? Math.max.apply(null, _atSesiData.map(function(s){ return s.pertemuan_ke || 0; })) + 1
+    : 1;
+  document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + _atNextPertemuan;
   await _loadAtFormMurid();
   document.getElementById('atFormOverlay').style.display = 'flex';
 }
@@ -5792,7 +5795,13 @@ async function simpanAtTibyan() {
   if (!tanggal) return toast('Tanggal wajib diisi','err');
   var map = window._atPresensiMap || {};
   var presensi = _atMuridAll.map(function(m) {
-    return { id_murid: m.id_murid, id_halaqah: m.id_halaqah, status_hadir: map[m.id_murid] || 'H' };
+    return {
+      id_murid    : m.id_murid,
+      nama_murid  : m.nama_murid  || '',
+      id_halaqah  : m.id_halaqah,
+      nama_halaqah: (m.halaqah && m.halaqah.nama_halaqah) || '',
+      status_hadir: map[m.id_murid] || 'H',
+    };
   });
   var btn = document.getElementById('atFormSimpan');
   if (btn) { btn.disabled = true; btn.classList.add('btn-loading'); }
@@ -5801,7 +5810,7 @@ async function simpanAtTibyan() {
       await window.HQ.GuruAPI.editAtTibyan({ id_sesi: _atEditId, presensi });
       toast('Presensi berhasil diperbarui ✅','ok');
     } else {
-      await window.HQ.GuruAPI.simpanAtTibyan({ tanggal, presensi });
+      await window.HQ.GuruAPI.simpanAtTibyan({ tanggal, presensi, pertemuan_ke: _atNextPertemuan });
       toast('Sesi At-Tibyan berhasil disimpan ✅','ok');
     }
     tutupFormAtTibyan();
