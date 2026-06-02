@@ -98,10 +98,14 @@ var Auth = {
   getProfile: function() { return Promise.resolve({ status: 'ok', data: _currentUser }); },
 
   changePassword: async function(d) {
+    var newPw = d.newPassword || d.password_baru;
     // Verifikasi password lama
     await Auth.login(_uid(), d.oldPassword || d.password_lama);
-    var { error } = await _sb.auth.updateUser({ password: d.newPassword || d.password_baru });
+    // Update di Supabase Auth
+    var { error } = await _sb.auth.updateUser({ password: newPw });
     _check(error, 'changePassword');
+    // Sync password_hash di tabel users (agar verify_user_password tetap valid)
+    await _sb.rpc('set_user_password', { p_id_user: _uid(), p_password: newPw });
     return { status: 'ok', message: 'Password berhasil diubah' };
   },
 };
@@ -972,14 +976,32 @@ var MuridAPI = {
 // ─────────────────────────────────────────────
 var AdminAPI = {
   getDashboard: async function() {
-    var [usersRes, halaqahRes, kbmRes] = await Promise.all([
+    var bulanIni = new Date().toISOString().slice(0,7)+'-01';
+    var [usersRes, hqRes, kbmRes, periodeRes, nilaiRes, anggotaRes] = await Promise.all([
       _sb.from('users').select('role').eq('status','aktif'),
-      _sb.from('halaqah').select('id_halaqah',{count:'exact',head:true}).eq('status','aktif'),
-      _sb.from('kbm_log').select('id_kbm',{count:'exact',head:true}).eq('status','selesai')
-        .gte('tanggal_pertemuan', new Date().toISOString().slice(0,7)+'-01'),
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, level').eq('status','aktif'),
+      _sb.from('kbm_log').select('id_kbm',{count:'exact',head:true}).eq('status','selesai').gte('tanggal_pertemuan', bulanIni),
+      _sb.from('periode').select('id_periode, nama_periode').eq('status','aktif').order('created_at',{ascending:false}).limit(1).maybeSingle(),
+      _sb.from('nilai_kbm').select('id_halaqah, adab').not('adab','is',null),
+      _sb.from('anggota').select('id_halaqah').eq('status','aktif'),
     ]);
     var roles = {}; (usersRes.data||[]).forEach(function(u){roles[u.role]=(roles[u.role]||0)+1;});
-    return { status:'ok', data:{ total_murid:roles.murid||0, total_guru:roles.guru||0, total_halaqah:halaqahRes.count||0, kbm_bulan_ini:kbmRes.count||0 }};
+    var totalNilai = (nilaiRes.data||[]).length;
+    var totalSesiPossible = (anggotaRes.data||[]).length;
+    var pctNilai = totalSesiPossible > 0 ? Math.round(totalNilai/totalSesiPossible*100) : 0;
+    // Agregasi per halaqah
+    var anggotaMap={}, nilaiMap={};
+    (anggotaRes.data||[]).forEach(function(a){ anggotaMap[a.id_halaqah]=(anggotaMap[a.id_halaqah]||0)+1; });
+    var halaqah = (hqRes.data||[]).map(function(h) {
+      return { nama_halaqah:h.nama_halaqah, nama_guru:h.nama_guru, level:h.level, id_halaqah:h.id_halaqah, total_murid:anggotaMap[h.id_halaqah]||0, total_sesi:0, avg_nilai:0, pct_hadir:0 };
+    });
+    return { status:'ok', data:{
+      total_murid:roles.murid||0, total_guru:roles.guru||0,
+      total_halaqah:(hqRes.data||[]).length, kbm_bulan_ini:kbmRes.count||0,
+      pct_nilai_terisi: Math.min(pctNilai, 100),
+      periode_aktif: periodeRes.data || null,
+      halaqah: halaqah,
+    }};
   },
   getAllUsers: async function(p) {
     var q = _sb.from('users').select('*').order('nama_lengkap');
@@ -1000,7 +1022,7 @@ var AdminAPI = {
   },
   addAnggota: async function(d) { var {data,error}=await _sb.from('anggota').insert(d).select().single(); _check(error,'addAnggota'); return {status:'ok',data}; },
   updateAnggota: async function(d) { var {id_anggota,...u}=d; var {error}=await _sb.from('anggota').update(u).eq('id_anggota',id_anggota); _check(error,'updateAnggota'); return {status:'ok'}; },
-  removeAnggota: async function(d) { var {error}=await _sb.from('anggota').update({status:'nonaktif'}).eq('id_anggota',d.id_anggota); _check(error,'removeAnggota'); return {status:'ok'}; },
+  removeAnggota: async function(d) { var id=typeof d==='string'?d:(d&&d.id_anggota); var {error}=await _sb.from('anggota').update({status:'nonaktif'}).eq('id_anggota',id); _check(error,'removeAnggota'); return {status:'ok'}; },
   assignKetuaKelas: async function(d) {
     await _sb.from('anggota').update({is_ketua:false}).eq('id_halaqah',d.id_halaqah);
     var {error}=await _sb.from('anggota').update({is_ketua:true}).eq('id_anggota',d.id_anggota);
@@ -1051,9 +1073,20 @@ var AdminAPI = {
   },
   getAuditLog: async function() { var {data,error}=await _sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100); _check(error,'getAuditLog'); return {status:'ok',data}; },
   getObservasiKBM: async function() { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiKBM'); return {status:'ok',data}; },
-  exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export via Supabase Storage belum diimplementasi'}; },
+  exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { return {status:'ok',message:'Arsip data belum diimplementasi'}; },
   getArsipList: async function() { return {status:'ok',data:[]}; },
+  deleteLevel: async function(id) { var {error}=await _sb.from('level').update({status:'nonaktif'}).eq('id_level',id); _check(error,'deleteLevel'); return {status:'ok'}; },
+  // Import bulk — TODO: implementasi penuh
+  importTahap1: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah halaqah secara manual.'); },
+  importTahap2: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah user secara manual.'); },
+  importTahap3: async function(d) { throw new Error('Import bulk belum diimplementasi. Tambah anggota secara manual.'); },
+  // Raport bulk — TODO: implementasi penuh
+  generateRaportByHalaqah: async function(p) { return GuruAPI.generateRaportHalaqah ? GuruAPI.generateRaportHalaqah(p) : {status:'ok',data:[]}; },
+  generateRaportByLevel: async function(p) { throw new Error('Generate raport per level belum diimplementasi.'); },
+  generateRaportBulk: async function(p) { throw new Error('Generate raport bulk belum diimplementasi.'); },
+  kirimRaportEmail: async function(id) { throw new Error('Kirim raport via email belum diimplementasi.'); },
+  getObservasiStats: async function(p) { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiStats'); return {status:'ok',data:data||[]}; },
 };
 
 // ─────────────────────────────────────────────
