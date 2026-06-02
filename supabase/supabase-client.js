@@ -877,9 +877,15 @@ var MuridAPI = {
       _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
       _sb.from('nilai_kbm').select('status_hadir').eq('id_murid', id_murid),
     ]);
-    var anggota = anggotaRes.data;
-    var user    = userRes.data;
-    var nilai   = nilaiRes.data || [];
+    var anggota    = anggotaRes.data;
+    var user       = userRes.data;
+    var nilai      = nilaiRes.data || [];
+    var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
+    // Fetch pengumuman aktif untuk murid ini (target: semua atau halaqah ini)
+    var pengumumanQuery = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(5);
+    if (id_halaqah) pengumumanQuery = pengumumanQuery.or('target.in.(semua,all),id_halaqah.eq.'+id_halaqah);
+    else pengumumanQuery = pengumumanQuery.in('target',['semua','all']);
+    var { data: pengumuman } = await pengumumanQuery;
     var countH  = nilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
     var countT  = nilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
     var countI  = nilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
@@ -910,6 +916,7 @@ var MuridAPI = {
         count_i     : countI,
         count_a     : countA,
       },
+      pengumuman: pengumuman || [],
     }};
   },
 
