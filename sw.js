@@ -3,7 +3,7 @@
 //  Cache version: v4.1
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v4.6';
+const CACHE_NAME   = 'halaqah-v4.7';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -12,7 +12,6 @@ const STATIC_CACHE = [
   BASE + '/murid/index.html',
   BASE + '/admin/index.html',
   BASE + '/manifest.json',
-  BASE + '/assets/js/api.js',
   // jspdf dan html2canvas dimuat lazy (on-demand), tidak dicache saat install
   // karena file bisa tidak ada dan menyebabkan SW install gagal
   BASE + '/assets/images/logo-putih.png',

@@ -2383,7 +2383,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'guru') {
-    token = tk; currentUser = us; startApp(); return;
+    token = tk; currentUser = us;
+    // Refresh token agar JWT punya user_metadata terbaru (untuk RLS)
+    window.HQ.supabase.auth.refreshSession().then(function(r) {
+      if (r.data && r.data.session) {
+        token = r.data.session.access_token;
+        localStorage.setItem('hq_token', token);
+        localStorage.setItem('hq_refresh', r.data.session.refresh_token);
+      }
+    }).catch(function(){});
+    startApp(); return;
   }
 
   document.getElementById('nisInput').addEventListener('keydown', e => {
