@@ -503,11 +503,19 @@ var GuruAPI = {
     var { data, error } = await _sb.rpc('get_keaktifan_alerts', { p_id_guru: _uid() });
     _check(error, 'getKeaktifanAlerts');
     var raw = data || { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } };
-    // Transform RPC result ke format yang diharapkan frontend
-    var alerts = (raw.alerts || []).map(function(m) {
+    var alertList = raw.alerts || [];
+    // Ambil no_hp dari tabel users untuk murid yang ada di alerts
+    var hpMap = {};
+    if (alertList.length) {
+      var ids = alertList.map(function(m){ return m.id_murid; });
+      var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
+      (users || []).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
+    }
+    var alerts = alertList.map(function(m) {
       return {
         id_murid    : m.id_murid,
         nama_murid  : m.nama,
+        no_hp       : hpMap[m.id_murid] || '',
         id_halaqah  : m.id_halaqah,
         nama_halaqah: m.nama_halaqah || '',
         level       : m.level || '',
