@@ -504,6 +504,79 @@ html.theme-dark .page-sub{color:#9ca3af !important}
 /* Card raport list */
 html.theme-dark .raport-list-card{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
 
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE UPGRADE — Desktop-first Admin (Juni 2026)
+   Semua rule ini ADDITIVE — tidak menimpa dark mode yang ada.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Sidebar: sedikit lebih ramping di tablet landscape (769-1100px) */
+@media(min-width:769px) and (max-width:1100px){
+  :root{--sw:220px}
+  .sb-name{font-size:13px}
+  .sb-avatar{width:40px;height:40px}
+}
+
+/* Hamburger: tidak tampil di desktop */
+@media(min-width:769px){
+  .hamburger{display:none!important}
+}
+
+/* Content area: center + max-width di layar sangat lebar */
+@media(min-width:1025px){
+  .content{max-width:1440px;margin-left:auto;margin-right:auto;padding:24px 28px}
+  .card-body{padding:22px 24px}
+}
+
+/* Stats grid: 4 kolom di desktop, 3 di tablet landscape */
+@media(min-width:1025px){
+  .stats-grid{grid-template-columns:repeat(4,1fr);gap:16px}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* Form grid: JANGAN collapse di atas 768px
+   (existing rule hanya collapse di <=768px, ini override explicit) */
+@media(min-width:769px){
+  .f2{grid-template-columns:1fr 1fr!important}
+  .f3{grid-template-columns:1fr 1fr 1fr!important}
+  .fc{font-size:13.5px}
+}
+/* Form grid: 2-col untuk section 3-col di tablet landscape */
+@media(min-width:769px) and (max-width:1024px){
+  .f3{grid-template-columns:1fr 1fr!important}
+}
+
+/* Select inline fixed widths: bebas di mobile */
+@media(max-width:480px){
+  select.fc,input.fc{width:100%!important;max-width:100%!important;min-width:unset!important}
+}
+
+/* Table: sticky header di desktop — pakai var() aman dark mode */
+@media(min-width:769px){
+  .tbl-wrap{max-height:70vh;overflow-y:auto}
+  .tbl-wrap thead th{
+    position:sticky;top:0;z-index:2;
+    background:var(--card);
+    box-shadow:0 1px 0 var(--border);
+  }
+  .tbl-wrap table{font-size:13px}
+}
+/* Dark mode sticky header — pakai var() sudah aman, tambahan explicit */
+html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
+
+/* Typography scale di desktop */
+@media(min-width:1025px){
+  .section-title{font-size:19px}
+  .topbar-title{font-size:16px}
+  .stat .val{font-size:26px}
+}
+
+/* Topbar: tampilkan tanggal di desktop */
+@media(min-width:1025px){
+  .topbar-date{display:block!important}
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

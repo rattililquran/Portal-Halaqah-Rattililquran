@@ -1730,6 +1730,90 @@ html.theme-dark .ketua-member-card{background:#1e2128!important;border-color:rgb
 html.theme-dark .obs-radio{background:#1e2128!important;border-color:rgba(255,255,255,.1)!important}
 html.theme-dark .obs-radio:hover{border-color:#38bdf8!important;background:#1a2535!important}
 html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1a2535!important}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE UPGRADE — Mobile+Tablet+Desktop Murid (Juni 2026)
+   ══════════════════════════════════════════════════════════════ */
+
+/* App container: progressive width untuk tablet dan desktop */
+@media(min-width:1024px){
+  #app{max-width:800px!important}
+  .bottom-nav{max-width:800px!important}
+}
+@media(min-width:1280px){
+  #app{max-width:960px!important}
+  .bottom-nav{max-width:960px!important}
+}
+
+/* Stats: 4 kolom mulai 600px */
+@media(min-width:600px){
+  .stats-grid{grid-template-columns:repeat(4,1fr)!important}
+}
+
+/* Touch targets minimal 44px */
+.top-action-btn,.top-hamburger{min-width:44px!important;min-height:44px!important}
+.nav-item{min-height:44px}
+
+/* Sidebar drawer: max-width lebih besar di tablet */
+@media(min-width:600px){
+  .sidebar-drawer{width:min(82vw,340px)!important;max-width:340px!important}
+}
+
+/* Modal sheet: lebih lebar di tablet */
+@media(min-width:640px){
+  .modal-sheet{max-width:640px!important;border-radius:24px!important}
+}
+@media(min-width:1024px){
+  .modal-sheet{max-width:720px!important}
+}
+
+/* Modal overlay: centered di tablet */
+@media(min-width:640px){
+  .modal-overlay.open{align-items:center!important}
+}
+
+/* Rincian raport modal: lebih lebar di tablet */
+@media(min-width:768px){
+  .rincian-modal{max-width:720px!important}
+}
+@media(min-width:1024px){
+  .rincian-modal{max-width:840px!important}
+}
+
+/* Progress card: lebih besar di tablet */
+@media(min-width:768px){
+  .prog-donut-wrap{width:110px!important;height:110px!important}
+  .prog-inner-card{padding:18px!important}
+}
+
+/* Card: lebih besar padding di tablet */
+@media(min-width:768px){
+  .card{padding:20px!important}
+  .stat-card{padding:16px!important}
+  .page-title{font-size:21px!important}
+}
+
+/* Raport card: 2-kolom di tablet landscape */
+@media(min-width:900px){
+  #raportList{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+}
+
+/* Halaman konten: lebih lebar padding di tablet */
+@media(min-width:768px){
+  .page-inner,#app>div{padding:0 4px}
+}
+
+/* Typography: sedikit lebih besar di tablet */
+@media(min-width:768px){
+  body{font-size:14.5px}
+  .card-title{font-size:15px!important}
+}
+
+/* Bottom nav: hide di desktop besar (>1280px) jika app cukup lebar */
+@media(min-width:1280px){
+  .bottom-nav{opacity:.85}
+}
+
 </style>
 </head>
 <body>
