@@ -6468,7 +6468,7 @@ function renderSPP(data) {
   var lunasBulan   = data.lunas_bulan || [];
   var menungguBulan= data.menunggu_bulan || [];
   var tunggakan    = data.tunggakan || 0;
-  var bulanBerjalan= new Date().getMonth() + 1;
+  var bulanBerjalan= new Date().getMonth(); // bulan selesai (Juni=5 → 5 bulan Jan-Mei)
   var lunasCount   = lunasBulan.length;
 
   // ── Donut chart ──

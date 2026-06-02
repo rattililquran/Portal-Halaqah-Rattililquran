@@ -991,7 +991,7 @@ var MuridAPI = {
       return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
     });
     var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    var bulanBerjalan = new Date().getMonth() + 1; // 1-12
+    var bulanBerjalan = new Date().getMonth(); // bulan yang sudah selesai (Juni=5 → Jan-Mei)
     var tunggakan = Math.max(0, bulanBerjalan - lunasBulan.length);
     return { status: 'ok', data: {
       rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
@@ -1255,7 +1255,8 @@ var AdminAPI = {
       (usersHp||[]).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    var bulanBerjalan = new Date().getMonth() + 1;
+    // getMonth() = 0-11; tanpa +1 = jumlah bulan yang sudah selesai (Juni baru mulai = 5 bulan Jan-Mei)
+    var bulanBerjalan = new Date().getMonth();
     // Map id_murid → bulan lunas
     var lunasMap = {};
     (sppData||[]).forEach(function(s){
