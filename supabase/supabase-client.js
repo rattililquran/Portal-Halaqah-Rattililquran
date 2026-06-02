@@ -67,7 +67,7 @@ var Auth = {
   login: async function(id_user, password) {
     var res = await fetch(SUPABASE_URL + '/functions/v1/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON },
       body: JSON.stringify({ id_user: id_user.trim().toUpperCase(), password: password }),
     });
     var data;
