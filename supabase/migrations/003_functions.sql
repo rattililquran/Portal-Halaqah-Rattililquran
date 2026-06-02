@@ -101,6 +101,24 @@ begin
 end;
 $$;
 
+-- ─────────────────────────────────────────────
+--  set_user_password
+--  Dipanggil oleh Edge Function reset-password
+--  Update password_hash dengan bcrypt baru
+-- ─────────────────────────────────────────────
+create or replace function public.set_user_password(
+  p_id_user  text,
+  p_password text
+)
+returns void
+language sql
+security definer
+as $$
+  update public.users
+  set password_hash = crypt(p_password, gen_salt('bf'))
+  where id_user = upper(trim(p_id_user));
+$$;
+
 -- Test verify_user_password (password guru = 654321)
 -- Harusnya return 1 row:
-select * from public.verify_user_password('NISA', '654321');
+-- select * from public.verify_user_password('NISA', '654321');

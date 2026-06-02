@@ -918,6 +918,17 @@ var AdminAPI = {
   saveLevel: async function(d) { var {data,error}=await _sb.from('level').upsert(d,{onConflict:'id_level'}).select(); _check(error,'saveLevel'); return {status:'ok',data}; },
   getTemplateKoreksi: async function() { return GuruAPI.getTemplateKoreksi(); },
   saveTemplateKoreksi: async function(d) { var {error}=await _sb.from('template_koreksi').upsert(d,{onConflict:'id_template'}); _check(error,'saveTemplateKoreksi'); return {status:'ok'}; },
+  resetPassword: async function(id_user, new_password) {
+    var token = localStorage.getItem('hq_token');
+    var res = await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ id_user: id_user, new_password: new_password }),
+    });
+    var data = await res.json();
+    if (data.status === 'error') throw new Error(data.message);
+    return data;
+  },
   getAuditLog: async function() { var {data,error}=await _sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100); _check(error,'getAuditLog'); return {status:'ok',data}; },
   getObservasiKBM: async function() { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiKBM'); return {status:'ok',data}; },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export via Supabase Storage belum diimplementasi'}; },
