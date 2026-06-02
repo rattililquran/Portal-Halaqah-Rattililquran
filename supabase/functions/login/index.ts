@@ -1,165 +1,133 @@
 // ============================================================
-//  Edge Function: login
+//  Edge Function: login v2
 //  Rattililqur'an Portal — Custom Auth
 //
-//  Request:  POST /functions/v1/login
-//  Body:     { id_user: "RTL24180250", password: "123456" }
-//  Response: { access_token, refresh_token, user: { id_user, nama, role } }
-//
-//  Flow:
-//  1. Cek id_user + password di tabel users (bcrypt)
-//  2. Sign in via Supabase Auth (email = id_user@rattil.internal)
-//  3. Set custom JWT claims (id_user, role, nama)
-//  4. Return session ke frontend
+//  Verifikasi password langsung di PostgreSQL (crypt)
+//  Tidak butuh library bcrypt eksternal — lebih ringan dan cepat
 // ============================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
-const corsHeaders = {
+const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+
 serve(async (req: Request) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
     const { id_user, password } = await req.json();
 
     if (!id_user || !password) {
-      return new Response(
-        JSON.stringify({ status: "error", message: "id_user dan password wajib diisi" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ status: "error", message: "id_user dan password wajib diisi" }, 400);
     }
 
-    // Buat Supabase admin client (service_role key, bypass RLS)
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    // Admin client — bypass RLS
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // ── 1. Cari user di tabel users ──────────────────────
-    const { data: user, error: userError } = await supabaseAdmin
-      .from("users")
-      .select("id_user, nama_lengkap, role, status, password_hash, email")
-      .eq("id_user", id_user.trim().toUpperCase())
-      .single();
+    // ── 1. Verifikasi id_user + password langsung di PostgreSQL ──
+    // PostgreSQL crypt() kompatibel dengan bcrypt — tidak perlu library eksternal
+    const { data: userData, error: verifyError } = await admin.rpc("verify_user_password", {
+      p_id_user:  id_user.trim().toUpperCase(),
+      p_password: password,
+    });
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ status: "error", message: "ID pengguna atau password salah" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (verifyError) {
+      console.error("verify_user_password error:", verifyError);
+      return json({ status: "error", message: "Terjadi kesalahan server" }, 500);
     }
+
+    if (!userData || userData.length === 0) {
+      return json({ status: "error", message: "ID pengguna atau password salah" }, 401);
+    }
+
+    const user = userData[0];
 
     if (user.status !== "aktif") {
-      return new Response(
-        JSON.stringify({ status: "error", message: "Akun tidak aktif. Hubungi admin." }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ status: "error", message: "Akun tidak aktif. Hubungi admin." }, 403);
     }
 
-    // ── 2. Verifikasi password (bcrypt) ──────────────────
-    const passwordValid = await bcrypt.compare(password, user.password_hash ?? "");
-    if (!passwordValid) {
-      return new Response(
-        JSON.stringify({ status: "error", message: "ID pengguna atau password salah" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ── 3. Sign in via Supabase Auth ─────────────────────
-    // Email internal: id_user@rattil.internal
+    // ── 2. Sign in via Supabase Auth ──────────────────────────
     const authEmail = `${user.id_user.toLowerCase()}@rattil.internal`;
 
-    let authSession;
-    const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+    let session;
+
+    // Coba sign in langsung
+    const { data: signIn, error: signInErr } = await admin.auth.signInWithPassword({
       email: authEmail,
-      password: password,
+      password,
     });
 
-    if (signInError) {
-      // Mungkin user belum ada di Auth → buat dulu
-      const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
+    if (signInErr) {
+      // User Auth belum ada — buat dulu
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email: authEmail,
-        password: password,
+        password,
         email_confirm: true,
-        user_metadata: {
-          id_user: user.id_user,
-          role: user.role,
-          nama: user.nama_lengkap,
-        },
+        user_metadata: { id_user: user.id_user, role: user.role, nama: user.nama_lengkap },
       });
 
-      if (signUpError) {
-        console.error("Auth create error:", signUpError);
-        return new Response(
-          JSON.stringify({ status: "error", message: "Gagal membuat sesi. Hubungi admin." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (createErr || !created?.user) {
+        console.error("createUser error:", createErr);
+        return json({ status: "error", message: "Gagal membuat sesi. Hubungi admin." }, 500);
       }
 
-      // Update auth_id di tabel users
-      await supabaseAdmin
-        .from("users")
-        .update({ auth_id: signUpData.user.id })
-        .eq("id_user", user.id_user);
+      // Update auth_id di users table
+      await admin.from("users").update({ auth_id: created.user.id }).eq("id_user", user.id_user);
 
-      // Sign in lagi setelah create
-      const { data: retryData, error: retryError } = await supabaseAdmin.auth.signInWithPassword({
+      // Sign in ulang
+      const { data: retry, error: retryErr } = await admin.auth.signInWithPassword({
         email: authEmail,
-        password: password,
+        password,
       });
 
-      if (retryError || !retryData.session) {
-        return new Response(
-          JSON.stringify({ status: "error", message: "Gagal login. Coba lagi." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (retryErr || !retry?.session) {
+        return json({ status: "error", message: "Gagal login. Coba lagi." }, 500);
       }
-      authSession = retryData.session;
+
+      session = retry.session;
     } else {
-      authSession = signInData.session;
+      session = signIn?.session;
     }
 
-    // ── 4. Audit log ─────────────────────────────────────
-    await supabaseAdmin.from("audit_log").insert({
+    if (!session) {
+      return json({ status: "error", message: "Gagal mendapatkan sesi" }, 500);
+    }
+
+    // ── 3. Audit log ──────────────────────────────────────────
+    await admin.from("audit_log").insert({
       user_id: user.id_user,
-      action: "login",
-      detail: { role: user.role },
+      action:  "login",
+      detail:  { role: user.role },
     });
 
-    // ── 5. Return session ke frontend ─────────────────────
-    return new Response(
-      JSON.stringify({
-        status: "ok",
-        access_token: authSession.access_token,
-        refresh_token: authSession.refresh_token,
-        expires_at: authSession.expires_at,
-        user: {
-          id_user: user.id_user,
-          nama: user.nama_lengkap,
-          role: user.role,
-        },
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // ── 4. Return session ─────────────────────────────────────
+    return json({
+      status:        "ok",
+      access_token:  session.access_token,
+      refresh_token: session.refresh_token,
+      expires_at:    session.expires_at,
+      user: {
+        id_user: user.id_user,
+        nama:    user.nama_lengkap,
+        role:    user.role,
+      },
+    });
 
   } catch (err) {
     console.error("Login error:", err);
-    return new Response(
-      JSON.stringify({ status: "error", message: "Terjadi kesalahan server" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ status: "error", message: "Terjadi kesalahan server" }, 500);
   }
 });
