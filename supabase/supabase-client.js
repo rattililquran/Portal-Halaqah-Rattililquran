@@ -19,17 +19,24 @@ let _currentUser = null;
 (function _restoreSession() {
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
-  // Set Supabase session jika ada token
-  var token = localStorage.getItem('hq_token');
-  if (token) {
-    _sb.auth.setSession({ access_token: token, refresh_token: '' }).catch(function(){});
+  var token   = localStorage.getItem('hq_token');
+  var refresh = localStorage.getItem('hq_refresh');
+  if (token && refresh) {
+    // Restore dengan kedua token agar Supabase bisa auto-refresh saat expired
+    _sb.auth.setSession({ access_token: token, refresh_token: refresh }).catch(function(){});
   }
 })();
 
-_sb.auth.onAuthStateChange(function(event) {
+// Simpan token terbaru setiap kali Supabase refresh otomatis
+_sb.auth.onAuthStateChange(function(event, session) {
+  if (event === 'TOKEN_REFRESHED' && session) {
+    localStorage.setItem('hq_token',   session.access_token);
+    localStorage.setItem('hq_refresh', session.refresh_token);
+  }
   if (event === 'SIGNED_OUT') {
     _currentUser = null;
     localStorage.removeItem('hq_token');
+    localStorage.removeItem('hq_refresh');
     localStorage.removeItem('hq_user');
   }
 });
@@ -67,8 +74,9 @@ var Auth = {
     if (data.status === 'error') throw new Error(data.message);
     await _sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
     _currentUser = data.user;
-    localStorage.setItem('hq_user', JSON.stringify(data.user));
-    localStorage.setItem('hq_token', data.access_token);
+    localStorage.setItem('hq_user',    JSON.stringify(data.user));
+    localStorage.setItem('hq_token',   data.access_token);
+    localStorage.setItem('hq_refresh', data.refresh_token);
     return data;
   },
 
@@ -76,6 +84,7 @@ var Auth = {
     await _sb.auth.signOut();
     localStorage.removeItem('hq_user');
     localStorage.removeItem('hq_token');
+    localStorage.removeItem('hq_refresh');
     _currentUser = null;
     window.location.href = window.location.pathname.includes('/guru/') ||
                            window.location.pathname.includes('/admin/') ||
