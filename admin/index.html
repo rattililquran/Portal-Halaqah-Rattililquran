@@ -3663,11 +3663,13 @@ function onPushTargetChange(val) {
 }
 
 async function setAllPushConfig(enabled) {
-  var rows = document.querySelectorAll('.push-cfg-row');
-  rows.forEach(function(row) {
+  var rows = Array.from(document.querySelectorAll('.push-cfg-row'));
+  var promises = rows.map(function(row) {
     var key = row.dataset.key;
-    if (key) togglePushConfig(key, enabled);
+    return key ? togglePushConfig(key, enabled) : Promise.resolve();
   });
+  await Promise.allSettled(promises);
+  toast(enabled ? '✅ Semua notifikasi diaktifkan' : '⛔ Semua notifikasi dinonaktifkan', 'ok');
 }
 
 async function kirimTestPush() {

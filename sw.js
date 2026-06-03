@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v5.0 — push notification support
+//  Cache version: v5.1 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.0';
+const CACHE_NAME   = 'halaqah-v5.1';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -159,7 +159,12 @@ self.addEventListener('notificationclick', function(e) {
         for (var i = 0; i < windowClients.length; i++) {
           var c = windowClients[i];
           if (c.url.includes('Portal-Halaqah-Rattililquran') && 'focus' in c) {
-            c.focus(); if (c.navigate) return c.navigate(targetUrl); return c;
+            // c.navigate() tidak tersedia di Firefox/Safari — gunakan postMessage sebagai fallback
+            return c.focus().then(function() {
+              if (typeof c.navigate === 'function') return c.navigate(targetUrl);
+              // Fallback: kirim pesan ke tab agar navigasi sendiri
+              c.postMessage({ type: 'PUSH_NAVIGATE', url: targetUrl });
+            });
           }
         }
         // Tidak ada → buka tab baru
@@ -168,17 +173,47 @@ self.addEventListener('notificationclick', function(e) {
   );
 });
 
-// Push subscription berubah (endpoint expired) → hapus dari server
+// Push subscription berubah (endpoint expired) → re-subscribe dan simpan langsung ke DB
 self.addEventListener('pushsubscriptionchange', function(e) {
+  // Guard: e.oldSubscription bisa null di beberapa browser
+  if (!e.oldSubscription || !e.oldSubscription.options) return;
+
   e.waitUntil(
     self.registration.pushManager.subscribe(e.oldSubscription.options)
       .then(function(newSub) {
-        // Kirim subscription baru ke server (dihandle oleh portal saat reload)
-        return self.clients.matchAll().then(function(clients) {
-          clients.forEach(function(c) {
-            c.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: newSub });
+        // 1. Coba kirim ke tab portal yang terbuka
+        return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+          .then(function(windowClients) {
+            if (windowClients.length > 0) {
+              windowClients.forEach(function(c) {
+                c.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: newSub });
+              });
+            } else {
+              // 2. Tidak ada tab terbuka → simpan langsung ke Supabase via fetch
+              // SUPABASE_URL dan SUPABASE_ANON di-cache dari saat SW aktif
+              var key = newSub.getKey && newSub.getKey('p256dh');
+              var auth = newSub.getKey && newSub.getKey('auth');
+              if (!key || !auth) return;
+              var toB64url = function(buf) {
+                return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
+                  .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+              };
+              // Gunakan URL dan key yang disimpan di SW cache saat install
+              var swUrl = self.registration.active && self.registration.active.scriptURL || '';
+              var baseUrl = swUrl.replace('/Portal-Halaqah-Rattililquran/sw.js','');
+              // Kirim ke send-push dengan flag re-subscribe (best effort)
+              fetch(baseUrl + '/functions/v1/update-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  endpoint : newSub.endpoint,
+                  p256dh   : toB64url(key),
+                  auth_key : toB64url(auth),
+                }),
+              }).catch(function() {});
+            }
           });
-        });
       })
+      .catch(function() { /* Re-subscribe gagal — diabaikan, user perlu subscribe ulang manual */ })
   );
 });

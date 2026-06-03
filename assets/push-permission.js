@@ -176,7 +176,19 @@ function shouldShowPrompt() {
   if (!window.HQ || !window.HQ.PushAPI) return false;
   if (!window.HQ.PushAPI.isSupported()) return false;
   if (window.HQ.PushAPI.getPermissionStatus() === 'denied') return false;
-  if (window.HQ.PushAPI.getPermissionStatus() === 'granted') return false;
+  // Jika permission sudah granted, cek apakah browser punya subscription aktif
+  // (localStorage bisa stale jika browser clear data)
+  if (window.HQ.PushAPI.getPermissionStatus() === 'granted') {
+    // Cek async — jika subscription hilang, tampilkan dialog lagi
+    window.HQ.PushAPI.getActiveSubscription().then(function(sub) {
+      if (!sub && localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') {
+        // Subscription hilang dari browser tapi localStorage masih ada → reset dan tampilkan
+        localStorage.removeItem(STORAGE_KEY_SUBSCRIBED);
+        localStorage.removeItem(STORAGE_KEY_DISMISSED);
+      }
+    }).catch(function(){});
+    return false; // jangan tampilkan sekarang, akan muncul di reload berikutnya jika perlu
+  }
   if (localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') return false;
 
   var dismissedAt = localStorage.getItem(STORAGE_KEY_DISMISSED);
@@ -230,11 +242,32 @@ window.initPushPrompt = function(roleLabel) {
   }, 3000);
 };
 
-// ── Re-subscribe saat subscription berubah ───────────────────
+// ── Handle pesan dari Service Worker ─────────────────────────
 navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', function(e) {
-  if (e.data && e.data.type === 'PUSH_SUBSCRIPTION_CHANGED' && e.data.subscription) {
-    window.HQ && window.HQ.PushAPI && window.HQ.PushAPI._saveSubscription(e.data.subscription)
-      .catch(function(err) { console.warn('Re-subscribe failed:', err); });
+  if (!e.data) return;
+
+  // Re-subscribe saat subscription berubah
+  if (e.data.type === 'PUSH_SUBSCRIPTION_CHANGED' && e.data.subscription) {
+    // Guard: tunggu window.HQ siap (maks 5 detik)
+    var attempts = 0;
+    var tryResubscribe = function() {
+      if (window.HQ && window.HQ.PushAPI && window.HQ.getCurrentUser && window.HQ.getCurrentUser()) {
+        window.HQ.PushAPI._saveSubscription(e.data.subscription)
+          .catch(function(err) { console.warn('Re-subscribe failed:', err); });
+      } else if (attempts < 10) {
+        attempts++;
+        setTimeout(tryResubscribe, 500);
+      }
+    };
+    tryResubscribe();
+  }
+
+  // Navigasi ke URL dari notifikasi (fallback untuk Firefox/Safari)
+  if (e.data.type === 'PUSH_NAVIGATE' && e.data.url) {
+    var url = e.data.url;
+    if (url && url !== window.location.pathname) {
+      window.location.href = url;
+    }
   }
 });
 
