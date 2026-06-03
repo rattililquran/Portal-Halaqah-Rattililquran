@@ -7060,9 +7060,11 @@ function pdToggleNasihat() {
   chev.style.transform = hide ? 'rotate(180deg)' : '';
 }
 function pdInitKetua() {
-  var user = window.HQ && window.HQ.getCurrentUser && window.HQ.getCurrentUser();
+  // Ketua dideteksi dari sidebarKetuaBtn yang sudah di-show oleh initKetua()
   var sec = document.getElementById('pdKetuaSection');
-  if (sec && user && user.role === 'ketua') sec.style.display = 'block';
+  if (!sec) return;
+  var ketuaBtn = document.getElementById('sidebarKetuaBtn');
+  if (ketuaBtn && ketuaBtn.style.display !== 'none') sec.style.display = 'block';
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
