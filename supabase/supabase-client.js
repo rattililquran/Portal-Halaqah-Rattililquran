@@ -398,7 +398,7 @@ var GuruAPI = {
           user_ids: ketuaIds,
           title: '📋 Isi Observasi KBM Sekarang!',
           body : 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.',
-          url  : '/murid/index.html',
+          url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
           tag  : 'observasi-window-' + id_kbm,
           data : { trigger: 'observasi_terbuka', id_kbm: id_kbm },
         });
@@ -495,7 +495,7 @@ var GuruAPI = {
       _sendPushBg({
         title: '📢 ' + (d.judul || 'Pengumuman Baru'),
         body : (d.isi || '').slice(0, 100),
-        url  : '/murid/index.html',
+        url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
         tag  : 'pengumuman-' + (data && data.id || Date.now()),
         data : { trigger: 'pengumuman' },
       });
@@ -508,7 +508,7 @@ var GuruAPI = {
             user_ids: ids,
             title: '📢 ' + (d.judul || 'Pengumuman Baru'),
             body : (d.isi || '').slice(0, 100),
-            url  : '/murid/index.html',
+            url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
             tag  : 'pengumuman-' + (data && data.id || Date.now()),
             data : { trigger: 'pengumuman' },
           });
@@ -902,7 +902,7 @@ var GuruAPI = {
         user_ids: ids,
         title : '📄 Raport Kamu Sudah Tersedia!',
         body  : 'Raport semester ini sudah dipublish. Ketuk untuk melihat nilai dan predikatmu.',
-        url   : '/murid/index.html',
+        url   : '/Portal-Halaqah-Rattililquran/murid/index.html',
         tag   : 'raport-published-' + d.id_halaqah,
         data  : { trigger: 'raport_published', id_halaqah: d.id_halaqah },
       });
@@ -1527,7 +1527,7 @@ var AdminAPI = {
         body : isLunas
           ? 'SPP ' + (sppRow.bulan || '') + ' ' + (sppRow.tahun || '') + ' sudah terverifikasi. Jazakallahu khairan!'
           : 'Konfirmasi SPP ' + (sppRow.bulan || '') + ' ditolak admin. Silakan hubungi admin untuk info lebih lanjut.',
-        url  : '/murid/index.html',
+        url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
         tag  : 'spp-validasi-' + id_spp,
         data : { trigger: isLunas ? 'spp_lunas' : 'spp_ditolak' },
       });
