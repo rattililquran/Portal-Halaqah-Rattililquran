@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v4.9 — push notification support
+//  Cache version: v5.0 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v4.9';
+const CACHE_NAME   = 'halaqah-v5.0';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -146,8 +146,11 @@ self.addEventListener('push', function(e) {
 // Klik notifikasi → buka/fokus tab portal
 self.addEventListener('notificationclick', function(e) {
   e.notification.close();
-  var targetUrl = (e.notification.data && e.notification.data.url)
-    || '/Portal-Halaqah-Rattililquran/';
+  var rawUrl = (e.notification.data && e.notification.data.url) || '/';
+  // Pastikan URL selalu punya base path (cegah 404)
+  var BASE = '/Portal-Halaqah-Rattililquran';
+  var targetUrl = rawUrl.startsWith('http') ? rawUrl
+    : (rawUrl.startsWith(BASE) ? rawUrl : BASE + rawUrl);
 
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
