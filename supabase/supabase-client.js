@@ -615,14 +615,31 @@ var GuruAPI = {
   },
 
   simpanFollowupKeaktifan: async function(d) {
-    // Catat tindak lanjut: update catatan_guru di anggota dengan timestamp + tipe
-    var catatan = '[' + new Date().toLocaleDateString('id') + '] Sudah dihubungi terkait ' + (d.tipe_alert || 'keaktifan') + ' (' + (d.value || 0) + 'x)';
-    var { data: anggota } = await _sb.from('anggota').select('id_halaqah,catatan_guru').eq('id_murid', d.id_murid).eq('status','aktif').maybeSingle();
-    if (anggota) {
-      var existing = anggota.catatan_guru ? anggota.catatan_guru + '\n' : '';
-      var { error } = await _sb.from('anggota').update({ catatan_guru: existing + catatan }).eq('id_murid', d.id_murid).eq('id_halaqah', anggota.id_halaqah);
-      _check(error, 'simpanFollowupKeaktifan');
-    }
+    // Ambil data anggota + hitung alpa saat ini untuk disimpan sebagai baseline dismissal
+    var { data: anggota } = await _sb.from('anggota')
+      .select('id_halaqah, catatan_guru, followup_alpa_kbm, followup_alpa_at')
+      .eq('id_murid', d.id_murid).eq('status','aktif').maybeSingle();
+    if (!anggota) return { status: 'ok' };
+
+    // Hitung alpa KBM dan At-Tibyan saat ini
+    var [kbmRes, atRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('status_hadir','A'),
+      _sb.from('at_tibyan_log').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('status_hadir','A'),
+    ]);
+    var kbmAlpa = kbmRes.count || 0;
+    var atAlpa  = atRes.count  || 0;
+
+    // Simpan catatan + set baseline dismissal
+    var catatan = (anggota.catatan_guru ? anggota.catatan_guru + '\n' : '')
+      + '[' + new Date().toLocaleDateString('id') + '] Sudah dihubungi — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)';
+
+    var { error } = await _sb.from('anggota').update({
+      catatan_guru     : catatan,
+      followup_alpa_kbm: kbmAlpa,   // baseline alpa KBM saat dismiss
+      followup_alpa_at : atAlpa,    // baseline alpa At-Tibyan saat dismiss
+      followup_at      : new Date().toISOString(),
+    }).eq('id_murid', d.id_murid).eq('id_halaqah', anggota.id_halaqah);
+    _check(error, 'simpanFollowupKeaktifan');
     return { status: 'ok' };
   },
 
@@ -1350,17 +1367,29 @@ var MuridAPI = {
   },
   getKeaktifanAlerts: async function() {
     var id_murid = _uid();
-    var [kbmRes, atRes] = await Promise.all([
-      _sb.from('nilai_kbm').select('status_hadir').eq('id_murid', id_murid).eq('status_hadir', 'A'),
-      _sb.from('at_tibyan_log').select('status_hadir').eq('id_murid', id_murid).eq('status_hadir', 'A'),
+    var [kbmRes, atRes, anggotaRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',id_murid).eq('status_hadir','A'),
+      _sb.from('at_tibyan_log').select('*',{count:'exact',head:true}).eq('id_murid',id_murid).eq('status_hadir','A'),
+      _sb.from('anggota').select('followup_alpa_kbm,followup_alpa_at,followup_at').eq('id_murid',id_murid).eq('status','aktif').maybeSingle(),
     ]);
-    var kbmAlpa = (kbmRes.data || []).length;
-    var atAlpa  = (atRes.data  || []).length;
-    var alerts  = [];
-    if (kbmAlpa >= 2) alerts.push({ tipe: 'absen_kritis',     judul: 'Kehadiran KBM Kritis!',       pesan: 'Kamu sudah alpa '+kbmAlpa+'× di KBM halaqah. Segera hubungi guru ya.' });
-    else if (kbmAlpa === 1) alerts.push({ tipe: 'absen_peringatan', judul: 'Peringatan Kehadiran KBM', pesan: 'Kamu sudah alpa 1× di KBM. Jaga kehadiranmu!' });
-    if (atAlpa >= 2) alerts.push({ tipe: 'absen_kritis',     judul: 'Kehadiran At-Tibyan Kritis!',  pesan: 'Kamu sudah alpa '+atAlpa+'× di At-Tibyan. Semangat hadir ya!' });
-    else if (atAlpa === 1) alerts.push({ tipe: 'absen_peringatan', judul: 'Peringatan At-Tibyan',       pesan: 'Kamu sudah alpa 1× di At-Tibyan. Jaga kehadiranmu!' });
+    var kbmAlpa   = kbmRes.count || 0;
+    var atAlpa    = atRes.count  || 0;
+    var dismissed = anggotaRes.data || {};
+
+    // Alert hanya tampil jika alpa BERTAMBAH sejak guru terakhir dismiss
+    // Jika kbmAlpa <= baseline saat dismiss → guru sudah handle, banner hilang
+    var kbmDismissed = dismissed.followup_alpa_kbm != null && kbmAlpa <= dismissed.followup_alpa_kbm;
+    var atDismissed  = dismissed.followup_alpa_at  != null && atAlpa  <= dismissed.followup_alpa_at;
+
+    var alerts = [];
+    if (!kbmDismissed) {
+      if      (kbmAlpa >= 2) alerts.push({ tipe:'absen_kritis',     judul:'Kehadiran KBM Kritis!',       pesan:'Kamu sudah alpa '+kbmAlpa+'× di KBM halaqah. Segera hubungi guru ya.',  detail:'KBM alpa: '+kbmAlpa+'×' });
+      else if (kbmAlpa === 1) alerts.push({ tipe:'absen_peringatan', judul:'Peringatan Kehadiran KBM',    pesan:'Kamu sudah alpa 1× di KBM. Jaga kehadiranmu!',                          detail:'KBM alpa: 1×' });
+    }
+    if (!atDismissed) {
+      if      (atAlpa >= 2) alerts.push({ tipe:'absen_kritis',      judul:'Kehadiran At-Tibyan Kritis!', pesan:'Kamu sudah alpa '+atAlpa+'× di At-Tibyan. Semangat hadir ya!',          detail:'At-Tibyan alpa: '+atAlpa+'×' });
+      else if (atAlpa === 1) alerts.push({ tipe:'absen_peringatan', judul:'Peringatan At-Tibyan',        pesan:'Kamu sudah alpa 1× di At-Tibyan. Jaga kehadiranmu!',                    detail:'At-Tibyan alpa: 1×' });
+    }
     return { status: 'ok', data: { alerts } };
   },
 
