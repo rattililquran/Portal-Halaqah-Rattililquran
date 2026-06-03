@@ -357,6 +357,16 @@ tr:hover td{background:#f8fafc}
 .nilai-murid-card:last-child{margin-bottom:0}
 .nilai-murid-card.terisi{border-color:var(--green);background:linear-gradient(135deg,#f0fdf9,#f8fffe)}
 .nilai-murid-card.alpa{opacity:.5;filter:grayscale(.3)}
+/* Label section chip oranye-emas */
+.nm-section-label{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#fef3c7,#fde68a);
+  border:1px solid #f59e0b;border-radius:8px;
+  padding:3px 10px;font-size:10.5px;font-weight:800;
+  color:#92400e;text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:7px;
+}
+html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;border-color:rgba(245,158,11,.3)!important;color:#fbbf24!important}
 
 /* ── SESI AKTIF BANNER ── */
 .sesi-banner{background:linear-gradient(135deg,#e1f5ee,#d1fae5);
@@ -3329,8 +3339,21 @@ function renderNilaiMuridStep() {
   const HADIR_LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
   const HADIR_BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
 
+  // Urutkan: H dan T di atas, I dan A di bawah
+  const URUTAN = {H:0, T:1, I:2, A:3};
+  const muridSorted = muridSesi.slice().sort(function(a, b) {
+    var sa = URUTAN[presensiMap[a.id_murid] || 'H'] || 0;
+    var sb = URUTAN[presensiMap[b.id_murid] || 'H'] || 0;
+    return sa - sb || (a.nama_murid||'').localeCompare(b.nama_murid||'');
+  });
+
+  // Tentukan apakah perlu separator antara hadir dan tidak hadir
+  var adaHadir  = muridSorted.some(function(m){ var s=presensiMap[m.id_murid]||'H'; return s==='H'||s==='T'; });
+  var adaTidak  = muridSorted.some(function(m){ var s=presensiMap[m.id_murid]||'H'; return s==='I'||s==='A'; });
+  var sepInserted = false;
+
   let terisi = 0;
-  cont.innerHTML = muridSesi.map(m => {
+  cont.innerHTML = muridSorted.map(m => {
     const status   = presensiMap[m.id_murid] || 'H';
     const isAlpa   = status === 'A';
     const isIzin   = status === 'I';
@@ -3353,7 +3376,7 @@ function renderNilaiMuridStep() {
     const nilaiForm = [
       '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
-      '    <label>Adab</label>',
+      '    <div class="nm-section-label">😊 Adab</div>',
       '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\')">',
       '      <option value="">— Pilih —</option>',
       '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
@@ -3363,7 +3386,7 @@ function renderNilaiMuridStep() {
       '</div>',
       '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
-      '    <label>Kamera Murid</label>',
+      '    <div class="nm-section-label">📷 Kamera Murid</div>',
       '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px">',
       '      <option value="">— Pilih —</option>',
       '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
@@ -3373,7 +3396,7 @@ function renderNilaiMuridStep() {
       '  </div>',
       '</div>',
       '<div class="fg" style="margin:0">',
-      '  <label>Koreksi Tahsin</label>',
+      '  <div class="nm-section-label">✏️ Koreksi Tahsin</div>',
       '  <div id="chips-' + esc(m.id_murid) + '" style="margin-bottom:8px"></div>',
       '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this)" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;resize:vertical;min-height:72px">' + esc(korVal) + '</textarea>',
       '  <div style="display:flex;justify-content:flex-end;margin-top:4px">',
@@ -3381,14 +3404,26 @@ function renderNilaiMuridStep() {
       '  </div>',
       '</div>',
       '<div class="fg" style="margin-top:10px">',
-      '  <label style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Catatan Lainnya <span style="font-weight:400;font-size:10px">(opsional)</span></label>',
+      '  <div class="nm-section-label" style="opacity:.7">📝 Catatan Lainnya <span style="font-weight:500;font-size:9px;text-transform:none;letter-spacing:0">(opsional)</span></div>',
       '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + catVal + '</textarea>',
       '</div>',
     ].join('\n');
 
     var initials = m.nama_murid.split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
     var badgeCls = {'H':'nm-badge-H','T':'nm-badge-T','I':'nm-badge-I','A':'nm-badge-A'}[status] || 'nm-badge-H';
-    return '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
+
+    // Sisipkan separator sebelum murid Izin/Alpa pertama
+    var sepHtml = '';
+    if (adaHadir && adaTidak && (status === 'I' || status === 'A') && !sepInserted) {
+      sepInserted = true;
+      sepHtml = '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">'
+        + '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#fde68a)"></div>'
+        + '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:3px 12px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">⬇ Izin &amp; Alpa</div>'
+        + '<div style="flex:1;height:1px;background:linear-gradient(90deg,#fde68a,transparent)"></div>'
+        + '</div>';
+    }
+
+    return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
       + '<div class="nm-header">'
       + '<div class="nm-nama">'
       + '<div class="nm-nama-avatar">' + initials + '</div>'
