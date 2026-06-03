@@ -487,36 +487,42 @@ tr:hover td{background:#f8fafc}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .sidebar{
+    transform:translateX(-100%);
+    width:min(300px, 88vw);
+  }
+  .sidebar.open{transform:translateX(0)}
   .sb-overlay.show{display:block}
-  .main{margin-left:0}.hamburger{display:block}
-  .content{padding:14px;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .main{margin-left:0}
+  .hamburger{display:block}
+  .content{
+    padding:14px;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  }
   .f2,.f3{grid-template-columns:1fr}
   .stats-row{grid-template-columns:1fr 1fr}
   .sesi-banner{flex-direction:column;align-items:flex-start}
   .steps{gap:0}
-  .mobile-bottom-nav{display:flex!important}
+  /* Tombol sidebar lebih besar di mobile (touch target 44px+) */
+  .nav-btn{padding:12px 12px;font-size:13.5px}
+  .nav-btn .ni{width:36px;height:36px;font-size:16px}
+  /* Tombol Mulai Sesi lebih menonjol */
+  .sb-nav > div:first-child button{padding:13px 14px;font-size:14px}
 }
-
-/* ── MOBILE BOTTOM NAV (guru) ── */
-.mobile-bottom-nav{
-  display:none;
-  position:fixed;bottom:0;left:0;right:0;z-index:98;
-  background:rgba(255,255,255,.95);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-top:1px solid #e2eaf5;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  justify-content:space-around;align-items:stretch;
-}
-.mbn-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;padding:8px 4px;border:none;background:none;cursor:pointer;
-  font-family:inherit;font-size:10px;font-weight:700;color:#6b7280;
-  transition:color .15s;
-}
-.mbn-item.active,.mbn-item:active{color:#0284c7}
-.mbn-ico{font-size:18px;line-height:1}
 @media(max-width:380px){.stats-row{grid-template-columns:1fr}}
+
+/* ── SIDEBAR CLOSE BUTTON (mobile) ── */
+.sb-close-btn{
+  display:none;
+  position:absolute;top:12px;right:12px;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+  color:#fff;font-size:16px;cursor:pointer;
+  align-items:center;justify-content:center;
+  transition:background .2s;z-index:2;
+}
+.sb-close-btn:hover{background:rgba(255,255,255,.35)}
+@media(max-width:768px){.sb-close-btn{display:flex}}
 
 /* ── JADWAL CARD ── */
 .jadwal-card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);
@@ -1394,6 +1400,8 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 <!-- APP -->
 <div id="app">
   <aside class="sidebar" id="sidebar">
+    <!-- Tombol tutup sidebar (mobile) -->
+    <button class="sb-close-btn" onclick="closeSB()" aria-label="Tutup sidebar">✕</button>
     <!-- Header gradient + profile row -->
     <div class="sb-top">
       <div style="height:env(safe-area-inset-top,0px);min-height:0"></div>
@@ -1436,6 +1444,8 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
       <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni">📖</span>Panduan</button>
       <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni">🔑</span>Ganti Password</button>
+      <div style="height:1px;background:var(--border,#e2eaf5);margin:8px 4px"></div>
+      <button class="nav-btn" onclick="doLogout()" style="color:#dc2626"><span class="ni" style="background:rgba(220,38,38,.08);color:#dc2626">→</span>Keluar dari Aplikasi</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">
@@ -2828,7 +2838,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn,.mbn-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name) && document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('[data-p="' + name + '"]').forEach(b => b.classList.add('active'));
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
@@ -6423,13 +6433,5 @@ async function initRaportPage() {
 }
 </script>
 
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-bottom-nav" id="mobileBottomNav">
-  <button class="mbn-item" onclick="goPage('dashboard')" data-p="dashboard"><span class="mbn-ico">🏠</span>Dashboard</button>
-  <button class="mbn-item" onclick="goPage('riwayat')" data-p="riwayat"><span class="mbn-ico">📜</span>Riwayat</button>
-  <button class="mbn-item" onclick="mulaiSesiBaruCepat()" style="color:#0284c7"><span class="mbn-ico">▶️</span>Mulai</button>
-  <button class="mbn-item" onclick="goPage('murid')" data-p="murid"><span class="mbn-ico">👥</span>Murid</button>
-  <button class="mbn-item" onclick="openSB()"><span class="mbn-ico">☰</span>Menu</button>
-</nav>
 </body>
 </html>
