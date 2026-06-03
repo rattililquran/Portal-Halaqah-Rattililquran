@@ -70,7 +70,9 @@ body{
 .wave{height:50px;background:#f0f9ff;border-radius:50px 50px 0 0;margin-top:-24px;position:relative;z-index:1}
 
 /* ── SECTIONS ── */
-.section{padding:36px 20px;max-width:600px;margin:0 auto}
+.section{padding:32px 14px;width:100%}
+@media(min-width:480px){.section{padding:36px 20px}}
+@media(min-width:640px){.section{padding:40px 24px;max-width:640px;margin:0 auto}}
 
 /* ── YT BUTTON ── */
 .yt-btn{
@@ -184,7 +186,9 @@ body{
 .warn-box-text strong{color:#78350f;font-weight:800;display:block;margin-bottom:3px}
 
 /* ── CTA BUTTON ── */
-.cta-wrap{text-align:center;padding:32px 24px 48px;max-width:600px;margin:0 auto}
+.cta-wrap{text-align:center;padding:24px 14px 48px;width:100%}
+@media(min-width:480px){.cta-wrap{padding:32px 20px 48px}}
+@media(min-width:640px){.cta-wrap{max-width:640px;margin:0 auto;padding:32px 24px 48px}}
 .cta-btn{
   display:inline-flex;align-items:center;justify-content:center;gap:10px;
   background:linear-gradient(135deg,#0284c7,#1d4ed8);
@@ -227,9 +231,10 @@ body{
 .motiv-box{
   background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
   border:1.5px solid #a7f3d0;border-radius:20px;
-  padding:24px 22px;text-align:center;margin:0 24px 32px;
-  max-width:552px;margin-left:auto;margin-right:auto;
+  padding:22px 16px;text-align:center;margin:0 14px 28px;
 }
+@media(min-width:480px){.motiv-box{padding:24px 22px;margin:0 20px 32px}}
+@media(min-width:640px){.motiv-box{max-width:592px;margin-left:auto;margin-right:auto}}
 .motiv-arabic{
   font-size:20px;color:#047857;direction:rtl;
   font-family:'Times New Roman',serif;line-height:2;margin-bottom:8px;
@@ -245,17 +250,22 @@ body{
 }
 .review-banner span{opacity:.7;font-weight:500}
 
-/* Mobile first tweaks */
+/* Mobile compact */
 @media(max-width:380px){
-  .hero{padding:48px 18px 64px}
-  .hero h1{font-size:26px}
-  .section{padding:28px 16px}
-  .why-card{padding:14px 16px;gap:12px}
-  .why-ico{width:40px;height:40px;font-size:20px}
-  .notif-card{padding:22px 18px}
-  .step-item{gap:12px}
+  .hero{padding:44px 14px 60px}
+  .hero h1{font-size:25px}
+  .why-card{padding:12px 14px;gap:10px}
+  .why-ico{width:38px;height:38px;font-size:19px}
+  .notif-card{padding:18px 14px}
+  .notif-item{padding:10px 12px;gap:10px}
+  .step-item{gap:10px;padding:12px 0}
+  .step-num{width:32px;height:32px;font-size:12px}
 }
-@media(min-width:600px){
+@media(min-width:480px){
+  .why-card{padding:16px 18px}
+  .notif-card{padding:24px 20px}
+}
+@media(min-width:640px){
   .hero-stats{grid-template-columns:repeat(4,1fr);max-width:480px}
   .why-card{padding:22px 24px}
   .notif-card{padding:32px 28px}
