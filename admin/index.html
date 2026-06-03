@@ -702,6 +702,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
       <div class="sb-sec">Konfigurasi</div>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
       <button class="nav-btn" onclick="goPage('materi')" data-p="materi"><span class="ni">📖</span>Materi Kajian</button>
+      <button class="nav-btn" onclick="goPage('push')" data-p="push"><span class="ni">🔔</span>Push Notifikasi</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
@@ -1255,6 +1256,77 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
       </div>
 
+      <!-- ══ PUSH NOTIFIKASI ══ -->
+      <div class="page" id="page-push">
+        <div class="section-title">Push Notifikasi</div>
+        <div class="section-sub">Kelola, konfigurasi, dan test push notifikasi ke murid & guru.</div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px" id="pushStatsGrid">
+          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Total Device</div><div style="font-size:28px;font-weight:900;color:var(--blue)" id="pushStatTotal">–</div></div>
+          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Murid</div><div style="font-size:28px;font-weight:900;color:var(--green)" id="pushStatMurid">–</div></div>
+          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Guru</div><div style="font-size:28px;font-weight:900;color:var(--blue)" id="pushStatGuru">–</div></div>
+          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Admin</div><div style="font-size:28px;font-weight:900;color:var(--amber)" id="pushStatAdmin">–</div></div>
+        </div>
+
+        <!-- Test Kirim -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">🧪 Test Kirim Notifikasi</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="fg" style="margin:0"><label>Target</label>
+                <select class="fc" id="pushTestTarget">
+                  <option value="role_murid">Semua Murid</option>
+                  <option value="role_guru">Semua Guru</option>
+                  <option value="role_admin">Semua Admin</option>
+                  <option value="all">Semua User</option>
+                  <option value="user_id">User ID Tertentu</option>
+                </select>
+              </div>
+              <div class="fg" style="margin:0" id="pushTestUserIdWrap" style="display:none"><label>User ID</label><input type="text" class="fc" id="pushTestUserId" placeholder="id_user..."></div>
+            </div>
+            <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" placeholder="Judul notifikasi..." value="🔔 Test dari Admin"></div>
+            <div class="fg" style="margin:0"><label>Pesan</label><input type="text" class="fc" id="pushTestBody" placeholder="Isi pesan..." value="Ini adalah test push notifikasi Rattililqur'an."></div>
+            <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush">📤 Kirim Test</button>
+            <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px;border-radius:8px;background:#f0fdf4;color:#065f46;font-weight:600"></div>
+          </div>
+        </div>
+
+        <!-- Konfigurasi -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <div class="card-title">⚙️ Konfigurasi Notifikasi</div>
+            <div style="font-size:12px;color:var(--text-3)">Toggle untuk aktifkan/nonaktifkan tiap jenis</div>
+          </div>
+          <div class="card-body" id="pushConfigList">
+            <div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div>
+          </div>
+        </div>
+
+        <!-- Test Trigger Terjadwal -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">⏱ Test Trigger Cron</div><div style="font-size:12px;color:var(--text-3)">Simulasi reminder terjadwal</div></div>
+          <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('kbm_h1')">⏰ H-1 KBM</button>
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_h1')">📖 H-1 At-Tibyan</button>
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_30min')">⏱ 30min At-Tibyan</button>
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('pr_deadline')">✏️ Deadline PR</button>
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('guru_kbm_today')">📚 KBM Guru</button>
+            <button class="btn btn-outline btn-sm" onclick="testTrigger('admin_digest')">📊 Rekap Admin</button>
+          </div>
+          <div id="pushTriggerResult" style="display:none;font-size:12px;padding:10px;border-radius:8px;margin-top:8px;background:#f0fdf4;color:#065f46;font-weight:600"></div>
+        </div>
+
+        <!-- Log -->
+        <div class="card">
+          <div class="card-head"><div class="card-title">📋 Log Terakhir</div></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th>Terkirim</th><th>Gagal</th></tr></thead>
+            <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+
       <!-- ══ TEMPLATE KOREKSI ══ -->
       <div class="page" id="page-template">
         <div class="section-title">Template Koreksi Tahsin</div>
@@ -1657,7 +1729,7 @@ const PAGE_TITLES = {
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
-  materi:'Materi Kajian'
+  materi:'Materi Kajian', push:'Push Notifikasi'
 };
 
 // ══════════════════════════════════════════
@@ -1759,6 +1831,7 @@ function goPage(name) {
     template : loadTemplate,
     arsip    : loadArsipPage,
     materi   : loadMateriAdmin,
+    push     : loadPushAdmin,
   };
   loaders[name]?.();
 }
@@ -3332,6 +3405,111 @@ function pctBar(pct) {
 function fmtDate(d) { if(!d) return '–'; return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
 function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+
+// ══════════════════════════════════════════
+//  PUSH NOTIFIKASI ADMIN
+// ══════════════════════════════════════════
+async function loadPushAdmin() {
+  try {
+    var r = await window.HQ.AdminAPI.getPushStats();
+    var d = r.data;
+    document.getElementById('pushStatTotal').textContent = d.total;
+    document.getElementById('pushStatMurid').textContent = d.murid;
+    document.getElementById('pushStatGuru').textContent  = d.guru;
+    document.getElementById('pushStatAdmin').textContent = d.admin;
+    renderPushLog(d.logs);
+  } catch(e) { console.warn('loadPushStats:', e); }
+  try {
+    var r2 = await window.HQ.AdminAPI.getPushConfig();
+    renderPushConfig(r2.data);
+  } catch(e) { console.warn('loadPushConfig:', e); }
+}
+
+function renderPushConfig(configs) {
+  var el = document.getElementById('pushConfigList');
+  if (!configs.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px">Tidak ada konfigurasi.</div>'; return; }
+  el.innerHTML = configs.map(function(c) {
+    var id = 'pushToggle_' + c.key;
+    return '<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:18px;width:24px;text-align:center">' + (c.icon||'🔔') + '</div>'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:700">' + esc(c.label) + '</div>'
+      + '<div style="font-size:11.5px;color:var(--text-3)">' + esc(c.description||'') + '</div></div>'
+      + '<label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">'
+      + '<input type="checkbox" id="' + id + '" ' + (c.enabled?'checked':'') + ' onchange="togglePushConfig(\''+c.key+'\',this.checked)" style="opacity:0;width:0;height:0">'
+      + '<span style="position:absolute;cursor:pointer;inset:0;background:' + (c.enabled?'var(--green)':'#cbd5e1') + ';border-radius:24px;transition:.2s">'
+      + '<span style="position:absolute;content:\'\';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;transform:' + (c.enabled?'translateX(20px)':'translateX(0)') + '"></span></span></label>'
+      + '</div>';
+  }).join('');
+}
+
+async function togglePushConfig(key, enabled) {
+  try {
+    await window.HQ.AdminAPI.updatePushConfig(key, enabled);
+    toast((enabled?'✅ Aktif':'⛔ Nonaktif') + ': ' + key, 'ok');
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+function renderPushLog(logs) {
+  var tbody = document.getElementById('pushLogTbl');
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada log.</td></tr>'; return; }
+  tbody.innerHTML = logs.map(function(l) {
+    var d = new Date(l.created_at);
+    var waktu = d.toLocaleDateString('id')+' '+d.toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit'});
+    return '<tr><td style="font-size:12px;white-space:nowrap">'+waktu+'</td>'
+      + '<td><code style="font-size:11px;background:var(--bg-2);padding:2px 6px;border-radius:4px">'+esc(l.trigger_type)+'</code></td>'
+      + '<td style="font-size:12px">'+(l.target_role||'spesifik')+'</td>'
+      + '<td><span style="color:var(--green);font-weight:700">'+l.sent_count+'</span></td>'
+      + '<td><span style="color:'+(l.failed_count?'var(--red)':'var(--text-3)')+'">'+l.failed_count+'</span></td></tr>';
+  }).join('');
+}
+
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'pushTestTarget') {
+    var show = e.target.value === 'user_id';
+    document.getElementById('pushTestUserIdWrap').style.display = show ? '' : 'none';
+  }
+});
+
+async function kirimTestPush() {
+  var target = document.getElementById('pushTestTarget').value;
+  var title  = document.getElementById('pushTestTitle').value.trim();
+  var body   = document.getElementById('pushTestBody').value.trim();
+  if (!title || !body) return toast('Isi judul dan pesan','err');
+  var btn = document.getElementById('btnTestPush');
+  btn.disabled = true; btn.textContent = 'Mengirim...';
+  try {
+    var opts = { title, body, url: '/admin/index.html', tag: 'admin-test' };
+    if (target === 'user_id') {
+      opts.user_ids = [document.getElementById('pushTestUserId').value.trim()];
+    } else if (target !== 'all') {
+      opts.role_filter = target.replace('role_','');
+    }
+    var r = await window.HQ.AdminAPI.testSendPush(opts);
+    var res = document.getElementById('pushTestResult');
+    res.style.display = '';
+    res.style.background = r.sent > 0 ? '#f0fdf4' : '#fff5f5';
+    res.style.color = r.sent > 0 ? '#065f46' : '#991b1b';
+    res.textContent = '✅ Terkirim: ' + (r.sent||0) + ' device · Gagal: ' + (r.failed||0) + ' · Total: ' + (r.total||0);
+  } catch(e) { toast(e.message,'err'); }
+  finally { btn.disabled=false; btn.textContent='📤 Kirim Test'; }
+}
+
+async function testTrigger(trigger) {
+  var res = document.getElementById('pushTriggerResult');
+  res.style.display = '';
+  res.textContent = '⏳ Menjalankan trigger: ' + trigger + '...';
+  try {
+    var r = await window.HQ.AdminAPI.testTrigger(trigger);
+    res.style.background = r.ok ? '#f0fdf4' : '#fef3c7';
+    res.style.color       = r.ok ? '#065f46' : '#92400e';
+    res.textContent = r.ok
+      ? '✅ Trigger ' + trigger + ' berhasil dijalankan'
+      : '⛔ Trigger dinonaktifkan admin: ' + trigger;
+  } catch(e) {
+    res.style.background = '#fff5f5'; res.style.color = '#991b1b';
+    res.textContent = '❌ Error: ' + e.message;
+  }
+}
 
 // ══════════════════════════════════════════
 //  MATERI KAJIAN

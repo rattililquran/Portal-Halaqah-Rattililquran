@@ -1709,6 +1709,42 @@ var AdminAPI = {
     return {status:'ok'};
   },
 
+  // ── Push Notifikasi Admin ──────────────────────
+  getPushConfig: async function() {
+    var {data,error} = await _sb.from('push_config').select('*').order('key');
+    _check(error,'getPushConfig'); return {status:'ok',data:data||[]};
+  },
+  updatePushConfig: async function(key, enabled) {
+    var {error} = await _sb.from('push_config').update({enabled,updated_at:new Date().toISOString()}).eq('key',key);
+    _check(error,'updatePushConfig'); return {status:'ok'};
+  },
+  getPushStats: async function() {
+    var [total,murid,guru,admin] = await Promise.all([
+      _sb.from('push_subscriptions').select('*',{count:'exact',head:true}),
+      _sb.from('push_subscriptions').select('*',{count:'exact',head:true}).eq('role','murid'),
+      _sb.from('push_subscriptions').select('*',{count:'exact',head:true}).eq('role','guru'),
+      _sb.from('push_subscriptions').select('*',{count:'exact',head:true}).in('role',['admin','superadmin']),
+    ]);
+    var {data:logs} = await _sb.from('push_log').select('*').order('created_at',{ascending:false}).limit(10);
+    return {status:'ok',data:{total:total.count||0,murid:murid.count||0,guru:guru.count||0,admin:admin.count||0,logs:logs||[]}};
+  },
+  testSendPush: async function(d) {
+    var res = await fetch(SUPABASE_URL+'/functions/v1/send-push',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
+      body:JSON.stringify(d),
+    });
+    return res.json();
+  },
+  testTrigger: async function(trigger) {
+    var res = await fetch(SUPABASE_URL+'/functions/v1/push-scheduler',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
+      body:JSON.stringify({trigger}),
+    });
+    return res.json();
+  },
+
   // ── Materi Level (admin CRUD) ──────────────────
   getMateriLevelAdmin: async function() {
     var {data,error} = await _sb.from('materi_level').select('*').order('level').order('urutan');
@@ -1889,6 +1925,35 @@ var KetuaAPI = {
 };
 
 // ─────────────────────────────────────────────
+//  PUSH USER PREFS (murid & guru)
+// ─────────────────────────────────────────────
+var PushPrefsAPI = {
+  // Ambil preferensi notifikasi user ini
+  getPrefs: async function() {
+    var uid = _uid();
+    if (!uid) return {status:'ok',data:{}};
+    var {data} = await _sb.from('push_user_prefs').select('prefs').eq('id_user',uid).maybeSingle();
+    return {status:'ok',data:(data&&data.prefs)||{}};
+  },
+  // Simpan preferensi (prefs = object key:boolean)
+  savePrefs: async function(prefs) {
+    var uid = _uid();
+    if (!uid) throw new Error('Belum login');
+    var {error} = await _sb.from('push_user_prefs').upsert({
+      id_user:uid, prefs, updated_at:new Date().toISOString()
+    },{onConflict:'id_user'});
+    _check(error,'savePrefs');
+    return {status:'ok'};
+  },
+  // Update satu key saja
+  setOne: async function(key, value) {
+    var r = await PushPrefsAPI.getPrefs();
+    var prefs = Object.assign({},r.data,{[key]:value});
+    return PushPrefsAPI.savePrefs(prefs);
+  },
+};
+
+// ─────────────────────────────────────────────
 //  PUSH HELPER (internal, non-blocking)
 // ─────────────────────────────────────────────
 function _sendPushBg(opts) {
@@ -2004,7 +2069,7 @@ function _urlB64ToUint8Array(base64String) {
 window.HQ = {
   Auth, AdminAPI, GuruAPI, MuridAPI, KetuaAPI,
   SuperAdminAPI: AdminAPI,
-  PushAPI,
+  PushAPI, PushPrefsAPI,
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },
   cache: { invalidate: function() {} },

@@ -3188,6 +3188,10 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         Panduan
       </button>
 
+      <button class="sidebar-item ico-blue" onclick="closeSidebar();openPushPrefsPanel()">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="4"/></svg></div>
+        Preferensi Notifikasi
+      </button>
       <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('password')">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         Ganti Password
@@ -3491,6 +3495,32 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREFERENSI NOTIFIKASI -->
+  <div class="modal-overlay" id="pushPrefsModal" onclick="if(event.target===this)closeModal('pushPrefsModal')">
+    <div class="modal-sheet" style="max-width:480px">
+      <div class="modal-head">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#0369a1);display:flex;align-items:center;justify-content:center;font-size:18px">🔔</div>
+          <div><div class="modal-title">Preferensi Notifikasi</div><div style="font-size:11px;color:var(--text-3);font-weight:500">Pilih jenis notifikasi yang ingin kamu terima</div></div>
+        </div>
+        <button class="modal-x" onclick="closeModal('pushPrefsModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Status subscribe -->
+        <div id="pushSubStatus" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:#065f46;display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">⏳</span> Memeriksa status notifikasi...
+        </div>
+        <!-- Toggle list -->
+        <div id="pushPrefsList" style="display:flex;flex-direction:column;gap:4px"></div>
+        <!-- Aktifkan/nonaktifkan semua -->
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="toggleAllPushPrefs(false)">⛔ Matikan Semua</button>
+          <button class="btn btn-green btn-sm" onclick="toggleAllPushPrefs(true)">✅ Aktifkan Semua</button>
+        </div>
       </div>
     </div>
   </div>
@@ -7145,6 +7175,90 @@ function initThemeToggle() {
   });
 }
 initThemeToggle();
+
+// ── Push Preferences ──────────────────────────
+var _pushPrefsData   = {};
+var _pushConfigData  = [];
+var PUSH_LABELS_MURID = {
+  kbm_h1          : { label:'Reminder H-1 KBM',         desc:'Sehari sebelum jadwal halaqah', icon:'⏰' },
+  attibyan_h1      : { label:'Reminder H-1 At-Tibyan',   desc:'Sabtu malam sebelum kajian',    icon:'📖' },
+  attibyan_30min   : { label:'At-Tibyan 30 Menit Lagi',  desc:'Ahad jam 19.00 WIB',            icon:'⏱' },
+  pr_deadline      : { label:'Deadline Latihan Mandiri',  desc:'Sehari sebelum batas waktu PR', icon:'✏️' },
+  pengumuman       : { label:'Pengumuman Baru',           desc:'Saat guru/admin kirim pengumuman', icon:'📢' },
+  raport_published : { label:'Raport Dipublish',          desc:'Saat raport tersedia',          icon:'📄' },
+  spp_validasi     : { label:'Status Pembayaran SPP',     desc:'Konfirmasi diterima/ditolak',   icon:'💳' },
+  observasi_terbuka: { label:'Window Observasi KBM',      desc:'Segera setelah sesi selesai',   icon:'📋' },
+};
+
+async function openPushPrefsPanel() {
+  openModal('pushPrefsModal');
+  var statusEl = document.getElementById('pushSubStatus');
+  var listEl   = document.getElementById('pushPrefsList');
+
+  // Cek status subscribe
+  var isSubscribed = window.HQ && window.HQ.PushAPI && window.HQ.PushAPI.getPermissionStatus() === 'granted';
+  var sub          = isSubscribed ? await (window.HQ.PushAPI.getActiveSubscription().catch(function(){return null;})) : null;
+
+  if (!sub) {
+    statusEl.style.background = '#fff5f5'; statusEl.style.borderColor = '#fecaca'; statusEl.style.color = '#991b1b';
+    statusEl.innerHTML = '<span style="font-size:16px">🔕</span> Notifikasi belum diaktifkan. <button onclick="window._pushAllow&&window._pushAllow()" style="margin-left:8px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Aktifkan</button>';
+  } else {
+    statusEl.style.background = '#f0fdf4'; statusEl.style.borderColor = '#bbf7d0'; statusEl.style.color = '#065f46';
+    statusEl.innerHTML = '<span style="font-size:16px">🔔</span> Notifikasi aktif di perangkat ini.';
+  }
+
+  // Load prefs & config
+  try {
+    var [prefsRes, configRes] = await Promise.all([
+      window.HQ.PushPrefsAPI.getPrefs(),
+      window.HQ.AdminAPI.getPushConfig(),
+    ]);
+    _pushPrefsData  = prefsRes.data  || {};
+    _pushConfigData = configRes.data || [];
+  } catch(e) { _pushPrefsData = {}; _pushConfigData = []; }
+
+  // Tampilkan hanya yang relevan untuk murid & diaktifkan admin
+  var muridKeys = Object.keys(PUSH_LABELS_MURID);
+  var adminEnabled = new Set(_pushConfigData.filter(function(c){return c.enabled;}).map(function(c){return c.key;}));
+  var items = muridKeys.filter(function(k){ return adminEnabled.has(k); });
+
+  if (!items.length) {
+    listEl.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:12px 0">Semua notifikasi dinonaktifkan admin.</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(function(k) {
+    var info    = PUSH_LABELS_MURID[k];
+    var enabled = k in _pushPrefsData ? _pushPrefsData[k] !== false : true;
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:20px;width:26px;text-align:center">' + info.icon + '</div>'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">' + info.label + '</div>'
+      + '<div style="font-size:11.5px;color:var(--text-3)">' + info.desc + '</div></div>'
+      + '<label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">'
+      + '<input type="checkbox" data-pkey="' + k + '" ' + (enabled?'checked':'') + ' onchange="savePushPref(\''+k+'\',this.checked)" style="opacity:0;width:0;height:0">'
+      + '<span style="position:absolute;cursor:pointer;inset:0;background:' + (enabled?'#10b981':'#cbd5e1') + ';border-radius:24px;transition:.2s">'
+      + '<span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;transform:' + (enabled?'translateX(20px)':'translateX(0)') + '"></span></span></label>'
+      + '</div>';
+  }).join('');
+}
+
+async function savePushPref(key, val) {
+  try { await window.HQ.PushPrefsAPI.setOne(key, val); } catch(e) { toast(e.message,'err'); }
+}
+
+async function toggleAllPushPrefs(val) {
+  var keys = Object.keys(PUSH_LABELS_MURID);
+  var prefs = {};
+  keys.forEach(function(k){ prefs[k] = val; });
+  try {
+    await window.HQ.PushPrefsAPI.savePrefs(prefs);
+    document.querySelectorAll('#pushPrefsList input[data-pkey]').forEach(function(inp) {
+      inp.checked = val;
+      var span = inp.nextElementSibling;
+      if (span) { span.style.background = val ? '#10b981' : '#cbd5e1'; span.children[0].style.transform = val ? 'translateX(20px)' : 'translateX(0)'; }
+    });
+    toast(val ? '✅ Semua notifikasi diaktifkan' : '⛔ Semua notifikasi dimatikan', 'ok');
+  } catch(e) { toast(e.message,'err'); }
+}
 
 // ── Panduan functions ──────────────────────────
 function pdToggle(btn) {
