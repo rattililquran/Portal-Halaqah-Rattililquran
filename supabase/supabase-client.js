@@ -1779,17 +1779,21 @@ var AdminAPI = {
     return {status:'ok',data:{total:total.count||0,murid:murid.count||0,guru:guru.count||0,admin:admin.count||0,logs:logs||[]}};
   },
   testSendPush: async function(d) {
+    var session = (await _sb.auth.getSession()).data.session;
+    var token   = session ? session.access_token : SUPABASE_ANON;
     var res = await fetch(SUPABASE_URL+'/functions/v1/send-push',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify(d),
     });
     return res.json();
   },
   testTrigger: async function(trigger) {
+    var session = (await _sb.auth.getSession()).data.session;
+    var token   = session ? session.access_token : SUPABASE_ANON;
     var res = await fetch(SUPABASE_URL+'/functions/v1/push-scheduler',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({trigger}),
     });
     return res.json();
@@ -2007,11 +2011,16 @@ var PushPrefsAPI = {
 //  PUSH HELPER (internal, non-blocking)
 // ─────────────────────────────────────────────
 function _sendPushBg(opts) {
-  // Fire-and-forget — tidak blocking, error diabaikan
-  fetch(SUPABASE_URL + '/functions/v1/send-push', {
-    method : 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON },
-    body   : JSON.stringify(opts),
+  // Gunakan session token user yang sedang login (bukan anon key)
+  // agar Edge Function dapat memverifikasi pemanggil adalah authenticated user
+  _sb.auth.getSession().then(function(res) {
+    var token = (res.data && res.data.session && res.data.session.access_token) || null;
+    if (!token) return; // tidak kirim push jika tidak ada session aktif
+    fetch(SUPABASE_URL + '/functions/v1/send-push', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body   : JSON.stringify(opts),
+    }).catch(function() {});
   }).catch(function() {});
 }
 

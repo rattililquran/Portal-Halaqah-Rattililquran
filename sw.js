@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v5.1 — push notification support
+//  Cache version: v5.2 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.1';
+const CACHE_NAME   = 'halaqah-v5.2';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -147,10 +147,20 @@ self.addEventListener('push', function(e) {
 self.addEventListener('notificationclick', function(e) {
   e.notification.close();
   var rawUrl = (e.notification.data && e.notification.data.url) || '/';
-  // Pastikan URL selalu punya base path (cegah 404)
-  var BASE = '/Portal-Halaqah-Rattililquran';
-  var targetUrl = rawUrl.startsWith('http') ? rawUrl
-    : (rawUrl.startsWith(BASE) ? rawUrl : BASE + rawUrl);
+  var BASE    = '/Portal-Halaqah-Rattililquran';
+  var ALLOWED_ORIGIN = 'https://rattililquran.github.io';
+  var targetUrl;
+  if (rawUrl.startsWith('http')) {
+    // Hanya izinkan URL dari origin yang sama — tolak open redirect ke domain lain
+    try {
+      var parsed = new URL(rawUrl);
+      targetUrl = parsed.origin === ALLOWED_ORIGIN ? rawUrl : ALLOWED_ORIGIN + BASE + '/';
+    } catch (_) {
+      targetUrl = ALLOWED_ORIGIN + BASE + '/';
+    }
+  } else {
+    targetUrl = rawUrl.startsWith(BASE) ? rawUrl : BASE + rawUrl;
+  }
 
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
