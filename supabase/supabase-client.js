@@ -98,9 +98,11 @@ var Auth = {
   getProfile: function() { return Promise.resolve({ status: 'ok', data: _currentUser }); },
 
   changePassword: async function(d) {
+    var uid = _uid();
+    if (!uid) throw new Error('Sesi telah berakhir. Silakan login ulang.');
     var newPw = d.newPassword || d.password_baru;
     // Verifikasi password lama
-    await Auth.login(_uid(), d.oldPassword || d.password_lama);
+    await Auth.login(uid, d.oldPassword || d.password_lama);
     // Update di Supabase Auth
     var { error } = await _sb.auth.updateUser({ password: newPw });
     _check(error, 'changePassword');

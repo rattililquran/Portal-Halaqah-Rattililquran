@@ -5334,7 +5334,7 @@ async function doMarkContacted(idMurid, tipeAlert, value) {
 }
 
 function showKeaktifanDetailModal(idx) {
-  var m = _keaktifanData.alerts[idx];
+  var m = _keaktifanData && _keaktifanData.alerts && _keaktifanData.alerts[idx];
   if (!m) return;
   
   var modalId = 'modalDetailKeaktifan';
@@ -5649,13 +5649,17 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
       }).join('');
 
     // Tampilkan dalam notif overlay yang sudah ada
-    var notifEl = document.getElementById('notifBox');
-    if (notifEl) {
-      notifEl.innerHTML = '<div style="padding:16px;max-height:60dvh;overflow-y:auto">'+html+'</div>';
-      var ov = document.getElementById('notifOverlay');
-      if (ov) ov.style.display = 'flex';
+    var notifTitle = document.getElementById('notifTitle');
+    var notifMsg   = document.getElementById('notifMsg');
+    var notifIcon  = document.getElementById('notifIcon');
+    var notifOverlay = document.getElementById('notifOverlay');
+    if (notifTitle && notifMsg && notifOverlay) {
+      if (notifIcon) notifIcon.textContent = '📋';
+      notifTitle.textContent = 'Pertemuan ke-' + pertemuan_ke;
+      notifMsg.innerHTML = html;
+      notifOverlay.classList.add('show');
     } else {
-      toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir. Tekan Edit (✏️) untuk ubah data.','info');
+      toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir.','info');
     }
   } catch(e) { toast(e.message,'err'); }
 }
