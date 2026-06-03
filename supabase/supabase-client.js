@@ -712,18 +712,38 @@ var GuruAPI = {
   },
 
   editAtTibyan: async function(d) {
-    // Ambil tanggal dari sesi agar log tetap punya tanggal yang benar
-    var { data: sesiData } = await _sb.from('at_tibyan_sesi').select('tanggal').eq('id_sesi', d.id_sesi).single();
+    // Ambil data lama dulu sebagai cadangan rollback
+    var { data: sesiData } = await _sb.from('at_tibyan_sesi').select('tanggal, total_hadir').eq('id_sesi', d.id_sesi).single();
     var tanggal = (sesiData && sesiData.tanggal) || d.tanggal || null;
-    await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
+    var oldHadirCount = sesiData && sesiData.total_hadir;
+    var { data: oldLogs } = await _sb.from('at_tibyan_log').select('*').eq('id_sesi', d.id_sesi);
+
     var hadirCount = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
     var logRows = d.presensi.map(function(p) { return {
       id_sesi: d.id_sesi, id_murid: p.id_murid, nama_murid: p.nama_murid,
       id_halaqah: p.id_halaqah, nama_halaqah: p.nama_halaqah || '',
       status_hadir: p.status_hadir, tanggal: tanggal,
     }; });
-    await _sb.from('at_tibyan_log').insert(logRows);
+
+    await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
+    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
+
+    var { error: insertErr } = await _sb.from('at_tibyan_log').insert(logRows);
+    if (insertErr) {
+      // Rollback: kembalikan data lama
+      if (oldLogs && oldLogs.length) {
+        var rollbackRows = oldLogs.map(function(r) {
+          var copy = Object.assign({}, r);
+          delete copy.id; delete copy.created_at;
+          return copy;
+        });
+        await _sb.from('at_tibyan_log').insert(rollbackRows).catch(function(){});
+      }
+      if (oldHadirCount !== undefined) {
+        await _sb.from('at_tibyan_sesi').update({ total_hadir: oldHadirCount }).eq('id_sesi', d.id_sesi).catch(function(){});
+      }
+      _check(insertErr, 'editAtTibyan.insert');
+    }
     return { status: 'ok' };
   },
 

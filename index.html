@@ -771,8 +771,10 @@ async function doLogin() {
       await window.HQ.supabase.auth.signOut();
       setLoading(false);
       showErr('Akun ini adalah ' + (roleLabel[serverRole]||serverRole) + '. Silakan pilih tab "' + (roleLabel[serverRole]||serverRole) + '" untuk masuk.');
-      // Arahkan ke tab yang benar secara otomatis
-      setTimeout(function() { setRole(serverRole); }, 1800);
+      // Arahkan ke tab yang benar secara otomatis — hanya jika role dikenal
+      if (ROLE_META[serverRole]) {
+        setTimeout(function() { setRole(serverRole); }, 1800);
+      }
       return;
     }
 
@@ -943,36 +945,40 @@ function kirimLupaPassword() {
 
 // ── STATS RATTIL DALAM ANGKA ───────────────────
 async function fetchStats() {
-  try {
-    var sb = window.HQ && window.HQ.supabase;
-    if (!sb) return;
-    var [muridRes, guruRes, halaqahRes] = await Promise.all([
-      sb.from('users').select('*', { count:'exact', head:true }).eq('role','murid').eq('status','aktif'),
-      sb.from('users').select('*', { count:'exact', head:true }).eq('role','guru').eq('status','aktif'),
-      sb.from('halaqah').select('*', { count:'exact', head:true }).eq('status','aktif'),
-    ]);
-    var animCount = function(id, target) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('loading');
-      if (target === null || target === undefined || target < 0) { el.textContent = '--'; return; }
-      if (target === 0) { el.textContent = '0'; return; }
-      var start = 0, dur = 900, step = 16;
-      var timer = setInterval(function() {
-        start += Math.ceil(target / (dur / step));
-        if (start >= target) { start = target; clearInterval(timer); }
-        el.textContent = start;
-      }, step);
-    };
-    animCount('statMurid',   muridRes.count);
-    animCount('statGuru',    guruRes.count);
-    animCount('statHalaqah', halaqahRes.count);
-  } catch(e) {
+  var setEl = function(id, val) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('loading');
+    // Jika ada error atau count null (RLS blokir), tampil '--'
+    if (val === null || val === undefined || val < 0) { el.textContent = '--'; return; }
+    if (val === 0) { el.textContent = '0'; return; }
+    var start = 0, dur = 900, step = 16;
+    var timer = setInterval(function() {
+      start += Math.ceil(val / (dur / step));
+      if (start >= val) { start = val; clearInterval(timer); }
+      el.textContent = start;
+    }, step);
+  };
+  var showDash = function() {
     ['statMurid','statGuru','statHalaqah'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) { el.classList.remove('loading'); el.textContent = '--'; }
     });
-  }
+  };
+  try {
+    var sb = window.HQ && window.HQ.supabase;
+    if (!sb) return;
+    var results = await Promise.all([
+      sb.from('users').select('*', { count:'exact', head:true }).eq('role','murid').eq('status','aktif'),
+      sb.from('users').select('*', { count:'exact', head:true }).eq('role','guru').eq('status','aktif'),
+      sb.from('halaqah').select('*', { count:'exact', head:true }).eq('status','aktif'),
+    ]);
+    var muridRes = results[0], guruRes = results[1], halaqahRes = results[2];
+    // count === null berarti RLS memblokir query → tampil '--' bukan '0'
+    setEl('statMurid',   muridRes.error   ? null : muridRes.count);
+    setEl('statGuru',    guruRes.error    ? null : guruRes.count);
+    setEl('statHalaqah', halaqahRes.error ? null : halaqahRes.count);
+  } catch(e) { showDash(); }
 }
 
 function initThemeToggle() {
