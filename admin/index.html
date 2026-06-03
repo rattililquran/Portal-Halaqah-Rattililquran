@@ -1303,6 +1303,15 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           </div>
         </div>
 
+        <!-- Diagnostik -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">🔍 Diagnostik Sistem</div><div style="font-size:12px;color:var(--text-3)">Cek status SW, push manager, dan subscription</div></div>
+          <div class="card-body">
+            <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="margin-bottom:10px">🔍 Jalankan Diagnostik</button>
+            <div id="pushDiagResult" style="font-family:monospace;font-size:11.5px;line-height:1.8;background:var(--bg-2,#f8fafc);border-radius:8px;padding:12px;display:none;white-space:pre-wrap;word-break:break-all"></div>
+          </div>
+        </div>
+
         <!-- Test Trigger Terjadwal -->
         <div class="card" style="margin-bottom:14px">
           <div class="card-head"><div class="card-title">⏱ Test Trigger Cron</div><div style="font-size:12px;color:var(--text-3)">Simulasi reminder terjadwal</div></div>
@@ -3492,6 +3501,80 @@ async function kirimTestPush() {
     res.textContent = '✅ Terkirim: ' + (r.sent||0) + ' device · Gagal: ' + (r.failed||0) + ' · Total: ' + (r.total||0);
   } catch(e) { toast(e.message,'err'); }
   finally { btn.disabled=false; btn.textContent='📤 Kirim Test'; }
+}
+
+async function jalankanDiagnostik() {
+  var el = document.getElementById('pushDiagResult');
+  el.style.display = 'block';
+  el.textContent = '⏳ Memeriksa...';
+  var lines = [];
+  var ok = '✅', warn = '⚠️', err = '❌';
+
+  // 1. Browser support
+  lines.push('── Browser Support ──');
+  lines.push((('serviceWorker' in navigator) ? ok : err) + ' serviceWorker: ' + ('serviceWorker' in navigator));
+  lines.push((('PushManager' in window) ? ok : err) + ' PushManager: ' + ('PushManager' in window));
+  lines.push((('Notification' in window) ? ok : err) + ' Notification API: ' + ('Notification' in window));
+  lines.push(ok + ' Permission: ' + (('Notification' in window) ? Notification.permission : 'N/A'));
+
+  // 2. Service Worker
+  lines.push('\n── Service Worker ──');
+  try {
+    var regs = await navigator.serviceWorker.getRegistrations();
+    if (regs.length === 0) {
+      lines.push(err + ' Tidak ada SW terdaftar');
+    } else {
+      regs.forEach(function(r, i) {
+        var state = r.active ? 'active' : (r.installing ? 'installing' : (r.waiting ? 'waiting' : 'none'));
+        var sw = r.active || r.installing || r.waiting;
+        lines.push(ok + ' SW[' + i + ']: scope=' + r.scope);
+        lines.push('   state=' + state + ' | script=' + (sw ? sw.scriptURL : '-'));
+      });
+    }
+    var ready = await Promise.race([
+      navigator.serviceWorker.ready.then(function(r){ return r; }),
+      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout 3s')); }, 3000); })
+    ]);
+    lines.push(ok + ' SW ready: ' + ready.scope);
+  } catch(e) {
+    lines.push(err + ' SW ready error: ' + e.message);
+  }
+
+  // 3. Push Manager
+  lines.push('\n── Push Manager ──');
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var state = await reg.pushManager.permissionState({ userVisibleOnly: true });
+    lines.push(ok + ' Permission state: ' + state);
+    var sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      lines.push(ok + ' Ada subscription aktif:');
+      lines.push('   endpoint: ' + sub.endpoint.slice(0, 60) + '...');
+    } else {
+      lines.push(warn + ' Tidak ada subscription aktif');
+      lines.push('   → Klik "Ya, Aktifkan Notifikasi" di dialog izin');
+    }
+  } catch(e) {
+    lines.push(err + ' Push Manager error: ' + e.message);
+  }
+
+  // 4. VAPID Key
+  lines.push('\n── VAPID Key ──');
+  var vk = (typeof VAPID_PUBLIC_KEY !== 'undefined') ? VAPID_PUBLIC_KEY : 'UNDEFINED';
+  lines.push((vk !== 'UNDEFINED' && vk.length > 10 ? ok : err) + ' VAPID_PUBLIC_KEY: ' + vk.slice(0,20) + '...' + ' (len=' + vk.length + ')');
+
+  // 5. Database subscriptions
+  lines.push('\n── Database (push_subscriptions) ──');
+  try {
+    var dbRes = await window.HQ.AdminAPI.getPushStats();
+    var d = dbRes.data;
+    lines.push(ok + ' Total: ' + d.total + ' | Murid: ' + d.murid + ' | Guru: ' + d.guru + ' | Admin: ' + d.admin);
+  } catch(e) {
+    lines.push(err + ' Gagal baca DB: ' + e.message);
+  }
+
+  lines.push('\n── Selesai ──');
+  el.textContent = lines.join('\n');
 }
 
 async function testTrigger(trigger) {
