@@ -5488,11 +5488,9 @@ function filterKeaktifanCards() {
           + '</div>';
       });
       flagsHTML += '</div>';
-    } else if (m.status !== 'normal') {
-      flagsHTML += '<div style="background:var(--green-l); color:var(--green); padding:8px 12px; border-radius:8px; font-size:12px; font-weight:700; text-align:center; margin:4px 0;">'
-        + '✅ Tindak lanjut teratasi (Sudah Dihubungi)'
-        + '</div>';
     }
+    // Tidak tampilkan "Sudah Dihubungi" secara otomatis —
+    // tombol ✓ di card flags yang menandai murid sudah dihubungi
 
     var mIdx = _keaktifanData.alerts.indexOf(m);
     var showWA = (m.status === 'kritis' || m.status === 'peringatan');

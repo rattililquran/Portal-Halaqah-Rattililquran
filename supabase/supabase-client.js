@@ -549,14 +549,55 @@ var GuruAPI = {
     _check(error, 'getKeaktifanAlerts');
     var raw = data || { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } };
     var alertList = raw.alerts || [];
-    // Ambil no_hp dari tabel users untuk murid yang ada di alerts
+
+    // Ambil no_hp dari users
     var hpMap = {};
     if (alertList.length) {
       var ids = alertList.map(function(m){ return m.id_murid; });
       var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
       (users || []).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
     }
+
+    // Ambil riwayat 15 sesi terakhir per murid (hanya kritis & peringatan)
+    var riwayatMap = {};
+    var alertIds = alertList.filter(function(m){ return m.status !== 'normal'; }).map(function(m){ return m.id_murid; });
+    if (alertIds.length) {
+      var { data: sesiList } = await _sb.from('nilai_kbm')
+        .select('id_murid, id_halaqah, status_hadir, kamera_murid, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan, jenis_sesi)')
+        .in('id_murid', alertIds)
+        .order('id_kbm', { ascending: false })
+        .limit(alertIds.length * 15);
+      (sesiList || []).forEach(function(s) {
+        if (!s.kbm_log || s.kbm_log.jenis_sesi !== 'KBM Reguler') return;
+        var key = s.id_murid + '_' + s.id_halaqah;
+        if (!riwayatMap[key]) riwayatMap[key] = [];
+        if (riwayatMap[key].length >= 15) return;
+        var warna = 'hijau';
+        if (s.status_hadir === 'A') warna = 'merah';
+        else if (s.status_hadir === 'T') warna = 'kuning';
+        else if (s.kamera_murid && (s.kamera_murid.includes('selalu') || s.kamera_murid.includes('sering'))) warna = 'coklat';
+        riwayatMap[key].push({
+          tanggal     : (s.kbm_log && s.kbm_log.tanggal_pertemuan) || '-',
+          status_hadir: s.status_hadir || 'H',
+          kamera_murid: s.kamera_murid || 'kamera terbuka',
+          warna       : warna,
+        });
+      });
+    }
+
     var alerts = alertList.map(function(m) {
+      var metrics = {
+        absen           : m.alpa || 0,
+        terlambat       : m.terlambat || 0,
+        kamera_tertutup : m.kamera_buruk || 0,
+      };
+      // Compute flags dari metrics agar "Tindak Lanjut" tidak auto tampil
+      var flags = [];
+      if (metrics.absen >= 1)        flags.push({ tipe:'absen',    label:'Absen/Alpa',       detail: metrics.absen + 'x',           count: metrics.absen });
+      if (metrics.terlambat >= 2)    flags.push({ tipe:'terlambat',label:'Sering Terlambat', detail: metrics.terlambat + 'x',       count: metrics.terlambat });
+      if (metrics.kamera_tertutup >= 2) flags.push({ tipe:'kamera', label:'Kamera Tertutup', detail: metrics.kamera_tertutup + 'x', count: metrics.kamera_tertutup });
+
+      var riwayatKey = m.id_murid + '_' + m.id_halaqah;
       return {
         id_murid    : m.id_murid,
         nama_murid  : m.nama,
@@ -565,12 +606,9 @@ var GuruAPI = {
         nama_halaqah: m.nama_halaqah || '',
         level       : m.level || '',
         status      : m.status,
-        riwayat     : [],
-        metrics: {
-          absen           : m.alpa || 0,
-          terlambat       : m.terlambat || 0,
-          kamera_tertutup : m.kamera_buruk || 0,
-        },
+        metrics     : metrics,
+        flags       : flags,
+        riwayat     : (riwayatMap[riwayatKey] || []).reverse(), // cronologis
       };
     });
     return { status: 'ok', data: { alerts: alerts, summary: raw.summary } };
