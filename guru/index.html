@@ -5436,7 +5436,8 @@ function filterKeaktifanCards() {
     }
 
     card.style = 'border-radius:16px; background:#card; padding:18px; box-shadow:var(--shadow); border-left: 6px solid ' + borderColor + '; display:flex; flex-direction:column; gap:12px; transition: transform .2s, box-shadow .2s; position:relative; background:#fff;';
-    card.dataset.muridId = m.id_murid;
+    card.dataset.muridId   = m.id_murid;
+    card.dataset.halaqahId = m.id_halaqah;
 
     var cardHead = '<div style="display:flex; justify-content:space-between; align-items:flex-start;">'
       + '<div>'
@@ -5477,8 +5478,8 @@ function filterKeaktifanCards() {
     if (m.flags && m.flags.length > 0) {
       flagsHTML += '<div data-flags-area style="display:flex; flex-direction:column; gap:6px; margin:4px 0;">';
       m.flags.forEach(function(f) {
-        // Skip flag yang sudah di-contacted dalam sesi ini
-        if (_keaktifanContacted.has(m.id_murid + '_' + f.tipe)) {
+        // Skip flag yang sudah di-contacted dalam sesi ini — key: id_murid_id_halaqah_tipe
+        if (_keaktifanContacted.has(m.id_murid + '_' + m.id_halaqah + '_' + f.tipe)) {
           flagsHTML += '<div style="background:var(--green-l);color:var(--green);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700">✅ Sudah dihubungi — ' + esc(f.label) + '</div>';
           return;
         }
@@ -5486,7 +5487,7 @@ function filterKeaktifanCards() {
         var btnColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber-txt)';
         flagsHTML += '<div data-flag-row style="display:flex;justify-content:space-between;align-items:center;background:' + btnBg + ';padding:6px 12px;border-radius:8px;border:1px solid rgba(0,0,0,.03)">'
           + '<span style="font-size:12px;font-weight:700;color:' + btnColor + '">⚠️ ' + esc(f.label) + ' <small>(' + esc(f.detail) + ')</small></span>'
-          + '<button onclick="doMarkContacted(\'' + esc(m.id_murid) + '\',\'' + esc(f.tipe) + '\',' + f.count + ',this)" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;transition:opacity .15s">'
+          + '<button onclick="doMarkContacted(\'' + esc(m.id_murid) + '\',\'' + esc(m.id_halaqah) + '\',\'' + esc(f.tipe) + '\',' + f.count + ',this)" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;transition:opacity .15s">'
           + '✓ Sudah Dihubungi'
           + '</button>'
           + '</div>';
@@ -5592,7 +5593,7 @@ function openWAKeaktifan(idx) {
 // Set untuk menyimpan flag yang sudah ditandai (in-memory, per session)
 var _keaktifanContacted = new Set();
 
-async function doMarkContacted(idMurid, tipeAlert, value, btnEl) {
+async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
   if (!confirm('Tandai murid ini sudah dihubungi terkait ' + tipeAlert + ' (' + value + 'x)?')) return;
 
   // Optimistic UI: langsung ubah tampilan tombol sebelum API selesai
@@ -5605,16 +5606,17 @@ async function doMarkContacted(idMurid, tipeAlert, value, btnEl) {
   try {
     await window.HQ.GuruAPI.simpanFollowupKeaktifan({
       id_murid  : idMurid,
+      id_halaqah: idHalaqah,
       tipe_alert: tipeAlert,
       value     : value,
     });
 
-    // Simpan ke set agar tidak muncul lagi setelah re-render
-    _keaktifanContacted.add(idMurid + '_' + tipeAlert);
+    // Simpan ke set agar tidak muncul lagi setelah re-render — key: murid_halaqah_tipe
+    _keaktifanContacted.add(idMurid + '_' + idHalaqah + '_' + tipeAlert);
 
     // Update flags di data lokal agar filter tidak perlu reload
     if (_keaktifanData && _keaktifanData.alerts) {
-      var alertItem = _keaktifanData.alerts.find(function(a){ return a.id_murid === idMurid; });
+      var alertItem = _keaktifanData.alerts.find(function(a){ return a.id_murid === idMurid && a.id_halaqah === idHalaqah; });
       if (alertItem && alertItem.flags) {
         alertItem.flags = alertItem.flags.filter(function(f){ return f.tipe !== tipeAlert; });
       }

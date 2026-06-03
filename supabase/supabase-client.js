@@ -411,14 +411,14 @@ var GuruAPI = {
 
         // 2. Push ke murid yang ALPA — cek push_config.enabled dulu
         var { data: cfg } = await _sb.from('push_config').select('enabled').eq('key','kbm_absen').maybeSingle();
-        var kbmAbsenEnabled = !cfg || cfg.enabled !== false; // default aktif jika belum ada row
+        var kbmAbsenEnabled = cfg ? cfg.enabled === true : true; // null/false → nonaktif; default aktif jika tidak ada row
         if (kbmAbsenEnabled) {
           var { data: alpaMurid } = await _sb.from('nilai_kbm')
             .select('id_murid').eq('id_kbm', id_kbm).eq('status_hadir', 'A');
           var alpaIds = (alpaMurid || []).map(function(r){ return r.id_murid; });
           if (alpaIds.length) {
             var tgl = kbmData.tanggal_pertemuan
-              ? new Date(kbmData.tanggal_pertemuan).toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'})
+              ? new Date(kbmData.tanggal_pertemuan + 'T00:00:00+07:00').toLocaleDateString('id-ID', {timeZone:'Asia/Jakarta', weekday:'long', day:'numeric', month:'long'})
               : 'hari ini';
             _sendPushBg({
               user_ids: alpaIds,
@@ -589,18 +589,17 @@ var GuruAPI = {
     // Ambil riwayat 15 sesi terakhir — per murid secara paralel (bukan 1 query global)
     // Ini memastikan setiap murid benar-benar mendapat 15 baris, bukan terpotong limit global
     var riwayatMap = {};
-    var alertIds = alertList.filter(function(m){ return m.status !== 'normal'; }).map(function(m){ return m.id_murid; });
-    if (alertIds.length) {
-      // Cari id_halaqah per murid dari alertList
-      var halaqahPerMurid = {};
-      alertList.forEach(function(m){ halaqahPerMurid[m.id_murid] = m.id_halaqah; });
-
-      // Batch paralel: ambil 15 sesi per murid sekaligus (maksimal 10 paralel)
+    // Iterasi per pasangan (id_murid, id_halaqah) agar murid multi-halaqah tidak saling timpa
+    var alertPairs = alertList.filter(function(m){ return m.status !== 'normal'; });
+    var alertIds   = alertPairs.map(function(m){ return m.id_murid; }); // untuk followup query
+    if (alertPairs.length) {
+      // Batch paralel: ambil 15 sesi per pasangan sekaligus (maksimal 10 paralel)
       var BATCH = 10;
-      for (var bi = 0; bi < alertIds.length; bi += BATCH) {
-        var batch = alertIds.slice(bi, bi + BATCH);
-        await Promise.all(batch.map(function(id_murid) {
-          var id_halaqah = halaqahPerMurid[id_murid];
+      for (var bi = 0; bi < alertPairs.length; bi += BATCH) {
+        var batch = alertPairs.slice(bi, bi + BATCH);
+        await Promise.all(batch.map(function(pair) {
+          var id_murid   = pair.id_murid;
+          var id_halaqah = pair.id_halaqah;
           return _sb.from('nilai_kbm')
             .select('id_murid, id_halaqah, status_hadir, kamera_murid, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan, jenis_sesi)')
             .eq('id_murid', id_murid)
@@ -629,12 +628,13 @@ var GuruAPI = {
     }
 
     // Ambil data dismissal dari anggota untuk SEMUA murid di alerts
+    // Key: id_murid + '_' + id_halaqah — satu murid bisa di banyak halaqah
     var followupMap = {};
     if (alertIds.length) {
       var { data: followupRows } = await _sb.from('anggota')
-        .select('id_murid, followup_alpa_kbm, followup_alpa_at, followup_at')
+        .select('id_murid, id_halaqah, followup_alpa_kbm, followup_alpa_at, followup_at')
         .in('id_murid', alertIds);
-      (followupRows || []).forEach(function(r) { followupMap[r.id_murid] = r; });
+      (followupRows || []).forEach(function(r) { followupMap[r.id_murid + '_' + r.id_halaqah] = r; });
     }
 
     var alerts = alertList.map(function(m) {
@@ -644,7 +644,7 @@ var GuruAPI = {
         kamera_tertutup : m.kamera_buruk || 0,
       };
       // Compute flags dari metrics — filter yang sudah di-dismiss guru (persisten via DB)
-      var dismissed = followupMap[m.id_murid] || {};
+      var dismissed = followupMap[m.id_murid + '_' + m.id_halaqah] || {};
       var kbmBase   = dismissed.followup_alpa_kbm || 0;
       var flags = [];
       if (metrics.absen >= 1 && metrics.absen > kbmBase)
@@ -672,30 +672,38 @@ var GuruAPI = {
   },
 
   simpanFollowupKeaktifan: async function(d) {
-    // Ambil data anggota + hitung alpa saat ini untuk disimpan sebagai baseline dismissal
-    var { data: anggota } = await _sb.from('anggota')
+    // Ambil baris anggota — filter per halaqah jika diketahui, hindari maybeSingle() crash multi-halaqah
+    var q = _sb.from('anggota')
       .select('id_halaqah, catatan_guru, followup_alpa_kbm, followup_alpa_at')
-      .eq('id_murid', d.id_murid).eq('status','aktif').maybeSingle();
+      .eq('id_murid', d.id_murid).eq('status','aktif');
+    if (d.id_halaqah) q = q.eq('id_halaqah', d.id_halaqah);
+    var { data: rows, error: anggotaErr } = await q;
+    _check(anggotaErr, 'simpanFollowupKeaktifan.fetch');
+    var anggota = rows && rows[0];
     if (!anggota) return { status: 'ok' };
+    var id_halaqah = anggota.id_halaqah;
 
-    // Hitung alpa KBM dan At-Tibyan saat ini
+    // Hitung alpa KBM dan At-Tibyan per halaqah sebagai baseline dismissal
     var [kbmRes, atRes] = await Promise.all([
-      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('status_hadir','A'),
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah).eq('status_hadir','A'),
       _sb.from('at_tibyan_log').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('status_hadir','A'),
     ]);
     var kbmAlpa = kbmRes.count || 0;
     var atAlpa  = atRes.count  || 0;
 
-    // Simpan catatan + set baseline dismissal
-    var catatan = (anggota.catatan_guru ? anggota.catatan_guru + '\n' : '')
-      + '[' + new Date().toLocaleDateString('id') + '] Sudah dihubungi — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)';
+    // Simpan catatan — batasi 10 entri terakhir agar tidak tumbuh tak terbatas
+    var tglStr = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+    var baris  = '[' + tglStr + '] Sudah dihubungi — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)';
+    var existing = anggota.catatan_guru ? anggota.catatan_guru.split('\n').filter(Boolean) : [];
+    existing.push(baris);
+    var catatan = existing.slice(-10).join('\n'); // simpan maksimal 10 entri
 
     var { error } = await _sb.from('anggota').update({
       catatan_guru     : catatan,
-      followup_alpa_kbm: kbmAlpa,   // baseline alpa KBM saat dismiss
-      followup_alpa_at : atAlpa,    // baseline alpa At-Tibyan saat dismiss
+      followup_alpa_kbm: kbmAlpa,
+      followup_alpa_at : atAlpa,
       followup_at      : new Date().toISOString(),
-    }).eq('id_murid', d.id_murid).eq('id_halaqah', anggota.id_halaqah);
+    }).eq('id_murid', d.id_murid).eq('id_halaqah', id_halaqah);
     _check(error, 'simpanFollowupKeaktifan');
     return { status: 'ok' };
   },
@@ -1431,6 +1439,7 @@ var MuridAPI = {
     ]);
     var kbmAlpa   = kbmRes.count || 0;
     var atAlpa    = atRes.count  || 0;
+    if (anggotaRes.error) _check(anggotaRes.error, 'getKeaktifanAlerts.anggota');
     var dismissed = anggotaRes.data || {};
 
     // Alert hanya tampil jika alpa BERTAMBAH sejak guru terakhir dismiss

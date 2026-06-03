@@ -4545,6 +4545,7 @@ function _subscribeKeaktifanRealtime() {
   if (_keaktifanChannel) return;
   var us = window.HQ && window.HQ.Auth && window.HQ.Auth.getUser();
   if (!us || !us.id_user) return;
+  if (!window.HQ.supabase) return;
 
   _keaktifanChannel = window.HQ.supabase
     .channel('keaktifan-followup-' + us.id_user)
@@ -6693,7 +6694,7 @@ function resetMuridSession() {
   clearTimeout(_sTimeout);
   _sTimeout = setTimeout(function(){
     toast('Sesi berakhir setelah 8 jam tidak aktif.','info');
-    setTimeout(function(){ window.HQ.Auth.logout(); },3000);
+    setTimeout(function(){ doLogout(); },3000);
   }, 8*60*60*1000);
 }
 ['click','touchstart'].forEach(function(ev){
