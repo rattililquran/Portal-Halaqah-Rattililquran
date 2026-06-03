@@ -391,7 +391,7 @@ var GuruAPI = {
       try {
         var { data: kbmData } = await _sb.from('kbm_log').select('id_halaqah, pertemuan_ke').eq('id_kbm', id_kbm).single();
         if (!kbmData) return;
-        var { data: anggota } = await _sb.from('anggota').select('id_murid').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif').eq('is_ketua', true);
+        var { data: anggota } = await _sb.from('anggota').select('id_murid').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif').eq('is_ketua',true);
         var ketuaIds = (anggota || []).map(function(a){ return a.id_murid; });
         if (!ketuaIds.length) return;
         _sendPushBg({
@@ -489,16 +489,31 @@ var GuruAPI = {
       tanggal: new Date().toISOString().slice(0, 10), status: 'aktif',
     }).select().single();
     _check(error, 'kirimPengumuman');
-    // Push ke target (semua / halaqah tertentu)
-    _sendPushBg({
-      role_filter: d.target === 'semua' ? null : undefined,
-      user_ids   : d.target !== 'semua' && d.id_halaqah ? undefined : undefined,
-      title : '📢 ' + (d.judul || 'Pengumuman Baru'),
-      body  : (d.isi || '').slice(0, 100),
-      url   : '/murid/index.html',
-      tag   : 'pengumuman-' + (data && data.id || Date.now()),
-      data  : { trigger: 'pengumuman' },
-    });
+    // Push: jika target = 'semua' → role_filter null (semua role)
+    // jika target = id_halaqah → ambil dulu murid halaqah tersebut
+    if (d.target === 'semua') {
+      _sendPushBg({
+        title: '📢 ' + (d.judul || 'Pengumuman Baru'),
+        body : (d.isi || '').slice(0, 100),
+        url  : '/murid/index.html',
+        tag  : 'pengumuman-' + (data && data.id || Date.now()),
+        data : { trigger: 'pengumuman' },
+      });
+    } else if (d.id_halaqah) {
+      // Ambil murid halaqah tersebut secara async
+      _sb.from('anggota').select('id_murid').eq('id_halaqah', d.id_halaqah).eq('status','aktif')
+        .then(function(res) {
+          var ids = (res.data || []).map(function(a){ return a.id_murid; });
+          if (ids.length) _sendPushBg({
+            user_ids: ids,
+            title: '📢 ' + (d.judul || 'Pengumuman Baru'),
+            body : (d.isi || '').slice(0, 100),
+            url  : '/murid/index.html',
+            tag  : 'pengumuman-' + (data && data.id || Date.now()),
+            data : { trigger: 'pengumuman' },
+          });
+        }).catch(function(){});
+    }
     return { status: 'ok', data };
   },
 
@@ -2023,8 +2038,13 @@ var PushAPI = {
     var key  = sub.getKey && sub.getKey('p256dh');
     var auth = sub.getKey && sub.getKey('auth');
     if (!key || !auth) throw new Error('Subscription tidak valid');
-    var p256dh   = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
-    var authKey  = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
+    // Simpan sebagai base64url (bukan standard base64) agar compatible dengan web-push library
+    var toB64url = function(buf) {
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
+        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    };
+    var p256dh  = toB64url(key);
+    var authKey = toB64url(auth);
     var deviceHint = /iPhone|iPad/.test(navigator.userAgent) ? 'ios'
       : /Android/.test(navigator.userAgent) ? 'android' : 'desktop';
     var { error } = await _sb.from('push_subscriptions').upsert({

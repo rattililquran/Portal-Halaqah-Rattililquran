@@ -156,7 +156,7 @@ self.addEventListener('notificationclick', function(e) {
         for (var i = 0; i < windowClients.length; i++) {
           var c = windowClients[i];
           if (c.url.includes('Portal-Halaqah-Rattililquran') && 'focus' in c) {
-            return c.focus();
+            c.focus(); if (c.navigate) return c.navigate(targetUrl); return c;
           }
         }
         // Tidak ada → buka tab baru
