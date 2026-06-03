@@ -1305,16 +1305,18 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             </div>
           </div>
 
-          <!-- Test Kirim -->
+          <!-- Kirim Notifikasi -->
           <div class="card">
             <div class="card-head"><div class="card-title">📤 Kirim Notifikasi</div></div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
               <div class="fg" style="margin:0"><label>Target Penerima</label>
-                <select class="fc" id="pushTestTarget" onchange="var s=this.value==='user_id';document.getElementById('pushTestUserIdWrap').style.display=s?'':'none'">
+                <select class="fc" id="pushTestTarget" onchange="onPushTargetChange(this.value)">
                   <option value="role_murid">👩‍🎓 Semua Murid</option>
                   <option value="role_guru">👩‍🏫 Semua Guru</option>
                   <option value="role_admin">🛡 Semua Admin</option>
                   <option value="all">🌍 Semua User</option>
+                  <optgroup label="── Per Halaqah ──" id="pushOptHalaqah"></optgroup>
+                  <optgroup label="── Per Level ──" id="pushOptLevel"></optgroup>
                   <option value="user_id">🔍 User ID Tertentu</option>
                 </select>
               </div>
@@ -1322,8 +1324,8 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
                 <label>User ID</label>
                 <input type="text" class="fc" id="pushTestUserId" placeholder="Contoh: RTL2418000001">
               </div>
-              <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" placeholder="Judul notifikasi..." value="📢 Pengumuman dari Admin"></div>
-              <div class="fg" style="margin:0"><label>Pesan</label><textarea class="fc" id="pushTestBody" rows="3" placeholder="Isi pesan notifikasi...">Assalamualaikum, ada pengumuman penting dari Rattililqur'an.</textarea></div>
+              <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" value="📢 Pengumuman dari Admin"></div>
+              <div class="fg" style="margin:0"><label>Pesan</label><textarea class="fc" id="pushTestBody" rows="3">Assalamualaikum, ada pengumuman penting dari Rattililqur'an.</textarea></div>
               <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush" style="margin-top:4px">📤 Kirim Sekarang</button>
               <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px 14px;border-radius:10px;font-weight:600"></div>
             </div>
@@ -1358,7 +1360,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
 
         <!-- Log -->
-        <div class="card">
+        <div class="card" style="margin-bottom:14px">
           <div class="card-head">
             <div class="card-title">📋 Log Pengiriman</div>
             <div style="font-size:12px;color:var(--text-3)">10 pengiriman terakhir</div>
@@ -1367,6 +1369,20 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             <table>
               <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th style="text-align:center">Terkirim</th><th style="text-align:center">Gagal</th></tr></thead>
               <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Daftar Subscriber -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📱 Daftar Subscriber</div>
+            <button class="btn btn-outline btn-sm" onclick="loadPushSubscribers()">↻ Refresh</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama</th><th>ID User</th><th>Role</th><th>Device</th><th>Terdaftar</th><th style="width:60px">Hapus</th></tr></thead>
+              <tbody id="pushSubsTbl"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3)">Klik Refresh untuk memuat</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -3468,6 +3484,8 @@ async function loadPushAdmin() {
     var r2 = await window.HQ.AdminAPI.getPushConfig();
     renderPushConfig(r2.data);
   } catch(e) { console.warn('loadPushConfig:', e); }
+  // Load halaqah & level untuk dropdown target
+  loadPushTargetOptions();
 }
 
 var PUSH_CONFIG_META = {
@@ -3574,6 +3592,76 @@ document.addEventListener('change', function(e) {
   }
 });
 
+// ── Subscriber management ──────────────────────
+var _pushSubsData = [];
+
+async function loadPushSubscribers() {
+  var tbody = document.getElementById('pushSubsTbl');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-3)">Memuat...</td></tr>';
+  try {
+    var r = await window.HQ.AdminAPI.getPushSubscribers();
+    _pushSubsData = r.data || [];
+    renderPushSubscribers(_pushSubsData);
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+function renderPushSubscribers(subs) {
+  var tbody = document.getElementById('pushSubsTbl');
+  if (!subs.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada subscriber.</td></tr>'; return; }
+  var ROLE_BADGE = { murid:'<span class="badge b-blue">Murid</span>', guru:'<span class="badge b-green">Guru</span>', admin:'<span class="badge b-amber">Admin</span>' };
+  var DEVICE_ICO = { android:'📱', ios:'🍎', desktop:'💻' };
+  tbody.innerHTML = subs.map(function(s) {
+    var d = new Date(s.created_at);
+    var tgl = d.toLocaleDateString('id') + ' ' + d.toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      + '<td style="font-weight:700;font-size:13px">' + esc(s.nama||s.id_user) + '</td>'
+      + '<td style="font-size:11.5px;color:var(--text-3)">' + esc(s.id_user) + '</td>'
+      + '<td>' + (ROLE_BADGE[s.role]||s.role) + '</td>'
+      + '<td style="font-size:13px">' + (DEVICE_ICO[s.device_hint]||'❓') + ' ' + esc(s.device_hint||'-') + '</td>'
+      + '<td style="font-size:12px;color:var(--text-3)">' + tgl + '</td>'
+      + '<td style="text-align:center"><button class="btn btn-red btn-sm" onclick="hapusPushSubscriber(\''+s.id+'\')" title="Hapus subscription ini">🗑</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function hapusPushSubscriber(id) {
+  if (!confirm('Hapus subscription device ini? User perlu aktifkan ulang notifikasi.')) return;
+  try {
+    await window.HQ.AdminAPI.deletePushSubscriber(id);
+    toast('Subscription dihapus','ok');
+    loadPushSubscribers();
+    loadPushAdmin(); // refresh stats
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// ── Target halaqah / level ──────────────────────
+var _pushHalaqahList = [];
+var _pushLevelList   = [];
+
+async function loadPushTargetOptions() {
+  try {
+    var [hRes, lRes] = await Promise.all([
+      window.HQ.AdminAPI.getHalaqahForPush(),
+      window.HQ.AdminAPI.getLevelForPush(),
+    ]);
+    _pushHalaqahList = hRes.data || [];
+    _pushLevelList   = lRes.data || [];
+    var optH = document.getElementById('pushOptHalaqah');
+    var optL = document.getElementById('pushOptLevel');
+    if (optH) optH.innerHTML = _pushHalaqahList.map(function(h){
+      return '<option value="halaqah_'+h.id_halaqah+'">🏠 '+esc(h.nama_halaqah)+' ('+esc(h.level||'-')+')</option>';
+    }).join('');
+    if (optL) optL.innerHTML = _pushLevelList.map(function(l){
+      return '<option value="level_'+l+'">📚 Level: '+esc(l)+'</option>';
+    }).join('');
+  } catch(e) { console.warn('loadPushTargetOptions:', e); }
+}
+
+function onPushTargetChange(val) {
+  var wrap = document.getElementById('pushTestUserIdWrap');
+  if (wrap) wrap.style.display = val === 'user_id' ? '' : 'none';
+}
+
 async function setAllPushConfig(enabled) {
   var rows = document.querySelectorAll('.push-cfg-row');
   rows.forEach(function(row) {
@@ -3591,11 +3679,26 @@ async function kirimTestPush() {
   var btn = document.getElementById('btnTestPush');
   btn.disabled = true; btn.textContent = 'Mengirim...';
   try {
-    var opts = { title, body, url: '/Portal-Halaqah-Rattililquran/murid/index.html', tag: 'admin-test' };
+    var opts = { title, body, url: '/Portal-Halaqah-Rattililquran/murid/index.html', tag: 'admin-kirim' };
     if (target === 'user_id') {
-      opts.user_ids = [document.getElementById('pushTestUserId').value.trim()];
-    } else if (target !== 'all') {
+      var uid = document.getElementById('pushTestUserId').value.trim();
+      if (!uid) return toast('Isi User ID terlebih dahulu','err');
+      opts.user_ids = [uid];
+    } else if (target === 'all') {
+      // kirim tanpa filter
+    } else if (target.startsWith('role_')) {
       opts.role_filter = target.replace('role_','');
+    } else if (target.startsWith('halaqah_')) {
+      // kirim ke murid halaqah tertentu
+      var hId = target.replace('halaqah_','');
+      var ids = await window.HQ.AdminAPI.getPushTargetUserIds({halaqah: hId});
+      if (!ids.length) { toast('Tidak ada murid subscribe di halaqah ini','err'); return; }
+      opts.user_ids = ids;
+    } else if (target.startsWith('level_')) {
+      var lv = target.replace('level_','');
+      var ids2 = await window.HQ.AdminAPI.getPushTargetUserIds({level: lv});
+      if (!ids2.length) { toast('Tidak ada murid subscribe di level ini','err'); return; }
+      opts.user_ids = ids2;
     }
     var r = await window.HQ.AdminAPI.testSendPush(opts);
     var res = document.getElementById('pushTestResult');

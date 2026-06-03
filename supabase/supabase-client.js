@@ -1724,6 +1724,41 @@ var AdminAPI = {
     return {status:'ok'};
   },
 
+  // ── Push Subscriber Management ────────────────
+  getPushSubscribers: async function() {
+    var {data,error} = await _sb.from('push_subscriptions')
+      .select('id,id_user,role,device_hint,created_at').order('created_at',{ascending:false});
+    _check(error,'getPushSubscribers');
+    var ids = (data||[]).map(function(s){return s.id_user;});
+    var namaMap = {};
+    if (ids.length) {
+      var {data:users} = await _sb.from('users').select('id_user,nama_lengkap').in('id_user',ids);
+      (users||[]).forEach(function(u){namaMap[u.id_user]=u.nama_lengkap;});
+    }
+    return {status:'ok', data:(data||[]).map(function(s){
+      return Object.assign({},s,{nama:namaMap[s.id_user]||s.id_user});
+    })};
+  },
+  deletePushSubscriber: async function(id) {
+    var {error} = await _sb.from('push_subscriptions').delete().eq('id',id);
+    _check(error,'deletePushSubscriber'); return {status:'ok'};
+  },
+  getHalaqahForPush: async function() {
+    var {data} = await _sb.from('halaqah').select('id_halaqah,nama_halaqah,level').eq('status','aktif').order('nama_halaqah');
+    return {status:'ok',data:data||[]};
+  },
+  getLevelForPush: async function() {
+    var {data} = await _sb.from('level').select('nama_level').eq('status','aktif').order('urutan');
+    return {status:'ok',data:(data||[]).map(function(l){return l.nama_level;})};
+  },
+  getPushTargetUserIds: async function(target) {
+    var q = _sb.from('anggota').select('id_murid').eq('status','aktif');
+    if (target.halaqah) q = q.eq('id_halaqah',target.halaqah);
+    if (target.level)   q = q.eq('level',target.level);
+    var {data} = await q;
+    return (data||[]).map(function(a){return a.id_murid;});
+  },
+
   // ── Push Notifikasi Admin ──────────────────────
   getPushConfig: async function() {
     var {data,error} = await _sb.from('push_config').select('*').order('key');
