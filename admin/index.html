@@ -1349,7 +1349,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
                     placeholder="https://rattililquran.github.io/..."
                     style="font-size:13px">
                   <div style="font-size:11px;color:var(--text-3);margin-top:4px">
-                    ⚠️ Hanya URL dari <strong>rattililquran.github.io</strong> yang diizinkan
+                    ✅ URL eksternal diizinkan (Zoom, YouTube, dll) — harus <strong>https://</strong>
                   </div>
                 </div>
               </div>
@@ -3702,15 +3702,15 @@ function getPushTestUrl() {
     var custom = document.getElementById('pushTestUrlCustom');
     var val = custom ? custom.value.trim() : '';
     if (!val) return '/Portal-Halaqah-Rattililquran/murid/index.html';
-    // Validasi: hanya rattililquran.github.io atau path relatif
+    // Validasi: hanya HTTPS yang diizinkan (blokir HTTP dan javascript:)
     try {
       if (val.startsWith('http')) {
         var u = new URL(val);
-        if (u.host !== 'rattililquran.github.io') {
-          toast('URL harus dari rattililquran.github.io', 'err');
+        if (u.protocol !== 'https:') {
+          toast('Hanya URL HTTPS yang diizinkan', 'err');
           return null;
         }
-        return val;
+        return val; // Zoom, YouTube, dll diizinkan
       }
       // Path relatif — tambah base jika belum ada
       return val.startsWith('/Portal-Halaqah-Rattililquran') ? val

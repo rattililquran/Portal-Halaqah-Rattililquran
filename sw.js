@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v5.2 — push notification support
+//  Cache version: v5.3 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.2';
+const CACHE_NAME   = 'halaqah-v5.3';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -148,16 +148,20 @@ self.addEventListener('notificationclick', function(e) {
   e.notification.close();
   var rawUrl = (e.notification.data && e.notification.data.url) || '/';
   var BASE    = '/Portal-Halaqah-Rattililquran';
-  var ALLOWED_ORIGIN = 'https://rattililquran.github.io';
+  var PORTAL  = 'https://rattililquran.github.io';
   var targetUrl;
   if (rawUrl.startsWith('http')) {
-    // Hanya izinkan URL dari origin yang sama — tolak open redirect ke domain lain
     try {
       var parsed = new URL(rawUrl);
-      targetUrl = parsed.origin === ALLOWED_ORIGIN ? rawUrl : ALLOWED_ORIGIN + BASE + '/';
+      // Izinkan semua HTTPS — Zoom, YouTube, dll
+      // Blokir HTTP (tidak aman) dan protokol berbahaya
+      targetUrl = parsed.protocol === 'https:' ? rawUrl : PORTAL + BASE + '/';
     } catch (_) {
-      targetUrl = ALLOWED_ORIGIN + BASE + '/';
+      targetUrl = PORTAL + BASE + '/';
     }
+  } else if (rawUrl.startsWith('javascript:') || rawUrl.startsWith('data:')) {
+    // Blokir eksekusi kode
+    targetUrl = PORTAL + BASE + '/';
   } else {
     targetUrl = rawUrl.startsWith(BASE) ? rawUrl : BASE + rawUrl;
   }
