@@ -6281,8 +6281,18 @@ function previewRaportPDF(idx) {
     + '</div>'
     + '</div>';
 
-  // ── Assemble ──
-  var html = '<div class="raport-pdf" id="raportPdfRender">'
+  var watermarkHTML = '<div class="rp-bottombar">'
+    + '<div class="rp-watermark">Dicetak otomatis • Portal Murid '+esc(namaLembaga)+' • '+(new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}))+'</div>'
+    + '<div class="rp-bottombar-badge">'+esc(namaLembaga)+'</div>'
+    + '</div>';
+
+  // ── Assemble: pisah bagian UTAMA dan HALAMAN TERAKHIR ──
+  // Bagian utama: header, identitas, tabel, nilai akhir
+  // Halaman terakhir: catatan guru + tanda tangan (selalu di halaman paling akhir)
+  var html = '<div style="position:absolute;left:-9999px;top:0">'
+
+    // Bagian utama (dirender terpisah untuk multi-page slicing)
+    + '<div class="raport-pdf" id="raportPdfMain">'
     + headerHTML
     + titleHTML
     + identityHTML
@@ -6300,14 +6310,50 @@ function previewRaportPDF(idx) {
     + '<div class="rp-predikat-desc">'+predikatDesc+' &nbsp;·&nbsp; Nilai '+nilaiNum.toFixed(1)+' / 100</div>'
     + '</div>'
     + '</div>'
-    + catatanHTML
+    + '</div>'
+    + watermarkHTML
+    + '</div>'
+
+    // Halaman terakhir: catatan + tanda tangan (selalu halaman paling akhir)
+    + '<div class="raport-pdf" id="raportPdfLast">'
+    + '<div style="height:6px;background:linear-gradient(90deg,#1a5c3a 0%,#2d8a5a 50%,#c59b20 100%)"></div>'
+    + '<div class="rp-body" style="padding-top:24px">'
+    + (catatanHTML || '')
     + pesanHTML
     + signatureHTML
     + '</div>'
-    + '<div class="rp-bottombar">'
-    + '<div class="rp-watermark">Dicetak otomatis • Portal Murid '+esc(namaLembaga)+' • '+(new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}))+'</div>'
-    + '<div class="rp-bottombar-badge">'+esc(namaLembaga)+'</div>'
+    + watermarkHTML
     + '</div>'
+
+    + '</div>'
+
+    // Preview: tampilkan gabungan untuk pratinjau di layar
+    + '<div class="raport-pdf" id="raportPdfRender" style="margin-top:0">'
+    + headerHTML
+    + titleHTML
+    + identityHTML
+    + '<div class="rp-body">'
+    + '<div class="rp-section-title">Detail Komponen Penilaian</div>'
+    + '<table class="rp-table">'
+    + '<thead><tr><th style="text-align:center;width:6%">No</th><th>Komponen Evaluasi</th><th style="text-align:center;width:14%">Bobot</th><th style="text-align:center;width:14%">Nilai</th></tr></thead>'
+    + '<tbody>'+komponenHTML+'</tbody>'
+    + '</table>'
+    + '<div class="rp-final-row">'
+    + '<div class="rp-final-score"><div class="rp-final-score-num">'+nilaiNum.toFixed(0)+'</div><div class="rp-final-score-lbl">Nilai Akhir</div></div>'
+    + '<div class="rp-predikat-box">'
+    + '<div class="rp-predikat-lbl">Predikat Pencapaian</div>'
+    + '<div class="rp-predikat-val" style="color:'+predikatColor+'">'+predikatText+'</div>'
+    + '<div class="rp-predikat-desc">'+predikatDesc+' &nbsp;·&nbsp; Nilai '+nilaiNum.toFixed(1)+' / 100</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="border-top:2px dashed #e2e8f0;margin:20px 0;text-align:center;font-size:10px;color:#94a3b8;padding-top:8px">— Halaman Terakhir: Catatan &amp; Tanda Tangan —</div>'
+    + '<div class="rp-body" style="padding-top:0">'
+    + (catatanHTML || '')
+    + pesanHTML
+    + signatureHTML
+    + '</div>'
+    + watermarkHTML
     + '</div>';
 
   document.getElementById('raportPdfContent').innerHTML = html;
@@ -6324,34 +6370,51 @@ async function doDownloadPDF() {
   var btn = document.getElementById('btnDownloadPdf');
   btn.disabled = true; btn.textContent = '⏳ Generating...';
   try {
-    var el = document.getElementById('raportPdfRender');
-    if (!el) throw new Error('Raport element not found');
-    var canvas = await html2canvas(el, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false
-    });
-    var imgData = canvas.toDataURL('image/png');
-    var pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-    var pageW = pdf.internal.pageSize.getWidth();
-    var pageH = pdf.internal.pageSize.getHeight();
-    var margin = 10;
-    var imgW = pageW - (margin * 2);
-    var imgH = (canvas.height * imgW) / canvas.width;
+    var mainEl = document.getElementById('raportPdfMain');
+    var lastEl = document.getElementById('raportPdfLast');
+    if (!mainEl || !lastEl) throw new Error('Raport element not found');
 
-    if (imgH > pageH - (margin * 2)) {
-      // Scale down to fit single page
-      imgH = pageH - (margin * 2);
-      imgW = (canvas.width * imgH) / canvas.height;
-      var xOffset = (pageW - imgW) / 2;
-      pdf.addImage(imgData, 'PNG', xOffset, margin, imgW, imgH);
-    } else {
-      pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH);
+    var opt = { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false };
+    var [mainCanvas, lastCanvas] = await Promise.all([
+      html2canvas(mainEl, opt),
+      html2canvas(lastEl, opt),
+    ]);
+
+    var pdf    = new jspdf.jsPDF('p', 'mm', 'a4');
+    var pageW  = pdf.internal.pageSize.getWidth();
+    var pageH  = pdf.internal.pageSize.getHeight();
+    var margin = 10;
+    var printW = pageW - margin * 2;
+    var printH = pageH - margin * 2;
+
+    // ── Render bagian utama (multi-page jika panjang) ──
+    var mainImgW = printW;
+    var mainImgH = (mainCanvas.height * mainImgW) / mainCanvas.width;
+    var mainPages = Math.ceil(mainImgH / printH);
+
+    for (var p = 0; p < mainPages; p++) {
+      if (p > 0) pdf.addPage();
+      // Geser canvas ke atas untuk setiap halaman
+      pdf.addImage(
+        mainCanvas.toDataURL('image/png'),
+        'PNG',
+        margin,
+        margin - p * printH,
+        mainImgW,
+        mainImgH
+      );
     }
 
+    // ── Halaman terakhir: catatan + tanda tangan ──
+    // Selalu tambah halaman baru setelah konten utama
+    pdf.addPage();
+    var lastImgH = (lastCanvas.height * printW) / lastCanvas.width;
+    // Pusatkan vertikal di halaman jika kontennya pendek
+    var lastY = lastImgH < printH ? margin + (printH - lastImgH) / 3 : margin;
+    pdf.addImage(lastCanvas.toDataURL('image/png'), 'PNG', margin, lastY, printW, lastImgH);
+
     var rp = _raportData[_currentPreviewIdx] || {};
-    var filename = 'Raport_' + (rp.nama_murid||'Murid').replace(/\s+/g,'_') + '_' + (rp.nama_periode||'').replace(/\s+/g,'_') + '.pdf';
+    var filename = 'Raport_'+(rp.nama_murid||'Murid').replace(/\s+/g,'_')+'_'+(rp.nama_periode||'').replace(/\s+/g,'_')+'.pdf';
     pdf.save(filename);
     toast('PDF berhasil diunduh ✅', 'ok');
   } catch(e) {
