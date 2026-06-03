@@ -2010,6 +2010,9 @@ var PushAPI = {
   subscribe: async function() {
     if (!PushAPI.isSupported()) throw new Error('Browser tidak mendukung push notifikasi');
     var reg = await navigator.serviceWorker.ready;
+    // Unsubscribe dari subscription lama dulu (cegah konflik VAPID key)
+    var existing = await reg.pushManager.getSubscription().catch(function(){ return null; });
+    if (existing) await existing.unsubscribe().catch(function(){});
     var sub = await reg.pushManager.subscribe({
       userVisibleOnly     : true,
       applicationServerKey: _urlB64ToUint8Array(VAPID_PUBLIC_KEY),

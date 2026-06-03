@@ -198,8 +198,18 @@ window._pushAllow = async function() {
     // Toast sukses
     if (typeof toast === 'function') toast('🔔 Notifikasi berhasil diaktifkan!', 'ok');
   } catch(e) {
-    if (btn) { btn.disabled = false; btn.innerHTML = '⚠️ Gagal — coba lagi'; }
     console.warn('Push subscribe error:', e);
+    if (btn) {
+      btn.disabled = false;
+      // Cek jenis error untuk pesan yang tepat
+      var msg = '⚠️ Gagal — coba lagi';
+      if (e && e.name === 'NotAllowedError') {
+        msg = '🚫 Izin ditolak — aktifkan di pengaturan browser';
+      } else if (e && (e.name === 'AbortError' || (e.message && e.message.includes('push service')))) {
+        msg = '🔄 Coba lagi (refresh halaman dulu)';
+      }
+      btn.innerHTML = msg;
+    }
   }
 };
 
