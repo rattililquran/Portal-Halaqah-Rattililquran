@@ -20,7 +20,7 @@ body{
 /* ── HERO ── */
 .hero{
   background:linear-gradient(145deg,#042f4b 0%,#0b4f78 45%,#0ea5e9 100%);
-  padding:60px 24px 80px;
+  padding:52px 22px 72px;
   text-align:center;
   position:relative;
   overflow:hidden;
@@ -56,20 +56,33 @@ body{
   box-shadow:0 8px 32px rgba(0,0,0,.25);
 }
 .hero-stats{
-  display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:32px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px;
+  max-width:320px;margin-left:auto;margin-right:auto;margin-top:28px;
 }
 .hero-stat{
   background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-  border-radius:16px;padding:12px 20px;backdrop-filter:blur(8px);text-align:center;
+  border-radius:14px;padding:12px 10px;backdrop-filter:blur(8px);text-align:center;
 }
-.hero-stat-num{font-size:24px;font-weight:900;color:#fff;line-height:1}
-.hero-stat-lbl{font-size:11px;color:rgba(255,255,255,.65);font-weight:600;margin-top:3px}
+.hero-stat-num{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:10.5px;color:rgba(255,255,255,.65);font-weight:600;margin-top:3px}
 
 /* ── WAVE ── */
-.wave{height:60px;background:#f0f9ff;border-radius:60px 60px 0 0;margin-top:-30px;position:relative;z-index:1}
+.wave{height:50px;background:#f0f9ff;border-radius:50px 50px 0 0;margin-top:-24px;position:relative;z-index:1}
 
 /* ── SECTIONS ── */
-.section{padding:48px 24px;max-width:600px;margin:0 auto}
+.section{padding:36px 20px;max-width:600px;margin:0 auto}
+
+/* ── YT BUTTON ── */
+.yt-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:#FF0000;color:#fff;border:none;border-radius:100px;
+  padding:15px 28px;font-family:inherit;font-size:15px;font-weight:800;
+  cursor:pointer;text-decoration:none;
+  box-shadow:0 6px 20px rgba(255,0,0,.35);
+  transition:transform .2s,box-shadow .2s;letter-spacing:.01em;
+  width:100%;max-width:340px;
+}
+.yt-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,0,0,.45)}
 .section-title{
   font-size:clamp(20px,4vw,26px);font-weight:900;color:#0c4a6e;
   margin-bottom:8px;letter-spacing:-.02em;
@@ -232,7 +245,18 @@ body{
 }
 .review-banner span{opacity:.7;font-weight:500}
 
+/* Mobile first tweaks */
+@media(max-width:380px){
+  .hero{padding:48px 18px 64px}
+  .hero h1{font-size:26px}
+  .section{padding:28px 16px}
+  .why-card{padding:14px 16px;gap:12px}
+  .why-ico{width:40px;height:40px;font-size:20px}
+  .notif-card{padding:22px 18px}
+  .step-item{gap:12px}
+}
 @media(min-width:600px){
+  .hero-stats{grid-template-columns:repeat(4,1fr);max-width:480px}
   .why-card{padding:22px 24px}
   .notif-card{padding:32px 28px}
 }
@@ -549,16 +573,33 @@ body{
 
 <!-- ════ CTA ════ -->
 <div class="cta-wrap">
-  <p style="font-size:14px;font-weight:600;color:#475569;margin-bottom:20px;line-height:1.7">
-    Sudah install dan aktifkan notifikasi? <strong style="color:#0369a1">Jazakallahu khairan!</strong><br>
-    Kamu sudah selangkah lebih maju dalam menjaga istiqomah belajar Al-Qur'an.
+  <!-- YouTube Tutorial -->
+  <div style="background:#fff;border-radius:20px;padding:24px 20px;margin-bottom:24px;border:1px solid #fee2e2;box-shadow:0 2px 12px rgba(255,0,0,.08)">
+    <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:4px;display:flex;align-items:center;gap:6px;justify-content:center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      Lebih mudah lihat video dulu!
+    </div>
+    <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:16px">Panduan visual langkah demi langkah — lebih jelas dari teks</div>
+    <a href="https://www.youtube.com/@rattililquran01" target="_blank" rel="noopener" class="yt-btn" style="text-decoration:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      Video Tutorial Instalasi PWA
+    </a>
+  </div>
+
+  <!-- Portal CTA -->
+  <p style="font-size:14px;font-weight:600;color:#475569;margin-bottom:16px;line-height:1.7">
+    Sudah install dan aktifkan notifikasi?<br>
+    <strong style="color:#0369a1">Jazakallahu khairan! 🤲</strong>
   </p>
   <a href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/murid/index.html"
      class="cta-btn" target="_blank" rel="noopener"
      style="display:inline-flex;text-decoration:none">
     📲 Buka Portal Murid Sekarang
   </a>
-  <span class="cta-secondary">Ketuk tombol di atas → login → ikuti panduan install di halaman ini</span>
+  <span class="cta-secondary">Ketuk → login → ikuti panduan install di halaman ini</span>
+  <div style="margin-top:24px;font-size:11px;color:#94a3b8;font-weight:500;line-height:1.7">
+    🔒 Privasi terjaga &nbsp;·&nbsp; 0 MB download &nbsp;·&nbsp; Bisa dihapus kapan saja
+  </div>
 </div>
 
 <script>
