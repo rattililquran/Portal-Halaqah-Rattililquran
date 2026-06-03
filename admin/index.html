@@ -1639,6 +1639,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
+<script src="../assets/push-permission.js"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -3831,6 +3832,9 @@ function initThemeToggle() {
 initThemeToggle();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() { if (typeof initPushPrompt === 'function') initPushPrompt('admin'); }, 5000);
+});
 </script>
 
 <!-- MOBILE BOTTOM NAV -->

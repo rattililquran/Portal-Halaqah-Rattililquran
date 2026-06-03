@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v4.8
+//  Cache version: v4.9 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v4.8';
+const CACHE_NAME   = 'halaqah-v4.9';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -109,5 +109,73 @@ self.addEventListener('fetch', function(e) {
         return cached || caches.match(BASE + '/index.html');
       });
     })
+  );
+});
+
+
+// ══════════════════════════════════════════════════════════════
+//  PUSH NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════
+
+// Terima push dari server → tampilkan notifikasi
+self.addEventListener('push', function(e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(_) {}
+
+  var title   = data.title   || "Rattililqur'an";
+  var body    = data.body    || '';
+  var icon    = data.icon    || '/Portal-Halaqah-Rattililquran/assets/icons/icon-192.png';
+  var badge   = data.badge   || '/Portal-Halaqah-Rattililquran/assets/icons/icon-72.png';
+  var tag     = data.tag     || 'rattil-notif';
+  var url     = data.url     || '/Portal-Halaqah-Rattililquran/';
+
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body        : body,
+      icon        : icon,
+      badge       : badge,
+      tag         : tag,
+      renotify    : true,
+      requireInteraction: false,
+      data        : { url: url, ...(data.data || {}) },
+      vibrate     : [200, 100, 200],
+    })
+  );
+});
+
+// Klik notifikasi → buka/fokus tab portal
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  var targetUrl = (e.notification.data && e.notification.data.url)
+    || '/Portal-Halaqah-Rattililquran/';
+
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(function(windowClients) {
+        // Jika sudah ada tab portal yang terbuka, fokuskan
+        for (var i = 0; i < windowClients.length; i++) {
+          var c = windowClients[i];
+          if (c.url.includes('Portal-Halaqah-Rattililquran') && 'focus' in c) {
+            return c.focus();
+          }
+        }
+        // Tidak ada → buka tab baru
+        if (clients.openWindow) return clients.openWindow(targetUrl);
+      })
+  );
+});
+
+// Push subscription berubah (endpoint expired) → hapus dari server
+self.addEventListener('pushsubscriptionchange', function(e) {
+  e.waitUntil(
+    self.registration.pushManager.subscribe(e.oldSubscription.options)
+      .then(function(newSub) {
+        // Kirim subscription baru ke server (dihandle oleh portal saat reload)
+        return self.clients.matchAll().then(function(clients) {
+          clients.forEach(function(c) {
+            c.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: newSub });
+          });
+        });
+      })
   );
 });

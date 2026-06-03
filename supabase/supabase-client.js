@@ -386,6 +386,24 @@ var GuruAPI = {
       status: 'selesai', jumlah_hadir: hadir, jumlah_alpa: alpa,
     }).eq('id_kbm', id_kbm);
     _check(error, 'tutupKBM');
+    // Push ke ketua kelas halaqah ini — window observasi terbuka
+    (async function() {
+      try {
+        var { data: kbmData } = await _sb.from('kbm_log').select('id_halaqah, pertemuan_ke').eq('id_kbm', id_kbm).single();
+        if (!kbmData) return;
+        var { data: anggota } = await _sb.from('anggota').select('id_murid').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif').eq('is_ketua', true);
+        var ketuaIds = (anggota || []).map(function(a){ return a.id_murid; });
+        if (!ketuaIds.length) return;
+        _sendPushBg({
+          user_ids: ketuaIds,
+          title: '📋 Isi Observasi KBM Sekarang!',
+          body : 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.',
+          url  : '/murid/index.html',
+          tag  : 'observasi-window-' + id_kbm,
+          data : { trigger: 'observasi_terbuka', id_kbm: id_kbm },
+        });
+      } catch(e) {}
+    })();
     return { status: 'ok', message: 'Sesi KBM berhasil ditutup. Jazakallah khairan!', data: { id_kbm, jumlah_hadir: hadir } };
   },
 
@@ -471,6 +489,16 @@ var GuruAPI = {
       tanggal: new Date().toISOString().slice(0, 10), status: 'aktif',
     }).select().single();
     _check(error, 'kirimPengumuman');
+    // Push ke target (semua / halaqah tertentu)
+    _sendPushBg({
+      role_filter: d.target === 'semua' ? null : undefined,
+      user_ids   : d.target !== 'semua' && d.id_halaqah ? undefined : undefined,
+      title : '📢 ' + (d.judul || 'Pengumuman Baru'),
+      body  : (d.isi || '').slice(0, 100),
+      url   : '/murid/index.html',
+      tag   : 'pengumuman-' + (data && data.id || Date.now()),
+      data  : { trigger: 'pengumuman' },
+    });
     return { status: 'ok', data };
   },
 
@@ -853,6 +881,17 @@ var GuruAPI = {
       dibuat_oleh: _uid(), nama_pembuat: _currentUser && _currentUser.nama,
       tanggal: new Date().toISOString().slice(0,10), status: 'aktif',
     });
+    // Push ke murid halaqah ini
+    if (ids.length) {
+      _sendPushBg({
+        user_ids: ids,
+        title : '📄 Raport Kamu Sudah Tersedia!',
+        body  : 'Raport semester ini sudah dipublish. Ketuk untuk melihat nilai dan predikatmu.',
+        url   : '/murid/index.html',
+        tag   : 'raport-published-' + d.id_halaqah,
+        data  : { trigger: 'raport_published', id_halaqah: d.id_halaqah },
+      });
+    }
     return { status: 'ok', message: 'Raport berhasil dipublish' };
   },
 
@@ -1458,11 +1497,27 @@ var AdminAPI = {
     _check(error,'getSPPPending'); return { status:'ok', data: data||[] };
   },
   validasiSPP: async function(id_spp, aksi) {
-    // aksi: 'lunas' | 'ditolak'
+    // Ambil data SPP dulu untuk push ke murid
+    var { data: sppRow } = await _sb.from('spp_pembayaran').select('id_murid, bulan, tahun').eq('id_spp', id_spp).single();
     var { error } = await _sb.from('spp_pembayaran').update({
       status: aksi, validated_by: _uid(), validated_at: new Date().toISOString(),
     }).eq('id_spp', id_spp);
-    _check(error,'validasiSPP'); return { status:'ok' };
+    _check(error,'validasiSPP');
+    // Push ke murid yang bersangkutan
+    if (sppRow && sppRow.id_murid) {
+      var isLunas = aksi === 'lunas';
+      _sendPushBg({
+        user_ids: [sppRow.id_murid],
+        title: isLunas ? '✅ Pembayaran SPP Diterima!' : '❌ Konfirmasi SPP Ditolak',
+        body : isLunas
+          ? 'SPP ' + (sppRow.bulan || '') + ' ' + (sppRow.tahun || '') + ' sudah terverifikasi. Jazakallahu khairan!'
+          : 'Konfirmasi SPP ' + (sppRow.bulan || '') + ' ditolak admin. Silakan hubungi admin untuk info lebih lanjut.',
+        url  : '/murid/index.html',
+        tag  : 'spp-validasi-' + id_spp,
+        data : { trigger: isLunas ? 'spp_lunas' : 'spp_ditolak' },
+      });
+    }
+    return { status:'ok' };
   },
   getSPPRekap: async function(p) {
     // p: { tahun, id_halaqah, bulan }
@@ -1834,11 +1889,122 @@ var KetuaAPI = {
 };
 
 // ─────────────────────────────────────────────
+//  PUSH HELPER (internal, non-blocking)
+// ─────────────────────────────────────────────
+function _sendPushBg(opts) {
+  // Fire-and-forget — tidak blocking, error diabaikan
+  fetch(SUPABASE_URL + '/functions/v1/send-push', {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON },
+    body   : JSON.stringify(opts),
+  }).catch(function() {});
+}
+
+// ─────────────────────────────────────────────
+//  PUSH NOTIFICATIONS API
+// ─────────────────────────────────────────────
+var VAPID_PUBLIC_KEY = 'GANTI_DENGAN_VAPID_PUBLIC_KEY_ANDA'; // ← isi setelah generate
+
+var PushAPI = {
+  // Cek apakah browser mendukung push notifikasi
+  isSupported: function() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  },
+
+  // Cek status izin saat ini
+  getPermissionStatus: function() {
+    if (!PushAPI.isSupported()) return 'unsupported';
+    return Notification.permission; // 'default' | 'granted' | 'denied'
+  },
+
+  // Ambil subscription yang sedang aktif (jika ada)
+  getActiveSubscription: async function() {
+    if (!PushAPI.isSupported()) return null;
+    try {
+      var reg = await navigator.serviceWorker.ready;
+      return await reg.pushManager.getSubscription();
+    } catch(e) { return null; }
+  },
+
+  // Subscribe push notifikasi
+  subscribe: async function() {
+    if (!PushAPI.isSupported()) throw new Error('Browser tidak mendukung push notifikasi');
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly     : true,
+      applicationServerKey: _urlB64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    // Simpan subscription ke Supabase
+    await PushAPI._saveSubscription(sub);
+    return sub;
+  },
+
+  // Unsubscribe
+  unsubscribe: async function() {
+    var sub = await PushAPI.getActiveSubscription();
+    if (!sub) return;
+    var endpoint = sub.endpoint;
+    await sub.unsubscribe();
+    // Hapus dari Supabase
+    var user = _currentUser;
+    if (!user) return;
+    await _sb.from('push_subscriptions').delete().eq('endpoint', endpoint);
+  },
+
+  // Simpan subscription ke tabel push_subscriptions
+  _saveSubscription: async function(sub) {
+    var user = _currentUser;
+    if (!user || !user.id_user) throw new Error('Belum login');
+    var key  = sub.getKey && sub.getKey('p256dh');
+    var auth = sub.getKey && sub.getKey('auth');
+    if (!key || !auth) throw new Error('Subscription tidak valid');
+    var p256dh   = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
+    var authKey  = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
+    var deviceHint = /iPhone|iPad/.test(navigator.userAgent) ? 'ios'
+      : /Android/.test(navigator.userAgent) ? 'android' : 'desktop';
+    var { error } = await _sb.from('push_subscriptions').upsert({
+      id_user    : user.id_user,
+      role       : user.role || 'murid',
+      endpoint   : sub.endpoint,
+      p256dh     : p256dh,
+      auth_key   : authKey,
+      device_hint: deviceHint,
+      updated_at : new Date().toISOString(),
+    }, { onConflict: 'endpoint' });
+    if (error) throw new Error(error.message);
+  },
+
+  // Kirim push (dipanggil dari portal, hanya untuk admin/guru)
+  send: async function(opts) {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/send-push', {
+      method : 'POST',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+      },
+      body: JSON.stringify(opts),
+    });
+    return res.json();
+  },
+};
+
+// Helper: convert base64url → Uint8Array (untuk VAPID key)
+function _urlB64ToUint8Array(base64String) {
+  var padding  = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64   = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var rawData  = window.atob(base64);
+  var output   = new Uint8Array(rawData.length);
+  for (var i = 0; i < rawData.length; ++i) output[i] = rawData.charCodeAt(i);
+  return output;
+}
+
+// ─────────────────────────────────────────────
 //  EXPORT
 // ─────────────────────────────────────────────
 window.HQ = {
   Auth, AdminAPI, GuruAPI, MuridAPI, KetuaAPI,
   SuperAdminAPI: AdminAPI,
+  PushAPI,
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },
   cache: { invalidate: function() {} },
