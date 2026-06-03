@@ -585,17 +585,31 @@ var GuruAPI = {
       });
     }
 
+    // Ambil data dismissal dari anggota untuk SEMUA murid di alerts
+    var followupMap = {};
+    if (alertIds.length) {
+      var { data: followupRows } = await _sb.from('anggota')
+        .select('id_murid, followup_alpa_kbm, followup_alpa_at, followup_at')
+        .in('id_murid', alertIds);
+      (followupRows || []).forEach(function(r) { followupMap[r.id_murid] = r; });
+    }
+
     var alerts = alertList.map(function(m) {
       var metrics = {
         absen           : m.alpa || 0,
         terlambat       : m.terlambat || 0,
         kamera_tertutup : m.kamera_buruk || 0,
       };
-      // Compute flags dari metrics agar "Tindak Lanjut" tidak auto tampil
+      // Compute flags dari metrics — filter yang sudah di-dismiss guru (persisten via DB)
+      var dismissed = followupMap[m.id_murid] || {};
+      var kbmBase   = dismissed.followup_alpa_kbm || 0;
       var flags = [];
-      if (metrics.absen >= 1)        flags.push({ tipe:'absen',    label:'Absen/Alpa',       detail: metrics.absen + 'x',           count: metrics.absen });
-      if (metrics.terlambat >= 2)    flags.push({ tipe:'terlambat',label:'Sering Terlambat', detail: metrics.terlambat + 'x',       count: metrics.terlambat });
-      if (metrics.kamera_tertutup >= 2) flags.push({ tipe:'kamera', label:'Kamera Tertutup', detail: metrics.kamera_tertutup + 'x', count: metrics.kamera_tertutup });
+      if (metrics.absen >= 1 && metrics.absen > kbmBase)
+        flags.push({ tipe:'absen',    label:'Absen/Alpa',       detail: metrics.absen + 'x',           count: metrics.absen });
+      if (metrics.terlambat >= 2)
+        flags.push({ tipe:'terlambat',label:'Sering Terlambat', detail: metrics.terlambat + 'x',       count: metrics.terlambat });
+      if (metrics.kamera_tertutup >= 2)
+        flags.push({ tipe:'kamera',   label:'Kamera Tertutup',  detail: metrics.kamera_tertutup + 'x', count: metrics.kamera_tertutup });
 
       var riwayatKey = m.id_murid + '_' + m.id_halaqah;
       return {

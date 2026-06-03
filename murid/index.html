@@ -4399,6 +4399,9 @@ async function loadDashboard() {
     loadKeaktifanAlertsMurid();
     loadGrafikKehadiran(); // grafik kehadiran bulanan
 
+    // Realtime: auto-refresh alert jika guru update followup_at di anggota
+    _subscribeKeaktifanRealtime();
+
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { hideLoad(); }
 }
@@ -4527,6 +4530,30 @@ async function loadKeaktifanAlertsMurid() {
   } catch (e) {
     console.error('Gagal memuat alert keaktifan:', e);
   }
+}
+
+// ── Realtime subscription: refresh alert saat guru dismiss ──
+var _keaktifanChannel = null;
+function _subscribeKeaktifanRealtime() {
+  // Hanya subscribe sekali
+  if (_keaktifanChannel) return;
+  var us = window.HQ && window.HQ.Auth && window.HQ.Auth.getUser();
+  if (!us || !us.id_user) return;
+
+  _keaktifanChannel = window.HQ.supabase
+    .channel('keaktifan-followup-' + us.id_user)
+    .on('postgres_changes', {
+      event : 'UPDATE',
+      schema: 'public',
+      table : 'anggota',
+      filter: 'id_murid=eq.' + us.id_user,
+    }, function(payload) {
+      // Guru update followup_at → refresh alert dashboard murid
+      if (payload.new && payload.new.followup_at !== payload.old.followup_at) {
+        loadKeaktifanAlertsMurid();
+      }
+    })
+    .subscribe();
 }
 
 function openNotifications() {
