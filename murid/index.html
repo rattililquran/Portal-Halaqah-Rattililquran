@@ -4776,10 +4776,8 @@ function toggleAtCard(idx) {
 }
 
 function _buildAtTibyanText(idx) {
-  var rows = _attibyanFilter === 'all'
-    ? _attibyanData
-    : _attibyanData.filter(function(r){ return String(r['pertemuan_ke'] || '').trim() === _attibyanFilter; });
-  var row = rows[idx];
+  // idx adalah origIdx (posisi di _attibyanData), bukan index di filtered rows
+  var row = _attibyanData[idx];
   if (!row) return '';
 
   var lines = ['📖 *At-Tibyan — Pertemuan ' + (row['pertemuan_ke'] || '') + '*'];

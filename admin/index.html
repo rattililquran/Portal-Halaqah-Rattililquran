@@ -1602,7 +1602,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 <div class="overlay" id="modalLevel">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="modalLevelTitle">🏆 Level Baru</div>
+      <div class="modal-title" id="modalMngLevelTitle">🏆 Level Baru</div>
       <button class="modal-x" onclick="closeModal('modalLevel')">✕</button>
     </div>
     <div class="modal-body">
@@ -3532,7 +3532,7 @@ async function loadLevel() {
 }
 
 function openModalLevel() {
-  document.getElementById('modalLevelTitle').textContent = '🏆 Level Baru';
+  document.getElementById('modalMngLevelTitle').textContent = '🏆 Level Baru';
   document.getElementById('lvlId').value = '';
   document.getElementById('lvlNama').value = '';
   document.getElementById('lvlUrutan').value = '';
@@ -3548,7 +3548,7 @@ function editLevel(id) {
   window.HQ.AdminAPI.getLevelList().then(r => {
     const l = (r.data||[]).find(x => x.id_level === id);
     if (!l) return;
-    document.getElementById('modalLevelTitle').textContent = '✏️ Edit Level';
+    document.getElementById('modalMngLevelTitle').textContent = '✏️ Edit Level';
     document.getElementById('lvlId').value = l.id_level;
     document.getElementById('lvlNama').value = l.nama_level;
     document.getElementById('lvlUrutan').value = l.urutan||'';

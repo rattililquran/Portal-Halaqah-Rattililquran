@@ -309,7 +309,7 @@ var GuruAPI = {
       id_guru  : _uid(), nama_guru: _currentUser && _currentUser.nama,
       tanggal_pertemuan: d.tanggal_pertemuan,
       jam_mulai: d.jam_mulai, jenis_sesi: d.jenis_sesi || 'KBM Reguler',
-      pertemuan_ke: d.pertemuan_ke_custom || (count + 1),
+      pertemuan_ke: d.pertemuan_ke_custom || ((count || 0) + 1),
       status: 'draft',
     }).select().single();
     _check(error, 'bukaKBM');
@@ -362,7 +362,7 @@ var GuruAPI = {
 
   simpanJurnalKBM: async function(d) {
     var { error } = await _sb.from('kbm_log').update({
-      materi_belajar: d.pencapaian_modul, pencapaian_modul: d.pencapaian_modul,
+      materi_belajar: d.materi_belajar, pencapaian_modul: d.pencapaian_modul,
       halaman_modul: d.halaman_modul, metode: d.metode, catatan_umum: d.catatan_umum,
       jam_selesai: d.jam_selesai, latihan_mandiri: d.latihan_mandiri,
       jenis_latihan: d.jenis_latihan, deadline_latihan: d.deadline_latihan,
@@ -373,7 +373,7 @@ var GuruAPI = {
 
   tutupKBM: async function(id_kbm) {
     var { count } = await _sb.from('nilai_kbm').select('*', { count: 'exact', head: true }).eq('id_kbm', id_kbm);
-    if (!count) {
+    if (count === null || count === 0) {
       // Tidak auto-delete — guru harus aktif memilih hapus via hapusKBM()
       return { status: 'error', message: 'Belum ada presensi murid. Isi presensi dulu atau hapus sesi secara manual.' };
     }
@@ -696,18 +696,23 @@ var GuruAPI = {
   simpanAtTibyan: async function(d) {
     var id_sesi = _genId('ATS');
     var hadirCount = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-    await _sb.from('at_tibyan_sesi').insert({
+    var { error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
       id_sesi, tanggal: d.tanggal, id_guru: _uid(),
       nama_guru: _currentUser && _currentUser.nama,
       total_hadir: hadirCount, total_murid: d.presensi.length,
       status: 'selesai', pertemuan_ke: d.pertemuan_ke || 1,
     });
+    _check(errSesi, 'simpanAtTibyan:sesi');
     var logRows = d.presensi.map(function(p) { return {
       id_sesi, id_murid: p.id_murid, nama_murid: p.nama_murid,
       id_halaqah: p.id_halaqah, nama_halaqah: p.nama_halaqah,
       status_hadir: p.status_hadir, tanggal: d.tanggal,
     }; });
-    await _sb.from('at_tibyan_log').insert(logRows);
+    var { error: errLog } = await _sb.from('at_tibyan_log').insert(logRows);
+    if (errLog) {
+      await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', id_sesi).catch(function(){});
+      _check(errLog, 'simpanAtTibyan:log');
+    }
     return { status: 'ok', message: 'Sesi At-Tibyan berhasil disimpan' };
   },
 
@@ -807,8 +812,8 @@ var GuruAPI = {
     if (!komponen || !komponen.length) return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode);
     var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_halaqah', d.id_halaqah);
-    var { data: atLog } = await _sb.from('at_tibyan_log').select('id_murid, status_hadir');
-    var { count: totalAt } = await _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('status', 'selesai');
+    var { data: atLog } = await _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah);
+    var { count: totalAt } = await _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai');
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle();
 
     var berhasil = [], gagal = [];
@@ -1108,7 +1113,7 @@ var MuridAPI = {
       nama_periode: r.periode && r.periode.nama_periode,
       halaqah_nama: r.halaqah && r.halaqah.nama_halaqah,
       guru_nama   : r.halaqah && r.halaqah.nama_guru,
-      komponen    : r.detail_json ? (typeof r.detail_json==='string'?JSON.parse(r.detail_json):r.detail_json) : [],
+      komponen    : r.detail_json ? (function(){ try{ return typeof r.detail_json==='string'?JSON.parse(r.detail_json):r.detail_json; }catch(e){ return []; } })() : [],
     }); }) };
   },
 
@@ -1178,7 +1183,7 @@ var MuridAPI = {
     var rows = bulanList.map(function(bulan) {
       return {
         id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun,
-        id_murid, nama_murid: user.nama || '',
+        id_murid, nama_murid: user.nama_lengkap || user.nama || '',
         id_halaqah,
         bulan, tahun: Number(d.tahun),
         jenis: d.jenis || 'SPP Pribadi',

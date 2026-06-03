@@ -2791,7 +2791,7 @@ function guruRefresh(tab) {
   else if (tab === 'keaktifan') { _keaktifanData = null; loadKeaktifanPage(); }
   else if (tab === 'assessment') loadAssessmentRekap();
   else if (tab === 'attibyan-guru') {
-    _atTabLoaded = {}; _atSesiData = []; _atKeaktifanData = null;
+    _atTabLoaded = {}; _atSesiData = []; _atKeaktifanData = null; _atMuridAll = [];
     loadAtTibyanGuru();
   }
 }
@@ -5623,32 +5623,40 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
   toast('Memuat detail...','info');
   try {
     var r = await window.HQ.GuruAPI.getAtTibyanDetail(id_sesi);
-    var rows = r.data || [];
-    // Kelompokkan per level → halaqah
-    var groups = {};
-    rows.forEach(function(m) {
-      var key = (m.level || '-') + '||' + (m.nama_halaqah || '-');
-      if (!groups[key]) groups[key] = { level: m.level, halaqah: m.nama_halaqah, murid: [] };
-      groups[key].murid.push(m);
-    });
+    // getAtTibyanDetail mengembalikan {sesi, presensi} — ambil presensi
+    var rows = (r.data && r.data.presensi) || [];
+    var total = rows.length;
+    var hadir = rows.filter(function(x){ return ['H','T'].includes(String(x.status_hadir).toUpperCase()); }).length;
+    var alpa  = rows.filter(function(x){ return String(x.status_hadir).toUpperCase() === 'A'; }).length;
+
     var LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
     var BADGE  = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
-    var html = Object.values(groups).map(function(g) {
-      return '<div class="at-halaqah-group"><div class="at-halaqah-head">'+esc(g.level)+' — '+esc(g.halaqah)+'</div>'
-        + g.murid.map(function(m) {
-          var sh = String(m.status_hadir || '').toUpperCase();
-          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
-            + '<span style="font-size:13px;font-weight:700">'+esc(m.nama_murid)+'</span>'
-            + '<span class="badge '+(BADGE[sh]||'b-gray')+'">'+( LABEL[sh]||sh)+'</span></div>';
-        }).join('') + '</div>';
-    }).join('');
-    // Tampilkan di notif overlay atau gunakan modal sederhana
-    var win = window.open('','_self');
-    toast('Pertemuan ke-'+pertemuan_ke+' — '+rows.length+' murid tercatat','ok');
-    // Gunakan alert sementara, bisa dikembangkan jadi modal
-    var total = rows.length;
-    var hadir = rows.filter(function(r){ return ['H','T'].includes(String(r.status_hadir).toUpperCase()); }).length;
-    toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir. Tekan Edit (✏️) untuk ubah data.','info');
+    var groups = {};
+    rows.forEach(function(m) {
+      var key = (m.nama_halaqah||'-');
+      if (!groups[key]) groups[key] = { halaqah: m.nama_halaqah, murid: [] };
+      groups[key].murid.push(m);
+    });
+    var html = '<div style="font-size:13px;font-weight:700;margin-bottom:10px">Pertemuan ke-'+pertemuan_ke+' — '+hadir+'/'+total+' hadir · alpa '+alpa+'×</div>'
+      + Object.values(groups).map(function(g) {
+        return '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+esc(g.halaqah||'-')+'</div>'
+          + g.murid.map(function(m) {
+            var sh = String(m.status_hadir||'').toUpperCase();
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
+              + '<span style="font-size:13px;font-weight:600">'+esc(m.nama_murid)+'</span>'
+              + '<span class="badge '+(BADGE[sh]||'b-gray')+'">'+( LABEL[sh]||sh)+'</span></div>';
+          }).join('') + '</div>';
+      }).join('');
+
+    // Tampilkan dalam notif overlay yang sudah ada
+    var notifEl = document.getElementById('notifBox');
+    if (notifEl) {
+      notifEl.innerHTML = '<div style="padding:16px;max-height:60dvh;overflow-y:auto">'+html+'</div>';
+      var ov = document.getElementById('notifOverlay');
+      if (ov) ov.style.display = 'flex';
+    } else {
+      toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir. Tekan Edit (✏️) untuk ubah data.','info');
+    }
   } catch(e) { toast(e.message,'err'); }
 }
 
@@ -5761,7 +5769,8 @@ async function _loadAtFormMurid(id_sesi_edit) {
     var existingMap = {};
     if (id_sesi_edit) {
       var rd = await window.HQ.GuruAPI.getAtTibyanDetail(id_sesi_edit);
-      (rd.data || []).forEach(function(m) { existingMap[m.id_murid] = String(m.status_hadir).toUpperCase(); });
+      // getAtTibyanDetail mengembalikan {sesi, presensi}
+      ((rd.data && rd.data.presensi) || []).forEach(function(m) { existingMap[m.id_murid] = String(m.status_hadir).toUpperCase(); });
     }
     // Default semua H
     _atMuridAll.forEach(function(m) {
@@ -5777,8 +5786,10 @@ function renderAtFormList(murid) {
   // Kelompokkan level → halaqah
   var groups = {};
   murid.forEach(function(m) {
-    var key = (m.level||'-')+'||'+(m.nama_halaqah||'-');
-    if (!groups[key]) groups[key] = {level:m.level, halaqah:m.nama_halaqah, murid:[]};
+    // getAllMuridAktif pakai join halaqah(nama_halaqah) → nested object
+    var namaHalaqah = (m.halaqah && m.halaqah.nama_halaqah) || m.nama_halaqah || '-';
+    var key = (m.level||'-')+'||'+namaHalaqah;
+    if (!groups[key]) groups[key] = {level:m.level, halaqah:namaHalaqah, murid:[]};
     groups[key].murid.push(m);
   });
   var STATUS = ['H','T','I','A'];
@@ -5793,7 +5804,7 @@ function renderAtFormList(murid) {
         }).join('');
         return '<div class="at-murid-row" data-name="'+esc((m.nama_murid||'').toLowerCase())+'">'
           +'<div><div class="at-murid-name">'+esc(m.nama_murid)+'</div>'
-          +'<div class="at-murid-level">'+esc(m.nama_halaqah)+'</div></div>'
+          +'<div class="at-murid-level">'+esc((m.halaqah&&m.halaqah.nama_halaqah)||m.nama_halaqah||'')+'</div></div>'
           +'<div style="display:flex;gap:4px">'+btns+'</div>'
           +'</div>';
       }).join('') + '</div>';
