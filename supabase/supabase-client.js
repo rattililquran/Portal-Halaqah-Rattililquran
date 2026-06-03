@@ -1983,7 +1983,7 @@ function _sendPushBg(opts) {
 // ─────────────────────────────────────────────
 //  PUSH NOTIFICATIONS API
 // ─────────────────────────────────────────────
-var VAPID_PUBLIC_KEY = 'BD3A_eBVxk9q_hx90yh221g2-gLTS8oUCp5HCgqIblWO3nreaqzr8IsPc2AdOTF7H2zmdFIfU9gX_yUfn-a-RAg';
+var VAPID_PUBLIC_KEY = 'BDqTqhZZpAuSq18HKjMTUFYJSimkDpO4X939NAbfdyuDf5-qQmSvY7RBP6OUH2dhYhNQgP8-STvIJf3mO8aOCw0';
 
 var PushAPI = {
   // Cek apakah browser mendukung push notifikasi
