@@ -1982,6 +1982,84 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .sidebar-item{cursor:pointer}
 }
 
+/* ══ PANDUAN MURID ════════════════════════════════════════════ */
+.pd-wrap{max-width:640px;margin:0 auto;padding:0 0 32px}
+.pd-nasihat{background:linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f0f9ff 100%);border:1px solid #bbf7d0;border-radius:16px;padding:20px 18px;margin-bottom:14px;position:relative;overflow:hidden}
+.pd-nasihat::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);pointer-events:none}
+.pd-nas-title{font-size:14.5px;font-weight:800;color:#065f46;margin-bottom:10px}
+.pd-nas-bismillah{font-family:'Amiri','Times New Roman',serif;font-size:20px;color:#047857;text-align:center;direction:rtl;line-height:1.9;margin:10px 0}
+.pd-nas-intro{font-size:12.5px;color:#065f46;line-height:1.8;font-weight:500}
+.pd-nas-intro em{color:#10b981;font-style:italic}
+.pd-nas-block{background:rgba(255,255,255,.65);border:1px solid rgba(167,243,208,.6);border-radius:10px;padding:11px 13px;margin:8px 0;font-size:12.5px;color:#065f46;line-height:1.75}
+.pd-nas-block strong{color:#047857;font-weight:700;display:block;margin-bottom:3px}
+.pd-nas-sec-title{font-size:11px;font-weight:800;color:#047857;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 6px;display:flex;align-items:center;gap:6px}
+.pd-nas-divider{height:1px;background:linear-gradient(90deg,transparent,#a7f3d0,transparent);margin:14px 0}
+.pd-nas-verse{background:rgba(255,255,255,.75);border:1px solid #a7f3d0;border-radius:10px;padding:14px 12px;margin:8px 0}
+.pd-nas-arabic{font-family:'Amiri','Times New Roman',serif;font-size:18px;color:#047857;text-align:center;direction:rtl;line-height:2;margin-bottom:6px}
+.pd-nas-trans{font-size:12px;color:var(--text-2,#475569);font-style:italic;text-align:center;line-height:1.6;margin-bottom:3px}
+.pd-nas-source{font-size:11px;color:#10b981;font-weight:700;text-align:center}
+.pd-nas-closing{font-size:13px;font-weight:800;color:#065f46;text-align:center;padding-top:12px;border-top:1px solid #a7f3d0;margin-top:12px;line-height:1.7}
+.pd-nas-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;margin-top:12px;background:rgba(255,255,255,.5);border:1px solid #a7f3d0;border-radius:9px;font-family:inherit;font-size:12px;font-weight:700;color:#047857;cursor:pointer;transition:background .2s}
+.pd-nas-toggle:hover{background:rgba(255,255,255,.85)}
+.pd-acc{border-radius:14px;overflow:hidden;background:var(--white,#fff);border:1px solid var(--border);margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.pd-acc-head{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border:none;background:transparent;cursor:pointer;text-align:left;font-family:inherit;transition:background .15s}
+.pd-acc-head:hover{background:rgba(16,185,129,.04)}
+.pd-acc-head.open{background:rgba(16,185,129,.06)}
+.pd-acc-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.pd-ico-b{background:#eff8ff}.pd-ico-g{background:#f0fdf4}.pd-ico-a{background:#fffbeb}.pd-ico-p{background:#faf5ff}.pd-ico-r{background:#fff5f5}.pd-ico-t{background:#f0fdfa}.pd-ico-gold{background:#fefce8}
+.pd-acc-title{font-size:13.5px;font-weight:800;color:var(--text);line-height:1.3}
+.pd-acc-sub{font-size:11.5px;color:var(--text-3);font-weight:500;margin-top:2px}
+.pd-chev{width:22px;height:22px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .25s cubic-bezier(.4,0,.2,1),background .15s}
+.pd-chev svg{width:11px;height:11px;stroke:#64748b}
+.pd-acc-head.open .pd-chev{transform:rotate(180deg);background:#10b981}
+.pd-acc-head.open .pd-chev svg{stroke:#fff}
+.pd-acc-body{display:none;padding:0 16px 16px}
+.pd-acc-body.open{display:block;animation:pdSlide .2s ease}
+@keyframes pdSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.pd-sep{height:1px;background:var(--border);margin-bottom:14px}
+.pd-steps{display:flex;flex-direction:column;gap:0}
+.pd-step{display:flex;gap:10px;padding:9px 0;position:relative}
+.pd-step:not(:last-child)::after{content:'';position:absolute;left:13px;top:35px;bottom:0;width:2px;background:var(--border)}
+.pd-step-n{width:26px;height:26px;border-radius:50%;background:#10b981;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.pd-step-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pd-step-d{font-size:12px;color:var(--text-2);line-height:1.6}
+.pd-warn,.pd-info,.pd-tip,.pd-danger{border-radius:9px;padding:10px 12px;margin:8px 0;display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.6}
+.pd-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.pd-info{background:#eff8ff;border:1px solid #bae6fd;color:#075985}
+.pd-tip{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.pd-danger{background:#fff5f5;border:1px solid #fecaca;color:#991b1b}
+.pd-warn-i,.pd-info-i,.pd-tip-i,.pd-danger-i{font-size:15px;flex-shrink:0;margin-top:1px}
+.pd-warn strong,.pd-info strong,.pd-tip strong,.pd-danger strong{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.pd-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.pd-tbl th{background:var(--bg-2,#f8fafc);padding:7px 9px;text-align:left;font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.pd-tbl td{padding:8px 9px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:top}
+.pd-tbl tr:last-child td{border-bottom:none}
+.pd-tbl tr:hover td{background:var(--bg-2,#f8fafc)}
+.pd-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:10.5px;font-weight:700}
+.pd-bg-g{background:#dcfce7;color:#166534}.pd-bg-r{background:#fee2e2;color:#991b1b}.pd-bg-a{background:#fef3c7;color:#92400e}.pd-bg-b{background:#dbeafe;color:#1e40af}
+.pd-qr{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.pd-qr-i{background:var(--bg-2,#f8fafc);border-radius:9px;padding:9px 11px;border:1px solid var(--border)}
+.pd-qr-l{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.pd-qr-v{font-size:12px;font-weight:700;color:var(--text)}
+.pd-lbl{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.15em;margin:14px 0 6px;display:block}
+.pd-hr{height:1px;background:var(--border);margin:12px 0}
+.pd-legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pd-leg{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-2);font-weight:500}
+.pd-leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.pd-bank{background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.pd-bank-num{font-size:15px;font-weight:800;color:var(--text);letter-spacing:.04em}
+.pd-bank-name{font-size:11px;color:var(--text-3);margin-top:1px}
+.pd-spp-note{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #a7f3d0;border-radius:12px;padding:15px 14px;margin-top:12px;text-align:center}
+.pd-spp-note p{font-size:13px;font-weight:600;color:#065f46;line-height:1.8}
+.pd-spp-note em{font-size:12.5px;color:#059669;font-weight:600;font-style:italic;display:block;margin-top:8px}
+html.theme-dark .pd-acc{background:#111c30!important;border-color:#1f2d45!important}
+html.theme-dark .pd-acc-head.open{background:rgba(16,185,129,.07)!important}
+html.theme-dark .pd-nasihat{background:linear-gradient(160deg,#052e16,#064e3b,#0d2040)!important;border-color:#166534!important}
+html.theme-dark .pd-nas-title{color:#6ee7b7!important}
+html.theme-dark .pd-nas-block{background:rgba(16,185,129,.06)!important;border-color:rgba(167,243,208,.15)!important;color:#6ee7b7!important}
+html.theme-dark .pd-nas-intro{color:#6ee7b7!important}
+html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!important}
+
 </style>
 </head>
 <body>
@@ -2676,6 +2754,204 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
       </div>
     </div>
 
+    <!-- ════ PANDUAN MURID ════ -->
+    <div class="page" id="page-panduan">
+      <div style="padding:16px 16px 0;max-width:640px;margin:0 auto">
+        <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:2px">Panduan</div>
+        <div style="font-size:12px;color:var(--text-3);font-weight:500;margin-bottom:16px">Cara menggunakan Portal Murid Rattililqur'an</div>
+      </div>
+      <div class="pd-wrap" style="padding:0 16px 40px">
+
+        <!-- NASIHAT -->
+        <div class="pd-nasihat">
+          <div class="pd-nas-title">🌿 Catatan Hangat untukmu yang Sedang Berjuang bersama Al-Qur'an</div>
+          <div class="pd-nas-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+          <div class="pd-nas-intro">
+            Teman-teman seperjuangan, <em>semoga Allah senantiasa menjaga kalian semua</em> —<br><br>
+            Layar yang sedang kamu tatap sekarang bukan cuma barisan kode atau aplikasi biasa. Portal ini adalah wujud cinta dan kerja keras dari orang-orang yang ingin menemanimu tumbuh bersama Al-Qur'an. Ini adalah nikmat sekaligus amanah yang Allah titipkan langsung ke tanganmu. Mari, kita gunakan dengan sepenuh hati.
+          </div>
+          <div id="pdNasihatBody">
+            <div class="pd-nas-divider"></div>
+            <div class="pd-nas-sec-title">📋 Sebelum Kelas — Menata Hati</div>
+            <div class="pd-nas-block"><strong>Hadir Lebih Awal:</strong>Buka portalmu beberapa menit sebelum kelas. Intip jadwal dan materimu hari ini supaya pikiranmu tidak terburu-buru.</div>
+            <div class="pd-nas-block"><strong>Siapkan Diri Terbaikmu:</strong>Ambil wudhu, cari sudut rumah yang tenang, dan dekap Al-Qur'anmu. Anggap ini adalah janji temu paling penting hari ini.</div>
+            <div class="pd-nas-block"><strong>Sebut Nama-Nya:</strong>Bisikkan doa belajar sebelum memulai. Minta agar dadamu dilapangkan untuk menerima ilmu.</div>
+            <div class="pd-nas-sec-title">📖 Selama Kelas — Hadir Sepenuhnya</div>
+            <div class="pd-nas-block"><strong>Fokus dan Libatkan Dirimu:</strong>Kehadiranmu di sini adalah bukti kesungguhanmu.</div>
+            <div class="pd-nas-block"><strong>Catat "Hadiah" dari Guru:</strong>Setiap koreksi dari gurumu adalah hadiah berharga. Langsung catat agar tidak menguap begitu saja.</div>
+            <div class="pd-nas-sec-title">📊 Setelah Kelas — Merawat Tumbuh</div>
+            <div class="pd-nas-block"><strong>Evaluasi dengan Senyuman:</strong>Intip sebentar riwayat sesi tadi. Syukuri setiap kemajuan kecilmu.</div>
+            <div class="pd-nas-block"><strong>Peta Latihan Mandiri:</strong>Simpan catatan koreksi tajwid dari guru. Jadikan itu panduan utamamu saat latihan sendiri di rumah.</div>
+            <div class="pd-nas-divider"></div>
+            <div class="pd-nas-verse">
+              <div class="pd-nas-arabic">وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ</div>
+              <div class="pd-nas-trans">"Jika kalian bersyukur, sungguh Aku akan menambah nikmat kalian."</div>
+              <div class="pd-nas-source">— QS. Ibrahim: 7</div>
+            </div>
+            <div class="pd-nas-block" style="margin-top:10px;text-align:center">
+              <span style="font-size:14px">✦</span> Tepat waktu &nbsp;·&nbsp; Jujur dengan progress &nbsp;·&nbsp; Konsisten &nbsp;·&nbsp; Selipkan doa <span style="font-size:14px">✦</span>
+            </div>
+            <div class="pd-nas-divider"></div>
+            <div class="pd-nas-verse">
+              <div class="pd-nas-arabic" style="font-size:16px">اللَّهُمَّ اجْعَلْنَا مِنْ أَهْلِ الْقُرْآنِ الَّذِيْنَ هُمْ أَهْلُكَ وَخَاصَّتُكَ</div>
+              <div class="pd-nas-trans">"Ya Allah, jadikanlah kami termasuk Ahlul Qur'an, yang mereka adalah keluarga-Mu dan orang-orang istimewa-Mu."</div>
+            </div>
+            <div class="pd-nas-closing">Selamat belajar, selamat berjuang, nikmati prosesnya! 🌿</div>
+          </div>
+          <button class="pd-nas-toggle" onclick="pdToggleNasihat()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="pdNasChevron"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="pdNasLabel">Sembunyikan</span>
+          </button>
+        </div>
+
+        <!-- 1. Login -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-b">🔐</div><div style="flex:1"><div class="pd-acc-title">Login & Pertama Kali Masuk</div><div class="pd-acc-sub">Cara masuk dengan NIS dan ganti password</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <div class="pd-steps">
+            <div class="pd-step"><div class="pd-step-n">1</div><div><div class="pd-step-t">Pilih tab Murid</div><div class="pd-step-d">Di halaman login, ketuk tab <strong>Murid</strong> di bagian atas</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">2</div><div><div class="pd-step-t">Masukkan NIS</div><div class="pd-step-d">Kode unikmu. Contoh: <code style="background:var(--bg-2,#f1f5f9);padding:1px 5px;border-radius:4px;font-size:11px">RTL2418000001</code></div></div></div>
+            <div class="pd-step"><div class="pd-step-n">3</div><div><div class="pd-step-t">Masukkan Password</div><div class="pd-step-d">Lupa password? → ketuk <strong>Lupa Password?</strong> → isi nama + NIS → kirim via WhatsApp</div></div></div>
+          </div>
+          <div class="pd-hr"></div>
+          <span class="pd-lbl">Ganti Password</span>
+          <div class="pd-step-d">Sidebar (☰) → <strong>Ganti Password</strong> → isi password lama → baru (min. 6 karakter) → Simpan.</div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Password minimal 6 karakter!</strong>Password kurang dari 6 karakter akan otomatis ditolak.</div></div>
+          <div class="pd-tip"><div class="pd-tip-i">💡</div><div><strong>Install ke Home Screen</strong>Android: menu ⋮ → "Install App". iPhone (Safari): Bagikan → "Tambahkan ke Layar Utama".</div></div>
+        </div></div>
+
+        <!-- 2. Beranda -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-t">🏠</div><div style="flex:1"><div class="pd-acc-title">Beranda & Progress</div><div class="pd-acc-sub">Kartu progress, statistik, dan grafik kehadiran</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Progress 40 sesi = KBM Reguler saja!</strong>At-Tibyan, Micro Teaching, dan sesi jenis lain <em>tidak dihitung</em>. Hanya KBM Reguler yang menentukan kemajuan levelmu.</div></div>
+          <span class="pd-lbl">Grafik Warna Kehadiran</span>
+          <div class="pd-legend">
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#10b981"></div>≥ 80% (Baik)</div>
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#f59e0b"></div>50–79% (Cukup)</div>
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#ef4444"></div>< 50% (Perlu ditingkatkan)</div>
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#8b5cf6"></div>Porsi terlambat</div>
+          </div>
+          <div class="pd-tip"><div class="pd-tip-i">💡</div><div>Ketuk batang grafik untuk melihat detail: jumlah hadir, terlambat, alpa, dan total sesi bulan itu.</div></div>
+        </div></div>
+
+        <!-- 3. At-Tibyan -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-gold">⭐</div><div style="flex:1"><div class="pd-acc-title">Kajian At-Tibyan</div><div class="pd-acc-sub">Materi kajian mingguan dan riwayat kehadiranmu</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <div class="pd-info"><div class="pd-info-i">📌</div><div>At-Tibyan adalah kajian khusus mingguan untuk <strong>seluruh murid Rattililqur'an</strong>. Buka dari kartu emas di Beranda atau Sidebar → At-Tibyan.</div></div>
+          <span class="pd-lbl">Tab Kajian</span>
+          <div class="pd-step-d" style="margin-bottom:6px">Kajian terbaru otomatis di-pin di atas. Filter per pertemuan dan cari keyword dari semua materi.</div>
+          <div class="pd-qr"><div class="pd-qr-i"><div class="pd-qr-l">Salin</div><div class="pd-qr-v">Copy ke clipboard (WA, Notes)</div></div><div class="pd-qr-i"><div class="pd-qr-l">Bagikan</div><div class="pd-qr-v">Buka menu berbagi HP</div></div></div>
+          <span class="pd-lbl">Tab Kehadiranku</span>
+          <div class="pd-legend">
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#10b981"></div>≥ 80%</div>
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#f59e0b"></div>60–79%</div>
+            <div class="pd-leg"><div class="pd-leg-dot" style="background:#ef4444"></div>< 60%</div>
+          </div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Kehadiran At-Tibyan masuk raport!</strong>Jika admin mengkonfigurasi komponen "at-tibyan", % kehadiranmu mempengaruhi nilai akhir semester.</div></div>
+        </div></div>
+
+        <!-- 4. Raport -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-g">📄</div><div style="flex:1"><div class="pd-acc-title">Raport</div><div class="pd-acc-sub">Nilai akhir dan cara unduh PDF raport</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <div class="pd-steps">
+            <div class="pd-step"><div class="pd-step-n">1</div><div><div class="pd-step-t">Sidebar → Raport</div><div class="pd-step-d">Pilih periode semester yang ingin dilihat</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">2</div><div><div class="pd-step-t">Ketuk Preview</div><div class="pd-step-d">Pratinjau raport format A4</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">3</div><div><div class="pd-step-t">Unduh PDF</div><div class="pd-step-d">Tersimpan ke galeri / folder Downloads</div></div></div>
+          </div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Raport hanya muncul setelah guru publish!</strong>Jika belum tampil, berarti guru halaqahmu belum mempublikasikannya. Hubungi guru.</div></div>
+          <div class="pd-hr"></div>
+          <span class="pd-lbl">Predikat</span>
+          <div class="pd-qr"><div class="pd-qr-i"><div class="pd-qr-l">Mumtaz</div><div class="pd-qr-v">≥ 90</div></div><div class="pd-qr-i"><div class="pd-qr-l">Jayyid Jiddan</div><div class="pd-qr-v">≥ 80</div></div><div class="pd-qr-i"><div class="pd-qr-l">Jayyid</div><div class="pd-qr-v">≥ 70</div></div><div class="pd-qr-i"><div class="pd-qr-l">Maqbul</div><div class="pd-qr-v">< 70</div></div></div>
+        </div></div>
+
+        <!-- 5. SPP -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-g">💳</div><div style="flex:1"><div class="pd-acc-title">SPP & Pembayaran</div><div class="pd-acc-sub">Cara konfirmasi pembayaran SPP dan infaq</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <span class="pd-lbl">Rekening Tujuan Transfer</span>
+          <div class="pd-bank"><div style="font-size:18px">🏦</div><div><div style="font-size:11.5px;font-weight:700;color:#059669">BSI</div><div class="pd-bank-num">9513 2229 90</div><div class="pd-bank-name">a.n. Annisa Rizkya Rahmawati</div></div></div>
+          <div class="pd-bank"><div style="font-size:18px">🏦</div><div><div style="font-size:11.5px;font-weight:700;color:#0284c7">BCA</div><div class="pd-bank-num">1200 7180 34</div><div class="pd-bank-name">a.n. Umar Abdul Aziz</div></div></div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Selalu sertakan bukti transfer!</strong>Upload foto bukti saat konfirmasi. Tanpa bukti tidak bisa diverifikasi admin.</div></div>
+          <div class="pd-hr"></div>
+          <span class="pd-lbl">Langkah Konfirmasi</span>
+          <div class="pd-steps">
+            <div class="pd-step"><div class="pd-step-n">1</div><div><div class="pd-step-t">Transfer & screenshot bukti</div><div class="pd-step-d">Transfer ke BSI atau BCA, lalu screenshot buktinya</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">2</div><div><div class="pd-step-t">Buka menu Konfirmasi SPP</div><div class="pd-step-d">Beranda → kartu Konfirmasi SPP, atau Sidebar → SPP</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">3</div><div><div class="pd-step-t">Pilih jenis, bulan & metode</div><div class="pd-step-d">SPP Pribadi atau Infaq · Pilih bulan (bisa lebih dari satu) · Pilih TF BSI / TF BCA / Cash</div></div></div>
+            <div class="pd-step"><div class="pd-step-n">4</div><div><div class="pd-step-t">Upload bukti & kirim</div><div class="pd-step-d">Lampirkan foto bukti transfer → <strong>Kirim Konfirmasi</strong></div></div></div>
+          </div>
+          <span class="pd-lbl">Status SPP</span>
+          <div class="pd-qr"><div class="pd-qr-i"><div class="pd-qr-l" style="color:#059669">Hijau ✅</div><div class="pd-qr-v" style="font-size:11.5px">Sudah lunas/terverifikasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:#dc2626">Merah ❌</div><div class="pd-qr-v" style="font-size:11.5px">Belum ada konfirmasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:#b45309">Kuning ⏳</div><div class="pd-qr-v" style="font-size:11.5px">Menunggu verifikasi admin</div></div></div>
+          <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Konfirmasi ≠ Lunas Otomatis!</strong>Status lunas baru muncul setelah admin memverifikasi. Proses verifikasi biasanya 1×24 jam.</div></div>
+          <div class="pd-spp-note">
+            <p>Kami tidak ingin SPP menjadi alasan untuk Anda tidak belajar.<br>Jika ada kendala <strong>teknis maupun finansial</strong>, jangan ragu berkomunikasi dengan kami.<br>Insyaa Allah kita carikan solusinya bersama.</p>
+            <em>Semoga Allah terima amal ibadah kita semua. 🤲</em>
+          </div>
+        </div></div>
+
+        <!-- 6. Materi Level -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-p">📚</div><div style="flex:1"><div class="pd-acc-title">Materi Level</div><div class="pd-acc-sub">Kurikulum dan target capaian per level</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <div class="pd-step-d">Tab Materi (ikon buku, paling kanan) menampilkan kurikulum per level. Pilih levelmu dengan tombol filter di atas, ketuk judul kartu untuk membuka isinya.</div>
+          <div class="pd-hr"></div>
+          <table class="pd-tbl"><thead><tr><th>Kategori</th><th>Isi</th></tr></thead><tbody>
+            <tr><td><span class="pd-badge pd-bg-b">Deskripsi</span></td><td>Gambaran umum materi di level ini</td></tr>
+            <tr><td><span class="pd-badge pd-bg-g">Target</span></td><td>Capaian yang harus diraih</td></tr>
+            <tr><td><span class="pd-badge" style="background:#ede9fe;color:#6b21a8">Materi</span></td><td>Topik-topik yang dipelajari</td></tr>
+            <tr><td><span class="pd-badge pd-bg-a">Tips</span></td><td>Saran dan tips latihan praktis</td></tr>
+            <tr><td><span class="pd-badge" style="background:#f0fdfa;color:#0d9488">Doa</span></td><td>Doa terkait belajar Al-Qur'an</td></tr>
+          </tbody></table>
+        </div></div>
+
+        <!-- 7. Tips -->
+        <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-t">💡</div><div style="flex:1"><div class="pd-acc-title">Tips & Pintasan</div><div class="pd-acc-sub">Cara cepat menggunakan portal</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+        <div class="pd-acc-body"><div class="pd-sep"></div>
+          <table class="pd-tbl"><thead><tr><th>Pintasan</th><th>Cara</th></tr></thead><tbody>
+            <tr><td>Pindah tab</td><td>Geser layar kiri-kanan (Beranda, Riwayat, PR, Materi)</td></tr>
+            <tr><td>Mode Gelap</td><td>Ketuk ikon 🌙/☀️ di pojok kanan atas</td></tr>
+            <tr><td>Refresh data</td><td>Tombol ↻ di tiap halaman</td></tr>
+            <tr><td>Error / tidak muat</td><td><strong>Cmd+Shift+R</strong> (Mac) atau <strong>Ctrl+Shift+R</strong> (Windows)</td></tr>
+          </tbody></table>
+        </div></div>
+
+        <!-- 8. Ketua (kondisional) -->
+        <div class="pd-acc" id="pdKetuaSection" style="border:2px solid #f59e0b;display:none">
+          <button class="pd-acc-head" onclick="pdToggle(this)" style="background:rgba(245,158,11,.04)">
+            <div class="pd-acc-ico pd-ico-a">👑</div>
+            <div style="flex:1"><div class="pd-acc-title">Panduan Ketua Kelas</div><div class="pd-acc-sub">Reminder, rekap, observasi, dan pantau anggota</div></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;border:1px solid #fde68a;white-space:nowrap">Khusus Ketua</span>
+              <div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            </div>
+          </button>
+          <div class="pd-acc-body"><div class="pd-sep"></div>
+            <span class="pd-lbl">A. Sistem Pengingat</span>
+            <table class="pd-tbl"><thead><tr><th>Waktu</th><th>Isi</th></tr></thead><tbody>
+              <tr><td><strong>H-1</strong> (maks. 21.00)</td><td>Pengingat jadwal kelas besok</td></tr>
+              <tr><td><strong>Hari-H</strong> (1 jam sebelum)</td><td>Kelas segera dimulai</td></tr>
+              <tr><td><strong>H+1</strong></td><td>Pesan motivasi latihan mandiri</td></tr>
+            </tbody></table>
+            <div class="pd-hr"></div>
+            <span class="pd-lbl">B. Format Rekap (Maks. 2 Jam Setelah Kelas)</span>
+            <div style="background:var(--bg-2,#1e293b);border-radius:10px;padding:12px;font-size:11.5px;color:var(--text-3,#94a3b8);line-height:1.8;font-family:monospace;margin:8px 0">
+              Hari/Tanggal : [...]<br>Pertemuan Ke : [...]<br>1. Capaian Materi : [...]<br>2. Catatan Ustadz : [...]<br>3. Tugas Latihan  : [...]
+            </div>
+            <div class="pd-hr"></div>
+            <span class="pd-lbl">C. Observasi KBM</span>
+            <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Isi segera setelah sesi!</strong>Window terkunci otomatis saat guru buka sesi berikutnya. Setelah dikirim tidak bisa diedit.</div></div>
+            <table class="pd-tbl"><thead><tr><th>Poin</th><th>Pilihan</th></tr></thead><tbody>
+              <tr><td>Kondisi kelas</td><td>Kondusif / Kurang / Tidak Kondusif</td></tr>
+              <tr><td>Ada latihan mandiri?</td><td>Ya / Tidak</td></tr>
+              <tr><td>Ketepatan waktu guru</td><td>Tepat / Terlambat / Lebih Awal</td></tr>
+              <tr><td>Kondisi kamera murid</td><td>Terbuka / Campuran / Tertutup</td></tr>
+            </tbody></table>
+            <div class="pd-hr"></div>
+            <span class="pd-lbl">D. Pantau Anggota</span>
+            <div class="pd-danger"><div class="pd-danger-i">🚫</div><div><strong>Ketua tidak bisa melihat nilai & catatan pribadi!</strong>Hanya bisa melihat status keaktifan (Kritis/Peringatan/Normal) dan % kehadiran.</div></div>
+          </div>
+        </div>
+
+      </div><!-- /pd-wrap -->
+    </div><!-- /page-panduan -->
+
     <!-- ════ GANTI PASSWORD ════ -->
     <div class="page" id="page-password">
       <div class="page-header"><div class="page-header-ico">🔐</div><div><div class="page-title">Ganti Password</div><div class="page-sub">Ubah password akun kamu secara mandiri.</div></div></div>
@@ -2834,6 +3110,10 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
         </div>
         <span style="flex:1">Install Aplikasi</span>
         <span style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 8px;line-height:1.5">PWA</span>
+      </button>
+      <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('panduan')" data-p="panduan">
+        <div class="sidebar-item-ico">📖</div>
+        Panduan
       </button>
       <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('password')">
         <div class="sidebar-item-ico">
@@ -3791,6 +4071,7 @@ function goPage(name, swipeDir) {
     if (!_ketuaTabLoaded['pantau']) loadKetuaPage();
   }
   else if (name === 'password') { /* static page, no load needed */ }
+  else if (name === 'panduan') { pdInitKetua(); }
 }
 
 // ══════════════════════════════════════════
@@ -6762,6 +7043,27 @@ function initThemeToggle() {
   });
 }
 initThemeToggle();
+
+// ── Panduan functions ──────────────────────────
+function pdToggle(btn) {
+  var body = btn.nextElementSibling;
+  var open = btn.classList.toggle('open');
+  body.classList.toggle('open', open);
+}
+function pdToggleNasihat() {
+  var body = document.getElementById('pdNasihatBody');
+  var label = document.getElementById('pdNasLabel');
+  var chev  = document.getElementById('pdNasChevron');
+  var hide  = body.style.display !== 'none';
+  body.style.display = hide ? 'none' : 'block';
+  label.textContent  = hide ? 'Tampilkan Nasihat' : 'Sembunyikan';
+  chev.style.transform = hide ? 'rotate(180deg)' : '';
+}
+function pdInitKetua() {
+  var user = window.HQ && window.HQ.getCurrentUser && window.HQ.getCurrentUser();
+  var sec = document.getElementById('pdKetuaSection');
+  if (sec && user && user.role === 'ketua') sec.style.display = 'block';
+}
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
 
