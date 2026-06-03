@@ -1259,80 +1259,116 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
       <!-- ══ PUSH NOTIFIKASI ══ -->
       <div class="page" id="page-push">
         <div class="section-title">Push Notifikasi</div>
-        <div class="section-sub">Kelola, konfigurasi, dan test push notifikasi ke murid & guru.</div>
+        <div class="section-sub">Kelola, konfigurasi, dan kirim push notifikasi ke murid & guru.</div>
 
-        <!-- Stats -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px" id="pushStatsGrid">
-          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Total Device</div><div style="font-size:28px;font-weight:900;color:var(--blue)" id="pushStatTotal">–</div></div>
-          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Murid</div><div style="font-size:28px;font-weight:900;color:var(--green)" id="pushStatMurid">–</div></div>
-          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Guru</div><div style="font-size:28px;font-weight:900;color:var(--blue)" id="pushStatGuru">–</div></div>
-          <div class="card" style="padding:14px;text-align:center"><div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Admin</div><div style="font-size:28px;font-weight:900;color:var(--amber)" id="pushStatAdmin">–</div></div>
+        <!-- Stats Row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+          <div class="card" style="padding:16px;text-align:center;border-top:3px solid var(--blue)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Total Device</div>
+            <div style="font-size:32px;font-weight:900;color:var(--blue);line-height:1" id="pushStatTotal">–</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px">terdaftar</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center;border-top:3px solid var(--green)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Murid</div>
+            <div style="font-size:32px;font-weight:900;color:var(--green);line-height:1" id="pushStatMurid">–</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px">device</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center;border-top:3px solid #0ea5e9">
+            <div style="font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Guru</div>
+            <div style="font-size:32px;font-weight:900;color:#0ea5e9;line-height:1" id="pushStatGuru">–</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px">device</div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center;border-top:3px solid var(--amber)">
+            <div style="font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Admin</div>
+            <div style="font-size:32px;font-weight:900;color:var(--amber);line-height:1" id="pushStatAdmin">–</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px">device</div>
+          </div>
         </div>
 
-        <!-- Test Kirim -->
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-head"><div class="card-title">🧪 Test Kirim Notifikasi</div></div>
-          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div class="fg" style="margin:0"><label>Target</label>
-                <select class="fc" id="pushTestTarget">
-                  <option value="role_murid">Semua Murid</option>
-                  <option value="role_guru">Semua Guru</option>
-                  <option value="role_admin">Semua Admin</option>
-                  <option value="all">Semua User</option>
-                  <option value="user_id">User ID Tertentu</option>
+        <!-- 2-col layout -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+          <!-- Konfigurasi -->
+          <div class="card" style="grid-column:1/3">
+            <div class="card-head" style="border-bottom:1px solid var(--border);padding-bottom:14px">
+              <div>
+                <div class="card-title">⚙️ Konfigurasi Notifikasi</div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:2px">Aktifkan atau nonaktifkan setiap jenis notifikasi secara global</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline btn-sm" onclick="setAllPushConfig(false)">⛔ Matikan Semua</button>
+                <button class="btn btn-green btn-sm" onclick="setAllPushConfig(true)">✅ Aktifkan Semua</button>
+              </div>
+            </div>
+            <div class="card-body" id="pushConfigList" style="padding-top:8px">
+              <div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div>
+            </div>
+          </div>
+
+          <!-- Test Kirim -->
+          <div class="card">
+            <div class="card-head"><div class="card-title">📤 Kirim Notifikasi</div></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div class="fg" style="margin:0"><label>Target Penerima</label>
+                <select class="fc" id="pushTestTarget" onchange="var s=this.value==='user_id';document.getElementById('pushTestUserIdWrap').style.display=s?'':'none'">
+                  <option value="role_murid">👩‍🎓 Semua Murid</option>
+                  <option value="role_guru">👩‍🏫 Semua Guru</option>
+                  <option value="role_admin">🛡 Semua Admin</option>
+                  <option value="all">🌍 Semua User</option>
+                  <option value="user_id">🔍 User ID Tertentu</option>
                 </select>
               </div>
-              <div class="fg" style="margin:0" id="pushTestUserIdWrap" style="display:none"><label>User ID</label><input type="text" class="fc" id="pushTestUserId" placeholder="id_user..."></div>
+              <div class="fg" style="margin:0;display:none" id="pushTestUserIdWrap">
+                <label>User ID</label>
+                <input type="text" class="fc" id="pushTestUserId" placeholder="Contoh: RTL2418000001">
+              </div>
+              <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" placeholder="Judul notifikasi..." value="📢 Pengumuman dari Admin"></div>
+              <div class="fg" style="margin:0"><label>Pesan</label><textarea class="fc" id="pushTestBody" rows="3" placeholder="Isi pesan notifikasi...">Assalamualaikum, ada pengumuman penting dari Rattililqur'an.</textarea></div>
+              <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush" style="margin-top:4px">📤 Kirim Sekarang</button>
+              <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px 14px;border-radius:10px;font-weight:600"></div>
             </div>
-            <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" placeholder="Judul notifikasi..." value="🔔 Test dari Admin"></div>
-            <div class="fg" style="margin:0"><label>Pesan</label><input type="text" class="fc" id="pushTestBody" placeholder="Isi pesan..." value="Ini adalah test push notifikasi Rattililqur'an."></div>
-            <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush">📤 Kirim Test</button>
-            <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px;border-radius:8px;background:#f0fdf4;color:#065f46;font-weight:600"></div>
           </div>
-        </div>
 
-        <!-- Konfigurasi -->
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-head">
-            <div class="card-title">⚙️ Konfigurasi Notifikasi</div>
-            <div style="font-size:12px;color:var(--text-3)">Toggle untuk aktifkan/nonaktifkan tiap jenis</div>
-          </div>
-          <div class="card-body" id="pushConfigList">
-            <div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div>
-          </div>
-        </div>
+          <!-- Test Trigger + Diagnostik -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card" style="flex:1">
+              <div class="card-head"><div class="card-title">⏱ Simulasi Cron</div></div>
+              <div class="card-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('kbm_h1')" style="justify-content:flex-start;gap:6px"><span>⏰</span>H-1 KBM</button>
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_h1')" style="justify-content:flex-start;gap:6px"><span>📖</span>H-1 At-Tibyan</button>
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_30min')" style="justify-content:flex-start;gap:6px"><span>⏱</span>30min At-Tibyan</button>
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('pr_deadline')" style="justify-content:flex-start;gap:6px"><span>✏️</span>Deadline PR</button>
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('guru_kbm_today')" style="justify-content:flex-start;gap:6px"><span>📚</span>KBM Guru</button>
+                  <button class="btn btn-outline btn-sm" onclick="testTrigger('admin_digest')" style="justify-content:flex-start;gap:6px"><span>📊</span>Rekap Admin</button>
+                </div>
+                <div id="pushTriggerResult" style="display:none;font-size:12px;padding:10px;border-radius:8px;margin-top:10px;font-weight:600"></div>
+              </div>
+            </div>
 
-        <!-- Diagnostik -->
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-head"><div class="card-title">🔍 Diagnostik Sistem</div><div style="font-size:12px;color:var(--text-3)">Cek status SW, push manager, dan subscription</div></div>
-          <div class="card-body">
-            <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="margin-bottom:10px">🔍 Jalankan Diagnostik</button>
-            <div id="pushDiagResult" style="font-family:monospace;font-size:11.5px;line-height:1.8;background:var(--bg-2,#f8fafc);border-radius:8px;padding:12px;display:none;white-space:pre-wrap;word-break:break-all"></div>
+            <div class="card">
+              <div class="card-head"><div class="card-title">🔍 Diagnostik</div></div>
+              <div class="card-body">
+                <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="width:100%;margin-bottom:8px">🔍 Jalankan Diagnostik</button>
+                <div id="pushDiagResult" style="font-family:monospace;font-size:11px;line-height:1.8;background:var(--bg-2,#f8fafc);border-radius:8px;padding:10px;display:none;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto"></div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Test Trigger Terjadwal -->
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-head"><div class="card-title">⏱ Test Trigger Cron</div><div style="font-size:12px;color:var(--text-3)">Simulasi reminder terjadwal</div></div>
-          <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px">
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('kbm_h1')">⏰ H-1 KBM</button>
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_h1')">📖 H-1 At-Tibyan</button>
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_30min')">⏱ 30min At-Tibyan</button>
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('pr_deadline')">✏️ Deadline PR</button>
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('guru_kbm_today')">📚 KBM Guru</button>
-            <button class="btn btn-outline btn-sm" onclick="testTrigger('admin_digest')">📊 Rekap Admin</button>
-          </div>
-          <div id="pushTriggerResult" style="display:none;font-size:12px;padding:10px;border-radius:8px;margin-top:8px;background:#f0fdf4;color:#065f46;font-weight:600"></div>
         </div>
 
         <!-- Log -->
         <div class="card">
-          <div class="card-head"><div class="card-title">📋 Log Terakhir</div></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th>Terkirim</th><th>Gagal</th></tr></thead>
-            <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
-          </table></div>
+          <div class="card-head">
+            <div class="card-title">📋 Log Pengiriman</div>
+            <div style="font-size:12px;color:var(--text-3)">10 pengiriman terakhir</div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th style="text-align:center">Terkirim</th><th style="text-align:center">Gagal</th></tr></thead>
+              <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -3434,28 +3470,87 @@ async function loadPushAdmin() {
   } catch(e) { console.warn('loadPushConfig:', e); }
 }
 
+var PUSH_CONFIG_META = {
+  kbm_h1          : { group:'Terjadwal', waktu:'Setiap hari 20:00 WIB', target:'Murid + Guru' },
+  attibyan_h1      : { group:'Terjadwal', waktu:'Sabtu 19:30 WIB',       target:'Semua Murid' },
+  attibyan_30min   : { group:'Terjadwal', waktu:'Ahad 19:00 WIB',         target:'Semua Murid' },
+  pr_deadline      : { group:'Terjadwal', waktu:'Setiap hari 08:00 WIB', target:'Murid' },
+  guru_kbm_today   : { group:'Terjadwal', waktu:'Setiap hari 08:00 WIB', target:'Guru' },
+  admin_digest     : { group:'Terjadwal', waktu:'Setiap hari 21:00 WIB', target:'Admin' },
+  pengumuman       : { group:'Real-time', waktu:'Saat pengumuman dikirim', target:'Murid + Guru' },
+  raport_published : { group:'Real-time', waktu:'Saat raport dipublish',  target:'Murid' },
+  spp_validasi     : { group:'Real-time', waktu:'Saat SPP divalidasi',    target:'Murid' },
+  observasi_terbuka: { group:'Real-time', waktu:'Saat sesi KBM selesai',  target:'Ketua Kelas' },
+};
+
 function renderPushConfig(configs) {
   var el = document.getElementById('pushConfigList');
-  if (!configs.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px">Tidak ada konfigurasi.</div>'; return; }
-  el.innerHTML = configs.map(function(c) {
-    var id = 'pushToggle_' + c.key;
-    return '<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">'
-      + '<div style="font-size:18px;width:24px;text-align:center">' + (c.icon||'🔔') + '</div>'
-      + '<div style="flex:1"><div style="font-size:13px;font-weight:700">' + esc(c.label) + '</div>'
-      + '<div style="font-size:11.5px;color:var(--text-3)">' + esc(c.description||'') + '</div></div>'
-      + '<label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">'
-      + '<input type="checkbox" id="' + id + '" ' + (c.enabled?'checked':'') + ' onchange="togglePushConfig(\''+c.key+'\',this.checked)" style="opacity:0;width:0;height:0">'
-      + '<span style="position:absolute;cursor:pointer;inset:0;background:' + (c.enabled?'var(--green)':'#cbd5e1') + ';border-radius:24px;transition:.2s">'
-      + '<span style="position:absolute;content:\'\';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;transform:' + (c.enabled?'translateX(20px)':'translateX(0)') + '"></span></span></label>'
+  if (!configs.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:12px 0">Tidak ada konfigurasi.</div>'; return; }
+
+  var groups = { 'Terjadwal': [], 'Real-time': [] };
+  configs.forEach(function(c) {
+    var meta = PUSH_CONFIG_META[c.key] || { group:'Lainnya', waktu:'-', target:'-' };
+    if (!groups[meta.group]) groups[meta.group] = [];
+    groups[meta.group].push(Object.assign({}, c, meta));
+  });
+
+  var GROUP_ICON = { 'Terjadwal':'⏰', 'Real-time':'⚡' };
+  var GROUP_COLOR = { 'Terjadwal':'var(--blue)', 'Real-time':'var(--green)' };
+
+  el.innerHTML = Object.keys(groups).map(function(gName) {
+    var items = groups[gName];
+    if (!items.length) return '';
+    return '<div style="margin-bottom:8px">'
+      + '<div style="font-size:10px;font-weight:800;color:'+GROUP_COLOR[gName]+';text-transform:uppercase;letter-spacing:.1em;padding:10px 0 6px;display:flex;align-items:center;gap:6px">'
+      + '<span>'+GROUP_ICON[gName]+'</span><span>'+gName+'</span></div>'
+      + items.map(function(c) {
+          var isOn = c.enabled;
+          return '<div class="push-cfg-row" data-key="'+c.key+'" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:4px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);transition:background .15s">'
+            + '<div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">' + (c.icon||'🔔') + '</div>'
+            + '<div style="flex:1;min-width:0">'
+            +   '<div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(c.label) + '</div>'
+            +   '<div style="font-size:11px;color:var(--text-3);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap">'
+            +     '<span>🕐 ' + esc(c.waktu) + '</span>'
+            +     '<span>👤 ' + esc(c.target) + '</span>'
+            +   '</div>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+            +   '<span style="font-size:11px;font-weight:700;color:'+(isOn?'var(--green)':'var(--text-3)')+'">' + (isOn?'Aktif':'Nonaktif') + '</span>'
+            +   '<button onclick="togglePushConfig(\''+c.key+'\','+(!isOn)+')" title="'+(isOn?'Nonaktifkan':'Aktifkan')+'" '
+            +     'style="width:44px;height:24px;border-radius:24px;border:none;cursor:pointer;position:relative;transition:background .2s;background:'+(isOn?'var(--green)':'#cbd5e1')+'">'
+            +     '<span style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;transition:left .2s;left:'+(isOn?'23px':'3px')+'"></span>'
+            +   '</button>'
+            + '</div>'
+            + '</div>';
+        }).join('')
       + '</div>';
   }).join('');
 }
 
 async function togglePushConfig(key, enabled) {
+  // Update visual langsung sebelum API call
+  var row = document.querySelector('.push-cfg-row[data-key="'+key+'"]');
+  if (row) {
+    var btn   = row.querySelector('button');
+    var label = btn ? btn.previousElementSibling : null;
+    var dot   = btn ? btn.querySelector('span') : null;
+    if (btn)   btn.style.background = enabled ? 'var(--green)' : '#cbd5e1';
+    if (dot)   dot.style.left       = enabled ? '23px' : '3px';
+    if (label) { label.textContent = enabled ? 'Aktif' : 'Nonaktif'; label.style.color = enabled ? 'var(--green)' : 'var(--text-3)'; }
+  }
   try {
     await window.HQ.AdminAPI.updatePushConfig(key, enabled);
-    toast((enabled?'✅ Aktif':'⛔ Nonaktif') + ': ' + key, 'ok');
-  } catch(e) { toast(e.message, 'err'); }
+    toast((enabled ? '✅ Diaktifkan' : '⛔ Dinonaktifkan') + ': ' + key.replace(/_/g,' '), 'ok');
+  } catch(e) {
+    // Revert visual jika gagal
+    var btn2  = row && row.querySelector('button');
+    var dot2  = btn2 && btn2.querySelector('span');
+    var lbl2  = btn2 && btn2.previousElementSibling;
+    if (btn2)  btn2.style.background = !enabled ? 'var(--green)' : '#cbd5e1';
+    if (dot2)  dot2.style.left       = !enabled ? '23px' : '3px';
+    if (lbl2)  { lbl2.textContent = !enabled ? 'Aktif' : 'Nonaktif'; }
+    toast(e.message, 'err');
+  }
 }
 
 function renderPushLog(logs) {
@@ -3479,10 +3574,19 @@ document.addEventListener('change', function(e) {
   }
 });
 
+async function setAllPushConfig(enabled) {
+  var rows = document.querySelectorAll('.push-cfg-row');
+  rows.forEach(function(row) {
+    var key = row.dataset.key;
+    if (key) togglePushConfig(key, enabled);
+  });
+}
+
 async function kirimTestPush() {
   var target = document.getElementById('pushTestTarget').value;
   var title  = document.getElementById('pushTestTitle').value.trim();
-  var body   = document.getElementById('pushTestBody').value.trim();
+  var bodyEl = document.getElementById('pushTestBody');
+  var body   = (bodyEl.tagName === 'TEXTAREA' ? bodyEl.value : bodyEl.value || '').trim();
   if (!title || !body) return toast('Isi judul dan pesan','err');
   var btn = document.getElementById('btnTestPush');
   btn.disabled = true; btn.textContent = 'Mengirim...';
@@ -3496,9 +3600,14 @@ async function kirimTestPush() {
     var r = await window.HQ.AdminAPI.testSendPush(opts);
     var res = document.getElementById('pushTestResult');
     res.style.display = '';
-    res.style.background = r.sent > 0 ? '#f0fdf4' : '#fff5f5';
-    res.style.color = r.sent > 0 ? '#065f46' : '#991b1b';
-    res.textContent = '✅ Terkirim: ' + (r.sent||0) + ' device · Gagal: ' + (r.failed||0) + ' · Total: ' + (r.total||0);
+    var ok = r.sent > 0;
+    res.style.background = ok ? '#f0fdf4' : (r.total===0 ? '#fffbeb' : '#fff5f5');
+    res.style.color = ok ? '#065f46' : (r.total===0 ? '#92400e' : '#991b1b');
+    res.style.border = '1px solid ' + (ok ? '#bbf7d0' : (r.total===0 ? '#fde68a' : '#fecaca'));
+    res.style.borderRadius = '10px';
+    res.textContent = ok
+      ? '✅ Berhasil dikirim ke ' + r.sent + ' device' + (r.failed ? ' · Gagal: '+r.failed : '')
+      : (r.total===0 ? '⚠️ Tidak ada device yang subscribe' : '❌ Gagal: ' + (r.failed||0) + ' dari ' + r.total);
   } catch(e) { toast(e.message,'err'); }
   finally { btn.disabled=false; btn.textContent='📤 Kirim Test'; }
 }
