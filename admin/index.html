@@ -701,6 +701,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 
       <div class="sb-sec">Konfigurasi</div>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
+      <button class="nav-btn" onclick="goPage('materi')" data-p="materi"><span class="ni">📖</span>Materi Kajian</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
@@ -1163,6 +1164,97 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
       </div>
 
+      <!-- ══ MATERI KAJIAN ══ -->
+      <div class="page" id="page-materi">
+        <div class="section-title">Materi Kajian</div>
+        <div class="section-sub">Kelola silabus At-Tibyan dan kurikulum per level. Data otomatis tampil di portal murid.</div>
+
+        <!-- Tab bar -->
+        <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--border);padding-bottom:0">
+          <button class="materi-tab-btn active" id="mTabAt" onclick="switchMateriTab('at',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue-d);border-bottom:2px solid var(--blue-d);margin-bottom:-2px">📋 At-Tibyan</button>
+          <button class="materi-tab-btn" id="mTabLevel" onclick="switchMateriTab('level',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-2px">📚 Materi Level</button>
+        </div>
+
+        <!-- Panel: At-Tibyan -->
+        <div id="mPanelAt">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">📋 Silabus At-Tibyan</div>
+              <button class="btn btn-primary btn-sm" onclick="bukaModalAt()">+ Tambah Pertemuan</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th style="width:60px">Ke-</th><th>Materi Pembahasan</th><th>Pemateri</th><th>Tanggal</th><th style="width:90px">Aksi</th></tr></thead>
+                <tbody id="atMateriTbl"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Materi Level -->
+        <div id="mPanelLevel" style="display:none">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">📚 Kurikulum per Level</div>
+              <button class="btn btn-primary btn-sm" onclick="bukaModalLevel()">+ Tambah Item</button>
+            </div>
+            <div style="padding:0 16px 4px">
+              <select class="fc" id="materiLevelFilter" onchange="renderMateriLevelAdmin()" style="max-width:220px;margin-bottom:12px">
+                <option value="">— Semua Level —</option>
+              </select>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Level</th><th>Kategori</th><th>Judul</th><th>Urutan</th><th style="width:90px">Aksi</th></tr></thead>
+                <tbody id="levelMateriTbl"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal At-Tibyan -->
+      <div class="overlay" id="modalAtOverlay" onclick="if(event.target===this)tutupModalAt()" style="display:none">
+        <div class="modal" style="max-width:540px" onclick="event.stopPropagation()">
+          <div class="modal-head" id="modalAtTitle">Tambah Pertemuan At-Tibyan</div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            <input type="hidden" id="atEditId">
+            <div class="fg"><label>Pertemuan ke-</label><input type="number" class="fc" id="atEditKe" min="1" max="99" placeholder="1"></div>
+            <div class="fg"><label>Tanggal</label><input type="text" class="fc" id="atEditTanggal" placeholder="5 Januari 2025"></div>
+            <div class="fg"><label>Pemateri / Ustadz</label><input type="text" class="fc" id="atEditPemateri" placeholder="Al-Ustadz ..."></div>
+            <div class="fg"><label>Materi Pembahasan</label><input type="text" class="fc" id="atEditMateri" placeholder="Topik kajian sesi ini"></div>
+            <div class="fg"><label>Nasihat Aplikatif</label><textarea class="fc" id="atEditNasihat" rows="4" placeholder="Nasihat & tips praktis untuk murid..."></textarea></div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-outline" onclick="tutupModalAt()">Batal</button>
+            <button class="btn btn-primary" onclick="simpanAtMateri()">💾 Simpan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Materi Level -->
+      <div class="overlay" id="modalLevelOverlay" onclick="if(event.target===this)tutupModalLevel()" style="display:none">
+        <div class="modal" style="max-width:540px" onclick="event.stopPropagation()">
+          <div class="modal-head" id="modalLevelTitle">Tambah Materi Level</div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            <input type="hidden" id="lvEditId">
+            <div class="fg"><label>Level</label><input type="text" class="fc" id="lvEditLevel" placeholder="Level 1"></div>
+            <div class="fg"><label>Kategori</label>
+              <select class="fc" id="lvEditKategori">
+                <option>Deskripsi</option><option>Target</option><option>Materi</option><option>Tips</option><option>Doa</option>
+              </select>
+            </div>
+            <div class="fg"><label>Judul</label><input type="text" class="fc" id="lvEditJudul" placeholder="Judul kartu materi"></div>
+            <div class="fg"><label>Isi / Konten</label><textarea class="fc" id="lvEditIsi" rows="5" placeholder="Isi penjelasan, tips, atau doa..."></textarea></div>
+            <div class="fg"><label>Urutan</label><input type="number" class="fc" id="lvEditUrutan" min="1" placeholder="1"></div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-outline" onclick="tutupModalLevel()">Batal</button>
+            <button class="btn btn-primary" onclick="simpanMateriLevel()">💾 Simpan</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ══ TEMPLATE KOREKSI ══ -->
       <div class="page" id="page-template">
         <div class="section-title">Template Koreksi Tahsin</div>
@@ -1563,7 +1655,8 @@ const PAGE_TITLES = {
   nilai:'Input Nilai Manual', raport:'Generate Raport',
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
-  level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data'
+  level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
+  materi:'Materi Kajian'
 };
 
 // ══════════════════════════════════════════
@@ -1664,6 +1757,7 @@ function goPage(name) {
     level    : loadLevel,
     template : loadTemplate,
     arsip    : loadArsipPage,
+    materi   : loadMateriAdmin,
   };
   loaders[name]?.();
 }
@@ -3225,6 +3319,192 @@ function pctBar(pct) {
 function fmtDate(d) { if(!d) return '–'; return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
 function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+
+// ══════════════════════════════════════════
+//  MATERI KAJIAN
+// ══════════════════════════════════════════
+var _atMateriData  = [];
+var _lvMateriData  = [];
+
+async function loadMateriAdmin() {
+  await Promise.all([ loadAtMateriAdmin(), loadLvMateriAdmin() ]);
+}
+
+function switchMateriTab(tab, btn) {
+  document.getElementById('mPanelAt').style.display    = tab === 'at'    ? 'block' : 'none';
+  document.getElementById('mPanelLevel').style.display = tab === 'level' ? 'block' : 'none';
+  document.querySelectorAll('.materi-tab-btn').forEach(function(b) {
+    var isActive = b === btn;
+    b.style.color       = isActive ? 'var(--blue-d)' : 'var(--text-3)';
+    b.style.borderColor = isActive ? 'var(--blue-d)' : 'transparent';
+    b.classList.toggle('active', isActive);
+  });
+}
+
+// ── At-Tibyan ─────────────────────────────────
+async function loadAtMateriAdmin() {
+  var tbody = document.getElementById('atMateriTbl');
+  try {
+    var r = await window.HQ.AdminAPI.getAtTibyanMateriAdmin();
+    _atMateriData = r.data || [];
+    if (!_atMateriData.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data. Tambah pertemuan pertama.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = _atMateriData.map(function(m) {
+      return '<tr>'
+        + '<td style="text-align:center;font-weight:800;color:var(--blue-d)">'+esc(m.pertemuan_ke)+'</td>'
+        + '<td><div style="font-weight:700">'+esc(m.materi_pembahasan)+'</div>'
+        + (m.nasihat_aplikatif ? '<div style="font-size:11.5px;color:var(--text-3);margin-top:2px;white-space:normal">'+esc(m.nasihat_aplikatif.substring(0,80))+(m.nasihat_aplikatif.length>80?'...':'')+'</div>' : '')+'</td>'
+        + '<td style="font-size:12.5px">'+esc(m.pemateri||'-')+'</td>'
+        + '<td style="font-size:12px;white-space:nowrap">'+esc(m.tanggal||'-')+'</td>'
+        + '<td><div style="display:flex;gap:6px">'
+        + '<button class="btn btn-outline btn-sm" onclick="editAtMateri('+m.id+')">✏️</button>'
+        + '<button class="btn btn-danger btn-sm" onclick="hapusAtMateri('+m.id+','+m.pertemuan_ke+')">🗑️</button>'
+        + '</div></td></tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(e.message)+'</td></tr>';
+  }
+}
+
+function bukaModalAt(data) {
+  document.getElementById('atEditId').value      = data ? data.id : '';
+  document.getElementById('atEditKe').value      = data ? data.pertemuan_ke : '';
+  document.getElementById('atEditTanggal').value = data ? (data.tanggal||'') : '';
+  document.getElementById('atEditPemateri').value= data ? (data.pemateri||'') : '';
+  document.getElementById('atEditMateri').value  = data ? (data.materi_pembahasan||'') : '';
+  document.getElementById('atEditNasihat').value = data ? (data.nasihat_aplikatif||'') : '';
+  document.getElementById('modalAtTitle').textContent = data ? 'Edit Pertemuan At-Tibyan ke-'+data.pertemuan_ke : 'Tambah Pertemuan At-Tibyan';
+  document.getElementById('modalAtOverlay').style.display = 'flex';
+}
+function tutupModalAt() { document.getElementById('modalAtOverlay').style.display = 'none'; }
+
+function editAtMateri(id) {
+  var m = _atMateriData.find(function(x){ return x.id === id; });
+  if (m) bukaModalAt(m);
+}
+
+async function hapusAtMateri(id, ke) {
+  if (!confirm('Hapus pertemuan ke-'+ke+'? Data tidak bisa dikembalikan.')) return;
+  try {
+    await window.HQ.AdminAPI.deleteAtTibyanMateri(id);
+    toast('Pertemuan ke-'+ke+' dihapus','ok');
+    loadAtMateriAdmin();
+  } catch(e) { toast(e.message,'err'); }
+}
+
+async function simpanAtMateri() {
+  var id     = document.getElementById('atEditId').value;
+  var ke     = parseInt(document.getElementById('atEditKe').value);
+  var materi = document.getElementById('atEditMateri').value.trim();
+  if (!ke || ke < 1) return toast('Pertemuan ke- wajib diisi','err');
+  if (!materi) return toast('Materi pembahasan wajib diisi','err');
+  var d = {
+    id: id ? parseInt(id) : undefined,
+    pertemuan_ke: ke,
+    tanggal: document.getElementById('atEditTanggal').value.trim(),
+    pemateri: document.getElementById('atEditPemateri').value.trim(),
+    materi_pembahasan: materi,
+    nasihat_aplikatif: document.getElementById('atEditNasihat').value.trim(),
+  };
+  try {
+    await window.HQ.AdminAPI.upsertAtTibyanMateri(d);
+    toast('Pertemuan ke-'+ke+' disimpan','ok');
+    tutupModalAt();
+    loadAtMateriAdmin();
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// ── Materi Level ──────────────────────────────
+async function loadLvMateriAdmin() {
+  var tbody = document.getElementById('levelMateriTbl');
+  var sel   = document.getElementById('materiLevelFilter');
+  try {
+    var r = await window.HQ.AdminAPI.getMateriLevelAdmin();
+    _lvMateriData = r.data || [];
+    // Populate level filter
+    var levels = [...new Set(_lvMateriData.map(function(x){ return x.level; }))].sort();
+    sel.innerHTML = '<option value="">— Semua Level —</option>'
+      + levels.map(function(lv){ return '<option>'+esc(lv)+'</option>'; }).join('');
+    renderMateriLevelAdmin();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(e.message)+'</td></tr>';
+  }
+}
+
+function renderMateriLevelAdmin() {
+  var tbody  = document.getElementById('levelMateriTbl');
+  var filter = document.getElementById('materiLevelFilter').value;
+  var data   = filter ? _lvMateriData.filter(function(x){ return x.level === filter; }) : _lvMateriData;
+  var KAT_COLOR = { Deskripsi:'#0284c7', Target:'#059669', Materi:'#7c3aed', Tips:'#b45309', Doa:'#0d9488' };
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada materi. Tambah item pertama.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(function(m) {
+    var col = KAT_COLOR[m.kategori] || 'var(--text-3)';
+    return '<tr>'
+      + '<td style="font-weight:700;white-space:nowrap">'+esc(m.level)+'</td>'
+      + '<td><span style="font-size:11px;font-weight:700;color:'+col+';background:'+col+'18;padding:2px 8px;border-radius:100px">'+esc(m.kategori)+'</span></td>'
+      + '<td><div style="font-weight:700">'+esc(m.judul)+'</div>'
+      + '<div style="font-size:11.5px;color:var(--text-3);margin-top:2px;white-space:normal">'+esc((m.isi||'').substring(0,70))+((m.isi||'').length>70?'...':'')+'</div></td>'
+      + '<td style="text-align:center">'+esc(m.urutan||'-')+'</td>'
+      + '<td><div style="display:flex;gap:6px">'
+      + '<button class="btn btn-outline btn-sm" onclick="editMateriLevel('+m.id+')">✏️</button>'
+      + '<button class="btn btn-danger btn-sm" onclick="hapusMateriLevel('+m.id+',\''+esc(m.judul)+'\')">🗑️</button>'
+      + '</div></td></tr>';
+  }).join('');
+}
+
+function bukaModalLevel(data) {
+  document.getElementById('lvEditId').value      = data ? data.id : '';
+  document.getElementById('lvEditLevel').value   = data ? (data.level||'') : '';
+  document.getElementById('lvEditKategori').value= data ? (data.kategori||'Deskripsi') : 'Deskripsi';
+  document.getElementById('lvEditJudul').value   = data ? (data.judul||'') : '';
+  document.getElementById('lvEditIsi').value     = data ? (data.isi||'') : '';
+  document.getElementById('lvEditUrutan').value  = data ? (data.urutan||'') : '';
+  document.getElementById('modalLevelTitle').textContent = data ? 'Edit Materi Level' : 'Tambah Materi Level';
+  document.getElementById('modalLevelOverlay').style.display = 'flex';
+}
+function tutupModalLevel() { document.getElementById('modalLevelOverlay').style.display = 'none'; }
+
+function editMateriLevel(id) {
+  var m = _lvMateriData.find(function(x){ return x.id === id; });
+  if (m) bukaModalLevel(m);
+}
+
+async function hapusMateriLevel(id, judul) {
+  if (!confirm('Hapus "'+judul+'"? Data tidak bisa dikembalikan.')) return;
+  try {
+    await window.HQ.AdminAPI.deleteMateriLevel(id);
+    toast('Item dihapus','ok');
+    loadLvMateriAdmin();
+  } catch(e) { toast(e.message,'err'); }
+}
+
+async function simpanMateriLevel() {
+  var id    = document.getElementById('lvEditId').value;
+  var level = document.getElementById('lvEditLevel').value.trim();
+  var judul = document.getElementById('lvEditJudul').value.trim();
+  var isi   = document.getElementById('lvEditIsi').value.trim();
+  if (!level) return toast('Level wajib diisi','err');
+  if (!judul) return toast('Judul wajib diisi','err');
+  var d = {
+    id: id ? parseInt(id) : undefined,
+    level: level,
+    kategori: document.getElementById('lvEditKategori').value,
+    judul: judul,
+    isi: isi,
+    urutan: parseInt(document.getElementById('lvEditUrutan').value)||0,
+  };
+  try {
+    await window.HQ.AdminAPI.upsertMateriLevel(d);
+    toast('Materi "'+judul+'" disimpan','ok');
+    tutupModalLevel();
+    loadLvMateriAdmin();
+  } catch(e) { toast(e.message,'err'); }
+}
 
 // ══════════════════════════════════════════
 //  MANAJEMEN LEVEL

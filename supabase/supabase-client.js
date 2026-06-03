@@ -588,6 +588,11 @@ var GuruAPI = {
     return { status: 'ok', data };
   },
 
+  getAtTibyanMateriForForm: async function() {
+    var {data} = await _sb.from('at_tibyan_materi').select('pertemuan_ke, materi_pembahasan, nasihat_aplikatif').order('pertemuan_ke');
+    return { status:'ok', data: (data||[]).map(function(r){ return { pertemuan_ke: Number(r.pertemuan_ke), materi_pembahasan: r.materi_pembahasan||'', nasihat_aplikatif: r.nasihat_aplikatif||'' }; }) };
+  },
+
   getAtTibyanSesi: async function() {
     var { data, error } = await _sb.from('at_tibyan_sesi')
       .select('*').eq('id_guru', _uid()).order('tanggal', { ascending: false }).limit(30);
@@ -1173,47 +1178,27 @@ var MuridAPI = {
   getProgressGrafik: async function() { return { status: 'ok', data: [] }; },
 
   getMateriLevel: async function() {
-    // Data materi per level — tambahkan entri sesuai level yang ada
-    var MATERI = {
-      'Mubtadi (Pemula)': [
-        { kategori: 'Deskripsi', judul: 'Tentang Level Mubtadi', isi: 'Level awal untuk peserta yang baru mengenal huruf hijaiyah dan dasar-dasar bacaan Al-Qur\'an.' },
-        { kategori: 'Target', judul: 'Target Capaian', isi: 'Mampu mengenali semua huruf hijaiyah, membaca dengan harakat dasar (fathah, kasrah, dhammah), dan memahami konsep mad asli.' },
-        { kategori: 'Materi', judul: 'Pengenalan Huruf Hijaiyah', isi: 'Belajar 29 huruf hijaiyah beserta makhraj (tempat keluarnya huruf) dan cara penulisannya.' },
-        { kategori: 'Materi', judul: 'Harakat & Tanda Baca', isi: 'Memahami fathah, kasrah, dhammah, tanwin, sukun, dan tasydid beserta cara membacanya.' },
-        { kategori: 'Tips', judul: 'Tips Belajar Pemula', isi: 'Latih setiap huruf minimal 10 kali. Gunakan mushaf bertanda warna (tajwid) untuk membantu visualisasi.' },
-      ],
-      'Mutawassit (Menengah)': [
-        { kategori: 'Deskripsi', judul: 'Tentang Level Mutawassit', isi: 'Level menengah untuk peserta yang sudah lancar membaca dan mulai mempelajari hukum-hukum tajwid.' },
-        { kategori: 'Target', judul: 'Target Capaian', isi: 'Memahami dan menerapkan hukum nun mati/tanwin, hukum mim mati, mad far\'i, dan waqaf ibtida\' dalam bacaan sehari-hari.' },
-        { kategori: 'Materi', judul: 'Hukum Nun Mati & Tanwin', isi: 'Idzhar (jelas), Idgham (lebur), Iqlab (tukar), dan Ikhfa (samar). Masing-masing memiliki huruf-huruf khusus.' },
-        { kategori: 'Materi', judul: 'Hukum Mim Mati', isi: 'Ikhfa Syafawi, Idgham Mimi, dan Idzhar Syafawi. Perhatikan ghunnah (dengung) pada Idgham dan Ikhfa.' },
-        { kategori: 'Materi', judul: 'Mad Far\'i', isi: 'Berbagai mad turunan: Mad Wajib Muttashil, Mad Jaiz Munfashil, Mad Lazim, dan lainnya beserta panjang harakat masing-masing.' },
-        { kategori: 'Tips', judul: 'Tips Level Menengah', isi: 'Baca Al-Qur\'an setiap hari minimal 1 halaman dengan memperhatikan hukum tajwid. Rekam bacaan sendiri dan dengarkan kembali untuk evaluasi.' },
-      ],
-      'Mutaqaddim (Lanjut)': [
-        { kategori: 'Deskripsi', judul: 'Tentang Level Mutaqaddim', isi: 'Level lanjut untuk peserta yang sudah menguasai tajwid dasar dan sedang menyempurnakan bacaan menuju tartil.' },
-        { kategori: 'Target', judul: 'Target Capaian', isi: 'Membaca Al-Qur\'an dengan tartil, memahami sifat-sifat huruf, qalqalah, dan waqaf yang tepat. Siap mengikuti program tahfidz.' },
-        { kategori: 'Materi', judul: 'Sifat-Sifat Huruf (Shifatul Huruf)', isi: 'Jahr, Hams, Syiddah, Tawassuth, Rakhawah, Isti\'la, dan lainnya. Sifat huruf menentukan cara pengucapan yang benar.' },
-        { kategori: 'Materi', judul: 'Waqaf & Ibtida\'', isi: 'Tanda-tanda waqaf dalam mushaf: waqaf tam (sempurna), waqaf kafi (cukup), waqaf hasan, dan waqaf qabih. Cara memulai kembali (ibtida\') setelah waqaf.' },
-        { kategori: 'Materi', judul: 'Gharib & Musykilat', isi: 'Bacaan-bacaan yang tidak biasa dalam Al-Qur\'an seperti Isymam, Imalah, Tashil, Ibdal, dan bacaan Naql.' },
-        { kategori: 'Tips', judul: 'Tips Level Lanjut', isi: 'Dengarkan bacaan qari\' terpercaya (Syaikh Mahmoud Khalil Al-Husary untuk tartil). Setor bacaan kepada guru minimal sekali seminggu.' },
-      ],
-    };
-    return { status: 'ok', data: MATERI };
+    var {data,error} = await _sb.from('materi_level').select('*').order('level').order('urutan');
+    if (!error && data && data.length) {
+      var grouped = {};
+      data.forEach(function(r) {
+        if (!grouped[r.level]) grouped[r.level] = [];
+        grouped[r.level].push({ kategori: r.kategori, judul: r.judul, isi: r.isi });
+      });
+      return { status: 'ok', data: grouped };
+    }
+    return { status: 'ok', data: {} };
   },
 
   getAtTibyan: async function() {
-    var KAJIAN = [
-      { pertemuan_ke:'1',  tanggal:'5 Januari 2025',   pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Pentingnya Niat dalam Belajar Al-Qur\'an', nasihat_aplikatif:'Luruskan niat sebelum memulai setiap sesi belajar. Ingat bahwa ilmu Al-Qur\'an adalah amanah, bukan sekadar prestasi. Mintalah kepada Allah agar menjadikan kita ahli Al-Qur\'an.' },
-      { pertemuan_ke:'2',  tanggal:'12 Januari 2025',  pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Keutamaan Membaca Al-Qur\'an', nasihat_aplikatif:'Sempatkan membaca Al-Qur\'an minimal 5 ayat setiap hari, meski sibuk. Jangan biarkan satu hari pun berlalu tanpa berinteraksi dengan Al-Qur\'an. Catat kemajuan bacaan agar semangat terus terjaga.' },
-      { pertemuan_ke:'3',  tanggal:'19 Januari 2025',  pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Makhraj Huruf dan Pentingnya Ketepatan', nasihat_aplikatif:'Perbanyak latihan makhraj huruf yang masih lemah, terutama ح, ع, dan ق. Jangan malu untuk meminta koreksi dari guru saat sesi berlangsung. Latihan di depan cermin bisa membantu memperbaiki posisi lidah.' },
-      { pertemuan_ke:'4',  tanggal:'26 Januari 2025',  pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Hukum Nun Mati dan Tanwin', nasihat_aplikatif:'Hafalkan 4 hukum nun mati: Idzhar, Idgham, Iqlab, dan Ikhfa. Biasakan membaca dengan tartil, tidak tergesa-gesa hanya karena ingin cepat khatam. Ulangi bagian yang keliru sebanyak 3 kali sebelum melanjutkan.' },
-      { pertemuan_ke:'5',  tanggal:'2 Februari 2025',  pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Hukum Mim Mati', nasihat_aplikatif:'Perhatikan tiga hukum mim mati: Ikhfa Syafawi, Idgham Mimi, dan Idzhar Syafawi. Jangan lewatkan ghunnah (dengung) saat bertemu Idgham dan Ikhfa. Latih dengan membaca surat Al-Baqarah pada ayat-ayat yang mengandung mim mati.' },
-      { pertemuan_ke:'6',  tanggal:'9 Februari 2025',  pemateri:'Al-Ustadz Umar Abdul Aziz', materi_pembahasan:'Mad dan Pembagiannya', nasihat_aplikatif:'Kuasai mad asli (2 harakat) sebelum mempelajari mad far\'i. Perhatikan perbedaan panjang mad wajib muttashil (4-5 harakat) dan mad jaiz munfashil (2-5 harakat). Latih konsistensi panjang mad, jangan berubah-ubah dalam satu bacaan.' },
-      { pertemuan_ke:'7',  tanggal:'16 Februari 2025', pemateri:'Ustadz Ahmad Fauzi',        materi_pembahasan:'Waqaf dan Ibtida\' (Berhenti dan Memulai)', nasihat_aplikatif:'Berhentilah di tempat waqaf yang sempurna agar makna tidak terpotong. Jangan berhenti di tengah kalimat yang mengubah makna ayat. Pelajari tanda-tanda waqaf dalam mushaf: mim (wajib berhenti), laa (jangan berhenti), jim (boleh berhenti).' },
-      { pertemuan_ke:'8',  tanggal:'23 Februari 2025', pemateri:'Ustadz Ahmad Fauzi',        materi_pembahasan:'Sifat-Sifat Huruf (Shifatul Huruf)', nasihat_aplikatif:'Pahami sifat huruf seperti Jahr, Hams, Syiddah, Tawassuth, dan Rakhawah. Sifat huruf yang benar akan membuat bacaan lebih indah dan sesuai kaidah tajwid. Dengarkan rekaman qari\' yang terpercaya dan tirukan cara pelafalannya.' },
-    ];
-    return { status: 'ok', data: KAJIAN, columns: ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'] };
+    var {data,error} = await _sb.from('at_tibyan_materi').select('*').order('pertemuan_ke');
+    if (!error && data && data.length) {
+      var rows = data.map(function(r) {
+        return { pertemuan_ke: String(r.pertemuan_ke), tanggal: r.tanggal||'', pemateri: r.pemateri||'', materi_pembahasan: r.materi_pembahasan||'', nasihat_aplikatif: r.nasihat_aplikatif||'' };
+      });
+      return { status: 'ok', data: rows, columns: ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'] };
+    }
+    return { status: 'ok', data: [], columns: ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'] };
   },
   getAtTibyanMurid: async function() {
     var id_murid = _uid();
@@ -1622,6 +1607,44 @@ var AdminAPI = {
   generateRaportBulk: async function(p) { throw new Error('Generate raport bulk belum diimplementasi.'); },
   kirimRaportEmail: async function(id) { throw new Error('Kirim raport via email belum diimplementasi.'); },
   getObservasiStats: async function(p) { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiStats'); return {status:'ok',data:data||[]}; },
+
+  // ── Materi At-Tibyan (admin CRUD) ─────────────
+  getAtTibyanMateriAdmin: async function() {
+    var {data,error} = await _sb.from('at_tibyan_materi').select('*').order('pertemuan_ke');
+    _check(error,'getAtTibyanMateriAdmin');
+    return {status:'ok', data: data||[]};
+  },
+  upsertAtTibyanMateri: async function(d) {
+    var row = { pertemuan_ke: Number(d.pertemuan_ke), tanggal: d.tanggal||'', pemateri: d.pemateri||'', materi_pembahasan: d.materi_pembahasan||'', nasihat_aplikatif: d.nasihat_aplikatif||'' };
+    if (d.id) row.id = d.id;
+    var {data,error} = await _sb.from('at_tibyan_materi').upsert(row,{onConflict:'id'}).select().single();
+    _check(error,'upsertAtTibyanMateri');
+    return {status:'ok', data};
+  },
+  deleteAtTibyanMateri: async function(id) {
+    var {error} = await _sb.from('at_tibyan_materi').delete().eq('id',id);
+    _check(error,'deleteAtTibyanMateri');
+    return {status:'ok'};
+  },
+
+  // ── Materi Level (admin CRUD) ──────────────────
+  getMateriLevelAdmin: async function() {
+    var {data,error} = await _sb.from('materi_level').select('*').order('level').order('urutan');
+    _check(error,'getMateriLevelAdmin');
+    return {status:'ok', data: data||[]};
+  },
+  upsertMateriLevel: async function(d) {
+    var row = { level: d.level||'', kategori: d.kategori||'', judul: d.judul||'', isi: d.isi||'', urutan: Number(d.urutan)||0 };
+    if (d.id) row.id = d.id;
+    var {data,error} = await _sb.from('materi_level').upsert(row,{onConflict:'id'}).select().single();
+    _check(error,'upsertMateriLevel');
+    return {status:'ok', data};
+  },
+  deleteMateriLevel: async function(id) {
+    var {error} = await _sb.from('materi_level').delete().eq('id',id);
+    _check(error,'deleteMateriLevel');
+    return {status:'ok'};
+  },
 };
 
 // ─────────────────────────────────────────────

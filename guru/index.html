@@ -2623,7 +2623,7 @@ function goPage(name) {
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
   if (name === 'pengumuman') initPengumumanPage();
   if (name === 'keaktifan')      loadKeaktifanPage();
-  if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); }
+  if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); _loadAtMateriFromDB(); }
   if (name === 'assessment') {
     populateSel('asmtHalaqahSel');
     // Jika hanya ada satu halaqah, langsung pilih dan load rekap tanpa menunggu user
@@ -5703,17 +5703,15 @@ function openWAAtTibyan(idx) {
 }
 
 // ── Form At-Tibyan ──────────────────────────────
-// Konstanta materi At-Tibyan untuk ditampilkan di form
-var AT_TIBYAN_MATERI = [
-  { pertemuan_ke:1,  materi_pembahasan:'Pentingnya Niat dalam Belajar Al-Qur\'an', nasihat_aplikatif:'Luruskan niat sebelum memulai setiap sesi belajar. Ingat bahwa ilmu Al-Qur\'an adalah amanah, bukan sekadar prestasi.' },
-  { pertemuan_ke:2,  materi_pembahasan:'Keutamaan Membaca Al-Qur\'an', nasihat_aplikatif:'Sempatkan membaca Al-Qur\'an minimal 5 ayat setiap hari, meski sibuk. Catat kemajuan bacaan agar semangat terus terjaga.' },
-  { pertemuan_ke:3,  materi_pembahasan:'Makhraj Huruf dan Pentingnya Ketepatan', nasihat_aplikatif:'Perbanyak latihan makhraj huruf yang masih lemah. Latihan di depan cermin bisa membantu memperbaiki posisi lidah.' },
-  { pertemuan_ke:4,  materi_pembahasan:'Hukum Nun Mati dan Tanwin', nasihat_aplikatif:'Hafalkan 4 hukum nun mati: Idzhar, Idgham, Iqlab, dan Ikhfa. Biasakan membaca dengan tartil, tidak tergesa-gesa.' },
-  { pertemuan_ke:5,  materi_pembahasan:'Hukum Mim Mati', nasihat_aplikatif:'Perhatikan tiga hukum mim mati: Ikhfa Syafawi, Idgham Mimi, dan Idzhar Syafawi. Jangan lewatkan ghunnah saat bertemu Idgham dan Ikhfa.' },
-  { pertemuan_ke:6,  materi_pembahasan:'Mad dan Pembagiannya', nasihat_aplikatif:'Kuasai mad asli (2 harakat) sebelum mempelajari mad far\'i. Latih konsistensi panjang mad dalam satu bacaan.' },
-  { pertemuan_ke:7,  materi_pembahasan:'Waqaf dan Ibtida\' (Berhenti dan Memulai)', nasihat_aplikatif:'Berhentilah di tempat waqaf yang sempurna agar makna tidak terpotong. Pelajari tanda-tanda waqaf dalam mushaf.' },
-  { pertemuan_ke:8,  materi_pembahasan:'Sifat-Sifat Huruf (Shifatul Huruf)', nasihat_aplikatif:'Pahami sifat huruf seperti Jahr, Hams, Syiddah, Tawassuth, dan Rakhawah untuk bacaan yang lebih indah.' },
-];
+// Materi At-Tibyan — diisi dari Supabase saat page load
+var AT_TIBYAN_MATERI = [];
+
+async function _loadAtMateriFromDB() {
+  try {
+    var r = await window.HQ.GuruAPI.getAtTibyanMateriForForm();
+    if (r && r.data && r.data.length) AT_TIBYAN_MATERI = r.data;
+  } catch(e) { /* gunakan data kosong */ }
+}
 
 function _showAtMateriInfo(pertemuan_ke) {
   var box = document.getElementById('atFormMateriBox');
