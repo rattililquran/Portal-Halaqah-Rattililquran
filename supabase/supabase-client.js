@@ -409,22 +409,26 @@ var GuruAPI = {
           });
         }
 
-        // 2. Push ke murid yang ALPA — pengingat dari kehadiran KBM hari ini
-        var { data: alpaMurid } = await _sb.from('nilai_kbm')
-          .select('id_murid').eq('id_kbm', id_kbm).eq('status_hadir', 'A');
-        var alpaIds = (alpaMurid || []).map(function(r){ return r.id_murid; });
-        if (alpaIds.length) {
-          var tgl = kbmData.tanggal_pertemuan
-            ? new Date(kbmData.tanggal_pertemuan).toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'})
-            : 'hari ini';
-          _sendPushBg({
-            user_ids: alpaIds,
-            title   : '🤲 Catatan Kehadiran KBM',
-            body    : 'Qadarullah kami mendapati Anda absen di KBM ' + tgl + '. Semoga Anda baik saja dan mohon segera komunikasi kepada Guru Halaqah. Baarakallahu fiikum',
-            url     : '/Portal-Halaqah-Rattililquran/murid/index.html',
-            tag     : 'kbm-absen-' + id_kbm,
-            data    : { trigger: 'kbm_absen', id_kbm: id_kbm },
-          });
+        // 2. Push ke murid yang ALPA — cek push_config.enabled dulu
+        var { data: cfg } = await _sb.from('push_config').select('enabled').eq('key','kbm_absen').maybeSingle();
+        var kbmAbsenEnabled = !cfg || cfg.enabled !== false; // default aktif jika belum ada row
+        if (kbmAbsenEnabled) {
+          var { data: alpaMurid } = await _sb.from('nilai_kbm')
+            .select('id_murid').eq('id_kbm', id_kbm).eq('status_hadir', 'A');
+          var alpaIds = (alpaMurid || []).map(function(r){ return r.id_murid; });
+          if (alpaIds.length) {
+            var tgl = kbmData.tanggal_pertemuan
+              ? new Date(kbmData.tanggal_pertemuan).toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'})
+              : 'hari ini';
+            _sendPushBg({
+              user_ids: alpaIds,
+              title   : '🤲 Catatan Kehadiran KBM',
+              body    : 'Qadarullah kami mendapati Anda absen di KBM ' + tgl + '. Semoga Anda baik saja dan mohon segera komunikasi kepada Guru Halaqah. Baarakallahu fiikum',
+              url     : '/Portal-Halaqah-Rattililquran/murid/index.html',
+              tag     : 'kbm-absen-' + id_kbm,
+              data    : { trigger: 'kbm_absen', id_kbm: id_kbm },
+            });
+          }
         }
       } catch(e) {}
     })();
@@ -582,31 +586,46 @@ var GuruAPI = {
       (users || []).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
     }
 
-    // Ambil riwayat 15 sesi terakhir per murid (hanya kritis & peringatan)
+    // Ambil riwayat 15 sesi terakhir — per murid secara paralel (bukan 1 query global)
+    // Ini memastikan setiap murid benar-benar mendapat 15 baris, bukan terpotong limit global
     var riwayatMap = {};
     var alertIds = alertList.filter(function(m){ return m.status !== 'normal'; }).map(function(m){ return m.id_murid; });
     if (alertIds.length) {
-      var { data: sesiList } = await _sb.from('nilai_kbm')
-        .select('id_murid, id_halaqah, status_hadir, kamera_murid, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan, jenis_sesi)')
-        .in('id_murid', alertIds)
-        .order('id_kbm', { ascending: false })
-        .limit(alertIds.length * 15);
-      (sesiList || []).forEach(function(s) {
-        if (!s.kbm_log || s.kbm_log.jenis_sesi !== 'KBM Reguler') return;
-        var key = s.id_murid + '_' + s.id_halaqah;
-        if (!riwayatMap[key]) riwayatMap[key] = [];
-        if (riwayatMap[key].length >= 15) return;
-        var warna = 'hijau';
-        if (s.status_hadir === 'A') warna = 'merah';
-        else if (s.status_hadir === 'T') warna = 'kuning';
-        else if (s.kamera_murid && (s.kamera_murid.includes('selalu') || s.kamera_murid.includes('sering'))) warna = 'coklat';
-        riwayatMap[key].push({
-          tanggal     : (s.kbm_log && s.kbm_log.tanggal_pertemuan) || '-',
-          status_hadir: s.status_hadir || 'H',
-          kamera_murid: s.kamera_murid || 'kamera terbuka',
-          warna       : warna,
-        });
-      });
+      // Cari id_halaqah per murid dari alertList
+      var halaqahPerMurid = {};
+      alertList.forEach(function(m){ halaqahPerMurid[m.id_murid] = m.id_halaqah; });
+
+      // Batch paralel: ambil 15 sesi per murid sekaligus (maksimal 10 paralel)
+      var BATCH = 10;
+      for (var bi = 0; bi < alertIds.length; bi += BATCH) {
+        var batch = alertIds.slice(bi, bi + BATCH);
+        await Promise.all(batch.map(function(id_murid) {
+          var id_halaqah = halaqahPerMurid[id_murid];
+          return _sb.from('nilai_kbm')
+            .select('id_murid, id_halaqah, status_hadir, kamera_murid, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan, jenis_sesi)')
+            .eq('id_murid', id_murid)
+            .eq('id_halaqah', id_halaqah)
+            .order('id_kbm', { ascending: false })
+            .limit(15)
+            .then(function(res) {
+              (res.data || []).forEach(function(s) {
+                if (!s.kbm_log || s.kbm_log.jenis_sesi !== 'KBM Reguler') return;
+                var key = s.id_murid + '_' + s.id_halaqah;
+                if (!riwayatMap[key]) riwayatMap[key] = [];
+                var warna = 'hijau';
+                if (s.status_hadir === 'A') warna = 'merah';
+                else if (s.status_hadir === 'T') warna = 'kuning';
+                else if (s.kamera_murid && (s.kamera_murid.includes('selalu') || s.kamera_murid.includes('sering'))) warna = 'coklat';
+                riwayatMap[key].push({
+                  tanggal     : (s.kbm_log && s.kbm_log.tanggal_pertemuan) || '-',
+                  status_hadir: s.status_hadir || 'H',
+                  kamera_murid: s.kamera_murid || 'kamera terbuka',
+                  warna       : warna,
+                });
+              });
+            });
+        }));
+      }
     }
 
     // Ambil data dismissal dari anggota untuk SEMUA murid di alerts
@@ -646,7 +665,7 @@ var GuruAPI = {
         status      : m.status,
         metrics     : metrics,
         flags       : flags,
-        riwayat     : (riwayatMap[riwayatKey] || []).reverse(), // cronologis
+        riwayat     : (riwayatMap[riwayatKey] || []).slice().reverse(), // cronologis, slice() cegah mutasi
       };
     });
     return { status: 'ok', data: { alerts: alerts, summary: raw.summary } };

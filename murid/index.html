@@ -3204,7 +3204,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
 
       <div class="sidebar-divider" style="margin:10px 2px"></div>
 
-      <button class="sidebar-item danger" onclick="closeSidebar();window.HQ.Auth.logout()">
+      <button class="sidebar-item danger" onclick="doLogout()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
         Keluar dari Aplikasi
       </button>
@@ -4010,8 +4010,14 @@ function showAuthErr(m) {
 function doLogout() {
   closeSidebar();
   try { closeModal('profilModal'); } catch(e) {}
+  // Cleanup Realtime channel sebelum logout agar tidak memory leak
+  if (_keaktifanChannel) {
+    window.HQ.supabase.removeChannel(_keaktifanChannel).catch(function(){});
+    _keaktifanChannel = null;
+  }
   localStorage.removeItem('hq_token');
   localStorage.removeItem('hq_user');
+  localStorage.removeItem('hq_refresh');
   window.HQ.supabase.auth.signOut().finally(function() {
     window.location.href = '../index.html';
   });
