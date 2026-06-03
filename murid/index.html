@@ -1296,15 +1296,17 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   background:rgba(15,23,42,.5);backdrop-filter:blur(6px)}
 .modal-overlay.open{display:flex;align-items:flex-end;justify-content:center;
   animation:fadeIn .2s ease;
-  padding-top:calc(env(safe-area-inset-top) + 8px);
-  padding-bottom:calc(68px + env(safe-area-inset-bottom))}
-@media(min-width:600px){.modal-overlay.open{align-items:center;padding-top:0;padding-bottom:0}}
+  padding-top:calc(env(safe-area-inset-top,0px) + 8px);
+  padding-bottom:0}
+@media(min-width:600px){.modal-overlay.open{align-items:center;padding-top:0}}
 .modal-sheet{background:#fff;border-radius:28px 28px 0 0;
   width:100%;max-width:500px;
-  max-height:100%;
+  max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px);
   overflow-y:auto;
   box-shadow:0 -10px 40px rgba(15,23,42,.15)}
-@media(min-width:600px){.modal-sheet{border-radius:28px;max-height:85dvh}}
+@media(min-width:600px){.modal-sheet{border-radius:28px;max-height:88dvh;max-width:520px}}
+/* modal-foot tambah padding untuk safe area bottom */
+.modal-foot{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
 .modal-head{display:flex;align-items:center;justify-content:space-between;
   padding:20px 22px 0}
 .modal-title{font-size:16.5px;font-weight:800;color:var(--text)}
@@ -6451,7 +6453,12 @@ async function doChangePassword() {
 // ══════════════════════════════════════════
 function openModal(id) {
   var el = document.getElementById(id);
-  if (el) { el.classList.add('open'); document.body.style.overflow='hidden'; }
+  if (!el) return;
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Reset scroll agar header tidak terpotong
+  var sheet = el.querySelector('.modal-sheet');
+  if (sheet) sheet.scrollTop = 0;
 }
 function closeModal(id) {
   var el = document.getElementById(id);
@@ -6867,10 +6874,14 @@ async function bukaModalKonfirmasiSPP() {
   document.getElementById('sppBuktiLabel').style.borderColor = '';
   document.getElementById('sppFormErr').style.display = 'none';
   openModal('sppKonfirmasiModal');
+  // Reset scroll ke atas agar header tidak terpotong
+  var _sppSheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
+  if (_sppSheet) _sppSheet.scrollTop = 0;
 
-  // Load metode bayar
+  // Load metode bayar dengan timeout 8 detik
   try {
-    var r = await window.HQ.MuridAPI.getMetodeBayar();
+    var _metodeTimeout = new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, 8000); });
+    var r = await Promise.race([window.HQ.MuridAPI.getMetodeBayar(), _metodeTimeout]);
     var metode = r.data || [];
     var wrap = document.getElementById('sppMetodeInfo');
     var list = document.getElementById('sppMetodeList');
