@@ -1326,6 +1326,34 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               </div>
               <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" value="📢 Pengumuman dari Admin"></div>
               <div class="fg" style="margin:0"><label>Pesan</label><textarea class="fc" id="pushTestBody" rows="3">Assalamualaikum, ada pengumuman penting dari Rattililqur'an.</textarea></div>
+
+              <!-- Link Ketuk -->
+              <div class="fg" style="margin:0">
+                <label>🔗 Link Ketuk Notifikasi</label>
+                <select class="fc" id="pushTestUrlPreset" onchange="onPushUrlPresetChange(this.value)" style="margin-bottom:6px">
+                  <optgroup label="── Portal Murid ──">
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html">🏠 Beranda Murid</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#attibyan">📖 At-Tibyan</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#raport">📄 Raport</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#pr">✏️ Latihan Mandiri</option>
+                  </optgroup>
+                  <optgroup label="── Portal Guru ──">
+                    <option value="/Portal-Halaqah-Rattililquran/guru/index.html">👩‍🏫 Dashboard Guru</option>
+                  </optgroup>
+                  <optgroup label="── Lainnya ──">
+                    <option value="custom">✏️ URL Kustom (isi manual)</option>
+                  </optgroup>
+                </select>
+                <div id="pushTestUrlCustomWrap" style="display:none">
+                  <input type="url" class="fc" id="pushTestUrlCustom"
+                    placeholder="https://rattililquran.github.io/..."
+                    style="font-size:13px">
+                  <div style="font-size:11px;color:var(--text-3);margin-top:4px">
+                    ⚠️ Hanya URL dari <strong>rattililquran.github.io</strong> yang diizinkan
+                  </div>
+                </div>
+              </div>
+
               <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush" style="margin-top:4px">📤 Kirim Sekarang</button>
               <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px 14px;border-radius:10px;font-weight:600"></div>
             </div>
@@ -3662,6 +3690,39 @@ function onPushTargetChange(val) {
   if (wrap) wrap.style.display = val === 'user_id' ? '' : 'none';
 }
 
+function onPushUrlPresetChange(val) {
+  var wrap = document.getElementById('pushTestUrlCustomWrap');
+  if (wrap) wrap.style.display = val === 'custom' ? '' : 'none';
+}
+
+function getPushTestUrl() {
+  var preset = document.getElementById('pushTestUrlPreset');
+  if (!preset) return '/Portal-Halaqah-Rattililquran/murid/index.html';
+  if (preset.value === 'custom') {
+    var custom = document.getElementById('pushTestUrlCustom');
+    var val = custom ? custom.value.trim() : '';
+    if (!val) return '/Portal-Halaqah-Rattililquran/murid/index.html';
+    // Validasi: hanya rattililquran.github.io atau path relatif
+    try {
+      if (val.startsWith('http')) {
+        var u = new URL(val);
+        if (u.host !== 'rattililquran.github.io') {
+          toast('URL harus dari rattililquran.github.io', 'err');
+          return null;
+        }
+        return val;
+      }
+      // Path relatif — tambah base jika belum ada
+      return val.startsWith('/Portal-Halaqah-Rattililquran') ? val
+        : '/Portal-Halaqah-Rattililquran' + (val.startsWith('/') ? val : '/' + val);
+    } catch (_) {
+      toast('URL tidak valid', 'err');
+      return null;
+    }
+  }
+  return preset.value;
+}
+
 async function setAllPushConfig(enabled) {
   var rows = Array.from(document.querySelectorAll('.push-cfg-row'));
   var promises = rows.map(function(row) {
@@ -3681,7 +3742,9 @@ async function kirimTestPush() {
   var btn = document.getElementById('btnTestPush');
   btn.disabled = true; btn.textContent = 'Mengirim...';
   try {
-    var opts = { title, body, url: '/Portal-Halaqah-Rattililquran/murid/index.html', tag: 'admin-kirim' };
+    var pushUrl = getPushTestUrl();
+    if (pushUrl === null) { btn.disabled=false; btn.textContent='📤 Kirim Sekarang'; return; }
+    var opts = { title, body, url: pushUrl, tag: 'admin-kirim' };
     if (target === 'user_id') {
       var uid = document.getElementById('pushTestUserId').value.trim();
       if (!uid) return toast('Isi User ID terlebih dahulu','err');
