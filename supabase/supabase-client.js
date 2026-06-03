@@ -1156,11 +1156,12 @@ var MuridAPI = {
     var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var TOTAL_REKAP  = 5;
     var bulanSelesai = new Date().getMonth(); // bulan yg sudah lewat (Juni=5 → Jan-Mei selesai)
-    // Bulan pertama = bulan pertama yang dibayar; jika belum ada, mundur TOTAL_REKAP dari sekarang
-    var paidIndices = lunasBulan.map(function(b){ return BULAN.indexOf(b); }).filter(function(i){ return i>=0 && i<bulanSelesai; });
-    var startIdx = paidIndices.length > 0 ? Math.min.apply(null, paidIndices) : Math.max(0, bulanSelesai - TOTAL_REKAP);
-    var endIdx   = Math.min(startIdx + TOTAL_REKAP, bulanSelesai);
-    var tunggakan = Math.max(0, endIdx - startIdx - lunasBulan.filter(function(b){ var i=BULAN.indexOf(b); return i>=startIdx&&i<endIdx; }).length);
+    // Window SELALU dimulai dari max(0, bulanSelesai - TOTAL_REKAP)
+    // agar tidak salah hitung lunas saat murid baru bayar sebagian di akhir window
+    var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
+    var endIdx   = bulanSelesai; // eksklusif
+    var bulanDiWindow = BULAN.slice(startIdx, endIdx);
+    var tunggakan = bulanDiWindow.filter(function(b){ return !lunasBulan.includes(b); }).length;
     return { status: 'ok', data: {
       rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
       bulan_grid: bulanGrid, tunggakan, total_nominal: totalNominal,
@@ -1485,8 +1486,13 @@ var AdminAPI = {
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var TOTAL_REKAP   = 5;
-    // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → 5 bulan = Jan-Mei sudah lewat)
-    var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif (Juni baru mulai → 5)
+    // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → Jan-Mei sudah lewat)
+    var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif
+    // Window SELALU dari max(0, bulanSelesai-TOTAL_REKAP) sampai bulanSelesai
+    // agar murid tidak dianggap lunas hanya karena bayar sebagian di akhir window
+    var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
+    var endIdx   = bulanSelesai;
+    var bulanRekap = BULAN.slice(startIdx, endIdx);
     // Map id_murid → bulan lunas
     var lunasMap = {};
     (sppData||[]).forEach(function(s){
@@ -1495,14 +1501,6 @@ var AdminAPI = {
     });
     var muridList = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
-      // Cari bulan pertama yang dibayar; jika belum ada, mulai dari bulan terlama di window
-      var paidIndices = lunasBulan.map(function(b){ return BULAN.indexOf(b); }).filter(function(i){ return i>=0 && i<bulanSelesai; });
-      var startIdx = paidIndices.length > 0
-        ? Math.min.apply(null, paidIndices)
-        : Math.max(0, bulanSelesai - TOTAL_REKAP); // jika belum bayar, mulai dari (selesai - 5)
-      // Window: startIdx sampai min(startIdx+TOTAL_REKAP, bulanSelesai)
-      var endIdx    = Math.min(startIdx + TOTAL_REKAP, bulanSelesai);
-      var bulanRekap = BULAN.slice(startIdx, endIdx);
       var bulanBelum = bulanRekap.filter(function(b){ return !lunasBulan.includes(b); });
       var tunggakan  = bulanBelum.length;
       return {
@@ -1513,9 +1511,11 @@ var AdminAPI = {
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
     var totalNominal = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    var lunas  = muridList.filter(function(m){ return m.tunggakan===0; }).length;
+    // Lunas = tunggakan===0 DAN sudah bayar minimal TOTAL_REKAP bulan di window
+    var lunas     = muridList.filter(function(m){ return m.tunggakan===0 && bulanRekap.length>0; }).length;
     var menunggak = muridList.filter(function(m){ return m.tunggakan>0; }).length;
-    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalNominal, lunas, menunggak, tahun } };
+    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalNominal, lunas, menunggak, tahun,
+      bulan_rekap: bulanRekap, total_rekap: TOTAL_REKAP } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { return {status:'ok',message:'Arsip data belum diimplementasi'}; },

@@ -1418,6 +1418,12 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 .spp-bulan-check:has(input:checked){background:#f0fdf4;border-color:#1a5c3a;color:#1a5c3a}
 .spp-bulan-check::before{content:'○';font-size:14px;color:var(--text-3)}
 .spp-bulan-check:has(input:checked)::before{content:'✓';color:#1a5c3a}
+/* Bulan sudah lunas — tidak bisa dipilih */
+.spp-bulan-check.lunas{background:#f0fdf4;border-color:#86efac;color:#15803d;cursor:not-allowed;pointer-events:none;opacity:.75}
+.spp-bulan-check.lunas::before{content:'✓';color:#16a34a}
+/* Bulan sedang menunggu verifikasi */
+.spp-bulan-check.menunggu{background:#fefce8;border-color:#fde047;color:#854d0e;cursor:not-allowed;pointer-events:none;opacity:.85}
+.spp-bulan-check.menunggu::before{content:'⏳';font-size:11px;color:#b45309}
 /* Radio metode pembayaran */
 .spp-metode-radio{display:flex;align-items:center;gap:8px;padding:10px 12px;
   border-radius:10px;border:1.5px solid var(--border);cursor:pointer;
@@ -6878,6 +6884,27 @@ async function bukaModalKonfirmasiSPP() {
   // Reset scroll ke atas agar header tidak terpotong
   var _sppSheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
   if (_sppSheet) _sppSheet.scrollTop = 0;
+
+  // Disable bulan yang sudah lunas/menunggu
+  try {
+    var sppSt = await window.HQ.MuridAPI.getSPPStatus();
+    var grid  = sppSt.data && sppSt.data.bulan_grid || [];
+    document.querySelectorAll('#sppBulanGrid .spp-bulan-check').forEach(function(label) {
+      var inp = label.querySelector('input');
+      if (!inp) return;
+      var bulan = inp.value;
+      var info  = grid.find(function(g){ return g.bulan === bulan; });
+      var st    = info ? info.status : 'belum';
+      label.classList.remove('lunas','menunggu');
+      if (st === 'lunas' || st === 'menunggu') {
+        label.classList.add(st);
+        inp.disabled = true;
+        inp.checked  = false;
+      } else {
+        inp.disabled = false;
+      }
+    });
+  } catch(e) { /* gagal load status — biarkan semua aktif */ }
 
   // Load metode bayar dengan timeout 8 detik
   try {
