@@ -386,22 +386,46 @@ var GuruAPI = {
       status: 'selesai', jumlah_hadir: hadir, jumlah_alpa: alpa,
     }).eq('id_kbm', id_kbm);
     _check(error, 'tutupKBM');
-    // Push ke ketua kelas halaqah ini — window observasi terbuka
+    // Push setelah sesi ditutup (fire-and-forget, tidak blocking)
     (async function() {
       try {
-        var { data: kbmData } = await _sb.from('kbm_log').select('id_halaqah, pertemuan_ke').eq('id_kbm', id_kbm).single();
+        var { data: kbmData } = await _sb.from('kbm_log')
+          .select('id_halaqah, pertemuan_ke, nama_guru, tanggal_pertemuan')
+          .eq('id_kbm', id_kbm).single();
         if (!kbmData) return;
-        var { data: anggota } = await _sb.from('anggota').select('id_murid').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif').eq('is_ketua',true);
-        var ketuaIds = (anggota || []).map(function(a){ return a.id_murid; });
-        if (!ketuaIds.length) return;
-        _sendPushBg({
-          user_ids: ketuaIds,
-          title: '📋 Isi Observasi KBM Sekarang!',
-          body : 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.',
-          url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
-          tag  : 'observasi-window-' + id_kbm,
-          data : { trigger: 'observasi_terbuka', id_kbm: id_kbm },
-        });
+
+        // 1. Push ke ketua kelas — window observasi terbuka
+        var { data: anggota } = await _sb.from('anggota')
+          .select('id_murid, is_ketua').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif');
+        var ketuaIds = (anggota || []).filter(function(a){ return a.is_ketua; }).map(function(a){ return a.id_murid; });
+        if (ketuaIds.length) {
+          _sendPushBg({
+            user_ids: ketuaIds,
+            title: '📋 Isi Observasi KBM Sekarang!',
+            body : 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.',
+            url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
+            tag  : 'observasi-window-' + id_kbm,
+            data : { trigger: 'observasi_terbuka', id_kbm: id_kbm },
+          });
+        }
+
+        // 2. Push ke murid yang ALPA — pengingat dari kehadiran KBM hari ini
+        var { data: alpaMurid } = await _sb.from('nilai_kbm')
+          .select('id_murid').eq('id_kbm', id_kbm).eq('status_hadir', 'A');
+        var alpaIds = (alpaMurid || []).map(function(r){ return r.id_murid; });
+        if (alpaIds.length) {
+          var tgl = kbmData.tanggal_pertemuan
+            ? new Date(kbmData.tanggal_pertemuan).toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'})
+            : 'hari ini';
+          _sendPushBg({
+            user_ids: alpaIds,
+            title   : '🤲 Catatan Kehadiran KBM',
+            body    : 'Qadarullah kami mendapati Anda absen di KBM ' + tgl + '. Semoga Anda baik saja dan mohon segera komunikasi kepada Guru Halaqah. Baarakallahu fiikum',
+            url     : '/Portal-Halaqah-Rattililquran/murid/index.html',
+            tag     : 'kbm-absen-' + id_kbm,
+            data    : { trigger: 'kbm_absen', id_kbm: id_kbm },
+          });
+        }
       } catch(e) {}
     })();
     return { status: 'ok', message: 'Sesi KBM berhasil ditutup. Jazakallah khairan!', data: { id_kbm, jumlah_hadir: hadir } };
