@@ -2048,7 +2048,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             </div>
             <div class="fg" style="margin-bottom:12px">
               <label>Password Baru</label>
-              <input type="password" class="fc" id="pwNew" placeholder="Minimal 6 karakter">
+              <input type="password" class="fc" id="pwNew" placeholder="Minimal 6 karakter" minlength="6">
             </div>
             <div class="fg" style="margin-bottom:20px">
               <label>Konfirmasi Password Baru</label>
@@ -5741,6 +5741,10 @@ async function bukaFormAtTibyan() {
   _atEditId = null;
   document.getElementById('atFormTitle').textContent = 'Sesi At-Tibyan Baru';
   document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
+  // Pastikan _atSesiData sudah terisi sebelum hitung pertemuan_ke
+  if (!_atTabLoaded['sesi']) {
+    try { var r = await window.HQ.GuruAPI.getAtTibyanSesi(); _atSesiData = r.data || []; _atTabLoaded['sesi'] = true; } catch(e){}
+  }
   _atNextPertemuan = _atSesiData.length > 0
     ? Math.max.apply(null, _atSesiData.map(function(s){ return s.pertemuan_ke || 0; })) + 1
     : 1;

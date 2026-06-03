@@ -1744,7 +1744,7 @@ function goPage(name) {
     periode   : loadPeriode,
     users     : () => loadUsers(currentUserTab),
     halaqah   : loadHalaqah,
-    anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); },
+    anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); const sel = document.getElementById('anggotaHalaqahSel'); if (sel && !sel.value && allHalaqah.length) { sel.value = allHalaqah[0].id_halaqah; loadAnggota(); } },
     komponen  : () => { populatePeriodeSel('komponenPeriodeSel'); },
     nilai     : () => { populatePeriodeSel('nilaiPeriodeSel'); populateSel('nilaiHalaqahSel', allHalaqah); },
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
