@@ -5436,6 +5436,7 @@ function filterKeaktifanCards() {
     }
 
     card.style = 'border-radius:16px; background:#card; padding:18px; box-shadow:var(--shadow); border-left: 6px solid ' + borderColor + '; display:flex; flex-direction:column; gap:12px; transition: transform .2s, box-shadow .2s; position:relative; background:#fff;';
+    card.dataset.muridId = m.id_murid;
 
     var cardHead = '<div style="display:flex; justify-content:space-between; align-items:flex-start;">'
       + '<div>'
@@ -5474,15 +5475,18 @@ function filterKeaktifanCards() {
 
     var flagsHTML = '';
     if (m.flags && m.flags.length > 0) {
-      flagsHTML += '<div style="display:flex; flex-direction:column; gap:6px; margin:4px 0;">';
+      flagsHTML += '<div data-flags-area style="display:flex; flex-direction:column; gap:6px; margin:4px 0;">';
       m.flags.forEach(function(f) {
-        var flagColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber)';
-        var btnColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber-txt)';
+        // Skip flag yang sudah di-contacted dalam sesi ini
+        if (_keaktifanContacted.has(m.id_murid + '_' + f.tipe)) {
+          flagsHTML += '<div style="background:var(--green-l);color:var(--green);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700">✅ Sudah dihubungi — ' + esc(f.label) + '</div>';
+          return;
+        }
         var btnBg = f.tipe === 'absen' ? 'var(--red-l)' : 'var(--amber-l)';
-
-        flagsHTML += '<div style="display:flex; justify-content:space-between; align-items:center; background:' + btnBg + '; padding:6px 12px; border-radius:8px; border: 1px solid rgba(0,0,0,0.03);">'
-          + '<span style="font-size:12px; font-weight:700; color:' + btnColor + ';">⚠️ ' + esc(f.label) + ' <small>(' + f.detail + ')</small></span>'
-          + '<button onclick="doMarkContacted(\'' + m.id_murid + '\', \'' + f.tipe + '\', ' + f.count + ')" style="background:var(--blue); color:#fff; border:none; border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:2px; transition:opacity .15s;">'
+        var btnColor = f.tipe === 'absen' ? 'var(--red)' : 'var(--amber-txt)';
+        flagsHTML += '<div data-flag-row style="display:flex;justify-content:space-between;align-items:center;background:' + btnBg + ';padding:6px 12px;border-radius:8px;border:1px solid rgba(0,0,0,.03)">'
+          + '<span style="font-size:12px;font-weight:700;color:' + btnColor + '">⚠️ ' + esc(f.label) + ' <small>(' + esc(f.detail) + ')</small></span>'
+          + '<button onclick="doMarkContacted(\'' + esc(m.id_murid) + '\',\'' + esc(f.tipe) + '\',' + f.count + ',this)" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;transition:opacity .15s">'
           + '✓ Sudah Dihubungi'
           + '</button>'
           + '</div>';
@@ -5585,25 +5589,59 @@ function openWAKeaktifan(idx) {
   window.open(url, '_blank');
 }
 
-async function doMarkContacted(idMurid, tipeAlert, value) {
-  if (!confirm('Tandai bahwa murid ini sudah dihubungi terkait alert ' + tipeAlert + ' dengan ' + value + ' kejadian?')) {
-    return;
+// Set untuk menyimpan flag yang sudah ditandai (in-memory, per session)
+var _keaktifanContacted = new Set();
+
+async function doMarkContacted(idMurid, tipeAlert, value, btnEl) {
+  if (!confirm('Tandai murid ini sudah dihubungi terkait ' + tipeAlert + ' (' + value + 'x)?')) return;
+
+  // Optimistic UI: langsung ubah tampilan tombol sebelum API selesai
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳...';
+    btnEl.style.opacity = '.6';
   }
-  showLoad('Menyimpan followup...');
+
   try {
-    var r = await window.HQ.GuruAPI.simpanFollowupKeaktifan({
-      id_murid: idMurid,
-      id_periode: _keaktifanData.id_periode,
+    await window.HQ.GuruAPI.simpanFollowupKeaktifan({
+      id_murid  : idMurid,
       tipe_alert: tipeAlert,
-      value: value
+      value     : value,
     });
-    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menyimpan');
-    toast('Berhasil diperbarui!', 'ok');
-    await loadKeaktifanPage();
+
+    // Simpan ke set agar tidak muncul lagi setelah re-render
+    _keaktifanContacted.add(idMurid + '_' + tipeAlert);
+
+    // Update flags di data lokal agar filter tidak perlu reload
+    if (_keaktifanData && _keaktifanData.alerts) {
+      var alertItem = _keaktifanData.alerts.find(function(a){ return a.id_murid === idMurid; });
+      if (alertItem && alertItem.flags) {
+        alertItem.flags = alertItem.flags.filter(function(f){ return f.tipe !== tipeAlert; });
+      }
+    }
+
+    // Ganti baris flag menjadi "Sudah Dihubungi" tanpa reload penuh
+    var flagRow = btnEl && btnEl.closest('[data-flag-row]');
+    if (flagRow) {
+      flagRow.style.transition = 'all .3s';
+      flagRow.style.background = 'var(--green-l)';
+      flagRow.innerHTML = '<span style="font-size:12px;font-weight:700;color:var(--green)">✅ Sudah dihubungi — ' + tipeAlert + '</span>';
+      setTimeout(function() {
+        var card = flagRow.closest('[data-murid-id="' + idMurid + '"]');
+        var remaining = card && card.querySelectorAll('[data-flag-row]');
+        if (remaining && remaining.length === 0) {
+          // Semua flag sudah di-handle — tampilkan pesan selesai
+          var flagsArea = card && card.querySelector('[data-flags-area]');
+          if (flagsArea) flagsArea.innerHTML = '<div style="background:var(--green-l);color:var(--green);padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;margin:4px 0">✅ Semua tindak lanjut selesai</div>';
+        }
+      }, 400);
+    }
+
+    toast('✅ Tercatat — murid sudah dihubungi', 'ok');
   } catch(e) {
+    // Revert UI jika gagal
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = '✓ Sudah Dihubungi'; btnEl.style.opacity = '1'; }
     toast(e.message, 'err');
-  } finally {
-    hideLoad();
   }
 }
 

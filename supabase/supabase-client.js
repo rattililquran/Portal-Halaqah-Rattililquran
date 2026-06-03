@@ -615,10 +615,14 @@ var GuruAPI = {
   },
 
   simpanFollowupKeaktifan: async function(d) {
-    // Simpan catatan follow-up ke anggota
-    var { error } = await _sb.from('anggota')
-      .update({ catatan_guru: d.catatan }).eq('id_murid', d.id_murid).eq('id_halaqah', d.id_halaqah);
-    _check(error, 'simpanFollowupKeaktifan');
+    // Catat tindak lanjut: update catatan_guru di anggota dengan timestamp + tipe
+    var catatan = '[' + new Date().toLocaleDateString('id') + '] Sudah dihubungi terkait ' + (d.tipe_alert || 'keaktifan') + ' (' + (d.value || 0) + 'x)';
+    var { data: anggota } = await _sb.from('anggota').select('id_halaqah,catatan_guru').eq('id_murid', d.id_murid).eq('status','aktif').maybeSingle();
+    if (anggota) {
+      var existing = anggota.catatan_guru ? anggota.catatan_guru + '\n' : '';
+      var { error } = await _sb.from('anggota').update({ catatan_guru: existing + catatan }).eq('id_murid', d.id_murid).eq('id_halaqah', anggota.id_halaqah);
+      _check(error, 'simpanFollowupKeaktifan');
+    }
     return { status: 'ok' };
   },
 
