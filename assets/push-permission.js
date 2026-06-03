@@ -199,16 +199,15 @@ window._pushAllow = async function() {
     if (typeof toast === 'function') toast('🔔 Notifikasi berhasil diaktifkan!', 'ok');
   } catch(e) {
     console.warn('Push subscribe error:', e);
+    console.warn('Error name:', e && e.name);
+    console.warn('Error msg:', e && e.message);
+    console.warn('HQ loaded:', typeof window.HQ);
     if (btn) {
       btn.disabled = false;
-      // Cek jenis error untuk pesan yang tepat
-      var msg = '⚠️ Gagal — coba lagi';
-      if (e && e.name === 'NotAllowedError') {
-        msg = '🚫 Izin ditolak — aktifkan di pengaturan browser';
-      } else if (e && (e.name === 'AbortError' || (e.message && e.message.includes('push service')))) {
-        msg = '🔄 Coba lagi (refresh halaman dulu)';
-      }
-      btn.innerHTML = msg;
+      // Tampilkan detail error agar bisa didiagnosis
+      var errName = (e && e.name) || 'Unknown';
+      var errMsg  = (e && e.message) ? e.message.slice(0,40) : 'no message';
+      btn.innerHTML = '❌ ' + errName + ': ' + errMsg;
     }
   }
 };
