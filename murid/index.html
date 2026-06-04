@@ -4066,7 +4066,7 @@ function openProgressBreakdown() {
 
   var _level = ang.level || '–';
   var isQiyam = (_level === 'Level Qiyam');
-  var isMicro = (_level === 'Micro Teaching' || (dashData.micro_teaching && dashData.micro_teaching.terakhir !== null));
+  var isMicro = (_level === 'Micro Teaching');
 
   if (bodyEl) {
     if (isQiyam) {
@@ -4541,7 +4541,7 @@ async function loadDashboard() {
     document.getElementById('dashTarget').textContent = tLevel || '–';
 
     var isQiyam = (_level === 'Level Qiyam');
-    var isMicro = (_level === 'Micro Teaching' || (d.micro_teaching && d.micro_teaching.terakhir !== null));
+    var isMicro = (_level === 'Micro Teaching');
 
     // Reset default elements
     if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'inline';
@@ -4754,7 +4754,6 @@ async function loadDashboard() {
             + '</div>';
         }).join('') + (prAktif.length > 2 ? '<div style="font-size:12px;color:var(--text-3);padding-top:6px">+' + (prAktif.length-2) + ' latihan lainnya</div>' : '');
       }
-    }
 
     // Pengumuman preview
     renderPengumumanList(d.pengumuman || [], 'dashPengumuman', 2);
@@ -5203,6 +5202,7 @@ function renderRiwayat(rows) {
       + '<div class="riwayat-materi">'+(k.materi||'(Belum ada materi)')+'</div>'
       + '<div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">'
       + '<span class="badge '+hBadge+'">'+hLbl+'</span>'
+      + (k.jenis_sesi === 'Micro Teaching' ? '<span class="badge b-purple">Micro Teaching</span>' : '')
       + (!isAbsen && k.adab ? '<span class="badge '+adabBadge+'">'+esc(k.adab)+'</span>' : '')
       + (!isAbsen && k.kamera_murid ? '<span class="badge '+kamBadge+'">📷 '+kamText+'</span>' : '')
       + '</div>'
@@ -8128,6 +8128,7 @@ function bukaKalDetail(dateStr) {
         + '<div class="kal-sesi-materi">' + esc(k.materi || '(Belum ada materi)') + '</div>'
         + '<div class="kal-sesi-meta">'
         + '<span style="font-weight:700;color:'+hClr+'">'+hLbl+'</span>'
+        + (k.jenis_sesi === 'Micro Teaching' ? ' · <span style="color:#6d28d9;font-weight:700;">MT</span>' : '')
         + ' · Sesi ke-' + esc(k.pertemuan_ke)
         + (k.adab ? ' · Adab: <strong>'+esc(k.adab)+'</strong>' : '')
         + (k.kamera_murid ? ' · Kamera: <strong>'+esc(k.kamera_murid)+'</strong>' : '')

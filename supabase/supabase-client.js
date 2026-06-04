@@ -1404,7 +1404,7 @@ var MuridAPI = {
     } else if (anggota && (anggota.level === 'Micro Teaching' || (anggota.halaqah && anggota.halaqah.level === 'Micro Teaching'))) {
       nilai = nilai.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
     } else {
-      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
+      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler' || n.jenis_sesi === 'Micro Teaching'; });
     }
 
     var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
@@ -1498,6 +1498,11 @@ var MuridAPI = {
     var kamSegtup   = kameraData.filter(function(n){ return n.kamera_murid==='kamera sering tertutup'; }).length;
     var poinKamera  = kameraData.length > 0 ? Math.round(kamTerbuka/kameraData.length*100) : undefined;
     var hq = (anggota && anggota.halaqah) || {};
+
+    var regulerNilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
+    var regHadir     = regulerNilai.filter(function(n) { return n.status_hadir === 'H' || n.status_hadir === 'T'; }).length;
+    var regTotalSesi = regulerNilai.length;
+
     return { status: 'ok', data: {
       anggota,
       profil  : user,
@@ -1511,12 +1516,12 @@ var MuridAPI = {
         id_halaqah: hq.id_halaqah   || '',
       },
       kehadiran: {
-        skor_hadir  : totalHadir,
-        skor_dari_40: Math.min(Math.round(totalHadir / 40 * 100), 100),
+        skor_hadir  : regHadir,
+        skor_dari_40: Math.min(Math.round(regHadir / 40 * 100), 100),
         pct_hadir   : pctHadir,
         total_hadir : totalHadir,
         total_sesi  : totalSesi,
-        sisa_sesi   : Math.max(0, 40 - totalSesi),
+        sisa_sesi   : Math.max(0, 40 - regTotalSesi),
         count_h     : countH,
         count_t     : countT,
         count_i     : countI,
@@ -1563,7 +1568,7 @@ var MuridAPI = {
     } else if (ang && ang.level === 'Micro Teaching') {
       q = q.eq('jenis_sesi', 'Micro Teaching');
     } else {
-      q = q.eq('jenis_sesi', 'KBM Reguler');
+      q = q.in('jenis_sesi', ['KBM Reguler', 'Micro Teaching']);
     }
 
     var { data, error, count } = await q
