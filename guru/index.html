@@ -1499,6 +1499,23 @@ html.theme-dark .pd-nas-intro{color:#94c6e0!important}
 html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 
 /* Rubrik Micro Teaching */
+.rubrik-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .rubrik-options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+@media (max-width: 380px) {
+  .rubrik-options {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
 .rubrik-option { position: relative; }
 .rubrik-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
 .rubrik-option label {
@@ -3789,6 +3806,8 @@ function renderPresensi() {
     const jenisSesi = sesiAktif && sesiAktif.jenis_sesi;
     if (jenisSesi === 'KBM Qiyam') {
       btnLanjut.textContent = 'Input Hafalan →';
+    } else if (jenisSesi === 'Micro Teaching') {
+      btnLanjut.textContent = 'Input Nilai/Assessment →';
     } else {
       btnLanjut.textContent = isReguler ? 'Lanjut ke Nilai →' : 'Selesaikan Sesi →';
     }
@@ -4427,41 +4446,43 @@ function buildMicroteachingCard(m) {
       return '<div class="rubrik-option ' + o.cls + '">'
         + '<input type="radio" name="mt-' + id + '-' + k.id + '" id="' + radioId + '" value="' + o.val + '"'
           + ' onchange="updateMicroteachingScore(\'' + id + '\')">'
-        + '<label for="' + radioId + '" style="display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 4px; border:1px dashed var(--border); border-radius:8px; cursor:pointer; text-align:center; font-size:10px; min-height:85px; justify-content:center; width:100%; box-sizing:border-box;">'
-          + '<span style="font-size:13px; font-weight:800; line-height:1">' + o.val + '</span>'
-          + '<span style="font-size:9px; font-weight:700">' + o.code + '</span>'
-          + '<span style="font-size:8px; opacity:0.75; line-height:1.2; display:block; margin-top:2px;">' + k.desc[oi] + '</span>'
+        + '<label for="' + radioId + '" style="display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 6px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; text-align:center; font-size:10px; min-height:85px; justify-content:center; width:100%; box-sizing:border-box;">'
+          + '<span style="font-size:14px; font-weight:800; line-height:1">' + o.val + '</span>'
+          + '<span style="font-size:10px; font-weight:700; margin:1px 0">' + o.code + '</span>'
+          + '<span style="font-size:8.5px; opacity:0.8; line-height:1.25; display:block; margin-top:2px;">' + k.desc[oi] + '</span>'
         + '</label>'
       + '</div>';
     }).join('');
-    return '<div class="rubrik-item" style="border-bottom:1px solid var(--border); padding:12px 0;">'
-      + '<div class="rubrik-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">'
-        + '<div style="font-size:12.5px; font-weight:800; color:var(--text)">' + k.label + '</div>'
-        + '<div style="font-size:9.5px; color:var(--text-3); font-weight:700; background:var(--bg-3); padding:2px 8px; border-radius:100px;">Bobot ' + Math.round(k.bobot*100) + '%</div>'
+    return '<div class="rubrik-item" style="border-bottom:1px solid var(--border); padding:16px 0;">'
+      + '<div class="rubrik-label" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">'
+        + '<div class="rubrik-title-chip" style="background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #c2410c; border: 1px solid #f97316; padding: 4px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; box-shadow: 0 2px 4px rgba(249,115,22,0.08);">'
+          + '✨ ' + k.label
+        + '</div>'
+        + '<div style="font-size:11px; color:#1e3a8a; font-weight:800; background:#dbeafe; border: 1px solid #3b82f6; padding:4px 12px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(59,130,246,0.08);">⚖️ Bobot ' + Math.round(k.bobot*100) + '%</div>'
       + '</div>'
-      + '<div class="rubrik-options" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">' + opts + '</div>'
+      + '<div class="rubrik-options">' + opts + '</div>'
     + '</div>';
   }).join('');
 
-  return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:16px; border-radius:14px; overflow:hidden; border:1px solid var(--border);">'
-    + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff;">'
+  return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:24px; border-radius:16px; overflow:hidden; border:1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">'
+    + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff;">'
       + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
       + '<div>'
-        + '<div class="student-name" style="font-size:14px; font-weight:800;">👤 ' + esc(m.nama_murid) + '</div>'
+        + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">👤 ' + esc(m.nama_murid) + '</div>'
       + '</div>'
-      + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 10px; font-size:12px; font-weight:900;">— / 100</div>'
+      + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 12px; font-size:12px; font-weight:900; letter-spacing: 0.04em;">— / 100</div>'
     + '</div>'
-    + '<div class="rubrik-wrap" style="padding:10px 16px;">' + rubrikHTML + '</div>'
-    + '<div class="score-bar-wrap" style="padding:10px 16px; background:var(--bg-2); border-top:1px solid var(--border);">'
-      + '<div class="score-bar-label" style="font-size:11px; font-weight:700; color:var(--text-3); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">'
-        + '<span>Nilai Akhir terhitung</span>'
-        + '<strong id="mt-score-txt-' + id + '" style="font-size:13px; color:var(--blue)">—</strong>'
+    + '<div class="rubrik-wrap" style="padding:12px 18px;">' + rubrikHTML + '</div>'
+    + '<div id="mt-score-panel-' + id + '" style="padding:16px 18px; background:var(--bg-2); border-top:1.5px solid var(--border); border-bottom:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; transition:all 0.3s; margin: 8px 0;">'
+      + '<div>'
+        + '<div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-3); margin-bottom:2px;">Nilai Akhir Terhitung</div>'
+        + '<div id="mt-score-desc-' + id + '" style="font-size:12px; color:var(--text-2);">0/5 kriteria diisi</div>'
       + '</div>'
-      + '<div class="score-bar-track" style="height:6px; background:#e2e8f0; border-radius:100px; overflow:hidden;"><div class="score-bar-fill" id="mt-score-bar-' + id + '" style="width:0%; height:100%; transition:width 0.3s;"></div></div>'
+      + '<div id="mt-score-box-' + id + '" style="background:#94a3b8; color:#fff; font-size:22px; font-weight:900; width:60px; height:60px; border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.05); flex-shrink:0; transition:all 0.3s;">—</div>'
     + '</div>'
-    + '<div class="catatan-wrap" style="padding:10px 16px;">'
-      + '<label style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-3); display:block; margin-bottom:4px;">Catatan Penilaian</label>'
-      + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12px; resize:vertical; padding:8px;"></textarea>'
+    + '<div class="catatan-wrap" style="padding:12px 18px 18px;">'
+      + '<label style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-3); display:block; margin-bottom:6px;">Catatan Penilaian</label>'
+      + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12.5px; resize:vertical; padding:10px; border-radius:10px; border: 1.5px solid var(--border);"></textarea>'
     + '</div>'
     + '</div>';
 }
@@ -4475,23 +4496,64 @@ function updateMicroteachingScore(id) {
   var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
 
   var badgeEl  = document.getElementById('mt-score-badge-' + id);
-  var txtEl    = document.getElementById('mt-score-txt-'   + id);
-  var barEl    = document.getElementById('mt-score-bar-'   + id);
-  if (!badgeEl || !txtEl || !barEl) return;
+  var descEl   = document.getElementById('mt-score-desc-'  + id);
+  var boxEl    = document.getElementById('mt-score-box-'   + id);
+  var panelEl  = document.getElementById('mt-score-panel-' + id);
 
   if (score !== null) {
     var s = score;
-    var color = s >= 88 ? 'var(--green-txt)' : s >= 75 ? 'var(--blue-txt)' : s >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
-    badgeEl.textContent = s + ' / 100';
-    txtEl.textContent   = s;
-    txtEl.style.color   = color;
-    barEl.style.width   = s + '%';
-    barEl.style.background = color;
+    var bg = '#16a34a'; // default green (Sangat Baik)
+    var border = '#f0fdf4';
+    var borderLine = '#bbf7d0';
+    var text = '#15803d';
+    if (s < 60) {
+      bg = '#dc2626'; // red
+      border = '#fef2f2';
+      borderLine = '#fecaca';
+      text = '#b91c1c';
+    } else if (s < 75) {
+      bg = '#d97706'; // amber
+      border = '#fffbeb';
+      borderLine = '#fde68a';
+      text = '#b45309';
+    } else if (s < 88) {
+      bg = '#2563eb'; // blue
+      border = '#eff6ff';
+      borderLine = '#bfdbfe';
+      text = '#1d4ed8';
+    }
+
+    if (badgeEl) badgeEl.textContent = s + ' / 100';
+    if (descEl) {
+      descEl.innerHTML = 'Semua kriteria terisi. Predikat: <strong style="font-weight:800">' + (s >= 88 ? 'Sangat Baik' : s >= 75 ? 'Baik' : s >= 60 ? 'Cukup' : 'Perlu Perbaikan') + '</strong>';
+      descEl.style.color = text;
+    }
+    if (boxEl) {
+      boxEl.textContent = s;
+      boxEl.style.background = bg;
+      boxEl.style.boxShadow = '0 4px 12px ' + bg + '40';
+      boxEl.style.transform = 'scale(1.05)';
+    }
+    if (panelEl) {
+      panelEl.style.background = border;
+      panelEl.style.borderColor = borderLine;
+    }
   } else {
-    badgeEl.textContent = filled + '/' + KRITERIA_MT.length + ' terisi';
-    txtEl.textContent   = '—';
-    barEl.style.width   = (filled / KRITERIA_MT.length * 40) + '%';
-    barEl.style.background = '#94a3b8';
+    if (badgeEl) badgeEl.textContent = filled + '/' + KRITERIA_MT.length + ' terisi';
+    if (descEl) {
+      descEl.textContent = filled + ' dari ' + KRITERIA_MT.length + ' kriteria diisi';
+      descEl.style.color = 'var(--text-2)';
+    }
+    if (boxEl) {
+      boxEl.textContent = '—';
+      boxEl.style.background = '#94a3b8';
+      boxEl.style.boxShadow = 'none';
+      boxEl.style.transform = 'scale(1)';
+    }
+    if (panelEl) {
+      panelEl.style.background = 'var(--bg-2)';
+      panelEl.style.borderColor = 'var(--border)';
+    }
   }
 }
 
