@@ -3511,8 +3511,20 @@ async function doBukaKBM() {
     });
     sesiAktif      = r.data;
     muridSesi      = await getMurid(id_halaqah);
-    doaSudahMuncul = false;       // Reset agar popup muncul
-    window._nilaiCache = {};      // Pastikan cache nilai bersih untuk sesi baru
+    doaSudahMuncul = false;
+    // Reset SEMUA cache dan nilai lama agar tidak terbawa ke sesi baru
+    window._nilaiCache      = {};
+    window._hafalanKbmCache = {};
+    window._hfKbmZiyadah   = {};
+    window._lastTargetDataKbm = null;
+    // Reset form jurnal
+    ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline'].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    // Reset nilai murid dari sesi sebelumnya (bersihkan DOM dari sesi lama)
+    document.querySelectorAll('[id^="adab-"],[id^="kamera-"],[id^="koreksi-"],[id^="catatan-"],[id^="nilai-"]').forEach(function(el){
+      el.value = '';
+    });
 
     hideLoad();
     setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
@@ -3738,11 +3750,27 @@ function renderHafalanKbm() {
     var badge    = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'}[status]||'b-green';
     var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
 
+    // Target hafalan sebelumnya — chip collapsible
+    var targetInfo = _targetMapKbm[mid];
+    var targetChip = '';
+    if (targetInfo && targetInfo.target_surat) {
+      targetChip = '<details style="margin-bottom:10px;border:1px solid #bfdbfe;border-radius:9px;overflow:hidden">'
+        + '<summary style="background:#eff6ff;padding:7px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#1d4ed8;list-style:none;display:flex;align-items:center;gap:6px">'
+          + '🎯 Target sebelumnya: <strong>' + esc(targetInfo.target_surat) + '</strong>'
+          + ' &nbsp;·&nbsp; Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-')
+          + '<span style="margin-left:auto;font-size:10px;opacity:.6">▼ detail</span>'
+        + '</summary>'
+        + '<div style="padding:8px 12px;font-size:11px;color:#374151;background:#f8faff">'
+          + 'Ditetapkan oleh <strong>' + esc(targetInfo.nama_guru||'Guru') + '</strong>'
+        + '</div>'
+      + '</details>';
+    }
     return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
       + '<div class="nm-header" style="margin-bottom:12px">'
         + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
         + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
       + '</div>'
+      + targetChip
       // Row 1: Jenis | Juz | Surat
       + '<div style="display:grid;grid-template-columns:110px 80px 1fr;gap:8px;margin-bottom:8px">'
         + '<div><div class="nm-section-label">Jenis</div>'
@@ -4010,15 +4038,31 @@ function hfKbmTargetSuratInput(mid, q) {
     .slice(0,10);
   if (!list.length) { dd.style.display='none'; return; }
   dd.innerHTML = list.map(function(s) {
-    return '<div style="padding:6px 10px;cursor:pointer;font-size:12px;border-radius:7px" '
-      + 'data-latin="' + esc(s.latin) + '" data-mid="' + esc(mid) + '" '
-      + 'onmouseover="this.style.background=\'#f0f9ff\'" onmouseout="this.style.background=\'\'" '
-      + 'onmousedown="document.getElementById(\'hfkbm-tgt-surat-' + eid + '\').value=this.dataset.latin;document.getElementById(\'hfkbm-tgt-dd-' + eid + '\').style.display=\'none\'">'
+    var safeJson = JSON.stringify({latin:s.latin,ayat:s.ayat}).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return '<div class="hfkbm-dd-opt" style="padding:6px 10px;font-size:12px;border-radius:7px" '
+      + 'data-latin="' + esc(s.latin) + '" data-info="' + safeJson + '" data-mid="' + esc(mid) + '" '
+      + 'onmousedown="hfKbmSelectTargetSurat(this)">'
       + esc(s.latin) + ' <span style="color:#9ca3af;font-size:10px">' + s.ayat + ' ayat</span>'
     + '</div>';
   }).join('');
   dd.style.display = 'block';
 }
+
+function hfKbmSelectTargetSurat(el) {
+  var mid   = el.dataset.mid;
+  var eid   = _hfKbmEid(mid);
+  var latin = el.dataset.latin;
+  var info  = JSON.parse(el.dataset.info.replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>'));
+  var inputEl = document.getElementById('hfkbm-tgt-surat-' + eid);
+  var ddEl    = document.getElementById('hfkbm-tgt-dd-' + eid);
+  var dariEl  = document.getElementById('hfkbm-tgt-dari-' + eid);
+  var smpiEl  = document.getElementById('hfkbm-tgt-sampai-' + eid);
+  if (inputEl) inputEl.value = latin;
+  if (ddEl)    ddEl.style.display = 'none';
+  if (dariEl)  { dariEl.max = info.ayat; if (parseInt(dariEl.value)  > info.ayat) dariEl.value  = info.ayat; }
+  if (smpiEl)  { smpiEl.max = info.ayat; if (parseInt(smpiEl.value)  > info.ayat) smpiEl.value  = info.ayat; }
+}
+
 
 function updateHfKbmPoin(mid) {
   var eid     = _hfKbmEid(mid);
@@ -5291,6 +5335,13 @@ function showPreview() {
   const BADGE_PV = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
   nilaiList.innerHTML = nilaiItems.map(m => {
     const skipStatus = m.status === 'A' || m.status === 'I';
+    // Fix 5: KBM Qiyam — hanya tampilkan nama + badge presensi, tanpa adab/kamera
+    if (isQiyamPreview) {
+      return '<div class="preview-murid-item">'
+        + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
+        + '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>'
+      + '</div>';
+    }
     return '<div class="preview-murid-item">'
       + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
       + '<div style="display:flex;gap:6px;align-items:center">'
@@ -7799,6 +7850,7 @@ async function loadTargetHafalanGuru(id_halaqah) {
         + '</div>'
       + '</div>';
     }).join('');
+    window._lastTargetDataKbm = list;  // Untuk dipakai di buildCard KBM Qiyam
     card.style.display = 'block';
   } catch(e) {
     card.style.display = 'none';

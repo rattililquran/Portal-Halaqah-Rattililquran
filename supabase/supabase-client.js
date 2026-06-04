@@ -301,9 +301,12 @@ var GuruAPI = {
       .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
     if (draft) return { status: 'error', message: 'Masih ada sesi yang belum ditutup: ' + draft.id_kbm };
 
-    // Hitung pertemuan_ke
-    var { count } = await _sb.from('kbm_log').select('*', { count: 'exact', head: true })
-      .eq('id_halaqah', d.id_halaqah).eq('status', 'selesai');
+    // Hitung pertemuan_ke — pisahkan counter KBM Reguler dan KBM Qiyam
+    var isKbmQiyam = d.jenis_sesi === 'KBM Qiyam';
+    var countQ = _sb.from('kbm_log').select('*', { count: 'exact', head: true })
+      .eq('id_halaqah', d.id_halaqah).eq('status', 'selesai')
+      .eq('jenis_sesi', isKbmQiyam ? 'KBM Qiyam' : 'KBM Reguler');
+    var { count } = await countQ;
 
     var id_kbm = _genId('KBM');
     var { data, error } = await _sb.from('kbm_log').insert({
