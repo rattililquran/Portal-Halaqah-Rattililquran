@@ -293,6 +293,40 @@ tr:hover td{background:#f8fafc}
   #hafalanTargetGuruGrid{grid-template-columns:1fr!important}
   .rt-stat-grid{grid-template-columns:repeat(2,1fr)!important}
 }
+/* Target student card (inside target grid) */
+.hf-target-murid-card{background:#f8faff;border:1px solid #e0eaff}
+html.theme-dark .hf-target-murid-card{background:#1e2128!important;border-color:rgba(56,189,248,.15)!important}
+html.theme-dark .hf-target-murid-card [style*="color:#111827"]{color:#f0f2f8!important}
+html.theme-dark .hf-target-murid-card [style*="color:#6b7280"]{color:#9ca3af!important}
+/* Target guru outer card */
+html.theme-dark #hafalanTargetGuruCard{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanTargetGuruCard [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#1e2128)!important}
+html.theme-dark #hafalanTargetGuruCard [style*="color:#111827"]{color:#f0f2f8!important}
+html.theme-dark #hafalanTargetGuruCard [style*="color:#9ca3af"]{color:#6b7280!important}
+html.theme-dark #hafalanTargetGuruCard [style*="background:#dbeafe"]{background:rgba(56,189,248,.15)!important;color:#7dd3fc!important;border-color:rgba(56,189,248,.25)!important}
+html.theme-dark #hafalanTargetGuruCard [style*="border-bottom:1px solid #f0f0f0"]{border-color:rgba(255,255,255,.06)!important}
+/* Form wrap title */
+html.theme-dark #hafalanFormWrap [style*="color:#111827"]{color:#f0f2f8!important}
+html.theme-dark #hafalanFormWrap [style*="color:#15803d"]{color:#34d399!important}
+html.theme-dark #hafalanFormWrap [style*="color:#166534"]{color:#6ee7b7!important}
+html.theme-dark #hafalanFormWrap [style*="color:#4ade80"]{color:#6ee7b7!important}
+html.theme-dark #hafalanFormWrap [style*="background:#f0fdf4"]{background:rgba(52,211,153,.08)!important}
+html.theme-dark #hafalanFormWrap [style*="border:1.5px dashed #86efac"]{border-color:rgba(52,211,153,.3)!important}
+html.theme-dark #hafalanFormWrap [style*="background:linear-gradient(135deg,#1d4ed8"]{background:linear-gradient(135deg,#1e3a6e,#1d4ed8)!important}
+/* Submit button readability */
+html.theme-dark #btnSubmitHafalan{box-shadow:0 4px 14px rgba(29,78,216,.4)!important}
+/* Raport filter bar */
+html.theme-dark #page-raport-tahfidz [style*="background:#fff"]{background:#1e2128!important}
+html.theme-dark #page-raport-tahfidz [style*="border:1px solid #e5e7eb"]{border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #page-raport-tahfidz [style*="color:#111827"]{color:#f0f2f8!important}
+html.theme-dark #page-raport-tahfidz [style*="color:#374151"]{color:#b0b7c3!important}
+html.theme-dark #page-raport-tahfidz [style*="color:#6b7280"]{color:#9ca3af!important}
+html.theme-dark #rtEmpty [style*="color:#374151"]{color:#b0b7c3!important}
+html.theme-dark #rtEmpty [style*="color:#9ca3af"]{color:#6b7280!important}
+/* Penilaian bacaan section */
+html.theme-dark [style*="background:linear-gradient(135deg,#eff6ff,#f0f9ff)"]{background:#1a2336!important;border-color:rgba(56,189,248,.2)!important}
+html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{color:#38bdf8!important}
+/* Hf-pn-row */
 /* Hafalan penilaian item */
 .hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
 .hf-pn-row:last-child{margin-bottom:0}
@@ -2159,12 +2193,6 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
           </div>
         </div>
 
-        <!-- ── Pilih Halaqah Qiyam ── -->
-        <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label style="font-size:12px;font-weight:700;color:#6b7280;white-space:nowrap">Halaqah:</label>
-          <select class="fc" id="hafalanGuruHalaqahSel" onchange="onHafalanHalaqahChange()" style="min-width:180px;flex:1;max-width:280px"></select>
-        </div>
-
         <!-- ════ KARTU TARGET HAFALAN MURID ════ -->
         <div id="hafalanTargetGuruCard" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;margin-bottom:16px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:linear-gradient(90deg,#eef3fb,#fff);border-bottom:1px solid #f0f0f0">
@@ -2184,7 +2212,13 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 
         <!-- ════ FORM INPUT SETORAN ════ -->
         <div id="hafalanFormWrap" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:16px">
-          <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:14px">📝 Input Setoran Hafalan</div>
+          <div style="font-size:13px;font-weight:800;color:var(--text,#111827);margin-bottom:14px">📝 Input Setoran Hafalan</div>
+
+          <!-- Halaqah — full width di atas grid -->
+          <div style="margin-bottom:12px">
+            <label class="hf-lbl">Halaqah Qiyam</label>
+            <select class="fc" id="hafalanGuruHalaqahSel" onchange="onHafalanHalaqahChange()"></select>
+          </div>
 
           <!-- GRID TUNGGAL 6 kolom — semua baris berbagi kolom yang sama agar simetris -->
           <div class="hf-grid-6" style="margin-bottom:10px">
@@ -2205,8 +2239,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               <select class="fc" id="hafalanJenisSel" onchange="onHafalanJenisChange()">
                 <option value="Ziyadah">📖 Ziyadah (Hafalan Baru)</option>
                 <option value="Murajaah">🔄 Murajaah (Mengulang)</option>
-                <option value="Tasmi'">🎤 Tasmi' (Menyimakkan)</option>
-                <option value="Sabqi">⚡ Sabqi (Hafalan Cepat)</option>
+                <option value="Tahsin">✨ Tahsin (Perbaikan Bacaan)</option>
               </select>
             </div>
 
@@ -7251,7 +7284,7 @@ async function loadTargetHafalanGuru(id_halaqah) {
     grid.innerHTML = list.map(function(t) {
       var initial = (t.nama_murid || '?').charAt(0).toUpperCase();
       var tgl     = t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
-      return '<div style="display:flex;align-items:flex-start;gap:10px;background:#f8faff;border:1px solid #e0eaff;border-radius:12px;padding:11px 13px">'
+      return '<div class="hf-target-murid-card" style="display:flex;align-items:flex-start;gap:10px;border-radius:12px;padding:11px 13px">'
         + '<div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + initial + '</div>'
         + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:12px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.nama_murid || '-') + '</div>'
@@ -7753,7 +7786,7 @@ async function loadRiwayatHafalan(more) {
     var data = res.data || [];
     _hafalanGuruOffset += data.length;
     if (!more && listEl) listEl.innerHTML = '';
-    var jenisIcon = { Ziyadah:'📖', Murajaah:'🔄', "Tasmi'":'🎤', Sabqi:'⚡' };
+    var jenisIcon = { Ziyadah:'📖', Murajaah:'🔄', Tahsin:'✨' };
     var nilaiCls  = { A:'background:#dbeafe;color:#1d4ed8', B:'background:#d1fae5;color:#065f46', C:'background:#fef3c7;color:#92400e' };
     if (listEl) listEl.innerHTML += data.map(function(r) {
       var catHtml = r.catatan ? '<div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:11px;color:#78350f;font-style:italic">' + esc(r.catatan) + '</div>' : '';
@@ -7894,7 +7927,7 @@ function _rtHitungPoin(nilai, kelancaran, cfg) {
 // ── Build raport data per murid ─────────────────────────────────────────
 function _rtBuildMuridRaport(murid, setoran, cfg) {
   var totalPoin = 0, nilaiA = 0, nilaiB = 0, nilaiC = 0;
-  var jenisCnt  = { Ziyadah: 0, Murajaah: 0, "Tasmi'": 0, Sabqi: 0 };
+  var jenisCnt  = { Ziyadah: 0, Murajaah: 0, Tahsin: 0 };
   var bulananMap = {};
   var juzMap     = {};
   var suratMap   = {};
@@ -8011,8 +8044,7 @@ function _rtRenderMuridCard(r, periodeInfo, idx) {
     + '<div class="rt-stat-grid">'
       + _rtStatBox(r.jenisCnt['Ziyadah']||0, 'Ziyadah', '📖', '#dbeafe', '#1d4ed8')
       + _rtStatBox(r.jenisCnt['Murajaah']||0, 'Murajaah', '🔄', '#d1fae5', '#065f46')
-      + _rtStatBox(r.jenisCnt["Tasmi'"]||0, "Tasmi'", '🎤', '#ede9fe', '#6d28d9')
-      + _rtStatBox(r.jenisCnt['Sabqi']||0, 'Sabqi', '⚡', '#fef3c7', '#92400e')
+      + _rtStatBox(r.jenisCnt['Tahsin']||0, 'Tahsin', '✨', '#fef9c3', '#854d0e')
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'
       + _rtStatBox(r.nilaiA, 'Nilai A', '⭐', '#dbeafe', '#1d4ed8')
