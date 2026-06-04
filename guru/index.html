@@ -4494,12 +4494,16 @@ function buildMicroteachingCard(m) {
 }
 
 function updateMicroteachingScore(id) {
-  var total = 0; var filled = 0;
+  var total = 0; var filled = 0; var filledBobot = 0;
   KRITERIA_MT.forEach(function(k) {
     var checked = document.querySelector('input[name="mt-'+id+'-'+k.id+'"]:checked');
-    if (checked) { total += parseInt(checked.value) * k.bobot; filled++; }
+    if (checked) {
+      total += parseInt(checked.value) * k.bobot;
+      filled++;
+      filledBobot += k.bobot;
+    }
   });
-  var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+  var score = filled > 0 ? Math.round((total / filledBobot) * 25) : null;
 
   var badgeEl  = document.getElementById('mt-score-badge-' + id);
   var descEl   = document.getElementById('mt-score-desc-'  + id);
@@ -4531,7 +4535,9 @@ function updateMicroteachingScore(id) {
 
     if (badgeEl) badgeEl.textContent = s + ' / 100';
     if (descEl) {
-      descEl.innerHTML = 'Semua kriteria terisi. Predikat: <strong style="font-weight:800">' + (s >= 88 ? 'Sangat Baik' : s >= 75 ? 'Baik' : s >= 60 ? 'Cukup' : 'Perlu Perbaikan') + '</strong>';
+      var prefix = filled === KRITERIA_MT.length ? 'Semua kriteria terisi. Predikat: ' : (filled + '/' + KRITERIA_MT.length + ' kriteria. Estimasi: ');
+      var predikat = s >= 88 ? 'Sangat Baik' : s >= 75 ? 'Baik' : s >= 60 ? 'Cukup' : 'Perlu Perbaikan';
+      descEl.innerHTML = prefix + '<strong style="font-weight:800">' + predikat + '</strong>';
       descEl.style.color = text;
     }
     if (boxEl) {
@@ -4545,9 +4551,9 @@ function updateMicroteachingScore(id) {
       panelEl.style.borderColor = borderLine;
     }
   } else {
-    if (badgeEl) badgeEl.textContent = filled + '/' + KRITERIA_MT.length + ' terisi';
+    if (badgeEl) badgeEl.textContent = '0/' + KRITERIA_MT.length + ' terisi';
     if (descEl) {
-      descEl.textContent = filled + ' dari ' + KRITERIA_MT.length + ' kriteria diisi';
+      descEl.textContent = '0 dari ' + KRITERIA_MT.length + ' kriteria diisi';
       descEl.style.color = 'var(--text-2)';
     }
     if (boxEl) {
