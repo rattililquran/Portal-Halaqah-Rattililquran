@@ -4110,12 +4110,8 @@ function startApp() {
     ? '<img src="'+savedFoto+'" class="nav-profile-avatar" alt="">'
     : '<img src="'+_logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
   updateSidebarInfo();
-  // Tampilkan badge lonceng dari log lokal sebelum API selesai
-  var _logEarly = _loadNotifLog();
-  if (_logEarly.length > 0) {
-    var _bell = document.getElementById('bell-badge');
-    if (_bell) { _bell.textContent = _logEarly.length; _bell.style.display = 'flex'; }
-  }
+  // Badge lonceng awal dari keaktifan log lokal (sebelum API selesai)
+  _updateBellBadge(_loadNotifLog().length, 0);
   resetMuridSession();
   startMuridAutoRefresh();
   loadDashboard();
@@ -4423,102 +4419,193 @@ function _notifKey() {
 function _loadNotifLog() {
   try { return JSON.parse(localStorage.getItem(_notifKey()) || '[]'); } catch(e) { return []; }
 }
-
 function _saveNotifLog(log) {
   localStorage.setItem(_notifKey(), JSON.stringify(log));
 }
 
-// Tambah alert baru ke log jika belum pernah dicatat (by tipe+judul)
+// Key untuk followup_at guru (kapan guru terakhir handle keaktifan)
+function _followupKey() {
+  var us = window.HQ && window.HQ.Auth && window.HQ.Auth.getUser();
+  return 'murid_followup_at_' + (us ? us.id_user : 'x');
+}
+function _loadFollowupAt() { return localStorage.getItem(_followupKey()) || null; }
+function _saveFollowupAt(val) {
+  if (val) localStorage.setItem(_followupKey(), val);
+  else localStorage.removeItem(_followupKey());
+}
+
+// Upsert keaktifan log per tipe (agar data selalu fresh, bukan duplikat)
 function _appendNotifLog(alerts) {
   var log = _loadNotifLog();
   var changed = false;
   alerts.forEach(function(alert) {
-    var uid = (alert.tipe || '') + '|' + (alert.judul || '');
-    var exists = log.some(function(n) { return n._uid === uid; });
-    if (!exists) {
-      log.unshift({ _uid: uid, _ts: new Date().toISOString(), tipe: alert.tipe, judul: alert.judul, pesan: alert.pesan, detail: alert.detail });
-      changed = true;
-    }
+    var idx = log.findIndex(function(n) { return n.tipe === alert.tipe; });
+    var entry = { _ts: new Date().toISOString(), tipe: alert.tipe, judul: alert.judul, pesan: alert.pesan, detail: alert.detail };
+    if (idx >= 0) { Object.assign(log[idx], entry); changed = true; }
+    else { log.unshift(entry); changed = true; }
   });
   if (changed) _saveNotifLog(log);
 }
 
-function _renderNotifModal() {
+// Jumlah keaktifan aktif + inbox unread → badge lonceng
+var _keaktifanActiveCount = 0;
+var _inboxUnreadCount = 0;
+
+function _updateBellBadge(keaktifanCount, inboxCount) {
+  if (keaktifanCount !== null) _keaktifanActiveCount = keaktifanCount || 0;
+  if (inboxCount     !== null) _inboxUnreadCount     = inboxCount     || 0;
+  var total = _keaktifanActiveCount + _inboxUnreadCount;
+  var badge = document.getElementById('bell-badge');
+  if (!badge) return;
+  badge.textContent  = total > 0 ? total : '';
+  badge.style.display = total > 0 ? 'flex' : 'none';
+}
+
+// Render bagian keaktifan (permanen) saja — sync, dari localStorage
+function _buildKeaktifanHTML() {
   var log = _loadNotifLog();
-  var modalBody = document.getElementById('notificationModalBody');
-  var bellBadge = document.getElementById('bell-badge');
-  if (!modalBody) return;
+  if (!log.length) return '';
+  var followupAt = _loadFollowupAt();
 
-  if (log.length === 0) {
-    modalBody.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-3);">'
-      + '<div style="font-size:40px;margin-bottom:12px;">📭</div>'
-      + '<div style="font-weight:600;font-size:14px;">Belum ada catatan notifikasi</div>'
-      + '</div>';
-    if (bellBadge) { bellBadge.textContent = '0'; bellBadge.style.display = 'none'; }
-    return;
-  }
-
-  if (bellBadge) { bellBadge.textContent = log.length; bellBadge.style.display = 'flex'; }
-
-  var html = '<div style="font-size:11px;color:var(--text-3);padding:0 2px 10px;font-weight:600;">'
-    + 'Catatan ini menetap sebagai pengingat. Total ' + log.length + ' catatan.'
+  var html = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;padding:0 2px 8px;display:flex;align-items:center;gap:6px;">'
+    + '<span>⚠️</span> Catatan Keaktifan <span style="background:var(--text-3);color:#fff;border-radius:99px;padding:1px 6px;font-size:10px;">' + log.length + '</span>'
+    + '<span style="font-size:10px;font-weight:600;color:var(--text-3);margin-left:auto;">Permanen</span>'
     + '</div>';
 
-  log.forEach(function(n, idx) {
-    var isKritis = n.tipe === 'absen_kritis';
-    var bg     = isKritis ? 'var(--red-l)'   : 'var(--amber-l)';
-    var border = isKritis ? 'var(--red)'     : 'var(--amber)';
-    var icon   = isKritis ? '🚨'             : '⚠️';
+  log.forEach(function(n) {
+    var isKritis   = n.tipe === 'absen_kritis';
+    var bg         = isKritis ? 'var(--red-l)'   : 'var(--amber-l)';
+    var borderCol  = isKritis ? 'var(--red)'     : 'var(--amber)';
+    var icon       = isKritis ? '🚨'             : '⚠️';
     var tglStr = '';
-    try {
-      var d = new Date(n._ts);
-      tglStr = d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-    } catch(e) {}
+    try { tglStr = new Date(n._ts).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){}
+    // "Guru sudah mengetahui" jika followup_at ada DAN alert ini tidak lagi aktif
+    var guruHandled = followupAt && n._ts && new Date(n._ts) < new Date(followupAt);
+    var handledBadge = guruHandled
+      ? '<span style="display:inline-block;margin-top:6px;font-size:10px;font-weight:700;color:var(--green);background:var(--green-l);border-radius:99px;padding:2px 8px;">✓ Guru sudah mengetahui</span>'
+      : '';
 
-    html += '<div style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:var(--r-sm);padding:14px;margin-bottom:10px;">'
+    html += '<div style="background:' + bg + ';border:1.5px solid ' + borderCol + ';border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px;">'
       + '<div style="display:flex;gap:10px;align-items:flex-start;">'
-      + '<div style="font-size:22px;line-height:1;">' + icon + '</div>'
+      + '<div style="font-size:20px;line-height:1;">' + icon + '</div>'
       + '<div style="flex:1;">'
-      + '<div style="font-weight:800;font-size:13.5px;color:var(--text);margin-bottom:3px;">' + esc(n.judul) + '</div>'
-      + '<div style="font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:6px;">' + esc(n.pesan) + '</div>'
-      + '<div style="font-size:10.5px;color:var(--text-3);display:flex;gap:10px;flex-wrap:wrap;">'
-      + '<span>📊 ' + esc(n.detail) + '</span>'
-      + '<span>🕐 Dicatat ' + tglStr + '</span>'
+      + '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:3px;">' + esc(n.judul) + '</div>'
+      + '<div style="font-size:12px;color:var(--text-2);line-height:1.5;">' + esc(n.pesan) + '</div>'
+      + '<div style="font-size:10.5px;color:var(--text-3);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;">'
+      + (n.detail ? '<span>📊 ' + esc(n.detail) + '</span>' : '')
+      + '<span>🕐 ' + tglStr + '</span>'
       + '</div>'
+      + handledBadge
       + '</div>'
       + '</div>'
       + '</div>';
   });
+  return html;
+}
 
-  modalBody.innerHTML = html;
+// Render bagian inbox push (dismissable) — dari data server
+function _buildInboxHTML(items, showSeparator) {
+  if (!items || !items.length) return '';
+  var sep = showSeparator
+    ? '<div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;">'
+      + '<div style="flex:1;height:1px;background:var(--border)"></div>'
+      + '<span style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">📬 Notifikasi Masuk</span>'
+      + '<div style="flex:1;height:1px;background:var(--border)"></div>'
+      + '</div>'
+    : '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;padding:0 2px 8px;">📬 Notifikasi Masuk</div>';
+
+  var html = sep;
+  items.forEach(function(n) {
+    var tglStr = '';
+    try { tglStr = new Date(n.created_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); } catch(e){}
+    html += '<div data-inbox-id="' + n.id + '" style="background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;">'
+      + '<div style="font-size:19px;line-height:1;">🔔</div>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:2px;">' + esc(n.judul) + '</div>'
+      + '<div style="font-size:12px;color:var(--text-2);line-height:1.5;">' + esc(n.pesan || '') + '</div>'
+      + '<div style="font-size:10.5px;color:var(--text-3);margin-top:4px;">🕐 ' + tglStr + '</div>'
+      + '</div>'
+      + '<button onclick="dismissNotif(\'' + n.id + '\',this)" title="Tandai sudah dibaca" '
+      + 'style="flex-shrink:0;border:none;background:transparent;cursor:pointer;color:var(--text-3);font-size:16px;padding:2px 4px;line-height:1;border-radius:4px;transition:color .15s;" '
+      + 'onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text-3)\'">'
+      + '✕</button>'
+      + '</div>';
+  });
+  return html;
+}
+
+// Buka modal notifikasi — render keaktifan sync, inbox async
+async function openNotifications() {
+  var modalBody = document.getElementById('notificationModalBody');
+  if (!modalBody) { openModal('notificationModal'); return; }
+
+  // Render keaktifan dari localStorage (langsung, tanpa tunggu network)
+  var keaktifanHTML = _buildKeaktifanHTML();
+  modalBody.innerHTML = keaktifanHTML
+    + '<div id="_inboxPlaceholder" style="text-align:center;padding:16px;color:var(--text-3);font-size:12px;">⏳ Memuat...</div>';
+
+  // Empty state sementara jika tidak ada keaktifan
+  if (!keaktifanHTML) {
+    modalBody.innerHTML = '<div id="_inboxPlaceholder" style="text-align:center;padding:24px;color:var(--text-3);font-size:12px;">⏳ Memuat notifikasi...</div>';
+  }
+
+  openModal('notificationModal');
+
+  // Fetch inbox dari server
+  try {
+    var r = await window.HQ.MuridAPI.getNotifInbox();
+    var items = r.data || [];
+    _inboxUnreadCount = items.length;
+    _updateBellBadge(null, items.length);
+
+    var placeholder = document.getElementById('_inboxPlaceholder');
+    if (placeholder) {
+      var hasKeaktifan = keaktifanHTML.length > 0;
+      var inboxHTML = _buildInboxHTML(items, hasKeaktifan);
+      if (inboxHTML) {
+        placeholder.outerHTML = inboxHTML;
+      } else {
+        // Tidak ada inbox — keluarkan placeholder, tapi jaga empty state jika keaktifan juga kosong
+        if (!hasKeaktifan) {
+          placeholder.outerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-3);">'
+            + '<div style="font-size:40px;margin-bottom:12px;">📭</div>'
+            + '<div style="font-weight:700;font-size:14px;">Semua bersih!</div>'
+            + '<div style="font-size:12px;margin-top:4px;">Tidak ada notifikasi.</div>'
+            + '</div>';
+        } else {
+          placeholder.remove();
+        }
+      }
+    }
+  } catch(e) {
+    var ph = document.getElementById('_inboxPlaceholder');
+    if (ph) ph.remove();
+  }
 }
 
 async function loadKeaktifanAlertsMurid() {
   try {
     var r = await window.HQ.MuridAPI.getKeaktifanAlerts();
     var container = document.getElementById('keaktifanAlertBox');
-    var bellBadge = document.getElementById('bell-badge');
-    if (!container || !bellBadge) return;
+    if (!container) return;
 
-    // Selalu render modal dari log (abadi)
-    _renderNotifModal();
+    var alerts     = (r.status === 'ok' && r.data && r.data.alerts) ? r.data.alerts : [];
+    var followupAt = r.data && r.data.followup_at;
 
-    if (r.status === 'ok' && r.data && r.data.alerts && r.data.alerts.length > 0) {
-      activeNotifications = r.data.alerts;
+    if (alerts.length > 0) {
+      // Alert aktif: simpan ke log permanen, hapus followup_at agar badge "guru handled" tidak tampil
+      _appendNotifLog(alerts);
+      _saveFollowupAt(null);
+      activeNotifications = alerts;
+      _updateBellBadge(alerts.length, null);
 
-      // Simpan ke log abadi
-      _appendNotifLog(activeNotifications);
-      _renderNotifModal();
-
-      // Dashboard banner — ikut server (hilang setelah guru followup)
-      var hasCritical = activeNotifications.some(function(a) { return a.tipe === 'absen_kritis'; });
-      var count = activeNotifications.length;
+      var hasCritical = alerts.some(function(a) { return a.tipe === 'absen_kritis'; });
       var bg     = hasCritical ? 'var(--red-l)'  : 'var(--amber-l)';
       var border = hasCritical ? 'var(--red)'    : 'var(--amber)';
       var title  = hasCritical ? '⚠️ Ada Peringatan Keaktifan Kritis!' : '⚠️ Ada Catatan Perhatian Keaktifan';
-      var desc   = 'Kamu memiliki ' + count + ' catatan keaktifan penting. Klik lonceng untuk melihat rincian.';
+      var desc   = 'Kamu memiliki ' + alerts.length + ' catatan keaktifan penting. Klik lonceng untuk melihat rincian.';
 
-      container.innerHTML = '<div style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:var(--r-sm);padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;box-shadow:var(--shadow-card);transition:transform 0.2s;">'
+      container.innerHTML = '<div onclick="openNotifications()" style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:var(--r-sm);padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;box-shadow:var(--shadow-card);transition:transform 0.2s;">'
         + '<div style="font-size:20px;line-height:1;">⚠️</div>'
         + '<div style="flex:1;text-align:left;">'
         + '<div style="font-weight:800;font-size:13px;color:var(--text);">' + title + '</div>'
@@ -4528,8 +4615,10 @@ async function loadKeaktifanAlertsMurid() {
         + '</div>';
       container.style.display = 'block';
     } else {
-      // Tidak ada alert aktif dari server — sembunyikan banner dashboard saja
+      // Tidak ada alert aktif → simpan followup_at agar badge "guru handled" muncul di bell modal
+      if (followupAt) _saveFollowupAt(followupAt);
       activeNotifications = [];
+      _updateBellBadge(0, null);
       container.style.display = 'none';
       container.innerHTML = '';
     }
@@ -4563,9 +4652,32 @@ function _subscribeKeaktifanRealtime() {
     .subscribe();
 }
 
-function openNotifications() {
-  _renderNotifModal();
-  openModal('notificationModal');
+// Dismiss satu item inbox — tandai sudah dibaca, hapus dari tampilan
+async function dismissNotif(id, btnEl) {
+  var row = btnEl && btnEl.closest('[data-inbox-id]');
+  if (row) { row.style.opacity = '.4'; row.style.pointerEvents = 'none'; }
+  try {
+    await window.HQ.MuridAPI.markNotifRead(id);
+    if (row) {
+      row.style.transition = 'all .25s';
+      row.style.maxHeight  = row.offsetHeight + 'px';
+      requestAnimationFrame(function() {
+        row.style.maxHeight  = '0';
+        row.style.padding    = '0';
+        row.style.margin     = '0';
+        row.style.opacity    = '0';
+        row.style.overflow   = 'hidden';
+        setTimeout(function() {
+          if (row.parentNode) row.parentNode.removeChild(row);
+        }, 260);
+      });
+    }
+    _inboxUnreadCount = Math.max(0, _inboxUnreadCount - 1);
+    _updateBellBadge(null, _inboxUnreadCount);
+  } catch(e) {
+    if (row) { row.style.opacity = '1'; row.style.pointerEvents = ''; }
+    toast('Gagal hapus notifikasi', 'err');
+  }
 }
 
 // ── SIDEBAR ─────────────────────────────────

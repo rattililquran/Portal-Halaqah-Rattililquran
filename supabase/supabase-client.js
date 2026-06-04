@@ -1456,7 +1456,32 @@ var MuridAPI = {
       if      (atAlpa >= 2) alerts.push({ tipe:'absen_kritis',      judul:'Kehadiran At-Tibyan Kritis!', pesan:'Kamu sudah alpa '+atAlpa+'× di At-Tibyan. Semangat hadir ya!',          detail:'At-Tibyan alpa: '+atAlpa+'×' });
       else if (atAlpa === 1) alerts.push({ tipe:'absen_peringatan', judul:'Peringatan At-Tibyan',        pesan:'Kamu sudah alpa 1× di At-Tibyan. Jaga kehadiranmu!',                    detail:'At-Tibyan alpa: 1×' });
     }
-    return { status: 'ok', data: { alerts } };
+    return { status: 'ok', data: { alerts, followup_at: dismissed.followup_at || null } };
+  },
+
+  // Ambil inbox push notifikasi yang belum dibaca murid
+  getNotifInbox: async function() {
+    var id_murid = _uid();
+    if (!id_murid) return { status: 'ok', data: [] };
+    var { data, error } = await _sb.from('notif_inbox')
+      .select('id, judul, pesan, tipe, url, created_at')
+      .eq('id_user', id_murid)
+      .is('read_at', null)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if (error) return { status: 'ok', data: [] };
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Tandai satu item inbox sebagai sudah dibaca
+  markNotifRead: async function(id) {
+    var id_murid = _uid();
+    if (!id_murid || !id) return { status: 'err' };
+    var { error } = await _sb.from('notif_inbox')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('id_user', id_murid);
+    return error ? { status: 'err' } : { status: 'ok' };
   },
 
   getAssessmentItems: async function(level) {
