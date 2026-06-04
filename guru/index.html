@@ -31,6 +31,11 @@
   --sw:260px;--hh:58px;
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
+  --green-txt:#16a34a;--green-bg:#f0fdf4;
+  --amber-bg:#fffbeb;
+  --red-txt:#dc2626;--red-bg:#fff5f5;
+  --blue-txt:#1a73e8;--blue-bg:#eff6ff;
+  --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
@@ -1059,6 +1064,11 @@ html.theme-dark {
   --shadow:0 2px 8px rgba(0,0,0,.4);
   --shadow-lg:0 8px 24px rgba(0,0,0,.5);
   --shadow-card:0 2px 8px rgba(0,0,0,.35);
+  --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
+  --amber-bg:rgba(251,191,36,.1);
+  --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
+  --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
 html.theme-dark body{background:#111318!important}
 html.theme-dark .card,html.theme-dark .stat,html.theme-dark .stat-top,
@@ -1286,6 +1296,15 @@ html.theme-dark .at-dot.null{background:#374151!important}
 .draft-orphan-alert.show{display:flex;align-items:center;gap:12px}
 .draft-orphan-alert:hover{opacity:.9}
 html.theme-dark .draft-orphan-alert{background:linear-gradient(135deg,#2d1f00,#3b2500) !important;border-color:rgba(251,191,36,.25) !important}
+html.theme-dark .draft-orphan-alert div,
+html.theme-dark .draft-orphan-alert span,
+html.theme-dark .draft-orphan-alert strong {
+  color: var(--amber-txt) !important;
+}
+html.theme-dark #draftOrphanDetail {
+  background: rgba(251, 191, 36, 0.08) !important;
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
 
 /* ══ DARK MODE FIX — glass + stat cards ══════════════════════ */
 html.theme-dark .glass-card{
@@ -1444,10 +1463,10 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 .pd-step-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
 .pd-step-d{font-size:12px;color:var(--text-2);line-height:1.6}
 .pd-warn,.pd-info,.pd-tip,.pd-danger{border-radius:9px;padding:10px 12px;margin:8px 0;display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.6}
-.pd-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
-.pd-info{background:#eff8ff;border:1px solid #bae6fd;color:#075985}
-.pd-tip{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
-.pd-danger{background:#fff5f5;border:1px solid #fecaca;color:#991b1b}
+.pd-warn{background:var(--amber-bg);border:1px solid var(--amber-l, #fde68a);color:var(--amber-txt)}
+.pd-info{background:var(--blue-bg);border:1px solid var(--blue-l, #bae6fd);color:var(--blue-txt)}
+.pd-tip{background:var(--green-bg);border:1px solid var(--green-l, #bbf7d0);color:var(--green-txt)}
+.pd-danger{background:var(--red-bg);border:1px solid var(--red-l, #fecaca);color:var(--red-txt)}
 .pd-warn-i,.pd-info-i,.pd-tip-i,.pd-danger-i{font-size:15px;flex-shrink:0;margin-top:1px}
 .pd-warn strong,.pd-info strong,.pd-tip strong,.pd-danger strong{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
 .pd-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
@@ -1456,7 +1475,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 .pd-tbl tr:last-child td{border-bottom:none}
 .pd-tbl tr:hover td{background:var(--bg-2,#f8fafc)}
 .pd-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:10.5px;font-weight:700}
-.pd-bg-g{background:#dcfce7;color:#166534}.pd-bg-r{background:#fee2e2;color:#991b1b}.pd-bg-a{background:#fef3c7;color:#92400e}.pd-bg-b{background:#dbeafe;color:#1e40af}
+.pd-bg-g{background:var(--green-bg);color:var(--green-txt)}.pd-bg-r{background:var(--red-bg);color:var(--red-txt)}.pd-bg-a{background:var(--amber-bg);color:var(--amber-txt)}.pd-bg-b{background:var(--blue-bg);color:var(--blue-txt)}
 .pd-flow{display:flex;flex-direction:column;gap:5px;margin:8px 0}
 .pd-flow-item{display:flex;align-items:center;gap:9px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:9px;padding:9px 12px}
 .pd-flow-n{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -1489,10 +1508,10 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
   background: var(--blue); border-color: var(--blue); color: #fff !important;
   box-shadow: 0 4px 10px rgba(26,115,232,.3);
 }
-.rubrik-option.opt-sb input:checked + label { background: #16a34a; border-color: #16a34a; box-shadow: 0 4px 10px rgba(22,163,74,.3); }
-.rubrik-option.opt-b  input:checked + label { background: var(--blue); border-color: var(--blue); }
-.rubrik-option.opt-c  input:checked + label { background: var(--amber); border-color: var(--amber); box-shadow: 0 4px 10px rgba(217,119,6,.3); }
-.rubrik-option.opt-pp input:checked + label { background: var(--red); border-color: var(--red); box-shadow: 0 4px 10px rgba(220,38,38,.3); }
+.rubrik-option.opt-sb input:checked + label { background: #16a34a; border-color: #16a34a; box-shadow: 0 4px 10px rgba(22,163,74,.3); color: #fff !important; }
+.rubrik-option.opt-b  input:checked + label { background: var(--blue); border-color: var(--blue); color: #fff !important; }
+.rubrik-option.opt-c  input:checked + label { background: var(--amber); border-color: var(--amber); box-shadow: 0 4px 10px rgba(217,119,6,.3); color: #fff !important; }
+.rubrik-option.opt-pp input:checked + label { background: var(--red); border-color: var(--red); box-shadow: 0 4px 10px rgba(220,38,38,.3); color: #fff !important; }
 
 html.theme-dark .rubrik-option label { border-color: rgba(255,255,255,0.12); }
 html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05); }
@@ -1553,7 +1572,7 @@ html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05);
 html.theme-dark .kbm-jenis-btn {
   background: #111c30;
   border-color: rgba(255,255,255,0.1) !important;
-  color: #94a3b8;
+  color: #cbd5e1;
 }
 
 </style>
@@ -4454,7 +4473,7 @@ function updateMicroteachingScore(id) {
 
   if (score !== null) {
     var s = score;
-    var color = s >= 88 ? '#16a34a' : s >= 75 ? '#1a73e8' : s >= 60 ? '#d97706' : '#dc2626';
+    var color = s >= 88 ? 'var(--green-txt)' : s >= 75 ? 'var(--blue-txt)' : s >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
     badgeEl.textContent = s + ' / 100';
     txtEl.textContent   = s;
     txtEl.style.color   = color;
@@ -7141,19 +7160,19 @@ function showKeaktifanDetailModal(idx) {
 
   var riwayatRows = (m.riwayat || []).map(function(s, i) {
     var statusText = 'Hadir';
-    var statusStyle = 'color:var(--green); font-weight:700;';
+    var statusStyle = 'color:var(--green-txt); font-weight:700;';
     if (s.status_hadir === 'A') {
       statusText = 'Absen/Alpa';
-      statusStyle = 'color:var(--red); font-weight:700;';
+      statusStyle = 'color:var(--red-txt); font-weight:700;';
     } else if (s.status_hadir === 'T') {
       statusText = 'Terlambat';
-      statusStyle = 'color:var(--amber); font-weight:700;';
+      statusStyle = 'color:var(--amber-txt); font-weight:700;';
     }
     
     var cameraText = s.kamera_murid || 'kamera terbuka';
-    var cameraStyle = 'color:var(--green);';
+    var cameraStyle = 'color:var(--green-txt);';
     if (cameraText.indexOf('tertutup') !== -1) {
-      cameraStyle = 'color:#b45309; font-weight:600;';
+      cameraStyle = 'color:var(--amber-txt); font-weight:600;';
     }
 
     return '<tr>'
@@ -7402,13 +7421,11 @@ async function loadAtRekap() {
 
     // Summary keseluruhan halaqah
     var pct = sum.pct_keseluruhan || 0;
-    var pctCol = pct >= 80 ? '#059669' : pct >= 60 ? '#b45309' : '#dc2626';
-    var pctBg  = pct >= 80
-      ? 'linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:rgba(16,185,129,.15)'
-      : pct >= 60 ? 'linear-gradient(135deg,#fffbeb,#fef3c7);border-color:rgba(245,158,11,.15)'
-      : 'linear-gradient(135deg,#fff5f5,#fee2e2);border-color:rgba(239,68,68,.15)';
+    var pctCol = pct >= 80 ? 'var(--green-txt)' : pct >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
+    var pctBg = pct >= 80 ? 'var(--green-bg)' : pct >= 60 ? 'var(--amber-bg)' : 'var(--red-bg)';
+    var pctBorder = pct >= 80 ? 'rgba(52,211,153,.25)' : pct >= 60 ? 'rgba(251,191,36,.25)' : 'rgba(248,113,113,.25)';
 
-    var summaryHtml = '<div style="background:'+pctBg+';border:1px solid;border-radius:16px;padding:14px 16px;margin-bottom:14px">'
+    var summaryHtml = '<div style="background:'+pctBg+';border:1px solid '+pctBorder+';border-radius:16px;padding:14px 16px;margin-bottom:14px">'
       + '<div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Ringkasan Keseluruhan · '+totalSesi+' sesi · '+sum.total_murid+' murid</div>'
       + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">'
       + '<div><div style="font-size:28px;font-weight:900;color:'+pctCol+'">'+pct+'%</div><div style="font-size:10.5px;font-weight:700;color:var(--text-3)">Kehadiran</div></div>'

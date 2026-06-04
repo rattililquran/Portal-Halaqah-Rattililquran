@@ -31,6 +31,11 @@
   --shadow-lg:0 16px 40px rgba(14,165,233,0.15),0 4px 12px rgba(0,0,0,0.06);
   --sw:250px;--hh:58px;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --green-txt:#16a34a;--green-bg:#f0fdf4;
+  --amber-txt:#b45309;--amber-bg:#fffbeb;
+  --red-txt:#dc2626;--red-bg:#fff5f5;
+  --blue-txt:#1a73e8;--blue-bg:#eff6ff;
+  --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
@@ -404,6 +409,11 @@ html.theme-dark {
   --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,0.1);
   --green-l:#0a2e1f;--amber-l:#2a1f00;--red-l:#2a0800;
   --shadow:0 4px 20px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+  --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
+  --amber-txt:#fbbf24;--amber-bg:rgba(251,191,36,.1);
+  --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
+  --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
 /* ══ DARK MODE — solid, seragam murid/guru ══ */
 html.theme-dark{
@@ -413,6 +423,11 @@ html.theme-dark{
   --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,.1);
   --green-l:rgba(52,211,153,.1);--amber-l:rgba(251,191,36,.1);--red-l:rgba(248,113,113,.1);
   --shadow:0 2px 8px rgba(0,0,0,.4);--shadow-lg:0 8px 24px rgba(0,0,0,.5);
+  --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
+  --amber-txt:#fbbf24;--amber-bg:rgba(251,191,36,.1);
+  --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
+  --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
 html.theme-dark body{background:#111318}
 html.theme-dark .bg-blobs-admin{display:none}
@@ -1005,11 +1020,11 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 
         <!-- ── Pending Validasi ── -->
         <div id="sppPendingSection" style="display:none;margin-bottom:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px;background:var(--amber-bg);border:1px solid rgba(251,191,36,0.25);border-radius:10px">
             <span style="font-size:16px">⏳</span>
             <div>
-              <div style="font-size:13px;font-weight:800;color:#92400e">Menunggu Validasi</div>
-              <div style="font-size:11px;color:#b45309">Periksa bukti transfer sebelum konfirmasi</div>
+              <div style="font-size:13px;font-weight:800;color:var(--amber-txt)">Menunggu Validasi</div>
+              <div style="font-size:11px;color:var(--amber-txt)">Periksa bukti transfer sebelum konfirmasi</div>
             </div>
           </div>
           <div id="sppPendingList" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -3362,9 +3377,9 @@ function renderObsStats() {
   el.innerHTML = '<div class="section-title" style="font-size:14px;margin-bottom:10px">Rekap per Guru</div>'
     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px">'
     + _obsStats.map(function(g) {
-      var cKondusif = g.pct_kondusif >= 80 ? '#059669' : g.pct_kondusif >= 60 ? '#b45309' : '#dc2626';
-      var cWaktu    = g.pct_tepat_waktu >= 90 ? '#059669' : g.pct_tepat_waktu >= 70 ? '#b45309' : '#dc2626';
-      var cLatihan  = g.pct_ada_latihan >= 70 ? '#059669' : g.pct_ada_latihan >= 50 ? '#b45309' : '#dc2626';
+      var cKondusif = g.pct_kondusif >= 80 ? 'var(--green-txt)' : g.pct_kondusif >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
+      var cWaktu    = g.pct_tepat_waktu >= 90 ? 'var(--green-txt)' : g.pct_tepat_waktu >= 70 ? 'var(--amber-txt)' : 'var(--red-txt)';
+      var cLatihan  = g.pct_ada_latihan >= 70 ? 'var(--green-txt)' : g.pct_ada_latihan >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)';
       return '<div class="card" style="padding:16px">'
         + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px">'+esc(g.nama_guru)+'</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">'
@@ -3989,16 +4004,18 @@ function renderMateriLevelAdmin() {
   var tbody  = document.getElementById('levelMateriTbl');
   var filter = document.getElementById('materiLevelFilter').value;
   var data   = filter ? _lvMateriData.filter(function(x){ return x.level === filter; }) : _lvMateriData;
-  var KAT_COLOR = { Deskripsi:'#0284c7', Target:'#059669', Materi:'#7c3aed', Tips:'#b45309', Doa:'#0d9488' };
+  var KAT_COLOR = { Deskripsi:'var(--blue-txt)', Target:'var(--green-txt)', Materi:'var(--purple-txt)', Tips:'var(--amber-txt)', Doa:'var(--blue-txt)' };
+  var KAT_BG    = { Deskripsi:'var(--blue-bg)', Target:'var(--green-bg)', Materi:'var(--purple-bg)', Tips:'var(--amber-bg)', Doa:'var(--blue-bg)' };
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada materi. Tambah item pertama.</td></tr>';
     return;
   }
   tbody.innerHTML = data.map(function(m) {
     var col = KAT_COLOR[m.kategori] || 'var(--text-3)';
+    var bg  = KAT_BG[m.kategori] || 'var(--bg-2)';
     return '<tr>'
       + '<td style="font-weight:700;white-space:nowrap">'+esc(m.level)+'</td>'
-      + '<td><span style="font-size:11px;font-weight:700;color:'+col+';background:'+col+'18;padding:2px 8px;border-radius:100px">'+esc(m.kategori)+'</span></td>'
+      + '<td><span style="font-size:11px;font-weight:700;color:'+col+';background:'+bg+';padding:2px 8px;border-radius:100px">'+esc(m.kategori)+'</span></td>'
       + '<td><div style="font-weight:700">'+esc(m.judul)+'</div>'
       + '<div style="font-size:11.5px;color:var(--text-3);margin-top:2px;white-space:normal">'+esc((m.isi||'').substring(0,70))+((m.isi||'').length>70?'...':'')+'</div></td>'
       + '<td style="text-align:center">'+esc(m.urutan||'-')+'</td>'

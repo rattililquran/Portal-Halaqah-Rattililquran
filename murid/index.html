@@ -50,6 +50,11 @@
   /* Safe area */
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
+  --green-txt:#16a34a;--green-bg:#f0fdf4;
+  --amber-txt:#b45309;--amber-bg:#fffbeb;
+  --red-txt:#dc2626;--red-bg:#fff5f5;
+  --blue-txt:#1a73e8;--blue-bg:#eff6ff;
+  --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);
@@ -688,14 +693,28 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .myrt-juz-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .myrt-juz-cell{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;position:relative}
 /* ── Hafalan setoran card ── */
-.hfal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s,box-shadow .15s}
-.hfal-card:hover{border-color:#93c5fd;box-shadow:0 2px 10px rgba(37,99,235,.08)}
-.hfal-nilai{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
-.hfal-nilai-A{background:#dbeafe;color:#1d4ed8}
-.hfal-nilai-B{background:#d1fae5;color:#065f46}
-.hfal-nilai-C{background:#fef3c7;color:#92400e}
-.hfal-jenis-chip{display:inline-flex;align-items:center;gap:4px;background:#f3f4f6;border-radius:100px;padding:2px 9px;font-size:10px;font-weight:700;color:#4b5563}
-.hfal-catatan{background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:8px 10px;font-size:12px;color:#78350f;line-height:1.55;margin-top:8px;font-style:italic}
+.hfal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:all .2s ease}
+.hfal-card:hover{border-color:#93c5fd;box-shadow:0 4px 14px rgba(37,99,235,.06);transform:translateY(-1px)}
+.hfal-icon {width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:transform .2s}
+.hfal-card:hover .hfal-icon {transform:scale(1.05)}
+.hfal-icon-ziyadah {background:var(--green-bg);color:var(--green-txt)}
+.hfal-icon-murajaah {background:var(--blue-bg);color:var(--blue-txt)}
+.hfal-icon-tasmi {background:var(--purple-bg);color:var(--purple-txt)}
+.hfal-icon-sabqi {background:var(--amber-bg);color:var(--amber-txt)}
+.hfal-jenis-chip{display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;border-radius:100px;padding:2px 10px;font-size:10.5px;font-weight:700;color:var(--text-2)}
+.hfal-catatan{background:var(--amber-bg);border-left:3px solid var(--amber-txt);border-radius:4px 12px 12px 4px;padding:10px 12px;font-size:12.5px;color:var(--amber-txt);line-height:1.6;margin-top:10px;font-style:italic;border:1px solid rgba(251,191,36,0.1);border-left:3px solid var(--amber-txt)}
+.hfal-badge {display:inline-flex;align-items:center;padding:3.5px 10px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap}
+.hfal-badge-mumtaz {background:var(--green-bg);color:var(--green-txt);border:1px solid rgba(52,211,153,0.15)}
+.hfal-badge-baik {background:var(--blue-bg);color:var(--blue-txt);border:1px solid rgba(56,189,248,0.15)}
+.hfal-badge-cukup {background:var(--amber-bg);color:var(--amber-txt);border:1px solid rgba(251,191,36,0.15)}
+.hfal-badge-jj {background:var(--blue-bg);color:var(--blue-txt);border:1px solid rgba(56,189,248,0.15)}
+.hfal-badge-jayyid {background:var(--purple-bg);color:var(--purple-txt);border:1px solid rgba(167,139,250,0.15)}
+.hfal-badge-maqbul {background:var(--red-bg);color:var(--red-txt);border:1px solid rgba(248,113,113,0.15)}
+.hfal-badge-default {background:var(--bg-2);color:var(--text-2);border:1px solid var(--border)}
+/* Tab Navigasi Setoran */
+.hfal-tabs-wrap {display:flex;gap:4px;background:var(--bg-2);padding:4px;border-radius:12px;margin-bottom:16px;border:1px solid var(--border)}
+.hfal-tab-btn {flex:1;padding:8px 0;border-radius:9px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;transition:all 0.25s ease}
+.hfal-tab-btn.active {background:var(--card-solid);box-shadow:var(--shadow);color:var(--blue);font-weight:700}
 .attibyan-dash-card{border-radius:20px;border:1px solid rgba(217,119,6,.25);
   background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 60%,#fde68a 100%);
   padding:16px;margin-bottom:14px;cursor:pointer;
@@ -1534,6 +1553,11 @@ html.theme-dark {
   --shadow:0 2px 8px rgba(0,0,0,.4);
   --shadow-lg:0 8px 24px rgba(0,0,0,.5);
   --shadow-card:0 2px 8px rgba(0,0,0,.35);
+  --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
+  --amber-txt:#fbbf24;--amber-bg:rgba(251,191,36,.1);
+  --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
+  --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
 
 /* ══ DARK MODE ══════════════════════════════════════════════════════ */
@@ -1541,6 +1565,7 @@ html.theme-dark body{background:#111318}
 
 /* Semua cards — solid, tidak glass blur */
 html.theme-dark .card,
+html.theme-dark .hfal-card,
 html.theme-dark .stat-card,
 html.theme-dark .spp-card,
 html.theme-dark .riwayat-item,
@@ -1563,6 +1588,10 @@ html.theme-dark .asmnt-legend {
 html.theme-dark .card:hover,html.theme-dark .stat-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
 html.theme-dark .link-card:hover{border-color:rgba(56,189,248,.3) !important}
 html.theme-dark .card-head{background:rgba(255,255,255,.03) !important;border-bottom-color:rgba(255,255,255,.06) !important}
+/* Dark Mode Riwayat Setoran & Filter */
+html.theme-dark .hfal-jenis-chip {background: rgba(255,255,255,0.06) !important}
+html.theme-dark .hflt-btn {background: var(--bg-2) !important; border-color: var(--border) !important; color: var(--text-2) !important}
+html.theme-dark .hflt-btn.active {background: linear-gradient(135deg, var(--blue), var(--blue-d)) !important; border-color: var(--blue) !important; color: #fff !important}
 
 /* Progress card — tetap biru tapi lebih gelap dan solid */
 html.theme-dark .progress-card{
@@ -2761,9 +2790,9 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       </div>
       <!-- Panel Observasi -->
       <div id="ketuaPanelObservasi" style="display:none">
-        <div class="card" style="margin-bottom:14px;padding:14px 16px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid rgba(217,119,6,.2)">
-          <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px">Panduan Observasi</div>
-          <div style="font-size:11.5px;color:#b45309;font-weight:600;line-height:1.6">
+        <div class="card" style="margin-bottom:14px;padding:14px 16px;background:var(--amber-bg);border:1.5px solid rgba(251,191,36,0.25)">
+          <div style="font-size:12px;font-weight:800;color:var(--amber-txt);margin-bottom:4px">Panduan Observasi</div>
+          <div style="font-size:11.5px;color:var(--amber-txt);font-weight:600;line-height:1.6">
             Isi observasi setelah setiap sesi KBM selesai. Window pengisian akan otomatis tertutup saat guru membuka sesi berikutnya. Data ini <b>hanya dilihat admin</b> — bukan guru.
           </div>
         </div>
@@ -2869,9 +2898,9 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       <div id="hafalanContent" style="display:none;padding:16px;max-width:600px;margin:0 auto">
 
         <!-- Tab Riwayat | Raport -->
-        <div style="display:flex;gap:4px;background:#f3f4f6;padding:4px;border-radius:12px;margin-bottom:16px">
-          <button id="hfTabRiwayat" onclick="switchHafalanTab('riwayat')" style="flex:1;padding:8px 0;border-radius:9px;border:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;transition:all .2s">📖 Riwayat</button>
-          <button id="hfTabRaport" onclick="switchHafalanTab('raport')" style="flex:1;padding:8px 0;border-radius:9px;border:none;background:transparent;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer;transition:all .2s">📊 Raport Tahfidz</button>
+        <div class="hfal-tabs-wrap">
+          <button id="hfTabRiwayat" onclick="switchHafalanTab('riwayat')" class="hfal-tab-btn active">📖 Riwayat</button>
+          <button id="hfTabRaport" onclick="switchHafalanTab('raport')" class="hfal-tab-btn">📊 Raport Tahfidz</button>
         </div>
 
         <!-- Panel Riwayat -->
@@ -3066,7 +3095,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
             <div class="pd-step"><div class="pd-step-n">4</div><div><div class="pd-step-t">Upload bukti & kirim</div><div class="pd-step-d">Lampirkan foto bukti transfer → <strong>Kirim Konfirmasi</strong></div></div></div>
           </div>
           <span class="pd-lbl">Status SPP</span>
-          <div class="pd-qr"><div class="pd-qr-i"><div class="pd-qr-l" style="color:#059669">Hijau ✅</div><div class="pd-qr-v" style="font-size:11.5px">Sudah lunas/terverifikasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:#dc2626">Merah ❌</div><div class="pd-qr-v" style="font-size:11.5px">Belum ada konfirmasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:#b45309">Kuning ⏳</div><div class="pd-qr-v" style="font-size:11.5px">Menunggu verifikasi admin</div></div></div>
+          <div class="pd-qr"><div class="pd-qr-i"><div class="pd-qr-l" style="color:var(--green-txt)">Hijau ✅</div><div class="pd-qr-v" style="font-size:11.5px">Sudah lunas/terverifikasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:var(--red-txt)">Merah ❌</div><div class="pd-qr-v" style="font-size:11.5px">Belum ada konfirmasi</div></div><div class="pd-qr-i"><div class="pd-qr-l" style="color:var(--amber-txt)">Kuning ⏳</div><div class="pd-qr-v" style="font-size:11.5px">Menunggu verifikasi admin</div></div></div>
           <div class="pd-warn"><div class="pd-warn-i">⚠️</div><div><strong>Konfirmasi ≠ Lunas Otomatis!</strong>Status lunas baru muncul setelah admin memverifikasi. Proses verifikasi biasanya 1×24 jam.</div></div>
           <div class="pd-spp-note">
             <p>Kami tidak ingin SPP menjadi alasan untuk Anda tidak belajar.<br>Jika ada kendala <strong>teknis maupun finansial</strong>, jangan ragu berkomunikasi dengan kami.<br>Insyaa Allah kita carikan solusinya bersama.</p>
@@ -5573,15 +5602,14 @@ async function loadAtKehadiranMurid() {
         + '<div class="empty-sub">Riwayat kehadiranmu akan muncul di sini setelah sesi pertama berlangsung.</div></div>';
       return;
     }
-    var pctColor = sum.pct >= 80 ? '#059669' : sum.pct >= 60 ? '#b45309' : '#dc2626';
-    var pctBg    = sum.pct >= 80 ? 'linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:rgba(16,185,129,.15)'
-      : sum.pct >= 60 ? 'linear-gradient(135deg,#fffbeb,#fef3c7);border-color:rgba(245,158,11,.15)'
-      : 'linear-gradient(135deg,#fff5f5,#fee2e2);border-color:rgba(239,68,68,.15)';
+    var pctColor = sum.pct >= 80 ? 'var(--green-txt)' : sum.pct >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
+    var pctBg    = sum.pct >= 80 ? 'var(--green-bg)' : sum.pct >= 60 ? 'var(--amber-bg)' : 'var(--red-bg)';
+    var pctBorder = sum.pct >= 80 ? 'rgba(52,211,153,.25)' : sum.pct >= 60 ? 'rgba(251,191,36,.25)' : 'rgba(248,113,113,.25)';
     var pctDesc  = sum.pct >= 80 ? 'Kehadiran At-Tibyan sangat baik!' : sum.pct >= 60 ? 'Usahakan hadir lebih sering.' : 'Kehadiran At-Tibyan perlu ditingkatkan.';
     var LABEL = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
     var BADGE = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
     el.innerHTML =
-      '<div style="background:'+pctBg+';border:1px solid;border-radius:16px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">'
+      '<div style="background:'+pctBg+';border:1px solid '+pctBorder+';border-radius:16px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">'
       + '<div style="font-size:36px;font-weight:900;color:'+pctColor+'">'+sum.pct+'%</div>'
       + '<div><div style="font-size:13px;font-weight:800;color:'+pctColor+'">Hadir '+sum.hadir+' dari '+sum.total+' sesi</div>'
       + '<div style="font-size:11.5px;font-weight:600;color:var(--text-3);margin-top:2px">'+pctDesc+'</div></div>'
@@ -6384,6 +6412,33 @@ function filterHafalan(jenis) {
   _renderHafalanList();
 }
 
+function getNilaiBadgeInfo(nilai) {
+  var val = String(nilai || '').trim();
+  var cls = 'hfal-badge-default';
+  var label = val || '?';
+  var lower = val.toLowerCase();
+  if (lower === 'a' || lower === 'mumtaz') {
+    cls = 'hfal-badge-mumtaz';
+    label = 'Mumtaz';
+  } else if (lower === 'b' || lower === 'baik') {
+    cls = 'hfal-badge-baik';
+    label = 'Baik';
+  } else if (lower === 'c' || lower === 'cukup') {
+    cls = 'hfal-badge-cukup';
+    label = 'Cukup';
+  } else if (lower === 'jj' || lower === 'jayyid jiddan') {
+    cls = 'hfal-badge-jj';
+    label = 'Jayyid Jiddan';
+  } else if (lower === 'jayyid') {
+    cls = 'hfal-badge-jayyid';
+    label = 'Jayyid';
+  } else if (lower === 'maqbul') {
+    cls = 'hfal-badge-maqbul';
+    label = 'Maqbul';
+  }
+  return { cls: cls, label: label };
+}
+
 function _renderHafalanList() {
   var el = document.getElementById('hafalanList');
   if (!el) return;
@@ -6393,26 +6448,35 @@ function _renderHafalanList() {
   if (!list.length) { el.innerHTML = ''; return; }
 
   var jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', "Tasmi'": '🎤', Sabqi: '⚡' };
+  var jenisClass = { Ziyadah: 'ziyadah', Murajaah: 'murajaah', "Tasmi'": 'tasmi', Sabqi: 'sabqi' };
+
   el.innerHTML = list.map(function(r) {
-    var nilaiCls = 'hfal-nilai-' + (r.nilai || 'C');
+    var badgeInfo = getNilaiBadgeInfo(r.nilai);
+    var iconName = jenisClass[r.jenis] || 'ziyadah';
+    var icon = jenisIcon[r.jenis] || '📖';
+
     var catatan  = r.catatan
       ? '<div class="hfal-catatan"><i style="margin-right:4px">💬</i>' + _esc(r.catatan) + '</div>'
       : '';
     var target   = (r.target_surat)
-      ? '<div style="margin-top:6px;font-size:11px;color:#059669;font-weight:600">'
+      ? '<div style="margin-top:6px;font-size:11px;color:var(--green-txt);font-weight:600">'
         + '🎯 Target: ' + _esc(r.target_surat) + ' · Ayat ' + r.target_ayat_dari + '–' + r.target_ayat_sampai
         + '</div>'
       : '';
+
     return '<div class="hfal-card">'
-      + '<div class="hfal-nilai ' + nilaiCls + '">' + (r.nilai || '?') + '</div>'
+      + '<div class="hfal-icon hfal-icon-' + iconName + '">' + icon + '</div>'
       + '<div style="flex:1;min-width:0">'
-        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
-          + '<span style="font-size:14px;font-weight:800;color:#111827">Juz ' + (r.juz || '-') + ' · ' + _esc(r.surat) + '</span>'
-          + '<span class="hfal-jenis-chip">' + (jenisIcon[r.jenis] || '📖') + ' ' + _esc(r.jenis || 'Ziyadah') + '</span>'
+        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">'
+          + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+            + '<span style="font-size:14px;font-weight:800;color:var(--text)">Juz ' + (r.juz || '-') + ' · ' + _esc(r.surat) + '</span>'
+            + '<span class="hfal-jenis-chip">' + icon + ' ' + _esc(r.jenis || 'Ziyadah') + '</span>'
+          + '</div>'
+          + '<span class="hfal-badge ' + badgeInfo.cls + '">' + _esc(badgeInfo.label) + '</span>'
         + '</div>'
-        + '<div style="font-size:12px;color:#6b7280;margin-bottom:2px">Ayat <strong>' + r.ayat_dari + '</strong> – <strong>' + r.ayat_sampai + '</strong>'
+        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + r.ayat_dari + '</strong> – <strong>' + r.ayat_sampai + '</strong>'
           + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
-        + '<div style="font-size:11px;color:#9ca3af">' + _fmtDateHafalan(r.created_at) + ' &nbsp;·&nbsp; ' + _esc(r.nama_guru || '-') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-3)">' + _fmtDateHafalan(r.created_at) + ' &nbsp;·&nbsp; ' + _esc(r.nama_guru || '-') + '</div>'
         + catatan + target
       + '</div>'
     + '</div>';
@@ -6440,18 +6504,8 @@ function switchHafalanTab(tab) {
   document.getElementById('hfPanelRaport').style.display  = isRiwayat ? 'none'  : 'block';
   var tRiwayat = document.getElementById('hfTabRiwayat');
   var tRaport  = document.getElementById('hfTabRaport');
-  if (tRiwayat) {
-    tRiwayat.style.background  = isRiwayat ? '#fff' : 'transparent';
-    tRiwayat.style.boxShadow   = isRiwayat ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
-    tRiwayat.style.color       = isRiwayat ? 'var(--blue)' : '#6b7280';
-    tRiwayat.style.fontWeight  = isRiwayat ? '700' : '600';
-  }
-  if (tRaport) {
-    tRaport.style.background   = !isRiwayat ? '#fff' : 'transparent';
-    tRaport.style.boxShadow    = !isRiwayat ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
-    tRaport.style.color        = !isRiwayat ? 'var(--blue)' : '#6b7280';
-    tRaport.style.fontWeight   = !isRiwayat ? '700' : '600';
-  }
+  if (tRiwayat) tRiwayat.classList.toggle('active', isRiwayat);
+  if (tRaport) tRaport.classList.toggle('active', !isRiwayat);
   if (!isRiwayat) _initMyRaportPanel();
 }
 
@@ -7431,17 +7485,14 @@ function renderGrafikKehadiran(rows) {
   var totalH=0, totalT=0, totalI=0, totalA=0, grandTotal=0;
   keys.forEach(function(k){ var b=bulanMap[k]; totalH+=b.H; totalT+=b.T; totalI+=b.I; totalA+=b.A; grandTotal+=b.total; });
   var overallPct = grandTotal > 0 ? Math.round((totalH+totalT)/grandTotal*100) : 0;
-  var overallColor = overallPct >= 80 ? '#059669' : overallPct >= 50 ? '#b45309' : '#dc2626';
-  var overallBg    = overallPct >= 80
-    ? 'linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:rgba(16,185,129,.15)'
-    : overallPct >= 50
-    ? 'linear-gradient(135deg,#fffbeb,#fef3c7);border-color:rgba(245,158,11,.15)'
-    : 'linear-gradient(135deg,#fff5f5,#fee2e2);border-color:rgba(239,68,68,.15)';
-  var overallLblColor = overallPct >= 80 ? '#065f46' : overallPct >= 50 ? '#78350f' : '#7f1d1d';
+  var overallColor = overallPct >= 80 ? 'var(--green-txt)' : overallPct >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)';
+  var overallBg = overallPct >= 80 ? 'var(--green-bg)' : overallPct >= 50 ? 'var(--amber-bg)' : 'var(--red-bg)';
+  var overallBorder = overallPct >= 80 ? 'rgba(52,211,153,.25)' : overallPct >= 50 ? 'rgba(251,191,36,.25)' : 'rgba(248,113,113,.25)';
+  var overallLblColor = overallPct >= 80 ? 'var(--green-txt)' : overallPct >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)';
   var overallDesc = overallPct >= 80 ? 'Kehadiran sangat baik, tetap istiqamah!' : overallPct >= 50 ? 'Kehadiran cukup, bisa ditingkatkan.' : 'Kehadiran perlu ditingkatkan.';
 
   if (bigStatEl) bigStatEl.innerHTML =
-    '<div class="grafik-big-stat" style="background:'+overallBg+'">'
+    '<div class="grafik-big-stat" style="background:'+overallBg+'; border: 1px solid '+overallBorder+';">'
     + '<div class="grafik-big-pct" style="color:'+overallColor+'">'+overallPct+'%</div>'
     + '<div class="grafik-big-lbl" style="color:'+overallLblColor+'">Rata-rata kehadiran<br>6 bulan terakhir<br><span style="font-weight:600;font-size:11px">'+overallDesc+'</span></div>'
     + '</div>';
@@ -7465,9 +7516,9 @@ function renderGrafikKehadiran(rows) {
     var isCur = key === curKey;
 
     var isEmpty = b.total === 0;
-    var color = isEmpty ? '#cbd5e1' : pct >= 80 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    var color = isEmpty ? 'var(--border)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
     var pctLabel = isEmpty ? 'Libur' : pct+'%';
-    var pctLabelColor = isEmpty ? '#94a3b8' : pct >= 80 ? '#059669' : pct >= 50 ? '#b45309' : '#ef4444';
+    var pctLabelColor = isEmpty ? 'var(--text-3)' : pct >= 80 ? 'var(--green-txt)' : pct >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)';
 
     var tip = (isCur ? '📍 Bulan ini\n' : '') + b.label
       + (isEmpty ? '\n🏖️ Tidak ada sesi (libur)' :
