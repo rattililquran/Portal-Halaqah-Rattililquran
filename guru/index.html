@@ -265,6 +265,27 @@ tr:hover td{background:#f8fafc}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 /* Hafalan form label helper */
 .hf-lbl{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+/* Raport Tahfidz */
+@keyframes rt-spin{to{transform:rotate(360deg)}}
+.rt-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:14px;break-inside:avoid}
+.rt-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.rt-stat{background:#f8faff;border:1px solid #e0eaff;border-radius:12px;padding:12px;text-align:center}
+.rt-stat-val{font-size:22px;font-weight:900;color:#1d4ed8;line-height:1.1}
+.rt-stat-lbl{font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.rt-juz-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:8px}
+.rt-juz-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:default;position:relative;transition:transform .15s}
+.rt-juz-cell:hover{transform:scale(1.15);z-index:1}
+.rt-surat-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rt-surat-tbl th{padding:8px 10px;background:#f0f5fd;color:#1d4ed8;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;text-align:left;border-bottom:1px solid #e0eaff}
+.rt-surat-tbl td{padding:8px 10px;border-bottom:1px solid #f3f4f6;color:#374151}
+.rt-surat-tbl tr:last-child td{border-bottom:none}
+/* === PRINT === */
+@media print{
+  body>*{display:none!important}
+  #raportTahfidzPrintArea{display:block!important;position:static!important}
+  .rt-pdf-page{page-break-after:always;padding:20mm}
+  .rt-pdf-page:last-child{page-break-after:auto}
+}
 /* Hafalan penilaian item */
 .hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
 .hf-pn-row:last-child{margin-bottom:0}
@@ -1453,6 +1474,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
       <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni">📖</span>At-Tibyan</button>
       <!-- Tahfidz: hanya tampil jika guru punya halaqah Level Qiyam -->
       <button class="nav-btn" id="navHafalanGuru" onclick="goPage('hafalan-guru')" data-p="hafalan-guru" style="display:none"><span class="ni">🕌</span>Input Hafalan<span id="navHafalanBadge" style="display:none;margin-left:auto;background:#10b981;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:1px 7px">Qiyam</span></button>
+      <button class="nav-btn" id="navRaportTahfidz" onclick="goPage('raport-tahfidz')" data-p="raport-tahfidz" style="display:none"><span class="ni">📊</span>Raport Tahfidz</button>
       <div class="sb-section">KBM</div>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
@@ -2356,6 +2378,69 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 
       </div><!-- /page-hafalan-guru -->
 
+      <!-- ════ RAPORT TAHFIDZ ════ -->
+      <div class="page" id="page-raport-tahfidz">
+        <div class="page-title-row">
+          <span>📊 Raport Tahfidz</span>
+          <button class="guru-refresh-btn" onclick="generateRaportTahfidz()" id="btnGenRaport">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Generate
+          </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label class="hf-lbl">Halaqah Qiyam</label>
+              <select class="fc" id="rtHalaqahSel" onchange="rtOnHalaqahChange()"></select>
+            </div>
+            <div>
+              <label class="hf-lbl">Periode</label>
+              <select class="fc" id="rtPeriodeSel"></select>
+            </div>
+            <div>
+              <label class="hf-lbl">Siswa</label>
+              <select class="fc" id="rtMuridSel">
+                <option value="">— Semua Siswa —</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="generateRaportTahfidz()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
+            📊 Tampilkan Raport
+          </button>
+        </div>
+
+        <!-- Raport Output -->
+        <div id="rtOutput" style="display:none">
+          <!-- Tombol PDF (non-print) -->
+          <div style="display:flex;gap:8px;margin-bottom:14px" id="rtPdfBar">
+            <button onclick="cetakRaportTahfidz()" style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+              🖨️ Cetak / Export PDF
+            </button>
+            <button onclick="document.getElementById('rtOutput').style.display='none'" style="background:#f3f4f6;color:#374151;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer">
+              ✕ Tutup
+            </button>
+          </div>
+
+          <!-- Konten raport (dirender oleh JS) -->
+          <div id="rtContent"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="rtEmpty" style="text-align:center;padding:48px 0;color:#9ca3af">
+          <div style="font-size:48px;margin-bottom:12px">📊</div>
+          <div style="font-size:15px;font-weight:700;color:#374151;margin-bottom:4px">Pilih Halaqah &amp; Periode</div>
+          <div style="font-size:13px">Kemudian klik "Tampilkan Raport" untuk melihat data</div>
+        </div>
+
+        <!-- Loading -->
+        <div id="rtLoading" style="display:none;text-align:center;padding:48px 0">
+          <div style="width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:rt-spin .7s linear infinite;margin:0 auto 12px"></div>
+          <div style="font-size:13px;color:#6b7280">Menyusun raport tahfidz...</div>
+        </div>
+
+      </div><!-- /page-raport-tahfidz -->
+
       <!-- ════ NILAI MANUAL ════ -->
       <div class="page" id="page-nilai-manual">
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Input Nilai Manual</div>
@@ -3147,6 +3232,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
   'nilai-manual':'Input Nilai Manual','raport':'Raport Halaqah',password:'Ganti Password',panduan:'Panduan',
   'hafalan-guru':'Input Hafalan Qiyam',
+  'raport-tahfidz':'Raport Tahfidz',
   keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri'};
 
 function goPage(name) {
@@ -3199,7 +3285,8 @@ function goPage(name) {
     }
   }
   if (name === 'raport') initRaportPage();
-  if (name === 'hafalan-guru') initHafalanGuruPage();
+  if (name === 'hafalan-guru')   initHafalanGuruPage();
+  if (name === 'raport-tahfidz') initRaportTahfidz();
   if (name === 'password') {
     document.getElementById('pwOld').value = '';
     document.getElementById('pwNew').value = '';
@@ -7033,15 +7120,13 @@ async function hfResetPenilaian() {
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
 function _initNavHafalan() {
   var qiyamHalaqah = (halaqahList || []).filter(function(h) { return h.level === 'Level Qiyam'; });
-  var btn  = document.getElementById('navHafalanGuru');
-  var bdg  = document.getElementById('navHafalanBadge');
-  if (!btn) return;
-  if (qiyamHalaqah.length > 0) {
-    btn.style.display = 'flex';
-    if (bdg) bdg.style.display = 'inline-block';
-  } else {
-    btn.style.display = 'none';
-  }
+  var hasQiyam = qiyamHalaqah.length > 0;
+  var btn   = document.getElementById('navHafalanGuru');
+  var bdg   = document.getElementById('navHafalanBadge');
+  var btnRp = document.getElementById('navRaportTahfidz');
+  if (btn)   btn.style.display   = hasQiyam ? 'flex'  : 'none';
+  if (bdg)   bdg.style.display   = hasQiyam ? 'inline-block' : 'none';
+  if (btnRp) btnRp.style.display = hasQiyam ? 'flex'  : 'none';
   _hafalanGuruQiyamList = qiyamHalaqah;
 }
 
@@ -7567,7 +7652,405 @@ function _fmtHafalanDateGuru(iso) {
   try { return new Date(iso).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   catch(e) { return iso; }
 }
+
+// ══════════════════════════════════════════════════════════════
+//  RAPORT TAHFIDZ — GURU
+// ══════════════════════════════════════════════════════════════
+
+var _rtPeriodeList = [];
+var _rtLastData    = null;  // hasil terakhir untuk print
+
+async function initRaportTahfidz() {
+  var qiyam = (halaqahList || []).filter(function(h){ return h.level === 'Level Qiyam'; });
+  // Halaqah selector
+  var hSel = document.getElementById('rtHalaqahSel');
+  hSel.innerHTML = '<option value="">— Pilih Halaqah —</option>'
+    + qiyam.map(function(h){ return '<option value="'+esc(h.id_halaqah)+'">'+esc(h.nama_halaqah)+'</option>'; }).join('');
+  if (qiyam.length === 1) hSel.value = qiyam[0].id_halaqah;
+  if (hSel.value) rtOnHalaqahChange();
+  // Periode selector
+  try {
+    var r = await window.HQ.GuruAPI.getAllPeriode();
+    _rtPeriodeList = r.data || [];
+    var pSel = document.getElementById('rtPeriodeSel');
+    pSel.innerHTML = '<option value="semua">Semua Waktu</option>'
+      + _rtPeriodeList.map(function(p){
+          return '<option value="'+esc(p.id_periode)+'">'+esc(p.nama_periode)+'</option>';
+        }).join('');
+  } catch(e) {}
+  // Reset output
+  document.getElementById('rtOutput').style.display  = 'none';
+  document.getElementById('rtEmpty').style.display   = 'block';
+  document.getElementById('rtLoading').style.display = 'none';
+}
+
+async function rtOnHalaqahChange() {
+  var id_halaqah = document.getElementById('rtHalaqahSel').value;
+  if (!id_halaqah) return;
+  // Murid selector
+  if (!_hafalanGuruMuridCache[id_halaqah]) {
+    try {
+      var res = await window.HQ.GuruAPI.getMuridQiyam(id_halaqah);
+      _hafalanGuruMuridCache[id_halaqah] = res.data || [];
+    } catch(e) { _hafalanGuruMuridCache[id_halaqah] = []; }
+  }
+  var murid = _hafalanGuruMuridCache[id_halaqah];
+  var mSel  = document.getElementById('rtMuridSel');
+  mSel.innerHTML = '<option value="">— Semua Siswa —</option>'
+    + murid.map(function(m){ return '<option value="'+esc(m.id_murid)+'">'+esc(m.nama_murid)+'</option>'; }).join('');
+}
+
+async function generateRaportTahfidz() {
+  var id_halaqah = document.getElementById('rtHalaqahSel').value;
+  var id_murid   = document.getElementById('rtMuridSel').value;
+  var id_periode = document.getElementById('rtPeriodeSel').value;
+  if (!id_halaqah) { showToast('Pilih halaqah terlebih dahulu', 'warning'); return; }
+
+  var tgl_mulai = null, tgl_selesai = null;
+  if (id_periode !== 'semua') {
+    var p = _rtPeriodeList.find(function(x){ return x.id_periode === id_periode; });
+    if (p) { tgl_mulai = p.tanggal_mulai; tgl_selesai = p.tanggal_selesai; }
+  }
+
+  document.getElementById('rtEmpty').style.display   = 'none';
+  document.getElementById('rtOutput').style.display  = 'none';
+  document.getElementById('rtLoading').style.display = 'block';
+
+  try {
+    var [resSetoran, resMurid, resPenilaian] = await Promise.all([
+      window.HQ.GuruAPI.getRaportTahfidzData(id_halaqah, id_murid || null, tgl_mulai, tgl_selesai),
+      window.HQ.GuruAPI.getMuridQiyam(id_halaqah),
+      window.HQ.GuruAPI.getPenilaianHafalan(),
+    ]);
+    var allSetoran  = resSetoran.data  || [];
+    var muridList   = resMurid.data    || [];
+    var penilaianCfg= (resPenilaian.data) ? resPenilaian.data : _hfLoadConfig();
+    var periodeInfo = id_periode !== 'semua' ? _rtPeriodeList.find(function(x){ return x.id_periode===id_periode; }) : null;
+
+    // Filter ke murid yang dipilih atau semua
+    var targetMurid = id_murid ? muridList.filter(function(m){ return m.id_murid===id_murid; }) : muridList;
+
+    // Build raport per murid
+    var raportList = targetMurid.map(function(m) {
+      var setoran = allSetoran.filter(function(s){ return s.id_murid === m.id_murid; });
+      return _rtBuildMuridRaport(m, setoran, penilaianCfg);
+    });
+
+    _rtLastData = { raportList, periodeInfo, id_halaqah, penilaianCfg };
+    document.getElementById('rtContent').innerHTML = _rtRenderHTML(raportList, periodeInfo);
+    document.getElementById('rtLoading').style.display = 'none';
+    document.getElementById('rtOutput').style.display  = 'block';
+  } catch(e) {
+    document.getElementById('rtLoading').style.display = 'none';
+    document.getElementById('rtEmpty').style.display   = 'block';
+    showToast('Gagal memuat raport: ' + e.message, 'error');
+  }
+}
+
+// ── Hitung poin dari nilai + kelancaran berdasarkan config ──────────────
+function _rtHitungPoin(nilai, kelancaran, cfg) {
+  var n = (cfg.nilai||[]).find(function(x){ return x.kode === nilai; });
+  var k = (cfg.kelancaran||[]).find(function(x){ return x.nama === kelancaran; });
+  return (n ? n.poin : 0) + (k ? k.poin : 0);
+}
+
+// ── Build raport data per murid ─────────────────────────────────────────
+function _rtBuildMuridRaport(murid, setoran, cfg) {
+  var totalPoin = 0, nilaiA = 0, nilaiB = 0, nilaiC = 0;
+  var jenisCnt  = { Ziyadah: 0, Murajaah: 0, "Tasmi'": 0, Sabqi: 0 };
+  var bulananMap = {};
+  var juzMap     = {};
+  var suratMap   = {};
+  var catatanList = [];
+
+  setoran.forEach(function(s) {
+    var poin = _rtHitungPoin(s.nilai, s.kelancaran, cfg);
+    totalPoin += poin;
+    if (s.nilai === 'A') nilaiA++;
+    else if (s.nilai === 'B') nilaiB++;
+    else if (s.nilai === 'C') nilaiC++;
+    jenisCnt[s.jenis] = (jenisCnt[s.jenis] || 0) + 1;
+
+    // Per bulan
+    var d = new Date(s.created_at);
+    var bKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    var bLbl = d.toLocaleDateString('id-ID', { month:'short', year:'numeric' });
+    if (!bulananMap[bKey]) bulananMap[bKey] = { label: bLbl, poin: 0, count: 0 };
+    bulananMap[bKey].poin  += poin;
+    bulananMap[bKey].count++;
+
+    // Per juz
+    var juz = parseInt(s.juz) || 0;
+    if (juz) {
+      if (!juzMap[juz]) juzMap[juz] = { count: 0, poin: 0 };
+      juzMap[juz].count++;
+      juzMap[juz].poin += poin;
+    }
+
+    // Per surat
+    var suratKey = s.surat;
+    if (suratKey) {
+      if (!suratMap[suratKey]) suratMap[suratKey] = { surat: s.surat, juz: s.juz, ayat_dari: s.ayat_dari, ayat_sampai: s.ayat_sampai, count: 0, nilai_list: [], poin: 0, last_tgl: s.created_at };
+      suratMap[suratKey].count++;
+      suratMap[suratKey].nilai_list.push(s.nilai);
+      suratMap[suratKey].poin += poin;
+      if (s.created_at > suratMap[suratKey].last_tgl) suratMap[suratKey].last_tgl = s.created_at;
+    }
+
+    // Catatan
+    if (s.catatan && s.catatan.trim()) {
+      catatanList.push({ tanggal: s.created_at, surat: s.surat, catatan: s.catatan, guru: s.nama_guru });
+    }
+  });
+
+  // Target aktif (setoran terbaru yang punya target)
+  var targetAktif = null;
+  var reversed = [...setoran].reverse();
+  for (var i = 0; i < reversed.length; i++) {
+    if (reversed[i].target_surat) { targetAktif = reversed[i]; break; }
+  }
+
+  // Badge
+  function calcBadge(poin) {
+    if (poin >= 5000) return '🏆 Bintang Tahfidz';
+    if (poin >= 2000) return '🥇 Hafizh Teladan';
+    if (poin >= 1000) return '🥈 Hafizh Berkembang';
+    if (poin >= 500)  return '🥉 Hafizh Pemula';
+    return '📖 Pemula';
+  }
+
+  // Bulanan sorted
+  var bulanan = Object.keys(bulananMap).sort().map(function(k){ return Object.assign({ key: k }, bulananMap[k]); });
+
+  // Surat list sorted by juz then surat
+  var suratList = Object.values(suratMap).sort(function(a,b){ return (a.juz - b.juz) || a.surat.localeCompare(b.surat); });
+
+  return {
+    murid, totalSetoran: setoran.length, totalPoin, badge: calcBadge(totalPoin),
+    nilaiA, nilaiB, nilaiC,
+    jenisCnt, bulanan, juzMap, suratList,
+    catatan: catatanList.slice(-5).reverse(),
+    target: targetAktif,
+  };
+}
+
+// ── Render HTML raport (semua murid) ────────────────────────────────────
+function _rtRenderHTML(raportList, periodeInfo) {
+  if (!raportList.length) return '<div style="text-align:center;padding:40px;color:#9ca3af">Tidak ada data hafalan</div>';
+  return raportList.map(function(r, idx) { return _rtRenderMuridCard(r, periodeInfo, idx); }).join('');
+}
+
+function _rtRenderMuridCard(r, periodeInfo, idx) {
+  var periodeTxt = periodeInfo ? periodeInfo.nama_periode : 'Semua Waktu';
+  var hqInfo = (halaqahList || []).find(function(h){ return h.id_halaqah === document.getElementById('rtHalaqahSel').value; }) || {};
+
+  // ── Header murid ───────────────────────────────────────────
+  var header = '<div class="rt-card" style="background:linear-gradient(135deg,#0a2463,#1046a8,#1a73e8);color:#fff;position:relative;overflow:hidden">'
+    + '<div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.07)"></div>'
+    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;position:relative;z-index:1">'
+      + '<div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0">'
+        + (r.murid.nama_murid||'?').charAt(0).toUpperCase()
+      + '</div>'
+      + '<div>'
+        + '<div style="font-size:18px;font-weight:900;line-height:1.2">' + esc(r.murid.nama_murid) + '</div>'
+        + '<div style="font-size:12px;opacity:.75;margin-top:2px">' + esc(hqInfo.nama_halaqah||'') + ' &nbsp;·&nbsp; ' + esc(hqInfo.nama_guru||'') + '</div>'
+      + '</div>'
+      + '<div style="margin-left:auto;text-align:right;position:relative;z-index:1">'
+        + '<div style="font-size:11px;opacity:.65;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Periode</div>'
+        + '<div style="font-size:13px;font-weight:700">' + esc(periodeTxt) + '</div>'
+      + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;position:relative;z-index:1">'
+      + _rtMiniStat('📖', r.totalSetoran, 'Total Setoran', 'rgba(255,255,255,0.15)')
+      + _rtMiniStat('⭐', r.totalPoin, 'Total Poin', 'rgba(255,255,255,0.15)')
+      + _rtMiniStat('🏅', r.badge.split(' ').slice(1).join(' '), 'Badge', 'rgba(255,255,255,0.15)')
+      + _rtMiniStat('✅', r.nilaiA + '/' + (r.nilaiA+r.nilaiB+r.nilaiC) + ' A', 'Nilai A', 'rgba(255,255,255,0.15)')
+    + '</div>'
+  + '</div>';
+
+  // ── Statistik detail ───────────────────────────────────────
+  var stats = '<div class="rt-card">'
+    + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📈 Statistik Setoran</div>'
+    + '<div class="rt-stat-grid">'
+      + _rtStatBox(r.jenisCnt['Ziyadah']||0, 'Ziyadah', '📖', '#dbeafe', '#1d4ed8')
+      + _rtStatBox(r.jenisCnt['Murajaah']||0, 'Murajaah', '🔄', '#d1fae5', '#065f46')
+      + _rtStatBox(r.jenisCnt["Tasmi'"]||0, "Tasmi'", '🎤', '#ede9fe', '#6d28d9')
+      + _rtStatBox(r.jenisCnt['Sabqi']||0, 'Sabqi', '⚡', '#fef3c7', '#92400e')
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'
+      + _rtStatBox(r.nilaiA, 'Nilai A', '⭐', '#dbeafe', '#1d4ed8')
+      + _rtStatBox(r.nilaiB, 'Nilai B', '✅', '#d1fae5', '#065f46')
+      + _rtStatBox(r.nilaiC, 'Nilai C', '📌', '#fef3c7', '#92400e')
+    + '</div>'
+  + '</div>';
+
+  // ── Grafik poin bulanan ────────────────────────────────────
+  var grafik = _rtGrafikBulanan(r.bulanan);
+
+  // ── Peta juz ──────────────────────────────────────────────
+  var petaJuz = _rtPetaJuz(r.juzMap);
+
+  // ── Daftar surat ──────────────────────────────────────────
+  var daftarSurat = '<div class="rt-card">'
+    + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📜 Daftar Surat yang Disetor</div>';
+  if (!r.suratList.length) {
+    daftarSurat += '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Belum ada data</div>';
+  } else {
+    daftarSurat += '<div style="overflow-x:auto"><table class="rt-surat-tbl"><thead><tr>'
+      + '<th>No</th><th>Surat</th><th>Juz</th><th>Ayat</th><th>Setoran</th><th>Nilai Terbaik</th><th>Terakhir</th>'
+      + '</tr></thead><tbody>'
+      + r.suratList.map(function(s, i) {
+          var bestNilai = s.nilai_list.includes('A') ? 'A' : s.nilai_list.includes('B') ? 'B' : 'C';
+          var nc = {A:'background:#dbeafe;color:#1d4ed8', B:'background:#d1fae5;color:#065f46', C:'background:#fef3c7;color:#92400e'};
+          var tgl = s.last_tgl ? new Date(s.last_tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+          return '<tr>'
+            + '<td style="color:#9ca3af">' + (i+1) + '</td>'
+            + '<td style="font-weight:700">' + esc(s.surat) + '</td>'
+            + '<td>Juz ' + (s.juz||'-') + '</td>'
+            + '<td>' + (s.ayat_dari||'-') + '–' + (s.ayat_sampai||'-') + '</td>'
+            + '<td style="font-weight:700;color:#2563eb">' + s.count + 'x</td>'
+            + '<td><span style="' + (nc[bestNilai]||'background:#f3f4f6;color:#374151') + ';padding:2px 10px;border-radius:100px;font-size:11px;font-weight:800">' + bestNilai + '</span></td>'
+            + '<td style="color:#9ca3af;font-size:11px">' + tgl + '</td>'
+          + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+  }
+  daftarSurat += '</div>';
+
+  // ── Target aktif ──────────────────────────────────────────
+  var targetHtml = '';
+  if (r.target && r.target.target_surat) {
+    targetHtml = '<div class="rt-card" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#86efac">'
+      + '<div style="font-size:12px;font-weight:800;color:#15803d;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">🎯 Target Hafalan Berikutnya</div>'
+      + '<div style="font-size:16px;font-weight:900;color:#166534;margin-bottom:4px">' + esc(r.target.target_surat) + '</div>'
+      + '<div style="font-size:12px;color:#15803d">Ayat ' + (r.target.target_ayat_dari||'-') + ' – ' + (r.target.target_ayat_sampai||'-') + '</div>'
+    + '</div>';
+  }
+
+  // ── Catatan guru ──────────────────────────────────────────
+  var catatanHtml = '';
+  if (r.catatan.length) {
+    catatanHtml = '<div class="rt-card">'
+      + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">💬 Catatan Terakhir dari Guru</div>'
+      + r.catatan.map(function(c){
+          var tgl = c.tanggal ? new Date(c.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+          return '<div style="border-left:3px solid #fbbf24;padding:8px 12px;background:#fffbeb;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:12px">'
+            + '<div style="font-weight:700;color:#78350f;margin-bottom:3px">' + esc(c.surat||'-') + ' &nbsp;·&nbsp; ' + tgl + '</div>'
+            + '<div style="color:#92400e;font-style:italic">"' + esc(c.catatan) + '"</div>'
+          + '</div>';
+        }).join('')
+    + '</div>';
+  }
+
+  return '<div style="margin-bottom:20px">' + header + stats + grafik + petaJuz + daftarSurat + targetHtml + catatanHtml + '</div>';
+}
+
+function _rtMiniStat(icon, val, lbl, bg) {
+  return '<div style="background:'+bg+';border-radius:10px;padding:10px;text-align:center">'
+    + '<div style="font-size:18px;font-weight:900;color:#fff">' + icon + ' ' + esc(String(val)) + '</div>'
+    + '<div style="font-size:10px;opacity:.75;font-weight:600;text-transform:uppercase;letter-spacing:.05em">' + lbl + '</div>'
+  + '</div>';
+}
+
+function _rtStatBox(val, lbl, icon, bg, color) {
+  return '<div class="rt-stat" style="background:'+bg+';border-color:transparent">'
+    + '<div class="rt-stat-val" style="color:'+color+'">' + icon + ' ' + val + '</div>'
+    + '<div class="rt-stat-lbl">' + lbl + '</div>'
+  + '</div>';
+}
+
+// ── Grafik Poin Bulanan (SVG) ─────────────────────────────────────────
+function _rtGrafikBulanan(bulanan) {
+  if (!bulanan.length) return '';
+  var maxPoin = Math.max.apply(null, bulanan.map(function(b){ return b.poin; })) || 1;
+  var W = 600, H = 160, pad = 40, barW = Math.max(20, Math.floor((W - pad*2) / bulanan.length) - 6);
+  var html = '<div class="rt-card">'
+    + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📈 Grafik Poin per Bulan</div>'
+    + '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:180px">'
+    // Grid lines
+    + '<line x1="'+pad+'" y1="10" x2="'+pad+'" y2="'+(H-30)+'" stroke="#e5e7eb" stroke-width="1"/>'
+    + '<line x1="'+pad+'" y1="'+(H-30)+'" x2="'+(W-10)+'" y2="'+(H-30)+'" stroke="#e5e7eb" stroke-width="1"/>';
+
+  bulanan.forEach(function(b, i) {
+    var barH = Math.max(4, Math.round(((H-50) * b.poin) / maxPoin));
+    var x    = pad + i * ((W - pad*2) / bulanan.length) + 3;
+    var y    = H - 30 - barH;
+    var pct  = b.poin / maxPoin;
+    var clr  = pct > 0.7 ? '#1d4ed8' : pct > 0.4 ? '#60a5fa' : '#93c5fd';
+    html += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" rx="4" fill="'+clr+'"/>'
+          + '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" fill="#374151" font-weight="600">'+b.poin+'</text>'
+          + '<text x="'+(x+barW/2)+'" y="'+(H-14)+'" text-anchor="middle" font-size="8" fill="#9ca3af">'+b.label+'</text>';
+  });
+  html += '</svg></div></div>';
+  return html;
+}
+
+// ── Peta Progress Juz (grid 6×5) ────────────────────────────────────
+function _rtPetaJuz(juzMap) {
+  var html = '<div class="rt-card">'
+    + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">🗺️ Peta Progress Juz (1–30)</div>'
+    + '<div class="rt-juz-grid">';
+  var maxCount = Math.max.apply(null, Object.values(juzMap).map(function(j){ return j.count; }).concat([1]));
+  for (var juz = 1; juz <= 30; juz++) {
+    var info = juzMap[juz];
+    var count = info ? info.count : 0;
+    var poin  = info ? info.poin  : 0;
+    var alpha = count ? Math.max(0.25, count / maxCount) : 0;
+    var bg    = count ? 'rgba(29,78,216,' + alpha.toFixed(2) + ')' : '#f3f4f6';
+    var color = count && alpha > 0.4 ? '#fff' : count ? '#1e40af' : '#9ca3af';
+    html += '<div class="rt-juz-cell" style="background:'+bg+';color:'+color+'" title="Juz '+juz+(count?' — '+count+' setoran, '+poin+' poin':' — belum ada setoran')+'">'
+      + juz + (count ? '<span style="position:absolute;top:2px;right:3px;font-size:7px;font-weight:800">'+count+'x</span>' : '')
+    + '</div>';
+  }
+  html += '</div>'
+    + '<div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:#6b7280">'
+      + '<div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:3px;background:#f3f4f6;border:1px solid #e5e7eb"></div> Belum disetor</div>'
+      + '<div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:3px;background:rgba(29,78,216,.25)"></div> Sedikit</div>'
+      + '<div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:3px;background:#1d4ed8"></div> Banyak</div>'
+    + '</div>'
+  + '</div>';
+  return html;
+}
+
+// ── Cetak / Export PDF ────────────────────────────────────────────────
+function cetakRaportTahfidz() {
+  if (!_rtLastData) return;
+  var printEl = document.getElementById('raportTahfidzPrintArea');
+  var periodeInfo = _rtLastData.periodeInfo;
+  var hqInfo = (halaqahList || []).find(function(h){ return h.id_halaqah === document.getElementById('rtHalaqahSel').value; }) || {};
+
+  printEl.innerHTML = '<style>'
+    + 'body{font-family:sans-serif}'
+    + '.rt-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:12px;break-inside:avoid}'
+    + '.rt-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}'
+    + '.rt-stat{background:#f8faff;border:1px solid #e0eaff;border-radius:10px;padding:10px;text-align:center}'
+    + '.rt-stat-val{font-size:20px;font-weight:900;color:#1d4ed8}'
+    + '.rt-stat-lbl{font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase}'
+    + '.rt-juz-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}'
+    + '.rt-juz-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;position:relative}'
+    + '.rt-surat-tbl{width:100%;border-collapse:collapse;font-size:11px}'
+    + '.rt-surat-tbl th{padding:6px 8px;background:#f0f5fd;color:#1d4ed8;font-size:9px;font-weight:800;text-transform:uppercase;text-align:left;border-bottom:1px solid #e0eaff}'
+    + '.rt-surat-tbl td{padding:6px 8px;border-bottom:1px solid #f3f4f6}'
+    + '.rt-pdf-page{padding:0;margin-bottom:24px}'
+    + 'h1{font-size:18px;color:#0a2463;margin:0 0 4px}'
+    + '</style>'
+    + '<div style="text-align:center;margin-bottom:20px;border-bottom:2px solid #1d4ed8;padding-bottom:12px">'
+      + '<h1>📋 RAPORT TAHFIDZ AL-QUR\'AN</h1>'
+      + '<div style="font-size:12px;color:#374151">'
+        + esc(hqInfo.nama_halaqah||'') + ' &nbsp;|&nbsp; '
+        + esc(hqInfo.nama_guru||'') + ' &nbsp;|&nbsp; '
+        + esc(periodeInfo ? periodeInfo.nama_periode : 'Semua Waktu')
+      + '</div>'
+    + '</div>'
+    + _rtLastData.raportList.map(function(r) {
+        return '<div class="rt-pdf-page">' + _rtRenderMuridCard(r, periodeInfo, 0) + '</div>';
+      }).join('');
+
+  window.print();
+}
 </script>
 
+<!-- Print area — hanya tampil saat cetak -->
+<div id="raportTahfidzPrintArea" style="display:none"></div>
 </body>
 </html>

@@ -1199,6 +1199,21 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // ── Raport Tahfidz ─────────────────────────────────────────────────────
+  // Ambil semua setoran hafalan dalam rentang tanggal (untuk raport)
+  getRaportTahfidzData: async function(id_halaqah, id_murid, tgl_mulai, tgl_selesai) {
+    var q = _sb.from('setoran_hafalan')
+      .select('*')
+      .eq('id_halaqah', id_halaqah)
+      .order('created_at', { ascending: true });
+    if (id_murid)    q = q.eq('id_murid', id_murid);
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    var { data, error } = await q;
+    _check(error, 'getRaportTahfidzData');
+    return { status: 'ok', data: data || [] };
+  },
+
   // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)
   getPenilaianHafalan: async function() {
     var { data, error } = await _sb.from('konfigurasi_penilaian_hafalan')
@@ -1675,6 +1690,19 @@ var MuridAPI = {
       .range(offset || 0, (offset || 0) + lim - 1);
     _check(error, 'getSetoranHafalan');
     return { status: 'ok', data: data || [], total: count || 0, has_more: (offset || 0) + lim < (count || 0) };
+  },
+
+  // Raport tahfidz murid sendiri (berdasarkan rentang tanggal)
+  getMyRaportTahfidz: async function(tgl_mulai, tgl_selesai) {
+    var q = _sb.from('setoran_hafalan')
+      .select('*')
+      .eq('id_murid', _uid())
+      .order('created_at', { ascending: true });
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    var { data, error } = await q;
+    _check(error, 'getMyRaportTahfidz');
+    return { status: 'ok', data: data || [] };
   },
 
   // Target hafalan berikutnya (setoran terbaru yang punya target_surat)
