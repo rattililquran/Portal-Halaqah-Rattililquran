@@ -232,9 +232,18 @@ var DATA = [
       { id:'adm_notif', title:'Konfigurasi Push Notifikasi', icon:'🔔', items:[
         { id:'a32', text:'Halaman konfigurasi notifikasi tampil daftar jenis notifikasi' },
         { id:'a33', text:'Toggle nonaktif "KBM Absen" → tutup KBM, murid alpa TIDAK dapat notif' },
-        { id:'a34', text:'Toggle aktif "KBM Absen" → tutup KBM, murid alpa DAPAT notif' },
+        { id:'a34', text:'Toggle aktif "KBM Absen" → tutup KBM, murid alpa DAPAT notif + masuk inbox bell murid' },
         { id:'a35', text:'Toggle "Jadwal At-Tibyan" → push 30 menit sebelum Ahad 19.00 WIB' },
         { id:'a36', text:'Log pengiriman notifikasi tampil (sent, failed, waktu)' },
+      ]},
+      { id:'adm_cron', title:'Penjadwalan Otomatis (pg_cron)', icon:'⏰', items:[
+        { id:'a37', text:'push-guru-kbm-today — 03:00 WIB: guru yang ada KBM hari ini dapat notif + kalimat doa di akhir' },
+        { id:'a38', text:'push-kbm-h1-reminder — 20:00 WIB: murid & guru dapat reminder KBM besok + kalimat doa' },
+        { id:'a39', text:'push-pr-deadline-reminder — 08:00 WIB: murid dapat reminder deadline latihan + kalimat doa' },
+        { id:'a40', text:'push-attibyan-30min — Ahad 19:00 WIB: semua murid aktif dapat reminder At-Tibyan + kalimat doa' },
+        { id:'a41', text:'push-attibyan-h1-reminder — Sabtu 19:30 WIB: semua murid dapat reminder At-Tibyan besok + kalimat doa' },
+        { id:'a42', text:'push-admin-daily-digest — 21:00 WIB: admin dapat rekap sesi KBM + SPP pending + kalimat doa' },
+        { id:'a43', text:'cleanup-notif-inbox — 03:00 WIB: notif inbox yg sudah dibaca (>30 hari) terhapus otomatis' },
       ]},
     ]
   },
@@ -368,6 +377,41 @@ var DATA = [
         { id:'m43', text:'Halaman Panduan Instalasi: langkah Android/iPhone tampil jelas' },
         { id:'m44', text:'Pasang PWA → ikon di homescreen, buka full-screen tanpa browser bar' },
         { id:'m45', text:'Tombol YouTube di panduan → buka channel @rattililquran01' },
+      ]},
+      { id:'mrd_inbox', title:'Inbox Notifikasi (Bell 🔔)', icon:'📬', items:[
+        { id:'m46', text:'Ketuk lonceng → modal terbuka: section Catatan Keaktifan (jika ada) + section Notifikasi Masuk' },
+        { id:'m47', text:'Notif push KBM absen masuk ke inbox bell setelah guru tutup KBM' },
+        { id:'m48', text:'Notif masuk tampil: judul, isi pesan, waktu, tombol ✕' },
+        { id:'m49', text:'Ketuk ✕ pada notif inbox → notif hilang dengan animasi, badge berkurang' },
+        { id:'m50', text:'Reload portal → notif yang sudah di-✕ tidak muncul lagi (tersimpan di DB)' },
+        { id:'m51', text:'Badge lonceng = jumlah keaktifan aktif + inbox belum dibaca' },
+        { id:'m52', text:'Jika ada keaktifan DAN inbox → garis pemisah antar section tampil' },
+        { id:'m53', text:'Jika hanya satu section yang berisi → garis pemisah tidak tampil' },
+        { id:'m54', text:'Catatan Keaktifan: tetap ada meski guru sudah dismiss (permanen)' },
+        { id:'m55', text:'Catatan Keaktifan: label "Guru sudah mengetahui ✓" muncul setelah guru tandai sudah dihubungi' },
+        { id:'m56', text:'Murid lain tidak bisa baca inbox murid ini (RLS per-user enforced di DB)' },
+      ]},
+    ]
+  },
+  {
+    id: 'security', role: 'Security', icon: '🔒', color: 'admin',
+    sections: [
+      { id:'sec_rls', title:'RLS & Isolasi Data', icon:'🛡️', items:[
+        { id:'s01', text:'notif_inbox: murid buka devtools → supabase.from("notif_inbox").select("*") → hasilnya hanya milik sendiri (bukan semua murid)' },
+        { id:'s02', text:'notif_inbox: murid tidak bisa insert langsung dari browser (hanya Edge Function yang bisa)' },
+        { id:'s03', text:'notif_inbox: murid hanya bisa update (mark read) baris milik sendiri' },
+        { id:'s04', text:'push_subscriptions: murid tidak bisa baca subscription murid lain' },
+      ]},
+      { id:'sec_jwt', title:'JWT & Auth Edge Function', icon:'🔑', items:[
+        { id:'s05', text:'send-push: kirim dengan token palsu → response 401 Unauthorized' },
+        { id:'s06', text:'send-push: kirim dengan anon key → response 401/403 Unauthorized' },
+        { id:'s07', text:'send-push: kirim dengan session token guru yang login → berhasil (2xx)' },
+        { id:'s08', text:'push-scheduler: kirim dengan token palsu → response 401 Unauthorized' },
+        { id:'s09', text:'pg_cron memanggil push-scheduler dengan service_role key → trigger berhasil dijalankan' },
+      ]},
+      { id:'sec_notif', title:'Keamanan Konten Notifikasi', icon:'📋', items:[
+        { id:'s10', text:'Isi notif inbox dari DB: karakter HTML (tag script dll) ditampilkan sebagai teks biasa, bukan dieksekusi' },
+        { id:'s11', text:'Catatan keaktifan dari localStorage: karakter spesial di-escape dengan benar di tampilan bell modal' },
       ]},
     ]
   }
