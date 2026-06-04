@@ -1159,6 +1159,10 @@ var GuruAPI = {
       target_ayat_dari   : d.target_ayat_dari   ? parseInt(d.target_ayat_dari)   : null,
       target_ayat_sampai : d.target_ayat_sampai ? parseInt(d.target_ayat_sampai) : null,
     };
+    // Jika guru mengisi tanggal manual, gunakan sebagai created_at
+    if (d.tanggal) {
+      payload.created_at = new Date(d.tanggal + 'T12:00:00').toISOString();
+    }
     var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
     _check(error, 'addSetoranHafalan');
     return { status: 'ok', data };
@@ -1193,6 +1197,24 @@ var GuruAPI = {
       .eq('id_guru', _uid());
     _check(error, 'deleteSetoranHafalan');
     return { status: 'ok' };
+  },
+
+  // Target terbaru per murid di halaqah Qiyam (untuk kartu pengingat guru)
+  getTargetHafalanMurid: async function(id_halaqah) {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('id_murid, nama_murid, target_surat, target_ayat_dari, target_ayat_sampai, created_at')
+      .eq('id_halaqah', id_halaqah)
+      .not('target_surat', 'is', null)
+      .order('created_at', { ascending: false });
+    _check(error, 'getTargetHafalanMurid');
+    // Deduplicate — ambil target terbaru per murid
+    var seen = new Set();
+    var result = (data || []).filter(function(r) {
+      if (seen.has(r.id_murid)) return false;
+      seen.add(r.id_murid);
+      return true;
+    });
+    return { status: 'ok', data: result };
   },
 };
 

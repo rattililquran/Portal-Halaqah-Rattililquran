@@ -263,6 +263,12 @@ tr:hover td{background:#f8fafc}
 /* ── FORMS ── */
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+/* Hafalan form label helper */
+.hf-lbl{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+/* Hafalan penilaian item */
+.hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
+.hf-pn-row:last-child{margin-bottom:0}
+.hf-pn-row:hover{border-color:#bfdbfe;background:#f0f9ff}
 .fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
   font-family:inherit;font-size:14px;outline:none;background:var(--card,#fff);color:var(--text);transition:border-color .2s}
 .fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,88,168,.1)}
@@ -2059,66 +2065,76 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 
       <!-- ════ INPUT HAFALAN (LEVEL QIYAM) ════ -->
       <div class="page" id="page-hafalan-guru">
+        <!-- ── Header row ── -->
         <div class="page-title-row">
           <span>🕌 Input Hafalan Qiyam</span>
-          <button class="guru-refresh-btn" onclick="refreshHafalanGuru()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
-          </button>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="guru-refresh-btn" onclick="toggleKelolaPenilaian()" id="btnKelolaPenilaian" title="Kelola Penilaian">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Kelola Penilaian
+            </button>
+            <button class="guru-refresh-btn" onclick="refreshHafalanGuru()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+            </button>
+          </div>
         </div>
 
-        <!-- Pilih Halaqah Qiyam -->
+        <!-- ── Pilih Halaqah Qiyam ── -->
         <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label style="font-size:12px;font-weight:700;color:#6b7280;white-space:nowrap">Halaqah Qiyam:</label>
-          <select class="fc" id="hafalanGuruHalaqahSel" onchange="onHafalanHalaqahChange()" style="min-width:180px"></select>
+          <label style="font-size:12px;font-weight:700;color:#6b7280;white-space:nowrap">Halaqah:</label>
+          <select class="fc" id="hafalanGuruHalaqahSel" onchange="onHafalanHalaqahChange()" style="min-width:180px;flex:1;max-width:280px"></select>
         </div>
 
-        <!-- FORM INPUT SETORAN -->
+        <!-- ════ KARTU TARGET HAFALAN MURID ════ -->
+        <div id="hafalanTargetGuruCard" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:linear-gradient(90deg,#eef3fb,#fff);border-bottom:1px solid #f0f0f0">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1d4ed8,#2563eb);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#111827">🎯 Target Hafalan Siswa</div>
+                <div style="font-size:11px;color:#9ca3af">Target hafalan yang telah ditetapkan per siswa</div>
+              </div>
+            </div>
+            <span id="hafalanTargetGuruBadge" style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:3px 11px;border-radius:100px;border:1px solid #bfdbfe">0 siswa</span>
+          </div>
+          <div id="hafalanTargetGuruGrid" style="padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
+        </div>
+
+        <!-- ════ FORM INPUT SETORAN ════ -->
         <div id="hafalanFormWrap" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:16px">
-          <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:12px">📝 Input Setoran Baru</div>
+          <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:14px">📝 Input Setoran Hafalan</div>
 
-          <!-- Pilih Murid -->
-          <div style="margin-bottom:10px">
-            <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Murid</label>
-            <select class="fc" id="hafalanMuridSel" style="width:100%" onchange="onHafalanMuridChange()">
-              <option value="">— Pilih Murid —</option>
-            </select>
-          </div>
-
-          <!-- Row: Jenis + Nilai + Kelancaran -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <!-- Row 1: Pilih Siswa | Tanggal | Jenis -->
+          <div style="display:grid;grid-template-columns:1fr 140px 1fr;gap:8px;margin-bottom:10px">
             <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Jenis</label>
+              <label class="hf-lbl">Pilih Siswa</label>
+              <select class="fc" id="hafalanMuridSel" style="width:100%" onchange="onHafalanMuridChange()">
+                <option value="">— Pilih Siswa —</option>
+              </select>
+            </div>
+            <div>
+              <label class="hf-lbl">Tanggal</label>
+              <input type="date" class="fc" id="hafalanTanggal" style="width:100%">
+            </div>
+            <div>
+              <label class="hf-lbl">Jenis Setoran</label>
               <select class="fc" id="hafalanJenisSel" onchange="onHafalanJenisChange()">
-                <option value="Ziyadah">📖 Ziyadah</option>
-                <option value="Murajaah">🔄 Murajaah</option>
-                <option value="Tasmi'">🎤 Tasmi'</option>
-                <option value="Sabqi">⚡ Sabqi</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Nilai</label>
-              <select class="fc" id="hafalanNilaiSel">
-                <option value="A">A — Sangat Baik</option>
-                <option value="B">B — Baik</option>
-                <option value="C">C — Cukup</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Kelancaran</label>
-              <select class="fc" id="hafalanKelancaranSel">
-                <option value="Lancar">✅ Lancar</option>
-                <option value="Cukup">🟡 Cukup</option>
-                <option value="Perlu Perbaikan">🔴 Perlu Perbaikan</option>
+                <option value="Ziyadah">📖 Ziyadah (Hafalan Baru)</option>
+                <option value="Murajaah">🔄 Murajaah (Mengulang)</option>
+                <option value="Tasmi'">🎤 Tasmi' (Menyimakkan)</option>
+                <option value="Sabqi">⚡ Sabqi (Hafalan Cepat)</option>
               </select>
             </div>
           </div>
 
-          <!-- Row: Juz + Surat -->
-          <div style="display:grid;grid-template-columns:100px 1fr;gap:8px;margin-bottom:10px">
+          <!-- Row 2: Juz | Nama Surat | Halaman -->
+          <div style="display:grid;grid-template-columns:110px 1fr 110px;gap:8px;margin-bottom:10px">
             <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Juz</label>
-              <select class="fc" id="hafalanJuzSel">
-                <option value="">—</option>
+              <label class="hf-lbl">Juz</label>
+              <select class="fc" id="hafalanJuzSel" style="width:100%">
+                <option value="">— Pilih Juz —</option>
                 <option value="1">Juz 1</option><option value="2">Juz 2</option><option value="3">Juz 3</option>
                 <option value="4">Juz 4</option><option value="5">Juz 5</option><option value="6">Juz 6</option>
                 <option value="7">Juz 7</option><option value="8">Juz 8</option><option value="9">Juz 9</option>
@@ -2132,67 +2148,108 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               </select>
             </div>
             <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Nama Surat</label>
+              <label class="hf-lbl">Nama Surat</label>
               <div style="position:relative">
                 <input type="text" class="fc" id="hafalanSuratInput" placeholder="— Pilih surat —" autocomplete="off"
                   oninput="onHafalanSuratInput(this.value)"
                   onfocus="onHafalanSuratFocus()"
                   onblur="setTimeout(function(){var dd=document.getElementById('hafalanSuratDropdown');if(dd)dd.style.display='none';},200)"
-                  style="width:100%;padding-right:32px">
-                <span id="hafalanSuratClear" onclick="clearHafalanSurat()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;font-size:14px">✕</span>
+                  style="width:100%;padding-right:28px">
+                <span id="hafalanSuratClear" onclick="clearHafalanSurat()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;font-size:13px">✕</span>
                 <input type="hidden" id="hafalanSuratValue">
-                <div id="hafalanSuratDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:99;max-height:220px;overflow-y:auto;padding:4px"></div>
+                <div id="hafalanSuratDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:99;max-height:240px;overflow-y:auto;padding:4px"></div>
+              </div>
+            </div>
+            <div>
+              <label class="hf-lbl">Halaman (opsional)</label>
+              <input type="number" class="fc" id="hafalanHalaman" min="1" placeholder="No. Halaman" style="width:100%">
+            </div>
+          </div>
+
+          <!-- Murajaah info box -->
+          <div id="hafalanMurajaahInfo" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#1e40af">
+            <strong>ℹ️ Range Ziyadah:</strong> <span id="hafalanMurajaahRange"></span>
+          </div>
+
+          <!-- Row 3: Ayat Dari | Sampai Ayat -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+            <div>
+              <label class="hf-lbl">Ayat Dari</label>
+              <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="Ayat mulai" style="width:100%">
+            </div>
+            <div>
+              <label class="hf-lbl">Sampai Ayat</label>
+              <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="Ayat selesai" style="width:100%">
+            </div>
+          </div>
+
+          <!-- Penilaian Bacaan -->
+          <div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:13px;padding:13px;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Penilaian Bacaan
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label class="hf-lbl">Kelancaran</label>
+                <select class="fc" id="hafalanKelancaranSel" onchange="hfUpdatePoinPreview()"></select>
+              </div>
+              <div>
+                <label class="hf-lbl">Nilai Makhraj &amp; Tajwid</label>
+                <select class="fc" id="hafalanNilaiSel" onchange="hfUpdatePoinPreview()"></select>
               </div>
             </div>
           </div>
 
-          <!-- Murajaah info -->
-          <div id="hafalanMurajaahInfo" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#1e40af">
-            <strong>ℹ️ Range Ziyadah:</strong> <span id="hafalanMurajaahRange"></span>
+          <!-- Estimasi Poin -->
+          <div id="hafalanPoinPreview" style="display:flex;align-items:center;gap:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#92400e">
+            <span style="font-size:16px">⚡</span>
+            <span id="hafalanPoinPreviewText">Estimasi poin akan dihitung otomatis oleh sistem</span>
           </div>
 
-          <!-- Row: Ayat dari - sampai -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-            <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Ayat Dari</label>
-              <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="1" style="width:100%">
+          <!-- Catatan Guru -->
+          <div style="margin-bottom:14px">
+            <label class="hf-lbl">Catatan Guru</label>
+            <textarea class="fc" id="hafalanCatatan" rows="2" placeholder="Tulis catatan motivasi atau koreksi untuk murid…" style="width:100%;resize:none"></textarea>
+          </div>
+
+          <!-- Target Hafalan Berikutnya -->
+          <div style="background:#f0fdf4;border:1.5px dashed #86efac;border-radius:13px;padding:13px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <div style="width:30px;height:30px;border-radius:8px;background:#16a34a;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🎯</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#166534">Target Hafalan Berikutnya</div>
+                <div style="font-size:10px;color:#4ade80">Opsional — tampil sebagai pengingat di dashboard siswa</div>
+              </div>
             </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Sampai Ayat</label>
-              <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="7" style="width:100%">
+            <div style="margin-bottom:6px">
+              <label class="hf-lbl">Surat Target</label>
+              <input type="text" class="fc" id="hafalanTargetSurat" placeholder="Ketik nama surat target…" style="width:100%">
             </div>
-          </div>
-
-          <!-- Catatan -->
-          <div style="margin-bottom:12px">
-            <label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Catatan Guru</label>
-            <textarea class="fc" id="hafalanCatatan" rows="2" placeholder="Tulis catatan atau motivasi untuk murid…" style="width:100%;resize:none"></textarea>
-          </div>
-
-          <!-- Target hafalan berikutnya -->
-          <div style="background:#f0fdf4;border:1.5px dashed #86efac;border-radius:12px;padding:12px;margin-bottom:14px">
-            <div style="font-size:11px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎯 Target Hafalan Berikutnya (opsional)</div>
-            <div style="display:grid;grid-template-columns:1fr;gap:6px">
-              <input type="text" class="fc" id="hafalanTargetSurat" placeholder="Nama surat target…" style="width:100%">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                <input type="number" class="fc" id="hafalanTargetDari" min="1" placeholder="Ayat dari">
-                <input type="number" class="fc" id="hafalanTargetSampai" min="1" placeholder="Sampai ayat">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div>
+                <label class="hf-lbl">Ayat Dari</label>
+                <input type="number" class="fc" id="hafalanTargetDari" min="1" placeholder="Contoh: 1">
+              </div>
+              <div>
+                <label class="hf-lbl">Sampai Ayat</label>
+                <input type="number" class="fc" id="hafalanTargetSampai" min="1" placeholder="Contoh: 7">
               </div>
             </div>
           </div>
 
           <!-- Submit -->
           <button onclick="submitSetoranHafalan()" id="btnSubmitHafalan"
-            style="width:100%;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s">
-            <span>💾</span> Simpan Setoran Hafalan
+            style="width:100%;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;box-shadow:0 4px 12px rgba(29,78,216,.3)">
+            💾 Simpan Setoran Hafalan
           </button>
         </div>
 
-        <!-- RIWAYAT SETORAN PER MURID -->
+        <!-- ════ RIWAYAT SETORAN ════ -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:13px;font-weight:800;color:#111827">Riwayat Setoran</div>
           <select class="fc" id="hafalanRiwayatMuridFilter" onchange="loadRiwayatHafalan()" style="max-width:180px;font-size:12px">
-            <option value="">Semua Murid</option>
+            <option value="">Semua Siswa</option>
           </select>
         </div>
         <div id="hafalanGuruRiwayatList"></div>
@@ -2204,6 +2261,93 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
           <div style="font-size:13px;font-weight:700;color:#374151">Belum ada setoran</div>
           <div style="font-size:12px;color:#9ca3af;margin-top:4px">Input setoran hafalan murid di atas</div>
         </div>
+
+        <!-- ════ KELOLA PENILAIAN (collapsible) ════ -->
+        <div id="kelolaPenilaianWrap" style="display:none;margin-top:20px">
+          <div style="height:1px;background:#e5e7eb;margin-bottom:16px"></div>
+          <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:14px">⚙️ Kelola Penilaian</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:-10px;margin-bottom:14px">Atur kriteria penilaian yang tampil pada form Input Setoran</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+            <!-- Kelancaran Card -->
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#eff6ff,#fff);border-bottom:1px solid #f0f0f0">
+                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:800;color:#111827">Kelancaran Bacaan</div>
+                  <div style="font-size:10px;color:#9ca3af">Tingkat kelancaran hafalan</div>
+                </div>
+                <span id="hfKelBadge" style="background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px">0 item</span>
+              </div>
+              <div id="hfKelList" style="padding:10px;min-height:80px"></div>
+              <!-- Add form -->
+              <div style="padding:10px 12px;border-top:1px solid #f3f4f6;background:#f9fafb">
+                <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">+ Tambah Opsi</div>
+                <div style="display:grid;grid-template-columns:1fr 70px 60px;gap:5px;margin-bottom:6px">
+                  <input type="text" class="fc" id="hfAddKelNama" placeholder="Nama kategori" style="font-size:12px;padding:6px 9px">
+                  <input type="number" class="fc" id="hfAddKelPoin" placeholder="Poin" style="font-size:12px;padding:6px 9px">
+                  <select class="fc" id="hfAddKelIcon" style="font-size:12px;padding:6px 5px">
+                    <option value="🟢">🟢</option><option value="🔵">🔵</option>
+                    <option value="🟡">🟡</option><option value="🟠">🟠</option>
+                    <option value="🔴">🔴</option><option value="⚪">⚪</option>
+                  </select>
+                </div>
+                <button onclick="hfAddKelancaran()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%">+ Tambah</button>
+              </div>
+            </div>
+
+            <!-- Nilai Makhraj & Tajwid Card -->
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#fffbeb,#fff);border-bottom:1px solid #f0f0f0">
+                <div style="width:34px;height:34px;border-radius:9px;background:#d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:800;color:#111827">Nilai Makhraj &amp; Tajwid</div>
+                  <div style="font-size:10px;color:#9ca3af">Kualitas bacaan makhraj &amp; tajwid</div>
+                </div>
+                <span id="hfNilBadge" style="background:#fef3c7;color:#b45309;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px">0 item</span>
+              </div>
+              <div id="hfNilList" style="padding:10px;min-height:80px"></div>
+              <!-- Add form -->
+              <div style="padding:10px 12px;border-top:1px solid #f3f4f6;background:#f9fafb">
+                <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">+ Tambah Opsi</div>
+                <div style="display:grid;grid-template-columns:60px 1fr 70px;gap:5px;margin-bottom:6px">
+                  <input type="text" class="fc" id="hfAddNilKode" placeholder="Kode" maxlength="4" style="font-size:12px;padding:6px 9px">
+                  <input type="text" class="fc" id="hfAddNilDesc" placeholder="Deskripsi" style="font-size:12px;padding:6px 9px">
+                  <input type="number" class="fc" id="hfAddNilPoin" placeholder="Poin" style="font-size:12px;padding:6px 9px">
+                </div>
+                <button onclick="hfAddNilai()" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%">+ Tambah</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Preview -->
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span style="font-size:12px;font-weight:800;color:#374151">Preview Tampilan Form</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label class="hf-lbl">Kelancaran</label>
+                <select class="fc" id="hfPreviewKelancaran" disabled style="opacity:.8"></select>
+              </div>
+              <div>
+                <label class="hf-lbl">Nilai Makhraj &amp; Tajwid</label>
+                <select class="fc" id="hfPreviewNilai" disabled style="opacity:.8"></select>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+              <p style="font-size:11px;color:#9ca3af">Perubahan otomatis tersimpan dan langsung berlaku.</p>
+              <button onclick="hfResetPenilaian()" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer">↺ Reset ke Default</button>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /page-hafalan-guru -->
 
       <!-- ════ NILAI MANUAL ════ -->
@@ -6667,11 +6811,191 @@ async function initRaportPage() {
 // ══════════════════════════════════════════
 //  HAFALAN QIYAM — GURU
 // ══════════════════════════════════════════
-var _hafalanGuruQiyamList  = [];   // halaqah Qiyam milik guru
-var _hafalanGuruMuridCache = {};   // { id_halaqah: [murid] }
+var _hafalanGuruQiyamList  = [];
+var _hafalanGuruMuridCache = {};
 var _hafalanGuruOffset     = 0;
-var _hafalanGuruZiyadah    = [];   // untuk validasi Murajaah
+var _hafalanGuruZiyadah    = [];
 var _hafalanGuruSubmitting = false;
+
+// ── Penilaian Config (localStorage) ────────────────────────────────────
+var _HF_PENILAIAN_KEY = 'hq_hf_penilaian_v1';
+
+function _hfDefaultConfig() {
+  return {
+    kelancaran: [
+      { id: 'kel-1', nama: 'Lancar',           poin:  20, icon: '🟢' },
+      { id: 'kel-2', nama: 'Cukup',            poin:   0, icon: '🟡' },
+      { id: 'kel-3', nama: 'Perlu Perbaikan',  poin: -20, icon: '🔴' }
+    ],
+    nilai: [
+      { id: 'nil-1', kode: 'A', desc: 'Sangat Baik', poin: 100, icon: '⭐' },
+      { id: 'nil-2', kode: 'B', desc: 'Baik',         poin:  80, icon: '✅' },
+      { id: 'nil-3', kode: 'C', desc: 'Cukup',        poin:  60, icon: '📌' }
+    ]
+  };
+}
+
+function _hfLoadConfig() {
+  try {
+    var raw = localStorage.getItem(_HF_PENILAIAN_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return _hfDefaultConfig();
+}
+
+function _hfSaveConfig(cfg) {
+  localStorage.setItem(_HF_PENILAIAN_KEY, JSON.stringify(cfg));
+  _hfRenderAllDropdowns();
+  renderKelolaPenilaianHafalan();
+}
+
+// Isi semua select dari config
+function _hfRenderAllDropdowns() {
+  var cfg = _hfLoadConfig();
+  var kelOpts = cfg.kelancaran.map(function(k) {
+    var poinLabel = k.poin > 0 ? '(+' + k.poin + ' Poin)' : k.poin < 0 ? '(' + k.poin + ' Poin)' : '(Netral)';
+    return '<option value="' + _escAttr(k.nama) + '">' + k.icon + ' ' + _escAttr(k.nama) + ' ' + poinLabel + '</option>';
+  }).join('');
+  var nilOpts = cfg.nilai.map(function(n) {
+    return '<option value="' + _escAttr(n.kode) + '">' + n.icon + ' ' + _escAttr(n.kode) + ' — ' + _escAttr(n.desc) + ' (' + n.poin + ' Poin)</option>';
+  }).join('');
+  ['hafalanKelancaranSel','hfPreviewKelancaran'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = kelOpts || '<option>—</option>';
+  });
+  ['hafalanNilaiSel','hfPreviewNilai'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = nilOpts || '<option>—</option>';
+  });
+}
+
+function _escAttr(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+// Estimasi poin preview
+function hfUpdatePoinPreview() {
+  var cfg     = _hfLoadConfig();
+  var nilVal  = document.getElementById('hafalanNilaiSel').value;
+  var kelVal  = document.getElementById('hafalanKelancaranSel').value;
+  var nilItem = cfg.nilai.find(function(n){ return n.kode === nilVal; });
+  var kelItem = cfg.kelancaran.find(function(k){ return k.nama === kelVal; });
+  var poin    = (nilItem ? nilItem.poin : 0) + (kelItem ? kelItem.poin : 0);
+  var bonus   = new Date().getHours() < 9 ? 10 : 0;
+  var txt     = document.getElementById('hafalanPoinPreviewText');
+  if (!txt) return;
+  if (!nilItem || !kelItem) {
+    txt.textContent = 'Estimasi poin akan dihitung otomatis oleh sistem';
+    return;
+  }
+  txt.innerHTML = 'Estimasi poin: <strong>+' + (poin + bonus) + '</strong>'
+    + (bonus ? ' <span style="color:#d97706;font-weight:700">(+10 bonus subuh 🌙)</span>' : '');
+}
+
+// ── Kelola Penilaian UI ─────────────────────────────────────────────────
+function toggleKelolaPenilaian() {
+  var wrap = document.getElementById('kelolaPenilaianWrap');
+  if (!wrap) return;
+  var visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
+  if (!visible) renderKelolaPenilaianHafalan();
+}
+
+function renderKelolaPenilaianHafalan() {
+  var cfg = _hfLoadConfig();
+
+  // Render kelancaran list
+  var kelListEl = document.getElementById('hfKelList');
+  var kelBadge  = document.getElementById('hfKelBadge');
+  if (kelBadge) kelBadge.textContent = cfg.kelancaran.length + ' item';
+  if (kelListEl) {
+    kelListEl.innerHTML = cfg.kelancaran.length ? cfg.kelancaran.map(function(k, i) {
+      var poinLabel = k.poin > 0 ? '<span style="color:#1d4ed8;font-weight:700">+' + k.poin + '</span>'
+                    : k.poin < 0 ? '<span style="color:#dc2626;font-weight:700">' + k.poin + '</span>'
+                    : '<span style="color:#6b7280">0</span>';
+      return '<div class="hf-pn-row">'
+        + '<span style="font-size:16px;flex-shrink:0">' + k.icon + '</span>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:700;color:#111827">' + esc(k.nama) + '</div>'
+          + '<div style="font-size:11px;color:#6b7280">Modifier: ' + poinLabel + ' poin</div>'
+        + '</div>'
+        + '<button onclick="hfDelKelancaran(' + i + ')" style="width:26px;height:26px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus">🗑</button>'
+      + '</div>';
+    }).join('')
+    : '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Belum ada opsi</div>';
+  }
+
+  // Render nilai list
+  var nilListEl = document.getElementById('hfNilList');
+  var nilBadge  = document.getElementById('hfNilBadge');
+  if (nilBadge) nilBadge.textContent = cfg.nilai.length + ' item';
+  if (nilListEl) {
+    nilListEl.innerHTML = cfg.nilai.length ? cfg.nilai.map(function(n, i) {
+      return '<div class="hf-pn-row">'
+        + '<div style="width:28px;height:28px;border-radius:8px;background:#fef3c7;color:#b45309;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + esc(n.kode) + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:700;color:#111827">' + n.icon + ' ' + esc(n.desc) + '</div>'
+          + '<div style="font-size:11px;color:#6b7280">Kode: <strong>' + esc(n.kode) + '</strong> &nbsp;·&nbsp; <span style="color:#d97706;font-weight:700">' + n.poin + ' poin</span></div>'
+        + '</div>'
+        + '<button onclick="hfDelNilai(' + i + ')" style="width:26px;height:26px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus">🗑</button>'
+      + '</div>';
+    }).join('')
+    : '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Belum ada opsi</div>';
+  }
+
+  _hfRenderAllDropdowns();
+}
+
+function hfAddKelancaran() {
+  var nama = (document.getElementById('hfAddKelNama').value || '').trim();
+  var poin = parseInt(document.getElementById('hfAddKelPoin').value) || 0;
+  var icon = document.getElementById('hfAddKelIcon').value || '🟢';
+  if (!nama) { showToast('Nama kategori tidak boleh kosong', 'warning'); return; }
+  var cfg = _hfLoadConfig();
+  cfg.kelancaran.push({ id: 'kel-' + Date.now(), nama, poin, icon });
+  _hfSaveConfig(cfg);
+  document.getElementById('hfAddKelNama').value = '';
+  document.getElementById('hfAddKelPoin').value = '';
+  showToast('Opsi kelancaran ditambahkan', 'success');
+}
+
+function hfDelKelancaran(i) {
+  if (!confirm('Hapus opsi ini?')) return;
+  var cfg = _hfLoadConfig();
+  cfg.kelancaran.splice(i, 1);
+  _hfSaveConfig(cfg);
+  showToast('Opsi dihapus', 'success');
+}
+
+function hfAddNilai() {
+  var kode = (document.getElementById('hfAddNilKode').value || '').trim();
+  var desc = (document.getElementById('hfAddNilDesc').value || '').trim();
+  var poin = parseInt(document.getElementById('hfAddNilPoin').value) || 0;
+  if (!kode || !desc) { showToast('Kode dan deskripsi wajib diisi', 'warning'); return; }
+  var cfg = _hfLoadConfig();
+  var icons = ['⭐','✅','📌','🎯','🏆','📖'];
+  cfg.nilai.push({ id: 'nil-' + Date.now(), kode, desc, poin, icon: icons[cfg.nilai.length % icons.length] });
+  _hfSaveConfig(cfg);
+  document.getElementById('hfAddNilKode').value = '';
+  document.getElementById('hfAddNilDesc').value = '';
+  document.getElementById('hfAddNilPoin').value = '';
+  showToast('Opsi nilai ditambahkan', 'success');
+}
+
+function hfDelNilai(i) {
+  if (!confirm('Hapus opsi ini?')) return;
+  var cfg = _hfLoadConfig();
+  cfg.nilai.splice(i, 1);
+  _hfSaveConfig(cfg);
+  showToast('Opsi dihapus', 'success');
+}
+
+function hfResetPenilaian() {
+  if (!confirm('Reset semua penilaian ke pengaturan default?')) return;
+  localStorage.removeItem(_HF_PENILAIAN_KEY);
+  _hfSaveConfig(_hfDefaultConfig());
+  showToast('Penilaian direset ke default', 'success');
+}
 
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
 function _initNavHafalan() {
@@ -6689,9 +7013,18 @@ function _initNavHafalan() {
 }
 
 async function initHafalanGuruPage() {
-  // Populate dropdown halaqah Qiyam
   var qiyamHalaqah = (halaqahList || []).filter(function(h) { return h.level === 'Level Qiyam'; });
   _hafalanGuruQiyamList = qiyamHalaqah;
+
+  // Set tanggal default ke hari ini
+  var tglInput = document.getElementById('hafalanTanggal');
+  if (tglInput && !tglInput.value) {
+    tglInput.value = new Date().toISOString().slice(0, 10);
+  }
+
+  // Render penilaian dropdowns dari config
+  _hfRenderAllDropdowns();
+  hfUpdatePoinPreview();
 
   var hSel = document.getElementById('hafalanGuruHalaqahSel');
   if (!hSel) return;
@@ -6704,6 +7037,35 @@ async function initHafalanGuruPage() {
   if (qiyamHalaqah.length === 1) {
     hSel.value = qiyamHalaqah[0].id_halaqah;
     await onHafalanHalaqahChange();
+  }
+}
+
+// Kartu target hafalan per murid (ditampilkan di atas form)
+async function loadTargetHafalanGuru(id_halaqah) {
+  var card    = document.getElementById('hafalanTargetGuruCard');
+  var grid    = document.getElementById('hafalanTargetGuruGrid');
+  var badge   = document.getElementById('hafalanTargetGuruBadge');
+  if (!card || !grid) return;
+  try {
+    var res  = await window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah);
+    var list = res.data || [];
+    if (!list.length) { card.style.display = 'none'; return; }
+    badge.textContent = list.length + ' siswa';
+    grid.innerHTML = list.map(function(t) {
+      var initial = (t.nama_murid || '?').charAt(0).toUpperCase();
+      var tgl     = t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;background:#f8faff;border:1px solid #e0eaff;border-radius:12px;padding:11px 13px">'
+        + '<div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + initial + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.nama_murid || '-') + '</div>'
+          + '<div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-top:2px">🎯 ' + esc(t.target_surat) + '</div>'
+          + '<div style="font-size:10px;color:#6b7280;margin-top:1px">Ayat ' + (t.target_ayat_dari||'-') + '–' + (t.target_ayat_sampai||'-') + ' &nbsp;·&nbsp; ' + tgl + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+    card.style.display = 'block';
+  } catch(e) {
+    card.style.display = 'none';
   }
 }
 
@@ -6733,8 +7095,10 @@ async function onHafalanHalaqahChange() {
   _hafalanGuruZiyadah = [];
   clearHafalanSurat();
   document.getElementById('hafalanMurajaahInfo').style.display = 'none';
-  // Load riwayat
+  // Load target card + riwayat
   _hafalanGuruOffset = 0;
+  var id_halaqah = document.getElementById('hafalanGuruHalaqahSel').value;
+  if (id_halaqah) loadTargetHafalanGuru(id_halaqah);
   loadRiwayatHafalan();
 }
 
@@ -7008,6 +7372,7 @@ async function submitSetoranHafalan() {
   var muridSel   = document.getElementById('hafalanMuridSel');
   var id_murid   = muridSel.value;
   var nama_murid = muridSel.options[muridSel.selectedIndex] && muridSel.options[muridSel.selectedIndex].getAttribute('data-nama');
+  var tanggal    = document.getElementById('hafalanTanggal').value;
   var jenis      = document.getElementById('hafalanJenisSel').value;
   var nilai      = document.getElementById('hafalanNilaiSel').value;
   var kelancaran = document.getElementById('hafalanKelancaranSel').value;
@@ -7022,10 +7387,11 @@ async function submitSetoranHafalan() {
 
   // Validasi
   if (!id_halaqah) { showToast('Pilih halaqah terlebih dahulu', 'warning'); return; }
-  if (!id_murid)   { showToast('Pilih murid terlebih dahulu', 'warning'); return; }
+  if (!id_murid)   { showToast('Pilih siswa terlebih dahulu', 'warning'); return; }
   if (!surat)      { showToast('Pilih surat terlebih dahulu', 'warning'); return; }
   if (!ayatDari || !ayatSampai) { showToast('Isi ayat dari dan sampai', 'warning'); return; }
   if (parseInt(ayatDari) > parseInt(ayatSampai)) { showToast('Ayat dari tidak boleh lebih besar dari ayat sampai', 'warning'); return; }
+  if (!nilai)     { showToast('Pilih nilai terlebih dahulu', 'warning'); return; }
 
   // Validasi Murajaah range
   if (jenis === 'Murajaah' && _hafalanGuruZiyadah.length) {
@@ -7046,6 +7412,7 @@ async function submitSetoranHafalan() {
   try {
     await window.HQ.GuruAPI.addSetoranHafalan({
       id_murid, nama_murid, id_halaqah, juz, surat,
+      tanggal: tanggal || null,
       ayat_dari: ayatDari, ayat_sampai: ayatSampai,
       jenis, nilai, kelancaran, catatan,
       target_surat: tgtSurat || null,
@@ -7053,19 +7420,25 @@ async function submitSetoranHafalan() {
       target_ayat_sampai: tgtSampai || null,
     });
     showToast('Setoran hafalan berhasil disimpan! 🎉', 'success');
-    // Reset form (kecuali halaqah & murid)
-    document.getElementById('hafalanJenisSel').value      = 'Ziyadah';
-    document.getElementById('hafalanNilaiSel').value      = 'A';
-    document.getElementById('hafalanKelancaranSel').value = 'Lancar';
-    document.getElementById('hafalanJuzSel').value        = '';
-    document.getElementById('hafalanCatatan').value       = '';
+    // Reset form sebagian (pertahankan halaqah, murid, tanggal)
+    document.getElementById('hafalanJenisSel').value  = 'Ziyadah';
+    document.getElementById('hafalanJuzSel').value    = '';
+    document.getElementById('hafalanCatatan').value   = '';
     document.getElementById('hafalanTargetSurat').value   = '';
     document.getElementById('hafalanTargetDari').value    = '';
     document.getElementById('hafalanTargetSampai').value  = '';
+    // Reset nilai ke default pertama dari config
+    var cfg = _hfLoadConfig();
+    var nilSel = document.getElementById('hafalanNilaiSel');
+    var kelSel = document.getElementById('hafalanKelancaranSel');
+    if (nilSel && cfg.nilai.length) nilSel.value = cfg.nilai[0].kode;
+    if (kelSel && cfg.kelancaran.length) kelSel.value = cfg.kelancaran[0].nama;
     clearHafalanSurat();
     _hafalanGuruZiyadah = [];
     document.getElementById('hafalanMurajaahInfo').style.display = 'none';
-    // Reload riwayat
+    hfUpdatePoinPreview();
+    // Reload target card + riwayat
+    if (id_halaqah) loadTargetHafalanGuru(id_halaqah);
     _hafalanGuruOffset = 0;
     loadRiwayatHafalan();
   } catch(e) {
