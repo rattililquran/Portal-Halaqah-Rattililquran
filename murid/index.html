@@ -4506,12 +4506,21 @@ async function loadDashboard() {
     // Sidebar hafalan: tampilkan lock/unlock sesuai level
     var lockIcon = document.getElementById('sidebarHafalanLockIcon');
     var qiyamBdg = document.getElementById('sidebarQiyamBadge');
+    var navRiwayat = document.getElementById('sidebarNavRiwayat');
+    var navPr      = document.getElementById('sidebarNavPr');
+    var navMateri  = document.getElementById('sidebarNavMateri');
     if (_lvl === 'Level Qiyam') {
       if (lockIcon) lockIcon.style.display = 'none';
       if (qiyamBdg) qiyamBdg.style.display = 'inline-block';
+      if (navRiwayat) navRiwayat.style.display = 'none';
+      if (navPr)      navPr.style.display = 'none';
+      if (navMateri)  navMateri.style.display = 'none';
     } else {
       if (lockIcon) lockIcon.style.display = 'inline';
       if (qiyamBdg) qiyamBdg.style.display = 'none';
+      if (navRiwayat) navRiwayat.style.display = 'flex';
+      if (navPr)      navPr.style.display = 'flex';
+      if (navMateri)  navMateri.style.display = 'flex';
     }
     // Init ketua kelas jika is_ketua = true
     initKetua(ang.is_ketua || false, ang.halaqah_ketua || null);
@@ -4706,6 +4715,17 @@ async function loadDashboard() {
       }, 800);
     }
 
+    // Stats click routing (KBM Reguler and MT do not appear in Qiyam)
+    var hadirCard = document.querySelector('.stats-grid .stat-card:nth-child(1)');
+    var sesiCard  = document.querySelector('.stats-grid .stat-card:nth-child(2)');
+    if (isQiyam) {
+      if (hadirCard) hadirCard.setAttribute('onclick', "goPage('hafalan')");
+      if (sesiCard)  sesiCard.setAttribute('onclick', "goPage('hafalan')");
+    } else {
+      if (hadirCard) hadirCard.setAttribute('onclick', "goPage('riwayat')");
+      if (sesiCard)  sesiCard.setAttribute('onclick', "goPage('info')");
+    }
+
     // Stats
     document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
     document.getElementById('st-sesi').textContent  = kh.total_sesi !== undefined ? kh.total_sesi : '–';
@@ -4714,11 +4734,16 @@ async function loadDashboard() {
 
     // PR preview
     var prAktif = d.pr_aktif || [];
+    if (isQiyam) {
+      prAktif = []; // KBM Reguler and MT do not show/count in Qiyam level
+    }
     checkPRBadge(prAktif);
-    if (prAktif.length) {
-      var prCard = document.getElementById('prCard');
-      var prPrev = document.getElementById('dashPrPreview');
-      if (prCard) prCard.style.display = 'block';
+    var prCard = document.getElementById('prCard');
+    var prPrev = document.getElementById('dashPrPreview');
+    if (prCard) {
+      if (prAktif.length) prCard.style.display = 'block';
+      else prCard.style.display = 'none';
+    }
       if (prPrev) {
         prPrev.innerHTML = prAktif.slice(0,2).map(function(pr) {
           var cls = pr.status_deadline === 'lewat' ? 'var(--red)' :

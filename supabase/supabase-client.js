@@ -1392,11 +1392,21 @@ var MuridAPI = {
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
       _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
       _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
-      _sb.from('nilai_kbm').select('status_hadir, adab, kamera_murid').eq('id_murid', id_murid),
+      _sb.from('nilai_kbm').select('status_hadir, adab, kamera_murid, jenis_sesi').eq('id_murid', id_murid),
     ]);
     var anggota    = anggotaRes.data;
     var user       = userRes.data;
     var nilai      = nilaiRes.data || [];
+
+    // Filter KBM sessions based on current active level (KBM Reguler and MT do not appear in Qiyam)
+    if (anggota && anggota.level === 'Level Qiyam') {
+      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Qiyam'; });
+    } else if (anggota && (anggota.level === 'Micro Teaching' || (anggota.halaqah && anggota.halaqah.level === 'Micro Teaching'))) {
+      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
+    } else {
+      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
+    }
+
     var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
     // Fetch pengumuman aktif untuk murid ini (target: semua atau halaqah ini)
     var pengumumanQuery = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(5);
@@ -1536,9 +1546,27 @@ var MuridAPI = {
 
   getRiwayat: async function(limit, offset) {
     var id_murid = _uid();
-    var { data, error, count } = await _sb.from('nilai_kbm')
-      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan)', { count: 'exact' })
+    
+    // Fetch student level first to filter history correctly (KBM Reguler and MT do not appear in Qiyam)
+    var { data: ang } = await _sb.from('anggota')
+      .select('level')
       .eq('id_murid', id_murid)
+      .eq('status', 'aktif')
+      .maybeSingle();
+
+    var q = _sb.from('nilai_kbm')
+      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan)', { count: 'exact' })
+      .eq('id_murid', id_murid);
+
+    if (ang && ang.level === 'Level Qiyam') {
+      q = q.eq('jenis_sesi', 'KBM Qiyam');
+    } else if (ang && ang.level === 'Micro Teaching') {
+      q = q.eq('jenis_sesi', 'Micro Teaching');
+    } else {
+      q = q.eq('jenis_sesi', 'KBM Reguler');
+    }
+
+    var { data, error, count } = await q
       .order('tanggal', { ascending: false })
       .range(offset||0, (offset||0)+(limit||8)-1);
     _check(error, 'getRiwayat');
