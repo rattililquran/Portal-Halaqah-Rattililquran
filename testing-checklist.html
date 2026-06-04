@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testing Checklist — Portal Halaqah Rattililqur'an</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-2: #374151;
+    --text-3: #6b7280;
+    --admin: #7c3aed;
+    --admin-l: #f3f0ff;
+    --guru: #0ea5e9;
+    --guru-l: #f0f9ff;
+    --murid: #16a34a;
+    --murid-l: #f0fdf4;
+    --red: #dc2626;
+    --red-l: #fef2f2;
+    --green: #16a34a;
+    --green-l: #f0fdf4;
+    --amber: #d97706;
+    --amber-l: #fffbeb;
+    --gray-l: #f3f4f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+  /* ── HEADER ── */
+  .header { background: #fff; border-bottom: 1px solid var(--border); padding: 16px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .header-left h1 { font-size: 17px; font-weight: 800; }
+  .header-left p  { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .header-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* ── TOTAL BAR ── */
+  .total-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .total-group { display: flex; align-items: center; gap: 6px; }
+  .total-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .total-label { font-size: 11px; font-weight: 700; color: var(--text-3); }
+  .total-num { font-size: 15px; font-weight: 800; }
+  .divider { width: 1px; height: 20px; background: var(--border); }
+  .progress-wrap { flex: 1; min-width: 100px; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; display: flex; gap: 1px; }
+  .progress-pass { height: 100%; background: #16a34a; transition: width .4s; }
+  .progress-fail { height: 100%; background: #dc2626; transition: width .4s; }
+
+  /* ── PORTAL CARD ── */
+  .portal-card { border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); border: 1px solid var(--border); background: var(--card); }
+  .portal-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+  .portal-header.admin { background: var(--admin-l); border-bottom: 2px solid var(--admin); }
+  .portal-header.guru  { background: var(--guru-l);  border-bottom: 2px solid var(--guru);  }
+  .portal-header.murid { background: var(--murid-l); border-bottom: 2px solid var(--murid); }
+  .portal-title { display: flex; align-items: center; gap: 10px; }
+  .portal-icon { font-size: 22px; }
+  .portal-name { font-size: 15px; font-weight: 800; }
+  .portal-name.admin { color: var(--admin); }
+  .portal-name.guru  { color: var(--guru);  }
+  .portal-name.murid { color: var(--murid); }
+  .portal-stats { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 700; }
+  .ps-pass { color: var(--green); }
+  .ps-fail { color: var(--red); }
+  .ps-todo { color: var(--text-3); }
+
+  /* ── SECTION ── */
+  .section { border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-header { padding: 11px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: #fafafa; transition: background .15s; }
+  .section-header:hover { background: #f3f4f6; }
+  .section-title { font-size: 12.5px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 7px; }
+  .section-title .ico { font-size: 15px; }
+  .sec-right { display: flex; align-items: center; gap: 8px; }
+  .sec-pill { padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .sec-pill.all-pass  { background: var(--green-l); color: var(--green); }
+  .sec-pill.has-fail  { background: var(--red-l);   color: var(--red);   }
+  .sec-pill.partial   { background: var(--amber-l); color: var(--amber); }
+  .sec-pill.untouched { background: var(--gray-l);  color: var(--text-3);}
+  .chevron { font-size: 11px; color: var(--text-3); transition: transform .2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* ── ITEMS ── */
+  .items-list { display: none; }
+  .items-list.open { display: block; }
+
+  .item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 18px; border-bottom: 1px solid #f3f4f6; transition: background .15s; }
+  .item:last-child { border-bottom: none; }
+  .item.pass { background: #f0fdf4; }
+  .item.fail { background: #fef2f2; }
+
+  .item-text { flex: 1; font-size: 13px; color: var(--text-2); line-height: 1.5; padding-top: 2px; }
+  .item.pass .item-text { color: var(--green); }
+  .item.fail .item-text { color: var(--red); text-decoration: line-through; opacity: .75; }
+
+  /* toggle buttons */
+  .btns { display: flex; gap: 4px; flex-shrink: 0; margin-top: 1px; }
+  .btn-toggle { padding: 4px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .btn-toggle.pass-btn       { color: var(--text-3); }
+  .btn-toggle.pass-btn.active{ background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-toggle.fail-btn       { color: var(--text-3); }
+  .btn-toggle.fail-btn.active{ background: var(--red);   color: #fff; border-color: var(--red);   }
+  .btn-toggle:hover { opacity: .8; }
+
+  /* ── BUTTONS ── */
+  .btn { padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: opacity .15s; }
+  .btn:hover { opacity: .85; }
+  .btn-reset  { background: #fee2e2; color: var(--red); }
+  .btn-print  { background: var(--text); color: #fff; }
+  .btn-expand { background: var(--border); color: var(--text-2); font-size: 11px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── PRINT ── */
+  @media print {
+    .header { position: static; }
+    .header-right { display: none; }
+    .total-bar { flex-wrap: nowrap; }
+    .items-list { display: block !important; }
+    .chevron { display: none; }
+    .section-header { cursor: default; background: #f9f9f9 !important; }
+    .btns { display: none; }
+    .item.pass::after { content: '✅'; font-size: 13px; }
+    .item.fail::after { content: '❌'; font-size: 13px; }
+    body { background: #fff; }
+    .container { padding: 8px; }
+    .portal-card { break-inside: avoid; page-break-inside: avoid; }
+  }
+
+  @media (max-width: 600px) {
+    .header { padding: 12px 14px; }
+    .total-bar { padding: 8px 14px; gap: 10px; }
+    .item { padding: 8px 14px; gap: 8px; }
+    .btns { flex-direction: column; gap: 3px; }
+    .btn-toggle { font-size: 11px; padding: 3px 7px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Testing Checklist — Portal Halaqah Rattililqur'an</h1>
+    <p id="lastSaved">Progress tersimpan otomatis di browser</p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-expand" onclick="toggleAll(true)">Buka Semua</button>
+    <button class="btn btn-expand" onclick="toggleAll(false)">Tutup Semua</button>
+    <button class="btn btn-print"  onclick="window.print()">🖨 Cetak</button>
+    <button class="btn btn-reset"  onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<div class="total-bar">
+  <div class="total-group">
+    <div class="total-dot" style="background:var(--green)"></div>
+    <span class="total-label">Berhasil</span>
+    <span class="total-num ps-pass" id="cntPass">0</span>
+  </div>
+  <div class="divider"></div>
+  <div class="total-group">
+    <div class="total-dot" style="background:var(--red)"></div>
+    <span class="total-label">Gagal</span>
+    <span class="total-num ps-fail" id="cntFail">0</span>
+  </div>
+  <div class="divider"></div>
+  <div class="total-group">
+    <div class="total-dot" style="background:var(--border)"></div>
+    <span class="total-label">Belum</span>
+    <span class="total-num ps-todo" id="cntTodo">0</span>
+  </div>
+  <div class="divider"></div>
+  <div class="progress-wrap" id="totalBar">
+    <div class="progress-pass" id="barPass" style="width:0%"></div>
+    <div class="progress-fail" id="barFail" style="width:0%"></div>
+  </div>
+  <span style="font-size:11px;font-weight:700;color:var(--text-3)" id="totalFrac">0 / 0</span>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  DATA — semua item test per portal per fitur
+// ══════════════════════════════════════════════════════════
+var DATA = [
+  {
+    id: 'admin', role: 'Admin', icon: '🛡️', color: 'admin',
+    sections: [
+      { id:'adm_auth', title:'Login & Autentikasi', icon:'🔐', items:[
+        { id:'a01', text:'Login ID Admin + password benar → masuk dashboard' },
+        { id:'a02', text:'Login password salah → pesan error, tidak masuk' },
+        { id:'a03', text:'Klik "Lupa Password?" → info kontak WA muncul' },
+        { id:'a04', text:'Ganti password dari profil → login ulang dengan password baru berhasil' },
+        { id:'a05', text:'Sesi tidak aktif → otomatis redirect ke login' },
+      ]},
+      { id:'adm_dash', title:'Dashboard & Statistik', icon:'📊', items:[
+        { id:'a06', text:'Kartu statistik: total halaqah, guru, murid aktif tampil' },
+        { id:'a07', text:'Grafik / rekap kehadiran per halaqah tampil dengan angka benar' },
+        { id:'a08', text:'Klik kartu statistik → navigasi ke halaman detail yang tepat' },
+      ]},
+      { id:'adm_halaqah', title:'Manajemen Halaqah', icon:'🏫', items:[
+        { id:'a09', text:'Tambah halaqah baru → muncul di daftar' },
+        { id:'a10', text:'Edit nama / jadwal / level halaqah → perubahan tersimpan' },
+        { id:'a11', text:'Assign guru ke halaqah → guru tampil di anggota halaqah' },
+        { id:'a12', text:'Nonaktifkan halaqah → tidak muncul di pilihan KBM guru' },
+      ]},
+      { id:'adm_guru', title:'Manajemen Guru', icon:'👨‍🏫', items:[
+        { id:'a13', text:'Tambah akun guru baru → bisa login di portal guru' },
+        { id:'a14', text:'Edit data guru (nama, no HP) → tampil benar di profil guru' },
+        { id:'a15', text:'Reset password guru → guru login dengan password baru berhasil' },
+        { id:'a16', text:'Nonaktifkan akun guru → guru tidak bisa login' },
+      ]},
+      { id:'adm_murid', title:'Manajemen Murid', icon:'🎓', items:[
+        { id:'a17', text:'Tambah murid ke halaqah → muncul di daftar anggota' },
+        { id:'a18', text:'Edit data murid (nama, no HP, level) → tersimpan benar' },
+        { id:'a19', text:'Pindah murid antar halaqah → keluar dari lama, masuk ke baru' },
+        { id:'a20', text:'Reset password murid → murid login dengan password baru berhasil' },
+        { id:'a21', text:'Nonaktifkan murid → tidak muncul di KBM dan keaktifan guru' },
+        { id:'a22', text:'Import murid via CSV → akun terbuat, password default berjalan' },
+      ]},
+      { id:'adm_spp', title:'SPP & Infaq', icon:'💳', items:[
+        { id:'a23', text:'Tab "Pending Validasi": daftar konfirmasi murid tampil' },
+        { id:'a24', text:'Klik thumbnail foto bukti → gambar terbuka / preview' },
+        { id:'a25', text:'Tombol "✓ Konfirmasi" → status bayar jadi lunas, badge berubah' },
+        { id:'a26', text:'Tombol "✗ Tolak" → status jadi ditolak, hilang dari pending' },
+        { id:'a27', text:'Tab "Rekap Pembayaran": tabel semua murid + status bulan tampil' },
+        { id:'a28', text:'Filter rekap per halaqah / bulan / tahun → hasil berubah' },
+        { id:'a29', text:'Tombol WA Reminder di rekap → buka WA dengan pesan otomatis' },
+        { id:'a30', text:'Tab "Metode Bayar": tambah rekening/QRIS → tampil di portal murid' },
+        { id:'a31', text:'Edit / hapus metode bayar → perubahan tampil di portal murid' },
+      ]},
+      { id:'adm_notif', title:'Konfigurasi Push Notifikasi', icon:'🔔', items:[
+        { id:'a32', text:'Halaman konfigurasi notifikasi tampil daftar jenis notifikasi' },
+        { id:'a33', text:'Toggle nonaktif "KBM Absen" → tutup KBM, murid alpa TIDAK dapat notif' },
+        { id:'a34', text:'Toggle aktif "KBM Absen" → tutup KBM, murid alpa DAPAT notif' },
+        { id:'a35', text:'Toggle "Jadwal At-Tibyan" → push 30 menit sebelum Ahad 19.00 WIB' },
+        { id:'a36', text:'Log pengiriman notifikasi tampil (sent, failed, waktu)' },
+      ]},
+    ]
+  },
+  {
+    id: 'guru', role: 'Guru', icon: '👨‍🏫', color: 'guru',
+    sections: [
+      { id:'gru_auth', title:'Login & Profil', icon:'🔐', items:[
+        { id:'g01', text:'Login ID Guru + password → masuk dashboard guru' },
+        { id:'g02', text:'Profil: nama, halaqah, no HP tampil benar' },
+        { id:'g03', text:'Ganti password → login ulang dengan password baru berhasil' },
+        { id:'g04', text:'Logout → redirect ke login, back tidak bisa masuk lagi' },
+      ]},
+      { id:'gru_nav', title:'Navigasi & Layout', icon:'📱', items:[
+        { id:'g05', text:'Sidebar desktop (≥1024px): semua menu tampil, active state benar' },
+        { id:'g06', text:'Mobile: tidak ada bottom nav — navigasi hanya via hamburger/sidebar' },
+        { id:'g07', text:'Tap hamburger → sidebar muncul; tap area luar → sidebar tutup' },
+        { id:'g08', text:'Semua menu (Dashboard, KBM, At-Tibyan, Keaktifan, Assessment, Raport) bisa dibuka' },
+      ]},
+      { id:'gru_kbm', title:'KBM (Kelompok Belajar Mengaji)', icon:'📚', items:[
+        { id:'g09', text:'Buka sesi KBM: pilih halaqah, tanggal, pertemuan ke → sesi terbuat' },
+        { id:'g10', text:'Input presensi per murid: Hadir / Terlambat / Alpa → tersimpan' },
+        { id:'g11', text:'Isi nilai: kamera, tilawah, hafalan per murid → tersimpan' },
+        { id:'g12', text:'Tutup sesi KBM → status berubah "selesai"' },
+        { id:'g13', text:'Setelah tutup: murid alpa menerima push notifikasi (config aktif)' },
+        { id:'g14', text:'Edit presensi sesi lama → perubahan tersimpan benar' },
+        { id:'g15', text:'Hapus sesi KBM → sesi dan semua nilai terhapus' },
+        { id:'g16', text:'Rekap KBM: daftar sesi lama tampil dengan pagination' },
+        { id:'g17', text:'Klik sesi lama → detail presensi tiap murid tampil' },
+      ]},
+      { id:'gru_at', title:'At-Tibyan', icon:'📖', items:[
+        { id:'g18', text:'Buka sesi At-Tibyan → sesi terbuat' },
+        { id:'g19', text:'Input presensi At-Tibyan per murid → tersimpan' },
+        { id:'g20', text:'Input nilai: materi, catatan per murid → tersimpan' },
+        { id:'g21', text:'Tutup sesi At-Tibyan → rekap per murid ter-update' },
+        { id:'g22', text:'Rekap At-Tibyan: semua murid halaqah tampil + total hadir' },
+        { id:'g23', text:'Filter rekap per murid → riwayat sesi tampil' },
+      ]},
+      { id:'gru_keaktifan', title:'Keaktifan Murid', icon:'⚠️', items:[
+        { id:'g24', text:'Tab Keaktifan: murid dikelompokkan Kritis / Peringatan / Normal' },
+        { id:'g25', text:'Card murid: nama, halaqah, level, metrik absen/terlambat/kamera tampil' },
+        { id:'g26', text:'Riwayat kehadiran (titik warna): urutan kronologis kiri → kanan' },
+        { id:'g27', text:'Flag "Absen" muncul hanya jika alpa BERTAMBAH sejak dismiss terakhir' },
+        { id:'g28', text:'Klik "✓ Sudah Dihubungi" → konfirmasi → flag berubah hijau ✅' },
+        { id:'g29', text:'Semua flag di-handle → tampil "Semua tindak lanjut selesai"' },
+        { id:'g30', text:'Reload: dismiss yang sudah dilakukan tetap tersimpan (dari DB)' },
+        { id:'g31', text:'Tombol WhatsApp: buka WA dengan pesan berisi nama dan detail keaktifan' },
+        { id:'g32', text:'Modal "Detail Riwayat": rekap lengkap absensi murid tampil' },
+      ]},
+      { id:'gru_assess', title:'Assessment', icon:'✅', items:[
+        { id:'g33', text:'Halaman assessment: daftar item per level tampil' },
+        { id:'g34', text:'Rekap per murid: progress paham/ragu/belum + persentase tampil' },
+        { id:'g35', text:'Update status item murid → tersimpan dan langsung terlihat' },
+      ]},
+      { id:'gru_raport', title:'Raport PDF', icon:'📄', items:[
+        { id:'g36', text:'Pilih murid dari dropdown → data raport ter-load (nama, level, halaqah)' },
+        { id:'g37', text:'Data KBM di raport: jumlah hadir, alpa, terlambat akurat' },
+        { id:'g38', text:'Data At-Tibyan di raport tampil benar' },
+        { id:'g39', text:'Tombol "Download PDF" → file PDF ter-download' },
+        { id:'g40', text:'PDF halaman terakhir: catatan guru tampil, bukan halaman kosong' },
+      ]},
+      { id:'gru_notif', title:'Push Notifikasi & PWA', icon:'🔔', items:[
+        { id:'g41', text:'Halaman Notifikasi: tombol aktifkan muncul jika belum subscribe' },
+        { id:'g42', text:'Klik aktifkan → izin browser → status berubah "Aktif"' },
+        { id:'g43', text:'Pasang PWA (Add to Home Screen) → ikon muncul di layar HP' },
+        { id:'g44', text:'Buka dari ikon PWA → tampil full-screen tanpa browser bar' },
+      ]},
+    ]
+  },
+  {
+    id: 'murid', role: 'Murid', icon: '🎓', color: 'murid',
+    sections: [
+      { id:'mrd_auth', title:'Login & Profil', icon:'🔐', items:[
+        { id:'m01', text:'Login ID Murid (RTL...) + password → masuk dashboard murid' },
+        { id:'m02', text:'Login password salah → pesan error, tidak masuk' },
+        { id:'m03', text:'Profil: nama lengkap, halaqah, level, no HP tampil benar' },
+        { id:'m04', text:'Ganti password dari profil → login ulang berhasil dengan password baru' },
+        { id:'m05', text:'Sesi 8 jam habis → toast info + redirect ke login + Realtime channel dibersihkan' },
+      ]},
+      { id:'mrd_nav', title:'Navigasi & Layout Mobile', icon:'📱', items:[
+        { id:'m06', text:'Bottom nav tampil: tab Dashboard, KBM, At-Tibyan, SPP, Notif' },
+        { id:'m07', text:'Tap tiap tab bottom nav → pindah ke halaman yang benar' },
+        { id:'m08', text:'Active state bottom nav: tab aktif berwarna berbeda' },
+        { id:'m09', text:'Sidebar desktop (≥1024px): tampil dan persisten saat scroll' },
+        { id:'m10', text:'Semua halaman bisa dibuka tanpa error' },
+        { id:'m11', text:'Halaman Profil, Notifikasi, PWA, Tentang: tidak terpotong navbar atas/bawah' },
+      ]},
+      { id:'mrd_dash', title:'Dashboard Murid', icon:'🏠', items:[
+        { id:'m12', text:'Kartu sambutan dengan nama murid tampil' },
+        { id:'m13', text:'Statistik kehadiran KBM bulan ini tampil (hadir, persen)' },
+        { id:'m14', text:'Kartu "Konfirmasi SPP" tampil di samping KhatamKu' },
+        { id:'m15', text:'Klik kartu SPP → modal terbuka, tidak terpotong navbar atas/bawah' },
+        { id:'m16', text:'Jadwal KBM berikutnya tampil jika ada' },
+      ]},
+      { id:'mrd_kbm', title:'Riwayat KBM', icon:'📚', items:[
+        { id:'m17', text:'Daftar sesi KBM tampil dengan tanggal dan status hadir' },
+        { id:'m18', text:'Scroll ke sesi lama → data load benar, tidak terpotong limit global' },
+        { id:'m19', text:'Detail sesi: nilai tilawah, hafalan, kamera tampil' },
+      ]},
+      { id:'mrd_at', title:'Riwayat At-Tibyan', icon:'📖', items:[
+        { id:'m20', text:'Daftar sesi At-Tibyan tampil dengan status hadir' },
+        { id:'m21', text:'Detail sesi: materi dan catatan guru tampil' },
+        { id:'m22', text:'Rekap total hadir At-Tibyan tampil benar' },
+      ]},
+      { id:'mrd_keaktifan', title:'Keaktifan & Alert', icon:'⚠️', items:[
+        { id:'m23', text:'Jika alpa KBM ada → banner alert merah tampil di dashboard' },
+        { id:'m24', text:'Jika alpa At-Tibyan ada → banner alert kuning tampil' },
+        { id:'m25', text:'Guru tandai "Sudah Dihubungi" → banner alert murid hilang real-time' },
+        { id:'m26', text:'Murid refresh halaman → banner sesuai status terbaru dari DB' },
+      ]},
+      { id:'mrd_spp', title:'SPP & Infaq', icon:'💳', items:[
+        { id:'m27', text:'Tab SPP Pribadi: donut chart + grid 12 bulan tampil' },
+        { id:'m28', text:'Grid bulan: hijau = lunas, kuning = menunggu, merah = belum' },
+        { id:'m29', text:'Tab Infaq: riwayat pembayaran infaq tampil dengan nominal dan tanggal' },
+        { id:'m30', text:'Modal konfirmasi: pilih jenis SPP/Infaq → form berubah sesuai jenis' },
+        { id:'m31', text:'SPP: checklist bulan belum lunas → bisa pilih beberapa bulan sekaligus' },
+        { id:'m32', text:'Pilih metode bayar → info rekening/QRIS yang benar tampil' },
+        { id:'m33', text:'Upload foto bukti → preview muncul, file di-compress sebelum upload' },
+        { id:'m34', text:'Submit konfirmasi → muncul di "Pending Validasi" portal admin' },
+        { id:'m35', text:'Setelah admin konfirmasi → status bulan berubah hijau "Lunas"' },
+      ]},
+      { id:'mrd_raport', title:'Lihat Raport', icon:'📄', items:[
+        { id:'m36', text:'Halaman raport terbuka dengan data murid ini' },
+        { id:'m37', text:'Data KBM dan At-Tibyan di raport sesuai riwayat' },
+        { id:'m38', text:'Download PDF → file ter-download dengan semua halaman lengkap' },
+      ]},
+      { id:'mrd_notif', title:'Push Notifikasi & PWA', icon:'🔔', items:[
+        { id:'m39', text:'Halaman Notifikasi: tombol aktifkan muncul jika belum subscribe' },
+        { id:'m40', text:'Klik aktifkan → izin browser → status berubah "Aktif"' },
+        { id:'m41', text:'Murid alpa → menerima push notifikasi setelah guru tutup KBM' },
+        { id:'m42', text:'Tap notifikasi → membuka portal murid di halaman yang tepat' },
+        { id:'m43', text:'Halaman Panduan Instalasi: langkah Android/iPhone tampil jelas' },
+        { id:'m44', text:'Pasang PWA → ikon di homescreen, buka full-screen tanpa browser bar' },
+        { id:'m45', text:'Tombol YouTube di panduan → buka channel @rattililquran01' },
+      ]},
+    ]
+  }
+];
+
+// ══════════════════════════════════════════════════════════
+//  STATE  (localStorage)
+//  nilai: null = belum, 'pass' = berhasil, 'fail' = gagal
+// ══════════════════════════════════════════════════════════
+var STORE_KEY = 'rattil_checklist_v2';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  var t = new Date();
+  document.getElementById('lastSaved').textContent =
+    'Tersimpan: ' + t.toLocaleDateString('id-ID') + ' ' + t.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'});
+}
+
+var state = loadState();
+
+// ══════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════
+function render() {
+  var app = document.getElementById('app');
+  app.innerHTML = '';
+  DATA.forEach(function(portal) {
+    var card = document.createElement('div');
+    card.className = 'portal-card';
+
+    // portal stats
+    var pt=0, pp=0, pf=0;
+    portal.sections.forEach(function(s){ s.items.forEach(function(i){ pt++; var v=state[i.id]; if(v==='pass')pp++; else if(v==='fail')pf++; }); });
+
+    var hdr = document.createElement('div');
+    hdr.className = 'portal-header ' + portal.color;
+    hdr.innerHTML = '<div class="portal-title">'
+      + '<span class="portal-icon">' + portal.icon + '</span>'
+      + '<div><div class="portal-name ' + portal.color + '">Portal ' + portal.role + '</div>'
+      + '<div style="font-size:11px;color:var(--text-3);margin-top:1px">' + pt + ' item test</div>'
+      + '</div></div>'
+      + '<div class="portal-stats">'
+      + '<span class="ps-pass">✅ ' + pp + '</span>'
+      + '<span class="ps-fail">❌ ' + pf + '</span>'
+      + '<span class="ps-todo">— ' + (pt-pp-pf) + '</span>'
+      + '</div>';
+    card.appendChild(hdr);
+
+    portal.sections.forEach(function(sec) {
+      var st=sec.items.length, sp=0, sf=0;
+      sec.items.forEach(function(i){ var v=state[i.id]; if(v==='pass')sp++; else if(v==='fail')sf++; });
+      var pillCls = sp===st?'all-pass': sf>0&&sp===0?'has-fail': sf>0||sp>0?'partial':'untouched';
+      var pillTxt = sp===st&&sf===0 ? '✓ Semua berhasil'
+                  : sp>0||sf>0 ? '✅'+sp+' ❌'+sf+' / '+st
+                  : '–';
+      var openKey = 'o_' + sec.id;
+      var isOpen  = state[openKey] !== false;
+
+      var secEl = document.createElement('div');
+      secEl.className = 'section';
+      secEl.id = 'sec_' + sec.id;
+
+      var sHdr = document.createElement('div');
+      sHdr.className = 'section-header';
+      sHdr.innerHTML = '<div class="section-title"><span class="ico">' + sec.icon + '</span>' + sec.title + '</div>'
+        + '<div class="sec-right"><span class="sec-pill ' + pillCls + '">' + pillTxt + '</span>'
+        + '<span class="chevron' + (isOpen?' open':'') + '">▼</span></div>';
+      sHdr.addEventListener('click', function() {
+        var list = secEl.querySelector('.items-list');
+        var chev = sHdr.querySelector('.chevron');
+        var now = list.classList.toggle('open');
+        chev.classList.toggle('open', now);
+        state[openKey] = now;
+        saveState();
+      });
+      secEl.appendChild(sHdr);
+
+      var list = document.createElement('div');
+      list.className = 'items-list' + (isOpen ? ' open' : '');
+
+      sec.items.forEach(function(item) {
+        var val = state[item.id] || null;
+        var row = document.createElement('div');
+        row.className = 'item' + (val==='pass'?' pass': val==='fail'?' fail':'');
+        row.id = 'row_' + item.id;
+
+        var txt = document.createElement('div');
+        txt.className = 'item-text';
+        txt.textContent = item.text;
+
+        var btns = document.createElement('div');
+        btns.className = 'btns';
+
+        var btnP = document.createElement('button');
+        btnP.className = 'btn-toggle pass-btn' + (val==='pass'?' active':'');
+        btnP.textContent = '✅ Berhasil';
+
+        var btnF = document.createElement('button');
+        btnF.className = 'btn-toggle fail-btn' + (val==='fail'?' active':'');
+        btnF.textContent = '❌ Gagal';
+
+        btnP.addEventListener('click', function() {
+          var newVal = state[item.id]==='pass' ? null : 'pass';
+          state[item.id] = newVal;
+          saveState();
+          refreshRow(row, item.id, btns, btnP, btnF);
+          updateProgress();
+          updateSection(sec, secEl);
+          updatePortal(portal, hdr);
+        });
+        btnF.addEventListener('click', function() {
+          var newVal = state[item.id]==='fail' ? null : 'fail';
+          state[item.id] = newVal;
+          saveState();
+          refreshRow(row, item.id, btns, btnP, btnF);
+          updateProgress();
+          updateSection(sec, secEl);
+          updatePortal(portal, hdr);
+        });
+
+        btns.appendChild(btnP);
+        btns.appendChild(btnF);
+        row.appendChild(txt);
+        row.appendChild(btns);
+        list.appendChild(row);
+      });
+
+      secEl.appendChild(list);
+      card.appendChild(secEl);
+    });
+
+    app.appendChild(card);
+  });
+  updateProgress();
+}
+
+function refreshRow(row, id, btnsEl, btnP, btnF) {
+  var val = state[id] || null;
+  row.className = 'item' + (val==='pass'?' pass': val==='fail'?' fail':'');
+  btnP.className = 'btn-toggle pass-btn' + (val==='pass'?' active':'');
+  btnF.className = 'btn-toggle fail-btn' + (val==='fail'?' active':'');
+}
+
+function updateSection(sec, secEl) {
+  var st=sec.items.length, sp=0, sf=0;
+  sec.items.forEach(function(i){ var v=state[i.id]; if(v==='pass')sp++; else if(v==='fail')sf++; });
+  var pillCls = sp===st&&sf===0?'all-pass': sf>0&&sp+sf===st?'has-fail': sf>0||sp>0?'partial':'untouched';
+  var pillTxt = sp===st&&sf===0?'✓ Semua berhasil': sp>0||sf>0?'✅'+sp+' ❌'+sf+' / '+st:'–';
+  var pill = secEl.querySelector('.sec-pill');
+  if (pill) { pill.className='sec-pill '+pillCls; pill.textContent=pillTxt; }
+}
+
+function updatePortal(portal, hdr) {
+  var pt=0,pp=0,pf=0;
+  portal.sections.forEach(function(s){ s.items.forEach(function(i){ pt++; var v=state[i.id]; if(v==='pass')pp++; else if(v==='fail')pf++; }); });
+  var stats = hdr.querySelector('.portal-stats');
+  if (stats) stats.innerHTML = '<span class="ps-pass">✅ '+pp+'</span><span class="ps-fail">❌ '+pf+'</span><span class="ps-todo">— '+(pt-pp-pf)+'</span>';
+}
+
+function updateProgress() {
+  var total=0, pass=0, fail=0;
+  DATA.forEach(function(p){ p.sections.forEach(function(s){ s.items.forEach(function(i){ total++; var v=state[i.id]; if(v==='pass')pass++; else if(v==='fail')fail++; }); }); });
+  var todo = total - pass - fail;
+  document.getElementById('cntPass').textContent = pass;
+  document.getElementById('cntFail').textContent = fail;
+  document.getElementById('cntTodo').textContent = todo;
+  document.getElementById('totalFrac').textContent = (pass+fail) + ' / ' + total + ' ditest';
+  document.getElementById('barPass').style.width = (total?pass/total*100:0)+'%';
+  document.getElementById('barFail').style.width = (total?fail/total*100:0)+'%';
+}
+
+function toggleAll(open) {
+  DATA.forEach(function(p){ p.sections.forEach(function(s){ state['o_'+s.id]=open; }); });
+  saveState();
+  render();
+}
+
+function resetAll() {
+  if (!confirm('Reset semua hasil test? Data tidak bisa dikembalikan.')) return;
+  var openKeys = {};
+  Object.keys(state).forEach(function(k){ if(k.startsWith('o_')) openKeys[k]=state[k]; });
+  state = openKeys;
+  saveState();
+  render();
+}
+
+// ── INIT ──────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
