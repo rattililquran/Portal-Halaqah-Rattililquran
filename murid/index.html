@@ -204,6 +204,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   background:rgba(0,0,0,.06);pointer-events:none;
 }
 .progress-card:active{transform:scale(.98)}
+.progress-card.micro-card{
+  background:linear-gradient(135deg,#6d28d9 0%,#8b5cf6 100%);
+  box-shadow:0 10px 30px rgba(109,40,217,.35);
+}
+.progress-card.micro-card .prog-title{
+  color:#f5f3ff;
+}
+.progress-card.micro-card .prog-info-title{
+  color:#4c1d95;
+}
+.progress-card.micro-card .prog-info-sesi{
+  color:#6d28d9;
+}
 /* judul atas */
 .prog-title{font-size:15px;font-weight:900;color:#fbbf24;
   letter-spacing:.01em;margin-bottom:14px;
@@ -1930,6 +1943,15 @@ html.theme-dark .progress-card{
   box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
   backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
 }
+html.theme-dark .progress-card.micro-card{
+  background:linear-gradient(135deg,#3b0764 0%,#581c87 60%,#6b21a8 100%) !important;
+}
+html.theme-dark .progress-card.micro-card .prog-info-title{
+  color:#f3e8ff !important;
+}
+html.theme-dark .progress-card.micro-card .prog-info-sesi{
+  color:#c084fc !important;
+}
 html.theme-dark .prog-inner-wrap{background:rgba(255,255,255,.1) !important}
 html.theme-dark .prog-inner-card{background:#162032 !important;border:none !important}
 html.theme-dark .prog-inner-title{color:#e2e8f0 !important}
@@ -2650,6 +2672,41 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
             </div>
           </div>
         </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
+
+      <!-- Progress Micro Teaching -->
+      <div class="progress-card micro-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
+        <!-- Judul -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+          Praktik Mengajar (Micro Teaching)
+        </div>
+        <!-- Chip label MT -->
+        <div class="prog-level-row">
+          <span class="level-badge" style="background:linear-gradient(135deg,rgba(109,40,217,.55),rgba(139,92,246,.4)); border:1.5px solid rgba(167,139,250,.6); box-shadow:0 0 12px rgba(109,40,217,.35),inset 0 1px 0 rgba(255,255,255,.25);">Micro Teaching</span>
+        </div>
+        <!-- Inner white card — donut ring -->
+        <div class="prog-inner-wrap">
+          <div class="prog-inner-card">
+            <div class="prog-inner-row">
+              <!-- Donut ring -->
+              <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+                <div class="prog-donut-inner">
+                  <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:#8b5cf6">0%</span>
+                  <span class="prog-donut-lbl">Rata-Rata</span>
+                </div>
+              </div>
+              <!-- Info kanan -->
+              <div class="prog-info-right">
+                <div class="prog-info-title" id="dashMicroProgressPct">Nilai: – (Latihan ke–)</div>
+                <div class="prog-info-sesi" id="dashMicroSisa">Predikat: –</div>
+                <div class="prog-bar-wrap" id="dashMicroProgressBarWrap">
+                  <div class="prog-bar-fill" id="dashMicroProgressBar" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div><!-- /prog-inner-wrap -->
       </div>
 
@@ -4399,7 +4456,7 @@ function triggerConfetti() {
 }
 
 // Open Progress Breakdown Modal
-function openProgressBreakdown() {
+function openProgressBreakdown(forceMicro) {
   if (!dashData) return;
   var kh = dashData.kehadiran || {};
   var ang = dashData.anggota || {};
@@ -4412,7 +4469,7 @@ function openProgressBreakdown() {
 
   var _level = ang.level || '–';
   var isQiyam = (_level === 'Level Qiyam');
-  var isMicro = (_level === 'Micro Teaching');
+  var isMicro = (_level === 'Micro Teaching') || (forceMicro === true);
 
   if (bodyEl) {
     if (isQiyam) {
@@ -4570,6 +4627,10 @@ function openProgressBreakdown() {
     }
   }
   openModal('progressBreakdownModal');
+}
+
+function openMicroTeachingBreakdown() {
+  openProgressBreakdown(true);
 }
 
 // Open Adab Detail Modal
@@ -4998,6 +5059,44 @@ async function loadDashboard() {
       document.getElementById('dashProgressPct').textContent =
         Math.round(hadirCount) + ' dari 40 sesi';
       document.getElementById('dashSisa').textContent = sisaTeks;
+    }
+
+    // Micro Teaching Card visibility and population
+    var microCardEl = document.getElementById('dashMicroCard');
+    if (microCardEl) {
+      if (!isMicro && !isQiyam && d.micro_teaching && d.micro_teaching.total_sesi > 0) {
+        microCardEl.style.display = 'block';
+        
+        var mtAvgNilai = d.micro_teaching.rata_nilai || 0;
+        var mtDonutRing = document.getElementById('dashMicroDonutRing');
+        var mtPctNum = document.getElementById('dashMicroProgressPctNum');
+        var mtProgressBar = document.getElementById('dashMicroProgressBar');
+        
+        if (mtDonutRing) {
+          mtDonutRing.style.background = 'conic-gradient(#8b5cf6 ' + mtAvgNilai + '%, rgba(0,0,0,0.05) 0%)';
+        }
+        if (mtPctNum) {
+          mtPctNum.textContent = mtAvgNilai + '%';
+        }
+        if (mtProgressBar) {
+          mtProgressBar.style.width = mtAvgNilai + '%';
+        }
+        
+        var mtLast = d.micro_teaching.terakhir;
+        if (mtLast) {
+          var mtLastNilai = mtLast.nilai || 0;
+          var mtLastPertemuan = mtLast.pertemuan_ke || 1;
+          document.getElementById('dashMicroProgressPct').textContent = 'Nilai: ' + mtLastNilai + ' (Latihan ke-' + mtLastPertemuan + ')';
+          
+          var mtPred = mtLastNilai >= 90 ? 'Sangat Baik' : mtLastNilai >= 75 ? 'Baik' : mtLastNilai >= 60 ? 'Cukup' : 'Perlu Perbaikan';
+          document.getElementById('dashMicroSisa').textContent = 'Predikat: ' + mtPred;
+        } else {
+          document.getElementById('dashMicroProgressPct').textContent = 'Belum ada latihan';
+          document.getElementById('dashMicroSisa').textContent = 'Mulai praktik mengajar Anda';
+        }
+      } else {
+        microCardEl.style.display = 'none';
+      }
     }
 
     // Estimasi selesai (jika ada target harian)
@@ -5506,6 +5605,43 @@ async function loadRiwayat() {
   finally { hideLoad(); }
 }
 
+function formatMicroTeachingRubric(koreksiTahsin) {
+  var choices = {};
+  try {
+    choices = JSON.parse(koreksiTahsin);
+  } catch(e) {
+    return '<div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(koreksiTahsin) + '</div>';
+  }
+
+  var kriteria = [
+    { id: 'penguasaan', label: 'Penguasaan Materi', weight: '25%' },
+    { id: 'penyampaian', label: 'Cara Penyampaian', weight: '20%' },
+    { id: 'tajwid',      label: 'Kualitas Tajwid',   weight: '25%' },
+    { id: 'interaksi',   label: 'Interaksi Kelas',   weight: '15%' },
+    { id: 'waktu',       label: 'Manajemen Waktu',   weight: '15%' }
+  ];
+
+  var html = '<div style="background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-top:4px">';
+  kriteria.forEach(function(k, idx) {
+    var val = choices[k.id] || '–';
+    var labelVal = '–';
+    var badgeColor = 'var(--text-3)';
+    var badgeBg = 'rgba(0,0,0,0.05)';
+    if (val == 4)      { labelVal = 'Sangat Baik'; badgeColor = '#10b981'; badgeBg = 'rgba(16,185,129,0.1)'; }
+    else if (val == 3) { labelVal = 'Baik'; badgeColor = '#3b82f6'; badgeBg = 'rgba(59,130,246,0.1)'; }
+    else if (val == 2) { labelVal = 'Cukup'; badgeColor = '#f59e0b'; badgeBg = 'rgba(245,158,11,0.1)'; }
+    else if (val == 1) { labelVal = 'Perlu Perbaikan'; badgeColor = '#ef4444'; badgeBg = 'rgba(239,68,68,0.1)'; }
+
+    var borderStyle = idx < kriteria.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px;' + borderStyle + '">'
+      + '<span style="font-weight:600; color:var(--text-2); font-size:12.5px">' + k.label + ' <span style="font-size:10px; color:var(--text-3)">(' + k.weight + ')</span></span>'
+      + '<span style="font-weight:700; font-size:11px; padding:2px 8px; border-radius:6px; color:' + badgeColor + '; background:' + badgeBg + '">' + labelVal + '</span>'
+      + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderRiwayat(rows) {
   var el = document.getElementById('riwayatList');
   if (!rows.length) {
@@ -5576,7 +5712,7 @@ function renderRiwayat(rows) {
       + '</div>'
       // Detail Content
       + (k.materi ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">📖 Materi Belajar</div><div style="font-size:13px; color:var(--text); font-weight:500; padding:4px 0">' + esc(k.materi) + '</div></div>' : '')
-      + (k.koreksi_tahsin ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">✏️ Koreksi Tahsin dari Guru</div><div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(k.koreksi_tahsin) + '</div></div>' : '')
+      + (k.koreksi_tahsin ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">' + (k.jenis_sesi === 'Micro Teaching' ? '📊 Rubrik Penilaian MT' : '✏️ Koreksi Tahsin dari Guru') + '</div>' + (k.jenis_sesi === 'Micro Teaching' ? formatMicroTeachingRubric(k.koreksi_tahsin) : '<div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(k.koreksi_tahsin) + '</div>') + '</div>' : '')
       + (k.catatan_murid ? '<div style="margin-bottom:12px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">📝 Catatan Guru</div><div style="background:rgba(15,23,42,0.02); border:1px dashed var(--border); border-radius:12px; padding:10px 14px; font-size:13px; color:var(--text-2); line-height:1.4">' + esc(k.catatan_murid) + '</div></div>' : '')
       + (k.latihan_mandiri ? '<div style="margin-bottom:4px"><div style="font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; margin-bottom:4px">💪 PR / Latihan Mandiri</div><div style="background:linear-gradient(135deg, rgba(245,158,11,0.07), rgba(245,158,11,0.02)); border:1px solid rgba(245,158,11,0.18); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--text)"><div class="pr-detail-title" style="font-weight:700; margin-bottom:4px; color:#c2410c">' + esc(k.latihan_mandiri) + '</div>' + (k.deadline ? '<div style="font-size:11px; color:var(--red); font-weight:700; display:flex; align-items:center; gap:3px">⏰ Deadline: ' + fmtDate(k.deadline) + '</div>' : '') + '</div></div>' : '')
       + '</div>'
