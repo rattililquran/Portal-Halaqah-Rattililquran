@@ -1731,7 +1731,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
             </div>
             <div class="fg">
               <label>Jenis Sesi</label>
-              <select class="fc" id="kbmJenis">
+              <select class="fc" id="kbmJenis" onchange="autoFillPertemuan()">
                 <option value="KBM Reguler">KBM Reguler</option>
                 <option value="KBM Qiyam" id="optKbmQiyam" style="display:none">🕌 KBM Qiyam (Tahfidz)</option>
                 <option value="Micro Teaching">Micro Teaching</option>
@@ -5839,7 +5839,8 @@ function filterRiwayatHalaqah() {
 }
 
 function autoFillPertemuan() {
-  var id_h = document.getElementById('kbmHalaqah')?.value;
+  var id_h  = document.getElementById('kbmHalaqah')?.value;
+  var jenis = (document.getElementById('kbmJenis')?.value) || 'KBM Reguler';
   if (!id_h) return;
   var h = jadwalData.find(function(x){ return x.id_halaqah === id_h; });
   if (h) {
@@ -5847,12 +5848,19 @@ function autoFillPertemuan() {
     var jam = document.getElementById('kbmJam');
     if (jam && !jam.value && h.jam_mulai) jam.value = h.jam_mulai;
 
-    // Pertemuan ke-X: tampilkan sebagai placeholder SAJA, jangan set value
-    // agar GAS auto-hitung dari server (menghindari bug always-1)
+    // Pertemuan ke-X: tampilkan placeholder sesuai jenis yang dipilih
     var ptInput = document.getElementById('kbmPertemuan');
     if (ptInput) {
       ptInput.value = '';
-      ptInput.placeholder = h.pertemuan_ke ? 'Auto (ke-' + h.pertemuan_ke + ')' : 'Auto';
+      var nextPt, label;
+      if (jenis === 'KBM Qiyam') {
+        nextPt = h.pertemuan_ke_qiyam || 1;
+        label  = 'Sesi Qiyam ke-';
+      } else {
+        nextPt = h.pertemuan_ke_reguler || h.pertemuan_ke || 1;
+        label  = 'Pertemuan ke-';
+      }
+      ptInput.placeholder = 'Auto (' + label + nextPt + ')';
     }
   }
 }
