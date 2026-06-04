@@ -1722,7 +1722,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               </div>
               <div class="fg">
                 <label>Pilih Halaqah</label>
-                <select class="fc" id="kbmHalaqah" onchange="autoFillPertemuan()">
+                <select class="fc" id="kbmHalaqah" onchange="autoFillPertemuan();onKbmHalaqahChange()">
                   <option value="">— Pilih Halaqah —</option>
                 </select>
               </div>
@@ -1731,6 +1731,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               <label>Jenis Sesi</label>
               <select class="fc" id="kbmJenis">
                 <option value="KBM Reguler">KBM Reguler</option>
+                <option value="KBM Qiyam" id="optKbmQiyam" style="display:none">🕌 KBM Qiyam (Tahfidz)</option>
                 <option value="Micro Teaching">Micro Teaching</option>
                 <option value="Lainnya">Lainnya</option>
               </select>
@@ -1847,6 +1848,24 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
       </div>
 
       <!-- ════ STEP 4: JURNAL & LATIHAN ════ -->
+      <!-- ════ STEP 3: HAFALAN QIYAM ════ -->
+      <div class="page" id="page-hafalan-kbm">
+        <div id="stepBarHafalanKbm" class="steps"></div>
+
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">📖 Input Hafalan — Step 3/4</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — input hafalan satu per satu</div>
+
+        <div id="hafalanKbmList"></div>
+
+        <div class="step-nav" style="margin-top:16px">
+          <button class="btn-back" onclick="goPage('presensi');renderSteps('presensi')">← Presensi</button>
+          <button class="btn-next" id="btnSimpanHafalanKbm" onclick="simpanHafalanKBM()">
+            Simpan & Lanjut ke Jurnal →
+          </button>
+        </div>
+      </div>
+
+      <!-- ════ JURNAL ════ -->
       <div class="page" id="page-jurnal">
         <div style="font-size:19px;font-weight:800;margin-bottom:14px">Jurnal & Latihan Mandiri</div>
         <div id="stepBarJurnal" class="steps"></div>
@@ -3615,12 +3634,14 @@ async function doSimpanPresensi() {
       id_halaqah: sesiAktif.id_halaqah,
       presensi
     });
-    // Cek jenis sesi — non-reguler langsung ke preview/selesai
-    const isReguler = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
-    if (isReguler) {
+    // Routing berdasarkan jenis sesi
+    const jenisSesi = sesiAktif ? sesiAktif.jenis_sesi : 'KBM Reguler';
+    if (jenisSesi === 'KBM Reguler') {
       goToNilai();
+    } else if (jenisSesi === 'KBM Qiyam') {
+      goToHafalanQiyam();
     } else {
-      // Kajian / Micro Teaching: langsung preview & simpan
+      // Micro Teaching & Lainnya: langsung preview & simpan
       goToPreviewNonReguler();
     }
     quickToast('Presensi tersimpan!','ok');
@@ -3636,6 +3657,306 @@ function goToNilai() {
   goPage('nilai-murid');
   renderSteps('nilai-murid');
   document.getElementById('pageTitle').textContent = 'Nilai — Step 3/4';
+}
+
+// ══════════════════════════════════════════
+//  KBM QIYAM — STEP 3 HAFALAN
+// ══════════════════════════════════════════
+
+// Tampilkan opsi KBM Qiyam hanya jika halaqah yang dipilih adalah Level Qiyam
+function onKbmHalaqahChange() {
+  var id_halaqah = document.getElementById('kbmHalaqah').value;
+  var halaqah    = (halaqahList || []).find(function(h){ return h.id_halaqah === id_halaqah; });
+  var isQiyam    = halaqah && halaqah.level === 'Level Qiyam';
+  var optQiyam   = document.getElementById('optKbmQiyam');
+  var jenisEl    = document.getElementById('kbmJenis');
+  if (!optQiyam || !jenisEl) return;
+  // Tampilkan/sembunyikan opsi KBM Qiyam
+  optQiyam.style.display = isQiyam ? '' : 'none';
+  // Jika halaqah bukan Qiyam dan saat ini terpilih KBM Qiyam, reset ke Reguler
+  if (!isQiyam && jenisEl.value === 'KBM Qiyam') jenisEl.value = 'KBM Reguler';
+}
+
+function goToHafalanQiyam() {
+  renderHafalanKbm();
+  goPage('hafalan-kbm');
+  renderSteps('hafalan-kbm');
+  document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+}
+
+function renderHafalanKbm() {
+  var cont = document.getElementById('hafalanKbmList');
+  if (!cont || !muridSesi || !muridSesi.length) {
+    cont.innerHTML = emptyHTML('👥','Tidak ada murid','');
+    return;
+  }
+  // Ambil presensi dari DOM
+  var presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+
+  var hadirList = muridSesi.filter(function(m) {
+    var s = presensiMap[m.id_murid] || 'A';
+    return s === 'H' || s === 'T';
+  });
+  var tidakList = muridSesi.filter(function(m) {
+    var s = presensiMap[m.id_murid] || 'A';
+    return s !== 'H' && s !== 'T';
+  });
+
+  // Ambil surat data dari cache
+  var suratDataList = typeof _getSuratData === 'function' ? _getSuratData() : [];
+  var cfg = _hfLoadConfig();
+
+  var kelOpts = (cfg.kelancaran||[]).map(function(k) {
+    return '<option value="'+esc(k.nama)+'" title="'+esc(k.ket||'')+'">'+k.icon+' '+esc(k.nama)+' (+'+k.poin+' poin)</option>';
+  }).join('');
+  var nilOpts = (cfg.nilai||[]).map(function(n) {
+    return '<option value="'+esc(n.kode)+'">'+n.icon+' '+esc(n.kode)+' — '+esc(n.desc)+' ('+n.poin+' poin)</option>';
+  }).join('');
+  var kamOpts = [
+    {nama:'kamera terbuka',icon:'📷'},{nama:'kamera sering buka tutup',icon:'🟡'},{nama:'kamera tertutup',icon:'❌'}
+  ].map(function(k){ return '<option value="'+esc(k.nama)+'">'+k.icon+' '+esc(k.nama)+'</option>'; }).join('');
+
+  function buildCard(m, status) {
+    var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
+    var badge = status==='H' ? 'b-green' : status==='T' ? 'b-purple' : 'b-amber';
+    var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
+    var mid = esc(m.id_murid);
+    return '<div class="nilai-murid-card" id="hfkbm-card-'+mid+'" style="margin-bottom:12px">'
+      + '<div class="nm-header">'
+        + '<div class="nm-nama"><div class="nm-nama-avatar">'+initials+'</div>'+esc(m.nama_murid)+'</div>'
+        + '<span class="nm-badge-hadir '+badge+'">'+badgeTxt+'</span>'
+      + '</div>'
+      // Row 1: Jenis + Juz + Surat
+      + '<div style="display:grid;grid-template-columns:110px 80px 1fr;gap:8px;margin-bottom:8px">'
+        + '<div><div class="nm-section-label">Jenis</div>'
+          + '<select class="fc" id="hfkbm-jenis-'+mid+'" style="font-size:12px" onchange="onHfKbmJenisChange(''+mid+'')">'
+            + '<option value="Ziyadah">📖 Ziyadah</option>'
+            + '<option value="Murajaah">🔄 Murajaah</option>'
+            + '<option value="Tahsin">✨ Tahsin</option>'
+          + '</select>'
+        + '</div>'
+        + '<div><div class="nm-section-label">Juz</div>'
+          + '<select class="fc" id="hfkbm-juz-'+mid+'" style="font-size:12px">'
+            + '<option value="">—</option>'
+            + [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+              .map(function(n){return '<option value="'+n+'">Juz '+n+'</option>';}).join('')
+          + '</select>'
+        + '</div>'
+        + '<div><div class="nm-section-label">Nama Surat</div>'
+          + '<div style="position:relative">'
+            + '<input type="text" class="fc" id="hfkbm-surat-display-'+mid+'" placeholder="— Pilih surat —" autocomplete="off" style="font-size:12px;padding-right:24px"'
+              + ' oninput="onHfKbmSuratInput(''+mid+'',this.value)"'
+              + ' onfocus="onHfKbmSuratInput(''+mid+'',this.value)"'
+              + ' onblur="setTimeout(function(){var d=document.getElementById('hfkbm-dd-'+mid+'');if(d)d.style.display='none';},200)">'
+            + '<input type="hidden" id="hfkbm-surat-'+mid+'">'
+            + '<div id="hfkbm-dd-'+mid+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;max-height:200px;overflow-y:auto;padding:4px"></div>'
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      // Row 2: Ayat Dari + Sampai + Info
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">'
+        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-'+mid+'" min="1" style="font-size:12px" placeholder="1" oninput="clampHafalanAyat(this)"></div>'
+        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-'+mid+'" min="1" style="font-size:12px" placeholder="7" oninput="clampHafalanAyat(this)"></div>'
+        + '<div><div class="nm-section-label">Total Ayat</div><div id="hfkbm-ayat-info-'+mid+'" style="height:42px;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#6b7280">— pilih surat —</div></div>'
+      + '</div>'
+      // Row 3: Kelancaran + Makhraj + Kamera
+      + '<div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:10px;margin-bottom:8px">'
+        + '<div style="font-size:10px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">★ Penilaian Bacaan</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+          + '<div><div class="nm-section-label">Kelancaran</div><select class="fc" id="hfkbm-kel-'+mid+'" style="font-size:12px" onchange="updateHfKbmPoin(''+mid+'')">'+kelOpts+'</select></div>'
+          + '<div><div class="nm-section-label">Makhraj & Tajwid</div><select class="fc" id="hfkbm-nil-'+mid+'" style="font-size:12px" onchange="updateHfKbmPoin(''+mid+'')">'+nilOpts+'</select></div>'
+          + '<div><div class="nm-section-label">Kamera</div><select class="fc" id="hfkbm-kam-'+mid+'" style="font-size:12px">'+kamOpts+'</select></div>'
+        + '</div>'
+        + '<div id="hfkbm-poin-'+mid+'" style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-top:8px">⚡ Estimasi poin: akan dihitung</div>'
+      + '</div>'
+      // Catatan + Target
+      + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
+        + '<textarea class="fc" id="hfkbm-catatan-'+mid+'" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
+      + '</div>'
+      + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px">'
+        + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
+          + '<div><input type="text" class="fc" id="hfkbm-tgt-surat-'+mid+'" placeholder="Nama surat target…" style="font-size:12px" oninput="onTargetSuratKbmInput(''+mid+'',this.value)" onfocus="onTargetSuratKbmInput(''+mid+'',this.value)" onblur="setTimeout(function(){var d=document.getElementById('hfkbm-tgt-dd-'+mid+'');if(d)d.style.display='none';},200)"><div id="hfkbm-tgt-dd-'+mid+'" style="display:none;position:absolute;z-index:99;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
+          + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-'+mid+'" min="1" placeholder="Dari" style="font-size:12px"></div>'
+          + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-'+mid+'" min="1" placeholder="Sampai" style="font-size:12px"></div>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  var html = hadirList.map(function(m){
+    return buildCard(m, presensiMap[m.id_murid]||'H');
+  }).join('');
+
+  if (tidakList.length) {
+    html += '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">'
+      + '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#fde68a)"></div>'
+      + '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:3px 12px">⬇ Izin &amp; Alpa — tidak perlu input hafalan</div>'
+      + '<div style="flex:1;height:1px;background:linear-gradient(90deg,#fde68a,transparent)"></div>'
+      + '</div>'
+      + tidakList.map(function(m){
+          var s = presensiMap[m.id_murid]||'A';
+          var badge = s==='I'?'b-amber':'b-red';
+          var txt   = {I:'Izin',A:'Alpa'}[s]||s;
+          var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
+          return '<div class="nilai-murid-card alpa" style="margin-bottom:8px">'
+            + '<div class="nm-header">'
+              + '<div class="nm-nama"><div class="nm-nama-avatar">'+initials+'</div>'+esc(m.nama_murid)+'</div>'
+              + '<span class="nm-badge-hadir '+badge+'">'+txt+'</span>'
+            + '</div>'
+            + '<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:4px 0">Tidak perlu input hafalan</div>'
+          + '</div>';
+        }).join('');
+  }
+
+  cont.innerHTML = html;
+  // Inisialisasi poin preview untuk semua kartu
+  hadirList.forEach(function(m){ updateHfKbmPoin(m.id_murid); });
+}
+
+function onHfKbmJenisChange(mid) {
+  // Murajaah → limit surat ke yang sudah disetor (simplified: show all for now)
+  // Bisa dikembangkan dengan fetch Ziyadah data per murid
+}
+
+function onHfKbmSuratInput(mid, q) {
+  var dd   = document.getElementById('hfkbm-dd-'+mid);
+  var norm = (q||'').toLowerCase().replace(/['\-]/g,'');
+  var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+    .filter(function(s){ return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm); })
+    .slice(0,15);
+  if (!dd) return;
+  if (!list.length) { dd.innerHTML='<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Tidak ditemukan</div>'; dd.style.display='block'; return; }
+  dd.innerHTML = list.map(function(s){
+    var safeS = JSON.stringify(s).replace(/</g,'\u003c').replace(/>/g,'\u003e');
+    return '<div onmousedown='selectHfKbmSurat("'+esc(mid)+'",'+safeS+')' style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background=''">'
+      + '<span style="background:#e0f2fe;color:#0284c7;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+s.no+'</span>'
+      + '<span style="font-weight:600;flex:1">'+esc(s.latin)+'</span>'
+      + '<span style="color:#9ca3af;font-size:10px">'+s.ayat+' ayat</span>'
+    + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
+function selectHfKbmSurat(mid, s) {
+  var dispEl = document.getElementById('hfkbm-surat-display-'+mid);
+  var valEl  = document.getElementById('hfkbm-surat-'+mid);
+  var infoEl = document.getElementById('hfkbm-ayat-info-'+mid);
+  var ddEl   = document.getElementById('hfkbm-dd-'+mid);
+  if (dispEl) dispEl.value = s.latin;
+  if (valEl)  valEl.value  = s.latin;
+  if (infoEl) infoEl.textContent = s.latin + ' = ' + s.ayat + ' ayat';
+  if (ddEl)   ddEl.style.display = 'none';
+  // Set max ayat
+  var dari   = document.getElementById('hfkbm-ayat-dari-'+mid);
+  var sampai = document.getElementById('hfkbm-ayat-sampai-'+mid);
+  if (dari)   { dari.max   = s.ayat; }
+  if (sampai) { sampai.max = s.ayat; }
+  // Auto-set juz
+  if (s.juz && s.juz.length === 1) {
+    var juzEl = document.getElementById('hfkbm-juz-'+mid);
+    if (juzEl) juzEl.value = s.juz[0];
+  }
+}
+
+function onTargetSuratKbmInput(mid, q) {
+  var dd   = document.getElementById('hfkbm-tgt-dd-'+mid);
+  if (!dd) return;
+  var norm = (q||'').toLowerCase().replace(/['\-]/g,'');
+  var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+    .filter(function(s){ return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm); })
+    .slice(0,10);
+  if (!list.length) { dd.style.display='none'; return; }
+  dd.innerHTML = list.map(function(s){
+    return '<div onmousedown='document.getElementById("hfkbm-tgt-surat-'+mid+'").value="'+s.latin.replace(/'/g,"\'")+'";' style="padding:6px 10px;cursor:pointer;font-size:12px;border-radius:7px" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background=''">'+esc(s.latin)+' <span style="color:#9ca3af;font-size:10px">'+s.ayat+' ayat</span></div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
+function updateHfKbmPoin(mid) {
+  var cfg     = _hfLoadConfig();
+  var kelVal  = document.getElementById('hfkbm-kel-'+mid);
+  var nilVal  = document.getElementById('hfkbm-nil-'+mid);
+  var poinEl  = document.getElementById('hfkbm-poin-'+mid);
+  if (!kelVal || !nilVal || !poinEl) return;
+  var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelVal.value; });
+  var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilVal.value; });
+  var poin    = (kelItem ? kelItem.poin : 0) + (nilItem ? nilItem.poin : 0);
+  poinEl.textContent = '⚡ Estimasi poin: +' + poin;
+}
+
+async function simpanHafalanKBM() {
+  if (!sesiAktif) return toast('Tidak ada sesi aktif', 'err');
+  var presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+  var hadirList = muridSesi.filter(function(m){
+    var s = presensiMap[m.id_murid]||'A';
+    return s === 'H' || s === 'T';
+  });
+
+  var batch = [];
+  var errors = [];
+
+  hadirList.forEach(function(m) {
+    var mid    = m.id_murid;
+    var surat  = (document.getElementById('hfkbm-surat-'+mid)||{}).value || '';
+    var juz    = (document.getElementById('hfkbm-juz-'+mid)||{}).value || '';
+    var dari   = (document.getElementById('hfkbm-ayat-dari-'+mid)||{}).value || '';
+    var sampai = (document.getElementById('hfkbm-ayat-sampai-'+mid)||{}).value || '';
+    var jenis  = (document.getElementById('hfkbm-jenis-'+mid)||{}).value || 'Ziyadah';
+    var kel    = (document.getElementById('hfkbm-kel-'+mid)||{}).value || '';
+    var nil    = (document.getElementById('hfkbm-nil-'+mid)||{}).value || '';
+    var kam    = (document.getElementById('hfkbm-kam-'+mid)||{}).value || '';
+    var cat    = (document.getElementById('hfkbm-catatan-'+mid)||{}).value || '';
+    var tgtSrt = (document.getElementById('hfkbm-tgt-surat-'+mid)||{}).value || '';
+    var tgtDr  = (document.getElementById('hfkbm-tgt-dari-'+mid)||{}).value || '';
+    var tgtSmp = (document.getElementById('hfkbm-tgt-sampai-'+mid)||{}).value || '';
+
+    if (!surat) { errors.push(esc(m.nama_murid) + ': nama surat belum diisi'); return; }
+    if (!dari || !sampai) { errors.push(esc(m.nama_murid) + ': ayat belum diisi'); return; }
+
+    batch.push({
+      id_murid  : mid,
+      nama_murid: m.nama_murid,
+      id_halaqah: sesiAktif.id_halaqah,
+      id_kbm    : sesiAktif.id_kbm,
+      tanggal   : sesiAktif.tanggal_pertemuan,
+      juz, surat,
+      ayat_dari : dari, ayat_sampai: sampai,
+      jenis, nilai: nil, kelancaran: kel, kamera: kam || null, catatan: cat || null,
+      target_surat      : tgtSrt || null,
+      target_ayat_dari  : tgtDr  || null,
+      target_ayat_sampai: tgtSmp || null,
+    });
+  });
+
+  if (errors.length) { toast('Lengkapi data: ' + errors[0], 'err'); return; }
+  if (!batch.length) {
+    // Tidak ada murid hadir yang diinput — lanjut ke jurnal langsung
+    goToJurnal(); return;
+  }
+
+  setBtn('btnSimpanHafalanKbm', true, '⏳ Menyimpan...');
+  showLoad('Bismillah, menyimpan hafalan...');
+  try {
+    // Simpan setoran satu per satu (atau batch via Promise.all)
+    await Promise.all(batch.map(function(d) {
+      return window.HQ.GuruAPI.addSetoranHafalan(d);
+    }));
+    hideLoad();
+    setBtn('btnSimpanHafalanKbm', false, 'Simpan & Lanjut ke Jurnal →');
+    quickToast(batch.length + ' hafalan berhasil disimpan! 🎉', 'ok');
+    goToJurnal();
+  } catch(e) {
+    hideLoad();
+    toast('Gagal menyimpan: ' + e.message, 'err');
+    setBtn('btnSimpanHafalanKbm', false, 'Simpan & Lanjut ke Jurnal →');
+  }
 }
 
 // Non-reguler: presensi selesai → langsung preview simpan sesi
@@ -3807,8 +4128,8 @@ function renderNilaiMuridStep() {
       '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px">',
       '      <option value="">— Pilih —</option>',
       '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
-      '      <option value="kamera sering tertutup"' + (kamVal==='kamera sering tertutup' ? ' selected' : '') + '>📷 kamera sering tertutup</option>',
-      '      <option value="kamera selalu tertutup"' + (kamVal==='kamera selalu tertutup' ? ' selected' : '') + '>📷 kamera selalu tertutup</option>',
+      '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>🟡 kamera sering buka tutup</option>',
+      '      <option value="kamera tertutup"' + (kamVal==='kamera tertutup' ? ' selected' : '') + '>❌ kamera tertutup</option>',
       '    </select>',
       '  </div>',
       '</div>',
@@ -4049,8 +4370,8 @@ async function konfirmasiTutup() {
 // ══════════════════════════════════════════
 // Steps berubah tergantung jenis sesi
 function getStepsDef() {
-  const isReguler = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
-  if (isReguler) {
+  const jenis = sesiAktif ? sesiAktif.jenis_sesi : 'KBM Reguler';
+  if (jenis === 'KBM Reguler') {
     return [
       {id:'kbm',         label:'Buka Sesi'},
       {id:'presensi',    label:'Presensi'},
@@ -4058,7 +4379,15 @@ function getStepsDef() {
       {id:'jurnal',      label:'Jurnal'},
     ];
   }
-  // Kajian At-Tibyan & Micro Teaching: hanya 2 step
+  if (jenis === 'KBM Qiyam') {
+    return [
+      {id:'kbm',           label:'Buka Sesi'},
+      {id:'presensi',      label:'Presensi'},
+      {id:'hafalan-kbm',   label:'Hafalan'},
+      {id:'jurnal',        label:'Jurnal'},
+    ];
+  }
+  // Micro Teaching & Lainnya: hanya 2 step
   return [
     {id:'kbm',      label:'Buka Sesi'},
     {id:'presensi', label:'Presensi'},
@@ -4068,7 +4397,7 @@ function getStepsDef() {
 function renderSteps(current) {
   const steps = getStepsDef();
   const ci    = steps.findIndex(s => s.id === current);
-  const bars  = ['stepBarPresensi','stepBarNilai','stepBarJurnal'];
+  const bars  = ['stepBarPresensi','stepBarNilai','stepBarJurnal','stepBarHafalanKbm'];
   bars.forEach(barId => {
     const bar = document.getElementById(barId);
     if (!bar) return;
