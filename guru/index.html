@@ -6975,13 +6975,24 @@ async function _hfFetchConfigFromDB() {
   try {
     var res = await window.HQ.GuruAPI.getPenilaianHafalan();
     if (res && res.data && res.data.kelancaran && res.data.nilai) {
-      _hfConfigCache = res.data;
-      localStorage.setItem(_HF_PENILAIAN_KEY, JSON.stringify(res.data));
+      var cfg = res.data;
+      // Pastikan kamera ada — jika DB belum punya, pakai default
+      if (!cfg.kamera || !cfg.kamera.length) {
+        cfg.kamera = _hfDefaultConfig().kamera;
+      }
+      _hfConfigCache = cfg;
+      localStorage.setItem(_HF_PENILAIAN_KEY, JSON.stringify(cfg));
     }
   } catch(e) {
     // Gunakan localStorage/default jika DB tidak bisa diakses
     _hfLoadConfig();
   }
+}
+
+// Bersihkan localStorage cache yang mungkin punya config lama/rusak
+function _hfClearLocalCache() {
+  localStorage.removeItem(_HF_PENILAIAN_KEY);
+  _hfConfigCache = null;
 }
 
 // Save: update memory → localStorage → Supabase
