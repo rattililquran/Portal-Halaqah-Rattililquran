@@ -555,6 +555,337 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .b-purple{background:var(--purple-l);color:#6d28d9;border-color:rgba(139,92,246,0.15)}
 .b-teal{background:var(--teal-l);color:#0e7490;border-color:rgba(6,182,212,0.15)}
 
+/* ── TAHFIDZ LOCK CARD AESTHETICS ── */
+.tahfidz-lock-card {
+  background: var(--card);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 32px 24px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+html.theme-dark .tahfidz-lock-card {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.tahfidz-header-glow {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tahfidz-mosque-icon {
+  font-size: 42px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.3));
+  animation: mosqueFloat 3s ease-in-out infinite;
+}
+@keyframes mosqueFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.05); }
+}
+.tahfidz-glow-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(16,185,129,0) 70%);
+  z-index: 1;
+  animation: pulseRing 2s ease-in-out infinite;
+}
+@keyframes pulseRing {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+}
+.tahfidz-lock-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.tahfidz-lock-subtitle {
+  font-size: 13.5px;
+  color: var(--text-3);
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Quote Banner */
+.tahfidz-quote-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.02));
+  border: 1px dashed rgba(16, 185, 129, 0.25);
+  border-radius: var(--r-sm);
+  padding: 18px;
+  margin-bottom: 20px;
+  position: relative;
+  text-align: left;
+}
+html.theme-dark .tahfidz-quote-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(16, 185, 129, 0.01));
+  border-color: rgba(16, 185, 129, 0.15);
+}
+.quote-icon {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  font-size: 36px;
+  font-family: Georgia, serif;
+  color: rgba(16, 185, 129, 0.25);
+  line-height: 1;
+}
+.quote-text {
+  font-size: 13.5px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--green-d);
+  line-height: 1.6;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+html.theme-dark .quote-text {
+  color: #a7f3d0;
+}
+.quote-source {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Motivation Alert */
+.tahfidz-motivation-alert {
+  display: flex;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.07), rgba(14, 165, 233, 0.02));
+  border: 1px solid rgba(14, 165, 233, 0.15);
+  border-radius: var(--r-sm);
+  padding: 14px;
+  text-align: left;
+  margin-bottom: 28px;
+}
+html.theme-dark .tahfidz-motivation-alert {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.03), rgba(14, 165, 233, 0.01));
+  border-color: rgba(14, 165, 233, 0.08);
+}
+.motivation-emoji {
+  font-size: 20px;
+  animation: rocketShake 2s ease-in-out infinite;
+}
+@keyframes rocketShake {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(8deg); }
+}
+.motivation-text {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Roadmap */
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.roadmap-icon {
+  font-size: 16px;
+}
+.roadmap-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tahfidz-roadmap {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 10px;
+  margin-bottom: 24px;
+}
+/* Vertical Line */
+.tahfidz-roadmap::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 20px;
+  bottom: 24px;
+  width: 4px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.roadmap-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 0;
+  position: relative;
+  z-index: 2;
+  text-align: left;
+}
+.roadmap-node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  background: #fff;
+  border: 2px solid var(--text-3);
+  color: var(--text-3);
+  transition: all 0.3s ease;
+}
+html.theme-dark .roadmap-node {
+  background: #1e293b;
+  border-color: #475569;
+}
+.roadmap-step.past .roadmap-node {
+  background: #dcfce7;
+  border-color: var(--green);
+  color: var(--green-d);
+}
+html.theme-dark .roadmap-step.past .roadmap-node {
+  background: #064e3b;
+  color: #a7f3d0;
+}
+.roadmap-step.current .roadmap-node {
+  background: #dbeafe;
+  border-color: var(--blue-d);
+  color: var(--blue-txt);
+  width: 28px;
+  height: 28px;
+  margin-left: -2px;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+  animation: pulseCurrentNode 1.5s infinite alternate;
+}
+html.theme-dark .roadmap-step.current .roadmap-node {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+@keyframes pulseCurrentNode {
+  0% { transform: scale(1); box-shadow: 0 0 6px rgba(37, 99, 235, 0.2); }
+  100% { transform: scale(1.08); box-shadow: 0 0 14px rgba(37, 99, 235, 0.45); }
+}
+.roadmap-step.locked .roadmap-node {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+html.theme-dark .roadmap-step.locked .roadmap-node {
+  background: #0f172a;
+  border-color: #334155;
+  color: #64748b;
+}
+.roadmap-step.qiyam-node .roadmap-node {
+  background: #d1fae5;
+  border-color: var(--green);
+  color: var(--green-txt);
+  width: 32px;
+  height: 32px;
+  margin-left: -4px;
+  font-size: 14px;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+}
+html.theme-dark .roadmap-step.qiyam-node .roadmap-node {
+  background: #064e3b;
+  color: #34d399;
+}
+
+.roadmap-info {
+  flex: 1;
+}
+.roadmap-lv-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.roadmap-step.current .roadmap-lv-title {
+  color: var(--blue-d);
+}
+.roadmap-step.qiyam-node .roadmap-lv-title {
+  color: var(--green-txt);
+}
+.roadmap-lv-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.badge-past { background: #dcfce7; color: #15803d; }
+html.theme-dark .badge-past { background: #064e3b; color: #a7f3d0; }
+.badge-current { background: #dbeafe; color: #1d4ed8; }
+html.theme-dark .badge-current { background: #1e3a8a; color: #93c5fd; }
+.badge-locked { background: #f1f5f9; color: #64748b; }
+html.theme-dark .badge-locked { background: #334155; color: #cbd5e1; }
+.badge-qiyam { background: #fef3c7; color: #b45309; }
+html.theme-dark .badge-qiyam { background: #78350f; color: #fde68a; }
+
+.roadmap-lv-desc {
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.roadmap-step.current .roadmap-lv-desc {
+  color: var(--text-2);
+}
+.roadmap-step.past .roadmap-lv-desc {
+  color: var(--text-3);
+}
+
+.tahfidz-current-footer {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--bg-2);
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  display: inline-block;
+  margin-top: 10px;
+}
+html.theme-dark .tahfidz-current-footer {
+  background: #334155;
+  color: #e2e8f0;
+}
+.tahfidz-current-footer span {
+  color: var(--blue-d);
+  font-weight: 800;
+}
+
 /* ── RIWAYAT ITEM (expandable) ── */
 .riwayat-item{border-radius:20px;border:1px solid var(--border);
   background:#fff;margin-bottom:12px;overflow:hidden;transition:all .2s ease;
@@ -2875,25 +3206,40 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
     <div class="page" id="page-hafalan">
 
       <!-- ── LOCKED STATE: non-Qiyam ── -->
-      <div id="hafalanLocked" style="display:none;padding:24px 16px;text-align:center;max-width:420px;margin:0 auto">
-        <div style="font-size:64px;margin-bottom:16px;line-height:1">📖</div>
-        <div style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:8px">Kelas Tahfidz</div>
-        <div style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border-radius:20px;padding:4px 14px;margin-bottom:20px">
-          <span style="font-size:14px">🔒</span>
-          <span style="font-size:12px;font-weight:700;color:#6b7280">Khusus Level Qiyam</span>
-        </div>
-        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:16px;padding:20px 18px;margin-bottom:20px">
-          <div style="font-size:13px;line-height:1.7;color:#166534;font-weight:500">
-            "Kelas Tahfidz khusus untuk Level Qiyam.<br>
-            Semoga Allah mudahkan untuk sampai ke Level Qiyam." 🤲
+      <div id="hafalanLocked" style="display:none;padding:16px 12px;text-align:center;max-width:480px;margin:0 auto">
+        <div class="tahfidz-lock-card">
+          <div class="tahfidz-header-glow">
+            <div class="tahfidz-mosque-icon">🕌</div>
+            <div class="tahfidz-glow-ring"></div>
           </div>
-        </div>
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px">
-          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Perjalanan Level Anda</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-            <div id="hafalanLevelPath" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+          <h2 class="tahfidz-lock-title">Kelas Tahfidz</h2>
+          <p class="tahfidz-lock-subtitle">Gerbang Menuju Sahabat Al-Qur'an</p>
+          
+          <div class="tahfidz-quote-banner">
+            <span class="quote-icon">“</span>
+            <div class="quote-text">Sebaik-baik kalian adalah orang yang belajar Al-Qur'an dan mengajarkannya.</div>
+            <div class="quote-source">HR. Bukhari</div>
           </div>
-          <div style="margin-top:12px;font-size:12px;color:#6b7280">Level saat ini: <strong id="hafalanCurrentLevel" style="color:var(--blue)">-</strong></div>
+
+          <div class="tahfidz-motivation-alert">
+            <div class="motivation-emoji">🚀</div>
+            <div class="motivation-text">
+              Tingkatkan terus keaktifan belajarmu! Capai <strong>Level Qiyam</strong> untuk membuka akses hafalan mandiri & setoran langsung ke Ustadz/Ustadzah.
+            </div>
+          </div>
+
+          <div class="roadmap-header">
+            <span class="roadmap-icon">🗺️</span>
+            <span class="roadmap-title">Peta Perjalanan Level Anda</span>
+          </div>
+
+          <div class="tahfidz-roadmap" id="hafalanRoadmapSteps">
+            <!-- Diisi dinamis oleh JS -->
+          </div>
+
+          <div class="tahfidz-current-footer">
+            Level Halaqah Anda saat ini: <span id="hafalanCurrentLevel">-</span>
+          </div>
         </div>
       </div>
 
@@ -6579,26 +6925,51 @@ function loadPageHafalan() {
 }
 
 function _renderHafalanLevelPath() {
-  var el = document.getElementById('hafalanLevelPath');
+  var el = document.getElementById('hafalanRoadmapSteps');
   if (!el) return;
   var currentLevel = (dashData && dashData.halaqah && dashData.halaqah.level) || '-';
+
+  var levelDescs = {
+    'Level 1': 'Pengenalan makhorijul huruf dan sifatnya serta melatih kelancaran membaca huruf-huruf hijaiyah tahap A.',
+    'Level 2': 'Pengenalan makhorijul huruf dan sifatnya serta melatih kelancaran membaca huruf-huruf hijaiyah tahap B.',
+    'Level 3': 'Melatih konsistensi bacaan, Tajwid dasar serta sifat-sifat huruf yang lebih mendalam.',
+    'Level 4': 'Pematangan tajwid praktis, kelancaran tingkat lanjut, waqaf ibtida\' dan persiapan kelas tahfidz.',
+    'Level Qiyam': 'Kelas setoran hafalan Al-Qur\'an reguler QIyam Bilquran.'
+  };
+
   el.innerHTML = HAFALAN_LEVELS.map(function(lv, i) {
     var isCurrent  = lv === currentLevel;
     var isQiyam    = lv === HAFALAN_LEVEL;
     var isPast     = HAFALAN_LEVELS.indexOf(currentLevel) > i;
-    var color      = isCurrent  ? '#2563eb'
-                   : isQiyam    ? '#10b981'
-                   : isPast     ? '#6b7280' : '#d1d5db';
-    var bg         = isCurrent  ? '#dbeafe'
-                   : isQiyam    ? '#d1fae5'
-                   : isPast     ? '#f3f4f6' : '#f9fafb';
-    var chip = '<span style="background:' + bg + ';color:' + color + ';border-radius:100px;'
-             + 'padding:3px 10px;font-size:11px;font-weight:' + (isCurrent || isQiyam ? '800' : '600') + ';'
-             + 'border:1.5px solid ' + (isCurrent ? '#93c5fd' : isQiyam ? '#6ee7b7' : '#e5e7eb') + '">'
-             + (isQiyam ? '🕌 ' : '') + lv + (isCurrent ? ' ← Anda' : '') + '</span>';
-    var arrow = i < HAFALAN_LEVELS.length - 1
-      ? '<span style="color:#d1d5db;font-size:12px">→</span>' : '';
-    return chip + arrow;
+
+    var stepClass = isPast ? 'past' : isCurrent ? 'current' : 'locked';
+    if (isQiyam) stepClass += ' qiyam-node';
+
+    var nodeContent = '';
+    if (isPast) nodeContent = '✓';
+    else if (isQiyam) nodeContent = '🕌';
+    else if (isCurrent) nodeContent = '●';
+    else nodeContent = '🔒';
+
+    var badgeText = isPast ? 'Selesai' : isCurrent ? 'Anda' : 'Terkunci';
+    var badgeClass = isPast ? 'badge-past' : isCurrent ? 'badge-current' : 'badge-locked';
+    if (isQiyam && !isCurrent) {
+      badgeText = 'Tujuan';
+      badgeClass = 'badge-qiyam';
+    }
+
+    var desc = levelDescs[lv] || '';
+
+    return '<div class="roadmap-step ' + stepClass + '">'
+      + '  <div class="roadmap-node">' + nodeContent + '</div>'
+      + '  <div class="roadmap-info">'
+      + '    <div class="roadmap-lv-title">'
+      +        esc(lv)
+      + '      <span class="roadmap-lv-badge ' + badgeClass + '">' + badgeText + '</span>'
+      + '    </div>'
+      + '    <div class="roadmap-lv-desc">' + esc(desc) + '</div>'
+      + '  </div>'
+      + '</div>';
   }).join('');
 
   var lvEl = document.getElementById('hafalanCurrentLevel');
