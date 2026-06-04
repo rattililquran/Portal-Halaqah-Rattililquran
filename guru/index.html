@@ -2310,7 +2310,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               Penilaian Bacaan
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
               <div>
                 <label class="hf-lbl">Kelancaran</label>
                 <select class="fc" id="hafalanKelancaranSel" onchange="hfUpdatePoinPreview()"></select>
@@ -2318,6 +2318,10 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               <div>
                 <label class="hf-lbl">Nilai Makhraj &amp; Tajwid</label>
                 <select class="fc" id="hafalanNilaiSel" onchange="hfUpdatePoinPreview()"></select>
+              </div>
+              <div>
+                <label class="hf-lbl">Kamera</label>
+                <select class="fc" id="hafalanKameraSel" onchange="hfUpdatePoinPreview()"></select>
               </div>
             </div>
           </div>
@@ -2395,91 +2399,6 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
         <!-- ════ KELOLA PENILAIAN (collapsible) ════ -->
         <!-- kelolaPenilaianWrap dihapus dari page — dipindah ke modal (#modalKelolaPenilaian) -->
         <div id="kelolaPenilaianWrap" style="display:none"></div>
-
-        <!-- MODAL KELOLA PENILAIAN — placeholder, konten sebenarnya ada di modal di bawah -->
-        <div style="display:none">
-          <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:14px">⚙️ Kelola Penilaian</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:-10px;margin-bottom:14px">Atur kriteria penilaian yang tampil pada form Input Setoran</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-            <!-- Kelancaran Card -->
-            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#eff6ff,#fff);border-bottom:1px solid #f0f0f0">
-                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                </div>
-                <div style="flex:1">
-                  <div style="font-size:13px;font-weight:800;color:#111827">Kelancaran Bacaan</div>
-                  <div style="font-size:10px;color:#9ca3af">Tingkat kelancaran hafalan</div>
-                </div>
-                <span id="hfKelBadge" style="background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px">0 item</span>
-              </div>
-              <div id="hfKelList" style="padding:10px;min-height:80px"></div>
-              <!-- Add form -->
-              <div style="padding:10px 12px;border-top:1px solid #f3f4f6;background:#f9fafb">
-                <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">+ Tambah Opsi</div>
-                <div style="display:grid;grid-template-columns:1fr 70px 60px;gap:5px;margin-bottom:6px">
-                  <input type="text" class="fc" id="hfAddKelNama" placeholder="Nama kategori" style="font-size:12px;padding:6px 9px">
-                  <input type="number" class="fc" id="hfAddKelPoin" placeholder="Poin" style="font-size:12px;padding:6px 9px">
-                  <select class="fc" id="hfAddKelIcon" style="font-size:12px;padding:6px 5px">
-                    <option value="🟢">🟢</option><option value="🔵">🔵</option>
-                    <option value="🟡">🟡</option><option value="🟠">🟠</option>
-                    <option value="🔴">🔴</option><option value="⚪">⚪</option>
-                  </select>
-                </div>
-                <button onclick="hfAddKelancaran()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%">+ Tambah</button>
-              </div>
-            </div>
-
-            <!-- Nilai Makhraj & Tajwid Card -->
-            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#fffbeb,#fff);border-bottom:1px solid #f0f0f0">
-                <div style="width:34px;height:34px;border-radius:9px;background:#d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-                <div style="flex:1">
-                  <div style="font-size:13px;font-weight:800;color:#111827">Nilai Makhraj &amp; Tajwid</div>
-                  <div style="font-size:10px;color:#9ca3af">Kualitas bacaan makhraj &amp; tajwid</div>
-                </div>
-                <span id="hfNilBadge" style="background:#fef3c7;color:#b45309;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px">0 item</span>
-              </div>
-              <div id="hfNilList" style="padding:10px;min-height:80px"></div>
-              <!-- Add form -->
-              <div style="padding:10px 12px;border-top:1px solid #f3f4f6;background:#f9fafb">
-                <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">+ Tambah Opsi</div>
-                <div style="display:grid;grid-template-columns:60px 1fr 70px;gap:5px;margin-bottom:6px">
-                  <input type="text" class="fc" id="hfAddNilKode" placeholder="Kode" maxlength="4" style="font-size:12px;padding:6px 9px">
-                  <input type="text" class="fc" id="hfAddNilDesc" placeholder="Deskripsi" style="font-size:12px;padding:6px 9px">
-                  <input type="number" class="fc" id="hfAddNilPoin" placeholder="Poin" style="font-size:12px;padding:6px 9px">
-                </div>
-                <button onclick="hfAddNilai()" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%">+ Tambah</button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Preview -->
-          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span style="font-size:12px;font-weight:800;color:#374151">Preview Tampilan Form</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div>
-                <label class="hf-lbl">Kelancaran</label>
-                <select class="fc" id="hfPreviewKelancaran" disabled style="opacity:.8"></select>
-              </div>
-              <div>
-                <label class="hf-lbl">Nilai Makhraj &amp; Tajwid</label>
-                <select class="fc" id="hfPreviewNilai" disabled style="opacity:.8"></select>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-              <p style="font-size:11px;color:#9ca3af">Perubahan otomatis tersimpan dan langsung berlaku.</p>
-              <button onclick="hfResetPenilaian()" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer">↺ Reset ke Default</button>
-            </div>
-          </div>
-        </div>
 
       </div><!-- /page-hafalan-guru -->
 
@@ -7031,6 +6950,11 @@ function _hfDefaultConfig() {
       { id: 'nil-1', kode: 'A', desc: 'Sangat Baik', poin: 100, icon: '⭐' },
       { id: 'nil-2', kode: 'B', desc: 'Baik',         poin:  80, icon: '✅' },
       { id: 'nil-3', kode: 'C', desc: 'Cukup',        poin:  60, icon: '📌' }
+    ],
+    kamera: [
+      { id: 'kam-1', nama: 'kamera terbuka',         poin:  10, icon: '📷' },
+      { id: 'kam-2', nama: 'kamera sering tertutup', poin:   0, icon: '🟡' },
+      { id: 'kam-3', nama: 'kamera selalu tertutup', poin:  -5, icon: '❌' }
     ]
   };
 }
@@ -7077,20 +7001,25 @@ async function _hfSaveConfig(cfg) {
 // Isi semua select dari config
 function _hfRenderAllDropdowns() {
   var cfg = _hfLoadConfig();
-  var kelOpts = cfg.kelancaran.map(function(k) {
+  var kelOpts = (cfg.kelancaran||[]).map(function(k) {
     var poinLabel = k.poin > 0 ? '(+' + k.poin + ' Poin)' : k.poin < 0 ? '(' + k.poin + ' Poin)' : '(Netral)';
     return '<option value="' + _escAttr(k.nama) + '">' + k.icon + ' ' + _escAttr(k.nama) + ' ' + poinLabel + '</option>';
   }).join('');
-  var nilOpts = cfg.nilai.map(function(n) {
+  var nilOpts = (cfg.nilai||[]).map(function(n) {
     return '<option value="' + _escAttr(n.kode) + '">' + n.icon + ' ' + _escAttr(n.kode) + ' — ' + _escAttr(n.desc) + ' (' + n.poin + ' Poin)</option>';
   }).join('');
+  var kamOpts = (cfg.kamera||[]).map(function(k) {
+    var poinLabel = k.poin > 0 ? '(+' + k.poin + ' Poin)' : k.poin < 0 ? '(' + k.poin + ' Poin)' : '(Netral)';
+    return '<option value="' + _escAttr(k.nama) + '">' + k.icon + ' ' + _escAttr(k.nama) + ' ' + poinLabel + '</option>';
+  }).join('');
   ['hafalanKelancaranSel','hfPreviewKelancaran'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.innerHTML = kelOpts || '<option>—</option>';
+    var el = document.getElementById(id); if (el) el.innerHTML = kelOpts || '<option>—</option>';
   });
   ['hafalanNilaiSel','hfPreviewNilai'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.innerHTML = nilOpts || '<option>—</option>';
+    var el = document.getElementById(id); if (el) el.innerHTML = nilOpts || '<option>—</option>';
+  });
+  ['hafalanKameraSel','hfPreviewKamera'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.innerHTML = kamOpts || '<option>—</option>';
   });
 }
 
@@ -7103,9 +7032,11 @@ function hfUpdatePoinPreview() {
   var cfg     = _hfLoadConfig();
   var nilVal  = document.getElementById('hafalanNilaiSel').value;
   var kelVal  = document.getElementById('hafalanKelancaranSel').value;
-  var nilItem = cfg.nilai.find(function(n){ return n.kode === nilVal; });
-  var kelItem = cfg.kelancaran.find(function(k){ return k.nama === kelVal; });
-  var poin    = (nilItem ? nilItem.poin : 0) + (kelItem ? kelItem.poin : 0);
+  var kamVal  = document.getElementById('hafalanKameraSel') && document.getElementById('hafalanKameraSel').value;
+  var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilVal; });
+  var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelVal; });
+  var kamItem = kamVal ? (cfg.kamera||[]).find(function(k){ return k.nama === kamVal; }) : null;
+  var poin    = (nilItem ? nilItem.poin : 0) + (kelItem ? kelItem.poin : 0) + (kamItem ? kamItem.poin : 0);
   var bonus   = new Date().getHours() < 9 ? 10 : 0;
   var txt     = document.getElementById('hafalanPoinPreviewText');
   if (!txt) return;
@@ -7156,6 +7087,28 @@ function renderKelolaPenilaianHafalan() {
   }
 
   // Render nilai list
+  var kamListEl = document.getElementById('hfKamList');
+  var kamBadge  = document.getElementById('hfKamBadge');
+  var kameraList = cfg.kamera || [];
+  if (kamBadge) kamBadge.textContent = kameraList.length + ' item';
+  if (kamListEl) {
+    kamListEl.innerHTML = kameraList.length ? kameraList.map(function(k, i) {
+      return '<div class="hf-pn-row">'
+        + '<span style="font-size:16px;flex-shrink:0">' + k.icon + '</span>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:700;color:#111827">' + esc(k.nama) + '</div>'
+          + '<div style="font-size:11px;color:#6b7280">Modifier: '
+            + (k.poin > 0 ? '<span style="color:#1d4ed8;font-weight:700">+' + k.poin + '</span>'
+               : k.poin < 0 ? '<span style="color:#dc2626;font-weight:700">' + k.poin + '</span>'
+               : '<span style="color:#6b7280;font-weight:700">0</span>')
+            + ' poin</div>'
+        + '</div>'
+        + '<button onclick="hfDelKamera(' + i + ')" style="width:26px;height:26px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus">🗑</button>'
+      + '</div>';
+    }).join('')
+    : '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Belum ada opsi</div>';
+  }
+
   var nilListEl = document.getElementById('hfNilList');
   var nilBadge  = document.getElementById('hfNilBadge');
   if (nilBadge) nilBadge.textContent = cfg.nilai.length + ' item';
@@ -7226,6 +7179,30 @@ async function hfResetPenilaian() {
   _hfConfigCache = null;
   await _hfSaveConfig(_hfDefaultConfig());
   showToast('Penilaian direset ke default', 'success');
+}
+
+// ── Kamera CRUD ─────────────────────────────────────────────
+async function hfAddKamera() {
+  var nama = (document.getElementById('hfAddKamNama').value || '').trim();
+  var poin = parseInt(document.getElementById('hfAddKamPoin').value) || 0;
+  var icon = document.getElementById('hfAddKamIcon').value || '📷';
+  if (!nama) { showToast('Nama opsi tidak boleh kosong', 'warning'); return; }
+  var cfg = _hfLoadConfig();
+  if (!cfg.kamera) cfg.kamera = [];
+  cfg.kamera.push({ id: 'kam-' + Date.now(), nama, poin, icon });
+  await _hfSaveConfig(cfg);
+  document.getElementById('hfAddKamNama').value = '';
+  document.getElementById('hfAddKamPoin').value = '';
+  showToast('Opsi kamera ditambahkan ✓', 'success');
+}
+
+async function hfDelKamera(i) {
+  if (!confirm('Hapus opsi ini?')) return;
+  var cfg = _hfLoadConfig();
+  if (!cfg.kamera) return;
+  cfg.kamera.splice(i, 1);
+  await _hfSaveConfig(cfg);
+  showToast('Opsi dihapus', 'success');
 }
 
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
@@ -7695,6 +7672,7 @@ async function submitSetoranHafalan() {
   var surat      = document.getElementById('hafalanSuratValue').value;
   var ayatDari   = document.getElementById('hafalanAyatDari').value;
   var ayatSampai = document.getElementById('hafalanAyatSampai').value;
+  var kamera     = document.getElementById('hafalanKameraSel') ? document.getElementById('hafalanKameraSel').value : null;
   var catatan    = document.getElementById('hafalanCatatan').value.trim();
   var tgtSurat   = document.getElementById('hafalanTargetSurat').value.trim();
   var tgtDari    = document.getElementById('hafalanTargetDari').value;
@@ -7735,7 +7713,7 @@ async function submitSetoranHafalan() {
       id_murid, nama_murid, id_halaqah, juz, surat,
       tanggal: tanggal || null,
       ayat_dari: ayatDari, ayat_sampai: ayatSampai,
-      jenis, nilai, kelancaran, catatan,
+      jenis, nilai, kelancaran, kamera: kamera || null, catatan,
       target_surat: tgtSurat || null,
       target_ayat_dari: tgtDari || null,
       target_ayat_sampai: tgtSampai || null,
@@ -7756,6 +7734,8 @@ async function submitSetoranHafalan() {
     var kelSel = document.getElementById('hafalanKelancaranSel');
     if (nilSel && cfg.nilai.length) nilSel.value = cfg.nilai[0].kode;
     if (kelSel && cfg.kelancaran.length) kelSel.value = cfg.kelancaran[0].nama;
+    var kamSelEl = document.getElementById('hafalanKameraSel');
+    if (kamSelEl && cfg.kamera && cfg.kamera.length) kamSelEl.value = cfg.kamera[0].nama;
     clearHafalanSurat();
     _hafalanGuruZiyadah = [];
     document.getElementById('hafalanMurajaahInfo').style.display = 'none';
@@ -8290,13 +8270,39 @@ function cetakRaportTahfidz() {
         </div>
       </div>
 
+      <!-- Kamera Card -->
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#f0fdf4,#fff);border-bottom:1px solid #f0f0f0">
+          <div style="width:34px;height:34px;border-radius:9px;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px">📷</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#111827">Kamera</div>
+            <div style="font-size:10px;color:#9ca3af">Status kamera saat setoran (sama dengan KBM)</div>
+          </div>
+          <span id="hfKamBadge" style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px">0 item</span>
+        </div>
+        <div id="hfKamList" style="padding:10px;min-height:80px"></div>
+        <div style="padding:10px 12px;border-top:1px solid #f3f4f6;background:#f9fafb">
+          <div style="font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">+ Tambah Opsi</div>
+          <div style="display:grid;grid-template-columns:1fr 70px 60px;gap:5px;margin-bottom:6px">
+            <input type="text" class="fc" id="hfAddKamNama" placeholder="Nama opsi" style="font-size:12px;padding:6px 9px">
+            <input type="number" class="fc" id="hfAddKamPoin" placeholder="Poin" style="font-size:12px;padding:6px 9px">
+            <select class="fc" id="hfAddKamIcon" style="font-size:12px;padding:6px 5px">
+              <option value="📷">📷</option><option value="🟢">🟢</option>
+              <option value="🟡">🟡</option><option value="🔴">🔴</option>
+              <option value="❌">❌</option><option value="✅">✅</option>
+            </select>
+          </div>
+          <button onclick="hfAddKamera()" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%">+ Tambah</button>
+        </div>
+      </div>
+
       <!-- Preview -->
       <div style="background:#f8faff;border:1px solid #e0eaff;border-radius:14px;padding:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <span style="font-size:12px;font-weight:800;color:#374151">👁️ Preview Tampilan Form</span>
           <button onclick="hfResetPenilaian()" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer">↺ Reset ke Default</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
           <div>
             <label class="hf-lbl">Kelancaran</label>
             <select class="fc" id="hfPreviewKelancaran" disabled style="opacity:.8"></select>
@@ -8304,6 +8310,10 @@ function cetakRaportTahfidz() {
           <div>
             <label class="hf-lbl">Nilai Makhraj &amp; Tajwid</label>
             <select class="fc" id="hfPreviewNilai" disabled style="opacity:.8"></select>
+          </div>
+          <div>
+            <label class="hf-lbl">Kamera</label>
+            <select class="fc" id="hfPreviewKamera" disabled style="opacity:.8"></select>
           </div>
         </div>
         <p style="font-size:11px;color:#9ca3af;margin-top:10px">Perubahan tersimpan otomatis dan langsung berlaku di form Input Setoran.</p>

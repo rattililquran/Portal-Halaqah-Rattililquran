@@ -1154,6 +1154,7 @@ var GuruAPI = {
       jenis              : d.jenis || 'Ziyadah',
       nilai              : d.nilai,
       kelancaran         : d.kelancaran || null,
+      kamera             : d.kamera    || null,
       catatan            : d.catatan   || null,
       target_surat       : d.target_surat       || null,
       target_ayat_dari   : d.target_ayat_dari   ? parseInt(d.target_ayat_dari)   : null,
