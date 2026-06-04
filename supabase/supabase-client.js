@@ -139,15 +139,16 @@ var GuruAPI = {
       return hqIds.includes(a.id_halaqah);
     }).map(function(a) { return a.id_murid; }));
 
-    // Hitung pertemuan_ke per halaqah
-    var kbmCounts = {};
+    // Hitung pertemuan_ke per halaqah per jenis_sesi secara terpisah
+    var kbmCounts = {}; // { id_halaqah: { jenis_sesi: count } }
     if (hqIds.length > 0) {
       var { data: kbmAll } = await _sb.from('kbm_log')
-        .select('id_halaqah, pertemuan_ke')
+        .select('id_halaqah, jenis_sesi')
         .in('id_halaqah', hqIds).eq('status', 'selesai');
       (kbmAll || []).forEach(function(k) {
-        if (!kbmCounts[k.id_halaqah]) kbmCounts[k.id_halaqah] = 0;
-        kbmCounts[k.id_halaqah]++;
+        var jenis = k.jenis_sesi || 'KBM Reguler';
+        if (!kbmCounts[k.id_halaqah]) kbmCounts[k.id_halaqah] = {};
+        kbmCounts[k.id_halaqah][jenis] = (kbmCounts[k.id_halaqah][jenis] || 0) + 1;
       });
     }
 
@@ -155,10 +156,15 @@ var GuruAPI = {
       var muridCount = (anggotaRes.data || []).filter(function(a) {
         return a.id_halaqah === h.id_halaqah;
       }).length;
+      var counts = kbmCounts[h.id_halaqah] || {};
+      var isQiyam = h.level === 'Level Qiyam';
+      var regCount = counts['KBM Reguler'] || 0;
+      var qiyamCount = counts['KBM Qiyam'] || 0;
+      var mainCount = isQiyam ? qiyamCount : regCount;
       return Object.assign({}, h, {
         total_murid  : muridCount,
-        pertemuan_ke : (kbmCounts[h.id_halaqah] || 0) + 1,
-        sisa_sesi    : Math.max(0, 40 - (kbmCounts[h.id_halaqah] || 0)),
+        pertemuan_ke : mainCount + 1,
+        sisa_sesi    : isQiyam ? 0 : Math.max(0, 40 - regCount),
       });
     });
 
@@ -218,7 +224,7 @@ var GuruAPI = {
         jam_selesai            : h.jam_selesai,
         lokasi                 : h.lokasi,
         total_murid            : h.anggota ? h.anggota[0].count : 0,
-        pertemuan_ke           : regCount + 1,       // backward compat
+        pertemuan_ke           : (h.level === 'Level Qiyam' ? qiyamCount : regCount) + 1,       // backward compat
         pertemuan_ke_reguler   : regCount + 1,
         pertemuan_ke_qiyam     : qiyamCount + 1,
         pertemuan_ke_microteach: microCount + 1,
@@ -314,11 +320,10 @@ var GuruAPI = {
       .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
     if (draft) return { status: 'error', message: 'Masih ada sesi yang belum ditutup: ' + draft.id_kbm };
 
-    // Hitung pertemuan_ke — pisahkan counter KBM Reguler dan KBM Qiyam
-    var isKbmQiyam = d.jenis_sesi === 'KBM Qiyam';
+    // Hitung pertemuan_ke — masing-masing jenis sesi dihitung secara terpisah
     var countQ = _sb.from('kbm_log').select('*', { count: 'exact', head: true })
       .eq('id_halaqah', d.id_halaqah).eq('status', 'selesai')
-      .eq('jenis_sesi', isKbmQiyam ? 'KBM Qiyam' : 'KBM Reguler');
+      .eq('jenis_sesi', d.jenis_sesi || 'KBM Reguler');
     var { count } = await countQ;
 
     var id_kbm = _genId('KBM');
@@ -360,6 +365,7 @@ var GuruAPI = {
     var { error } = await _sb.from('nilai_kbm').update({
       adab: d.adab, kamera_murid: d.kamera_murid,
       koreksi_tahsin: d.koreksi_tahsin, catatan_murid: d.catatan_murid,
+      nilai: d.nilai || null,
     }).eq('id_kbm', d.id_kbm).eq('id_murid', d.id_murid);
     _check(error, 'simpanNilaiMurid');
     return { status: 'ok' };
@@ -370,6 +376,7 @@ var GuruAPI = {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: n.id_murid,
       adab: n.adab, kamera_murid: n.kamera_murid,
       koreksi_tahsin: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
+      nilai: n.nilai || null,
     }; });
     if (!updates.length) return { status: 'ok' };
     var { error } = await _sb.from('nilai_kbm')

@@ -1477,6 +1477,26 @@ html.theme-dark .pd-nas-block{background:rgba(14,165,233,.06)!important;border-c
 html.theme-dark .pd-nas-intro{color:#94c6e0!important}
 html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 
+/* Rubrik Micro Teaching */
+.rubrik-option { position: relative; }
+.rubrik-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.rubrik-option label {
+  border: 1.5px solid var(--border);
+  transition: all .15s;
+}
+.rubrik-option label:hover { border-color: #94a3b8; background: var(--bg-2); }
+.rubrik-option input:checked + label {
+  background: var(--blue); border-color: var(--blue); color: #fff !important;
+  box-shadow: 0 4px 10px rgba(26,115,232,.3);
+}
+.rubrik-option.opt-sb input:checked + label { background: #16a34a; border-color: #16a34a; box-shadow: 0 4px 10px rgba(22,163,74,.3); }
+.rubrik-option.opt-b  input:checked + label { background: var(--blue); border-color: var(--blue); }
+.rubrik-option.opt-c  input:checked + label { background: var(--amber); border-color: var(--amber); box-shadow: 0 4px 10px rgba(217,119,6,.3); }
+.rubrik-option.opt-pp input:checked + label { background: var(--red); border-color: var(--red); box-shadow: 0 4px 10px rgba(220,38,38,.3); }
+
+html.theme-dark .rubrik-option label { border-color: rgba(255,255,255,0.12); }
+html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05); }
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1860,8 +1880,48 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
         <div id="hafalanKbmList"></div>
 
         <div class="step-nav" style="margin-top:16px">
-          <button class="btn-back" onclick="goPage('presensi');renderSteps('presensi')">← Presensi</button>
+          <button class="btn-back" onclick="kembaliKeStep2()">← Presensi</button>
           <button class="btn-next" id="btnSimpanHafalanKbm" onclick="simpanHafalanKBM()">
+            Simpan & Lanjut ke Jurnal →
+          </button>
+        </div>
+      </div>
+
+      <!-- ════ STEP 3: ASSESSMENT MICRO TEACHING ════ -->
+      <div class="page" id="page-microteaching-kbm">
+        <div id="stepBarMicroteachingKbm" class="steps"></div>
+
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">✍️ Penilaian Micro Teaching — Step 3/4</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — nilai rubrik satu per satu</div>
+
+        <!-- Legenda skor -->
+        <div class="card" style="padding:10px 14px; margin-bottom:16px;">
+          <div style="font-size:10px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;">Legenda Skor</div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:11px;">
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:#16a34a; color:#fff; text-align:center; font-weight:900; line-height:16px; font-size:10px;">4</span>
+              <strong>SB</strong> (Sangat Baik)
+            </div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:var(--blue); color:#fff; text-align:center; font-weight:900; line-height:16px; font-size:10px;">3</span>
+              <strong>B</strong> (Baik)
+            </div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:var(--amber); color:#fff; text-align:center; font-weight:900; line-height:16px; font-size:10px;">2</span>
+              <strong>C</strong> (Cukup)
+            </div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span style="display:inline-block; width:16px; height:16px; border-radius:4px; background:var(--red); color:#fff; text-align:center; font-weight:900; line-height:16px; font-size:10px;">1</span>
+              <strong>PP</strong> (Perlu Perbaikan)
+            </div>
+          </div>
+        </div>
+
+        <div id="microteachingKbmList"></div>
+
+        <div class="step-nav" style="margin-top:16px">
+          <button class="btn-back" onclick="kembaliKeStep2()">← Presensi</button>
+          <button class="btn-next" id="btnSimpanMicroteachingKbm" onclick="simpanMicroteachingKBM()">
             Simpan & Lanjut ke Jurnal →
           </button>
         </div>
@@ -3078,6 +3138,61 @@ let halaqahList = [], muridCache = {};
 let sesiAktif   = null;  // KBM yang sedang berjalan
 let muridSesi   = [];    // murid halaqah sesi aktif
 
+const KRITERIA_MT = [
+  {
+    id: 'penguasaan', label: 'Penguasaan Materi', bobot: 0.25,
+    desc: [
+      'Materi lengkap, akurat, sistematis tanpa catatan',
+      'Baik, sesekali lihat catatan',
+      'Cukup, namun ada yang terlewat',
+      'Tidak tuntas, banyak bagian terlewat',
+    ]
+  },
+  {
+    id: 'penyampaian', label: 'Cara Penyampaian', bobot: 0.20,
+    desc: [
+      'Bahasa jelas, intonasi menarik, mudah dipahami',
+      'Penyampaian baik namun kurang variatif',
+      'Kurang jelas di beberapa bagian',
+      'Sulit dipahami, tidak sistematis',
+    ]
+  },
+  {
+    id: 'tajwid', label: 'Kualitas Tajwid', bobot: 0.25,
+    desc: [
+      'Tajwid dan makhraj sangat tepat, menjadi teladan',
+      'Baik dengan sedikit kesalahan minor',
+      'Beberapa kesalahan tajwid yang berulang',
+      'Banyak kesalahan tajwid yang tidak diperbaiki',
+    ]
+  },
+  {
+    id: 'interaksi', label: 'Interaksi Kelas', bobot: 0.15,
+    desc: [
+      'Aktif melibatkan murid, respons pertanyaan sangat baik',
+      'Interaksi baik namun bisa lebih ditingkatkan',
+      'Interaksi terbatas, kurang melibatkan murid',
+      'Tidak ada interaksi yang bermakna',
+    ]
+  },
+  {
+    id: 'waktu', label: 'Manajemen Waktu', bobot: 0.15,
+    desc: [
+      'Waktu terbagi proporsional, selesai tepat waktu',
+      'Sedikit melebihi/kurang waktu, masih terkendali',
+      'Waktu tidak sesuai rencana',
+      'Waktu sangat tidak termanajemen',
+    ]
+  },
+];
+
+const OPT_MT = [
+  { val: 4, code: 'SB',  label: 'Sangat Baik',      cls: 'opt-sb' },
+  { val: 3, code: 'B',   label: 'Baik',              cls: 'opt-b'  },
+  { val: 2, code: 'C',   label: 'Cukup',             cls: 'opt-c'  },
+  { val: 1, code: 'PP',  label: 'Perlu Perbaikan',   cls: 'opt-pp' },
+];
+
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
@@ -3258,6 +3373,7 @@ async function hapusSesiDraft() {
     muridSesi      = [];
     doaSudahMuncul = false;
     window._nilaiCache = {};
+    window._microteachingKbmCache = {};
     updateDraftWarning();
     loadDashboard();
     toast('Sesi KBM berhasil dihapus dan dibatalkan!','ok');
@@ -3515,6 +3631,7 @@ async function doBukaKBM() {
     // Reset SEMUA cache dan nilai lama agar tidak terbawa ke sesi baru
     window._nilaiCache      = {};
     window._hafalanKbmCache = {};
+    window._microteachingKbmCache = {};
     window._hfKbmZiyadah   = {};
     window._lastTargetDataKbm = null;
     // Reset form jurnal
@@ -3654,8 +3771,10 @@ async function doSimpanPresensi() {
       goToNilai();
     } else if (jenisSesi === 'KBM Qiyam') {
       goToHafalanQiyam();
+    } else if (jenisSesi === 'Micro Teaching') {
+      goToMicroteachingAssessment();
     } else {
-      // Micro Teaching & Lainnya: langsung preview & simpan
+      // Lainnya: langsung preview & simpan
       goToPreviewNonReguler();
     }
     quickToast('Presensi tersimpan!','ok');
@@ -4139,6 +4258,196 @@ async function simpanHafalanKBM() {
   }
 }
 
+// ══════════════════════════════════════════
+//  MICRO TEACHING — STEP 3 ASSESSMENT
+// ══════════════════════════════════════════
+function goToMicroteachingAssessment() {
+  _saveMicroteachingKbmCache();
+  goPage('microteaching-kbm');
+  renderSteps('microteaching-kbm');
+  document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
+  renderMicroteachingKbm();
+}
+
+function renderMicroteachingKbm() {
+  const cont = document.getElementById('microteachingKbmList');
+  if (!cont) return;
+
+  // Ambil status presensi dari Step 2
+  const presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+
+  const presentMurid = muridSesi.filter(function(m) {
+    var status = presensiMap[m.id_murid] || 'A';
+    return status === 'H' || status === 'T';
+  });
+
+  if (!presentMurid.length) {
+    cont.innerHTML = emptyHTML('👥', 'Tidak ada murid yang hadir', 'Semua murid ditandai Izin/Alpa. Silakan kembali ke presensi atau lanjut ke jurnal.');
+    return;
+  }
+
+  cont.innerHTML = presentMurid.map(function(m) {
+    return buildMicroteachingCard(m);
+  }).join('');
+
+  // Restore cache if exists
+  _restoreMicroteachingKbmCache();
+}
+
+function buildMicroteachingCard(m) {
+  var initials = (m.nama_murid || '').split(' ').slice(0, 2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
+  var id = m.id_murid;
+  var rubrikHTML = KRITERIA_MT.map(function(k) {
+    var opts = OPT_MT.map(function(o, oi) {
+      var radioId = 'mt-' + id + '-' + k.id + '-' + o.val;
+      return '<div class="rubrik-option ' + o.cls + '">'
+        + '<input type="radio" name="mt-' + id + '-' + k.id + '" id="' + radioId + '" value="' + o.val + '"'
+          + ' onchange="updateMicroteachingScore(\'' + id + '\')">'
+        + '<label for="' + radioId + '" style="display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px; border:1px dashed var(--border); border-radius:8px; cursor:pointer; text-align:center; font-size:10px;">'
+          + '<span style="font-size:14px; font-weight:800; line-height:1">' + o.val + '</span>'
+          + '<span style="font-size:9px; font-weight:700">' + o.code + '</span>'
+          + '<span style="font-size:8px; opacity:0.75; line-height:1.2; display:block; margin-top:2px;">' + k.desc[oi] + '</span>'
+        + '</label>'
+      + '</div>';
+    }).join('');
+    return '<div class="rubrik-item" style="border-bottom:1px solid var(--border); padding:10px 0; display:grid; grid-template-columns:140px 1fr; gap:8px; align-items:center;">'
+      + '<div class="rubrik-label">'
+        + '<div style="font-size:12px; font-weight:700; color:var(--text)">' + k.label + '</div>'
+        + '<div style="font-size:10px; color:var(--text-3); font-weight:600">Bobot ' + Math.round(k.bobot*100) + '%</div>'
+      + '</div>'
+      + '<div class="rubrik-options" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px;">' + opts + '</div>'
+    + '</div>';
+  }).join('');
+
+  return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:16px; border-radius:14px; overflow:hidden; border:1px solid var(--border);">'
+    + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff;">'
+      + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
+      + '<div>'
+        + '<div class="student-name" style="font-size:14px; font-weight:800;">👤 ' + esc(m.nama_murid) + '</div>'
+      + '</div>'
+      + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 10px; font-size:12px; font-weight:900;">— / 100</div>'
+    + '</div>'
+    + '<div class="rubrik-wrap" style="padding:10px 16px;">' + rubrikHTML + '</div>'
+    + '<div class="score-bar-wrap" style="padding:10px 16px; background:var(--bg-2); border-top:1px solid var(--border);">'
+      + '<div class="score-bar-label" style="font-size:11px; font-weight:700; color:var(--text-3); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">'
+        + '<span>Nilai Akhir terhitung</span>'
+        + '<strong id="mt-score-txt-' + id + '" style="font-size:13px; color:var(--blue)">—</strong>'
+      + '</div>'
+      + '<div class="score-bar-track" style="height:6px; background:#e2e8f0; border-radius:100px; overflow:hidden;"><div class="score-bar-fill" id="mt-score-bar-' + id + '" style="width:0%; height:100%; transition:width 0.3s;"></div></div>'
+    + '</div>'
+    + '<div class="catatan-wrap" style="padding:10px 16px;">'
+      + '<label style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-3); display:block; margin-bottom:4px;">Catatan Penilaian</label>'
+      + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12px; resize:vertical; padding:8px;"></textarea>'
+    + '</div>'
+    + '</div>';
+}
+
+function updateMicroteachingScore(id) {
+  var total = 0; var filled = 0;
+  KRITERIA_MT.forEach(function(k) {
+    var checked = document.querySelector('input[name="mt-'+id+'-'+k.id+'"]:checked');
+    if (checked) { total += parseInt(checked.value) * k.bobot; filled++; }
+  });
+  var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+
+  var badgeEl  = document.getElementById('mt-score-badge-' + id);
+  var txtEl    = document.getElementById('mt-score-txt-'   + id);
+  var barEl    = document.getElementById('mt-score-bar-'   + id);
+  if (!badgeEl || !txtEl || !barEl) return;
+
+  if (score !== null) {
+    var s = score;
+    var color = s >= 88 ? '#16a34a' : s >= 75 ? '#1a73e8' : s >= 60 ? '#d97706' : '#dc2626';
+    badgeEl.textContent = s + ' / 100';
+    txtEl.textContent   = s;
+    txtEl.style.color   = color;
+    barEl.style.width   = s + '%';
+    barEl.style.background = color;
+  } else {
+    badgeEl.textContent = filled + '/' + KRITERIA_MT.length + ' terisi';
+    txtEl.textContent   = '—';
+    barEl.style.width   = (filled / KRITERIA_MT.length * 40) + '%';
+    barEl.style.background = '#94a3b8';
+  }
+}
+
+var _microteachingKbmCache = {};
+function _saveMicroteachingKbmCache() {
+  if (!window._microteachingKbmCache) window._microteachingKbmCache = {};
+  if (!muridSesi) return;
+  muridSesi.forEach(function(m) {
+    var id = m.id_murid;
+    var getCheckedVal = function(criteriaId) {
+      var checked = document.querySelector('input[name="mt-'+id+'-'+criteriaId+'"]:checked');
+      return checked ? checked.value : '';
+    };
+    var getV = function(eid){ var el=document.getElementById(eid); return el?el.value:''; };
+    window._microteachingKbmCache[id] = {
+      penguasaan : getCheckedVal('penguasaan'),
+      penyampaian: getCheckedVal('penyampaian'),
+      tajwid     : getCheckedVal('tajwid'),
+      interaksi  : getCheckedVal('interaksi'),
+      waktu      : getCheckedVal('waktu'),
+      catatan    : getV('mt-catatan-'+id),
+    };
+  });
+}
+
+function _restoreMicroteachingKbmCache() {
+  if (!window._microteachingKbmCache || !muridSesi) return;
+  muridSesi.forEach(function(m) {
+    var id    = m.id_murid;
+    var cache = window._microteachingKbmCache[id];
+    if (!cache) return;
+    var setChecked = function(criteriaId, val) {
+      if (!val) return;
+      var radio = document.getElementById('mt-'+id+'-'+criteriaId+'-'+val);
+      if (radio) { radio.checked = true; }
+    };
+    var setV = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
+    setChecked('penguasaan', cache.penguasaan);
+    setChecked('penyampaian', cache.penyampaian);
+    setChecked('tajwid', cache.tajwid);
+    setChecked('interaksi', cache.interaksi);
+    setChecked('waktu', cache.waktu);
+    setV('mt-catatan-'+id, cache.catatan);
+    updateMicroteachingScore(id);
+  });
+}
+
+async function simpanMicroteachingKBM() {
+  if (!sesiAktif) return;
+  _saveMicroteachingKbmCache();
+
+  // Filter murid yang hadir saja (status H/T)
+  const presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+
+  const presentMurid = muridSesi.filter(function(m) {
+    var status = presensiMap[m.id_murid] || 'A';
+    return status === 'H' || status === 'T';
+  });
+  
+  var valid = true;
+  for (var i = 0; i < presentMurid.length; i++) {
+    var m = presentMurid[i];
+    var cache = window._microteachingKbmCache[m.id_murid] || {};
+    if (!cache.penguasaan || !cache.penyampaian || !cache.tajwid || !cache.interaksi || !cache.waktu) {
+      toast('Semua kriteria penilaian wajib diisi untuk ' + m.nama_murid, 'warn');
+      valid = false;
+      break;
+    }
+  }
+  if (!valid) return;
+
+  goToJurnal();
+}
+
 // Non-reguler: presensi selesai → langsung preview simpan sesi
 function goToPreviewNonReguler() {
   const jenis = sesiAktif ? sesiAktif.jenis_sesi : '';
@@ -4187,6 +4496,7 @@ function goToPreviewNonReguler() {
 function goToJurnal() {
   // Simpan cache hafalan KBM agar tidak hilang saat navigasi mundur
   _saveHafalanKbmCache();
+  _saveMicroteachingKbmCache();
   document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
   goPage('jurnal');
   renderSteps('jurnal');
@@ -4283,6 +4593,13 @@ function kembaliKeStep3() {
     renderSteps('hafalan-kbm');
     document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
     setTimeout(function() { _restoreHafalanKbmCache(); }, 80);
+    return;
+  }
+  if (jenis === 'Micro Teaching') {
+    goPage('microteaching-kbm');
+    renderSteps('microteaching-kbm');
+    document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
+    setTimeout(function() { _restoreMicroteachingKbmCache(); }, 80);
     return;
   }
   goToNilai();
@@ -4483,11 +4800,12 @@ async function doSelesaiKBM() {
   closeModal('previewModal');
 
   const isQiyamSesi = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
-  // Materi, catatan, jam selesai: berlaku untuk Reguler dan Qiyam
-  const saveJurnal  = isRegulerSesi || isQiyamSesi;
+  const isMicroteachingSesi = sesiAktif && sesiAktif.jenis_sesi === 'Micro Teaching';
+  // Materi, catatan, jam selesai: berlaku untuk Reguler, Qiyam, dan Micro Teaching
+  const saveJurnal  = isRegulerSesi || isQiyamSesi || isMicroteachingSesi;
   const materi     = saveJurnal ? document.getElementById('jurnalMateri').value.trim() : '';
-  const halaman    = isRegulerSesi ? (document.getElementById('jurnalHalaman') ? document.getElementById('jurnalHalaman').value.trim() : '') : '';
-  const metode     = isRegulerSesi ? document.getElementById('jurnalMetode').value : '';
+  const halaman    = (isRegulerSesi || isMicroteachingSesi) ? (document.getElementById('jurnalHalaman') ? document.getElementById('jurnalHalaman').value.trim() : '') : '';
+  const metode     = (isRegulerSesi || isMicroteachingSesi) ? document.getElementById('jurnalMetode').value : '';
   const catatan    = saveJurnal ? document.getElementById('jurnalCatatan').value.trim() : '';
   const jamSelesai = saveJurnal
     ? (document.getElementById('jurnalJamSelesai').value || new Date().toTimeString().slice(0,5))
@@ -4516,21 +4834,50 @@ async function doSelesaiKBM() {
     // 2. Simpan nilai per murid (Batch)
     const nilaiList = [];
     for (const m of muridSesi) {
-      const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
-      const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
-      const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
-      const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-      if (nilai || adab || kamera || koreksi) {
-        const catatan = document.getElementById('catatan-'+m.id_murid);
-        nilaiList.push({
-          id_murid     : m.id_murid,
-          nama_murid   : m.nama_murid,
-          nilai        : nilai,
-          adab         : adab,
-          kamera_murid : kamera,
-          koreksi_tahsin: koreksi,
-          catatan_murid: catatan ? catatan.value.trim() : '',
-        });
+      if (isMicroteachingSesi) {
+        const cache = window._microteachingKbmCache[m.id_murid];
+        const status = presensiMapPv[m.id_murid] || 'H';
+        if (cache && !['A','I'].includes(status)) {
+          let total = 0; let filled = 0;
+          KRITERIA_MT.forEach(function(k) {
+            var val = cache[k.id];
+            if (val) { total += parseInt(val) * k.bobot; filled++; }
+          });
+          var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+          var rubrikChoices = {
+            penguasaan : cache.penguasaan,
+            penyampaian: cache.penyampaian,
+            tajwid     : cache.tajwid,
+            interaksi  : cache.interaksi,
+            waktu      : cache.waktu,
+          };
+          nilaiList.push({
+            id_murid      : m.id_murid,
+            nama_murid    : m.nama_murid,
+            nilai         : score,
+            adab          : '',
+            kamera_murid  : '',
+            koreksi_tahsin: JSON.stringify(rubrikChoices),
+            catatan_murid : cache.catatan || '',
+          });
+        }
+      } else {
+        const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
+        const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
+        const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
+        const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
+        if (nilai || adab || kamera || koreksi) {
+          const catatan = document.getElementById('catatan-'+m.id_murid);
+          nilaiList.push({
+            id_murid     : m.id_murid,
+            nama_murid   : m.nama_murid,
+            nilai        : nilai,
+            adab         : adab,
+            kamera_murid : kamera,
+            koreksi_tahsin: koreksi,
+            catatan_murid: catatan ? catatan.value.trim() : '',
+          });
+        }
       }
     }
     if (nilaiList.length > 0) {
@@ -4568,6 +4915,7 @@ async function doSelesaiKBM() {
     muridCache       = {};
     doaSudahMuncul   = false;
     window._nilaiCache = {}; // hapus cache nilai agar tidak terbawa ke sesi berikutnya
+    window._microteachingKbmCache = {}; // hapus cache Micro Teaching
 
     // Sembunyikan banner draft
     const dw = document.getElementById('draftWarning');
@@ -4595,7 +4943,7 @@ async function konfirmasiTutup() {
   try {
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     toast(res.message || 'Sesi ditutup','ok');
-    sesiAktif = null; muridSesi = []; window._nilaiCache = {};
+    sesiAktif = null; muridSesi = []; window._nilaiCache = {}; window._microteachingKbmCache = {};
     resetPersiapan();
     updateSesiBanner();
     loadDashboard();
@@ -4625,7 +4973,15 @@ function getStepsDef() {
       {id:'jurnal',        label:'Jurnal'},
     ];
   }
-  // Micro Teaching & Lainnya: hanya 2 step
+  if (jenis === 'Micro Teaching') {
+    return [
+      {id:'kbm',                label:'Buka Sesi'},
+      {id:'presensi',           label:'Presensi'},
+      {id:'microteaching-kbm',  label:'Assessment'},
+      {id:'jurnal',             label:'Jurnal'},
+    ];
+  }
+  // Lainnya: hanya 2 step
   return [
     {id:'kbm',      label:'Buka Sesi'},
     {id:'presensi', label:'Presensi'},
@@ -4635,7 +4991,7 @@ function getStepsDef() {
 function renderSteps(current) {
   const steps = getStepsDef();
   const ci    = steps.findIndex(s => s.id === current);
-  const bars  = ['stepBarPresensi','stepBarNilai','stepBarJurnal','stepBarHafalanKbm'];
+  const bars  = ['stepBarPresensi','stepBarNilai','stepBarJurnal','stepBarHafalanKbm','stepBarMicroteachingKbm'];
   bars.forEach(barId => {
     const bar = document.getElementById(barId);
     if (!bar) return;
@@ -5345,14 +5701,15 @@ function showPreview() {
     const adab   = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
     const kamera = document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '';
     const status = presensiMapPv[m.id_murid] || 'H';
-    return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status };
+    return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status, id_murid: m.id_murid };
   });
 
   // Cek adab atau kamera kosong hanya untuk KBM Reguler
   const isQiyamPreview = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
-  const adabKameraKosong = isQiyamPreview ? 0 : nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && (!m.adab || !m.kamera); }).length;
+  const isMicroteachingPreview = sesiAktif && sesiAktif.jenis_sesi === 'Micro Teaching';
+  const adabKameraKosong = (isQiyamPreview || isMicroteachingPreview) ? 0 : nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && (!m.adab || !m.kamera); }).length;
   const warnEl = document.getElementById('pvWarningNilai');
-  if (adabKameraKosong > 0 && !isQiyamPreview) {
+  if (adabKameraKosong > 0) {
     document.getElementById('pvWarningNilaiTxt').textContent = adabKameraKosong;
     warnEl.style.display = 'block';
   } else {
@@ -5368,6 +5725,25 @@ function showPreview() {
         + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
         + '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>'
       + '</div>';
+    }
+    if (isMicroteachingPreview) {
+      const cache = window._microteachingKbmCache[m.id_murid] || {};
+      let score = null;
+      if (!skipStatus) {
+        let total = 0; let filled = 0;
+        KRITERIA_MT.forEach(k => {
+          const val = cache[k.id];
+          if (val) { total += parseInt(val) * k.bobot; filled++; }
+        });
+        score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+      }
+      const displayScore = score !== null ? score + ' / 100' : '—';
+      return '<div class="preview-murid-item">'
+        + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
+        + '<div style="display:flex;gap:6px;align-items:center">'
+        + (m.status !== 'H' && m.status !== 'T' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
+        + (!skipStatus ? '<span class="badge b-purple" style="font-size:11px;font-weight:800">Score: ' + displayScore + '</span>' : '')
+        + '</div></div>';
     }
     return '<div class="preview-murid-item">'
       + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
