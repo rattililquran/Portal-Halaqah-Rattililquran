@@ -478,6 +478,8 @@ html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{b
   padding:0;margin-bottom:14px;transition:all .2s;
   box-shadow:0 2px 10px rgba(13,27,42,.06);overflow:hidden
 }
+/* Qiyam hafalan cards need dropdown to overflow card boundary */
+.nilai-murid-card[id^="hfkbm-card-"]{ overflow:visible }
 .nm-body{padding:12px 14px 14px}
 .nm-body:empty{display:none}
 .nilai-murid-card:last-child{margin-bottom:0}
@@ -3784,7 +3786,12 @@ function renderPresensi() {
   const isReguler = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
   const btnLanjut = document.getElementById('btnLanjutPresensi');
   if (btnLanjut) {
-    btnLanjut.textContent = isReguler ? 'Lanjut ke Nilai →' : 'Selesaikan Sesi →';
+    const jenisSesi = sesiAktif && sesiAktif.jenis_sesi;
+    if (jenisSesi === 'KBM Qiyam') {
+      btnLanjut.textContent = 'Input Hafalan →';
+    } else {
+      btnLanjut.textContent = isReguler ? 'Lanjut ke Nilai →' : 'Selesaikan Sesi →';
+    }
   }
   // Update step bar
   renderSteps('presensi');
@@ -4036,8 +4043,8 @@ function renderHafalanKbm() {
       + '</div>'
       // Row 2: Ayat Dari | Sampai | Info
       + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">'
-        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" min="1" style="font-size:12px" placeholder="1"></div>'
-        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" min="1" style="font-size:12px" placeholder="7"></div>'
+        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" min="1" style="font-size:12px" placeholder=""></div>'
+        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" min="1" style="font-size:12px" placeholder=""></div>'
         + '<div><div class="nm-section-label">Total Ayat</div><div id="hfkbm-ayat-info-' + eid + '" style="height:42px;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#6b7280">— pilih surat —</div></div>'
       + '</div>'
       // Penilaian
@@ -4055,10 +4062,10 @@ function renderHafalanKbm() {
         + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
       + '</div>'
       // Target
-      + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px">'
+      + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px;overflow:visible">'
         + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
         + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
-          + '<div style="position:relative"><input type="text" class="fc hfkbm-tgt-surat-input" data-mid="' + esc(mid) + '" id="hfkbm-tgt-surat-' + eid + '" placeholder="Nama surat target…" style="font-size:12px"><div id="hfkbm-tgt-dd-' + eid + '" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:99;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.1);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
+          + '<div style="position:relative"><input type="text" class="fc hfkbm-tgt-surat-input" data-mid="' + esc(mid) + '" id="hfkbm-tgt-surat-' + eid + '" placeholder="Nama surat target…" style="font-size:12px"><div id="hfkbm-tgt-dd-' + eid + '" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
           + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-' + eid + '" min="1" placeholder="Dari" style="font-size:12px"></div>'
           + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-' + eid + '" min="1" placeholder="Sampai" style="font-size:12px"></div>'
         + '</div>'
