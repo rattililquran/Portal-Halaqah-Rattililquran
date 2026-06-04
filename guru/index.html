@@ -1497,6 +1497,65 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 html.theme-dark .rubrik-option label { border-color: rgba(255,255,255,0.12); }
 html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05); }
 
+/* KBM Session Type Buttons */
+.kbm-jenis-btn {
+  border: 1.5px solid var(--border) !important;
+  background: var(--bg-1);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  user-select: none;
+}
+.kbm-jenis-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.06);
+}
+.kbm-jenis-btn.kbm-jenis-reguler:hover { border-color: #3b82f6 !important; }
+.kbm-jenis-btn.kbm-jenis-qiyam:hover { border-color: #10b981 !important; }
+.kbm-jenis-btn.kbm-jenis-micro:hover { border-color: #8b5cf6 !important; }
+.kbm-jenis-btn.kbm-jenis-lainnya:hover { border-color: #64748b !important; }
+
+/* Active States */
+.kbm-jenis-btn.kbm-jenis-reguler.active {
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
+  border-color: #1d4ed8 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(29,78,216,0.2) !important;
+}
+.kbm-jenis-btn.kbm-jenis-qiyam.active {
+  background: linear-gradient(135deg, #047857, #10b981) !important;
+  border-color: #047857 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(4,120,87,0.2) !important;
+}
+.kbm-jenis-btn.kbm-jenis-micro.active {
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
+  border-color: #6d28d9 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(109,40,217,0.2) !important;
+}
+.kbm-jenis-btn.kbm-jenis-lainnya.active {
+  background: linear-gradient(135deg, #475569, #64748b) !important;
+  border-color: #475569 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(71,85,105,0.2) !important;
+}
+
+html.theme-dark .kbm-jenis-btn {
+  background: #111c30;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #94a3b8;
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1750,13 +1809,22 @@ html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05);
               </div>
             </div>
             <div class="fg">
-              <label>Jenis Sesi</label>
-              <select class="fc" id="kbmJenis" onchange="autoFillPertemuan()">
-                <option value="KBM Reguler">KBM Reguler</option>
-                <option value="KBM Qiyam" id="optKbmQiyam" style="display:none">🕌 KBM Qiyam (Tahfidz)</option>
-                <option value="Micro Teaching">Micro Teaching</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
+              <label style="margin-bottom: 6px; display: block;">Jenis Sesi</label>
+              <input type="hidden" id="kbmJenis" value="KBM Reguler">
+              <div class="kbm-jenis-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 4px;">
+                <div class="kbm-jenis-btn kbm-jenis-reguler active" id="btnKbmJenis-KBM_Reguler" onclick="selectKbmJenis('KBM Reguler')">
+                  <span>📖</span> KBM Reguler
+                </div>
+                <div class="kbm-jenis-btn kbm-jenis-qiyam" id="btnKbmJenis-KBM_Qiyam" onclick="selectKbmJenis('KBM Qiyam')" style="display: none;">
+                  <span>🕌</span> KBM Qiyam
+                </div>
+                <div class="kbm-jenis-btn kbm-jenis-micro" id="btnKbmJenis-Micro_Teaching" onclick="selectKbmJenis('Micro Teaching')">
+                  <span>🎓</span> Micro Teaching
+                </div>
+                <div class="kbm-jenis-btn kbm-jenis-lainnya" id="btnKbmJenis-Lainnya" onclick="selectKbmJenis('Lainnya')">
+                  <span>📌</span> Lainnya
+                </div>
+              </div>
             </div>
             <div class="f2">
               <div class="fg">
@@ -3801,13 +3869,39 @@ function onKbmHalaqahChange() {
   var id_halaqah = document.getElementById('kbmHalaqah').value;
   var halaqah    = (halaqahList || []).find(function(h){ return h.id_halaqah === id_halaqah; });
   var isQiyam    = halaqah && halaqah.level === 'Level Qiyam';
-  var optQiyam   = document.getElementById('optKbmQiyam');
+  var btnQiyam   = document.getElementById('btnKbmJenis-KBM_Qiyam');
   var jenisEl    = document.getElementById('kbmJenis');
-  if (!optQiyam || !jenisEl) return;
-  // Tampilkan/sembunyikan opsi KBM Qiyam
-  optQiyam.style.display = isQiyam ? '' : 'none';
+  if (!jenisEl) return;
+  if (btnQiyam) {
+    btnQiyam.style.display = isQiyam ? 'flex' : 'none';
+  }
   // Jika halaqah bukan Qiyam dan saat ini terpilih KBM Qiyam, reset ke Reguler
-  if (!isQiyam && jenisEl.value === 'KBM Qiyam') jenisEl.value = 'KBM Reguler';
+  if (!isQiyam && jenisEl.value === 'KBM Qiyam') {
+    selectKbmJenis('KBM Reguler');
+  }
+}
+
+function selectKbmJenis(val) {
+  var jenisEl = document.getElementById('kbmJenis');
+  if (!jenisEl) return;
+  jenisEl.value = val;
+
+  // Update active state class on KBM Jenis buttons
+  var buttons = ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching', 'Lainnya'];
+  buttons.forEach(function(b) {
+    var btnId = 'btnKbmJenis-' + b.replace(' ', '_');
+    var btn = document.getElementById(btnId);
+    if (btn) {
+      if (b === val) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  });
+
+  // Call autoFillPertemuan to update the lesson number placeholder
+  autoFillPertemuan();
 }
 
 function goToHafalanQiyam() {
