@@ -2106,17 +2106,17 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
         <div id="hafalanFormWrap" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:16px">
           <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:14px">📝 Input Setoran Hafalan</div>
 
-          <!-- Row 1: Pilih Siswa | Tanggal | Jenis -->
-          <div style="display:grid;grid-template-columns:1fr 140px 1fr;gap:8px;margin-bottom:10px">
+          <!-- Row 1: Pilih Siswa | Tanggal | Jenis — lebar seragam 3 kolom -->
+          <div style="display:grid;grid-template-columns:2fr 1fr 2fr;gap:10px;margin-bottom:10px">
             <div>
               <label class="hf-lbl">Pilih Siswa</label>
-              <select class="fc" id="hafalanMuridSel" style="width:100%" onchange="onHafalanMuridChange()">
+              <select class="fc" id="hafalanMuridSel" onchange="onHafalanMuridChange()">
                 <option value="">— Pilih Siswa —</option>
               </select>
             </div>
             <div>
               <label class="hf-lbl">Tanggal</label>
-              <input type="date" class="fc" id="hafalanTanggal" style="width:100%">
+              <input type="date" class="fc" id="hafalanTanggal">
             </div>
             <div>
               <label class="hf-lbl">Jenis Setoran</label>
@@ -2129,12 +2129,12 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
             </div>
           </div>
 
-          <!-- Row 2: Juz | Nama Surat | Halaman -->
-          <div style="display:grid;grid-template-columns:110px 1fr 110px;gap:8px;margin-bottom:10px">
+          <!-- Row 2: Juz | Nama Surat | Halaman — proporsi 1:3:1 -->
+          <div style="display:grid;grid-template-columns:1fr 3fr 1fr;gap:10px;margin-bottom:10px">
             <div>
               <label class="hf-lbl">Juz</label>
-              <select class="fc" id="hafalanJuzSel" style="width:100%">
-                <option value="">— Pilih Juz —</option>
+              <select class="fc" id="hafalanJuzSel">
+                <option value="">— Juz —</option>
                 <option value="1">Juz 1</option><option value="2">Juz 2</option><option value="3">Juz 3</option>
                 <option value="4">Juz 4</option><option value="5">Juz 5</option><option value="6">Juz 6</option>
                 <option value="7">Juz 7</option><option value="8">Juz 8</option><option value="9">Juz 9</option>
@@ -2150,19 +2150,19 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
             <div>
               <label class="hf-lbl">Nama Surat</label>
               <div style="position:relative">
-                <input type="text" class="fc" id="hafalanSuratInput" placeholder="— Pilih surat —" autocomplete="off"
+                <input type="text" class="fc" id="hafalanSuratInput" placeholder="— Ketik atau pilih surat —" autocomplete="off"
                   oninput="onHafalanSuratInput(this.value)"
                   onfocus="onHafalanSuratFocus()"
                   onblur="setTimeout(function(){var dd=document.getElementById('hafalanSuratDropdown');if(dd)dd.style.display='none';},200)"
-                  style="width:100%;padding-right:28px">
+                  style="padding-right:28px">
                 <span id="hafalanSuratClear" onclick="clearHafalanSurat()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;font-size:13px">✕</span>
                 <input type="hidden" id="hafalanSuratValue">
                 <div id="hafalanSuratDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:99;max-height:240px;overflow-y:auto;padding:4px"></div>
               </div>
             </div>
             <div>
-              <label class="hf-lbl">Halaman (opsional)</label>
-              <input type="number" class="fc" id="hafalanHalaman" min="1" placeholder="No. Halaman" style="width:100%">
+              <label class="hf-lbl">Halaman</label>
+              <input type="number" class="fc" id="hafalanHalaman" min="1" placeholder="Opsional">
             </div>
           </div>
 
@@ -2171,15 +2171,21 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
             <strong>ℹ️ Range Ziyadah:</strong> <span id="hafalanMurajaahRange"></span>
           </div>
 
-          <!-- Row 3: Ayat Dari | Sampai Ayat -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <!-- Row 3: Ayat Dari | Sampai Ayat | info max ayat — 3 kolom sama -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
             <div>
               <label class="hf-lbl">Ayat Dari</label>
-              <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="Ayat mulai" style="width:100%">
+              <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="Ayat mulai">
             </div>
             <div>
               <label class="hf-lbl">Sampai Ayat</label>
-              <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="Ayat selesai" style="width:100%">
+              <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="Ayat selesai">
+            </div>
+            <div>
+              <label class="hf-lbl">Total Ayat Surat</label>
+              <div id="hafalanAyatInfo" class="fc" style="background:#f9fafb;color:#6b7280;font-size:13px;display:flex;align-items:center;height:42px;cursor:default">
+                <span id="hafalanAyatInfoText">— pilih surat —</span>
+              </div>
             </div>
           </div>
 
@@ -2189,7 +2195,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               Penilaian Bacaan
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div>
                 <label class="hf-lbl">Kelancaran</label>
                 <select class="fc" id="hafalanKelancaranSel" onchange="hfUpdatePoinPreview()"></select>
@@ -6818,14 +6824,15 @@ var _hafalanGuruZiyadah    = [];
 var _hafalanGuruSubmitting = false;
 
 // ── Penilaian Config (localStorage) ────────────────────────────────────
-var _HF_PENILAIAN_KEY = 'hq_hf_penilaian_v1';
+var _HF_PENILAIAN_KEY  = 'hq_hf_penilaian_v1';
+var _hfConfigCache     = null;   // memory cache — sumber kebenaran saat runtime
 
 function _hfDefaultConfig() {
   return {
     kelancaran: [
-      { id: 'kel-1', nama: 'Lancar',           poin:  20, icon: '🟢' },
-      { id: 'kel-2', nama: 'Cukup',            poin:   0, icon: '🟡' },
-      { id: 'kel-3', nama: 'Perlu Perbaikan',  poin: -20, icon: '🔴' }
+      { id: 'kel-1', nama: 'Lancar',          poin:  20, icon: '🟢' },
+      { id: 'kel-2', nama: 'Cukup',           poin:   0, icon: '🟡' },
+      { id: 'kel-3', nama: 'Perlu Perbaikan', poin: -20, icon: '🔴' }
     ],
     nilai: [
       { id: 'nil-1', kode: 'A', desc: 'Sangat Baik', poin: 100, icon: '⭐' },
@@ -6835,18 +6842,43 @@ function _hfDefaultConfig() {
   };
 }
 
+// Sync — baca dari memory cache → localStorage → default
 function _hfLoadConfig() {
+  if (_hfConfigCache) return _hfConfigCache;
   try {
     var raw = localStorage.getItem(_HF_PENILAIAN_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) { _hfConfigCache = JSON.parse(raw); return _hfConfigCache; }
   } catch(e) {}
-  return _hfDefaultConfig();
+  _hfConfigCache = _hfDefaultConfig();
+  return _hfConfigCache;
 }
 
-function _hfSaveConfig(cfg) {
+// Async — fetch dari Supabase, update cache + localStorage
+async function _hfFetchConfigFromDB() {
+  try {
+    var res = await window.HQ.GuruAPI.getPenilaianHafalan();
+    if (res && res.data && res.data.kelancaran && res.data.nilai) {
+      _hfConfigCache = res.data;
+      localStorage.setItem(_HF_PENILAIAN_KEY, JSON.stringify(res.data));
+    }
+  } catch(e) {
+    // Gunakan localStorage/default jika DB tidak bisa diakses
+    _hfLoadConfig();
+  }
+}
+
+// Save: update memory → localStorage → Supabase
+async function _hfSaveConfig(cfg) {
+  _hfConfigCache = cfg;
   localStorage.setItem(_HF_PENILAIAN_KEY, JSON.stringify(cfg));
   _hfRenderAllDropdowns();
   renderKelolaPenilaianHafalan();
+  // Persist ke DB (non-blocking — tidak hentikan UI jika gagal)
+  try {
+    await window.HQ.GuruAPI.savePenilaianHafalan(cfg);
+  } catch(e) {
+    showToast('Config tersimpan lokal. Gagal sync ke server: ' + e.message, 'warning');
+  }
 }
 
 // Isi semua select dari config
@@ -6946,54 +6978,55 @@ function renderKelolaPenilaianHafalan() {
   _hfRenderAllDropdowns();
 }
 
-function hfAddKelancaran() {
+async function hfAddKelancaran() {
   var nama = (document.getElementById('hfAddKelNama').value || '').trim();
   var poin = parseInt(document.getElementById('hfAddKelPoin').value) || 0;
   var icon = document.getElementById('hfAddKelIcon').value || '🟢';
   if (!nama) { showToast('Nama kategori tidak boleh kosong', 'warning'); return; }
   var cfg = _hfLoadConfig();
   cfg.kelancaran.push({ id: 'kel-' + Date.now(), nama, poin, icon });
-  _hfSaveConfig(cfg);
+  await _hfSaveConfig(cfg);
   document.getElementById('hfAddKelNama').value = '';
   document.getElementById('hfAddKelPoin').value = '';
-  showToast('Opsi kelancaran ditambahkan', 'success');
+  showToast('Opsi kelancaran ditambahkan ✓', 'success');
 }
 
-function hfDelKelancaran(i) {
+async function hfDelKelancaran(i) {
   if (!confirm('Hapus opsi ini?')) return;
   var cfg = _hfLoadConfig();
   cfg.kelancaran.splice(i, 1);
-  _hfSaveConfig(cfg);
+  await _hfSaveConfig(cfg);
   showToast('Opsi dihapus', 'success');
 }
 
-function hfAddNilai() {
+async function hfAddNilai() {
   var kode = (document.getElementById('hfAddNilKode').value || '').trim();
   var desc = (document.getElementById('hfAddNilDesc').value || '').trim();
   var poin = parseInt(document.getElementById('hfAddNilPoin').value) || 0;
   if (!kode || !desc) { showToast('Kode dan deskripsi wajib diisi', 'warning'); return; }
-  var cfg = _hfLoadConfig();
+  var cfg  = _hfLoadConfig();
   var icons = ['⭐','✅','📌','🎯','🏆','📖'];
   cfg.nilai.push({ id: 'nil-' + Date.now(), kode, desc, poin, icon: icons[cfg.nilai.length % icons.length] });
-  _hfSaveConfig(cfg);
+  await _hfSaveConfig(cfg);
   document.getElementById('hfAddNilKode').value = '';
   document.getElementById('hfAddNilDesc').value = '';
   document.getElementById('hfAddNilPoin').value = '';
-  showToast('Opsi nilai ditambahkan', 'success');
+  showToast('Opsi nilai ditambahkan ✓', 'success');
 }
 
-function hfDelNilai(i) {
+async function hfDelNilai(i) {
   if (!confirm('Hapus opsi ini?')) return;
   var cfg = _hfLoadConfig();
   cfg.nilai.splice(i, 1);
-  _hfSaveConfig(cfg);
+  await _hfSaveConfig(cfg);
   showToast('Opsi dihapus', 'success');
 }
 
-function hfResetPenilaian() {
+async function hfResetPenilaian() {
   if (!confirm('Reset semua penilaian ke pengaturan default?')) return;
   localStorage.removeItem(_HF_PENILAIAN_KEY);
-  _hfSaveConfig(_hfDefaultConfig());
+  _hfConfigCache = null;
+  await _hfSaveConfig(_hfDefaultConfig());
   showToast('Penilaian direset ke default', 'success');
 }
 
@@ -7022,7 +7055,8 @@ async function initHafalanGuruPage() {
     tglInput.value = new Date().toISOString().slice(0, 10);
   }
 
-  // Render penilaian dropdowns dari config
+  // Fetch config dari DB (Supabase sebagai sumber kebenaran)
+  await _hfFetchConfigFromDB();
   _hfRenderAllDropdowns();
   hfUpdatePoinPreview();
 
@@ -7307,6 +7341,9 @@ function onHafalanSuratInput(q) {
   dd.style.display = 'block';
 }
 
+// Simpan jumlah ayat surat yang sedang dipilih — untuk validasi
+var _hafalanSelectedAyatMax = null;
+
 function selectHafalanSurat(latin, s) {
   document.getElementById('hafalanSuratInput').value = latin;
   document.getElementById('hafalanSuratValue').value  = latin;
@@ -7314,32 +7351,49 @@ function selectHafalanSurat(latin, s) {
   document.getElementById('hafalanSuratDropdown').style.display = 'none';
   document.getElementById('hafalanMurajaahInfo').style.display = 'none';
 
+  // Ambil total ayat dari SURAT_DATA untuk validasi
+  var meta = _getSuratData().find(function(sd) {
+    return sd.latin.toLowerCase().replace(/['-]/g,'') === latin.toLowerCase().replace(/['-]/g,'');
+  });
+  _hafalanSelectedAyatMax = (meta && meta.ayat) ? meta.ayat : null;
+
+  // Tampilkan info total ayat
+  var infoEl = document.getElementById('hafalanAyatInfoText');
+  if (infoEl) {
+    infoEl.textContent = _hafalanSelectedAyatMax
+      ? latin + ' = ' + _hafalanSelectedAyatMax + ' ayat'
+      : '—';
+  }
+
   var inputDari   = document.getElementById('hafalanAyatDari');
   var inputSampai = document.getElementById('hafalanAyatSampai');
+  var maxAyat     = _hafalanSelectedAyatMax || '';
 
   if (s._mode === 'murajaah') {
-    // Murajaah — auto-fill range Ziyadah & tampilkan info
+    // Murajaah — auto-fill range Ziyadah, batasi juga oleh max ayat surat
+    var mMax = Math.min(s.ayat_sampai, maxAyat || s.ayat_sampai);
     inputDari.value   = s.ayat_dari;
-    inputSampai.value = s.ayat_sampai;
-    inputDari.min     = s.ayat_dari;   inputDari.max   = s.ayat_sampai;
-    inputSampai.min   = s.ayat_dari;   inputSampai.max = s.ayat_sampai;
+    inputSampai.value = mMax;
+    inputDari.min     = s.ayat_dari;   inputDari.max   = mMax;
+    inputSampai.min   = s.ayat_dari;   inputSampai.max = mMax;
     document.getElementById('hafalanMurajaahRange').textContent =
-      latin + ' · Range Ziyadah: Ayat ' + s.ayat_dari + ' – ' + s.ayat_sampai;
+      latin + ' · Range Ziyadah: Ayat ' + s.ayat_dari + ' – ' + s.ayat_sampai
+      + (maxAyat ? ' (Maks. ' + maxAyat + ' ayat)' : '');
     document.getElementById('hafalanMurajaahInfo').style.display = 'block';
 
   } else if (s._sudah_disetor && s._next_ayat) {
-    // Ziyadah — sudah pernah disetor, suggest next ayat
-    inputDari.value   = s._next_ayat;
+    // Ziyadah lanjutan — suggest next ayat, batasi max
+    inputDari.value   = Math.min(s._next_ayat, maxAyat || s._next_ayat);
     inputSampai.value = '';
-    inputDari.removeAttribute('min');  inputDari.removeAttribute('max');
-    inputSampai.removeAttribute('min'); inputSampai.removeAttribute('max');
+    inputDari.min = '1'; inputDari.max = maxAyat || '';
+    inputSampai.min = '1'; inputSampai.max = maxAyat || '';
 
   } else {
-    // Ziyadah baru — kosongkan
+    // Ziyadah baru — kosongkan, set max
     inputDari.value   = '';
     inputSampai.value = '';
-    inputDari.removeAttribute('min');  inputDari.removeAttribute('max');
-    inputSampai.removeAttribute('min'); inputSampai.removeAttribute('max');
+    inputDari.min = '1'; inputDari.max = maxAyat || '';
+    inputSampai.min = '1'; inputSampai.max = maxAyat || '';
   }
 
   // Auto-set juz jika hanya 1 juz
@@ -7357,6 +7411,14 @@ function clearHafalanSurat() {
   document.getElementById('hafalanMurajaahInfo').style.display  = 'none';
   document.getElementById('hafalanAyatDari').value   = '';
   document.getElementById('hafalanAyatSampai').value = '';
+  var infoEl = document.getElementById('hafalanAyatInfoText');
+  if (infoEl) infoEl.textContent = '— pilih surat —';
+  _hafalanSelectedAyatMax = null;
+  // Reset max attribute
+  ['hafalanAyatDari','hafalanAyatSampai'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.removeAttribute('max'); el.removeAttribute('min'); }
+  });
 }
 
 // Tutup dropdown surat saat klik di luar
@@ -7390,8 +7452,14 @@ async function submitSetoranHafalan() {
   if (!id_murid)   { showToast('Pilih siswa terlebih dahulu', 'warning'); return; }
   if (!surat)      { showToast('Pilih surat terlebih dahulu', 'warning'); return; }
   if (!ayatDari || !ayatSampai) { showToast('Isi ayat dari dan sampai', 'warning'); return; }
-  if (parseInt(ayatDari) > parseInt(ayatSampai)) { showToast('Ayat dari tidak boleh lebih besar dari ayat sampai', 'warning'); return; }
-  if (!nilai)     { showToast('Pilih nilai terlebih dahulu', 'warning'); return; }
+  var aD = parseInt(ayatDari), aS = parseInt(ayatSampai);
+  if (aD < 1 || aS < 1) { showToast('Nomor ayat harus minimal 1', 'warning'); return; }
+  if (aD > aS) { showToast('Ayat dari tidak boleh lebih besar dari ayat sampai', 'warning'); return; }
+  if (_hafalanSelectedAyatMax && (aD > _hafalanSelectedAyatMax || aS > _hafalanSelectedAyatMax)) {
+    showToast('Ayat melebihi jumlah ayat surat ini (' + _hafalanSelectedAyatMax + ' ayat)', 'warning');
+    return;
+  }
+  if (!nilai) { showToast('Pilih nilai terlebih dahulu', 'warning'); return; }
 
   // Validasi Murajaah range
   if (jenis === 'Murajaah' && _hafalanGuruZiyadah.length) {

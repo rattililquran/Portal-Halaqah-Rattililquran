@@ -1199,6 +1199,28 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)
+  getPenilaianHafalan: async function() {
+    var { data, error } = await _sb.from('konfigurasi_penilaian_hafalan')
+      .select('kelancaran, nilai')
+      .eq('id', 'global')
+      .maybeSingle();
+    if (error) { console.warn('getPenilaianHafalan:', error.message); return { status: 'ok', data: null }; }
+    return { status: 'ok', data: data || null };
+  },
+
+  savePenilaianHafalan: async function(config) {
+    var { error } = await _sb.from('konfigurasi_penilaian_hafalan')
+      .upsert({
+        id         : 'global',
+        kelancaran : config.kelancaran,
+        nilai      : config.nilai,
+        updated_by : _uid(),
+      }, { onConflict: 'id' });
+    _check(error, 'savePenilaianHafalan');
+    return { status: 'ok' };
+  },
+
   // Target terbaru per murid di halaqah Qiyam (untuk kartu pengingat guru)
   getTargetHafalanMurid: async function(id_halaqah) {
     var { data, error } = await _sb.from('setoran_hafalan')
