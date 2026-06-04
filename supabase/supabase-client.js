@@ -50,9 +50,12 @@ function _check(error, ctx) {
   if (error) { console.error('[SB] ' + ctx + ':', error); throw new Error(error.message || ctx); }
 }
 
-// Buat id unik sederhana
+// BUG-017 fix: gunakan crypto.randomUUID() untuk ID yang lebih aman dan anti-collision
 function _genId(prefix) {
-  return prefix + '-' + Date.now() + '-' + Math.floor(Math.random() * 9000 + 1000);
+  var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID().replace(/-/g,'').substring(0,12).toUpperCase()
+    : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,8).toUpperCase();
+  return prefix + '-' + uuid;
 }
 
 // Nama hari Indonesia
@@ -88,10 +91,11 @@ var Auth = {
     localStorage.removeItem('hq_token');
     localStorage.removeItem('hq_refresh');
     _currentUser = null;
-    window.location.href = window.location.pathname.includes('/guru/') ||
-                           window.location.pathname.includes('/admin/') ||
-                           window.location.pathname.includes('/murid/')
-      ? '../index.html' : 'index.html';
+    // BUG-010 fix: deteksi path lebih akurat, support deployment di subdirektori apapun
+    var path = window.location.pathname;
+    var inSubdir = /\/(guru|admin|murid)\//i.test(path);
+    var loginPage = inSubdir ? '../index.html' : 'index.html';
+    window.location.href = loginPage;
   },
 
   getUser: function() { return _currentUser; },
@@ -346,10 +350,11 @@ var GuruAPI = {
   },
 
   simpanPresensi: async function(d) {
+    var tanggal = d.tanggal || d.tanggal_pertemuan;
     var rows = d.presensi.map(function(p) { return {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: p.id_murid,
       status_hadir: p.status_hadir,
-      pertemuan_ke: d.pertemuan_ke, tanggal: d.tanggal || d.tanggal_pertemuan,
+      pertemuan_ke: d.pertemuan_ke, tanggal: tanggal,
       jenis_sesi: d.jenis_sesi || 'KBM Reguler',
     }; });
     var { error } = await _sb.from('nilai_kbm')
@@ -357,7 +362,12 @@ var GuruAPI = {
     _check(error, 'simpanPresensi');
     var hadir = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
     var alpa  = d.presensi.filter(function(p) { return p.status_hadir === 'A'; }).length;
-    await _sb.from('kbm_log').update({ jumlah_hadir: hadir, jumlah_alpa: alpa }).eq('id_kbm', d.id_kbm);
+    // BUG-011 fix: sync tanggal_pertemuan ke kbm_log jika guru mengubah tanggal
+    await _sb.from('kbm_log').update({
+      jumlah_hadir: hadir,
+      jumlah_alpa: alpa,
+      tanggal_pertemuan: tanggal,  // sinkronkan tanggal agar konsisten
+    }).eq('id_kbm', d.id_kbm);
     return { status: 'ok', message: 'Presensi berhasil disimpan', jumlah_hadir: hadir };
   },
 
@@ -850,6 +860,7 @@ var GuruAPI = {
     if (!sesiIds.length) return { status: 'ok', data: { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } } };
     var { data, error } = await _sb.from('at_tibyan_log')
       .select('id_murid, nama_murid, id_halaqah, nama_halaqah, status_hadir, tanggal')
+      // BUG-015 fix: filter by sesiIds (sesi milik guru ini saja) agar murid cross-guru tidak dihitung ganda
       .in('id_sesi', sesiIds).order('tanggal', { ascending: true });
     _check(error, 'getAtTibyanKeaktifan');
     var muridMap = {};
@@ -1571,7 +1582,26 @@ var MuridAPI = {
     // Support multi-bulan: d.bulan bisa array atau string
     var bulanList = Array.isArray(d.bulan) ? d.bulan : (d.bulan && d.bulan !== '-' ? [d.bulan] : ['-']);
     if (!bulanList.length) bulanList = ['-'];
-    var rows = bulanList.map(function(bulan) {
+
+    // BUG-002 fix: cek baris yang sudah lunas agar tidak dioverride
+    var idSppList = bulanList.map(function(bulan) {
+      return 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
+    });
+    var { data: existingRows } = await _sb.from('spp_pembayaran')
+      .select('id_spp, status').in('id_spp', idSppList);
+    var sudahLunasSet = new Set(
+      (existingRows || []).filter(function(r){ return r.status === 'lunas'; }).map(function(r){ return r.id_spp; })
+    );
+    // Filter: hanya proses bulan yang belum lunas
+    var bulanProses = bulanList.filter(function(bulan) {
+      var id_spp = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
+      return !sudahLunasSet.has(id_spp);
+    });
+    if (!bulanProses.length) {
+      return { status: 'ok', message: 'Semua bulan yang dipilih sudah lunas. Tidak ada yang perlu dikonfirmasi.' };
+    }
+
+    var rows = bulanProses.map(function(bulan) {
       return {
         id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun,
         id_murid, nama_murid: user.nama_lengkap || user.nama || '',
@@ -1579,7 +1609,7 @@ var MuridAPI = {
         bulan, tahun: Number(d.tahun),
         jenis: d.jenis || 'SPP Pribadi',
         status: 'menunggu',
-        nominal: bulanList.length > 1 ? Math.round(Number(d.nominal||0) / bulanList.length) : Number(d.nominal||0),
+        nominal: bulanProses.length > 1 ? Math.round(Number(d.nominal||0) / bulanProses.length) : Number(d.nominal||0),
         metode_transfer: d.metode_transfer || '',
         bukti_url: d.bukti_url || '',
         catatan: d.catatan || '',
@@ -1587,7 +1617,7 @@ var MuridAPI = {
     });
     var { error } = await _sb.from('spp_pembayaran').upsert(rows, { onConflict: 'id_spp' });
     _check(error, 'konfirmasiSPP');
-    var jumlah = bulanList.length > 1 ? bulanList.length + ' bulan' : 'pembayaran';
+    var jumlah = bulanProses.length > 1 ? bulanProses.length + ' bulan' : 'pembayaran';
     return { status: 'ok', message: 'Konfirmasi ' + jumlah + ' terkirim, menunggu validasi admin.' };
   },
 
@@ -2058,8 +2088,17 @@ var AdminAPI = {
             lastNum++;
             id_user = yearPrefix + String(lastNum).padStart(6,'0');
           } else {
-            // Guru: ambil kata-kata bermakna dari nama
-            id_user = u.nama_lengkap.replace(/^(al-|al |ustadz|ustadzah)\s*/gi,'').split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g,'').substring(0,8);
+            // BUG-020 fix: tambah suffix numerik agar guru bernama depan sama tidak tabrakan
+            var baseId = u.nama_lengkap
+              .replace(/^(al-|al\s|ustadz\s|ustadzah\s)/gi, '')
+              .split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g,'').substring(0, 6);
+            id_user = baseId;
+            // Cek dan tambah suffix jika sudah ada
+            var suffix = 2;
+            while (existingSet.has(id_user)) {
+              id_user = baseId.substring(0, 5) + suffix;
+              suffix++;
+            }
           }
         }
         if (existingSet.has(id_user)) { duplikat++; continue; }
