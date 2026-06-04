@@ -217,6 +217,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .progress-card.micro-card .prog-info-sesi{
   color:#6d28d9;
 }
+.prog-estimasi-middle{
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:100px;line-height:1.2;
+  text-align:center;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;
+}
+html.theme-dark .prog-estimasi-middle{
+  background:rgba(255,255,255,0.1) !important;
+  border-color:rgba(255,255,255,0.15) !important;
+  color:#cbd5e1 !important;
+}
 /* judul atas */
 .prog-title{font-size:15px;font-weight:900;color:#fbbf24;
   letter-spacing:.01em;margin-bottom:14px;
@@ -2664,9 +2676,15 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           Perjuanganku Bersama Al-Qur'an
         </div>
         <!-- Chip level sekarang → chip level target -->
-        <div class="prog-level-row">
+        <div class="prog-level-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
           <span class="level-badge" id="dashLevel">Level 1</span>
-          <span class="level-arrow" id="dashLevelArrow">→</span>
+          <div id="dashEstimasiContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 0;">
+            <span class="level-arrow" id="dashLevelArrow" style="line-height: 1; margin-bottom: 2px;">→</span>
+            <div class="prog-estimasi-middle" id="dashEstimasi" style="display:none; align-items:center; gap:3px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span id="dashEstimasiTxt">–</span>
+            </div>
+          </div>
           <span class="level-target-chip" id="dashTarget">Level 2</span>
         </div>
         <!-- Motivasi (di atas kartu putih) -->
@@ -2687,10 +2705,6 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
             <div class="prog-info-right">
               <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
               <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
-              <div class="prog-info-estimasi" id="dashEstimasi" style="display:none">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span id="dashEstimasiTxt">–</span>
-              </div>
               <div class="prog-bar-wrap" id="dashProgressBarWrap">
                 <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
               </div>
@@ -2700,41 +2714,6 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
             </div>
           </div>
         </div>
-        </div><!-- /prog-inner-wrap -->
-      </div>
-
-      <!-- Progress Micro Teaching -->
-      <div class="progress-card micro-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
-        <!-- Judul -->
-        <div class="prog-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-          Praktik Mengajar (Micro Teaching)
-        </div>
-        <!-- Chip label MT -->
-        <div class="prog-level-row">
-          <span class="level-badge" style="background:linear-gradient(135deg,rgba(109,40,217,.55),rgba(139,92,246,.4)); border:1.5px solid rgba(167,139,250,.6); box-shadow:0 0 12px rgba(109,40,217,.35),inset 0 1px 0 rgba(255,255,255,.25);">Micro Teaching</span>
-        </div>
-        <!-- Inner white card — donut ring -->
-        <div class="prog-inner-wrap">
-          <div class="prog-inner-card">
-            <div class="prog-inner-row">
-              <!-- Donut ring -->
-              <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
-                <div class="prog-donut-inner">
-                  <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:#8b5cf6">0%</span>
-                  <span class="prog-donut-lbl">Rata-Rata</span>
-                </div>
-              </div>
-              <!-- Info kanan -->
-              <div class="prog-info-right">
-                <div class="prog-info-title" id="dashMicroProgressPct">Nilai: – (Latihan ke–)</div>
-                <div class="prog-info-sesi" id="dashMicroSisa">Predikat: –</div>
-                <div class="prog-bar-wrap" id="dashMicroProgressBarWrap">
-                  <div class="prog-bar-fill" id="dashMicroProgressBar" style="width:0%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div><!-- /prog-inner-wrap -->
       </div>
 
@@ -2774,6 +2753,8 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       </div>
 
       <!-- Stats -->
+
+      <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card clickable" onclick="goPage('riwayat')">
           <div class="ico">✅</div>
@@ -2796,24 +2777,6 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           <div class="lbl">Poin Kamera</div>
         </div>
       </div>
-      <!-- Grafik Kehadiran Bulanan -->
-      <div class="grafik-card" id="grafikCard" style="display:none">
-        <div class="grafik-title-row">
-          <div class="grafik-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            Kehadiran 6 Bulan
-          </div>
-          <span class="grafik-trend flat" id="grafikTrend"></span>
-        </div>
-        <div class="grafik-subtitle" id="grafikSubtitle">Riwayat kehadiran halaqah bulanan</div>
-        <div id="grafikBigStat"></div>
-        <div class="grafik-legend" id="grafikLegend"></div>
-        <div class="grafik-chart-wrap" id="grafikChartWrap"></div>
-        <div class="grafik-labels" id="grafikLabels"></div>
-        <div class="grafik-summary" id="grafikSummary"></div>
-      </div>
-
-      <!-- SPP Status -->
       <div class="spp-card" id="sppCard" style="display:none">
         <div class="spp-head">
           <div class="spp-title">💳 Pembayaran SPP</div>
@@ -4266,6 +4229,23 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         </div>
       </div>
 
+      <!-- Grafik Kehadiran Bulanan -->
+      <div class="grafik-card" id="grafikCard" style="display:none; border:1px solid var(--border); border-radius:12px; box-shadow:none; padding:14px; margin-bottom:20px;">
+        <div class="grafik-title-row">
+          <div class="grafik-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Kehadiran 6 Bulan
+          </div>
+          <span class="grafik-trend flat" id="grafikTrend"></span>
+        </div>
+        <div class="grafik-subtitle" id="grafikSubtitle">Riwayat kehadiran halaqah bulanan</div>
+        <div id="grafikBigStat"></div>
+        <div class="grafik-legend" id="grafikLegend"></div>
+        <div class="grafik-chart-wrap" id="grafikChartWrap"></div>
+        <div class="grafik-labels" id="grafikLabels"></div>
+        <div class="grafik-summary" id="grafikSummary"></div>
+      </div>
+
       <div style="background:linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.15);padding:14px;border-radius:12px;" id="modalEstWrap">
         <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">📅 Perkiraan Selesai Level</div>
         <div style="font-size:14px;font-weight:700;color:var(--text)" id="modalEstDate">Memuat estimasi...</div>
@@ -4674,6 +4654,7 @@ function openProgressBreakdown(forceMicro) {
         document.getElementById('modalEstWrap').style.display = 'block';
         document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
       }
+      loadGrafikKehadiran();
     }
   }
   openModal('progressBreakdownModal');
@@ -5337,7 +5318,6 @@ async function loadDashboard() {
     // Load async — tidak blokir dashboard
     loadSPP();
     loadKeaktifanAlertsMurid();
-    loadGrafikKehadiran(); // grafik kehadiran bulanan
 
     // Realtime: auto-refresh alert jika guru update followup_at di anggota
     _subscribeKeaktifanRealtime();
