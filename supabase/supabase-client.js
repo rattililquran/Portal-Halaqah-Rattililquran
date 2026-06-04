@@ -1407,7 +1407,57 @@ var MuridAPI = {
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri','is',null)
       .order('tanggal',{ascending:false}).limit(10);
-    var [{ data: pengumuman }, { data: prRaw }] = await Promise.all([pengumumanQuery, prQuery]);
+
+    var qiyamCountQuery = _sb.from('setoran_hafalan')
+      .select('id_setoran', { count: 'exact', head: true })
+      .eq('id_murid', id_murid);
+
+    var qiyamLatestQuery = _sb.from('setoran_hafalan')
+      .select('*')
+      .eq('id_murid', id_murid)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    var microLatestQuery = _sb.from('nilai_kbm')
+      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar)')
+      .eq('id_murid', id_murid)
+      .eq('jenis_sesi', 'Micro Teaching')
+      .not('nilai', 'is', null)
+      .order('tanggal', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    var microAllQuery = _sb.from('nilai_kbm')
+      .select('nilai')
+      .eq('id_murid', id_murid)
+      .eq('jenis_sesi', 'Micro Teaching')
+      .not('nilai', 'is', null);
+
+    var [
+      { data: pengumuman },
+      { data: prRaw },
+      qiyamCountRes,
+      qiyamLatestRes,
+      microLatestRes,
+      microAllRes
+    ] = await Promise.all([
+      pengumumanQuery,
+      prQuery,
+      qiyamCountQuery,
+      qiyamLatestQuery,
+      microLatestQuery,
+      microAllQuery
+    ]);
+
+    _check(qiyamLatestRes.error, 'getDashboard - qiyamLatest');
+    _check(microLatestRes.error, 'getDashboard - microLatest');
+    _check(microAllRes.error, 'getDashboard - microAll');
+
+    var microList = microAllRes.data || [];
+    var microScores = microList.map(function(m){ return Number(m.nilai); }).filter(function(v){ return !isNaN(v); });
+    var microAvg = microScores.length > 0 ? Math.round(microScores.reduce(function(a,b){ return a+b; }, 0) / microScores.length) : 0;
+
     var today = new Date().toISOString().slice(0,10);
     var prAktif = (prRaw||[])
       .filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; })
@@ -1472,6 +1522,15 @@ var MuridAPI = {
       poin_kamera_detail: { terbuka: kamTerbuka, selalu_tertutup: kamSeltup, sering_tertutup: kamSegtup },
       pengumuman : pengumuman || [],
       pr_aktif   : prAktif,
+      qiyam: {
+        total_setoran: qiyamCountRes.count || 0,
+        terakhir: qiyamLatestRes.data || null
+      },
+      micro_teaching: {
+        terakhir: microLatestRes.data || null,
+        rata_nilai: microAvg,
+        total_sesi: microScores.length
+      }
     }};
   },
 

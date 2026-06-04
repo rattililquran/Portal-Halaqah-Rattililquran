@@ -2285,7 +2285,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         <!-- Chip level sekarang → chip level target -->
         <div class="prog-level-row">
           <span class="level-badge" id="dashLevel">Level 1</span>
-          <span class="level-arrow">→</span>
+          <span class="level-arrow" id="dashLevelArrow">→</span>
           <span class="level-target-chip" id="dashTarget">Level 2</span>
         </div>
         <!-- Motivasi (di atas kartu putih) -->
@@ -2299,7 +2299,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
               style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
               <div class="prog-donut-inner">
                 <span class="prog-donut-pct" id="dashProgressPctNum" style="color:#94a3b8">0%</span>
-                <span class="prog-donut-lbl">level</span>
+                <span class="prog-donut-lbl" id="dashDonutRingLbl">level</span>
               </div>
             </div>
             <!-- Info kanan -->
@@ -2310,8 +2310,11 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span id="dashEstimasiTxt">–</span>
               </div>
-              <div class="prog-bar-wrap">
+              <div class="prog-bar-wrap" id="dashProgressBarWrap">
                 <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
+              </div>
+              <div id="dashQiyamTargetWrap" style="display:none; margin-top:8px; font-size:11.5px; font-weight:700; color:#fbbf24; background:rgba(251,191,36,0.06); padding:4px 8px; border-radius:6px; border:1px dashed rgba(251,191,36,0.25); width:fit-content; align-items:center; gap:4px;">
+                <span>🎯 Target:</span> <span id="dashQiyamTargetTxt">–</span>
               </div>
             </div>
           </div>
@@ -3770,7 +3773,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       <div class="modal-title">📈 Rincian Progres Belajar</div>
       <button class="modal-x" onclick="closeModal('progressBreakdownModal')">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" id="modalProgBody">
       <div style="text-align:center;margin-bottom:20px;background:rgba(16,185,129,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(16,185,129,0.2)">
         <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Progres Saat Ini</div>
         <div style="font-size:32px;font-weight:800;color:var(--green);" id="modalProgPct">0%</div>
@@ -3979,6 +3982,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
 //  STATE
 // ══════════════════════════════════════════
 var dashData = null;
+var _defaultModalProgBodyHtml = null;
 var riwayatData = [];
 var prData = [];
 var materiData = {};
@@ -4054,42 +4058,170 @@ function openProgressBreakdown() {
   var kh = dashData.kehadiran || {};
   var ang = dashData.anggota || {};
   var hq = dashData.halaqah || {};
-  var target = 40;
-  var hadir = Number(kh.skor_hadir || 0);
-  var skor40 = Number(kh.skor_dari_40 || 0);
-  var pct = skor40 > 0 ? Math.min(skor40, 100) : (target > 0 ? Math.min(Math.round((hadir / target) * 100), 100) : 0);
-  var _level = ang.level || '–';
-  var tLevel = ang.target_level || '';
-  if (!tLevel && _level !== '–') {
-    var lvlNum = parseInt(String(_level).replace(/[^0-9]/g, ''));
-    tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
+
+  var bodyEl = document.getElementById('modalProgBody');
+  if (!_defaultModalProgBodyHtml && bodyEl) {
+    _defaultModalProgBodyHtml = bodyEl.innerHTML;
   }
-  document.getElementById('modalProgPct').textContent = pct + '%';
-  document.getElementById('modalProgSkor').textContent = hadir + ' dari 40 target skor';
-  document.getElementById('modalProgLvl').textContent = _level;
-  document.getElementById('modalProgTarget').textContent = tLevel || '–';
-  document.getElementById('modalCountH').textContent = (kh.count_h || 0) + ' Sesi';
-  document.getElementById('modalCountT').textContent = (kh.count_t || 0) + ' Sesi';
-  document.getElementById('modalCountI').textContent = (kh.count_i || 0) + ' Sesi';
-  document.getElementById('modalCountA').textContent = (kh.count_a || 0) + ' Sesi';
-  var sisa = Number(kh.sisa_sesi);
-  if (!isNaN(sisa) && sisa > 0) {
-    document.getElementById('modalEstWrap').style.display = 'block';
-    var daysPerWeek = 1;
-    if (hq.jadwal) {
-      var parts = hq.jadwal.trim().split(/\s+|[,&]|\bdan\b/).filter(p => p.trim().length > 0);
-      daysPerWeek = Math.max(1, parts.length);
+
+  var _level = ang.level || '–';
+  var isQiyam = (_level === 'Level Qiyam');
+  var isMicro = (_level === 'Micro Teaching' || (dashData.micro_teaching && dashData.micro_teaching.terakhir !== null));
+
+  if (bodyEl) {
+    if (isQiyam) {
+      var last = dashData.qiyam && dashData.qiyam.terakhir;
+      var totalSetoran = dashData.qiyam ? dashData.qiyam.total_setoran : 0;
+      
+      var qiyamHtml = '<div style="text-align:center;margin-bottom:20px;background:rgba(16,185,129,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(16,185,129,0.2)">'
+        + '<div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Total Setoran Hafalan</div>'
+        + '<div style="font-size:32px;font-weight:800;color:#10b981;">' + totalSetoran + '</div>'
+        + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:4px">Halaqah Level Qiyam</div>'
+        + '</div>';
+
+      qiyamHtml += '<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:20px">';
+      if (last) {
+        qiyamHtml += '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border)">'
+          + '<div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:6px">Setoran Terakhir</div>'
+          + '<div style="font-size:15px;font-weight:800;color:var(--text)">' + last.jenis + ': QS. ' + last.surat + ' ' + last.ayat_dari + '-' + last.ayat_sampai + '</div>'
+          + '<div style="font-size:12px;color:var(--text-2);margin-top:4px;font-weight:600;">'
+            + 'Juz: ' + (last.juz || '–') + ' · Predikat: <span style="color:#10b981;font-weight:800;">' + (last.nilai || '–') + '</span> · Kelancaran: ' + (last.kelancaran || '–')
+          + '</div>'
+          + '</div>';
+
+        if (last.catatan) {
+          qiyamHtml += '<div style="background:rgba(251,191,36,0.05);padding:14px;border-radius:12px;border:1px solid rgba(251,191,36,0.15)">'
+            + '<div style="font-size:10px;color:#d97706;font-weight:700;text-transform:uppercase;margin-bottom:4px">📝 Catatan Ustadz/Ustadzah</div>'
+            + '<div style="font-size:13px;color:var(--text-2);line-height:1.4;font-style:italic;">"' + esc(last.catatan) + '"</div>'
+            + '</div>';
+        }
+      } else {
+        qiyamHtml += '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;color:var(--text-3)">'
+          + 'Belum ada riwayat setoran hafalan.'
+          + '</div>';
+      }
+      qiyamHtml += '</div>';
+
+      var targetTxt = 'Belum diset';
+      if (last && last.target_surat) {
+        targetTxt = last.target_surat + (last.target_ayat_dari ? ' ' + last.target_ayat_dari + '-' + last.target_ayat_sampai : '');
+      }
+      qiyamHtml += '<div style="background:linear-gradient(135deg, rgba(251,191,36,0.06), rgba(251,191,36,0.02));border:1px solid rgba(251,191,36,0.15);padding:14px;border-radius:12px;">'
+        + '<div style="font-size:10px;color:#d97706;font-weight:700;text-transform:uppercase;margin-bottom:4px">🎯 Target Hafalan Berikutnya</div>'
+        + '<div style="font-size:14px;font-weight:700;color:var(--text)">' + targetTxt + '</div>'
+        + '</div>';
+
+      bodyEl.innerHTML = qiyamHtml;
+    } else if (isMicro) {
+      var lastMt = dashData.micro_teaching && dashData.micro_teaching.terakhir;
+      var avgNilai = dashData.micro_teaching ? dashData.micro_teaching.rata_nilai : 0;
+      
+      var microHtml = '<div style="text-align:center;margin-bottom:20px;background:rgba(139,92,246,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.2)">'
+        + '<div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Rata-rata Nilai Praktik</div>'
+        + '<div style="font-size:32px;font-weight:800;color:#8b5cf6;">' + avgNilai + ' / 100</div>'
+        + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:4px">Total Sesi: ' + (dashData.micro_teaching ? dashData.micro_teaching.total_sesi : 0) + ' kali</div>'
+        + '</div>';
+
+      if (lastMt) {
+        var choices = {};
+        try {
+          if (lastMt.koreksi_tahsin) choices = JSON.parse(lastMt.koreksi_tahsin);
+        } catch(e) {}
+
+        microHtml += '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px;">'
+          + '<div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:6px">Latihan Terakhir (Pertemuan ke-' + (lastMt.pertemuan_ke || 1) + ')</div>'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+            + '<span style="font-size:16px;font-weight:800;color:var(--text)">Skor: ' + (lastMt.nilai || 0) + ' / 100</span>'
+            + '<span style="background:rgba(139,92,246,0.1);color:#8b5cf6;font-size:11px;font-weight:800;padding:2px 8px;border-radius:100px;">'
+              + (lastMt.nilai >= 90 ? 'Sangat Baik' : lastMt.nilai >= 75 ? 'Baik' : lastMt.nilai >= 60 ? 'Cukup' : 'Perlu Perbaikan')
+            + '</span>'
+          + '</div>'
+          + '</div>';
+
+        var kriteria = [
+          { id: 'penguasaan', label: 'Penguasaan Materi', weight: '25%' },
+          { id: 'penyampaian', label: 'Cara Penyampaian', weight: '20%' },
+          { id: 'tajwid',      label: 'Kualitas Tajwid',   weight: '25%' },
+          { id: 'interaksi',   label: 'Interaksi Kelas',   weight: '15%' },
+          { id: 'waktu',       label: 'Manajemen Waktu',   weight: '15%' }
+        ];
+
+        microHtml += '<div style="margin-bottom:16px">'
+          + '<div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Penilaian Rubrik</div>'
+          + '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">';
+
+        kriteria.forEach(function(k, idx) {
+          var val = choices[k.id] || '–';
+          var labelVal = '–';
+          var badgeColor = 'var(--text-3)';
+          var badgeBg = 'rgba(0,0,0,0.05)';
+          if (val == 4)      { labelVal = 'Sangat Baik'; badgeColor = '#10b981'; badgeBg = 'rgba(16,185,129,0.1)'; }
+          else if (val == 3) { labelVal = 'Baik'; badgeColor = '#3b82f6'; badgeBg = 'rgba(59,130,246,0.1)'; }
+          else if (val == 2) { labelVal = 'Cukup'; badgeColor = '#f59e0b'; badgeBg = 'rgba(245,158,11,0.1)'; }
+          else if (val == 1) { labelVal = 'Perlu Perbaikan'; badgeColor = '#ef4444'; badgeBg = 'rgba(239,68,68,0.1)'; }
+
+          var borderStyle = idx < kriteria.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+          microHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;' + borderStyle + '">'
+            + '<span style="font-weight:600;color:var(--text-2)">' + k.label + ' <span style="font-size:10px;color:var(--text-3)">(' + k.weight + ')</span></span>'
+            + '<span style="font-weight:700;font-size:11px;padding:2px 8px;border-radius:6px;color:' + badgeColor + ';background:' + badgeBg + '">' + labelVal + '</span>'
+            + '</div>';
+        });
+        microHtml += '</div></div>';
+
+        if (lastMt.catatan_murid) {
+          microHtml += '<div style="background:linear-gradient(135deg, rgba(139,92,246,0.06), rgba(139,92,246,0.02));border:1px solid rgba(139,92,246,0.15);padding:14px;border-radius:12px;">'
+            + '<div style="font-size:10px;color:#8b5cf6;font-weight:700;text-transform:uppercase;margin-bottom:4px">📝 Saran & Evaluasi Pendidik</div>'
+            + '<div style="font-size:13px;color:var(--text-2);line-height:1.4;font-style:italic;">"' + esc(lastMt.catatan_murid) + '"</div>'
+            + '</div>';
+        }
+      } else {
+        microHtml += '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;color:var(--text-3)">'
+          + 'Belum ada data latihan praktik.'
+          + '</div>';
+      }
+
+      bodyEl.innerHTML = microHtml;
+    } else {
+      bodyEl.innerHTML = _defaultModalProgBodyHtml;
+
+      var target = 40;
+      var hadir = Number(kh.skor_hadir || 0);
+      var skor40 = Number(kh.skor_dari_40 || 0);
+      var pct = skor40 > 0 ? Math.min(skor40, 100) : (target > 0 ? Math.min(Math.round((hadir / target) * 100), 100) : 0);
+      var tLevel = ang.target_level || '';
+      if (!tLevel && _level !== '–') {
+        var lvlNum = parseInt(String(_level).replace(/[^0-9]/g, ''));
+        tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
+      }
+
+      document.getElementById('modalProgPct').textContent = pct + '%';
+      document.getElementById('modalProgSkor').textContent = hadir + ' dari 40 target skor';
+      document.getElementById('modalProgLvl').textContent = _level;
+      document.getElementById('modalProgTarget').textContent = tLevel || '–';
+      document.getElementById('modalCountH').textContent = (kh.count_h || 0) + ' Sesi';
+      document.getElementById('modalCountT').textContent = (kh.count_t || 0) + ' Sesi';
+      document.getElementById('modalCountI').textContent = (kh.count_i || 0) + ' Sesi';
+      document.getElementById('modalCountA').textContent = (kh.count_a || 0) + ' Sesi';
+      var sisa = Number(kh.sisa_sesi);
+      if (!isNaN(sisa) && sisa > 0) {
+        document.getElementById('modalEstWrap').style.display = 'block';
+        var daysPerWeek = 1;
+        if (hq.jadwal) {
+          var parts = hq.jadwal.trim().split(/\s+|[,&]|\bdan\b/).filter(p => p.trim().length > 0);
+          daysPerWeek = Math.max(1, parts.length);
+        }
+        var weeksRemaining = sisa / daysPerWeek;
+        var daysRemaining = Math.ceil(weeksRemaining * 7);
+        var targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + daysRemaining);
+        var options = { year: 'numeric', month: 'long', day: 'numeric' };
+        var formattedDate = targetDate.toLocaleDateString('id-ID', options);
+        document.getElementById('modalEstDate').textContent = '± ' + formattedDate + ' (' + sisa + ' sesi tersisa, ' + daysPerWeek + 'x seminggu)';
+      } else {
+        document.getElementById('modalEstWrap').style.display = 'block';
+        document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
+      }
     }
-    var weeksRemaining = sisa / daysPerWeek;
-    var daysRemaining = Math.ceil(weeksRemaining * 7);
-    var targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + daysRemaining);
-    var options = { year: 'numeric', month: 'long', day: 'numeric' };
-    var formattedDate = targetDate.toLocaleDateString('id-ID', options);
-    document.getElementById('modalEstDate').textContent = '± ' + formattedDate + ' (' + sisa + ' sesi tersisa, ' + daysPerWeek + 'x seminggu)';
-  } else {
-    document.getElementById('modalEstWrap').style.display = 'block';
-    document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
   }
   openModal('progressBreakdownModal');
 }
@@ -4399,49 +4531,125 @@ async function loadDashboard() {
     // dashTarget sekarang chip — hanya nama level tanpa panah (panah di HTML)
     document.getElementById('dashTarget').textContent = tLevel || '–';
 
-    // GAS kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir
-    var target  = 40;
-    var hadir   = Number(kh.skor_hadir   || 0);  // jumlah skor hadir (float)
-    var skor40  = Number(kh.skor_dari_40 || 0);  // % dari 40 pertemuan
-    var pct     = skor40 > 0 ? Math.min(skor40, 100)
-                : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
+    var isQiyam = (_level === 'Level Qiyam');
+    var isMicro = (_level === 'Micro Teaching' || (d.micro_teaching && d.micro_teaching.terakhir !== null));
 
-    // Warna dinamis KhatamKu style — merah→amber→biru→hijau→emas
-    var ringColor, barColor;
-    if (pct < 25)       { ringColor = '#ef4444'; barColor = 'linear-gradient(90deg,#ef4444,#f97316)'; }
-    else if (pct < 50)  { ringColor = '#f59e0b'; barColor = 'linear-gradient(90deg,#f59e0b,#eab308)'; }
-    else if (pct < 75)  { ringColor = '#3b82f6'; barColor = 'linear-gradient(90deg,#3b82f6,#06b6d4)'; }
-    else if (pct < 100) { ringColor = '#10b981'; barColor = 'linear-gradient(90deg,#10b981,#34d399)'; }
-    else                { ringColor = '#fbbf24'; barColor = 'linear-gradient(90deg,#fbbf24,#f59e0b)'; }
+    // Reset default elements
+    if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'inline';
+    if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'inline';
+    if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'level';
+    if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'block';
+    if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'none';
 
-    // Update donut ring — conic-gradient persis KhatamKu
     var donutRing = document.getElementById('dashDonutRing');
-    if (donutRing) {
-      donutRing.style.background =
-        'conic-gradient(' + ringColor + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
-    }
     var pctNum = document.getElementById('dashProgressPctNum');
-    if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = ringColor; }
-
-    // Progress bar
     var progressBar = document.getElementById('dashProgressBar');
-    if (progressBar) { progressBar.style.width = pct + '%'; progressBar.style.background = barColor; }
 
-    // Info teks
-    var sisa = Number(kh.sisa_sesi);
-    var sisaTeks = !isNaN(sisa) && sisa >= 0
-      ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
-      : 'dari 40 pertemuan';
-    var hadirCount = Number(kh.skor_hadir || 0);
-    document.getElementById('dashProgressPct').textContent =
-      Math.round(hadirCount) + ' dari 40 sesi';
-    document.getElementById('dashSisa').textContent = sisaTeks;
+    var pct = 0;
+    var sisa = 0;
+
+    if (isQiyam) {
+      if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
+      if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
+      if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'setoran';
+      if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
+      if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
+
+      var totalSetoran = d.qiyam ? d.qiyam.total_setoran : 0;
+      if (donutRing) {
+        donutRing.style.background = 'conic-gradient(#10b981 100%, transparent 0%)';
+      }
+      if (pctNum) {
+        pctNum.textContent = totalSetoran;
+        pctNum.style.color = '#10b981';
+      }
+
+      var lastSetoran = d.qiyam && d.qiyam.terakhir;
+      if (lastSetoran) {
+        document.getElementById('dashProgressPct').textContent = lastSetoran.jenis + ': QS. ' + lastSetoran.surat + ' ' + lastSetoran.ayat_dari + '-' + lastSetoran.ayat_sampai;
+        document.getElementById('dashSisa').textContent = 'Predikat: ' + (lastSetoran.nilai || '–') + ' · ' + (lastSetoran.kelancaran || '–');
+        if (lastSetoran.target_surat) {
+          document.getElementById('dashQiyamTargetTxt').textContent = lastSetoran.target_surat + (lastSetoran.target_ayat_dari ? ' ' + lastSetoran.target_ayat_dari + '-' + lastSetoran.target_ayat_sampai : '');
+        } else {
+          document.getElementById('dashQiyamTargetTxt').textContent = 'Belum diset';
+        }
+      } else {
+        document.getElementById('dashProgressPct').textContent = 'Belum ada setoran';
+        document.getElementById('dashSisa').textContent = 'Mulai setoran pertama Anda';
+        document.getElementById('dashQiyamTargetTxt').textContent = 'Diskusikan dengan Ustadz';
+      }
+    } else if (isMicro) {
+      if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
+      if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
+      if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'nilai';
+
+      var avgNilai = d.micro_teaching ? d.micro_teaching.rata_nilai : 0;
+      if (donutRing) {
+        donutRing.style.background = 'conic-gradient(#8b5cf6 ' + avgNilai + '%, rgba(0,0,0,0.05) 0%)';
+      }
+      if (pctNum) {
+        pctNum.textContent = avgNilai + '%';
+        pctNum.style.color = '#8b5cf6';
+      }
+
+      var lastMt = d.micro_teaching && d.micro_teaching.terakhir;
+      if (lastMt) {
+        document.getElementById('dashProgressPct').textContent = 'Nilai: ' + (lastMt.nilai || 0) + ' (Latihan ke-' + (lastMt.pertemuan_ke || 1) + ')';
+        var predMt = lastMt.nilai >= 90 ? 'Sangat Baik' : lastMt.nilai >= 75 ? 'Baik' : lastMt.nilai >= 60 ? 'Cukup' : 'Perlu Perbaikan';
+        document.getElementById('dashSisa').textContent = 'Predikat: ' + predMt;
+        if (progressBar) {
+          progressBar.style.width = (lastMt.nilai || 0) + '%';
+          progressBar.style.background = 'linear-gradient(90deg, #8b5cf6, #a78bfa)';
+        }
+      } else {
+        document.getElementById('dashProgressPct').textContent = 'Belum ada latihan';
+        document.getElementById('dashSisa').textContent = 'Mulai praktik mengajar Anda';
+        if (progressBar) {
+          progressBar.style.width = '0%';
+        }
+      }
+    } else {
+      // GAS kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir
+      var target  = 40;
+      var hadir   = Number(kh.skor_hadir   || 0);  // jumlah skor hadir (float)
+      var skor40  = Number(kh.skor_dari_40 || 0);  // % dari 40 pertemuan
+      pct     = skor40 > 0 ? Math.min(skor40, 100)
+                  : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
+
+      // Warna dinamis KhatamKu style — merah→amber→biru→hijau→emas
+      var ringColor, barColor;
+      if (pct < 25)       { ringColor = '#ef4444'; barColor = 'linear-gradient(90deg,#ef4444,#f97316)'; }
+      else if (pct < 50)  { ringColor = '#f59e0b'; barColor = 'linear-gradient(90deg,#f59e0b,#eab308)'; }
+      else if (pct < 75)  { ringColor = '#3b82f6'; barColor = 'linear-gradient(90deg,#3b82f6,#06b6d4)'; }
+      else if (pct < 100) { ringColor = '#10b981'; barColor = 'linear-gradient(90deg,#10b981,#34d399)'; }
+      else                { ringColor = '#fbbf24'; barColor = 'linear-gradient(90deg,#fbbf24,#f59e0b)'; }
+
+      // Update donut ring — conic-gradient persis KhatamKu
+      if (donutRing) {
+        donutRing.style.background =
+          'conic-gradient(' + ringColor + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
+      }
+      if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = ringColor; }
+
+      // Progress bar
+      if (progressBar) { progressBar.style.width = pct + '%'; progressBar.style.background = barColor; }
+
+      // Info teks
+      sisa = Number(kh.sisa_sesi);
+      var sisaTeks = !isNaN(sisa) && sisa >= 0
+        ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
+        : 'dari 40 pertemuan';
+      var hadirCount = Number(kh.skor_hadir || 0);
+      document.getElementById('dashProgressPct').textContent =
+        Math.round(hadirCount) + ' dari 40 sesi';
+      document.getElementById('dashSisa').textContent = sisaTeks;
+    }
 
     // Estimasi selesai (jika ada target harian)
     var reqDailyPages = d.profil && d.profil.target_harian ? Number(d.profil.target_harian) : 0;
     var estimasiEl = document.getElementById('dashEstimasi');
     var estimasiTxt = document.getElementById('dashEstimasiTxt');
-    if (estimasiEl && estimasiTxt && sisa > 0 && reqDailyPages > 0) {
+    if (!isQiyam && !isMicro && estimasiEl && estimasiTxt && sisa > 0 && reqDailyPages > 0) {
       var selesaiHari = Math.ceil(sisa / (reqDailyPages / 7)); // asumsi target per minggu
       var tgl = new Date(); tgl.setDate(tgl.getDate() + selesaiHari);
       var opsi = { day:'numeric', month:'short', year:'numeric' };
@@ -4463,18 +4671,25 @@ async function loadDashboard() {
 
     var motiv = d.motivasi || {};
     var motivText = "";
-    if (pct === 0) {
-      motivText = motiv.motivasi_0 || defaultMotivasi.motivasi_0;
-    } else if (pct <= 30) {
-      motivText = motiv.motivasi_30 || defaultMotivasi.motivasi_30;
-    } else if (pct <= 60) {
-      motivText = motiv.motivasi_60 || defaultMotivasi.motivasi_60;
-    } else if (pct <= 90) {
-      motivText = motiv.motivasi_90 || defaultMotivasi.motivasi_90;
-    } else if (pct <= 99) {
-      motivText = motiv.motivasi_99 || defaultMotivasi.motivasi_99;
+    if (isQiyam) {
+      motivText = "Bismillah, mari istiqamah menambah dan menjaga hafalan Al-Qur'an! 🕌";
+    } else if (isMicro) {
+      motivText = "Tingkatkan kemampuan mengajar untuk menjadi pendidik Al-Qur'an yang hebat! 🎓";
     } else {
-      motivText = motiv.motivasi_100 || defaultMotivasi.motivasi_100;
+      var pctVal = pct || 0;
+      if (pctVal === 0) {
+        motivText = motiv.motivasi_0 || defaultMotivasi.motivasi_0;
+      } else if (pctVal <= 30) {
+        motivText = motiv.motivasi_30 || defaultMotivasi.motivasi_30;
+      } else if (pctVal <= 60) {
+        motivText = motiv.motivasi_60 || defaultMotivasi.motivasi_60;
+      } else if (pctVal <= 90) {
+        motivText = motiv.motivasi_90 || defaultMotivasi.motivasi_90;
+      } else if (pctVal <= 99) {
+        motivText = motiv.motivasi_99 || defaultMotivasi.motivasi_99;
+      } else {
+        motivText = motiv.motivasi_100 || defaultMotivasi.motivasi_100;
+      }
     }
 
     var motivEl = document.getElementById('dashMotivasi');
@@ -4484,7 +4699,7 @@ async function loadDashboard() {
     }
 
     // Trigger confetti once per session when target is reached (100%)
-    if (pct === 100 && !sessionStorage.getItem('hq_confetti_fired')) {
+    if (!isQiyam && !isMicro && pct === 100 && !sessionStorage.getItem('hq_confetti_fired')) {
       setTimeout(function() {
         triggerConfetti();
         sessionStorage.setItem('hq_confetti_fired', 'true');
