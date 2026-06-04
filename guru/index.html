@@ -263,8 +263,40 @@ tr:hover td{background:#f8fafc}
 /* ── FORMS ── */
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-/* Hafalan form label helper */
-.hf-lbl{display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+/* ── Hafalan: label chip amber — sama dengan nm-section-label nilai KBM ── */
+.hf-lbl{
+  display:inline-flex;align-items:center;
+  background:linear-gradient(135deg,#fef3c7,#fde68a);
+  border:1px solid #f59e0b;border-radius:7px;
+  padding:2px 9px;font-size:10px;font-weight:800;
+  color:#92400e;text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:6px;
+}
+/* ── Hafalan form 6-col grid — responsive ── */
+.hf-grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+.hf-span-1{grid-column:span 1}
+.hf-span-2{grid-column:span 2}
+.hf-span-3{grid-column:span 3}
+.hf-span-4{grid-column:span 4}
+.hf-span-6{grid-column:span 6}
+/* Tablet ≤900px: 4 kolom */
+@media(max-width:900px){
+  .hf-grid-6{grid-template-columns:repeat(4,1fr)!important}
+  .hf-span-3{grid-column:span 2!important}
+  .hf-span-4{grid-column:span 3!important}
+}
+/* Mobile ≤600px: 2 kolom */
+@media(max-width:600px){
+  .hf-grid-6{grid-template-columns:1fr 1fr!important}
+  .hf-span-1,.hf-span-2{grid-column:span 1!important}
+  .hf-span-3,.hf-span-4,.hf-span-6{grid-column:span 2!important}
+  #hafalanTargetGuruGrid{grid-template-columns:1fr!important}
+  .rt-stat-grid{grid-template-columns:repeat(2,1fr)!important}
+}
+/* Hafalan penilaian item */
+.hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
+.hf-pn-row:last-child{margin-bottom:0}
+.hf-pn-row:hover{border-color:#bfdbfe;background:#f0f9ff}
 /* Raport Tahfidz */
 @keyframes rt-spin{to{transform:rotate(360deg)}}
 .rt-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:14px;break-inside:avoid}
@@ -286,10 +318,36 @@ tr:hover td{background:#f8fafc}
   .rt-pdf-page{page-break-after:always;padding:20mm}
   .rt-pdf-page:last-child{page-break-after:auto}
 }
-/* Hafalan penilaian item */
-.hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
-.hf-pn-row:last-child{margin-bottom:0}
-.hf-pn-row:hover{border-color:#bfdbfe;background:#f0f9ff}
+/* ── Dark mode: Hafalan & Raport Tahfidz ── */
+html.theme-dark .hf-lbl{background:rgba(245,158,11,.15)!important;border-color:rgba(245,158,11,.3)!important;color:#fbbf24!important}
+html.theme-dark #hafalanFormWrap{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanTargetGuruCard{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanMurajaahInfo{background:rgba(56,189,248,.08)!important;border-color:rgba(56,189,248,.2)!important;color:#7dd3fc!important}
+html.theme-dark #hafalanPoinPreview{background:rgba(251,191,36,.07)!important;border-color:rgba(251,191,36,.2)!important;color:#fbbf24!important}
+html.theme-dark #hafalanAyatInfo{background:#252830!important;border-color:rgba(255,255,255,.08)!important;color:#6b7280!important}
+html.theme-dark [style*="background:linear-gradient(135deg,#eff6ff"]{background:#1a2336!important;border-color:rgba(56,189,248,.2)!important}
+html.theme-dark #modalKelolaPenilaian>div{background:#1e2128!important;border:1px solid rgba(255,255,255,.08)!important;color:#f0f2f8!important}
+html.theme-dark #modalKelolaPenilaian [style*="background:#fff"]{background:#252830!important}
+html.theme-dark #modalKelolaPenilaian [style*="border-bottom:1px solid #f0f0f0"]{border-color:rgba(255,255,255,.06)!important}
+html.theme-dark #modalKelolaPenilaian [style*="background:#f9fafb"]{background:#1e2128!important}
+html.theme-dark #modalKelolaPenilaian [style*="background:#f8faff"]{background:#252830!important}
+html.theme-dark #modalKelolaPenilaian [style*="border-color:#e0eaff"]{border-color:rgba(56,189,248,.15)!important}
+html.theme-dark .hf-pn-row{background:#252830!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .hf-pn-row:hover{background:#2d3142!important;border-color:rgba(56,189,248,.3)!important}
+html.theme-dark .rt-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
+html.theme-dark .rt-stat{background:#252830!important;border-color:rgba(56,189,248,.15)!important}
+html.theme-dark .rt-stat-val{color:#38bdf8!important}
+html.theme-dark .rt-stat-lbl{color:#6b7280!important}
+html.theme-dark .rt-surat-tbl th{background:#252830!important;color:#38bdf8!important;border-color:rgba(56,189,248,.15)!important}
+html.theme-dark .rt-surat-tbl td{border-color:rgba(255,255,255,.05)!important;color:#b0b7c3!important}
+html.theme-dark #page-raport-tahfidz [style*="background:#fff;border:1px solid #e5e7eb"]{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #rtContent [style*="background:#f8faff"],
+html.theme-dark #rtContent [style*="background:#f3f4f6"],
+html.theme-dark #rtContent [style*="background:#f9fafb"]{background:#252830!important}
+html.theme-dark #rtContent [style*="color:#374151"]{color:#b0b7c3!important}
+html.theme-dark #rtContent [style*="color:#111827"]{color:#f0f2f8!important}
+html.theme-dark #rtContent [style*="border-bottom:1px solid #f3f4f6"]{border-color:rgba(255,255,255,.05)!important}
+html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#1e2128)!important}
 .fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
   font-family:inherit;font-size:14px;outline:none;background:var(--card,#fff);color:var(--text);transition:border-color .2s}
 .fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,88,168,.1)}
@@ -2129,20 +2187,20 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
           <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:14px">📝 Input Setoran Hafalan</div>
 
           <!-- GRID TUNGGAL 6 kolom — semua baris berbagi kolom yang sama agar simetris -->
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px">
+          <div class="hf-grid-6" style="margin-bottom:10px">
 
             <!-- Row 1: Siswa(3) | Tanggal(1) | Jenis(2) -->
-            <div style="grid-column:span 3">
+            <div class="hf-span-3">
               <label class="hf-lbl">Pilih Siswa</label>
               <select class="fc" id="hafalanMuridSel" onchange="onHafalanMuridChange()">
                 <option value="">— Pilih Siswa —</option>
               </select>
             </div>
-            <div style="grid-column:span 1">
+            <div class="hf-span-1">
               <label class="hf-lbl">Tanggal</label>
               <input type="date" class="fc" id="hafalanTanggal">
             </div>
-            <div style="grid-column:span 2">
+            <div class="hf-span-2">
               <label class="hf-lbl">Jenis Setoran</label>
               <select class="fc" id="hafalanJenisSel" onchange="onHafalanJenisChange()">
                 <option value="Ziyadah">📖 Ziyadah (Hafalan Baru)</option>
@@ -2153,7 +2211,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
             </div>
 
             <!-- Row 2: Juz(1) | Surat(4) | Halaman(1) — kolom kiri & kanan sejajar dgn row 1 -->
-            <div style="grid-column:span 1">
+            <div class="hf-span-1">
               <label class="hf-lbl">Juz</label>
               <select class="fc" id="hafalanJuzSel">
                 <option value="">— Juz —</option>
@@ -2169,7 +2227,7 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
                 <option value="28">Juz 28</option><option value="29">Juz 29</option><option value="30">Juz 30</option>
               </select>
             </div>
-            <div style="grid-column:span 4">
+            <div class="hf-span-4">
               <label class="hf-lbl">Nama Surat</label>
               <div style="position:relative">
                 <input type="text" class="fc" id="hafalanSuratInput" placeholder="— Ketik atau pilih surat —" autocomplete="off"
@@ -2182,30 +2240,30 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
                 <div id="hafalanSuratDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);z-index:99;max-height:240px;overflow-y:auto;padding:4px"></div>
               </div>
             </div>
-            <div style="grid-column:span 1">
+            <div class="hf-span-1">
               <label class="hf-lbl">Halaman</label>
               <input type="number" class="fc" id="hafalanHalaman" min="1" placeholder="Opsional">
             </div>
 
             <!-- Murajaah info — full width -->
-            <div style="grid-column:span 6">
+            <div class="hf-span-6">
               <div id="hafalanMurajaahInfo" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 12px;font-size:12px;color:#1e40af">
                 <strong>ℹ️ Range Ziyadah:</strong> <span id="hafalanMurajaahRange"></span>
               </div>
             </div>
 
             <!-- Row 3: AyatDari(2) | Sampai(2) | Info(2) — 3 kolom sama lebar -->
-            <div style="grid-column:span 2">
+            <div class="hf-span-2">
               <label class="hf-lbl">Ayat Dari</label>
               <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="Ayat mulai"
                 oninput="clampHafalanAyat(this)">
             </div>
-            <div style="grid-column:span 2">
+            <div class="hf-span-2">
               <label class="hf-lbl">Sampai Ayat</label>
               <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="Ayat selesai"
                 oninput="clampHafalanAyat(this)">
             </div>
-            <div style="grid-column:span 2">
+            <div class="hf-span-2">
               <label class="hf-lbl">Total Ayat Surat</label>
               <div id="hafalanAyatInfo" style="height:42px;border:1.5px solid #e5e7eb;border-radius:var(--r-sm,8px);background:#f9fafb;display:flex;align-items:center;padding:0 12px;font-size:13px;color:#6b7280">
                 <span id="hafalanAyatInfoText">— pilih surat —</span>

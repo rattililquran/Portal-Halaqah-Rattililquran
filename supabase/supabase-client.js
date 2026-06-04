@@ -1146,7 +1146,7 @@ var GuruAPI = {
       nama_murid         : d.nama_murid || '',
       id_halaqah         : d.id_halaqah,
       id_guru            : _uid(),
-      nama_guru          : user.nama_lengkap || '',
+      nama_guru          : (user && (user.nama_lengkap || user.nama)) || '',
       juz                : d.juz ? parseInt(d.juz) : null,
       surat              : d.surat,
       ayat_dari          : parseInt(d.ayat_dari),
