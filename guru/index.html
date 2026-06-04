@@ -328,6 +328,8 @@ html.theme-dark [style*="background:linear-gradient(135deg,#eff6ff,#f0f9ff)"]{ba
 html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{color:#38bdf8!important}
 /* Hf-pn-row */
 /* Hafalan penilaian item */
+.hfkbm-dd-opt{cursor:pointer;transition:background .12s}
+.hfkbm-dd-opt:hover{background:#f0f9ff}
 .hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
 .hf-pn-row:last-child{margin-bottom:0}
 .hf-pn-row:hover{border-color:#bfdbfe;background:#f0f9ff}
@@ -3719,6 +3721,16 @@ function renderHafalanKbm() {
   var juzOpts = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
     .map(function(n){ return '<option value="' + n + '">Juz ' + n + '</option>'; }).join('');
 
+  // Build target map dari data yang sudah dimuat di hafalanTargetGuruCard
+  var _targetMapKbm = {};
+  document.querySelectorAll('#hafalanTargetGuruGrid .hf-target-murid-card').forEach(function(card) {
+    // Try to read from card text — simpan dari server saat loadTargetHafalanGuru dipanggil
+  });
+  // Pakai data dari window._lastTargetData jika ada (set di loadTargetHafalanGuru)
+  if (window._lastTargetDataKbm) {
+    window._lastTargetDataKbm.forEach(function(t){ _targetMapKbm[t.id_murid] = t; });
+  }
+
   function buildCard(m, status) {
     var mid      = m.id_murid;
     var eid      = mid.replace(/[^a-zA-Z0-9-_]/g, '_');
@@ -3727,7 +3739,7 @@ function renderHafalanKbm() {
     var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
 
     return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-      + '<div class="nm-header">'
+      + '<div class="nm-header" style="margin-bottom:12px">'
         + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
         + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
       + '</div>'
@@ -3806,14 +3818,26 @@ function renderHafalanKbm() {
   // Event listeners via delegation (hindari inline handler dengan quote escaping)
   cont.addEventListener('input', function(e) {
     // Surat autocomplete
-    if (e.target.classList.contains('hfkbm-surat-display-input') || e.target.id && e.target.id.startsWith('hfkbm-surat-display-')) {
-      var mid2 = e.target.dataset.mid || e.target.id.replace('hfkbm-surat-display-','').replace(/_/g,'-');
+    if (e.target.id && e.target.id.startsWith('hfkbm-surat-display-')) {
+      var mid2 = e.target.dataset.mid;
       hfKbmSuratInput(mid2, e.target.value);
     }
     // Target surat autocomplete
-    if (e.target.classList.contains('hfkbm-tgt-surat-input') || (e.target.id && e.target.id.startsWith('hfkbm-tgt-surat-'))) {
+    if (e.target.id && e.target.id.startsWith('hfkbm-tgt-surat-')) {
       var mid2 = e.target.dataset.mid;
       hfKbmTargetSuratInput(mid2, e.target.value);
+    }
+    // Fix #4: Clamp ayat dari/sampai ke max ayat surat
+    if (e.target.id && (e.target.id.startsWith('hfkbm-ayat-dari-') || e.target.id.startsWith('hfkbm-ayat-sampai-'))) {
+      var maxV = parseInt(e.target.max); var val = parseInt(e.target.value);
+      if (!isNaN(maxV) && !isNaN(val) && val > maxV) e.target.value = maxV;
+      if (!isNaN(val) && val < 1) e.target.value = 1;
+    }
+    // Fix #5: Clamp target ayat
+    if (e.target.id && (e.target.id.startsWith('hfkbm-tgt-dari-') || e.target.id.startsWith('hfkbm-tgt-sampai-'))) {
+      var maxV = parseInt(e.target.max); var val = parseInt(e.target.value);
+      if (!isNaN(maxV) && !isNaN(val) && val > maxV) e.target.value = maxV;
+      if (!isNaN(val) && val < 1) e.target.value = 1;
     }
   });
   cont.addEventListener('focus', function(e) {
@@ -3838,29 +3862,106 @@ function renderHafalanKbm() {
     if (e.target.classList.contains('hfkbm-kel') || e.target.classList.contains('hfkbm-nil')) {
       updateHfKbmPoin(mid2);
     }
+    // Fix #6: Juz change → clear & refresh surat dropdown
+    if (e.target.id && e.target.id.startsWith('hfkbm-juz-')) {
+      var eid2 = _hfKbmEid(mid2);
+      var dispEl = document.getElementById('hfkbm-surat-display-' + eid2);
+      var valEl  = document.getElementById('hfkbm-surat-' + eid2);
+      if (dispEl) dispEl.value = ''; if (valEl) valEl.value = '';
+      var infoEl = document.getElementById('hfkbm-ayat-info-' + eid2);
+      if (infoEl) infoEl.textContent = '— pilih surat —';
+      hfKbmSuratInput(mid2, '');
+    }
+    // Fix #6: Murajaah → filter surat dari Ziyadah history
+    if (e.target.classList.contains('hfkbm-jenis')) {
+      var eid2    = _hfKbmEid(mid2);
+      var jenisEl = document.getElementById('hfkbm-jenis-' + eid2);
+      var dispEl  = document.getElementById('hfkbm-surat-display-' + eid2);
+      var valEl   = document.getElementById('hfkbm-surat-' + eid2);
+      if (dispEl) dispEl.value = ''; if (valEl) valEl.value = '';
+      if (jenisEl && jenisEl.value === 'Murajaah') {
+        var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
+        window.HQ.GuruAPI.getZiyadahMurid(id_halaqah, mid2).then(function(res) {
+          window._hfKbmZiyadah = window._hfKbmZiyadah || {};
+          window._hfKbmZiyadah[mid2] = res.data || [];
+          hfKbmSuratInput(mid2, '');
+        }).catch(function(){});
+      } else {
+        if (window._hfKbmZiyadah) delete window._hfKbmZiyadah[mid2];
+        hfKbmSuratInput(mid2, '');
+      }
+    }
   });
 
   // Init poin for all hadir cards
   hadirList.forEach(function(m){ updateHfKbmPoin(m.id_murid); });
+  // Restore saved values if navigating back
+  _restoreHafalanKbmCache();
 }
 
 function _hfKbmEid(mid) { return mid.replace(/[^a-zA-Z0-9-_]/g,'_'); }
 
 function hfKbmSuratInput(mid, q) {
-  var eid  = _hfKbmEid(mid);
-  var dd   = document.getElementById('hfkbm-dd-' + eid);
-  var norm = (q||'').toLowerCase().replace(/['-]/g,'');
-  var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
-    .filter(function(s){ return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm); })
-    .slice(0,15);
+  var eid      = _hfKbmEid(mid);
+  var dd       = document.getElementById('hfkbm-dd-' + eid);
+  var norm     = (q||'').toLowerCase().replace(/['-]/g,'');
+  var juzEl    = document.getElementById('hfkbm-juz-' + eid);
+  var selJuz   = juzEl ? parseInt(juzEl.value) : null;
+  var jenisEl2 = document.getElementById('hfkbm-jenis-' + eid);
+  var isMurajaah = jenisEl2 && jenisEl2.value === 'Murajaah';
   if (!dd) return;
-  if (!q || !list.length) { dd.style.display = list.length ? 'block' : 'none'; if (!q && list.length) { /* show all */ } else if (!list.length) return; }
+
+  // Fix #6: Murajaah — hanya tampilkan surat dari Ziyadah murid ini
+  if (isMurajaah) {
+    var ziyadahData = window._hfKbmZiyadah && window._hfKbmZiyadah[mid];
+    if (!ziyadahData) {
+      dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Memuat data Ziyadah...</div>';
+      dd.style.display = 'block';
+      window.HQ.GuruAPI.getZiyadahMurid(sesiAktif && sesiAktif.id_halaqah, mid).then(function(res) {
+        window._hfKbmZiyadah = window._hfKbmZiyadah || {};
+        window._hfKbmZiyadah[mid] = res.data || [];
+        hfKbmSuratInput(mid, q);
+      }).catch(function(){});
+      return;
+    }
+    var zList = ziyadahData.filter(function(z){ return !norm || z.surat.toLowerCase().replace(/['-]/g,'').includes(norm); });
+    if (!zList.length) {
+      dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Tidak ada Ziyadah ditemukan</div>';
+      dd.style.display = 'block'; return;
+    }
+    dd.innerHTML = zList.map(function(z) {
+      var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+        .find(function(s){ return s.latin.toLowerCase().replace(/['-]/g,'') === z.surat.toLowerCase().replace(/['-]/g,''); }) || {};
+      var synth = Object.assign({}, meta, { latin:z.surat, _murajaah:true, _ayat_dari:z.ayat_dari, _ayat_sampai:z.ayat_sampai, juz:meta.juz||[z.juz] });
+      var safeJson = JSON.stringify(synth).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px" '
+        + 'data-latin="' + esc(z.surat) + '" data-info="' + safeJson + '" data-mid="' + esc(mid) + '" '
+        + 'class="hfkbm-dd-opt" '
+        + 'onmousedown="hfKbmSelectSurat(this)">'
+        + '<span style="background:#d1fae5;color:#065f46;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (meta.no||'?') + '</span>'
+        + '<span style="font-weight:600;flex:1">' + esc(z.surat) + '</span>'
+        + '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px">🔄 Ayat ' + z.ayat_dari + '–' + z.ayat_sampai + '</span>'
+      + '</div>';
+    }).join('');
+    dd.style.display = 'block'; return;
+  }
+
+  // Fix #3: filter surat berdasarkan juz yang dipilih
+  var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+    .filter(function(s){
+      var matchJuz  = !selJuz || (s.juz && s.juz.includes(selJuz));
+      var matchName = !norm   || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
+      return matchJuz && matchName;
+    }).slice(0,20);
+  if (!list.length) {
+    dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Tidak ditemukan</div>';
+    dd.style.display = 'block'; return;
+  }
   dd.innerHTML = list.map(function(s) {
-    var safeLatIn  = s.latin.replace(/"/g,'&quot;');
-    var safeJson   = JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    var safeJson = JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px" '
-      + 'data-latin="' + safeLatIn + '" data-info="' + safeJson + '" data-mid="' + esc(mid) + '" '
-      + 'onmouseover="this.style.background=\'#f0f9ff\'" onmouseout="this.style.background=\'\'" '
+      + 'data-latin="' + s.latin.replace(/"/g,'&quot;') + '" data-info="' + safeJson + '" data-mid="' + esc(mid) + '" '
+      + 'class="hfkbm-dd-opt" '
       + 'onmousedown="hfKbmSelectSurat(this)">'
       + '<span style="background:#e0f2fe;color:#0284c7;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + s.no + '</span>'
       + '<span style="font-weight:600;flex:1">' + esc(s.latin) + '</span>'
@@ -3869,6 +3970,7 @@ function hfKbmSuratInput(mid, q) {
   }).join('');
   dd.style.display = 'block';
 }
+
 
 function hfKbmSelectSurat(el) {
   var mid    = el.dataset.mid;
@@ -3882,12 +3984,20 @@ function hfKbmSelectSurat(el) {
   if (infoEl) infoEl.textContent = latin + ' = ' + s.ayat + ' ayat';
   var dari   = document.getElementById('hfkbm-ayat-dari-' + eid);
   var sampai = document.getElementById('hfkbm-ayat-sampai-' + eid);
+  // Fix #4: set max attribute agar clamp bisa bekerja
   if (dari)   { dari.max   = s.ayat; }
   if (sampai) { sampai.max = s.ayat; }
+  // Fix #6: Murajaah — auto-fill ayat dari Ziyadah range
+  if (s._murajaah && s._ayat_dari && s._ayat_sampai) {
+    if (dari)   { dari.value   = s._ayat_dari;   dari.min   = s._ayat_dari;   dari.max   = s._ayat_sampai; }
+    if (sampai) { sampai.value = s._ayat_sampai; sampai.min = s._ayat_dari;   sampai.max = s._ayat_sampai; }
+    if (infoEl) infoEl.textContent = latin + ' · Range Ziyadah: Ayat ' + s._ayat_dari + '–' + s._ayat_sampai;
+  }
   if (s.juz && s.juz.length === 1) {
     var juzEl = document.getElementById('hfkbm-juz-' + eid);
     if (juzEl) juzEl.value = s.juz[0];
   }
+  // Fix #5: set max on target ayat too (cleared since surat changed)
 }
 
 function hfKbmTargetSuratInput(mid, q) {
@@ -4022,10 +4132,62 @@ function goToPreviewNonReguler() {
 }
 
 function goToJurnal() {
+  // Simpan cache hafalan KBM agar tidak hilang saat navigasi mundur
+  _saveHafalanKbmCache();
   document.getElementById('jurnalJamSelesai').value = new Date().toTimeString().slice(0,5);
   goPage('jurnal');
   renderSteps('jurnal');
   document.getElementById('pageTitle').textContent = 'Jurnal — Step 4/4';
+}
+
+// Cache hafalan KBM input values untuk survive navigasi maju-mundur
+function _saveHafalanKbmCache() {
+  if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
+  if (!muridSesi) return;
+  muridSesi.forEach(function(m) {
+    var eid = _hfKbmEid(m.id_murid);
+    var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+    window._hafalanKbmCache[m.id_murid] = {
+      jenis  : getV('hfkbm-jenis-'+eid), juz     : getV('hfkbm-juz-'+eid),
+      surat  : getV('hfkbm-surat-'+eid), suratD  : getV('hfkbm-surat-display-'+eid),
+      dari   : getV('hfkbm-ayat-dari-'+eid), sampai: getV('hfkbm-ayat-sampai-'+eid),
+      kel    : getV('hfkbm-kel-'+eid),   nil    : getV('hfkbm-nil-'+eid),
+      kam    : getV('hfkbm-kam-'+eid),   catatan: getV('hfkbm-catatan-'+eid),
+      tgtSrt : getV('hfkbm-tgt-surat-'+eid),
+      tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
+    };
+  });
+}
+
+function _restoreHafalanKbmCache() {
+  if (!window._hafalanKbmCache || !muridSesi) return;
+  muridSesi.forEach(function(m) {
+    var eid   = _hfKbmEid(m.id_murid);
+    var cache = window._hafalanKbmCache[m.id_murid];
+    if (!cache) return;
+    var setV = function(id,v){ var el=document.getElementById(id);if(el&&v)el.value=v; };
+    setV('hfkbm-jenis-'+eid,   cache.jenis);
+    setV('hfkbm-juz-'+eid,     cache.juz);
+    setV('hfkbm-surat-'+eid,   cache.surat);
+    setV('hfkbm-surat-display-'+eid, cache.suratD);
+    setV('hfkbm-ayat-dari-'+eid,  cache.dari);
+    setV('hfkbm-ayat-sampai-'+eid,cache.sampai);
+    setV('hfkbm-kel-'+eid,     cache.kel);
+    setV('hfkbm-nil-'+eid,     cache.nil);
+    setV('hfkbm-kam-'+eid,     cache.kam);
+    setV('hfkbm-catatan-'+eid, cache.catatan);
+    setV('hfkbm-tgt-surat-'+eid, cache.tgtSrt);
+    setV('hfkbm-tgt-dari-'+eid,  cache.tgtDari);
+    setV('hfkbm-tgt-sampai-'+eid,cache.tgtSmp);
+    // Update ayat info display
+    if (cache.suratD) {
+      var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+        .find(function(s){ return s.latin === cache.suratD; });
+      var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
+      if (infoEl && meta) { infoEl.textContent = cache.suratD + ' = ' + meta.ayat + ' ayat'; }
+    }
+    updateHfKbmPoin(m.id_murid);
+  });
 }
 
 function lanjutKeJurnal() {
@@ -5115,10 +5277,11 @@ function showPreview() {
     return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status };
   });
 
-  // Cek adab atau kamera kosong untuk murid hadir (bukan Alpa/Izin)
-  const adabKameraKosong = nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && (!m.adab || !m.kamera); }).length;
+  // Cek adab atau kamera kosong hanya untuk KBM Reguler
+  const isQiyamPreview = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
+  const adabKameraKosong = isQiyamPreview ? 0 : nilaiItems.filter(function(m){ return !['A','I'].includes(m.status) && (!m.adab || !m.kamera); }).length;
   const warnEl = document.getElementById('pvWarningNilai');
-  if (adabKameraKosong > 0) {
+  if (adabKameraKosong > 0 && !isQiyamPreview) {
     document.getElementById('pvWarningNilaiTxt').textContent = adabKameraKosong;
     warnEl.style.display = 'block';
   } else {

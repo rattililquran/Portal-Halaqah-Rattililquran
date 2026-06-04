@@ -367,7 +367,7 @@ var GuruAPI = {
       materi_belajar: d.materi_belajar, pencapaian_modul: d.pencapaian_modul,
       halaman_modul: d.halaman_modul, metode: d.metode, catatan_umum: d.catatan_umum,
       jam_selesai: d.jam_selesai, latihan_mandiri: d.latihan_mandiri,
-      jenis_latihan: d.jenis_latihan, deadline_latihan: d.deadline_latihan,
+      jenis_latihan: d.jenis_latihan || null, deadline_latihan: d.deadline_latihan || null,
     }).eq('id_kbm', d.id_kbm);
     _check(error, 'simpanJurnalKBM');
     return { status: 'ok', message: 'Jurnal KBM berhasil disimpan' };
