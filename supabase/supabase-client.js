@@ -1099,6 +1099,101 @@ var GuruAPI = {
   generateRekapNilai: async function(id_halaqah) {
     return { status: 'ok', message: 'Rekap Nilai: fitur in progress' };
   },
+
+  // ── Tahfidz / Setoran Hafalan (Level Qiyam) ──────────────────────────
+  // Ambil halaqah Level Qiyam milik guru yang sedang login
+  getQiyamHalaqah: async function() {
+    var { data, error } = await _sb.from('halaqah')
+      .select('id_halaqah, nama_halaqah, level, jadwal_hari, jam_mulai, jam_selesai')
+      .eq('id_guru', _uid())
+      .eq('level', 'Level Qiyam')
+      .eq('status', 'aktif')
+      .order('nama_halaqah');
+    _check(error, 'getQiyamHalaqah');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Ambil daftar murid aktif di halaqah Qiyam tertentu (untuk dropdown form input)
+  getMuridQiyam: async function(id_halaqah) {
+    var { data, error } = await _sb.from('anggota')
+      .select('id_murid, nama_murid')
+      .eq('id_halaqah', id_halaqah)
+      .eq('status', 'aktif')
+      .order('nama_murid');
+    _check(error, 'getMuridQiyam');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Ambil riwayat setoran di halaqah Qiyam (bisa filter per murid)
+  getSetoranHafalanGuru: async function(id_halaqah, id_murid, limit, offset) {
+    var q = _sb.from('setoran_hafalan')
+      .select('*', { count: 'exact' })
+      .eq('id_halaqah', id_halaqah)
+      .order('created_at', { ascending: false });
+    if (id_murid) q = q.eq('id_murid', id_murid);
+    var lim = limit || 20;
+    q = q.range(offset || 0, (offset || 0) + lim - 1);
+    var { data, error, count } = await q;
+    _check(error, 'getSetoranHafalanGuru');
+    return { status: 'ok', data: data || [], total: count || 0, has_more: (offset || 0) + lim < (count || 0) };
+  },
+
+  // Input setoran hafalan baru
+  addSetoranHafalan: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_murid           : d.id_murid,
+      nama_murid         : d.nama_murid || '',
+      id_halaqah         : d.id_halaqah,
+      id_guru            : _uid(),
+      nama_guru          : user.nama_lengkap || '',
+      juz                : d.juz ? parseInt(d.juz) : null,
+      surat              : d.surat,
+      ayat_dari          : parseInt(d.ayat_dari),
+      ayat_sampai        : parseInt(d.ayat_sampai),
+      jenis              : d.jenis || 'Ziyadah',
+      nilai              : d.nilai,
+      kelancaran         : d.kelancaran || null,
+      catatan            : d.catatan   || null,
+      target_surat       : d.target_surat       || null,
+      target_ayat_dari   : d.target_ayat_dari   ? parseInt(d.target_ayat_dari)   : null,
+      target_ayat_sampai : d.target_ayat_sampai ? parseInt(d.target_ayat_sampai) : null,
+    };
+    var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
+    _check(error, 'addSetoranHafalan');
+    return { status: 'ok', data };
+  },
+
+  // Ambil data Ziyadah murid tertentu (untuk validasi range Murajaah)
+  getZiyadahMurid: async function(id_halaqah, id_murid) {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('surat, juz, ayat_dari, ayat_sampai')
+      .eq('id_halaqah', id_halaqah)
+      .eq('id_murid', id_murid)
+      .eq('jenis', 'Ziyadah');
+    _check(error, 'getZiyadahMurid');
+    // Merge range per surat (ambil min ayat_dari & max ayat_sampai)
+    var map = {};
+    (data || []).forEach(function(r) {
+      if (!map[r.surat]) {
+        map[r.surat] = { surat: r.surat, juz: r.juz, ayat_dari: r.ayat_dari, ayat_sampai: r.ayat_sampai };
+      } else {
+        map[r.surat].ayat_dari   = Math.min(map[r.surat].ayat_dari,   r.ayat_dari);
+        map[r.surat].ayat_sampai = Math.max(map[r.surat].ayat_sampai, r.ayat_sampai);
+      }
+    });
+    return { status: 'ok', data: Object.values(map) };
+  },
+
+  // Hapus setoran (hanya yang dibuat guru sendiri)
+  deleteSetoranHafalan: async function(id_setoran) {
+    var { error } = await _sb.from('setoran_hafalan')
+      .delete()
+      .eq('id_setoran', id_setoran)
+      .eq('id_guru', _uid());
+    _check(error, 'deleteSetoranHafalan');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -1523,6 +1618,32 @@ var MuridAPI = {
     var { error } = await _sb.from('users').update({ no_hp: d.no_hp, email: d.email }).eq('id_user', _uid());
     _check(error, 'updateProfil');
     return { status: 'ok' };
+  },
+
+  // ── Tahfidz / Setoran Hafalan (Level Qiyam) ──────────────────────────
+  // Riwayat setoran milik murid yang login (hanya bisa diakses jika Level Qiyam via RLS)
+  getSetoranHafalan: async function(limit, offset) {
+    var lim = limit || 10;
+    var { data, error, count } = await _sb.from('setoran_hafalan')
+      .select('*', { count: 'exact' })
+      .eq('id_murid', _uid())
+      .order('created_at', { ascending: false })
+      .range(offset || 0, (offset || 0) + lim - 1);
+    _check(error, 'getSetoranHafalan');
+    return { status: 'ok', data: data || [], total: count || 0, has_more: (offset || 0) + lim < (count || 0) };
+  },
+
+  // Target hafalan berikutnya (setoran terbaru yang punya target_surat)
+  getTargetHafalan: async function() {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('target_surat, target_ayat_dari, target_ayat_sampai, nama_guru, created_at')
+      .eq('id_murid', _uid())
+      .not('target_surat', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    _check(error, 'getTargetHafalan');
+    return { status: 'ok', data: data || null };
   },
 };
 

@@ -675,6 +675,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .at-btn-share{background:var(--blue);color:#fff}
 .at-btn-share:hover{opacity:.9}
 /* Dashboard card At-Tibyan */
+/* ── Hafalan filter buttons ── */
+.hflt-btn{background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:100px;padding:5px 13px;font-size:11px;font-weight:700;color:#6b7280;cursor:pointer;white-space:nowrap;transition:all .18s}
+.hflt-btn.active{background:linear-gradient(135deg,#1d4ed8,#2563eb);border-color:#1d4ed8;color:#fff}
+/* ── Hafalan setoran card ── */
+.hfal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s,box-shadow .15s}
+.hfal-card:hover{border-color:#93c5fd;box-shadow:0 2px 10px rgba(37,99,235,.08)}
+.hfal-nilai{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
+.hfal-nilai-A{background:#dbeafe;color:#1d4ed8}
+.hfal-nilai-B{background:#d1fae5;color:#065f46}
+.hfal-nilai-C{background:#fef3c7;color:#92400e}
+.hfal-jenis-chip{display:inline-flex;align-items:center;gap:4px;background:#f3f4f6;border-radius:100px;padding:2px 9px;font-size:10px;font-weight:700;color:#4b5563}
+.hfal-catatan{background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:8px 10px;font-size:12px;color:#78350f;line-height:1.55;margin-top:8px;font-style:italic}
 .attibyan-dash-card{border-radius:20px;border:1px solid rgba(217,119,6,.25);
   background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 60%,#fde68a 100%);
   padding:16px;margin-bottom:14px;cursor:pointer;
@@ -2818,6 +2830,78 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       </div>
     </div>
 
+    <!-- ════ SETORAN HAFALAN (TAHFIDZ) ════ -->
+    <div class="page" id="page-hafalan">
+
+      <!-- ── LOCKED STATE: non-Qiyam ── -->
+      <div id="hafalanLocked" style="display:none;padding:24px 16px;text-align:center;max-width:420px;margin:0 auto">
+        <div style="font-size:64px;margin-bottom:16px;line-height:1">📖</div>
+        <div style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:8px">Kelas Tahfidz</div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border-radius:20px;padding:4px 14px;margin-bottom:20px">
+          <span style="font-size:14px">🔒</span>
+          <span style="font-size:12px;font-weight:700;color:#6b7280">Khusus Level Qiyam</span>
+        </div>
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:16px;padding:20px 18px;margin-bottom:20px">
+          <div style="font-size:13px;line-height:1.7;color:#166534;font-weight:500">
+            "Kelas Tahfidz khusus untuk Level Qiyam.<br>
+            Semoga Allah mudahkan untuk sampai ke Level Qiyam." 🤲
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px">
+          <div style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Perjalanan Level Anda</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
+            <div id="hafalanLevelPath" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center"></div>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:#6b7280">Level saat ini: <strong id="hafalanCurrentLevel" style="color:var(--blue)">-</strong></div>
+        </div>
+      </div>
+
+      <!-- ── UNLOCKED STATE: Level Qiyam ── -->
+      <div id="hafalanContent" style="display:none;padding:16px;max-width:600px;margin:0 auto">
+
+        <!-- Target hafalan -->
+        <div id="hafalanTargetCard" style="display:none;background:linear-gradient(148deg,#0a2463,#1046a8,#1a73e8);border-radius:18px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.07);pointer-events:none"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;position:relative;z-index:1">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:13px">🎯</div>
+            <span style="font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd">Target Hafalan Berikutnya</span>
+          </div>
+          <div id="hafalanTargetSurat" style="font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;position:relative;z-index:1"></div>
+          <div id="hafalanTargetAyat" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:100px;margin-bottom:8px;position:relative;z-index:1"></div>
+          <div id="hafalanTargetMeta" style="font-size:11px;color:rgba(255,255,255,0.6);position:relative;z-index:1"></div>
+        </div>
+
+        <!-- Riwayat setoran -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:15px;font-weight:800;color:var(--text)">Riwayat Setoran</div>
+          <button onclick="loadSetoranHafalan(true)" style="font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:4px 0">↺ Refresh</button>
+        </div>
+
+        <!-- Filter jenis -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px">
+          <button class="hflt-btn active" onclick="filterHafalan('')" data-f="">Semua</button>
+          <button class="hflt-btn" onclick="filterHafalan('Ziyadah')" data-f="Ziyadah">📖 Ziyadah</button>
+          <button class="hflt-btn" onclick="filterHafalan('Murajaah')" data-f="Murajaah">🔄 Murajaah</button>
+          <button class="hflt-btn" onclick="filterHafalan('Tasmi\'')" data-f="Tasmi'">🎤 Tasmi'</button>
+          <button class="hflt-btn" onclick="filterHafalan('Sabqi')" data-f="Sabqi">⚡ Sabqi</button>
+        </div>
+
+        <div id="hafalanList"></div>
+
+        <div id="hafalanLoadMore" style="display:none;text-align:center;margin-top:12px">
+          <button onclick="loadSetoranHafalan(false)" style="background:#f3f4f6;border:none;border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;color:#374151;cursor:pointer;width:100%">
+            Muat lebih banyak
+          </button>
+        </div>
+        <div id="hafalanEmpty" style="display:none;text-align:center;padding:40px 0">
+          <div style="font-size:40px;margin-bottom:8px">📭</div>
+          <div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:4px">Belum ada setoran</div>
+          <div style="font-size:12px;color:#9ca3af">Setoran hafalan pertama Anda akan muncul di sini</div>
+        </div>
+
+      </div>
+    </div><!-- /page-hafalan -->
+
     <!-- ════ PANDUAN MURID ════ -->
     <div class="page" id="page-panduan">
       <div style="padding:16px 16px 0;max-width:640px;margin:0 auto">
@@ -3161,6 +3245,16 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
       <button class="sidebar-item ico-purple" id="sidebarAssessmentBtn" onclick="closeSidebar();goPage('assessment')" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         Assessment Mandiri
+      </button>
+
+      <!-- ── TAHFIDZ ── -->
+      <div class="sidebar-section">Tahfidz</div>
+
+      <button class="sidebar-item ico-green" id="sidebarHafalanBtn" onclick="closeSidebar();goPage('hafalan')" data-p="hafalan">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <span style="flex:1">Setoran Hafalan</span>
+        <span id="sidebarQiyamBadge" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4">Qiyam</span>
+        <span id="sidebarHafalanLockIcon" style="font-size:13px;color:#9ca3af">🔒</span>
       </button>
 
       <!-- ── AKUN ── -->
@@ -4169,6 +4263,7 @@ function goPage(name, swipeDir) {
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
+  else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -4208,6 +4303,16 @@ async function loadDashboard() {
     if (sbHq) sbHq.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' + esc((_hqNama||'Halaqah') + (_lvl?' · '+_lvl:''));
     var sbAsmt = document.getElementById('sidebarAssessmentBtn');
     if (sbAsmt) sbAsmt.style.display = ['Level 1','Level 2'].includes(_lvl) ? 'flex' : 'none';
+    // Sidebar hafalan: tampilkan lock/unlock sesuai level
+    var lockIcon = document.getElementById('sidebarHafalanLockIcon');
+    var qiyamBdg = document.getElementById('sidebarQiyamBadge');
+    if (_lvl === 'Level Qiyam') {
+      if (lockIcon) lockIcon.style.display = 'none';
+      if (qiyamBdg) qiyamBdg.style.display = 'inline-block';
+    } else {
+      if (lockIcon) lockIcon.style.display = 'inline';
+      if (qiyamBdg) qiyamBdg.style.display = 'none';
+    }
     // Init ketua kelas jika is_ketua = true
     initKetua(ang.is_ketua || false, ang.halaqah_ketua || null);
 
@@ -6127,6 +6232,165 @@ var _assessmentItems   = null; // { level: { kategori: [items] } }
 var _assessmentJawaban = {};   // { id_item: status }
 var _assessmentDirty   = false;
 var _assessmentLevel   = '';
+// ══════════════════════════════════════════
+//  SETORAN HAFALAN (TAHFIDZ — LEVEL QIYAM)
+// ══════════════════════════════════════════
+var _hafalanOffset   = 0;
+var _hafalanFilter   = '';
+var _hafalanAllData  = [];   // cache semua setoran yang sudah dimuat
+var HAFALAN_LEVEL    = 'Level Qiyam';
+var HAFALAN_LEVELS   = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level Qiyam'];
+
+function _isQiyam() {
+  return dashData && dashData.halaqah && dashData.halaqah.level === HAFALAN_LEVEL;
+}
+
+function loadPageHafalan() {
+  var locked   = document.getElementById('hafalanLocked');
+  var content  = document.getElementById('hafalanContent');
+  var lockIcon = document.getElementById('sidebarHafalanLockIcon');
+  var qiyamBdg = document.getElementById('sidebarQiyamBadge');
+
+  if (_isQiyam()) {
+    // Unlocked
+    if (locked)   locked.style.display   = 'none';
+    if (content)  content.style.display  = 'block';
+    if (lockIcon) lockIcon.style.display = 'none';
+    if (qiyamBdg) qiyamBdg.style.display = 'inline-block';
+    _hafalanOffset  = 0;
+    _hafalanAllData = [];
+    loadSetoranHafalan(true);
+    loadTargetHafalan();
+  } else {
+    // Locked — tampilkan pesan motivasi + level path
+    if (locked)   locked.style.display  = 'block';
+    if (content)  content.style.display = 'none';
+    if (lockIcon) lockIcon.style.display = 'inline';
+    if (qiyamBdg) qiyamBdg.style.display = 'none';
+    _renderHafalanLevelPath();
+  }
+}
+
+function _renderHafalanLevelPath() {
+  var el = document.getElementById('hafalanLevelPath');
+  if (!el) return;
+  var currentLevel = (dashData && dashData.halaqah && dashData.halaqah.level) || '-';
+  el.innerHTML = HAFALAN_LEVELS.map(function(lv, i) {
+    var isCurrent  = lv === currentLevel;
+    var isQiyam    = lv === HAFALAN_LEVEL;
+    var isPast     = HAFALAN_LEVELS.indexOf(currentLevel) > i;
+    var color      = isCurrent  ? '#2563eb'
+                   : isQiyam    ? '#10b981'
+                   : isPast     ? '#6b7280' : '#d1d5db';
+    var bg         = isCurrent  ? '#dbeafe'
+                   : isQiyam    ? '#d1fae5'
+                   : isPast     ? '#f3f4f6' : '#f9fafb';
+    var chip = '<span style="background:' + bg + ';color:' + color + ';border-radius:100px;'
+             + 'padding:3px 10px;font-size:11px;font-weight:' + (isCurrent || isQiyam ? '800' : '600') + ';'
+             + 'border:1.5px solid ' + (isCurrent ? '#93c5fd' : isQiyam ? '#6ee7b7' : '#e5e7eb') + '">'
+             + (isQiyam ? '🕌 ' : '') + lv + (isCurrent ? ' ← Anda' : '') + '</span>';
+    var arrow = i < HAFALAN_LEVELS.length - 1
+      ? '<span style="color:#d1d5db;font-size:12px">→</span>' : '';
+    return chip + arrow;
+  }).join('');
+
+  var lvEl = document.getElementById('hafalanCurrentLevel');
+  if (lvEl) lvEl.textContent = currentLevel;
+}
+
+async function loadTargetHafalan() {
+  try {
+    var res = await window.HQ.MuridAPI.getTargetHafalan();
+    var t   = res.data;
+    var card = document.getElementById('hafalanTargetCard');
+    if (!card) return;
+    if (!t || !t.target_surat) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('hafalanTargetSurat').textContent = t.target_surat;
+    document.getElementById('hafalanTargetAyat').innerHTML =
+      '📌 Ayat <strong>' + t.target_ayat_dari + '</strong> – <strong>' + t.target_ayat_sampai + '</strong>';
+    document.getElementById('hafalanTargetMeta').innerHTML =
+      'Ditetapkan oleh <strong style="color:#93c5fd">' + (t.nama_guru || 'Guru') + '</strong>'
+      + ' &nbsp;·&nbsp; ' + _fmtDateHafalan(t.created_at);
+  } catch(e) {
+    console.warn('loadTargetHafalan:', e);
+  }
+}
+
+async function loadSetoranHafalan(reset) {
+  if (reset) { _hafalanOffset = 0; _hafalanAllData = []; }
+  var el   = document.getElementById('hafalanList');
+  var more = document.getElementById('hafalanLoadMore');
+  var empt = document.getElementById('hafalanEmpty');
+  if (!el) return;
+  if (_hafalanOffset === 0) el.innerHTML = '<div style="text-align:center;padding:24px 0;color:#9ca3af;font-size:13px">⏳ Memuat...</div>';
+  try {
+    var res = await window.HQ.MuridAPI.getSetoranHafalan(10, _hafalanOffset);
+    var list = res.data || [];
+    _hafalanAllData = _hafalanAllData.concat(list);
+    _hafalanOffset += list.length;
+    _renderHafalanList();
+    if (more) more.style.display = res.has_more ? 'block' : 'none';
+    if (empt) empt.style.display = (!_hafalanAllData.length) ? 'block' : 'none';
+  } catch(e) {
+    if (el) el.innerHTML = '<div style="text-align:center;padding:24px 0;color:#ef4444;font-size:13px">Gagal memuat data. Coba refresh.</div>';
+  }
+}
+
+function filterHafalan(jenis) {
+  _hafalanFilter = jenis;
+  document.querySelectorAll('.hflt-btn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-f') === jenis);
+  });
+  _renderHafalanList();
+}
+
+function _renderHafalanList() {
+  var el = document.getElementById('hafalanList');
+  if (!el) return;
+  var list = _hafalanFilter
+    ? _hafalanAllData.filter(function(r){ return r.jenis === _hafalanFilter; })
+    : _hafalanAllData;
+  if (!list.length) { el.innerHTML = ''; return; }
+
+  var jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', "Tasmi'": '🎤', Sabqi: '⚡' };
+  el.innerHTML = list.map(function(r) {
+    var nilaiCls = 'hfal-nilai-' + (r.nilai || 'C');
+    var catatan  = r.catatan
+      ? '<div class="hfal-catatan"><i style="margin-right:4px">💬</i>' + _esc(r.catatan) + '</div>'
+      : '';
+    var target   = (r.target_surat)
+      ? '<div style="margin-top:6px;font-size:11px;color:#059669;font-weight:600">'
+        + '🎯 Target: ' + _esc(r.target_surat) + ' · Ayat ' + r.target_ayat_dari + '–' + r.target_ayat_sampai
+        + '</div>'
+      : '';
+    return '<div class="hfal-card">'
+      + '<div class="hfal-nilai ' + nilaiCls + '">' + (r.nilai || '?') + '</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+          + '<span style="font-size:14px;font-weight:800;color:#111827">Juz ' + (r.juz || '-') + ' · ' + _esc(r.surat) + '</span>'
+          + '<span class="hfal-jenis-chip">' + (jenisIcon[r.jenis] || '📖') + ' ' + _esc(r.jenis || 'Ziyadah') + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#6b7280;margin-bottom:2px">Ayat <strong>' + r.ayat_dari + '</strong> – <strong>' + r.ayat_sampai + '</strong>'
+          + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
+        + '<div style="font-size:11px;color:#9ca3af">' + _fmtDateHafalan(r.created_at) + ' &nbsp;·&nbsp; ' + _esc(r.nama_guru || '-') + '</div>'
+        + catatan + target
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function _fmtDateHafalan(iso) {
+  if (!iso) return '-';
+  try {
+    return new Date(iso).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  } catch(e) { return iso; }
+}
+
+function _esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 var _assessmentLoading = false; // debounce flag cegah double-load
 
 var ASMT_VALID_LEVELS = ['Level 1', 'Level 2'];
