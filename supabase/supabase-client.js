@@ -1002,18 +1002,36 @@ var GuruAPI = {
     var { data: komponen, error: errKomp } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
     _check(errKomp, 'generateRaportHalaqah:komponen');
     if (!komponen || !komponen.length) return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
-    var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode);
-    var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_halaqah', d.id_halaqah);
-    var { data: atLog } = await _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah);
-    var { count: totalAt } = await _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai');
-    var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle();
+
+    // BUG-021 fix: baca threshold grade dari DB, bukan hardcode
+    var { data: cfgRows } = await _sb.from('konfigurasi_raport').select('key, value');
+    var cfgMap = {}; (cfgRows || []).forEach(function(r) { cfgMap[r.key] = r.value; });
+    var gradeConfig = {
+      mumtaz      : parseInt(cfgMap['grade_mumtaz']         || '90'),
+      jayyidJiddan: parseInt(cfgMap['grade_jayyid_jiddan']  || '80'),
+      jayyid      : parseInt(cfgMap['grade_jayyid']         || '70'),
+      bonusPerfect: parseInt(cfgMap['bonus_perfect_attendance'] || '5'),
+    };
+
+    var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
+      _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
+      _sb.from('nilai_kbm').select('*').eq('id_halaqah', d.id_halaqah),
+      _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah),
+      _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
+      _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
+    ]);
+    var nilaiManual = nilaiManualRes.data;
+    var nilaiKBM    = nilaiKBMRes.data;
+    var atLog       = atLogRes.data;
+    var totalAt     = atSesiRes.count || 0;
+    var catatan     = catatanRes.data;
 
     var berhasil = [], gagal = [];
     for (var i = 0; i < (anggota || []).length; i++) {
       var m = anggota[i];
       try {
         var raportData = _kalkulasiRaport(m.id_murid, d.id_periode, d.id_halaqah,
-          komponen, nilaiManual, nilaiKBM, atLog, totalAt || 0);
+          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig);
         var detailJson = raportData.komponen;
         var { error: upErr } = await _sb.from('raport')
           .upsert({
@@ -1283,10 +1301,18 @@ var GuruAPI = {
 // ─────────────────────────────────────────────
 //  KALKULASI RAPORT (helper internal)
 // ─────────────────────────────────────────────
-function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt) {
+// BUG-021 fix: gradeConfig parameter opsional untuk backward compat
+function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig) {
   var myKBM = (nilaiKBM || []).filter(function(n) { return n.id_murid === idMurid; });
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });
+
+  // BUG-021: threshold dari gradeConfig (dari DB), fallback ke default jika tidak ada
+  var G = gradeConfig || {};
+  var GRADE_MUMTAZ       = G.mumtaz       || 90;
+  var GRADE_JAYYID_JIDDAN= G.jayyidJiddan || 80;
+  var GRADE_JAYYID       = G.jayyid       || 70;
+  var BONUS_PERFECT      = G.bonusPerfect != null ? G.bonusPerfect : 5;
 
   var ADAB_W = 70, KAM_W = 30;
 
@@ -1316,9 +1342,13 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
 
   var nilaiAkhir = nilaiKomp.reduce(function(s,k){return s+k.nilai_bobot;}, 0);
   var alpa = myKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
-  if (myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + 5);
+  // BUG-021: bonus perfect attendance dari DB config
+  if (myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
   var predikat = myKBM.length === 0 ? 'Belum Ada Data'
-    : nilaiAkhir >= 90 ? 'Mumtaz' : nilaiAkhir >= 80 ? 'Jayyid Jiddan' : nilaiAkhir >= 70 ? 'Jayyid' : 'Maqbul';
+    : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
+    : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
+    : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
+    : 'Maqbul';
   return { nilai_akhir: nilaiAkhir, predikat, komponen: nilaiKomp };
 }
 
@@ -1481,10 +1511,11 @@ var MuridAPI = {
 
   getPengumuman: async function() {
     var id_murid = _uid();
-    var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid', id_murid).eq('status','aktif').single();
+    // BUG-019 fix: maybeSingle() agar tidak error jika murid di beberapa halaqah
+    var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid', id_murid).eq('status','aktif').maybeSingle();
     var id_halaqah = anggota && anggota.id_halaqah;
     var q = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(15);
-    if (id_halaqah) q = q.or('target.in.(semua,all),id_halaqah.eq.' + id_halaqah);
+    if (id_halaqah) q = q.or('target.eq.semua,target.eq.all,id_halaqah.eq.' + id_halaqah);
     else q = q.in('target', ['semua','all']);
     var { data, error } = await q;
     _check(error, 'getPengumuman');

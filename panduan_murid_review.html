@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Murid — Rattililqur'an [REVIEW FILE]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#f8fafc;color:#0f172a;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── HEADER (hijau-teal untuk murid) ── */
+.pg-header{
+  background:linear-gradient(135deg,#059669 0%,#10b981 100%);
+  padding:28px 20px 24px;
+  position:sticky;top:0;z-index:100;
+}
+.pg-header-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.pg-header-title{flex:1}
+.pg-header-title h1{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.pg-header-title p{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500}
+.pg-header-ico{font-size:28px}
+
+/* ── SEARCH ── */
+.pg-search-wrap{max-width:680px;margin:0 auto;padding:16px 20px 0}
+.pg-search{
+  width:100%;padding:12px 16px 12px 40px;border:1.5px solid #e2e8f0;border-radius:12px;
+  font-family:inherit;font-size:14px;color:#0f172a;background:#fff;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:14px center;
+}
+.pg-search:focus{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.1)}
+
+/* ── CONTENT ── */
+.pg-content{max-width:680px;margin:0 auto;padding:20px 20px 40px}
+
+/* ── SECTION ── */
+.pg-section{margin-bottom:10px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(14,116,199,.07)}
+
+.pg-section-head{
+  width:100%;display:flex;align-items:center;gap:14px;
+  padding:16px 18px;border:none;background:transparent;
+  cursor:pointer;text-align:left;font-family:inherit;
+  transition:background .15s;
+}
+.pg-section-head:hover{background:#f8fafc}
+.pg-section-head.open{background:#f0fdf4}
+
+.pg-sec-ico{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.ico-blue{background:#eff8ff}
+.ico-green{background:#f0fdf4}
+.ico-amber{background:#fffbeb}
+.ico-purple{background:#faf5ff}
+.ico-red{background:#fff5f5}
+.ico-teal{background:#f0fdfa}
+.ico-gold{background:#fefce8}
+
+.pg-sec-info{flex:1}
+.pg-sec-title{font-size:14.5px;font-weight:800;color:#0f172a;line-height:1.3}
+.pg-sec-sub{font-size:12px;color:#64748b;font-weight:500;margin-top:2px}
+
+.pg-chevron{
+  width:24px;height:24px;border-radius:50%;background:#f1f5f9;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),background .15s;
+}
+.pg-chevron svg{width:12px;height:12px;stroke:#64748b}
+.pg-section-head.open .pg-chevron{transform:rotate(180deg);background:#10b981}
+.pg-section-head.open .pg-chevron svg{stroke:#fff}
+
+.pg-section-body{display:none;padding:0 18px 18px}
+.pg-section-body.open{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── KETUA SECTION (special) ── */
+.pg-section.ketua-only{border:2px solid #f59e0b}
+.pg-section.ketua-only .pg-section-head.open{background:#fffbeb}
+.pg-section.ketua-only .pg-section-head.open .pg-chevron{background:#f59e0b}
+.ketua-badge{background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:100px;border:1px solid #fde68a;white-space:nowrap}
+
+.pg-sep{height:1px;background:#e2e8f0;margin-bottom:16px}
+
+/* ── CONTENT ELEMENTS ── */
+.pg-steps{display:flex;flex-direction:column;gap:0}
+.pg-step{display:flex;gap:12px;padding:10px 0;position:relative}
+.pg-step:not(:last-child)::after{content:'';position:absolute;left:15px;top:38px;bottom:0;width:2px;background:#e2e8f0}
+.pg-step-num{
+  width:30px;height:30px;border-radius:50%;background:#10b981;
+  color:#fff;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  position:relative;z-index:1;
+}
+.pg-step-body{padding-top:5px;flex:1}
+.pg-step-title{font-size:13.5px;font-weight:700;color:#0f172a;margin-bottom:3px}
+.pg-step-desc{font-size:12.5px;color:#475569;line-height:1.6}
+
+.pg-warn,.pg-info,.pg-tip,.pg-danger{
+  border-radius:10px;padding:11px 14px;margin:10px 0;
+  display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.6;
+}
+.pg-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.pg-info{background:#eff8ff;border:1px solid #bae6fd;color:#075985}
+.pg-tip{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.pg-danger{background:#fff5f5;border:1px solid #fecaca;color:#991b1b}
+.pg-warn-ico,.pg-info-ico,.pg-tip-ico,.pg-danger-ico{font-size:16px;flex-shrink:0;margin-top:1px}
+.pg-warn strong,.pg-info strong,.pg-tip strong,.pg-danger strong{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+
+.pg-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+.pg-table th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #e2e8f0}
+.pg-table td{padding:9px 10px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+.pg-table tr:last-child td{border-bottom:none}
+.pg-table tr:hover td{background:#f8fafc}
+
+.pg-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:700}
+.bg-green{background:#dcfce7;color:#166534}
+.bg-red{background:#fee2e2;color:#991b1b}
+.bg-amber{background:#fef3c7;color:#92400e}
+.bg-blue{background:#dbeafe;color:#1e40af}
+.bg-purple{background:#ede9fe;color:#6b21a8}
+
+.pg-p{font-size:13px;color:#475569;line-height:1.7;margin:6px 0}
+.pg-ul{padding-left:18px;margin:8px 0}
+.pg-ul li{font-size:12.5px;color:#475569;line-height:1.7;margin-bottom:3px}
+.pg-ul li strong{color:#0f172a}
+
+.pg-quickref{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.pg-qr-item{background:#f8fafc;border-radius:10px;padding:10px 12px;border:1px solid #e2e8f0}
+.pg-qr-label{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.pg-qr-val{font-size:13px;font-weight:700;color:#0f172a}
+
+.pg-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.15em;margin:16px 0 8px;display:block}
+.pg-hr{height:1px;background:#f1f5f9;margin:14px 0}
+
+.pg-flow{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.pg-flow-item{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px}
+.pg-flow-num{width:24px;height:24px;border-radius:50%;background:#10b981;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pg-flow-arrow{text-align:center;color:#94a3b8;font-size:16px;line-height:1;margin:0 0 0 12px}
+.pg-flow-text{font-size:13px;font-weight:600;color:#0f172a;flex:1}
+.pg-flow-sub{font-size:11.5px;color:#64748b;margin-top:2px}
+
+/* GRAFIK LEGEND */
+.pg-legend{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.pg-leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#475569;font-weight:500}
+.pg-leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+/* KETUA box */
+.ketua-box{background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid #fde68a;border-radius:12px;padding:14px;margin:12px 0}
+.ketua-box-title{font-size:13px;font-weight:800;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* Template box */
+.pg-template{
+  background:#1e293b;border-radius:10px;padding:14px;font-size:12px;
+  color:#94a3b8;line-height:1.8;font-family:monospace;margin:10px 0;overflow-x:auto;
+}
+.pg-template .hl{color:#7dd3fc}
+.pg-template .hlg{color:#86efac}
+
+/* ── NASIHAT CARD ── */
+.nasihat-card{
+  background:linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f0f9ff 100%);
+  border:1px solid #bbf7d0;border-radius:20px;
+  padding:24px 22px;margin-bottom:16px;
+  box-shadow:0 2px 12px rgba(16,185,129,.08);
+  position:relative;overflow:hidden;
+}
+.nasihat-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);
+  pointer-events:none;
+}
+.nasihat-card::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(14,165,233,.08),transparent 70%);
+  pointer-events:none;
+}
+.nasihat-title{
+  font-size:15px;font-weight:800;color:#065f46;
+  margin-bottom:6px;display:flex;align-items:center;gap:8px;
+}
+.nasihat-bismillah{
+  font-family:'Amiri','Traditional Arabic','Times New Roman',serif;
+  font-size:22px;color:#047857;text-align:center;
+  line-height:1.8;margin:12px 0;direction:rtl;
+  letter-spacing:.03em;
+}
+.nasihat-intro{font-size:13px;color:#065f46;line-height:1.75;margin-bottom:16px;font-weight:500}
+.nasihat-intro em{font-style:italic;color:#10b981}
+
+.nasihat-section{margin:16px 0 8px}
+.nasihat-section-title{
+  font-size:12px;font-weight:800;color:#047857;
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.nasihat-ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.nasihat-ul li{
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:12.5px;color:#065f46;line-height:1.65;
+}
+.nasihat-ul li::before{
+  content:'·';font-size:20px;color:#10b981;line-height:1;flex-shrink:0;margin-top:-1px;
+}
+.nasihat-ul li strong{color:#047857;font-weight:700}
+
+.nasihat-divider{height:1px;background:linear-gradient(90deg,transparent,#a7f3d0,transparent);margin:18px 0}
+
+.nasihat-verse-box{
+  background:rgba(255,255,255,.7);border:1px solid #a7f3d0;
+  border-radius:12px;padding:16px 14px;margin:10px 0;
+  backdrop-filter:blur(4px);
+}
+.nasihat-arabic{
+  font-family:'Amiri','Traditional Arabic','Times New Roman',serif;
+  font-size:20px;color:#047857;text-align:center;
+  direction:rtl;line-height:2;margin-bottom:8px;
+}
+.nasihat-trans{font-size:12.5px;color:#475569;font-style:italic;text-align:center;line-height:1.7;margin-bottom:4px}
+.nasihat-source{font-size:11.5px;color:#10b981;font-weight:700;text-align:center}
+
+.nasihat-points{display:flex;flex-direction:column;gap:7px;margin:10px 0}
+.nasihat-point{
+  display:flex;gap:10px;align-items:flex-start;
+  background:rgba(255,255,255,.6);border-radius:10px;padding:9px 12px;
+  border:1px solid rgba(167,243,208,.5);
+  font-size:12.5px;color:#065f46;line-height:1.6;
+}
+.nasihat-point-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.nasihat-point strong{color:#047857;font-weight:700}
+
+.nasihat-doa-wrap{
+  background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(240,253,250,.9));
+  border-radius:14px;padding:16px;border:1px solid #a7f3d0;margin:12px 0;
+}
+.nasihat-doa-title{font-size:12px;font-weight:700;color:#047857;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.nasihat-doa-text{font-size:12.5px;color:#065f46;line-height:1.75;margin-bottom:8px}
+.nasihat-doa-closing{
+  font-size:13px;font-weight:700;color:#047857;text-align:center;
+  margin-top:14px;padding-top:12px;border-top:1px solid #a7f3d0;
+}
+
+/* Toggle nasihat */
+.nasihat-toggle{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:10px;margin-top:12px;
+  background:rgba(255,255,255,.5);border:1px solid #a7f3d0;
+  border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;
+  color:#047857;cursor:pointer;transition:background .2s;
+}
+.nasihat-toggle:hover{background:rgba(255,255,255,.8)}
+.nasihat-body{transition:all .3s ease}
+
+/* REVIEW BANNER */
+.review-banner{background:linear-gradient(135deg,#059669,#047857);color:#fff;padding:14px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.02em}
+.review-banner span{opacity:.75;font-weight:500}
+
+@media (prefers-color-scheme: dark) {
+  body{background:#0b1329;color:#f0f4ff}
+  .pg-section{background:#111c30;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .pg-section-head.open{background:#052e16}
+  .pg-section-head:hover{background:#0d1f35}
+  .pg-sec-title,.pg-step-title,.pg-flow-text,.pg-qr-val{color:#f0f4ff}
+  .pg-sep{background:#1f2d45}
+  .pg-table th{background:#0d1f35;color:#64748b}
+  .pg-table td{color:#94a3b8;border-bottom-color:#1f2d45}
+  .pg-flow-item,.pg-qr-item{background:#0d1f35;border-color:#1f2d45}
+  .pg-search{background:#111c30;border-color:#1f2d45;color:#f0f4ff}
+}
+</style>
+</head>
+<body>
+
+<div class="review-banner">
+  📋 FILE REVIEW — Panduan Murid &nbsp;<span>Buka di browser untuk preview desain sebelum diintegrasikan</span>
+</div>
+
+<!-- HEADER -->
+<div class="pg-header">
+  <div class="pg-header-inner">
+    <div class="pg-header-title">
+      <h1>Panduan Penggunaan</h1>
+      <p>Portal Murid Rattililqur'an</p>
+    </div>
+    <div class="pg-header-ico">📚</div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="pg-search-wrap">
+  <input class="pg-search" type="search" id="pgSearch" placeholder="Cari panduan..." oninput="filterPanduan(this.value)">
+</div>
+
+<!-- CONTENT -->
+<div class="pg-content">
+
+  <!-- ════ NASIHAT ════ -->
+  <div class="nasihat-card">
+    <div class="nasihat-title">🌿 Catatan Hangat untukmu yang Sedang Berjuang bersama Al-Qur'an</div>
+
+    <div class="nasihat-bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+
+    <div class="nasihat-intro">
+      Teman-teman seperjuangan, <em>semoga Allah senantiasa menjaga kalian semua</em> —<br><br>
+      Layar yang sedang kamu tatap sekarang bukan cuma barisan kode atau aplikasi biasa. Portal ini adalah wujud cinta dan kerja keras dari orang-orang yang ingin menemanimu tumbuh bersama Al-Qur'an. Ini adalah nikmat sekaligus amanah yang Allah titipkan langsung ke tanganmu. Mari, kita gunakan dengan sepenuh hati.
+    </div>
+
+    <!-- Toggle body -->
+    <div class="nasihat-body" id="nasihatBody">
+
+      <div class="nasihat-divider"></div>
+
+      <!-- Sebelum Kelas -->
+      <div class="nasihat-section">
+        <div class="nasihat-section-title">📋 Sebelum Kelas Dimulai — Menata Hati</div>
+        <ul class="nasihat-ul">
+          <li><strong>Hadir Lebih Awal:</strong> Buka portalmu beberapa menit sebelum kelas. Intip jadwal dan materimu hari ini supaya pikiranmu tidak terburu-buru. Lihat catatan dari gurumu.</li>
+          <li><strong>Siapkan Diri Terbaikmu:</strong> Ambil wudhu, cari sudut rumah yang paling tenang, dan dekap Al-Qur'anmu. Anggap ini adalah janji temu paling penting hari ini.</li>
+          <li><strong>Sebut Nama-Nya:</strong> Sebelum mengklik tombol masuk sesi, bisikkan doa belajar. Minta agar dadamu dilapangkan untuk menerima ilmu.</li>
+        </ul>
+      </div>
+
+      <!-- Selama Kelas -->
+      <div class="nasihat-section">
+        <div class="nasihat-section-title">📖 Selama Kelas Berlangsung — Hadir Sepenuhnya</div>
+        <ul class="nasihat-ul">
+          <li><strong>Fokus dan Libatkan Dirimu:</strong> Kehadiranmu di sini adalah bukti kesungguhanmu. Jangan biarkan pikiranmu melayang ke tempat lain.</li>
+          <li><strong>Catat "Hadiah" dari Guru:</strong> Setiap koreksi dari gurumu adalah hadiah berharga. Langsung catat agar tidak menguap begitu saja.</li>
+          <li><strong>Jangan Sungkan:</strong> Kalau ada yang mengganjal atau belum paham, tanyakan saja. Di sini kita semua sedang belajar.</li>
+        </ul>
+      </div>
+
+      <!-- Setelah Kelas -->
+      <div class="nasihat-section">
+        <div class="nasihat-section-title">📊 Setelah Kelas Selesai — Merawat Tumbuh</div>
+        <ul class="nasihat-ul">
+          <li><strong>Evaluasi dengan Senyuman:</strong> Jangan langsung tutup aplikasimu. Intip sebentar riwayat sesi tadi. Syukuri setiap kemajuan kecilmu.</li>
+          <li><strong>Tandai Targetmu:</strong> Lihat apa yang sudah dicapai hari ini dan apa yang harus dikejar besok.</li>
+          <li><strong>Peta Latihan Mandiri:</strong> Simpan baik-baik catatan koreksi tajwid dari guru. Jadikan itu panduan utamamu saat latihan sendiri di rumah.</li>
+        </ul>
+      </div>
+
+      <div class="nasihat-divider"></div>
+
+      <!-- Ruang Renung -->
+      <div class="nasihat-section-title" style="color:#b45309;font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.06em">💛 Ruang Renung — Mengikat Nikmat</div>
+      <div class="nasihat-verse-box">
+        <div class="nasihat-arabic">وَإِذْ تَأَذَّنَ رَبُّكُمْ لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ</div>
+        <div class="nasihat-trans">"Jika kalian bersyukur, sungguh Aku akan menambah nikmat kalian."</div>
+        <div class="nasihat-source">— QS. Ibrahim: 7</div>
+      </div>
+
+      <p style="font-size:12.5px;color:#065f46;line-height:1.7;margin:10px 0 8px">Bisa belajar Al-Qur'an dengan kemudahan teknologi ini adalah nikmat yang mahal. Cara kita bersyukur:</p>
+      <div class="nasihat-points">
+        <div class="nasihat-point"><div class="nasihat-point-ico">✦</div><div><strong>Tepat waktu</strong>, sebagai bentuk hormatmu pada waktu guru dan dirimu sendiri.</div></div>
+        <div class="nasihat-point"><div class="nasihat-point-ico">✦</div><div><strong>Jujur dengan progressmu</strong>, karena setiap data di portal ini adalah cerminan perjuanganmu yang sesungguhnya.</div></div>
+        <div class="nasihat-point"><div class="nasihat-point-ico">✦</div><div><strong>Konsisten</strong>, karena satu halaman yang dibaca istiqamah setiap hari jauh lebih dicintai Allah daripada seratus halaman lalu setelah itu libur panjang.</div></div>
+        <div class="nasihat-point"><div class="nasihat-point-ico">✦</div><div><strong>Selipkan doa</strong> di sujudmu untuk orang-orang yang telah membangun dan merawat portal ini.</div></div>
+      </div>
+
+      <div class="nasihat-divider"></div>
+
+      <!-- Doa -->
+      <div class="nasihat-doa-wrap">
+        <div class="nasihat-doa-title">🤲 Doa Kami untuk Perjalananmu</div>
+        <div class="nasihat-doa-text">Semoga setiap ketukan jarimu di portal ini dihitung Allah sebagai langkah kaki yang meringankan jalanmu menuju jannah. Dan semoga kelak, kita semua dikumpulkan bersama para sahabat Al-Qur'an di bawah naungan rahmat-Nya.</div>
+        <div class="nasihat-verse-box" style="margin:0">
+          <div class="nasihat-arabic" style="font-size:17px">اللَّهُمَّ اجْعَلْنَا مِنْ أَهْلِ الْقُرْآنِ الَّذِيْنَ هُمْ أَهْلُكَ وَخَاصَّتُكَ</div>
+          <div class="nasihat-trans">"Ya Allah, jadikanlah kami termasuk Ahlul Qur'an, yang mereka adalah keluarga-Mu dan orang-orang istimewa-Mu."</div>
+        </div>
+        <div class="nasihat-doa-closing">Selamat belajar, selamat berjuang, nikmati prosesnya! 🌿</div>
+      </div>
+
+    </div><!-- /nasihat-body -->
+
+    <button class="nasihat-toggle" onclick="toggleNasihat(this)" id="nasihatToggle">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="nasihatChevron"><polyline points="6 9 12 15 18 9"/></svg>
+      <span id="nasihatToggleLabel">Sembunyikan</span>
+    </button>
+  </div>
+
+  <!-- ════ 1. LOGIN ════ -->
+  <div class="pg-section" data-search="login nis masuk keluar logout password sesi">
+    <button class="pg-section-head open" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-blue">🔐</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Login & Pertama Kali Masuk</div>
+        <div class="pg-sec-sub">Cara masuk dengan NIS dan ganti password</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body open">
+      <div class="pg-sep"></div>
+      <span class="pg-label">Langkah Login</span>
+      <div class="pg-steps">
+        <div class="pg-step"><div class="pg-step-num">1</div><div class="pg-step-body"><div class="pg-step-title">Buka halaman portal</div><div class="pg-step-desc">Ketuk tab <strong>Murid</strong> di bagian atas form login</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">2</div><div class="pg-step-body"><div class="pg-step-title">Masukkan NIS</div><div class="pg-step-desc">NIS adalah kode unik Anda. Contoh: <code style="background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:12px">RTL2418000001</code></div></div></div>
+        <div class="pg-step"><div class="pg-step-num">3</div><div class="pg-step-body"><div class="pg-step-title">Masukkan Password</div><div class="pg-step-desc">Jika lupa password → ketuk <strong>Lupa Password?</strong> → isi nama + NIS → kirim via WhatsApp</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">4</div><div class="pg-step-body"><div class="pg-step-title">Ketuk Masuk</div><div class="pg-step-desc">Portal terbuka ke halaman Beranda</div></div></div>
+      </div>
+      <div class="pg-hr"></div>
+      <span class="pg-label">Ganti Password</span>
+      <div class="pg-p">Sidebar (☰) → <strong>Ganti Password</strong> → isi password lama → isi password baru (minimal 6 karakter) → Konfirmasi → Simpan.</div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Password minimal 6 karakter!</strong>Password dengan kurang dari 6 karakter akan ditolak secara otomatis. Pilih password yang mudah diingat tapi tidak mudah ditebak.</div></div>
+      <div class="pg-tip"><div class="pg-tip-ico">💡</div><div><strong>Install Aplikasi (Tanpa App Store)</strong>Portal bisa diinstall ke home screen HP tanpa perlu download. Android: menu ⋮ → "Install App". iPhone: Bagikan → "Tambahkan ke Layar Utama".</div></div>
+    </div>
+  </div>
+
+  <!-- ════ 2. BERANDA ════ -->
+  <div class="pg-section" data-search="beranda dashboard kartu progress sesi grafik spp latihan">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-teal">🏠</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Memahami Beranda</div>
+        <div class="pg-sec-sub">Dashboard progress dan ringkasan kehadiran</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <span class="pg-label">Kartu Progress Utama</span>
+      <div class="pg-info"><div class="pg-info-ico">📌</div><div>Kartu besar di atas menampilkan progress dari <strong>40 sesi KBM Reguler</strong> menuju level berikutnya. Ketuk kartu untuk melihat rincian per status kehadiran.</div></div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Progress 40 sesi = KBM Reguler saja!</strong>Kehadiran At-Tibyan, Micro Teaching, dan sesi jenis lain <em>tidak dihitung</em> dalam progress 40 sesi. Hanya KBM Reguler yang menentukan kemajuan level Anda.</div></div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">4 Kartu Statistik</span>
+      <div class="pg-quickref">
+        <div class="pg-qr-item"><div class="pg-qr-label">% Hadir</div><div class="pg-qr-val">Persentase dari semua sesi KBM</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Total Sesi</div><div class="pg-qr-val">Jumlah sesi KBM tercatat</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Poin Adab</div><div class="pg-qr-val">Akumulasi penilaian adab</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Poin Kamera</div><div class="pg-qr-val">Akumulasi penilaian kamera</div></div>
+      </div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">Grafik Kehadiran 6 Bulan</span>
+      <div class="pg-legend">
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#10b981"></div> Hadir ≥ 80%</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#f59e0b"></div> Hadir 50-79%</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#ef4444"></div> Hadir < 50%</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#94a3b8"></div> Tidak ada sesi</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#8b5cf6"></div> Bagian terlambat</div>
+      </div>
+      <div class="pg-p">Ketuk batang grafik untuk melihat detail: jumlah hadir, terlambat, alpa, dan total sesi di bulan tersebut.</div>
+    </div>
+  </div>
+
+  <!-- ════ 3. RIWAYAT KBM ════ -->
+  <div class="pg-section" data-search="riwayat kbm kalender sesi detail koreksi catatan pr latihan">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-blue">📅</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Riwayat KBM</div>
+        <div class="pg-sec-sub">Lihat detail setiap sesi dan koreksi guru</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <span class="pg-label">Kalender Kehadiran</span>
+      <div class="pg-legend">
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#10b981"></div> Hadir (H)</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#ef4444"></div> Alpa (A)</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#f59e0b"></div> Izin / Terlambat</div>
+      </div>
+      <div class="pg-p">Ketuk tanggal berwarna untuk melihat detail sesi hari itu: materi, koreksi tahsin dari guru, catatan khusus, dan latihan mandiri.</div>
+      <div class="pg-hr"></div>
+      <span class="pg-label">Isi Detail Sesi</span>
+      <ul class="pg-ul">
+        <li><strong>Status hadir</strong> — H / T / I / A dengan penilaian adab dan kamera</li>
+        <li><strong>Materi belajar</strong> — topik yang dipelajari sesi tersebut</li>
+        <li><strong>Koreksi tahsin</strong> — catatan perbaikan bacaan dari guru</li>
+        <li><strong>Catatan murid</strong> — pesan khusus guru untuk Anda</li>
+        <li><strong>Latihan mandiri</strong> — PR dan deadline pengumpulan</li>
+      </ul>
+      <div class="pg-tip"><div class="pg-tip-ico">💡</div><div>Ketuk <strong>Muat Lebih Banyak</strong> untuk melihat riwayat sesi yang lebih lama. Default tampil 10 sesi terakhir.</div></div>
+    </div>
+  </div>
+
+  <!-- ════ 4. AT-TIBYAN ════ -->
+  <div class="pg-section" data-search="at tibyan kajian mingguan materi kehadiran copy bagikan share">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-gold">⭐</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Kajian At-Tibyan</div>
+        <div class="pg-sec-sub">Materi kajian mingguan dan riwayat kehadiran</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <div class="pg-info"><div class="pg-info-ico">📌</div><div>At-Tibyan adalah kajian khusus mingguan untuk <strong>seluruh murid Rattililqur'an</strong>. Buka dari kartu emas di Beranda atau Sidebar → At-Tibyan.</div></div>
+
+      <span class="pg-label">Tab Kajian</span>
+      <ul class="pg-ul">
+        <li>Kajian terbaru otomatis <strong>di-pin di atas</strong> (banner merah)</li>
+        <li>Filter per pertemuan menggunakan tombol di atas</li>
+        <li>Kotak pencarian untuk cari keyword dari semua materi</li>
+        <li>Setiap kartu berisi: tanggal, pemateri, materi pembahasan, nasihat aplikatif</li>
+      </ul>
+      <div class="pg-quickref">
+        <div class="pg-qr-item"><div class="pg-qr-label">Tombol Salin</div><div class="pg-qr-val">Copy materi ke clipboard (WA, Notes, dll)</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Tombol Bagikan</div><div class="pg-qr-val">Buka menu berbagi HP (WA, Telegram, dll)</div></div>
+      </div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">Tab Kehadiranku</span>
+      <div class="pg-p">Menampilkan riwayat kehadiran Anda di setiap sesi At-Tibyan dengan persentase dan warna indikator:</div>
+      <div class="pg-legend">
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#10b981"></div> ≥ 80% (Baik)</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#f59e0b"></div> 60–79% (Cukup)</div>
+        <div class="pg-leg-item"><div class="pg-leg-dot" style="background:#ef4444"></div> < 60% (Perlu ditingkatkan)</div>
+      </div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Kehadiran At-Tibyan masuk raport!</strong>Jika admin mengkonfigurasi komponen "kehadiran at-tibyan" di raport, maka % kehadiran Anda di kajian ini akan mempengaruhi nilai akhir semester.</div></div>
+    </div>
+  </div>
+
+  <!-- ════ 5. MATERI LEVEL ════ -->
+  <div class="pg-section" data-search="materi level kurikulum deskripsi target tips doa">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-purple">📚</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Materi Level</div>
+        <div class="pg-sec-sub">Kurikulum dan target capaian per level</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <div class="pg-p">Tab Materi (ikon buku) menampilkan kurikulum per level tahsin yang dikonfigurasi oleh admin. Pilih level dengan tombol filter di atas.</div>
+      <table class="pg-table">
+        <thead><tr><th>Kategori</th><th>Isi</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pg-badge bg-blue">Deskripsi</span></td><td>Gambaran umum materi di level ini</td></tr>
+          <tr><td><span class="pg-badge bg-green">Target</span></td><td>Capaian yang harus diraih</td></tr>
+          <tr><td><span class="pg-badge bg-purple">Materi</span></td><td>Topik-topik yang dipelajari</td></tr>
+          <tr><td><span class="pg-badge bg-amber">Tips</span></td><td>Saran dan tips latihan praktis</td></tr>
+          <tr><td><span class="pg-badge" style="background:#f0fdfa;color:#0d9488">Doa</span></td><td>Doa dan dzikir terkait belajar Al-Qur'an</td></tr>
+        </tbody>
+      </table>
+      <div class="pg-p">Ketuk judul kartu untuk membuka isinya. Ketuk kembali untuk menutup.</div>
+    </div>
+  </div>
+
+  <!-- ════ 6. RAPORT ════ -->
+  <div class="pg-section" data-search="raport nilai predikat pdf unduh download komponen">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-green">📄</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Raport</div>
+        <div class="pg-sec-sub">Nilai akhir dan unduh PDF raport</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <div class="pg-p">Akses raport melalui Sidebar (☰) → <strong>Raport</strong>. Raport menampilkan nilai akhir, predikat, dan rincian nilai per komponen.</div>
+      <div class="pg-hr"></div>
+      <span class="pg-label">Predikat Nilai</span>
+      <div class="pg-quickref">
+        <div class="pg-qr-item"><div class="pg-qr-label">Mumtaz</div><div class="pg-qr-val">≥ 90</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Jayyid Jiddan</div><div class="pg-qr-val">≥ 80</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Jayyid</div><div class="pg-qr-val">≥ 70</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label">Maqbul</div><div class="pg-qr-val">< 70</div></div>
+      </div>
+      <div class="pg-hr"></div>
+      <span class="pg-label">Unduh PDF</span>
+      <div class="pg-steps">
+        <div class="pg-step"><div class="pg-step-num">1</div><div class="pg-step-body"><div class="pg-step-title">Buka raport</div><div class="pg-step-desc">Sidebar → Raport → pilih periode</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">2</div><div class="pg-step-body"><div class="pg-step-title">Ketuk Preview</div><div class="pg-step-desc">Pratinjau raport dalam format A4 muncul</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">3</div><div class="pg-step-body"><div class="pg-step-title">Ketuk Unduh PDF</div><div class="pg-step-desc">File tersimpan ke galeri / folder Downloads HP</div></div></div>
+      </div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Raport hanya muncul setelah guru publish!</strong>Jika raport belum tampil, berarti guru halaqah Anda belum mempublikasikannya. Hubungi guru untuk informasi lebih lanjut.</div></div>
+    </div>
+  </div>
+
+  <!-- ════ 7. NOTIFIKASI ════ -->
+  <div class="pg-section" data-search="notifikasi lonceng peringatan kritis keaktifan alert">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-red">🔔</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Notifikasi & Keaktifan</div>
+        <div class="pg-sec-sub">Peringatan kehadiran dan catatan dari guru</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <div class="pg-p">Ikon lonceng di pojok kanan atas akan menampilkan notifikasi keaktifan. Angka merah kecil menandakan ada notifikasi baru.</div>
+      <table class="pg-table">
+        <thead><tr><th>Status</th><th>Artinya</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pg-badge bg-red">🔴 Kritis</span></td><td>Alpa ≥ 2 kali dalam 40 sesi terakhir</td></tr>
+          <tr><td><span class="pg-badge bg-amber">🟡 Peringatan</span></td><td>Alpa 1 kali, atau sering terlambat, atau kamera tertutup ≥ 2 kali</td></tr>
+        </tbody>
+      </table>
+      <div class="pg-info"><div class="pg-info-ico">📌</div><div>Catatan notifikasi tersimpan permanen sebagai rekam jejak. Banner di dashboard akan hilang setelah guru menandai "Sudah Dihubungi", tapi lonceng tetap menyimpan riwayat.</div></div>
+    </div>
+  </div>
+
+  <!-- ════ 8. SPP ════ -->
+  <div class="pg-section" data-search="spp pembayaran bayar transfer konfirmasi bukti bca bsi infaq">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-green">💳</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">SPP & Pembayaran</div>
+        <div class="pg-sec-sub">Cara konfirmasi pembayaran SPP dan infaq</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <div class="pg-info"><div class="pg-info-ico">📌</div><div>Konfirmasi pembayaran SPP dilakukan langsung dari portal murid — bukan via chat. Ini memastikan pembayaranmu tercatat dan status di portal terupdate.</div></div>
+
+      <span class="pg-label">Rekening Tujuan Transfer</span>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:8px 0">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:20px">🏦</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#14532d">BSI</div>
+            <div style="font-size:15px;font-weight:800;color:#0f172a;letter-spacing:.05em">9513 2229 90</div>
+            <div style="font-size:11.5px;color:#475569;margin-top:1px">a.n. Annisa Rizkya Rahmawati</div>
+          </div>
+        </div>
+        <div style="background:#eff8ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:20px">🏦</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#075985">BCA</div>
+            <div style="font-size:15px;font-weight:800;color:#0f172a;letter-spacing:.05em">1200 7180 34</div>
+            <div style="font-size:11.5px;color:#475569;margin-top:1px">a.n. Umar Abdul Aziz</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Selalu sertakan bukti transfer!</strong>Upload foto/screenshot bukti transfer saat konfirmasi. Pembayaran tanpa bukti tidak bisa diverifikasi oleh admin.</div></div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">Langkah Konfirmasi Pembayaran</span>
+      <div class="pg-steps">
+        <div class="pg-step"><div class="pg-step-num">1</div><div class="pg-step-body"><div class="pg-step-title">Transfer ke rekening tujuan</div><div class="pg-step-desc">BSI atau BCA sesuai instruksi admin. Screenshot bukti transfer.</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">2</div><div class="pg-step-body"><div class="pg-step-title">Buka menu Konfirmasi SPP</div><div class="pg-step-desc">Beranda → kartu <strong>Konfirmasi SPP</strong>, atau Sidebar → langsung ke halaman SPP</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">3</div><div class="pg-step-body"><div class="pg-step-title">Pilih Jenis Pembayaran</div><div class="pg-step-desc"><span class="pg-badge bg-blue">🏠 SPP Pribadi</span> untuk iuran bulanan, atau <span class="pg-badge bg-amber">💛 Infaq/Operasional</span> untuk donasi program</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">4</div><div class="pg-step-body"><div class="pg-step-title">Pilih bulan yang dibayar</div><div class="pg-step-desc">Bisa pilih lebih dari satu bulan sekaligus jika membayar beberapa bulan</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">5</div><div class="pg-step-body"><div class="pg-step-title">Pilih metode & isi nominal</div><div class="pg-step-desc">Pilih TF BSI / TF BCA / Cash / Lainnya, lalu isi jumlah yang ditransfer (Rp)</div></div></div>
+        <div class="pg-step"><div class="pg-step-num">6</div><div class="pg-step-body"><div class="pg-step-title">Upload foto bukti & kirim</div><div class="pg-step-desc">Lampirkan screenshot bukti transfer → ketuk <strong>Kirim Konfirmasi</strong></div></div></div>
+      </div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">Status SPP di Beranda</span>
+      <div class="pg-quickref">
+        <div class="pg-qr-item"><div class="pg-qr-label" style="color:#059669">Hijau ✅</div><div class="pg-qr-val">Bulan tersebut sudah lunas/terverifikasi</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label" style="color:#dc2626">Merah ❌</div><div class="pg-qr-val">Belum ada konfirmasi untuk bulan ini</div></div>
+        <div class="pg-qr-item"><div class="pg-qr-label" style="color:#b45309">Kuning ⏳</div><div class="pg-qr-val">Konfirmasi sudah dikirim, menunggu verifikasi admin</div></div>
+      </div>
+
+      <div class="pg-tip"><div class="pg-tip-ico">💡</div><div><strong>Bayar beberapa bulan sekaligus?</strong>Centang semua bulan yang ingin dikonfirmasi dalam satu kali pengiriman. Sistem akan membagi nominal rata per bulan yang dipilih secara otomatis.</div></div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Konfirmasi ≠ Lunas Otomatis!</strong>Setelah mengirim konfirmasi, statusmu berubah menjadi "Menunggu Verifikasi". Status lunas baru muncul setelah admin memverifikasi pembayaranmu. Proses verifikasi biasanya 1×24 jam.</div></div>
+
+      <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #a7f3d0;border-radius:12px;padding:16px 14px;margin-top:12px;text-align:center">
+        <div style="font-size:15px;margin-bottom:8px">🤍</div>
+        <div style="font-size:13px;font-weight:600;color:#065f46;line-height:1.8">
+          Kami tidak ingin SPP menjadi alasan untuk Anda tidak belajar.<br>
+          Jika ada kendala <strong>teknis maupun finansial</strong>, jangan ragu untuk berkomunikasi dengan kami.<br>
+          Insyaa Allah kita carikan solusinya bersama.
+        </div>
+        <div style="font-size:12.5px;color:#059669;font-weight:600;margin-top:10px;font-style:italic">
+          Semoga Allah terima amal ibadah kita semua. 🤲
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 9. TIPS ════ -->
+  <div class="pg-section" data-search="tips mode gelap dark refresh navigasi geser">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-teal">💡</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Tips & Pintasan</div>
+        <div class="pg-sec-sub">Cara cepat menggunakan portal</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <ul class="pg-ul">
+        <li><strong>Geser layar kiri-kanan</strong> untuk berpindah tab (Beranda, Riwayat, PR, Materi)</li>
+        <li><strong>Mode Gelap</strong> — ketuk ikon 🌙/☀️ di pojok kanan atas</li>
+        <li><strong>Tombol Refresh (↻)</strong> tersedia di tiap halaman untuk memuat ulang data terbaru</li>
+        <li><strong>Error / Portal tidak muat</strong> → Hard refresh: Cmd+Shift+R (Mac) atau Ctrl+Shift+R (Windows/Android)</li>
+        <li><strong>Sesi login</strong> otomatis berakhir setelah beberapa jam tidak aktif</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════ 9. KETUA KELAS ════ -->
+  <div class="pg-section ketua-only" data-search="ketua kelas reminder pengingat rekap observasi pantau anggota">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-amber">👑</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">Panduan Ketua Kelas</div>
+        <div class="pg-sec-sub">Amanah, tanggung jawab, dan cara kerja menu Ketua</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ketua-badge">Ketua saja</span>
+        <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Bagian ini hanya untuk Ketua Kelas</strong>Menu Ketua Kelas akan muncul di sidebar jika admin sudah mengaktifkan status ketua untuk akun Anda.</div></div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">A. Sistem Pengingat (Reminder)</span>
+      <div class="pg-info"><div class="pg-info-ico">📌</div><div>Ketua kelas wajib mengirim 3 jenis pengingat ke grup WhatsApp kelas di setiap sesi KBM.</div></div>
+      <table class="pg-table">
+        <thead><tr><th>Pengingat</th><th>Waktu</th><th>Isi</th></tr></thead>
+        <tbody>
+          <tr><td><strong>H-1</strong></td><td>Malam sebelum sesi, maksimal 21.00 WIB</td><td>Pengingat jadwal kelas besok</td></tr>
+          <tr><td><strong>Hari-H</strong></td><td>1 jam sebelum kelas dimulai</td><td>Kelas segera dimulai</td></tr>
+          <tr><td><strong>H+1</strong></td><td>Sehari setelah sesi selesai</td><td>Pesan motivasi latihan mandiri</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">B. Format Rekap Sesi (Maksimal 2 Jam Setelah Kelas)</span>
+      <div class="pg-template">
+<span class="hl">Assalamu'alaikum Warahmatullahi Wabarakatuh.</span>
+
+Berikut Rekapitulasi Halaqah Tahsin <span class="hlg">[Level]</span>
+
+Hari/Tanggal  : <span class="hlg">[Isi Hari & Tanggal]</span>
+Pertemuan Ke  : <span class="hlg">[Isi Angka]</span>
+
+1. CAPAIAN MATERI TEORI:
+   <span class="hlg">[Nama Bab/Modul, Halaman]</span>
+
+2. CATATAN PENTING USTADZ:
+   <span class="hlg">[Catatan arahan dari guru]</span>
+
+3. TUGAS LATIHAN MANDIRI:
+   <span class="hlg">[Instruksi latihan]</span>
+
+Mari kita istiqomah. Jazakumullah khairan.</div>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">C. Tab Observasi KBM (Rahasia — hanya dibaca admin)</span>
+      <div class="pg-warn"><div class="pg-warn-ico">⚠️</div><div><strong>Isi segera setelah sesi selesai!</strong>Window observasi akan terkunci otomatis begitu guru membuka sesi KBM berikutnya. Setelah dikirim, observasi <strong>tidak bisa diedit</strong>.</div></div>
+      <table class="pg-table">
+        <thead><tr><th>Poin</th><th>Pilihan</th></tr></thead>
+        <tbody>
+          <tr><td>Kondisi kelas</td><td>Kondusif / Kurang Kondusif / Tidak Kondusif</td></tr>
+          <tr><td>Ada latihan mandiri?</td><td>Ya / Tidak</td></tr>
+          <tr><td>Ketepatan waktu guru</td><td>Tepat Waktu / Terlambat / Lebih Awal / Keduanya</td></tr>
+          <tr><td>Kondisi kamera murid</td><td>Sebagian Besar Terbuka / Campuran / Sebagian Besar Tertutup</td></tr>
+          <tr><td>Catatan lain</td><td>Teks bebas (opsional)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pg-hr"></div>
+      <span class="pg-label">D. Tab Pantau Anggota</span>
+      <div class="pg-p">Ketua bisa memantau status keaktifan anggota halaqah. Gunakan tombol <strong>WA Reminder</strong> untuk menghubungi anggota yang Kritis atau Peringatan.</div>
+      <div class="pg-danger"><div class="pg-danger-ico">🚫</div><div><strong>Ketua tidak bisa melihat nilai dan catatan pribadi!</strong>Ketua hanya bisa melihat status keaktifan (Kritis/Peringatan/Normal) dan persentase kehadiran. Nilai, koreksi tahsin, dan catatan guru untuk masing-masing murid tidak bisa diakses oleh ketua kelas.</div></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;margin-top:28px">
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.06em">RATTILILQUR'AN @2026</div>
+    <div style="font-size:11px;color:#cbd5e1;margin-top:4px">Hubungi guru atau admin jika ada kendala. Barakallahu fiikum.</div>
+  </div>
+
+</div><!-- /pg-content -->
+
+<script>
+function toggleSection(btn) {
+  var body = btn.nextElementSibling;
+  var isOpen = btn.classList.contains('open');
+  btn.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+function toggleNasihat(btn) {
+  var body = document.getElementById('nasihatBody');
+  var label = document.getElementById('nasihatToggleLabel');
+  var chevron = document.getElementById('nasihatChevron');
+  var isVisible = body.style.display !== 'none';
+  body.style.display = isVisible ? 'none' : 'block';
+  label.textContent = isVisible ? 'Tampilkan Nasihat' : 'Sembunyikan';
+  chevron.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function filterPanduan(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.pg-section').forEach(function(sec) {
+    var keywords = (sec.dataset.search || '') + ' ' +
+      (sec.querySelector('.pg-sec-title').textContent || '') + ' ' +
+      (sec.querySelector('.pg-sec-sub').textContent || '');
+    sec.style.display = (!q || keywords.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

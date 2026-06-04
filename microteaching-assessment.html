@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penilaian Micro Teaching — Rattililqur'an</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Base ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:    #1a73e8;
+      --green:   #16a34a;
+      --amber:   #d97706;
+      --red:     #dc2626;
+      --purple:  #7c3aed;
+      --bg:      #f0f4f8;
+      --card:    #ffffff;
+      --border:  #e2e8f0;
+      --text:    #0f172a;
+      --text-2:  #334155;
+      --text-3:  #64748b;
+      --text-4:  #94a3b8;
+      --r:       14px;
+      --shadow:  0 2px 12px rgba(0,0,0,.08);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── Layout ────────────────────────────────────── */
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Header ────────────────────────────────────── */
+    .page-header {
+      background: linear-gradient(135deg, #0a1628 0%, #0d2d5e 50%, #1a4fa8 100%);
+      color: #fff;
+      padding: 28px 32px;
+      border-radius: var(--r);
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      pointer-events: none;
+    }
+    .page-header-title {
+      font-size: 22px; font-weight: 900; letter-spacing: -.02em; margin-bottom: 4px;
+    }
+    .page-header-sub {
+      font-size: 13px; opacity: .7; font-weight: 500;
+    }
+    .session-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px; margin-top: 18px;
+    }
+    .session-info-item {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 10px; padding: 10px 14px;
+    }
+    .session-info-label { font-size: 10px; opacity: .6; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .session-info-value { font-size: 13px; font-weight: 700; }
+
+    /* ── Form sesi ─────────────────────────────────── */
+    .setup-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px; margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .setup-card h3 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 14px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .fg { display: flex; flex-direction: column; gap: 4px; }
+    .fg label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); }
+    .fc {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      font-family: inherit; font-size: 13px; color: var(--text);
+      background: #fff; outline: none; transition: border-color .15s;
+    }
+    .fc:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,.12); }
+
+    /* ── Murid list ────────────────────────────────── */
+    .murid-list-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px 20px; margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .murid-list-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .murid-list-row:last-child { border-bottom: none; }
+    .murid-num { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: var(--text-3); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .murid-name-input { flex: 1; }
+
+    /* ── Assessment card ───────────────────────────── */
+    .student-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden;
+      margin-bottom: 16px; box-shadow: var(--shadow);
+      break-inside: avoid;
+    }
+    .student-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #0d2d5e, #1a4fa8);
+      color: #fff;
+    }
+    .student-avatar {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(255,255,255,.2); border: 1.5px solid rgba(255,255,255,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900; flex-shrink: 0;
+    }
+    .student-name { font-size: 15px; font-weight: 800; }
+    .student-urutan { font-size: 11px; opacity: .65; margin-top: 1px; }
+    .student-score-badge {
+      margin-left: auto; background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 14px; font-weight: 900; letter-spacing: -.01em;
+    }
+
+    /* ── Rubrik grid ───────────────────────────────── */
+    .rubrik-wrap { padding: 16px 18px; }
+    .rubrik-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0;
+      border-bottom: 1px solid #f1f5f9;
+      padding: 10px 0;
+      align-items: start;
+    }
+    .rubrik-item:last-child { border-bottom: none; }
+    .rubrik-label {
+      padding-right: 16px;
+      padding-top: 3px;
+    }
+    .rubrik-label-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .rubrik-label-bobot { font-size: 10px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+    .rubrik-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .rubrik-option { position: relative; }
+    .rubrik-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .rubrik-option label {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 8px 6px;
+      border: 2px solid var(--border); border-radius: 10px;
+      cursor: pointer; transition: all .15s;
+      text-align: center;
+    }
+    .rubrik-option label:hover { border-color: #94a3b8; background: #f8fafc; }
+    .rubrik-option input:checked + label {
+      background: var(--blue); border-color: var(--blue); color: #fff;
+      box-shadow: 0 4px 10px rgba(26,115,232,.3);
+    }
+    .rubrik-option label .opt-score {
+      font-size: 18px; font-weight: 900; line-height: 1;
+    }
+    .rubrik-option label .opt-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .02em;
+    }
+    .rubrik-option label .opt-desc {
+      font-size: 9px; opacity: .7; line-height: 1.3; margin-top: 1px;
+    }
+    .rubrik-option input:checked + label .opt-desc { opacity: .85; }
+
+    /* Warna per nilai */
+    .rubrik-option.opt-sb input:checked + label { background: #16a34a; border-color: #16a34a; box-shadow: 0 4px 10px rgba(22,163,74,.3); }
+    .rubrik-option.opt-b  input:checked + label { background: var(--blue); border-color: var(--blue); }
+    .rubrik-option.opt-c  input:checked + label { background: var(--amber); border-color: var(--amber); box-shadow: 0 4px 10px rgba(217,119,6,.3); }
+    .rubrik-option.opt-pp input:checked + label { background: var(--red); border-color: var(--red); box-shadow: 0 4px 10px rgba(220,38,38,.3); }
+
+    /* ── Catatan ───────────────────────────────────── */
+    .catatan-wrap { padding: 0 18px 14px; }
+    .catatan-wrap label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); display: block; margin-bottom: 5px; }
+    .catatan-textarea {
+      width: 100%; min-height: 60px; padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      font-family: inherit; font-size: 13px; color: var(--text);
+      resize: vertical; outline: none; transition: border-color .15s;
+    }
+    .catatan-textarea:focus { border-color: var(--blue); }
+
+    /* ── Score bar ─────────────────────────────────── */
+    .score-bar-wrap { padding: 12px 18px; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+    .score-bar-label { font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .score-bar-track { height: 8px; background: #e2e8f0; border-radius: 100px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 100px; transition: width .4s ease, background .4s; }
+
+    /* ── Action buttons ────────────────────────────── */
+    .actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 20px; margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 12px 22px; border-radius: 10px; font-family: inherit;
+      font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+      transition: all .18s;
+    }
+    .btn-primary { background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #fff; box-shadow: 0 4px 12px rgba(29,78,216,.3); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(29,78,216,.4); }
+    .btn-secondary { background: #fff; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-green { background: linear-gradient(135deg, #15803d, #16a34a); color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,.3); }
+    .btn-green:hover { transform: translateY(-1px); }
+
+    /* ── Rekap tabel ───────────────────────────────── */
+    .rekap-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden;
+      box-shadow: var(--shadow); margin-top: 20px;
+    }
+    .rekap-header {
+      padding: 14px 20px;
+      background: linear-gradient(90deg, #f8fafc, #fff);
+      border-bottom: 1px solid var(--border);
+      font-size: 14px; font-weight: 800; color: var(--text);
+    }
+    .rekap-table { width: 100%; border-collapse: collapse; }
+    .rekap-table th {
+      padding: 10px 14px; background: #f0f4f8;
+      text-align: left; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .06em; color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+    }
+    .rekap-table td {
+      padding: 11px 14px; border-bottom: 1px solid #f1f5f9;
+      font-size: 13px; color: var(--text-2);
+    }
+    .rekap-table tr:last-child td { border-bottom: none; }
+    .rekap-table tbody tr:hover { background: #f8fafc; }
+
+    /* ── Predikat badge ─────────────────────────────── */
+    .predikat {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 11px; font-weight: 800;
+    }
+    .predikat-mumtaz  { background: #d1fae5; color: #065f46; }
+    .predikat-jayyid-jiddan { background: #dbeafe; color: #1e40af; }
+    .predikat-jayyid  { background: #fef3c7; color: #92400e; }
+    .predikat-maqbul  { background: #fee2e2; color: #991b1b; }
+
+    /* ── Steps bar ─────────────────────────────────── */
+    .steps-bar {
+      display: flex; align-items: center; gap: 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 20px;
+      margin-bottom: 20px; box-shadow: var(--shadow);
+    }
+    .step-pill {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1;
+    }
+    .step-pill-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; flex-shrink: 0;
+    }
+    .step-pill-num.done { background: var(--green); color: #fff; }
+    .step-pill-num.active { background: var(--blue); color: #fff; }
+    .step-pill-num.pending { background: #e2e8f0; color: var(--text-4); }
+    .step-pill-label { font-size: 12px; font-weight: 700; }
+    .step-pill-label.active { color: var(--blue); }
+    .step-pill-label.done   { color: var(--green); }
+    .step-pill-label.pending { color: var(--text-4); }
+    .step-divider { width: 28px; height: 2px; background: var(--border); flex-shrink: 0; }
+    .step-divider.done { background: var(--green); }
+
+    /* ── Sections toggle ───────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Print ─────────────────────────────────────── */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .no-print { display: none !important; }
+      .page-header { background: #0d2d5e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .student-header { background: #0d2d5e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .student-card { box-shadow: none; border: 1px solid #ccc; }
+      .rubrik-option input:checked + label { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    @media (max-width: 600px) {
+      .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+      .rubrik-item { grid-template-columns: 1fr; gap: 8px; }
+      .rubrik-options { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ─── HEADER ──────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header-title">✍️ Penilaian Micro Teaching</div>
+    <div class="page-header-sub">Rattililqur'an — Formulir Asesmen Micro Teaching</div>
+    <div class="session-info" id="sessionInfoDisplay" style="display:none">
+      <div class="session-info-item">
+        <div class="session-info-label">Halaqah</div>
+        <div class="session-info-value" id="dispHalaqah">—</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Guru Assessor</div>
+        <div class="session-info-value" id="dispGuru">—</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Tanggal</div>
+        <div class="session-info-value" id="dispTanggal">—</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Durasi Sesi</div>
+        <div class="session-info-value" id="dispDurasi">—</div>
+      </div>
+      <div class="session-info-item">
+        <div class="session-info-label">Jumlah Peserta</div>
+        <div class="session-info-value" id="dispJumlah">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── STEP BAR ─────────────────────────────────────── -->
+  <div class="steps-bar no-print">
+    <div class="step-pill">
+      <div class="step-pill-num" id="stepNum1">1</div>
+      <div class="step-pill-label" id="stepLbl1">Info Sesi</div>
+    </div>
+    <div class="step-divider" id="stepDiv1"></div>
+    <div class="step-pill">
+      <div class="step-pill-num" id="stepNum2">2</div>
+      <div class="step-pill-label" id="stepLbl2">Daftar Peserta</div>
+    </div>
+    <div class="step-divider" id="stepDiv2"></div>
+    <div class="step-pill">
+      <div class="step-pill-num" id="stepNum3">3</div>
+      <div class="step-pill-label" id="stepLbl3">Penilaian</div>
+    </div>
+    <div class="step-divider" id="stepDiv3"></div>
+    <div class="step-pill">
+      <div class="step-pill-num" id="stepNum4">4</div>
+      <div class="step-pill-label" id="stepLbl4">Rekap</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       STEP 1: INFO SESI
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section active" id="sec1">
+    <div class="setup-card">
+      <h3>📋 Informasi Sesi Micro Teaching</h3>
+      <div class="form-grid" style="margin-bottom:12px">
+        <div class="fg">
+          <label>Nama Halaqah</label>
+          <input type="text" class="fc" id="inHalaqah" placeholder="contoh: Zubaidah">
+        </div>
+        <div class="fg">
+          <label>Nama Guru / Assessor</label>
+          <input type="text" class="fc" id="inGuru" placeholder="Nama lengkap guru penilai">
+        </div>
+      </div>
+      <div class="form-grid-3" style="margin-bottom:12px">
+        <div class="fg">
+          <label>Tanggal Sesi</label>
+          <input type="date" class="fc" id="inTanggal">
+        </div>
+        <div class="fg">
+          <label>Jam Mulai</label>
+          <input type="time" class="fc" id="inJamMulai">
+        </div>
+        <div class="fg">
+          <label>Jam Selesai</label>
+          <input type="time" class="fc" id="inJamSelesai">
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Tema / Materi Micro Teaching</label>
+        <input type="text" class="fc" id="inTema" placeholder="contoh: Hukum Nun Mati dan Tanwin">
+      </div>
+      <div class="fg">
+        <label>Catatan Umum Sesi</label>
+        <textarea class="fc" id="inCatatanSesi" rows="2" placeholder="kondisi sesi, kendala, dll." style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="goStep(2)">
+        Lanjut: Daftar Peserta →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       STEP 2: DAFTAR PESERTA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="sec2">
+    <div class="setup-card">
+      <h3>👥 Daftar Peserta yang Tampil</h3>
+      <p style="font-size:12px;color:var(--text-3);margin-bottom:14px">Isi nama murid yang tampil melakukan Micro Teaching. Klik "+ Tambah" untuk menambah peserta.</p>
+      <div id="muridListWrap"></div>
+      <button class="btn btn-secondary" onclick="addMurid()" style="margin-top:10px;width:100%">
+        + Tambah Peserta
+      </button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Kembali</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Mulai Penilaian →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       STEP 3: PENILAIAN PER PESERTA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="sec3">
+
+    <!-- Legenda skor -->
+    <div class="setup-card no-print" style="padding:14px 18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Legenda Skor</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <div style="width:20px;height:20px;border-radius:6px;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px">4</div>
+          <strong>SB</strong> — Sangat Baik
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <div style="width:20px;height:20px;border-radius:6px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px">3</div>
+          <strong>B</strong> — Baik
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <div style="width:20px;height:20px;border-radius:6px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px">2</div>
+          <strong>C</strong> — Cukup
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <div style="width:20px;height:20px;border-radius:6px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px">1</div>
+          <strong>PP</strong> — Perlu Perbaikan
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text-3);font-weight:600">
+          Nilai Akhir = Σ(Skor × Bobot) × 25
+        </div>
+      </div>
+    </div>
+
+    <div id="assessmentCards"></div>
+
+    <div class="actions no-print">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Kembali</button>
+      <button class="btn btn-green" onclick="goStep(4)">
+        ✅ Lihat Rekap Nilai →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       STEP 4: REKAP NILAI
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section" id="sec4">
+
+    <div class="rekap-card">
+      <div class="rekap-header">📊 Rekap Nilai Akhir Micro Teaching</div>
+      <div style="overflow-x:auto">
+        <table class="rekap-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Peserta</th>
+              <th>Penguasaan Materi (25%)</th>
+              <th>Cara Penyampaian (20%)</th>
+              <th>Kualitas Tajwid (25%)</th>
+              <th>Interaksi Kelas (15%)</th>
+              <th>Manajemen Waktu (15%)</th>
+              <th>Nilai Akhir</th>
+              <th>Predikat</th>
+            </tr>
+          </thead>
+          <tbody id="rekapTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Distribusi predikat -->
+    <div class="setup-card" style="margin-top:16px">
+      <h3>📈 Distribusi Predikat</h3>
+      <div id="distribusiWrap" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px"></div>
+    </div>
+
+    <!-- Catatan sesi -->
+    <div class="setup-card" id="catatanSesiDisplay" style="margin-top:0;display:none">
+      <h3>📝 Catatan Sesi</h3>
+      <p id="catatanSesiText" style="font-size:13px;color:var(--text-2);margin-top:8px;font-style:italic"></p>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Kembali Edit</button>
+      <button class="btn btn-secondary" onclick="window.print()">🖨️ Cetak / PDF</button>
+      <button class="btn btn-primary" onclick="exportJSON()">💾 Simpan Data (JSON)</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════
+const KRITERIA = [
+  {
+    id: 'penguasaan', label: 'Penguasaan Materi', bobot: 0.25,
+    desc: [
+      'Materi lengkap, akurat, sistematis tanpa catatan',
+      'Baik, sesekali lihat catatan',
+      'Cukup, namun ada yang terlewat',
+      'Tidak tuntas, banyak bagian terlewat',
+    ]
+  },
+  {
+    id: 'penyampaian', label: 'Cara Penyampaian', bobot: 0.20,
+    desc: [
+      'Bahasa jelas, intonasi menarik, mudah dipahami',
+      'Penyampaian baik namun kurang variatif',
+      'Kurang jelas di beberapa bagian',
+      'Sulit dipahami, tidak sistematis',
+    ]
+  },
+  {
+    id: 'tajwid', label: 'Kualitas Tajwid', bobot: 0.25,
+    desc: [
+      'Tajwid dan makhraj sangat tepat, menjadi teladan',
+      'Baik dengan sedikit kesalahan minor',
+      'Beberapa kesalahan tajwid yang berulang',
+      'Banyak kesalahan tajwid yang tidak diperbaiki',
+    ]
+  },
+  {
+    id: 'interaksi', label: 'Interaksi Kelas', bobot: 0.15,
+    desc: [
+      'Aktif melibatkan murid, respons pertanyaan sangat baik',
+      'Interaksi baik namun bisa lebih ditingkatkan',
+      'Interaksi terbatas, kurang melibatkan murid',
+      'Tidak ada interaksi yang bermakna',
+    ]
+  },
+  {
+    id: 'waktu', label: 'Manajemen Waktu', bobot: 0.15,
+    desc: [
+      'Waktu terbagi proporsional, selesai tepat waktu',
+      'Sedikit melebihi/kurang waktu, masih terkendali',
+      'Waktu tidak sesuai rencana',
+      'Waktu sangat tidak termanajemen',
+    ]
+  },
+];
+
+const OPT = [
+  { val: 4, code: 'SB',  label: 'Sangat Baik',      cls: 'opt-sb' },
+  { val: 3, code: 'B',   label: 'Baik',              cls: 'opt-b'  },
+  { val: 2, code: 'C',   label: 'Cukup',             cls: 'opt-c'  },
+  { val: 1, code: 'PP',  label: 'Perlu Perbaikan',   cls: 'opt-pp' },
+];
+
+let muridList    = []; // [{id, nama}]
+let currentStep  = 1;
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  // Set tanggal hari ini
+  document.getElementById('inTanggal').value = new Date().toISOString().slice(0,10);
+  // Init 3 murid default
+  for (var i = 0; i < 3; i++) addMurid();
+  renderSteps(1);
+});
+
+// ══════════════════════════════════════════════════
+//  STEPS
+// ══════════════════════════════════════════════════
+function renderSteps(step) {
+  currentStep = step;
+  for (var i = 1; i <= 4; i++) {
+    var num = document.getElementById('stepNum' + i);
+    var lbl = document.getElementById('stepLbl' + i);
+    var div = document.getElementById('stepDiv' + i);
+    var state = i < step ? 'done' : i === step ? 'active' : 'pending';
+    num.className = 'step-pill-num ' + state;
+    num.textContent = i < step ? '✓' : i;
+    lbl.className = 'step-pill-label ' + state;
+    if (div) div.className = 'step-divider' + (i < step ? ' done' : '');
+    document.getElementById('sec' + i).classList.toggle('active', i === step);
+  }
+}
+
+function goStep(step) {
+  if (step === 2) {
+    if (!validate1()) return;
+    updateHeaderDisplay();
+    renderMuridList();
+  } else if (step === 3) {
+    collectMuridNames();
+    if (!muridList.length) { alert('Tambahkan minimal 1 peserta'); return; }
+    renderAssessmentCards();
+  } else if (step === 4) {
+    renderRekap();
+  }
+  renderSteps(step);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════════
+//  VALIDASI
+// ══════════════════════════════════════════════════
+function validate1() {
+  var halaqah = document.getElementById('inHalaqah').value.trim();
+  var guru    = document.getElementById('inGuru').value.trim();
+  var tgl     = document.getElementById('inTanggal').value;
+  if (!halaqah) { alert('Nama halaqah wajib diisi'); return false; }
+  if (!guru)    { alert('Nama guru assessor wajib diisi'); return false; }
+  if (!tgl)     { alert('Tanggal sesi wajib diisi'); return false; }
+  return true;
+}
+
+// ══════════════════════════════════════════════════
+//  HEADER DISPLAY
+// ══════════════════════════════════════════════════
+function updateHeaderDisplay() {
+  var tgl      = document.getElementById('inTanggal').value;
+  var jamMulai = document.getElementById('inJamMulai').value;
+  var jamSeles = document.getElementById('inJamSelesai').value;
+  var durasi   = '';
+  if (jamMulai && jamSeles) {
+    var m = jamMulai.split(':'); var s = jamSeles.split(':');
+    var diff = (parseInt(s[0])*60+parseInt(s[1])) - (parseInt(m[0])*60+parseInt(m[1]));
+    if (diff > 0) durasi = diff + ' menit';
+  }
+  document.getElementById('dispHalaqah').textContent = document.getElementById('inHalaqah').value.trim();
+  document.getElementById('dispGuru').textContent    = document.getElementById('inGuru').value.trim();
+  document.getElementById('dispTanggal').textContent = tgl ? new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '—';
+  document.getElementById('dispDurasi').textContent  = durasi || '—';
+  document.getElementById('sessionInfoDisplay').style.display = 'grid';
+}
+
+// ══════════════════════════════════════════════════
+//  DAFTAR MURID (STEP 2)
+// ══════════════════════════════════════════════════
+function addMurid() {
+  var id   = 'murid-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+  var urut = muridList.length + 1;
+  muridList.push({ id, nama: '', urutan: urut });
+  renderMuridList();
+}
+
+function renderMuridList() {
+  var wrap = document.getElementById('muridListWrap');
+  wrap.innerHTML = muridList.map(function(m, i) {
+    return '<div class="murid-list-row" id="mrow-'+m.id+'">'
+      + '<div class="murid-num">' + (i+1) + '</div>'
+      + '<input type="text" class="fc murid-name-input" id="mname-'+m.id+'" value="'+esc(m.nama)+'" placeholder="Nama peserta ke-'+(i+1)+'">'
+      + '<button onclick="removeMurid(\''+m.id+'\')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:14px;flex-shrink:0">×</button>'
+    + '</div>';
+  }).join('');
+}
+
+function removeMurid(id) {
+  muridList = muridList.filter(function(m){ return m.id !== id; });
+  muridList.forEach(function(m, i){ m.urutan = i + 1; });
+  renderMuridList();
+}
+
+function collectMuridNames() {
+  muridList.forEach(function(m) {
+    var el = document.getElementById('mname-' + m.id);
+    if (el) m.nama = el.value.trim();
+  });
+  muridList = muridList.filter(function(m){ return m.nama; });
+}
+
+// ══════════════════════════════════════════════════
+//  ASSESSMENT CARDS (STEP 3)
+// ══════════════════════════════════════════════════
+function renderAssessmentCards() {
+  var cont = document.getElementById('assessmentCards');
+  cont.innerHTML = muridList.map(function(m) { return buildCard(m); }).join('');
+  // Update jumlah peserta di header
+  document.getElementById('dispJumlah').textContent = muridList.length + ' peserta';
+}
+
+function buildCard(m) {
+  var initials = m.nama.split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
+  var rubrikHTML = KRITERIA.map(function(k) {
+    var opts = OPT.map(function(o, oi) {
+      var radioId = 'r-' + m.id + '-' + k.id + '-' + o.val;
+      return '<div class="rubrik-option ' + o.cls + '">'
+        + '<input type="radio" name="r-' + m.id + '-' + k.id + '" id="' + radioId + '" value="' + o.val + '"'
+          + ' onchange="updateScore(\'' + m.id + '\')">'
+        + '<label for="' + radioId + '">'
+          + '<span class="opt-score">' + o.val + '</span>'
+          + '<span class="opt-label">' + o.code + '</span>'
+          + '<span class="opt-desc">' + k.desc[oi] + '</span>'
+        + '</label>'
+      + '</div>';
+    }).join('');
+    return '<div class="rubrik-item">'
+      + '<div class="rubrik-label">'
+        + '<div class="rubrik-label-title">' + k.label + '</div>'
+        + '<div class="rubrik-label-bobot">Bobot ' + Math.round(k.bobot*100) + '%</div>'
+      + '</div>'
+      + '<div class="rubrik-options">' + opts + '</div>'
+    + '</div>';
+  }).join('');
+
+  return '<div class="student-card" id="card-' + m.id + '">'
+    + '<div class="student-header">'
+      + '<div class="student-avatar">' + initials + '</div>'
+      + '<div>'
+        + '<div class="student-name">' + esc(m.nama) + '</div>'
+        + '<div class="student-urutan">Peserta ke-' + m.urutan + '</div>'
+      + '</div>'
+      + '<div class="student-score-badge" id="score-badge-' + m.id + '">— / 100</div>'
+    + '</div>'
+    + '<div class="rubrik-wrap">' + rubrikHTML + '</div>'
+    + '<div class="score-bar-wrap">'
+      + '<div class="score-bar-label">'
+        + '<span>Nilai saat ini</span>'
+        + '<strong id="score-txt-' + m.id + '" style="font-size:15px;color:var(--blue)">—</strong>'
+      + '</div>'
+      + '<div class="score-bar-track"><div class="score-bar-fill" id="score-bar-' + m.id + '" style="width:0%"></div></div>'
+    + '</div>'
+    + '<div class="catatan-wrap">'
+      + '<label>Catatan untuk ' + esc(m.nama) + '</label>'
+      + '<textarea class="catatan-textarea" id="cat-' + m.id + '" placeholder="Kelebihan, hal yang perlu ditingkatkan, saran khusus…"></textarea>'
+    + '</div>'
+  + '</div>';
+}
+
+function calcScore(id) {
+  var total = 0; var filled = 0;
+  KRITERIA.forEach(function(k) {
+    var checked = document.querySelector('input[name="r-'+id+'-'+k.id+'"]:checked');
+    if (checked) { total += parseInt(checked.value) * k.bobot; filled++; }
+  });
+  var score = filled === KRITERIA.length ? Math.round(total * 25) : null;
+  return { score, filled };
+}
+
+function updateScore(id) {
+  var res = calcScore(id);
+  var badgeEl  = document.getElementById('score-badge-' + id);
+  var txtEl    = document.getElementById('score-txt-'   + id);
+  var barEl    = document.getElementById('score-bar-'   + id);
+  if (res.score !== null) {
+    var s = res.score;
+    var color = s >= 88 ? '#16a34a' : s >= 75 ? '#2563eb' : s >= 60 ? '#d97706' : '#dc2626';
+    badgeEl.textContent = s + ' / 100';
+    txtEl.textContent   = s;
+    txtEl.style.color   = color;
+    barEl.style.width   = s + '%';
+    barEl.style.background = color;
+  } else {
+    badgeEl.textContent = res.filled + '/' + KRITERIA.length + ' terisi';
+    txtEl.textContent   = '—';
+    barEl.style.width   = (res.filled / KRITERIA.length * 40) + '%';
+    barEl.style.background = '#94a3b8';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  REKAP (STEP 4)
+// ══════════════════════════════════════════════════
+function renderRekap() {
+  var tbody = document.getElementById('rekapTbody');
+  var counts = { mumtaz: 0, 'jayyid-jiddan': 0, jayyid: 0, maqbul: 0 };
+
+  tbody.innerHTML = muridList.map(function(m, i) {
+    // Ambil skor per kriteria
+    var scores = {};
+    KRITERIA.forEach(function(k) {
+      var el = document.querySelector('input[name="r-'+m.id+'-'+k.id+'"]:checked');
+      scores[k.id] = el ? parseInt(el.value) : 0;
+    });
+    // Hitung nilai akhir
+    var total = 0;
+    KRITERIA.forEach(function(k) { total += scores[k.id] * k.bobot; });
+    var nilaiAkhir = Math.round(total * 25);
+
+    // Predikat
+    var pred, predCls;
+    if (nilaiAkhir >= 88)      { pred = 'Mumtaz ⭐';           predCls = 'mumtaz'; counts.mumtaz++; }
+    else if (nilaiAkhir >= 75) { pred = 'Jayyid Jiddan 👍';    predCls = 'jayyid-jiddan'; counts['jayyid-jiddan']++; }
+    else if (nilaiAkhir >= 60) { pred = 'Jayyid 📌';           predCls = 'jayyid'; counts.jayyid++; }
+    else                       { pred = 'Maqbul 📝';           predCls = 'maqbul'; counts.maqbul++; }
+
+    // Label skor per kriteria
+    function sLabel(val) { return val === 4 ? 'SB' : val === 3 ? 'B' : val === 2 ? 'C' : val === 1 ? 'PP' : '—'; }
+
+    return '<tr>'
+      + '<td style="font-weight:600;color:var(--text-3)">' + (i+1) + '</td>'
+      + '<td style="font-weight:700">' + esc(m.nama) + '</td>'
+      + '<td style="text-align:center"><strong>' + sLabel(scores.penguasaan) + '</strong></td>'
+      + '<td style="text-align:center"><strong>' + sLabel(scores.penyampaian) + '</strong></td>'
+      + '<td style="text-align:center"><strong>' + sLabel(scores.tajwid) + '</strong></td>'
+      + '<td style="text-align:center"><strong>' + sLabel(scores.interaksi) + '</strong></td>'
+      + '<td style="text-align:center"><strong>' + sLabel(scores.waktu) + '</strong></td>'
+      + '<td style="text-align:center;font-size:18px;font-weight:900;color:'+(nilaiAkhir>=75?'#16a34a':nilaiAkhir>=60?'#d97706':'#dc2626')+'">' + nilaiAkhir + '</td>'
+      + '<td><span class="predikat predikat-' + predCls + '">' + pred + '</span></td>'
+    + '</tr>';
+  }).join('');
+
+  // Distribusi
+  var distWrap = document.getElementById('distribusiWrap');
+  var distItems = [
+    { key:'mumtaz',        label:'Mumtaz ⭐',         color:'#16a34a', bg:'#d1fae5' },
+    { key:'jayyid-jiddan', label:'Jayyid Jiddan 👍',  color:'#1d4ed8', bg:'#dbeafe' },
+    { key:'jayyid',        label:'Jayyid 📌',          color:'#d97706', bg:'#fef3c7' },
+    { key:'maqbul',        label:'Maqbul 📝',          color:'#dc2626', bg:'#fee2e2' },
+  ];
+  distWrap.innerHTML = distItems.map(function(d) {
+    return '<div style="background:'+d.bg+';border-radius:12px;padding:14px;text-align:center">'
+      + '<div style="font-size:28px;font-weight:900;color:'+d.color+'">' + counts[d.key] + '</div>'
+      + '<div style="font-size:11px;font-weight:700;color:'+d.color+';margin-top:3px">' + d.label + '</div>'
+    + '</div>';
+  }).join('');
+
+  // Catatan sesi
+  var catSesi = document.getElementById('inCatatanSesi').value.trim();
+  if (catSesi) {
+    document.getElementById('catatanSesiText').textContent = catSesi;
+    document.getElementById('catatanSesiDisplay').style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  EXPORT JSON
+// ══════════════════════════════════════════════════
+function exportJSON() {
+  var tgl  = document.getElementById('inTanggal').value;
+  var data = {
+    meta: {
+      halaqah   : document.getElementById('inHalaqah').value.trim(),
+      guru      : document.getElementById('inGuru').value.trim(),
+      tanggal   : tgl,
+      jam_mulai : document.getElementById('inJamMulai').value,
+      jam_selesai: document.getElementById('inJamSelesai').value,
+      tema      : document.getElementById('inTema').value.trim(),
+      catatan   : document.getElementById('inCatatanSesi').value.trim(),
+      dibuat_at : new Date().toISOString(),
+    },
+    penilaian: muridList.map(function(m) {
+      var scores = {};
+      var total  = 0;
+      KRITERIA.forEach(function(k) {
+        var el = document.querySelector('input[name="r-'+m.id+'-'+k.id+'"]:checked');
+        var v  = el ? parseInt(el.value) : 0;
+        scores[k.id] = v;
+        total += v * k.bobot;
+      });
+      var nilai = Math.round(total * 25);
+      return {
+        nama   : m.nama,
+        urutan : m.urutan,
+        scores : scores,
+        nilai_akhir: nilai,
+        catatan: (document.getElementById('cat-'+m.id)||{}).value || '',
+      };
+    }),
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'microteaching-' + (tgl||'hasil') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════
+//  HELPER
+// ══════════════════════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
