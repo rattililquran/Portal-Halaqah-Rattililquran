@@ -3692,10 +3692,19 @@ function onKbmHalaqahChange() {
 }
 
 function goToHafalanQiyam() {
-  renderHafalanKbm();
+  _saveHafalanKbmCache();
+  var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
   goPage('hafalan-kbm');
   renderSteps('hafalan-kbm');
   document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+  if (id_halaqah) {
+    window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah)
+      .then(function(res) { window._lastTargetDataKbm = res.data || []; renderHafalanKbm(); })
+      .catch(function()   { window._lastTargetDataKbm = [];             renderHafalanKbm(); });
+  } else {
+    window._lastTargetDataKbm = [];
+    renderHafalanKbm();
+  }
 }
 
 function renderHafalanKbm() {
@@ -4268,22 +4277,23 @@ function kembaliKeStep2() {
 }
 
 function kembaliKeStep3() {
+  var jenis = sesiAktif && sesiAktif.jenis_sesi;
+  if (jenis === 'KBM Qiyam') {
+    goPage('hafalan-kbm');
+    renderSteps('hafalan-kbm');
+    document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+    setTimeout(function() { _restoreHafalanKbmCache(); }, 80);
+    return;
+  }
   goToNilai();
-  // Restore nilai dari cache setelah re-render
   setTimeout(function() {
-    if (window._nilaiCache) {
-      Object.keys(window._nilaiCache).forEach(function(id_murid) {
-        var cached = window._nilaiCache[id_murid];
-        var adabEl = document.getElementById('adab-'    + id_murid);
-        var kamEl  = document.getElementById('kamera-'  + id_murid);
-        var korEl  = document.getElementById('koreksi-' + id_murid);
-        var catEl  = document.getElementById('catatan-' + id_murid);
-        if (adabEl && cached.adab)    adabEl.value = cached.adab;
-        if (kamEl  && cached.kamera)  kamEl.value  = cached.kamera;
-        if (korEl  && cached.koreksi) korEl.value  = cached.koreksi;
-        if (catEl  && cached.catatan) catEl.value  = cached.catatan;
-      });
-    }
+    if (!window._nilaiCache) return;
+    Object.keys(window._nilaiCache).forEach(function(id) {
+      var cache = window._nilaiCache[id];
+      var setV = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
+      setV('adab-'+id, cache.adab); setV('kamera-'+id, cache.kamera);
+      setV('koreksi-'+id, cache.koreksi); setV('catatan-'+id, cache.catatan);
+    });
   }, 100);
 }
 
