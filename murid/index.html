@@ -1061,10 +1061,23 @@ html.theme-dark .tahfidz-current-footer {
 .hfal-tab-btn.active {background:var(--card-solid);box-shadow:var(--shadow);color:var(--blue);font-weight:700}
 .attibyan-dash-card{border-radius:20px;border:1px solid rgba(217,119,6,.25);
   background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 60%,#fde68a 100%);
-  padding:16px;margin-bottom:14px;cursor:pointer;
+  padding:20px 20px 20px;margin-bottom:16px;cursor:pointer;
   box-shadow:0 4px 16px rgba(217,119,6,.15);transition:transform .15s ease,box-shadow .15s ease}
 .attibyan-dash-card:hover{box-shadow:0 6px 20px rgba(217,119,6,.22)}
 .attibyan-dash-card:active{transform:scale(.98)}
+.attibyan-dash-card .prog-title {
+  color: #78350f !important;
+}
+.attibyan-dash-card .prog-info-title {
+  color: #78350f !important;
+}
+.attibyan-dash-card .prog-info-sesi {
+  color: #b45309 !important;
+}
+.attibyan-dash-card .prog-inner-wrap {
+  background: rgba(217,119,6,0.08) !important;
+  margin-top: 4px;
+}
 .attibyan-dash-card-row{display:flex;align-items:center;gap:12px}
 .attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
@@ -2008,9 +2021,24 @@ html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .at-btn-copy{background:#252830 !important;color:#9ca3af !important}
 html.theme-dark .attibyan-dash-card{background:linear-gradient(135deg,#2d1f00 0%,#3b2500 60%,#4a2e00 100%) !important;border-color:rgba(251,191,36,.2) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
-html.theme-dark .attibyan-dash-title{color:#fde68a !important}
-html.theme-dark .attibyan-dash-sub{color:#fbbf24 !important}
-html.theme-dark .attibyan-dash-arr{color:#fbbf24 !important}
+html.theme-dark .attibyan-dash-card .prog-title {
+  color: #fde68a !important;
+}
+html.theme-dark .attibyan-dash-card .prog-info-title {
+  color: #fde68a !important;
+}
+html.theme-dark .attibyan-dash-card .prog-info-sesi {
+  color: #fbbf24 !important;
+}
+html.theme-dark .attibyan-dash-card .prog-inner-wrap {
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+html.theme-dark .attibyan-dash-card .prog-inner-card {
+  background: #241a02 !important;
+}
+html.theme-dark .attibyan-dash-card .prog-donut-inner {
+  background: rgba(36, 26, 2, 0.8) !important;
+}
 html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh{border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh:hover{border-color:#38bdf8 !important;color:#38bdf8 !important;background:#1a2535 !important}
@@ -2710,6 +2738,41 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         </div><!-- /prog-inner-wrap -->
       </div>
 
+      <!-- At-Tibyan Card -->
+      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
+        <!-- Judul At-Tibyan -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Kajian Mingguan (At-Tibyan)
+        </div>
+        <!-- Chip label -->
+        <div class="prog-level-row">
+          <span class="level-badge" style="background:linear-gradient(135deg,rgba(217,119,6,.55),rgba(245,158,11,.4)); border:1.5px solid rgba(251,191,36,.6); box-shadow:0 0 12px rgba(217,119,6,.35),inset 0 1px 0 rgba(255,255,255,.25);">At-Tibyan</span>
+        </div>
+        <!-- Inner wrap -->
+        <div class="prog-inner-wrap">
+          <div class="prog-inner-card">
+            <div class="prog-inner-row">
+              <!-- Donut ring -->
+              <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+                <div class="prog-donut-inner">
+                  <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#d97706">0%</span>
+                  <span class="prog-donut-lbl">hadir</span>
+                </div>
+              </div>
+              <!-- Info kanan -->
+              <div class="prog-info-right">
+                <div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>
+                <div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>
+                <div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">
+                  <div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
+
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card clickable" onclick="goPage('riwayat')">
@@ -2733,19 +2796,6 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           <div class="lbl">Poin Kamera</div>
         </div>
       </div>
-
-      <!-- At-Tibyan -->
-      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
-        <div class="attibyan-dash-card-row">
-          <div class="attibyan-dash-ico">📖</div>
-          <div class="attibyan-dash-text">
-            <div class="attibyan-dash-title">At-Tibyan</div>
-            <div class="attibyan-dash-sub">Kajian mingguan · Materi &amp; Nasihat</div>
-          </div>
-          <div class="attibyan-dash-arr">›</div>
-        </div>
-      </div>
-
       <!-- Grafik Kehadiran Bulanan -->
       <div class="grafik-card" id="grafikCard" style="display:none">
         <div class="grafik-title-row">
@@ -4889,7 +4939,13 @@ async function loadDashboard() {
     el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
   });
   try {
-    var r = await window.HQ.MuridAPI.getDashboard();
+    var [r, atRes] = await Promise.all([
+      window.HQ.MuridAPI.getDashboard(),
+      window.HQ.MuridAPI.getAtTibyanMurid().catch(function(e) {
+        console.error("Gagal memuat kehadiran At-Tibyan:", e);
+        return { data: [], summary: { hadir: 0, total: 0, pct: 0 } };
+      })
+    ]);
     dashData = r.data;
     var d = dashData;
     var ang  = d.anggota   || {};  // { level, target_level }
@@ -5098,6 +5154,31 @@ async function loadDashboard() {
         microCardEl.style.display = 'none';
       }
     }
+
+    // At-Tibyan Card visibility and population
+    var atSum = (atRes && atRes.summary) || { hadir: 0, total: 0, pct: 0 };
+    var atHadir = atSum.hadir || 0;
+    var atPct = Math.min(100, Math.round((atHadir / 20) * 100));
+    var atSisa = Math.max(0, 20 - atHadir);
+    
+    var atDonutRing = document.getElementById('dashAtTibyanDonutRing');
+    var atPctNum = document.getElementById('dashAtTibyanProgressPctNum');
+    var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
+    
+    if (atDonutRing) {
+      atDonutRing.style.background = 'conic-gradient(#d97706 ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
+    }
+    if (atPctNum) {
+      atPctNum.textContent = atPct + '%';
+    }
+    if (atProgressBar) {
+      atProgressBar.style.width = atPct + '%';
+      atProgressBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+    }
+    
+    document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
+    var atSisaTeks = atSisa > 0 ? atSisa + ' sesi tersisa' : '🎉 Target tercapai!';
+    document.getElementById('dashAtTibyanSisa').textContent = atSisaTeks;
 
     // Estimasi selesai (jika ada target harian)
     var reqDailyPages = d.profil && d.profil.target_harian ? Number(d.profil.target_harian) : 0;
