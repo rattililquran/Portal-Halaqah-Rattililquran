@@ -2270,11 +2270,14 @@ var PushAPI = {
 
   // Kirim push (dipanggil dari portal, hanya untuk admin/guru)
   send: async function(opts) {
+    var sess  = await _sb.auth.getSession();
+    var token = sess.data && sess.data.session && sess.data.session.access_token;
+    if (!token) throw new Error('Sesi tidak ditemukan. Silakan login ulang.');
     var res = await fetch(SUPABASE_URL + '/functions/v1/send-push', {
       method : 'POST',
       headers: {
         'Content-Type' : 'application/json',
-        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Authorization': 'Bearer ' + token,
       },
       body: JSON.stringify(opts),
     });
