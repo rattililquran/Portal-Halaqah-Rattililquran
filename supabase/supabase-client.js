@@ -501,17 +501,37 @@ var GuruAPI = {
   },
 
   getNilaiByKBM: async function(id_kbm) {
-    var { data, error } = await _sb.from('nilai_kbm').select('*').eq('id_kbm', id_kbm);
-    _check(error, 'getNilaiByKBM');
+    var [nilaiRes, kbmRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('*').eq('id_kbm', id_kbm),
+      _sb.from('kbm_log').select('jenis_sesi').eq('id_kbm', id_kbm).maybeSingle()
+    ]);
+    _check(nilaiRes.error, 'getNilaiByKBM');
+    var data = nilaiRes.data || [];
+    var kbm = kbmRes.data || null;
+    var jenisSesi = kbm ? kbm.jenis_sesi : 'KBM Reguler';
+
     // Ambil nama murid terpisah untuk hindari ambiguitas FK join
-    var ids = (data || []).map(function(r) { return r.id_murid; });
+    var ids = data.map(function(r) { return r.id_murid; });
     var namaMap = {};
     if (ids.length > 0) {
       var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
       (users || []).forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
     }
-    return { status: 'ok', data: (data || []).map(function(r) {
-      return Object.assign({}, r, { nama_murid: namaMap[r.id_murid] || r.id_murid });
+
+    var setoranMap = {};
+    if (jenisSesi === 'KBM Qiyam') {
+      var { data: setoranData } = await _sb.from('setoran_hafalan').select('*').eq('id_kbm', id_kbm);
+      (setoranData || []).forEach(function(s) {
+        setoranMap[s.id_murid] = s;
+      });
+    }
+
+    return { status: 'ok', data: data.map(function(r) {
+      return Object.assign({}, r, {
+        nama_murid: namaMap[r.id_murid] || r.id_murid,
+        jenis_sesi: jenisSesi,
+        hafalan: setoranMap[r.id_murid] || null
+      });
     })};
   },
 

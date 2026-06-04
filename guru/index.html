@@ -3857,6 +3857,7 @@ async function doSimpanPresensi() {
     await window.HQ.GuruAPI.simpanPresensi({
       id_kbm: sesiAktif.id_kbm,
       id_halaqah: sesiAktif.id_halaqah,
+      jenis_sesi: sesiAktif.jenis_sesi,
       presensi
     });
     // Routing berdasarkan jenis sesi
@@ -5355,19 +5356,104 @@ async function lihatDetail(id_kbm, tgl) {
       document.getElementById('detailBody').innerHTML = emptyHTML('📭','Belum ada data nilai','');
       return;
     }
-    document.getElementById('detailBody').innerHTML = data.map(n => `
-      <div class="nilai-row">
-        <div class="nilai-murid-name">
-          <span>👤 ${esc(n.nama_murid||n.id_murid)}</span>
-          ${hadirBadge(n.status_hadir)}
+    document.getElementById('detailBody').innerHTML = data.map(n => {
+      let contentHtml = '';
+      if (n.hafalan) {
+        // KBM Qiyam
+        const h = n.hafalan;
+        const jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', Tasmi: '✨', Sabqi: '📚' };
+        contentHtml = `
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">
+            Juz ${h.juz || '-'} · ${esc(h.surat)} · Ayat ${h.ayat_dari}–${h.ayat_sampai}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span class="badge b-gray">${jenisIcon[h.jenis] || '📖'} ${esc(h.jenis || 'Ziyadah')}</span>
+            <span class="badge ${h.nilai === 'A' ? 'b-blue' : h.nilai === 'B' ? 'b-green' : 'b-amber'}" style="font-weight:bold">Nilai: ${esc(h.nilai)}</span>
+            ${h.kelancaran ? `<span class="badge b-purple">Kelancaran: ${esc(h.kelancaran)}</span>` : ''}
+          </div>
+          ${h.target_surat ? `
+            <div style="font-size:12px;color:#059669;font-weight:600;margin-bottom:4px">
+              🎯 Target: ${esc(h.target_surat)} · Ayat ${h.target_ayat_dari || 1}–${h.target_ayat_sampai || 1}
+            </div>` : ''}
+          ${h.catatan ? `
+            <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
+              📝 Catatan: ${esc(h.catatan)}
+            </div>` : ''}
+        `;
+      } else if (n.jenis_sesi === 'Micro Teaching') {
+        // Micro Teaching
+        let rubrikHtml = '';
+        if (n.koreksi_tahsin) {
+          try {
+            const rubrik = JSON.parse(n.koreksi_tahsin);
+            const keyMap = {
+              penguasaan : 'Penguasaan Materi',
+              penyampaian: 'Cara Penyampaian',
+              tajwid     : 'Kualitas Tajwid',
+              interaksi  : 'Interaksi Kelas',
+              waktu      : 'Manajemen Waktu'
+            };
+            const optMap = {
+              4: 'Sangat Baik (SB)',
+              3: 'Baik (B)',
+              2: 'Cukup (C)',
+              1: 'Perlu Perbaikan (PP)'
+            };
+            const items = [];
+            for (const k in keyMap) {
+              if (rubrik[k]) {
+                const val = rubrik[k];
+                items.push(`<strong>${keyMap[k]}:</strong> ${optMap[val] || val}`);
+              }
+            }
+            if (items.length > 0) {
+              rubrikHtml = `<div style="font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.4">
+                📋 <strong>Rubrik Penilaian:</strong><br>
+                ${items.join('<br>')}
+              </div>`;
+            } else {
+              rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>`;
+            }
+          } catch(e) {
+            rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>`;
+          }
+        }
+        contentHtml = `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span class="badge b-blue" style="font-size:11.5px;font-weight:bold">Nilai: ${esc(n.nilai)} / 100</span>
+          </div>
+          ${rubrikHtml}
+          ${n.catatan_murid ? `
+            <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
+              📝 Catatan: ${esc(n.catatan_murid)}
+            </div>` : ''}
+        `;
+      } else {
+        // KBM Reguler (Default)
+        contentHtml = `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            ${n.nilai ? nilaiLabel(n.nilai) : ''}
+            ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
+            ${n.kamera_murid ? `<span class="badge b-purple">Kamera: ${esc(n.kamera_murid)}</span>` : ''}
+          </div>
+          ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
+          ${n.catatan_murid ? `
+            <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
+              📝 Catatan: ${esc(n.catatan_murid)}
+            </div>` : ''}
+        `;
+      }
+
+      return `
+        <div class="nilai-row">
+          <div class="nilai-murid-name">
+            <span>👤 ${esc(n.nama_murid||n.id_murid)}</span>
+            ${hadirBadge(n.status_hadir)}
+          </div>
+          ${contentHtml}
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          ${n.nilai ? nilaiLabel(n.nilai) : ''}
-          ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
-          ${n.kamera_murid ? `<span class="badge b-purple">Kamera: ${esc(n.kamera_murid)}</span>` : ''}
-        </div>
-        ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
-      </div>`).join('');
+      `;
+    }).join('');
   } catch(e) {
     document.getElementById('detailBody').innerHTML = emptyHTML('❌','Gagal memuat','');
   }
