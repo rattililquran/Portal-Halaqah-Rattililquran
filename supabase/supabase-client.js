@@ -187,18 +187,15 @@ var GuruAPI = {
 
     // Hitung pertemuan_ke per halaqah — pisahkan Reguler dan Qiyam
     var hqIds = (halaqah || []).map(function(h) { return h.id_halaqah; });
-    var kbmRegCounts  = {};  // KBM Reguler
-    var kbmQiyamCounts = {}; // KBM Qiyam
+    // Hitung pertemuan per jenis KBM — masing-masing punya counter sendiri
+    var kbmByJenis = {};  // { id_halaqah: { 'KBM Reguler': N, 'KBM Qiyam': N, ... } }
     if (hqIds.length > 0) {
       var { data: kbmAll } = await _sb.from('kbm_log')
         .select('id_halaqah, jenis_sesi').in('id_halaqah', hqIds).eq('status', 'selesai');
       (kbmAll || []).forEach(function(k) {
-        if (k.jenis_sesi === 'KBM Qiyam') {
-          kbmQiyamCounts[k.id_halaqah] = (kbmQiyamCounts[k.id_halaqah] || 0) + 1;
-        } else {
-          // KBM Reguler, Micro Teaching, Lainnya, atau null → hitungan Reguler
-          kbmRegCounts[k.id_halaqah] = (kbmRegCounts[k.id_halaqah] || 0) + 1;
-        }
+        var jenis = k.jenis_sesi || 'KBM Reguler';
+        if (!kbmByJenis[k.id_halaqah]) kbmByJenis[k.id_halaqah] = {};
+        kbmByJenis[k.id_halaqah][jenis] = (kbmByJenis[k.id_halaqah][jenis] || 0) + 1;
       });
     }
 
@@ -207,23 +204,28 @@ var GuruAPI = {
       var isHariIni  = jadwalHari.some(function(j) {
         return j.toLowerCase().includes(hari.toLowerCase());
       });
-      var regCount   = kbmRegCounts[h.id_halaqah]   || 0;
-      var qiyamCount = kbmQiyamCounts[h.id_halaqah] || 0;
+      var jenisCounts = kbmByJenis[h.id_halaqah] || {};
+      var regCount    = jenisCounts['KBM Reguler']    || 0;
+      var qiyamCount  = jenisCounts['KBM Qiyam']      || 0;
+      var microCount  = jenisCounts['Micro Teaching']  || 0;
+      var lainCount   = jenisCounts['Lainnya']          || 0;
       return {
-        id_halaqah          : h.id_halaqah,
-        nama_halaqah        : h.nama_halaqah,
-        level               : h.level,
-        jadwal_hari         : h.jadwal_hari,
-        jam_mulai           : h.jam_mulai,
-        jam_selesai         : h.jam_selesai,
-        lokasi              : h.lokasi,
-        total_murid         : h.anggota ? h.anggota[0].count : 0,
-        pertemuan_ke        : regCount + 1,            // next KBM Reguler
-        pertemuan_ke_reguler: regCount + 1,
-        pertemuan_ke_qiyam  : qiyamCount + 1,
-        total_sesi          : regCount,                // hanya Reguler untuk progress 40
-        sisa_sesi           : Math.max(0, 40 - regCount),
-        is_hari_ini         : isHariIni,
+        id_halaqah             : h.id_halaqah,
+        nama_halaqah           : h.nama_halaqah,
+        level                  : h.level,
+        jadwal_hari            : h.jadwal_hari,
+        jam_mulai              : h.jam_mulai,
+        jam_selesai            : h.jam_selesai,
+        lokasi                 : h.lokasi,
+        total_murid            : h.anggota ? h.anggota[0].count : 0,
+        pertemuan_ke           : regCount + 1,       // backward compat
+        pertemuan_ke_reguler   : regCount + 1,
+        pertemuan_ke_qiyam     : qiyamCount + 1,
+        pertemuan_ke_microteach: microCount + 1,
+        pertemuan_ke_lainnya   : lainCount + 1,
+        total_sesi             : regCount,           // hanya Reguler untuk progress 40
+        sisa_sesi              : Math.max(0, 40 - regCount),
+        is_hari_ini            : isHariIni,
       };
     });
 

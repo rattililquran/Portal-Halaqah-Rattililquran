@@ -4482,15 +4482,20 @@ async function doSelesaiKBM() {
   // Tutup modal preview dulu
   closeModal('previewModal');
 
-  const materi     = isRegulerSesi ? document.getElementById('jurnalMateri').value.trim() : '';
+  const isQiyamSesi = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
+  // Materi, catatan, jam selesai: berlaku untuk Reguler dan Qiyam
+  const saveJurnal  = isRegulerSesi || isQiyamSesi;
+  const materi     = saveJurnal ? document.getElementById('jurnalMateri').value.trim() : '';
   const halaman    = isRegulerSesi ? (document.getElementById('jurnalHalaman') ? document.getElementById('jurnalHalaman').value.trim() : '') : '';
   const metode     = isRegulerSesi ? document.getElementById('jurnalMetode').value : '';
-  const catatan    = isRegulerSesi ? document.getElementById('jurnalCatatan').value.trim() : '';
-  const jamSelesai = isRegulerSesi ? document.getElementById('jurnalJamSelesai').value : new Date().toTimeString().slice(0,5);
+  const catatan    = saveJurnal ? document.getElementById('jurnalCatatan').value.trim() : '';
+  const jamSelesai = saveJurnal
+    ? (document.getElementById('jurnalJamSelesai').value || new Date().toTimeString().slice(0,5))
+    : new Date().toTimeString().slice(0,5);
   // Latihan mandiri hanya berlaku untuk KBM Reguler
   const latihanMandiri  = isRegulerSesi ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
   const jenisLatihan    = isRegulerSesi ? document.getElementById('jurnalJenisLatihan').value : '';
-  const deadlineLatihan = isRegulerSesi ? document.getElementById('jurnalDeadline').value : '';
+  const deadlineLatihan = isRegulerSesi ? (document.getElementById('jurnalDeadline').value || null) : null;
 
   setBtn('btnSelesai', true, '⏳ Menyimpan...');
   showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
@@ -4759,7 +4764,7 @@ async function loadRiwayat() {
     tbody.innerHTML = rows.map(k => `<tr>
       <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
       <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
-      <td><span class="badge b-gray">${esc(k.jenis_sesi||'-')}</span></td>
+      <td>${jenisKbmBadge(k.jenis_sesi)}</td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k.pencapaian_modul||'-')}</td>
       <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
       <td>${statusBadge(k.status)}</td>
@@ -4996,6 +5001,18 @@ function quickToast(msg, type='ok') {
 function setBtn(id, dis, txt) {
   const el = document.getElementById(id);
   if (!el) return; el.disabled = dis; el.textContent = txt;
+}
+
+function jenisKbmBadge(jenis) {
+  var j = jenis || 'KBM Reguler';
+  var map = {
+    'KBM Reguler'   : {cls:'b-red',    label:'KBM Reguler'},
+    'KBM Qiyam'     : {cls:'b-green',  label:'KBM Qiyam'},
+    'Micro Teaching': {cls:'b-purple',  label:'Micro Teaching'},
+    'Lainnya'       : {cls:'b-gray',    label:'Lainnya'},
+  };
+  var m = map[j] || {cls:'b-gray', label:j};
+  return '<span class="badge ' + m.cls + '">' + m.label + '</span>';
 }
 
 function statusBadge(s) {
@@ -5853,13 +5870,10 @@ function autoFillPertemuan() {
     if (ptInput) {
       ptInput.value = '';
       var nextPt, label;
-      if (jenis === 'KBM Qiyam') {
-        nextPt = h.pertemuan_ke_qiyam || 1;
-        label  = 'Sesi Qiyam ke-';
-      } else {
-        nextPt = h.pertemuan_ke_reguler || h.pertemuan_ke || 1;
-        label  = 'Pertemuan ke-';
-      }
+      if      (jenis === 'KBM Qiyam')       { nextPt = h.pertemuan_ke_qiyam      || 1; label = 'Qiyam ke-'; }
+      else if (jenis === 'Micro Teaching') { nextPt = h.pertemuan_ke_microteach || 1; label = 'Micro ke-'; }
+      else if (jenis === 'Lainnya')        { nextPt = h.pertemuan_ke_lainnya    || 1; label = 'Sesi ke-'; }
+      else                                 { nextPt = h.pertemuan_ke_reguler    || h.pertemuan_ke || 1; label = 'Pertemuan ke-'; }
       ptInput.placeholder = 'Auto (' + label + nextPt + ')';
     }
   }
