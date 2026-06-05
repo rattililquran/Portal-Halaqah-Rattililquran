@@ -1091,6 +1091,18 @@ html.theme-dark .tahfidz-current-footer {
   margin-top: 4px;
 }
 .attibyan-dash-card-row{display:flex;align-items:center;gap:12px}
+
+/* ── MICRO TEACHING DASH CARD (ungu) ── */
+.micro-dash-card{border-radius:20px;border:1px solid rgba(139,92,246,.25);
+  background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 60%,#ddd6fe 100%);
+  padding:20px 20px 20px;margin-bottom:16px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(139,92,246,.15);transition:transform .15s ease,box-shadow .15s ease}
+.micro-dash-card:hover{box-shadow:0 6px 20px rgba(139,92,246,.25)}
+.micro-dash-card:active{transform:scale(.98)}
+.micro-dash-card .prog-title{color:#5b21b6 !important;}
+.micro-dash-card .prog-info-title{color:#5b21b6 !important;}
+.micro-dash-card .prog-info-sesi{color:#7c3aed !important;}
+.micro-dash-card .prog-inner-wrap{background:rgba(139,92,246,0.08) !important;margin-top:4px;}
 .attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;
@@ -2051,6 +2063,14 @@ html.theme-dark .attibyan-dash-card .prog-inner-card {
 html.theme-dark .attibyan-dash-card .prog-donut-inner {
   background: rgba(36, 26, 2, 0.8) !important;
 }
+/* dark mode micro-dash-card */
+html.theme-dark .micro-dash-card{background:linear-gradient(135deg,#1e1535 0%,#2a1d4a 60%,#341f5e 100%) !important;border-color:rgba(139,92,246,.25) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
+html.theme-dark .micro-dash-card .prog-title{color:#c4b5fd !important;}
+html.theme-dark .micro-dash-card .prog-info-title{color:#c4b5fd !important;}
+html.theme-dark .micro-dash-card .prog-info-sesi{color:#a78bfa !important;}
+html.theme-dark .micro-dash-card .prog-inner-wrap{background:rgba(139,92,246,0.1) !important;}
+html.theme-dark .micro-dash-card .prog-inner-card{background:#1a1230 !important;}
+html.theme-dark .micro-dash-card .prog-donut-inner{background:rgba(26,18,48,0.8) !important;}
 html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh{border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh:hover{border-color:#38bdf8 !important;color:#38bdf8 !important;background:#1a2535 !important}
@@ -2778,7 +2798,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         </div>
       </div>
       <!-- Micro Teaching Card -->
-      <div class="attibyan-dash-card" id="dashMicroCard" style="display:none; cursor:pointer;" onclick="openMicroTeachingBreakdown()">
+      <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
         <!-- Judul MT -->
         <div class="prog-title">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -2851,9 +2871,9 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
 
       <!-- Modal Konfirmasi SPP -->
       <div class="modal-overlay" id="sppKonfirmasiModal" onclick="if(event.target===this)tutupModalKonfirmasiSPP()">
-        <div class="modal-sheet" style="max-width:480px">
+        <div class="modal-sheet" style="max-width:480px;margin:0 auto;display:flex;flex-direction:column;max-height:90dvh">
           <!-- Header sticky -->
-          <div class="modal-head" style="position:sticky;top:0;background:#fff;z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px">
+          <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
             <div style="display:flex;align-items:center;gap:10px">
               <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1a5c3a,#2d8a5a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💳</div>
               <div>
@@ -2865,7 +2885,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           </div>
 
           <!-- Body scroll -->
-          <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+          <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
 
             <!-- Info Metode Pembayaran -->
             <div id="sppMetodeInfo" style="display:none">
@@ -2978,7 +2998,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           </div>
 
           <!-- Footer sticky -->
-          <div class="modal-foot">
+          <div class="modal-foot" style="flex-shrink:0">
             <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
             <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
