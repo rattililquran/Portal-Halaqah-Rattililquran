@@ -3,7 +3,7 @@
 //  Cache version: v5.4 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.5';
+const CACHE_NAME   = 'halaqah-v5.6';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
