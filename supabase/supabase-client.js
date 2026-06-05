@@ -1455,6 +1455,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       } else if (nama.includes('tibyan') || nama.includes('at-tibyan')) {
         var hadirAt = myAt.filter(function(n){return ['H','T'].includes(String(n.status_hadir||'').toUpperCase());}).length;
         v = totalAt > 0 ? Math.round(hadirAt/totalAt*100) : 0;
+      } else if (nama.includes('micro') || nama.includes('micro teaching')) {
+        var mtRows = myKBM.filter(function(n) { return n.jenis_sesi === 'Micro Teaching' && n.nilai != null && n.nilai !== ''; });
+        var mtSum = mtRows.reduce(function(s, n) { return s + (Number(n.nilai) || 0); }, 0);
+        v = mtRows.length > 0 ? Math.round(mtSum / mtRows.length) : 0;
       }
     }
     return { id_komponen: k.id_komponen, nama_komponen: k.nama_komponen, bobot: Number(k.bobot), nilai: v, nilai_bobot: Math.round(v*Number(k.bobot)/100), tipe: k.tipe };
