@@ -2250,12 +2250,17 @@ var AdminAPI = {
   getSPPRekap: async function(p) {
     // p: { tahun, id_halaqah, bulan }
     var tahun = p && p.tahun ? Number(p.tahun) : new Date().getFullYear();
-    // Hanya SPP Pribadi yang direkap per bulan; Infaq dicatat tapi tidak masuk rekap tunggakan
-    var q = _sb.from('spp_pembayaran').select('*').eq('tahun', tahun).eq('status','lunas').eq('jenis','SPP Pribadi');
+    // Ambil seluruh pembayaran lunas untuk tahun tersebut (baik SPP Pribadi maupun Infaq/Operasional)
+    var q = _sb.from('spp_pembayaran').select('*').eq('tahun', tahun).eq('status','lunas');
     if (p && p.id_halaqah) q = q.eq('id_halaqah', p.id_halaqah);
     if (p && p.bulan)      q = q.eq('bulan', p.bulan);
     var { data: sppData, error } = await q;
     _check(error,'getSPPRekap');
+
+    // Filter berdasarkan jenis pembayaran
+    var sppPribadi = (sppData||[]).filter(function(s){ return s.jenis === 'SPP Pribadi' || !s.jenis; });
+    var infaqData = (sppData||[]).filter(function(s){ return s.jenis === 'Infaq/Operasional'; });
+
     // Ambil semua anggota aktif untuk cross-check
     var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, halaqah(nama_halaqah)').eq('status','aktif');
     if (p && p.id_halaqah) anggotaQ = anggotaQ.eq('id_halaqah', p.id_halaqah);
@@ -2276,9 +2281,9 @@ var AdminAPI = {
     var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
     var endIdx   = bulanSelesai;
     var bulanRekap = BULAN.slice(startIdx, endIdx);
-    // Map id_murid → bulan lunas
+    // Map id_murid → bulan lunas (menggunakan data SPP Pribadi saja)
     var lunasMap = {};
-    (sppData||[]).forEach(function(s){
+    sppPribadi.forEach(function(s){
       if (!lunasMap[s.id_murid]) lunasMap[s.id_murid] = [];
       lunasMap[s.id_murid].push(s.bulan);
     });
@@ -2293,11 +2298,16 @@ var AdminAPI = {
         lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
-    var totalNominal = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    
+    // Hitung masing-masing total nominal
+    var totalSPP = sppPribadi.reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    var totalInfaq = infaqData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    var totalMasuk = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
+
     // Lunas = tunggakan===0 DAN sudah bayar minimal TOTAL_REKAP bulan di window
     var lunas     = muridList.filter(function(m){ return m.tunggakan===0 && bulanRekap.length>0; }).length;
     var menunggak = muridList.filter(function(m){ return m.tunggakan>0; }).length;
-    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalNominal, lunas, menunggak, tahun,
+    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
       bulan_rekap: bulanRekap, total_rekap: TOTAL_REKAP } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },

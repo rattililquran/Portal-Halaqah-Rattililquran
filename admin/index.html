@@ -1232,21 +1232,31 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
 
         <!-- ── Stats ── -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px">
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #10b981">
-            <div style="font-size:28px;font-weight:900;color:#065f46;line-height:1" id="sppStatLunas">—</div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">✅ Lunas</div>
-            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatLunasSub">—</div>
+            <div style="font-size:24px;font-weight:900;color:var(--green-txt);line-height:1" id="sppStatLunas">—</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">✅ Lunas</div>
+            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatLunasSub">—</div>
           </div>
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #ef4444">
-            <div style="font-size:28px;font-weight:900;color:#b91c1c;line-height:1" id="sppStatTunggak">—</div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">⚠ Menunggak</div>
-            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatTunggakSub">—</div>
+            <div style="font-size:24px;font-weight:900;color:var(--red-txt);line-height:1" id="sppStatTunggak">—</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">⚠ Menunggak</div>
+            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatTunggakSub">—</div>
           </div>
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #3b82f6">
-            <div style="font-size:15px;font-weight:900;color:#1d4ed8;line-height:1.2" id="sppStatTotal">—</div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💰 Total SPP</div>
-            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatTotalSub">Terbayar tahun ini</div>
+            <div style="font-size:17px;font-weight:900;color:var(--blue-txt);line-height:1.2" id="sppStatTotal">—</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💸 Total SPP</div>
+            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatTotalSub">Terbayar tahun ini</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #f59e0b">
+            <div style="font-size:17px;font-weight:900;color:var(--amber-txt);line-height:1.2" id="sppStatInfaq">—</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💛 Total Infaq</div>
+            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatInfaqSub">Terbayar tahun ini</div>
+          </div>
+          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #8b5cf6">
+            <div style="font-size:17px;font-weight:900;color:var(--purple-txt);line-height:1.2" id="sppStatMasuk">—</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💰 Total Masuk</div>
+            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatMasukSub">Terbayar tahun ini</div>
           </div>
         </div>
 
@@ -1340,8 +1350,8 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               <div>
                 <label style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:8px">Jenis</label>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="metodeJenisTabs">
-                  <div style="padding:10px;border-radius:10px;border:2px solid #1a5c3a;background:#f0fdf4;color:#1a5c3a;font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)">🏦 Rekening Bank</div>
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)">📱 QRIS</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green, #1a5c3a);background:var(--green-bg, #f0fdf4);color:var(--green-txt, #1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)">🏦 Rekening Bank</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2, #fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)">📱 QRIS</div>
                 </div>
               </div>
               <input type="hidden" id="metodeJenis" value="rekening">
@@ -3541,22 +3551,22 @@ async function loadMetodeBayarAdmin() {
     var r = await window.HQ.AdminAPI.getMetodeBayar();
     var list = r.data || [];
     if (!list.length) {
-      el.innerHTML = '<div style="padding:14px;background:#f8fafc;border-radius:10px;border:1px dashed var(--border);text-align:center;color:#94a3b8;font-size:13px">Belum ada metode. Klik "+ Tambah" untuk menambahkan rekening atau QRIS.</div>';
+      el.innerHTML = '<div style="padding:14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px dashed var(--border);text-align:center;color:var(--text-3, #94a3b8);font-size:13px">Belum ada metode. Klik "+ Tambah" untuk menambahkan rekening atau QRIS.</div>';
       return;
     }
     el.innerHTML = list.map(function(m) {
       var detail = m.jenis==='qris'
-        ? '<span style="font-size:11px;color:#0369a1">📱 QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:#0369a1">Lihat QR</a>':'· belum ada gambar') + '</span>'
-        : '<span style="font-size:13px;font-weight:800;font-variant-numeric:tabular-nums">'+esc(m.nomor||'—')+'</span><span style="font-size:11px;color:#64748b;margin-left:8px">a/n '+esc(m.atas_nama||'')+'</span>';
-      return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:10px">'
-        + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'#e0f2fe':'#f0fdf4')+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(m.jenis==='qris'?'📱':'🏦')+'</div>'
+        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1)">📱 QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
+        : '<span style="font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)">'+esc(m.nomor||'—')+'</span><span style="font-size:11px;color:var(--text-2, #64748b);margin-left:8px">a/n '+esc(m.atas_nama||'')+'</span>';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border:1px solid var(--border);border-radius:10px">'
+        + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'var(--blue-bg, #e0f2fe)':'var(--green-bg, #f0fdf4)')+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(m.jenis==='qris'?'📱':'🏦')+'</div>'
         + '<div style="flex:1;min-width:0">'
         + '<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.bank&&m.bank!==m.nama?m.bank+' · ':'')+esc(m.nama)+'</div>'
         + '<div style="margin-top:2px">'+detail+'</div>'
         + '</div>'
         + '<div style="display:flex;gap:6px;flex-shrink:0">'
         + '<button class="btn btn-outline btn-sm" onclick="editMetode(\''+m.id+'\')">Edit</button>'
-        + '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:none;font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+esc(m.nama)+'\')">Hapus</button>'
+        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+esc(m.nama)+'\')">Hapus</button>'
         + '</div></div>';
     }).join('');
   } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(e.message)+'</div>'; }
@@ -3578,12 +3588,12 @@ async function bukaFormMetode(data) {
   var jenis = (data && data.jenis) || 'rekening';
   document.getElementById('metodeJenis').value = jenis;
   var tabs = document.querySelectorAll('#metodeJenisTabs > div');
-  tabs[0].style.borderColor = jenis==='rekening'?'#1a5c3a':'var(--border)';
-  tabs[0].style.background  = jenis==='rekening'?'#f0fdf4':'#fff';
-  tabs[0].style.color       = jenis==='rekening'?'#1a5c3a':'var(--text-2)';
-  tabs[1].style.borderColor = jenis==='qris'?'#0369a1':'var(--border)';
-  tabs[1].style.background  = jenis==='qris'?'#f0f9ff':'#fff';
-  tabs[1].style.color       = jenis==='qris'?'#0369a1':'var(--text-2)';
+  tabs[0].style.borderColor = jenis==='rekening'?'var(--green, #1a5c3a)':'var(--border)';
+  tabs[0].style.background  = jenis==='rekening'?'var(--green-bg, #f0fdf4)':'var(--bg-2, #fff)';
+  tabs[0].style.color       = jenis==='rekening'?'var(--green-txt, #1a5c3a)':'var(--text-2)';
+  tabs[1].style.borderColor = jenis==='qris'?'var(--blue, #0369a1)':'var(--border)';
+  tabs[1].style.background  = jenis==='qris'?'var(--blue-bg, #f0f9ff)':'var(--bg-2, #fff)';
+  tabs[1].style.color       = jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--text-2)';
   document.getElementById('metodeRekeningFields').style.display = jenis==='rekening'?'':'none';
   document.getElementById('metodeQrisFields').style.display     = jenis==='qris'?'':'none';
   document.getElementById('modalMetode').classList.add('open');
@@ -3593,12 +3603,12 @@ function tutupFormMetode() { document.getElementById('modalMetode').classList.re
 function setMetodeJenis(jenis, el) {
   document.getElementById('metodeJenis').value = jenis;
   var tabs = document.querySelectorAll('#metodeJenisTabs > div');
-  tabs[0].style.borderColor = jenis==='rekening'?'#1a5c3a':'var(--border)';
-  tabs[0].style.background  = jenis==='rekening'?'#f0fdf4':'#fff';
-  tabs[0].style.color       = jenis==='rekening'?'#1a5c3a':'var(--text-2)';
-  tabs[1].style.borderColor = jenis==='qris'?'#0369a1':'var(--border)';
-  tabs[1].style.background  = jenis==='qris'?'#f0f9ff':'#fff';
-  tabs[1].style.color       = jenis==='qris'?'#0369a1':'var(--text-2)';
+  tabs[0].style.borderColor = jenis==='rekening'?'var(--green, #1a5c3a)':'var(--border)';
+  tabs[0].style.background  = jenis==='rekening'?'var(--green-bg, #f0fdf4)':'var(--bg-2, #fff)';
+  tabs[0].style.color       = jenis==='rekening'?'var(--green-txt, #1a5c3a)':'var(--text-2)';
+  tabs[1].style.borderColor = jenis==='qris'?'var(--blue, #0369a1)':'var(--border)';
+  tabs[1].style.background  = jenis==='qris'?'var(--blue-bg, #f0f9ff)':'var(--bg-2, #fff)';
+  tabs[1].style.color       = jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--text-2)';
   document.getElementById('metodeRekeningFields').style.display = jenis==='rekening'?'':'none';
   document.getElementById('metodeQrisFields').style.display     = jenis==='qris'?'':'none';
 }
@@ -3657,24 +3667,24 @@ async function loadSPPAdmin() {
         pendList.innerHTML = pending.map(function(p) {
           var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
           var jenisBadge = p.jenis === 'SPP Pribadi'
-            ? '<span style="background:#f0fdf4;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
-            : '<span style="background:#fffbeb;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
+            ? '<span style="background:var(--green-bg, #f0fdf4);color:var(--green-txt, #065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
+            : '<span style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
           var buktiLink = p.bukti_url
-            ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
-            : '<span style="font-size:11px;color:#94a3b8">Tidak ada bukti</span>';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:8px;flex-wrap:wrap">'
+            ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+            : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">'
             + '<div style="flex:1;min-width:160px">'
-            + '<div style="font-size:13.5px;font-weight:800">'+esc(p.nama_murid||p.id_murid)+'</div>'
-            + '<div style="font-size:11px;color:#64748b;margin-top:3px">'+jenisBadge
+            + '<div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(p.nama_murid||p.id_murid)+'</div>'
+            + '<div style="font-size:11px;color:var(--text-2, #64748b);margin-top:3px">'+jenisBadge
               +' <span style="margin-left:4px">'+esc(p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'')+'</span>'
               +' &nbsp;·&nbsp; <strong>'+nominal+'</strong>'
-              +(p.metode_transfer?'&nbsp;·&nbsp;<span style="background:#f1f5f9;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">'+esc(p.metode_transfer)+'</span>':'')+'</div>'
-            + (p.catatan ? '<div style="font-size:10.5px;color:#94a3b8;margin-top:3px;font-style:italic">'+esc(p.catatan)+'</div>' : '')
+              +(p.metode_transfer?'&nbsp;·&nbsp;<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">'+esc(p.metode_transfer)+'</span>':'')+'</div>'
+            + (p.catatan ? '<div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px;font-style:italic">'+esc(p.catatan)+'</div>' : '')
             + '<div style="margin-top:4px">'+buktiLink+'</div>'
             + '</div>'
             + '<div style="display:flex;gap:6px;flex-shrink:0">'
-            + '<button class="btn btn-sm" style="background:#1a5c3a;color:#fff;font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
-            + '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;font-size:12px;padding:7px 12px;border:1px solid #fca5a5" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
+            + '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
+            + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
             + '</div></div>';
         }).join('');
       } else {
@@ -3706,6 +3716,10 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatTunggakSub').textContent  = 'Belum tertagih: Rp ' + belumTertagih.toLocaleString('id-ID');
       document.getElementById('sppStatTotal').textContent   = 'Rp ' + (rekap.total_nominal||0).toLocaleString('id-ID');
       document.getElementById('sppStatTotalSub').textContent = 'Terbayar tahun ' + tahun;
+      document.getElementById('sppStatInfaq').textContent   = 'Rp ' + (rekap.total_infaq||0).toLocaleString('id-ID');
+      document.getElementById('sppStatInfaqSub').textContent = 'Terbayar tahun ' + tahun;
+      document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
+      document.getElementById('sppStatMasukSub').textContent = 'Terbayar tahun ' + tahun;
       
       filterSPPTable();
     } catch(eRekap) {
@@ -4390,9 +4404,9 @@ async function kirimTestPush() {
     var res = document.getElementById('pushTestResult');
     res.style.display = '';
     var ok = r.sent > 0;
-    res.style.background = ok ? '#f0fdf4' : (r.total===0 ? '#fffbeb' : '#fff5f5');
-    res.style.color = ok ? '#065f46' : (r.total===0 ? '#92400e' : '#991b1b');
-    res.style.border = '1px solid ' + (ok ? '#bbf7d0' : (r.total===0 ? '#fde68a' : '#fecaca'));
+    res.style.background = ok ? 'var(--green-bg, #f0fdf4)' : (r.total===0 ? 'var(--amber-bg, #fffbeb)' : 'var(--red-bg, #fff5f5)');
+    res.style.color = ok ? 'var(--green-txt, #065f46)' : (r.total===0 ? 'var(--amber-txt, #92400e)' : 'var(--red-txt, #991b1b)');
+    res.style.border = '1px solid ' + (ok ? 'var(--green, #bbf7d0)' : (r.total===0 ? 'var(--amber, #fde68a)' : 'var(--red, #fecaca)'));
     res.style.borderRadius = '10px';
     res.textContent = ok
       ? '✅ Berhasil dikirim ke ' + r.sent + ' device' + (r.failed ? ' · Gagal: '+r.failed : '')
@@ -4481,13 +4495,13 @@ async function testTrigger(trigger) {
   res.textContent = '⏳ Menjalankan trigger: ' + trigger + '...';
   try {
     var r = await window.HQ.AdminAPI.testTrigger(trigger);
-    res.style.background = r.ok ? '#f0fdf4' : '#fef3c7';
-    res.style.color       = r.ok ? '#065f46' : '#92400e';
+    res.style.background = r.ok ? 'var(--green-bg, #f0fdf4)' : 'var(--amber-bg, #fef3c7)';
+    res.style.color       = r.ok ? 'var(--green-txt, #065f46)' : 'var(--amber-txt, #92400e)';
     res.textContent = r.ok
       ? '✅ Trigger ' + trigger + ' berhasil dijalankan'
       : '⛔ Trigger dinonaktifkan admin: ' + trigger;
   } catch(e) {
-    res.style.background = '#fff5f5'; res.style.color = '#991b1b';
+    res.style.background = 'var(--red-bg, #fff5f5)'; res.style.color = 'var(--red-txt, #991b1b)';
     res.textContent = '❌ Error: ' + e.message;
   }
 }
