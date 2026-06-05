@@ -123,14 +123,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* Nav body */
 .sb-nav{flex:1;padding:6px 12px 16px;overflow-y:auto}
 .sb-section{
-  display:inline-flex !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  width:fit-content !important;
   font-size:9px !important;
   font-weight:800 !important;
   color:#0284c7 !important;
   text-transform:uppercase;
   letter-spacing:.08em;
   padding:3px 10px !important;
-  margin:14px 12px 6px !important;
+  margin:14px auto 6px !important;
   background:rgba(14,165,233,0.06);
   border:1px solid rgba(14,165,233,0.12);
   border-radius:100px;
@@ -1791,7 +1794,7 @@ html.theme-dark .kbm-jenis-btn {
     <!-- Header gradient + profile row -->
     <div class="sb-top">
       <div style="height:env(safe-area-inset-top,0px);min-height:0"></div>
-      <div class="sb-profile-row">
+      <div class="sb-profile-row" style="cursor:pointer" onclick="closeSB();goPage('password')" title="Lihat Profil Saya">
         <div class="sb-avatar" id="sbAvatar">
           <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">
         </div>
