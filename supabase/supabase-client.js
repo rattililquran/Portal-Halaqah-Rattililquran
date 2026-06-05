@@ -13,17 +13,35 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 // ─────────────────────────────────────────────
 //  SESSION
 // ─────────────────────────────────────────────
-let _currentUser = null;
+var _currentUser = null;
+var _isRestoringSession = false;
 
-// Restore session dari localStorage saat page load
-(function _restoreSession() {
+(function() {
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
   var token   = localStorage.getItem('hq_token');
   var refresh = localStorage.getItem('hq_refresh');
   if (token && refresh) {
+    _isRestoringSession = true;
     // Restore dengan kedua token agar Supabase bisa auto-refresh saat expired
-    _sb.auth.setSession({ access_token: token, refresh_token: refresh }).catch(function(){});
+    _sb.auth.setSession({ access_token: token, refresh_token: refresh })
+      .then(function(res) {
+        _isRestoringSession = false;
+        if (!res.data || !res.data.session) {
+          // Token tidak valid atau sudah expired, bersihkan storage
+          _currentUser = null;
+          localStorage.removeItem('hq_token');
+          localStorage.removeItem('hq_refresh');
+          localStorage.removeItem('hq_user');
+        }
+      })
+      .catch(function() {
+        _isRestoringSession = false;
+        _currentUser = null;
+        localStorage.removeItem('hq_token');
+        localStorage.removeItem('hq_refresh');
+        localStorage.removeItem('hq_user');
+      });
   }
 })();
 
@@ -34,6 +52,9 @@ _sb.auth.onAuthStateChange(function(event, session) {
     localStorage.setItem('hq_refresh', session.refresh_token);
   }
   if (event === 'SIGNED_OUT') {
+    // Abaikan jika sedang melakukan restore session di awal load
+    if (_isRestoringSession) return;
+
     _currentUser = null;
     localStorage.removeItem('hq_token');
     localStorage.removeItem('hq_refresh');
