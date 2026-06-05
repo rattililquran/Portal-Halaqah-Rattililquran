@@ -264,6 +264,9 @@ body{
   background:rgba(255,255,255,.85);backdrop-filter:blur(12px);
   z-index:500;align-items:center;justify-content:center;flex-direction:column}
 .loader.show{display:flex;animation:ldFade .3s ease}
+/* Saat redirect: loader solid penuh agar kartu login tidak terlihat */
+.loader.redirecting{background:#f8fafc !important;backdrop-filter:none !important}
+html.theme-dark .loader.redirecting{background:#070d1a !important}
 @keyframes ldFade{from{opacity:0}to{opacity:1}}
 .ld-inner{text-align:center;padding:0 28px;max-width:320px}
 .ld-dots{flex-direction:row;display:flex;gap:10px;justify-content:center;margin-bottom:20px}
@@ -274,6 +277,26 @@ body{
 .ld-dot:nth-child(3){animation-delay:.44s}
 @keyframes dotP{0%,80%,100%{transform:scale(.5);background:rgba(14,165,233,.2)}40%{transform:scale(1.1);background:#0ea5e9}}
 .ld-txt{color:#0ea5e9;font-size:14.5px;font-weight:700;line-height:1.7}
+
+/* ── TOMBOL INSTALL PWA ── */
+#pwa-install-btn{
+  display:none;position:fixed;bottom:20px;right:20px;z-index:200;
+  background:linear-gradient(135deg,#0284c7 0%,#1d4ed8 100%);
+  color:#fff;border:none;border-radius:100px;
+  padding:11px 18px;font-family:inherit;font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow:0 4px 20px rgba(2,132,199,.4);
+  align-items:center;gap:8px;
+  animation:pwaPopIn .4s cubic-bezier(0.34,1.56,0.64,1) both;
+  transition:transform .2s,box-shadow .2s;
+}
+#pwa-install-btn.visible{display:flex}
+#pwa-install-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(2,132,199,.5)}
+#pwa-install-btn:active{transform:translateY(0)}
+@keyframes pwaPopIn{
+  from{opacity:0;transform:translateY(20px) scale(.9)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+html.theme-dark #pwa-install-btn{box-shadow:0 4px 20px rgba(56,189,248,.3)}
 
 /* Theme Toggle Button */
 .theme-toggle-btn {
@@ -719,6 +742,12 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
 <!-- Footer -->
 <footer class="footer">BY RATTILILQUR'AN @2026</footer>
 
+<!-- Tombol Install PWA -->
+<button id="pwa-install-btn" title="Pasang sebagai aplikasi" aria-label="Install aplikasi">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Pasang Aplikasi
+</button>
+
 <!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="supabase/supabase-client.js"></script>
@@ -784,8 +813,8 @@ async function doLogin() {
       ? ROLE_META[serverRole].redirect
       : ROLE_META[currentRole].redirect;
 
-    setLoading(true, 'Alhamdulillah, mari kita mulai...');
-    setTimeout(function() { window.location.href = redirect; }, 700);
+    setLoading(true, 'Alhamdulillah, mari kita mulai...', true);
+    setTimeout(function() { window.location.href = redirect; }, 800);
   } catch(e) {
     setLoading(false);
     showErr(e.message || 'ID atau password salah');
@@ -800,18 +829,26 @@ function showErr(msg) {
   document.getElementById('btnLogin').textContent = 'Masuk';
 }
 
-function setLoading(on, msg) {
+function setLoading(on, msg, isRedirect) {
   const loader = document.getElementById('loader');
   const btn    = document.getElementById('btnLogin');
   if (on) {
     document.getElementById('loaderTxt').textContent = msg || 'Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...';
     loader.classList.add('show');
-    btn.disabled = true;
-    btn.textContent = 'Masuk...';
+    // Saat redirect: buat loader solid agar kartu login tidak terlihat di belakangnya
+    if (isRedirect) {
+      loader.classList.add('redirecting');
+      // Sembunyikan konten di balik loader
+      var wrap = document.querySelector('.wrap');
+      if (wrap) wrap.style.visibility = 'hidden';
+    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Masuk...'; }
   } else {
     loader.classList.remove('show');
-    btn.disabled = false;
-    btn.textContent = 'Masuk';
+    loader.classList.remove('redirecting');
+    var wrap = document.querySelector('.wrap');
+    if (wrap) wrap.style.visibility = '';
+    if (btn) { btn.disabled = false; btn.textContent = 'Masuk'; }
   }
 }
 
@@ -1018,6 +1055,44 @@ function initThemeToggle() {
 initThemeToggle();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ── PWA INSTALL PROMPT ──────────────────────────────────────
+(function() {
+  var deferredPrompt = null;
+  var installBtn = document.getElementById('pwa-install-btn');
+  if (!installBtn) return;
+
+  // Tangkap event beforeinstallprompt
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('visible');
+  });
+
+  // Klik tombol → tampilkan prompt install
+  installBtn.addEventListener('click', function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(result) {
+      if (result.outcome === 'accepted') {
+        installBtn.classList.remove('visible');
+      }
+      deferredPrompt = null;
+    });
+  });
+
+  // Sembunyikan tombol jika sudah terpasang sebagai PWA
+  window.addEventListener('appinstalled', function() {
+    installBtn.classList.remove('visible');
+    deferredPrompt = null;
+  });
+
+  // Jika sudah berjalan sebagai PWA (standalone) → sembunyikan
+  if (window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true) {
+    installBtn.classList.remove('visible');
+  }
+})();
 </script>
 </body>
 </html>
