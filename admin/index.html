@@ -1305,6 +1305,9 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               <button class="btn btn-outline btn-sm" onclick="eksporSPP()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
                 <span>📥</span> Ekspor CSV
               </button>
+              <button class="btn btn-outline btn-sm" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
+                <span>📋</span> Salin Tagihan WA
+              </button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -3816,6 +3819,52 @@ function eksporSPP() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+function salinTagihanMassal() {
+  var list = _sppRekapDataFiltered || [];
+  var menunggakList = list.filter(function(m) { return m.tunggakan > 0; });
+  if (!menunggakList.length) {
+    alert('Tidak ada data murid yang menunggak untuk disalin.');
+    return;
+  }
+  
+  var tahun = document.getElementById('sppFilterTahun').value;
+  var bulanVal = document.getElementById('sppFilterBulan').value;
+  var halaqahVal = document.getElementById('sppFilterHalaqah').value;
+  var namaHalaqah = '';
+  if (halaqahVal) {
+    var hq = (allHalaqah||[]).find(h => h.id_halaqah === halaqahVal);
+    namaHalaqah = hq ? hq.nama_halaqah : halaqahVal;
+  }
+  
+  var txt = '*REKAP TAGIHAN SPP RATTILILQUR\'AN*\n'
+    + (namaHalaqah ? '📚 Kelas: *' + namaHalaqah + '*\n' : '')
+    + (bulanVal ? '📅 Acuan Bulan: *' + bulanVal + '*\n' : '')
+    + '📅 Tahun: *' + tahun + '*\n\n'
+    + 'Mohon kerja samanya untuk menyelesaikan amanah SPP:\n\n';
+    
+  menunggakList.forEach(function(m, idx) {
+    var nominal = m.tunggakan * 75000;
+    txt += (idx + 1) + '. *' + m.nama_murid + '* (' + m.id_murid + ')\n'
+      + '   • Tunggakan: *' + m.tunggakan + ' bulan* (' + m.bulan_belum.join(', ') + ')\n'
+      + '   • Total Tagihan: *Rp ' + nominal.toLocaleString('id-ID') + '*\n\n';
+  });
+  
+  txt += 'Pembayaran dapat ditransfer ke rekening resmi lembaga. Semoga Allah mudahkan rezeki Bapak/Ibu sekalian. Jazakumullahu khairan 🤲';
+  
+  navigator.clipboard.writeText(txt).then(function() {
+    toast('Teks rekap tagihan disalin ke clipboard! 📋', 'ok');
+  }).catch(function() {
+    // Fallback
+    var el = document.createElement('textarea');
+    el.value = txt;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    toast('Teks rekap tagihan disalin ke clipboard! 📋', 'ok');
+  });
 }
 
 async function validasiSPP(id_spp, aksi) {
