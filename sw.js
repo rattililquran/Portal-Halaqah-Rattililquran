@@ -3,7 +3,7 @@
 //  Cache version: v5.4 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.6';
+const CACHE_NAME   = 'halaqah-v5.7'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -95,6 +95,25 @@ self.addEventListener('fetch', function(e) {
 
   // Hanya GET yang di-cache — POST/PUT/PATCH jangan pernah dicache
   if (e.request.method !== 'GET') return;
+
+  // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
+  // Tidak berlaku untuk Supabase/GAS API
+  if (url.includes('/assets/') || url.includes('/supabase/') && !url.includes('supabase.co')) {
+    e.respondWith(
+      caches.open(CACHE_NAME).then(function(cache) {
+        return cache.match(e.request).then(function(cached) {
+          // Selalu coba ambil versi terbaru di background
+          var networkFetch = fetch(e.request).then(function(res) {
+            if (res.ok) cache.put(e.request, res.clone());
+            return res;
+          }).catch(function() { return null; });
+          // Kembalikan dari cache instan jika ada, sambil update di background
+          return cached || networkFetch;
+        });
+      })
+    );
+    return;
+  }
 
   // HTML pages — network first, fallback cache
   e.respondWith(

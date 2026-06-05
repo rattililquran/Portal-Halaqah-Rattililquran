@@ -4446,8 +4446,8 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
   </div>
 </div>
 
-<script src="../assets/js/jspdf.umd.min.js"></script>
-<script src="../assets/js/html2canvas.min.js"></script>
+<!-- jsPDF & html2canvas: dimuat secara lazy hanya saat tombol Unduh PDF diklik -->
+<!-- Hemat ~510 KB dari initial load -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
 <script src="../assets/push-permission.js"></script>
@@ -5377,6 +5377,26 @@ async function loadDashboard() {
   finally {
     hideLoad();
     _isAppInitialized = true;
+    // ── Background Pre-fetch: muat data tab populer di latar belakang ──
+    // Hanya jika koneksi cukup cepat (bukan 2G) dan setelah dashboard siap
+    setTimeout(function() {
+      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      var slowConn = conn && (conn.effectiveType === '2g' || conn.saveData);
+      if (slowConn) return; // Hemat data di koneksi lambat
+      if (!_muridTabLoaded['riwayat']) {
+        _muridTabLoaded['riwayat'] = true;
+        _riwayatOffset = 8;
+        loadRiwayat().catch(function() { _muridTabLoaded['riwayat'] = false; });
+      }
+      if (!_muridTabLoaded['pr']) {
+        _muridTabLoaded['pr'] = true;
+        loadPR().catch(function() { _muridTabLoaded['pr'] = false; });
+      }
+      if (!_muridTabLoaded['info']) {
+        _muridTabLoaded['info'] = true;
+        loadMateri().catch(function() { _muridTabLoaded['info'] = false; });
+      }
+    }, 2500);
   }
 }
 
@@ -7934,10 +7954,29 @@ function closeRaportPreview() {
   document.body.style.overflow = '';
 }
 
+// Helper: muat script secara dinamis (lazy)
+function _loadScriptOnce(src) {
+  return new Promise(function(resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
 async function doDownloadPDF() {
   var btn = document.getElementById('btnDownloadPdf');
-  btn.disabled = true; btn.textContent = '⏳ Generating...';
+  btn.disabled = true; btn.textContent = '⏳ Menyiapkan berkas...';
   try {
+    // Lazy-load PDF library hanya saat dibutuhkan
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+      btn.textContent = '⏳ Memuat generator...';
+      await Promise.all([
+        _loadScriptOnce('../assets/js/jspdf.umd.min.js'),
+        _loadScriptOnce('../assets/js/html2canvas.min.js'),
+      ]);
+    }
+    btn.textContent = '⏳ Generating...';
     var mainEl = document.getElementById('raportPdfMain');
     var lastEl = document.getElementById('raportPdfLast');
     if (!mainEl || !lastEl) throw new Error('Raport element not found');
@@ -9199,6 +9238,11 @@ async function downloadPDFResmi() {
   var btn = document.getElementById('btnPDFResmi');
   btn.disabled = true; btn.textContent = '⏳ Membuat PDF...';
   try {
+    // Lazy-load PDF library hanya saat dibutuhkan
+    if (typeof jspdf === 'undefined') {
+      btn.textContent = '⏳ Memuat generator...';
+      await _loadScriptOnce('../assets/js/jspdf.umd.min.js');
+    }
     var doc = new jspdf.jsPDF('p','mm','a4');
     var W = 210, mar = 18, y = 0;
 
@@ -9875,7 +9919,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;flex:1;padding:20px">
       <!-- Crop Viewport Container -->
       <div id="cropViewport" style="width:300px;height:380px;position:relative;overflow:hidden;background:#0f172a;border-radius:12px;border:2px solid var(--blue);cursor:grab">
-        <img id="cropImage" src="" style="position:absolute;transform-origin:top left;pointer-events:none" alt="Crop Target">
+        <img id="cropImage" src="" style="position:absolute;transform-origin:top left;pointer-events:none;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden" alt="Crop Target">
       </div>
 
       <!-- Zoom Slider & Controls -->
