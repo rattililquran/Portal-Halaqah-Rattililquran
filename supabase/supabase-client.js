@@ -1479,8 +1479,19 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         var skor = myRegulerKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
         v = myRegulerKBM.length > 0 ? Math.round(skor/myRegulerKBM.length*100) : 0;
       } else if (nama.includes('kbm') || nama.includes('harian')) {
-        var ts = 0; hadir.forEach(function(n) { var a=n.adab==='Baik'?100:50; var km=n.kamera_murid==='kamera terbuka'?100:n.kamera_murid==='kamera selalu tertutup'?0:50; ts+=Math.round((a*ADAB_W+km*KAM_W)/100); });
-        v = hadir.length > 0 ? Math.round(ts/hadir.length) : 0;
+        var ts = 0;
+        hadir.forEach(function(n) {
+          var a = n.adab === 'Baik' ? 100 : 50;
+          var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+          if (jenis === 'KBM Qiyam') {
+            // Qiyam doesn't use camera scores, calculate purely based on adab
+            ts += a;
+          } else {
+            var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
+            ts += Math.round((a * ADAB_W + km * KAM_W) / 100);
+          }
+        });
+        v = hadir.length > 0 ? Math.round(ts / hadir.length) : 0;
       } else if (nama.includes('adab')) {
         var vAdab = hadir.filter(function(n){return n.adab;});
         v = vAdab.length > 0 ? Math.round(vAdab.filter(function(n){return n.adab==='Baik';}).length/vAdab.length*100) : 0;
