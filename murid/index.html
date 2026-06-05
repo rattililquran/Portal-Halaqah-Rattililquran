@@ -1794,6 +1794,98 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   background-size:200% 100%;animation:skelShimmer 1.4s infinite;border-radius:8px;display:block}
 @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
+/* Active scale micro-interaction */
+.btn, .spp-jenis-tab, .spp-bulan-check, .spp-metode-radio, .sb-toggle-collapse, .sidebar-profile-row, .lf-btn, .hfal-tab-btn {
+  transition: transform 0.12s ease, background-color 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+}
+.btn:active, 
+.spp-jenis-tab:active,
+.spp-bulan-check:active,
+.spp-metode-radio:active,
+.sb-toggle-collapse:active,
+.sidebar-profile-row:active,
+.lf-btn:active,
+.hfal-tab-btn:active {
+  transform: scale(0.96) !important;
+}
+
+/* ── OFFLINE STATUS BANNER ── */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10010;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.offline-banner.show {
+  transform: translateY(0);
+}
+.offline-banner-icon {
+  font-size: 14px;
+  animation: flash-warn 1.5s infinite;
+}
+@keyframes flash-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── INLINE SKELETON LOADER HEADER ── */
+.inline-loader-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(14, 165, 233, 0.06);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  animation: fadeIn 0.3s ease;
+}
+html.theme-dark .inline-loader-header {
+  background: rgba(56, 189, 248, 0.08);
+}
+.inline-loader-pulse {
+  width: 8px;
+  height: 8px;
+  background-color: var(--blue);
+  border-radius: 50%;
+  animation: pulse-dot 1.2s infinite ease-in-out;
+  flex-shrink: 0;
+}
+html.theme-dark .inline-loader-pulse {
+  background-color: #38bdf8;
+}
+.inline-loader-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+@keyframes pulse-dot {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+/* ── SPP CROPPER MODAL STYLES ── */
+#cropViewport {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
 /* ── SINKRON BADGE ── */
 .refresh-badge-murid{display:none !important;position:fixed;bottom:84px;left:16px;
   background:rgba(255,255,255,.95);backdrop-filter:blur(8px);
@@ -2603,6 +2695,12 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
 </style>
 </head>
 <body>
+
+<!-- OFFLINE BANNER -->
+<div class="offline-banner" id="offlineBanner">
+  <span class="offline-banner-icon">⚠️</span>
+  <span class="offline-banner-text">Koneksi internet terputus. Anda sedang bekerja secara offline.</span>
+</div>
 
 <!-- LOADER -->
 <div class="loader" id="loader">
@@ -4367,6 +4465,7 @@ var _muridTabLoaded = {};
 var _muridRiwayatExpanded = false;
 var _rfInterval = null, _rfLast = null;
 var _sTimeout = null;
+var _isAppInitialized = false;
 
 // Confetti Effect
 function triggerConfetti() {
@@ -5272,7 +5371,10 @@ async function loadDashboard() {
     _subscribeKeaktifanRealtime();
 
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
-  finally { hideLoad(); }
+  finally {
+    hideLoad();
+    _isAppInitialized = true;
+  }
 }
 
 var activeNotifications = [];
@@ -7975,6 +8077,7 @@ async function saveProfil() {
     }
     closeModal('profilModal');
     toast('Profil berhasil disimpan ✅', 'ok');
+    triggerHaptic('success');
   } catch(e) { toast(e.message, 'err'); }
   finally { setBtn('btnSaveProfil', false, '💾 Simpan'); }
 }
@@ -8093,10 +8196,54 @@ function toast(msg, type) {
 }
 function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); }
 function showLoad(m) {
-  document.getElementById('loaderTxt').textContent = m || 'Bismillah...';
-  document.getElementById('loader').classList.add('show');
+  if (!_isAppInitialized) {
+    // Stage 1: Full-Screen splash loader
+    document.getElementById('loaderTxt').textContent = m || 'Bismillah...';
+    document.getElementById('loader').classList.add('show');
+  } else {
+    // Stage 2: Inline Skeleton Loader for subpage / tab switches
+    var isAction = m && (
+      m.indexOf('Mengunggah') !== -1 ||
+      m.indexOf('Mengirim') !== -1 ||
+      m.indexOf('Menyimpan') !== -1 ||
+      m.indexOf('Mengubah') !== -1 ||
+      m.indexOf('Keluar') !== -1 ||
+      m.indexOf('Batal') !== -1
+    );
+    if (isAction) {
+      // Show action-blocking spinner
+      document.getElementById('loaderTxt').textContent = m;
+      document.getElementById('loader').classList.add('show');
+    } else {
+      // Page/tab transition loading
+      var containerId = getContainerForTab(_currentTabName);
+      if (containerId) {
+        var container = document.getElementById(containerId);
+        if (container) {
+          var numCards = 3;
+          var numLines = 3;
+          if (containerId === 'riwayatList') { numCards = 3; numLines = 3; }
+          else if (containerId === 'prList') { numCards = 2; numLines = 3; }
+          else if (containerId === 'materiList') { numCards = 4; numLines = 3; }
+          else if (containerId === 'attibyanList') { numCards = 3; numLines = 2; }
+          else if (containerId === 'raportList') { numCards = 2; numLines = 4; }
+          else if (containerId === 'assessmentContent') { numCards = 1; numLines = 5; }
+          else if (containerId === 'hafalanList') { numCards = 3; numLines = 3; }
+          
+          container.innerHTML = 
+            '<div class="inline-loader-header">' +
+            '  <span class="inline-loader-pulse"></span>' +
+            '  <span class="inline-loader-text">Bismillaah, memuat data...</span>' +
+            '</div>' +
+            skelCards(numCards, numLines);
+        }
+      }
+    }
+  }
 }
-function hideLoad() { document.getElementById('loader').classList.remove('show'); }
+function hideLoad() {
+  document.getElementById('loader').classList.remove('show');
+}
 function setBtn(id, dis, txt) {
   var b = document.getElementById(id);
   if (b) { b.disabled = dis; b.textContent = txt; }
@@ -8357,32 +8504,9 @@ function handleSppBuktiFile(input) {
     alert('Ukuran foto melebihi 5 MB. Pilih foto yang lebih kecil.');
     input.value = ''; return;
   }
-  // Compress via canvas (target ≤ 1 MB, max 1200px)
   var reader = new FileReader();
   reader.onload = function(e) {
-    var img = new Image();
-    img.onload = function() {
-      var MAX_PX = 1200;
-      var w = img.width, h = img.height;
-      if (w > MAX_PX || h > MAX_PX) {
-        var scale = Math.min(MAX_PX/w, MAX_PX/h);
-        w = Math.round(w*scale); h = Math.round(h*scale);
-      }
-      var canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      canvas.toBlob(function(blob) {
-        _sppBuktiBlob = blob;
-        // Preview
-        var url = URL.createObjectURL(blob);
-        document.getElementById('sppBuktiImg').src = url;
-        document.getElementById('sppBuktiPreview').style.display = '';
-        document.getElementById('sppBuktiName').textContent = file.name;
-        document.getElementById('sppBuktiLabel').style.borderColor = '#1a5c3a';
-        document.getElementById('sppBuktiSize').textContent = 'Ukuran setelah kompresi: ' + (blob.size/1024).toFixed(0) + ' KB';
-      }, 'image/jpeg', 0.82);
-    };
-    img.src = e.target.result;
+    openCropperModal(e.target.result, file);
   };
   reader.readAsDataURL(file);
 }
@@ -8528,6 +8652,7 @@ async function submitKonfirmasiSPP() {
     await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan, metode_transfer: metode, tahun, nominal, bukti_url: buktiUrl, catatan });
     tutupModalKonfirmasiSPP();
     toast('Konfirmasi terkirim, menunggu validasi admin ✅', 'ok');
+    triggerHaptic('success');
     _sppLoaded = false;
     loadSPP();
   } catch(e) { errEl.textContent = e.message||'Gagal mengirim.'; errEl.style.display=''; }
@@ -9391,6 +9516,204 @@ async function downloadPDFResmi() {
   } catch(e) { toast('Gagal membuat PDF: '+e.message, 'err'); }
   finally { btn.disabled=false; btn.textContent='📥 Unduh PDF Resmi'; }
 }
+
+// ══════════════════════════════════════════
+//  ONLINE/OFFLINE & HAPTICS & INLINE LOADER & CROPPER
+// ══════════════════════════════════════════
+
+// Offline indicator listeners
+window.addEventListener('online', function() {
+  var banner = document.getElementById('offlineBanner');
+  if (banner) banner.classList.remove('show');
+  toast('Koneksi terhubung kembali. Menyelaraskan data...', 'ok');
+});
+window.addEventListener('offline', function() {
+  var banner = document.getElementById('offlineBanner');
+  if (banner) banner.classList.add('show');
+  toast('Koneksi internet terputus. Anda bekerja secara offline.', 'warn');
+});
+// Check initial online status
+document.addEventListener('DOMContentLoaded', function() {
+  if (!navigator.onLine) {
+    var banner = document.getElementById('offlineBanner');
+    if (banner) banner.classList.add('show');
+  }
+});
+
+// Haptic feedback function
+function triggerHaptic(type) {
+  if ('vibrate' in navigator) {
+    if (type === 'success') {
+      navigator.vibrate([100, 50, 100]); // double-tap feel for success
+    } else if (type === 'warning' || type === 'error') {
+      navigator.vibrate([200, 100, 200]); // stronger double vibration
+    } else {
+      navigator.vibrate(50); // single short tick
+    }
+  }
+}
+
+// Inline Skeletons container mapping helper
+function getContainerForTab(tab) {
+  var mapping = {
+    'riwayat': 'riwayatList',
+    'pr': 'prList',
+    'pengumuman': 'pengumumanList',
+    'info': 'materiList',
+    'attibyan': 'attibyanList',
+    'raport': 'raportList',
+    'assessment': 'assessmentContent',
+    'hafalan': 'hafalanList'
+  };
+  return mapping[tab] || null;
+}
+
+// Canvas-based SPP Image Cropper state and functions
+var _cropImageSrc = '';
+var _cropInitialScale = 1;
+var _cropZoom = 1;
+var _cropRotation = 0; // degrees: 0, 90, 180, 270
+var _cropX = 0;
+var _cropY = 0;
+var _cropIsDragging = false;
+var _cropStartX = 0;
+var _cropStartY = 0;
+var _cropOriginalWidth = 0;
+var _cropOriginalHeight = 0;
+var _cropFileName = 'bukti.jpg';
+
+function openCropperModal(src, file) {
+  _cropImageSrc = src;
+  _cropFileName = file.name;
+  var img = document.getElementById('cropImage');
+  img.src = src;
+  
+  img.onload = function() {
+    _cropOriginalWidth = img.naturalWidth;
+    _cropOriginalHeight = img.naturalHeight;
+    
+    // Viewport: 300px x 380px
+    var vw = 300, vh = 380;
+    var scaleW = vw / _cropOriginalWidth;
+    var scaleH = vh / _cropOriginalHeight;
+    _cropInitialScale = Math.max(scaleW, scaleH);
+    
+    _cropZoom = 1;
+    _cropRotation = 0;
+    
+    // Center in viewport
+    var displayW = _cropOriginalWidth * _cropInitialScale;
+    var displayH = _cropOriginalHeight * _cropInitialScale;
+    _cropX = (vw - displayW) / 2;
+    _cropY = (vh - displayH) / 2;
+    
+    updateCropperTransform();
+    document.getElementById('cropZoomSlider').value = 1;
+    document.getElementById('zoomVal').textContent = '1.0x';
+    document.getElementById('cropperModal').style.display = 'flex';
+  };
+}
+
+function closeCropperModal() {
+  document.getElementById('cropperModal').style.display = 'none';
+  document.getElementById('sppFormBuktiFile').value = '';
+}
+
+function updateCropperTransform() {
+  var img = document.getElementById('cropImage');
+  if (!img) return;
+  var baseW = _cropOriginalWidth * _cropInitialScale;
+  var baseH = _cropOriginalHeight * _cropInitialScale;
+  img.style.width = baseW + 'px';
+  img.style.height = baseH + 'px';
+  img.style.transform = 'translate(' + _cropX + 'px, ' + _cropY + 'px) scale(' + _cropZoom + ') rotate(' + _cropRotation + 'deg)';
+}
+
+function rotateCropper(angle) {
+  _cropRotation = (_cropRotation + angle) % 360;
+  updateCropperTransform();
+}
+
+function resetCropper() {
+  _cropZoom = 1;
+  _cropRotation = 0;
+  var vw = 300, vh = 380;
+  var displayW = _cropOriginalWidth * _cropInitialScale;
+  var displayH = _cropOriginalHeight * _cropInitialScale;
+  _cropX = (vw - displayW) / 2;
+  _cropY = (vh - displayH) / 2;
+  document.getElementById('cropZoomSlider').value = 1;
+  document.getElementById('zoomVal').textContent = '1.0x';
+  updateCropperTransform();
+}
+
+function applyCrop() {
+  var canvas = document.createElement('canvas');
+  var cw = 600, ch = 760; // 2x viewport dimensions for high resolution
+  canvas.width = cw;
+  canvas.height = ch;
+  var ctx = canvas.getContext('2d');
+  var img = document.getElementById('cropImage');
+  
+  ctx.save();
+  ctx.scale(2, 2); // Map to 300x380 viewport coordinates
+  ctx.translate(_cropX, _cropY);
+  ctx.scale(_cropZoom, _cropZoom);
+  ctx.rotate((_cropRotation * Math.PI) / 180);
+  
+  var baseW = _cropOriginalWidth * _cropInitialScale;
+  var baseH = _cropOriginalHeight * _cropInitialScale;
+  ctx.drawImage(img, 0, 0, baseW, baseH);
+  ctx.restore();
+  
+  canvas.toBlob(function(blob) {
+    _sppBuktiBlob = blob;
+    var url = URL.createObjectURL(blob);
+    document.getElementById('sppBuktiImg').src = url;
+    document.getElementById('sppBuktiPreview').style.display = '';
+    document.getElementById('sppBuktiName').textContent = _cropFileName;
+    document.getElementById('sppBuktiLabel').style.borderColor = '#1a5c3a';
+    document.getElementById('sppBuktiSize').textContent = 'Ukuran cropped & kompresi: ' + (blob.size/1024).toFixed(0) + ' KB';
+    document.getElementById('cropperModal').style.display = 'none';
+  }, 'image/jpeg', 0.82);
+}
+
+// Drag & Pan event initialization for cropper modal
+document.addEventListener('DOMContentLoaded', function() {
+  var viewport = document.getElementById('cropViewport');
+  if (viewport) {
+    viewport.addEventListener('pointerdown', function(e) {
+      e.preventDefault();
+      _cropIsDragging = true;
+      _cropStartX = e.clientX - _cropX;
+      _cropStartY = e.clientY - _cropY;
+      viewport.style.cursor = 'grabbing';
+    });
+    
+    window.addEventListener('pointermove', function(e) {
+      if (!_cropIsDragging) return;
+      _cropX = e.clientX - _cropStartX;
+      _cropY = e.clientY - _cropStartY;
+      updateCropperTransform();
+    });
+    
+    window.addEventListener('pointerup', function() {
+      if (_cropIsDragging) {
+        _cropIsDragging = false;
+        viewport.style.cursor = 'grab';
+      }
+    });
+  }
+  
+  var slider = document.getElementById('cropZoomSlider');
+  if (slider) {
+    slider.addEventListener('input', function() {
+      _cropZoom = parseFloat(slider.value);
+      document.getElementById('zoomVal').textContent = _cropZoom.toFixed(1) + 'x';
+      updateCropperTransform();
+    });
+  }
+});
 </script>
 
 <!-- ════ MODAL KONFIRMASI SPP — di level body agar fixed mencakup full viewport ════ -->
@@ -9527,6 +9850,50 @@ async function downloadPDFResmi() {
       <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
         Kirim Konfirmasi
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL CROPPER SPP ════ -->
+<div class="modal-overlay" id="cropperModal" style="display:none; z-index:10001;" onclick="if(event.target===this)closeCropperModal()">
+  <div class="modal-sheet" style="max-width:400px;margin:0 auto;display:flex;flex-direction:column;max-height:95dvh">
+    <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✂️</div>
+        <div>
+          <div class="modal-title" style="font-size:15px">Sesuaikan Foto Bukti</div>
+          <div style="font-size:11px;color:var(--text-3);font-weight:500">Geser & Zoom untuk memotong</div>
+        </div>
+      </div>
+      <button class="modal-x" onclick="closeCropperModal()">✕</button>
+    </div>
+
+    <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;flex:1;padding:20px">
+      <!-- Crop Viewport Container -->
+      <div id="cropViewport" style="width:300px;height:380px;position:relative;overflow:hidden;background:#0f172a;border-radius:12px;border:2px solid var(--blue);cursor:grab">
+        <img id="cropImage" src="" style="position:absolute;transform-origin:top left;pointer-events:none" alt="Crop Target">
+      </div>
+
+      <!-- Zoom Slider & Controls -->
+      <div style="width:100%;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);font-weight:700;margin-bottom:6px">
+          <span>Perbesar</span>
+          <span id="zoomVal" style="color:var(--blue)">1.0x</span>
+        </div>
+        <input type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1" style="width:100%;accent-color:var(--blue);margin-bottom:14px">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn btn-ghost" onclick="rotateCropper(90)" style="padding:10px;font-size:12.5px">🔄 Putar 90°</button>
+          <button class="btn btn-ghost" onclick="resetCropper()" style="padding:10px;font-size:12.5px">🧹 Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot" style="flex-shrink:0">
+      <button class="btn btn-ghost" onclick="closeCropperModal()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
+      <button class="btn btn-primary" style="flex:1" onclick="applyCrop()">
+        ✂️ Potong & Simpan
       </button>
     </div>
   </div>

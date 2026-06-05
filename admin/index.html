@@ -387,6 +387,104 @@ tr:hover td{background:#f8fafc}
 .skel-row{height:40px;border-radius:6px;margin-bottom:6px}
 .skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
 
+/* Active scale micro-interaction */
+.btn, .sidebar-item, .sb-toggle-collapse, .nav-item {
+  transition: transform 0.12s ease, background-color 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+}
+.btn:active, .sidebar-item:active, .sb-toggle-collapse:active, .nav-item:active {
+  transform: scale(0.96) !important;
+}
+
+/* ── SPP IMAGE LIGHTBOX STYLES ── */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.25s ease;
+}
+.lightbox-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 90vw;
+  max-height: 85vh;
+  gap: 16px;
+}
+.lightbox-image-container {
+  width: 70vw;
+  height: 65vh;
+  max-width: 800px;
+  max-height: 600px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}
+#lightboxImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease-out;
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+.lightbox-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 16px;
+  border-radius: 100px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+.lightbox-controls button {
+  background: transparent;
+  border: none;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.lightbox-controls button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+.lightbox-controls button:active {
+  transform: scale(0.95);
+}
+.lightbox-controls button.lightbox-close-btn {
+  background: #ef4444;
+  color: #fff;
+}
+.lightbox-controls button.lightbox-close-btn:hover {
+  background: #dc2626;
+}
+
 /* Theme Toggle & Refresh Buttons */
 .theme-toggle-btn, #refreshBtn {
   width: 36px !important;
@@ -3525,7 +3623,7 @@ async function loadSPPAdmin() {
             ? '<span style="background:#f0fdf4;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
             : '<span style="background:#fffbeb;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
           var buktiLink = p.bukti_url
-            ? '<a href="'+esc(p.bukti_url)+'" target="_blank" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+            ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:#0369a1;font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
             : '<span style="font-size:11px;color:#94a3b8">Tidak ada bukti</span>';
           return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:8px;flex-wrap:wrap">'
             + '<div style="flex:1;min-width:160px">'
@@ -4726,6 +4824,91 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').c
 window.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() { if (typeof initPushPrompt === 'function') initPushPrompt('admin'); }, 5000);
 });
+
+// ══════════════════════════════════════════
+//  SPP IMAGE LIGHTBOX
+// ══════════════════════════════════════════
+var _lightboxScale = 1;
+var _lightboxRotate = 0;
+var _lightboxX = 0;
+var _lightboxY = 0;
+var _lightboxIsDragging = false;
+var _lightboxStartX = 0;
+var _lightboxStartY = 0;
+
+function openSppLightbox(url) {
+  var img = document.getElementById('lightboxImg');
+  if (!img) return;
+  img.src = url;
+  _lightboxScale = 1;
+  _lightboxRotate = 0;
+  _lightboxX = 0;
+  _lightboxY = 0;
+  updateLightboxTransform();
+  document.getElementById('sppLightbox').style.display = 'flex';
+}
+
+function closeSppLightbox() {
+  document.getElementById('sppLightbox').style.display = 'none';
+}
+
+function updateLightboxTransform() {
+  var img = document.getElementById('lightboxImg');
+  if (img) {
+    img.style.setProperty('--scale', _lightboxScale);
+    img.style.setProperty('--rotate', _lightboxRotate + 'deg');
+    img.style.setProperty('--x', _lightboxX + 'px');
+    img.style.setProperty('--y', _lightboxY + 'px');
+    img.style.transform = 'translate(var(--x, 0px), var(--y, 0px)) scale(var(--scale, 1)) rotate(var(--rotate, 0deg))';
+  }
+}
+
+function zoomSppLightbox(amount) {
+  _lightboxScale = Math.max(0.5, Math.min(5, _lightboxScale + amount));
+  updateLightboxTransform();
+}
+
+function rotateSppLightbox(amount) {
+  _lightboxRotate = (_lightboxRotate + amount) % 360;
+  updateLightboxTransform();
+}
+
+function resetSppLightbox() {
+  _lightboxScale = 1;
+  _lightboxRotate = 0;
+  _lightboxX = 0;
+  _lightboxY = 0;
+  updateLightboxTransform();
+}
+
+// Drag & Pan support for SPP Lightbox
+document.addEventListener('DOMContentLoaded', function() {
+  var container = document.querySelector('.lightbox-image-container');
+  var img = document.getElementById('lightboxImg');
+  if (!container || !img) return;
+  
+  container.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    _lightboxIsDragging = true;
+    _lightboxStartX = e.clientX - _lightboxX;
+    _lightboxStartY = e.clientY - _lightboxY;
+    container.style.cursor = 'grabbing';
+  });
+  
+  window.addEventListener('pointermove', function(e) {
+    if (!_lightboxIsDragging) return;
+    _lightboxX = e.clientX - _lightboxStartX;
+    _lightboxY = e.clientY - _lightboxStartY;
+    updateLightboxTransform();
+  });
+  
+  window.addEventListener('pointerup', function() {
+    if (_lightboxIsDragging) {
+      _lightboxIsDragging = false;
+      container.style.cursor = 'grab';
+    }
+  });
+});
 </script>
 
 <!-- MOBILE BOTTOM NAV -->
@@ -4736,5 +4919,21 @@ window.addEventListener('DOMContentLoaded', function() {
   <button class="mbn-item" onclick="goPage('spp')" data-p="spp"><span class="mbn-ico">💳</span>SPP</button>
   <button class="mbn-item" onclick="openSB()"><span class="mbn-ico">☰</span>Menu</button>
 </nav>
+
+<!-- SPP IMAGE LIGHTBOX -->
+<div class="lightbox-overlay" id="sppLightbox" style="display:none;" onclick="if(event.target===this)closeSppLightbox()">
+  <div class="lightbox-content" onclick="event.stopPropagation()">
+    <div class="lightbox-image-container" title="Seret untuk menggeser">
+      <img id="lightboxImg" src="" alt="Bukti Transfer" draggable="false">
+    </div>
+    <div class="lightbox-controls">
+      <button onclick="zoomSppLightbox(0.2)" title="Perbesar">➕ Zoom In</button>
+      <button onclick="zoomSppLightbox(-0.2)" title="Perkecil">➖ Zoom Out</button>
+      <button onclick="rotateSppLightbox(90)" title="Putar Kanan">🔄 Putar</button>
+      <button onclick="resetSppLightbox()" title="Reset Tampilan">🧹 Reset</button>
+      <button class="lightbox-close-btn" onclick="closeSppLightbox()">Tutup (✕)</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
