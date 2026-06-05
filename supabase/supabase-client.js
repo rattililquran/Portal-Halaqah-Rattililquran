@@ -203,8 +203,16 @@ var GuruAPI = {
         total_murid  : muridCount,
         pertemuan_ke : mainCount + 1,
         sisa_sesi    : isQiyam ? 0 : Math.max(0, 40 - regCount),
+        jam_mulai    : h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+        jam_selesai  : h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
       });
     });
+
+    var draft = draftRes.data || null;
+    if (draft) {
+      draft.jam_mulai = draft.jam_mulai ? draft.jam_mulai.substring(0, 5) : null;
+      draft.jam_selesai = draft.jam_selesai ? draft.jam_selesai.substring(0, 5) : null;
+    }
 
     return {
       status: 'ok',
@@ -214,7 +222,7 @@ var GuruAPI = {
         total_murid  : muridSet.size,
         kbm_hari_ini : (kbmHariRes.data || []).length,
         kbm_bulan_ini: (kbmBulanRes.data || []).length,
-        sesi_draft   : draftRes.data || null,
+        sesi_draft   : draft,
       }
     };
   },
@@ -258,8 +266,8 @@ var GuruAPI = {
         nama_halaqah           : h.nama_halaqah,
         level                  : h.level,
         jadwal_hari            : h.jadwal_hari,
-        jam_mulai              : h.jam_mulai,
-        jam_selesai            : h.jam_selesai,
+        jam_mulai              : h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+        jam_selesai            : h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
         lokasi                 : h.lokasi,
         total_murid            : h.anggota ? h.anggota[0].count : 0,
         pertemuan_ke           : (h.level === 'Level Qiyam' ? qiyamCount : regCount) + 1,       // backward compat
@@ -287,6 +295,14 @@ var GuruAPI = {
     var { data, error } = await _sb.from('halaqah')
       .select('*').eq('id_guru', _uid()).eq('status', 'aktif').order('nama_halaqah');
     _check(error, 'getHalaqahSaya');
+    if (data) {
+      data = data.map(function(h) {
+        return Object.assign({}, h, {
+          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
     return { status: 'ok', data };
   },
 
@@ -374,6 +390,10 @@ var GuruAPI = {
       status: 'draft',
     }).select().single();
     _check(error, 'bukaKBM');
+    if (data) {
+      data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
+      data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
+    }
     return { status: 'ok', message: 'Sesi KBM berhasil dibuka', data };
   },
 
@@ -531,6 +551,14 @@ var GuruAPI = {
       .order('tanggal_pertemuan', { ascending: false })
       .range(offset || 0, (offset || 0) + (limit || 10) - 1);
     _check(error, 'getKBMByHalaqah');
+    if (data) {
+      data = data.map(function(k) {
+        return Object.assign({}, k, {
+          jam_mulai: k.jam_mulai ? k.jam_mulai.substring(0, 5) : null,
+          jam_selesai: k.jam_selesai ? k.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
     return { status: 'ok', data, total: count, has_more: (offset||0) + (limit||10) < count };
   },
 
@@ -655,6 +683,14 @@ var GuruAPI = {
     if (offset) q = q.range(offset, offset + (limit || 30) - 1);
     var { data, error } = await q;
     _check(error, 'getRiwayatKBM');
+    if (data) {
+      data = data.map(function(k) {
+        return Object.assign({}, k, {
+          jam_mulai: k.jam_mulai ? k.jam_mulai.substring(0, 5) : null,
+          jam_selesai: k.jam_selesai ? k.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
     return { status: 'ok', data: data || [] };
   },
 
@@ -1226,6 +1262,14 @@ var GuruAPI = {
       .eq('status', 'aktif')
       .order('nama_halaqah');
     _check(error, 'getQiyamHalaqah');
+    if (data) {
+      data = data.map(function(h) {
+        return Object.assign({}, h, {
+          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
     return { status: 'ok', data: data || [] };
   },
 
@@ -2053,9 +2097,38 @@ var AdminAPI = {
   createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
   updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select().single(); _check(error,'updateUser'); return {status:'ok',data}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
-  getAllHalaqah: async function() { var {data,error}=await _sb.from('halaqah').select('*').order('nama_halaqah'); _check(error,'getAllHalaqah'); return {status:'ok',data}; },
-  createHalaqah: async function(d) { var {data,error}=await _sb.from('halaqah').insert(d).select().single(); _check(error,'createHalaqah'); return {status:'ok',data}; },
-  updateHalaqah: async function(d) { var {id_halaqah,...u}=d; var {data,error}=await _sb.from('halaqah').update(u).eq('id_halaqah',id_halaqah).select().single(); _check(error,'updateHalaqah'); return {status:'ok',data}; },
+  getAllHalaqah: async function() {
+    var {data,error}=await _sb.from('halaqah').select('*').order('nama_halaqah');
+    _check(error,'getAllHalaqah');
+    if (data) {
+      data = data.map(function(h) {
+        return Object.assign({}, h, {
+          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
+    return {status:'ok',data};
+  },
+  createHalaqah: async function(d) {
+    var {data,error}=await _sb.from('halaqah').insert(d).select().single();
+    _check(error,'createHalaqah');
+    if (data) {
+      data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
+      data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
+    }
+    return {status:'ok',data};
+  },
+  updateHalaqah: async function(d) {
+    var {id_halaqah,...u}=d;
+    var {data,error}=await _sb.from('halaqah').update(u).eq('id_halaqah',id_halaqah).select().single();
+    _check(error,'updateHalaqah');
+    if (data) {
+      data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
+      data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
+    }
+    return {status:'ok',data};
+  },
   deleteHalaqah: async function(id) { var {error}=await _sb.from('halaqah').update({status:'nonaktif'}).eq('id_halaqah',id); _check(error,'deleteHalaqah'); return {status:'ok'}; },
   getAllAnggota: async function(id_halaqah) {
     var q = _sb.from('anggota').select('*, users!anggota_id_murid_fkey(nama_lengkap,no_hp)');
@@ -2096,7 +2169,19 @@ var AdminAPI = {
     var {data,error}=await _sb.from('pengumuman').insert(Object.assign({},d,{dibuat_oleh:_uid(),nama_pembuat:(_currentUser&&(_currentUser.nama||_currentUser.nama_lengkap))||'Admin'})).select().single();
     _check(error,'buatPengumuman'); return {status:'ok',data};
   },
-  getLaporanGlobal: async function() { var {data,error}=await _sb.from('halaqah').select('*, anggota(count), kbm_log(count)').eq('status','aktif'); _check(error,'getLaporanGlobal'); return {status:'ok',data}; },
+  getLaporanGlobal: async function() {
+    var {data,error}=await _sb.from('halaqah').select('*, anggota(count), kbm_log(count)').eq('status','aktif');
+    _check(error,'getLaporanGlobal');
+    if (data) {
+      data = data.map(function(h) {
+        return Object.assign({}, h, {
+          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
+    return {status:'ok',data};
+  },
   getRekapAbsensi: async function(p) { var {data,error}=await _sb.from('nilai_kbm').select('*').eq('id_halaqah',p.id_halaqah).order('tanggal'); _check(error,'getRekapAbsensi'); return {status:'ok',data}; },
   getLevelList: async function() { var {data,error}=await _sb.from('level').select('*').eq('status','aktif').order('urutan'); _check(error,'getLevelList'); return {status:'ok',data}; },
   saveLevel: async function(d) { var {data,error}=await _sb.from('level').upsert(d,{onConflict:'id_level'}).select(); _check(error,'saveLevel'); return {status:'ok',data}; },
@@ -2464,6 +2549,10 @@ var KetuaAPI = {
     var id_murid = _uid();
     var { data: anggota } = await _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('is_ketua', true).maybeSingle();
     if (!anggota) return { status: 'error', message: 'Bukan ketua kelas' };
+    if (anggota.halaqah) {
+      anggota.halaqah.jam_mulai = anggota.halaqah.jam_mulai ? anggota.halaqah.jam_mulai.substring(0, 5) : null;
+      anggota.halaqah.jam_selesai = anggota.halaqah.jam_selesai ? anggota.halaqah.jam_selesai.substring(0, 5) : null;
+    }
     return { status: 'ok', halaqah: anggota.halaqah, anggota };
   },
 
@@ -2581,6 +2670,10 @@ var KetuaAPI = {
   getKBMJurnal: async function(id_kbm) {
     var { data, error } = await _sb.from('kbm_log').select('*').eq('id_kbm', id_kbm).single();
     if (error) return { status: 'ok', data: null };
+    if (data) {
+      data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
+      data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
+    }
     return { status: 'ok', data };
   },
 
