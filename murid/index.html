@@ -8538,9 +8538,33 @@ function setSppFormJenis(jenis, el) {
 
 var _sppBuktiBlob = null; // compressed image blob
 
-function handleSppBuktiFile(input) {
+async function handleSppBuktiFile(input) {
   var file = input.files[0];
   if (!file) return;
+  
+  if (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+    showLoad('Mengonversi HEIC ke JPEG...');
+    try {
+      if (typeof heic2any === 'undefined') {
+        await _loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js');
+      }
+      var conversionResult = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
+      var convertedFile = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+      
+      var baseName = file.name.substring(0, file.name.lastIndexOf('.'));
+      var renamedFile = new File([convertedFile], baseName + '.jpg', { type: 'image/jpeg' });
+      file = renamedFile;
+    } catch (err) {
+      console.error('HEIC conversion error:', err);
+      alert('Gagal mengonversi foto HEIC: ' + err.message);
+      input.value = '';
+      hideLoad();
+      return;
+    } finally {
+      hideLoad();
+    }
+  }
+
   var MAX = 5 * 1024 * 1024;
   if (file.size > MAX) {
     alert('Ukuran foto melebihi 5 MB. Pilih foto yang lebih kecil.');
@@ -9629,6 +9653,11 @@ var _cropOriginalWidth = 0;
 var _cropOriginalHeight = 0;
 var _cropFileName = 'bukti.jpg';
 
+// Multi-touch & zoom state
+var _cropActivePointers = {};
+var _cropInitialDistance = 0;
+var _cropInitialZoom = 1;
+
 function openCropperModal(src, file) {
   _cropImageSrc = src;
   _cropFileName = file.name;
@@ -9673,7 +9702,7 @@ function updateCropperTransform() {
   var baseH = _cropOriginalHeight * _cropInitialScale;
   img.style.width = baseW + 'px';
   img.style.height = baseH + 'px';
-  img.style.transform = 'translate(' + _cropX + 'px, ' + _cropY + 'px) scale(' + _cropZoom + ') rotate(' + _cropRotation + 'deg)';
+  img.style.transform = 'translate3d(' + _cropX + 'px, ' + _cropY + 'px, 0) rotate(' + _cropRotation + 'deg) scale(' + _cropZoom + ')';
 }
 
 function rotateCropper(angle) {
@@ -9704,13 +9733,16 @@ function applyCrop() {
   
   ctx.save();
   ctx.scale(2, 2); // Map to 300x380 viewport coordinates
-  ctx.translate(_cropX, _cropY);
-  ctx.scale(_cropZoom, _cropZoom);
-  ctx.rotate((_cropRotation * Math.PI) / 180);
   
   var baseW = _cropOriginalWidth * _cropInitialScale;
   var baseH = _cropOriginalHeight * _cropInitialScale;
-  ctx.drawImage(img, 0, 0, baseW, baseH);
+  var imgCenterX = _cropX + baseW / 2;
+  var imgCenterY = _cropY + baseH / 2;
+  
+  ctx.translate(imgCenterX, imgCenterY);
+  ctx.rotate((_cropRotation * Math.PI) / 180);
+  ctx.scale(_cropZoom, _cropZoom);
+  ctx.drawImage(img, -baseW / 2, -baseH / 2, baseW, baseH);
   ctx.restore();
   
   canvas.toBlob(function(blob) {
@@ -9731,25 +9763,85 @@ document.addEventListener('DOMContentLoaded', function() {
   if (viewport) {
     viewport.addEventListener('pointerdown', function(e) {
       e.preventDefault();
-      _cropIsDragging = true;
-      _cropStartX = e.clientX - _cropX;
-      _cropStartY = e.clientY - _cropY;
-      viewport.style.cursor = 'grabbing';
+      _cropActivePointers[e.pointerId] = e;
+      var pointerKeys = Object.keys(_cropActivePointers);
+      
+      if (pointerKeys.length === 2) {
+        _cropIsDragging = false;
+        var p1 = _cropActivePointers[pointerKeys[0]];
+        var p2 = _cropActivePointers[pointerKeys[1]];
+        _cropInitialDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+        _cropInitialZoom = _cropZoom;
+      } else if (pointerKeys.length === 1) {
+        _cropIsDragging = true;
+        _cropStartX = e.clientX - _cropX;
+        _cropStartY = e.clientY - _cropY;
+        viewport.style.cursor = 'grabbing';
+      }
+      viewport.classList.add('interacting');
     });
     
     window.addEventListener('pointermove', function(e) {
-      if (!_cropIsDragging) return;
-      _cropX = e.clientX - _cropStartX;
-      _cropY = e.clientY - _cropStartY;
-      updateCropperTransform();
-    });
-    
-    window.addEventListener('pointerup', function() {
-      if (_cropIsDragging) {
-        _cropIsDragging = false;
-        viewport.style.cursor = 'grab';
+      if (_cropActivePointers[e.pointerId]) {
+        _cropActivePointers[e.pointerId] = e;
+      }
+      
+      var pointerKeys = Object.keys(_cropActivePointers);
+      if (pointerKeys.length === 2) {
+        var p1 = _cropActivePointers[pointerKeys[0]];
+        var p2 = _cropActivePointers[pointerKeys[1]];
+        var dist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+        if (_cropInitialDistance > 0) {
+          var factor = dist / _cropInitialDistance;
+          var newZoom = _cropInitialZoom * factor;
+          newZoom = Math.max(1, Math.min(4, newZoom));
+          _cropZoom = newZoom;
+          var slider = document.getElementById('cropZoomSlider');
+          if (slider) slider.value = newZoom;
+          document.getElementById('zoomVal').textContent = newZoom.toFixed(1) + 'x';
+          updateCropperTransform();
+        }
+      } else if (_cropIsDragging && pointerKeys.length === 1) {
+        _cropX = e.clientX - _cropStartX;
+        _cropY = e.clientY - _cropStartY;
+        updateCropperTransform();
       }
     });
+    
+    var cleanupPointer = function(e) {
+      delete _cropActivePointers[e.pointerId];
+      var pointerKeys = Object.keys(_cropActivePointers);
+      if (pointerKeys.length < 2) {
+        _cropInitialDistance = 0;
+      }
+      if (pointerKeys.length === 0) {
+        _cropIsDragging = false;
+        viewport.style.cursor = 'grab';
+        viewport.classList.remove('interacting');
+      }
+    };
+    
+    window.addEventListener('pointerup', cleanupPointer);
+    window.addEventListener('pointercancel', cleanupPointer);
+    
+    // Mouse Wheel Zoom
+    viewport.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var zoomStep = 0.05;
+      var newZoom = _cropZoom + (e.deltaY < 0 ? zoomStep : -zoomStep);
+      newZoom = Math.max(1, Math.min(4, newZoom));
+      _cropZoom = newZoom;
+      var slider = document.getElementById('cropZoomSlider');
+      if (slider) slider.value = newZoom;
+      document.getElementById('zoomVal').textContent = newZoom.toFixed(1) + 'x';
+      updateCropperTransform();
+      
+      viewport.classList.add('interacting');
+      clearTimeout(window._cropWheelTimer);
+      window._cropWheelTimer = setTimeout(function() {
+        viewport.classList.remove('interacting');
+      }, 500);
+    }, { passive: false });
   }
   
   var slider = document.getElementById('cropZoomSlider');
@@ -9903,6 +9995,16 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- ════ MODAL CROPPER SPP ════ -->
+<style>
+  .crop-guideline-h, .crop-guideline-v {
+    opacity: 0.15;
+    transition: opacity 0.25s ease;
+  }
+  #cropViewport.interacting .crop-guideline-h,
+  #cropViewport.interacting .crop-guideline-v {
+    opacity: 0.65;
+  }
+</style>
 <div class="modal-overlay" id="cropperModal" style="display:none; z-index:10001;" onclick="if(event.target===this)closeCropperModal()">
   <div class="modal-sheet" style="max-width:400px;margin:0 auto;display:flex;flex-direction:column;max-height:95dvh">
     <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
@@ -9919,7 +10021,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;flex:1;padding:20px">
       <!-- Crop Viewport Container -->
       <div id="cropViewport" style="width:300px;height:380px;position:relative;overflow:hidden;background:#0f172a;border-radius:12px;border:2px solid var(--blue);cursor:grab">
-        <img id="cropImage" src="" style="position:absolute;transform-origin:top left;pointer-events:none;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden" alt="Crop Target">
+        <img id="cropImage" src="" style="position:absolute;transform-origin:center center;pointer-events:none;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden" alt="Crop Target">
+        <!-- Guidelines (Rule of thirds) -->
+        <div class="crop-guideline-h" style="position:absolute;top:33.33%;left:0;right:0;height:1px;border-top:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
+        <div class="crop-guideline-h" style="position:absolute;top:66.66%;left:0;right:0;height:1px;border-top:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
+        <div class="crop-guideline-v" style="position:absolute;left:33.33%;top:0;bottom:0;width:1px;border-left:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
+        <div class="crop-guideline-v" style="position:absolute;left:66.66%;top:0;bottom:0;width:1px;border-left:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
       </div>
 
       <!-- Zoom Slider & Controls -->
