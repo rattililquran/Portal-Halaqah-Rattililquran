@@ -8533,7 +8533,19 @@ function setSppFormJenis(jenis, el) {
   document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t){ t.className='spp-jenis-tab'; });
   el.className = 'spp-jenis-tab active';
   var bulanWrap = document.getElementById('sppFormBulanWrap');
-  if (bulanWrap) bulanWrap.style.display = jenis==='SPP Pribadi' ? '' : 'none';
+  var nominalInput = document.getElementById('sppFormNominal');
+  
+  if (jenis === 'SPP Pribadi') {
+    if (bulanWrap) bulanWrap.style.display = '';
+    updateSppBulanCount();
+  } else {
+    if (bulanWrap) bulanWrap.style.display = 'none';
+    if (nominalInput) {
+      nominalInput.value = '';
+      nominalInput.readOnly = false;
+      nominalInput.style.backgroundColor = '';
+    }
+  }
 }
 
 var _sppBuktiBlob = null; // compressed image blob
@@ -8585,6 +8597,63 @@ function clearSppBukti() {
   document.getElementById('sppBuktiLabel').style.borderColor = '';
 }
 
+function previewSppBukti() {
+  var img = document.getElementById('sppBuktiImg');
+  if (!img || !img.src) return;
+  var overlay = document.getElementById('muridSppPreviewOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'muridSppPreviewOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.background = 'rgba(15, 23, 42, 0.95)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '10002';
+    overlay.style.cursor = 'zoom-out';
+    overlay.onclick = function() { overlay.style.display = 'none'; };
+    
+    var container = document.createElement('div');
+    container.style.position = 'relative';
+    container.style.maxWidth = '90%';
+    container.style.maxHeight = '90%';
+    
+    var previewImg = document.createElement('img');
+    previewImg.id = 'muridSppPreviewImg';
+    previewImg.style.maxWidth = '100%';
+    previewImg.style.maxHeight = '90dvh';
+    previewImg.style.borderRadius = '12px';
+    previewImg.style.border = '2px solid rgba(255,255,255,0.2)';
+    previewImg.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+    
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '-12px';
+    closeBtn.style.right = '-12px';
+    closeBtn.style.width = '32px';
+    closeBtn.style.height = '32px';
+    closeBtn.style.borderRadius = '50%';
+    closeBtn.style.background = '#ef4444';
+    closeBtn.style.color = '#fff';
+    closeBtn.style.border = 'none';
+    closeBtn.style.fontSize = '16px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    
+    container.appendChild(previewImg);
+    container.appendChild(closeBtn);
+    overlay.appendChild(container);
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('muridSppPreviewImg').src = img.src;
+  overlay.style.display = 'flex';
+}
+
 function salinNomor(nomor, btnId) {
   navigator.clipboard.writeText(nomor).then(function() {
     var btn = document.getElementById(btnId);
@@ -8599,6 +8668,15 @@ function updateSppBulanCount() {
   var n = document.querySelectorAll('#sppBulanGrid input:checked').length;
   document.getElementById('sppBulanCount').textContent = n === 0 ? 'Pilih 1 atau lebih' : n + ' bulan dipilih';
   document.getElementById('sppBulanNominalHint').style.display = n > 1 ? '' : 'none';
+  
+  if (_sppFormJenis === 'SPP Pribadi') {
+    var nominalInput = document.getElementById('sppFormNominal');
+    if (nominalInput) {
+      nominalInput.value = n > 0 ? n * 75000 : '';
+      nominalInput.readOnly = true;
+      nominalInput.style.backgroundColor = 'var(--border)';
+    }
+  }
 }
 function getSppBulanSelected() {
   return Array.from(document.querySelectorAll('#sppBulanGrid input:checked')).map(function(c){ return c.value; });
@@ -8616,8 +8694,15 @@ async function bukaModalKonfirmasiSPP() {
   // Reset checkboxes & radio
   document.querySelectorAll('#sppBulanGrid input').forEach(function(c){ c.checked=false; });
   document.querySelectorAll('input[name="sppMetodeTransfer"]').forEach(function(r){ r.checked=false; });
+  
+  var nominalInput = document.getElementById('sppFormNominal');
+  if (nominalInput) {
+    nominalInput.value = '';
+    nominalInput.readOnly = true;
+    nominalInput.style.backgroundColor = 'var(--border)';
+  }
+  
   updateSppBulanCount();
-  document.getElementById('sppFormNominal').value  = '';
   document.getElementById('sppFormCatatan').value  = '';
   document.getElementById('sppFormBuktiFile').value = '';
   document.getElementById('sppBuktiPreview').style.display = 'none';
@@ -9962,7 +10047,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </label>
         <!-- Preview -->
         <div id="sppBuktiPreview" style="display:none;margin-top:10px;position:relative">
-          <img id="sppBuktiImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border)" alt="preview">
+          <img id="sppBuktiImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border);cursor:zoom-in" alt="preview" onclick="previewSppBukti()" title="Klik untuk memperbesar">
           <button type="button" onclick="clearSppBukti()" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)">✕</button>
           <div id="sppBuktiSize" style="font-size:10.5px;color:var(--text-3);margin-top:5px;text-align:right"></div>
         </div>
