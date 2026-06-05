@@ -3,7 +3,7 @@
 //  Cache version: v5.4 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.8'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v5.9'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
