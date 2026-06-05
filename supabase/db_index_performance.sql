@@ -57,13 +57,15 @@ CREATE INDEX IF NOT EXISTS idx_spp_pembayaran_status
   ON spp_pembayaran(id_murid, status);
 
 -- ── notif_inbox (push notification inbox) ──────────────────
+-- Kolom: id_user, read_at (NULL = belum dibaca)
 CREATE INDEX IF NOT EXISTS idx_notif_inbox_id_user
   ON notif_inbox(id_user);
 
--- Index partial: notifikasi yang belum dibaca (query paling sering)
+-- Index partial: notifikasi belum dibaca (read_at IS NULL)
+-- Ini adalah query paling sering: .eq('id_user',...).is('read_at', null)
 CREATE INDEX IF NOT EXISTS idx_notif_inbox_belum_dibaca
-  ON notif_inbox(id_user, dibaca)
-  WHERE dibaca = false;
+  ON notif_inbox(id_user)
+  WHERE read_at IS NULL;
 
 -- ── at_tibyan_log (absen sesi At-Tibyan) ───────────────────
 CREATE INDEX IF NOT EXISTS idx_at_tibyan_log_id_murid
