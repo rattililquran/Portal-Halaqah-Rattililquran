@@ -346,7 +346,7 @@ var GuruAPI = {
     var id_kbm = _genId('KBM');
     var { data, error } = await _sb.from('kbm_log').insert({
       id_kbm, id_halaqah: d.id_halaqah,
-      id_guru  : _uid(), nama_guru: _currentUser && _currentUser.nama,
+      id_guru  : _uid(), nama_guru: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '',
       tanggal_pertemuan: d.tanggal_pertemuan,
       jam_mulai: d.jam_mulai, jenis_sesi: d.jenis_sesi || 'KBM Reguler',
       pertemuan_ke: d.pertemuan_ke_custom || ((count || 0) + 1),
@@ -579,7 +579,7 @@ var GuruAPI = {
     var { data, error } = await _sb.from('pengumuman').insert({
       judul: d.judul, isi: d.isi,
       target: d.target || 'semua', id_halaqah: d.id_halaqah || null,
-      dibuat_oleh: _uid(), nama_pembuat: _currentUser && _currentUser.nama,
+      dibuat_oleh: _uid(), nama_pembuat: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || 'Guru',
       tanggal: new Date().toISOString().slice(0, 10), status: 'aktif',
     }).select().single();
     _check(error, 'kirimPengumuman');
@@ -930,11 +930,20 @@ var GuruAPI = {
   },
 
   simpanAtTibyan: async function(d) {
+    // BUG-M2 fix: cek duplikat pertemuan_ke sebelum insert
+    if (d.pertemuan_ke) {
+      var { count: dupCount } = await _sb.from('at_tibyan_sesi')
+        .select('*', { count: 'exact', head: true })
+        .eq('pertemuan_ke', d.pertemuan_ke);
+      if (dupCount > 0) {
+        return { status: 'error', message: 'Pertemuan ke-' + d.pertemuan_ke + ' sudah ada. Gunakan fitur Edit untuk mengubahnya.' };
+      }
+    }
     var id_sesi = _genId('ATS');
     var hadirCount = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
     var { error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
       id_sesi, tanggal: d.tanggal, id_guru: _uid(),
-      nama_guru: _currentUser && _currentUser.nama,
+      nama_guru: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '',
       total_hadir: hadirCount, total_murid: d.presensi.length,
       status: 'selesai', pertemuan_ke: d.pertemuan_ke || 1,
     });
@@ -975,7 +984,7 @@ var GuruAPI = {
       if (oldLogs && oldLogs.length) {
         var rollbackRows = oldLogs.map(function(r) {
           var copy = Object.assign({}, r);
-          delete copy.id; delete copy.created_at;
+          delete copy.id_log; delete copy.created_at; // BUG-K1 fix: PK kolom adalah id_log, bukan id
           return copy;
         });
         await _sb.from('at_tibyan_log').insert(rollbackRows).catch(function(){});
@@ -1102,7 +1111,7 @@ var GuruAPI = {
       judul: '[Raport] Raport sudah tersedia',
       isi: 'Assalamualaikum, raport halaqah Anda sudah dipublikasikan. Silakan cek di menu Raport.',
       target: d.id_halaqah, id_halaqah: d.id_halaqah,
-      dibuat_oleh: _uid(), nama_pembuat: _currentUser && _currentUser.nama,
+      dibuat_oleh: _uid(), nama_pembuat: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || 'Admin',
       tanggal: new Date().toISOString().slice(0,10), status: 'aktif',
     });
     // Push ke murid halaqah ini
@@ -1134,9 +1143,10 @@ var GuruAPI = {
   getRincianRaport: async function(id_raport) {
     var { data: raport } = await _sb.from('raport').select('*').eq('id_raport', id_raport).single();
     if (!raport) return { status: 'error', message: 'Raport tidak ditemukan' };
-    var { data: murid } = await _sb.from('users').select('nama_lengkap, email').eq('id_user', raport.id_murid).single();
-    var { data: halaqah } = await _sb.from('halaqah').select('nama_halaqah, nama_guru').eq('id_halaqah', raport.id_halaqah).single();
-    var { data: periode } = await _sb.from('periode').select('nama_periode').eq('id_periode', raport.id_periode).single();
+    // BUG-K3 fix: pakai maybeSingle() agar tidak crash jika data relasi sudah terhapus (ON DELETE SET NULL)
+    var { data: murid }   = raport.id_murid   ? await _sb.from('users').select('nama_lengkap, email').eq('id_user', raport.id_murid).maybeSingle()   : { data: null };
+    var { data: halaqah } = raport.id_halaqah ? await _sb.from('halaqah').select('nama_halaqah, nama_guru').eq('id_halaqah', raport.id_halaqah).maybeSingle() : { data: null };
+    var { data: periode } = raport.id_periode ? await _sb.from('periode').select('nama_periode').eq('id_periode', raport.id_periode).maybeSingle() : { data: null };
     var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah).order('tanggal');
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_murid', raport.id_murid).eq('id_periode', raport.id_periode);
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
@@ -1709,8 +1719,10 @@ var MuridAPI = {
     if (!bulanList.length) bulanList = ['-'];
 
     // BUG-002 fix: cek baris yang sudah lunas agar tidak dioverride
+    // BUG-K2 fix: sertakan jenis di id_spp agar tidak clash jika multi-jenis
+    var jenisSuffix = (d.jenis || 'SPP Pribadi').replace(/\s+/g,'').substring(0,3).toUpperCase();
     var idSppList = bulanList.map(function(bulan) {
-      return 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
+      return 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix;
     });
     var { data: existingRows } = await _sb.from('spp_pembayaran')
       .select('id_spp, status').in('id_spp', idSppList);
@@ -1719,7 +1731,7 @@ var MuridAPI = {
     );
     // Filter: hanya proses bulan yang belum lunas
     var bulanProses = bulanList.filter(function(bulan) {
-      var id_spp = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun;
+      var id_spp = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix;
       return !sudahLunasSet.has(id_spp);
     });
     if (!bulanProses.length) {
@@ -1728,13 +1740,14 @@ var MuridAPI = {
 
     var rows = bulanProses.map(function(bulan) {
       return {
-        id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun,
+        id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix,
         id_murid, nama_murid: user.nama_lengkap || user.nama || '',
         id_halaqah,
         bulan, tahun: Number(d.tahun),
         jenis: d.jenis || 'SPP Pribadi',
         status: 'menunggu',
-        nominal: bulanProses.length > 1 ? Math.round(Number(d.nominal||0) / bulanProses.length) : Number(d.nominal||0),
+        // BUG-M5 fix: dibagi bulanList.length (total yg dipilih), bukan bulanProses.length
+        nominal: bulanList.length > 1 ? Math.round(Number(d.nominal||0) / bulanList.length) : Number(d.nominal||0),
         metode_transfer: d.metode_transfer || '',
         bukti_url: d.bukti_url || '',
         catatan: d.catatan || '',
@@ -1746,7 +1759,37 @@ var MuridAPI = {
     return { status: 'ok', message: 'Konfirmasi ' + jumlah + ' terkirim, menunggu validasi admin.' };
   },
 
-  getProgressGrafik: async function() { return { status: 'ok', data: [] }; },
+  // BUG-M6 fix: implementasi nyata — grafik kehadiran 6 bulan terakhir
+  getProgressGrafik: async function() {
+    var id_murid = _uid();
+    if (!id_murid) return { status: 'ok', data: [] };
+    var since = new Date();
+    since.setMonth(since.getMonth() - 6);
+    var sinceStr = since.toISOString().slice(0, 10);
+    var { data: rows, error } = await _sb.from('nilai_kbm')
+      .select('tanggal, status_hadir')
+      .eq('id_murid', id_murid)
+      .gte('tanggal', sinceStr)
+      .order('tanggal');
+    if (error || !rows || !rows.length) return { status: 'ok', data: [] };
+    // Kelompokkan per bulan
+    var bulanMap = {};
+    rows.forEach(function(r) {
+      if (!r.tanggal) return;
+      var key = r.tanggal.substring(0, 7); // 'YYYY-MM'
+      if (!bulanMap[key]) bulanMap[key] = { total: 0, hadir: 0 };
+      bulanMap[key].total++;
+      if (['H', 'T'].includes(String(r.status_hadir || '').toUpperCase())) bulanMap[key].hadir++;
+    });
+    var BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    var grafik = Object.keys(bulanMap).sort().map(function(key) {
+      var b = bulanMap[key];
+      var pct = b.total > 0 ? Math.round(b.hadir / b.total * 100) : 0;
+      var parts = key.split('-');
+      return { bulan: BULAN[parseInt(parts[1], 10) - 1] + ' ' + parts[0], pct_hadir: pct, total: b.total, hadir: b.hadir };
+    });
+    return { status: 'ok', data: grafik };
+  },
 
   getMateriLevel: async function() {
     var {data,error} = await _sb.from('materi_level').select('*').order('level').order('urutan');
@@ -2029,7 +2072,7 @@ var AdminAPI = {
   },
   getAllPengumuman: async function() { var {data,error}=await _sb.from('pengumuman').select('*').order('tanggal',{ascending:false}); _check(error,'getAllPengumuman'); return {status:'ok',data}; },
   buatPengumuman: async function(d) {
-    var {data,error}=await _sb.from('pengumuman').insert(Object.assign({},d,{dibuat_oleh:_uid(),nama_pembuat:_currentUser&&_currentUser.nama})).select().single();
+    var {data,error}=await _sb.from('pengumuman').insert(Object.assign({},d,{dibuat_oleh:_uid(),nama_pembuat:(_currentUser&&(_currentUser.nama||_currentUser.nama_lengkap))||'Admin'})).select().single();
     _check(error,'buatPengumuman'); return {status:'ok',data};
   },
   getLaporanGlobal: async function() { var {data,error}=await _sb.from('halaqah').select('*, anggota(count), kbm_log(count)').eq('status','aktif'); _check(error,'getLaporanGlobal'); return {status:'ok',data}; },

@@ -98,7 +98,7 @@ self.addEventListener('fetch', function(e) {
 
   // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
   // Tidak berlaku untuk Supabase/GAS API
-  if (url.includes('/assets/') || url.includes('/supabase/') && !url.includes('supabase.co')) {
+  if (url.includes('/assets/') || (url.includes('/supabase/') && !url.includes('supabase.co'))) { // BUG-L2 fix: kurung eksplisit
     e.respondWith(
       caches.open(CACHE_NAME).then(function(cache) {
         return cache.match(e.request).then(function(cached) {
