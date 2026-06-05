@@ -99,7 +99,20 @@ var Auth = {
   },
 
   getUser: function() { return _currentUser; },
-  getProfile: function() { return Promise.resolve({ status: 'ok', data: _currentUser }); },
+  getProfile: async function() {
+    var uid = _uid();
+    if (!uid) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
+    var { data, error } = await _sb.from('users').select('*').eq('id_user', uid).maybeSingle();
+    if (error) throw new Error(error.message);
+    return { status: 'ok', data: data || _currentUser };
+  },
+  updateProfile: async function(d) {
+    var uid = _uid();
+    if (!uid) throw new Error('Sesi telah berakhir. Silakan login ulang.');
+    var { error } = await _sb.from('users').update({ no_hp: d.no_hp, email: d.email, alamat: d.alamat }).eq('id_user', uid);
+    _check(error, 'updateProfile');
+    return { status: 'ok' };
+  },
 
   changePassword: async function(d) {
     var uid = _uid();
@@ -1872,9 +1885,7 @@ var MuridAPI = {
   },
   changePassword: async function(d) { return Auth.changePassword(d); },
   updateProfil: async function(d) {
-    var { error } = await _sb.from('users').update({ no_hp: d.no_hp, email: d.email }).eq('id_user', _uid());
-    _check(error, 'updateProfil');
-    return { status: 'ok' };
+    return Auth.updateProfile(d);
   },
 
   // ── Tahfidz / Setoran Hafalan (Level Qiyam) ──────────────────────────

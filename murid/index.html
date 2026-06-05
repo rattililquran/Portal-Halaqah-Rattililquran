@@ -110,7 +110,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* ── APP LAYOUT ── */
 #app{display:none;min-height:100dvh;padding-bottom:calc(var(--sab)+88px);position:relative;z-index:1}
-@media(min-width:768px){
+@media(min-width:480px) and (max-width:767px){
   body{background:#e0f2fe}
   #app{max-width:480px;margin:0 auto;background:var(--bg);
     box-shadow:0 0 0 1px rgba(14,165,233,0.08),0 20px 60px rgba(14,165,233,0.12);min-height:100dvh}
@@ -370,7 +370,7 @@ html.theme-dark .prog-estimasi-middle{
   z-index:100;
   box-shadow:0 -8px 32px rgba(14,165,233,0.08),0 -1px 0 rgba(255,255,255,.9) inset;
 }
-@media(min-width:768px){.bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}}
+@media(min-width:480px) and (max-width:767px){.bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}}
 .nav-item{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:none;cursor:pointer;padding:6px 2px;
@@ -1613,7 +1613,6 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 
 /* ── TABLET / DESKTOP ── */
 @media(min-width:768px){
-  #app{max-width:600px !important}
   .stats-grid{grid-template-columns:repeat(4,1fr)}
   .links-grid{grid-template-columns:repeat(2,1fr)}
   .at-actions{gap:12px}
@@ -1621,9 +1620,6 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   .page-title{font-size:20px}
   .grafik-bars{height:160px}
   .grafik-bar-bg{height:160px}
-}
-@media(min-width:1024px){
-  #app{max-width:700px !important}
 }
 
 /* ── NILAI BADGE ── */
@@ -2402,15 +2398,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
    RESPONSIVE UPGRADE — Mobile+Tablet+Desktop Murid (Juni 2026)
    ══════════════════════════════════════════════════════════════ */
 
-/* App container: progressive width untuk tablet dan desktop */
-@media(min-width:1024px){
-  #app{max-width:800px!important}
-  .bottom-nav{max-width:800px!important}
-}
-@media(min-width:1280px){
-  #app{max-width:960px!important}
-  .bottom-nav{max-width:960px!important}
-}
+
 
 /* Stats: 4 kolom mulai 600px */
 @media(min-width:600px){
@@ -2485,8 +2473,8 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 .sidebar-item[data-p].active{background:rgba(59,130,246,.1)!important;color:var(--blue)!important}
 .sidebar-item[data-p].active .sidebar-item-ico{background:rgba(59,130,246,.15)!important;color:var(--blue)!important}
 
-/* ── Desktop persistent sidebar ≥1024px ── */
-@media(min-width:1024px){
+/* ── Desktop persistent sidebar ≥768px ── */
+@media(min-width:768px){
   body{overflow:hidden}
   #app{
     display:flex !important;
@@ -2519,7 +2507,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
     flex-direction:column;
     overflow:hidden;
     min-width:0;
-    max-width:860px;
+    max-width:100% !important;
   }
   .top-header{position:sticky;top:0;z-index:50}
   .top-hamburger{display:none !important}
@@ -3617,7 +3605,7 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
     <!-- Header profil -->
     <div class="sidebar-top">
       <div style="height:env(safe-area-inset-top,0px);min-height:0"></div>
-      <div class="sidebar-profile-row" style="cursor:pointer" onclick="closeSidebar();goPage('password')" title="Lihat Profil Saya">
+      <div class="sidebar-profile-row" style="cursor:pointer" onclick="closeSidebar();openModal('profilModal')" title="Lihat Profil Saya">
         <div class="sidebar-avatar" id="sidebarAvatar">
           <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">
         </div>
@@ -5560,7 +5548,7 @@ async function dismissNotif(id, btnEl) {
 }
 
 // ── SIDEBAR ─────────────────────────────────
-function _isDesktop() { return window.innerWidth >= 1024; }
+function _isDesktop() { return window.innerWidth >= 768; }
 function openSidebar() {
   if (_isDesktop()) return;
   document.getElementById('sidebarOverlay').classList.add('open');

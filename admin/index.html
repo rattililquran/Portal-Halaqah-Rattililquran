@@ -749,6 +749,9 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
   .topbar-date{display:block!important}
 }
 
+.menu-item-hover{transition:background .2s ease}
+.menu-item-hover:hover{background:rgba(14,165,233,0.05)!important}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -809,7 +812,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
   <aside class="sidebar" id="sidebar">
     <!-- Header gradient + profile row -->
     <div class="sb-top">
-      <div class="sb-profile-row" style="cursor:pointer" onclick="closeSB();goPage('users')" title="Lihat Profil Saya">
+      <div class="sb-profile-row" style="cursor:pointer" onclick="closeSB();openMyProfil()" title="Lihat Profil Saya">
         <div class="sb-avatar" id="sbAvatar">
           <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">
         </div>
@@ -861,11 +864,12 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         <span>Keluar dari Aplikasi</span>
       </button>
     </div>
-    <!-- Collapse Button (Desktop only) -->
-    <button class="sb-toggle-collapse" onclick="toggleSidebarCollapse()" aria-label="Toggle Sidebar" title="Collapse/Expand Sidebar">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
   </aside>
+
+  <!-- Collapse Button (Desktop only) -->
+  <button class="sb-toggle-collapse" onclick="toggleSidebarCollapse()" aria-label="Toggle Sidebar" title="Collapse/Expand Sidebar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
 
   <div class="main">
     <div class="topbar">
@@ -1731,6 +1735,88 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
   </div>
 </div>
 
+<!-- MODAL PROFIL SAYA -->
+<div class="overlay" id="profilModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👤 Profil Saya</div>
+      <button class="modal-x" onclick="closeModal('profilModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Header Profil & Avatar -->
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="sb-avatar" style="width:72px;height:72px;margin:0 auto 10px;border-radius:50%;box-shadow:0 0 12px rgba(14,165,233,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;background:var(--card);border:2px solid var(--border)">
+          <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Avatar">
+        </div>
+        <div style="font-size:17px;font-weight:800" id="profilNameText">–</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-top:2px" id="profilIdText">–</div>
+        <div style="display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(14,165,233,0.1);color:var(--blue);margin-top:6px;text-transform:uppercase" id="profilRoleBadge">Admin</div>
+      </div>
+
+      <!-- Data Kontak Editable -->
+      <div class="fg" style="margin-bottom:12px">
+        <label>No HP</label>
+        <input type="tel" id="profilHp" class="fc" placeholder="08xxxxxxxxxx">
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Email</label>
+        <input type="email" id="profilEmail" class="fc" placeholder="email@example.com">
+      </div>
+      <div class="fg" style="margin-bottom:20px">
+        <label>Alamat</label>
+        <input type="text" id="profilAlamat" class="fc" placeholder="Alamat lengkap">
+      </div>
+
+      <!-- Pengaturan Akun -->
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:15px">
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px;letter-spacing:0.05em">⚙️ Pengaturan Akun</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div onclick="closeModal('profilModal');openModal('modalChangePassword')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border)" class="menu-item-hover">
+            <span style="font-weight:600;font-size:13px;color:var(--text)">🔐 Ganti Password</span>
+            <span style="color:var(--text-3);font-weight:700">&rsaquo;</span>
+          </div>
+          <div onclick="doLogout()" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer" class="menu-item-hover">
+            <span style="font-weight:600;font-size:13px;color:var(--red)">🚪 Keluar dari Aplikasi</span>
+            <span style="color:var(--red);font-weight:700">&rsaquo;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('profilModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveMyProfil()" id="btnSaveMyProfil">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GANTI PASSWORD -->
+<div class="overlay" id="modalChangePassword">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔐 Ganti Password</div>
+      <button class="modal-x" onclick="closeModal('modalChangePassword')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:12px">
+        <label>Password Lama</label>
+        <input type="password" class="fc" id="pwOld" placeholder="Masukkan password lama">
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Password Baru</label>
+        <input type="password" class="fc" id="pwNew" placeholder="Minimal 6 karakter" minlength="6">
+      </div>
+      <div class="fg" style="margin-bottom:20px">
+        <label>Konfirmasi Password Baru</label>
+        <input type="password" class="fc" id="pwConfirm" placeholder="Masukkan kembali password baru">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalChangePassword')">Batal</button>
+      <button class="btn btn-primary" onclick="doMyGantiPassword()" id="btnMyGantiPw">💾 Simpan Password</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL USER -->
 <div class="overlay" id="modalUser">
   <div class="modal">
@@ -2004,6 +2090,112 @@ async function doLogin() {
   finally { hideLoad(); setBtn('loginBtn', false, 'Masuk sebagai Admin'); }
 }
 function doLogout() { window.HQ.Auth.logout(); }
+
+async function openMyProfil() {
+  showLoad('Bismillah, memuat profil...');
+  try {
+    const res = await window.HQ.Auth.getProfile();
+    if (res.status === 'ok' && res.data) {
+      const u = res.data;
+      document.getElementById('profilNameText').textContent = u.nama_lengkap || u.id_user;
+      document.getElementById('profilIdText').textContent = u.id_user;
+      
+      let roleLabel = 'Admin';
+      if (u.role === 'superadmin') roleLabel = 'Super Admin';
+      document.getElementById('profilRoleBadge').textContent = roleLabel;
+      
+      document.getElementById('profilHp').value = u.no_hp || '';
+      document.getElementById('profilEmail').value = u.email || '';
+      document.getElementById('profilAlamat').value = u.alamat || '';
+      
+      hideLoad();
+      openModal('profilModal');
+    } else {
+      toast(res.message || 'Gagal memuat profil', 'err');
+      hideLoad();
+    }
+  } catch (e) {
+    hideLoad();
+    toast(e.message || 'Gagal memuat profil', 'err');
+  }
+}
+
+async function saveMyProfil() {
+  const hp = document.getElementById('profilHp').value.trim();
+  const email = document.getElementById('profilEmail').value.trim();
+  const alamat = document.getElementById('profilAlamat').value.trim();
+  
+  const btn = document.getElementById('btnSaveMyProfil');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Menyimpan...';
+  }
+  
+  try {
+    await window.HQ.Auth.updateProfile({ no_hp: hp, email: email, alamat: alamat });
+    
+    if (currentUser) {
+      currentUser.no_hp = hp;
+      currentUser.email = email;
+      currentUser.alamat = alamat;
+      localStorage.setItem('hq_user', JSON.stringify(currentUser));
+    }
+    
+    closeModal('profilModal');
+    toast('Profil berhasil disimpan ✅', 'ok');
+  } catch (e) {
+    toast(e.message || 'Gagal menyimpan profil', 'err');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '💾 Simpan';
+    }
+  }
+}
+
+async function doMyGantiPassword() {
+  const oldPassword = document.getElementById('pwOld').value.trim();
+  const newPassword = document.getElementById('pwNew').value.trim();
+  const confirmPassword = document.getElementById('pwConfirm').value.trim();
+  
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    return toast('Semua field password wajib diisi', 'err');
+  }
+  if (newPassword !== confirmPassword) {
+    return toast('Konfirmasi password baru tidak cocok', 'err');
+  }
+  if (newPassword.length < 6) {
+    return toast('Password baru minimal 6 karakter', 'err');
+  }
+  
+  const btn = document.getElementById('btnMyGantiPw');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Memproses...';
+  }
+  showLoad('Bismillah, memperbarui password...');
+  try {
+    const res = await window.HQ.Auth.changePassword({ oldPassword, newPassword, confirmPassword });
+    if (res.status === 'ok') {
+      toast('Password berhasil diubah!', 'ok');
+      document.getElementById('pwOld').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwConfirm').value = '';
+      closeModal('modalChangePassword');
+    } else {
+      toast(res.message || 'Gagal mengubah password', 'err');
+    }
+  } catch (e) {
+    toast(e.message, 'err');
+  } finally {
+    hideLoad();
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '💾 Simpan Password';
+    }
+  }
+}
+
 function showErr(m) { const el=document.getElementById('authErr'); el.textContent='⚠ '+m; el.style.display='block'; }
 
 // ══════════════════════════════════════════

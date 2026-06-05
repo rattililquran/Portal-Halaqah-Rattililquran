@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v5.3 — push notification support
+//  Cache version: v5.4 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v5.3';
+const CACHE_NAME   = 'halaqah-v5.4';
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
