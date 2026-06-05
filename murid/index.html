@@ -8523,10 +8523,16 @@ function renderSPP(data) {
   var bulanGrid    = data.bulan_grid || [];
   var lunasBulan   = data.lunas_bulan || [];
   var menungguBulan= data.menunggu_bulan || [];
-  var lunasCount   = lunasBulan.length;
-  // SPP dihitung 5 bulan per level (bukan per tahun/12 bulan)
+  // Hitung lunas murni dari grid (status === 'lunas'), bukan dari lunas_bulan
+  // karena lunas_bulan bisa mencakup 'menunggu' juga
+  var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
+  // SPP dihitung 5 bulan per level
   var totalBulanLevel = 5;
-  var tunggakan    = Math.max(0, totalBulanLevel - lunasCount);
+  // Gunakan data.tunggakan dari server jika ada (dihitung benar di backend)
+  // fallback: 5 - lunasCount
+  var tunggakan    = (data.tunggakan !== undefined && data.tunggakan !== null)
+                      ? Number(data.tunggakan)
+                      : Math.max(0, totalBulanLevel - lunasCount);
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25
