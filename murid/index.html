@@ -2869,144 +2869,9 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         </div>
       </div>
 
-      <!-- Modal Konfirmasi SPP -->
-      <div class="modal-overlay" id="sppKonfirmasiModal" onclick="if(event.target===this)tutupModalKonfirmasiSPP()">
-        <div class="modal-sheet" style="max-width:480px;margin:0 auto;display:flex;flex-direction:column;max-height:90dvh">
-          <!-- Header sticky -->
-          <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1a5c3a,#2d8a5a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💳</div>
-              <div>
-                <div class="modal-title" style="font-size:15px">Konfirmasi Pembayaran</div>
-                <div style="font-size:11px;color:var(--text-3);font-weight:500">Rattililqur'an</div>
-              </div>
-            </div>
-            <button class="modal-x" onclick="tutupModalKonfirmasiSPP()">✕</button>
-          </div>
 
-          <!-- Body scroll -->
-          <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
 
-            <!-- Info Metode Pembayaran -->
-            <div id="sppMetodeInfo" style="display:none">
-              <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Transfer ke</div>
-              <div id="sppMetodeList" style="display:flex;flex-direction:column;gap:8px"></div>
-              <div style="height:1px;background:var(--border);margin:14px 0"></div>
-            </div>
 
-            <!-- Jenis -->
-            <div class="fg">
-              <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Jenis Pembayaran</div>
-              <div class="spp-jenis-tabs" id="sppFormJenisTab">
-                <div class="spp-jenis-tab active" onclick="setSppFormJenis('SPP Pribadi',this)">🏠 SPP Pribadi</div>
-                <div class="spp-jenis-tab" onclick="setSppFormJenis('Infaq/Operasional',this)">💛 Infaq / Operasional</div>
-              </div>
-            </div>
-
-            <!-- Bulan (multi-pilih) -->
-            <div id="sppFormBulanWrap">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <label style="font-size:12px;font-weight:700;color:var(--text-2)">Bulan yang Dibayar <span style="color:var(--red)">*</span></label>
-                <span style="font-size:11px;color:var(--text-3)" id="sppBulanCount">Pilih 1 atau lebih</span>
-              </div>
-              <div id="sppBulanGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-                <label class="spp-bulan-check"><input type="checkbox" value="Januari" onchange="updateSppBulanCount()"><span>Jan</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Februari" onchange="updateSppBulanCount()"><span>Feb</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Maret" onchange="updateSppBulanCount()"><span>Mar</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="April" onchange="updateSppBulanCount()"><span>Apr</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Mei" onchange="updateSppBulanCount()"><span>Mei</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Juni" onchange="updateSppBulanCount()"><span>Jun</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Juli" onchange="updateSppBulanCount()"><span>Jul</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Agustus" onchange="updateSppBulanCount()"><span>Agu</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="September" onchange="updateSppBulanCount()"><span>Sep</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Oktober" onchange="updateSppBulanCount()"><span>Okt</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="November" onchange="updateSppBulanCount()"><span>Nov</span></label>
-                <label class="spp-bulan-check"><input type="checkbox" value="Desember" onchange="updateSppBulanCount()"><span>Des</span></label>
-              </div>
-              <div id="sppBulanNominalHint" style="display:none;margin-top:6px;font-size:11px;color:#0369a1;font-weight:600;padding:6px 10px;background:#f0f9ff;border-radius:8px">
-                ℹ️ Nominal akan dibagi rata per bulan yang dipilih
-              </div>
-            </div>
-
-            <!-- Tahun -->
-            <div class="fg" style="margin:0">
-              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun <span style="color:var(--red)">*</span></label>
-              <select id="sppFormTahun" class="fc" style="width:100%">
-                <option value="2025">2025</option>
-                <option value="2026" selected>2026</option>
-                <option value="2027">2027</option>
-              </select>
-            </div>
-
-            <!-- Metode Pembayaran -->
-            <div class="fg" style="margin:0">
-              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:8px">Metode Pembayaran <span style="color:var(--red)">*</span></label>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="sppMetodeTransferGrid">
-                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BSI" onchange="updateSppMetode(this)"><span>🏦 TF BSI</span></label>
-                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BCA" onchange="updateSppMetode(this)"><span>🏦 TF BCA</span></label>
-                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Cash" onchange="updateSppMetode(this)"><span>💵 Cash</span></label>
-                <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Lainnya" onchange="updateSppMetode(this)"><span>💳 Lainnya</span></label>
-              </div>
-            </div>
-
-            <!-- Nominal -->
-            <div class="fg" style="margin:0">
-              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nominal (Rp)</label>
-              <div style="position:relative">
-                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text-3)">Rp</span>
-                <input type="number" id="sppFormNominal" class="fc" placeholder="50000" min="0" style="width:100%;padding-left:36px">
-              </div>
-            </div>
-
-            <!-- Bukti Upload -->
-            <div class="fg" style="margin:0">
-              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">
-                Foto Bukti Transfer
-                <span style="font-weight:500;color:var(--text-3);font-size:11px"> · maks 5 MB</span>
-              </label>
-              <label id="sppBuktiLabel" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:14px;cursor:pointer;background:var(--bg);transition:all .2s;font-size:13px">
-                <div style="width:40px;height:40px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                </div>
-                <div style="flex:1;min-width:0">
-                  <div id="sppBuktiName" style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Klik untuk pilih foto</div>
-                  <div style="font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500">JPG · PNG · WebP · HEIC · maks 5 MB</div>
-                </div>
-                <input type="file" id="sppFormBuktiFile" accept="image/*" style="display:none;font-size:13px" onchange="handleSppBuktiFile(this)">
-              </label>
-              <!-- Preview -->
-              <div id="sppBuktiPreview" style="display:none;margin-top:10px;position:relative">
-                <img id="sppBuktiImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border)" alt="preview">
-                <button type="button" onclick="clearSppBukti()" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)">✕</button>
-                <div id="sppBuktiSize" style="font-size:10.5px;color:var(--text-3);margin-top:5px;text-align:right"></div>
-              </div>
-              <!-- Disclaimer -->
-              <div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a">
-                <span style="font-size:13px;flex-shrink:0">⚠️</span>
-                <span style="font-size:11.5px;color:#92400e;font-weight:500;line-height:1.5">Pastikan <strong>tanggal</strong> dan <strong>nominal</strong> transfer terlihat jelas. Admin akan memverifikasi keaslian bukti.</span>
-              </div>
-            </div>
-
-            <!-- Catatan -->
-            <div class="fg" style="margin:0">
-              <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
-              <textarea id="sppFormCatatan" class="fc" rows="2" placeholder="Misal: Transfer via BCA atas nama Ahmad..." style="width:100%;resize:none"></textarea>
-            </div>
-
-            <!-- Error -->
-            <div id="sppFormErr" style="display:none;font-size:12.5px;color:#991b1b;font-weight:600;padding:10px 12px;background:#fee2e2;border-radius:10px;border:1px solid #fca5a5"></div>
-          </div>
-
-          <!-- Footer sticky -->
-          <div class="modal-foot" style="flex-shrink:0">
-            <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
-            <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-              Kirim Konfirmasi
-            </button>
-          </div>
-        </div>
-      </div>
 
 
 
@@ -9502,5 +9367,144 @@ async function downloadPDFResmi() {
   finally { btn.disabled=false; btn.textContent='📥 Unduh PDF Resmi'; }
 }
 </script>
+
+<!-- ════ MODAL KONFIRMASI SPP — di level body agar fixed mencakup full viewport ════ -->
+<div class="modal-overlay" id="sppKonfirmasiModal" onclick="if(event.target===this)tutupModalKonfirmasiSPP()">
+  <div class="modal-sheet" style="max-width:480px;margin:0 auto;display:flex;flex-direction:column;max-height:90dvh">
+    <!-- Header sticky -->
+    <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1a5c3a,#2d8a5a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💳</div>
+        <div>
+          <div class="modal-title" style="font-size:15px">Konfirmasi Pembayaran</div>
+          <div style="font-size:11px;color:var(--text-3);font-weight:500">Rattililqur'an</div>
+        </div>
+      </div>
+      <button class="modal-x" onclick="tutupModalKonfirmasiSPP()">✕</button>
+    </div>
+
+    <!-- Body scroll -->
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
+
+      <!-- Info Metode Pembayaran -->
+      <div id="sppMetodeInfo" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Transfer ke</div>
+        <div id="sppMetodeList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="height:1px;background:var(--border);margin:14px 0"></div>
+      </div>
+
+      <!-- Jenis -->
+      <div class="fg">
+        <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Jenis Pembayaran</div>
+        <div class="spp-jenis-tabs" id="sppFormJenisTab">
+          <div class="spp-jenis-tab active" onclick="setSppFormJenis('SPP Pribadi',this)">🏠 SPP Pribadi</div>
+          <div class="spp-jenis-tab" onclick="setSppFormJenis('Infaq/Operasional',this)">💛 Infaq / Operasional</div>
+        </div>
+      </div>
+
+      <!-- Bulan (multi-pilih) -->
+      <div id="sppFormBulanWrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Bulan yang Dibayar <span style="color:var(--red)">*</span></label>
+          <span style="font-size:11px;color:var(--text-3)" id="sppBulanCount">Pilih 1 atau lebih</span>
+        </div>
+        <div id="sppBulanGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <label class="spp-bulan-check"><input type="checkbox" value="Januari" onchange="updateSppBulanCount()"><span>Jan</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Februari" onchange="updateSppBulanCount()"><span>Feb</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Maret" onchange="updateSppBulanCount()"><span>Mar</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="April" onchange="updateSppBulanCount()"><span>Apr</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Mei" onchange="updateSppBulanCount()"><span>Mei</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Juni" onchange="updateSppBulanCount()"><span>Jun</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Juli" onchange="updateSppBulanCount()"><span>Jul</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Agustus" onchange="updateSppBulanCount()"><span>Agu</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="September" onchange="updateSppBulanCount()"><span>Sep</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Oktober" onchange="updateSppBulanCount()"><span>Okt</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="November" onchange="updateSppBulanCount()"><span>Nov</span></label>
+          <label class="spp-bulan-check"><input type="checkbox" value="Desember" onchange="updateSppBulanCount()"><span>Des</span></label>
+        </div>
+        <div id="sppBulanNominalHint" style="display:none;margin-top:6px;font-size:11px;color:#0369a1;font-weight:600;padding:6px 10px;background:#f0f9ff;border-radius:8px">
+          ℹ️ Nominal akan dibagi rata per bulan yang dipilih
+        </div>
+      </div>
+
+      <!-- Tahun -->
+      <div class="fg" style="margin:0">
+        <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun <span style="color:var(--red)">*</span></label>
+        <select id="sppFormTahun" class="fc" style="width:100%">
+          <option value="2025">2025</option>
+          <option value="2026" selected>2026</option>
+          <option value="2027">2027</option>
+        </select>
+      </div>
+
+      <!-- Metode Pembayaran -->
+      <div class="fg" style="margin:0">
+        <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:8px">Metode Pembayaran <span style="color:var(--red)">*</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="sppMetodeTransferGrid">
+          <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BSI" onchange="updateSppMetode(this)"><span>🏦 TF BSI</span></label>
+          <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BCA" onchange="updateSppMetode(this)"><span>🏦 TF BCA</span></label>
+          <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Cash" onchange="updateSppMetode(this)"><span>💵 Cash</span></label>
+          <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="Lainnya" onchange="updateSppMetode(this)"><span>💳 Lainnya</span></label>
+        </div>
+      </div>
+
+      <!-- Nominal -->
+      <div class="fg" style="margin:0">
+        <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nominal (Rp)</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--text-3)">Rp</span>
+          <input type="number" id="sppFormNominal" class="fc" placeholder="50000" min="0" style="width:100%;padding-left:36px">
+        </div>
+      </div>
+
+      <!-- Bukti Upload -->
+      <div class="fg" style="margin:0">
+        <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">
+          Foto Bukti Transfer
+          <span style="font-weight:500;color:var(--text-3);font-size:11px"> · maks 5 MB</span>
+        </label>
+        <label id="sppBuktiLabel" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:14px;cursor:pointer;background:var(--bg);transition:all .2s;font-size:13px">
+          <div style="width:40px;height:40px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div id="sppBuktiName" style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Klik untuk pilih foto</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500">JPG · PNG · WebP · HEIC · maks 5 MB</div>
+          </div>
+          <input type="file" id="sppFormBuktiFile" accept="image/*" style="display:none;font-size:13px" onchange="handleSppBuktiFile(this)">
+        </label>
+        <!-- Preview -->
+        <div id="sppBuktiPreview" style="display:none;margin-top:10px;position:relative">
+          <img id="sppBuktiImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid var(--border)" alt="preview">
+          <button type="button" onclick="clearSppBukti()" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)">✕</button>
+          <div id="sppBuktiSize" style="font-size:10.5px;color:var(--text-3);margin-top:5px;text-align:right"></div>
+        </div>
+        <!-- Disclaimer -->
+        <div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a">
+          <span style="font-size:13px;flex-shrink:0">⚠️</span>
+          <span style="font-size:11.5px;color:#92400e;font-weight:500;line-height:1.5">Pastikan <strong>tanggal</strong> dan <strong>nominal</strong> transfer terlihat jelas. Admin akan memverifikasi keaslian bukti.</span>
+        </div>
+      </div>
+
+      <!-- Catatan -->
+      <div class="fg" style="margin:0">
+        <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
+        <textarea id="sppFormCatatan" class="fc" rows="2" placeholder="Misal: Transfer via BCA atas nama Ahmad..." style="width:100%;resize:none"></textarea>
+      </div>
+
+      <!-- Error -->
+      <div id="sppFormErr" style="display:none;font-size:12.5px;color:#991b1b;font-weight:600;padding:10px 12px;background:#fee2e2;border-radius:10px;border:1px solid #fca5a5"></div>
+    </div>
+
+    <!-- Footer sticky -->
+    <div class="modal-foot" style="flex-shrink:0">
+      <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
+      <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+        Kirim Konfirmasi
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
