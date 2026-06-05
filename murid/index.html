@@ -8772,6 +8772,12 @@ async function bukaModalKonfirmasiSPP() {
 
 function tutupModalKonfirmasiSPP() { closeModal('sppKonfirmasiModal'); }
 
+var _sppPendingSubmit = null;
+
+function tutupSppSummaryModal() {
+  document.getElementById('sppSummaryModal').style.display = 'none';
+}
+
 async function submitKonfirmasiSPP() {
   var jenis   = _sppFormJenis;
   var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : ['-'];
@@ -8783,12 +8789,63 @@ async function submitKonfirmasiSPP() {
 
   if (jenis === 'SPP Pribadi' && !bulan.length) { errEl.textContent='Pilih minimal 1 bulan.'; errEl.style.display=''; return; }
   if (!metode) { errEl.textContent='Pilih metode pembayaran.'; errEl.style.display=''; return; }
+  if (!nominal || Number(nominal) <= 0) { errEl.textContent='Nominal pembayaran tidak valid.'; errEl.style.display=''; return; }
   errEl.style.display = 'none';
 
+  // Store data for final submit
+  _sppPendingSubmit = { jenis: jenis, bulan: bulan, metode: metode, tahun: tahun, nominal: nominal, catatan: catatan };
+
+  // Populate Summary Modal
+  document.getElementById('sumSppJenis').textContent = jenis;
+  document.getElementById('sumSppBulan').textContent = jenis === 'SPP Pribadi' ? bulan.join(', ') : '—';
+  document.getElementById('sumSppBulanRow').style.display = jenis === 'SPP Pribadi' ? '' : 'none';
+  document.getElementById('sumSppTahun').textContent = tahun;
+  document.getElementById('sumSppMetode').textContent = metode;
+  document.getElementById('sumSppNominal').textContent = 'Rp ' + Number(nominal).toLocaleString('id-ID');
+  
+  var cat = catatan.trim();
+  document.getElementById('sumSppCatatan').textContent = cat || 'Tidak ada catatan';
+  document.getElementById('sumSppCatatanRow').style.display = cat ? '' : 'none';
+
+  var sumImg = document.getElementById('sumSppBuktiImg');
+  var sumWrapper = document.getElementById('sumSppBuktiWrapper');
+  var sumNoBukti = document.getElementById('sumSppNoBukti');
+
+  if (_sppBuktiBlob) {
+    sumImg.src = URL.createObjectURL(_sppBuktiBlob);
+    sumWrapper.style.display = 'block';
+    sumNoBukti.style.display = 'none';
+  } else {
+    sumWrapper.style.display = 'none';
+    sumNoBukti.style.display = 'block';
+    if (metode === 'Cash') {
+      sumNoBukti.textContent = 'ℹ️ Tanpa lampiran foto bukti (opsional untuk Cash)';
+      sumNoBukti.style.background = 'var(--bg-2,#f8fafc)';
+      sumNoBukti.style.borderColor = 'var(--border)';
+      sumNoBukti.style.color = 'var(--text-3)';
+    } else {
+      sumNoBukti.textContent = '⚠️ Lampiran bukti transfer belum dipilih!';
+      sumNoBukti.style.background = '#fef2f2';
+      sumNoBukti.style.borderColor = '#fecaca';
+      sumNoBukti.style.color = '#ef4444';
+    }
+  }
+
+  // Open Summary Modal
+  document.getElementById('sppSummaryModal').style.display = 'flex';
+}
+
+async function kirimSppFinal() {
+  if (!_sppPendingSubmit) return;
+  var d = _sppPendingSubmit;
+  var errEl = document.getElementById('sppFormErr');
+  
+  var btn = document.getElementById('btnSppFinalSubmit');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengirim...'; }
+  
   showLoad('Mengunggah bukti...');
   try {
     var buktiUrl = '';
-    // Upload foto ke Supabase Storage jika ada
     if (_sppBuktiBlob) {
       var uid    = window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user || 'unknown';
       var fname  = uid + '/' + Date.now() + '.jpg';
@@ -8800,14 +8857,30 @@ async function submitKonfirmasiSPP() {
     }
 
     showLoad('Mengirim konfirmasi...');
-    await window.HQ.MuridAPI.konfirmasiSPP({ jenis, bulan, metode_transfer: metode, tahun, nominal, bukti_url: buktiUrl, catatan });
+    await window.HQ.MuridAPI.konfirmasiSPP({ 
+      jenis: d.jenis, 
+      bulan: d.bulan, 
+      metode_transfer: d.metode, 
+      tahun: d.tahun, 
+      nominal: d.nominal, 
+      bukti_url: buktiUrl, 
+      catatan: d.catatan 
+    });
+    
+    tutupSppSummaryModal();
     tutupModalKonfirmasiSPP();
     toast('Konfirmasi terkirim, menunggu validasi admin ✅', 'ok');
     triggerHaptic('success');
     _sppLoaded = false;
     loadSPP();
-  } catch(e) { errEl.textContent = e.message||'Gagal mengirim.'; errEl.style.display=''; }
-  finally { hideLoad(); }
+  } catch(e) { 
+    errEl.textContent = e.message || 'Gagal mengirim.'; 
+    errEl.style.display = ''; 
+    tutupSppSummaryModal(); // return to form to show error
+  } finally { 
+    hideLoad(); 
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 Ya, Kirim Sekarang'; }
+  }
 }
 
 function renderSPP(data) {
@@ -10134,6 +10207,65 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="btn btn-primary" style="flex:1" onclick="applyCrop()">
         ✂️ Potong & Simpan
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL RINGKASAN KONFIRMASI SPP (SUMMARY PREVIEW) ════ -->
+<div class="modal-overlay" id="sppSummaryModal" style="display:none; z-index:10003;" onclick="if(event.target===this)tutupSppSummaryModal()">
+  <div class="modal-sheet" style="max-width:420px;margin:0 auto;display:flex;flex-direction:column;max-height:90dvh;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04)">
+    <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#d97706,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📋</div>
+        <div>
+          <div class="modal-title" style="font-size:15px">Periksa Kembali Data Anda</div>
+          <div style="font-size:11px;color:var(--text-3);font-weight:500">Pastikan data transfer di bawah ini sudah benar</div>
+        </div>
+      </div>
+      <button class="modal-x" onclick="tutupSppSummaryModal()">✕</button>
+    </div>
+
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;padding:20px;font-size:13px">
+      <div style="background:var(--bg-2,#f8fafc);padding:14px;border-radius:12px;border:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">
+          <span style="color:var(--text-3);font-weight:600">Jenis Pembayaran</span>
+          <span id="sumSppJenis" style="font-weight:800;color:var(--text)">—</span>
+        </div>
+        <div id="sumSppBulanRow" style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">
+          <span style="color:var(--text-3);font-weight:600">Bulan</span>
+          <span id="sumSppBulan" style="font-weight:700;color:var(--text);text-align:right;max-width:70%">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">
+          <span style="color:var(--text-3);font-weight:600">Tahun</span>
+          <span id="sumSppTahun" style="font-weight:700;color:var(--text)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">
+          <span style="color:var(--text-3);font-weight:600">Metode Transfer</span>
+          <span id="sumSppMetode" style="font-weight:700;color:var(--text)">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:8px">
+          <span style="color:var(--text-3);font-weight:600">Total Nominal</span>
+          <span id="sumSppNominal" style="font-weight:900;color:#10b981;font-size:15px">—</span>
+        </div>
+        <div id="sumSppCatatanRow" style="display:flex;flex-direction:column;gap:4px">
+          <span style="color:var(--text-3);font-weight:600">Catatan</span>
+          <div id="sumSppCatatan" style="font-weight:500;color:var(--text-2);background:var(--bg);padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;white-space:pre-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Preview Bukti Image -->
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Foto Bukti Terpilih</div>
+        <div id="sumSppBuktiWrapper" style="position:relative;width:100%;border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+          <img id="sumSppBuktiImg" src="" style="width:100%;max-height:220px;object-fit:contain;background:#0f172a" alt="bukti transfer">
+        </div>
+        <div id="sumSppNoBukti" style="display:none;padding:12px;text-align:center;color:var(--red);background:#fef2f2;border-radius:8px;border:1px dashed #fecaca;font-weight:600;font-size:12px">⚠️ Bukti transfer wajib diunggah!</div>
+      </div>
+    </div>
+
+    <div class="modal-foot" style="flex-shrink:0;gap:8px">
+      <button class="btn btn-ghost" onclick="tutupSppSummaryModal()" style="flex:1;padding:12px 16px">✏️ Periksa Kembali</button>
+      <button class="btn btn-primary" id="btnSppFinalSubmit" onclick="kirimSppFinal()" style="flex:1.2;background:#10b981;color:#fff">🚀 Ya, Kirim Sekarang</button>
     </div>
   </div>
 </div>
