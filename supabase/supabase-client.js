@@ -1205,12 +1205,24 @@ var GuruAPI = {
     var { data: murid }   = raport.id_murid   ? await _sb.from('users').select('nama_lengkap, email').eq('id_user', raport.id_murid).maybeSingle()   : { data: null };
     var { data: halaqah } = raport.id_halaqah ? await _sb.from('halaqah').select('nama_halaqah, nama_guru').eq('id_halaqah', raport.id_halaqah).maybeSingle() : { data: null };
     var { data: periode } = raport.id_periode ? await _sb.from('periode').select('nama_periode').eq('id_periode', raport.id_periode).maybeSingle() : { data: null };
-    var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*').eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah).order('tanggal');
+    var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(materi_belajar)').eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah);
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_murid', raport.id_murid).eq('id_periode', raport.id_periode);
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
     var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? (function(){try{return JSON.parse(raport.detail_json);}catch(e){return [];}})() : raport.detail_json) : [];
-    var hadirList = (nilaiKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
-    var totalSesi = (nilaiKBM || []).length;
+
+    // Urutkan berdasarkan jenis_sesi (Reguler -> Qiyam -> Micro Teaching) kemudian tanggal
+    var sortedKBM = (nilaiKBM || []).sort(function(a, b) {
+      var catOrder = { 'KBM Reguler': 1, 'KBM Qiyam': 2, 'Micro Teaching': 3 };
+      var catA = catOrder[a.jenis_sesi] || 99;
+      var catB = catOrder[b.jenis_sesi] || 99;
+      if (catA !== catB) return catA - catB;
+      var tA = a.tanggal || '';
+      var tB = b.tanggal || '';
+      return tA.localeCompare(tB);
+    });
+
+    var hadirList = (sortedKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
+    var totalSesi = (sortedKBM || []).length;
     return { status: 'ok', data: {
       raport: {
         id_raport: raport.id_raport, id_murid: raport.id_murid,
@@ -1221,10 +1233,12 @@ var GuruAPI = {
         tanggal_cetak: raport.tanggal_cetak, status: raport.status,
         url_pdf: raport.url_pdf || '', komponen, catatan_guru: catatan && catatan.catatan || '',
       },
-      sesi: (nilaiKBM || []).map(function(n, i) { return {
+      sesi: (sortedKBM || []).map(function(n, i) { return {
         no: i+1, pertemuan_ke: n.pertemuan_ke, tanggal: n.tanggal,
         status_hadir: n.status_hadir, adab: n.adab, kamera: n.kamera_murid,
-        koreksi: n.koreksi_tahsin, catatan_murid: n.catatan_murid, materi: '-',
+        koreksi: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
+        materi: (n.kbm_log && n.kbm_log.materi_belajar) || '-',
+        jenis_sesi: n.jenis_sesi || 'KBM Reguler',
       }; }),
       summary: {
         total_sesi: totalSesi, total_hadir: hadirList.length,
