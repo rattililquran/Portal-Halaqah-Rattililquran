@@ -3,7 +3,7 @@
 //  Cache version: v5.4 — push notification support
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.0'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v6.1'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -58,10 +58,6 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   var url = e.request.url;
 
-  // GAS API — selalu network, jangan cache, biarkan browser menangani secara native
-  if (url.includes('script.google.com')) {
-    return;
-  }
 
   // Font Google (CDN) — cache
   if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
@@ -97,7 +93,7 @@ self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
 
   // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
-  // Tidak berlaku untuk Supabase/GAS API
+  // Tidak berlaku untuk Supabase API
   if (url.includes('/assets/') || (url.includes('/supabase/') && !url.includes('supabase.co'))) { // BUG-L2 fix: kurung eksplisit
     e.respondWith(
       caches.open(CACHE_NAME).then(function(cache) {

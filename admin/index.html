@@ -2794,7 +2794,7 @@ async function doImportTerintegrasi() {
   if (!importedUsers.length) return toast('Upload file CSV dulu','err');
 
   var total = importedUsers.length;
-  var batchSize = 10; // GAS URL limit ~8KB — 10 baris per batch aman
+  var batchSize = 10; // Batasi ukuran batch agar payload aman
 
   // Disable tombol
   var btn = document.getElementById('btnImport');
@@ -2870,7 +2870,7 @@ async function doImportTerintegrasi() {
       if (r2.gagal && r2.gagal.length) rekap.user_gagal = rekap.user_gagal.concat(r2.gagal);
       offset += batchSlice.length;
       if (offset >= total) break;
-      // Delay kecil antar batch untuk hindari GAS throttle
+      // Delay kecil antar batch untuk stabilitas proses database
       await new Promise(function(res){setTimeout(res, 500);});
     }
     setProgress(70, 'Tahap 2/3: ' + rekap.user_berhasil + ' user disimpan', '');

@@ -4215,12 +4215,12 @@ async function loadDashboard(silent = false) {
       updateSesiBanner();
     }
 
-    // Cek draft dari dashboard (jika GAS sudah update dengan total_draft)
+    // Cek draft dari dashboard (jika database sudah update dengan total_draft)
     if (typeof d.total_draft !== 'undefined') {
       _updateDraftOrphanAlert(d.total_draft);
     }
 
-    // Fallback: pakai getKBMByHalaqah yang sudah ada di GAS lama
+    // Fallback: pakai getRiwayatKBM
     // Cek semua halaqah milik guru ini secara paralel (limit besar untuk dapat semua draft)
     _checkDraftViaRiwayat(d.halaqah || []);
 
@@ -5929,8 +5929,8 @@ async function loadRiwayat() {
   finally { hideLoad(); }
 }
 
-// Cek draft via getKBMByHalaqah yang sudah ada di GAS lama
-// Dipanggil setelah halaqahList tersedia — tidak perlu GAS update
+// Cek draft via getRiwayatKBM
+// Dipanggil setelah halaqahList tersedia
 async function _checkDraftViaRiwayat(halaqahList) {
   if (!halaqahList || !halaqahList.length) return;
   try {
@@ -6691,7 +6691,7 @@ async function loadJadwal() {
     // Tampilkan error di UI agar bisa debug
     if (cont) cont.innerHTML = '<div style="font-size:12px;color:var(--red);padding:8px 0">'
       + '⚠️ Gagal memuat jadwal: ' + esc(e.message)
-      + '<br><span style="color:var(--text-3)">Pastikan Code_features.gs sudah diupload ke GAS dan di-deploy ulang.</span>'
+      + '<br><span style="color:var(--text-3)">Periksa koneksi internet atau status database Supabase Anda.</span>'
       + '</div>';
   }
 }
@@ -6805,7 +6805,7 @@ function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
       sel.value = id_halaqah;
       sel.dispatchEvent(new Event('change')); // trigger autoFillPertemuan + jam
     }
-    // Biarkan kbmPertemuan kosong agar GAS auto-hitung dari server
+    // Biarkan kbmPertemuan kosong agar server auto-hitung
     // placeholder sudah diset oleh autoFillPertemuan()
   }, 0);
 }
