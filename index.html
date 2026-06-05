@@ -795,16 +795,29 @@ async function doLogin() {
 
     // Validasi: role akun harus sesuai tab yang dipilih
     const serverRole = data.user.role || currentRole;
-    if (serverRole !== currentRole) {
-      const roleLabel = { admin: 'Admin', guru: 'Guru', murid: 'Murid' };
+    const ROLE_GROUPS = {
+      admin: ['admin', 'superadmin'],
+      superadmin: ['admin', 'superadmin'],
+      guru: ['guru'],
+      murid: ['murid', 'ketua'],
+      ketua: ['murid', 'ketua']
+    };
+    const currentGroup = ROLE_GROUPS[currentRole] || [currentRole];
+    if (!currentGroup.includes(serverRole)) {
+      const roleLabel = { admin: 'Admin', superadmin: 'Superadmin', guru: 'Guru', murid: 'Murid', ketua: 'Ketua Kelas' };
       localStorage.removeItem('hq_token');
       localStorage.removeItem('hq_user');
       await window.HQ.supabase.auth.signOut();
       setLoading(false);
-      showErr('Akun ini adalah ' + (roleLabel[serverRole]||serverRole) + '. Silakan pilih tab "' + (roleLabel[serverRole]||serverRole) + '" untuk masuk.');
+      
+      const correctTab = ['admin', 'superadmin'].includes(serverRole) ? 'admin' : (['murid', 'ketua'].includes(serverRole) ? 'murid' : serverRole);
+      const displayLabel = roleLabel[serverRole] || serverRole;
+      const targetLabel = roleLabel[correctTab] || correctTab;
+      
+      showErr('Akun ini adalah ' + displayLabel + '. Silakan pilih tab "' + targetLabel + '" untuk masuk.');
       // Arahkan ke tab yang benar secara otomatis — hanya jika role dikenal
-      if (ROLE_META[serverRole]) {
-        setTimeout(function() { setRole(serverRole); }, 1800);
+      if (ROLE_META[correctTab]) {
+        setTimeout(function() { setRole(correctTab); }, 1800);
       }
       return;
     }
