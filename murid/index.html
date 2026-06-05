@@ -3814,6 +3814,10 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="4"/></svg></div>
         Preferensi Notifikasi
       </button>
+      <button class="sidebar-item ico-green" onclick="closeSidebar();downloadCalendarSync()">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="12 12 12 16 16 16"/></svg></div>
+        Pengingat Kalender HP
+      </button>
       <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('password')">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         Ganti Password
@@ -4806,6 +4810,74 @@ function copyRekening(noRek, bank) {
   }).catch(function() {
     toast(bank + ': ' + noRek, 'ok');
   });
+}
+
+function downloadCalendarSync() {
+  if (!dashData || !dashData.halaqah) {
+    toast('Jadwal belum dimuat. Silakan tunggu.', 'err');
+    return;
+  }
+  var hq = dashData.halaqah;
+  var prof = dashData.profil || {};
+  var namaMurid = prof.nama_lengkap || prof.nama || 'Sahabat Al-Qur\'an';
+
+  var DAY_MAP = {
+    'senin': 'MO', 'selasa': 'TU', 'rabu': 'WE', 
+    'kamis': 'TH', 'jumat': 'FR', 'sabtu': 'SA', 
+    'minggu': 'SU', 'ahad': 'SU'
+  };
+
+  var hariArr = (hq.jadwal || '').split(/[\s,]+/);
+  var jamMulai = (hq.jam || '').replace(':', '') + '00'; 
+  var jamSelesai = (hq.jam_selesai || '').replace(':', '') + '00';
+  if (!jamMulai || jamMulai.length < 6) jamMulai = '160000';
+  if (!jamSelesai || jamSelesai.length < 6) jamSelesai = '173000';
+
+  var ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Rattililquran//Portal Halaqah//ID\nMETHOD:PUBLISH\n';
+
+  // Jadwal KBM Reguler
+  hariArr.forEach(function(hari, index) {
+    var dayKey = hari.toLowerCase().trim();
+    var icalDay = DAY_MAP[dayKey];
+    if (!icalDay) return;
+
+    var anchorDates = { MO: '20260601', TU: '20260602', WE: '20260603', TH: '20260604', FR: '20260605', SA: '20260606', SU: '20260607' };
+    var dateStr = anchorDates[icalDay];
+
+    ics += 'BEGIN:VEVENT\n'
+      + 'UID:kbm-reguler-' + (index + 1) + '-' + (hq.id_halaqah || 'hq') + '@rattililquran.id\n'
+      + 'DTSTART;TZID=Asia/Jakarta:' + dateStr + 'T' + jamMulai + '\n'
+      + 'DTEND;TZID=Asia/Jakarta:' + dateStr + 'T' + jamSelesai + '\n'
+      + 'RRULE:FREQ=WEEKLY;BYDAY=' + icalDay + '\n'
+      + 'SUMMARY:📖 KBM Halaqah Sesi ' + (index + 1) + '\n'
+      + 'DESCRIPTION:Jadwal rutin Halaqah ' + (hq.nama || 'Rattililquran') + ' (' + (hq.guru || '-') + ').\n'
+      + 'BEGIN:VALARM\nTRIGGER:-PT2H\nACTION:DISPLAY\nDESCRIPTION:Pengingat KBM: Perjuangan Anda akan dimulai 2 jam lagi! Jangan lupa persiapkan diri anda dan minta pertolongan kepada Allah.\nEND:VALARM\n'
+      + 'BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:DISPLAY\nDESCRIPTION:Pengingat KBM: Perjuangan Anda dimulai 10 menit lagi. Ayo bersiap dan masuk ke kelas! Semoga Allah mudahkan.\nEND:VALARM\n'
+      + 'END:VEVENT\n';
+  });
+
+  // Jadwal At-Tibyan (Setiap Ahad 19:30-21:00 WIB)
+  ics += 'BEGIN:VEVENT\n'
+    + 'UID:kajian-attibyan-pekanan@rattililquran.id\n'
+    + 'DTSTART;TZID=Asia/Jakarta:20260607T193000\n'
+    + 'DTEND;TZID=Asia/Jakarta:20260607T210000\n'
+    + 'RRULE:FREQ=WEEKLY;BYDAY=SU\n'
+    + 'SUMMARY:🕌 Kajian At-Tibyan Rattililqur\'an\n'
+    + 'DESCRIPTION:Kajian pekanan kitab At-Tibyan bersama Ustadz.\n'
+    + 'BEGIN:VALARM\nTRIGGER:-PT2H\nACTION:DISPLAY\nDESCRIPTION:Pengingat Kajian: Kajian pekanan kitab At-Tibyan akan dimulai dalam 2 jam. Baarakallahu fiikum\nEND:VALARM\n'
+    + 'BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:DISPLAY\nDESCRIPTION:Pengingat Kajian: Kajian pekanan kitab At-Tibyan dimulai 10 menit lagi. Ayo bersiap menyimak! Semoga Allah mudahkan.\nEND:VALARM\n'
+    + 'END:VEVENT\n';
+
+  ics += 'END:VCALENDAR';
+
+  var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'jadwal_kbm_' + (hq.nama || 'rattil').toLowerCase().replace(/\s+/g, '_') + '.ics';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast('Jadwal diunduh! Silakan buka file tersebut untuk memasangnya di Kalender HP. 📅', 'ok');
 }
 
 // ── SWIPE GESTURES ───────────────────────────────────────────

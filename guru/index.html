@@ -1838,6 +1838,7 @@ html.theme-dark .kbm-jenis-btn {
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
       <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni">📖</span>Panduan</button>
+      <button class="nav-btn" onclick="downloadCalendarSync()" data-p="calendar"><span class="ni">📅</span>Pengingat Kalender</button>
       <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni">🔑</span>Ganti Password</button>
       <div style="height:1px;background:var(--border,#e2eaf5);margin:8px 4px"></div>
       <button class="nav-btn" onclick="doLogout()" style="color:#dc2626"><span class="ni" style="background:rgba(220,38,38,.06);color:#dc2626">→</span><span>Keluar dari Aplikasi</span></button>
@@ -3560,6 +3561,74 @@ async function doLogin() {
 }
 
 function doLogout() { window.HQ.Auth.logout(); }
+
+function downloadCalendarSync() {
+  if (typeof halaqahList === 'undefined' || !halaqahList.length) {
+    toast('Jadwal belum dimuat atau Anda tidak mengajar halaqah aktif.', 'err');
+    return;
+  }
+
+  var DAY_MAP = {
+    'senin': 'MO', 'selasa': 'TU', 'rabu': 'WE', 
+    'kamis': 'TH', 'jumat': 'FR', 'sabtu': 'SA', 
+    'minggu': 'SU', 'ahad': 'SU'
+  };
+
+  var ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Rattililquran//Portal Halaqah//ID\nMETHOD:PUBLISH\n';
+
+  // Loop setiap halaqah yang diajar guru
+  halaqahList.forEach(function(h) {
+    var hariArr = (h.jadwal_hari || '').split(/[\s,]+/);
+    var jamMulai = (h.jam_mulai || '').replace(':', '') + '00'; 
+    var jamSelesai = (h.jam_selesai || '').replace(':', '') + '00';
+    if (!jamMulai || jamMulai.length < 6) jamMulai = '160000';
+    if (!jamSelesai || jamSelesai.length < 6) jamSelesai = '173000';
+
+    hariArr.forEach(function(hari, index) {
+      var dayKey = hari.toLowerCase().trim();
+      var icalDay = DAY_MAP[dayKey];
+      if (!icalDay) return;
+
+      var anchorDates = { MO: '20260601', TU: '20260602', WE: '20260603', TH: '20260604', FR: '20260605', SA: '20260606', SU: '20260607' };
+      var dateStr = anchorDates[icalDay];
+
+      ics += 'BEGIN:VEVENT\n'
+        + 'UID:kbm-guru-' + (index + 1) + '-' + (h.id_halaqah || 'hq') + '@rattililquran.id\n'
+        + 'DTSTART;TZID=Asia/Jakarta:' + dateStr + 'T' + jamMulai + '\n'
+        + 'DTEND;TZID=Asia/Jakarta:' + dateStr + 'T' + jamSelesai + '\n'
+        + 'RRULE:FREQ=WEEKLY;BYDAY=' + icalDay + '\n'
+        + 'SUMMARY:👨‍🏫 Mengajar Halaqah ' + (h.nama_halaqah || 'Rattililquran') + '\n'
+        + 'DESCRIPTION:Jadwal mengajar Halaqah ' + (h.nama_halaqah || 'Rattililquran') + ' (' + (h.total_murid || '0') + ' murid).\n'
+        + 'BEGIN:VALARM\nTRIGGER:-PT2H\nACTION:DISPLAY\nDESCRIPTION:Pengingat Mengajar: Sesi mengajar halaqah Anda dimulai 2 jam lagi. Jangan lupa persiapkan materi. Semoga Allah mudahkan\nEND:VALARM\n'
+        + 'BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:DISPLAY\nDESCRIPTION:Pengingat Mengajar: Sesi mengajar halaqah Anda dimulai 10 menit lagi. Ayo bersiap membuka kelas! Baarakallahu fiikum\nEND:VALARM\n'
+        + 'END:VEVENT\n';
+    });
+  });
+
+  // Tambahkan Kajian At-Tibyan (Semua pengajar biasanya juga ikut menyimak/hadir)
+  ics += 'BEGIN:VEVENT\n'
+    + 'UID:kajian-attibyan-pekanan-guru@rattililquran.id\n'
+    + 'DTSTART;TZID=Asia/Jakarta:20260607T193000\n'
+    + 'DTEND;TZID=Asia/Jakarta:20260607T210000\n'
+    + 'RRULE:FREQ=WEEKLY;BYDAY=SU\n'
+    + 'SUMMARY:🕌 Kajian At-Tibyan Rattililqur\'an\n'
+    + 'DESCRIPTION:Kajian pekanan kitab At-Tibyan bersama Ustadz.\n'
+    + 'BEGIN:VALARM\nTRIGGER:-PT2H\nACTION:DISPLAY\nDESCRIPTION:Pengingat Kajian: Kajian pekanan kitab At-Tibyan akan dimulai dalam 2 jam. Baarakallahu fiikum\nEND:VALARM\n'
+    + 'BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:DISPLAY\nDESCRIPTION:Pengingat Kajian: Kajian pekanan kitab At-Tibyan dimulai 10 menit lagi. Ayo bersiap menyimak! Semoga Allah mudahkan.\nEND:VALARM\n'
+    + 'END:VEVENT\n';
+
+  ics += 'END:VCALENDAR';
+
+  var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'jadwal_mengajar_guru.ics';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast('Jadwal mengajar diunduh! Buka file untuk pasang di Kalender HP. 📅', 'ok');
+}
+
 function showErr(m) {
   const el = document.getElementById('authErr');
   el.textContent = '⚠ ' + m; el.style.display = 'block';
