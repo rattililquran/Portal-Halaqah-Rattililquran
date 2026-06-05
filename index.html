@@ -972,12 +972,13 @@ function kirimLupaPassword() {
   if (!id)   { alert('NIS / ID pengguna wajib diisi'); return; }
   var roleLabel = { admin:'Admin', guru:'Guru', murid:'Murid' }[currentRole] || 'Pengguna';
   var pesan = encodeURIComponent(
-    'Assalamualaikum Admin Rattililquran,\n\n'
+    'Assalamualaikum Ustadz,\n\n'
     + 'Saya ingin meminta reset password akun saya:\n'
     + '- Nama   : ' + nama + '\n'
     + '- ID/NIS : ' + id + '\n'
     + '- Role   : ' + roleLabel + '\n\n'
-    + 'Mohon bantuannya. Jazakumullahu khairan.'
+    + 'Mohon bantuannya. Jazakumullahu khairan.\n\n'
+    + '-Pesan ini dikirim dari halaman Lupa Password Portal Halaqah Rattililquran-'
   );
   window.open('https://wa.me/' + LUPA_WA_ADMIN + '?text=' + pesan, '_blank');
   closeLupaPassword();

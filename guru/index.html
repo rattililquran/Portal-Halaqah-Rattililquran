@@ -7466,13 +7466,13 @@ function filterKeaktifanCards() {
 function buildWAMessageKeaktifan(m) {
   var nama   = m.nama_murid || 'Peserta';
   var hal    = m.nama_halaqah || '';
-  var level  = m.level ? 'Level ' + m.level : '';
+  var levelText = m.level ? (String(m.level).toLowerCase().indexOf('level') !== -1 ? m.level : 'Level ' + m.level) : '';
   var absen  = m.metrics ? m.metrics.absen : 0;
   var lambat = m.metrics ? m.metrics.terlambat : 0;
   var kamera = m.metrics ? m.metrics.kamera_tertutup : 0;
 
   // Ikon status
-  var statusIkon = m.status === 'kritis' ? '🔴 *KRITIS*' : '🟡 *PERHATIAN*';
+  var statusIkon = m.status === 'kritis' ? '🔴 *Kritis*' : '🟡 *Perlu Diperhatikan*';
 
   // Susun baris flags
   var flagLines = '';
@@ -7484,24 +7484,27 @@ function buildWAMessageKeaktifan(m) {
   }
 
   var msg =
-    'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n' +
-    'Kami dari *Tim Rattil Al-Qur\'an* ingin menyampaikan laporan keaktifan ananda:\n\n' +
+    'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙 \n' +
+    'semoga Allah senantiasa menjaga kita semua\n\n' +
+    'izinkan Kami ingin menyampaikan laporan keaktifan KBM Rattililquran:\n\n' +
     '👤 *' + nama + '*\n' +
-    '📚 Halaqah: ' + hal + (level ? ' • ' + level : '') + '\n' +
+    '📚 Halaqah: ' + hal + (levelText ? ' • ' + levelText : '') + '\n' +
     '⚡ Status: ' + statusIkon + '\n\n' +
     '📊 *Evaluasi 40 Sesi Terakhir:*\n' +
-    '  • Absen (Alpa)  : *' + absen + ' sesi*\n' +
-    '  • Terlambat      : *' + lambat + ' sesi*\n' +
-    '  • Kamera Tertutup: *' + kamera + ' sesi*\n';
+    '  • Absen (Alpa)   : *' + absen + ' sesi*\n' +
+    '  • Terlambat       : *' + lambat + ' sesi*\n' +
+    '  • Kamera Tertutup : *' + kamera + ' sesi*\n';
 
   if (flagLines) {
-    msg += '\n⚠️ *Temuan Khusus:*' + flagLines + '\n';
+    msg += '\n⚠️ *Catatan Khusus:*' + flagLines + '\n';
   }
 
   msg +=
-    '\nMohon dukungan dan perhatian agar keaktifan ananda dapat terus terjaga dengan baik. ' +
-    'Kami siap berdiskusi jika ada kendala yang dihadapi.\n\n' +
-    'Jazakallahu khairan 🙏\n' +
+    '\nKami berharap keaktifan dapat segera meningkat. Berikut yang dapat dilakukan:\n' +
+    '  ✅ Hadir tepat waktu dan pastikan kamera aktif saat sesi berlangsung\n' +
+    '  ✅ Kabari guru jika ada kendala yang membuat sulit hadir\n\n' +
+    'Kami terbuka untuk berdiskusi jika ada hal yang ingin disampaikan.jika ada yang ingin disampaikan, jangan ragu untuk menyampaikannya\n\n' +
+    'Jazakumullahu khairan. 🙏\n' +
     '_Rattil Al-Qur\'an_';
 
   return msg;
@@ -7935,27 +7938,29 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
 function buildWAMessageAtTibyan(m) {
   var nama   = m.nama_murid  || 'Peserta';
   var hal    = m.nama_halaqah || '';
-  var level  = m.level ? 'Level ' + m.level : '';
+  var levelText = m.level ? (String(m.level).toLowerCase().indexOf('level') !== -1 ? m.level : 'Level ' + m.level) : '';
   var absen  = m.absen  || 0;
   var hadir  = m.hadir  || 0;
   var total  = m.total_sesi || 0;
   var pct    = m.pct_hadir  || 0;
-  var statusIkon = m.status === 'kritis' ? '🔴 *KRITIS*' : '🟡 *PERHATIAN*';
+  var statusIkon = m.status === 'kritis' ? '🔴 *Kritis*' : '🟡 *Perlu Diperhatikan*';
 
-  return 'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n'
-    + 'Kami dari *Tim Rattil Al-Qur\'an* ingin menyampaikan laporan kehadiran Kajian *At-Tibyan* ananda:\n\n'
+  return 'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙 \n'
+    + 'semoga Allah senantiasa menjaga kita semua\n\n'
+    + 'izinkan Kami ingin menyampaikan laporan keaktifan Kajian At-Tibyan Rattililquran:\n\n\n'
     + '👤 *' + nama + '*\n'
-    + '📚 Halaqah: ' + hal + (level ? ' · ' + level : '') + '\n'
+    + '📚 Halaqah: ' + hal + (levelText ? ' · ' + levelText : '') + '\n'
     + '⚡ Status: ' + statusIkon + '\n\n'
     + '📊 *Rekap Kehadiran At-Tibyan:*\n'
-    + '  • Hadir       : *' + hadir + ' dari ' + total + ' sesi*\n'
-    + '  • Absen (Alpa): *' + absen + ' sesi*\n'
-    + '  • % Kehadiran : *' + pct + '%*\n\n'
-    + 'At-Tibyan adalah kajian mingguan yang penting untuk perkembangan ilmu ananda. '
-    + 'Kehadiran yang konsisten akan sangat berpengaruh pada penilaian akhir.\n\n'
-    + 'Mohon dukungan agar ananda dapat hadir lebih rutin. '
-    + 'Kami siap berdiskusi jika ada kendala yang dihadapi. 🙏\n\n'
-    + 'Jazakallahu khairan\n'
+    + '  • Hadir        : *' + hadir + ' dari ' + total + ' sesi*\n'
+    + '  • Absen (Alpa) : *' + absen + ' sesi*\n'
+    + '  • % Kehadiran  : *' + pct + '%*\n\n'
+    + 'At-Tibyan adalah kajian mingguan yang penting untuk perkembangan ilmu. Kehadiran yang konsisten sangat berpengaruh pada penilaian dan pemahaman ke depannya.\n\n'
+    + 'Kami berharap kehadiran dapat segera meningkat. Berikut yang dapat dilakukan:\n'
+    + '  ✅ Hadir di setiap sesi At-Tibyan yang diadakan setiap Ahad malam jam 19.30 InsyaAllah\n'
+    + '  ✅ Kabari guru jika ada kendala yang membuat sulit hadir\n\n\n'
+    + 'Kami terbuka untuk berdiskusi jika ada hal yang ingin disampaikan.jika ada yang ingin disampaikan, jangan ragu untuk menyampaikannya\n\n'
+    + 'Jazakumullahu khairan. 🙏\n'
     + '_Rattil Al-Qur\'an_';
 }
 

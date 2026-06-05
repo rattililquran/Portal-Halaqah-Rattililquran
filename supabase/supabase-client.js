@@ -2552,6 +2552,7 @@ var KetuaAPI = {
     if (anggota.halaqah) {
       anggota.halaqah.jam_mulai = anggota.halaqah.jam_mulai ? anggota.halaqah.jam_mulai.substring(0, 5) : null;
       anggota.halaqah.jam_selesai = anggota.halaqah.jam_selesai ? anggota.halaqah.jam_selesai.substring(0, 5) : null;
+      anggota.halaqah.nama = anggota.halaqah.nama_halaqah;
     }
     return { status: 'ok', halaqah: anggota.halaqah, anggota };
   },

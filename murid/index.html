@@ -6654,9 +6654,17 @@ function renderKetuaMemberList(elId, list, type) {
       : '<span class="badge b-green" style="font-size:10px">Normal 🟢</span>';
     var hasHp = m.no_hp && String(m.no_hp).replace(/\D/g,'').length >= 9;
     var waBtnCls = (m.status === 'kritis' || m.status === 'peringatan') ? '' : 'style="display:none"';
+    var hqNama = (_ketuaData && _ketuaData.halaqah && (_ketuaData.halaqah.nama || _ketuaData.halaqah.nama_halaqah)) || '';
     var waMsg = type === 'kbm'
-      ? 'Assalamualaikum ' + m.nama_murid + ', diingatkan untuk hadir di halaqah ya. Kehadiran kamu penting. Semangat!'
-      : 'Assalamualaikum ' + m.nama_murid + ', jangan lupa hadir di kajian At-Tibyan minggu ini ya. Barakallahu fiikum!';
+      ? 'Assalamualaikum ' + m.nama_murid + ', semoga Allah senantiasa menjaga kita semua\n\n'
+        + 'Izin mengingatkan ya, kehadiran kamu di Halaqah ' + hqNama + ' mulai perlu diperhatikan. Qadarullah ada sedikit catatan di performa kehadiranmu.\n\n'
+        + 'Kehadiranmu sangat berarti bagi perkembangan belajarmu dan semangat teman-teman di halaqah. Semoga Allah mudahkan langkahmu untuk hadir.\n\n'
+        + 'Kalau ada kendala, kabari aku ya.\n\n'
+        + 'Barakallahu fiikum.'
+      : 'Assalamualaikum ' + m.nama_murid + ',\n\n'
+        + 'Jangan lupa hadir di Kajian At-Tibyan minggu ini ya, insya Allah waktunya tidak lama dan banyak faidah yang akan kita dapatkan.\n\n'
+        + 'Kajian ini penting banget buat ilmu kita bersama. Kehadiranmu sangat ditunggu.\n\n'
+        + 'Barakallahu fiikum!';
     var waUrl = hasHp ? 'https://wa.me/62' + String(m.no_hp).replace(/\D/g,'').replace(/^0/,'') + '?text=' + encodeURIComponent(waMsg) : '#';
     return '<div class="ketua-member-card '+m.status+'">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
