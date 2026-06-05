@@ -616,8 +616,9 @@ var GuruAPI = {
 
   getRiwayatMuridKoreksi: async function(id_murid, limit) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('koreksi_tahsin, tanggal, pertemuan_ke')
+      .select('koreksi_tahsin, tanggal, pertemuan_ke, jenis_sesi')
       .eq('id_murid', id_murid).neq('koreksi_tahsin', '')
+      .or('jenis_sesi.neq.Micro Teaching,jenis_sesi.is.null')
       .order('tanggal', { ascending: false }).limit(limit || 10);
     _check(error, 'getRiwayatMuridKoreksi');
     return { status: 'ok', data };

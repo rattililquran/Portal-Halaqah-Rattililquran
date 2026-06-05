@@ -1881,6 +1881,38 @@ html.theme-dark .cal-note-text {
   color: #fde68a !important;
 }
 
+/* Dark mode: Koreksi Accordion & Chips */
+html.theme-dark .kor-acc-head {
+  background: #252830 !important;
+  color: var(--text-2) !important;
+}
+html.theme-dark .kor-acc-head.open {
+  background: var(--blue-l) !important;
+  color: var(--blue) !important;
+}
+html.theme-dark .kor-acc-head:hover {
+  background: var(--bg) !important;
+}
+html.theme-dark .kor-acc-body {
+  background: #1e2128 !important;
+  border-top-color: var(--border) !important;
+}
+html.theme-dark .chip-koreksi {
+  background: #252830 !important;
+  border-color: var(--border) !important;
+  color: var(--text-2) !important;
+}
+html.theme-dark .chip-koreksi:hover {
+  background: var(--blue-l) !important;
+  border-color: var(--blue) !important;
+  color: var(--blue) !important;
+}
+html.theme-dark .chip-koreksi.selected {
+  background: var(--blue) !important;
+  border-color: var(--blue) !important;
+  color: #fff !important;
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -6912,8 +6944,10 @@ async function bukaRiwayatKoreksi(id_murid, nama_murid) {
       return;
     }
     if (bodyEl) bodyEl.innerHTML = rows.map(function(row) {
+      var ptm = row.pertemuan_ke ? 'Sesi ke-' + esc(row.pertemuan_ke) : 'Sesi harian';
+      var tgl = row.tanggal ? fmtDate(row.tanggal) : '–';
       return '<div class="koreksi-item">'
-        + '<div class="koreksi-tgl">Sesi ke-' + esc(row.pertemuan_ke) + ' \u00b7 ' + fmtDate(row.tanggal) + '</div>'
+        + '<div class="koreksi-tgl">' + ptm + ' \u00b7 ' + tgl + '</div>'
         + '<div class="koreksi-teks">\u270f\ufe0f ' + esc(row.koreksi_tahsin) + '</div>'
         + (row.adab ? '<div style="margin-top:5px"><span class="badge ' + (row.adab==='Baik'?'b-green':'b-amber') + '" style="font-size:11px">Adab: ' + esc(row.adab) + '</span></div>' : '')
         + '</div>';
