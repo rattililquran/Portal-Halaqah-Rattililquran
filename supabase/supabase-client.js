@@ -2503,10 +2503,25 @@ var KetuaAPI = {
       if (['H','T'].includes(r.status_hadir)) map[r.id_murid].hadir++;
       if (map[r.id_murid].riwayat.length < 8) map[r.id_murid].riwayat.push({ warna: ['H','T'].includes(r.status_hadir) ? 'hijau' : 'merah', tanggal: r.tanggal });
     });
+    var ids = Object.keys(map);
+    var hpMap = {};
+    if (ids.length > 0) {
+      var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
+      (users || []).forEach(function(u) { hpMap[u.id_user] = u.no_hp; });
+    }
     var alerts = Object.values(map).map(function(m) {
       var alpa = m.total - m.hadir;
       var status = alpa >= 2 ? 'kritis' : alpa === 1 ? 'peringatan' : 'normal';
-      return { id_murid: m.id_murid, nama_murid: m.nama_murid, status: status, pct_hadir: m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0, absen: alpa, total_sesi: m.total, riwayat: m.riwayat };
+      return {
+        id_murid  : m.id_murid,
+        nama_murid: m.nama_murid,
+        status    : status,
+        pct_hadir : m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0,
+        absen     : alpa,
+        total_sesi: m.total,
+        no_hp     : hpMap[m.id_murid] || '',
+        riwayat   : m.riwayat
+      };
     }).filter(function(m) { return m.status !== 'normal'; });
     return { status: 'ok', data: { alerts: alerts } };
   },
