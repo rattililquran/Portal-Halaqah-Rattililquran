@@ -2777,7 +2777,42 @@ html.theme-dark .pd-bank{background:#0d1f35!important;border-color:#1f2d45!impor
           <div class="lbl">Poin Kamera</div>
         </div>
       </div>
-      <div class="spp-card" id="sppCard" style="display:none">
+      <!-- Micro Teaching Card -->
+      <div class="attibyan-dash-card" id="dashMicroCard" style="display:none; cursor:pointer;" onclick="openMicroTeachingBreakdown()">
+        <!-- Judul MT -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Micro Teaching
+        </div>
+        <!-- Chip label -->
+        <div class="prog-level-row">
+          <span class="level-badge" style="background:linear-gradient(135deg,rgba(139,92,246,.55),rgba(167,139,250,.4)); border:1.5px solid rgba(139,92,246,.6); box-shadow:0 0 12px rgba(139,92,246,.35),inset 0 1px 0 rgba(255,255,255,.25);">Micro Teaching</span>
+        </div>
+        <!-- Inner wrap -->
+        <div class="prog-inner-wrap">
+          <div class="prog-inner-card">
+            <div class="prog-inner-row">
+              <!-- Donut ring -->
+              <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+                <div class="prog-donut-inner">
+                  <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:#8b5cf6">0%</span>
+                  <span class="prog-donut-lbl">nilai</span>
+                </div>
+              </div>
+              <!-- Info kanan -->
+              <div class="prog-info-right">
+                <div class="prog-info-title" id="dashMicroProgressPct">Belum ada latihan</div>
+                <div class="prog-info-sesi" id="dashMicroSisa">Mulai praktik mengajar Anda</div>
+                <div class="prog-bar-wrap" id="dashMicroProgressBarWrap">
+                  <div class="prog-bar-fill" id="dashMicroProgressBar" style="width:0%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
+
+      <div class="spp-card" id="sppCard" style="display:none; cursor:pointer;" onclick="bukaModalKonfirmasiSPP()">
         <div class="spp-head">
           <div class="spp-title">💳 Pembayaran SPP</div>
           <span id="sppBadge"></span>
@@ -5161,15 +5196,21 @@ async function loadDashboard() {
     var atSisaTeks = atSisa > 0 ? atSisa + ' sesi tersisa' : '🎉 Target tercapai!';
     document.getElementById('dashAtTibyanSisa').textContent = atSisaTeks;
 
-    // Estimasi selesai (jika ada target harian)
-    var reqDailyPages = d.profil && d.profil.target_harian ? Number(d.profil.target_harian) : 0;
+    // Estimasi selesai — gunakan jadwal mingguan (hq.jadwal) sama seperti modal progress
     var estimasiEl = document.getElementById('dashEstimasi');
     var estimasiTxt = document.getElementById('dashEstimasiTxt');
-    if (!isQiyam && !isMicro && estimasiEl && estimasiTxt && sisa > 0 && reqDailyPages > 0) {
-      var selesaiHari = Math.ceil(sisa / (reqDailyPages / 7)); // asumsi target per minggu
-      var tgl = new Date(); tgl.setDate(tgl.getDate() + selesaiHari);
+    if (!isQiyam && !isMicro && estimasiEl && estimasiTxt && sisa > 0) {
+      var daysPerWeek = 1;
+      var jadwalStr = hq && hq.jadwal ? hq.jadwal : '';
+      if (jadwalStr) {
+        var jadwalParts = jadwalStr.trim().split(/\s+|[,&]|\bdan\b/).filter(function(p){ return p.trim().length > 0; });
+        daysPerWeek = Math.max(1, jadwalParts.length);
+      }
+      var weeksRem = sisa / daysPerWeek;
+      var daysRem = Math.ceil(weeksRem * 7);
+      var tglEst = new Date(); tglEst.setDate(tglEst.getDate() + daysRem);
       var opsi = { day:'numeric', month:'short', year:'numeric' };
-      estimasiTxt.textContent = tgl.toLocaleDateString('id-ID', opsi);
+      estimasiTxt.textContent = tglEst.toLocaleDateString('id-ID', opsi);
       estimasiEl.style.display = 'inline-flex';
     } else if (estimasiEl) {
       estimasiEl.style.display = 'none';
@@ -8597,13 +8638,14 @@ function renderSPP(data) {
   var bulanGrid    = data.bulan_grid || [];
   var lunasBulan   = data.lunas_bulan || [];
   var menungguBulan= data.menunggu_bulan || [];
-  var tunggakan    = data.tunggakan || 0;
-  var bulanBerjalan= new Date().getMonth(); // bulan selesai (Juni=5 → 5 bulan Jan-Mei)
   var lunasCount   = lunasBulan.length;
+  // SPP dihitung 5 bulan per level (bukan per tahun/12 bulan)
+  var totalBulanLevel = 5;
+  var tunggakan    = Math.max(0, totalBulanLevel - lunasCount);
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25
-  var pct  = bulanBerjalan > 0 ? (lunasCount / bulanBerjalan) : 0;
+  var pct  = lunasCount / totalBulanLevel;
   var arc  = document.getElementById('sppDonutArc');
   var num  = document.getElementById('sppDonutNum');
   var titleEl = document.getElementById('sppDonutTitle');
@@ -8615,7 +8657,7 @@ function renderSPP(data) {
   }
   if (num) num.textContent = tunggakan;
   if (titleEl) titleEl.textContent = tunggakan===0 ? 'SPP Lunas ✅' : tunggakan + ' bulan belum lunas';
-  if (subEl)   subEl.textContent = lunasCount + ' dari ' + bulanBerjalan + ' bulan sudah terbayar';
+  if (subEl)   subEl.textContent = lunasCount + ' dari ' + totalBulanLevel + ' bulan sudah terbayar';
 
   // Badge
   if (badge) {
