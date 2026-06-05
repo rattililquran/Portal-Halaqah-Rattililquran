@@ -1236,14 +1236,17 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #10b981">
             <div style="font-size:28px;font-weight:900;color:#065f46;line-height:1" id="sppStatLunas">—</div>
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">✅ Lunas</div>
+            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatLunasSub">—</div>
           </div>
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #ef4444">
             <div style="font-size:28px;font-weight:900;color:#b91c1c;line-height:1" id="sppStatTunggak">—</div>
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">⚠ Menunggak</div>
+            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatTunggakSub">—</div>
           </div>
           <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #3b82f6">
             <div style="font-size:15px;font-weight:900;color:#1d4ed8;line-height:1.2" id="sppStatTotal">—</div>
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💰 Total SPP</div>
+            <div style="font-size:10.5px;color:#94a3b8;margin-top:3px" id="sppStatTotalSub">Terbayar tahun ini</div>
           </div>
         </div>
 
@@ -1280,6 +1283,13 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             </div>
             <!-- Filter -->
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input type="text" id="sppSearchInput" class="fc" style="width:140px;font-size:12px;padding:6px 10px" placeholder="Cari nama/NIS..." oninput="filterSPPTable()">
+              <select id="sppFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
+                <option value="">Semua Status</option>
+                <option value="lunas">Lunas</option>
+                <option value="menunggak">Menunggak</option>
+                <option value="tunggakan_berat">Tunggakan ≥ 3 Bulan</option>
+              </select>
               <select id="sppFilterTahun" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="loadSPPAdmin()">
                 <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
               </select>
@@ -1292,6 +1302,9 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
                 <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
                 <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
               </select>
+              <button class="btn btn-outline btn-sm" onclick="eksporSPP()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
+                <span>📥</span> Ekspor CSV
+              </button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -2306,8 +2319,23 @@ async function startApp() {
   document.getElementById('sbName').textContent  = nama || 'Admin';
   document.getElementById('greet').textContent   = 'Dashboard — ' + nama;
 
-  // Tampilkan menu superadmin jika role superadmin
-  if (currentUser.role === 'superadmin') {
+  // Cek apakah bendahara (role 'admin' dengan ID diawali 'BEN-' atau 'USR-BEN-' atau mengandung 'BENDAHARA')
+  var idUpper = String(currentUser.id_user || '').toUpperCase();
+  var isBendahara = currentUser.role === 'admin' && (idUpper.indexOf('BENDAHARA') >= 0 || idUpper.startsWith('USR-BEN-') || idUpper.startsWith('BEN-'));
+
+  if (isBendahara) {
+    document.querySelectorAll('.sb-nav button').forEach(function(btn) {
+      var p = btn.getAttribute('data-p');
+      if (!['dashboard', 'spp'].includes(p)) {
+        btn.style.display = 'none';
+      }
+    });
+    document.querySelectorAll('.sb-sec').forEach(function(sec) {
+      sec.style.display = 'none';
+    });
+    var sbRole = document.getElementById('sbRole');
+    if (sbRole) sbRole.textContent = 'Bendahara';
+  } else if (currentUser.role === 'superadmin') {
     document.querySelectorAll('.nav-superadmin').forEach(function(el) {
       el.style.display = '';
     });
@@ -2316,7 +2344,12 @@ async function startApp() {
   }
 
   await loadMasterData();
-  loadDashboard();
+  
+  if (isBendahara) {
+    goPage('spp');
+  } else {
+    loadDashboard();
+  }
   startAdminAutoRefresh();
   resetAdminSession();
 }
@@ -3495,6 +3528,7 @@ async function loadAbsensi() {
 //  SPP & INFAQ ADMIN
 // ══════════════════════════════════════════
 var _sppRekapData = [];
+var _sppRekapDataFiltered = [];
 
 // ── Metode Bayar ──
 async function loadMetodeBayarAdmin() {
@@ -3653,9 +3687,23 @@ async function loadSPPAdmin() {
       var rekapRes = await window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined });
       var rekap = rekapRes.data || {};
       _sppRekapData = rekap.murid_list || [];
+      
+      // Update Dashboard Kinerja SPP Bulanan
+      var totalMurid = (rekap.lunas || 0) + (rekap.menunggak || 0);
+      var pctLunas = totalMurid > 0 ? Math.round((rekap.lunas || 0) / totalMurid * 100) : 0;
+      var totalTunggakanBulan = 0;
+      _sppRekapData.forEach(function(m) {
+        totalTunggakanBulan += (m.tunggakan || 0);
+      });
+      var belumTertagih = totalTunggakanBulan * 75000;
+
       document.getElementById('sppStatLunas').textContent   = rekap.lunas || 0;
+      document.getElementById('sppStatLunasSub').textContent = pctLunas + '% dari ' + totalMurid + ' murid';
       document.getElementById('sppStatTunggak').textContent  = rekap.menunggak || 0;
+      document.getElementById('sppStatTunggakSub').textContent  = 'Belum tertagih: Rp ' + belumTertagih.toLocaleString('id-ID');
       document.getElementById('sppStatTotal').textContent   = 'Rp ' + (rekap.total_nominal||0).toLocaleString('id-ID');
+      document.getElementById('sppStatTotalSub').textContent = 'Terbayar tahun ' + tahun;
+      
       filterSPPTable();
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
@@ -3667,11 +3715,43 @@ async function loadSPPAdmin() {
 }
 
 function filterSPPTable() {
+  var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
+  var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
   var bulanFilter = document.getElementById('sppFilterBulan').value;
   var tbody = document.getElementById('sppRekapBody');
-  var data  = bulanFilter
-    ? _sppRekapData.filter(function(m){ return m.bulan_belum.includes(bulanFilter) || m.tunggakan > 0; })
-    : _sppRekapData;
+
+  // 1. Filter bulan
+  var data = _sppRekapData;
+  if (bulanFilter) {
+    data = data.filter(function(m) { 
+      return m.bulan_belum.includes(bulanFilter) || m.tunggakan > 0; 
+    });
+  }
+
+  // 2. Filter status pembayaran
+  if (statusFilter) {
+    if (statusFilter === 'lunas') {
+      data = data.filter(function(m) { return m.tunggakan === 0; });
+    } else if (statusFilter === 'menunggak') {
+      data = data.filter(function(m) { return m.tunggakan > 0; });
+    } else if (statusFilter === 'tunggakan_berat') {
+      data = data.filter(function(m) { return m.tunggakan >= 3; });
+    }
+  }
+
+  // 3. Filter pencarian teks (Nama, NIS, Halaqah, Level)
+  if (searchVal) {
+    data = data.filter(function(m) {
+      var namaMatch  = (m.nama_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var idMatch    = (m.id_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var halaqahMatch = (m.nama_halaqah || m.id_halaqah || '').toLowerCase().indexOf(searchVal) !== -1;
+      var levelMatch = (m.level || '').toLowerCase().indexOf(searchVal) !== -1;
+      return namaMatch || idMatch || halaqahMatch || levelMatch;
+    });
+  }
+
+  // Simpan data terfilter ke variabel global untuk proses ekspor
+  _sppRekapDataFiltered = data;
 
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
@@ -3704,6 +3784,38 @@ function filterSPPTable() {
       + '<td style="padding:10px 8px;text-align:center">'+waLink+'</td>'
       + '</tr>';
   }).join('');
+}
+
+function eksporSPP() {
+  var list = _sppRekapDataFiltered || [];
+  if (!list.length) {
+    alert('Tidak ada data SPP untuk diekspor.');
+    return;
+  }
+  var csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
+  list.forEach(function(m) {
+    var nama = (m.nama_murid || '').replace(/"/g, '""');
+    var hal = (m.nama_halaqah || m.id_halaqah || '—').replace(/"/g, '""');
+    var lvl = (m.level || '').replace(/"/g, '""');
+    var bln = m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas';
+    var hp  = m.no_hp || '';
+    csv += '"' + m.id_murid + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
+  });
+
+  // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
+  var blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  var tahun = document.getElementById('sppFilterTahun').value;
+  var halaqahVal = document.getElementById('sppFilterHalaqah').value || 'Semua-Halaqah';
+  var bulanVal = document.getElementById('sppFilterBulan').value || 'Semua-Bulan';
+  var statusVal = document.getElementById('sppFilterStatus').value || 'Semua-Status';
+
+  a.href   = url;
+  a.download = 'rekap_spp_' + tahun + '_' + halaqahVal + '_' + bulanVal + '_' + statusVal + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 async function validasiSPP(id_spp, aksi) {
