@@ -1126,7 +1126,7 @@ var GuruAPI = {
 
     var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
-      _sb.from('nilai_kbm').select('*').eq('id_halaqah', d.id_halaqah),
+      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi)').eq('id_halaqah', d.id_halaqah),
       _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
@@ -1205,7 +1205,9 @@ var GuruAPI = {
     var { data: murid }   = raport.id_murid   ? await _sb.from('users').select('nama_lengkap, email').eq('id_user', raport.id_murid).maybeSingle()   : { data: null };
     var { data: halaqah } = raport.id_halaqah ? await _sb.from('halaqah').select('nama_halaqah, nama_guru').eq('id_halaqah', raport.id_halaqah).maybeSingle() : { data: null };
     var { data: periode } = raport.id_periode ? await _sb.from('periode').select('nama_periode').eq('id_periode', raport.id_periode).maybeSingle() : { data: null };
-    var { data: nilaiKBM } = await _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(materi_belajar)').eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah);
+    var { data: nilaiKBM } = await _sb.from('nilai_kbm')
+      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(materi_belajar, jenis_sesi, tanggal_pertemuan, pertemuan_ke)')
+      .eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah);
     var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_murid', raport.id_murid).eq('id_periode', raport.id_periode);
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
     var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? (function(){try{return JSON.parse(raport.detail_json);}catch(e){return [];}})() : raport.detail_json) : [];
@@ -1213,16 +1215,24 @@ var GuruAPI = {
     // Urutkan berdasarkan jenis_sesi (Reguler -> Qiyam -> Micro Teaching) kemudian tanggal
     var sortedKBM = (nilaiKBM || []).sort(function(a, b) {
       var catOrder = { 'KBM Reguler': 1, 'KBM Qiyam': 2, 'Micro Teaching': 3 };
-      var catA = catOrder[a.jenis_sesi] || 99;
-      var catB = catOrder[b.jenis_sesi] || 99;
+      var jenisA = a.jenis_sesi || (a.kbm_log && a.kbm_log.jenis_sesi) || 'KBM Reguler';
+      var jenisB = b.jenis_sesi || (b.kbm_log && b.kbm_log.jenis_sesi) || 'KBM Reguler';
+      var catA = catOrder[jenisA] || 99;
+      var catB = catOrder[jenisB] || 99;
       if (catA !== catB) return catA - catB;
-      var tA = a.tanggal || '';
-      var tB = b.tanggal || '';
+      var tA = a.tanggal || (a.kbm_log && a.kbm_log.tanggal_pertemuan) || '';
+      var tB = b.tanggal || (b.kbm_log && b.kbm_log.tanggal_pertemuan) || '';
       return tA.localeCompare(tB);
     });
 
-    var hadirList = (sortedKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
-    var totalSesi = (sortedKBM || []).length;
+    // Filter out Micro Teaching sessions from regular summary statistics (only count KBM Reguler/Qiyam)
+    var regulerKBM = (sortedKBM || []).filter(function(n) {
+      var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+      return jenis !== 'Micro Teaching';
+    });
+
+    var hadirList = regulerKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
+    var totalSesi = regulerKBM.length;
     return { status: 'ok', data: {
       raport: {
         id_raport: raport.id_raport, id_murid: raport.id_murid,
@@ -1234,17 +1244,19 @@ var GuruAPI = {
         url_pdf: raport.url_pdf || '', komponen, catatan_guru: catatan && catatan.catatan || '',
       },
       sesi: (sortedKBM || []).map(function(n, i) { return {
-        no: i+1, pertemuan_ke: n.pertemuan_ke, tanggal: n.tanggal,
+        no: i+1,
+        pertemuan_ke: n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
+        tanggal: n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
         status_hadir: n.status_hadir, adab: n.adab, kamera: n.kamera_murid,
         koreksi: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
         materi: (n.kbm_log && n.kbm_log.materi_belajar) || '-',
-        jenis_sesi: n.jenis_sesi || 'KBM Reguler',
+        jenis_sesi: n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler',
       }; }),
       summary: {
         total_sesi: totalSesi, total_hadir: hadirList.length,
-        total_alpa: (nilaiKBM||[]).filter(function(n){return n.status_hadir==='A';}).length,
-        total_izin: (nilaiKBM||[]).filter(function(n){return n.status_hadir==='I';}).length,
-        total_terlambat: (nilaiKBM||[]).filter(function(n){return n.status_hadir==='T';}).length,
+        total_alpa: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length,
+        total_izin: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='I';}).length,
+        total_terlambat: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='T';}).length,
         pct_hadir: totalSesi > 0 ? Math.round((hadirList.length/totalSesi)*100) : 0,
       },
       nilai_manual: (nilaiManual || []),
@@ -1441,6 +1453,12 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });
 
+  // Filter out Micro Teaching sessions from regular calculations
+  var myRegulerKBM = myKBM.filter(function(n) {
+    var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+    return jenis !== 'Micro Teaching';
+  });
+
   // BUG-021: threshold dari gradeConfig (dari DB), fallback ke default jika tidak ada
   var G = gradeConfig || {};
   var GRADE_MUMTAZ       = G.mumtaz       || 90;
@@ -1456,10 +1474,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       var nm = myManual.find(function(n) { return n.id_komponen === k.id_komponen; });
       v = nm ? Number(nm.nilai) || 0 : 0;
     } else {
-      var hadir = myKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
+      var hadir = myRegulerKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
       if (nama.includes('kehadiran') && !nama.includes('tibyan')) {
-        var skor = myKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
-        v = myKBM.length > 0 ? Math.round(skor/myKBM.length*100) : 0;
+        var skor = myRegulerKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
+        v = myRegulerKBM.length > 0 ? Math.round(skor/myRegulerKBM.length*100) : 0;
       } else if (nama.includes('kbm') || nama.includes('harian')) {
         var ts = 0; hadir.forEach(function(n) { var a=n.adab==='Baik'?100:50; var km=n.kamera_murid==='kamera terbuka'?100:n.kamera_murid==='kamera selalu tertutup'?0:50; ts+=Math.round((a*ADAB_W+km*KAM_W)/100); });
         v = hadir.length > 0 ? Math.round(ts/hadir.length) : 0;
@@ -1470,7 +1488,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         var hadirAt = myAt.filter(function(n){return ['H','T'].includes(String(n.status_hadir||'').toUpperCase());}).length;
         v = totalAt > 0 ? Math.round(hadirAt/totalAt*100) : 0;
       } else if (nama.includes('micro') || nama.includes('micro teaching')) {
-        var mtRows = myKBM.filter(function(n) { return n.jenis_sesi === 'Micro Teaching' && n.nilai != null && n.nilai !== ''; });
+        var mtRows = myKBM.filter(function(n) {
+          var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+          return jenis === 'Micro Teaching' && n.nilai != null && n.nilai !== '';
+        });
         var mtSum = mtRows.reduce(function(s, n) { return s + (Number(n.nilai) || 0); }, 0);
         v = mtRows.length > 0 ? Math.round(mtSum / mtRows.length) : 0;
       }
@@ -1479,10 +1500,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
   });
 
   var nilaiAkhir = nilaiKomp.reduce(function(s,k){return s+k.nilai_bobot;}, 0);
-  var alpa = myKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
+  var alpa = myRegulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
   // BUG-021: bonus perfect attendance dari DB config
-  if (myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
-  var predikat = myKBM.length === 0 ? 'Belum Ada Data'
+  if (myRegulerKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
+  var predikat = myRegulerKBM.length === 0 ? 'Belum Ada Data'
     : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
     : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
     : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
@@ -1499,19 +1520,41 @@ var MuridAPI = {
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
       _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
       _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
-      _sb.from('nilai_kbm').select('status_hadir, adab, kamera_murid, jenis_sesi').eq('id_murid', id_murid),
+      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(*)').eq('id_murid', id_murid),
     ]);
     var anggota    = anggotaRes.data;
     var user       = userRes.data;
-    var nilai      = nilaiRes.data || [];
+    var rawNilai   = nilaiRes.data || [];
 
-    // Filter KBM sessions based on current active level (KBM Reguler and MT do not appear in Qiyam)
+    // Map KBM sessions in-memory resolving fallbacks for tanggal, pertemuan_ke, and jenis_sesi
+    var allSessions = rawNilai.map(function(n) {
+      var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+      return {
+        id_kbm: n.id_kbm,
+        id_halaqah: n.id_halaqah,
+        id_murid: n.id_murid,
+        status_hadir: n.status_hadir,
+        adab: n.adab,
+        kamera_murid: n.kamera_murid,
+        nilai: n.nilai,
+        koreksi_tahsin: n.koreksi_tahsin,
+        catatan_murid: n.catatan_murid,
+        pertemuan_ke: n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
+        tanggal: n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
+        jenis_sesi: jenis,
+        materi: (n.kbm_log && n.kbm_log.materi_belajar) || '-',
+      };
+    });
+
+    // Filter KBM sessions strictly based on student level (prevent MT leakages)
+    var dashboardNilai = [];
     if (anggota && anggota.level === 'Level Qiyam') {
-      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Qiyam'; });
+      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Qiyam'; });
     } else if (anggota && (anggota.level === 'Micro Teaching' || (anggota.halaqah && anggota.halaqah.level === 'Micro Teaching'))) {
-      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
+      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
     } else {
-      nilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler' || n.jenis_sesi === 'Micro Teaching'; });
+      // Regular KBM student: only show KBM Reguler
+      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
     }
 
     var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
@@ -1519,8 +1562,10 @@ var MuridAPI = {
     var pengumumanQuery = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(5);
     if (id_halaqah) pengumumanQuery = pengumumanQuery.or('target.in.(semua,all),id_halaqah.eq.'+id_halaqah);
     else pengumumanQuery = pengumumanQuery.in('target',['semua','all']);
+
+    // Fetch exercises (PR) and exclude MT exercises
     var prQuery = _sb.from('nilai_kbm')
-      .select('tanggal, pertemuan_ke, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar)')
+      .select('tanggal, pertemuan_ke, jenis_sesi, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri','is',null)
       .order('tanggal',{ascending:false}).limit(10);
@@ -1536,48 +1581,35 @@ var MuridAPI = {
       .limit(1)
       .maybeSingle();
 
-    var microLatestQuery = _sb.from('nilai_kbm')
-      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar)')
-      .eq('id_murid', id_murid)
-      .eq('jenis_sesi', 'Micro Teaching')
-      .not('nilai', 'is', null)
-      .order('tanggal', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    var microAllQuery = _sb.from('nilai_kbm')
-      .select('nilai')
-      .eq('id_murid', id_murid)
-      .eq('jenis_sesi', 'Micro Teaching')
-      .not('nilai', 'is', null);
-
     var [
       { data: pengumuman },
       { data: prRaw },
       qiyamCountRes,
-      qiyamLatestRes,
-      microLatestRes,
-      microAllRes
+      qiyamLatestRes
     ] = await Promise.all([
       pengumumanQuery,
       prQuery,
       qiyamCountQuery,
-      qiyamLatestQuery,
-      microLatestQuery,
-      microAllQuery
+      qiyamLatestQuery
     ]);
 
     _check(qiyamLatestRes.error, 'getDashboard - qiyamLatest');
-    _check(microLatestRes.error, 'getDashboard - microLatest');
-    _check(microAllRes.error, 'getDashboard - microAll');
 
-    var microList = microAllRes.data || [];
-    var microScores = microList.map(function(m){ return Number(m.nilai); }).filter(function(v){ return !isNaN(v); });
-    var microAvg = microScores.length > 0 ? Math.round(microScores.reduce(function(a,b){ return a+b; }, 0) / microScores.length) : 0;
+    // Calculate Micro Teaching in memory (immunized against NULL DB values)
+    var mtSessions = allSessions.filter(function(n) { return n.jenis_sesi === 'Micro Teaching' && n.nilai != null && n.nilai !== ''; });
+    var mtScores = mtSessions.map(function(m){ return Number(m.nilai); }).filter(function(v){ return !isNaN(v); });
+    var mtAvg = mtScores.length > 0 ? Math.round(mtScores.reduce(function(a,b){ return a+b; }, 0) / mtScores.length) : 0;
+    var sortedMt = mtSessions.slice().sort(function(a, b) {
+      return (b.tanggal || '').localeCompare(a.tanggal || '');
+    });
+    var mtLatest = sortedMt.length > 0 ? sortedMt[0] : null;
 
     var today = new Date().toISOString().slice(0,10);
     var prAktif = (prRaw||[])
-      .filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; })
+      .filter(function(n){
+        var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+        return n.kbm_log && n.kbm_log.latihan_mandiri && jenis !== 'Micro Teaching';
+      })
       .map(function(n) {
         var dl = n.kbm_log.deadline_latihan;
         return Object.assign({}, n.kbm_log, {
@@ -1587,15 +1619,17 @@ var MuridAPI = {
         });
       })
       .filter(function(n){ return n.status_deadline !== 'lewat'; });
-    var countH  = nilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
-    var countT  = nilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
-    var countI  = nilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
-    var countA  = nilai.filter(function(n) { return n.status_hadir === 'A'; }).length;
+
+    var countH  = dashboardNilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
+    var countT  = dashboardNilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
+    var countI  = dashboardNilai.filter(function(n) { return n.status_hadir === 'I'; }).length;
+    var countA  = dashboardNilai.filter(function(n) { return n.status_hadir === 'A'; }).length;
     var totalHadir  = countH + countT;
-    var totalSesi   = nilai.length;
+    var totalSesi   = dashboardNilai.length;
     var pctHadir    = totalSesi > 0 ? Math.round(totalHadir / totalSesi * 100) : 0;
+
     // Poin Adab & Kamera — hanya dari sesi hadir yang sudah dinilai
-    var hadirNilai  = nilai.filter(function(n){ return ['H','T'].includes(n.status_hadir); });
+    var hadirNilai  = dashboardNilai.filter(function(n){ return ['H','T'].includes(n.status_hadir); });
     var adabData    = hadirNilai.filter(function(n){ return n.adab; });
     var adabBaik    = adabData.filter(function(n){ return n.adab==='Baik'; }).length;
     var poinAdab    = adabData.length > 0 ? Math.round(adabBaik/adabData.length*100) : undefined;
@@ -1606,7 +1640,7 @@ var MuridAPI = {
     var poinKamera  = kameraData.length > 0 ? Math.round(kamTerbuka/kameraData.length*100) : undefined;
     var hq = (anggota && anggota.halaqah) || {};
 
-    var regulerNilai = nilai.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
+    var regulerNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
     var regHadir     = regulerNilai.filter(function(n) { return n.status_hadir === 'H' || n.status_hadir === 'T'; }).length;
     var regTotalSesi = regulerNilai.length;
 
@@ -1649,9 +1683,14 @@ var MuridAPI = {
         terakhir: qiyamLatestRes.data || null
       },
       micro_teaching: {
-        terakhir: microLatestRes.data || null,
-        rata_nilai: microAvg,
-        total_sesi: microScores.length
+        terakhir: mtLatest ? {
+          nilai: mtLatest.nilai,
+          pertemuan_ke: mtLatest.pertemuan_ke,
+          tanggal: mtLatest.tanggal,
+          materi: mtLatest.materi
+        } : null,
+        rata_nilai: mtAvg,
+        total_sesi: mtScores.length
       }
     }};
   },
@@ -1667,7 +1706,7 @@ var MuridAPI = {
       .maybeSingle();
 
     var q = _sb.from('nilai_kbm')
-      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan)', { count: 'exact' })
+      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan,jenis_sesi)', { count: 'exact' })
       .eq('id_murid', id_murid);
 
     if (ang && ang.level === 'Level Qiyam') {
@@ -1675,7 +1714,8 @@ var MuridAPI = {
     } else if (ang && ang.level === 'Micro Teaching') {
       q = q.eq('jenis_sesi', 'Micro Teaching');
     } else {
-      q = q.in('jenis_sesi', ['KBM Reguler', 'Micro Teaching']);
+      // Regular KBM student: only show KBM Reguler. Use OR filter to include legacy records where jenis_sesi is NULL
+      q = q.or('jenis_sesi.eq.KBM Reguler,jenis_sesi.is.null');
     }
 
     var { data, error, count } = await q
@@ -1684,26 +1724,39 @@ var MuridAPI = {
     _check(error, 'getRiwayat');
     var mapped = (data||[]).map(function(n) { return Object.assign({}, n, {
       tanggal         : n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
-      pertemuan_ke    : (n.kbm_log && n.kbm_log.pertemuan_ke) || n.pertemuan_ke,
+      pertemuan_ke    : n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
       materi_belajar  : n.kbm_log && n.kbm_log.materi_belajar,
       latihan_mandiri : n.kbm_log && n.kbm_log.latihan_mandiri,
       jenis_latihan   : n.kbm_log && n.kbm_log.jenis_latihan,
       deadline_latihan: n.kbm_log && n.kbm_log.deadline_latihan,
+      jenis_sesi      : n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler',
     }); });
     return { status: 'ok', data: mapped, total: count, has_more: (offset||0)+(limit||8) < (count||0) };
   },
 
   getLatihanMandiri: async function() {
     var id_murid = _uid();
+    var { data: ang } = await _sb.from('anggota')
+      .select('level')
+      .eq('id_murid', id_murid)
+      .eq('status', 'aktif')
+      .maybeSingle();
+    var targetJenis = 'KBM Reguler';
+    if (ang && ang.level === 'Level Qiyam') targetJenis = 'KBM Qiyam';
+    else if (ang && ang.level === 'Micro Teaching') targetJenis = 'Micro Teaching';
+
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('tanggal, pertemuan_ke, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar)')
+      .select('tanggal, pertemuan_ke, jenis_sesi, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
     _check(error, 'getLatihanMandiri');
     var today = new Date().toISOString().slice(0,10);
     var rows = (data||[])
-      .filter(function(n){ return n.kbm_log && n.kbm_log.latihan_mandiri; })
+      .filter(function(n){
+        var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+        return n.kbm_log && n.kbm_log.latihan_mandiri && jenis === targetJenis;
+      })
       .map(function(n) {
         var dl = n.kbm_log.deadline_latihan;
         var daysLeft = dl ? Math.ceil((new Date(dl) - new Date(today)) / 86400000) : null;
