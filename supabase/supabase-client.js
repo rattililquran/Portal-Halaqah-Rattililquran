@@ -1680,8 +1680,8 @@ var MuridAPI = {
     // Tahun aktif: tahun ini atau tahun terakhir ada data
     var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
     var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
-    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas'; }).map(function(r){ return r.bulan; });
-    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu'; }).map(function(r){ return r.bulan; });
+    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas' && (r.jenis==='SPP Pribadi' || !r.jenis); }).map(function(r){ return r.bulan; });
+    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu' && (r.jenis==='SPP Pribadi' || !r.jenis); }).map(function(r){ return r.bulan; });
     var bulanGrid   = BULAN.map(function(b) {
       var l = lunasBulan.includes(b);
       var m = menunggu.includes(b);
