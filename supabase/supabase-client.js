@@ -1354,6 +1354,17 @@ var GuruAPI = {
     }
     var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
     _check(error, 'addSetoranHafalan');
+
+    // Auto-sync kamera to nilai_kbm for Qiyam sessions
+    if (d.id_kbm && d.id_murid) {
+      var { error: syncErr } = await _sb.from('nilai_kbm')
+        .update({ kamera_murid: d.kamera || 'kamera terbuka' })
+        .eq('id_kbm', d.id_kbm)
+        .eq('id_murid', d.id_murid);
+      if (syncErr) {
+        console.warn('Gagal sync kamera ke nilai_kbm:', syncErr.message);
+      }
+    }
     return { status: 'ok', data };
   },
 
@@ -1481,13 +1492,13 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       } else if (nama.includes('kbm') || nama.includes('harian')) {
         var ts = 0;
         hadir.forEach(function(n) {
-          var a = n.adab === 'Baik' ? 100 : 50;
           var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+          var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
           if (jenis === 'KBM Qiyam') {
-            // Qiyam doesn't use camera scores, calculate purely based on adab
-            ts += a;
+            // Qiyam uses camera scores instead of adab (since Qiyam doesn't input adab)
+            ts += km;
           } else {
-            var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
+            var a = n.adab === 'Baik' ? 100 : 50;
             ts += Math.round((a * ADAB_W + km * KAM_W) / 100);
           }
         });
