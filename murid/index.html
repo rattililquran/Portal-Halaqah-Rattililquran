@@ -8526,13 +8526,9 @@ function renderSPP(data) {
   // Hitung lunas murni dari grid (status === 'lunas'), bukan dari lunas_bulan
   // karena lunas_bulan bisa mencakup 'menunggu' juga
   var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-  // SPP dihitung 5 bulan per level
+  // SPP dihitung 5 bulan per level — hitung tunggakan murni di sini (server pakai logika 12-bulan)
   var totalBulanLevel = 5;
-  // Gunakan data.tunggakan dari server jika ada (dihitung benar di backend)
-  // fallback: 5 - lunasCount
-  var tunggakan    = (data.tunggakan !== undefined && data.tunggakan !== null)
-                      ? Number(data.tunggakan)
-                      : Math.max(0, totalBulanLevel - lunasCount);
+  var tunggakan    = Math.max(0, totalBulanLevel - lunasCount);
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25
