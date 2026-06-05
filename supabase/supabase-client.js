@@ -2154,7 +2154,18 @@ var AdminAPI = {
   getKomponenRaport: async function(id) { return GuruAPI.getKomponenRaport(id); },
   saveKomponenRaport: async function(d) {
     await _sb.from('komponen_raport').update({status:'nonaktif'}).eq('id_periode',d.id_periode);
-    var {data,error}=await _sb.from('komponen_raport').insert(d.komponen).select();
+    var rows = d.komponen.map(function(k, idx) {
+      return {
+        id_komponen   : k.id_komponen || _genId('KMP'),
+        id_periode    : d.id_periode,
+        nama_komponen : k.nama_komponen,
+        bobot         : Number(k.bobot),
+        tipe          : k.tipe || 'otomatis',
+        urutan        : idx,
+        status        : 'aktif'
+      };
+    });
+    var {data,error}=await _sb.from('komponen_raport').upsert(rows, { onConflict: 'id_komponen' }).select();
     _check(error,'saveKomponenRaport'); return {status:'ok',data};
   },
   getNilaiManual: async function(id) { return GuruAPI.getNilaiManual(id); },

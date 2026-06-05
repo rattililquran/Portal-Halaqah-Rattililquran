@@ -3213,6 +3213,7 @@ async function saveKomponen() {
   try {
     await window.HQ.AdminAPI.saveKomponenRaport({ id_periode, komponen: komponenRows });
     toast('Komponen raport disimpan!','ok');
+    await loadKomponen();
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
 }
