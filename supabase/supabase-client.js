@@ -2251,24 +2251,34 @@ var AdminAPI = {
   },
   getAllUsers: async function(p) {
     var q = _sb.from('users').select('*').order('nama_lengkap');
-    if (p && p.role) q = q.eq('role',p.role);
+    // Accept both a plain string role (e.g. 'guru') or an object { role: 'guru' }
+    var roleFilter = typeof p === 'string' ? p : (p && p.role ? p.role : null);
+    if (roleFilter) q = q.eq('role', roleFilter);
     var {data,error} = await q; _check(error,'getAllUsers'); return {status:'ok',data};
   },
   createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
   updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select().single(); _check(error,'updateUser'); return {status:'ok',data}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
   getAllHalaqah: async function() {
-    var {data,error}=await _sb.from('halaqah').select('*').order('nama_halaqah');
-    _check(error,'getAllHalaqah');
-    if (data) {
-      data = data.map(function(h) {
+    // Fetch halaqah + ketua kelas (anggota where is_ketua=TRUE) in parallel
+    var [{data: hqData, error: hqErr}, {data: ketuaData}] = await Promise.all([
+      _sb.from('halaqah').select('*').order('nama_halaqah'),
+      _sb.from('anggota').select('id_halaqah, nama_murid').eq('is_ketua', true).eq('status', 'aktif'),
+    ]);
+    _check(hqErr,'getAllHalaqah');
+    // Build ketua map
+    var ketuaMap = {};
+    (ketuaData || []).forEach(function(a) { ketuaMap[a.id_halaqah] = a.nama_murid; });
+    if (hqData) {
+      hqData = hqData.map(function(h) {
         return Object.assign({}, h, {
           jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
-          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
+          nama_ketua: ketuaMap[h.id_halaqah] || null,
         });
       });
     }
-    return {status:'ok',data};
+    return {status:'ok',data:hqData};
   },
   createHalaqah: async function(d) {
     var {data,error}=await _sb.from('halaqah').insert(d).select().single();

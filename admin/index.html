@@ -1070,18 +1070,31 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           <button class="tab-btn" onclick="switchUserTab('murid')">🧒 Murid</button>
           <button class="tab-btn" onclick="switchUserTab('semua')">👥 Semua</button>
         </div>
+        <!-- Filter bar -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input type="search" id="userSearchInput" class="fc" placeholder="🔍 Cari nama, NIS, email, HP..." oninput="filterUsersTable()" style="flex:1;min-width:180px;max-width:320px">
+          <select class="fc" id="userStatusFilter" onchange="filterUsersTable()" style="max-width:160px">
+            <option value="">— Semua Status —</option>
+            <option value="aktif">✅ Aktif</option>
+            <option value="nonaktif">❌ Non-aktif</option>
+          </select>
+          <select class="fc" id="userHalaqahFilter" onchange="filterUsersTable()" style="max-width:200px;display:none">
+            <option value="">— Semua Halaqah —</option>
+          </select>
+          <span id="userCountBadge" style="font-size:12px;color:var(--text-3);white-space:nowrap;margin-left:4px"></span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+            <button class="btn btn-primary btn-sm" onclick="openModalUser()">+ User Baru</button>
+            <button class="btn btn-ghost btn-sm" onclick="openBulkImport()">📥 Import CSV</button>
+          </div>
+        </div>
         <div class="card">
-          <div class="card-head">
+          <div class="card-head" style="display:none">
             <div class="card-title" id="userTabTitle">Daftar Guru</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm" onclick="openModalUser()">+ User Baru</button>
-              <button class="btn btn-ghost btn-sm" onclick="openBulkImport()">📥 Import CSV</button>
-            </div>
           </div>
           <div class="tbl-wrap">
             <table>
-              <thead><tr><th>NIS</th><th>Nama</th><th>Role</th><th>No HP</th><th>Email</th><th>Status</th><th>Aksi</th></tr></thead>
-              <tbody id="usersTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              <thead><tr><th>NIS</th><th>Nama</th><th>Role</th><th id="usrHalaqahTh" style="display:none">Halaqah / Ketua</th><th>No HP</th><th>Email</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="usersTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1091,15 +1104,30 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
       <div class="page" id="page-halaqah">
         <div class="section-title">Manajemen Halaqah</div>
         <div class="section-sub">Buat dan kelola kelas halaqah.</div>
+        <!-- Filter bar -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input type="search" id="halaqahSearchInput" class="fc" placeholder="🔍 Cari nama halaqah, guru, ketua..." oninput="filterHalaqahTable()" style="flex:1;min-width:180px;max-width:300px">
+          <select class="fc" id="halaqahLevelFilter" onchange="filterHalaqahTable()" style="max-width:160px">
+            <option value="">— Semua Level —</option>
+            <option value="Level 1">Level 1</option>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+            <option value="Micro Teaching">Micro Teaching</option>
+          </select>
+          <select class="fc" id="halaqahStatusFilter" onchange="filterHalaqahTable()" style="max-width:160px">
+            <option value="">— Semua Status —</option>
+            <option value="aktif">✅ Aktif</option>
+            <option value="nonaktif">❌ Non-aktif</option>
+          </select>
+          <span id="halaqahCountBadge" style="font-size:12px;color:var(--text-3);white-space:nowrap"></span>
+          <button class="btn btn-primary btn-sm" onclick="openModalHalaqah()" style="margin-left:auto">+ Halaqah Baru</button>
+        </div>
         <div class="card">
-          <div class="card-head">
-            <div class="card-title">📚 Daftar Halaqah</div>
-            <button class="btn btn-primary btn-sm" onclick="openModalHalaqah()">+ Halaqah Baru</button>
-          </div>
           <div class="tbl-wrap">
             <table>
-              <thead><tr><th>Nama Halaqah</th><th>Guru</th><th>Level</th><th>Jadwal</th><th>Lokasi</th><th>Murid</th><th>Status</th><th>Aksi</th></tr></thead>
-              <tbody id="halaqahTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              <thead><tr><th>Nama Halaqah</th><th>Guru</th><th>Level</th><th>👑 Ketua</th><th>Jadwal</th><th>Lokasi</th><th>Murid</th><th>Status</th><th>Aksi</th></tr></thead>
+              <tbody id="halaqahTbl"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -2819,11 +2847,37 @@ function switchUserTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['guru','murid','semua'][i]===tab));
   const titles = { guru:'Daftar Guru', murid:'Daftar Murid', semua:'Semua User' };
   document.getElementById('userTabTitle').textContent = titles[tab];
+
+  // Show/hide Halaqah column + filter for Guru tab
+  var showHalaqahCol = tab === 'guru';
+  var halaqahFilterEl = document.getElementById('userHalaqahFilter');
+  var halaqahTh = document.getElementById('usrHalaqahTh');
+  if (halaqahFilterEl) {
+    halaqahFilterEl.style.display = showHalaqahCol ? '' : 'none';
+    if (showHalaqahCol) {
+      halaqahFilterEl.innerHTML = '<option value="">— Semua Halaqah —</option>'
+        + (allHalaqah || []).filter(function(h){ return h.id_guru; })
+          .map(function(h){ return '<option value="' + esc(h.id_guru) + '">' + esc(h.nama_halaqah) + '</option>'; }).join('');
+    }
+  }
+  if (halaqahTh) halaqahTh.style.display = showHalaqahCol ? '' : 'none';
+
+  // Reset filters on tab switch
+  var searchEl = document.getElementById('userSearchInput');
+  if (searchEl) searchEl.value = '';
+  var statusEl = document.getElementById('userStatusFilter');
+  if (statusEl) statusEl.value = '';
+  if (halaqahFilterEl) halaqahFilterEl.value = '';
+
   loadUsers(tab);
 }
 
 async function loadUsers(role) {
-  // Skeleton sementara fetch
+  // Use cached allUsers if available
+  if (allUsers && allUsers.length > 0) {
+    renderUsersTable(role);
+    return;
+  }
   var tb = document.getElementById('usersTbl');
   if (tb) tb.innerHTML = [1,2,3,4].map(function(){
     return '<tr><td><span class="skel skel-text short"></span></td>'
@@ -2834,24 +2888,84 @@ async function loadUsers(role) {
   }).join('');
   showLoad('Bismillah, memuat data pengguna...');
   try {
-    const r = await window.HQ.AdminAPI.getAllUsers(role === 'semua' ? '' : role);
-    const rows = r.data || [];
-    const tbody = document.getElementById('usersTbl');
-    tbody.innerHTML = rows.map(u => `<tr>
-      <td><code style="font-size:11.5px">${esc(u.id_user)}</code></td>
-      <td><strong>${esc(u.nama_lengkap)}</strong></td>
-      <td>${roleBadge(u.role)}</td>
-      <td>${esc(u.no_hp||'–')}</td>
-      <td>${esc(u.email||'–')}</td>
-      <td>${u.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
-      <td style="display:flex;gap:5px">
-        <button class="btn btn-ghost btn-sm" onclick="editUser('${esc(u.id_user)}')">✏️</button>
-        ${u.id_user!=='USR-ADMIN-001'?`<button class="btn btn-red btn-sm" onclick="deleteUser('${esc(u.id_user)}','${esc(u.nama_lengkap)}')">🗑</button>`:''}
-      </td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data</td></tr>';
+    const r = await window.HQ.AdminAPI.getAllUsers();
+    allUsers = r.data || [];
+    renderUsersTable(role);
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
+
+function renderUsersTable(role) {
+  var q = (document.getElementById('userSearchInput') ? document.getElementById('userSearchInput').value : '').trim().toLowerCase();
+  var statusF = document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '';
+  var halaqahF = document.getElementById('userHalaqahFilter') ? document.getElementById('userHalaqahFilter').value : '';
+
+  // Build map: id_guru -> list of halaqah
+  var guruMap = {};
+  (allHalaqah || []).forEach(function(h) {
+    if (!h.id_guru) return;
+    if (!guruMap[h.id_guru]) guruMap[h.id_guru] = [];
+    guruMap[h.id_guru].push(h);
+  });
+
+  var filtered = (allUsers || []).filter(function(u) {
+    if (role === 'guru'  && u.role !== 'guru')  return false;
+    if (role === 'murid' && u.role !== 'murid') return false;
+    if (statusF && u.status !== statusF) return false;
+    if (halaqahF && role === 'guru' && u.id_user !== halaqahF) return false;
+    if (q) {
+      var hay = [u.id_user||'', u.nama_lengkap||'', u.no_hp||'', u.email||''].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  var showHalaqahCol = role === 'guru';
+  var colCount = showHalaqahCol ? 8 : 7;
+  var tbody = document.getElementById('usersTbl');
+
+  tbody.innerHTML = filtered.map(function(u) {
+    var hqList = guruMap[u.id_user] || [];
+    var hqCell = '';
+    if (showHalaqahCol) {
+      if (!hqList.length) {
+        hqCell = '<td style="color:var(--text-3);font-size:12px">—</td>';
+      } else {
+        var items = hqList.map(function(h) {
+          var kl = h.nama_ketua
+            ? '👑 <strong>' + esc(h.nama_ketua) + '</strong>'
+            : '<span style="color:var(--text-3);font-size:11px">Belum ada ketua</span>';
+          return '<div style="margin-bottom:4px"><span class="badge b-blue" style="font-size:10px">'
+            + esc(h.nama_halaqah) + '</span> <small>' + kl + '</small></div>';
+        }).join('');
+        hqCell = '<td>' + items + '</td>';
+      }
+    }
+    var btnDel = (u.id_user !== 'USR-ADMIN-001')
+      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + esc(u.nama_lengkap) + '\')">🗑</button>'
+      : '';
+    return '<tr>'
+      + '<td><code style="font-size:11.5px">' + esc(u.id_user) + '</code></td>'
+      + '<td><strong>' + esc(u.nama_lengkap) + '</strong></td>'
+      + '<td>' + roleBadge(u.role) + '</td>'
+      + (showHalaqahCol ? hqCell : '')
+      + '<td>' + esc(u.no_hp||'–') + '</td>'
+      + '<td>' + esc(u.email||'–') + '</td>'
+      + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
+      + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">✏️</button>' + btnDel + '</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
+
+  var total = (allUsers||[]).filter(function(u){
+    if (role==='guru' && u.role!=='guru') return false;
+    if (role==='murid' && u.role!=='murid') return false;
+    return true;
+  }).length;
+  var badge = document.getElementById('userCountBadge');
+  if (badge) badge.textContent = filtered.length + ' dari ' + total + ' pengguna';
+}
+
+function filterUsersTable() { renderUsersTable(currentUserTab); }
 
 function openModalUser() {
   document.getElementById('modalUserTitle').textContent = '👤 User Baru';
@@ -3201,23 +3315,51 @@ async function loadHalaqah() {
   try {
     const r = await window.HQ.AdminAPI.getAllHalaqah();
     allHalaqah = r.data || [];
-    const tbody = document.getElementById('halaqahTbl');
-    tbody.innerHTML = allHalaqah.map(h => `<tr>
-      <td><strong>${esc(h.nama_halaqah)}</strong></td>
-      <td>${esc(h.nama_guru)}</td>
-      <td><span class="badge b-blue">${esc(h.level)}</span></td>
-      <td>${esc(h.jadwal_hari||'–')}<br><small style="color:var(--text-3)">${esc(h.jam_mulai||'')}${h.jam_selesai?'–'+esc(h.jam_selesai):''}</small></td>
-      <td>${esc(h.lokasi||'–')}</td>
-      <td>${h.total_murid||0}</td>
-      <td>${h.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
-      <td style="display:flex;gap:5px">
-        <button class="btn btn-ghost btn-sm" onclick="editHalaqah('${esc(h.id_halaqah)}')">✏️</button>
-        <button class="btn btn-red btn-sm" onclick="hapusHalaqah('${esc(h.id_halaqah)}','${esc(h.nama_halaqah)}')">🗑</button>
-      </td>
-    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada halaqah</td></tr>';
+    renderHalaqahTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
+
+function renderHalaqahTable() {
+  var q = (document.getElementById('halaqahSearchInput') ? document.getElementById('halaqahSearchInput').value : '').trim().toLowerCase();
+  var levelF  = document.getElementById('halaqahLevelFilter')  ? document.getElementById('halaqahLevelFilter').value  : '';
+  var statusF = document.getElementById('halaqahStatusFilter') ? document.getElementById('halaqahStatusFilter').value : '';
+
+  var rows = (allHalaqah || []).filter(function(h) {
+    if (levelF  && h.level  !== levelF)  return false;
+    if (statusF && h.status !== statusF) return false;
+    if (q) {
+      var hay = [h.nama_halaqah||'', h.nama_guru||'', h.nama_ketua||'', h.lokasi||'', h.jadwal_hari||''].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  var tbody = document.getElementById('halaqahTbl');
+  tbody.innerHTML = rows.map(function(h) {
+    var ketuaCell = h.nama_ketua
+      ? '<span style="font-weight:700;color:var(--amber-txt)">👑 ' + esc(h.nama_ketua) + '</span>'
+      : '<span style="color:var(--text-3);font-size:11px">Belum diatur</span>';
+    return '<tr>'
+      + '<td><strong>' + esc(h.nama_halaqah) + '</strong></td>'
+      + '<td>' + esc(h.nama_guru) + '</td>'
+      + '<td><span class="badge b-blue">' + esc(h.level) + '</span></td>'
+      + '<td>' + ketuaCell + '</td>'
+      + '<td>' + esc(h.jadwal_hari||'–') + '<br><small style="color:var(--text-3)">' + esc(h.jam_mulai||'') + (h.jam_selesai ? '–' + esc(h.jam_selesai) : '') + '</small></td>'
+      + '<td>' + esc(h.lokasi||'–') + '</td>'
+      + '<td>' + (h.total_murid||0) + '</td>'
+      + '<td>' + (h.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
+      + '<td style="display:flex;gap:5px">'
+      + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">✏️</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + esc(h.nama_halaqah) + '\')">🗑</button>'
+      + '</td></tr>';
+  }).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada halaqah ditemukan</td></tr>';
+
+  var badge = document.getElementById('halaqahCountBadge');
+  if (badge) badge.textContent = rows.length + ' dari ' + (allHalaqah||[]).length + ' halaqah';
+}
+
+function filterHalaqahTable() { renderHalaqahTable(); }
 
 function openModalHalaqah() {
   document.getElementById('modalHalaqahTitle').textContent = '📚 Halaqah Baru';
