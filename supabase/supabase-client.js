@@ -1401,7 +1401,8 @@ var GuruAPI = {
     var q = _sb.from('setoran_hafalan')
       .select('*')
       .eq('id_halaqah', id_halaqah)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(500); // BUG-14 fix: cegah timeout untuk dataset besar
     if (id_murid)    q = q.eq('id_murid', id_murid);
     if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
     if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
@@ -1968,8 +1969,8 @@ var MuridAPI = {
         bulan, tahun: Number(d.tahun),
         jenis: d.jenis || 'SPP Pribadi',
         status: 'menunggu',
-        // BUG-M5 fix: dibagi bulanList.length (total yg dipilih), bukan bulanProses.length
-        nominal: bulanList.length > 1 ? Math.round(Number(d.nominal||0) / bulanList.length) : Number(d.nominal||0),
+        // BUG-07 fix: dibagi bulanProses.length (bulan yg benar-benar diproses), bukan bulanList.length
+        nominal: bulanProses.length > 1 ? Math.round(Number(d.nominal||0) / bulanProses.length) : Number(d.nominal||0),
         metode_transfer: d.metode_transfer || '',
         bukti_url: d.bukti_url || '',
         catatan: d.catatan || '',
@@ -2154,8 +2155,14 @@ var MuridAPI = {
   },
 
   // ── Tahfidz / Setoran Hafalan (Level Qiyam) ──────────────────────────
-  // Riwayat setoran milik murid yang login (hanya bisa diakses jika Level Qiyam via RLS)
+  // Riwayat setoran milik murid yang login (hanya Level Qiyam via RLS)
   getSetoranHafalan: async function(limit, offset) {
+    // BUG-06 fix: client-side guard — cek level murid sebelum fetch
+    var { data: angData } = await _sb.from('anggota')
+      .select('level').eq('id_murid', _uid()).eq('status', 'aktif').maybeSingle();
+    if (!angData || angData.level !== 'Level Qiyam') {
+      return { status: 'ok', data: [], total: 0, has_more: false };
+    }
     var lim = limit || 10;
     var { data, error, count } = await _sb.from('setoran_hafalan')
       .select('*', { count: 'exact' })

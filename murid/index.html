@@ -1660,7 +1660,7 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 }
 
 /* ── NILAI BADGE ── */
-.nilai-Mumtaz{background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(245,158,11,0.2)}
+.nilai-Mumtaz{background:#dcfce7;color:#166534;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(16,185,129,0.2)}
 .nilai-Jayyid{background:var(--blue-l);color:#1d4ed8;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(59,130,246,0.2)}
 .nilai-JJ{background:var(--green-l);color:#047857;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(16,185,129,0.2)}
 .nilai-Maqbul{background:var(--red-l);color:#b91c1c;padding:3px 10px;border-radius:8px;font-weight:800;font-size:12px;border:1px solid rgba(239,68,68,0.2)}
@@ -5403,6 +5403,8 @@ function goPage(name, swipeDir) {
   }
   else if (name === 'password') { /* static page, no load needed */ }
   else if (name === 'panduan') { pdInitKetua(); }
+  // BUG-10 fix: reset _sppLoaded agar data SPP selalu segar saat balik ke beranda
+  if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
 }
 
 // ══════════════════════════════════════════
@@ -7791,7 +7793,10 @@ function filterHafalan(jenis) {
   document.querySelectorAll('.hflt-btn').forEach(function(b){
     b.classList.toggle('active', b.getAttribute('data-f') === jenis);
   });
-  _renderHafalanList();
+  // BUG-09 fix: reset dan re-fetch dari server agar filter tidak terlewat data yg belum di-load
+  _hafalanOffset   = 0;
+  _hafalanAllData  = [];
+  _loadSetoranHafalan();
 }
 
 function getNilaiBadgeInfo(nilai) {
@@ -7829,8 +7834,9 @@ function _renderHafalanList() {
     : _hafalanAllData;
   if (!list.length) { el.innerHTML = ''; return; }
 
-  var jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', "Tasmi'": '🎤', Sabqi: '⚡', Tahsin: '✨' };
-  var jenisClass = { Ziyadah: 'ziyadah', Murajaah: 'murajaah', "Tasmi'": 'tasmi', Sabqi: 'sabqi', Tahsin: 'tahsin' };
+  // BUG-03 fix: hapus entry legacy Tasmi' dan Sabqi
+  var jenisIcon  = { Ziyadah: '📖', Murajaah: '🔄', Tahsin: '✨' };
+  var jenisClass = { Ziyadah: 'ziyadah', Murajaah: 'murajaah', Tahsin: 'tahsin' };
 
   el.innerHTML = list.map(function(r) {
     var badgeInfo = getNilaiBadgeInfo(r.nilai);
@@ -9356,7 +9362,7 @@ function showQiyamActionModal(title, message, btnText, btnColor) {
 }
 
 function openQiyamAction(e, type, targetStr) {
-  if (e) e.stopPropagation(); // Stop click from bubbling up to progress breakdown card
+  if (e && e.stopPropagation) e.stopPropagation(); // Stop click from bubbling up to progress breakdown card
   if (type === 'ajukan') {
     var msg = "Ajukan target setoran berikutnya kepada Ustadz Anda. Ustadz akan meninjau dan menetapkan target di portal guru.";
     showQiyamActionModal("Ajukan Target Baru", msg, "Kirim Pengajuan", "linear-gradient(135deg, var(--amber), #fbbf24)");
@@ -10100,15 +10106,16 @@ function renderSPP(data) {
   if (!card || !grid) return;
   card.style.display = 'block';
 
+  // BUG-01 fix: bulanBerjalan dideklarasikan di sini (1-indexed, Jun = 6)
+  var bulanBerjalan = new Date().getMonth() + 1;
+
   var bulanGrid    = data.bulan_grid || [];
   var lunasBulan   = data.lunas_bulan || [];
   var menungguBulan= data.menunggu_bulan || [];
-  // Hitung lunas murni dari grid (status === 'lunas'), bukan dari lunas_bulan
-  // karena lunas_bulan bisa mencakup 'menunggu' juga
+  // Hitung lunas dari grid
   var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-  // SPP dihitung 5 bulan per level — hitung tunggakan murni di sini (server pakai logika 12-bulan)
-  var totalBulanLevel = 5;
-  var tunggakan    = Math.max(0, totalBulanLevel - lunasCount);
+  // BUG-04 fix: gunakan tunggakan dari server, jangan override di client
+  var tunggakan    = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, 5 - lunasCount);
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25

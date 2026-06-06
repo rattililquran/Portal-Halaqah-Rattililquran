@@ -9746,6 +9746,9 @@ async function loadRiwayatHafalan(more) {
           + '<div style="font-size:10px;color:#9ca3af">' + _fmtHafalanDateGuru(r.created_at) + '</div>'
           + catHtml + tgtHtml
         + '</div>'
+        + '<button onclick="deleteSetoranHafalanGuru(\'' + r.id_setoran + '\', \'' + esc((r.nama_murid||'').replace(/'/g, "\\'")) + '\', \'' + esc((r.surat||'').replace(/'/g, "\\'")) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:4px 8px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background 0.2s;margin-top:2px" title="Hapus Setoran" onmouseover="this.style.background=\'#fee2e2\'" onmouseout="this.style.background=\'none\'">'
+          + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
+        + '</button>'
       + '</div>';
     }).join('');
     if (emptyEl) emptyEl.style.display = (!_hafalanGuruOffset && !more) ? 'block' : 'none';
@@ -9764,6 +9767,34 @@ function _fmtHafalanDateGuru(iso) {
   if (!iso) return '-';
   try { return new Date(iso).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   catch(e) { return iso; }
+}
+
+async function deleteSetoranHafalanGuru(id_setoran, nama_murid, surat) {
+  if (!confirm('Apakah Anda yakin ingin menghapus setoran hafalan ' + (surat ? '"' + surat + '" ' : '') + 'milik ' + (nama_murid || 'murid') + '?\n\nTindakan ini akan menghapus data setoran secara permanen dan memperbarui data raport.')) {
+    return;
+  }
+  try {
+    showLoad('Bismillah, menghapus setoran...');
+    var res = await window.HQ.GuruAPI.deleteSetoranHafalan(id_setoran);
+    if (res && res.status === 'ok') {
+      showToast('Setoran hafalan berhasil dihapus.', 'ok');
+      // Reload riwayat
+      _hafalanGuruOffset = 0;
+      loadRiwayatHafalan();
+      // Reset target/preview jika murid yang bersangkutan terpilih
+      var selMurid = document.getElementById('hafalanMuridSel').value;
+      var selHalaqah = document.getElementById('hafalanGuruHalaqahSel').value;
+      if (selHalaqah) {
+        loadTargetHafalanGuru(selHalaqah);
+      }
+    } else {
+      throw new Error((res && res.message) || 'Gagal menghapus');
+    }
+  } catch(e) {
+    showToast('Gagal menghapus: ' + (e.message || e), 'error');
+  } finally {
+    hideLoad();
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
