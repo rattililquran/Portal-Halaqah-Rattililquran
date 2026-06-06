@@ -1110,6 +1110,7 @@ var GuruAPI = {
     var { data: anggota, error: errAnggota } = await _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', d.id_halaqah).eq('status', 'aktif');
     _check(errAnggota, 'generateRaportHalaqah:anggota');
     if (!anggota || !anggota.length) return { status: 'error', message: 'Tidak ada murid aktif di halaqah ini.' };
+    var ids = (anggota || []).map(function(a) { return a.id_murid; });
     var { data: komponen, error: errKomp } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
     _check(errKomp, 'generateRaportHalaqah:komponen');
     if (!komponen || !komponen.length) return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
@@ -1127,7 +1128,7 @@ var GuruAPI = {
     var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
       _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi)').eq('id_halaqah', d.id_halaqah),
-      _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah),
+      _sb.from('at_tibyan_log').select('id_murid, status_hadir').in('id_murid', ids),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
     ]);

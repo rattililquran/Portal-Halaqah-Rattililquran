@@ -5775,17 +5775,20 @@ async function loadDashboard() {
       var slowConn = conn && (conn.effectiveType === '2g' || conn.saveData);
       if (slowConn) return; // Hemat data di koneksi lambat
       if (!_muridTabLoaded['riwayat']) {
-        _muridTabLoaded['riwayat'] = true;
         _riwayatOffset = 8;
-        loadRiwayat().catch(function() { _muridTabLoaded['riwayat'] = false; });
+        loadRiwayat()
+          .then(function() { _muridTabLoaded['riwayat'] = true; })
+          .catch(function() { _muridTabLoaded['riwayat'] = false; });
       }
       if (!_muridTabLoaded['pr']) {
-        _muridTabLoaded['pr'] = true;
-        loadPR().catch(function() { _muridTabLoaded['pr'] = false; });
+        loadPR()
+          .then(function() { _muridTabLoaded['pr'] = true; })
+          .catch(function() { _muridTabLoaded['pr'] = false; });
       }
       if (!_muridTabLoaded['info']) {
-        _muridTabLoaded['info'] = true;
-        loadMateri().catch(function() { _muridTabLoaded['info'] = false; });
+        loadMateri()
+          .then(function() { _muridTabLoaded['info'] = true; })
+          .catch(function() { _muridTabLoaded['info'] = false; });
       }
     }, 2500);
   }
