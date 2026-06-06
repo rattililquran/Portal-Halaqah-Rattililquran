@@ -10033,20 +10033,28 @@ async function downloadPDFResmi() {
     y = 71;
 
     // ── Basmalah & Hamdalah (Arabic center aligned) ──
-    var basmalahObj = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 48, true);
+    var basmalahObj = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 48, false);
     var basmalahW = 85;
     var basmalahH = (basmalahObj.height * basmalahW) / basmalahObj.width;
     doc.addImage(basmalahObj.dataUrl, 'PNG', (W - basmalahW) / 2, y, basmalahW, basmalahH);
     y += basmalahH + 1.5;
 
-    var hamdalahObj = renderArabicToImage("الحمدُ للَّهِ الذي بنعmtِهِ تَتِمُّ الصَّالحاتُ", 34, false);
-    // Note: fixing user typo in query 'bncmt' -> 'بنعمتِهِ'
-    var realHamdalah = "الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ";
-    var hamdalahObjReal = renderArabicToImage(realHamdalah, 34, false);
+    var realHamdalah = "الحمدُ للَّهِ الذي بنعmtِهِ تَتِمُّ الصَّالحاتُ";
+    var realHamdalahCorrected = "الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ";
+    var hamdalahObjReal = renderArabicToImage(realHamdalahCorrected, 34, false);
     var hamdalahW = 75;
     var hamdalahH = (hamdalahObjReal.height * hamdalahW) / hamdalahObjReal.width;
     doc.addImage(hamdalahObjReal.dataUrl, 'PNG', (W - hamdalahW) / 2, y, hamdalahW, hamdalahH);
     y += hamdalahH + 6;
+
+    // ── Indonesian Foreword Message (Centered, bold/tegas) ──
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.2);
+    var introText = "Alhamdulillaah, atas taufiq dari Allah, kita bisa mencapai pencapaian ini. Jadikan ini sebagai bentuk syukur kita sekaligus motivasi kita untuk menjadi pribadi yang lebih baik lagi kedepannya. Berikut kami lampirkan hasil perjuangan kita selama satu level ini. Semoga Allah terima. Baarakallahu fiikum";
+    var introLines = doc.splitTextToSize(introText, W - mar * 2 - 4);
+    doc.text(introLines, W / 2, y, { align: 'center' });
+    y += introLines.length * 4.2 + 6;
 
     // ── Nilai akhir & predikat ──
     var nilaiNum = Number(rp.nilai_akhir||0);
