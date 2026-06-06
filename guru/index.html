@@ -2766,25 +2766,9 @@ html.theme-dark .chip-koreksi.selected {
               </select>
             </div>
 
-            <!-- Row 2: Juz(1) | Surat(4) | Halaman(1) — kolom kiri & kanan sejajar dgn row 1 -->
-            <div class="hf-span-1">
-              <label class="hf-lbl">Juz</label>
-              <select class="fc" id="hafalanJuzSel">
-                <option value="">— Juz —</option>
-                <option value="1">Juz 1</option><option value="2">Juz 2</option><option value="3">Juz 3</option>
-                <option value="4">Juz 4</option><option value="5">Juz 5</option><option value="6">Juz 6</option>
-                <option value="7">Juz 7</option><option value="8">Juz 8</option><option value="9">Juz 9</option>
-                <option value="10">Juz 10</option><option value="11">Juz 11</option><option value="12">Juz 12</option>
-                <option value="13">Juz 13</option><option value="14">Juz 14</option><option value="15">Juz 15</option>
-                <option value="16">Juz 16</option><option value="17">Juz 17</option><option value="18">Juz 18</option>
-                <option value="19">Juz 19</option><option value="20">Juz 20</option><option value="21">Juz 21</option>
-                <option value="22">Juz 22</option><option value="23">Juz 23</option><option value="24">Juz 24</option>
-                <option value="25">Juz 25</option><option value="26">Juz 26</option><option value="27">Juz 27</option>
-                <option value="28">Juz 28</option><option value="29">Juz 29</option><option value="30">Juz 30</option>
-              </select>
-            </div>
-            <div class="hf-span-4">
-              <label class="hf-lbl">Nama Surat</label>
+            <!-- Row 2: Surat(5) | Halaman(1) -->
+            <div class="hf-span-5">
+              <label class="hf-lbl" id="hafalanSuratLabel">Nama Surat</label>
               <div style="position:relative">
                 <input type="text" class="fc" id="hafalanSuratInput" placeholder="— Ketik atau pilih surat —" autocomplete="off"
                   oninput="onHafalanSuratInput(this.value)"
@@ -2808,23 +2792,34 @@ html.theme-dark .chip-koreksi.selected {
               </div>
             </div>
 
-            <!-- Row 3: AyatDari(2) | Sampai(2) | Info(2) — 3 kolom sama lebar -->
+            <!-- Row 3: AyatDari(2) | Sampai(2) | Juz(2) -->
             <div class="hf-span-2">
               <label class="hf-lbl">Ayat Dari</label>
               <input type="number" class="fc" id="hafalanAyatDari" min="1" placeholder="Ayat mulai"
-                oninput="clampHafalanAyat(this)">
+                oninput="clampHafalanAyat(this); updateAutoJuz();">
             </div>
             <div class="hf-span-2">
               <label class="hf-lbl">Sampai Ayat</label>
               <input type="number" class="fc" id="hafalanAyatSampai" min="1" placeholder="Ayat selesai"
-                oninput="clampHafalanAyat(this)">
+                oninput="clampHafalanAyat(this); updateAutoJuz();">
             </div>
             <div class="hf-span-2">
-              <label class="hf-lbl">Total Ayat Surat</label>
-              <div id="hafalanAyatInfo" style="height:42px;border:1.5px solid #e5e7eb;border-radius:var(--r-sm,8px);background:#f9fafb;display:flex;align-items:center;padding:0 12px;font-size:13px;color:#6b7280">
-                <span id="hafalanAyatInfoText">— pilih surat —</span>
-              </div>
+              <label class="hf-lbl">Juz</label>
+              <select class="fc" id="hafalanJuzSel">
+                <option value="">— Pilih Juz —</option>
+                <option value="1">Juz 1</option><option value="2">Juz 2</option><option value="3">Juz 3</option>
+                <option value="4">Juz 4</option><option value="5">Juz 5</option><option value="6">Juz 6</option>
+                <option value="7">Juz 7</option><option value="8">Juz 8</option><option value="9">Juz 9</option>
+                <option value="10">Juz 10</option><option value="11">Juz 11</option><option value="12">Juz 12</option>
+                <option value="13">Juz 13</option><option value="14">Juz 14</option><option value="15">Juz 15</option>
+                <option value="16">Juz 16</option><option value="17">Juz 17</option><option value="18">Juz 18</option>
+                <option value="19">Juz 19</option><option value="20">Juz 20</option><option value="21">Juz 21</option>
+                <option value="22">Juz 22</option><option value="23">Juz 23</option><option value="24">Juz 24</option>
+                <option value="25">Juz 25</option><option value="26">Juz 26</option><option value="27">Juz 27</option>
+                <option value="28">Juz 28</option><option value="29">Juz 29</option><option value="30">Juz 30</option>
+              </select>
             </div>
+          </div>
           </div>
 
           <!-- Penilaian Bacaan -->
@@ -9307,6 +9302,144 @@ async function onHafalanJenisChange() {
   }
 }
 
+// ── HELPER INTERVALS & JUZ ──────────────────────────────────────────────────
+function mergeIntervals(intervals) {
+  if (!intervals || !intervals.length) return [];
+  var sorted = intervals.slice().sort(function(a, b) {
+    return a.ayat_dari - b.ayat_dari;
+  });
+  var merged = [];
+  var current = { ayat_dari: parseInt(sorted[0].ayat_dari), ayat_sampai: parseInt(sorted[0].ayat_sampai) };
+  for (var i = 1; i < sorted.length; i++) {
+    var next = sorted[i];
+    var nD = parseInt(next.ayat_dari);
+    var nS = parseInt(next.ayat_sampai);
+    if (nD <= current.ayat_sampai + 1) {
+      current.ayat_sampai = Math.max(current.ayat_sampai, nS);
+    } else {
+      merged.push(current);
+      current = { ayat_dari: nD, ayat_sampai: nS };
+    }
+  }
+  merged.push(current);
+  return merged;
+}
+
+function getJuzFromSuratAndAyat(suratNo, ayat) {
+  var a = parseInt(ayat);
+  if (isNaN(a)) return null;
+  switch (suratNo) {
+    case 2: // Al-Baqarah
+      if (a <= 141) return 1;
+      if (a <= 252) return 2;
+      return 3;
+    case 3: // Ali Imran
+      if (a <= 92) return 3;
+      return 4;
+    case 4: // An-Nisa
+      if (a <= 23) return 4;
+      if (a <= 147) return 5;
+      return 6;
+    case 5: // Al-Maidah
+      if (a <= 81) return 6;
+      return 7;
+    case 6: // Al-An'am
+      if (a <= 110) return 7;
+      return 8;
+    case 7: // Al-A'raf
+      if (a <= 87) return 8;
+      return 9;
+    case 8: // Al-Anfal
+      if (a <= 40) return 9;
+      return 10;
+    case 9: // At-Taubah
+      if (a <= 92) return 10;
+      return 11;
+    case 11: // Hud
+      if (a <= 5) return 11;
+      return 12;
+    case 12: // Yusuf
+      if (a <= 52) return 12;
+      return 13;
+    case 18: // Al-Kahf
+      if (a <= 74) return 15;
+      return 16;
+    case 25: // Al-Furqan
+      if (a <= 20) return 18;
+      return 19;
+    case 27: // An-Naml
+      if (a <= 55) return 19;
+      return 20;
+    case 29: // Al-Ankabut
+      if (a <= 45) return 20;
+      return 21;
+    case 33: // Al-Ahzab
+      if (a <= 30) return 21;
+      return 22;
+    case 36: // Ya Sin
+      if (a <= 27) return 22;
+      return 23;
+    case 39: // Az-Zumar
+      if (a <= 31) return 23;
+      return 24;
+    case 41: // Fussilat
+      if (a <= 46) return 24;
+      return 25;
+    case 51: // Az-Zariyat
+      if (a <= 30) return 26;
+      return 27;
+    default:
+      return null;
+  }
+}
+
+function updateAutoJuz() {
+  var suratVal = document.getElementById('hafalanSuratValue').value;
+  if (!suratVal) return;
+  var meta = _getSuratData().find(function(sd) {
+    return sd.latin.toLowerCase().replace(/['-]/g,'') === suratVal.toLowerCase().replace(/['-]/g,'');
+  });
+  if (!meta) return;
+  if (meta.juz && meta.juz.length === 1) {
+    document.getElementById('hafalanJuzSel').value = meta.juz[0];
+  } else {
+    var aD = parseInt(document.getElementById('hafalanAyatDari').value);
+    if (!isNaN(aD)) {
+      var computedJuz = getJuzFromSuratAndAyat(meta.no, aD);
+      if (computedJuz) {
+        document.getElementById('hafalanJuzSel').value = computedJuz;
+      }
+    }
+  }
+}
+
+function getZiyadahIntervalsForSurat(surat) {
+  var raw = _hafalanGuruZiyadah.filter(function(z) {
+    return z.surat.toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
+  });
+  return mergeIntervals(raw);
+}
+
+function checkZiyadahOverlap(intervals, aD, aS) {
+  for (var i = 0; i < intervals.length; i++) {
+    var inv = intervals[i];
+    if (aD <= inv.ayat_sampai && aS >= inv.ayat_dari) {
+      return inv;
+    }
+  }
+  return null;
+}
+
+function checkMurajaahContainment(intervals, aD, aS) {
+  for (var i = 0; i < intervals.length; i++) {
+    var inv = intervals[i];
+    if (aD >= inv.ayat_dari && aS <= inv.ayat_sampai) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // ── Surat autocomplete (ringkas, tanpa library) ──────────────────────────
 var _hfSuratData = null; // lazy-load dari SURAT_DATA_GURU
 
@@ -9387,55 +9520,79 @@ function onHafalanSuratInput(q) {
   var clear = document.getElementById('hafalanSuratClear');
   if (clear) clear.style.display = q ? 'inline' : 'none';
 
-  // Buat map Ziyadah per nama surat untuk lookup cepat
-  var ziyadahMap = {};
+  // Group Ziyadah by surah name
+  var ziyadahBySurat = {};
   _hafalanGuruZiyadah.forEach(function(z) {
-    ziyadahMap[z.surat.toLowerCase()] = z;
+    var key = z.surat.toLowerCase();
+    if (!ziyadahBySurat[key]) ziyadahBySurat[key] = [];
+    ziyadahBySurat[key].push({ ayat_dari: z.ayat_dari, ayat_sampai: z.ayat_sampai });
   });
+
+  // Merge intervals for each surah
+  var mergedZiyadahBySurat = {};
+  for (var key in ziyadahBySurat) {
+    mergedZiyadahBySurat[key] = mergeIntervals(ziyadahBySurat[key]);
+  }
 
   var list;
 
   if (jenis === 'Murajaah') {
-    // ── MURAJAAH: hanya tampilkan surat yang sudah di-Ziyadah ──────────
-    if (!_hafalanGuruZiyadah.length) {
+    // ── MURAJAAH: hanya tampilkan surat yang sudah pernah di-Ziyadah ──────────
+    var surahKeys = Object.keys(mergedZiyadahBySurat);
+    if (!surahKeys.length) {
       dd.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:#9ca3af;text-align:center">'
         + 'Belum ada data Ziyadah untuk murid ini</div>';
       dd.style.display = 'block';
       return;
     }
-    list = _hafalanGuruZiyadah.map(function(z) {
+    
+    list = surahKeys.map(function(key) {
       var meta = _getSuratData().find(function(s) {
-        return s.latin.toLowerCase().replace(/['-]/g,'') === z.surat.toLowerCase().replace(/['-]/g,'');
-      }) || {};
+        return s.latin.toLowerCase().replace(/['-]/g,'') === key.replace(/['-]/g,'');
+      });
+      var intervals = mergedZiyadahBySurat[key];
+      var latin = meta ? meta.latin : key;
       return {
-        latin: z.surat, no: meta.no || '', juz: meta.juz || [z.juz],
-        ayat_dari: z.ayat_dari, ayat_sampai: z.ayat_sampai,
+        latin: latin,
+        no: meta ? meta.no : '',
+        juz: meta ? meta.juz : [],
+        total_ayat: meta ? meta.ayat : null,
+        intervals: intervals,
         _mode: 'murajaah'
       };
-    }).filter(function(z) {
-      return !norm || z.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
+    }).filter(function(s) {
+      return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
     });
+    
+    // Urutkan berdasarkan no surat
+    list.sort(function(a, b) { return a.no - b.no; });
 
   } else {
     // ── ZIYADAH / TAHSIN: tampilkan semua surat ────────────────
-    list = _getSuratData().filter(function(s) {
-      if (!norm) return true;
-      return s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
-    }).map(function(s) {
-      var z = ziyadahMap[s.latin.toLowerCase()];
+    list = _getSuratData().map(function(s) {
+      var intervals = mergedZiyadahBySurat[s.latin.toLowerCase()] || [];
+      var isFullySet = false;
+      // Check if fully set (range covers 1 to s.ayat)
+      if (intervals.length === 1 && intervals[0].ayat_dari === 1 && intervals[0].ayat_sampai === s.ayat) {
+        isFullySet = true;
+      }
+      
       return Object.assign({}, s, {
-        _mode         : 'ziyadah',
-        _sudah_disetor: !!z,
-        _ayat_dari    : z ? z.ayat_dari   : null,
-        _ayat_sampai  : z ? z.ayat_sampai : null,
-        _next_ayat    : z ? z.ayat_sampai + 1 : null,
+        _mode: 'ziyadah',
+        _intervals: intervals,
+        _sudah_disetor: intervals.length > 0,
+        _is_fully_set: isFullySet
       });
+    }).filter(function(s) {
+      return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
     });
-    // Urutkan: belum disetor dulu, lalu sudah disetor di bawah
+
+    // Urutkan: belum selesai di atas, sudah selesai penuh diletakkan paling bawah
     list.sort(function(a, b) {
-      if (a._sudah_disetor === b._sudah_disetor) return a.no - b.no;
-      return a._sudah_disetor ? 1 : -1;
+      if (a._is_fully_set === b._is_fully_set) return a.no - b.no;
+      return a._is_fully_set ? 1 : -1;
     });
+
     if (!norm) list = list.slice(0, 25); // batasi tampilan awal
   }
 
@@ -9451,16 +9608,25 @@ function onHafalanSuratInput(q) {
     var noStyle  = 'width:26px;height:26px;border-radius:6px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
 
     if (s._mode === 'murajaah') {
-      // Murajaah: tampilkan badge ayat range dari Ziyadah
-      badge = '<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0">'
-            + '🔄 Ayat ' + s.ayat_dari + '–' + s.ayat_sampai + '</span>';
+      var rangeStr = s.intervals.map(function(inv) {
+        return inv.ayat_dari + '–' + inv.ayat_sampai;
+      }).join(', ');
+      badge = '<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis" title="' + esc(rangeStr) + '">'
+            + '🔄 ' + esc(rangeStr) + '</span>';
       noStyle += 'background:#e0f2fe;color:#0284c7;';
-    } else if (s._sudah_disetor) {
-      // Ziyadah: surat sudah pernah disetor — badge abu-abu + saran next ayat
-      badge = '<span style="background:#f0fdf4;color:#15803d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0">'
-            + '✓ s/d ayat ' + s._ayat_sampai + '</span>';
+    } else if (s._is_fully_set) {
+      badge = '<span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0">'
+            + '✓ Selesai (Penuh)</span>';
       noStyle += 'background:#dcfce7;color:#15803d;';
-      rowStyle += 'opacity:.85;';
+      rowStyle += 'opacity:.5; pointer-events:none;'; // disable click
+    } else if (s._sudah_disetor) {
+      var rangeStr = s._intervals.map(function(inv) {
+        return inv.ayat_dari + '–' + inv.ayat_sampai;
+      }).join(', ');
+      badge = '<span style="background:#fffbeb;color:#d97706;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis" title="' + esc(rangeStr) + '">'
+            + '✓ Parsial: ' + esc(rangeStr) + '</span>';
+      noStyle += 'background:#fef3c7;color:#d97706;';
+      rowStyle += 'opacity:.9;';
     } else {
       noStyle += 'background:#e0f2fe;color:#0284c7;';
     }
@@ -9540,7 +9706,8 @@ var _hafalanSelectedAyatMax = null;
 function selectHafalanSurat(latin, s) {
   document.getElementById('hafalanSuratInput').value = latin;
   document.getElementById('hafalanSuratValue').value  = latin;
-  document.getElementById('hafalanSuratClear').style.display = 'inline';
+  var cl = document.getElementById('hafalanSuratClear');
+  if (cl) cl.style.display = 'inline';
   document.getElementById('hafalanSuratDropdown').style.display = 'none';
   document.getElementById('hafalanMurajaahInfo').style.display = 'none';
 
@@ -9550,49 +9717,53 @@ function selectHafalanSurat(latin, s) {
   });
   _hafalanSelectedAyatMax = (meta && meta.ayat) ? meta.ayat : null;
 
-  // Tampilkan info total ayat
-  var infoEl = document.getElementById('hafalanAyatInfoText');
-  if (infoEl) {
-    infoEl.textContent = _hafalanSelectedAyatMax
-      ? latin + ' = ' + _hafalanSelectedAyatMax + ' ayat'
-      : '—';
+  // Tampilkan info total ayat di label
+  var lbl = document.getElementById('hafalanSuratLabel');
+  if (lbl) {
+    lbl.textContent = _hafalanSelectedAyatMax ? 'Nama Surat (' + _hafalanSelectedAyatMax + ' ayat)' : 'Nama Surat';
   }
 
   var inputDari   = document.getElementById('hafalanAyatDari');
   var inputSampai = document.getElementById('hafalanAyatSampai');
   var maxAyat     = _hafalanSelectedAyatMax || '';
 
+  inputDari.placeholder = _hafalanSelectedAyatMax ? '1–' + _hafalanSelectedAyatMax : 'Ayat mulai';
+  inputSampai.placeholder = _hafalanSelectedAyatMax ? 'Maks. ' + _hafalanSelectedAyatMax : 'Ayat selesai';
+
   if (s._mode === 'murajaah') {
-    // Murajaah — auto-fill range Ziyadah, batasi juga oleh max ayat surat
-    var mMax = Math.min(s.ayat_sampai, maxAyat || s.ayat_sampai);
-    inputDari.value   = s.ayat_dari;
-    inputSampai.value = mMax;
-    inputDari.min     = s.ayat_dari;   inputDari.max   = mMax;
-    inputSampai.min   = s.ayat_dari;   inputSampai.max = mMax;
+    // Murajaah — auto-fill range Ziyadah pertama sebagai saran, batasi max ayat
+    var firstInv = s.intervals[0] || { ayat_dari: '', ayat_sampai: '' };
+    inputDari.value   = firstInv.ayat_dari;
+    inputSampai.value = firstInv.ayat_sampai;
+    inputDari.min     = '1';   inputDari.max   = maxAyat || '';
+    inputSampai.min   = '1';   inputSampai.max = maxAyat || '';
+    
+    var rangeStr = s.intervals.map(function(inv) {
+      return inv.ayat_dari + '–' + inv.ayat_sampai;
+    }).join(', ');
     document.getElementById('hafalanMurajaahRange').textContent =
-      latin + ' · Range Ziyadah: Ayat ' + s.ayat_dari + ' – ' + s.ayat_sampai
-      + (maxAyat ? ' (Maks. ' + maxAyat + ' ayat)' : '');
+      latin + ' · Range Ziyadah: ' + rangeStr;
     document.getElementById('hafalanMurajaahInfo').style.display = 'block';
 
-  } else if (s._sudah_disetor && s._next_ayat) {
-    // Ziyadah lanjutan — suggest next ayat, batasi max
-    inputDari.value   = Math.min(s._next_ayat, maxAyat || s._next_ayat);
-    inputSampai.value = '';
-    inputDari.min = '1'; inputDari.max = maxAyat || '';
-    inputSampai.min = '1'; inputSampai.max = maxAyat || '';
-
   } else {
-    // Ziyadah baru — kosongkan, set max
-    inputDari.value   = '';
+    // Ziyadah / Tahsin — cari ayat pertama yang kosong
+    var suggestDari = 1;
+    var intervals = s._intervals || [];
+    if (intervals.length) {
+      if (intervals[0].ayat_dari === 1) {
+        suggestDari = intervals[0].ayat_sampai + 1;
+      }
+    }
+    if (suggestDari > maxAyat) suggestDari = '';
+    
+    inputDari.value   = suggestDari;
     inputSampai.value = '';
     inputDari.min = '1'; inputDari.max = maxAyat || '';
     inputSampai.min = '1'; inputSampai.max = maxAyat || '';
   }
 
-  // Auto-set juz jika hanya 1 juz
-  if (s.juz && s.juz.length === 1) {
-    document.getElementById('hafalanJuzSel').value = s.juz[0];
-  }
+  // Auto-set Juz
+  updateAutoJuz();
 }
 
 function clearHafalanSurat() {
@@ -9604,8 +9775,11 @@ function clearHafalanSurat() {
   document.getElementById('hafalanMurajaahInfo').style.display  = 'none';
   document.getElementById('hafalanAyatDari').value   = '';
   document.getElementById('hafalanAyatSampai').value = '';
-  var infoEl = document.getElementById('hafalanAyatInfoText');
-  if (infoEl) infoEl.textContent = '— pilih surat —';
+  document.getElementById('hafalanAyatDari').placeholder = 'Ayat mulai';
+  document.getElementById('hafalanAyatSampai').placeholder = 'Ayat selesai';
+  var lbl = document.getElementById('hafalanSuratLabel');
+  if (lbl) lbl.textContent = 'Nama Surat';
+  document.getElementById('hafalanJuzSel').value = '';
   _hafalanSelectedAyatMax = null;
   // Reset max attribute
   ['hafalanAyatDari','hafalanAyatSampai'].forEach(function(id) {
@@ -9655,15 +9829,27 @@ async function submitSetoranHafalan() {
   }
   if (!nilai) { showToast('Pilih nilai terlebih dahulu', 'warning'); return; }
 
-  // Validasi Murajaah range
-  if (jenis === 'Murajaah' && _hafalanGuruZiyadah.length) {
-    var entry = _hafalanGuruZiyadah.find(function(z) { return z.surat === surat; });
-    if (entry) {
-      var dari = parseInt(ayatDari), sampai = parseInt(ayatSampai);
-      if (dari < entry.ayat_dari || sampai > entry.ayat_sampai) {
-        showToast('Ayat Murajaah di luar range Ziyadah (' + entry.ayat_dari + '–' + entry.ayat_sampai + ')', 'warning');
-        return;
-      }
+  // Validasi overlap Ziyadah & containment Murajaah
+  if (jenis === 'Ziyadah') {
+    var intervals = getZiyadahIntervalsForSurat(surat);
+    var overlap = checkZiyadahOverlap(intervals, aD, aS);
+    if (overlap) {
+      showToast('Gagal: Ayat ' + aD + '–' + aS + ' sudah pernah disetor sebagai Ziyadah (tumpang tindih dengan ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ').', 'warning');
+      return;
+    }
+  } else if (jenis === 'Murajaah') {
+    var intervals = getZiyadahIntervalsForSurat(surat);
+    if (!intervals.length) {
+      showToast('Gagal: Murid belum memiliki data Ziyadah untuk surat ' + surat + '.', 'warning');
+      return;
+    }
+    var isContained = checkMurajaahContainment(intervals, aD, aS);
+    if (!isContained) {
+      var rangeStr = intervals.map(function(inv) {
+        return inv.ayat_dari + '–' + inv.ayat_sampai;
+      }).join(', ');
+      showToast('Gagal: Ayat Murajaah harus berada di dalam range Ziyadah yang sudah disetor (Range valid: ' + rangeStr + ').', 'warning');
+      return;
     }
   }
 
@@ -9701,6 +9887,10 @@ async function submitSetoranHafalan() {
     if (kamSelEl && cfg.kamera && cfg.kamera.length) kamSelEl.value = cfg.kamera[0].nama;
     clearHafalanSurat();
     _hafalanGuruZiyadah = [];
+    try {
+      var zRes = await window.HQ.GuruAPI.getZiyadahMurid(id_halaqah, id_murid);
+      _hafalanGuruZiyadah = zRes.data || [];
+    } catch(e) { _hafalanGuruZiyadah = []; }
     document.getElementById('hafalanMurajaahInfo').style.display = 'none';
     hfUpdatePoinPreview();
     // Reload target card + riwayat
@@ -9786,6 +9976,12 @@ async function deleteSetoranHafalanGuru(id_setoran, nama_murid, surat) {
       var selHalaqah = document.getElementById('hafalanGuruHalaqahSel').value;
       if (selHalaqah) {
         loadTargetHafalanGuru(selHalaqah);
+      }
+      if (selHalaqah && selMurid) {
+        try {
+          var zRes = await window.HQ.GuruAPI.getZiyadahMurid(selHalaqah, selMurid);
+          _hafalanGuruZiyadah = zRes.data || [];
+        } catch(e) { _hafalanGuruZiyadah = []; }
       }
     } else {
       throw new Error((res && res.message) || 'Gagal menghapus');

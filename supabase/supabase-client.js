@@ -1372,17 +1372,7 @@ var GuruAPI = {
       .eq('id_murid', id_murid)
       .eq('jenis', 'Ziyadah');
     _check(error, 'getZiyadahMurid');
-    // Merge range per surat (ambil min ayat_dari & max ayat_sampai)
-    var map = {};
-    (data || []).forEach(function(r) {
-      if (!map[r.surat]) {
-        map[r.surat] = { surat: r.surat, juz: r.juz, ayat_dari: r.ayat_dari, ayat_sampai: r.ayat_sampai };
-      } else {
-        map[r.surat].ayat_dari   = Math.min(map[r.surat].ayat_dari,   r.ayat_dari);
-        map[r.surat].ayat_sampai = Math.max(map[r.surat].ayat_sampai, r.ayat_sampai);
-      }
-    });
-    return { status: 'ok', data: Object.values(map) };
+    return { status: 'ok', data: data || [] };
   },
 
   // Hapus setoran (hanya yang dibuat guru sendiri)
