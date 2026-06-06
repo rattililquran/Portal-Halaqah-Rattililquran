@@ -1426,9 +1426,10 @@ var GuruAPI = {
   // Target terbaru per murid di halaqah Qiyam (untuk kartu pengingat guru)
   getTargetHafalanMurid: async function(id_halaqah, id_murids) {
     var q = _sb.from('setoran_hafalan')
-      .select('id_murid, nama_murid, target_surat, target_ayat_dari, target_ayat_sampai, created_at')
+      .select('id_murid, nama_murid, target_surat, target_ayat_dari, target_ayat_sampai, created_at, updated_at')
       .not('target_surat', 'is', null)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false });
     if (id_murids && id_murids.length) {
       q = q.in('id_murid', id_murids);
     } else {

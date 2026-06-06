@@ -4866,6 +4866,19 @@ function renderHafalanKbm() {
 
 function _hfKbmEid(mid) { return mid.replace(/[^a-zA-Z0-9-_]/g,'_'); }
 
+function updateHfKbmPoin(mid) {
+  var eid     = _hfKbmEid(mid);
+  var cfg     = _hfLoadConfig();
+  var kelEl   = document.getElementById('hfkbm-kel-' + eid);
+  var nilEl   = document.getElementById('hfkbm-nil-' + eid);
+  var poinEl  = document.getElementById('hfkbm-poin-' + eid);
+  if (!kelEl || !nilEl || !poinEl) return;
+  var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelEl.value; });
+  var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilEl.value; });
+  var poin    = (kelItem ? kelItem.poin : 0) + (nilItem ? nilItem.poin : 0);
+  poinEl.textContent = '⚡ Estimasi poin: +' + poin;
+}
+
 function hfKbmSuratInput(mid, q) {
   var eid      = _hfKbmEid(mid);
   var dd       = document.getElementById('hfkbm-dd-' + eid);
