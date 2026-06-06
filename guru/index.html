@@ -4586,8 +4586,9 @@ function goToHafalanQiyam() {
   goPage('hafalan-kbm');
   renderSteps('hafalan-kbm');
   document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+  var studentIds = (typeof muridSesi !== 'undefined' && muridSesi) ? muridSesi.map(function(m){ return m.id_murid; }) : [];
   if (id_halaqah) {
-    window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah)
+    window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah, studentIds)
       .then(function(res) { window._lastTargetDataKbm = res.data || []; renderHafalanKbm(); })
       .catch(function()   { window._lastTargetDataKbm = [];             renderHafalanKbm(); });
   } else {
@@ -4653,30 +4654,27 @@ function renderHafalanKbm() {
     var mid      = m.id_murid;
     var eid      = mid.replace(/[^a-zA-Z0-9-_]/g, '_');
     var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
-    var badge    = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'}[status]||'b-green';
+    var badge    = {H:'nm-badge-H',T:'nm-badge-T',I:'nm-badge-I',A:'nm-badge-A'}[status]||'nm-badge-H';
     var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
 
-    // Target hafalan sebelumnya — chip collapsible
+    // Target hafalan sebelumnya — subtext in nm-header
     var targetInfo = _targetMapKbm[mid];
-    var targetChip = '';
+    var targetSubtext = '';
     if (targetInfo && targetInfo.target_surat) {
-      targetChip = '<details style="margin-bottom:10px;border:1px solid #bfdbfe;border-radius:9px;overflow:hidden">'
-        + '<summary style="background:#eff6ff;padding:7px 12px;cursor:pointer;font-size:11px;font-weight:700;color:#1d4ed8;list-style:none;display:flex;align-items:center;gap:6px">'
-          + '🎯 Target sebelumnya: <strong>' + esc(targetInfo.target_surat) + '</strong>'
-          + ' &nbsp;·&nbsp; Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-')
-          + '<span style="margin-left:auto;font-size:10px;opacity:.6">▼ detail</span>'
-        + '</summary>'
-        + '<div style="padding:8px 12px;font-size:11px;color:#374151;background:#f8faff">'
-          + 'Ditetapkan oleh <strong>' + esc(targetInfo.nama_guru||'Guru') + '</strong>'
-        + '</div>'
-      + '</details>';
+      targetSubtext = '<div style="font-size:11.5px;color:rgba(255,255,255,0.9);font-weight:600;margin-top:5px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);padding:3px 9px;border-radius:6px;width:fit-content;backdrop-filter:blur(4px);">'
+        + '🎯 Target Sebelumnya: <strong style="color:#fff">' + esc(targetInfo.target_surat) + '</strong>'
+        + ' &nbsp;·&nbsp; Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-')
+      + '</div>';
     }
+
     return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-      + '<div class="nm-header" style="margin-bottom:12px">'
-        + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
-        + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
+      + '<div class="nm-header" style="margin-bottom:12px; display:flex; flex-direction:column; align-items:flex-start; gap:4px;">'
+        + '<div style="display:flex; align-items:center; justify-content:space-between; width:100%;">'
+          + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
+          + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
+        + '</div>'
+        + targetSubtext
       + '</div>'
-      + targetChip
       // Row 1: Jenis | Surat
       + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
         + '<div><div class="nm-section-label">Jenis</div>'
@@ -4743,7 +4741,7 @@ function renderHafalanKbm() {
           var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
           return '<div class="nilai-murid-card alpa" style="margin-bottom:8px">'
             + '<div class="nm-header"><div class="nm-nama"><div class="nm-nama-avatar">'+initials+'</div>'+esc(m.nama_murid)+'</div>'
-            + '<span class="nm-badge-hadir '+(s==='I'?'b-amber':'b-red')+'">'+(s==='I'?'Izin':'Alpa')+'</span></div>'
+            + '<span class="nm-badge-hadir '+(s==='I'?'nm-badge-I':'nm-badge-A')+'">'+(s==='I'?'Izin':'Alpa')+'</span></div>'
             + '<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:4px 0">Tidak perlu input hafalan</div></div>';
         }).join('');
   }
@@ -4864,10 +4862,11 @@ function hfKbmSuratInput(mid, q) {
   var selJuz   = juzEl ? parseInt(juzEl.value) : null;
   var jenisEl2 = document.getElementById('hfkbm-jenis-' + eid);
   var isMurajaah = jenisEl2 && jenisEl2.value === 'Murajaah';
+  var isZiyadahMode = jenisEl2 && jenisEl2.value === 'Ziyadah';
   if (!dd) return;
 
-  // Fix #6: Murajaah — hanya tampilkan surat dari Ziyadah murid ini
-  if (isMurajaah) {
+  var needsZiyadah = isMurajaah || isZiyadahMode;
+  if (needsZiyadah) {
     var ziyadahData = window._hfKbmZiyadah && window._hfKbmZiyadah[mid];
     if (!ziyadahData) {
       dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Memuat data Ziyadah...</div>';
@@ -4879,6 +4878,10 @@ function hfKbmSuratInput(mid, q) {
       }).catch(function(){});
       return;
     }
+  }
+
+  // Fix #6: Murajaah — hanya tampilkan surat dari Ziyadah murid ini
+  if (isMurajaah) {
     var zList = ziyadahData.filter(function(z){ return !norm || z.surat.toLowerCase().replace(/['-]/g,'').includes(norm); });
     if (!zList.length) {
       dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Tidak ada Ziyadah ditemukan</div>';
@@ -4895,7 +4898,7 @@ function hfKbmSuratInput(mid, q) {
         + 'onmousedown="hfKbmSelectSurat(this)">'
         + '<span style="background:#d1fae5;color:#065f46;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (meta.no||'?') + '</span>'
         + '<span style="font-weight:600;flex:1">' + esc(z.surat) + '</span>'
-        + '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px">🔄 Ayat ' + z.ayat_dari + '–' + z.ayat_sampai + '</span>'
+        + '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">🔄 Ayat ' + z.ayat_dari + '–' + z.ayat_sampai + '</span>'
       + '</div>';
     }).join('');
     dd.style.display = 'block'; return;
@@ -4907,20 +4910,65 @@ function hfKbmSuratInput(mid, q) {
       var matchJuz  = !selJuz || (s.juz && s.juz.includes(selJuz));
       var matchName = !norm   || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
       return matchJuz && matchName;
-    }).slice(0,20);
+    });
+
+  // Sort Ziyadah options: uncompleted first, fully completed on bottom
+  if (isZiyadahMode && ziyadahData) {
+    list = list.map(function(s) {
+      var isFullySet = isSuratFullyMemorized(s.latin, ziyadahData);
+      var rawForSurat = ziyadahData.filter(function(z) {
+        return z.surat.toLowerCase().replace(/['-]/g,'') === s.latin.toLowerCase().replace(/['-]/g,'');
+      });
+      var intervals = mergeIntervals(rawForSurat);
+      return Object.assign({}, s, {
+        _is_fully_set: isFullySet,
+        _intervals: intervals,
+        _sudah_disetor: intervals.length > 0
+      });
+    });
+
+    list.sort(function(a, b) {
+      if (a._is_fully_set === b._is_fully_set) return a.no - b.no;
+      return a._is_fully_set ? 1 : -1;
+    });
+  }
+
+  list = list.slice(0, 20);
   if (!list.length) {
     dd.innerHTML = '<div style="padding:10px;font-size:11px;color:#9ca3af;text-align:center">Tidak ditemukan</div>';
     dd.style.display = 'block'; return;
   }
+
   dd.innerHTML = list.map(function(s) {
     var safeJson = JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px" '
+    var badge = '';
+    var rowStyle = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;';
+    var noStyle  = 'width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    var isClickable = true;
+
+    if (isZiyadahMode && s._is_fully_set) {
+      badge = '<span style="background:#dcfce7;color:#15803d;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">✓ Selesai</span>';
+      noStyle += 'background:#dcfce7;color:#15803d;';
+      rowStyle += 'opacity:.5; pointer-events:none;'; // block click!
+      isClickable = false;
+    } else if (isZiyadahMode && s._sudah_disetor) {
+      var rangeStr = s._intervals.map(function(inv) {
+        return inv.ayat_dari + '–' + inv.ayat_sampai;
+      }).join(', ');
+      badge = '<span style="background:#fffbeb;color:#d97706;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis" title="' + esc(rangeStr) + '">✓ Parsial: ' + esc(rangeStr) + '</span>';
+      noStyle += 'background:#fef3c7;color:#d97706;';
+    } else {
+      noStyle += 'background:#e0f2fe;color:#0284c7;';
+    }
+
+    return '<div style="' + rowStyle + '" '
       + 'data-latin="' + s.latin.replace(/"/g,'&quot;') + '" data-info="' + safeJson + '" data-mid="' + esc(mid) + '" '
       + 'class="hfkbm-dd-opt" '
-      + 'onmousedown="hfKbmSelectSurat(this)">'
-      + '<span style="background:#e0f2fe;color:#0284c7;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + s.no + '</span>'
+      + (isClickable ? 'onmousedown="hfKbmSelectSurat(this)"' : '') + '>'
+      + '<span style="' + noStyle + '">' + s.no + '</span>'
       + '<span style="font-weight:600;flex:1">' + esc(s.latin) + '</span>'
-      + '<span style="color:#9ca3af;font-size:10px">' + s.ayat + ' ayat</span>'
+      + badge
+      + '<span style="color:#9ca3af;font-size:10px;margin-left:4px">' + s.ayat + ' ayat</span>'
     + '</div>';
   }).join('');
   dd.style.display = 'block';
