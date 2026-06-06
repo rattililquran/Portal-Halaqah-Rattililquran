@@ -82,6 +82,10 @@ CREATE INDEX IF NOT EXISTS idx_spp_pembayaran_murid_status
 CREATE INDEX IF NOT EXISTS idx_spp_pembayaran_status
   ON spp_pembayaran(status);
 
+-- Admin: query rekap SPP tahunan
+CREATE INDEX IF NOT EXISTS idx_spp_pembayaran_rekap
+  ON spp_pembayaran(tahun, status, id_halaqah);
+
 -- ── 6. notif_inbox ──────────────────────────────────────────
 -- Dipakai: murid (getNotifInbox, markNotifRead)
 -- Filter: id_user, read_at IS NULL (belum dibaca)
