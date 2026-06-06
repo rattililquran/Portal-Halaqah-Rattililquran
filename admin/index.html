@@ -828,9 +828,9 @@ html.theme-dark .raport-list-card{background:#1e2128 !important;border-color:rgb
   .hamburger{display:none!important}
 }
 
-/* Content area: center + max-width di layar sangat lebar */
+/* Content area: full-width di laptop & tablet */
 @media(min-width:1025px){
-  .content{max-width:1440px;margin-left:auto;margin-right:auto;padding:24px 28px}
+  .content{max-width:100%;padding:24px 28px}
   .card-body{padding:22px 24px}
 }
 
@@ -1241,7 +1241,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           <button class="btn btn-green btn-sm" onclick="doExportAbsensi()">📥 Export ke Sheet</button>
         </div>
         <div class="section-sub">Akumulasi kehadiran semua murid. H=100%, T=70%, I=50%, A=0%</div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="absensiHalaqahSel" onchange="loadAbsensi()" style="max-width:240px">
             <option value="">Semua Halaqah</option>
           </select>
@@ -1251,11 +1251,19 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
             <option value="Micro Teaching">Micro Teaching</option>
           </select>
+          <input type="text" id="absensiSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari nama/halaqah..." oninput="filterAbsensiTable()">
+          <select id="absensiFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterAbsensiTable()">
+            <option value="">— Semua Status Kehadiran —</option>
+            <option value="aman">Aman (≥ 75%)</option>
+            <option value="peringatan">Peringatan (50% - 74%)</option>
+            <option value="kritis">Kritis (< 50%)</option>
+            <option value="belum_ada">Belum Ada KBM</option>
+          </select>
         </div>
         <div class="card">
           <div class="tbl-wrap">
-            <table class="premium-table">
-              <thead><tr>
+            <table class="premium-table" id="absensiTable">
+              <thead id="absensiHeader"><tr>
                 <th>Nama Murid</th>
                 <th class="align-center">Hadir</th>
                 <th class="align-center">Terlambat</th>
@@ -3805,6 +3813,9 @@ async function loadLaporan() {
 // ══════════════════════════════════════════
 //  ABSENSI
 // ══════════════════════════════════════════
+var _absensiRekapData = [];
+var _absensiRekapDataFiltered = [];
+
 async function loadAbsensi() {
   const id_halaqah  = document.getElementById('absensiHalaqahSel').value;
   const jenis_sesi  = document.getElementById('absensiJenisSel')?.value || '';
@@ -3814,44 +3825,96 @@ async function loadAbsensi() {
     if (id_halaqah) params.id_halaqah = id_halaqah;
     if (jenis_sesi) params.jenis_sesi = jenis_sesi;
     const r = await window.HQ.AdminAPI.getRekapAbsensi(params);
-    const tbody = document.getElementById('absensiTbl');
-    tbody.innerHTML = (r.data||[]).map(m => {
-      const total = m.total||0;
-      const pct = m.pct_hadir||0;
-      
-      // Determine text color and row style based on presence and thresholds
-      let color = 'var(--text-3)';
-      let rowStyle = '';
-      
-      if (total > 0) {
-        if (pct >= 75) {
-          color = 'var(--green)';
-        } else if (pct >= 50) {
-          color = 'var(--amber-txt)';
-          rowStyle = 'style="background:rgba(245, 158, 11, 0.025);border-left:3px solid var(--amber)"';
-        } else {
-          color = 'var(--red)';
-          rowStyle = 'style="background:rgba(239, 68, 68, 0.025);border-left:3px solid var(--red)"';
-        }
-      }
-      
-      const pctText = total === 0 ? '—' : `${pct}%`;
-      const skorText = total === 0 ? '—' : `${m.skor_dari_40||0}%`;
-      const skorColor = total === 0 ? 'var(--text-3)' : (m.skor_dari_40 >= 75 ? 'var(--green)' : (m.skor_dari_40 >= 50 ? 'var(--amber-txt)' : 'var(--red)'));
-        
-      return `<tr ${rowStyle}>
-        <td><div style="font-weight:700;color:var(--text)">${esc(m.nama_murid)}</div></td>
-        <td class="align-center"><span class="circle-badge b-green">${m.H||0}</span></td>
-        <td class="align-center"><span class="circle-badge b-purple">${m.T||0}</span></td>
-        <td class="align-center"><span class="circle-badge b-amber">${m.I||0}</span></td>
-        <td class="align-center"><span class="circle-badge b-red">${m.A||0}</span></td>
-        <td class="align-center" style="font-weight:600">${total}</td>
-        <td class="align-center"><span style="font-weight:800;color:${color}">${pctText}</span></td>
-        <td class="align-center"><span style="font-weight:800;color:${skorColor}">${skorText}</span></td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="8" class="align-center" style="padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
+    _absensiRekapData = r.data || [];
+    filterAbsensiTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
+}
+
+function filterAbsensiTable() {
+  const search = (document.getElementById('absensiSearchInput').value || '').trim().toLowerCase();
+  const status = document.getElementById('absensiFilterStatus').value;
+  const id_halaqah = document.getElementById('absensiHalaqahSel').value;
+
+  _absensiRekapDataFiltered = _absensiRekapData.filter(m => {
+    // Search filter: matches student name or halaqah name
+    if (search) {
+      const namaMurid = (m.nama_murid || '').toLowerCase();
+      const namaHalaqah = (m.nama_halaqah || '').toLowerCase();
+      if (!namaMurid.includes(search) && !namaHalaqah.includes(search)) {
+        return false;
+      }
+    }
+    
+    // Status filter
+    if (status) {
+      const total = m.total || 0;
+      const pct = m.pct_hadir || 0;
+      if (status === 'aman') {
+        if (total === 0 || pct < 75) return false;
+      } else if (status === 'peringatan') {
+        if (total === 0 || pct < 50 || pct >= 75) return false;
+      } else if (status === 'kritis') {
+        if (total === 0 || pct >= 50) return false;
+      } else if (status === 'belum_ada') {
+        if (total > 0) return false;
+      }
+    }
+    return true;
+  });
+
+  // Dynamically configure columns: show Halaqah if global (no specific class selected)
+  const headerHtml = `<tr>
+    <th>Nama Murid</th>
+    ${!id_halaqah ? '<th>Halaqah</th>' : ''}
+    <th class="align-center">Hadir</th>
+    <th class="align-center">Terlambat</th>
+    <th class="align-center">Izin</th>
+    <th class="align-center">Alpa</th>
+    <th class="align-center">Total</th>
+    <th class="align-center">% Hadir</th>
+    <th class="align-center">Skor/40</th>
+  </tr>`;
+  document.getElementById('absensiHeader').innerHTML = headerHtml;
+
+  const tbody = document.getElementById('absensiTbl');
+  const colCount = !id_halaqah ? 9 : 8;
+
+  tbody.innerHTML = _absensiRekapDataFiltered.map(m => {
+    const total = m.total || 0;
+    const pct = m.pct_hadir || 0;
+    
+    let color = 'var(--text-3)';
+    let rowStyle = '';
+    
+    if (total > 0) {
+      if (pct >= 75) {
+        color = 'var(--green)';
+      } else if (pct >= 50) {
+        color = 'var(--amber-txt)';
+        rowStyle = 'style="background:rgba(245, 158, 11, 0.025);border-left:3px solid var(--amber)"';
+      } else {
+        color = 'var(--red)';
+        rowStyle = 'style="background:rgba(239, 68, 68, 0.025);border-left:3px solid var(--red)"';
+      }
+    }
+    
+    const pctText = total === 0 ? '—' : `${pct}%`;
+    const skorText = total === 0 ? '—' : `${m.skor_dari_40||0}%`;
+    const skorColor = total === 0 ? 'var(--text-3)' : (m.skor_dari_40 >= 75 ? 'var(--green)' : (m.skor_dari_40 >= 50 ? 'var(--amber-txt)' : 'var(--red)'));
+    
+    return `<tr ${rowStyle}>
+      <td><div style="font-weight:700;color:var(--text)">${esc(m.nama_murid)}</div></td>
+      ${!id_halaqah ? `<td><span class="badge b-gray">${esc(m.nama_halaqah)}</span></td>` : ''}
+      <td class="align-center"><span class="circle-badge b-green">${m.H||0}</span></td>
+      <td class="align-center"><span class="circle-badge b-purple">${m.T||0}</span></td>
+      <td class="align-center"><span class="circle-badge b-amber">${m.I||0}</span></td>
+      <td class="align-center"><span class="circle-badge b-red">${m.A||0}</span></td>
+      <td class="align-center" style="font-weight:600">${total}</td>
+      <td class="align-center"><span style="font-weight:800;color:${color}">${pctText}</span></td>
+      <td class="align-center"><span style="font-weight:800;color:${skorColor}">${skorText}</span></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="${colCount}" class="align-center" style="padding:32px;color:var(--text-3)">Belum ada data</td></tr>`;
 }
 
 // ══════════════════════════════════════════
@@ -5223,19 +5286,34 @@ async function saveTemplate() {
 // ══════════════════════════════════════════
 //  EXPORT REKAP ABSENSI
 // ══════════════════════════════════════════
-async function doExportAbsensi() {
-  const id_halaqah = document.getElementById('absensiHalaqahSel')?.value || '';
-  const jenis_sesi = document.getElementById('absensiJenisSel')?.value || '';
-  showLoad('Bismillah, membuat rekap absensi...');
-  try {
-    const params = {};
-    if (id_halaqah) params.id_halaqah = id_halaqah;
-    if (jenis_sesi) params.jenis_sesi = jenis_sesi;
-    const r = await window.HQ.AdminAPI.exportRekapAbsensi(params);
-    toast('✅ ' + r.message + ' — data tersimpan di sistem.', 'ok');
-    if (r.url) setTimeout(() => window.open(r.url, '_blank'), 1000);
-  } catch(e) { toast(e.message,'err'); }
-  finally { hideLoad(); }
+function doExportAbsensi() {
+  var list = _absensiRekapDataFiltered || [];
+  if (!list.length) {
+    alert('Tidak ada data absensi untuk diekspor.');
+    return;
+  }
+  var csv = 'ID Murid,Nama Murid,Halaqah,Hadir (H),Terlambat (T),Izin (I),Alpa (A),Total Sesi,Persentase Hadir,Skor Kehadiran\r\n';
+  list.forEach(function(m) {
+    var nama = (m.nama_murid || '').replace(/"/g, '""');
+    var hal = (m.nama_halaqah || '—').replace(/"/g, '""');
+    var pctText = m.total === 0 ? '—' : m.pct_hadir + '%';
+    var skorText = m.total === 0 ? '—' : m.skor_dari_40 + '%';
+    csv += '"' + m.id_murid + '","' + nama + '","' + hal + '",' + (m.H||0) + ',' + (m.T||0) + ',' + (m.I||0) + ',' + (m.A||0) + ',' + (m.total||0) + ',"' + pctText + '","' + skorText + '"\r\n';
+  });
+
+  // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
+  var blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  var halaqahVal = document.getElementById('absensiHalaqahSel').value || 'Semua-Halaqah';
+  var jenisVal = document.getElementById('absensiJenisSel')?.value || 'Semua-Sesi';
+  var statusVal = document.getElementById('absensiFilterStatus').value || 'Semua-Status';
+
+  a.href   = url;
+  a.download = 'rekap_absensi_' + halaqahVal + '_' + jenisVal + '_' + statusVal + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ══════════════════════════════════════════

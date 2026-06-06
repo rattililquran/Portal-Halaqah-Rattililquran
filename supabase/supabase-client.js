@@ -2354,16 +2354,20 @@ var AdminAPI = {
     return {status:'ok',data};
   },
   getRekapAbsensi: async function(p) {
-    var { data: anggota, error: errAnggota } = await _sb.from('anggota')
-      .select('id_murid, nama_murid')
-      .eq('id_halaqah', p.id_halaqah)
-      .eq('status', 'aktif')
-      .order('nama_murid');
+    var queryAnggota = _sb.from('anggota')
+      .select('id_murid, nama_murid, id_halaqah, halaqah(nama_halaqah)')
+      .eq('status', 'aktif');
+    if (p.id_halaqah) {
+      queryAnggota = queryAnggota.eq('id_halaqah', p.id_halaqah);
+    }
+    var { data: anggota, error: errAnggota } = await queryAnggota.order('nama_murid');
     _check(errAnggota, 'getRekapAbsensi.anggota');
     
     var queryNilai = _sb.from('nilai_kbm')
-      .select('id_murid, status_hadir, jenis_sesi')
-      .eq('id_halaqah', p.id_halaqah);
+      .select('id_murid, status_hadir, jenis_sesi');
+    if (p.id_halaqah) {
+      queryNilai = queryNilai.eq('id_halaqah', p.id_halaqah);
+    }
     if (p.jenis_sesi) {
       queryNilai = queryNilai.eq('jenis_sesi', p.jenis_sesi);
     }
@@ -2383,6 +2387,8 @@ var AdminAPI = {
       return {
         id_murid: a.id_murid,
         nama_murid: a.nama_murid,
+        id_halaqah: a.id_halaqah,
+        nama_halaqah: a.halaqah ? a.halaqah.nama_halaqah : '—',
         H: H, T: T, I: I, A: A,
         total: total,
         pct_hadir: pct_hadir,
