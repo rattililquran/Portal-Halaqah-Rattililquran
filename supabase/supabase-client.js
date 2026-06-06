@@ -2363,16 +2363,79 @@ var AdminAPI = {
     var { data: anggota, error: errAnggota } = await queryAnggota.order('nama_murid');
     _check(errAnggota, 'getRekapAbsensi.anggota');
     
-    var queryNilai = _sb.from('nilai_kbm')
-      .select('id_murid, status_hadir, jenis_sesi');
-    if (p.id_halaqah) {
-      queryNilai = queryNilai.eq('id_halaqah', p.id_halaqah);
-    }
-    if (p.jenis_sesi) {
+    var nilaiList = [];
+    
+    // Fetch logs based on requested session type
+    if (p.jenis_sesi === 'Kajian At-Tibyan') {
+      // Fetch only from at_tibyan_log
+      var queryAt = _sb.from('at_tibyan_log')
+        .select('id_murid, status_hadir, id_halaqah');
+      if (p.id_halaqah) {
+        queryAt = queryAt.eq('id_halaqah', p.id_halaqah);
+      }
+      var { data: atList, error: errAt } = await queryAt;
+      _check(errAt, 'getRekapAbsensi.at_tibyan_log');
+      
+      nilaiList = (atList || []).map(function(n) {
+        return {
+          id_murid: n.id_murid,
+          status_hadir: n.status_hadir,
+          jenis_sesi: 'Kajian At-Tibyan'
+        };
+      });
+    } else if (p.jenis_sesi) {
+      // Fetch specified session type from nilai_kbm (e.g. KBM Reguler, Micro Teaching)
+      var queryNilai = _sb.from('nilai_kbm')
+        .select('id_murid, status_hadir, jenis_sesi');
+      if (p.id_halaqah) {
+        queryNilai = queryNilai.eq('id_halaqah', p.id_halaqah);
+      }
       queryNilai = queryNilai.eq('jenis_sesi', p.jenis_sesi);
+      var { data: kbmList, error: errNilai } = await queryNilai;
+      _check(errNilai, 'getRekapAbsensi.nilai');
+      
+      nilaiList = (kbmList || []).map(function(n) {
+        return {
+          id_murid: n.id_murid,
+          status_hadir: n.status_hadir,
+          jenis_sesi: n.jenis_sesi || 'KBM Reguler'
+        };
+      });
+    } else {
+      // Fetch all session types (Semua Jenis Sesi) - merge from both tables
+      var queryNilai = _sb.from('nilai_kbm')
+        .select('id_murid, status_hadir, jenis_sesi');
+      if (p.id_halaqah) {
+        queryNilai = queryNilai.eq('id_halaqah', p.id_halaqah);
+      }
+      var queryAt = _sb.from('at_tibyan_log')
+        .select('id_murid, status_hadir, id_halaqah');
+      if (p.id_halaqah) {
+        queryAt = queryAt.eq('id_halaqah', p.id_halaqah);
+      }
+      
+      var [resNilai, resAt] = await Promise.all([queryNilai, queryAt]);
+      _check(resNilai.error, 'getRekapAbsensi.nilai');
+      _check(resAt.error, 'getRekapAbsensi.at_tibyan_log');
+      
+      var kbmList = resNilai.data || [];
+      var atList = resAt.data || [];
+      
+      nilaiList = kbmList.map(function(n) {
+        return {
+          id_murid: n.id_murid,
+          status_hadir: n.status_hadir,
+          jenis_sesi: n.jenis_sesi || 'KBM Reguler'
+        };
+      });
+      atList.forEach(function(n) {
+        nilaiList.push({
+          id_murid: n.id_murid,
+          status_hadir: n.status_hadir,
+          jenis_sesi: 'Kajian At-Tibyan'
+        });
+      });
     }
-    var { data: nilaiList, error: errNilai } = await queryNilai;
-    _check(errNilai, 'getRekapAbsensi.nilai');
     
     var list = (anggota || []).map(function(a) {
       var studentLogs = (nilaiList || []).filter(function(n) { return n.id_murid === a.id_murid; });
