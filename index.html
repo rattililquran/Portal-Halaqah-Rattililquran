@@ -956,6 +956,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   setTimeout(function() { document.getElementById('inputNis').focus(); }, 300);
   fetchStats();
+  initStatsInteractive();
 });
 
 function showResumeCard(us) {
@@ -1051,20 +1052,25 @@ function kirimLupaPassword() {
 }
 
 // ── STATS RATTIL DALAM ANGKA ───────────────────
+var _animateCount = function(el, val) {
+  if (val === null || val === undefined || val < 0) { el.textContent = '--'; return; }
+  if (val === 0) { el.textContent = '0'; return; }
+  if (el._timer) clearInterval(el._timer);
+  var start = 0, dur = 900, step = 16;
+  el._timer = setInterval(function() {
+    start += Math.ceil(val / (dur / step));
+    if (start >= val) { start = val; clearInterval(el._timer); }
+    el.textContent = start;
+  }, step);
+};
+
 async function fetchStats() {
   var setEl = function(id, val) {
     var el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('loading');
-    // Jika ada error atau count null (RLS blokir), tampil '--'
-    if (val === null || val === undefined || val < 0) { el.textContent = '--'; return; }
-    if (val === 0) { el.textContent = '0'; return; }
-    var start = 0, dur = 900, step = 16;
-    var timer = setInterval(function() {
-      start += Math.ceil(val / (dur / step));
-      if (start >= val) { start = val; clearInterval(timer); }
-      el.textContent = start;
-    }, step);
+    el.dataset.val = val;
+    _animateCount(el, val);
   };
   var showDash = function() {
     ['statMurid','statGuru','statHalaqah'].forEach(function(id) {
@@ -1097,6 +1103,21 @@ async function fetchStats() {
     setEl('statGuru',    guruRes.error    ? null : guruRes.count);
     setEl('statHalaqah', halaqahRes.error ? null : halaqahRes.count);
   } catch(e) { showDash(); }
+}
+
+function initStatsInteractive() {
+  document.querySelectorAll('.stat-box').forEach(function(box) {
+    var trigger = function() {
+      var numEl = box.querySelector('.stat-num');
+      if (!numEl || numEl.classList.contains('loading')) return;
+      var val = parseInt(numEl.dataset.val);
+      if (!isNaN(val)) {
+        _animateCount(numEl, val);
+      }
+    };
+    box.addEventListener('mouseenter', trigger);
+    box.addEventListener('touchstart', trigger, { passive: true });
+  });
 }
 
 function initThemeToggle() {
