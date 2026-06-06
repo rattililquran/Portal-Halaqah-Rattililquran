@@ -6062,7 +6062,7 @@ async function lihatDetail(id_kbm, tgl) {
       if (n.hafalan) {
         // KBM Qiyam
         const h = n.hafalan;
-        const jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', Tasmi: '✨', Sabqi: '📚' };
+        const jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', Tahsin: '✨' };
         contentHtml = `
           <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">
             Juz ${h.juz || '-'} · ${esc(h.surat)} · Ayat ${h.ayat_dari}–${h.ayat_sampai}
@@ -9417,7 +9417,7 @@ function onHafalanSuratInput(q) {
     });
 
   } else {
-    // ── ZIYADAH / TASMI / SABQI: tampilkan semua surat ────────────────
+    // ── ZIYADAH / TAHSIN: tampilkan semua surat ────────────────
     list = _getSuratData().filter(function(s) {
       if (!norm) return true;
       return s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
