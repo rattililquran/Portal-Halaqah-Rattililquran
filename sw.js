@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v5.4 — push notification support
+//  Cache version: v6.2 — fault-tolerant install
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.1'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v6.2'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -12,11 +12,8 @@ const STATIC_CACHE = [
   BASE + '/murid/index.html',
   BASE + '/admin/index.html',
   BASE + '/manifest.json',
-  // jspdf dan html2canvas dimuat lazy (on-demand), tidak dicache saat install
-  // karena file bisa tidak ada dan menyebabkan SW install gagal
   BASE + '/assets/images/logo-putih.png',
   BASE + '/assets/images/logo-abu.png',
-  // Fonts lokal
   BASE + '/assets/font.css',
   BASE + '/assets/fonts/PlusJakartaSans-400.woff2',
   BASE + '/assets/fonts/PlusJakartaSans-500.woff2',
@@ -29,11 +26,14 @@ const STATIC_CACHE = [
   BASE + '/assets/fonts/Amiri-latin-700.woff2',
 ];
 
-// Install — cache file statis
+// Install — cache file statis secara fault-tolerant
+// Gunakan Promise.allSettled agar satu file gagal tidak crash seluruh SW
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(STATIC_CACHE);
+      return Promise.allSettled(
+        STATIC_CACHE.map(function(url) { return cache.add(url); })
+      );
     }).then(function() {
       return self.skipWaiting();
     })
