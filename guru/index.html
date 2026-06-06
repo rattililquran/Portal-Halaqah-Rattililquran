@@ -7624,53 +7624,9 @@ function autoFillPertemuan() {
 }
 
 
-// ══ PENCARIAN MURID ══════════════════════
-function filterMuridSearch() {
-  var q     = (document.getElementById('muridSearchInput')?.value || '').toLowerCase().trim();
-  var rows  = window._muridAllRows || [];
-  var tbody = document.getElementById('muridTbl');
-  if (!tbody) return;
+// ══ PENCARIAN MURID — delegates to renderMuridTable ══════════════
+function filterMuridSearch() { renderMuridTable(); }
 
-  var filtered = q
-    ? rows.filter(function(m) {
-        return (m.nama_murid||'').toLowerCase().includes(q)
-            || (m.id_murid||'').toLowerCase().includes(q)
-            || (m.level||'').toLowerCase().includes(q);
-      })
-    : rows;
-
-  if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">'
-      + 'Tidak ditemukan murid "' + esc(q) + '"</td></tr>';
-    return;
-  }
-
-  // Re-render dengan rows yang filtered
-  var tempRows = window._muridAllRows;
-  window._muridAllRows = filtered;
-  // Render manual
-  tbody.innerHTML = filtered.map(function(m) {
-    var pct  = m.pct_hadir || 0;
-    var s40  = m.skor_dari_40 || 0;
-    var pctC = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
-    return '<tr>'
-      + '<td><strong>' + esc(m.nama_murid) + '</strong>'
-      + '<div style="font-size:10.5px;color:var(--text-3)">' + esc(m.id_murid||'') + '</div></td>'
-      + '<td><span class="badge b-blue">' + esc(m.level||'-') + '</span></td>'
-      + '<td><span class="badge b-green">' + (m.total_hadir||0) + '×</span></td>'
-      + '<td>' + (m.total_sesi||0) + '</td>'
-      + '<td><span style="font-weight:700;color:' + pctC + '">' + pct + '%</span>'
-      + '<div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">'
-      + '<div style="height:4px;background:' + pctC + ';border-radius:4px;width:' + Math.min(pct,100) + '%"></div></div></td>'
-      + '<td><span style="font-weight:700;color:' + (s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)') + '">' + s40 + '%</span>'
-      + '<div style="font-size:10.5px;color:var(--text-3)">' + (m.skor_hadir_raw?m.skor_hadir_raw.toFixed(1):'–') + '/40</div></td>'
-      + '<td>' + getPoinAdabBadge(m.poin_adab) + '</td>'
-      + '<td>' + getPoinKameraBadge(m.poin_kamera) + '</td>'
-      + '<td><button class="btn btn-outline btn-sm" data-id="' + esc(m.id_anggota) + '" data-nama="' + esc(m.nama_murid) + '" data-cat="' + esc((m.catatan_guru||'')) + '" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button></td>'
-      + '</tr>';
-  }).join('');
-  window._muridAllRows = tempRows;
-}
 
 // ══ PERSIAPAN SEBELUM MENGAJAR ══════════════════
 var _persiapanState = [false, false, false];
