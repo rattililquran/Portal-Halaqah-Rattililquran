@@ -2820,7 +2820,6 @@ html.theme-dark .chip-koreksi.selected {
               </select>
             </div>
           </div>
-          </div>
 
           <!-- Penilaian Bacaan -->
           <div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:13px;padding:13px;margin-bottom:10px">
@@ -4678,18 +4677,13 @@ function renderHafalanKbm() {
         + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
       + '</div>'
       + targetChip
-      // Row 1: Jenis | Juz | Surat
-      + '<div style="display:grid;grid-template-columns:110px 80px 1fr;gap:8px;margin-bottom:8px">'
+      // Row 1: Jenis | Surat
+      + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
         + '<div><div class="nm-section-label">Jenis</div>'
           + '<select class="fc hfkbm-jenis" data-mid="' + esc(mid) + '" id="hfkbm-jenis-' + eid + '" style="font-size:12px">'
             + '<option value="Ziyadah">📖 Ziyadah</option>'
             + '<option value="Murajaah">🔄 Murajaah</option>'
             + '<option value="Tahsin">✨ Tahsin</option>'
-          + '</select>'
-        + '</div>'
-        + '<div><div class="nm-section-label">Juz</div>'
-          + '<select class="fc" id="hfkbm-juz-' + eid + '" style="font-size:12px">'
-            + '<option value="">—</option>' + juzOpts
           + '</select>'
         + '</div>'
         + '<div><div class="nm-section-label">Nama Surat</div>'
@@ -4700,12 +4694,17 @@ function renderHafalanKbm() {
           + '</div>'
         + '</div>'
       + '</div>'
-      // Row 2: Ayat Dari | Sampai | Info
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">'
-        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" min="1" style="font-size:12px" placeholder=""></div>'
-        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" min="1" style="font-size:12px" placeholder=""></div>'
-        + '<div><div class="nm-section-label">Total Ayat</div><div id="hfkbm-ayat-info-' + eid + '" style="height:42px;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#6b7280">— pilih surat —</div></div>'
+      // Row 2: Ayat Dari | Sampai | Juz
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px">'
+        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
+        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
+        + '<div><div class="nm-section-label">Juz</div>'
+          + '<select class="fc" id="hfkbm-juz-' + eid + '" data-mid="' + esc(mid) + '" style="font-size:12px">'
+            + '<option value="">—</option>' + juzOpts
+          + '</select>'
+        + '</div>'
       + '</div>'
+      + '<div id="hfkbm-ayat-info-' + eid + '" style="font-size:11px;color:#6b7280;margin-bottom:8px;padding:0 2px">— pilih surat —</div>'
       // Penilaian
       + '<div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:10px;margin-bottom:8px">'
         + '<div style="font-size:10px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">★ Penilaian Bacaan</div>'
@@ -4767,6 +4766,12 @@ function renderHafalanKbm() {
       var maxV = parseInt(e.target.max); var val = parseInt(e.target.value);
       if (!isNaN(maxV) && !isNaN(val) && val > maxV) e.target.value = maxV;
       if (!isNaN(val) && val < 1) e.target.value = 1;
+      
+      // Auto-fill Juz on Ayat Dari input change
+      if (e.target.id.startsWith('hfkbm-ayat-dari-')) {
+        var mid2 = e.target.dataset.mid;
+        if (mid2) updateAutoJuzKbm(mid2);
+      }
     }
     // Fix #5: Clamp target ayat
     if (e.target.id && (e.target.id.startsWith('hfkbm-tgt-dari-') || e.target.id.startsWith('hfkbm-tgt-sampai-'))) {
@@ -4807,26 +4812,41 @@ function renderHafalanKbm() {
       if (infoEl) infoEl.textContent = '— pilih surat —';
       hfKbmSuratInput(mid2, '');
     }
-    // Fix #6: Murajaah → filter surat dari Ziyadah history
+    // Fix #6: Murajaah/Ziyadah → filter surat dari Ziyadah history
     if (e.target.classList.contains('hfkbm-jenis')) {
       var eid2    = _hfKbmEid(mid2);
-      var jenisEl = document.getElementById('hfkbm-jenis-' + eid2);
       var dispEl  = document.getElementById('hfkbm-surat-display-' + eid2);
       var valEl   = document.getElementById('hfkbm-surat-' + eid2);
       if (dispEl) dispEl.value = ''; if (valEl) valEl.value = '';
-      if (jenisEl && jenisEl.value === 'Murajaah') {
-        var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
+      var infoEl = document.getElementById('hfkbm-ayat-info-' + eid2);
+      if (infoEl) infoEl.textContent = '— pilih surat —';
+
+      var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
+      if (id_halaqah && (!window._hfKbmZiyadah || !window._hfKbmZiyadah[mid2])) {
         window.HQ.GuruAPI.getZiyadahMurid(id_halaqah, mid2).then(function(res) {
           window._hfKbmZiyadah = window._hfKbmZiyadah || {};
           window._hfKbmZiyadah[mid2] = res.data || [];
           hfKbmSuratInput(mid2, '');
         }).catch(function(){});
       } else {
-        if (window._hfKbmZiyadah) delete window._hfKbmZiyadah[mid2];
         hfKbmSuratInput(mid2, '');
       }
     }
   });
+
+  // Pre-fetch Ziyadah records for all present students
+  var id_halaqah_kbm = sesiAktif && sesiAktif.id_halaqah;
+  if (id_halaqah_kbm) {
+    hadirList.forEach(function(m) {
+      var mid = m.id_murid;
+      if (!window._hfKbmZiyadah || !window._hfKbmZiyadah[mid]) {
+        window.HQ.GuruAPI.getZiyadahMurid(id_halaqah_kbm, mid).then(function(res) {
+          window._hfKbmZiyadah = window._hfKbmZiyadah || {};
+          window._hfKbmZiyadah[mid] = res.data || [];
+        }).catch(function(){});
+      }
+    });
+  }
 
   // Init poin for all hadir cards
   hadirList.forEach(function(m){ updateHfKbmPoin(m.id_murid); });
@@ -4927,12 +4947,31 @@ function hfKbmSelectSurat(el) {
     if (dari)   { dari.value   = s._ayat_dari;   dari.min   = s._ayat_dari;   dari.max   = s._ayat_sampai; }
     if (sampai) { sampai.value = s._ayat_sampai; sampai.min = s._ayat_dari;   sampai.max = s._ayat_sampai; }
     if (infoEl) infoEl.textContent = latin + ' · Range Ziyadah: Ayat ' + s._ayat_dari + '–' + s._ayat_sampai;
+  } else {
+    // Ziyadah / Tahsin - suggest next expected verse
+    var suggestDari = 1;
+    var ziyadahData = window._hfKbmZiyadah && window._hfKbmZiyadah[mid];
+    if (ziyadahData) {
+      var raw = ziyadahData.filter(function(z) {
+        return z.surat.toLowerCase().replace(/['-]/g,'') === latin.toLowerCase().replace(/['-]/g,'');
+      });
+      var intervals = mergeIntervals(raw);
+      if (intervals.length) {
+        if (intervals[0].ayat_dari === 1) {
+          suggestDari = intervals[0].ayat_sampai + 1;
+        }
+      }
+    }
+    if (suggestDari > s.ayat) suggestDari = '';
+    if (dari) { dari.value = suggestDari; dari.min = 1; dari.max = s.ayat; }
+    if (sampai) { sampai.value = ''; sampai.min = 1; sampai.max = s.ayat; }
   }
   if (s.juz && s.juz.length === 1) {
     var juzEl = document.getElementById('hfkbm-juz-' + eid);
     if (juzEl) juzEl.value = s.juz[0];
+  } else {
+    updateAutoJuzKbm(mid);
   }
-  // Fix #5: set max on target ayat too (cleared since surat changed)
 }
 
 function hfKbmTargetSuratInput(mid, q) {
@@ -4940,8 +4979,16 @@ function hfKbmTargetSuratInput(mid, q) {
   var dd   = document.getElementById('hfkbm-tgt-dd-' + eid);
   if (!dd) return;
   var norm = (q||'').toLowerCase().replace(/['-]/g,'');
+  
+  var ziyadahData = (window._hfKbmZiyadah && window._hfKbmZiyadah[mid]) || [];
+  
   var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
-    .filter(function(s){ return !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm); })
+    .filter(function(s){
+      var matchName = !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
+      if (!matchName) return false;
+      var isFullySet = isSuratFullyMemorized(s.latin, ziyadahData);
+      return !isFullySet;
+    })
     .slice(0,10);
   if (!list.length) { dd.style.display='none'; return; }
   dd.innerHTML = list.map(function(s) {
@@ -4953,6 +5000,20 @@ function hfKbmTargetSuratInput(mid, q) {
     + '</div>';
   }).join('');
   dd.style.display = 'block';
+}
+
+function hfKbmSelectTargetSurat(el) {
+  var mid = el.dataset.mid;
+  var eid = _hfKbmEid(mid);
+  var latin = el.dataset.latin;
+  var s = JSON.parse(el.dataset.info.replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>'));
+  document.getElementById('hfkbm-tgt-surat-' + eid).value = latin;
+  document.getElementById('hfkbm-tgt-dd-' + eid).style.display = 'none';
+  
+  var tDari = document.getElementById('hfkbm-tgt-dari-' + eid);
+  var tSampai = document.getElementById('hfkbm-tgt-sampai-' + eid);
+  if (tDari) { tDari.value = ''; tDari.max = s.ayat; }
+  if (tSampai) { tSampai.value = ''; tSampai.max = s.ayat; }
 }
 
 function renderMicroteachingKbm() {
@@ -5344,6 +5405,115 @@ function _restoreHafalanKbmCache() {
   });
 }
 
+function simpanHafalanKBM() {
+  if (!sesiAktif) return;
+  _saveHafalanKbmCache();
+
+  var presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+
+  var valid = true;
+  for (var i = 0; i < muridSesi.length; i++) {
+    var m = muridSesi[i];
+    var status = presensiMap[m.id_murid] || 'A';
+    if (status !== 'H' && status !== 'T') continue; // skip alpa/izin
+
+    var cache = window._hafalanKbmCache[m.id_murid] || {};
+    if (!cache.jenis) {
+      toast('Pilih jenis setoran untuk ' + m.nama_murid, 'warn');
+      valid = false; break;
+    }
+    if (cache.jenis !== 'Tahsin') {
+      if (!cache.surat) {
+        toast('Pilih nama surat untuk ' + m.nama_murid, 'warn');
+        valid = false; break;
+      }
+      var aD = parseInt(cache.dari);
+      var aS = parseInt(cache.sampai);
+      if (isNaN(aD) || isNaN(aS)) {
+        toast('Isi range ayat untuk ' + m.nama_murid, 'warn');
+        valid = false; break;
+      }
+      if (aD > aS) {
+        toast('Ayat Dari tidak boleh melebihi Sampai Ayat untuk ' + m.nama_murid, 'warn');
+        valid = false; break;
+      }
+      if (!cache.juz) {
+        toast('Pilih Juz untuk ' + m.nama_murid, 'warn');
+        valid = false; break;
+      }
+
+      var meta = _getSuratData().find(function(sd) {
+        return sd.latin.toLowerCase().replace(/['-]/g,'') === cache.surat.toLowerCase().replace(/['-]/g,'');
+      });
+      if (meta && (aD > meta.ayat || aS > meta.ayat)) {
+        toast('Ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + meta.latin + ' (' + meta.ayat + ' ayat)', 'warn');
+        valid = false; break;
+      }
+
+      // Validasi overlap Ziyadah & containment Murajaah
+      if (cache.jenis === 'Ziyadah') {
+        var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
+        var intervals = mergeIntervals(raw);
+        var overlap = checkZiyadahOverlap(intervals, aD, aS);
+        if (overlap) {
+          toast('Gagal: ' + m.nama_murid + ' sudah menyetor Ziyadah ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ' pada surat ini!', 'warn');
+          valid = false; break;
+        }
+      } else if (cache.jenis === 'Murajaah') {
+        var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
+        var intervals = mergeIntervals(raw);
+        var contained = checkMurajaahContainment(intervals, aD, aS);
+        if (!contained) {
+          toast('Gagal: Rentang Murajaah ' + m.nama_murid + ' harus berada di dalam range Ziyadah yang sudah disetor!', 'warn');
+          valid = false; break;
+        }
+      }
+    }
+
+    // Validasi target hafalan berikutnya
+    if (cache.tgtSrt && (!cache.tgtDari || !cache.tgtSmp)) {
+      toast('Tolong isi ayat mulai dan selesai untuk target hafalan ' + m.nama_murid, 'warn');
+      valid = false; break;
+    }
+    if (!cache.tgtSrt && (cache.tgtDari || cache.tgtSmp)) {
+      toast('Tolong pilih nama surat target hafalan untuk ' + m.nama_murid, 'warn');
+      valid = false; break;
+    }
+    if (cache.tgtSrt && cache.tgtDari && cache.tgtSmp) {
+      var tgtD = parseInt(cache.tgtDari);
+      var tgtS = parseInt(cache.tgtSmp);
+      if (tgtD > tgtS) {
+        toast('Ayat Dari target tidak boleh melebihi Sampai Ayat target untuk ' + m.nama_murid, 'warn');
+        valid = false; break;
+      }
+      var targetMeta = _getSuratData().find(function(sd) {
+        return sd.latin.toLowerCase().replace(/['-]/g,'') === cache.tgtSrt.toLowerCase().replace(/['-]/g,'');
+      });
+      if (targetMeta && (tgtD > targetMeta.ayat || tgtS > targetMeta.ayat)) {
+        toast('Target ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + targetMeta.latin + ' (' + targetMeta.ayat + ' ayat)', 'warn');
+        valid = false; break;
+      }
+      // Validasi target tidak tumpang tindih dengan Ziyadah yang sudah disetor
+      var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
+      var rawForSurat = raw.filter(function(z) {
+        return z.surat.toLowerCase().replace(/['-]/g,'') === cache.tgtSrt.toLowerCase().replace(/['-]/g,'');
+      });
+      var tgtIntervals = mergeIntervals(rawForSurat);
+      var overlap = checkZiyadahOverlap(tgtIntervals, tgtD, tgtS);
+      if (overlap) {
+        toast('Gagal: Target ' + m.nama_murid + ' ayat ' + tgtD + '–' + tgtS + ' tumpang tindih dengan Ziyadah yang sudah disetor (ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ')!', 'warn');
+        valid = false; break;
+      }
+    }
+  }
+
+  if (!valid) return;
+  goToJurnal();
+}
+
 function lanjutKeJurnal() {
   // Simpan nilai ke cache sebelum pindah halaman
   if (typeof muridSesi !== 'undefined') {
@@ -5624,76 +5794,106 @@ async function doSelesaiKBM() {
 
     // 2. Simpan nilai per murid (Batch)
     const nilaiList = [];
-    for (const m of muridSesi) {
-      if (isMicroteachingSesi) {
-        const cache = window._microteachingKbmCache[m.id_murid] || {};
+    if (isQiyamSesi) {
+      for (const m of muridSesi) {
         const status = presensiMapPv[m.id_murid] || 'H';
-        
-        if (cache.isToggled) {
-          if (!['A','I'].includes(status)) {
-            // Present and practicing: calculate rubrik score
-            let total = 0; let filled = 0;
-            KRITERIA_MT.forEach(function(k) {
-              var val = cache[k.id];
-              if (val) { total += parseInt(val) * k.bobot; filled++; }
-            });
-            var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
-            var rubrikChoices = {
-              penguasaan : cache.penguasaan,
-              penyampaian: cache.penyampaian,
-              tajwid     : cache.tajwid,
-              interaksi  : cache.interaksi,
-              waktu      : cache.waktu,
-            };
-            nilaiList.push({
-              id_murid      : m.id_murid,
-              nama_murid    : m.nama_murid,
-              nilai         : score,
-              adab          : '',
-              kamera_murid  : '',
-              koreksi_tahsin: JSON.stringify(rubrikChoices),
-              catatan_murid : cache.catatan || '',
-            });
+        if (!['H','T'].includes(status)) continue;
+
+        const cache = window._hafalanKbmCache[m.id_murid] || {};
+        if (cache.jenis) {
+          await window.HQ.GuruAPI.addSetoranHafalan({
+            id_murid           : m.id_murid,
+            nama_murid         : m.nama_murid,
+            id_halaqah         : sesiAktif.id_halaqah,
+            id_kbm             : sesiAktif.id_kbm,
+            tanggal            : sesiAktif.tanggal_pertemuan,
+            juz                : cache.juz,
+            surat              : cache.surat,
+            ayat_dari          : cache.dari,
+            ayat_sampai        : cache.sampai,
+            jenis              : cache.jenis,
+            nilai              : cache.nil,
+            kelancaran         : cache.kel,
+            kamera             : cache.kam,
+            catatan            : cache.catatan,
+            target_surat       : cache.tgtSrt || null,
+            target_ayat_dari   : cache.tgtDari || null,
+            target_ayat_sampai : cache.tgtSmp || null,
+          });
+        }
+      }
+    } else {
+      for (const m of muridSesi) {
+        if (isMicroteachingSesi) {
+          const cache = window._microteachingKbmCache[m.id_murid] || {};
+          const status = presensiMapPv[m.id_murid] || 'H';
+          
+          if (cache.isToggled) {
+            if (!['A','I'].includes(status)) {
+              // Present and practicing: calculate rubrik score
+              let total = 0; let filled = 0;
+              KRITERIA_MT.forEach(function(k) {
+                var val = cache[k.id];
+                if (val) { total += parseInt(val) * k.bobot; filled++; }
+              });
+              var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+              var rubrikChoices = {
+                penguasaan : cache.penguasaan,
+                penyampaian: cache.penyampaian,
+                tajwid     : cache.tajwid,
+                interaksi  : cache.interaksi,
+                waktu      : cache.waktu,
+              };
+              nilaiList.push({
+                id_murid      : m.id_murid,
+                nama_murid    : m.nama_murid,
+                nilai         : score,
+                adab          : '',
+                kamera_murid  : '',
+                koreksi_tahsin: JSON.stringify(rubrikChoices),
+                catatan_murid : cache.catatan || '',
+              });
+            } else {
+              // Absent and scheduled to practice: score is 0
+              nilaiList.push({
+                id_murid      : m.id_murid,
+                nama_murid    : m.nama_murid,
+                nilai         : 0,
+                adab          : '',
+                kamera_murid  : '',
+                koreksi_tahsin: JSON.stringify({ absent: true }),
+                catatan_murid : 'Murid Alpa saat jadwal Praktik Mengajar',
+              });
+            }
           } else {
-            // Absent and scheduled to practice: score is 0
+            // Observer: nilai is null
             nilaiList.push({
               id_murid      : m.id_murid,
               nama_murid    : m.nama_murid,
-              nilai         : 0,
+              nilai         : null,
               adab          : '',
               kamera_murid  : '',
-              koreksi_tahsin: JSON.stringify({ absent: true }),
-              catatan_murid : 'Murid Alpa saat jadwal Praktik Mengajar',
+              koreksi_tahsin: '',
+              catatan_murid : '',
             });
           }
         } else {
-          // Observer: nilai is null
-          nilaiList.push({
-            id_murid      : m.id_murid,
-            nama_murid    : m.nama_murid,
-            nilai         : null,
-            adab          : '',
-            kamera_murid  : '',
-            koreksi_tahsin: '',
-            catatan_murid : '',
-          });
-        }
-      } else {
-        const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
-        const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
-        const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
-        const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-        if (nilai || adab || kamera || koreksi) {
-          const catatan = document.getElementById('catatan-'+m.id_murid);
-          nilaiList.push({
-            id_murid     : m.id_murid,
-            nama_murid   : m.nama_murid,
-            nilai        : nilai,
-            adab         : adab,
-            kamera_murid : kamera,
-            koreksi_tahsin: koreksi,
-            catatan_murid: catatan ? catatan.value.trim() : '',
-          });
+          const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
+          const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
+          const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
+          const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
+          if (nilai || adab || kamera || koreksi) {
+            const catatan = document.getElementById('catatan-'+m.id_murid);
+            nilaiList.push({
+              id_murid     : m.id_murid,
+              nama_murid   : m.nama_murid,
+              nilai        : nilai,
+              adab         : adab,
+              kamera_murid : kamera,
+              koreksi_tahsin: koreksi,
+              catatan_murid: catatan ? catatan.value.trim() : '',
+            });
+          }
         }
       }
     }
@@ -9413,6 +9613,44 @@ function updateAutoJuz() {
   }
 }
 
+function updateAutoJuzKbm(mid) {
+  var eid = _hfKbmEid(mid);
+  var suratVal = document.getElementById('hfkbm-surat-' + eid).value;
+  if (!suratVal) return;
+  var meta = _getSuratData().find(function(sd) {
+    return sd.latin.toLowerCase().replace(/['-]/g,'') === suratVal.toLowerCase().replace(/['-]/g,'');
+  });
+  if (!meta) return;
+  var juzEl = document.getElementById('hfkbm-juz-' + eid);
+  if (!juzEl) return;
+  if (meta.juz && meta.juz.length === 1) {
+    juzEl.value = meta.juz[0];
+  } else {
+    var aD = parseInt(document.getElementById('hfkbm-ayat-dari-' + eid).value);
+    if (!isNaN(aD)) {
+      var computedJuz = getJuzFromSuratAndAyat(meta.no, aD);
+      if (computedJuz) {
+        juzEl.value = computedJuz;
+      }
+    }
+  }
+}
+
+function isSuratFullyMemorized(suratLatin, rawZiyadah) {
+  var meta = _getSuratData().find(function(sd) {
+    return sd.latin.toLowerCase().replace(/['-]/g,'') === suratLatin.toLowerCase().replace(/['-]/g,'');
+  });
+  if (!meta) return false;
+  var raw = (rawZiyadah || []).filter(function(z) {
+    return z.surat.toLowerCase().replace(/['-]/g,'') === suratLatin.toLowerCase().replace(/['-]/g,'');
+  });
+  var intervals = mergeIntervals(raw);
+  if (intervals.length === 1 && intervals[0].ayat_dari === 1 && intervals[0].ayat_sampai >= meta.ayat) {
+    return true;
+  }
+  return false;
+}
+
 function getZiyadahIntervalsForSurat(surat) {
   var raw = _hafalanGuruZiyadah.filter(function(z) {
     return z.surat.toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
@@ -10089,7 +10327,11 @@ async function generateRaportTahfidz() {
 
 // ── Hitung poin dari nilai + kelancaran berdasarkan config ──────────────
 function _rtHitungPoin(nilai, kelancaran, cfg) {
-  var n = (cfg.nilai||[]).find(function(x){ return x.kode === nilai; });
+  var mappedNilai = nilai;
+  if (nilai === 'Mumtaz') mappedNilai = 'A';
+  else if (nilai === 'Baik') mappedNilai = 'B';
+  else if (nilai === 'Cukup') mappedNilai = 'C';
+  var n = (cfg.nilai||[]).find(function(x){ return x.kode === mappedNilai; });
   var k = (cfg.kelancaran||[]).find(function(x){ return x.nama === kelancaran; });
   return (n ? n.poin : 0) + (k ? k.poin : 0);
 }
@@ -10097,6 +10339,7 @@ function _rtHitungPoin(nilai, kelancaran, cfg) {
 // ── Build raport data per murid ─────────────────────────────────────────
 function _rtBuildMuridRaport(murid, setoran, cfg) {
   var totalPoin = 0, nilaiA = 0, nilaiB = 0, nilaiC = 0;
+  var kelLancar = 0, kelCukup = 0, kelPerbaikan = 0;
   var jenisCnt  = { Ziyadah: 0, Murajaah: 0, Tahsin: 0 };
   var bulananMap = {};
   var juzMap     = {};
@@ -10106,9 +10349,17 @@ function _rtBuildMuridRaport(murid, setoran, cfg) {
   setoran.forEach(function(s) {
     var poin = _rtHitungPoin(s.nilai, s.kelancaran, cfg);
     totalPoin += poin;
-    if (s.nilai === 'A') nilaiA++;
-    else if (s.nilai === 'B') nilaiB++;
-    else if (s.nilai === 'C') nilaiC++;
+    
+    var vNil = String(s.nilai || '').trim();
+    if (vNil === 'A' || vNil === 'Mumtaz') nilaiA++;
+    else if (vNil === 'B' || vNil === 'Baik') nilaiB++;
+    else if (vNil === 'C' || vNil === 'Cukup') nilaiC++;
+    
+    var vKel = String(s.kelancaran || '').trim();
+    if (vKel === 'Lancar') kelLancar++;
+    else if (vKel === 'Cukup') kelCukup++;
+    else if (vKel === 'Perlu Perbaikan') kelPerbaikan++;
+
     jenisCnt[s.jenis] = (jenisCnt[s.jenis] || 0) + 1;
 
     // Per bulan
@@ -10168,6 +10419,7 @@ function _rtBuildMuridRaport(murid, setoran, cfg) {
   return {
     murid, totalSetoran: setoran.length, totalPoin, badge: calcBadge(totalPoin),
     nilaiA, nilaiB, nilaiC,
+    kelLancar, kelCukup, kelPerbaikan,
     jenisCnt, bulanan, juzMap, suratList,
     catatan: catatanList.slice(-5).reverse(),
     target: targetAktif,
@@ -10211,15 +10463,20 @@ function _rtRenderMuridCard(r, periodeInfo, idx) {
   // ── Statistik detail ───────────────────────────────────────
   var stats = '<div class="rt-card">'
     + '<div style="font-size:12px;font-weight:800;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📈 Statistik Setoran</div>'
-    + '<div class="rt-stat-grid">'
+    + '<div class="rt-stat-grid" style="margin-bottom:8px">'
       + _rtStatBox(r.jenisCnt['Ziyadah']||0, 'Ziyadah', '📖', '#dbeafe', '#1d4ed8')
       + _rtStatBox(r.jenisCnt['Murajaah']||0, 'Murajaah', '🔄', '#d1fae5', '#065f46')
       + _rtStatBox(r.jenisCnt['Tahsin']||0, 'Tahsin', '✨', '#fef9c3', '#854d0e')
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'
-      + _rtStatBox(r.nilaiA, 'Nilai A', '⭐', '#dbeafe', '#1d4ed8')
-      + _rtStatBox(r.nilaiB, 'Nilai B', '✅', '#d1fae5', '#065f46')
-      + _rtStatBox(r.nilaiC, 'Nilai C', '📌', '#fef3c7', '#92400e')
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">'
+      + _rtStatBox(r.nilaiA, 'Mumtaz (A)', '⭐', '#dbeafe', '#1d4ed8')
+      + _rtStatBox(r.nilaiB, 'Baik (B)', '✅', '#d1fae5', '#065f46')
+      + _rtStatBox(r.nilaiC, 'Cukup (C)', '📌', '#fef3c7', '#92400e')
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+      + _rtStatBox(r.kelLancar || 0, 'Lancar', '🟢', '#ecfdf5', '#047857')
+      + _rtStatBox(r.kelCukup || 0, 'Cukup', '🟡', '#fffbeb', '#b45309')
+      + _rtStatBox(r.kelPerbaikan || 0, 'Perbaikan', '🔴', '#fef2f2', '#b91c1c')
     + '</div>'
   + '</div>';
 
@@ -10239,8 +10496,15 @@ function _rtRenderMuridCard(r, periodeInfo, idx) {
       + '<th>No</th><th>Surat</th><th>Juz</th><th>Ayat</th><th>Setoran</th><th>Nilai Terbaik</th><th>Terakhir</th>'
       + '</tr></thead><tbody>'
       + r.suratList.map(function(s, i) {
-          var bestNilai = s.nilai_list.includes('A') ? 'A' : s.nilai_list.includes('B') ? 'B' : 'C';
-          var nc = {A:'background:#dbeafe;color:#1d4ed8', B:'background:#d1fae5;color:#065f46', C:'background:#fef3c7;color:#92400e'};
+          var bestNilai = 'Cukup (C)';
+          if (s.nilai_list.includes('A') || s.nilai_list.includes('Mumtaz')) bestNilai = 'Mumtaz (A)';
+          else if (s.nilai_list.includes('B') || s.nilai_list.includes('Baik')) bestNilai = 'Baik (B)';
+          
+          var nc = {
+            'Mumtaz (A)': 'background:#dbeafe;color:#1d4ed8',
+            'Baik (B)': 'background:#d1fae5;color:#065f46',
+            'Cukup (C)': 'background:#fef3c7;color:#92400e'
+          };
           var tgl = s.last_tgl ? new Date(s.last_tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
           return '<tr>'
             + '<td style="color:#9ca3af">' + (i+1) + '</td>'

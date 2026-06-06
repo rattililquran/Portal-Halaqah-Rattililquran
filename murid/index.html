@@ -7966,23 +7966,36 @@ async function loadMyRaportTahfidz() {
 }
 
 function _myRtHitungPoin(nilai, kelancaran, cfg) {
-  var n = (cfg.nilai||[]).find(function(x){ return x.kode === nilai; });
+  var mappedNilai = nilai;
+  if (nilai === 'Mumtaz') mappedNilai = 'A';
+  else if (nilai === 'Baik') mappedNilai = 'B';
+  else if (nilai === 'Cukup') mappedNilai = 'C';
+  var n = (cfg.nilai||[]).find(function(x){ return x.kode === mappedNilai; });
   var k = (cfg.kelancaran||[]).find(function(x){ return x.nama === kelancaran; });
   return (n ? n.poin : 0) + (k ? k.poin : 0);
 }
 
 function _myRtBuild(setoran, cfg) {
   var totalPoin = 0, nA = 0, nB = 0, nC = 0;
-  var jenisCnt = { Ziyadah: 0, Murajaah: 0 };
+  var kelLancar = 0, kelCukup = 0, kelPerbaikan = 0;
+  var jenisCnt = { Ziyadah: 0, Murajaah: 0, Tahsin: 0 };
   var bulananMap = {}, juzMap = {}, suratMap = {};
   var juzDetails = {};
 
   setoran.forEach(function(s) {
     var poin = _myRtHitungPoin(s.nilai, s.kelancaran, cfg);
     totalPoin += poin;
-    if (s.nilai === 'A') nA++;
-    else if (s.nilai === 'B') nB++;
-    else if (s.nilai === 'C') nC++;
+    
+    var vNil = String(s.nilai || '').trim();
+    if (vNil === 'A' || vNil === 'Mumtaz') nA++;
+    else if (vNil === 'B' || vNil === 'Baik') nB++;
+    else if (vNil === 'C' || vNil === 'Cukup') nC++;
+    
+    var vKel = String(s.kelancaran || '').trim();
+    if (vKel === 'Lancar') kelLancar++;
+    else if (vKel === 'Cukup') kelCukup++;
+    else if (vKel === 'Perlu Perbaikan') kelPerbaikan++;
+
     jenisCnt[s.jenis] = (jenisCnt[s.jenis]||0) + 1;
 
     var d = new Date(s.created_at);
@@ -7998,6 +8011,10 @@ function _myRtBuild(setoran, cfg) {
       
       if (!juzDetails[juz]) juzDetails[juz]=[];
       var ayatStr = (s.ayat_mulai && s.ayat_selesai) ? s.ayat_mulai + ' - ' + s.ayat_selesai : s.ayat_mulai || s.ayat_selesai || '-';
+      // Fallback to ayat_dari and ayat_sampai if ayat_mulai/ayat_selesai are not set
+      if (ayatStr === '-') {
+        ayatStr = (s.ayat_dari && s.ayat_sampai) ? s.ayat_dari + ' - ' + s.ayat_sampai : s.ayat_dari || s.ayat_sampai || '-';
+      }
       juzDetails[juz].push({
         surat: s.surat || '-',
         ayat: ayatStr,
@@ -8050,7 +8067,9 @@ function _myRtBuild(setoran, cfg) {
   return {
     totalSetoran: setoran.length, totalPoin, badge: badgeName,
     nextBadge: nextBadgeName, pctProgress, sisaPoin, fluencyScore,
-    nA, nB, nC, jenisCnt,
+    nA, nB, nC,
+    kelLancar, kelCukup, kelPerbaikan,
+    jenisCnt,
     bulanan: Object.keys(bulananMap).sort().map(function(k){ return Object.assign({key:k},bulananMap[k]); }),
     juzMap,
     juzDetails,
@@ -8149,14 +8168,35 @@ function _myRtRenderHTML(r, periodeTxt) {
 
     + '<div style="margin-top:12px">'
       + '<div style="font-size:10px;font-weight:800;color:var(--amber-txt);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Detail Kualitas Nilai</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'
         + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
           + '<div style="font-size:11px;font-weight:800;color:#2563eb;width:16px;text-align:center">A</div>'
-          + '<div style="flex:1"><div style="font-size:11.5px;font-weight:800;color:var(--text)">Nilai A</div><div style="font-size:9.5px;color:var(--text-3)">' + r.nA + ' setoran</div></div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Mumtaz</div><div style="font-size:9.5px;color:var(--text-3)">' + r.nA + ' setoran</div></div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
           + '<div style="font-size:11px;font-weight:800;color:#059669;width:16px;text-align:center">B</div>'
-          + '<div style="flex:1"><div style="font-size:11.5px;font-weight:800;color:var(--text)">Nilai B</div><div style="font-size:9.5px;color:var(--text-3)">' + r.nB + ' setoran</div></div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Baik</div><div style="font-size:9.5px;color:var(--text-3)">' + r.nB + ' setoran</div></div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
+          + '<div style="font-size:11px;font-weight:800;color:#d97706;width:16px;text-align:center">C</div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Cukup</div><div style="font-size:9.5px;color:var(--text-3)">' + r.nC + ' setoran</div></div>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+    + '<div style="margin-top:12px">'
+      + '<div style="font-size:10px;font-weight:800;color:var(--amber-txt);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Statistik Kelancaran</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'
+        + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
+          + '<div style="font-size:11px;font-weight:800;color:#047857;width:16px;text-align:center">🟢</div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Lancar</div><div style="font-size:9.5px;color:var(--text-3)">' + (r.kelLancar || 0) + ' setoran</div></div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
+          + '<div style="font-size:11px;font-weight:800;color:#b45309;width:16px;text-align:center">🟡</div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Cukup</div><div style="font-size:9.5px;color:var(--text-3)">' + (r.kelCukup || 0) + ' setoran</div></div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">'
+          + '<div style="font-size:11px;font-weight:800;color:#b91c1c;width:16px;text-align:center">🔴</div>'
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:800;color:var(--text)">Perbaikan</div><div style="font-size:9.5px;color:var(--text-3)">' + (r.kelPerbaikan || 0) + ' setoran</div></div>'
         + '</div>'
       + '</div>'
     + '</div>'
@@ -8250,20 +8290,23 @@ function _myRtRenderHTML(r, periodeTxt) {
     html += '<div class="myrt-card">'
       + '<div style="font-size:11px;font-weight:800;color:var(--amber-txt);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📜 Riwayat Per Surat</div>'
       + r.suratList.map(function(s,i) {
-          var best = s.nilai_list.includes('A')?'A':s.nilai_list.includes('B')?'B':'C';
+          var best = 'Cukup (C)';
+          if (s.nilai_list.includes('A') || s.nilai_list.includes('Mumtaz')) best = 'Mumtaz (A)';
+          else if (s.nilai_list.includes('B') || s.nilai_list.includes('Baik')) best = 'Baik (B)';
+
           var nc;
           var isDark = document.documentElement.classList.contains('theme-dark');
           if (isDark) {
             nc = {
-              A: 'background:rgba(59,130,246,0.15);color:#60a5fa',
-              B: 'background:rgba(16,185,129,0.15);color:#34d399',
-              C: 'background:rgba(245,158,11,0.15);color:#fbbf24'
+              'Mumtaz (A)': 'background:rgba(59,130,246,0.15);color:#60a5fa',
+              'Baik (B)': 'background:rgba(16,185,129,0.15);color:#34d399',
+              'Cukup (C)': 'background:rgba(245,158,11,0.15);color:#fbbf24'
             };
           } else {
             nc = {
-              A: 'background:#dbeafe;color:#1d4ed8',
-              B: 'background:#d1fae5;color:#065f46',
-              C: 'background:#fef3c7;color:#92400e'
+              'Mumtaz (A)': 'background:#dbeafe;color:#1d4ed8',
+              'Baik (B)': 'background:#d1fae5;color:#065f46',
+              'Cukup (C)': 'background:#fef3c7;color:#92400e'
             };
           }
           return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
