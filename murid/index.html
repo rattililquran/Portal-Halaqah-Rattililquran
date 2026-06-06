@@ -9951,6 +9951,25 @@ async function downloadPDFResmi() {
       doc.text('Tim Akademik', ttdX+27.5, targetY+35, {align:'center'});
     }
 
+    function renderArabicToImage(text, fontSize, isBold) {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      ctx.font = (isBold ? 'bold ' : '') + fontSize + 'px "Amiri", "Traditional Arabic", "Scheherazade", "Noto Naskh Arabic", "Segoe UI", Tahoma, sans-serif';
+      var textWidth = ctx.measureText(text).width;
+      canvas.width = Math.ceil(textWidth) + 40;
+      canvas.height = fontSize + 20;
+      ctx.font = (isBold ? 'bold ' : '') + fontSize + 'px "Amiri", "Traditional Arabic", "Scheherazade", "Noto Naskh Arabic", "Segoe UI", Tahoma, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#1a5c3a';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      return {
+        dataUrl: canvas.toDataURL('image/png'),
+        width: canvas.width,
+        height: canvas.height
+      };
+    }
+
     // ── Accent top bar ──
     doc.setFillColor(26,92,58); doc.rect(0,0,W,2,'F');
     doc.setFillColor(197,155,32); doc.rect(0,2,W,1,'F');
@@ -10011,7 +10030,23 @@ async function downloadPDFResmi() {
     });
     doc.setDrawColor(...G); doc.setLineWidth(0.3);
     doc.line(0,67,W,67);
-    y = 77;
+    y = 71;
+
+    // ── Basmalah & Hamdalah (Arabic center aligned) ──
+    var basmalahObj = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 48, true);
+    var basmalahW = 85;
+    var basmalahH = (basmalahObj.height * basmalahW) / basmalahObj.width;
+    doc.addImage(basmalahObj.dataUrl, 'PNG', (W - basmalahW) / 2, y, basmalahW, basmalahH);
+    y += basmalahH + 1.5;
+
+    var hamdalahObj = renderArabicToImage("الحمدُ للَّهِ الذي بنعmtِهِ تَتِمُّ الصَّالحاتُ", 34, false);
+    // Note: fixing user typo in query 'bncmt' -> 'بنعمتِهِ'
+    var realHamdalah = "الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ";
+    var hamdalahObjReal = renderArabicToImage(realHamdalah, 34, false);
+    var hamdalahW = 75;
+    var hamdalahH = (hamdalahObjReal.height * hamdalahW) / hamdalahObjReal.width;
+    doc.addImage(hamdalahObjReal.dataUrl, 'PNG', (W - hamdalahW) / 2, y, hamdalahW, hamdalahH);
+    y += hamdalahH + 6;
 
     // ── Nilai akhir & predikat ──
     var nilaiNum = Number(rp.nilai_akhir||0);
