@@ -1259,6 +1259,15 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
             <option value="kritis">Kritis (< 50%)</option>
             <option value="belum_ada">Belum Ada KBM</option>
           </select>
+          <select id="absensiSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterAbsensiTable()">
+            <option value="nama_asc">Urutan: Nama (A-Z)</option>
+            <option value="nama_desc">Urutan: Nama (Z-A)</option>
+            <option value="halaqah_asc">Urutan: Halaqah (A-Z)</option>
+            <option value="hadir_desc">Urutan: % Hadir (Tertinggi)</option>
+            <option value="hadir_asc">Urutan: % Hadir (Terendah)</option>
+            <option value="skor_desc">Urutan: Skor/40 (Tertinggi)</option>
+            <option value="total_desc">Urutan: Sesi (Terbanyak)</option>
+          </select>
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -1856,6 +1865,19 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
           </select>
           <select class="fc" id="obsFilterHalaqah" onchange="loadObservasi()" style="max-width:200px">
             <option value="">— Semua Halaqah —</option>
+          </select>
+          <input type="text" id="obsSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari guru/halaqah/catatan..." oninput="filterObservasiTable()">
+          <select id="obsFilterKondisi" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterObservasiTable()">
+            <option value="">— Semua Kondisi —</option>
+            <option value="Kondusif">Kondusif</option>
+            <option value="Kurang Kondusif">Kurang Kondusif</option>
+            <option value="Tidak Kondusif">Tidak Kondusif</option>
+          </select>
+          <select id="obsSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterObservasiTable()">
+            <option value="tanggal_desc">Urutan: Tanggal Terbaru</option>
+            <option value="tanggal_asc">Urutan: Tanggal Terlama</option>
+            <option value="guru_asc">Urutan: Guru (A-Z)</option>
+            <option value="halaqah_asc">Urutan: Halaqah (A-Z)</option>
           </select>
           <button class="btn btn-outline btn-sm" onclick="loadObservasi()">🔄 Refresh</button>
         </div>
@@ -3835,6 +3857,7 @@ function filterAbsensiTable() {
   const search = (document.getElementById('absensiSearchInput').value || '').trim().toLowerCase();
   const status = document.getElementById('absensiFilterStatus').value;
   const id_halaqah = document.getElementById('absensiHalaqahSel').value;
+  const sortBy = document.getElementById('absensiSort')?.value || 'nama_asc';
 
   _absensiRekapDataFiltered = _absensiRekapData.filter(m => {
     // Search filter: matches student name or halaqah name
@@ -3861,6 +3884,26 @@ function filterAbsensiTable() {
       }
     }
     return true;
+  });
+
+  // Sort logic
+  _absensiRekapDataFiltered.sort((a, b) => {
+    if (sortBy === 'nama_asc') {
+      return (a.nama_murid || '').localeCompare(b.nama_murid || '');
+    } else if (sortBy === 'nama_desc') {
+      return (b.nama_murid || '').localeCompare(a.nama_murid || '');
+    } else if (sortBy === 'halaqah_asc') {
+      return (a.nama_halaqah || '').localeCompare(b.nama_halaqah || '');
+    } else if (sortBy === 'hadir_desc') {
+      return (b.pct_hadir || 0) - (a.pct_hadir || 0);
+    } else if (sortBy === 'hadir_asc') {
+      return (a.pct_hadir || 0) - (b.pct_hadir || 0);
+    } else if (sortBy === 'skor_desc') {
+      return (b.skor_dari_40 || 0) - (a.skor_dari_40 || 0);
+    } else if (sortBy === 'total_desc') {
+      return (b.total || 0) - (a.total || 0);
+    }
+    return 0;
   });
 
   // Dynamically configure columns: show Halaqah if global (no specific class selected)
@@ -4335,8 +4378,10 @@ async function toggleKetua(idAnggota, currentStatus, nama) {
 }
 
 // ══ OBSERVASI GURU (superadmin) ══════════════════════
+// ══ OBSERVASI GURU (superadmin) ══════════════════════
 var _obsData  = [];
 var _obsStats = [];
+var _obsDataFiltered = [];
 
 async function loadObservasi() {
   var idGuru    = document.getElementById('obsFilterGuru').value;
@@ -4364,7 +4409,7 @@ async function loadObservasi() {
     });
 
     renderObsStats();
-    renderObsDetail();
+    filterObservasiTable();
   } catch(e) { toast('Gagal: ' + e.message, 'err'); }
   finally { hideLoad(); }
 }
@@ -4389,16 +4434,48 @@ function renderObsStats() {
     }).join('') + '</div>';
 }
 
-function renderObsDetail() {
+function filterObservasiTable() {
+  const search = (document.getElementById('obsSearchInput')?.value || '').trim().toLowerCase();
+  const kondisi = document.getElementById('obsFilterKondisi')?.value || '';
+  const sortBy = document.getElementById('obsSort')?.value || 'tanggal_desc';
+
+  _obsDataFiltered = _obsData.filter(r => {
+    if (search) {
+      const guru = (r.nama_guru || r.id_guru || '').toLowerCase();
+      const halaqah = (r.nama_halaqah || r.id_halaqah || '').toLowerCase();
+      const catatan = (r.catatan_lain || '').toLowerCase();
+      if (!guru.includes(search) && !halaqah.includes(search) && !catatan.includes(search)) {
+        return false;
+      }
+    }
+    if (kondisi) {
+      if (r.kondisi_kelas !== kondisi) return false;
+    }
+    return true;
+  });
+
+  _obsDataFiltered.sort((a, b) => {
+    if (sortBy === 'tanggal_desc') {
+      return new Date(b.tanggal || 0) - new Date(a.tanggal || 0);
+    } else if (sortBy === 'tanggal_asc') {
+      return new Date(a.tanggal || 0) - new Date(b.tanggal || 0);
+    } else if (sortBy === 'guru_asc') {
+      return (a.nama_guru || '').localeCompare(b.nama_guru || '');
+    } else if (sortBy === 'halaqah_asc') {
+      return (a.nama_halaqah || '').localeCompare(b.nama_halaqah || '');
+    }
+    return 0;
+  });
+
   var tbody = document.getElementById('obsDetailTbl');
-  if (!_obsData.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi</td></tr>';
+  if (!_obsDataFiltered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi sesuai filter</td></tr>';
     return;
   }
   var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
   var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
   var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
-  tbody.innerHTML = _obsData.map(function(r) {
+  tbody.innerHTML = _obsDataFiltered.map(function(r) {
     var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' mnt)' : '';
     return '<tr>'
       + '<td>'+fmtDate(r.tanggal)+'<br><small style="color:var(--text-3)">ke-'+esc(String(r.pertemuan_ke||''))+'</small></td>'
@@ -4408,7 +4485,7 @@ function renderObsDetail() {
       + '<td><span class="badge '+(r.ada_latihan==='Ya'?'b-green':'b-red')+'" style="font-size:10.5px">'+esc(r.ada_latihan||'-')+'</span></td>'
       + '<td><span class="badge '+(WAKTU_COLOR[r.ketepatan_waktu]||'b-gray')+'" style="font-size:10.5px">'+esc(r.ketepatan_waktu||'-')+menitInfo+'</span></td>'
       + '<td><span class="badge '+(KAMERA_COLOR[r.kamera_peserta]||'b-gray')+'" style="font-size:10.5px">'+esc(r.kamera_peserta||'-')+'</span></td>'
-      + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">'+esc(r.catatan_lain||'–')+'</td>'
+      + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px" title="' + esc(r.catatan_lain || '–') + '">'+esc(r.catatan_lain||'–')+'</td>'
       + '</tr>';
   }).join('');
 }

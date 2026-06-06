@@ -2673,6 +2673,25 @@ html.theme-dark .chip-koreksi.selected {
           <select class="fc" id="riwayatHalaqahSel" onchange="loadRiwayat()" style="max-width:220px">
             <option value="">— Pilih Halaqah —</option>
           </select>
+          <input type="text" id="riwayatSearchInput" class="fc" style="width:160px;font-size:12px;padding:6px 10px" placeholder="Cari materi/pertemuan..." oninput="filterRiwayatTable()">
+          <select id="riwayatJenisSel" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterRiwayatTable()">
+            <option value="">— Semua Jenis Sesi —</option>
+            <option value="KBM Reguler">KBM Reguler</option>
+            <option value="Kajian At-Tibyan">Kajian At-Tibyan</option>
+            <option value="Micro Teaching">Micro Teaching</option>
+          </select>
+          <select id="riwayatStatusSel" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterRiwayatTable()">
+            <option value="">— Semua Status —</option>
+            <option value="selesai">Selesai</option>
+            <option value="draft">Draft</option>
+          </select>
+          <select id="riwayatSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterRiwayatTable()">
+            <option value="tanggal_desc">Urutan: Tanggal Terbaru</option>
+            <option value="tanggal_asc">Urutan: Tanggal Terlama</option>
+            <option value="pertemuan_desc">Urutan: Pertemuan (Tertinggi)</option>
+            <option value="pertemuan_asc">Urutan: Pertemuan (Terendah)</option>
+            <option value="status_asc">Urutan: Status</option>
+          </select>
           <button id="btnRekapPresensi" class="btn btn-outline btn-sm" onclick="doGenerateRekap('presensi')"
             style="color:var(--green);border-color:var(--green)">
             📊 Rekap Presensi
@@ -6316,6 +6335,9 @@ async function loadMurid() {
 // ══════════════════════════════════════════
 //  RIWAYAT
 // ══════════════════════════════════════════
+var _riwayatData = [];
+var _riwayatDataFiltered = [];
+
 async function loadRiwayat() {
   const id = document.getElementById('riwayatHalaqahSel').value;
   if (!id) return;
@@ -6323,29 +6345,75 @@ async function loadRiwayat() {
   if (tbody) tbody.innerHTML = Array(5).fill(`<tr>${Array(7).fill('<td><div class="skel skel-row" style="height:12px;border-radius:6px"></div></td>').join('')}</tr>`).join('');
   showLoad('Bismillah, memuat riwayat KBM...');
   try {
-    const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 30);
-    const rows = r.data || [];
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="guru-empty"><div class="guru-empty-ico">📋</div><div class="guru-empty-ttl">Belum ada riwayat KBM</div><div class="guru-empty-sub">Riwayat akan muncul setelah sesi KBM pertama diselesaikan dan disubmit.</div></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = rows.map(k => `<tr>
-      <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
-      <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
-      <td>${jenisKbmBadge(k.jenis_sesi)}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k.pencapaian_modul||'-')}</td>
-      <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
-      <td>${statusBadge(k.status)}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
-        <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
-          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Edit KBM</button>
-        ${k.status === 'draft' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
-          onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">🗑 Hapus Draft</button>` : ''}
-      </td>
-    </tr>`).join('');
+    const r = await window.HQ.GuruAPI.getRiwayatKBM(id, 100);
+    _riwayatData = r.data || [];
+    filterRiwayatTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
+}
+
+function filterRiwayatTable() {
+  const search = (document.getElementById('riwayatSearchInput')?.value || '').trim().toLowerCase();
+  const jenis = document.getElementById('riwayatJenisSel')?.value || '';
+  const statusVal = document.getElementById('riwayatStatusSel')?.value || '';
+  const sortBy = document.getElementById('riwayatSort')?.value || 'tanggal_desc';
+
+  _riwayatDataFiltered = _riwayatData.filter(k => {
+    if (search) {
+      const materi = (k.pencapaian_modul || '').toLowerCase();
+      const pertemuan = String(k.pertemuan_ke || '');
+      if (!materi.includes(search) && !pertemuan.includes(search)) {
+        return false;
+      }
+    }
+    if (jenis) {
+      const kJenis = k.jenis_sesi || 'KBM Reguler';
+      if (kJenis !== jenis) return false;
+    }
+    if (statusVal) {
+      if (k.status !== statusVal) return false;
+    }
+    return true;
+  });
+
+  _riwayatDataFiltered.sort((a, b) => {
+    if (sortBy === 'tanggal_desc') {
+      return new Date(b.tanggal_pertemuan || 0) - new Date(a.tanggal_pertemuan || 0);
+    } else if (sortBy === 'tanggal_asc') {
+      return new Date(a.tanggal_pertemuan || 0) - new Date(b.tanggal_pertemuan || 0);
+    } else if (sortBy === 'pertemuan_desc') {
+      return (b.pertemuan_ke || 0) - (a.pertemuan_ke || 0);
+    } else if (sortBy === 'pertemuan_asc') {
+      return (a.pertemuan_ke || 0) - (b.pertemuan_ke || 0);
+    } else if (sortBy === 'status_asc') {
+      return (a.status || '').localeCompare(b.status || '');
+    }
+    return 0;
+  });
+
+  const tbody = document.getElementById('riwayatTbl');
+  if (!tbody) return;
+
+  if (!_riwayatDataFiltered.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="guru-empty"><div class="guru-empty-ico">📋</div><div class="guru-empty-ttl">Tidak ada riwayat KBM yang sesuai</div></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = _riwayatDataFiltered.map(k => `<tr>
+    <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
+    <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
+    <td>${jenisKbmBadge(k.jenis_sesi)}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.pencapaian_modul||'-')}">${esc(k.pencapaian_modul||'-')}</td>
+    <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
+    <td>${statusBadge(k.status)}</td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
+        onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Edit KBM</button>
+      ${k.status === 'draft' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
+        onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">🗑 Hapus Draft</button>` : ''}
+    </td>
+  </tr>`).join('');
 }
 
 // Cek draft via getRiwayatKBM
