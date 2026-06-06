@@ -10159,6 +10159,7 @@ function renderSPP(data) {
   var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
   // BUG-04 fix: gunakan tunggakan dari server, jangan override di client
   var tunggakan    = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, 5 - lunasCount);
+  var totalBulanLevel = 5;
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25
