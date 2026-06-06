@@ -1373,6 +1373,9 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               <button class="btn btn-outline btn-sm" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
                 <span>📋</span> Salin Tagihan WA
               </button>
+              <button class="btn btn-outline btn-sm" onclick="window.simulasiStressTestUI(2000)" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px;border-color:var(--amber);color:var(--amber-txt)">
+                <span>⚡</span> Stress Test 2K
+              </button>
             </div>
           </div>
           <div class="tbl-wrap">
@@ -5466,6 +5469,67 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// ── STRESS TEST UI SIMULATOR ──
+window.simulasiStressTestUI = function(jumlahMurid = 2000) {
+  showLoad('Bismillah, mensimulasikan data stress test...');
+  console.log(`[Stress Test UI] Memulai simulasi dengan ${jumlahMurid} data murid...`);
+  
+  const namaDepan = ["Ahmad", "Muhammad", "Annisa", "Fatima", "Umar", "Ali", "Aisyah", "Zainab", "Usman", "Abu Bakar", "Hamzah", "Khadijah", "Bilal", "Yusuf", "Ibrahim", "Sarah", "Hajar", "Maryam", "Yahya", "Zakaria"];
+  const namaBelakang = ["Al-Fatih", "Zuhair", "Rasyid", "Siddiq", "Ghazali", "Qayyim", "Nawawi", "Hajar", "Mubarak", "Haddad", "Rabbani", "Syam", "Muzakki", "Jamil", "Hasan", "Husain", "Ridho", "Fadhlurrahman", "Az-Zahra", "Salsabila"];
+  const halaqahList = ["Halaqah Utsman Bin Affan", "Halaqah Ali Bin Abi Thalib", "Halaqah Abu Bakar Ash-Shiddiq", "Halaqah Umar Bin Khattab", "Halaqah Bilal Bin Rabah", "Halaqah Khalid Bin Walid"];
+  const levelList = ["Pra-Tahsin", "Tahsin 1", "Tahsin 2", "Tahfidz Anak", "Tahfidz Dewasa", "Talaqqi"];
+  const bulanList = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  
+  const mockData = [];
+  for (let i = 1; i <= jumlahMurid; i++) {
+    const fn = namaDepan[Math.floor(Math.random() * namaDepan.length)];
+    const ln = namaBelakang[Math.floor(Math.random() * namaBelakang.length)];
+    const nama = `${fn} ${ln} #${i}`;
+    const nis = `NIS-${String(i).padStart(4, '0')}`;
+    const level = levelList[Math.floor(Math.random() * levelList.length)];
+    const hal = halaqahList[Math.floor(Math.random() * halaqahList.length)];
+    const tunggakan = Math.floor(Math.random() * 5); // 0 sd 4
+    const bulan_belum = [];
+    if (tunggakan > 0) {
+      for (let b = 0; b < tunggakan; b++) {
+        const bln = bulanList[b];
+        if (!bulan_belum.includes(bln)) bulan_belum.push(bln);
+      }
+    }
+    mockData.push({
+      nama_murid: nama,
+      id_murid: nis,
+      level: level,
+      nama_halaqah: hal,
+      id_halaqah: `H-${Math.floor(Math.random() * 6) + 1}`,
+      tunggakan: tunggakan,
+      bulan_belum: bulan_belum,
+      no_hp: "081234567890"
+    });
+  }
+  
+  _sppRekapData = mockData;
+  
+  const start = performance.now();
+  filterSPPTable();
+  const end = performance.now();
+  const duration = (end - start).toFixed(2);
+  console.log(`[Stress Test UI] Render ${jumlahMurid} baris selesai dalam ${duration} ms.`);
+  
+  const lunasCount = mockData.filter(m => m.tunggakan === 0).length;
+  const menunggakCount = mockData.length - lunasCount;
+  const totalTunggakan = mockData.reduce((acc, m) => acc + m.tunggakan, 0);
+  const belumTertagih = totalTunggakan * 75000;
+  
+  document.getElementById('sppStatLunas').textContent = lunasCount;
+  document.getElementById('sppStatLunasSub').textContent = `${Math.round(lunasCount / mockData.length * 100)}% dari ${mockData.length} murid`;
+  document.getElementById('sppStatTunggak').textContent = menunggakCount;
+  document.getElementById('sppStatTunggakSub').textContent = `Belum tertagih: Rp ${belumTertagih.toLocaleString('id-ID')}`;
+  
+  hideLoad();
+  toast(`Sukses memuat ${jumlahMurid} data murid tiruan! Render selesai dalam ${duration} ms. (Cek DevTools Console)`, 'ok');
+};
 </script>
 
 <!-- MOBILE BOTTOM NAV -->
