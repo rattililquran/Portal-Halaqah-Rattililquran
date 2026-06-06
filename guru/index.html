@@ -4657,73 +4657,85 @@ function renderHafalanKbm() {
     var badge    = {H:'nm-badge-H',T:'nm-badge-T',I:'nm-badge-I',A:'nm-badge-A'}[status]||'nm-badge-H';
     var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
 
-    // Target hafalan sebelumnya — subtext in nm-header
+    // Target hafalan sebelumnya — rendered BELOW nm-header, ABOVE Jenis/Surat
     var targetInfo = _targetMapKbm[mid];
     var targetSubtext = '';
     if (targetInfo && targetInfo.target_surat) {
-      targetSubtext = '<div style="font-size:11.5px;color:rgba(255,255,255,0.9);font-weight:600;margin-top:5px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);padding:3px 9px;border-radius:6px;width:fit-content;backdrop-filter:blur(4px);">'
-        + '🎯 Target Sebelumnya: <strong style="color:#fff">' + esc(targetInfo.target_surat) + '</strong>'
-        + ' &nbsp;·&nbsp; Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-')
+      targetSubtext = '<div style="display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#f0fdf4,#e8fdf0);border:1px solid #86efac;border-radius:9px;padding:7px 11px;margin-bottom:10px;flex-wrap:wrap">'
+        + '<span style="font-size:13px;flex-shrink:0">🎯</span>'
+        + '<span style="font-size:11.5px;font-weight:700;color:#166534">Target Sebelumnya:</span>'
+        + '<span style="font-size:11.5px;font-weight:800;color:#15803d">' + esc(targetInfo.target_surat) + '</span>'
+        + '<span style="font-size:11px;color:#16a34a;background:rgba(22,163,74,0.12);border-radius:5px;padding:1px 6px;font-weight:600">Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-') + '</span>'
       + '</div>';
     }
 
     return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-      + '<div class="nm-header" style="margin-bottom:12px; display:flex; flex-direction:column; align-items:flex-start; gap:4px;">'
-        + '<div style="display:flex; align-items:center; justify-content:space-between; width:100%;">'
-          + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
+      + '<div class="nm-header" style="margin-bottom:0;">'
+        + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
+        + '<div style="display:flex;align-items:center;gap:6px">'
+          + '<button onclick="showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
+            + 'style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.2s;white-space:nowrap" '
+            + 'title="Riwayat Setoran Semua Surat" '
+            + 'onmouseover="this.style.background=\'rgba(255,255,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.18)\'">'
+            + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+            + 'Riwayat'
+          + '</button>'
           + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
         + '</div>'
-        + targetSubtext
       + '</div>'
-      // Row 1: Jenis | Surat
-      + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
-        + '<div><div class="nm-section-label">Jenis</div>'
-          + '<select class="fc hfkbm-jenis" data-mid="' + esc(mid) + '" id="hfkbm-jenis-' + eid + '" style="font-size:12px">'
-            + '<option value="Ziyadah">📖 Ziyadah</option>'
-            + '<option value="Murajaah">🔄 Murajaah</option>'
-            + '<option value="Tahsin">✨ Tahsin</option>'
-          + '</select>'
-        + '</div>'
-        + '<div><div class="nm-section-label">Nama Surat</div>'
-          + '<div style="position:relative">'
-            + '<input type="text" class="fc hfkbm-surat-display" data-mid="' + esc(mid) + '" id="hfkbm-surat-display-' + eid + '" placeholder="— Pilih surat —" autocomplete="off" style="font-size:12px;padding-right:24px">'
-            + '<input type="hidden" id="hfkbm-surat-' + eid + '">'
-            + '<div id="hfkbm-dd-' + eid + '" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;max-height:200px;overflow-y:auto;padding:4px"></div>'
+      // Target info — di bawah nama, di atas form jenis/surat
+      + '<div style="padding:10px 12px 12px">'
+        + targetSubtext
+        // Row 1: Jenis | Surat
+        + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
+          + '<div><div class="nm-section-label">Jenis</div>'
+            + '<select class="fc hfkbm-jenis" data-mid="' + esc(mid) + '" id="hfkbm-jenis-' + eid + '" style="font-size:12px">'
+              + '<option value="Ziyadah">📖 Ziyadah</option>'
+              + '<option value="Murajaah">🔄 Murajaah</option>'
+              + '<option value="Tahsin">✨ Tahsin</option>'
+            + '</select>'
+          + '</div>'
+          + '<div><div class="nm-section-label">Nama Surat</div>'
+            + '<div style="position:relative">'
+              + '<input type="text" class="fc hfkbm-surat-display" data-mid="' + esc(mid) + '" id="hfkbm-surat-display-' + eid + '" placeholder="— Pilih surat —" autocomplete="off" style="font-size:12px;padding-right:24px">'
+              + '<input type="hidden" id="hfkbm-surat-' + eid + '">'
+              + '<div id="hfkbm-dd-' + eid + '" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;max-height:200px;overflow-y:auto;padding:4px"></div>'
+            + '</div>'
           + '</div>'
         + '</div>'
-      + '</div>'
-      // Row 2: Ayat Dari | Sampai | Juz
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px">'
-        + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
-        + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
-        + '<div><div class="nm-section-label">Juz</div>'
-          + '<select class="fc" id="hfkbm-juz-' + eid + '" data-mid="' + esc(mid) + '" style="font-size:12px">'
-            + '<option value="">—</option>' + juzOpts
-          + '</select>'
+        // Row 2: Ayat Dari | Sampai | Juz
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px">'
+          + '<div><div class="nm-section-label">Ayat Dari</div><input type="number" class="fc" id="hfkbm-ayat-dari-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
+          + '<div><div class="nm-section-label">Sampai Ayat</div><input type="number" class="fc" id="hfkbm-ayat-sampai-' + eid + '" data-mid="' + esc(mid) + '" min="1" style="font-size:12px" placeholder=""></div>'
+          + '<div><div class="nm-section-label">Juz</div>'
+            + '<select class="fc" id="hfkbm-juz-' + eid + '" data-mid="' + esc(mid) + '" style="font-size:12px">'
+              + '<option value="">—</option>' + juzOpts
+            + '</select>'
+          + '</div>'
         + '</div>'
-      + '</div>'
-      + '<div id="hfkbm-ayat-info-' + eid + '" style="font-size:11px;color:#6b7280;margin-bottom:8px;padding:0 2px">— pilih surat —</div>'
-      // Penilaian
-      + '<div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:10px;margin-bottom:8px">'
-        + '<div style="font-size:10px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">★ Penilaian Bacaan</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
-          + '<div><div class="nm-section-label">Kelancaran</div><select class="fc hfkbm-kel" data-mid="' + esc(mid) + '" id="hfkbm-kel-' + eid + '" style="font-size:12px">' + kelOpts + '</select></div>'
-          + '<div><div class="nm-section-label">Makhraj & Tajwid</div><select class="fc hfkbm-nil" data-mid="' + esc(mid) + '" id="hfkbm-nil-' + eid + '" style="font-size:12px">' + nilOpts + '</select></div>'
-          + '<div><div class="nm-section-label">Kamera</div><select class="fc" id="hfkbm-kam-' + eid + '" style="font-size:12px">' + kamOpts + '</select></div>'
+        + '<div id="hfkbm-ayat-info-' + eid + '" style="font-size:11px;color:#6b7280;margin-bottom:8px;padding:0 2px">— pilih surat —</div>'
+        // Penilaian
+        + '<div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:10px;margin-bottom:8px">'
+          + '<div style="font-size:10px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">★ Penilaian Bacaan</div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+            + '<div><div class="nm-section-label">Kelancaran</div><select class="fc hfkbm-kel" data-mid="' + esc(mid) + '" id="hfkbm-kel-' + eid + '" style="font-size:12px">' + kelOpts + '</select></div>'
+            + '<div><div class="nm-section-label">Makhraj & Tajwid</div><select class="fc hfkbm-nil" data-mid="' + esc(mid) + '" id="hfkbm-nil-' + eid + '" style="font-size:12px">' + nilOpts + '</select></div>'
+            + '<div><div class="nm-section-label">Kamera</div><select class="fc" id="hfkbm-kam-' + eid + '" style="font-size:12px">' + kamOpts + '</select></div>'
+          + '</div>'
+          + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-top:8px">⚡ Estimasi poin: akan dihitung</div>'
         + '</div>'
-        + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-top:8px">⚡ Estimasi poin: akan dihitung</div>'
-      + '</div>'
-      // Catatan
-      + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
-        + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
-      + '</div>'
-      // Target
-      + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px;overflow:visible">'
-        + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
-          + '<div style="position:relative"><input type="text" class="fc hfkbm-tgt-surat-input" data-mid="' + esc(mid) + '" id="hfkbm-tgt-surat-' + eid + '" placeholder="Nama surat target…" style="font-size:12px"><div id="hfkbm-tgt-dd-' + eid + '" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
-          + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-' + eid + '" min="1" placeholder="Dari" style="font-size:12px"></div>'
-          + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-' + eid + '" min="1" placeholder="Sampai" style="font-size:12px"></div>'
+        // Catatan
+        + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
+          + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
+        + '</div>'
+        // Target
+        + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px;overflow:visible;margin-bottom:2px">'
+          + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
+          + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
+            + '<div style="position:relative"><input type="text" class="fc hfkbm-tgt-surat-input" data-mid="' + esc(mid) + '" id="hfkbm-tgt-surat-' + eid + '" placeholder="Nama surat target…" style="font-size:12px"><div id="hfkbm-tgt-dd-' + eid + '" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
+            + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-' + eid + '" min="1" placeholder="Dari" style="font-size:12px"></div>'
+            + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-' + eid + '" min="1" placeholder="Sampai" style="font-size:12px"></div>'
+          + '</div>'
         + '</div>'
       + '</div>'
     + '</div>';
@@ -4955,7 +4967,7 @@ function hfKbmSuratInput(mid, q) {
       var rangeStr = s._intervals.map(function(inv) {
         return inv.ayat_dari + '–' + inv.ayat_sampai;
       }).join(', ');
-      badge = '<span style="background:#fffbeb;color:#d97706;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis" title="' + esc(rangeStr) + '">✓ Parsial: ' + esc(rangeStr) + '</span>';
+      badge = '<span style="background:#fffbeb;color:#d97706;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:normal;word-break:break-word" title="' + esc(rangeStr) + '">✓ Parsial: ' + esc(rangeStr) + '</span>';
       noStyle += 'background:#fef3c7;color:#d97706;';
     } else {
       noStyle += 'background:#e0f2fe;color:#0284c7;';
@@ -9909,7 +9921,7 @@ function onHafalanSuratInput(q) {
       var rangeStr = s._intervals.map(function(inv) {
         return inv.ayat_dari + '–' + inv.ayat_sampai;
       }).join(', ');
-      badge = '<span style="background:#fffbeb;color:#d97706;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis" title="' + esc(rangeStr) + '">'
+      badge = '<span style="background:#fffbeb;color:#d97706;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:normal;word-break:break-word" title="' + esc(rangeStr) + '">'
             + '✓ Parsial: ' + esc(rangeStr) + '</span>';
       noStyle += 'background:#fef3c7;color:#d97706;';
       rowStyle += 'opacity:.9;';
@@ -10276,6 +10288,80 @@ async function deleteSetoranHafalanGuru(id_setoran, nama_murid, surat) {
     showToast('Gagal menghapus: ' + (e.message || e), 'error');
   } finally {
     hideLoad();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL: RIWAYAT SETORAN SEMUA SURAT PER MURID (dipanggil dari tombol di KBM Step 3)
+// ══════════════════════════════════════════════════════════════
+function closeRiwayatSetoranModal() {
+  var m = document.getElementById('modalRiwayatSetoran');
+  if (m) m.style.display = 'none';
+}
+
+async function showRiwayatSetoranModal(id_murid, nama_murid) {
+  var modal  = document.getElementById('modalRiwayatSetoran');
+  var body   = document.getElementById('riwayatSetoranModalBody');
+  var titleEl = document.getElementById('riwayatSetoranModalTitle');
+  var subEl   = document.getElementById('riwayatSetoranModalSub');
+  if (!modal || !body) return;
+
+  titleEl.textContent = '📋 Riwayat Setoran';
+  subEl.textContent   = nama_murid || 'Murid';
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:#9ca3af;font-size:13px">⏳ Memuat…</div>';
+  modal.style.display = 'flex';
+
+  try {
+    // Cari id_halaqah dari sesi aktif atau form KBM
+    var id_halaqah = (sesiAktif && sesiAktif.id_halaqah) || '';
+    if (!id_halaqah) {
+      // fallback: cari dari form qiyam
+      var hqSel = document.getElementById('hafalanGuruHalaqahSel');
+      if (hqSel) id_halaqah = hqSel.value;
+    }
+    if (!id_halaqah) throw new Error('Halaqah tidak ditemukan');
+
+    // Ambil semua setoran (tanpa limit)
+    var res  = await window.HQ.GuruAPI.getSetoranHafalanGuru(id_halaqah, id_murid, 100, 0);
+    var data = res.data || [];
+
+    if (!data.length) {
+      body.innerHTML = '<div style="text-align:center;padding:32px;color:#9ca3af"><div style="font-size:36px;margin-bottom:8px">📭</div><div style="font-size:13px;font-weight:700;color:#374151">Belum ada setoran</div></div>';
+      return;
+    }
+
+    var jenisIcon = { Ziyadah:'📖', Murajaah:'🔄', Tahsin:'✨' };
+    var nilaiCls  = {
+      Mumtaz : 'background:#dbeafe;color:#1d4ed8',
+      Baik   : 'background:#d1fae5;color:#065f46',
+      Cukup  : 'background:#fef3c7;color:#92400e',
+      // legacy kode A/B/C
+      A      : 'background:#dbeafe;color:#1d4ed8',
+      B      : 'background:#d1fae5;color:#065f46',
+      C      : 'background:#fef3c7;color:#92400e'
+    };
+    var nilaiLabel = { Mumtaz:'M', Baik:'B', Cukup:'C', A:'A', B:'B', C:'C' };
+
+    body.innerHTML = data.map(function(r) {
+      var catHtml = r.catatan ? '<div style="margin-top:5px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 7px 7px 0;padding:5px 9px;font-size:11px;color:#78350f;font-style:italic">' + esc(r.catatan) + '</div>' : '';
+      var tgtHtml = r.target_surat ? '<div style="margin-top:4px;font-size:11px;color:#059669;font-weight:600">🎯 Target: ' + esc(r.target_surat) + ' · ' + r.target_ayat_dari + '–' + r.target_ayat_sampai + '</div>' : '';
+      var kelHtml = r.kelancaran ? '<span style="font-size:10px;background:#f3f4f6;border-radius:100px;padding:1px 6px;margin-left:4px;font-weight:700">' + esc(r.kelancaran) + '</span>' : '';
+      return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:11px 12px;margin-bottom:7px;display:flex;gap:9px;align-items:flex-start">'
+        + '<div style="' + (nilaiCls[r.nilai] || 'background:#f3f4f6;color:#374151') + ';width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0" title="' + esc(r.nilai||'-') + '">' + (nilaiLabel[r.nilai] || (r.nilai ? r.nilai.charAt(0) : '?')) + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:700;color:#111827">Juz ' + (r.juz||'-') + ' · ' + esc(r.surat) + '</div>'
+          + '<div style="font-size:11px;color:#6b7280;margin:2px 0">'
+            + '<span style="background:#f3f4f6;border-radius:100px;padding:1px 7px;font-weight:700">' + (jenisIcon[r.jenis]||'📖') + ' ' + esc(r.jenis||'Ziyadah') + '</span>'
+            + kelHtml
+            + ' · Ayat ' + r.ayat_dari + '–' + r.ayat_sampai
+          + '</div>'
+          + '<div style="font-size:10px;color:#9ca3af">' + _fmtHafalanDateGuru(r.created_at) + '</div>'
+          + catHtml + tgtHtml
+        + '</div>'
+      + '</div>';
+    }).join('');
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:12px">Gagal memuat riwayat: ' + esc(e.message||'Error') + '</div>';
   }
 }
 
@@ -10826,5 +10912,24 @@ function cetakRaportTahfidz() {
 
 <!-- Print area — hanya tampil saat cetak -->
 <div id="raportTahfidzPrintArea" style="display:none"></div>
+
+<!-- ════ MODAL: RIWAYAT SETORAN MURID ════ -->
+<div id="modalRiwayatSetoran" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center"
+  onclick="if(event.target===this)closeRiwayatSetoranModal()">
+  <div style="background:#fff;border-radius:20px;max-width:560px;width:100%;margin:20px auto;box-shadow:0 24px 64px rgba(0,0,0,0.25);overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;background:linear-gradient(135deg,#0d1f35,#1458A8);">
+      <div>
+        <div style="font-size:14px;font-weight:800;color:#fff" id="riwayatSetoranModalTitle">📋 Riwayat Setoran</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px" id="riwayatSetoranModalSub">Semua surat yang pernah disetor</div>
+      </div>
+      <button onclick="closeRiwayatSetoranModal()" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:14px 16px;max-height:70dvh;overflow-y:auto" id="riwayatSetoranModalBody">
+      <div style="text-align:center;padding:24px;color:#9ca3af;font-size:13px">⏳ Memuat…</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
