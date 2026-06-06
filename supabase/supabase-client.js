@@ -2353,7 +2353,44 @@ var AdminAPI = {
     }
     return {status:'ok',data};
   },
-  getRekapAbsensi: async function(p) { var {data,error}=await _sb.from('nilai_kbm').select('*').eq('id_halaqah',p.id_halaqah).order('tanggal'); _check(error,'getRekapAbsensi'); return {status:'ok',data}; },
+  getRekapAbsensi: async function(p) {
+    var { data: anggota, error: errAnggota } = await _sb.from('anggota')
+      .select('id_murid, nama_murid')
+      .eq('id_halaqah', p.id_halaqah)
+      .eq('status', 'aktif')
+      .order('nama_murid');
+    _check(errAnggota, 'getRekapAbsensi.anggota');
+    
+    var queryNilai = _sb.from('nilai_kbm')
+      .select('id_murid, status_hadir, jenis_sesi')
+      .eq('id_halaqah', p.id_halaqah);
+    if (p.jenis_sesi) {
+      queryNilai = queryNilai.eq('jenis_sesi', p.jenis_sesi);
+    }
+    var { data: nilaiList, error: errNilai } = await queryNilai;
+    _check(errNilai, 'getRekapAbsensi.nilai');
+    
+    var list = (anggota || []).map(function(a) {
+      var studentLogs = (nilaiList || []).filter(function(n) { return n.id_murid === a.id_murid; });
+      var H = studentLogs.filter(function(n) { return n.status_hadir === 'H'; }).length;
+      var T = studentLogs.filter(function(n) { return n.status_hadir === 'T'; }).length;
+      var I = studentLogs.filter(function(n) { return n.status_hadir === 'I'; }).length;
+      var A = studentLogs.filter(function(n) { return n.status_hadir === 'A'; }).length;
+      var total = studentLogs.length;
+      var scoreSum = H + (T * 0.7) + (I * 0.5);
+      var pct_hadir = total > 0 ? Math.round((scoreSum / total) * 100) : 0;
+      var skor_dari_40 = Math.min(Math.round(scoreSum / 40 * 100), 100);
+      return {
+        id_murid: a.id_murid,
+        nama_murid: a.nama_murid,
+        H: H, T: T, I: I, A: A,
+        total: total,
+        pct_hadir: pct_hadir,
+        skor_dari_40: skor_dari_40
+      };
+    });
+    return { status: 'ok', data: list };
+  },
   getLevelList: async function() { var {data,error}=await _sb.from('level').select('*').eq('status','aktif').order('urutan'); _check(error,'getLevelList'); return {status:'ok',data}; },
   saveLevel: async function(d) { var {data,error}=await _sb.from('level').upsert(d,{onConflict:'id_level'}).select(); _check(error,'saveLevel'); return {status:'ok',data}; },
   getTemplateKoreksi: async function() { return GuruAPI.getTemplateKoreksi(); },
