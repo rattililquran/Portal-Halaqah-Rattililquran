@@ -5302,6 +5302,128 @@ function setCalTab(os, btn) {
   }, {passive:true});
 })();
 
+// ── CUSTOM PULL TO REFRESH (FOR PWA STANDALONE & MOBILE) ──
+(function() {
+  var startY = 0;
+  var currentY = 0;
+  var isPulling = false;
+  var ptrEl = null;
+  var pullMax = 90;
+  var pullThreshold = 70;
+
+  function initPTR() {
+    if (document.getElementById('ptr-indicator')) return;
+    ptrEl = document.createElement('div');
+    ptrEl.id = 'ptr-indicator';
+    ptrEl.className = 'ptr-indicator';
+    ptrEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>';
+    document.body.appendChild(ptrEl);
+    
+    var styleId = 'ptr-styles';
+    if (!document.getElementById(styleId)) {
+      var style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .ptr-indicator {
+          position: fixed;
+          top: 15px;
+          left: 50%;
+          transform: translate(-50%, -100px) scale(0.3);
+          width: 40px;
+          height: 40px;
+          background: #ffffff;
+          border-radius: 50%;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10005;
+          transition: transform 0.1s ease, opacity 0.1s ease;
+          pointer-events: none;
+          opacity: 0;
+        }
+        .ptr-indicator svg {
+          width: 18px;
+          height: 18px;
+          color: #16a34a;
+          transition: transform 0.1s ease;
+        }
+        .ptr-indicator.pulling {
+          opacity: 1;
+        }
+        .ptr-indicator.refreshing svg {
+          animation: ptr-spin 0.8s linear infinite;
+        }
+        @keyframes ptr-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        html.theme-dark .ptr-indicator {
+          background: #1e293b !important;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1) !important;
+        }
+        html.theme-dark .ptr-indicator svg {
+          color: #4ade80 !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  document.addEventListener('touchstart', function(e) {
+    if (window.innerWidth >= 768) return; // only mobile
+    if (window.scrollY > 5) return;
+    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
+    
+    var touch = e.touches[0];
+    startY = touch.clientY;
+    isPulling = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (window.innerWidth >= 768) return;
+    if (window.scrollY > 5) return;
+    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
+    
+    var touch = e.touches[0];
+    currentY = touch.clientY;
+    var pullDist = currentY - startY;
+
+    if (pullDist > 10) {
+      if (!ptrEl) initPTR();
+      isPulling = true;
+      ptrEl.classList.add('pulling');
+      
+      var dragPercent = Math.min(pullDist / pullThreshold, 1.5);
+      var translateY = Math.min(pullDist * 0.4, pullMax);
+      var scale = 0.3 + (dragPercent * 0.7);
+      var rotation = pullDist * 2;
+      
+      ptrEl.style.transform = 'translate(-50%, ' + translateY + 'px) scale(' + scale + ')';
+      ptrEl.querySelector('svg').style.transform = 'rotate(' + rotation + 'deg)';
+      
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(e) {
+    if (!isPulling || !ptrEl) return;
+    ptrEl.classList.remove('pulling');
+    
+    var pullDist = currentY - startY;
+    if (pullDist >= pullThreshold) {
+      ptrEl.classList.add('refreshing');
+      ptrEl.style.transform = 'translate(-50%, 50px) scale(1)';
+      setTimeout(function() {
+        window.location.reload();
+      }, 500);
+    } else {
+      ptrEl.style.transform = 'translate(-50%, -100px) scale(0.3)';
+    }
+    isPulling = false;
+  }, { passive: true });
+})();
+
 // ══════════════════════════════════════════
 //  APP START
 // ══════════════════════════════════════════
