@@ -66,7 +66,7 @@ body{
     text-align:center;
   }
   .features{
-    align-items:flex-start;
+    align-items:center;
     max-width:320px;
     margin:0 auto;
   }
@@ -114,8 +114,8 @@ body{
 .stat-lbl{font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:5px}
 
 /* ── FEATURES ── */
-.features{display:flex;flex-direction:column;gap:10px;width:100%}
-.feat-item{display:flex;align-items:center;gap:10px;padding:2px 0}
+.features{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.feat-item{display:flex;align-items:center;justify-content:center;gap:10px;padding:2px 0;text-align:center}
 .feat-check{
   width:20px;height:20px;border-radius:50%;
   background:#eff8ff;border:1px solid #bae6fd;
@@ -1041,6 +1041,17 @@ async function fetchStats() {
   try {
     var sb = window.HQ && window.HQ.supabase;
     if (!sb) return;
+    
+    // Coba panggil RPC get_public_stats (aman dari RLS)
+    var rpcRes = await sb.rpc('get_public_stats');
+    if (rpcRes.data && !rpcRes.error) {
+      setEl('statMurid',   rpcRes.data.murid);
+      setEl('statGuru',    rpcRes.data.guru);
+      setEl('statHalaqah', rpcRes.data.halaqah);
+      return;
+    }
+    
+    // Fallback: hitung manual jika RPC belum dibuat
     var results = await Promise.all([
       sb.from('users').select('*', { count:'exact', head:true }).eq('role','murid').eq('status','aktif'),
       sb.from('users').select('*', { count:'exact', head:true }).eq('role','guru').eq('status','aktif'),
