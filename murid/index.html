@@ -9086,7 +9086,6 @@ function salinNomor(nomor, btnId) {
 function updateSppBulanCount() {
   var n = document.querySelectorAll('#sppBulanGrid input:checked').length;
   document.getElementById('sppBulanCount').textContent = n === 0 ? 'Pilih 1 atau lebih' : n + ' bulan dipilih';
-  document.getElementById('sppBulanNominalHint').style.display = n > 1 ? '' : 'none';
   
   if (_sppFormJenis === 'SPP Pribadi') {
     var nominalInput = document.getElementById('sppFormNominal');
@@ -10535,9 +10534,6 @@ document.addEventListener('DOMContentLoaded', function() {
           <label class="spp-bulan-check"><input type="checkbox" value="Oktober" onchange="updateSppBulanCount()"><span>Okt</span></label>
           <label class="spp-bulan-check"><input type="checkbox" value="November" onchange="updateSppBulanCount()"><span>Nov</span></label>
           <label class="spp-bulan-check"><input type="checkbox" value="Desember" onchange="updateSppBulanCount()"><span>Des</span></label>
-        </div>
-        <div id="sppBulanNominalHint" style="display:none;margin-top:6px;font-size:11px;color:#0369a1;font-weight:600;padding:6px 10px;background:#f0f9ff;border-radius:8px">
-          ℹ️ Nominal akan dibagi rata per bulan yang dipilih
         </div>
       </div>
 
