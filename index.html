@@ -57,9 +57,25 @@ body{
   position:relative;
 }
 .left::before,.left::after,.left-deco1,.left-deco2,.left-deco3{display:none}
-@media(max-width:768px){.left{display:none}}
+@media(max-width:768px){
+  .left{
+    display:flex;
+    padding:40px 24px 10px 24px;
+    gap:28px;
+    align-items:center;
+    text-align:center;
+  }
+  .features{
+    align-items:flex-start;
+    max-width:320px;
+    margin:0 auto;
+  }
+}
 
-.logo-wrap{}
+.logo-wrap{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  width:100%;
+}
 .logo-img{width:180px;max-width:90%}
 .tagline{
   font-size:13px;font-weight:600;color:#64748b;
@@ -157,7 +173,7 @@ body{
   padding:40px 48px 40px 24px;min-height:100dvh;
 }
 @media(max-width:768px){
-  .right{padding:24px 20px;background:transparent}
+  .right{padding:24px 20px;background:transparent;min-height:auto}
 }
 
 .card{
@@ -175,7 +191,7 @@ body{
 /* Logo mobile */
 .logo-mobile{display:none;text-align:center;margin-bottom:24px}
 .logo-mobile img{width:150px}
-@media(max-width:768px){.logo-mobile{display:block}}
+@media(max-width:768px){.logo-mobile{display:none}}
 
 /* Tabs */
 .tabs{
@@ -257,6 +273,9 @@ body{
   text-align:center;padding:12px;
   font-size:11px;color:#64748b;
   font-weight:700;letter-spacing:.06em;z-index:1;
+}
+@media(max-width:768px){
+  .footer{position:relative;padding:24px 12px;margin-top:20px}
 }
 
 /* ── LOADING ── */
