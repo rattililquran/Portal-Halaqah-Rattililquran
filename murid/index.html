@@ -3389,47 +3389,6 @@ html.theme-dark .cal-note-text {
       </div>
     </div>
 
-    <!-- Modal Generate Rekap -->
-    <div class="modal-overlay" id="rekapModal" onclick="if(event.target===this)closeModal('rekapModal')">
-      <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
-        <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
-          <div style="font-size:15px;font-weight:900;color:var(--text)" id="rekapTitle">Generate Rekap KBM</div>
-          <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="rekapSubtitle"></div>
-        </div>
-        <div style="overflow-y:auto;flex:1;padding:16px 20px" id="rekapBody">
-          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat data jurnal...</div></div>
-        </div>
-        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
-          <button class="btn btn-outline" style="flex:1" onclick="closeModal('rekapModal')">Tutup</button>
-          <button class="btn btn-primary" style="flex:2" id="rekapCopyBtn" onclick="copyRekap()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Salin Rekap
-          </button>
-          <button class="btn btn-green btn-sm" id="rekapTandaiBtn" onclick="tandaiRekapTerkirim()" style="font-size:12px;padding:10px 14px">
-            Tandai Terkirim
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Form Observasi -->
-    <div class="modal-overlay" id="obsFormModal" onclick="if(event.target===this)closeModal('obsFormModal')">
-      <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
-        <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
-          <div style="font-size:15px;font-weight:900;color:var(--text)" id="obsFormTitle">Observasi Sesi</div>
-          <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="obsFormSubtitle"></div>
-        </div>
-        <div style="overflow-y:auto;flex:1;padding:16px 20px" id="obsFormBody">
-          <!-- Diisi JS -->
-        </div>
-        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
-          <button class="btn btn-outline" style="flex:1" onclick="closeModal('obsFormModal')">Batal</button>
-          <button class="btn btn-primary" style="flex:2" id="obsSubmitBtn" onclick="doSubmitObservasi()">
-            Kirim Observasi
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- ════ RAPORT ════ -->
     <div class="page" id="page-raport">
@@ -3838,6 +3797,48 @@ html.theme-dark .cal-note-text {
   </nav>
 
   </div><!-- /main-panel -->
+
+  <!-- Modal Generate Rekap -->
+  <div class="modal-overlay" id="rekapModal" onclick="if(event.target===this)closeModal('rekapModal')">
+    <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-size:15px;font-weight:900;color:var(--text)" id="rekapTitle">Generate Rekap KBM</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="rekapSubtitle"></div>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:16px 20px" id="rekapBody">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat data jurnal...</div></div>
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal('rekapModal')">Tutup</button>
+        <button class="btn btn-primary" style="flex:2" id="rekapCopyBtn" onclick="copyRekap()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Salin Rekap
+        </button>
+        <button class="btn btn-green btn-sm" id="rekapTandaiBtn" onclick="tandaiRekapTerkirim()" style="font-size:12px;padding:10px 14px">
+          Tandai Terkirim
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form Observasi -->
+  <div class="modal-overlay" id="obsFormModal" onclick="if(event.target===this)closeModal('obsFormModal')">
+    <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-size:15px;font-weight:900;color:var(--text)" id="obsFormTitle">Observasi Sesi</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px" id="obsFormSubtitle"></div>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:16px 20px" id="obsFormBody">
+        <!-- Diisi JS -->
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal('obsFormModal')">Batal</button>
+        <button class="btn btn-primary" style="flex:2" id="obsSubmitBtn" onclick="doSubmitObservasi()">
+          Kirim Observasi
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- SIDEBAR OVERLAY (mobile only) -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -8165,10 +8166,14 @@ async function loadRaport() {
       var pred = String(rp.predikat || '').trim();
       var predikat = pred + (pred.indexOf('Mumtaz') === 0 ? ' ⭐' : pred.indexOf('Jayyid Jiddan') === 0 ? ' 👍' : pred.indexOf('Jayyid') === 0 ? ' 📌' : ' 📝');
       var kompHTML = (rp.komponen||[]).map(function(k){
+        var isRescaled = k.bobot_original != null && Math.abs(Number(k.bobot) - Number(k.bobot_original)) > 0.05;
+        var bobotLabel = isRescaled
+          ? 'Bobot ' + k.bobot + '% <span style="color:var(--amber);font-size:10px" title="Bobot disesuaikan dari ' + k.bobot_original + '% karena ada komponen yang ditangguhkan">⚠️</span>'
+          : 'Bobot ' + k.bobot + '%';
         return '<div class="komponen-row">'
           + '<span>'+esc(k.nama_komponen||k.nama||'-')+'</span>'
           + '<div style="display:flex;gap:8px;align-items:center">'
-          + '<span style="font-size:12px;color:var(--text-3)">Bobot '+k.bobot+'%</span>'
+          + '<span style="font-size:12px;color:var(--text-3)">'+bobotLabel+'</span>'
           + '<span style="font-weight:700">'+k.nilai+'</span>'
           + '</div></div>';
       }).join('');
@@ -8185,6 +8190,7 @@ async function loadRaport() {
   } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(e.message)+'</div></div>'; }
   finally { hideLoad(); }
 }
+
 
 function previewRaportPDF(idx) {
   var rp = _raportData[idx];
@@ -8237,11 +8243,20 @@ function previewRaportPDF(idx) {
     + '</div>';
 
   // ── Komponen tabel ──
+  var hasRescaled = (rp.komponen||[]).some(function(k) {
+    return k.bobot_original != null && Math.abs(Number(k.bobot) - Number(k.bobot_original)) > 0.05;
+  });
+  var footnoteHTML = hasRescaled
+    ? '<div style="font-size:9.5px;color:#b45309;font-style:italic;margin-top:6px;margin-bottom:12px;text-align:left">* Bobot disesuaikan secara proporsional karena ada komponen penilaian yang ditangguhkan/tidak aktif.</div>'
+    : '';
+
   var komponenHTML = (rp.komponen||[]).map(function(k, i) {
+    var isRescaled = k.bobot_original != null && Math.abs(Number(k.bobot) - Number(k.bobot_original)) > 0.05;
+    var bobotLabel = k.bobot + '%' + (isRescaled ? ' <span style="color:#d97706;font-size:11px" title="Bobot disesuaikan dari ' + k.bobot_original + '% karena ada komponen yang ditangguhkan">⚠️</span>' : '');
     return '<tr>'
       + '<td class="rp-table-num">'+(i+1)+'</td>'
-      + '<td style="font-weight:600">'+esc(k.nama)+'</td>'
-      + '<td class="rp-table-bobot">'+k.bobot+'%</td>'
+      + '<td style="font-weight:600">'+esc(k.nama_komponen || k.nama || '-')+'</td>'
+      + '<td class="rp-table-bobot">'+bobotLabel+'</td>'
       + '<td class="rp-table-nilai">'+k.nilai+'</td>'
       + '</tr>';
   }).join('');
@@ -8276,8 +8291,6 @@ function previewRaportPDF(idx) {
     + '</div>';
 
   // ── Assemble: pisah bagian UTAMA dan HALAMAN TERAKHIR ──
-  // Bagian utama: header, identitas, tabel, nilai akhir
-  // Halaman terakhir: catatan guru + tanda tangan (selalu di halaman paling akhir)
   var html = '<div style="position:absolute;left:-9999px;top:0">'
 
     // Bagian utama (dirender terpisah untuk multi-page slicing)
@@ -8291,6 +8304,7 @@ function previewRaportPDF(idx) {
     + '<thead><tr><th style="text-align:center;width:6%">No</th><th>Komponen Evaluasi</th><th style="text-align:center;width:14%">Bobot</th><th style="text-align:center;width:14%">Nilai</th></tr></thead>'
     + '<tbody>'+komponenHTML+'</tbody>'
     + '</table>'
+    + footnoteHTML
     + '<div class="rp-final-row">'
     + '<div class="rp-final-score"><div class="rp-final-score-num">'+nilaiNum.toFixed(0)+'</div><div class="rp-final-score-lbl">Nilai Akhir</div></div>'
     + '<div class="rp-predikat-box">'
@@ -8327,6 +8341,7 @@ function previewRaportPDF(idx) {
     + '<thead><tr><th style="text-align:center;width:6%">No</th><th>Komponen Evaluasi</th><th style="text-align:center;width:14%">Bobot</th><th style="text-align:center;width:14%">Nilai</th></tr></thead>'
     + '<tbody>'+komponenHTML+'</tbody>'
     + '</table>'
+    + footnoteHTML
     + '<div class="rp-final-row">'
     + '<div class="rp-final-score"><div class="rp-final-score-num">'+nilaiNum.toFixed(0)+'</div><div class="rp-final-score-lbl">Nilai Akhir</div></div>'
     + '<div class="rp-predikat-box">'
@@ -9403,7 +9418,7 @@ function bukaKalDetail(dateStr) {
         + (k.adab ? ' · Adab: <strong>'+esc(k.adab)+'</strong>' : '')
         + (k.kamera_murid ? ' · Kamera: <strong>'+esc(k.kamera_murid)+'</strong>' : '')
         + '</div>'
-        + (k.koreksi_tahsin ? '<div style="margin-top:6px;font-size:12px;background:var(--amber-l);border-radius:8px;padding:7px 10px;color:#7a5500">✏️ '+esc(k.koreksi_tahsin)+'</div>' : '')
+        + (k.koreksi_tahsin ? '<div style="margin-top:6px">' + (k.jenis_sesi === 'Micro Teaching' ? formatMicroTeachingRubric(k.koreksi_tahsin) : '<div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(k.koreksi_tahsin) + '</div>') + '</div>' : '')
         + '</div>';
     }).join('');
   }
@@ -9684,15 +9699,21 @@ function _htmlRincianNilai(data) {
     + '<th style="padding:8px;text-align:center;border-radius:0 8px 0 0">x Bobot</th>'
     + '</tr></thead><tbody>';
 
+  var hasRescaled = false;
   (rp.komponen || []).forEach(function(k, i) {
     var nb  = k.nilai_bobot !== undefined ? k.nilai_bobot
             : Math.round(Number(k.nilai||0)*Number(k.bobot||0)/100*10)/10;
     var bg  = i%2===0 ? rowOdd : rowEven;
     var vColor = Number(k.nilai) >= 80 ? 'var(--green)' : Number(k.nilai) >= 60 ? 'var(--amber)' : 'var(--red)';
+    
+    var isRescaled = k.bobot_original != null && Math.abs(Number(k.bobot) - Number(k.bobot_original)) > 0.05;
+    if (isRescaled) hasRescaled = true;
+    var bobotLabel = k.bobot + '%' + (isRescaled ? ' <span style="color:var(--amber)" title="Bobot disesuaikan dari ' + k.bobot_original + '% karena ada komponen yang ditangguhkan">⚠️</span>' : '');
+
     h += '<tr style="background:'+bg+'">'
       + '<td style="padding:9px 8px;font-weight:600;color:var(--text)">'+esc(k.nama_komponen||k.nama||'-')
         +'<span style="font-size:9px;color:var(--text-3);margin-left:6px;font-weight:400">'+(k.tipe==='manual'?'manual':'otomatis')+'</span></td>'
-      + '<td style="padding:9px;text-align:center;color:var(--text-3)">'+k.bobot+'%</td>'
+      + '<td style="padding:9px;text-align:center;color:var(--text-3)">'+bobotLabel+'</td>'
       + '<td style="padding:9px;text-align:center;font-weight:800;font-size:14px;color:'+vColor+'">'+k.nilai+'</td>'
       + '<td style="padding:9px;text-align:center;font-weight:700;color:var(--blue)">'+nb+'</td>'
       + '</tr>';
@@ -9703,6 +9724,10 @@ function _htmlRincianNilai(data) {
     + '<td style="padding:10px;text-align:center;font-weight:900;font-size:16px;color:var(--green)">'+num.toFixed(1)+'</td>'
     + '</tr>';
   h += '</tbody></table></div>';
+  
+  if (hasRescaled) {
+    h += '<div style="font-size:10px;color:var(--amber);font-style:italic;margin-top:6px;margin-bottom:8px">* Bobot disesuaikan secara proporsional karena ada komponen penilaian yang ditangguhkan/tidak aktif.</div>';
+  }
 
   // Nilai manual jika ada
   if (data.nilai_manual && data.nilai_manual.length) {
@@ -9811,9 +9836,13 @@ function _htmlRincianSesi(data) {
     }
     // Baris koreksi (jika ada)
     if (s.koreksi && !isAlpa) {
+      var displayHTML = s.jenis_sesi === 'Micro Teaching'
+        ? formatMicroTeachingRubric(s.koreksi)
+        : '<div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(s.koreksi) + '</div>';
+
       h += '<tr><td style="background:'+koreksBg+'"></td>'
-        + '<td colspan="5" style="padding:4px 6px 6px;font-size:10px;color:var(--amber);background:'+koreksBg+'">'
-        + '✏️ '+esc(s.koreksi)+'</td></tr>';
+        + '<td colspan="5" style="padding:4px 6px 6px;background:'+koreksBg+'">'
+        + displayHTML + '</td></tr>';
     }
   });
 
@@ -9947,6 +9976,7 @@ async function downloadPDFResmi() {
     y += 7;
 
     var komp = rp.komponen || [];
+    var hasRescaled = false;
     komp.forEach(function(k, idx) {
       var isEven = idx%2===0;
       doc.setFillColor(isEven?248:255, isEven?250:255, isEven?252:255);
@@ -9957,7 +9987,12 @@ async function downloadPDFResmi() {
       var nm = k.nama_komponen || k.nama || '–';
       doc.text(nm, cx, y+4.5); cx += cw[0];
       doc.setTextColor(...Md);
-      doc.text((k.bobot||0)+'%', cx, y+4.5, {align:'left'}); cx += cw[1];
+      
+      var isRescaled = k.bobot_original != null && Math.abs(Number(k.bobot) - Number(k.bobot_original)) > 0.05;
+      if (isRescaled) hasRescaled = true;
+      var bobotLabel = (k.bobot||0) + '%' + (isRescaled ? '*' : '');
+      
+      doc.text(bobotLabel, cx, y+4.5, {align:'left'}); cx += cw[1];
       doc.text(String(k.nilai||0), cx, y+4.5); cx += cw[2];
       doc.text(String(k.nilai_bobot||k.nilai_x_bobot||0), cx, y+4.5);
       y += 6.5;
@@ -9967,7 +10002,15 @@ async function downloadPDFResmi() {
     doc.setTextColor(...Wh); doc.setFont('helvetica','bold'); doc.setFontSize(9);
     doc.text('NILAI AKHIR', mar+2, y+5);
     doc.text(nilaiNum.toFixed(1), W-mar-2, y+5, {align:'right'});
-    y += 14;
+    y += 9;
+    
+    // Footnote if rescaled
+    if (hasRescaled) {
+      doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(...Md);
+      doc.text('* Bobot disesuaikan secara proporsional karena ada komponen penilaian yang ditangguhkan/tidak aktif.', mar, y);
+      y += 5;
+    }
+    y += 5;
 
     // ── Catatan ──
     var catatan = rp.catatan_guru || '';
@@ -10061,7 +10104,7 @@ async function downloadPDFResmi() {
         y2 += 7;
 
         // Tabel header
-        var cW2 = [10, 24, 72, 24, 22, 22];
+        var cW2 = [8, 22, 70, 22, 20, 32];
         doc.setFillColor(...G); doc.rect(mar, y2, W-mar*2, 7, 'F');
         doc.setTextColor(...Wh); doc.setFont('helvetica','bold'); doc.setFontSize(8);
         var cx2 = mar+1;
@@ -10092,9 +10135,23 @@ async function downloadPDFResmi() {
           doc.text(hStat, cx2+cW2[3]/2, y2+4, {align:'center'}); cx2 += cW2[3];
           doc.setTextColor(...Md); doc.setFont('helvetica','normal');
           doc.text(s.adab==='Baik'?'Baik':s.adab||'—', cx2+cW2[4]/2, y2+4, {align:'center'}); cx2 += cW2[4];
+          
           var kam = String(s.kamera_murid||s.kamera||'');
-          var kamTxt = kam.indexOf('terbuka')!==-1?'terbuka':kam.indexOf('selalu')!==-1?'tertutup':kam.indexOf('sering')!==-1?'sering':'-';
-          doc.text(kamTxt, cx2+1, y2+4);
+          var kamTxt = '—';
+          var kamClr = Md;
+          if (kam.indexOf('terbuka') !== -1) {
+            kamTxt = 'Terbuka';
+            kamClr = [16,185,129];
+          } else if (kam.indexOf('selalu') !== -1) {
+            kamTxt = 'Selalu Tutup';
+            kamClr = [239,68,68];
+          } else if (kam.indexOf('sering') !== -1) {
+            kamTxt = 'Sering Tutup';
+            kamClr = [245,158,11];
+          }
+          doc.setTextColor(...kamClr);
+          doc.setFont('helvetica', kamTxt !== '—' ? 'bold' : 'normal');
+          doc.text(kamTxt, cx2+cW2[5]/2, y2+4, {align:'center'});
           y2 += 6;
         });
         y2 += 8;

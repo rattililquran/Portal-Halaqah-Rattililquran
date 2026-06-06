@@ -4602,6 +4602,14 @@ function goToHafalanQiyam() {
   }
 }
 
+function goToMicroteachingAssessment() {
+  _saveMicroteachingKbmCache();
+  goPage('microteaching-kbm');
+  renderSteps('microteaching-kbm');
+  document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
+  renderMicroteachingKbm();
+}
+
 function renderHafalanKbm() {
   var cont = document.getElementById('hafalanKbmList');
   if (!cont || !muridSesi || !muridSesi.length) {
@@ -4952,120 +4960,16 @@ function hfKbmTargetSuratInput(mid, q) {
   dd.style.display = 'block';
 }
 
-function hfKbmSelectTargetSurat(el) {
-  var mid   = el.dataset.mid;
-  var eid   = _hfKbmEid(mid);
-  var latin = el.dataset.latin;
-  var info  = JSON.parse(el.dataset.info.replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>'));
-  var inputEl = document.getElementById('hfkbm-tgt-surat-' + eid);
-  var ddEl    = document.getElementById('hfkbm-tgt-dd-' + eid);
-  var dariEl  = document.getElementById('hfkbm-tgt-dari-' + eid);
-  var smpiEl  = document.getElementById('hfkbm-tgt-sampai-' + eid);
-  if (inputEl) inputEl.value = latin;
-  if (ddEl)    ddEl.style.display = 'none';
-  if (dariEl)  { dariEl.max = info.ayat; if (parseInt(dariEl.value)  > info.ayat) dariEl.value  = info.ayat; }
-  if (smpiEl)  { smpiEl.max = info.ayat; if (parseInt(smpiEl.value)  > info.ayat) smpiEl.value  = info.ayat; }
-}
-
-
-function updateHfKbmPoin(mid) {
-  var eid     = _hfKbmEid(mid);
-  var cfg     = _hfLoadConfig();
-  var kelEl   = document.getElementById('hfkbm-kel-' + eid);
-  var nilEl   = document.getElementById('hfkbm-nil-' + eid);
-  var poinEl  = document.getElementById('hfkbm-poin-' + eid);
-  if (!kelEl || !nilEl || !poinEl) return;
-  var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelEl.value; });
-  var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilEl.value; });
-  var poin    = (kelItem ? kelItem.poin : 0) + (nilItem ? nilItem.poin : 0);
-  poinEl.textContent = '⚡ Estimasi poin: +' + poin;
-}
-
-async function simpanHafalanKBM() {
-  if (!sesiAktif) return toast('Tidak ada sesi aktif', 'err');
-  var presensiMap = {};
-  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
-    presensiMap[btn.dataset.id] = btn.dataset.k;
-  });
-  var hadirList = muridSesi.filter(function(m){
-    var s = presensiMap[m.id_murid]||'A';
-    return s === 'H' || s === 'T';
-  });
-  var batch = [], errors = [];
-  hadirList.forEach(function(m) {
-    var eid    = _hfKbmEid(m.id_murid);
-    var surat  = (document.getElementById('hfkbm-surat-'        + eid)||{}).value || '';
-    var juz    = (document.getElementById('hfkbm-juz-'          + eid)||{}).value || '';
-    var dari   = (document.getElementById('hfkbm-ayat-dari-'    + eid)||{}).value || '';
-    var sampai = (document.getElementById('hfkbm-ayat-sampai-'  + eid)||{}).value || '';
-    var jenis  = (document.getElementById('hfkbm-jenis-'        + eid)||{}).value || 'Ziyadah';
-    var kel    = (document.getElementById('hfkbm-kel-'          + eid)||{}).value || '';
-    var nil    = (document.getElementById('hfkbm-nil-'          + eid)||{}).value || '';
-    var kam    = (document.getElementById('hfkbm-kam-'          + eid)||{}).value || '';
-    var cat    = (document.getElementById('hfkbm-catatan-'      + eid)||{}).value || '';
-    var tgtSrt = (document.getElementById('hfkbm-tgt-surat-'    + eid)||{}).value || '';
-    var tgtDr  = (document.getElementById('hfkbm-tgt-dari-'     + eid)||{}).value || '';
-    var tgtSmp = (document.getElementById('hfkbm-tgt-sampai-'   + eid)||{}).value || '';
-    if (!surat) { errors.push(esc(m.nama_murid) + ': surat belum dipilih'); return; }
-    if (!dari || !sampai) { errors.push(esc(m.nama_murid) + ': ayat belum diisi'); return; }
-    batch.push({
-      id_murid: m.id_murid, nama_murid: m.nama_murid,
-      id_halaqah: sesiAktif.id_halaqah, id_kbm: sesiAktif.id_kbm,
-      tanggal: sesiAktif.tanggal_pertemuan,
-      juz, surat, ayat_dari: dari, ayat_sampai: sampai,
-      jenis, nilai: nil, kelancaran: kel, kamera: kam||null, catatan: cat||null,
-      target_surat: tgtSrt||null, target_ayat_dari: tgtDr||null, target_ayat_sampai: tgtSmp||null,
-    });
-  });
-  if (errors.length) { toast('Lengkapi: ' + errors[0], 'err'); return; }
-  if (!batch.length) { goToJurnal(); return; }
-  setBtn('btnSimpanHafalanKbm', true, '⏳ Menyimpan...');
-  showLoad('Bismillah, menyimpan hafalan...');
-  try {
-    await Promise.all(batch.map(function(d){ return window.HQ.GuruAPI.addSetoranHafalan(d); }));
-    hideLoad();
-    setBtn('btnSimpanHafalanKbm', false, 'Simpan & Lanjut ke Jurnal →');
-    quickToast(batch.length + ' hafalan berhasil disimpan! 🎉', 'ok');
-    goToJurnal();
-  } catch(e) {
-    hideLoad();
-    toast('Gagal menyimpan: ' + e.message, 'err');
-    setBtn('btnSimpanHafalanKbm', false, 'Simpan & Lanjut ke Jurnal →');
-  }
-}
-
-// ══════════════════════════════════════════
-//  MICRO TEACHING — STEP 3 ASSESSMENT
-// ══════════════════════════════════════════
-function goToMicroteachingAssessment() {
-  _saveMicroteachingKbmCache();
-  goPage('microteaching-kbm');
-  renderSteps('microteaching-kbm');
-  document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
-  renderMicroteachingKbm();
-}
-
 function renderMicroteachingKbm() {
   const cont = document.getElementById('microteachingKbmList');
   if (!cont) return;
 
-  // Ambil status presensi dari Step 2
-  const presensiMap = {};
-  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
-    presensiMap[btn.dataset.id] = btn.dataset.k;
-  });
-
-  const presentMurid = muridSesi.filter(function(m) {
-    var status = presensiMap[m.id_murid] || 'A';
-    return status === 'H' || status === 'T';
-  });
-
-  if (!presentMurid.length) {
-    cont.innerHTML = emptyHTML('👥', 'Tidak ada murid yang hadir', 'Semua murid ditandai Izin/Alpa. Silakan kembali ke presensi atau lanjut ke jurnal.');
+  if (!muridSesi || !muridSesi.length) {
+    cont.innerHTML = emptyHTML('👥', 'Tidak ada murid', 'Silakan pilih halaqah yang memiliki murid.');
     return;
   }
 
-  cont.innerHTML = presentMurid.map(function(m) {
+  cont.innerHTML = muridSesi.map(function(m) {
     return buildMicroteachingCard(m);
   }).join('');
 
@@ -5076,6 +4980,61 @@ function renderMicroteachingKbm() {
 function buildMicroteachingCard(m) {
   var initials = (m.nama_murid || '').split(' ').slice(0, 2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
   var id = m.id_murid;
+  
+  // Ambil status presensi dari Step 2
+  const presensiMap = {};
+  document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+    presensiMap[btn.dataset.id] = btn.dataset.k;
+  });
+  var status = presensiMap[id] || 'H';
+  var statusText = status === 'H' ? 'Hadir' : status === 'T' ? 'Terlambat' : status === 'I' ? 'Izin' : 'Alpa';
+  var statusColor = status === 'H' ? '#16a34a' : status === 'T' ? '#d97706' : status === 'I' ? '#2563eb' : '#dc2626';
+
+  return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:24px; border-radius:16px; overflow:hidden; border:1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">'
+    + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff; flex-wrap:wrap;">'
+      + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
+      + '<div>'
+        + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">👤 ' + esc(m.nama_murid) + '</div>'
+        + '<div style="font-size:11px; margin-top:2px;"><span style="background:'+statusColor+'; color:#fff; padding:2px 8px; border-radius:100px; font-weight:800;">'+statusText+'</span></div>'
+      + '</div>'
+      + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 12px; font-size:12px; font-weight:900; letter-spacing: 0.04em;">OBSERVER</div>'
+    + '</div>'
+    + '<div style="padding:14px 18px 0; display:flex; align-items:center; gap:8px;">'
+      + '<input type="checkbox" id="mt-toggle-' + id + '" data-status="'+status+'" onchange="toggleMicroteachingPracticing(\'' + id + '\')" style="width:18px; height:18px; cursor:pointer;">'
+      + '<label for="mt-toggle-' + id + '" style="font-size:13px; font-weight:800; color:#1e3a8a; cursor:pointer; margin:0; user-select:none;">🎯 Jadwal Praktik Hari Ini</label>'
+    + '</div>'
+    + '<div id="mt-content-wrapper-' + id + '"></div>'
+    + '</div>';
+}
+
+function toggleMicroteachingPracticing(id) {
+  var toggle = document.getElementById('mt-toggle-' + id);
+  var wrapper = document.getElementById('mt-content-wrapper-' + id);
+  if (!toggle || !wrapper) return;
+  
+  var isToggled = toggle.checked;
+  var status = toggle.dataset.status || 'H';
+  var isAbsent = ['A','I'].includes(status);
+  
+  if (!isToggled) {
+    wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-3); font-style:italic; font-size:13px;">'
+      + '👁️ Murid menyimak pertemuan ini sebagai observer (tidak dinilai).'
+      + '</div>';
+    var badge = document.getElementById('mt-score-badge-' + id);
+    if (badge) badge.textContent = 'OBSERVER';
+    return;
+  }
+  
+  if (isAbsent) {
+    wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--red); font-weight:700; font-size:13px; background:#fef2f2; border-radius:12px; border:1px solid #fca5a5; margin:10px 0;">'
+      + '⚠️ Murid tidak hadir saat jadwal praktik. Nilai praktik otomatis dihitung 0 (Alpa).'
+      + '</div>';
+    var badge = document.getElementById('mt-score-badge-' + id);
+    if (badge) badge.textContent = 'NILAI: 0';
+    return;
+  }
+  
+  // Render rubrik options and notes
   var rubrikHTML = KRITERIA_MT.map(function(k) {
     var opts = OPT_MT.map(function(o, oi) {
       var radioId = 'mt-' + id + '-' + k.id + '-' + o.val;
@@ -5100,15 +5059,10 @@ function buildMicroteachingCard(m) {
     + '</div>';
   }).join('');
 
-  return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:24px; border-radius:16px; overflow:hidden; border:1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">'
-    + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff;">'
-      + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
-      + '<div>'
-        + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">👤 ' + esc(m.nama_murid) + '</div>'
-      + '</div>'
-      + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 12px; font-size:12px; font-weight:900; letter-spacing: 0.04em;">— / 100</div>'
-    + '</div>'
-    + '<div class="rubrik-wrap" style="padding:12px 18px;">' + rubrikHTML + '</div>'
+  var badge = document.getElementById('mt-score-badge-' + id);
+  if (badge) badge.textContent = '— / 100';
+
+  wrapper.innerHTML = '<div class="rubrik-wrap" style="padding:12px 18px;">' + rubrikHTML + '</div>'
     + '<div id="mt-score-panel-' + id + '" style="padding:16px 18px; background:var(--bg-2); border-top:1.5px solid var(--border); border-bottom:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; transition:all 0.3s; margin: 8px 0;">'
       + '<div>'
         + '<div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-3); margin-bottom:2px;">Nilai Akhir Terhitung</div>'
@@ -5119,7 +5073,6 @@ function buildMicroteachingCard(m) {
     + '<div class="catatan-wrap" style="padding:12px 18px 18px;">'
       + '<label style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-3); display:block; margin-bottom:6px;">Catatan Penilaian</label>'
       + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12.5px; resize:vertical; padding:10px; border-radius:10px; border: 1.5px solid var(--border);"></textarea>'
-    + '</div>'
     + '</div>';
 }
 
@@ -5205,17 +5158,22 @@ function _saveMicroteachingKbmCache() {
   if (!muridSesi) return;
   muridSesi.forEach(function(m) {
     var id = m.id_murid;
+    var toggle = document.getElementById('mt-toggle-'+id);
+    var isToggled = toggle ? toggle.checked : false;
+    
     var getCheckedVal = function(criteriaId) {
       var checked = document.querySelector('input[name="mt-'+id+'-'+criteriaId+'"]:checked');
       return checked ? checked.value : '';
     };
     var getV = function(eid){ var el=document.getElementById(eid); return el?el.value:''; };
+    
     window._microteachingKbmCache[id] = {
-      penguasaan : getCheckedVal('penguasaan'),
-      penyampaian: getCheckedVal('penyampaian'),
-      tajwid     : getCheckedVal('tajwid'),
-      interaksi  : getCheckedVal('interaksi'),
-      waktu      : getCheckedVal('waktu'),
+      isToggled  : isToggled,
+      penguasaan : isToggled ? getCheckedVal('penguasaan') : '',
+      penyampaian: isToggled ? getCheckedVal('penyampaian') : '',
+      tajwid     : isToggled ? getCheckedVal('tajwid') : '',
+      interaksi  : isToggled ? getCheckedVal('interaksi') : '',
+      waktu      : isToggled ? getCheckedVal('waktu') : '',
       catatan    : getV('mt-catatan-'+id),
     };
   });
@@ -5224,22 +5182,36 @@ function _saveMicroteachingKbmCache() {
 function _restoreMicroteachingKbmCache() {
   if (!window._microteachingKbmCache || !muridSesi) return;
   muridSesi.forEach(function(m) {
-    var id    = m.id_murid;
+    var id = m.id_murid;
     var cache = window._microteachingKbmCache[id];
     if (!cache) return;
-    var setChecked = function(criteriaId, val) {
-      if (!val) return;
-      var radio = document.getElementById('mt-'+id+'-'+criteriaId+'-'+val);
-      if (radio) { radio.checked = true; }
-    };
-    var setV = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
-    setChecked('penguasaan', cache.penguasaan);
-    setChecked('penyampaian', cache.penyampaian);
-    setChecked('tajwid', cache.tajwid);
-    setChecked('interaksi', cache.interaksi);
-    setChecked('waktu', cache.waktu);
-    setV('mt-catatan-'+id, cache.catatan);
-    updateMicroteachingScore(id);
+    
+    var toggle = document.getElementById('mt-toggle-' + id);
+    if (toggle) {
+      toggle.checked = !!cache.isToggled;
+      toggle.dispatchEvent(new Event('change'));
+    }
+    
+    if (cache.isToggled) {
+      var setChecked = function(criteriaId, val) {
+        if (!val) return;
+        var rad = document.querySelector('input[name="mt-'+id+'-'+criteriaId+'"][value="'+val+'"]');
+        if (rad) {
+          rad.checked = true;
+          rad.dispatchEvent(new Event('change'));
+        }
+      };
+      setChecked('penguasaan', cache.penguasaan);
+      setChecked('penyampaian', cache.penyampaian);
+      setChecked('tajwid', cache.tajwid);
+      setChecked('interaksi', cache.interaksi);
+      setChecked('waktu', cache.waktu);
+      
+      var note = document.getElementById('mt-catatan-' + id);
+      if (note && cache.catatan) {
+        note.value = cache.catatan;
+      }
+    }
   });
 }
 
@@ -5247,25 +5219,24 @@ async function simpanMicroteachingKBM() {
   if (!sesiAktif) return;
   _saveMicroteachingKbmCache();
 
-  // Filter murid yang hadir saja (status H/T)
+  // Ambil data presensi dari Step 2
   const presensiMap = {};
   document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
     presensiMap[btn.dataset.id] = btn.dataset.k;
   });
 
-  const presentMurid = muridSesi.filter(function(m) {
-    var status = presensiMap[m.id_murid] || 'A';
-    return status === 'H' || status === 'T';
-  });
-  
   var valid = true;
-  for (var i = 0; i < presentMurid.length; i++) {
-    var m = presentMurid[i];
+  for (var i = 0; i < muridSesi.length; i++) {
+    var m = muridSesi[i];
     var cache = window._microteachingKbmCache[m.id_murid] || {};
-    if (!cache.penguasaan || !cache.penyampaian || !cache.tajwid || !cache.interaksi || !cache.waktu) {
-      toast('Semua kriteria penilaian wajib diisi untuk ' + m.nama_murid, 'warn');
-      valid = false;
-      break;
+    var status = presensiMap[m.id_murid] || 'H';
+    
+    if (cache.isToggled && !['A','I'].includes(status)) {
+      if (!cache.penguasaan || !cache.penyampaian || !cache.tajwid || !cache.interaksi || !cache.waktu) {
+        toast('Semua kriteria penilaian wajib diisi untuk ' + m.nama_murid, 'warn');
+        valid = false;
+        break;
+      }
     }
   }
   if (!valid) return;
@@ -5660,30 +5631,56 @@ async function doSelesaiKBM() {
     const nilaiList = [];
     for (const m of muridSesi) {
       if (isMicroteachingSesi) {
-        const cache = window._microteachingKbmCache[m.id_murid];
+        const cache = window._microteachingKbmCache[m.id_murid] || {};
         const status = presensiMapPv[m.id_murid] || 'H';
-        if (cache && !['A','I'].includes(status)) {
-          let total = 0; let filled = 0;
-          KRITERIA_MT.forEach(function(k) {
-            var val = cache[k.id];
-            if (val) { total += parseInt(val) * k.bobot; filled++; }
-          });
-          var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
-          var rubrikChoices = {
-            penguasaan : cache.penguasaan,
-            penyampaian: cache.penyampaian,
-            tajwid     : cache.tajwid,
-            interaksi  : cache.interaksi,
-            waktu      : cache.waktu,
-          };
+        
+        if (cache.isToggled) {
+          if (!['A','I'].includes(status)) {
+            // Present and practicing: calculate rubrik score
+            let total = 0; let filled = 0;
+            KRITERIA_MT.forEach(function(k) {
+              var val = cache[k.id];
+              if (val) { total += parseInt(val) * k.bobot; filled++; }
+            });
+            var score = filled === KRITERIA_MT.length ? Math.round(total * 25) : null;
+            var rubrikChoices = {
+              penguasaan : cache.penguasaan,
+              penyampaian: cache.penyampaian,
+              tajwid     : cache.tajwid,
+              interaksi  : cache.interaksi,
+              waktu      : cache.waktu,
+            };
+            nilaiList.push({
+              id_murid      : m.id_murid,
+              nama_murid    : m.nama_murid,
+              nilai         : score,
+              adab          : '',
+              kamera_murid  : '',
+              koreksi_tahsin: JSON.stringify(rubrikChoices),
+              catatan_murid : cache.catatan || '',
+            });
+          } else {
+            // Absent and scheduled to practice: score is 0
+            nilaiList.push({
+              id_murid      : m.id_murid,
+              nama_murid    : m.nama_murid,
+              nilai         : 0,
+              adab          : '',
+              kamera_murid  : '',
+              koreksi_tahsin: JSON.stringify({ absent: true }),
+              catatan_murid : 'Murid Alpa saat jadwal Praktik Mengajar',
+            });
+          }
+        } else {
+          // Observer: nilai is null
           nilaiList.push({
             id_murid      : m.id_murid,
             nama_murid    : m.nama_murid,
-            nilai         : score,
+            nilai         : null,
             adab          : '',
             kamera_murid  : '',
-            koreksi_tahsin: JSON.stringify(rubrikChoices),
-            catatan_murid : cache.catatan || '',
+            koreksi_tahsin: '',
+            catatan_murid : '',
           });
         }
       } else {
@@ -7502,9 +7499,7 @@ async function mulaiSesiBaruCepat() {
   if (sesiAktif) {
     toast('Mengarahkan ke sesi KBM yang sedang berjalan...', 'ok');
     if (sesiAktif.status === 'draft') {
-      goPage('presensi');
-      renderPresensi();
-      renderSteps('presensi');
+      lanjutSesi();
     }
     return;
   }

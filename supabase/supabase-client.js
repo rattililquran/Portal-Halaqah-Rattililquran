@@ -1107,7 +1107,7 @@ var GuruAPI = {
 
   generateRaportHalaqah: async function(d) {
     // Kalkulasi raport semua murid di halaqah
-    var { data: anggota, error: errAnggota } = await _sb.from('anggota').select('id_murid, nama_murid').eq('id_halaqah', d.id_halaqah).eq('status', 'aktif');
+    var { data: anggota, error: errAnggota } = await _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', d.id_halaqah).eq('status', 'aktif');
     _check(errAnggota, 'generateRaportHalaqah:anggota');
     if (!anggota || !anggota.length) return { status: 'error', message: 'Tidak ada murid aktif di halaqah ini.' };
     var { data: komponen, error: errKomp } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
@@ -1142,7 +1142,7 @@ var GuruAPI = {
       var m = anggota[i];
       try {
         var raportData = _kalkulasiRaport(m.id_murid, d.id_periode, d.id_halaqah,
-          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig);
+          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level);
         var detailJson = raportData.komponen;
         var { error: upErr } = await _sb.from('raport')
           .upsert({
@@ -1225,14 +1225,9 @@ var GuruAPI = {
       return tA.localeCompare(tB);
     });
 
-    // Filter out Micro Teaching sessions from regular summary statistics (only count KBM Reguler/Qiyam)
-    var regulerKBM = (sortedKBM || []).filter(function(n) {
-      var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
-      return jenis !== 'Micro Teaching';
-    });
-
-    var hadirList = regulerKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
-    var totalSesi = regulerKBM.length;
+    // Calculate attendance summary statistics using all sessions (consistent with Kehadiran grade component)
+    var hadirList = (sortedKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
+    var totalSesi = (sortedKBM || []).length;
     return { status: 'ok', data: {
       raport: {
         id_raport: raport.id_raport, id_murid: raport.id_murid,
@@ -1254,9 +1249,9 @@ var GuruAPI = {
       }; }),
       summary: {
         total_sesi: totalSesi, total_hadir: hadirList.length,
-        total_alpa: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length,
-        total_izin: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='I';}).length,
-        total_terlambat: regulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='T';}).length,
+        total_alpa: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length,
+        total_izin: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='I';}).length,
+        total_terlambat: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='T';}).length,
         pct_hadir: totalSesi > 0 ? Math.round((hadirList.length/totalSesi)*100) : 0,
       },
       nilai_manual: (nilaiManual || []),
@@ -1459,10 +1454,11 @@ var GuruAPI = {
 //  KALKULASI RAPORT (helper internal)
 // ─────────────────────────────────────────────
 // BUG-021 fix: gradeConfig parameter opsional untuk backward compat
-function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig) {
+function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel) {
   var myKBM = (nilaiKBM || []).filter(function(n) { return n.id_murid === idMurid; });
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });
+  var lvl = (studentLevel || '').trim();
 
   // Filter out Micro Teaching sessions from regular calculations
   var myRegulerKBM = myKBM.filter(function(n) {
@@ -1481,34 +1477,53 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
 
   var nilaiKomp = (komponen || []).map(function(k) {
     var v = 0, nama = (k.nama_komponen || '').toLowerCase();
+    var isExcluded = false;
+
     if (k.tipe === 'manual') {
       var nm = myManual.find(function(n) { return n.id_komponen === k.id_komponen; });
-      v = nm ? Number(nm.nilai) || 0 : 0;
+      if (nm && nm.nilai !== null && nm.nilai !== '') {
+        v = Number(nm.nilai) || 0;
+      } else {
+        isExcluded = true;
+      }
     } else {
       var hadir = myRegulerKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
       if (nama.includes('kehadiran') && !nama.includes('tibyan')) {
-        var skor = myRegulerKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
-        v = myRegulerKBM.length > 0 ? Math.round(skor/myRegulerKBM.length*100) : 0;
+        // Kehadiran counts MT sessions to reward observer presence (uses myKBM instead of myRegulerKBM)
+        var skor = myKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
+        v = myKBM.length > 0 ? Math.round(skor/myKBM.length*100) : 0;
+        if (myKBM.length === 0) isExcluded = true;
       } else if (nama.includes('kbm') || nama.includes('harian')) {
-        var ts = 0;
-        hadir.forEach(function(n) {
-          var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
-          var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
-          if (jenis === 'KBM Qiyam') {
-            // Qiyam uses camera scores instead of adab (since Qiyam doesn't input adab)
-            ts += km;
-          } else {
-            var a = n.adab === 'Baik' ? 100 : 50;
-            ts += Math.round((a * ADAB_W + km * KAM_W) / 100);
-          }
-        });
-        v = hadir.length > 0 ? Math.round(ts / hadir.length) : 0;
+        if (lvl === 'Micro Teaching') {
+          isExcluded = true;
+        } else {
+          var ts = 0;
+          hadir.forEach(function(n) {
+            var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+            var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
+            if (jenis === 'KBM Qiyam') {
+              // Qiyam uses camera scores instead of adab (since Qiyam doesn't input adab)
+              ts += km;
+            } else {
+              var a = n.adab === 'Baik' ? 100 : 50;
+              ts += Math.round((a * ADAB_W + km * KAM_W) / 100);
+            }
+          });
+          v = hadir.length > 0 ? Math.round(ts / hadir.length) : 0;
+          if (hadir.length === 0) isExcluded = true;
+        }
       } else if (nama.includes('adab')) {
-        var vAdab = hadir.filter(function(n){return n.adab;});
-        v = vAdab.length > 0 ? Math.round(vAdab.filter(function(n){return n.adab==='Baik';}).length/vAdab.length*100) : 0;
+        if (lvl === 'Level Qiyam' || lvl === 'Micro Teaching') {
+          isExcluded = true;
+        } else {
+          var vAdab = hadir.filter(function(n){return n.adab;});
+          v = vAdab.length > 0 ? Math.round(vAdab.filter(function(n){return n.adab==='Baik';}).length/vAdab.length*100) : 0;
+          if (vAdab.length === 0) isExcluded = true;
+        }
       } else if (nama.includes('tibyan') || nama.includes('at-tibyan')) {
         var hadirAt = myAt.filter(function(n){return ['H','T'].includes(String(n.status_hadir||'').toUpperCase());}).length;
         v = totalAt > 0 ? Math.round(hadirAt/totalAt*100) : 0;
+        if (totalAt === 0) isExcluded = true;
       } else if (nama.includes('micro') || nama.includes('micro teaching')) {
         var mtRows = myKBM.filter(function(n) {
           var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
@@ -1516,21 +1531,66 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         });
         var mtSum = mtRows.reduce(function(s, n) { return s + (Number(n.nilai) || 0); }, 0);
         v = mtRows.length > 0 ? Math.round(mtSum / mtRows.length) : 0;
+        if (mtRows.length === 0) isExcluded = true;
       }
     }
-    return { id_komponen: k.id_komponen, nama_komponen: k.nama_komponen, bobot: Number(k.bobot), nilai: v, nilai_bobot: Math.round(v*Number(k.bobot)/100), tipe: k.tipe };
+    return { id_komponen: k.id_komponen, nama_komponen: k.nama_komponen, bobot: Number(k.bobot), nilai: v, isExcluded: isExcluded, tipe: k.tipe };
   });
 
-  var nilaiAkhir = nilaiKomp.reduce(function(s,k){return s+k.nilai_bobot;}, 0);
-  var alpa = myRegulerKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
-  // BUG-021: bonus perfect attendance dari DB config
-  if (myRegulerKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
-  var predikat = myRegulerKBM.length === 0 ? 'Belum Ada Data'
+  // Separate active and excluded components
+  var activeKomp = nilaiKomp.filter(function(k) { return !k.isExcluded; });
+  var totalActiveWeight = activeKomp.reduce(function(sum, k) { return sum + k.bobot; }, 0);
+
+  var nilaiAkhir = 0;
+  if (totalActiveWeight > 0) {
+    var rawSum = activeKomp.reduce(function(s, k) {
+      return s + (k.nilai * k.bobot);
+    }, 0);
+    nilaiAkhir = Math.round(rawSum / totalActiveWeight);
+    
+    // Rescale active weights to sum up to exactly 100%
+    var bobotUsedSum = 0;
+    activeKomp.forEach(function(k) {
+      k.bobot_original = k.bobot;
+      var preciseBobot = (k.bobot_original / totalActiveWeight) * 100;
+      k.bobot = Math.round(preciseBobot * 10) / 10;
+      bobotUsedSum += k.bobot;
+      
+      var preciseNilaiBobot = (k.nilai * preciseBobot) / 100;
+      k.nilai_bobot = Math.round(preciseNilaiBobot * 10) / 10;
+    });
+    
+    // Adjust rounding error for bobot to ensure sum is exactly 100%
+    var bobotDiff = 100 - bobotUsedSum;
+    if (Math.abs(bobotDiff) > 0.01 && activeKomp.length > 0) {
+      activeKomp[0].bobot = Math.round((activeKomp[0].bobot + bobotDiff) * 10) / 10;
+    }
+  }
+
+  // Clean up properties for the final JSON array
+  var detailJson = activeKomp.map(function(k) {
+    return {
+      id_komponen: k.id_komponen,
+      nama_komponen: k.nama_komponen,
+      bobot: k.bobot,
+      bobot_original: k.bobot_original || k.bobot,
+      nilai: k.nilai,
+      nilai_bobot: k.nilai_bobot,
+      tipe: k.tipe
+    };
+  });
+
+  // Apply perfect attendance bonus using all KBM sessions (myKBM)
+  var alpa = myKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
+  if (myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
+
+  var predikat = myKBM.length === 0 ? 'Belum Ada Data'
     : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
     : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
     : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
     : 'Maqbul';
-  return { nilai_akhir: nilaiAkhir, predikat, komponen: nilaiKomp };
+
+  return { nilai_akhir: nilaiAkhir, predikat, komponen: detailJson };
 }
 
 // ─────────────────────────────────────────────
@@ -1709,7 +1769,9 @@ var MuridAPI = {
           nilai: mtLatest.nilai,
           pertemuan_ke: mtLatest.pertemuan_ke,
           tanggal: mtLatest.tanggal,
-          materi: mtLatest.materi
+          materi: mtLatest.materi,
+          koreksi_tahsin: mtLatest.koreksi_tahsin,
+          catatan_murid: mtLatest.catatan_murid
         } : null,
         rata_nilai: mtAvg,
         total_sesi: mtScores.length
