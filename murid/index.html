@@ -7108,6 +7108,95 @@ function clearAtSearch() {
   renderAtTibyan();
 }
 
+function renderKetuaMemberList(elId, list, type) {
+  var el = document.getElementById(elId);
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">🌟</div><div class="empty-ttl">Alhamdulillah semua aktif!</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(m, idx) {
+    var dots = (m.riwayat || []).map(function(r) {
+      var cls = r.warna === 'hadir' ? 'hadir' : r.warna === 'merah' ? 'absen' : 'null';
+      return '<div class="at-dot '+cls+'" title="'+esc(r.tanggal||'')+'"></div>';
+    }).join('');
+    var badge = m.status === 'kritis'
+      ? '<span class="badge b-red" style="font-size:10px">Kritis 🔴</span>'
+      : m.status === 'peringatan'
+      ? '<span class="badge b-amber" style="font-size:10px">Peringatan 🟡</span>'
+      : '<span class="badge b-green" style="font-size:10px">Normal 🟢</span>';
+    var hasHp = m.no_hp && String(m.no_hp).replace(/\D/g,'').length >= 9;
+    var hqNama = (_ketuaData && _ketuaData.halaqah && (_ketuaData.halaqah.nama || _ketuaData.halaqah.nama_halaqah)) || '';
+    var waMsg = type === 'kbm'
+      ? 'Assalamualaikum ' + m.nama_murid + ', saya ' + (_ketuaData && _ketuaData.anggota && _ketuaData.anggota.nama_murid || 'Ketua Kelas') + ' selaku Ketua Kelas Halaqah ' + hqNama + '.\n\n'
+        + 'Hanya ingin mengingatkan, antum terpantau sudah alpa ' + m.absen + ' kali di kelas KBM. Yuk semangat hadir lagi biar kita bisa belajar bareng dan tidak ketinggalan materi. Semoga antum sehat selalu ya!\n\n'
+        + 'Kalau ada kendala, kabari aku ya.\n\n'
+        + 'Barakallahu fiikum.'
+      : 'Assalamualaikum ' + m.nama_murid + ',\n\n'
+        + 'Jangan lupa hadir di Kajian At-Tibyan minggu ini ya, insya Allah waktunya tidak lama dan banyak faidah yang akan kita dapatkan.\n\n'
+        + 'Kajian ini penting banget buat ilmu kita bersama. Kehadiranmu sangat ditunggu.\n\n'
+        + 'Barakallahu fiikum!';
+    var num = String(m.no_hp || '').replace(/\D/g,'');
+    if (num.startsWith('0')) num = '62' + num.slice(1);
+    else if (!num.startsWith('62')) num = '62' + num;
+    var waUrl = hasHp ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(waMsg) : '#';
+
+    var isContacted = m.followup_ketua_at && (m.followup_ketua_alpa_kbm >= m.absen);
+    var followupBtn = '';
+    if (m.status !== 'normal') {
+      if (isContacted) {
+        followupBtn = '<button class="ketua-wa-btn" disabled style="background:var(--green-l);color:var(--green);border:none;margin-left:8px;font-weight:700">✅ Sudah Diingatkan</button>';
+      } else {
+        followupBtn = '<button class="ketua-wa-btn" style="background:rgba(59,130,246,0.15);color:var(--blue);border:none;margin-left:8px;font-weight:700" onclick="doMarkContactedKetua(\''+m.id_murid+'\', \''+esc(m.nama_murid)+'\', \''+type+'\', '+m.absen+', this)">Tandai Sudah Diingatkan</button>';
+      }
+    }
+
+    return '<div class="ketua-member-card '+m.status+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div><div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(m.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3);font-weight:600;margin-top:2px">'
+      + 'Hadir '+m.pct_hadir+'% · Absen '+m.absen+'× dari '+m.total_sesi+' sesi'
+      + '</div></div>' + badge + '</div>'
+      + '<div class="at-dots" style="margin-top:8px">'+dots+'</div>'
+      + '<div style="display:flex;margin-top:8px;gap:8px;flex-wrap:wrap">'
+      + (m.status !== 'normal' ? '<button class="ketua-wa-btn '+(hasHp?'aktif':'nonaktif')+'" onclick="'+(hasHp?'window.open(\''+waUrl+'\',\'_blank\')':'alert(\'No HP tidak tersedia\')')+'" style="margin:0">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.535 4.057 1.475 5.77L.057 23.784l6.162-1.396A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.797a9.8 9.8 0 01-4.988-1.361l-.36-.213-3.654.828.844-3.549-.235-.375A9.789 9.789 0 012.203 12C2.203 6.583 6.583 2.203 12 2.203S21.797 6.583 21.797 12 17.417 21.797 12 21.797z"/></svg>'
+      + (hasHp ? 'Kirim Reminder WA' : 'No HP Tidak Tersedia') + '</button>' : '')
+      + followupBtn
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+async function doMarkContactedKetua(idMurid, namaMurid, tipeAlert, value, btnEl) {
+  if (!confirm('Tandai ' + namaMurid + ' sudah diingatkan terkait keaktifan (' + value + 'x alpa)?')) return;
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳...';
+    btnEl.style.opacity = '.6';
+  }
+  try {
+    await window.HQ.KetuaAPI.simpanFollowupKeaktifanKetua({
+      id_murid  : idMurid,
+      tipe_alert: tipeAlert,
+      value     : value,
+    });
+    if (btnEl) {
+      btnEl.style.background = 'var(--green-l)';
+      btnEl.style.color = 'var(--green)';
+      btnEl.textContent = '✅ Sudah Diingatkan';
+      btnEl.style.opacity = '1';
+    }
+    toast('Berhasil menyimpan catatan tindak lanjut ketua kelas.', 'ok');
+  } catch(e) {
+    toast('Gagal: ' + e.message, 'err');
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.textContent = 'Tandai Sudah Diingatkan';
+      btnEl.style.opacity = '1';
+    }
+  }
+}
+
 // ══════════════════════════════════════════
 //  GRAFIK TOOLTIP MOBILE
 // ══════════════════════════════════════════
@@ -7249,52 +7338,7 @@ async function loadKetuaPantau() {
   }
 }
 
-function renderKetuaMemberList(elId, list, type) {
-  var el = document.getElementById(elId);
-  if (!list.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">🌟</div><div class="empty-ttl">Alhamdulillah semua aktif!</div></div>';
-    return;
-  }
-  el.innerHTML = list.map(function(m, idx) {
-    var dots = (m.riwayat || []).map(function(r) {
-      var cls = r.warna === 'hijau' ? 'hadir' : r.warna === 'merah' ? 'absen' : 'null';
-      return '<div class="at-dot '+cls+'" title="'+esc(r.tanggal||'')+'"></div>';
-    }).join('');
-    var badge = m.status === 'kritis'
-      ? '<span class="badge b-red" style="font-size:10px">Kritis 🔴</span>'
-      : m.status === 'peringatan'
-      ? '<span class="badge b-amber" style="font-size:10px">Peringatan 🟡</span>'
-      : '<span class="badge b-green" style="font-size:10px">Normal 🟢</span>';
-    var hasHp = m.no_hp && String(m.no_hp).replace(/\D/g,'').length >= 9;
-    var waBtnCls = (m.status === 'kritis' || m.status === 'peringatan') ? '' : 'style="display:none"';
-    var hqNama = (_ketuaData && _ketuaData.halaqah && (_ketuaData.halaqah.nama || _ketuaData.halaqah.nama_halaqah)) || '';
-    var waMsg = type === 'kbm'
-      ? 'Assalamualaikum ' + m.nama_murid + ', semoga Allah senantiasa menjaga kita semua\n\n'
-        + 'Izin mengingatkan ya, kehadiran kamu di Halaqah ' + hqNama + ' mulai perlu diperhatikan. Qadarullah ada sedikit catatan di performa kehadiranmu.\n\n'
-        + 'Kehadiranmu sangat berarti bagi perkembangan belajarmu dan semangat teman-teman di halaqah. Semoga Allah mudahkan langkahmu untuk hadir.\n\n'
-        + 'Kalau ada kendala, kabari aku ya.\n\n'
-        + 'Barakallahu fiikum.'
-      : 'Assalamualaikum ' + m.nama_murid + ',\n\n'
-        + 'Jangan lupa hadir di Kajian At-Tibyan minggu ini ya, insya Allah waktunya tidak lama dan banyak faidah yang akan kita dapatkan.\n\n'
-        + 'Kajian ini penting banget buat ilmu kita bersama. Kehadiranmu sangat ditunggu.\n\n'
-        + 'Barakallahu fiikum!';
-    var num = String(m.no_hp || '').replace(/\D/g,'');
-    if (num.startsWith('0')) num = '62' + num.slice(1);
-    else if (!num.startsWith('62')) num = '62' + num;
-    var waUrl = hasHp ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(waMsg) : '#';
-    return '<div class="ketua-member-card '+m.status+'">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-      + '<div><div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(m.nama_murid)+'</div>'
-      + '<div style="font-size:11px;color:var(--text-3);font-weight:600;margin-top:2px">'
-      + 'Hadir '+m.pct_hadir+'% · Absen '+m.absen+'× dari '+m.total_sesi+' sesi'
-      + '</div></div>' + badge + '</div>'
-      + '<div class="at-dots" style="margin-top:8px">'+dots+'</div>'
-      + (m.status !== 'normal' ? '<button class="ketua-wa-btn '+(hasHp?'aktif':'nonaktif')+'" onclick="'+(hasHp?'window.open(\''+waUrl+'\',\'_blank\')':'alert(\'No HP tidak tersedia\')')+'">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.535 4.057 1.475 5.77L.057 23.784l6.162-1.396A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.797a9.8 9.8 0 01-4.988-1.361l-.36-.213-3.654.828.844-3.549-.235-.375A9.789 9.789 0 012.203 12C2.203 6.583 6.583 2.203 12 2.203S21.797 6.583 21.797 12 17.417 21.797 12 21.797z"/></svg>'
-      + (hasHp ? 'Kirim Reminder WA' : 'No HP Tidak Tersedia') + '</button>' : '')
-      + '</div>';
-  }).join('');
-}
+
 
 async function loadKetuaObservasi() {
   var el = document.getElementById('ketuaObsList');

@@ -219,12 +219,49 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .card-body{padding:18px}
 
 /* TABLE */
-.tbl-wrap{overflow-x:auto}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--card);backdrop-filter:blur(10px)}
 table{width:100%;border-collapse:collapse}
-th{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:#f8fafc;white-space:nowrap}
-td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+th{font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.02);white-space:nowrap}
+html.theme-dark th{background:rgba(255,255,255,0.02);color:var(--text-2)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;color:var(--text-2)}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#f8fafc}
+tr:hover td{background:rgba(0,0,0,0.01)}
+html.theme-dark tr:hover td{background:rgba(255,255,255,0.015)}
+
+.premium-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.01);
+}
+html.theme-dark .premium-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.align-right{text-align:right !important}
+.align-center{text-align:center !important}
+
+/* Dark mode safe tag for unpaid months */
+.tag-spp-belum {
+  background: var(--red-bg);
+  color: var(--red-txt);
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  display: inline-block;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.circle-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 11px;
+}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:700;white-space:nowrap}
@@ -945,6 +982,7 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
       <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
       <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
+      <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
       <!-- Hanya superadmin -->
       <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
       <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔍</span>Audit Log</button>
@@ -1180,9 +1218,17 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         <div class="section-sub">Ringkasan performa semua halaqah.</div>
         <div class="card">
           <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Halaqah</th><th>Guru</th><th>Level</th><th>Murid</th><th>Sesi</th><th>Avg Nilai</th><th>% Hadir</th></tr></thead>
-              <tbody id="laporanTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            <table class="premium-table">
+              <thead><tr>
+                <th>Halaqah</th>
+                <th>Guru</th>
+                <th>Level</th>
+                <th class="align-center">Murid</th>
+                <th class="align-center">Sesi</th>
+                <th class="align-center">Avg Nilai</th>
+                <th class="align-center">% Hadir</th>
+              </tr></thead>
+              <tbody id="laporanTbl"><tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1208,9 +1254,18 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
         <div class="card">
           <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Nama Murid</th><th>Hadir</th><th>Terlambat</th><th>Izin</th><th>Alpa</th><th>Total</th><th>% Hadir</th><th>Skor/40</th></tr></thead>
-              <tbody id="absensiTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            <table class="premium-table">
+              <thead><tr>
+                <th>Nama Murid</th>
+                <th class="align-center">Hadir</th>
+                <th class="align-center">Terlambat</th>
+                <th class="align-center">Izin</th>
+                <th class="align-center">Alpa</th>
+                <th class="align-center">Total</th>
+                <th class="align-center">% Hadir</th>
+                <th class="align-center">Skor/40</th>
+              </tr></thead>
+              <tbody id="absensiTbl"><tr><td colspan="8" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1320,22 +1375,22 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
               </button>
             </div>
           </div>
-          <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:13px" id="sppRekapTable">
+          <div class="tbl-wrap">
+          <table class="premium-table" id="sppRekapTable">
             <thead>
-              <tr style="background:#1a5c3a;color:#fff">
-                <th style="padding:10px 12px;text-align:left;font-weight:700">Nama Murid</th>
-                <th style="padding:10px 8px;text-align:left;font-weight:700">Halaqah</th>
-                <th style="padding:10px 8px;text-align:center;font-weight:700">Tunggakan</th>
-                <th style="padding:10px 8px;text-align:left;font-weight:700">Bulan Belum Lunas</th>
-                <th style="padding:10px 8px;text-align:center;font-weight:700">Reminder</th>
+              <tr>
+                <th>Nama Murid</th>
+                <th>Halaqah</th>
+                <th class="align-center">Tunggakan</th>
+                <th>Bulan Belum Lunas</th>
+                <th class="align-center">Reminder</th>
               </tr>
             </thead>
             <tbody id="sppRekapBody">
-              <tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Pilih tahun dan klik Refresh</td></tr>
+              <tr><td colspan="5" class="align-center" style="padding:24px;color:var(--text-3)">Pilih tahun dan klik Refresh</td></tr>
             </tbody>
           </table>
-          </div><!-- /overflow-x -->
+          </div><!-- /tbl-wrap -->
         </div><!-- /card rekap -->
 
         <!-- Modal Tambah/Edit Metode -->
@@ -1831,6 +1886,63 @@ html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
         </div>
       </div>
 
+      <!-- ══ KEPATUHAN GURU & KETUA KELAS ══ -->
+      <div class="page" id="page-kepatuhan">
+        <div class="section-title">Kepatuhan Guru & Ketua Kelas</div>
+        <div class="section-sub">Analisis tindak lanjut murid kritis dan kepatuhan pengisian observasi KBM.</div>
+        
+        <!-- Stats Cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px">
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">🚨</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Murid Kritis Saat Ini</div>
+              <div style="font-size:28px;font-weight:900;color:var(--red)" id="kepatuhanTotalKritis">0</div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">👨‍🏫</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kepatuhan Follow-up Guru</div>
+              <div style="font-size:28px;font-weight:900;color:var(--green)" id="kepatuhanGuruRate">100%</div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">📋</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kepatuhan Observasi Ketua</div>
+              <div style="font-size:28px;font-weight:900;color:var(--blue)" id="kepatuhanKetuaRate">100%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800;color:var(--text)">Laporan Kepatuhan per Halaqah</div>
+            <button class="btn btn-primary btn-sm" onclick="loadKepatuhan()">🔄 Segarkan Data</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Nama Halaqah</th>
+                  <th>Guru Pengampu</th>
+                  <th>Ketua Kelas</th>
+                  <th class="align-center">Murid Kritis</th>
+                  <th class="align-center">Follow-up Guru</th>
+                  <th class="align-center">Follow-up Ketua</th>
+                  <th class="align-center">Sesi KBM / Obs</th>
+                  <th class="align-center">Kepatuhan Obs</th>
+                </tr>
+              </thead>
+              <tbody id="kepatuhanTbl">
+                <tr><td colspan="8" class="align-center" style="padding:32px;color:var(--text-3)">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -2181,7 +2293,7 @@ const PAGE_TITLES = {
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
-  materi:'Materi Kajian', push:'Push Notifikasi'
+  materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua'
 };
 
 // ══════════════════════════════════════════
@@ -2526,6 +2638,7 @@ function goPage(name) {
     spp       : function(){ loadMetodeBayarAdmin(); loadSPPAdmin(); },
     pengumuman: loadPengumuman,
     observasi : loadObservasi,
+    kepatuhan : loadKepatuhan,
     audit     : loadAudit,
     level    : loadLevel,
     template : loadTemplate,
@@ -3352,6 +3465,50 @@ async function loadNilaiSetup() {
   } catch(e) {}
 }
 
+function getCardStyle(filled, total) {
+  if (filled === 0) {
+    return 'border: 1px solid var(--border); border-left: 4px solid var(--text-3); background: transparent; transition: all 0.3s;';
+  } else if (filled === total) {
+    return 'border: 1px solid var(--green); border-left: 4px solid var(--green); background: rgba(16, 185, 129, 0.04); transition: all 0.3s;';
+  } else {
+    return 'border: 1px solid var(--amber); border-left: 4px solid var(--amber); background: rgba(245, 158, 11, 0.04); transition: all 0.3s;';
+  }
+}
+
+function updateCardStatus(idMurid) {
+  var total = nilaiKomponenList.length;
+  var filled = 0;
+  nilaiKomponenList.forEach(function(k) {
+    var el = document.getElementById('nilai_' + idMurid + '_' + k.id_komponen);
+    if (el && el.value.trim() !== '') {
+      filled++;
+    }
+  });
+  var card = document.getElementById('card_' + idMurid);
+  var statusTxt = document.getElementById('status_txt_' + idMurid);
+  if (statusTxt) {
+    statusTxt.textContent = filled + '/' + total + ' terisi';
+  }
+  if (card) {
+    if (filled === 0) {
+      card.style.border = '1px solid var(--border)';
+      card.style.borderLeft = '4px solid var(--text-3)';
+      card.style.background = 'transparent';
+      if (statusTxt) statusTxt.style.color = 'var(--text-3)';
+    } else if (filled === total) {
+      card.style.border = '1px solid var(--green)';
+      card.style.borderLeft = '4px solid var(--green)';
+      card.style.background = 'rgba(16, 185, 129, 0.04)';
+      if (statusTxt) statusTxt.style.color = 'var(--green)';
+    } else {
+      card.style.border = '1px solid var(--amber)';
+      card.style.borderLeft = '4px solid var(--amber)';
+      card.style.background = 'rgba(245, 158, 11, 0.04)';
+      if (statusTxt) statusTxt.style.color = 'var(--amber-txt)';
+    }
+  }
+}
+
 async function loadNilaiMurid() {
   const id_periode = document.getElementById('nilaiPeriodeSel').value;
   const id_halaqah = document.getElementById('nilaiHalaqahSel').value;
@@ -3373,21 +3530,34 @@ async function loadNilaiMurid() {
       return;
     }
 
-    document.getElementById('nilaiBody').innerHTML = nilaiMuridList.map(m => `
-      <div style="margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:var(--r-sm)">
-        <div style="font-weight:700;font-size:14px;margin-bottom:10px">👤 ${esc(m.nama_murid)}</div>
-        <div class="f${Math.min(nilaiKomponenList.length,3)} gap">
-          ${nilaiKomponenList.map(k => {
-            const existing = nilaiExisting.find(n => n.id_murid===m.id_murid && n.id_komponen===k.id_komponen);
-            return `<div class="fg" style="margin:0">
-              <label>${esc(k.nama_komponen)} (${k.bobot}%)</label>
-              <input type="number" class="fc" min="0" max="100"
-                id="nilai_${m.id_murid}_${k.id_komponen}"
-                value="${(existing && existing.nilai)||''}" placeholder="0–100" style="font-size:13px">
-            </div>`;
-          }).join('')}
+    document.getElementById('nilaiBody').innerHTML = nilaiMuridList.map(m => {
+      var filled = 0;
+      var inputsHtml = nilaiKomponenList.map(k => {
+        const existing = nilaiExisting.find(n => n.id_murid===m.id_murid && n.id_komponen===k.id_komponen);
+        const val = (existing && existing.nilai !== null && existing.nilai !== undefined) ? existing.nilai : '';
+        if (val !== '') filled++;
+        return `<div class="fg" style="margin:0">
+          <label>${esc(k.nama_komponen)} (${k.bobot}%)</label>
+          <input type="number" class="fc" min="0" max="100"
+            id="nilai_${m.id_murid}_${k.id_komponen}"
+            oninput="updateCardStatus('${m.id_murid}')"
+            value="${val}" placeholder="0–100" style="font-size:13px">
+        </div>`;
+      }).join('');
+
+      var cardStyle = getCardStyle(filled, nilaiKomponenList.length);
+      var statusColor = filled === 0 ? 'var(--text-3)' : (filled === nilaiKomponenList.length ? 'var(--green)' : 'var(--amber-txt)');
+
+      return `<div id="card_${m.id_murid}" class="nilai-card" style="margin-bottom:16px;padding:12px;border-radius:var(--r-sm);${cardStyle}">
+        <div style="font-weight:700;font-size:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+          <span>👤 ${esc(m.nama_murid)}</span>
+          <span id="status_txt_${m.id_murid}" style="font-size:11px;font-weight:bold;color:${statusColor}">${filled}/${nilaiKomponenList.length} terisi</span>
         </div>
-      </div>`).join('') || '<div style="color:var(--text-3);text-align:center;padding:24px">Belum ada murid</div>';
+        <div class="f${Math.min(nilaiKomponenList.length,3)} gap">
+          ${inputsHtml}
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--text-3);text-align:center;padding:24px">Belum ada murid</div>';
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
@@ -3618,13 +3788,13 @@ async function loadLaporan() {
     const tbody = document.getElementById('laporanTbl');
     tbody.innerHTML = (r.data||[]).map(h=>`<tr>
       <td><strong>${esc(h.nama_halaqah)}</strong></td>
-      <td>${esc(h.nama_guru)}</td>
+      <td><div style="font-weight:600;color:var(--text-2)">${esc(h.nama_guru)}</div></td>
       <td><span class="badge b-blue">${esc(h.level)}</span></td>
-      <td>${h.total_murid}</td>
-      <td>${h.total_sesi}</td>
-      <td>${nilaiNumLabel(h.avg_nilai)}</td>
+      <td class="align-center"><span class="badge b-gray" style="min-width:28px;justify-content:center">${h.total_murid}</span></td>
+      <td class="align-center"><span class="badge b-gray" style="min-width:28px;justify-content:center">${h.total_sesi}</span></td>
+      <td class="align-center">${nilaiNumLabel(h.avg_nilai)}</td>
       <td>${pctBar(h.pct_hadir||0)}</td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
@@ -3644,18 +3814,25 @@ async function loadAbsensi() {
     const tbody = document.getElementById('absensiTbl');
     tbody.innerHTML = (r.data||[]).map(m => {
       const pct = m.pct_hadir||0;
-      const color = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
-      return `<tr>
-        <td><strong>${esc(m.nama_murid)}</strong></td>
-        <td><span class="badge b-green">${m.H||0}</span></td>
-        <td><span class="badge b-purple">${m.T||0}</span></td>
-        <td><span class="badge b-amber">${m.I||0}</span></td>
-        <td><span class="badge b-red">${m.A||0}</span></td>
-        <td>${m.total||0}</td>
-        <td><span style="font-weight:700;color:${color}">${pct}%</span></td>
-        <td><span style="font-weight:700;color:${pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)'}">${m.skor_dari_40||0}%</span></td>
+      const color = pct>=75?'var(--green)':pct>=50?'var(--amber-txt)':'var(--red)';
+      
+      // Highlight low attendance (under 75%)
+      const isLow = pct < 75;
+      const rowStyle = isLow 
+        ? 'style="background:rgba(239, 68, 68, 0.03);border-left:3px solid var(--red)"' 
+        : '';
+        
+      return `<tr ${rowStyle}>
+        <td><div style="font-weight:700;color:var(--text)">${esc(m.nama_murid)}</div></td>
+        <td class="align-center"><span class="circle-badge b-green">${m.H||0}</span></td>
+        <td class="align-center"><span class="circle-badge b-purple">${m.T||0}</span></td>
+        <td class="align-center"><span class="circle-badge b-amber">${m.I||0}</span></td>
+        <td class="align-center"><span class="circle-badge b-red">${m.A||0}</span></td>
+        <td class="align-center" style="font-weight:600">${m.total||0}</td>
+        <td class="align-center"><span style="font-weight:800;color:${color}">${pct}%</span></td>
+        <td class="align-center"><span style="font-weight:800;color:${pct>=75?'var(--green)':pct>=50?'var(--amber-txt)':'var(--red)'}">${m.skor_dari_40||0}%</span></td>
       </tr>`;
-    }).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="align-center" style="padding:32px;color:var(--text-3)">Belum ada data</td></tr>';
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
@@ -3864,7 +4041,7 @@ function filterSPPTable() {
   var data = _sppRekapData;
   if (bulanFilter) {
     data = data.filter(function(m) { 
-      return m.bulan_belum.includes(bulanFilter) || m.tunggakan > 0; 
+      return m.bulan_belum.includes(bulanFilter); 
     });
   }
 
@@ -3898,16 +4075,15 @@ function filterSPPTable() {
     return;
   }
 
-  tbody.innerHTML = data.map(function(m, i) {
-    var tBg = i%2===0?'#fff':'#f8fafc';
-    var tCls = m.tunggakan===0
-      ? 'style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"'
+  tbody.innerHTML = data.map(function(m) {
+    var badgeClass = m.tunggakan===0
+      ? 'badge b-green'
       : m.tunggakan>=3
-      ? 'style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"'
-      : 'style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700"';
+      ? 'badge b-red'
+      : 'badge b-amber';
     var bulanBelum = m.bulan_belum.length
-      ? m.bulan_belum.map(function(b){ return '<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:8px;font-size:10.5px;font-weight:600;margin-right:3px">'+b+'</span>'; }).join('')
-      : '<span style="color:#10b981;font-size:11px;font-weight:700">✅ Lunas</span>';
+      ? m.bulan_belum.map(function(b){ return '<span class="tag-spp-belum">'+b+'</span>'; }).join('')
+      : '<span class="badge b-green">✅ Lunas</span>';
     var waLink = '';
     if (m.no_hp && m.tunggakan > 0) {
       var num = m.no_hp.replace(/\D/g,'');
@@ -3926,13 +4102,13 @@ function filterSPPTable() {
         + '-Pesan ini dikirim otomatis melalui portal Rattililqur\'an-';
       waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">💬 WA</a>';
     }
-    return '<tr style="background:'+tBg+';border-bottom:1px solid #f1f5f9">'
-      + '<td style="padding:10px 12px"><div style="font-size:13px;font-weight:700">'+esc(m.nama_murid)+'</div>'
-      + '<div style="font-size:10.5px;color:#94a3b8">'+esc(m.id_murid)+' · '+esc(m.level||'')+'</div></td>'
-      + '<td style="padding:10px 8px;font-size:12px;color:#475569">'+esc(m.nama_halaqah||m.id_halaqah||'—')+'</td>'
-      + '<td style="padding:10px 8px;text-align:center"><span '+tCls+'>'+m.tunggakan+'</span></td>'
-      + '<td style="padding:10px 8px">'+bulanBelum+'</td>'
-      + '<td style="padding:10px 8px;text-align:center">'+waLink+'</td>'
+    return '<tr>'
+      + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3)">'+esc(m.id_murid)+' · '+esc(m.level||'')+'</div></td>'
+      + '<td><div style="font-weight:600;color:var(--text-2)">'+esc(m.nama_halaqah||m.id_halaqah||'—')+'</div></td>'
+      + '<td class="align-center"><span class="'+badgeClass+'" style="min-width:28px;justify-content:center">'+m.tunggakan+'</span></td>'
+      + '<td>'+bulanBelum+'</td>'
+      + '<td class="align-center">'+waLink+'</td>'
       + '</tr>';
   }).join('');
 }
@@ -4170,6 +4346,78 @@ async function loadAudit() {
     </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada log</td></tr>';
   } catch(e) {}
   finally { hideLoad(); }
+}
+
+function miniPctBar(pct, color) {
+  return '<div style="display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:2px 0">'
+    + '<div style="width:45px;height:5px;background:var(--border);border-radius:100px;overflow:hidden;flex-shrink:0">'
+      + '<div style="height:100%;background:'+color+';width:'+Math.min(pct,100)+'%"></div>'
+    + '</div>'
+    + '<span style="font-size:11px;font-weight:700;color:'+color+';flex-shrink:0;min-width:30px;text-align:right">'+pct+'%</span>'
+    + '</div>';
+}
+
+async function loadKepatuhan() {
+  showLoad('Memuat data kepatuhan...');
+  try {
+    var res = await window.HQ.AdminAPI.getKepatuhanRekap();
+    var list = res.data || [];
+    var globalKritis = 0;
+    var globalGuruFollowup = 0;
+    var globalCompletedKbm = 0;
+    var globalCompletedObs = 0;
+    list.forEach(function(h) {
+      globalKritis += h.total_kritis;
+      globalGuruFollowup += h.guru_followed_up;
+      globalCompletedKbm += h.total_kbm;
+      globalCompletedObs += h.total_obs;
+    });
+    var guruRate = globalKritis > 0 ? Math.round((globalGuruFollowup / globalKritis) * 100) : 100;
+    var ketuaRate = globalCompletedKbm > 0 ? Math.round((globalCompletedObs / globalCompletedKbm) * 100) : 100;
+    document.getElementById('kepatuhanTotalKritis').textContent = globalKritis;
+    document.getElementById('kepatuhanGuruRate').textContent = guruRate + '%';
+    document.getElementById('kepatuhanKetuaRate').textContent = ketuaRate + '%';
+    var tbody = document.getElementById('kepatuhanTbl');
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="align-center" style="padding:32px;color:var(--text-3)">Belum ada data halaqah aktif</td></tr>';
+      return;
+    }
+    
+    // Sort by: lowest KBM observation percentage first. If tie, sort by highest total_kritis first.
+    list.sort(function(a, b) {
+      var diff = a.pct_obs - b.pct_obs;
+      if (diff !== 0) return diff;
+      return b.total_kritis - a.total_kritis;
+    });
+
+    tbody.innerHTML = list.map(function(h) {
+      var cGuru = h.pct_guru_followup >= 80 ? 'var(--green)' : h.pct_guru_followup >= 50 ? 'var(--amber-txt)' : 'var(--red)';
+      var cKetua = h.pct_ketua_followup >= 80 ? 'var(--green)' : h.pct_ketua_followup >= 50 ? 'var(--amber-txt)' : 'var(--red)';
+      var cObs = h.pct_obs >= 80 ? 'var(--green)' : h.pct_obs >= 50 ? 'var(--amber-txt)' : 'var(--red)';
+      return '<tr>'
+        + '<td><strong>' + esc(h.nama_halaqah) + '</strong></td>'
+        + '<td>' + esc(h.nama_guru) + '</td>'
+        + '<td>' + esc(h.nama_ketua) + '</td>'
+        + '<td class="align-center"><span class="badge ' + (h.total_kritis > 0 ? 'b-red' : 'b-gray') + '" style="min-width:28px;justify-content:center">' + h.total_kritis + '</span></td>'
+        + '<td class="align-center">'
+          + miniPctBar(h.pct_guru_followup, cGuru)
+          + '<br><small style="color:var(--text-3);font-size:10px">' + h.guru_followed_up + ' dari ' + h.total_kritis + '</small>'
+        + '</td>'
+        + '<td class="align-center">'
+          + miniPctBar(h.pct_ketua_followup, cKetua)
+          + '<br><small style="color:var(--text-3);font-size:10px">' + h.ketua_followed_up + ' dari ' + h.total_kritis + '</small>'
+        + '</td>'
+        + '<td class="align-center"><span class="badge b-gray" style="font-variant-numeric:tabular-nums">' + h.total_obs + ' / ' + h.total_kbm + '</span></td>'
+        + '<td class="align-center">'
+          + miniPctBar(h.pct_obs, cObs)
+        + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) {
+    toast('Gagal memuat rekap kepatuhan: ' + e.message, 'err');
+  } finally {
+    hideLoad();
+  }
 }
 
 // ══════════════════════════════════════════

@@ -2370,7 +2370,29 @@ var AdminAPI = {
     return data;
   },
   getAuditLog: async function() { var {data,error}=await _sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100); _check(error,'getAuditLog'); return {status:'ok',data}; },
-  getObservasiKBM: async function() { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiKBM'); return {status:'ok',data}; },
+  getObservasiKBM: async function(p) {
+    p = p || {};
+    var { data, error } = await _sb.from('observasi_kbm')
+      .select('*, halaqah(nama_halaqah, id_guru, nama_guru)')
+      .order('created_at', { ascending: false });
+    _check(error, 'getObservasiKBM');
+    var list = data || [];
+    list = list.map(function(r) {
+      if (r.halaqah) {
+        r.nama_halaqah = r.halaqah.nama_halaqah;
+        r.id_guru = r.halaqah.id_guru;
+        r.nama_guru = r.halaqah.nama_guru;
+      }
+      return r;
+    });
+    if (p.id_halaqah) {
+      list = list.filter(function(r) { return r.id_halaqah === p.id_halaqah; });
+    }
+    if (p.id_guru) {
+      list = list.filter(function(r) { return r.id_guru === p.id_guru; });
+    }
+    return { status: 'ok', data: list };
+  },
   // ── SPP Metode Bayar ───────────────────────
   getMetodeBayar: async function() {
     var { data, error } = await _sb.from('spp_metode_bayar').select('*').eq('aktif',true).order('urutan');
@@ -2606,7 +2628,176 @@ var AdminAPI = {
   generateRaportByLevel: async function(p) { throw new Error('Generate raport per level belum diimplementasi.'); },
   generateRaportBulk: async function(p) { throw new Error('Generate raport bulk belum diimplementasi.'); },
   kirimRaportEmail: async function(id) { throw new Error('Kirim raport via email belum diimplementasi.'); },
-  getObservasiStats: async function(p) { var {data,error}=await _sb.from('observasi_kbm').select('*').order('created_at',{ascending:false}); _check(error,'getObservasiStats'); return {status:'ok',data:data||[]}; },
+  getObservasiStats: async function(p) {
+    p = p || {};
+    var { data, error } = await _sb.from('observasi_kbm')
+      .select('*, halaqah(nama_halaqah, id_guru, nama_guru)')
+      .order('created_at', { ascending: false });
+    _check(error, 'getObservasiStats');
+    var list = data || [];
+    list = list.map(function(r) {
+      if (r.halaqah) {
+        r.nama_halaqah = r.halaqah.nama_halaqah;
+        r.id_guru = r.halaqah.id_guru;
+        r.nama_guru = r.halaqah.nama_guru;
+      }
+      return r;
+    });
+    if (p.id_halaqah) {
+      list = list.filter(function(r) { return r.id_halaqah === p.id_halaqah; });
+    }
+    if (p.id_guru) {
+      list = list.filter(function(r) { return r.id_guru === p.id_guru; });
+    }
+    var statsMap = {};
+    list.forEach(function(r) {
+      var guruId = r.id_guru || 'UNKNOWN';
+      var guruNama = r.nama_guru || r.id_guru || 'Tanpa Nama';
+      if (!statsMap[guruId]) {
+        statsMap[guruId] = {
+          nama_guru: guruNama,
+          total: 0,
+          kondusif: 0,
+          tepat_waktu: 0,
+          terlambat: 0,
+          total_menit_telat: 0,
+          ada_latihan: 0,
+          kamera_sebagian_besar_terbuka: 0,
+          kamera_campuran: 0,
+          kamera_sebagian_besar_tertutup: 0
+        };
+      }
+      var s = statsMap[guruId];
+      s.total++;
+      if (r.kondisi_kelas === 'Kondusif') {
+        s.kondusif++;
+      }
+      if (r.ketepatan_waktu === 'Tepat Waktu') {
+        s.tepat_waktu++;
+      }
+      if (r.ketepatan_waktu === 'Guru Terlambat' || r.ketepatan_waktu === 'Keduanya') {
+        s.terlambat++;
+        s.total_menit_telat += (Number(r.estimasi_menit) || 0);
+      }
+      if (r.ada_latihan === 'Ya') {
+        s.ada_latihan++;
+      }
+      if (r.kamera_peserta === 'Sebagian Besar Terbuka') {
+        s.kamera_sebagian_besar_terbuka++;
+      } else if (r.kamera_peserta === 'Campuran') {
+        s.kamera_campuran++;
+      } else if (r.kamera_peserta === 'Sebagian Besar Tertutup') {
+        s.kamera_sebagian_besar_tertutup++;
+      }
+    });
+    var statsList = Object.keys(statsMap).map(function(k) {
+      var s = statsMap[k];
+      return {
+        nama_guru: s.nama_guru,
+        total: s.total,
+        kondusif: s.kondusif,
+        pct_kondusif: s.total > 0 ? Math.round((s.kondusif / s.total) * 100) : 0,
+        tepat_waktu: s.tepat_waktu,
+        pct_tepat_waktu: s.total > 0 ? Math.round((s.tepat_waktu / s.total) * 100) : 0,
+        terlambat: s.terlambat,
+        rata_menit_telat: s.terlambat > 0 ? Math.round(s.total_menit_telat / s.terlambat) : 0,
+        ada_latihan: s.ada_latihan,
+        pct_ada_latihan: s.total > 0 ? Math.round((s.ada_latihan / s.total) * 100) : 0,
+        kamera_sebagian_besar_terbuka: s.kamera_sebagian_besar_terbuka,
+        kamera_campuran: s.kamera_campuran,
+        kamera_sebagian_besar_tertutup: s.kamera_sebagian_besar_tertutup
+      };
+    });
+    return { status: 'ok', data: statsList };
+  },
+
+  getKepatuhanRekap: async function() {
+    var [halaqahRes, anggotaRes, nilaiRes, atRes, kbmLogRes, obsRes] = await Promise.all([
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah, id_guru, nama_guru').eq('status','aktif'),
+      _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, is_ketua, followup_at, followup_alpa_kbm, followup_alpa_at, followup_ketua_at, followup_ketua_alpa_kbm, followup_ketua_alpa_at').eq('status','aktif'),
+      _sb.from('nilai_kbm').select('id_murid, id_halaqah, status_hadir, kamera_murid'),
+      _sb.from('at_tibyan_log').select('id_murid, id_halaqah, status_hadir'),
+      _sb.from('kbm_log').select('id_kbm, id_halaqah').eq('status', 'selesai'),
+      _sb.from('observasi_kbm').select('id_kbm, id_halaqah')
+    ]);
+    _check(halaqahRes.error, 'getKepatuhanRekap.halaqah');
+    _check(anggotaRes.error, 'getKepatuhanRekap.anggota');
+    var halaqahList = halaqahRes.data || [];
+    var anggotaList = anggotaRes.data || [];
+    var nilaiList   = nilaiRes.data || [];
+    var atList      = atRes.data || [];
+    var kbmLogList  = kbmLogRes.data || [];
+    var obsList     = obsRes.data || [];
+
+    var kbmLogMap = {};
+    kbmLogList.forEach(function(k){
+      kbmLogMap[k.id_halaqah] = (kbmLogMap[k.id_halaqah] || 0) + 1;
+    });
+    var obsMap = {};
+    obsList.forEach(function(o){
+      obsMap[o.id_halaqah] = (obsMap[o.id_halaqah] || 0) + 1;
+    });
+    var membersMap = {};
+    anggotaList.forEach(function(a){
+      if (!membersMap[a.id_halaqah]) membersMap[a.id_halaqah] = [];
+      membersMap[a.id_halaqah].push(a);
+    });
+    var nilaiMuridMap = {};
+    nilaiList.forEach(function(n){
+      if (!nilaiMuridMap[n.id_murid]) nilaiMuridMap[n.id_murid] = [];
+      nilaiMuridMap[n.id_murid].push(n);
+    });
+    var atMuridMap = {};
+    atList.forEach(function(n){
+      if (!atMuridMap[n.id_murid]) atMuridMap[n.id_murid] = [];
+      atMuridMap[n.id_murid].push(n);
+    });
+    var rekap = halaqahList.map(function(h) {
+      var members = membersMap[h.id_halaqah] || [];
+      var ketua = members.find(function(m){ return m.is_ketua; })?.nama_murid || 'Belum Diatur';
+      var totalKritis = 0;
+      var guruFollowedUp = 0;
+      var ketuaFollowedUp = 0;
+      members.forEach(function(m) {
+        var nm = nilaiMuridMap[m.id_murid] || [];
+        var at = atMuridMap[m.id_murid] || [];
+        var alpaKbm = nm.filter(function(n){ return n.status_hadir === 'A'; }).length;
+        var alpaAt  = at.filter(function(n){ return n.status_hadir === 'A'; }).length;
+        var terlambat = nm.filter(function(n){ return n.status_hadir === 'T'; }).length;
+        var kameraBuruk = nm.filter(function(n) { return n.kamera_murid && (n.kamera_murid.toLowerCase().indexOf('selalu') >= 0 || n.kamera_murid.toLowerCase().indexOf('sering') >= 0); }).length;
+        var status = (alpaKbm >= 2 || alpaAt >= 2) ? 'kritis' : ((alpaKbm === 1 || alpaAt === 1 || terlambat >= 2 || kameraBuruk >= 2) ? 'peringatan' : 'normal');
+        if (status !== 'normal') {
+          totalKritis++;
+          if (m.followup_at) {
+            var isGuruDone = (m.followup_alpa_kbm >= alpaKbm) && (m.followup_alpa_at >= alpaAt);
+            if (isGuruDone) guruFollowedUp++;
+          }
+          if (m.followup_ketua_at) {
+            var isKetuaDone = (m.followup_ketua_alpa_kbm >= alpaKbm) && (m.followup_ketua_alpa_at >= alpaAt);
+            if (isKetuaDone) ketuaFollowedUp++;
+          }
+        }
+      });
+      var totalKbm = kbmLogMap[h.id_halaqah] || 0;
+      var totalObs = obsMap[h.id_halaqah] || 0;
+      return {
+        id_halaqah: h.id_halaqah,
+        nama_halaqah: h.nama_halaqah,
+        nama_guru: h.nama_guru || 'Tanpa Guru',
+        nama_ketua: ketua,
+        total_murid: members.length,
+        total_kritis: totalKritis,
+        guru_followed_up: guruFollowedUp,
+        ketua_followed_up: ketuaFollowedUp,
+        total_kbm: totalKbm,
+        total_obs: totalObs,
+        pct_guru_followup: totalKritis > 0 ? Math.round((guruFollowedUp / totalKritis) * 100) : 100,
+        pct_ketua_followup: totalKritis > 0 ? Math.round((ketuaFollowedUp / totalKritis) * 100) : 100,
+        pct_obs: totalKbm > 0 ? Math.round((totalObs / totalKbm) * 100) : 100
+      };
+    });
+    return { status: 'ok', data: rekap };
+  },
 
   // ── Materi At-Tibyan (admin CRUD) ─────────────
   getAtTibyanMateriAdmin: async function() {
@@ -2743,7 +2934,7 @@ var KetuaAPI = {
     if (info.status !== 'ok') return { status: 'ok', data: { summary: { kritis:0, peringatan:0, normal:0 }, alerts: [] } };
     var id_halaqah = info.halaqah.id_halaqah;
     var [anggotaRes, nilaiRes] = await Promise.all([
-      _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status', 'aktif'),
+      _sb.from('anggota').select('id_murid, nama_murid, level, followup_ketua_at, followup_ketua_alpa_kbm, followup_ketua_alpa_at').eq('id_halaqah', id_halaqah).eq('status', 'aktif'),
       _sb.from('nilai_kbm').select('id_murid, status_hadir, kamera_murid, tanggal').eq('id_halaqah', id_halaqah).order('tanggal', { ascending: false }),
     ]);
     if (anggotaRes.error) return { status: 'ok', data: { summary: { kritis:0, peringatan:0, normal:0 }, alerts: [] } };
@@ -2772,6 +2963,9 @@ var KetuaAPI = {
         absen     : alpa,
         total_sesi: nm.length,
         no_hp     : hpMap[a.id_murid] || '',
+        followup_ketua_at      : a.followup_ketua_at || null,
+        followup_ketua_alpa_kbm: a.followup_ketua_alpa_kbm || 0,
+        followup_ketua_alpa_at : a.followup_ketua_alpa_at || 0,
         riwayat   : nm.slice(0, 8).map(function(n) {
           return { warna: ['H','T'].includes(n.status_hadir) ? 'hijau' : n.status_hadir === 'A' ? 'merah' : 'abu', tanggal: n.tanggal };
         }),
@@ -2884,6 +3078,8 @@ var KetuaAPI = {
       kondisi_kelas   : d.kondisi_kelas,
       ada_latihan     : d.ada_latihan,
       ketepatan_waktu : d.ketepatan_waktu,
+      estimasi_menit  : d.estimasi_menit,
+      kamera_peserta  : d.kamera_peserta,
       catatan_tambahan: d.catatan_lain || d.catatan_tambahan,
       status          : 'submitted',
     });
@@ -2901,6 +3097,45 @@ var KetuaAPI = {
       catatan_ustadz: d.catatan_ustadz || '',
     });
     _check(error, 'simpanRekapStatus');
+    return { status: 'ok' };
+  },
+
+  simpanFollowupKeaktifanKetua: async function(d) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var id_halaqah = info.halaqah.id_halaqah;
+
+    // Ambil baris anggota
+    var q = _sb.from('anggota')
+      .select('id_halaqah, catatan_guru, followup_ketua_alpa_kbm, followup_ketua_alpa_at, followup_ketua_at')
+      .eq('id_murid', d.id_murid).eq('status','aktif').eq('id_halaqah', id_halaqah);
+    var { data: rows, error: anggotaErr } = await q;
+    _check(anggotaErr, 'simpanFollowupKeaktifanKetua.fetch');
+    var anggota = rows && rows[0];
+    if (!anggota) return { status: 'ok' };
+
+    // Hitung alpa KBM dan At-Tibyan per halaqah sebagai baseline dismissal
+    var [kbmRes, atRes] = await Promise.all([
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah).eq('status_hadir','A'),
+      _sb.from('at_tibyan_log').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah).eq('status_hadir','A'),
+    ]);
+    var kbmAlpa = kbmRes.count || 0;
+    var atAlpa  = atRes.count  || 0;
+
+    // Simpan catatan — batasi 10 entri terakhir agar tidak tumbuh tak terbatas
+    var tglStr = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+    var baris  = '[' + tglStr + '] Ketua Kelas menghubungi murid — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)';
+    var existing = anggota.catatan_guru ? anggota.catatan_guru.split('\n').filter(Boolean) : [];
+    existing.push(baris);
+    var catatan = existing.slice(-10).join('\n'); // simpan maksimal 10 entri
+
+    var { error } = await _sb.from('anggota').update({
+      catatan_guru           : catatan,
+      followup_ketua_alpa_kbm: kbmAlpa,
+      followup_ketua_alpa_at : atAlpa,
+      followup_ketua_at      : new Date().toISOString(),
+    }).eq('id_murid', d.id_murid).eq('id_halaqah', id_halaqah);
+    _check(error, 'simpanFollowupKeaktifanKetua');
     return { status: 'ok' };
   },
 };
