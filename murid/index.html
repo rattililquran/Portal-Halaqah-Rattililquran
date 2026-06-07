@@ -2921,6 +2921,64 @@ html.theme-dark .rincian-body table th {
   box-shadow: 0 1px 0 #475569 !important;
 }
 
+/* ── CHARGING — kotak P3K emosional ── */
+.charging-hero{
+  position:relative;overflow:hidden;border-radius:26px;padding:24px 22px;margin-bottom:18px;
+  background:linear-gradient(135deg,#fef3c7 0%,#fde7f3 50%,#e0e7ff 100%);
+  border:1px solid rgba(255,255,255,.6);
+}
+html.theme-dark .charging-hero{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(236,72,153,.10),rgba(99,102,241,.12))}
+.charging-hero-deco{position:absolute;font-size:90px;opacity:.16;line-height:1;pointer-events:none;user-select:none}
+.charging-hero-deco.d1{top:-18px;right:-10px;transform:rotate(12deg)}
+.charging-hero-deco.d2{bottom:-26px;left:-14px;font-size:64px;transform:rotate(-18deg)}
+.charging-hero-ttl{font-size:21px;font-weight:900;color:#78350f;letter-spacing:-.01em}
+.charging-hero-sub{font-size:12.5px;color:#92400e;margin-top:3px;font-weight:600;line-height:1.5}
+.charging-hero-quote{margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.55);
+  backdrop-filter:blur(6px);font-size:12.5px;color:#78350f;font-weight:700;font-style:italic;line-height:1.6;
+  border-left:3px solid #f59e0b}
+html.theme-dark .charging-hero-ttl,html.theme-dark .charging-hero-sub,html.theme-dark .charging-hero-quote{color:#fde68a !important}
+html.theme-dark .charging-hero-quote{background:rgba(0,0,0,.18);border-left-color:#f59e0b}
+
+.charging-btn-glow{
+  position:relative;background:linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6);background-size:200% 200%;
+  color:#fff !important;border:none;animation:chargingGlow 6s ease infinite;
+  box-shadow:0 8px 24px rgba(236,72,153,.35);
+}
+@keyframes chargingGlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.charging-note-card{
+  position:relative;border-radius:20px;padding:18px 18px 16px;cursor:default;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s ease;
+  box-shadow:0 6px 20px rgba(15,23,42,.07),0 1.5px 5px rgba(15,23,42,.05);
+  border:1px solid rgba(15,23,42,.05);
+}
+.charging-note-card:nth-child(3n+1){transform:rotate(-1.1deg)}
+.charging-note-card:nth-child(3n+2){transform:rotate(.8deg)}
+.charging-note-card:nth-child(3n+3){transform:rotate(-.4deg)}
+.charging-note-card:hover{transform:rotate(0deg) translateY(-4px);box-shadow:0 16px 36px rgba(15,23,42,.14),0 4px 10px rgba(15,23,42,.08)}
+.charging-note-quote{position:absolute;top:6px;right:14px;font-size:46px;font-weight:900;opacity:.10;line-height:1;font-family:Georgia,serif;pointer-events:none}
+.charging-note-content{font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;font-weight:600;
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.charging-note-actions{display:flex;gap:6px;margin-top:14px}
+.charging-icon-btn{
+  display:flex;align-items:center;justify-content:center;gap:5px;flex:1;
+  border:none;border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;
+  background:rgba(15,23,42,.04);color:var(--text-2);transition:background .15s ease,color .15s ease;
+}
+.charging-icon-btn:hover{background:rgba(15,23,42,.08)}
+.charging-icon-btn.danger:hover{background:var(--red-l);color:var(--red)}
+html.theme-dark .charging-icon-btn{background:rgba(255,255,255,.06);color:#cbd5e1}
+html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
+
+.charging-empty{
+  grid-column:1/-1;text-align:center;padding:48px 24px;border-radius:24px;
+  background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(139,92,246,.06));
+  border:1.5px dashed rgba(15,23,42,.12);
+}
+.charging-empty-emoji{font-size:52px;margin-bottom:12px;display:inline-block;animation:chargingFloat 3s ease-in-out infinite}
+@keyframes chargingFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(-4deg)}}
+@keyframes chargingCardIn{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
 /* Exclude and preserve Raport PDF headers */
 .raport-pdf .rp-table th {
   background: #1a5c3a !important;
@@ -3330,15 +3388,20 @@ html.theme-dark .rincian-body table th {
 
     <!-- ════ CHARGING (catatan penyemangat pribadi) ════ -->
     <div class="page" id="page-charging">
-      <div class="page-header">
-        <div class="page-header-ico">🔋</div>
-        <div class="page-header-inner"><div class="page-title">Charging</div><div class="page-sub">Kotak P3K emosional — catatan penyemangat pribadimu.</div></div>
+      <div class="charging-hero">
+        <div class="charging-hero-deco d1">🔋</div>
+        <div class="charging-hero-deco d2">💛</div>
+        <div style="position:relative">
+          <div class="charging-hero-ttl">🔋 Charging — Ruang Hatimu</div>
+          <div class="charging-hero-sub">Kotak P3K emosional. Tempat menyimpan kata-kata yang menguatkan,<br>untuk dibaca lagi saat semangat sedang turun.</div>
+          <div class="charging-hero-quote" id="chargingHeroQuote">"Sesungguhnya bersama kesulitan ada kemudahan." — QS. Al-Insyirah: 6</div>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:14px">
-        <button class="btn btn-primary" style="flex:1" onclick="bukaModeCharging()">⚡ Mulai Charging</button>
-        <button class="btn btn-outline" style="flex:1" onclick="bukaFormCharging()">+ Catatan Baru</button>
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <button class="btn charging-btn-glow" style="flex:1" onclick="bukaModeCharging()">⚡ Mulai Charging</button>
+        <button class="btn btn-outline" style="flex:1" onclick="bukaFormCharging()">✍️ Tulis Catatan</button>
       </div>
-      <div id="chargingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      <div id="chargingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
     </div>
@@ -3965,10 +4028,11 @@ html.theme-dark .rincian-body table th {
   <!-- Mode Charging — fullscreen reading view -->
   <div id="chargingModeOverlay" onclick="if(event.target===this)tutupModeCharging()" style="display:none;position:fixed;inset:0;z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,0.92);backdrop-filter:blur(40px) saturate(1.2);-webkit-backdrop-filter:blur(40px) saturate(1.2)">
     <button onclick="tutupModeCharging()" aria-label="Tutup" style="position:absolute;top:max(20px,env(safe-area-inset-top,0px));right:20px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)">✕</button>
-    <div id="chargingModeCard" style="max-width:420px;width:100%;border-radius:28px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-      <div id="chargingModeCategory" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px"></div>
-      <div id="chargingModeContent" style="font-size:18px;font-weight:700;line-height:1.6;white-space:pre-wrap"></div>
-      <div id="chargingModeDate" style="font-size:11px;opacity:.6;margin-top:16px"></div>
+    <div id="chargingModeCard" style="position:relative;max-width:440px;width:100%;border-radius:28px;padding:40px 32px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,0.35);animation:chargingCardIn .4s cubic-bezier(.34,1.56,.64,1)">
+      <div style="font-size:54px;opacity:.22;line-height:1;font-family:Georgia,serif;margin-bottom:-6px">&ldquo;</div>
+      <div id="chargingModeCategory" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;opacity:.85;margin-bottom:16px"></div>
+      <div id="chargingModeContent" style="font-size:19px;font-weight:800;line-height:1.7;white-space:pre-wrap"></div>
+      <div id="chargingModeDate" style="font-size:11px;opacity:.65;margin-top:22px;font-weight:600"></div>
     </div>
     <div style="display:flex;gap:14px;margin-top:24px">
       <button onclick="modeChargingNav(-1)" style="width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)">‹</button>
@@ -6951,14 +7015,29 @@ var CHARGING_CATEGORIES = {
 };
 
 var CHARGING_COLORS = {
-  blue:   { bg: 'linear-gradient(135deg,#0ea5e9,#2563eb)', soft: 'var(--blue-l)',   txt: 'var(--blue-txt)'   },
-  green:  { bg: 'linear-gradient(135deg,#10b981,#059669)', soft: 'var(--green-l)',  txt: 'var(--green-txt)'  },
-  amber:  { bg: 'linear-gradient(135deg,#f59e0b,#d97706)', soft: 'var(--amber-l)',  txt: 'var(--amber-txt)'  },
-  purple: { bg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', soft: 'var(--purple-l)', txt: 'var(--purple-txt)' },
-  teal:   { bg: 'linear-gradient(135deg,#06b6d4,#0d9488)', soft: 'var(--teal-l)',   txt: '#0d9488'           },
+  blue:   { bg: 'linear-gradient(135deg,#0ea5e9,#2563eb)', soft: 'var(--blue-l)',   txt: 'var(--blue-txt)',   wash: 'linear-gradient(160deg,rgba(14,165,233,.09),rgba(255,255,255,0) 60%)' },
+  green:  { bg: 'linear-gradient(135deg,#10b981,#059669)', soft: 'var(--green-l)',  txt: 'var(--green-txt)',  wash: 'linear-gradient(160deg,rgba(16,185,129,.09),rgba(255,255,255,0) 60%)' },
+  amber:  { bg: 'linear-gradient(135deg,#f59e0b,#d97706)', soft: 'var(--amber-l)',  txt: 'var(--amber-txt)',  wash: 'linear-gradient(160deg,rgba(245,158,11,.10),rgba(255,255,255,0) 60%)' },
+  purple: { bg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', soft: 'var(--purple-l)', txt: 'var(--purple-txt)', wash: 'linear-gradient(160deg,rgba(139,92,246,.09),rgba(255,255,255,0) 60%)' },
+  teal:   { bg: 'linear-gradient(135deg,#06b6d4,#0d9488)', soft: 'var(--teal-l)',   txt: '#0d9488',           wash: 'linear-gradient(160deg,rgba(6,182,212,.09),rgba(255,255,255,0) 60%)' },
 };
 
+var CHARGING_QUOTES = [
+  '"Sesungguhnya bersama kesulitan ada kemudahan." — QS. Al-Insyirah: 6',
+  '"Barang siapa bersungguh-sungguh, pasti akan mendapatkan hasilnya." — Man Jadda Wa Jada',
+  '"Allah tidak membebani seseorang melainkan sesuai kesanggupannya." — QS. Al-Baqarah: 286',
+  '"Jangan bersedih, sesungguhnya Allah bersama kita." — QS. At-Taubah: 40',
+  '"Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain." — HR. Ahmad',
+  '"Waktu yang hilang tidak akan pernah kembali — manfaatkan sebaik mungkin."',
+];
+
+function _chargingHeroQuote() {
+  var el = document.getElementById('chargingHeroQuote');
+  if (el) el.textContent = CHARGING_QUOTES[Math.floor(Math.random() * CHARGING_QUOTES.length)];
+}
+
 async function loadCharging() {
+  _chargingHeroQuote();
   var grid = document.getElementById('chargingGrid');
   grid.innerHTML = skelCards(3, 2);
   try {
@@ -6974,23 +7053,29 @@ async function loadCharging() {
 function renderChargingNotes() {
   var grid = document.getElementById('chargingGrid');
   if (!_chargingNotes.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🔋</div>'
-      + '<div class="empty-ttl">Belum ada catatan</div>'
-      + '<div style="font-size:12.5px;color:var(--text-3);margin-top:4px">Tulis catatan penyemangat pertamamu — bisa berupa tujuan, afirmasi, atau nasihat untuk diri sendiri.</div></div>';
+    grid.innerHTML = '<div class="charging-empty">'
+      + '<div class="charging-empty-emoji">🌱</div>'
+      + '<div class="empty-ttl" style="font-size:15px">Belum ada catatan tersimpan</div>'
+      + '<div style="font-size:12.5px;color:var(--text-3);margin-top:6px;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.6">'
+      + 'Mulai simpan kata-kata yang menguatkanmu — sebuah tujuan, afirmasi harian,'
+      + ' kenangan saat berhasil, atau nasihat dari ustadz yang ingin selalu kamu ingat.</div>'
+      + '<button class="btn charging-btn-glow" style="margin-top:16px;padding:10px 22px" onclick="bukaFormCharging()">✍️ Tulis Catatan Pertamamu</button>'
+      + '</div>';
     return;
   }
   grid.innerHTML = _chargingNotes.map(function(n, idx) {
     var c   = CHARGING_COLORS[n.color] || CHARGING_COLORS.blue;
     var cat = CHARGING_CATEGORIES[n.category] || CHARGING_CATEGORIES.goal;
-    return '<div class="card" style="padding:16px;border-left:4px solid transparent;border-image:' + c.bg + ' 1;display:flex;flex-direction:column;gap:10px">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-      + '<span style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:' + c.txt + ';background:' + c.soft + ';padding:3px 9px;border-radius:100px">' + cat.emoji + ' ' + cat.label + '</span>'
-      + '<span style="font-size:10.5px;color:var(--text-3)">' + fmtDate(n.created_at) + '</span>'
+    return '<div class="charging-note-card" style="background:' + c.wash + ', var(--card-solid)">'
+      + '<div class="charging-note-quote" style="color:' + c.txt + '">&ldquo;</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative">'
+      + '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:' + c.txt + ';background:' + c.soft + ';padding:4px 10px;border-radius:100px">' + cat.emoji + ' ' + cat.label + '</span>'
+      + '<span style="font-size:10.5px;color:var(--text-3);font-weight:600">' + fmtDate(n.created_at) + '</span>'
       + '</div>'
-      + '<div style="font-size:13.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;max-height:120px;overflow:hidden;text-overflow:ellipsis">' + esc(n.content) + '</div>'
-      + '<div style="display:flex;gap:8px;margin-top:auto">'
-      + '<button class="btn btn-outline" style="flex:1;font-size:12px;padding:8px" onclick="bukaFormCharging(\'' + esc(n.id_note) + '\')">✏️ Edit</button>'
-      + '<button class="btn btn-outline" style="flex:1;font-size:12px;padding:8px;color:var(--red)" onclick="hapusChargingNote(\'' + esc(n.id_note) + '\')">🗑 Hapus</button>'
+      + '<div class="charging-note-content" style="margin-top:12px;position:relative">' + esc(n.content) + '</div>'
+      + '<div class="charging-note-actions">'
+      + '<button class="charging-icon-btn" onclick="bukaFormCharging(\'' + esc(n.id_note) + '\')">✏️ Ubah</button>'
+      + '<button class="charging-icon-btn danger" onclick="hapusChargingNote(\'' + esc(n.id_note) + '\')">🗑 Hapus</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -7093,6 +7178,9 @@ function _renderChargingModeCard() {
   var cat = CHARGING_CATEGORIES[note.category] || CHARGING_CATEGORIES.goal;
   var card = document.getElementById('chargingModeCard');
   card.style.background = c.bg;
+  card.style.animation = 'none';
+  void card.offsetWidth; // restart animasi masuk tiap ganti kartu
+  card.style.animation = 'chargingCardIn .4s cubic-bezier(.34,1.56,.64,1)';
   document.getElementById('chargingModeCategory').style.color = '#fff';
   document.getElementById('chargingModeCategory').textContent = cat.emoji + ' ' + cat.label;
   document.getElementById('chargingModeContent').style.color = '#fff';
