@@ -8376,7 +8376,7 @@ function filterKeaktifanCards() {
         flagsHTML += '<div data-flag-row style="display:flex;justify-content:space-between;align-items:center;background:' + btnBg + ';padding:6px 12px;border-radius:8px;border:1px solid rgba(0,0,0,.03)">'
           + '<span style="font-size:12px;font-weight:700;color:' + btnColor + '">⚠️ ' + esc(f.label) + ' <small>(' + esc(f.detail) + ')</small></span>'
           + '<button onclick="doMarkContacted(\'' + esc(m.id_murid) + '\',\'' + esc(m.id_halaqah) + '\',\'' + esc(f.tipe) + '\',' + f.count + ',this)" style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;transition:opacity .15s">'
-          + '✓ Sudah Dihubungi'
+          + 'Tabayyun/tindak Lanjuti'
           + '</button>'
           + '</div>';
       });
@@ -8485,7 +8485,25 @@ function openWAKeaktifan(idx) {
 var _keaktifanContacted = new Set();
 
 async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
-  if (!confirm('Tandai murid ini sudah dihubungi terkait ' + tipeAlert + ' (' + value + 'x)?')) return;
+  if (!confirm('Tindak lanjuti murid ini dan hubungi via WhatsApp?')) return;
+
+  // Cari data murid di data lokal
+  var alertItem = null;
+  if (_keaktifanData && _keaktifanData.alerts) {
+    alertItem = _keaktifanData.alerts.find(function(a){ return a.id_murid === idMurid && a.id_halaqah === idHalaqah; });
+  }
+
+  if (!alertItem) {
+    toast('Data murid tidak ditemukan.', 'err');
+    return;
+  }
+
+  // Cek nomor HP
+  var raw = String(alertItem.no_hp || '').replace(/[^0-9]/g, '');
+  if (!raw || raw.length < 9) {
+    toast('Nomor HP murid ini belum tersedia di data pengguna.', 'warn');
+    return;
+  }
 
   // Optimistic UI: langsung ubah tampilan tombol sebelum API selesai
   if (btnEl) {
@@ -8495,22 +8513,20 @@ async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
   }
 
   try {
+    // 1. Update status di DB dan Akun Murid
     await window.HQ.GuruAPI.simpanFollowupKeaktifan({
       id_murid  : idMurid,
       id_halaqah: idHalaqah,
       tipe_alert: tipeAlert,
-      value     : value,
+      value     : value
     });
 
-    // Simpan ke set agar tidak muncul lagi setelah re-render — key: murid_halaqah_tipe
+    // Simpan ke set agar tidak muncul lagi setelah re-render
     _keaktifanContacted.add(idMurid + '_' + idHalaqah + '_' + tipeAlert);
 
     // Update flags di data lokal agar filter tidak perlu reload
-    if (_keaktifanData && _keaktifanData.alerts) {
-      var alertItem = _keaktifanData.alerts.find(function(a){ return a.id_murid === idMurid && a.id_halaqah === idHalaqah; });
-      if (alertItem && alertItem.flags) {
-        alertItem.flags = alertItem.flags.filter(function(f){ return f.tipe !== tipeAlert; });
-      }
+    if (alertItem.flags) {
+      alertItem.flags = alertItem.flags.filter(function(f){ return f.tipe !== tipeAlert; });
     }
 
     // Ganti baris flag menjadi "Sudah Dihubungi" tanpa reload penuh
@@ -8530,10 +8546,19 @@ async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
       }, 400);
     }
 
-    toast('✅ Tercatat — murid sudah dihubungi', 'ok');
+    toast('✅ Tercatat — murid sudah ditindaklanjuti', 'ok');
+
+    // 2. Langsung arahkan ke WhatsApp murid lengkap dengan pesannya
+    if (raw.startsWith('0')) raw = '62' + raw.slice(1);
+    else if (!raw.startsWith('62')) raw = '62' + raw;
+
+    var msg  = buildWAMessageKeaktifan(alertItem);
+    var url  = 'https://wa.me/' + raw + '?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+
   } catch(e) {
     // Revert UI jika gagal
-    if (btnEl) { btnEl.disabled = false; btnEl.textContent = '✓ Sudah Dihubungi'; btnEl.style.opacity = '1'; }
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Tabayyun/tindak Lanjuti'; btnEl.style.opacity = '1'; }
     toast(e.message, 'err');
   }
 }

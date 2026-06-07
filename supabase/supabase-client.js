@@ -817,7 +817,8 @@ var GuruAPI = {
 
     // Simpan catatan — batasi 10 entri terakhir agar tidak tumbuh tak terbatas
     var tglStr = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
-    var baris  = '[' + tglStr + '] Sudah dihubungi — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)';
+    var tambahan = d.catatan ? ' (' + d.catatan + ')' : '';
+    var baris  = '[' + tglStr + '] Sudah dihubungi — ' + (d.tipe_alert||'keaktifan') + ' (' + (d.value||0) + 'x)' + tambahan;
     var existing = anggota.catatan_guru ? anggota.catatan_guru.split('\n').filter(Boolean) : [];
     existing.push(baris);
     var catatan = existing.slice(-10).join('\n'); // simpan maksimal 10 entri
