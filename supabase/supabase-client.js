@@ -2352,16 +2352,40 @@ var AdminAPI = {
     _check(error,'buatPengumuman'); return {status:'ok',data};
   },
   getLaporanGlobal: async function() {
-    var {data,error}=await _sb.from('halaqah').select('*, anggota(count), kbm_log(count)').eq('status','aktif');
-    _check(error,'getLaporanGlobal');
-    if (data) {
-      data = data.map(function(h) {
-        return Object.assign({}, h, {
-          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
-          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
-        });
+    var [hqRes, anggotaRes, nilaiRes, kbmSesiRes, raportRes] = await Promise.all([
+      _sb.from('halaqah').select('*').eq('status','aktif'),
+      _sb.from('anggota').select('id_halaqah').eq('status','aktif'),
+      _sb.from('nilai_kbm').select('id_halaqah, status_hadir'),
+      _sb.from('kbm_log').select('id_halaqah').eq('status','selesai'),
+      _sb.from('raport').select('id_halaqah, nilai_akhir').not('nilai_akhir','is',null),
+    ]);
+    _check(hqRes.error,'getLaporanGlobal');
+    // Aggregate per halaqah (pola sama dengan getDashboard)
+    var anggotaMap={}, nilaiMap={}, sesiMap={}, raportMap={};
+    (anggotaRes.data||[]).forEach(function(a){ anggotaMap[a.id_halaqah]=(anggotaMap[a.id_halaqah]||0)+1; });
+    (nilaiRes.data||[]).forEach(function(n){
+      if (!nilaiMap[n.id_halaqah]) nilaiMap[n.id_halaqah]={hadir:0,total:0};
+      nilaiMap[n.id_halaqah].total++;
+      if (['H','T'].includes(n.status_hadir)) nilaiMap[n.id_halaqah].hadir++;
+    });
+    (kbmSesiRes.data||[]).forEach(function(k){ sesiMap[k.id_halaqah]=(sesiMap[k.id_halaqah]||0)+1; });
+    (raportRes.data||[]).forEach(function(r){
+      if (!raportMap[r.id_halaqah]) raportMap[r.id_halaqah]={sum:0,count:0};
+      raportMap[r.id_halaqah].sum+=Number(r.nilai_akhir||0);
+      raportMap[r.id_halaqah].count++;
+    });
+    var data = (hqRes.data||[]).map(function(h) {
+      var nm = nilaiMap[h.id_halaqah]||{hadir:0,total:0};
+      var rm = raportMap[h.id_halaqah]||{sum:0,count:0};
+      return Object.assign({}, h, {
+        jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+        jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
+        total_murid: anggotaMap[h.id_halaqah]||0,
+        total_sesi : sesiMap[h.id_halaqah]||0,
+        avg_nilai  : rm.count>0 ? Math.round(rm.sum/rm.count) : 0,
+        pct_hadir  : nm.total>0 ? Math.round(nm.hadir/nm.total*100) : 0,
       });
-    }
+    });
     return {status:'ok',data};
   },
   getRekapAbsensi: async function(p) {
