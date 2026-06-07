@@ -7042,6 +7042,9 @@ async function refreshPage() {
   btn.style.transition = 'transform 0.6s ease';
   setTimeout(() => { btn.style.transform = ''; btn.style.transition = ''; }, 700);
 
+  if (window.HQ && window.HQ.cache && window.HQ.cache.clear) {
+    window.HQ.cache.clear();
+  }
   muridCache = {};
   const active = document.querySelector('.page.active') ? document.querySelector('.page.active').id.replace('page-','') : '';
   if (active === 'dashboard') { await loadDashboard(); return; }

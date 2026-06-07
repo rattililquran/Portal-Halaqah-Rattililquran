@@ -2723,6 +2723,9 @@ async function refreshPage() {
   if (btn) { btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s'; }
   setTimeout(() => { if(btn){btn.style.transform='';btn.style.transition='';} }, 700);
   try {
+    if (window.HQ && window.HQ.cache && window.HQ.cache.clear) {
+      window.HQ.cache.clear();
+    }
     await loadMasterData();
     // Fix: variable 'id' tidak terdefinisi — ambil dari element id
     const activePage = document.querySelector('.page.active');
@@ -2767,10 +2770,6 @@ async function loadDashboard() {
 //  PERIODE
 // ══════════════════════════════════════════
 async function loadPeriode() {
-  if (allPeriode && allPeriode.length > 0) {
-    renderPeriodeTable();
-    return;
-  }
   showLoad('Bismillah, memuat data periode...');
   try {
     const r = await window.HQ.AdminAPI.getAllPeriode();
@@ -2882,11 +2881,6 @@ function switchUserTab(tab) {
 }
 
 async function loadUsers(role) {
-  // Use cached allUsers if available
-  if (allUsers && allUsers.length > 0) {
-    renderUsersTable(role);
-    return;
-  }
   var tb = document.getElementById('usersTbl');
   if (tb) tb.innerHTML = [1,2,3,4].map(function(){
     return '<tr><td><span class="skel skel-text short"></span></td>'
@@ -3320,10 +3314,6 @@ async function doImportTerintegrasi() {
 //  HALAQAH
 // ══════════════════════════════════════════
 async function loadHalaqah() {
-  if (allHalaqah && allHalaqah.length > 0) {
-    renderHalaqahTable();
-    return;
-  }
   showLoad('Bismillah, memuat data halaqah...');
   try {
     const r = await window.HQ.AdminAPI.getAllHalaqah();

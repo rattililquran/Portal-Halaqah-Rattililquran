@@ -3412,6 +3412,130 @@ function _urlB64ToUint8Array(base64String) {
 }
 
 // ─────────────────────────────────────────────
+//  DYNAMIC CACHE WRAPPER (SWR & INVALIDATION)
+// ─────────────────────────────────────────────
+(function() {
+  if (typeof window === 'undefined') return;
+
+  var apis = {
+    AdminAPI: AdminAPI,
+    GuruAPI: GuruAPI,
+    MuridAPI: MuridAPI,
+    KetuaAPI: KetuaAPI
+  };
+
+  var readPrefixes = ['get', 'load', 'find', 'search'];
+  var writePrefixes = ['create', 'update', 'delete', 'simpan', 'hapus', 'add', 'aktivasi', 'set'];
+
+  function getCacheKey(apiName, methodName, args) {
+    return 'hq_cache_' + apiName + '_' + methodName + '_' + JSON.stringify(args);
+  }
+
+  function clearCache() {
+    if (typeof sessionStorage === 'undefined') return;
+    for (var i = sessionStorage.length - 1; i >= 0; i--) {
+      var key = sessionStorage.key(i);
+      if (key && key.indexOf('hq_cache_') === 0) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  }
+
+  // SWR Caching
+  function wrapRead(apiName, methodName, original) {
+    return async function() {
+      var args = Array.prototype.slice.call(arguments);
+      if (typeof sessionStorage === 'undefined') {
+        return original.apply(this, args);
+      }
+
+      var key = getCacheKey(apiName, methodName, args);
+      var FRESH_TTL = 30 * 1000;       // 30 seconds
+      var STALE_TTL = 5 * 60 * 1000;    // 5 minutes
+
+      try {
+        var cached = sessionStorage.getItem(key);
+        if (cached) {
+          var parsed = JSON.parse(cached);
+          var age = Date.now() - parsed.timestamp;
+
+          if (age < FRESH_TTL) {
+            return parsed.data;
+          } else if (age < STALE_TTL) {
+            // SWR: fetch background, return cache immediately
+            original.apply(this, args).then(function(res) {
+              sessionStorage.setItem(key, JSON.stringify({
+                timestamp: Date.now(),
+                data: res
+              }));
+            }).catch(function(err) {
+              console.warn('SWR refresh failed for ' + key + ':', err);
+            });
+            return parsed.data;
+          }
+        }
+      } catch (e) {
+        console.warn('Cache read error for ' + key + ':', e);
+      }
+
+      // Blocking fetch
+      var res = await original.apply(this, args);
+      try {
+        sessionStorage.setItem(key, JSON.stringify({
+          timestamp: Date.now(),
+          data: res
+        }));
+      } catch (e) {
+        console.warn('Cache write error for ' + key + ':', e);
+      }
+      return res;
+    };
+  }
+
+  // Mutation Invalidation
+  function wrapWrite(original) {
+    return async function() {
+      var args = Array.prototype.slice.call(arguments);
+      var res = await original.apply(this, args);
+      clearCache();
+      return res;
+    };
+  }
+
+  // Wrap all API functions
+  Object.keys(apis).forEach(function(apiName) {
+    var api = apis[apiName];
+    if (!api) return;
+    Object.keys(api).forEach(function(methodName) {
+      var original = api[methodName];
+      if (typeof original !== 'function') return;
+
+      var isRead = readPrefixes.some(function(p) { return methodName.indexOf(p) === 0; });
+      var isWrite = writePrefixes.some(function(p) { return methodName.indexOf(p) === 0; });
+
+      if (isRead) {
+        api[methodName] = wrapRead(apiName, methodName, original);
+      } else if (isWrite) {
+        api[methodName] = wrapWrite(original);
+      }
+    });
+  });
+
+  // Wrap Auth.logout
+  if (typeof Auth !== 'undefined' && Auth.logout) {
+    var originalLogout = Auth.logout;
+    Auth.logout = async function() {
+      var args = Array.prototype.slice.call(arguments);
+      clearCache();
+      return originalLogout.apply(this, args);
+    };
+  }
+
+  // Expose global clear cache function
+  window._clearHQCache = clearCache;
+})();
+
+// ─────────────────────────────────────────────
 //  EXPORT
 // ─────────────────────────────────────────────
 window.HQ = {
@@ -3420,5 +3544,5 @@ window.HQ = {
   PushAPI, PushPrefsAPI,
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },
-  cache: { invalidate: function() {} },
+  cache: { invalidate: window._clearHQCache, clear: window._clearHQCache },
 };
