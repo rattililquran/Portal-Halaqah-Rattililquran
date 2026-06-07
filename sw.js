@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.2 — fault-tolerant install
+//  Cache version: v6.3 — fault-tolerant install
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.2'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v6.3'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -91,6 +91,9 @@ self.addEventListener('fetch', function(e) {
 
   // Hanya GET yang di-cache — POST/PUT/PATCH jangan pernah dicache
   if (e.request.method !== 'GET') return;
+
+  // Supabase API requests — bypass service worker
+  if (url.includes('supabase.co')) return;
 
   // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
   // Tidak berlaku untuk Supabase API

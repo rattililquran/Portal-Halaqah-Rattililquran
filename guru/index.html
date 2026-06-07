@@ -3844,10 +3844,10 @@ html.theme-dark .rt-surat-tbl th {
 <script>
 if ('serviceWorker' in navigator) {
   var swVer = localStorage.getItem('hq_sw_version') || '0';
-  if (swVer !== '3.0') {
+  if (swVer !== '3.1') {
     navigator.serviceWorker.getRegistrations().then(function(regs) {
       for (let reg of regs) reg.unregister();
-      localStorage.setItem('hq_sw_version', '3.0');
+      localStorage.setItem('hq_sw_version', '3.1');
       window.location.reload();
     });
   }
@@ -3935,15 +3935,20 @@ window.addEventListener('DOMContentLoaded', () => {
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'guru') {
     token = tk; currentUser = us;
-    // Refresh token agar JWT punya user_metadata terbaru (untuk RLS)
-    window.HQ.supabase.auth.refreshSession().then(function(r) {
-      if (r.data && r.data.session) {
-        token = r.data.session.access_token;
-        localStorage.setItem('hq_token', token);
-        localStorage.setItem('hq_refresh', r.data.session.refresh_token);
+    startApp();
+    // Refresh token safely in background after startup
+    setTimeout(function() {
+      if (window.HQ && window.HQ.supabase && window.HQ.supabase.auth) {
+        window.HQ.supabase.auth.refreshSession().then(function(r) {
+          if (r.data && r.data.session) {
+            token = r.data.session.access_token;
+            localStorage.setItem('hq_token', token);
+            localStorage.setItem('hq_refresh', r.data.session.refresh_token);
+          }
+        }).catch(function(){});
       }
-    }).catch(function(){});
-    startApp(); return;
+    }, 1000);
+    return;
   }
 
   document.getElementById('nisInput').addEventListener('keydown', e => {
