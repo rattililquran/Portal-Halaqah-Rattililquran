@@ -938,6 +938,13 @@ html.theme-dark .tahfidz-current-footer {
 .riwayat-item.expanded .riwayat-chevron{transform:rotate(180deg)}
 .riwayat-detail{display:none;padding:0 16px 16px;border-top:1px solid var(--border);background:#fafbfc}
 .riwayat-item.expanded .riwayat-detail{display:block}
+.at-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.at-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.at-dot.hadir{background:#10b981}
+.at-dot.absen{background:#ef4444}
+.at-dot.izin{background:#9ca3af}
+.at-dot.null{background:#e2e8f0}
+html.theme-dark .at-dot.null{background:#374151!important}
 .detail-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;
   border-bottom:1px solid #f1f5f9;font-size:13.5px}
 .detail-row:last-child{border-bottom:none}
@@ -3271,7 +3278,7 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
                 <div class="spp-donut-sub" id="sppDonutSub"></div>
               </div>
             </div>
-            <div class="spp-bulan-grid" id="sppBulanGrid"></div>
+            <div class="spp-bulan-grid" id="sppBulanGridDisplay"></div>
             <div class="spp-msg" id="sppMsg" style="display:none"></div>
           </div>
           <!-- Panel Infaq -->
@@ -7489,7 +7496,7 @@ function renderKetuaMemberList(elId, list, type) {
   }
   el.innerHTML = list.map(function(m, idx) {
     var dots = (m.riwayat || []).map(function(r) {
-      var cls = r.warna === 'hadir' ? 'hadir' : r.warna === 'merah' ? 'absen' : 'null';
+      var cls = r.warna === 'hijau' ? 'hadir' : r.warna === 'merah' ? 'absen' : r.warna === 'abu' ? 'izin' : 'null';
       return '<div class="at-dot '+cls+'" title="'+esc(r.tanggal||'')+'"></div>';
     }).join('');
     var badge = m.status === 'kritis'
@@ -10685,7 +10692,7 @@ function renderSPP(data) {
   if (!data) return;
   _sppData = data;
   var card  = document.getElementById('sppCard');
-  var grid  = document.getElementById('sppBulanGrid');
+  var grid  = document.getElementById('sppBulanGridDisplay');
   var badge = document.getElementById('sppBadge');
   if (!card || !grid) return;
   card.style.display = 'block';

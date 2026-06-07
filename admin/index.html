@@ -4357,7 +4357,10 @@ async function loadMetodeBayarAdmin() {
 
 var _allMetode = [];
 async function bukaFormMetode(data) {
-  if (!_allMetode.length) { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
+  if (!_allMetode.length) {
+    try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
+    catch(e) { toast(e.message,'err'); return; }
+  }
   var isEdit = !!data;
   document.getElementById('modalMetodeTitle').textContent = isEdit ? 'Edit Metode Bayar' : 'Tambah Metode Bayar';
   document.getElementById('metodeId').value         = (data && data.id) || '';
@@ -4396,9 +4399,11 @@ function setMetodeJenis(jenis, el) {
   document.getElementById('metodeQrisFields').style.display     = jenis==='qris'?'':'none';
 }
 async function editMetode(id) {
-  var r = await window.HQ.AdminAPI.getMetodeBayar();
-  var m = (r.data||[]).find(function(x){return x.id===id;});
-  if (m) bukaFormMetode(m);
+  try {
+    var r = await window.HQ.AdminAPI.getMetodeBayar();
+    var m = (r.data||[]).find(function(x){return x.id===id;});
+    if (m) bukaFormMetode(m);
+  } catch(e) { toast(e.message,'err'); }
 }
 async function hapusMetode(id, nama) {
   if (!confirm('Hapus "'+nama+'"?')) return;
@@ -5711,7 +5716,7 @@ function editLevel(id) {
     document.getElementById('lvlDesc').value = l.deskripsi||'';
     document.getElementById('lvlStatus').value = l.status||'aktif';
     openModal('modalLevel');
-  });
+  }).catch(e => toast(e.message,'err'));
 }
 
 async function saveLevel() {

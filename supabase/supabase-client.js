@@ -415,7 +415,8 @@ var GuruAPI = {
       .upsert(rows, { onConflict: 'id_kbm,id_murid' });
     _check(error, 'simpanPresensi');
     var hadir = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-    var alpa  = d.presensi.filter(function(p) { return p.status_hadir === 'A'; }).length;
+    // jumlah_alpa di kbm_log = "tidak hadir" (Izin + Alpa) agar hadir+alpa selalu = total murid di sesi
+    var alpa  = d.presensi.filter(function(p) { return ['I','A'].includes(p.status_hadir); }).length;
     // BUG-011 fix: sync tanggal_pertemuan ke kbm_log jika guru mengubah tanggal
     await _sb.from('kbm_log').update({
       jumlah_hadir: hadir,
@@ -468,7 +469,8 @@ var GuruAPI = {
     }
     var { data: kbm } = await _sb.from('nilai_kbm').select('status_hadir').eq('id_kbm', id_kbm);
     var hadir = (kbm || []).filter(function(n) { return ['H','T'].includes(n.status_hadir); }).length;
-    var alpa  = (kbm || []).filter(function(n) { return n.status_hadir === 'A'; }).length;
+    // jumlah_alpa di kbm_log = "tidak hadir" (Izin + Alpa) agar hadir+alpa selalu = total murid di sesi
+    var alpa  = (kbm || []).filter(function(n) { return ['I','A'].includes(n.status_hadir); }).length;
     var { error } = await _sb.from('kbm_log').update({
       status: 'selesai', jumlah_hadir: hadir, jumlah_alpa: alpa,
     }).eq('id_kbm', id_kbm);
@@ -737,6 +739,7 @@ var GuruAPI = {
                 if (!riwayatMap[key]) riwayatMap[key] = [];
                 var warna = 'hijau';
                 if (s.status_hadir === 'A') warna = 'merah';
+                else if (s.status_hadir === 'I') warna = 'abu';
                 else if (s.status_hadir === 'T') warna = 'kuning';
                 else if (s.kamera_murid && (s.kamera_murid.includes('selalu') || s.kamera_murid.includes('sering'))) warna = 'coklat';
                 riwayatMap[key].push({
@@ -908,7 +911,7 @@ var GuruAPI = {
       .select('id_sesi').eq('id_guru', id_guru).eq('status', 'selesai');
     var sesiIds = (sesiList || []).map(function(s){ return s.id_sesi; });
     var totalSesi = sesiIds.length;
-    if (!sesiIds.length) return { status: 'ok', data: [], total_sesi: 0, summary: { pct_keseluruhan: 0, total_murid: 0, total_hadir: 0, total_absen: 0 } };
+    if (!sesiIds.length) return { status: 'ok', data: [], total_sesi: 0, summary: { pct_keseluruhan: 0, total_murid: 0, total_hadir: 0, total_izin: 0, total_absen: 0 } };
     var q = _sb.from('at_tibyan_log')
       .select('id_murid, nama_murid, status_hadir, id_halaqah, nama_halaqah')
       .in('id_sesi', sesiIds);
@@ -917,10 +920,13 @@ var GuruAPI = {
     _check(error, 'getAtTibyanRekap');
     var muridMap = {};
     (data || []).forEach(function(r) {
-      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid || '', nama_halaqah: r.nama_halaqah, level: '', hadir: 0, absen: 0, total: 0 };
+      if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid || '', nama_halaqah: r.nama_halaqah, level: '', hadir: 0, izin: 0, absen: 0, total: 0 };
       var m = muridMap[r.id_murid];
       m.total++;
-      if (['H','T'].includes(r.status_hadir)) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
+      // Klasifikasi 3 kelompok eksplisit agar hadir+izin+absen selalu = total (status_hadir: H/T=hadir, I=izin, A=alpa)
+      if (['H','T'].includes(r.status_hadir)) m.hadir++;
+      else if (r.status_hadir === 'I') m.izin++;
+      else if (r.status_hadir === 'A') m.absen++;
     });
     // Ambil nama_lengkap & level dari users agar nama selalu akurat
     var muridIds = Object.keys(muridMap);
@@ -937,10 +943,11 @@ var GuruAPI = {
       return Object.assign(m, { pct_hadir: m.total > 0 ? Math.round(m.hadir / m.total * 100) : 0 });
     }).sort(function(a,b){ return (a.nama_murid||'').localeCompare(b.nama_murid||''); });
     var totalHadir = rows.reduce(function(s,m){ return s+m.hadir; }, 0);
+    var totalIzin  = rows.reduce(function(s,m){ return s+m.izin; }, 0);
     var totalAbsen = rows.reduce(function(s,m){ return s+m.absen; }, 0);
     var totalEntries = rows.reduce(function(s,m){ return s+m.total; }, 0);
     return { status: 'ok', data: rows, total_sesi: totalSesi,
-      summary: { pct_keseluruhan: totalEntries > 0 ? Math.round(totalHadir/totalEntries*100) : 0, total_murid: rows.length, total_hadir: totalHadir, total_absen: totalAbsen } };
+      summary: { pct_keseluruhan: totalEntries > 0 ? Math.round(totalHadir/totalEntries*100) : 0, total_murid: rows.length, total_hadir: totalHadir, total_izin: totalIzin, total_absen: totalAbsen } };
   },
 
   getAtTibyanKeaktifan: async function() {
@@ -964,7 +971,9 @@ var GuruAPI = {
       var m = muridMap[r.id_murid]; m.total++;
       var hadir = ['H','T'].includes(r.status_hadir);
       if (hadir) m.hadir++; else if (r.status_hadir === 'A') m.absen++;
-      m.riwayat.push({ warna: hadir ? 'hijau' : 'merah', tanggal: r.tanggal });
+      // 'I' (Izin) ditandai abu-abu — bukan merah seperti Alpa — agar tidak terlihat sama spt absen
+      var warna = hadir ? 'hijau' : (r.status_hadir === 'I' ? 'abu' : 'merah');
+      m.riwayat.push({ warna: warna, tanggal: r.tanggal });
     });
     // Ambil nama_lengkap, no_hp, level dari users agar selalu akurat
     var muridIds = Object.keys(muridMap);
@@ -3173,10 +3182,12 @@ var KetuaAPI = {
     if (error) return { status: 'ok', data: { alerts: [] } };
     var map = {};
     (data || []).forEach(function(r) {
-      if (!map[r.id_murid]) map[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, hadir: 0, total: 0, riwayat: [] };
+      if (!map[r.id_murid]) map[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid, hadir: 0, alpa: 0, total: 0, riwayat: [] };
       map[r.id_murid].total++;
       if (['H','T'].includes(r.status_hadir)) map[r.id_murid].hadir++;
-      if (map[r.id_murid].riwayat.length < 8) map[r.id_murid].riwayat.push({ warna: ['H','T'].includes(r.status_hadir) ? 'hijau' : 'merah', tanggal: r.tanggal });
+      // Hanya 'A' (Alpa) yang dihitung sbg ketidakhadiran utk alert — 'I' (Izin) tidak dianggap sama dgn Alpa
+      if (r.status_hadir === 'A') map[r.id_murid].alpa++;
+      if (map[r.id_murid].riwayat.length < 8) map[r.id_murid].riwayat.push({ warna: ['H','T'].includes(r.status_hadir) ? 'hijau' : (r.status_hadir === 'A' ? 'merah' : 'abu'), tanggal: r.tanggal });
     });
     var ids = Object.keys(map);
     var hpMap = {};
@@ -3185,7 +3196,7 @@ var KetuaAPI = {
       (users || []).forEach(function(u) { hpMap[u.id_user] = u.no_hp; });
     }
     var alerts = Object.values(map).map(function(m) {
-      var alpa = m.total - m.hadir;
+      var alpa = m.alpa;
       var status = alpa >= 2 ? 'kritis' : alpa === 1 ? 'peringatan' : 'normal';
       return {
         id_murid  : m.id_murid,

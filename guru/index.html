@@ -1414,6 +1414,7 @@ html.theme-dark .at-pb.on-A{background:rgba(220,38,38,.2)!important;border-color
 .at-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .at-dot.hadir{background:#10b981}
 .at-dot.absen{background:#ef4444}
+.at-dot.izin{background:#9ca3af}
 .at-dot.null{background:#e2e8f0}
 html.theme-dark .at-keaktifan-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark .at-dot.null{background:#374151!important}
@@ -4976,6 +4977,13 @@ function renderHafalanKbm() {
   }
   cont.innerHTML = html;
 
+  // Listener delegasi dipasang sekali saja pada container persisten — innerHTML
+  // hanya membersihkan elemen anak, bukan listener pada cont sendiri, sehingga
+  // tanpa guard ini setiap kunjungan ulang ke step Hafalan KBM akan menumpuk
+  // satu set listener baru (logika input/poin terpicu berkali-kali).
+  if (cont.dataset.listenersBound) return;
+  cont.dataset.listenersBound = '1';
+
   // Event listeners via delegation (hindari inline handler dengan quote escaping)
   cont.addEventListener('input', function(e) {
     // Surat autocomplete
@@ -8439,6 +8447,9 @@ function filterKeaktifanCards() {
       } else if (s.warna === 'coklat') {
         color = '#b45309';
         title = s.tanggal + ': Kamera Tertutup';
+      } else if (s.warna === 'abu') {
+        color = '#9ca3af';
+        title = s.tanggal + ': Izin';
       }
       return '<span style="width:10px; height:10px; border-radius:50%; background:' + color + '; display:inline-block; margin:0 3px; cursor:pointer;" title="' + title + '"></span>';
     }).join('');
@@ -8885,7 +8896,8 @@ function filterAtKeaktifan() {
       : m.status === 'peringatan' ? '<span class="badge b-amber">Peringatan 🟡</span>'
       : '<span class="badge b-green">Normal 🟢</span>';
     var dots = (m.riwayat || []).map(function(r) {
-      return '<div class="at-dot '+(r.warna === 'hijau' ? 'hadir' : 'absen')+'" title="'+esc(fmtDate(r.tanggal))+'"></div>';
+      var dotCls = r.warna === 'hijau' ? 'hadir' : r.warna === 'abu' ? 'izin' : 'absen';
+      return '<div class="at-dot '+dotCls+'" title="'+esc(fmtDate(r.tanggal))+'"></div>';
     }).join('');
 
     // Tombol WA hanya untuk kritis & peringatan
