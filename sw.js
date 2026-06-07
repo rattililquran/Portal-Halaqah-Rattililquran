@@ -1,29 +1,32 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.4 — dynamic base & logic network-first
+//  Cache version: v6.5 — fixed production base path
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.4'; // bump versi → cache lama dihapus saat activate
-const BASE         = self.location.pathname.substring(0, self.location.pathname.lastIndexOf('/'));
+const CACHE_NAME   = 'halaqah-v6.5'; // bump versi → cache lama dihapus saat activate
+// Path tetap untuk produksi (GitHub Pages). Dynamic BASE sebelumnya menyebabkan
+// SW salah menghitung path saat di-cache/diuji dari konteks berbeda (mis. localhost),
+// yang berujung pada cache rusak dan halaman tidak bisa dimuat/login macet.
+const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
-  (BASE || '/') + '',
-  (BASE || '') + '/index.html',
-  (BASE || '') + '/guru/index.html',
-  (BASE || '') + '/murid/index.html',
-  (BASE || '') + '/admin/index.html',
-  (BASE || '') + '/manifest.json',
-  (BASE || '') + '/assets/images/logo-putih.png',
-  (BASE || '') + '/assets/images/logo-abu.png',
-  (BASE || '') + '/assets/font.css',
-  (BASE || '') + '/assets/fonts/PlusJakartaSans-400.woff2',
-  (BASE || '') + '/assets/fonts/PlusJakartaSans-500.woff2',
-  (BASE || '') + '/assets/fonts/PlusJakartaSans-600.woff2',
-  (BASE || '') + '/assets/fonts/PlusJakartaSans-700.woff2',
-  (BASE || '') + '/assets/fonts/PlusJakartaSans-800.woff2',
-  (BASE || '') + '/assets/fonts/Amiri-arabic-400.woff2',
-  (BASE || '') + '/assets/fonts/Amiri-arabic-700.woff2',
-  (BASE || '') + '/assets/fonts/Amiri-latin-400.woff2',
-  (BASE || '') + '/assets/fonts/Amiri-latin-700.woff2',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/guru/index.html',
+  BASE + '/murid/index.html',
+  BASE + '/admin/index.html',
+  BASE + '/manifest.json',
+  BASE + '/assets/images/logo-putih.png',
+  BASE + '/assets/images/logo-abu.png',
+  BASE + '/assets/font.css',
+  BASE + '/assets/fonts/PlusJakartaSans-400.woff2',
+  BASE + '/assets/fonts/PlusJakartaSans-500.woff2',
+  BASE + '/assets/fonts/PlusJakartaSans-600.woff2',
+  BASE + '/assets/fonts/PlusJakartaSans-700.woff2',
+  BASE + '/assets/fonts/PlusJakartaSans-800.woff2',
+  BASE + '/assets/fonts/Amiri-arabic-400.woff2',
+  BASE + '/assets/fonts/Amiri-arabic-700.woff2',
+  BASE + '/assets/fonts/Amiri-latin-400.woff2',
+  BASE + '/assets/fonts/Amiri-latin-700.woff2',
 ];
 
 // Install — cache file statis secara fault-tolerant
