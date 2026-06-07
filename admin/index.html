@@ -2767,23 +2767,32 @@ async function loadDashboard() {
 //  PERIODE
 // ══════════════════════════════════════════
 async function loadPeriode() {
+  if (allPeriode && allPeriode.length > 0) {
+    renderPeriodeTable();
+    return;
+  }
   showLoad('Bismillah, memuat data periode...');
   try {
     const r = await window.HQ.AdminAPI.getAllPeriode();
     allPeriode = r.data || [];
-    const tbody = document.getElementById('periodeTbl');
-    tbody.innerHTML = allPeriode.map(p => `<tr>
-      <td><strong>${esc(p.nama_periode)}</strong>${p.deskripsi?`<br><small style="color:var(--text-3)">${esc(p.deskripsi)}</small>`:''}</td>
-      <td>${p.tanggal_mulai||'–'}</td>
-      <td>${p.tanggal_selesai||'–'}</td>
-      <td>${p.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">✏️</button>
-        ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">▶ Aktifkan</button>`:''}
-      </td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+    renderPeriodeTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
+}
+
+function renderPeriodeTable() {
+  const tbody = document.getElementById('periodeTbl');
+  if (!tbody) return;
+  tbody.innerHTML = allPeriode.map(p => `<tr>
+    <td><strong>${esc(p.nama_periode)}</strong>${p.deskripsi?`<br><small style="color:var(--text-3)">${esc(p.deskripsi)}</small>`:''}</td>
+    <td>${p.tanggal_mulai||'–'}</td>
+    <td>${p.tanggal_selesai||'–'}</td>
+    <td>${p.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
+    <td style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">✏️</button>
+      ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">▶ Aktifkan</button>`:''}
+    </td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
 }
 
 function openModalPeriode(id) {
@@ -3311,6 +3320,10 @@ async function doImportTerintegrasi() {
 //  HALAQAH
 // ══════════════════════════════════════════
 async function loadHalaqah() {
+  if (allHalaqah && allHalaqah.length > 0) {
+    renderHalaqahTable();
+    return;
+  }
   showLoad('Bismillah, memuat data halaqah...');
   try {
     const r = await window.HQ.AdminAPI.getAllHalaqah();
