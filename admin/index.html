@@ -2979,7 +2979,10 @@ function renderUsersTable(role) {
       + '<td><strong>' + esc(u.nama_lengkap) + '</strong></td>'
       + '<td>' + roleBadge(u.role) + '</td>'
       + (showHalaqahCol ? hqCell : '')
-      + '<td>' + esc(u.no_hp||'–') + '</td>'
+      + '<td>' + (u.no_hp
+          ? '<span class="hp-copy" title="Klik untuk salin nomor" onclick="salinNoHp(this,\'' + esc(u.no_hp) + '\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">'
+            + '<span>' + esc(u.no_hp) + '</span><span class="hp-copy-ico" style="font-size:11px;opacity:.5">📋</span></span>'
+          : '–') + '</td>'
       + '<td>' + esc(u.email||'–') + '</td>'
       + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
       + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">✏️</button>' + btnDel + '</td>'
@@ -2993,6 +2996,24 @@ function renderUsersTable(role) {
   }).length;
   var badge = document.getElementById('userCountBadge');
   if (badge) badge.textContent = filtered.length + ' dari ' + total + ' pengguna';
+}
+
+function salinNoHp(el, hp) {
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    toast('Browser tidak mendukung salin otomatis', 'warn');
+    return;
+  }
+  navigator.clipboard.writeText(hp).then(function() {
+    toast('Nomor ' + hp + ' disalin!', 'ok');
+    var ico = el.querySelector('.hp-copy-ico');
+    if (ico) {
+      var orig = ico.textContent;
+      ico.textContent = '✅';
+      setTimeout(function(){ ico.textContent = orig; }, 1500);
+    }
+  }).catch(function() {
+    toast('Gagal menyalin nomor', 'err');
+  });
 }
 
 function filterUsersTable() { renderUsersTable(currentUserTab); }
