@@ -16,7 +16,13 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 var _currentUser = null;
 var _isRestoringSession = true; // Start as true to prevent premature SIGNED_OUT wipe on load
 
+// Penanda generasi sesi: setiap login baru menaikkan angka ini.
+// Proses restore lama (async) memeriksa generasi miliknya sebelum menghapus token,
+// agar tidak menghapus token dari login baru yang terjadi setelah restore dimulai (race condition).
+var _sessionGen = 0;
+
 (function() {
+  var myGen = _sessionGen;
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
 
@@ -34,8 +40,10 @@ var _isRestoringSession = true; // Start as true to prevent premature SIGNED_OUT
     var session = res.data && res.data.session;
     if (session) {
       // Session sudah pulih otomatis, cukup perbarui token di hq_token/hq_refresh
-      localStorage.setItem('hq_token',   session.access_token);
-      localStorage.setItem('hq_refresh', session.refresh_token);
+      if (myGen === _sessionGen) {
+        localStorage.setItem('hq_token',   session.access_token);
+        localStorage.setItem('hq_refresh', session.refresh_token);
+      }
       _isRestoringSession = false;
       return;
     }
@@ -43,7 +51,8 @@ var _isRestoringSession = true; // Start as true to prevent premature SIGNED_OUT
     // Jika tidak ada session otomatis, baru lakukan setSession manual
     _sb.auth.setSession({ access_token: token, refresh_token: refresh })
       .then(function(res) {
-        if (!res.data || !res.data.session) {
+        // Jangan hapus token jika sudah ada login baru yang berjalan sejak restore dimulai
+        if ((!res.data || !res.data.session) && myGen === _sessionGen) {
           _currentUser = null;
           localStorage.removeItem('hq_token');
           localStorage.removeItem('hq_refresh');
@@ -112,6 +121,8 @@ var Auth = {
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons dengan benar. Coba lagi.'); }
     if (data.status === 'error') throw new Error(data.message);
     if (!data.user || !data.access_token) throw new Error('Respons login tidak lengkap. Coba lagi.');
+    _sessionGen++; // Tandai login baru — restore lama yang masih berjalan tidak boleh menghapus token ini
+    _isRestoringSession = false;
     await _sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
     _currentUser = data.user;
     localStorage.setItem('hq_user',    JSON.stringify(data.user));
