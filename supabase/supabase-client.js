@@ -47,10 +47,6 @@ var _isRestoringSession = false;
         })
         .catch(function() {
           _isRestoringSession = false;
-          _currentUser = null;
-          localStorage.removeItem('hq_token');
-          localStorage.removeItem('hq_refresh');
-          localStorage.removeItem('hq_user');
         });
     }
   }).catch(function() {});
