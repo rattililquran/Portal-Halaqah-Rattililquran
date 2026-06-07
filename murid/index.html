@@ -598,8 +598,8 @@ html.theme-dark .prog-estimasi-middle{
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
-  padding: 32px 24px;
-  box-shadow: var(--shadow-lg);
+  padding: 40px 28px;
+  box-shadow: var(--shadow-card);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -611,128 +611,100 @@ html.theme-dark .tahfidz-lock-card {
 }
 .tahfidz-header-glow {
   position: relative;
-  width: 90px;
-  height: 90px;
-  margin: 0 auto 20px;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 22px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+html.theme-dark .tahfidz-header-glow {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 .tahfidz-mosque-icon {
-  font-size: 42px;
-  z-index: 2;
-  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.3));
-  animation: mosqueFloat 3s ease-in-out infinite;
-}
-@keyframes mosqueFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-6px) scale(1.05); }
+  font-size: 26px;
+  line-height: 1;
 }
 .tahfidz-glow-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(16,185,129,0) 70%);
-  z-index: 1;
-  animation: pulseRing 2s ease-in-out infinite;
-}
-@keyframes pulseRing {
-  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.8; }
-  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+  display: none;
 }
 .tahfidz-lock-title {
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 21px;
+  font-weight: 700;
   color: var(--text);
-  margin-bottom: 4px;
-  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
 }
 .tahfidz-lock-subtitle {
-  font-size: 13.5px;
+  font-size: 12px;
   color: var(--text-3);
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 /* Quote Banner */
 .tahfidz-quote-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.02));
-  border: 1px dashed rgba(16, 185, 129, 0.25);
-  border-radius: var(--r-sm);
-  padding: 18px;
+  background: var(--bg-2);
+  border: none;
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 16px 18px;
   margin-bottom: 20px;
-  position: relative;
   text-align: left;
 }
 html.theme-dark .tahfidz-quote-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(16, 185, 129, 0.01));
-  border-color: rgba(16, 185, 129, 0.15);
+  background: rgba(255, 255, 255, 0.03);
 }
 .quote-icon {
-  position: absolute;
-  top: -8px;
-  left: 12px;
-  font-size: 36px;
-  font-family: Georgia, serif;
-  color: rgba(16, 185, 129, 0.25);
-  line-height: 1;
+  display: none;
 }
 .quote-text {
-  font-size: 13.5px;
+  font-size: 13px;
   font-style: italic;
-  font-weight: 600;
-  color: var(--green-d);
+  font-weight: 500;
+  color: var(--text-2);
   line-height: 1.6;
-  margin-bottom: 6px;
-  position: relative;
-  z-index: 1;
-}
-html.theme-dark .quote-text {
-  color: #a7f3d0;
+  margin-bottom: 8px;
 }
 .quote-source {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--text-3);
   text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 /* Motivation Alert */
 .tahfidz-motivation-alert {
   display: flex;
   gap: 12px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.07), rgba(14, 165, 233, 0.02));
-  border: 1px solid rgba(14, 165, 233, 0.15);
+  align-items: flex-start;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  padding: 14px;
+  padding: 14px 16px;
   text-align: left;
   margin-bottom: 28px;
 }
 html.theme-dark .tahfidz-motivation-alert {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.03), rgba(14, 165, 233, 0.01));
-  border-color: rgba(14, 165, 233, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 .motivation-emoji {
-  font-size: 20px;
-  animation: rocketShake 2s ease-in-out infinite;
-}
-@keyframes rocketShake {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-3px) rotate(8deg); }
+  font-size: 17px;
+  line-height: 1.4;
 }
 .motivation-text {
   font-size: 12.5px;
   color: var(--text-2);
-  line-height: 1.5;
+  line-height: 1.55;
   font-weight: 500;
 }
 
@@ -741,19 +713,20 @@ html.theme-dark .tahfidz-motivation-alert {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
 }
 .roadmap-icon {
-  font-size: 16px;
+  font-size: 14px;
+  opacity: .7;
 }
 .roadmap-title {
-  font-size: 12.5px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--text-2);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .tahfidz-roadmap {
@@ -770,7 +743,7 @@ html.theme-dark .tahfidz-motivation-alert {
   top: 24px;
   left: 20px;
   bottom: 24px;
-  width: 4px;
+  width: 2px;
   background: var(--border);
   z-index: 1;
 }
@@ -792,49 +765,42 @@ html.theme-dark .tahfidz-motivation-alert {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  background: #fff;
-  border: 2px solid var(--text-3);
+  background: var(--card);
+  border: 2px solid var(--border);
   color: var(--text-3);
-  transition: all 0.3s ease;
 }
 html.theme-dark .roadmap-node {
   background: #1e293b;
   border-color: #475569;
 }
 .roadmap-step.past .roadmap-node {
-  background: #dcfce7;
-  border-color: var(--green);
-  color: var(--green-d);
+  background: var(--bg-2);
+  border-color: var(--text-3);
+  color: var(--text-2);
 }
 html.theme-dark .roadmap-step.past .roadmap-node {
-  background: #064e3b;
-  color: #a7f3d0;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
 }
 .roadmap-step.current .roadmap-node {
-  background: #dbeafe;
+  background: var(--card);
   border-color: var(--blue-d);
-  color: var(--blue-txt);
-  width: 28px;
-  height: 28px;
-  margin-left: -2px;
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
-  animation: pulseCurrentNode 1.5s infinite alternate;
+  color: var(--blue-d);
+  width: 26px;
+  height: 26px;
+  margin-left: -1px;
 }
 html.theme-dark .roadmap-step.current .roadmap-node {
   background: #1e3a8a;
   color: #93c5fd;
 }
-@keyframes pulseCurrentNode {
-  0% { transform: scale(1); box-shadow: 0 0 6px rgba(37, 99, 235, 0.2); }
-  100% { transform: scale(1.08); box-shadow: 0 0 14px rgba(37, 99, 235, 0.45); }
-}
 .roadmap-step.locked .roadmap-node {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #94a3b8;
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--text-3);
+  opacity: .6;
 }
 html.theme-dark .roadmap-step.locked .roadmap-node {
   background: #0f172a;
@@ -842,14 +808,13 @@ html.theme-dark .roadmap-step.locked .roadmap-node {
   color: #64748b;
 }
 .roadmap-step.qiyam-node .roadmap-node {
-  background: #d1fae5;
+  background: var(--card);
   border-color: var(--green);
   color: var(--green-txt);
-  width: 32px;
-  height: 32px;
-  margin-left: -4px;
-  font-size: 14px;
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+  width: 28px;
+  height: 28px;
+  margin-left: -2px;
+  font-size: 13px;
 }
 html.theme-dark .roadmap-step.qiyam-node .roadmap-node {
   background: #064e3b;
@@ -860,8 +825,8 @@ html.theme-dark .roadmap-step.qiyam-node .roadmap-node {
   flex: 1;
 }
 .roadmap-lv-title {
-  font-size: 13.5px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-2);
   margin-bottom: 4px;
   display: flex;
@@ -880,15 +845,12 @@ html.theme-dark .roadmap-step.qiyam-node .roadmap-node {
   padding: 1px 6px;
   border-radius: 4px;
   text-transform: uppercase;
+  background: var(--bg-2);
+  color: var(--text-3);
+  border: 1px solid var(--border);
 }
-.badge-past { background: #dcfce7; color: #15803d; }
-html.theme-dark .badge-past { background: #064e3b; color: #a7f3d0; }
-.badge-current { background: #dbeafe; color: #1d4ed8; }
-html.theme-dark .badge-current { background: #1e3a8a; color: #93c5fd; }
-.badge-locked { background: #f1f5f9; color: #64748b; }
-html.theme-dark .badge-locked { background: #334155; color: #cbd5e1; }
-.badge-qiyam { background: #fef3c7; color: #b45309; }
-html.theme-dark .badge-qiyam { background: #78350f; color: #fde68a; }
+.badge-current { color: var(--blue-d); border-color: var(--blue-d); }
+.badge-qiyam { color: var(--green-txt); border-color: var(--green); }
 
 .roadmap-lv-desc {
   font-size: 11.5px;
@@ -904,22 +866,24 @@ html.theme-dark .badge-qiyam { background: #78350f; color: #fde68a; }
 }
 
 .tahfidz-current-footer {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-2);
   background: var(--bg-2);
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-radius: var(--r-sm);
   display: inline-block;
   margin-top: 10px;
+  border: 1px solid var(--border);
 }
 html.theme-dark .tahfidz-current-footer {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
   color: #e2e8f0;
 }
 .tahfidz-current-footer span {
   color: var(--blue-d);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* ── RIWAYAT ITEM (expandable) ── */
@@ -3602,11 +3566,10 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         <div class="tahfidz-lock-card">
           <div class="tahfidz-header-glow">
             <div class="tahfidz-mosque-icon">🕌</div>
-            <div class="tahfidz-glow-ring"></div>
           </div>
           <h2 class="tahfidz-lock-title">Kelas Tahfidz</h2>
-          <div style="display:inline-flex;align-items:center;gap:6px;margin:4px auto 2px;padding:5px 14px;background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.08));border:1px solid rgba(16,185,129,.35);border-radius:20px;font-size:10.5px;font-weight:800;color:#065f46;letter-spacing:.8px;text-transform:uppercase;">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div style="display:inline-flex;align-items:center;gap:6px;margin:4px auto 2px;padding:4px 12px;background:var(--bg-2);border:1px solid var(--border);border-radius:20px;font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.6px;text-transform:uppercase;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Fitur Khusus Halaqah Qiyam
           </div>
           <p class="tahfidz-lock-subtitle">Gerbang Menuju Sahabat Al-Qur'an</p>
