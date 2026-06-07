@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.2 — fault-tolerant install
+//  Cache version: v6.3 — bypass SW for fonts/assets to avoid WebKit cache deadlock
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.2'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v6.3'; // bump versi → cache lama dihapus saat activate
 const BASE         = '/Portal-Halaqah-Rattililquran';
 const STATIC_CACHE = [
   BASE + '/',
@@ -12,18 +12,11 @@ const STATIC_CACHE = [
   BASE + '/murid/index.html',
   BASE + '/admin/index.html',
   BASE + '/manifest.json',
-  BASE + '/assets/images/logo-putih.png',
-  BASE + '/assets/images/logo-abu.png',
-  BASE + '/assets/font.css',
-  BASE + '/assets/fonts/PlusJakartaSans-400.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-500.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-600.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-700.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-800.woff2',
-  BASE + '/assets/fonts/Amiri-arabic-400.woff2',
-  BASE + '/assets/fonts/Amiri-arabic-700.woff2',
-  BASE + '/assets/fonts/Amiri-latin-400.woff2',
-  BASE + '/assets/fonts/Amiri-latin-700.woff2',
+  // Catatan: file font/gambar di /assets/ sengaja TIDAK di-precache di sini.
+  // Permintaan ke /assets/ dan font CDN dilewatkan begitu saja oleh fetch handler
+  // (lihat di bawah) untuk menghindari deadlock Cache Storage di WebKit/Safari
+  // (cache.add saat install bertabrakan dengan cache.match/cache.put saat fetch,
+  // membuat request font/gambar macet pending selamanya dan halaman ikut freeze).
 ];
 
 // Install — cache file statis secara fault-tolerant
@@ -59,42 +52,20 @@ self.addEventListener('fetch', function(e) {
   var url = e.request.url;
 
 
-  // Font Google (CDN) — cache
-  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
-    e.respondWith(
-      caches.match(e.request).then(function(cached) {
-        return cached || fetch(e.request).then(function(res) {
-          var clone = res.clone();
-          caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
-          return res;
-        });
-      })
-    );
-    return;
-  }
-
-  // Static assets — cache first
-  if (url.includes('/assets/')) {
-    e.respondWith(
-      caches.match(e.request).then(function(cached) {
-        return cached || fetch(e.request).then(function(res) {
-          if (res.ok) {
-            var clone = res.clone();
-            caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
-          }
-          return res;
-        });
-      })
-    );
+  // Font (Google CDN maupun lokal /assets/) — biarkan lewat tanpa campur tangan SW.
+  // Mencegat & cache manual di sini menyebabkan deadlock Cache Storage di WebKit/Safari
+  // (caches.match/c.put bertabrakan dengan cache.add saat install), membuat request
+  // font/gambar macet pending selamanya dan halaman ikut freeze. Browser sudah cache
+  // font & asset secara native lewat HTTP cache.
+  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com') || url.includes('/assets/')) {
     return;
   }
 
   // Hanya GET yang di-cache — POST/PUT/PATCH jangan pernah dicache
   if (e.request.method !== 'GET') return;
 
-  // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
-  // Tidak berlaku untuk Supabase API
-  if (url.includes('/assets/') || (url.includes('/supabase/') && !url.includes('supabase.co'))) { // BUG-L2 fix: kurung eksplisit
+  // File lokal /supabase/ — Stale-While-Revalidate (tampil instan, update di background)
+  if (url.includes('/supabase/') && !url.includes('supabase.co')) {
     e.respondWith(
       caches.open(CACHE_NAME).then(function(cache) {
         return cache.match(e.request).then(function(cached) {
