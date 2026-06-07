@@ -1,39 +1,84 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v7.0 — DINONAKTIFKAN SEMENTARA (pass-through murni)
+//  Cache version: v8.0 — caching konservatif, percobaan terbatas
 // ============================================================
 //
-//  Cache Storage di WebKit/Safari memiliki bug deadlock: operasi
-//  cache.add() saat install bisa bertabrakan dengan caches.match()/
-//  cache.put() saat fetch (bahkan pada nama cache & URL yang berbeda),
-//  membuat request (font, auth Supabase, HTML) macet "pending" selamanya
-//  dan halaman freeze di layar loading — sudah 2x menyebabkan login
-//  gagal total. Daripada terus menambal kucing-kucingan dengan bug
-//  WebKit yang sulit diprediksi, SW ini untuk sementara dibuat TIDAK
-//  mencegat/cache apapun — murni pass-through ke network — sekaligus
-//  membersihkan registrasi & cache lama agar versi baru terpasang bersih.
+//  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze
+//  (deadlock Cache Storage WebKit/Safari). Setelah investigasi lebih
+//  dalam, akar masalah SEBENARNYA adalah infinite loop di kode lain
+//  (MutationObserver fitur nomor tabel — sudah diperbaiki terpisah),
+//  BUKAN di Cache Storage / SW ini. Namun karena WebKit Cache Storage
+//  tetap dikenal sebagai API yang historisnya rapuh, desain v8.0 ini
+//  dibuat SANGAT KONSERVATIF untuk meminimalkan risiko:
 //
-//  Fitur PWA offline-cache dimatikan sementara; push notification TETAP
-//  jalan (handler di bawah tidak bergantung pada Cache Storage).
+//   1. TIDAK precache apapun saat install — meniadakan kemungkinan
+//      cache.add() (install) bertabrakan dengan cache.put() (fetch)
+//      di window waktu yang sama (race condition utama versi lama).
+//   2. HANYA mencegat aset statis SAME-ORIGIN di /assets/ (font,
+//      gambar, css) dengan stale-while-revalidate.
+//   3. Halaman HTML (index/guru/murid/admin) & SEMUA request
+//      cross-origin (Supabase API, font CDN Google) TIDAK PERNAH
+//      dicegat — selalu langsung ke network seperti website biasa.
+//      (Auth/login harus selalu fresh dari network, tidak boleh
+//      tersangkut logika cache apapun.)
+//   4. Method selain GET tidak pernah disentuh.
+//
+//  STATUS: PERCOBAAN — pantau beberapa hari di berbagai browser
+//  (terutama Safari/WebKit) sebelum dianggap final. Jika muncul lagi
+//  gejala "freeze di layar loading" / request font|auth pending,
+//  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
+const CACHE_NAME = 'halaqah-v8.0';
+const BASE       = '/Portal-Halaqah-Rattililquran';
+
 self.addEventListener('install', function(e) {
+  // Sengaja TIDAK precache apapun — cache hanya terisi secara
+  // bertahap saat aset benar-benar diminta (lihat fetch handler).
   e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', function(e) {
   e.waitUntil(
-    Promise.all([
-      caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(k) { return caches.delete(k); }));
-      }),
-      self.clients.claim(),
-    ])
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(k) { return k !== CACHE_NAME; })
+            .map(function(k) { return caches.delete(k); })
+      );
+    }).then(function() {
+      return self.clients.claim();
+    })
   );
 });
 
-// Tidak ada fetch handler — semua request lewat langsung ke network,
-// browser menangani HTTP cache secara native seperti website biasa.
+self.addEventListener('fetch', function(e) {
+  var req = e.request;
+  var url = req.url;
+
+  // Hanya GET yang boleh disentuh — POST/PUT/PATCH selalu lewat network.
+  if (req.method !== 'GET') return;
+
+  // Hanya same-origin /assets/ (font lokal, gambar, css) yang di-cache.
+  // Halaman HTML, Supabase API, font CDN Google — semua dilewatkan
+  // begitu saja agar selalu fresh dari network (terutama untuk auth/login).
+  var isSameOriginAsset = url.indexOf(self.location.origin) === 0
+    && url.indexOf(BASE + '/assets/') !== -1;
+  if (!isSameOriginAsset) return;
+
+  // Stale-While-Revalidate: tampilkan dari cache jika ada (instan),
+  // sambil ambil versi terbaru di background untuk request berikutnya.
+  e.respondWith(
+    caches.open(CACHE_NAME).then(function(cache) {
+      return cache.match(req).then(function(cached) {
+        var networkFetch = fetch(req).then(function(res) {
+          if (res && res.ok) cache.put(req, res.clone());
+          return res;
+        }).catch(function() { return cached; });
+        return cached || networkFetch;
+      });
+    })
+  );
+});
 
 
 // ══════════════════════════════════════════════════════════════
