@@ -14,11 +14,20 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 //  SESSION
 // ─────────────────────────────────────────────
 var _currentUser = null;
-var _isRestoringSession = false;
+var _isRestoringSession = true; // Start as true to prevent premature SIGNED_OUT wipe on load
 
 (function() {
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
+
+  var token   = localStorage.getItem('hq_token');
+  var refresh = localStorage.getItem('hq_refresh');
+
+  if (!token || !refresh) {
+    // No tokens to restore, so we are not in restore state
+    _isRestoringSession = false;
+    return;
+  }
 
   // Cek apakah session sudah dipulihkan secara otomatis oleh SDK
   _sb.auth.getSession().then(function(res) {
@@ -27,29 +36,27 @@ var _isRestoringSession = false;
       // Session sudah pulih otomatis, cukup perbarui token di hq_token/hq_refresh
       localStorage.setItem('hq_token',   session.access_token);
       localStorage.setItem('hq_refresh', session.refresh_token);
+      _isRestoringSession = false;
       return;
     }
 
     // Jika tidak ada session otomatis, baru lakukan setSession manual
-    var token   = localStorage.getItem('hq_token');
-    var refresh = localStorage.getItem('hq_refresh');
-    if (token && refresh) {
-      _isRestoringSession = true;
-      _sb.auth.setSession({ access_token: token, refresh_token: refresh })
-        .then(function(res) {
-          _isRestoringSession = false;
-          if (!res.data || !res.data.session) {
-            _currentUser = null;
-            localStorage.removeItem('hq_token');
-            localStorage.removeItem('hq_refresh');
-            localStorage.removeItem('hq_user');
-          }
-        })
-        .catch(function() {
-          _isRestoringSession = false;
-        });
-    }
-  }).catch(function() {});
+    _sb.auth.setSession({ access_token: token, refresh_token: refresh })
+      .then(function(res) {
+        if (!res.data || !res.data.session) {
+          _currentUser = null;
+          localStorage.removeItem('hq_token');
+          localStorage.removeItem('hq_refresh');
+          localStorage.removeItem('hq_user');
+        }
+        _isRestoringSession = false;
+      })
+      .catch(function() {
+        _isRestoringSession = false;
+      });
+  }).catch(function() {
+    _isRestoringSession = false;
+  });
 })();
 
 // Simpan token terbaru setiap kali Supabase refresh otomatis atau sign in
