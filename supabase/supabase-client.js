@@ -2195,6 +2195,41 @@ var MuridAPI = {
     _check(error, 'getTargetHafalan');
     return { status: 'ok', data: data || null };
   },
+
+  // ── CHARGING (catatan penyemangat pribadi) ──
+  getChargingNotes: async function() {
+    var { data, error } = await _sb.from('charging_notes')
+      .select('*')
+      .eq('id_user', _uid())
+      .order('created_at', { ascending: false });
+    _check(error, 'getChargingNotes');
+    return { status: 'ok', data: data || [] };
+  },
+
+  saveChargingNote: async function(d) {
+    var payload = {
+      id_user : _uid(),
+      content : d.content,
+      category: d.category,
+      color   : d.color,
+      updated_at: new Date().toISOString(),
+    };
+    var query;
+    if (d.id_note) {
+      query = _sb.from('charging_notes').update(payload).eq('id_note', d.id_note).eq('id_user', _uid()).select();
+    } else {
+      query = _sb.from('charging_notes').insert(payload).select();
+    }
+    var { data, error } = await query;
+    _check(error, 'saveChargingNote');
+    return { status: 'ok', data: data };
+  },
+
+  deleteChargingNote: async function(id_note) {
+    var { error } = await _sb.from('charging_notes').delete().eq('id_note', id_note).eq('id_user', _uid());
+    _check(error, 'deleteChargingNote');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────

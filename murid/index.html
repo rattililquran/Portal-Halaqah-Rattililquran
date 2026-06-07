@@ -3328,6 +3328,21 @@ html.theme-dark .rincian-body table th {
       </div>
     </div>
 
+    <!-- ════ CHARGING (catatan penyemangat pribadi) ════ -->
+    <div class="page" id="page-charging">
+      <div class="page-header">
+        <div class="page-header-ico">🔋</div>
+        <div class="page-header-inner"><div class="page-title">Charging</div><div class="page-sub">Kotak P3K emosional — catatan penyemangat pribadimu.</div></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <button class="btn btn-primary" style="flex:1" onclick="bukaModeCharging()">⚡ Mulai Charging</button>
+        <button class="btn btn-outline" style="flex:1" onclick="bukaFormCharging()">+ Catatan Baru</button>
+      </div>
+      <div id="chargingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ INFO / MATERI LEVEL ════ -->
     <div class="page" id="page-info">
       <div class="page-header"><div class="page-header-ico">📚</div><div><div class="page-title">Materi Level</div><div class="page-sub">Panduan belajar dan tips tajwid dari guru.</div></div></div>
@@ -3913,6 +3928,55 @@ html.theme-dark .rincian-body table th {
     </div>
   </div>
 
+  <!-- Modal Form Charging (tambah/edit catatan) -->
+  <div class="modal-overlay" id="chargingFormModal" onclick="if(event.target===this)closeModal('chargingFormModal')">
+    <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-size:15px;font-weight:900;color:var(--text)" id="chargingFormTitle">Catatan Baru</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px">Tulis sesuatu yang bisa menyemangatimu nanti.</div>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:16px 20px">
+        <input type="hidden" id="chargingNoteId">
+        <div class="fg">
+          <label>Isi Catatan</label>
+          <textarea id="chargingContent" class="fc" rows="5" placeholder="Tulis tujuan, afirmasi, momen sukses, atau nasihat untuk dirimu sendiri..." style="resize:vertical"></textarea>
+        </div>
+        <div class="fg">
+          <label>Kategori</label>
+          <select id="chargingCategory" class="fc">
+            <option value="goal">🎯 Tujuan Saya</option>
+            <option value="affirmation">💬 Afirmasi</option>
+            <option value="memory">🏆 Momen Sukses</option>
+            <option value="message">💌 Nasihat Emas</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Warna Kartu</label>
+          <div id="chargingColorPicker" style="display:flex;gap:10px;margin-top:4px"></div>
+        </div>
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal('chargingFormModal')">Batal</button>
+        <button class="btn btn-primary" style="flex:2" id="chargingSubmitBtn" onclick="simpanChargingNote()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode Charging — fullscreen reading view -->
+  <div id="chargingModeOverlay" style="display:none;position:fixed;inset:0;z-index:9500;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+    <button onclick="tutupModeCharging()" aria-label="Tutup" style="position:absolute;top:max(20px,env(safe-area-inset-top,0px));right:20px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)">✕</button>
+    <div id="chargingModeCard" style="max-width:420px;width:100%;border-radius:28px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+      <div id="chargingModeCategory" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px"></div>
+      <div id="chargingModeContent" style="font-size:18px;font-weight:700;line-height:1.6;white-space:pre-wrap"></div>
+      <div id="chargingModeDate" style="font-size:11px;opacity:.6;margin-top:16px"></div>
+    </div>
+    <div style="display:flex;gap:14px;margin-top:24px">
+      <button onclick="modeChargingNav(-1)" style="width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)">‹</button>
+      <button onclick="modeChargingShuffle()" style="width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)" title="Acak">🔀</button>
+      <button onclick="modeChargingNav(1)" style="width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:18px;cursor:pointer;backdrop-filter:blur(10px)">›</button>
+    </div>
+  </div>
+
   <!-- Modal Form Observasi -->
   <div class="modal-overlay" id="obsFormModal" onclick="if(event.target===this)closeModal('obsFormModal')">
     <div class="modal-sheet" style="border-radius:28px 28px 0 0;max-height:90dvh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
@@ -4028,6 +4092,11 @@ html.theme-dark .rincian-body table th {
 
       <!-- ── AKUN ── -->
       <div class="sidebar-section">Akun</div>
+
+      <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('charging')" data-p="charging">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+        Charging
+      </button>
 
       <button class="sidebar-item ico-blue" onclick="closeSidebar();openModal('profilModal')">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
@@ -5568,6 +5637,7 @@ function goPage(name, swipeDir) {
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
+  else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
@@ -6865,6 +6935,170 @@ async function loadAtTibyan() {
       + '<div style="margin-top:10px;font-size:11px;color:var(--red)">' + esc(e.message) + '</div>'
       + '</div>';
   } finally { hideLoad(); }
+}
+
+// ══════════════════════════════════════════
+//  CHARGING — catatan penyemangat pribadi
+// ══════════════════════════════════════════
+var _chargingNotes = [];
+var _chargingModeIdx = 0;
+
+var CHARGING_CATEGORIES = {
+  goal:        { label: 'Tujuan Saya',   emoji: '🎯' },
+  affirmation: { label: 'Afirmasi',      emoji: '💬' },
+  memory:      { label: 'Momen Sukses',  emoji: '🏆' },
+  message:     { label: 'Nasihat Emas',  emoji: '💌' },
+};
+
+var CHARGING_COLORS = {
+  blue:   { bg: 'linear-gradient(135deg,#0ea5e9,#2563eb)', soft: 'var(--blue-l)',   txt: 'var(--blue-txt)'   },
+  green:  { bg: 'linear-gradient(135deg,#10b981,#059669)', soft: 'var(--green-l)',  txt: 'var(--green-txt)'  },
+  amber:  { bg: 'linear-gradient(135deg,#f59e0b,#d97706)', soft: 'var(--amber-l)',  txt: 'var(--amber-txt)'  },
+  purple: { bg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', soft: 'var(--purple-l)', txt: 'var(--purple-txt)' },
+  teal:   { bg: 'linear-gradient(135deg,#06b6d4,#0d9488)', soft: 'var(--teal-l)',   txt: '#0d9488'           },
+};
+
+async function loadCharging() {
+  var grid = document.getElementById('chargingGrid');
+  grid.innerHTML = skelCards(3, 2);
+  try {
+    var r = await window.HQ.MuridAPI.getChargingNotes();
+    _chargingNotes = r.data || [];
+    renderChargingNotes();
+  } catch (e) {
+    grid.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-ttl">Gagal memuat catatan</div></div>';
+    toast(e.message, 'err');
+  }
+}
+
+function renderChargingNotes() {
+  var grid = document.getElementById('chargingGrid');
+  if (!_chargingNotes.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🔋</div>'
+      + '<div class="empty-ttl">Belum ada catatan</div>'
+      + '<div style="font-size:12.5px;color:var(--text-3);margin-top:4px">Tulis catatan penyemangat pertamamu — bisa berupa tujuan, afirmasi, atau nasihat untuk diri sendiri.</div></div>';
+    return;
+  }
+  grid.innerHTML = _chargingNotes.map(function(n, idx) {
+    var c   = CHARGING_COLORS[n.color] || CHARGING_COLORS.blue;
+    var cat = CHARGING_CATEGORIES[n.category] || CHARGING_CATEGORIES.goal;
+    return '<div class="card" style="padding:16px;border-left:4px solid transparent;border-image:' + c.bg + ' 1;display:flex;flex-direction:column;gap:10px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<span style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:' + c.txt + ';background:' + c.soft + ';padding:3px 9px;border-radius:100px">' + cat.emoji + ' ' + cat.label + '</span>'
+      + '<span style="font-size:10.5px;color:var(--text-3)">' + fmtDate(n.created_at) + '</span>'
+      + '</div>'
+      + '<div style="font-size:13.5px;line-height:1.6;color:var(--text);white-space:pre-wrap;max-height:120px;overflow:hidden;text-overflow:ellipsis">' + esc(n.content) + '</div>'
+      + '<div style="display:flex;gap:8px;margin-top:auto">'
+      + '<button class="btn btn-outline" style="flex:1;font-size:12px;padding:8px" onclick="bukaFormCharging(\'' + esc(n.id_note) + '\')">✏️ Edit</button>'
+      + '<button class="btn btn-outline" style="flex:1;font-size:12px;padding:8px;color:var(--red)" onclick="hapusChargingNote(\'' + esc(n.id_note) + '\')">🗑 Hapus</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function bukaFormCharging(id) {
+  var note = id ? _chargingNotes.find(function(n) { return n.id_note === id; }) : null;
+  document.getElementById('chargingFormTitle').textContent = note ? '✏️ Edit Catatan' : '✨ Catatan Baru';
+  document.getElementById('chargingNoteId').value  = note ? note.id_note : '';
+  document.getElementById('chargingContent').value = note ? note.content : '';
+  document.getElementById('chargingCategory').value = note ? note.category : 'goal';
+  _renderChargingColorPicker(note ? note.color : 'blue');
+  openModal('chargingFormModal');
+}
+
+function _renderChargingColorPicker(selected) {
+  var wrap = document.getElementById('chargingColorPicker');
+  wrap.innerHTML = Object.keys(CHARGING_COLORS).map(function(key) {
+    var c = CHARGING_COLORS[key];
+    var active = key === selected;
+    return '<div onclick="_pilihChargingColor(\'' + key + '\')" data-color-swatch="' + key + '" '
+      + 'style="width:34px;height:34px;border-radius:50%;background:' + c.bg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;'
+      + 'box-shadow:' + (active ? '0 0 0 3px var(--card-solid),0 0 0 5px ' + c.txt : 'none') + '">'
+      + (active ? '<span style="color:#fff;font-size:14px;font-weight:900">✓</span>' : '')
+      + '</div>';
+  }).join('');
+  wrap.setAttribute('data-selected', selected);
+}
+
+function _pilihChargingColor(key) {
+  _renderChargingColorPicker(key);
+}
+
+async function simpanChargingNote() {
+  var content = document.getElementById('chargingContent').value.trim();
+  if (!content) return toast('Tulis dulu isi catatannya ya', 'err');
+  var payload = {
+    id_note : document.getElementById('chargingNoteId').value || null,
+    content : content,
+    category: document.getElementById('chargingCategory').value,
+    color   : document.getElementById('chargingColorPicker').getAttribute('data-selected') || 'blue',
+  };
+  var btn = document.getElementById('chargingSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try {
+    await window.HQ.MuridAPI.saveChargingNote(payload);
+    closeModal('chargingFormModal');
+    toast('Catatan tersimpan!', 'ok');
+    loadCharging();
+  } catch (e) {
+    toast(e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Simpan';
+  }
+}
+
+function hapusChargingNote(id) {
+  if (!confirm('Hapus catatan ini? Tindakan ini tidak bisa dibatalkan.')) return;
+  showLoad('Menghapus catatan...');
+  window.HQ.MuridAPI.deleteChargingNote(id).then(function() {
+    toast('Catatan dihapus', 'ok');
+    loadCharging();
+  }).catch(function(e) {
+    toast(e.message, 'err');
+  }).finally(function() {
+    hideLoad();
+  });
+}
+
+// ── Mode Charging — fullscreen reading ──
+function bukaModeCharging() {
+  if (!_chargingNotes.length) return toast('Belum ada catatan untuk dibaca. Tulis dulu yuk!', 'warn');
+  _chargingModeIdx = 0;
+  document.getElementById('chargingModeOverlay').style.display = 'flex';
+  _renderChargingModeCard();
+}
+
+function tutupModeCharging() {
+  document.getElementById('chargingModeOverlay').style.display = 'none';
+}
+
+function modeChargingNav(dir) {
+  var n = _chargingNotes.length;
+  _chargingModeIdx = ((_chargingModeIdx + dir) % n + n) % n;
+  _renderChargingModeCard();
+}
+
+function modeChargingShuffle() {
+  if (_chargingNotes.length < 2) return _renderChargingModeCard();
+  var next;
+  do { next = Math.floor(Math.random() * _chargingNotes.length); } while (next === _chargingModeIdx);
+  _chargingModeIdx = next;
+  _renderChargingModeCard();
+}
+
+function _renderChargingModeCard() {
+  var note = _chargingNotes[_chargingModeIdx];
+  if (!note) return;
+  var c   = CHARGING_COLORS[note.color] || CHARGING_COLORS.blue;
+  var cat = CHARGING_CATEGORIES[note.category] || CHARGING_CATEGORIES.goal;
+  var card = document.getElementById('chargingModeCard');
+  card.style.background = c.bg;
+  document.getElementById('chargingModeCategory').style.color = '#fff';
+  document.getElementById('chargingModeCategory').textContent = cat.emoji + ' ' + cat.label;
+  document.getElementById('chargingModeContent').style.color = '#fff';
+  document.getElementById('chargingModeContent').textContent = note.content;
+  document.getElementById('chargingModeDate').style.color = '#fff';
+  document.getElementById('chargingModeDate').textContent = 'Ditulis ' + fmtDate(note.created_at);
 }
 
 function setAtTibyanFilter(val, btn) {
