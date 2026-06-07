@@ -1,102 +1,39 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.3 — bypass SW for fonts/assets to avoid WebKit cache deadlock
+//  Cache version: v7.0 — DINONAKTIFKAN SEMENTARA (pass-through murni)
+// ============================================================
+//
+//  Cache Storage di WebKit/Safari memiliki bug deadlock: operasi
+//  cache.add() saat install bisa bertabrakan dengan caches.match()/
+//  cache.put() saat fetch (bahkan pada nama cache & URL yang berbeda),
+//  membuat request (font, auth Supabase, HTML) macet "pending" selamanya
+//  dan halaman freeze di layar loading — sudah 2x menyebabkan login
+//  gagal total. Daripada terus menambal kucing-kucingan dengan bug
+//  WebKit yang sulit diprediksi, SW ini untuk sementara dibuat TIDAK
+//  mencegat/cache apapun — murni pass-through ke network — sekaligus
+//  membersihkan registrasi & cache lama agar versi baru terpasang bersih.
+//
+//  Fitur PWA offline-cache dimatikan sementara; push notification TETAP
+//  jalan (handler di bawah tidak bergantung pada Cache Storage).
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.3'; // bump versi → cache lama dihapus saat activate
-const BASE         = '/Portal-Halaqah-Rattililquran';
-const STATIC_CACHE = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/guru/index.html',
-  BASE + '/murid/index.html',
-  BASE + '/admin/index.html',
-  BASE + '/manifest.json',
-  // Catatan: file font/gambar di /assets/ sengaja TIDAK di-precache di sini.
-  // Permintaan ke /assets/ dan font CDN dilewatkan begitu saja oleh fetch handler
-  // (lihat di bawah) untuk menghindari deadlock Cache Storage di WebKit/Safari
-  // (cache.add saat install bertabrakan dengan cache.match/cache.put saat fetch,
-  // membuat request font/gambar macet pending selamanya dan halaman ikut freeze).
-];
-
-// Install — cache file statis secara fault-tolerant
-// Gunakan Promise.allSettled agar satu file gagal tidak crash seluruh SW
 self.addEventListener('install', function(e) {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return Promise.allSettled(
-        STATIC_CACHE.map(function(url) { return cache.add(url); })
-      );
-    }).then(function() {
-      return self.skipWaiting();
-    })
-  );
+  e.waitUntil(self.skipWaiting());
 });
 
-// Activate — hapus cache lama
 self.addEventListener('activate', function(e) {
   e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(
-        keys.filter(function(k) { return k !== CACHE_NAME; })
-            .map(function(k) { return caches.delete(k); })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    })
+    Promise.all([
+      caches.keys().then(function(keys) {
+        return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+      }),
+      self.clients.claim(),
+    ])
   );
 });
 
-// Fetch — Network first, fallback ke cache
-self.addEventListener('fetch', function(e) {
-  var url = e.request.url;
-
-
-  // Font (Google CDN maupun lokal /assets/) — biarkan lewat tanpa campur tangan SW.
-  // Mencegat & cache manual di sini menyebabkan deadlock Cache Storage di WebKit/Safari
-  // (caches.match/c.put bertabrakan dengan cache.add saat install), membuat request
-  // font/gambar macet pending selamanya dan halaman ikut freeze. Browser sudah cache
-  // font & asset secara native lewat HTTP cache.
-  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com') || url.includes('/assets/')) {
-    return;
-  }
-
-  // Hanya GET yang di-cache — POST/PUT/PATCH jangan pernah dicache
-  if (e.request.method !== 'GET') return;
-
-  // File lokal /supabase/ — Stale-While-Revalidate (tampil instan, update di background)
-  if (url.includes('/supabase/') && !url.includes('supabase.co')) {
-    e.respondWith(
-      caches.open(CACHE_NAME).then(function(cache) {
-        return cache.match(e.request).then(function(cached) {
-          // Selalu coba ambil versi terbaru di background
-          var networkFetch = fetch(e.request).then(function(res) {
-            if (res.ok) cache.put(e.request, res.clone());
-            return res;
-          }).catch(function() { return null; });
-          // Kembalikan dari cache instan jika ada, sambil update di background
-          return cached || networkFetch;
-        });
-      })
-    );
-    return;
-  }
-
-  // HTML pages — network first, fallback cache
-  e.respondWith(
-    fetch(e.request).then(function(res) {
-      if (res.ok) {
-        var clone = res.clone();
-        caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
-      }
-      return res;
-    }).catch(function() {
-      return caches.match(e.request).then(function(cached) {
-        return cached || caches.match(BASE + '/index.html');
-      });
-    })
-  );
-});
+// Tidak ada fetch handler — semua request lewat langsung ke network,
+// browser menangani HTTP cache secara native seperti website biasa.
 
 
 // ══════════════════════════════════════════════════════════════
