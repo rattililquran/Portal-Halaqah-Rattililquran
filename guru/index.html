@@ -1913,6 +1913,45 @@ html.theme-dark .chip-koreksi.selected {
   color: #fff !important;
 }
 
+/* Premium Table Header Overrides */
+th {
+  font-weight: 800 !important;
+  color: #000000 !important;
+  background-color: #e2e8f0 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+.tbl-wrap thead th {
+  background: #e2e8f0 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+.pd-tbl th {
+  background: #e2e8f0 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+.rt-surat-tbl th {
+  background: #e2e8f0 !important;
+  color: #000000 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+html.theme-dark th {
+  color: #ffffff !important;
+  background-color: #1e293b !important;
+  border-bottom: 2px solid #475569 !important;
+}
+html.theme-dark .tbl-wrap thead th {
+  background: #1e293b !important;
+  box-shadow: 0 1px 0 #475569 !important;
+}
+html.theme-dark .pd-tbl th {
+  background: #1e293b !important;
+  box-shadow: 0 1px 0 #475569 !important;
+}
+html.theme-dark .rt-surat-tbl th {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 0 #475569 !important;
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11219,5 +11258,116 @@ function cetakRaportTahfidz() {
     </div>
   </div>
 </div>
+
+<script>
+(function() {
+  function updateTableNumbers(table) {
+    // Check if table already has a "No" or "#" header in the original HTML
+    var hasOriginalNo = false;
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+      var text = ths[i].innerText.trim().toLowerCase();
+      // Ignore our own added header
+      if (ths[i].classList.contains('row-no-header')) continue;
+      if (text === 'no' || text === 'no.' || text === '#') {
+        hasOriginalNo = true;
+        break;
+      }
+    }
+    if (hasOriginalNo) return;
+
+    // 1. Handle headers (thead)
+    var thead = table.querySelector('thead');
+    if (thead) {
+      var headerRows = thead.querySelectorAll('tr');
+      headerRows.forEach(function(row) {
+        if (!row.querySelector('.row-no-header')) {
+          var th = document.createElement('th');
+          th.className = 'row-no-header';
+          th.innerText = 'NO.';
+          th.style.width = '45px';
+          th.style.minWidth = '45px';
+          th.style.textAlign = 'center';
+          th.style.fontWeight = '800';
+          // Insert as first child
+          row.insertBefore(th, row.firstChild);
+        }
+      });
+    }
+
+    // 2. Handle body rows (tbody)
+    var tbodies = table.querySelectorAll('tbody');
+    tbodies.forEach(function(tbody) {
+      var rows = tbody.querySelectorAll('tr');
+      var validRowIndex = 1;
+      rows.forEach(function(row) {
+        // Skip rows that are empty states, loaders, or have colspan
+        var firstCell = row.firstElementChild;
+        if (firstCell && firstCell.getAttribute('colspan')) {
+          var colSpan = parseInt(firstCell.getAttribute('colspan'), 10);
+          if (!firstCell.dataset.colspanAdjusted) {
+            firstCell.setAttribute('colspan', colSpan + 1);
+            firstCell.dataset.colspanAdjusted = 'true';
+          }
+          var existingNo = row.querySelector('.row-no-cell');
+          if (existingNo) existingNo.remove();
+          return;
+        }
+
+        // Skip if row is hidden
+        if (row.style.display === 'none') {
+          return;
+        }
+
+        // Insert or update numbering cell
+        var noCell = row.querySelector('.row-no-cell');
+        if (!noCell) {
+          noCell = document.createElement('td');
+          noCell.className = 'row-no-cell';
+          noCell.style.textAlign = 'center';
+          noCell.style.fontWeight = '700';
+          noCell.style.width = '45px';
+          noCell.style.minWidth = '45px';
+          row.insertBefore(noCell, row.firstChild);
+        }
+        noCell.innerText = validRowIndex + '.';
+        validRowIndex++;
+      });
+    });
+  }
+
+  function setupTableObserver() {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' || mutation.type === 'subtree' || mutation.type === 'attributes') {
+          var target = mutation.target;
+          var table = target.closest ? target.closest('table') : null;
+          if (table) {
+            updateTableNumbers(table);
+          } else {
+            var tables = target.querySelectorAll ? target.querySelectorAll('table') : [];
+            tables.forEach(updateTableNumbers);
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+
+    document.querySelectorAll('table').forEach(updateTableNumbers);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTableObserver);
+  } else {
+    setupTableObserver();
+  }
+})();
+</script>
 </body>
 </html>
