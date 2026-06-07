@@ -270,6 +270,9 @@ tr:hover td{background:#f8fafc}
 .btn-red:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(224,90,42,.3)}
 .btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
 .btn-outline:hover{background:var(--blue-l);transform:translateY(-1px)}
+.btn-wa-murid{background:transparent;color:#25d366;border:1.5px solid #25d366}
+.btn-wa-murid:hover{background:rgba(37,211,102,.1);transform:translateY(-1px)}
+html.theme-dark .btn-wa-murid:hover{background:rgba(37,211,102,.15)}
 .btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
 .btn-lg{padding:14px 32px;font-size:14.5px;font-weight:700;border-radius:100px}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none !important;box-shadow:none !important}
@@ -1911,6 +1914,45 @@ html.theme-dark .chip-koreksi.selected {
   background: var(--blue) !important;
   border-color: var(--blue) !important;
   color: #fff !important;
+}
+
+/* Premium Table Header Overrides */
+th {
+  font-weight: 800 !important;
+  color: #000000 !important;
+  background-color: #e2e8f0 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+.tbl-wrap thead th {
+  background: #e2e8f0 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+.pd-tbl th {
+  background: #e2e8f0 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+.rt-surat-tbl th {
+  background: #e2e8f0 !important;
+  color: #000000 !important;
+  box-shadow: 0 1px 0 #cbd5e1 !important;
+}
+html.theme-dark th {
+  color: #ffffff !important;
+  background-color: #1e293b !important;
+  border-bottom: 2px solid #475569 !important;
+}
+html.theme-dark .tbl-wrap thead th {
+  background: #1e293b !important;
+  box-shadow: 0 1px 0 #475569 !important;
+}
+html.theme-dark .pd-tbl th {
+  background: #1e293b !important;
+  box-shadow: 0 1px 0 #475569 !important;
+}
+html.theme-dark .rt-surat-tbl th {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 0 #475569 !important;
 }
 
 </style>
@@ -6403,6 +6445,24 @@ function renderMuridTable() {
     var pctC = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
     var s40C = s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)';
     var rowStyle = (pct<50 && (m.total_sesi||0)>2) ? ' style="background:rgba(239,68,68,.04)"' : '';
+
+    var waBtn = '';
+    if (m.no_hp) {
+      var rawHp = String(m.no_hp).replace(/[^0-9]/g, '');
+      if (rawHp.startsWith('0')) rawHp = '62' + rawHp.slice(1);
+      else if (rawHp.length > 0 && !rawHp.startsWith('62')) rawHp = '62' + rawHp;
+      if (rawHp.length >= 9) {
+        waBtn = '<a href="https://wa.me/' + rawHp + '" target="_blank" class="btn btn-wa-murid btn-sm" title="Hubungi WhatsApp ' + esc(m.nama_murid) + '" style="padding:6px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">'
+          + '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.535 4.057 1.475 5.77L.057 23.784l6.162-1.396A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.797a9.8 9.8 0 01-4.988-1.361l-.36-.213-3.654.828.844-3.549-.235-.375A9.789 9.789 0 012.203 12C2.203 6.583 6.583 2.203 12 2.203S21.797 6.583 21.797 12 17.417 21.797 12 21.797z"/></svg>'
+          + '</a>';
+      }
+    }
+    if (!waBtn) {
+      waBtn = '<button disabled class="btn btn-wa-murid btn-sm" title="No HP tidak tersedia" style="padding:6px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.3;cursor:not-allowed">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.091.535 4.057 1.475 5.77L.057 23.784l6.162-1.396A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.797a9.8 9.8 0 01-4.988-1.361l-.36-.213-3.654.828.844-3.549-.235-.375A9.789 9.789 0 012.203 12C2.203 6.583 6.583 2.203 12 2.203S21.797 6.583 21.797 12 17.417 21.797 12 21.797z"/></svg>'
+        + '</button>';
+    }
+
     return '<tr'+rowStyle+'>'
       + '<td><strong>'+esc(m.nama_murid)+'</strong>'
       + (m.id_murid ? '<div style="font-size:10.5px;color:var(--text-3)">'+esc(m.id_murid)+'</div>' : '')
@@ -6417,7 +6477,10 @@ function renderMuridTable() {
       + '<div style="font-size:10.5px;color:var(--text-3)">'+(m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'\u2013')+'/40</div></td>'
       + '<td>'+getPoinAdabBadge(m.poin_adab)+'</td>'
       + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
-      + '<td><button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button></td>'
+      + '<td><div style="display:flex;gap:6px;align-items:center">'
+      + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button>'
+      + waBtn
+      + '</div></td>'
       + '</tr>';
   }).join('');
 }
@@ -11219,5 +11282,116 @@ function cetakRaportTahfidz() {
     </div>
   </div>
 </div>
+
+<script>
+(function() {
+  function updateTableNumbers(table) {
+    // Check if table already has a "No" or "#" header in the original HTML
+    var hasOriginalNo = false;
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+      var text = ths[i].innerText.trim().toLowerCase();
+      // Ignore our own added header
+      if (ths[i].classList.contains('row-no-header')) continue;
+      if (text === 'no' || text === 'no.' || text === '#') {
+        hasOriginalNo = true;
+        break;
+      }
+    }
+    if (hasOriginalNo) return;
+
+    // 1. Handle headers (thead)
+    var thead = table.querySelector('thead');
+    if (thead) {
+      var headerRows = thead.querySelectorAll('tr');
+      headerRows.forEach(function(row) {
+        if (!row.querySelector('.row-no-header')) {
+          var th = document.createElement('th');
+          th.className = 'row-no-header';
+          th.innerText = 'NO.';
+          th.style.width = '45px';
+          th.style.minWidth = '45px';
+          th.style.textAlign = 'center';
+          th.style.fontWeight = '800';
+          // Insert as first child
+          row.insertBefore(th, row.firstChild);
+        }
+      });
+    }
+
+    // 2. Handle body rows (tbody)
+    var tbodies = table.querySelectorAll('tbody');
+    tbodies.forEach(function(tbody) {
+      var rows = tbody.querySelectorAll('tr');
+      var validRowIndex = 1;
+      rows.forEach(function(row) {
+        // Skip rows that are empty states, loaders, or have colspan
+        var firstCell = row.firstElementChild;
+        if (firstCell && firstCell.getAttribute('colspan')) {
+          var colSpan = parseInt(firstCell.getAttribute('colspan'), 10);
+          if (!firstCell.dataset.colspanAdjusted) {
+            firstCell.setAttribute('colspan', colSpan + 1);
+            firstCell.dataset.colspanAdjusted = 'true';
+          }
+          var existingNo = row.querySelector('.row-no-cell');
+          if (existingNo) existingNo.remove();
+          return;
+        }
+
+        // Skip if row is hidden
+        if (row.style.display === 'none') {
+          return;
+        }
+
+        // Insert or update numbering cell
+        var noCell = row.querySelector('.row-no-cell');
+        if (!noCell) {
+          noCell = document.createElement('td');
+          noCell.className = 'row-no-cell';
+          noCell.style.textAlign = 'center';
+          noCell.style.fontWeight = '700';
+          noCell.style.width = '45px';
+          noCell.style.minWidth = '45px';
+          row.insertBefore(noCell, row.firstChild);
+        }
+        noCell.innerText = validRowIndex + '.';
+        validRowIndex++;
+      });
+    });
+  }
+
+  function setupTableObserver() {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' || mutation.type === 'subtree' || mutation.type === 'attributes') {
+          var target = mutation.target;
+          var table = target.closest ? target.closest('table') : null;
+          if (table) {
+            updateTableNumbers(table);
+          } else {
+            var tables = target.querySelectorAll ? target.querySelectorAll('table') : [];
+            tables.forEach(updateTableNumbers);
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+
+    document.querySelectorAll('table').forEach(updateTableNumbers);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTableObserver);
+  } else {
+    setupTableObserver();
+  }
+})();
+</script>
 </body>
 </html>

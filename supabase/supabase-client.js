@@ -19,35 +19,46 @@ var _isRestoringSession = false;
 (function() {
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
-  var token   = localStorage.getItem('hq_token');
-  var refresh = localStorage.getItem('hq_refresh');
-  if (token && refresh) {
-    _isRestoringSession = true;
-    // Restore dengan kedua token agar Supabase bisa auto-refresh saat expired
-    _sb.auth.setSession({ access_token: token, refresh_token: refresh })
-      .then(function(res) {
-        _isRestoringSession = false;
-        if (!res.data || !res.data.session) {
-          // Token tidak valid atau sudah expired, bersihkan storage
+
+  // Cek apakah session sudah dipulihkan secara otomatis oleh SDK
+  _sb.auth.getSession().then(function(res) {
+    var session = res.data && res.data.session;
+    if (session) {
+      // Session sudah pulih otomatis, cukup perbarui token di hq_token/hq_refresh
+      localStorage.setItem('hq_token',   session.access_token);
+      localStorage.setItem('hq_refresh', session.refresh_token);
+      return;
+    }
+
+    // Jika tidak ada session otomatis, baru lakukan setSession manual
+    var token   = localStorage.getItem('hq_token');
+    var refresh = localStorage.getItem('hq_refresh');
+    if (token && refresh) {
+      _isRestoringSession = true;
+      _sb.auth.setSession({ access_token: token, refresh_token: refresh })
+        .then(function(res) {
+          _isRestoringSession = false;
+          if (!res.data || !res.data.session) {
+            _currentUser = null;
+            localStorage.removeItem('hq_token');
+            localStorage.removeItem('hq_refresh');
+            localStorage.removeItem('hq_user');
+          }
+        })
+        .catch(function() {
+          _isRestoringSession = false;
           _currentUser = null;
           localStorage.removeItem('hq_token');
           localStorage.removeItem('hq_refresh');
           localStorage.removeItem('hq_user');
-        }
-      })
-      .catch(function() {
-        _isRestoringSession = false;
-        _currentUser = null;
-        localStorage.removeItem('hq_token');
-        localStorage.removeItem('hq_refresh');
-        localStorage.removeItem('hq_user');
-      });
-  }
+        });
+    }
+  }).catch(function() {});
 })();
 
-// Simpan token terbaru setiap kali Supabase refresh otomatis
+// Simpan token terbaru setiap kali Supabase refresh otomatis atau sign in
 _sb.auth.onAuthStateChange(function(event, session) {
-  if (event === 'TOKEN_REFRESHED' && session) {
+  if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') && session) {
     localStorage.setItem('hq_token',   session.access_token);
     localStorage.setItem('hq_refresh', session.refresh_token);
   }
