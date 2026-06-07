@@ -11920,7 +11920,8 @@ document.addEventListener('DOMContentLoaded', function() {
           noCell.style.minWidth = '45px';
           row.insertBefore(noCell, row.firstChild);
         }
-        noCell.innerText = validRowIndex + '.';
+        var noText = validRowIndex + '.';
+        if (noCell.innerText !== noText) noCell.innerText = noText;
         validRowIndex++;
       });
     });
