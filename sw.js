@@ -1,9 +1,9 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.6 — bypass SW for fonts/assets to avoid cache deadlock
+//  Cache version: v6.7 — remove self-reload-on-version-mismatch (was killing in-flight logins)
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.6'; // bump versi → cache lama dihapus saat activate
+const CACHE_NAME   = 'halaqah-v6.7'; // bump versi → cache lama dihapus saat activate
 // Path tetap untuk produksi (GitHub Pages). Dynamic BASE sebelumnya menyebabkan
 // SW salah menghitung path saat di-cache/diuji dari konteks berbeda (mis. localhost),
 // yang berujung pada cache rusak dan halaman tidak bisa dimuat/login macet.

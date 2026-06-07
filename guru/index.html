@@ -3841,18 +3841,6 @@ html.theme-dark .rt-surat-tbl th {
   <span id="refreshTxt">Baru sinkron</span>
 </div>
 <div class="toast-inline" id="toastInline"></div>
-<script>
-if ('serviceWorker' in navigator) {
-  var swVer = localStorage.getItem('hq_sw_version') || '0';
-  if (swVer !== '3.4') {
-    navigator.serviceWorker.getRegistrations().then(function(regs) {
-      for (let reg of regs) reg.unregister();
-      localStorage.setItem('hq_sw_version', '3.4');
-      window.location.reload();
-    });
-  }
-}
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
 <script src="../assets/push-permission.js"></script>
