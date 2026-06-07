@@ -2438,11 +2438,17 @@ html.theme-dark .chip-koreksi.selected {
       <div class="page" id="page-murid">
         <div class="page-title-row">
           <span>Daftar Murid</span>
-          <button class="guru-refresh-btn" id="btnRefreshMurid" onclick="guruRefresh('murid')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
-          </button>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="guru-refresh-btn" onclick="doExportMuridCSV()" title="Export CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV
+            </button>
+            <button class="guru-refresh-btn" id="btnRefreshMurid" onclick="guruRefresh('murid')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+            </button>
+          </div>
         </div>
-        <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <!-- Row 1: Level + Halaqah + Tambah -->
+        <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="muridLevelSel" onchange="filterMuridHalaqah()" style="max-width:140px">
             <option value="">— Semua Level —</option>
           </select>
@@ -2450,14 +2456,34 @@ html.theme-dark .chip-koreksi.selected {
             <option value="">— Pilih Halaqah —</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="bukaModalTambahMurid()">+ Tambah</button>
-          <button class="btn btn-outline btn-sm" onclick="loadMurid()">🔄</button>
         </div>
-        <!-- Search bar -->
-        <div style="position:relative;margin-bottom:14px">
+        <!-- Row 2: Filter lanjutan -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
           <input type="search" id="muridSearchInput" class="fc"
             placeholder="🔍 Cari nama atau NIS murid..."
-            oninput="filterMuridSearch()"
-            style="padding-left:16px;font-size:13px">
+            oninput="renderMuridTable()"
+            style="flex:1;min-width:160px;max-width:240px;font-size:13px">
+          <select class="fc" id="muridKehadiranFilter" onchange="renderMuridTable()" style="max-width:160px">
+            <option value="">— Semua Kehadiran —</option>
+            <option value="rendah">🔴 Rendah (&lt;50%)</option>
+            <option value="cukup">🟡 Cukup (50–74%)</option>
+            <option value="baik">🟢 Baik (≥75%)</option>
+          </select>
+          <select class="fc" id="muridSkorFilter" onchange="renderMuridTable()" style="max-width:160px">
+            <option value="">— Semua Skor —</option>
+            <option value="rendah">🔴 Skor Rendah (&lt;50%)</option>
+            <option value="cukup">🟡 Skor Cukup (50–74%)</option>
+            <option value="baik">🟢 Skor Baik (≥75%)</option>
+          </select>
+          <select class="fc" id="muridSortSel" onchange="renderMuridTable()" style="max-width:170px">
+            <option value="nama_asc">↕ Nama (A–Z)</option>
+            <option value="nama_desc">↕ Nama (Z–A)</option>
+            <option value="hadir_desc">↓ Kehadiran tertinggi</option>
+            <option value="hadir_asc">↑ Kehadiran terendah</option>
+            <option value="skor_desc">↓ Skor tertinggi</option>
+            <option value="skor_asc">↑ Skor terendah</option>
+          </select>
+          <span id="muridCountBadge" style="font-size:11.5px;color:var(--text-3);white-space:nowrap"></span>
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -6271,66 +6297,137 @@ async function loadMurid() {
   const id = document.getElementById('muridHalaqahSel').value;
   if (!id && !halaqahList.length) return;
   const tbody = document.getElementById('muridTbl');
-  if (tbody) tbody.innerHTML = Array(4).fill(`<tr>${Array(9).fill('<td><div class="skel skel-text" style="height:12px;border-radius:6px"></div></td>').join('')}</tr>`).join('');
+  if (tbody) tbody.innerHTML = Array(4).fill('<tr>'+Array(9).fill('<td><div class="skel skel-text" style="height:12px;border-radius:6px"></div></td>').join('')+'</tr>').join('');
   showLoad('Bismillah, memuat data murid...');
   try {
     muridCache[id] = null;
-    // Jika id kosong = gabungkan murid dari semua halaqah
-    let murid = [];
+    var murid = [];
     if (!id) {
       const semua = await Promise.all(
         halaqahList.map(function(h){ return getMurid(h.id_halaqah); })
       );
-      // Gabung + deduplikasi berdasarkan id_murid
       var seen = {};
       semua.forEach(function(arr){
         (arr||[]).forEach(function(m){
           if (!seen[m.id_murid]) { seen[m.id_murid]=true; murid.push(m); }
         });
       });
-      murid.sort(function(a,b){ return (a.nama_murid||'').localeCompare(b.nama_murid||''); });
     } else {
       murid = await getMurid(id);
     }
-    // Simpan untuk search
+    // Simpan data mentah — semua filter/sort ditangani renderMuridTable
     window._muridAllRows = murid;
-    const tbody = document.getElementById('muridTbl');
-    if (!murid.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="guru-empty"><div class="guru-empty-ico">👥</div><div class="guru-empty-ttl">Belum ada murid di halaqah ini</div><div class="guru-empty-sub">Murid baru dapat ditambahkan oleh Admin melalui portal admin.</div></div></td></tr>`;
-      return;
-    }
-    // Kosongkan search saat halaqah berganti
-    var srch = document.getElementById('muridSearchInput');
-    if (srch) srch.value = '';
-    tbody.innerHTML = murid.map(m => {
-      const pct = m.pct_hadir ?? 0;
-      const s40 = m.skor_dari_40 ?? 0;
-      const pctColor = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
-      return `<tr>
-        <td><strong>${esc(m.nama_murid)}</strong></td>
-        <td><span class="badge b-blue">${esc(m.level||'-')}</span></td>
-        <td><span class="badge b-green">${m.total_hadir||0}×</span></td>
-        <td>${m.total_sesi||0}</td>
-        <td>
-          <span style="font-weight:700;color:${pctColor}">${pct}%</span>
-          <div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">
-            <div style="height:4px;background:${pctColor};border-radius:4px;width:${Math.min(pct,100)}%"></div>
-          </div>
-        </td>
-        <td>
-          <span style="font-weight:700;color:${s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)'}">${s40}%</span>
-          <div style="font-size:10.5px;color:var(--text-3)">${m.skor_hadir_raw ? Number(m.skor_hadir_raw).toFixed(1) : '–'}/40</div>
-        </td>
-        <td>${getPoinAdabBadge(m.poin_adab)}</td>
-        <td>${getPoinKameraBadge(m.poin_kamera)}</td>
-        <td><button class="btn btn-outline btn-sm"
-          onclick="bukaCatatan('${esc(m.id_anggota)}','${esc(m.nama_murid)}','${esc((m.catatan_guru||'').replace(/'/g,"&#39;"))}')">
-          📝 Catatan</button></td>
-      </tr>`;
-    }).join('');
+    // Reset filter saat halaqah berganti
+    var els = ['muridSearchInput','muridKehadiranFilter','muridSkorFilter'];
+    els.forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+    var so = document.getElementById('muridSortSel'); if(so) so.value='nama_asc';
+    renderMuridTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }
+
+function renderMuridTable() {
+  var rows  = window._muridAllRows || [];
+  var q     = (document.getElementById('muridSearchInput') ? document.getElementById('muridSearchInput').value : '').toLowerCase().trim();
+  var kFil  = document.getElementById('muridKehadiranFilter') ? document.getElementById('muridKehadiranFilter').value : '';
+  var sFil  = document.getElementById('muridSkorFilter')      ? document.getElementById('muridSkorFilter').value      : '';
+  var sort  = document.getElementById('muridSortSel')         ? document.getElementById('muridSortSel').value         : 'nama_asc';
+  var tbody = document.getElementById('muridTbl');
+  if (!tbody) return;
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="guru-empty">'
+      + '<div class="guru-empty-ico">👥</div>'
+      + '<div class="guru-empty-ttl">Belum ada murid di halaqah ini</div>'
+      + '<div class="guru-empty-sub">Murid baru dapat ditambahkan oleh Admin melalui portal admin.</div>'
+      + '</div></td></tr>';
+    var b = document.getElementById('muridCountBadge'); if(b) b.textContent='';
+    return;
+  }
+
+  var filtered = rows.filter(function(m) {
+    if (q) {
+      var hay = [(m.nama_murid||''), (m.id_murid||''), (m.level||'')].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    var pct = m.pct_hadir || 0;
+    if (kFil === 'rendah' && pct >= 50)           return false;
+    if (kFil === 'cukup'  && (pct<50||pct>=75))   return false;
+    if (kFil === 'baik'   && pct < 75)            return false;
+    var s40 = m.skor_dari_40 || 0;
+    if (sFil === 'rendah' && s40 >= 50)           return false;
+    if (sFil === 'cukup'  && (s40<50||s40>=75))   return false;
+    if (sFil === 'baik'   && s40 < 75)            return false;
+    return true;
+  });
+
+  filtered.sort(function(a,b){
+    if (sort==='nama_asc')   return (a.nama_murid||'').localeCompare(b.nama_murid||'');
+    if (sort==='nama_desc')  return (b.nama_murid||'').localeCompare(a.nama_murid||'');
+    if (sort==='hadir_desc') return (b.pct_hadir||0)-(a.pct_hadir||0);
+    if (sort==='hadir_asc')  return (a.pct_hadir||0)-(b.pct_hadir||0);
+    if (sort==='skor_desc')  return (b.skor_dari_40||0)-(a.skor_dari_40||0);
+    if (sort==='skor_asc')   return (a.skor_dari_40||0)-(b.skor_dari_40||0);
+    return 0;
+  });
+
+  var badge = document.getElementById('muridCountBadge');
+  if (badge) badge.textContent = filtered.length + ' dari ' + rows.length + ' murid';
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada murid yang sesuai filter</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(function(m) {
+    var pct  = m.pct_hadir || 0;
+    var s40  = m.skor_dari_40 || 0;
+    var pctC = pct>=75?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+    var s40C = s40>=75?'var(--green)':s40>=50?'var(--amber)':'var(--red)';
+    var rowStyle = (pct<50 && (m.total_sesi||0)>2) ? ' style="background:rgba(239,68,68,.04)"' : '';
+    return '<tr'+rowStyle+'>'
+      + '<td><strong>'+esc(m.nama_murid)+'</strong>'
+      + (m.id_murid ? '<div style="font-size:10.5px;color:var(--text-3)">'+esc(m.id_murid)+'</div>' : '')
+      + '</td>'
+      + '<td><span class="badge b-blue">'+esc(m.level||'-')+'</span></td>'
+      + '<td><span class="badge b-green">'+(m.total_hadir||0)+'\u00d7</span></td>'
+      + '<td>'+(m.total_sesi||0)+'</td>'
+      + '<td><span style="font-weight:700;color:'+pctC+'">'+pct+'%</span>'
+      + '<div style="height:4px;background:#e2e8f0;border-radius:4px;margin-top:3px;width:80px">'
+      + '<div style="height:4px;background:'+pctC+';border-radius:4px;width:'+Math.min(pct,100)+'%"></div></div></td>'
+      + '<td><span style="font-weight:700;color:'+s40C+'">'+s40+'%</span>'
+      + '<div style="font-size:10.5px;color:var(--text-3)">'+(m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'\u2013')+'/40</div></td>'
+      + '<td>'+getPoinAdabBadge(m.poin_adab)+'</td>'
+      + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
+      + '<td><button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function doExportMuridCSV() {
+  var rows = window._muridAllRows || [];
+  if (!rows.length) { toast('Tidak ada data murid untuk diekspor.','err'); return; }
+  var sel  = document.getElementById('muridHalaqahSel');
+  var nama = sel && sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].text : 'semua';
+  var header = ['NIS/ID Murid','Nama Murid','Level','Total Hadir','Total Sesi','% Kehadiran','Skor/40 (%)','Raw Skor','Poin Adab','Poin Kamera'].join(',');
+  var body = rows.map(function(m){
+    return [m.id_murid||'',m.nama_murid||'',m.level||'',
+      m.total_hadir||0,m.total_sesi||0,(m.pct_hadir||0)+'%',(m.skor_dari_40||0)+'%',
+      m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'',
+      m.poin_adab||0,m.poin_kamera||0
+    ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\n');
+  var blob = new Blob(['\uFEFF'+header+'\n'+body],{type:'text/csv;charset=utf-8;'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'daftar-murid-'+nama.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV diunduh \u2014 '+rows.length+' murid','ok');
+}
+
+
 
 // ══════════════════════════════════════════
 //  RIWAYAT
