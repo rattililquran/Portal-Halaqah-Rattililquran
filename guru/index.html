@@ -2484,6 +2484,7 @@ html.theme-dark .chip-koreksi.selected {
             <option value="Micro Teaching">Micro Teaching</option>
           </select>
           <select class="fc" id="muridSortSel" onchange="renderMuridTable()" style="max-width:170px">
+            <option value="level_asc">⇕ Urut per Level</option>
             <option value="nama_asc">↕ Nama (A–Z)</option>
             <option value="nama_desc">↕ Nama (Z–A)</option>
             <option value="hadir_desc">↓ Kehadiran tertinggi</option>
@@ -6328,7 +6329,7 @@ async function loadMurid() {
     // Reset filter saat halaqah berganti
     var els = ['muridSearchInput','muridKehadiranFilter','muridSkorFilter','muridLevelFilter'];
     els.forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-    var so = document.getElementById('muridSortSel'); if(so) so.value='nama_asc';
+    var so = document.getElementById('muridSortSel'); if(so) so.value='level_asc';
     renderMuridTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
@@ -6340,9 +6341,13 @@ function renderMuridTable() {
   var kFil  = document.getElementById('muridKehadiranFilter')  ? document.getElementById('muridKehadiranFilter').value  : '';
   var sFil  = document.getElementById('muridSkorFilter')       ? document.getElementById('muridSkorFilter').value       : '';
   var lFil  = document.getElementById('muridLevelFilter')      ? document.getElementById('muridLevelFilter').value      : '';
-  var sort  = document.getElementById('muridSortSel')          ? document.getElementById('muridSortSel').value          : 'nama_asc';
+  var sort  = document.getElementById('muridSortSel')          ? document.getElementById('muridSortSel').value          : 'level_asc';
   var tbody = document.getElementById('muridTbl');
   if (!tbody) return;
+
+  // Urutan level: Level 1 < Level 2 < Level 3 < Level Qiyam < Micro Teaching < lainnya
+  var LEVEL_ORDER = {'Level 1':1,'Level 2':2,'Level 3':3,'Level Qiyam':4,'Micro Teaching':5};
+  function levelRank(l){ return LEVEL_ORDER[l] || 99; }
 
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="9"><div class="guru-empty">'
@@ -6372,6 +6377,10 @@ function renderMuridTable() {
   });
 
   filtered.sort(function(a,b){
+    if (sort==='level_asc') {
+      var ld = levelRank(a.level) - levelRank(b.level);
+      return ld !== 0 ? ld : (a.nama_murid||'').localeCompare(b.nama_murid||'');
+    }
     if (sort==='nama_asc')   return (a.nama_murid||'').localeCompare(b.nama_murid||'');
     if (sort==='nama_desc')  return (b.nama_murid||'').localeCompare(a.nama_murid||'');
     if (sort==='hadir_desc') return (b.pct_hadir||0)-(a.pct_hadir||0);
