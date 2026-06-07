@@ -1548,6 +1548,10 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
 }
 html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
 
+/* Sortable column header indicator */
+.sort-ind{font-size:10px;display:inline-block;margin-left:3px}
+.tbl-wrap thead th[onclick]:hover{color:var(--blue,#2563eb)}
+
 /* Typography desktop */
 @media(min-width:1025px){
   .page-sub{font-size:13px}
@@ -2538,8 +2542,13 @@ html.theme-dark .rt-surat-tbl th {
           <div class="tbl-wrap">
             <table>
               <thead><tr>
-                <th>Nama Murid</th><th>Level</th><th>Hadir</th>
-                <th>Sesi</th><th>% Kehadiran</th><th>Skor/40</th><th>Poin Adab</th><th>Poin Kamera</th><th>Aksi</th>
+                <th style="cursor:pointer;user-select:none" data-murid-sort-a="nama_asc" data-murid-sort-b="nama_desc" onclick="muridHeaderSort('nama_asc','nama_desc')">Nama Murid<span class="sort-ind"></span></th>
+                <th style="cursor:pointer;user-select:none" data-murid-sort-a="level_asc" data-murid-sort-b="level_asc" onclick="muridHeaderSort('level_asc','level_asc')">Level<span class="sort-ind"></span></th>
+                <th>Hadir</th>
+                <th>Sesi</th>
+                <th style="cursor:pointer;user-select:none" data-murid-sort-a="hadir_desc" data-murid-sort-b="hadir_asc" onclick="muridHeaderSort('hadir_desc','hadir_asc')">% Kehadiran<span class="sort-ind"></span></th>
+                <th style="cursor:pointer;user-select:none" data-murid-sort-a="skor_desc" data-murid-sort-b="skor_asc" onclick="muridHeaderSort('skor_desc','skor_asc')">Skor/40<span class="sort-ind"></span></th>
+                <th>Poin Adab</th><th>Poin Kamera</th><th>Aksi</th>
               </tr></thead>
               <tbody id="muridTbl">
                 <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
@@ -2783,8 +2792,12 @@ html.theme-dark .rt-surat-tbl th {
           <div class="tbl-wrap">
             <table>
               <thead><tr>
-                <th>Tanggal</th><th>Sesi ke-</th><th>Jenis</th>
-                <th>Materi</th><th>Hadir</th><th>Status</th><th>Aksi</th>
+                <th style="cursor:pointer;user-select:none" data-riwayat-sort-a="tanggal_desc" data-riwayat-sort-b="tanggal_asc" onclick="riwayatHeaderSort('tanggal_desc','tanggal_asc')">Tanggal<span class="sort-ind"></span></th>
+                <th style="cursor:pointer;user-select:none" data-riwayat-sort-a="pertemuan_desc" data-riwayat-sort-b="pertemuan_asc" onclick="riwayatHeaderSort('pertemuan_desc','pertemuan_asc')">Sesi ke-<span class="sort-ind"></span></th>
+                <th>Jenis</th>
+                <th>Materi</th><th>Hadir</th>
+                <th style="cursor:pointer;user-select:none" data-riwayat-sort-a="status_asc" data-riwayat-sort-b="status_asc" onclick="riwayatHeaderSort('status_asc','status_asc')">Status<span class="sort-ind"></span></th>
+                <th>Aksi</th>
               </tr></thead>
               <tbody id="riwayatTbl">
                 <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
@@ -6362,6 +6375,26 @@ async function loadMurid() {
   finally { hideLoad(); }
 }
 
+// Klik header tabel murid → toggle nilai dropdown muridSortSel yang sudah ada
+function muridHeaderSort(valA, valB) {
+  var sel = document.getElementById('muridSortSel');
+  if (!sel) return;
+  sel.value = (sel.value === valA) ? valB : valA;
+  renderMuridTable();
+}
+function updateMuridSortIndicators() {
+  var sel = document.getElementById('muridSortSel');
+  var cur = sel ? sel.value : '';
+  document.querySelectorAll('[data-murid-sort-a]').forEach(function(th) {
+    var a = th.getAttribute('data-murid-sort-a'), b = th.getAttribute('data-murid-sort-b');
+    var ind = th.querySelector('.sort-ind');
+    if (!ind) return;
+    if (cur === a)      { ind.textContent = ' ▲'; ind.style.opacity = '1'; }
+    else if (cur === b) { ind.textContent = ' ▼'; ind.style.opacity = '1'; }
+    else                { ind.textContent = ' ⇅'; ind.style.opacity = '.3'; }
+  });
+}
+
 function renderMuridTable() {
   var rows  = window._muridAllRows || [];
   var q     = (document.getElementById('muridSearchInput')     ? document.getElementById('muridSearchInput').value     : '').toLowerCase().trim();
@@ -6371,6 +6404,7 @@ function renderMuridTable() {
   var sort  = document.getElementById('muridSortSel')          ? document.getElementById('muridSortSel').value          : 'level_asc';
   var tbody = document.getElementById('muridTbl');
   if (!tbody) return;
+  updateMuridSortIndicators();
 
   // Urutan level: Level 1 < Level 2 < Level 3 < Level Qiyam < Micro Teaching < lainnya
   var LEVEL_ORDER = {'Level 1':1,'Level 2':2,'Level 3':3,'Level Qiyam':4,'Micro Teaching':5};
@@ -6498,11 +6532,32 @@ async function loadRiwayat() {
   finally { hideLoad(); }
 }
 
+// Klik header tabel riwayat → toggle nilai dropdown riwayatSort yang sudah ada
+function riwayatHeaderSort(valA, valB) {
+  var sel = document.getElementById('riwayatSort');
+  if (!sel) return;
+  sel.value = (sel.value === valA) ? valB : valA;
+  filterRiwayatTable();
+}
+function updateRiwayatSortIndicators() {
+  var sel = document.getElementById('riwayatSort');
+  var cur = sel ? sel.value : '';
+  document.querySelectorAll('[data-riwayat-sort-a]').forEach(function(th) {
+    var a = th.getAttribute('data-riwayat-sort-a'), b = th.getAttribute('data-riwayat-sort-b');
+    var ind = th.querySelector('.sort-ind');
+    if (!ind) return;
+    if (cur === a)      { ind.textContent = ' ▲'; ind.style.opacity = '1'; }
+    else if (cur === b) { ind.textContent = ' ▼'; ind.style.opacity = '1'; }
+    else                { ind.textContent = ' ⇅'; ind.style.opacity = '.3'; }
+  });
+}
+
 function filterRiwayatTable() {
   const search = (document.getElementById('riwayatSearchInput')?.value || '').trim().toLowerCase();
   const jenis = document.getElementById('riwayatJenisSel')?.value || '';
   const statusVal = document.getElementById('riwayatStatusSel')?.value || '';
   const sortBy = document.getElementById('riwayatSort')?.value || 'tanggal_desc';
+  updateRiwayatSortIndicators();
 
   _riwayatDataFiltered = _riwayatData.filter(k => {
     if (search) {
