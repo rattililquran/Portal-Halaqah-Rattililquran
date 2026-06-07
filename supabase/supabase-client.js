@@ -33,6 +33,11 @@ function _withTimeout(promise, ms) {
 var _currentUser = null;
 var _isRestoringSession = true; // Start as true to prevent premature SIGNED_OUT wipe on load
 
+// SDK kadang memancarkan event SIGNED_OUT untuk membersihkan sesi lama sebelum
+// menetapkan sesi baru saat setSession() dipanggil dari Auth.login. Tandai agar
+// handler SIGNED_OUT tidak menghapus token dari login yang baru saja berhasil.
+var _loginInProgress = false;
+
 // Penanda generasi sesi: setiap login baru menaikkan angka ini.
 // Proses restore lama (async) memeriksa generasi miliknya sebelum menghapus token,
 // agar tidak menghapus token dari login baru yang terjadi setelah restore dimulai (race condition).
@@ -70,16 +75,15 @@ var _sessionGen = 0;
     // Jika ada login baru yang sudah berjalan sejak restore ini dimulai, hentikan saja
     if (myGen !== _sessionGen) { _isRestoringSession = false; return; }
 
-    // Jika tidak ada session otomatis, baru lakukan setSession manual
+    // Jika tidak ada session otomatis, baru lakukan setSession manual.
+    // Catatan: SENGAJA tidak menghapus token di sini meski setSession tidak
+    // menghasilkan session — proses ini rawan race/timing (mis. baru saja login
+    // di halaman lain lalu redirect ke sini) sehingga token yang baru saja valid
+    // bisa terhapus secara keliru dan membuat user terlempar balik ke layar login.
+    // Jika token benar-benar tidak valid, panggilan API berikutnya akan gagal
+    // dengan 401 dan ditangani oleh alur error masing-masing halaman.
     _withTimeout(_sb.auth.setSession({ access_token: token, refresh_token: refresh }), 5000)
-      .then(function(res) {
-        // Jangan hapus token jika sudah ada login baru yang berjalan sejak restore dimulai
-        if (res && (!res.data || !res.data.session) && myGen === _sessionGen) {
-          _currentUser = null;
-          localStorage.removeItem('hq_token');
-          localStorage.removeItem('hq_refresh');
-          localStorage.removeItem('hq_user');
-        }
+      .then(function() {
         _isRestoringSession = false;
       });
   });
@@ -92,8 +96,9 @@ _sb.auth.onAuthStateChange(function(event, session) {
     localStorage.setItem('hq_refresh', session.refresh_token);
   }
   if (event === 'SIGNED_OUT') {
-    // Abaikan jika sedang melakukan restore session di awal load
-    if (_isRestoringSession) return;
+    // Abaikan jika sedang melakukan restore session di awal load, atau sedang
+    // login (SDK bisa memancarkan SIGNED_OUT untuk sesi lama sebelum SIGNED_IN baru)
+    if (_isRestoringSession || _loginInProgress) return;
 
     _currentUser = null;
     localStorage.removeItem('hq_token');
@@ -140,14 +145,19 @@ var Auth = {
     if (!data.user || !data.access_token) throw new Error('Respons login tidak lengkap. Coba lagi.');
     _sessionGen++; // Tandai login baru — restore lama yang masih berjalan tidak boleh menghapus token ini
     _isRestoringSession = false;
-    // Dibungkus timeout: jika antrian auth SDK macet (mis. proses restore sesi lama
-    // belum selesai), jangan sampai login baru ikut hang menunggu selamanya.
-    await _withTimeout(_sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token }), 5000);
-    _currentUser = data.user;
-    localStorage.setItem('hq_user',    JSON.stringify(data.user));
-    localStorage.setItem('hq_token',   data.access_token);
-    localStorage.setItem('hq_refresh', data.refresh_token);
-    return data;
+    _loginInProgress = true;
+    try {
+      // Dibungkus timeout: jika antrian auth SDK macet (mis. proses restore sesi lama
+      // belum selesai), jangan sampai login baru ikut hang menunggu selamanya.
+      await _withTimeout(_sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token }), 5000);
+      _currentUser = data.user;
+      localStorage.setItem('hq_user',    JSON.stringify(data.user));
+      localStorage.setItem('hq_token',   data.access_token);
+      localStorage.setItem('hq_refresh', data.refresh_token);
+      return data;
+    } finally {
+      _loginInProgress = false;
+    }
   },
 
   logout: async function() {
