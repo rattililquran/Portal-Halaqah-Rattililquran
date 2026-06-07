@@ -2475,6 +2475,14 @@ html.theme-dark .chip-koreksi.selected {
             <option value="cukup">🟡 Skor Cukup (50–74%)</option>
             <option value="baik">🟢 Skor Baik (≥75%)</option>
           </select>
+          <select class="fc" id="muridLevelFilter" onchange="renderMuridTable()" style="max-width:150px">
+            <option value="">— Semua Level —</option>
+            <option value="Level 1">Level 1</option>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level Qiyam">Level Qiyam</option>
+            <option value="Micro Teaching">Micro Teaching</option>
+          </select>
           <select class="fc" id="muridSortSel" onchange="renderMuridTable()" style="max-width:170px">
             <option value="nama_asc">↕ Nama (A–Z)</option>
             <option value="nama_desc">↕ Nama (Z–A)</option>
@@ -6318,7 +6326,7 @@ async function loadMurid() {
     // Simpan data mentah — semua filter/sort ditangani renderMuridTable
     window._muridAllRows = murid;
     // Reset filter saat halaqah berganti
-    var els = ['muridSearchInput','muridKehadiranFilter','muridSkorFilter'];
+    var els = ['muridSearchInput','muridKehadiranFilter','muridSkorFilter','muridLevelFilter'];
     els.forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
     var so = document.getElementById('muridSortSel'); if(so) so.value='nama_asc';
     renderMuridTable();
@@ -6328,10 +6336,11 @@ async function loadMurid() {
 
 function renderMuridTable() {
   var rows  = window._muridAllRows || [];
-  var q     = (document.getElementById('muridSearchInput') ? document.getElementById('muridSearchInput').value : '').toLowerCase().trim();
-  var kFil  = document.getElementById('muridKehadiranFilter') ? document.getElementById('muridKehadiranFilter').value : '';
-  var sFil  = document.getElementById('muridSkorFilter')      ? document.getElementById('muridSkorFilter').value      : '';
-  var sort  = document.getElementById('muridSortSel')         ? document.getElementById('muridSortSel').value         : 'nama_asc';
+  var q     = (document.getElementById('muridSearchInput')     ? document.getElementById('muridSearchInput').value     : '').toLowerCase().trim();
+  var kFil  = document.getElementById('muridKehadiranFilter')  ? document.getElementById('muridKehadiranFilter').value  : '';
+  var sFil  = document.getElementById('muridSkorFilter')       ? document.getElementById('muridSkorFilter').value       : '';
+  var lFil  = document.getElementById('muridLevelFilter')      ? document.getElementById('muridLevelFilter').value      : '';
+  var sort  = document.getElementById('muridSortSel')          ? document.getElementById('muridSortSel').value          : 'nama_asc';
   var tbody = document.getElementById('muridTbl');
   if (!tbody) return;
 
@@ -6350,6 +6359,7 @@ function renderMuridTable() {
       var hay = [(m.nama_murid||''), (m.id_murid||''), (m.level||'')].join(' ').toLowerCase();
       if (hay.indexOf(q) === -1) return false;
     }
+    if (lFil && (m.level||'') !== lFil) return false;
     var pct = m.pct_hadir || 0;
     if (kFil === 'rendah' && pct >= 50)           return false;
     if (kFil === 'cukup'  && (pct<50||pct>=75))   return false;
