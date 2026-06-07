@@ -1,29 +1,29 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v6.3 — fault-tolerant install
+//  Cache version: v6.4 — dynamic base & logic network-first
 // ============================================================
 
-const CACHE_NAME   = 'halaqah-v6.3'; // bump versi → cache lama dihapus saat activate
-const BASE         = '/Portal-Halaqah-Rattililquran';
+const CACHE_NAME   = 'halaqah-v6.4'; // bump versi → cache lama dihapus saat activate
+const BASE         = self.location.pathname.substring(0, self.location.pathname.lastIndexOf('/'));
 const STATIC_CACHE = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/guru/index.html',
-  BASE + '/murid/index.html',
-  BASE + '/admin/index.html',
-  BASE + '/manifest.json',
-  BASE + '/assets/images/logo-putih.png',
-  BASE + '/assets/images/logo-abu.png',
-  BASE + '/assets/font.css',
-  BASE + '/assets/fonts/PlusJakartaSans-400.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-500.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-600.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-700.woff2',
-  BASE + '/assets/fonts/PlusJakartaSans-800.woff2',
-  BASE + '/assets/fonts/Amiri-arabic-400.woff2',
-  BASE + '/assets/fonts/Amiri-arabic-700.woff2',
-  BASE + '/assets/fonts/Amiri-latin-400.woff2',
-  BASE + '/assets/fonts/Amiri-latin-700.woff2',
+  (BASE || '/') + '',
+  (BASE || '') + '/index.html',
+  (BASE || '') + '/guru/index.html',
+  (BASE || '') + '/murid/index.html',
+  (BASE || '') + '/admin/index.html',
+  (BASE || '') + '/manifest.json',
+  (BASE || '') + '/assets/images/logo-putih.png',
+  (BASE || '') + '/assets/images/logo-abu.png',
+  (BASE || '') + '/assets/font.css',
+  (BASE || '') + '/assets/fonts/PlusJakartaSans-400.woff2',
+  (BASE || '') + '/assets/fonts/PlusJakartaSans-500.woff2',
+  (BASE || '') + '/assets/fonts/PlusJakartaSans-600.woff2',
+  (BASE || '') + '/assets/fonts/PlusJakartaSans-700.woff2',
+  (BASE || '') + '/assets/fonts/PlusJakartaSans-800.woff2',
+  (BASE || '') + '/assets/fonts/Amiri-arabic-400.woff2',
+  (BASE || '') + '/assets/fonts/Amiri-arabic-700.woff2',
+  (BASE || '') + '/assets/fonts/Amiri-latin-400.woff2',
+  (BASE || '') + '/assets/fonts/Amiri-latin-700.woff2',
 ];
 
 // Install — cache file statis secara fault-tolerant
@@ -95,8 +95,24 @@ self.addEventListener('fetch', function(e) {
   // Supabase API requests — bypass service worker
   if (url.includes('supabase.co')) return;
 
+  // Critical custom scripts (supabase-client.js, push-permission.js) — Network-First, fallback to cached self
+  if (url.includes('supabase-client.js') || url.includes('push-permission.js')) {
+    e.respondWith(
+      fetch(e.request).then(function(res) {
+        if (res.ok) {
+          var clone = res.clone();
+          caches.open(CACHE_NAME).then(function(c) { c.put(e.request, clone); });
+        }
+        return res;
+      }).catch(function() {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+
   // Static assets LOKAL — Stale-While-Revalidate (tampil instan, update di background)
-  // Tidak berlaku untuk Supabase API
+  // Tidak berlaku untuk Supabase API atau custom scripts
   if (url.includes('/assets/') || (url.includes('/supabase/') && !url.includes('supabase.co'))) { // BUG-L2 fix: kurung eksplisit
     e.respondWith(
       caches.open(CACHE_NAME).then(function(cache) {

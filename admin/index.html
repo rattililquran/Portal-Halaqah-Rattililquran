@@ -2360,7 +2360,18 @@ html.theme-dark .tbl-wrap thead th {
     <div class="modal-foot" id="modalRaportFoot"></div>
   </div>
 </div>
-
+<script>
+if ('serviceWorker' in navigator) {
+  var swVer = localStorage.getItem('hq_sw_version') || '0';
+  if (swVer !== '3.2') {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      for (let reg of regs) reg.unregister();
+      localStorage.setItem('hq_sw_version', '3.2');
+      window.location.reload();
+    });
+  }
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
 <script src="../assets/push-permission.js"></script>
