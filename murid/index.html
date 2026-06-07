@@ -231,6 +231,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .progress-card.qiyam-card .prog-title{
   color:#fde68a;
 }
+.qiyam-quote-box{
+  margin-top:14px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(135deg, rgba(99,102,241,.05), rgba(245,158,11,.06));
+  border:1px solid rgba(245,158,11,.16);
+  position:relative;overflow:hidden;
+}
+.qiyam-quote-box::before{
+  content:'\201C';position:absolute;top:-12px;left:10px;
+  font-family:Georgia,serif;font-size:46px;font-weight:900;
+  color:rgba(245,158,11,.16);line-height:1;pointer-events:none;
+}
+.qiyam-quote-text{
+  font-size:11.5px;font-style:italic;font-weight:600;color:#475569;
+  line-height:1.65;position:relative;z-index:1;
+}
+.qiyam-quote-src{
+  margin-top:9px;font-size:10px;font-weight:800;letter-spacing:.4px;
+  color:#b45309;display:flex;align-items:center;gap:7px;position:relative;z-index:1;
+}
+.qiyam-quote-src::before{content:'';display:inline-block;width:14px;height:1px;background:rgba(180,83,9,.35)}
+html.theme-dark .qiyam-quote-box{background:linear-gradient(135deg, rgba(99,102,241,.1), rgba(245,158,11,.07));border-color:rgba(245,158,11,.2)}
+html.theme-dark .qiyam-quote-text{color:#cbd5e1}
+html.theme-dark .qiyam-quote-src{color:#fcd34d}
 .qiyam-setoran-stat{display:flex;align-items:baseline;gap:7px;margin-bottom:4px}
 .qiyam-setoran-num{font-size:28px;font-weight:900;color:#059669;line-height:1;letter-spacing:-.02em}
 .qiyam-setoran-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
@@ -3184,6 +3207,10 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
               </div>
             </div>
           </div>
+          <div id="dashQiyamQuoteBox" class="qiyam-quote-box" style="display:none">
+            <div class="qiyam-quote-text">&ldquo;Lakukanlah qiyamullail, karena hal itu merupakan kebiasaan orang-orang shalih sebelum kalian. Ia pun dapat mendekatkan kalian kepada Rabb kalian, menghapus segala kesalahan, dan mencegah dari perbuatan dosa.&rdquo;</div>
+            <div class="qiyam-quote-src">HR. Tirmidzi</div>
+          </div>
         </div>
         </div><!-- /prog-inner-wrap -->
       </div>
@@ -5844,6 +5871,7 @@ async function loadDashboard() {
     if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'none';
     if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
     if (document.getElementById('dashQiyamSetoranStat')) document.getElementById('dashQiyamSetoranStat').style.display = 'none';
+    if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
     if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
 
     var donutRing = document.getElementById('dashDonutRing');
@@ -5858,6 +5886,7 @@ async function loadDashboard() {
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
       if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
       if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
+      if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'block';
 
       // Donut ring dihilangkan untuk level Qiyam — diganti angka total setoran polos
       if (donutRing) donutRing.style.display = 'none';
