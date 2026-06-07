@@ -10,6 +10,23 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const { createClient } = window.supabase;
 const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Supabase SDK mengantrekan operasi auth (setSession, getSession, dll) secara internal.
+// Jika satu panggilan macet (mis. token lama tidak valid / jaringan lambat), panggilan
+// berikutnya ikut menunggu tanpa batas. Bungkus dengan timeout agar tidak pernah hang selamanya.
+function _withTimeout(promise, ms) {
+  return new Promise(function(resolve) {
+    var done = false;
+    var timer = setTimeout(function() {
+      if (!done) { done = true; resolve(null); }
+    }, ms);
+    promise.then(function(res) {
+      if (!done) { done = true; clearTimeout(timer); resolve(res); }
+    }).catch(function() {
+      if (!done) { done = true; clearTimeout(timer); resolve(null); }
+    });
+  });
+}
+
 // ─────────────────────────────────────────────
 //  SESSION
 // ─────────────────────────────────────────────
@@ -36,8 +53,10 @@ var _sessionGen = 0;
   }
 
   // Cek apakah session sudah dipulihkan secara otomatis oleh SDK
-  _sb.auth.getSession().then(function(res) {
-    var session = res.data && res.data.session;
+  // Dibungkus timeout: jika SDK macet memvalidasi token lama, jangan sampai
+  // memblokir antrian auth dan membuat login baru ikut hang menunggu giliran.
+  _withTimeout(_sb.auth.getSession(), 5000).then(function(res) {
+    var session = res && res.data && res.data.session;
     if (session) {
       // Session sudah pulih otomatis, cukup perbarui token di hq_token/hq_refresh
       if (myGen === _sessionGen) {
@@ -48,23 +67,21 @@ var _sessionGen = 0;
       return;
     }
 
+    // Jika ada login baru yang sudah berjalan sejak restore ini dimulai, hentikan saja
+    if (myGen !== _sessionGen) { _isRestoringSession = false; return; }
+
     // Jika tidak ada session otomatis, baru lakukan setSession manual
-    _sb.auth.setSession({ access_token: token, refresh_token: refresh })
+    _withTimeout(_sb.auth.setSession({ access_token: token, refresh_token: refresh }), 5000)
       .then(function(res) {
         // Jangan hapus token jika sudah ada login baru yang berjalan sejak restore dimulai
-        if ((!res.data || !res.data.session) && myGen === _sessionGen) {
+        if (res && (!res.data || !res.data.session) && myGen === _sessionGen) {
           _currentUser = null;
           localStorage.removeItem('hq_token');
           localStorage.removeItem('hq_refresh');
           localStorage.removeItem('hq_user');
         }
         _isRestoringSession = false;
-      })
-      .catch(function() {
-        _isRestoringSession = false;
       });
-  }).catch(function() {
-    _isRestoringSession = false;
   });
 })();
 
@@ -123,7 +140,9 @@ var Auth = {
     if (!data.user || !data.access_token) throw new Error('Respons login tidak lengkap. Coba lagi.');
     _sessionGen++; // Tandai login baru — restore lama yang masih berjalan tidak boleh menghapus token ini
     _isRestoringSession = false;
-    await _sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
+    // Dibungkus timeout: jika antrian auth SDK macet (mis. proses restore sesi lama
+    // belum selesai), jangan sampai login baru ikut hang menunggu selamanya.
+    await _withTimeout(_sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token }), 5000);
     _currentUser = data.user;
     localStorage.setItem('hq_user',    JSON.stringify(data.user));
     localStorage.setItem('hq_token',   data.access_token);
