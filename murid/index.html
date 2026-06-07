@@ -231,6 +231,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .progress-card.qiyam-card .prog-title{
   color:#fde68a;
 }
+.qiyam-setoran-stat{display:flex;align-items:baseline;gap:7px;margin-bottom:4px}
+.qiyam-setoran-num{font-size:28px;font-weight:900;color:#059669;line-height:1;letter-spacing:-.02em}
+.qiyam-setoran-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+html.theme-dark .qiyam-setoran-lbl{color:#64748b}
 .qiyam-target-box{
   display:flex;align-items:center;gap:10px;
   margin-top:10px;padding:9px 13px;border-radius:13px;
@@ -3162,6 +3166,10 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
             </div>
             <!-- Info kanan -->
             <div class="prog-info-right">
+              <div id="dashQiyamSetoranStat" class="qiyam-setoran-stat" style="display:none">
+                <span class="qiyam-setoran-num" id="dashQiyamSetoranNum">0</span>
+                <span class="qiyam-setoran-lbl">Total Setoran</span>
+              </div>
               <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
               <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
               <div class="prog-bar-wrap" id="dashProgressBarWrap">
@@ -5835,6 +5843,8 @@ async function loadDashboard() {
     if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'block';
     if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'none';
     if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
+    if (document.getElementById('dashQiyamSetoranStat')) document.getElementById('dashQiyamSetoranStat').style.display = 'none';
+    if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
 
     var donutRing = document.getElementById('dashDonutRing');
     var pctNum = document.getElementById('dashProgressPctNum');
@@ -5846,50 +5856,21 @@ async function loadDashboard() {
     if (isQiyam) {
       if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
-      if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'setoran';
       if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
       if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
 
+      // Donut ring dihilangkan untuk level Qiyam — diganti angka total setoran polos
+      if (donutRing) donutRing.style.display = 'none';
+      if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
+
       var totalSetoran = d.qiyam ? d.qiyam.total_setoran : 0;
-      
-      // Dynamic donut percentage (graduation target 30 setoran)
-      var targetSetoranQiyam = 30;
-      var qPct = Math.min(100, Math.round((totalSetoran / targetSetoranQiyam) * 100));
-      if (donutRing) {
-        var isDark = document.documentElement.classList.contains('theme-dark');
-        var ringBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
-        donutRing.style.background = 'conic-gradient(#10b981 ' + qPct + '%, ' + ringBg + ' 0%)';
-      }
-      if (pctNum) {
-        pctNum.textContent = totalSetoran;
-        pctNum.style.color = '#10b981';
+      var setoranStat = document.getElementById('dashQiyamSetoranStat');
+      if (setoranStat) {
+        setoranStat.style.display = 'flex';
+        document.getElementById('dashQiyamSetoranNum').textContent = totalSetoran;
       }
 
       var lastSetoran = d.qiyam && d.qiyam.terakhir;
-      
-      // Update floating quality badge
-      var qBad = document.getElementById('dashQiyamBadge');
-      if (qBad) {
-        if (lastSetoran && lastSetoran.nilai) {
-          var grade = lastSetoran.nilai.trim();
-          var firstChar = grade.charAt(0).toUpperCase();
-          qBad.textContent = firstChar;
-          
-          var bg = '#10b981'; // Green for Mumtaz / A
-          if (grade.includes('Jayyid Jiddan')) bg = '#3b82f6';
-          else if (grade.includes('Jayyid')) bg = '#f59e0b';
-          else if (grade.includes('Maqbul')) bg = '#ef4444';
-          else if (firstChar === 'B') bg = '#3b82f6';
-          else if (firstChar === 'C') bg = '#f59e0b';
-          else if (firstChar === 'D') bg = '#ef4444';
-          
-          qBad.style.background = bg;
-          qBad.style.display = 'flex';
-          qBad.title = 'Predikat setoran terakhir: ' + grade;
-        } else {
-          qBad.style.display = 'none';
-        }
-      }
 
       if (lastSetoran) {
         document.getElementById('dashProgressPct').textContent = lastSetoran.jenis + ': QS. ' + lastSetoran.surat + ' ' + lastSetoran.ayat_dari + '-' + lastSetoran.ayat_sampai;
