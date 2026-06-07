@@ -1153,7 +1153,12 @@ function initThemeToggle() {
 }
 initThemeToggle();
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg) {
+    // Paksa cek versi SW terbaru — abaikan cache HTTP sw.js yang mungkin masih lama
+    reg.update().catch(function(){});
+  }).catch(()=>{});
+}
 
 // ── PWA INSTALL PROMPT ──────────────────────────────────────
 (function() {

@@ -8738,7 +8738,7 @@ function pdToggleNasihat() {
 }
 
 if ('serviceWorker' in navigator)
-  navigator.serviceWorker.register('../sw.js').catch(()=>{});
+  navigator.serviceWorker.register('../sw.js', { updateViaCache: 'none' }).catch(()=>{});
 window.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() { if (typeof initPushPrompt === 'function') initPushPrompt('guru'); }, 5000);
 });
