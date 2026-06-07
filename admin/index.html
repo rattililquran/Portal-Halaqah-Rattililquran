@@ -1957,7 +1957,7 @@ html.theme-dark .tbl-wrap thead th {
         <div class="section-sub">Data observasi KBM rahasia dari ketua kelas. Hanya Super Admin yang bisa melihat.</div>
 
         <!-- Filter -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
           <select class="fc" id="obsFilterGuru" onchange="loadObservasi()" style="max-width:220px">
             <option value="">— Semua Guru —</option>
           </select>
@@ -1979,22 +1979,39 @@ html.theme-dark .tbl-wrap thead th {
           </select>
           <button class="btn btn-outline btn-sm" onclick="loadObservasi()">🔄 Refresh</button>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+          <span style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Periode:</span>
+          <input type="date" class="fc" id="obsDateFrom" onchange="loadObservasi()" style="max-width:160px;font-size:12px;padding:6px 10px">
+          <span style="color:var(--text-3);font-size:12px">s/d</span>
+          <input type="date" class="fc" id="obsDateTo" onchange="loadObservasi()" style="max-width:160px;font-size:12px;padding:6px 10px">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('obsDateFrom').value='';document.getElementById('obsDateTo').value='';loadObservasi()" title="Hapus filter periode">✕ Reset Periode</button>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Urut Kartu:</span>
+            <select id="obsStatSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="renderObsStats()">
+              <option value="total_desc">Jumlah Sesi (Terbanyak)</option>
+              <option value="total_asc">Jumlah Sesi (Tersedikit)</option>
+              <option value="kondusif_asc">Kondisi Kondusif (Terendah)</option>
+              <option value="tepat_waktu_asc">Tepat Waktu (Terendah)</option>
+              <option value="nama_asc">Nama Guru (A-Z)</option>
+            </select>
+          </span>
+        </div>
 
         <!-- Rekap Statistik per Guru -->
         <div id="obsStatsWrap" style="margin-bottom:20px"></div>
 
         <!-- Detail per Sesi -->
-        <div class="section-title" style="font-size:14px;margin-bottom:10px">Detail Observasi per Sesi</div>
+        <div class="section-title" style="font-size:14px;margin-bottom:10px" id="obsDetailAnchor">Detail Observasi per Sesi</div>
         <div class="card">
           <div class="tbl-wrap">
             <table>
               <thead><tr>
                 <th>Tgl/Sesi</th><th>Halaqah</th><th>Guru</th>
                 <th>Kondisi Kelas</th><th>Latihan</th><th>Ketepatan</th>
-                <th>Kamera Peserta</th><th>Catatan</th>
+                <th>Kamera Peserta</th><th>Catatan</th><th>Detail</th>
               </tr></thead>
               <tbody id="obsDetailTbl">
-                <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Pilih filter atau klik Refresh</td></tr>
+                <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Pilih filter atau klik Refresh</td></tr>
               </tbody>
             </table>
           </div>
@@ -2361,6 +2378,20 @@ html.theme-dark .tbl-wrap thead th {
     <div class="modal-foot">
       <button class="btn btn-ghost" id="btnBatalImport" onclick="closeModal('modalImport')">Batal</button>
       <button class="btn btn-primary" id="btnImport" onclick="doImportTerintegrasi()" disabled>📥 Import Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL OBSERVASI -->
+<div class="overlay" id="modalObsDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔎 Detail Observasi Sesi</div>
+      <button class="modal-x" onclick="closeModal('modalObsDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="obsDetailModalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalObsDetail')">Tutup</button>
     </div>
   </div>
 </div>
@@ -4714,11 +4745,15 @@ var _obsDataFiltered = [];
 async function loadObservasi() {
   var idGuru    = document.getElementById('obsFilterGuru').value;
   var idHalaqah = document.getElementById('obsFilterHalaqah').value;
+  var tglDari   = document.getElementById('obsDateFrom') ? document.getElementById('obsDateFrom').value : '';
+  var tglSampai = document.getElementById('obsDateTo')   ? document.getElementById('obsDateTo').value   : '';
   showLoad('Memuat observasi...');
   try {
     var params = {};
     if (idGuru)    params.id_guru    = idGuru;
     if (idHalaqah) params.id_halaqah = idHalaqah;
+    if (tglDari)   params.tgl_dari   = tglDari;
+    if (tglSampai) params.tgl_sampai = tglSampai;
     var [rDet, rStat] = await Promise.all([
       window.HQ.SuperAdminAPI.getObservasiKBM(params),
       window.HQ.SuperAdminAPI.getObservasiStats(params),
@@ -4742,17 +4777,40 @@ async function loadObservasi() {
   finally { hideLoad(); }
 }
 
+// Ambang jumlah sesi minimal supaya persentase dianggap representatif —
+// di bawah ini, warna merah/kuning diredam jadi netral & ditandai "data masih sedikit"
+var OBS_MIN_SAMPLE = 3;
+
 function renderObsStats() {
   var el = document.getElementById('obsStatsWrap');
   if (!_obsStats.length) { el.innerHTML = ''; return; }
+
+  var sortBy = document.getElementById('obsStatSort') ? document.getElementById('obsStatSort').value : 'total_desc';
+  var stats = _obsStats.slice().sort(function(a, b) {
+    if (sortBy === 'total_desc')        return b.total - a.total;
+    if (sortBy === 'total_asc')         return a.total - b.total;
+    if (sortBy === 'kondusif_asc')      return a.pct_kondusif - b.pct_kondusif;
+    if (sortBy === 'tepat_waktu_asc')   return a.pct_tepat_waktu - b.pct_tepat_waktu;
+    if (sortBy === 'nama_asc')          return (a.nama_guru||'').localeCompare(b.nama_guru||'');
+    return 0;
+  });
+
   el.innerHTML = '<div class="section-title" style="font-size:14px;margin-bottom:10px">Rekap per Guru</div>'
     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px">'
-    + _obsStats.map(function(g) {
-      var cKondusif = g.pct_kondusif >= 80 ? 'var(--green-txt)' : g.pct_kondusif >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)';
-      var cWaktu    = g.pct_tepat_waktu >= 90 ? 'var(--green-txt)' : g.pct_tepat_waktu >= 70 ? 'var(--amber-txt)' : 'var(--red-txt)';
-      var cLatihan  = g.pct_ada_latihan >= 70 ? 'var(--green-txt)' : g.pct_ada_latihan >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)';
-      return '<div class="card" style="padding:16px">'
-        + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px">'+esc(g.nama_guru)+'</div>'
+    + stats.map(function(g) {
+      var sedikit   = g.total < OBS_MIN_SAMPLE;
+      var netral    = 'var(--text-2)';
+      var cKondusif = sedikit ? netral : (g.pct_kondusif >= 80 ? 'var(--green-txt)' : g.pct_kondusif >= 60 ? 'var(--amber-txt)' : 'var(--red-txt)');
+      var cWaktu    = sedikit ? netral : (g.pct_tepat_waktu >= 90 ? 'var(--green-txt)' : g.pct_tepat_waktu >= 70 ? 'var(--amber-txt)' : 'var(--red-txt)');
+      var cLatihan  = sedikit ? netral : (g.pct_ada_latihan >= 70 ? 'var(--green-txt)' : g.pct_ada_latihan >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)');
+      var badgeSedikit = sedikit
+        ? '<span class="badge b-gray" style="font-size:9.5px;font-weight:700" title="Persentase dari sampel kecil belum tentu mencerminkan performa keseluruhan — tunggu lebih banyak data observasi sebelum menyimpulkan">📋 Data masih sedikit (n='+g.total+')</span>'
+        : '';
+      return '<div class="card" style="padding:16px;cursor:pointer" onclick="filterObsByGuru(\''+esc(g.id_guru||'')+'\',\''+esc(g.nama_guru||'')+'\')" title="Klik untuk lihat detail observasi guru ini">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
+        + '<div style="font-size:14px;font-weight:800;color:var(--text)">'+esc(g.nama_guru)+'</div>'
+        + badgeSedikit
+        + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">'
         + '<div><div style="color:var(--text-3);font-weight:600">Kondisi Kondusif</div><div style="font-size:20px;font-weight:900;color:'+cKondusif+'">'+g.pct_kondusif+'%</div><div style="color:var(--text-3);font-size:10.5px">'+g.kondusif+' dari '+g.total+' sesi</div></div>'
         + '<div><div style="color:var(--text-3);font-weight:600">Tepat Waktu</div><div style="font-size:20px;font-weight:900;color:'+cWaktu+'">'+g.pct_tepat_waktu+'%</div><div style="color:var(--text-3);font-size:10.5px">Terlambat: '+g.terlambat+'× rata '+g.rata_menit_telat+' mnt</div></div>'
@@ -4760,6 +4818,24 @@ function renderObsStats() {
         + '<div><div style="color:var(--text-3);font-weight:600">Kamera Terbuka</div><div style="font-size:20px;font-weight:900;color:var(--blue)">'+g.kamera_sebagian_besar_terbuka+'</div><div style="color:var(--text-3);font-size:10.5px">Campuran: '+g.kamera_campuran+' | Tertutup: '+g.kamera_sebagian_besar_tertutup+'</div></div>'
         + '</div></div>';
     }).join('') + '</div>';
+}
+
+// Klik kartu rekap → filter tabel detail ke guru tsb & scroll ke sana
+function filterObsByGuru(idGuru, namaGuru) {
+  var sel = document.getElementById('obsFilterGuru');
+  if (sel && idGuru) {
+    var hasOpt = Array.from(sel.options).some(function(o){ return o.value === idGuru; });
+    if (!hasOpt) {
+      var o = document.createElement('option'); o.value = idGuru; o.textContent = namaGuru || idGuru;
+      sel.appendChild(o);
+    }
+    sel.value = idGuru;
+  }
+  var search = document.getElementById('obsSearchInput');
+  if (search) search.value = idGuru ? '' : (namaGuru || '');
+  loadObservasi();
+  var anchor = document.getElementById('obsDetailAnchor');
+  if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function filterObservasiTable() {
@@ -4797,13 +4873,13 @@ function filterObservasiTable() {
 
   var tbody = document.getElementById('obsDetailTbl');
   if (!_obsDataFiltered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi sesuai filter</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi sesuai filter</td></tr>';
     return;
   }
   var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
   var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
   var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
-  tbody.innerHTML = _obsDataFiltered.map(function(r) {
+  tbody.innerHTML = _obsDataFiltered.map(function(r, idx) {
     var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' mnt)' : '';
     return '<tr>'
       + '<td>'+fmtDate(r.tanggal)+'<br><small style="color:var(--text-3)">ke-'+esc(String(r.pertemuan_ke||''))+'</small></td>'
@@ -4814,8 +4890,38 @@ function filterObservasiTable() {
       + '<td><span class="badge '+(WAKTU_COLOR[r.ketepatan_waktu]||'b-gray')+'" style="font-size:10.5px">'+esc(r.ketepatan_waktu||'-')+menitInfo+'</span></td>'
       + '<td><span class="badge '+(KAMERA_COLOR[r.kamera_peserta]||'b-gray')+'" style="font-size:10.5px">'+esc(r.kamera_peserta||'-')+'</span></td>'
       + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px" title="' + esc(r.catatan_lain || '–') + '">'+esc(r.catatan_lain||'–')+'</td>'
+      + '<td><button class="btn btn-ghost btn-sm" onclick="lihatObsDetail('+idx+')" title="Lihat detail lengkap sesi ini">👁 Detail</button></td>'
       + '</tr>';
   }).join('');
+}
+
+function lihatObsDetail(idx) {
+  var r = _obsDataFiltered[idx];
+  if (!r) return;
+  var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
+  var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
+  var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
+  var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' menit)' : '';
+  var rows = [
+    ['Tanggal', fmtDate(r.tanggal) + ' &bull; Pertemuan ke-' + esc(String(r.pertemuan_ke||'-'))],
+    ['Halaqah', esc(r.nama_halaqah||r.id_halaqah)],
+    ['Guru', esc(r.nama_guru||r.id_guru)],
+    ['Kondisi Kelas', '<span class="badge '+(COND_COLOR[r.kondisi_kelas]||'b-gray')+'">'+esc(r.kondisi_kelas||'-')+'</span>'],
+    ['Ada Latihan', '<span class="badge '+(r.ada_latihan==='Ya'?'b-green':'b-red')+'">'+esc(r.ada_latihan||'-')+'</span>'],
+    ['Ketepatan Waktu', '<span class="badge '+(WAKTU_COLOR[r.ketepatan_waktu]||'b-gray')+'">'+esc(r.ketepatan_waktu||'-')+menitInfo+'</span>'],
+    ['Kamera Peserta', '<span class="badge '+(KAMERA_COLOR[r.kamera_peserta]||'b-gray')+'">'+esc(r.kamera_peserta||'-')+'</span>']
+  ];
+  var html = '<div style="display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px">'
+    + rows.map(function(row) {
+        return '<div style="color:var(--text-3);font-weight:600">'+row[0]+'</div><div>'+row[1]+'</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="margin-top:16px">'
+    + '<div style="color:var(--text-3);font-weight:600;font-size:13px;margin-bottom:6px">Catatan Lain</div>'
+    + '<div style="white-space:pre-wrap;font-size:13px;line-height:1.6;background:var(--bg-2);border-radius:8px;padding:12px">'+esc(r.catatan_lain || '– Tidak ada catatan –')+'</div>'
+    + '</div>';
+  document.getElementById('obsDetailModalBody').innerHTML = html;
+  openModal('modalObsDetail');
 }
 
 async function loadAudit() {

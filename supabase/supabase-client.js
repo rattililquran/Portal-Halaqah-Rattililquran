@@ -2532,6 +2532,12 @@ var AdminAPI = {
     if (p.id_guru) {
       list = list.filter(function(r) { return r.id_guru === p.id_guru; });
     }
+    if (p.tgl_dari) {
+      list = list.filter(function(r) { return r.tanggal >= p.tgl_dari; });
+    }
+    if (p.tgl_sampai) {
+      list = list.filter(function(r) { return r.tanggal <= p.tgl_sampai; });
+    }
     return { status: 'ok', data: list };
   },
   // ── SPP Metode Bayar ───────────────────────
@@ -2790,6 +2796,12 @@ var AdminAPI = {
     if (p.id_guru) {
       list = list.filter(function(r) { return r.id_guru === p.id_guru; });
     }
+    if (p.tgl_dari) {
+      list = list.filter(function(r) { return r.tanggal >= p.tgl_dari; });
+    }
+    if (p.tgl_sampai) {
+      list = list.filter(function(r) { return r.tanggal <= p.tgl_sampai; });
+    }
     var statsMap = {};
     list.forEach(function(r) {
       var guruId = r.id_guru || 'UNKNOWN';
@@ -2834,6 +2846,7 @@ var AdminAPI = {
     var statsList = Object.keys(statsMap).map(function(k) {
       var s = statsMap[k];
       return {
+        id_guru: k,
         nama_guru: s.nama_guru,
         total: s.total,
         kondusif: s.kondusif,
