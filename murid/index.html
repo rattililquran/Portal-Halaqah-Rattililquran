@@ -5782,12 +5782,32 @@ function setCalTab(os, btn) {
     }
   }
 
+  // Cek apakah titik sentuh berada di dalam container scroll-nya sendiri
+  // (modal/overlay dgn overflow-y:auto, mis. Rincian Raport, mode baca
+  // Charging, preview raport, dst) — jika ya, serahkan gesture scroll ke
+  // container itu sepenuhnya, JANGAN picu pull-to-refresh (sebelumnya PTR
+  // ikut aktif saat scroll di dalam overlay semacam itu krn .content sendiri
+  // tidak ikut ter-scroll).
+  function _ptrInOwnScrollArea(target) {
+    var el = target;
+    while (el && el !== document.body) {
+      if (el.classList && el.classList.contains('content')) return false;
+      var cs = window.getComputedStyle(el);
+      if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+        return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
+
   document.addEventListener('touchstart', function(e) {
     if (window.innerWidth >= 768) return; // only mobile
+    if (_ptrInOwnScrollArea(e.target)) return;
     var _ptrContent = document.querySelector('.content');
     if ((_ptrContent ? _ptrContent.scrollTop : window.scrollY) > 5) return;
     if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
-    
+
     var touch = e.touches[0];
     startY = touch.clientY;
     isPulling = false;
@@ -5795,10 +5815,11 @@ function setCalTab(os, btn) {
 
   document.addEventListener('touchmove', function(e) {
     if (window.innerWidth >= 768) return;
+    if (_ptrInOwnScrollArea(e.target)) return;
     var _ptrContent = document.querySelector('.content');
     if ((_ptrContent ? _ptrContent.scrollTop : window.scrollY) > 5) return;
     if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
-    
+
     var touch = e.touches[0];
     currentY = touch.clientY;
     var pullDist = currentY - startY;
