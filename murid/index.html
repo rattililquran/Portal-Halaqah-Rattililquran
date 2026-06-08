@@ -5403,6 +5403,18 @@ function doLogout() {
     window.HQ.supabase.removeChannel(_keaktifanChannel).catch(function(){});
     _keaktifanChannel = null;
   }
+  // Hapus data cache milik user ini (foto, avatar, log notif, template, dst —
+  // semua memakai pola namespace "..._<id_user>") agar tidak tertinggal di
+  // localStorage perangkat bersama (mis. HP madrasah dipakai bergantian murid lain).
+  try {
+    var us = window.HQ.Auth.getUser();
+    if (us && us.id_user) {
+      var suffix = '_' + us.id_user;
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.endsWith(suffix)) localStorage.removeItem(k);
+      });
+    }
+  } catch(e) {}
   localStorage.removeItem('hq_token');
   localStorage.removeItem('hq_user');
   localStorage.removeItem('hq_refresh');
@@ -8176,11 +8188,17 @@ async function _loadRekapStatus() {
 }
 
 // ── REMINDER TAB — Template yang bisa dikonfigurasi ──────────
-var _TMPL_KEY = {
+var _TMPL_KEY_BASE = {
   h1     : 'ketua_tmpl_h1',
   harih  : 'ketua_tmpl_harih',
   h1plus : 'ketua_tmpl_h1plus',
 };
+// Namespace per id_user — perangkat bersama (mis. HP madrasah) dipakai banyak
+// ketua kelas bergantian; tanpa namespace, template ketua A bisa tertimpa/terbaca ketua B.
+function _tmplKey(type) {
+  var us = window.HQ && window.HQ.Auth && window.HQ.Auth.getUser();
+  return _TMPL_KEY_BASE[type] + '_' + (us ? us.id_user : 'x');
+}
 
 function _defaultTemplate(type) {
   return _buildReminderText(type);
@@ -8192,7 +8210,7 @@ function initReminderTab() {
   Object.keys(ids).forEach(function(type) {
     var el = document.getElementById(ids[type]);
     if (!el) return;
-    var saved = localStorage.getItem(_TMPL_KEY[type]);
+    var saved = localStorage.getItem(_tmplKey(type));
     el.value = saved !== null ? saved : _defaultTemplate(type);
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
@@ -8200,14 +8218,14 @@ function initReminderTab() {
 }
 
 function simpanTemplate(type, val) {
-  localStorage.setItem(_TMPL_KEY[type], val);
+  localStorage.setItem(_tmplKey(type), val);
 }
 
 function resetTemplate(type) {
   var ids = { h1:'tmplH1', harih:'tmplHariH', h1plus:'tmplH1Plus' };
   var el = document.getElementById(ids[type]);
   if (!el) return;
-  localStorage.removeItem(_TMPL_KEY[type]);
+  localStorage.removeItem(_tmplKey(type));
   el.value = _defaultTemplate(type);
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
@@ -8235,7 +8253,7 @@ function copyReminder(type, btn) {
   var ids = { h1:'tmplH1', harih:'tmplHariH', h1plus:'tmplH1Plus' };
   var el  = document.getElementById(ids[type]);
   // Pakai teks dari textarea jika tab reminder pernah dibuka, else pakai default
-  var saved = localStorage.getItem(_TMPL_KEY[type]);
+  var saved = localStorage.getItem(_tmplKey(type));
   var txt = (el && el.value.trim()) || (saved !== null ? saved : _buildReminderText(type));
   if (!txt) return;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -10972,13 +10990,18 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Raport badge: "BARU" jika ada raport yang belum pernah dilihat ──────────
-var _RAPORT_SEEN_KEY = 'hq_raport_last_seen';
+// Namespace per id_user — tanpa ini, di perangkat bersama murid B bisa kehilangan
+// notifikasi "raport baru" karena status "sudah dilihat" tertinggal dari murid A.
+function _raportSeenKey() {
+  var us = window.HQ && window.HQ.Auth && window.HQ.Auth.getUser();
+  return 'hq_raport_last_seen_' + (us ? us.id_user : 'x');
+}
 
 function _checkRaportBadge(rows) {
   if (!rows || !rows.length) return;
   var badge = document.getElementById('raportNavBadge');
   if (!badge) return;
-  var lastSeen = Number(localStorage.getItem(_RAPORT_SEEN_KEY) || 0);
+  var lastSeen = Number(localStorage.getItem(_raportSeenKey()) || 0);
   // Cari tanggal_cetak terbaru dari raport yang sudah published
   var latestTs = 0;
   rows.forEach(function(r) {
@@ -10997,7 +11020,7 @@ function _checkRaportBadge(rows) {
 function _clearRaportBadge() {
   var badge = document.getElementById('raportNavBadge');
   if (badge) badge.style.display = 'none';
-  localStorage.setItem(_RAPORT_SEEN_KEY, Date.now());
+  localStorage.setItem(_raportSeenKey(), Date.now());
 }
 
 // ══════════════════════════════════════════════════════════

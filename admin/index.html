@@ -2190,8 +2190,14 @@ html.theme-dark .tbl-wrap thead th {
       <div class="f2">
         <div class="fg"><label>Nama Lengkap</label><input type="text" class="fc" id="usrNama" placeholder="Nama lengkap"></div>
         <div class="fg"><label>Role</label>
-          <select class="fc" id="usrRole"><option value="murid">Murid</option><option value="guru">Guru</option><option value="admin">Admin</option></select>
+          <select class="fc" id="usrRole" onchange="toggleUsrBendahara()"><option value="murid">Murid</option><option value="guru">Guru</option><option value="admin">Admin</option></select>
         </div>
+      </div>
+      <div class="fg" id="usrBendaharaWrap" style="display:none">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="usrIsBendahara" style="width:16px;height:16px">
+          <span>Jabatan Bendahara (membatasi menu admin hanya ke menu SPP)</span>
+        </label>
       </div>
       <div class="f2">
         <div class="fg"><label>No HP</label><input type="text" class="fc" id="usrHp" placeholder="08xxxxxxxxxx"></div>
@@ -2713,9 +2719,10 @@ async function startApp() {
   document.getElementById('sbName').textContent  = nama || 'Admin';
   document.getElementById('greet').textContent   = 'Dashboard — ' + nama;
 
-  // Cek apakah bendahara (role 'admin' dengan ID diawali 'BEN-' atau 'USR-BEN-' atau mengandung 'BENDAHARA')
-  var idUpper = String(currentUser.id_user || '').toUpperCase();
-  var isBendahara = currentUser.role === 'admin' && (idUpper.indexOf('BENDAHARA') >= 0 || idUpper.startsWith('USR-BEN-') || idUpper.startsWith('BEN-'));
+  // Status bendahara dibaca dari kolom DB users.is_bendahara (lewat login response)
+  // — BUKAN ditebak dari pola id_user (rapuh: bisa salah kira admin biasa sbg
+  // bendahara, atau bendahara sungguhan malah dapat akses penuh).
+  var isBendahara = currentUser.role === 'admin' && currentUser.is_bendahara === true;
 
   if (isBendahara) {
     document.querySelectorAll('.sb-nav button').forEach(function(btn) {
@@ -3117,12 +3124,19 @@ function salinNoHp(el, hp) {
 
 function filterUsersTable() { renderUsersTable(currentUserTab); }
 
+function toggleUsrBendahara() {
+  var wrap = document.getElementById('usrBendaharaWrap');
+  if (wrap) wrap.style.display = (document.getElementById('usrRole').value === 'admin') ? '' : 'none';
+}
+
 function openModalUser() {
   document.getElementById('modalUserTitle').textContent = '👤 User Baru';
   ['usrNama','usrHp','usrEmail','usrAlamat','usrCatatan'].forEach(id => document.getElementById(id).value='');
   document.getElementById('usrRole').value = 'murid';
   document.getElementById('usrStatus').value = 'aktif';
   document.getElementById('usrId').value = '';
+  document.getElementById('usrIsBendahara').checked = false;
+  toggleUsrBendahara();
   openModal('modalUser');
 }
 
@@ -3138,19 +3152,23 @@ function editUser(id) {
   document.getElementById('usrAlamat').value  = u.alamat || '';
   document.getElementById('usrStatus').value  = u.status;
   document.getElementById('usrCatatan').value = u.catatan || '';
+  document.getElementById('usrIsBendahara').checked = !!u.is_bendahara;
+  toggleUsrBendahara();
   openModal('modalUser');
 }
 
 async function saveUser() {
   const id   = document.getElementById('usrId').value;
+  const role = document.getElementById('usrRole').value;
   const data = {
     nama_lengkap: document.getElementById('usrNama').value.trim(),
-    role        : document.getElementById('usrRole').value,
+    role        : role,
     no_hp       : document.getElementById('usrHp').value,
     email       : document.getElementById('usrEmail').value,
     alamat      : document.getElementById('usrAlamat').value,
     status      : document.getElementById('usrStatus').value,
     catatan     : document.getElementById('usrCatatan').value,
+    is_bendahara: role === 'admin' ? document.getElementById('usrIsBendahara').checked : false,
   };
   if (!data.nama_lengkap) return toast('Nama wajib diisi','err');
   showLoad('Bismillah, menyimpan...');
@@ -4405,9 +4423,15 @@ async function editMetode(id) {
   } catch(e) { toast(e.message,'err'); }
 }
 async function hapusMetode(id, nama) {
-  if (!confirm('Hapus "'+nama+'"?')) return;
-  try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); _allMetode=[]; loadMetodeBayarAdmin(); }
-  catch(e) { toast(e.message,'err'); }
+  toast('Hapus "'+nama+'"?', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Hapus';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Bismillah, memproses...');
+    try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); _allMetode=[]; loadMetodeBayarAdmin(); }
+    catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
 }
 async function simpanMetode() {
   var jenis = document.getElementById('metodeJenis').value;
@@ -5272,13 +5296,19 @@ function renderPushSubscribers(subs) {
 }
 
 async function hapusPushSubscriber(id) {
-  if (!confirm('Hapus subscription device ini? User perlu aktifkan ulang notifikasi.')) return;
-  try {
-    await window.HQ.AdminAPI.deletePushSubscriber(id);
-    toast('Subscription dihapus','ok');
-    loadPushSubscribers();
-    loadPushAdmin(); // refresh stats
-  } catch(e) { toast(e.message,'err'); }
+  toast('Hapus subscription device ini? User perlu aktifkan ulang notifikasi.', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Hapus';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Bismillah, memproses...');
+    try {
+      await window.HQ.AdminAPI.deletePushSubscriber(id);
+      toast('Subscription dihapus','ok');
+      loadPushSubscribers();
+      loadPushAdmin(); // refresh stats
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
 }
 
 // ── Target halaqah / level ──────────────────────
@@ -5556,12 +5586,18 @@ function editAtMateri(id) {
 }
 
 async function hapusAtMateri(id, ke) {
-  if (!confirm('Hapus pertemuan ke-'+ke+'? Data tidak bisa dikembalikan.')) return;
-  try {
-    await window.HQ.AdminAPI.deleteAtTibyanMateri(id);
-    toast('Pertemuan ke-'+ke+' dihapus','ok');
-    loadAtMateriAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  toast('Hapus pertemuan ke-'+ke+'? Data tidak bisa dikembalikan.', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Hapus';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Bismillah, memproses...');
+    try {
+      await window.HQ.AdminAPI.deleteAtTibyanMateri(id);
+      toast('Pertemuan ke-'+ke+' dihapus','ok');
+      loadAtMateriAdmin();
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
 }
 
 async function simpanAtMateri() {
@@ -5647,12 +5683,18 @@ function editMateriLevel(id) {
 }
 
 async function hapusMateriLevel(id, judul) {
-  if (!confirm('Hapus "'+judul+'"? Data tidak bisa dikembalikan.')) return;
-  try {
-    await window.HQ.AdminAPI.deleteMateriLevel(id);
-    toast('Item dihapus','ok');
-    loadLvMateriAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  toast('Hapus "'+judul+'"? Data tidak bisa dikembalikan.', 'warn');
+  document.getElementById('notifBtn').textContent = 'Ya, Hapus';
+  document.getElementById('notifBtn').onclick = async () => {
+    closeNotif();
+    showLoad('Bismillah, memproses...');
+    try {
+      await window.HQ.AdminAPI.deleteMateriLevel(id);
+      toast('Item dihapus','ok');
+      loadLvMateriAdmin();
+    } catch(e) { toast(e.message,'err'); }
+    finally { hideLoad(); }
+  };
 }
 
 async function simpanMateriLevel() {

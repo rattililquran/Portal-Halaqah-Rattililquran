@@ -63,6 +63,9 @@ patch_018_fix_ketua_contact_overexposure.sql ← batasi akses "kontak anggota" k
 patch_019_login_rate_limit.sql        ← tabel login_attempts untuk rate-limiting brute-force di Edge Function login
 patch_020_fix_notif_inbox_with_check.sql ← tambah WITH CHECK + ganti cek id_user JWT (spoofable) dengan current_user_id()
 patch_021_unique_draft_kbm.sql         ← unique partial index cegah race condition draft KBM ganda per guru
+patch_022_audit_log_hardening.sql      ← tutup insert audit_log dari client + RPC log_audit_action (anti pemalsuan log)
+patch_023_push_subscriptions_rls_hardening.sql ← ganti cek id_user via JWT user_metadata (spoofable) dengan current_user_id() di policy push_subscriptions
+patch_024_bendahara_real_flag.sql      ← tambah kolom users.is_bendahara (sumber kebenaran asli, ganti tebakan string id_user)
 ```
 
 ## Catatan keamanan re-run

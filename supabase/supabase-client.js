@@ -71,6 +71,15 @@ function _check(error, ctx) {
   if (error) { console.error('[SB] ' + ctx + ':', error); throw new Error(error.message || ctx); }
 }
 
+// Catat transaksi penting (validasi SPP, perubahan role/status, publish raport) ke audit_log
+// lewat RPC log_audit_action — user_id dikunci ke pemanggil sendiri (anti-pemalsuan log).
+// Logging tidak boleh menggagalkan transaksi utama jika gagal — karena itu tidak di-_check().
+function _logAudit(action, detail) {
+  _sb.rpc('log_audit_action', { p_action: action, p_detail: detail || null })
+    .then(function(r) { if (r.error) console.error('[audit]', action, r.error); })
+    .catch(function(e) { console.error('[audit]', action, e); });
+}
+
 // BUG-017 fix: gunakan crypto.randomUUID() untuk ID yang lebih aman dan anti-collision
 function _genId(prefix) {
   var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
@@ -2309,7 +2318,7 @@ var AdminAPI = {
     var {data,error} = await q; _check(error,'getAllUsers'); return {status:'ok',data};
   },
   createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
-  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select().single(); _check(error,'updateUser'); return {status:'ok',data}; },
+  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select().single(); _check(error,'updateUser'); if('role' in u || 'status' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
   getAllHalaqah: async function() {
     // Fetch halaqah + ketua kelas (anggota where is_ketua=TRUE) in parallel
@@ -2403,7 +2412,9 @@ var AdminAPI = {
   },
   publishRaport: async function(d) {
     var {error}=await _sb.from('raport').update({status:'published',published_by:_uid(),published_at:new Date().toISOString()}).eq('id_raport',d.id_raport);
-    _check(error,'publishRaport'); return {status:'ok',message:'Raport dipublikasikan'};
+    _check(error,'publishRaport');
+    _logAudit('publish_raport', {id_raport: d.id_raport});
+    return {status:'ok',message:'Raport dipublikasikan'};
   },
   getAllPengumuman: async function() { var {data,error}=await _sb.from('pengumuman').select('*').order('tanggal',{ascending:false}); _check(error,'getAllPengumuman'); return {status:'ok',data}; },
   buatPengumuman: async function(d) {
@@ -2636,6 +2647,7 @@ var AdminAPI = {
     if (!updRows || !updRows.length) {
       return { status:'error', message:'Pengajuan ini sudah divalidasi sebelumnya.' };
     }
+    _logAudit('validasi_spp', {id_spp: id_spp, aksi: aksi, id_murid: sppRow && sppRow.id_murid});
     // Push ke murid yang bersangkutan
     if (sppRow && sppRow.id_murid) {
       var isLunas = aksi === 'lunas';
@@ -2716,7 +2728,7 @@ var AdminAPI = {
       bulan_rekap: bulanRekap, total_rekap: TOTAL_REKAP } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
-  arsipData: async function() { return {status:'ok',message:'Arsip data belum diimplementasi'}; },
+  arsipData: async function() { throw new Error('Fitur arsip data belum tersedia. Data BELUM dipindahkan — jangan jadikan ini sebagai pengganti backup.'); },
   getArsipList: async function() { return {status:'ok',data:[]}; },
   deleteLevel: async function(id) { var {error}=await _sb.from('level').update({status:'nonaktif'}).eq('id_level',id); _check(error,'deleteLevel'); return {status:'ok'}; },
   // ── Import Bulk CSV — 3 Tahap ────────────────────────────────
