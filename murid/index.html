@@ -5497,6 +5497,14 @@ window.addEventListener('DOMContentLoaded', function() {
   var us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'murid') { startApp(); return; }
 
+  // Sesi tersimpan tapi rolenya bukan murid (mis. akun dual-role guru/admin
+  // yang membuka PWA murid) — jangan tampilkan layar login murid yang akan
+  // menolaknya, langsung arahkan ke portal sesuai role-nya.
+  if (tk && us && us.role) {
+    var ROLE_REDIRECT_BOOT = { guru: '../guru/index.html', admin: '../admin/index.html', superadmin: '../admin/index.html' };
+    if (ROLE_REDIRECT_BOOT[us.role]) { window.location.href = ROLE_REDIRECT_BOOT[us.role]; return; }
+  }
+
   // No session, hide loader and show auth screen
   hideLoad();
   document.getElementById('authScreen').style.display = 'flex';
@@ -5524,6 +5532,15 @@ async function doLogin() {
   err.style.display = 'none';
   try {
     var r = await window.HQ.Auth.login(nis, pw);
+    // Akun dual-role (mis. murid yang sekaligus guru/admin) — jangan blokir,
+    // arahkan ke portal yang sesuai agar tidak perlu tutup-paksa aplikasi.
+    var ROLE_REDIRECT = { guru: '../guru/index.html', admin: '../admin/index.html', superadmin: '../admin/index.html' };
+    if (ROLE_REDIRECT[r.user.role]) {
+      localStorage.setItem('hq_token', r.access_token);
+      localStorage.setItem('hq_user',  JSON.stringify(r.user));
+      window.location.href = ROLE_REDIRECT[r.user.role];
+      return;
+    }
     if (r.user.role !== 'murid') throw new Error('Akun ini bukan murid');
     localStorage.setItem('hq_token', r.access_token);
     localStorage.setItem('hq_user',  JSON.stringify(r.user));
