@@ -259,17 +259,21 @@ html.theme-dark .qiyam-quote-src{color:#fcd34d}
 .qiyam-setoran-lbl{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
 html.theme-dark .qiyam-setoran-lbl{color:#64748b}
 .qiyam-target-box{
-  display:flex;align-items:center;gap:10px;
-  margin-top:10px;padding:9px 13px;border-radius:13px;
+  display:flex;align-items:center;gap:12px;justify-content:space-between;
+  margin-top:10px;padding:10px 14px;border-radius:13px;
   background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);
-  width:fit-content;max-width:100%;
+  width:100%;
 }
+.qiyam-target-main{display:flex;align-items:center;gap:10px;min-width:0}
 .qiyam-target-icon{font-size:17px;line-height:1;flex-shrink:0}
+.qiyam-target-hint{font-size:10.5px;font-style:italic;font-weight:600;color:#b45309;opacity:.55;white-space:nowrap;flex-shrink:0}
+@media(max-width:380px){.qiyam-target-hint{display:none}}
 .qiyam-target-label{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#b45309;opacity:.7;margin-bottom:2px}
 .qiyam-target-value{font-size:13px;font-weight:800;color:#92400e;line-height:1.3}
 html.theme-dark .qiyam-target-box{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.22)}
 html.theme-dark .qiyam-target-label{color:#fcd34d;opacity:.75}
 html.theme-dark .qiyam-target-value{color:#fde68a}
+html.theme-dark .qiyam-target-hint{color:#fcd34d;opacity:.5}
 .prog-estimasi-middle{
   background:rgba(255,255,255,0.18);
   border:1px solid rgba(255,255,255,0.3);
@@ -3199,11 +3203,14 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
                 <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
               </div>
               <div id="dashQiyamTargetWrap" class="qiyam-target-box" style="display:none;">
-                <span class="qiyam-target-icon">🎯</span>
-                <div class="qiyam-target-text">
-                  <div class="qiyam-target-label">Target Setoran Berikutnya</div>
-                  <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
+                <div class="qiyam-target-main">
+                  <span class="qiyam-target-icon">🎯</span>
+                  <div class="qiyam-target-text">
+                    <div class="qiyam-target-label">Target Setoran Berikutnya</div>
+                    <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
+                  </div>
                 </div>
+                <span class="qiyam-target-hint">Persiapkan dengan baik 🌙</span>
               </div>
             </div>
           </div>
@@ -5663,7 +5670,7 @@ function setCalTab(os, btn) {
   document.addEventListener('touchend', function(e) {
     if (!isPulling || !ptrEl) return;
     ptrEl.classList.remove('pulling');
-    
+
     var pullDist = currentY - startY;
     if (pullDist >= pullThreshold) {
       ptrEl.classList.add('refreshing');
@@ -5674,6 +5681,15 @@ function setCalTab(os, btn) {
     } else {
       ptrEl.style.transform = 'translate(-50%, -100px) scale(0.3)';
     }
+    isPulling = false;
+  }, { passive: true });
+
+  // Gesture interrupted (mis. notifikasi masuk, multi-touch, browser ambil alih) —
+  // tanpa ini, indikator bisa tersangkut dalam keadaan terlihat di semua layar.
+  document.addEventListener('touchcancel', function(e) {
+    if (!ptrEl) return;
+    ptrEl.classList.remove('pulling', 'refreshing');
+    ptrEl.style.transform = 'translate(-50%, -100px) scale(0.3)';
     isPulling = false;
   }, { passive: true });
 })();
