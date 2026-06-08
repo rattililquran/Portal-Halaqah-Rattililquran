@@ -2429,6 +2429,10 @@ let currentUserTab = 'guru';
 let komponenRows = [];
 let nilaiKomponenList = [], nilaiMuridList = [];
 
+// Nominal SPP per bulan — satu sumber kebenaran agar tidak terduplikasi
+// (jika nominal SPP berubah di masa depan, cukup ubah di satu tempat ini).
+const SPP_NOMINAL_BULANAN = 75000;
+
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
   halaqah:'Halaqah', anggota:'Anggota Kelas', komponen:'Komponen Raport',
@@ -3635,7 +3639,7 @@ function renderAnggotaTable() {
       <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
         ${currentUser && currentUser.role === 'superadmin'
-          ? `<button class="btn btn-sm" style="background:${a.is_ketua==='TRUE'?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${esc(a.nama_murid)}')">${a.is_ketua==='TRUE'?'👑 Ketua':'Jadikan Ketua'}</button>`
+          ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${esc(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
           : ''}
         <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${esc(a.nama_murid)}')">🗑</button>
       </td>
@@ -4337,6 +4341,20 @@ async function loadMetodeBayarAdmin() {
 }
 
 var _allMetode = [];
+var _sppBankInfoText = ''; // baris "Transfer ... a.n. ..." untuk pesan WA — diisi dari spp_metode_bayar (bukan hardcoded)
+
+// Bangun teks daftar rekening aktif dari spp_metode_bayar untuk disisipkan ke pesan WA SPP
+async function _loadSppBankInfoText() {
+  if (_sppBankInfoText) return _sppBankInfoText;
+  try {
+    var r = await window.HQ.AdminAPI.getMetodeBayar();
+    var rekening = (r.data || []).filter(function(m) { return m.jenis === 'rekening' && m.nomor; });
+    _sppBankInfoText = rekening.map(function(m) {
+      return 'Transfer ' + (m.bank || m.nama || '') + ' ' + m.nomor + ' a.n. ' + (m.atas_nama || '');
+    }).join('\n\n');
+  } catch (e) { console.error('_loadSppBankInfoText error:', e); }
+  return _sppBankInfoText;
+}
 async function bukaFormMetode(data) {
   if (!_allMetode.length) {
     try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
@@ -4477,7 +4495,7 @@ async function loadSPPAdmin() {
       _sppRekapData.forEach(function(m) {
         totalTunggakanBulan += (m.tunggakan || 0);
       });
-      var belumTertagih = totalTunggakanBulan * 75000;
+      var belumTertagih = totalTunggakanBulan * SPP_NOMINAL_BULANAN;
 
       document.getElementById('sppStatLunas').textContent   = rekap.lunas || 0;
       document.getElementById('sppStatLunasSub').textContent = pctLunas + '% dari ' + totalMurid + ' murid';
@@ -4489,7 +4507,8 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatInfaqSub').textContent = 'Terbayar tahun ' + tahun;
       document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
       document.getElementById('sppStatMasukSub').textContent = 'Terbayar tahun ' + tahun;
-      
+
+      await _loadSppBankInfoText();
       filterSPPTable();
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
@@ -4558,13 +4577,12 @@ function filterSPPTable() {
       var num = m.no_hp.replace(/\D/g,'');
       if (num.startsWith('0')) num = '62' + num.slice(1);
       else if (!num.startsWith('62')) num = '62' + num;
-      var nominal = m.tunggakan * 75000;
+      var nominal = m.tunggakan * SPP_NOMINAL_BULANAN;
       var msg = 'Assalamualaikum ' + m.nama_murid + ',\n\n'
         + 'Izin Kami ingatkan kembali perihal pembayaran SPP yang belum tertunaikan:\n\n'
         + 'Bulan : ' + m.bulan_belum.join(', ') + '\n'
         + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n'
-        + 'Pembayaran dapat dilakukan melalui: Transfer BCA 1200718034 a.n. Umar Abdul Aziz\n\n'
-        + 'Transfer BSI 9513222990 a.n. Annisa Rizkya Rahmawati\n\n'
+        + 'Pembayaran dapat dilakukan melalui: ' + (_sppBankInfoText || 'lihat menu Metode Bayar di portal') + '\n\n'
         + 'Setelah membayar, mohon konfirmasi di Portal Rattililquran yaaa\n\n'
         + 'Jika ada kendala teknis ataupun finansial, jangan ragu hubungi kami. Semoga Allah mudahkan. Jazakumullahu khairan. 🤲\n\n'
         + '-Data ini direkap otomatis melalui portal Rattililqur\'an, jika ada ketidak cocokan data mohon untuk konfirmasi-';
@@ -4581,6 +4599,15 @@ function filterSPPTable() {
   }).join('');
 }
 
+// Cegah CSV/Formula Injection: jika nilai diawali =,+,-,@ (atau tab/CR),
+// Excel/Sheets bisa menafsirkannya sebagai formula saat file dibuka.
+// Beri prefiks tanda kutip tunggal agar dibaca sebagai teks biasa.
+function _csvSafe(val) {
+  var s = String(val == null ? '' : val).replace(/"/g, '""');
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return s;
+}
+
 function eksporSPP() {
   var list = _sppRekapDataFiltered || [];
   if (!list.length) {
@@ -4589,12 +4616,12 @@ function eksporSPP() {
   }
   var csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
   list.forEach(function(m) {
-    var nama = (m.nama_murid || '').replace(/"/g, '""');
-    var hal = (m.nama_halaqah || m.id_halaqah || '—').replace(/"/g, '""');
-    var lvl = (m.level || '').replace(/"/g, '""');
-    var bln = m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas';
-    var hp  = m.no_hp || '';
-    csv += '"' + m.id_murid + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
+    var nama = _csvSafe(m.nama_murid || '');
+    var hal = _csvSafe(m.nama_halaqah || m.id_halaqah || '—');
+    var lvl = _csvSafe(m.level || '');
+    var bln = _csvSafe(m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas');
+    var hp  = _csvSafe(m.no_hp || '');
+    csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
   });
 
   // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
@@ -4637,7 +4664,7 @@ function salinTagihanMassal() {
     + 'Mohon kerja samanya untuk menyelesaikan amanah SPP:\n\n';
     
   menunggakList.forEach(function(m, idx) {
-    var nominal = m.tunggakan * 75000;
+    var nominal = m.tunggakan * SPP_NOMINAL_BULANAN;
     txt += (idx + 1) + '. *' + m.nama_murid + '* (' + m.id_murid + ')\n'
       + '   • Tunggakan: *' + m.tunggakan + ' bulan* (' + m.bulan_belum.join(', ') + ')\n'
       + '   • Total Tagihan: *Rp ' + nominal.toLocaleString('id-ID') + '*\n\n';
@@ -4662,8 +4689,12 @@ function salinTagihanMassal() {
 async function validasiSPP(id_spp, aksi) {
   showLoad(aksi==='lunas'?'Mengkonfirmasi...':'Menolak...');
   try {
-    await window.HQ.AdminAPI.validasiSPP(id_spp, aksi);
-    toast(aksi==='lunas'?'Pembayaran dikonfirmasi ✅':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
+    var r = await window.HQ.AdminAPI.validasiSPP(id_spp, aksi);
+    if (r && r.status === 'error') {
+      toast(r.message || 'Pengajuan ini sudah divalidasi sebelumnya.', 'warn');
+    } else {
+      toast(aksi==='lunas'?'Pembayaran dikonfirmasi ✅':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
+    }
     loadSPPAdmin();
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
@@ -5796,11 +5827,11 @@ function doExportAbsensi() {
   }
   var csv = 'ID Murid,Nama Murid,Halaqah,Hadir (H),Terlambat (T),Izin (I),Alpa (A),Total Sesi,Persentase Hadir,Skor Kehadiran\r\n';
   list.forEach(function(m) {
-    var nama = (m.nama_murid || '').replace(/"/g, '""');
-    var hal = (m.nama_halaqah || '—').replace(/"/g, '""');
+    var nama = _csvSafe(m.nama_murid || '');
+    var hal = _csvSafe(m.nama_halaqah || '—');
     var pctText = m.total === 0 ? '—' : m.pct_hadir + '%';
     var skorText = m.total === 0 ? '—' : m.skor_dari_40 + '%';
-    csv += '"' + m.id_murid + '","' + nama + '","' + hal + '",' + (m.H||0) + ',' + (m.T||0) + ',' + (m.I||0) + ',' + (m.A||0) + ',' + (m.total||0) + ',"' + pctText + '","' + skorText + '"\r\n';
+    csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '",' + (m.H||0) + ',' + (m.T||0) + ',' + (m.I||0) + ',' + (m.A||0) + ',' + (m.total||0) + ',"' + pctText + '","' + skorText + '"\r\n';
   });
 
   // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
@@ -6114,7 +6145,7 @@ window.simulasiStressTestUI = function(jumlahMurid = 2000) {
   const lunasCount = mockData.filter(m => m.tunggakan === 0).length;
   const menunggakCount = mockData.length - lunasCount;
   const totalTunggakan = mockData.reduce((acc, m) => acc + m.tunggakan, 0);
-  const belumTertagih = totalTunggakan * 75000;
+  const belumTertagih = totalTunggakan * SPP_NOMINAL_BULANAN;
   
   document.getElementById('sppStatLunas').textContent = lunasCount;
   document.getElementById('sppStatLunasSub').textContent = `${Math.round(lunasCount / mockData.length * 100)}% dari ${mockData.length} murid`;

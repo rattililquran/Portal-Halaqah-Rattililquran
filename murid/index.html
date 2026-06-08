@@ -5165,9 +5165,9 @@ function openProgressBreakdown(forceMicro) {
       if (last) {
         qiyamHtml += '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border)">'
           + '<div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:6px">Setoran Terakhir</div>'
-          + '<div style="font-size:15px;font-weight:800;color:var(--text)">' + last.jenis + ': QS. ' + last.surat + ' ' + last.ayat_dari + '-' + last.ayat_sampai + '</div>'
+          + '<div style="font-size:15px;font-weight:800;color:var(--text)">' + esc(last.jenis) + ': QS. ' + esc(last.surat) + ' ' + esc(last.ayat_dari) + '-' + esc(last.ayat_sampai) + '</div>'
           + '<div style="font-size:12px;color:var(--text-2);margin-top:4px;font-weight:600;">'
-            + 'Juz: ' + (last.juz || '–') + ' · Predikat: <span style="color:#10b981;font-weight:800;">' + (last.nilai || '–') + '</span> · Kelancaran: ' + (last.kelancaran || '–')
+            + 'Juz: ' + esc(last.juz || '–') + ' · Predikat: <span style="color:#10b981;font-weight:800;">' + esc(last.nilai || '–') + '</span> · Kelancaran: ' + esc(last.kelancaran || '–')
           + '</div>'
           + '</div>';
 
@@ -5186,7 +5186,7 @@ function openProgressBreakdown(forceMicro) {
 
       var targetTxt = 'Belum diset';
       if (last && last.target_surat) {
-        targetTxt = last.target_surat + (last.target_ayat_dari ? ' ' + last.target_ayat_dari + '-' + last.target_ayat_sampai : '');
+        targetTxt = esc(last.target_surat) + (last.target_ayat_dari ? ' ' + esc(last.target_ayat_dari) + '-' + esc(last.target_ayat_sampai) : '');
       }
       qiyamHtml += '<div style="background:linear-gradient(135deg, rgba(251,191,36,0.06), rgba(251,191,36,0.02));border:1px solid rgba(251,191,36,0.15);padding:14px;border-radius:12px;margin-bottom:14px;">'
         + '<div style="font-size:10px;color:#d97706;font-weight:700;text-transform:uppercase;margin-bottom:4px">🎯 Target Hafalan Berikutnya</div>'
@@ -8456,7 +8456,7 @@ function _renderHafalanList() {
       : '';
     var target   = (r.target_surat)
       ? '<div style="margin-top:6px;font-size:11px;color:var(--green-txt);font-weight:600">'
-        + '🎯 Target: ' + _esc(r.target_surat) + ' · Ayat ' + r.target_ayat_dari + '–' + r.target_ayat_sampai
+        + '🎯 Target: ' + _esc(r.target_surat) + ' · Ayat ' + _esc(r.target_ayat_dari) + '–' + _esc(r.target_ayat_sampai)
         + '</div>'
       : '';
 
@@ -8465,12 +8465,12 @@ function _renderHafalanList() {
       + '<div style="flex:1;min-width:0">'
         + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">'
           + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-            + '<span style="font-size:14px;font-weight:800;color:var(--text)">Juz ' + (r.juz || '-') + ' · ' + _esc(r.surat) + '</span>'
+            + '<span style="font-size:14px;font-weight:800;color:var(--text)">Juz ' + _esc(r.juz || '-') + ' · ' + _esc(r.surat) + '</span>'
             + '<span class="hfal-jenis-chip">' + icon + ' ' + _esc(r.jenis || 'Ziyadah') + '</span>'
           + '</div>'
           + '<span class="hfal-badge ' + badgeInfo.cls + '">' + _esc(badgeInfo.label) + '</span>'
         + '</div>'
-        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + r.ayat_dari + '</strong> – <strong>' + r.ayat_sampai + '</strong>'
+        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + _esc(r.ayat_dari) + '</strong> – <strong>' + _esc(r.ayat_sampai) + '</strong>'
           + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
         + '<div style="font-size:11px;color:var(--text-3)">' + _fmtDateHafalan(r.created_at) + ' &nbsp;·&nbsp; ' + _esc(r.nama_guru || '-') + '</div>'
         + catatan + target

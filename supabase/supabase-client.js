@@ -389,6 +389,12 @@ var GuruAPI = {
       pertemuan_ke: d.pertemuan_ke_custom || ((count || 0) + 1),
       status: 'draft',
     }).select().single();
+    // Unique partial index uniq_kbm_log_draft_per_guru menolak draft kedua
+    // untuk guru yang sama secara atomik di level DB (cegah race condition
+    // saat dua tab/perangkat membuka sesi hampir bersamaan)
+    if (error && error.code === '23505') {
+      return { status: 'error', message: 'Masih ada sesi yang belum ditutup. Silakan tutup sesi sebelumnya terlebih dahulu.' };
+    }
     _check(error, 'bukaKBM');
     if (data) {
       data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
@@ -537,13 +543,14 @@ var GuruAPI = {
     }; });
     var { error } = await _sb.from('nilai_kbm').upsert(rows, { onConflict: 'id_kbm,id_murid' });
     _check(error, 'editPresensi');
+    var hadir = d.presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
+    // jumlah_alpa di kbm_log = "tidak hadir" (Izin + Alpa) agar hadir+alpa selalu = total murid di sesi
+    var alpa  = d.presensi.filter(function(p) { return ['I','A'].includes(p.status_hadir); }).length;
+    var upd = { jumlah_hadir: hadir, jumlah_alpa: alpa };
     // Update tanggal & pertemuan_ke di kbm_log jika berubah
-    if (d.tanggal_pertemuan || d.pertemuan_ke) {
-      var upd = {};
-      if (d.tanggal_pertemuan) upd.tanggal_pertemuan = d.tanggal_pertemuan;
-      if (d.pertemuan_ke)      upd.pertemuan_ke      = d.pertemuan_ke;
-      await _sb.from('kbm_log').update(upd).eq('id_kbm', d.id_kbm);
-    }
+    if (d.tanggal_pertemuan) upd.tanggal_pertemuan = d.tanggal_pertemuan;
+    if (d.pertemuan_ke)      upd.pertemuan_ke      = d.pertemuan_ke;
+    await _sb.from('kbm_log').update(upd).eq('id_kbm', d.id_kbm);
     return { status: 'ok', message: 'Presensi berhasil diperbarui' };
   },
 
@@ -1138,7 +1145,7 @@ var GuruAPI = {
     var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
       _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi)').eq('id_halaqah', d.id_halaqah),
-      _sb.from('at_tibyan_log').select('id_murid, status_hadir').in('id_murid', ids),
+      _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah).in('id_murid', ids),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
     ]);
@@ -2354,9 +2361,17 @@ var AdminAPI = {
   updateAnggota: async function(d) { var {id_anggota,...u}=d; var {error}=await _sb.from('anggota').update(u).eq('id_anggota',id_anggota); _check(error,'updateAnggota'); return {status:'ok'}; },
   removeAnggota: async function(d) { var id=typeof d==='string'?d:(d&&d.id_anggota); var {error}=await _sb.from('anggota').update({status:'nonaktif'}).eq('id_anggota',id); _check(error,'removeAnggota'); return {status:'ok'}; },
   assignKetuaKelas: async function(d) {
-    await _sb.from('anggota').update({is_ketua:false}).eq('id_halaqah',d.id_halaqah);
-    var {error}=await _sb.from('anggota').update({is_ketua:true}).eq('id_anggota',d.id_anggota);
-    _check(error,'assignKetuaKelas'); return {status:'ok'};
+    var {data:row,error:errRow}=await _sb.from('anggota').select('id_halaqah').eq('id_anggota',d.id_anggota).single();
+    _check(errRow,'assignKetuaKelas');
+    if (d.assign) {
+      await _sb.from('anggota').update({is_ketua:false}).eq('id_halaqah',row.id_halaqah);
+      var {error}=await _sb.from('anggota').update({is_ketua:true}).eq('id_anggota',d.id_anggota);
+      _check(error,'assignKetuaKelas');
+    } else {
+      var {error}=await _sb.from('anggota').update({is_ketua:false}).eq('id_anggota',d.id_anggota);
+      _check(error,'assignKetuaKelas');
+    }
+    return {status:'ok'};
   },
   getAllPeriode: async function() { return GuruAPI.getAllPeriode(); },
   createPeriode: async function(d) { var {data,error}=await _sb.from('periode').insert(d).select().single(); _check(error,'createPeriode'); return {status:'ok',data}; },
@@ -2611,10 +2626,16 @@ var AdminAPI = {
   validasiSPP: async function(id_spp, aksi) {
     // Ambil data SPP dulu untuk push ke murid
     var { data: sppRow } = await _sb.from('spp_pembayaran').select('id_murid, bulan, tahun').eq('id_spp', id_spp).single();
-    var { error } = await _sb.from('spp_pembayaran').update({
+    // Guard: hanya boleh validasi pengajuan yang masih 'menunggu' — cegah validasi ganda
+    // (mis. dua admin klik tombol bersamaan, atau klik berulang) yang bisa menimpa
+    // validated_by/validated_at dan mengirim notifikasi duplikat ke murid.
+    var { data: updRows, error } = await _sb.from('spp_pembayaran').update({
       status: aksi, validated_by: _uid(), validated_at: new Date().toISOString(),
-    }).eq('id_spp', id_spp);
+    }).eq('id_spp', id_spp).eq('status','menunggu').select('id_spp');
     _check(error,'validasiSPP');
+    if (!updRows || !updRows.length) {
+      return { status:'error', message:'Pengajuan ini sudah divalidasi sebelumnya.' };
+    }
     // Push ke murid yang bersangkutan
     if (sppRow && sppRow.id_murid) {
       var isLunas = aksi === 'lunas';

@@ -60,6 +60,9 @@ patch_015_charging_notes.sql           ← membuat tabel charging_notes + RLS
 patch_016_rekap_status_catatan_ustadz.sql ← tambah kolom catatan_ustadz ke rekap_status
 patch_017_fix_jwt_privilege_escalation.sql ← KRITIS: tutup celah eskalasi privilege via user_metadata + trigger guard users.update
 patch_018_fix_ketua_contact_overexposure.sql ← batasi akses "kontak anggota" ketua kelas hanya ke no_hp (bukan seluruh baris users)
+patch_019_login_rate_limit.sql        ← tabel login_attempts untuk rate-limiting brute-force di Edge Function login
+patch_020_fix_notif_inbox_with_check.sql ← tambah WITH CHECK + ganti cek id_user JWT (spoofable) dengan current_user_id()
+patch_021_unique_draft_kbm.sql         ← unique partial index cegah race condition draft KBM ganda per guru
 ```
 
 ## Catatan keamanan re-run
