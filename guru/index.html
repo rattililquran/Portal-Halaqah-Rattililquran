@@ -9366,7 +9366,10 @@ async function raportSimpanNilai() {
       _raportKomponen.forEach(function(k) {
         var el = document.getElementById('rn_'+m.id_murid+'_'+k.id_komponen);
         if (!el || el.value === '') return;
-        nilaiList.push({ id_murid:m.id_murid, id_komponen:k.id_komponen, nama_komponen:k.nama_komponen, nilai:Number(el.value) });
+        // Clamp ke 0-100 — atribut min/max HTML hanya validasi UI, tidak menjamin
+        // nilai yang benar-benar terkirim (mis. paste manual / devtools) tetap dalam rentang.
+        var nilai = Math.min(100, Math.max(0, Number(el.value) || 0));
+        nilaiList.push({ id_murid:m.id_murid, id_komponen:k.id_komponen, nama_komponen:k.nama_komponen, nilai:nilai });
       });
     });
     if (!nilaiList.length) return toast('Tidak ada nilai untuk disimpan','warn');
