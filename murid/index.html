@@ -5853,6 +5853,12 @@ function setCalTab(os, btn) {
 function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  // Anchor histori untuk pola "tombol kembali ke Beranda dulu, baru keluar"
+  // (lihat listener popstate di bawah goPage()) — hanya dipasang sekali per
+  // sesi browser agar tidak menumpuk entry tiap kali startApp() dipanggil ulang.
+  if (!history.state || !history.state.tab) {
+    try { history.pushState({ tab: 'dashboard' }, ''); } catch(e) {}
+  }
   var us = window.HQ.Auth.getUser();
   if (!us) return;
   // Support semua format field nama — tampilkan '…' sementara, loadDashboard akan update
@@ -5896,17 +5902,8 @@ function startApp() {
 var TAB_ORDER = ['dashboard','riwayat','pr','info','raport'];
 var _currentTabName = 'dashboard';
 
-// Lacak histori perpindahan tab via History API agar tombol "kembali" browser/HP
-// menavigasi mundur antar-tab dalam app (spt aplikasi native), bukan langsung
-// keluar SPA ke halaman login. Lihat listener popstate di bawah goPage().
-var _skipHistoryPush = false;
-
 function goPage(name, swipeDir) {
   var prev = _currentTabName;
-  if (!_skipHistoryPush && name !== prev) {
-    try { history.pushState({ tab: name }, ''); } catch(e) {}
-  }
-  _skipHistoryPush = false;
   _currentTabName = name;
 
   document.querySelectorAll('.page').forEach(function(p){
@@ -5963,17 +5960,20 @@ function goPage(name, swipeDir) {
   if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
 }
 
-// Tombol "kembali" browser/HP → navigasi mundur antar-tab di dalam app dulu
-// (mis. dari PR kembali ke Beranda), bukan langsung keluar SPA ke kartu login.
-// Entry histori paling awal (sebelum tab manapun di-push) selalu punya state
-// null — kita anggap itu tab 'dashboard' (tab awal saat startApp).
+// Tombol "kembali" browser/HP → kembali ke Beranda dulu (1x tekan, dari tab
+// manapun & berapa pun langkah yang sudah dibuka), baru tekan kembali sekali
+// lagi untuk keluar SPA — sama seperti pola "double back to exit" di app native.
+// Caranya: simpan satu "anchor" entry histori saat startApp(); selama belum
+// di Beranda, tombol kembali kita tangkap untuk pindah ke Beranda dan
+// mengembalikan anchor itu (re-arm) supaya baru keluar di tekanan berikutnya.
 window.addEventListener('popstate', function(e) {
   if (document.getElementById('app').style.display === 'none') return; // belum login
   if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
-  var tab = (e.state && e.state.tab) || 'dashboard';
-  if (TAB_ORDER.indexOf(tab) === -1 && !document.getElementById('page-' + tab)) tab = 'dashboard';
-  _skipHistoryPush = true;
-  goPage(tab);
+  if (_currentTabName !== 'dashboard') {
+    goPage('dashboard');
+    try { history.pushState({ tab: 'dashboard' }, ''); } catch(e2) {}
+  }
+  // Sudah di Beranda → biarkan browser melanjutkan navigasi keluar dari SPA
 });
 
 // ══════════════════════════════════════════
