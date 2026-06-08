@@ -5509,7 +5509,22 @@ window.addEventListener('DOMContentLoaded', function() {
   // Cek session
   var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   var us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
-  if (tk && us && us.role === 'murid') { startApp(); return; }
+  if (tk && us && us.role === 'murid') {
+    // Deteksi return dari halaman pembayaran Mayar
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment') === 'success') {
+      // Bersihkan query string tanpa reload
+      history.replaceState(null, '', window.location.pathname);
+      startApp();
+      // Tunda toast & navigasi ke SPP hingga app siap
+      setTimeout(function() {
+        toast('Pembayaran sedang diproses — status akan diperbarui otomatis dalam beberapa saat ✅', 'ok');
+        goPage('spp');
+      }, 1200);
+      return;
+    }
+    startApp(); return;
+  }
 
   // Sesi tersimpan tapi rolenya bukan murid (mis. akun dual-role guru/admin
   // yang membuka PWA murid) — jangan tampilkan layar login murid yang akan
@@ -11027,6 +11042,36 @@ async function submitKonfirmasiSPP() {
   document.getElementById('sppSummaryModal').style.display = 'flex';
 }
 
+async function bayarViaGateway() {
+  var jenis   = _sppFormJenis;
+  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : ['-'];
+  var tahun   = document.getElementById('sppFormTahun').value;
+  var nominal = document.getElementById('sppFormNominal').value;
+  var errEl   = document.getElementById('sppFormErr');
+
+  if (jenis === 'SPP Pribadi' && !bulan.length) { errEl.textContent='Pilih minimal 1 bulan.'; errEl.style.display=''; return; }
+  if (!nominal || Number(nominal) <= 0) { errEl.textContent='Nominal pembayaran tidak valid.'; errEl.style.display=''; return; }
+  errEl.style.display = 'none';
+
+  var btn = document.getElementById('btnBayarGateway');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Membuat tagihan...'; }
+  showLoad('Menyiapkan pembayaran...');
+  try {
+    var result = await window.HQ.MuridAPI.createPaymentGateway({
+      jenis: jenis, bulan: bulan, tahun: tahun, nominal: Number(nominal)
+    });
+    hideLoad();
+    tutupModalKonfirmasiSPP();
+    // Redirect ke halaman pembayaran Mayar
+    window.location.href = result.payment_link;
+  } catch(e) {
+    hideLoad();
+    errEl.textContent = e.message || 'Gagal membuat tagihan. Coba lagi.';
+    errEl.style.display = '';
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span style="font-size:16px">⚡</span> Bayar Sekarang · QRIS / VA / e-Wallet'; }
+  }
+}
+
 async function kirimSppFinal() {
   if (!_sppPendingSubmit) return;
   var d = _sppPendingSubmit;
@@ -12444,12 +12489,19 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <!-- Footer sticky -->
-    <div class="modal-foot" style="flex-shrink:0">
-      <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
-      <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-        Kirim Konfirmasi
+    <div class="modal-foot" style="flex-shrink:0;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;width:100%">
+        <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
+        <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          Kirim Bukti Transfer
+        </button>
+      </div>
+      <button class="btn" id="btnBayarGateway" onclick="bayarViaGateway()"
+        style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:700;border:none;padding:13px;border-radius:var(--r-pill);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span style="font-size:16px">⚡</span> Bayar Sekarang · QRIS / VA / e-Wallet
       </button>
+      <div style="text-align:center;font-size:11px;color:var(--text-3)">Bayar via gateway → otomatis terkonfirmasi, tanpa perlu upload bukti</div>
     </div>
   </div>
 </div>

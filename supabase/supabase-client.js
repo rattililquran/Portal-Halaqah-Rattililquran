@@ -1984,6 +1984,27 @@ var MuridAPI = {
     return { status: 'ok', message: 'Konfirmasi ' + jumlah + ' terkirim, menunggu validasi admin.' };
   },
 
+  // Buat invoice Mayar → kembalikan payment_link untuk redirect
+  createPaymentGateway: async function(d) {
+    var tk = localStorage.getItem('hq_token');
+    if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
+    var res = await fetch(SUPABASE_URL + '/functions/v1/mayar-create-payment', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body   : JSON.stringify({
+        bulan  : Array.isArray(d.bulan) ? d.bulan : [d.bulan],
+        tahun  : Number(d.tahun),
+        nominal: Number(d.nominal),
+        jenis  : d.jenis || 'SPP Pribadi',
+      }),
+    });
+    var data;
+    try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
+    if (data.status === 'error') throw new Error(data.message);
+    if (!data.payment_link) throw new Error('Link pembayaran tidak tersedia. Coba lagi.');
+    return data;
+  },
+
   // BUG-M6 fix: implementasi nyata — grafik kehadiran 6 bulan terakhir
   getProgressGrafik: async function() {
     var id_murid = _uid();
