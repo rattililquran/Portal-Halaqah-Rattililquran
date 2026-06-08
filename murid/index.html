@@ -13,6 +13,26 @@
 <link rel="icon" type="image/png" sizes="512x512" href="../assets/icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+// Reset skala zoom saat PWA dibuka/kembali dari background — WebKit iOS kadang
+// menyimpan & memulihkan level pinch-zoom terakhir saat app standalone dibuka
+// ulang dari homescreen, membuat tampilan terlihat otomatis "ter-zoom-in"
+// (perlu pinch-zoom-out manual agar dashboard terlihat utuh). Toggle
+// maximum-scale sesaat memaksa WebKit menghitung ulang skala ke 1.0.
+(function(){
+  var vp = document.querySelector('meta[name="viewport"]');
+  if (!vp) return;
+  var base = vp.getAttribute('content');
+  function resetZoom(){
+    vp.setAttribute('content', base + ', maximum-scale=1.0');
+    setTimeout(function(){ vp.setAttribute('content', base); }, 60);
+  }
+  window.addEventListener('pageshow', resetZoom);
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) resetZoom();
+  });
+})();
+</script>
 <meta name="theme-color" content="#0d5c42">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Portal Murid — Rattililqur'an</title>
