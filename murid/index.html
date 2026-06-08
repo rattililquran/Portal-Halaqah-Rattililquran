@@ -1039,9 +1039,17 @@ html.theme-dark .at-dot.null{background:#374151!important}
 html.theme-dark #dashProgressCard{
   background:#162032 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
 }
+.dash-cal-title{text-align:center;margin-bottom:16px}
+.dash-cal-title-text{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:#1e3a5f;line-height:1.4}
+.dash-cal-title-line{width:38px;height:2px;margin:7px auto 0;border-radius:1px;
+  background:linear-gradient(90deg,#0ea5e9,#fbbf24)}
+html.theme-dark .dash-cal-title-text{color:#cbd5e1}
 .dash-cal-wrap{margin-bottom:14px}
 .dash-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dash-cal-month{font-size:13.5px;font-weight:800;color:var(--text)}
+.dash-cal-today{text-align:center;font-size:10px;font-weight:700;color:var(--text-3);
+  margin:-4px 0 12px;letter-spacing:.02em}
 .dash-cal-nav{background:#f1f5f9;border:none;border-radius:50%;width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;
   color:var(--text-2);transition:all .2s ease;outline:none}
@@ -1057,7 +1065,7 @@ html.theme-dark #dashProgressCard{
 .dash-cal-day.today{background:rgba(37,99,235,.1);color:#1d4ed8}
 .dash-cal-day.sel{background:linear-gradient(135deg,var(--blue),var(--blue-d)) !important;color:#fff !important;
   box-shadow:0 2px 8px rgba(0,122,255,.35)}
-.dash-cal-day.empty{visibility:hidden;cursor:default}
+.dash-cal-day.empty{visibility:hidden;cursor:default;padding:0;text-align:center}
 .dash-cal-dots{display:flex;gap:2px;height:4px}
 .dash-cal-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
 .dash-cal-agenda{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
@@ -3205,6 +3213,11 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
 
       <!-- Progress Level -->
       <div class="progress-card" id="dashProgressCard">
+        <!-- Judul elegan di atas kalender -->
+        <div class="dash-cal-title">
+          <div class="dash-cal-title-text">Perjuanganku Bersama Al-Qur'an</div>
+          <div class="dash-cal-title-line"></div>
+        </div>
         <!-- Kalender KBM Tahsin + At-Tibyan -->
         <div class="dash-cal-wrap">
           <div class="dash-cal-head">
@@ -3212,6 +3225,7 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
             <span class="dash-cal-month" id="dashKalMonth">–</span>
             <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(1)">›</button>
           </div>
+          <div class="dash-cal-today" id="dashKalToday">–</div>
           <div class="dash-cal-body">
             <div class="dash-cal-grid" id="dashKalGrid"></div>
             <div class="dash-cal-agenda" id="dashKalAgenda"></div>
@@ -6900,6 +6914,7 @@ function renderDashKalender(hq, atRows) {
   _dashKalCtx = { hq: hq || {}, atRows: atRows || [] };
 
   var HARI_NAMES = ['M','S','S','R','K','J','S'];
+  var HARI_FULL = ['Minggu','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'];
   var BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
                      'Juli','Agustus','September','Oktober','November','Desember'];
   var y = _dashKalDate.getFullYear();
@@ -6907,6 +6922,13 @@ function renderDashKalender(hq, atRows) {
 
   var monthEl = document.getElementById('dashKalMonth');
   if (monthEl) monthEl.textContent = BULAN_NAMES[m] + ' ' + y;
+
+  var todayLbl = document.getElementById('dashKalToday');
+  if (todayLbl) {
+    var _now = new Date();
+    todayLbl.textContent = 'Hari ini · ' + HARI_FULL[_now.getDay()] + ', '
+      + _now.getDate() + ' ' + BULAN_NAMES[_now.getMonth()] + ' ' + _now.getFullYear();
+  }
 
   // Map tanggal -> { kbm:{...}, attibyan:{...} }, gabungan riwayat aktual + proyeksi jadwal
   var evtMap = {};
