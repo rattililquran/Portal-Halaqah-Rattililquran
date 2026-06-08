@@ -66,6 +66,7 @@ patch_021_unique_draft_kbm.sql         ← unique partial index cegah race condi
 patch_022_audit_log_hardening.sql      ← tutup insert audit_log dari client + RPC log_audit_action (anti pemalsuan log)
 patch_023_push_subscriptions_rls_hardening.sql ← ganti cek id_user via JWT user_metadata (spoofable) dengan current_user_id() di policy push_subscriptions
 patch_024_bendahara_real_flag.sql      ← tambah kolom users.is_bendahara (sumber kebenaran asli, ganti tebakan string id_user)
+patch_025_push_user_prefs_rls_hardening.sql ← ganti cek id_user via JWT user_metadata (spoofable) dengan current_user_id() di policy push_user_prefs
 ```
 
 ## Catatan keamanan re-run
