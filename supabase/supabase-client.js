@@ -14,47 +14,27 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 //  SESSION
 // ─────────────────────────────────────────────
 var _currentUser = null;
-var _isRestoringSession = false;
 
 (function() {
   var stored = localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
-  var token   = localStorage.getItem('hq_token');
-  var refresh = localStorage.getItem('hq_refresh');
-  if (token && refresh) {
-    _isRestoringSession = true;
-    // Restore dengan kedua token agar Supabase bisa auto-refresh saat expired
-    _sb.auth.setSession({ access_token: token, refresh_token: refresh })
-      .then(function(res) {
-        _isRestoringSession = false;
-        if (!res.data || !res.data.session) {
-          // Token tidak valid atau sudah expired, bersihkan storage
-          _currentUser = null;
-          localStorage.removeItem('hq_token');
-          localStorage.removeItem('hq_refresh');
-          localStorage.removeItem('hq_user');
-        }
-      })
-      .catch(function() {
-        _isRestoringSession = false;
-        _currentUser = null;
-        localStorage.removeItem('hq_token');
-        localStorage.removeItem('hq_refresh');
-        localStorage.removeItem('hq_user');
-      });
-  }
 })();
 
-// Simpan token terbaru setiap kali Supabase refresh otomatis
+// CATATAN PENTING — jangan tambahkan restore sesi manual via _sb.auth.setSession() di sini.
+// createClient() di atas sudah otomatis memulihkan & me-refresh sesi dari localStorage
+// miliknya sendiri (persistSession+autoRefreshToken aktif secara default). Versi lama
+// kode ini melakukan restore manual TAMBAHAN pakai hq_token/hq_refresh — dua mekanisme
+// refresh-token berjalan paralel itulah yang memicu "refresh token reuse detected" saat
+// keduanya merotasi token nyaris bersamaan (mis. saat PWA dibuka lagi dari background),
+// menyebabkan sesi tercabut paksa & wajib login ulang. Sekarang Supabase adalah
+// satu-satunya pengelola token; hq_token/hq_refresh hanya cermin/cadangan (disinkronkan
+// lewat onAuthStateChange di bawah), bukan sumber yang dipakai untuk restore aktif.
 _sb.auth.onAuthStateChange(function(event, session) {
-  if (event === 'TOKEN_REFRESHED' && session) {
+  if ((event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') && session) {
     localStorage.setItem('hq_token',   session.access_token);
     localStorage.setItem('hq_refresh', session.refresh_token);
   }
   if (event === 'SIGNED_OUT') {
-    // Abaikan jika sedang melakukan restore session di awal load
-    if (_isRestoringSession) return;
-
     _currentUser = null;
     localStorage.removeItem('hq_token');
     localStorage.removeItem('hq_refresh');
