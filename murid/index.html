@@ -6687,7 +6687,7 @@ function renderRiwayat(rows) {
       + '<div class="riwayat-summary" onclick="toggleRiwayat('+idx+')">'
       + '<div class="riwayat-left">'
       + '<div class="riwayat-tgl">'+fmtDate(k.tanggal)+' &middot; Sesi ke-'+esc(k.pertemuan_ke)+'</div>'
-      + '<div class="riwayat-materi">'+(k.materi||'(Belum ada materi)')+'</div>'
+      + '<div class="riwayat-materi">'+(k.materi ? esc(k.materi) : '(Belum ada materi)')+'</div>'
       + '<div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">'
       + '<span class="badge '+hBadge+'">'+hLbl+'</span>'
       + (k.jenis_sesi === 'Micro Teaching' ? '<span class="badge b-purple">Micro Teaching</span>' : '')
