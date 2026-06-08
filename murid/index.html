@@ -5202,9 +5202,15 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
 
 <!-- jsPDF & html2canvas: dimuat secara lazy hanya saat tombol Unduh PDF diklik -->
 <!-- Hemat ~510 KB dari initial load -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js"></script>
-<script src="../assets/push-permission.js"></script>
+<!-- defer: unduh ketiganya PARALEL dengan parsing HTML (bukan blocking
+     berurutan satu-satu seperti sebelumnya), tetap dieksekusi sesuai urutan
+     dokumen sebelum DOMContentLoaded — aman karena script app di bawah ini
+     hanya mendaftarkan listener & mendeklarasikan fungsi saat parse
+     (logika yang memanggil window.HQ/_sb baru jalan saat DOMContentLoaded,
+     yaitu setelah ketiga script defer ini selesai dieksekusi). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<script src="../supabase/supabase-client.js" defer></script>
+<script src="../assets/push-permission.js" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
