@@ -356,31 +356,12 @@ html.theme-dark .premium-table tbody tr:nth-child(even) {
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
   .sb-overlay.show{display:block}.main{margin-left:0}.hamburger{display:block}
-  .content{padding:14px;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .content{padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   .f2,.f3{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
-  .mobile-bottom-nav{display:flex!important}
 }
 @media(max-width:380px){.stats-grid{grid-template-columns:1fr}}
 
-/* ── MOBILE BOTTOM NAV (admin) ── */
-.mobile-bottom-nav{
-  display:none;
-  position:fixed;bottom:0;left:0;right:0;z-index:98;
-  background:rgba(255,255,255,.95);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-top:1px solid #e2eaf5;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  justify-content:space-around;align-items:stretch;
-}
-.mbn-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;padding:8px 4px;border:none;background:none;cursor:pointer;
-  font-family:inherit;font-size:10px;font-weight:700;color:#6b7280;
-  transition:color .15s;
-}
-.mbn-item.active,.mbn-item:active{color:#0284c7}
-.mbn-ico{font-size:18px;line-height:1}
 /* ── LOADER ── */
 .loader{display:none;position:fixed;inset:0;z-index:9999;
   background:rgba(255,255,255,.85);backdrop-filter:blur(12px);
@@ -2667,7 +2648,7 @@ function showErr(m) { const el=document.getElementById('authErr'); el.textConten
   document.addEventListener('touchstart', function(e) {
     if (window.innerWidth >= 768) return; // only mobile
     if (window.scrollY > 5) return;
-    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
+    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar.open')) return;
     
     var touch = e.touches[0];
     startY = touch.clientY;
@@ -2677,7 +2658,7 @@ function showErr(m) { const el=document.getElementById('authErr'); el.textConten
   document.addEventListener('touchmove', function(e) {
     if (window.innerWidth >= 768) return;
     if (window.scrollY > 5) return;
-    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
+    if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar.open')) return;
     
     var touch = e.touches[0];
     currentY = touch.clientY;
@@ -2781,7 +2762,7 @@ async function loadMasterData() {
 // ══════════════════════════════════════════
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn,.mbn-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
   document.querySelectorAll('[data-p="'+name+'"]').forEach(b => b.classList.add('active'));
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
@@ -6145,14 +6126,6 @@ window.simulasiStressTestUI = function(jumlahMurid = 2000) {
 };
 </script>
 
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-bottom-nav" id="mobileBottomNav">
-  <button class="mbn-item" onclick="goPage('dashboard')" data-p="dashboard"><span class="mbn-ico">🏠</span>Dashboard</button>
-  <button class="mbn-item" onclick="goPage('users')" data-p="users"><span class="mbn-ico">👥</span>User</button>
-  <button class="mbn-item" onclick="goPage('halaqah')" data-p="halaqah"><span class="mbn-ico">📚</span>Halaqah</button>
-  <button class="mbn-item" onclick="goPage('spp')" data-p="spp"><span class="mbn-ico">💳</span>SPP</button>
-  <button class="mbn-item" onclick="openSB()"><span class="mbn-ico">☰</span>Menu</button>
-</nav>
 
 <!-- SPP IMAGE LIGHTBOX -->
 <div class="lightbox-overlay" id="sppLightbox" style="display:none;" onclick="if(event.target===this)closeSppLightbox()">
