@@ -1026,6 +1026,52 @@ html.theme-dark .at-dot.null{background:#374151!important}
 .kal-leg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);font-weight:600}
 .kal-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
+/* ── DASHBOARD: Kalender KBM + Donat (kartu polos, ganti tampilan dekoratif lama) ── */
+#dashProgressCard{
+  background:#fff !important;box-shadow:var(--shadow-card);
+  border:1px solid var(--border);cursor:default;
+}
+#dashProgressCard::before,#dashProgressCard::after{display:none !important}
+#dashProgressCard > .prog-title,
+#dashProgressCard > .prog-level-row,
+#dashProgressCard > .prog-motivasi-outer,
+#dashQiyamQuoteBox{display:none !important}
+html.theme-dark #dashProgressCard{
+  background:#162032 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
+}
+.dash-cal-wrap{margin-bottom:14px}
+.dash-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dash-cal-month{font-size:13.5px;font-weight:800;color:var(--text)}
+.dash-cal-nav{background:#f1f5f9;border:none;border-radius:50%;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;
+  color:var(--text-2);transition:all .2s ease;outline:none}
+.dash-cal-nav:hover{background:var(--border);color:var(--text)}
+.dash-cal-body{display:flex;gap:10px;align-items:stretch}
+.dash-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;
+  flex:1.15;min-width:0;align-content:start}
+.dash-cal-dn{text-align:center;font-size:8.5px;font-weight:800;color:var(--text-3);padding:2px 0}
+.dash-cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;border-radius:6px;font-size:9.5px;font-weight:700;color:var(--text-2);
+  cursor:pointer;position:relative;min-width:0;transition:all .15s ease}
+.dash-cal-day:hover{background:rgba(37,99,235,.08)}
+.dash-cal-day.today{background:rgba(37,99,235,.1);color:#1d4ed8}
+.dash-cal-day.sel{background:linear-gradient(135deg,var(--blue),var(--blue-d)) !important;color:#fff !important;
+  box-shadow:0 2px 8px rgba(0,122,255,.35)}
+.dash-cal-day.empty{visibility:hidden;cursor:default}
+.dash-cal-dots{display:flex;gap:2px;height:4px}
+.dash-cal-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+.dash-cal-agenda{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.dash-cal-agenda-head{font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:2px}
+.dash-cal-agenda-empty{font-size:11.5px;color:var(--text-3);padding:14px 0;text-align:center}
+.dash-cal-evt{display:flex;align-items:center;gap:8px;background:#f8fafc;border-radius:10px;padding:7px 9px}
+html.theme-dark .dash-cal-evt{background:rgba(255,255,255,.06)}
+.dash-cal-evt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dash-cal-evt-name{font-size:11px;font-weight:800;color:var(--text)}
+.dash-cal-evt-time{font-size:9.5px;color:var(--text-3);font-weight:600}
+#dashProgressCard .prog-inner-wrap{margin-top:0}
+#dashProgressCard .prog-inner-card{cursor:pointer}
+
 /* ── MATERI LEVEL ── */
 .materi-card{border-radius:20px;border:1px solid var(--border);
   background:#fff;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-card)}
@@ -3158,7 +3204,19 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;" onclick="openNotifications()"></div>
 
       <!-- Progress Level -->
-      <div class="progress-card" id="dashProgressCard" onclick="openProgressBreakdown()">
+      <div class="progress-card" id="dashProgressCard">
+        <!-- Kalender KBM Tahsin + At-Tibyan -->
+        <div class="dash-cal-wrap">
+          <div class="dash-cal-head">
+            <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(-1)">‹</button>
+            <span class="dash-cal-month" id="dashKalMonth">–</span>
+            <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(1)">›</button>
+          </div>
+          <div class="dash-cal-body">
+            <div class="dash-cal-grid" id="dashKalGrid"></div>
+            <div class="dash-cal-agenda" id="dashKalAgenda"></div>
+          </div>
+        </div>
         <!-- Judul -->
         <div class="prog-title">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -3180,7 +3238,7 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         <div class="prog-motivasi-outer" id="dashMotivasi"></div>
         <!-- Inner white card — donut ring KhatamKu style -->
         <div class="prog-inner-wrap">
-        <div class="prog-inner-card">
+        <div class="prog-inner-card" onclick="openProgressBreakdown()">
           <div class="prog-inner-row">
             <!-- Donut ring -->
             <div class="prog-donut-wrap" id="dashDonutRing"
@@ -6233,6 +6291,7 @@ async function loadDashboard() {
       buildKalSesiMap();
       renderKalender();
     }
+    renderDashKalender(hq, atRes.data || []);
 
     // Load async — tidak blokir dashboard
     loadSPP();
@@ -6811,6 +6870,153 @@ function renderKalender() {
 function kalNav(dir) {
   _kalDate.setMonth(_kalDate.getMonth() + dir);
   renderKalender();
+}
+
+// ══════════════════════════════════════════
+//  KALENDER DASHBOARD — gabungan jadwal KBM Tahsin + At-Tibyan
+//  (menggantikan kartu donat besar yang lama; donat tetap ada
+//  di bawah kalender dalam kartu putih polos)
+// ══════════════════════════════════════════
+var _dashKalDate = new Date();
+var _dashKalSelected = null;
+var _dashKalEvtMap = {};
+var _dashKalCtx = { hq: {}, atRows: [] };
+var DASH_HARI_MAP = {
+  'minggu':0, 'ahad':0, 'senin':1, 'selasa':2, 'rabu':3,
+  'kamis':4, 'jumat':5, "jum'at":5, 'sabtu':6
+};
+var DASH_STATUS_LBL = { H:'Hadir', T:'Terlambat', I:'Izin', A:'Alpa' };
+
+function _dashKbmHariSet(hq) {
+  var set = {};
+  String(hq.jadwal || '').toLowerCase().split(/[\s,]+/).forEach(function(tok) {
+    tok = tok.trim();
+    if (DASH_HARI_MAP.hasOwnProperty(tok)) set[DASH_HARI_MAP[tok]] = true;
+  });
+  return set;
+}
+
+function renderDashKalender(hq, atRows) {
+  _dashKalCtx = { hq: hq || {}, atRows: atRows || [] };
+
+  var HARI_NAMES = ['M','S','S','R','K','J','S'];
+  var BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+                     'Juli','Agustus','September','Oktober','November','Desember'];
+  var y = _dashKalDate.getFullYear();
+  var m = _dashKalDate.getMonth();
+
+  var monthEl = document.getElementById('dashKalMonth');
+  if (monthEl) monthEl.textContent = BULAN_NAMES[m] + ' ' + y;
+
+  // Map tanggal -> { kbm:{...}, attibyan:{...} }, gabungan riwayat aktual + proyeksi jadwal
+  var evtMap = {};
+  function ensure(d) { if (!evtMap[d]) evtMap[d] = {}; return evtMap[d]; }
+
+  (riwayatData || []).forEach(function(k) {
+    if (!k.tanggal) return;
+    var d = String(k.tanggal).substring(0, 10);
+    ensure(d).kbm = { status: k.status_hadir, materi: k.materi, aktual: true };
+  });
+  (_dashKalCtx.atRows || []).forEach(function(rrow) {
+    if (!rrow.tanggal) return;
+    var d = String(rrow.tanggal).substring(0, 10);
+    ensure(d).attibyan = { status: rrow.status_hadir, aktual: true };
+  });
+
+  var kbmHari = _dashKbmHariSet(hq);
+  var jamMulai = hq.jam || '';
+  var jamSelesai = hq.jam_selesai || '';
+  var daysInMonth = new Date(y, m + 1, 0).getDate();
+  var firstDay = new Date(y, m, 1).getDay();
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+  for (var dd = 1; dd <= daysInMonth; dd++) {
+    var dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+    var wd = new Date(y, m, dd).getDay();
+    var slot = ensure(dateStr);
+    if (!slot.kbm && kbmHari[wd]) {
+      slot.kbm = { jadwal: true, jam: jamMulai, jamSelesai: jamSelesai };
+    }
+    if (!slot.attibyan && wd === 0) {
+      slot.attibyan = { jadwal: true, jam: '19:30', jamSelesai: '21:00' };
+    }
+  }
+
+  _dashKalEvtMap = evtMap;
+  if (!_dashKalSelected) {
+    // Default ke hari ini bila bulan yang tampil = bulan berjalan, kalau tidak ke tanggal 1
+    _dashKalSelected = (y === today.getFullYear() && m === today.getMonth())
+      ? todayStr
+      : (y + '-' + String(m + 1).padStart(2, '0') + '-01');
+  }
+
+  var html = HARI_NAMES.map(function(d) { return '<div class="dash-cal-dn">' + d + '</div>'; }).join('');
+  for (var i = 0; i < firstDay; i++) html += '<div class="dash-cal-day empty"></div>';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    var ev = evtMap[ds] || {};
+    var dots = '';
+    if (ev.kbm) dots += '<span class="dash-cal-dot" style="background:' + (ev.kbm.aktual ? '#10b981' : '#94a3b8') + '"></span>';
+    if (ev.attibyan) dots += '<span class="dash-cal-dot" style="background:' + (ev.attibyan.aktual ? '#d97706' : '#fbbf24') + '"></span>';
+    var cls = 'dash-cal-day' + (ds === todayStr ? ' today' : '') + (ds === _dashKalSelected ? ' sel' : '');
+    html += '<div class="' + cls + '" onclick="event.stopPropagation();pilihDashTanggal(\'' + ds + '\')">' + d
+      + '<div class="dash-cal-dots">' + dots + '</div></div>';
+  }
+  var gridEl = document.getElementById('dashKalGrid');
+  if (gridEl) gridEl.innerHTML = html;
+
+  renderDashKalAgenda();
+}
+
+function renderDashKalAgenda() {
+  var el = document.getElementById('dashKalAgenda');
+  if (!el || !_dashKalSelected) return;
+
+  var ev = _dashKalEvtMap[_dashKalSelected] || {};
+  var parts = _dashKalSelected.split('-');
+  var dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  var BULAN_SINGKAT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+
+  var items = [];
+  if (ev.kbm) {
+    items.push({
+      nama: 'KBM Tahsin',
+      sub: ev.kbm.aktual ? (DASH_STATUS_LBL[ev.kbm.status] || ev.kbm.status || '–')
+                         : ('Terjadwal · ' + (ev.kbm.jam || '–') + (ev.kbm.jamSelesai ? '-' + ev.kbm.jamSelesai : '')),
+      dot: ev.kbm.aktual ? '#10b981' : '#94a3b8'
+    });
+  }
+  if (ev.attibyan) {
+    items.push({
+      nama: 'At-Tibyan',
+      sub: ev.attibyan.aktual ? (DASH_STATUS_LBL[ev.attibyan.status] || ev.attibyan.status || '–')
+                              : ('Terjadwal · ' + (ev.attibyan.jam || '–') + '-' + (ev.attibyan.jamSelesai || '–')),
+      dot: ev.attibyan.aktual ? '#d97706' : '#fbbf24'
+    });
+  }
+
+  var head = '<div class="dash-cal-agenda-head">' + dt.getDate() + ' ' + BULAN_SINGKAT[dt.getMonth()] + ' ' + dt.getFullYear() + '</div>';
+  if (!items.length) {
+    el.innerHTML = head + '<div class="dash-cal-agenda-empty">Tidak ada kegiatan</div>';
+    return;
+  }
+  el.innerHTML = head + items.map(function(it) {
+    return '<div class="dash-cal-evt"><span class="dash-cal-evt-dot" style="background:' + it.dot + '"></span>'
+      + '<div><div class="dash-cal-evt-name">' + esc(it.nama) + '</div>'
+      + '<div class="dash-cal-evt-time">' + esc(it.sub) + '</div></div></div>';
+  }).join('');
+}
+
+function dashKalNav(dir) {
+  _dashKalDate.setMonth(_dashKalDate.getMonth() + dir);
+  _dashKalSelected = null;
+  renderDashKalender(_dashKalCtx.hq, _dashKalCtx.atRows);
+}
+
+function pilihDashTanggal(dateStr) {
+  _dashKalSelected = dateStr;
+  renderDashKalender(_dashKalCtx.hq, _dashKalCtx.atRows);
 }
 
 // ══════════════════════════════════════════
