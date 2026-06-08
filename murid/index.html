@@ -438,6 +438,24 @@ html.theme-dark .prog-estimasi-middle{
   contain:layout style;
 }
 @media(min-width:480px) and (max-width:767px){.bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}}
+/* ── MOBILE SHELL STABIL (cegah bottom-nav "melompat" saat toolbar Chrome
+   Android collapse/expand) ──
+   Pola sama persis dengan layout desktop (≥768px) di bawah: shell setinggi
+   100svh (ukuran viewport minimum, tidak berubah saat toolbar animasi),
+   overflow disembunyikan di shell, scroll terjadi di .content saja, dan
+   .bottom-nav jadi flex item statis (bukan position:fixed) sehingga
+   posisinya murni hasil flex layout — kebal dari perubahan tinggi viewport. */
+@media(max-width:767px){
+  body{height:100svh;min-height:0;overflow:hidden}
+  #app{height:100svh;min-height:0;overflow:hidden;padding-bottom:0}
+  #main-panel{height:100svh;display:flex;flex-direction:column;overflow:hidden}
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;padding-bottom:16px}
+  .bottom-nav{
+    position:static;flex-shrink:0;
+    max-width:none;left:auto;right:auto;bottom:auto;transform:none;
+    padding:6px 0 calc(var(--sab)+8px);
+  }
+}
 .nav-item{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   background:none;border:none;cursor:pointer;padding:6px 2px;
@@ -5746,7 +5764,8 @@ function setCalTab(os, btn) {
 
   document.addEventListener('touchstart', function(e) {
     if (window.innerWidth >= 768) return; // only mobile
-    if (window.scrollY > 5) return;
+    var _ptrContent = document.querySelector('.content');
+    if ((_ptrContent ? _ptrContent.scrollTop : window.scrollY) > 5) return;
     if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
     
     var touch = e.touches[0];
@@ -5756,7 +5775,8 @@ function setCalTab(os, btn) {
 
   document.addEventListener('touchmove', function(e) {
     if (window.innerWidth >= 768) return;
-    if (window.scrollY > 5) return;
+    var _ptrContent = document.querySelector('.content');
+    if ((_ptrContent ? _ptrContent.scrollTop : window.scrollY) > 5) return;
     if (document.querySelector('.modal-overlay.open, .overlay.open, .sidebar-drawer.open')) return;
     
     var touch = e.touches[0];
@@ -5879,7 +5899,8 @@ function goPage(name, swipeDir) {
     }
   }
   document.querySelectorAll('[data-p="' + name + '"]').forEach(function(b){ b.classList.add('active'); });
-  window.scrollTo(0, 0);
+  var _contentEl = document.querySelector('.content');
+  if (_contentEl) _contentEl.scrollTop = 0; else window.scrollTo(0, 0);
 
   // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
   // karena dashData.anggota.level bisa belum tersedia saat pertama kali diklik,
