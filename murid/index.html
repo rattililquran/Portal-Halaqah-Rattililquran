@@ -5,6 +5,12 @@
 (function(){const t=localStorage.getItem('theme')||'system';if(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('theme-dark');})();
 </script>
 <meta charset="UTF-8">
+<!-- Beri tahu browser sejak awal render bahwa halaman ini mendukung mode
+     terang & gelap, supaya kanvas kosong sebelum CSS termuat langsung dicat
+     dengan warna yang sesuai preferensi sistem (mencegah "kedipan putih"
+     yang menyilaukan saat mode gelap aktif, terutama transisi dari splash
+     screen PWA yang gelap ke halaman). -->
+<meta name="color-scheme" content="light dark">
 <!-- Preconnect Supabase -->
 <link rel="preconnect" href="https://zefriybfrirrtsulogta.supabase.co">
 <link rel="dns-prefetch" href="https://zefriybfrirrtsulogta.supabase.co">
@@ -98,7 +104,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* ── AUTH ── */
 #authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
-  background:#f8fafc;padding:20px;overflow-y:auto;position:relative}
+  background:#f8fafc;padding:20px;overflow-y:auto;position:relative;
+  animation:fadeIn .35s ease}
+html.theme-dark #authScreen{background:#111318}
 @media(max-height:600px){#authScreen{align-items:flex-start;padding-top:40px}}
 .auth-box{
   background:rgba(255,255,255,0.75);
