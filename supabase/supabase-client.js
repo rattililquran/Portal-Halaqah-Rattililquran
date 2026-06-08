@@ -3139,7 +3139,7 @@ var KetuaAPI = {
     var ids = (anggotaRes.data || []).map(function(a) { return a.id_murid; });
     var hpMap = {};
     if (ids.length > 0) {
-      var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
+      var { data: users } = await _sb.rpc('ketua_get_member_no_hp');
       (users || []).forEach(function(u) { hpMap[u.id_user] = u.no_hp; });
     }
     var nilaiAll = nilaiRes.data || [];
@@ -3192,7 +3192,7 @@ var KetuaAPI = {
     var ids = Object.keys(map);
     var hpMap = {};
     if (ids.length > 0) {
-      var { data: users } = await _sb.from('users').select('id_user, no_hp').in('id_user', ids);
+      var { data: users } = await _sb.rpc('ketua_get_member_no_hp');
       (users || []).forEach(function(u) { hpMap[u.id_user] = u.no_hp; });
     }
     var alerts = Object.values(map).map(function(m) {

@@ -58,6 +58,8 @@ patch_013_level_jumlah_pertemuan.sql
 patch_014_observasi_kbm_kolom_baru.sql
 patch_015_charging_notes.sql           ← membuat tabel charging_notes + RLS
 patch_016_rekap_status_catatan_ustadz.sql ← tambah kolom catatan_ustadz ke rekap_status
+patch_017_fix_jwt_privilege_escalation.sql ← KRITIS: tutup celah eskalasi privilege via user_metadata + trigger guard users.update
+patch_018_fix_ketua_contact_overexposure.sql ← batasi akses "kontak anggota" ketua kelas hanya ke no_hp (bukan seluruh baris users)
 ```
 
 ## Catatan keamanan re-run
@@ -82,3 +84,6 @@ semuanya ke satu file migrasi besar berisiko sulit di-maintain dan sulit
 dilacak file mana yang berkorespondensi dengan fitur/bug mana. Checklist
 urutan ini adalah cara teraman untuk memastikan rebuild dari nol tetap
 konsisten tanpa mengubah cara kerja yang sudah berjalan.
+
+
+
