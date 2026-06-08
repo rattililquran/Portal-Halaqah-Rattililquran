@@ -432,6 +432,10 @@ html.theme-dark .prog-estimasi-middle{
   padding:6px 0 calc(var(--sab)+8px);
   z-index:100;
   box-shadow:0 -8px 32px rgba(14,165,233,0.08),0 -1px 0 rgba(255,255,255,.9) inset;
+  /* Isolasi dari reflow halaman (.page) saat pindah tab — cegah Chrome Android
+     menghitung ulang posisi/inset navigasi sehingga terlihat "melompat" */
+  transform:translateZ(0);
+  contain:layout style;
 }
 @media(min-width:480px) and (max-width:767px){.bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}}
 .nav-item{
@@ -3114,6 +3118,24 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
 </style>
 </head>
 <body>
+
+<script>
+// Bekukan nilai env(safe-area-inset-bottom) menjadi px statis di --sab.
+// Tanpa ini, Chrome Android kadang menghitung ulang env() secara live saat
+// halaman berpindah (.page toggle), membuat nilainya berkedip ke 0px sesaat —
+// navigasi bawah (position:fixed) jadi terlihat "melompat" turun-naik.
+(function(){
+  var probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;bottom:0;left:0;height:0;width:0;'
+    + 'padding-bottom:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none';
+  document.documentElement.appendChild(probe);
+  requestAnimationFrame(function(){
+    var sab = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+    document.documentElement.style.setProperty('--sab', sab + 'px');
+    probe.remove();
+  });
+})();
+</script>
 
 <!-- OFFLINE BANNER -->
 <div class="offline-banner" id="offlineBanner">
