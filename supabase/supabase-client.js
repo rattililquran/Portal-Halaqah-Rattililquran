@@ -3526,6 +3526,103 @@ var AdminAPI = {
       ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
       : { status:'ok', deleted: { observasi: r1.count, kbm: r2.count } };
   },
+
+  // Stress test User Manajemen: insert users (tanpa auth) + anggota per halaqah
+  // Marker: catatan = '[STRESS_TEST]' di users
+  stressTestUsers: async function(opts, onProgress) {
+    var muridPerHalaqah = opts.muridPerHalaqah || 3;
+    var MARKER  = '[STRESS_TEST]';
+    var LEVEL   = ['Pemula','Menengah','Lanjutan'];
+    var NAMES   = ['Abdullah','Abdurrahman','Ahmad','Ali','Bilal','Fatimah','Hasan','Husain',
+                   'Ibrahim','Ismail','Khadijah','Maryam','Muhammad','Nisa','Omar','Siti',
+                   'Umar','Uthman','Yahya','Zaid'];
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function stId(p) {
+      var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID().replace(/-/g,'').substring(0,8).toUpperCase()
+        : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,6).toUpperCase();
+      return p + uuid;
+    }
+
+    if (onProgress) onProgress(5, 'Memuat data halaqah...');
+    var { data: halaqahList, error: hqErr } = await _sb.from('halaqah').select('id_halaqah, nama_halaqah').eq('status','aktif');
+    if (hqErr || !halaqahList?.length) return { status:'error', message:'Tidak ada halaqah aktif' };
+
+    var totalUsers = 0, totalAnggota = 0, errors = [];
+    var total = halaqahList.length;
+
+    for (var hi = 0; hi < total; hi++) {
+      var h = halaqahList[hi];
+      if (onProgress) onProgress(
+        Math.round(10 + (hi / total) * 80),
+        'Halaqah ' + (hi+1) + '/' + total + ': ' + h.nama_halaqah
+      );
+
+      for (var mi = 0; mi < muridPerHalaqah; mi++) {
+        var id_user   = stId('ST');
+        var namaDepan = pick(NAMES);
+        var namaBelakang = pick(NAMES);
+        var nama      = namaDepan + ' ' + namaBelakang + ' ST';
+        var level     = pick(LEVEL);
+
+        var { error: e1 } = await _sb.from('users').insert({
+          id_user,
+          nama_lengkap: nama,
+          role        : 'murid',
+          status      : 'aktif',
+          email       : id_user.toLowerCase() + '@stress.test',
+          no_hp       : '08' + Math.floor(Math.random() * 9e9).toString().padStart(9,'0'),
+          level,
+          catatan     : MARKER,
+        });
+        if (e1) { errors.push('users: ' + e1.message); continue; }
+        totalUsers++;
+
+        var { error: e2 } = await _sb.from('anggota').insert({
+          id_murid   : id_user,
+          nama_murid : nama,
+          id_halaqah : h.id_halaqah,
+          level,
+          status     : 'aktif',
+          is_ketua   : false,
+        });
+        if (e2) {
+          console.error('[StressTest USR] anggota error:', e2.code, e2.message);
+          errors.push('anggota [' + (e2.code||'?') + ']: ' + e2.message);
+        } else {
+          totalAnggota++;
+        }
+      }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalUsers, totalAnggota, errors };
+  },
+
+  // Hapus semua data stress test User Manajemen
+  cleanupStressTestUsers: async function() {
+    var MARKER = '[STRESS_TEST]';
+    // Ambil id_user stress test dulu
+    var { data: userList, error: eq } = await _sb.from('users').select('id_user').eq('catatan', MARKER);
+    if (eq) return { status:'error', errors:[eq.message] };
+    var userIds = (userList || []).map(function(u) { return u.id_user; });
+    if (!userIds.length) return { status:'ok', deleted: { anggota:0, users:0 } };
+
+    // Hapus anggota dulu (FK anak), lalu users (FK induk)
+    var r1 = await _sb.from('anggota').delete({ count:'exact' }).in('id_murid', userIds);
+    if (r1.error) console.error('[Cleanup USR] anggota error:', r1.error);
+
+    var r2 = await _sb.from('users').delete({ count:'exact' }).eq('catatan', MARKER);
+    if (r2.error) console.error('[Cleanup USR] users error:', r2.error);
+
+    console.log('[Cleanup USR] deleted — anggota:', r1.count, 'users:', r2.count);
+
+    var errs = [r1.error, r2.error].filter(Boolean);
+    return errs.length
+      ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
+      : { status:'ok', deleted: { anggota: r1.count, users: r2.count } };
+  },
 };
 
 // ─────────────────────────────────────────────
