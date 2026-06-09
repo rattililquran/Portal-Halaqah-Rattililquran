@@ -3410,6 +3410,122 @@ var AdminAPI = {
       ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
       : { status:'ok', deleted: { sesi: r2.count, log: r1.count } };
   },
+
+  // Stress test Observasi KBM: buat kbm_log ringan per halaqah lalu observasi linked ke sesi tsb
+  // Marker: catatan_tambahan='[STRESS_TEST]' di observasi, catatan_umum='[STRESS_TEST]' di kbm_log
+  stressTestObservasi: async function(opts, onProgress) {
+    var sesiCount  = opts.sesiPerHalaqah || 2;
+    var MARKER     = '[STRESS_TEST]';
+    var KONDISI    = ['Kondusif','Kondusif','Kurang Kondusif','Tidak Kondusif'];
+    var LATIHAN    = ['Ya','Ya','Tidak'];
+    var TEPAT      = ['Tepat Waktu','Tepat Waktu','Tepat Waktu','Guru Terlambat','Diakhiri Lebih Awal'];
+    var KAMERA     = ['Sebagian Besar Terbuka','Campuran','Sebagian Besar Tertutup'];
+    var MATERI     = ['Tahsin Makhraj','Tajwid Ghunnah','Muraja\'ah Juz 30','Ziyadah Al-Baqarah'];
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function stId(p) {
+      var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID().replace(/-/g,'').substring(0,12).toUpperCase()
+        : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,8).toUpperCase();
+      return p + '-ST' + uuid;
+    }
+
+    if (onProgress) onProgress(5, 'Memuat data halaqah & ketua...');
+    var [hqRes, ketuaRes] = await Promise.all([
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah, id_guru, nama_guru').eq('status','aktif'),
+      _sb.from('anggota').select('id_murid, id_halaqah').eq('is_ketua', true).eq('status','aktif'),
+    ]);
+    var halaqahList = (hqRes.data || []).filter(function(h) { return h.id_guru; });
+    if (!halaqahList.length) return { status:'error', message:'Tidak ada halaqah aktif dengan guru' };
+
+    // Map ketua per halaqah, fallback ke admin user jika tidak ada ketua
+    var ketuaMap = {};
+    (ketuaRes.data || []).forEach(function(k) { ketuaMap[k.id_halaqah] = k.id_murid; });
+    var fallbackId = _uid();
+
+    var totalKbm = 0, totalObs = 0, errors = [];
+    var total = halaqahList.length;
+
+    for (var hi = 0; hi < total; hi++) {
+      var h = halaqahList[hi];
+      var ketuaId = ketuaMap[h.id_halaqah] || fallbackId;
+      if (onProgress) onProgress(
+        Math.round(10 + (hi / total) * 80),
+        'Halaqah ' + (hi+1) + '/' + total + ': ' + h.nama_halaqah
+      );
+
+      for (var si = 0; si < sesiCount; si++) {
+        var daysAgo      = (sesiCount - si) * 7;
+        var tgl          = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var id_kbm       = stId('KBM');
+        var pertemuanKe  = 9000 + Math.floor(Math.random() * 9000);
+
+        // Insert kbm_log minimal (tanpa nilai/setoran)
+        var { error: e1 } = await _sb.from('kbm_log').insert({
+          id_kbm,
+          id_halaqah       : h.id_halaqah,
+          id_guru          : h.id_guru,
+          nama_guru        : h.nama_guru || '',
+          tanggal_pertemuan: tgl,
+          pertemuan_ke     : pertemuanKe,
+          status           : 'selesai',
+          jenis_sesi       : 'KBM Reguler',
+          materi_belajar   : pick(MATERI),
+          catatan_umum     : MARKER,
+          jumlah_hadir     : 4,
+          jumlah_alpa      : 1,
+          jam_mulai        : '15:00',
+          jam_selesai      : '16:00',
+        });
+        if (e1) { errors.push('kbm_log: ' + e1.message); continue; }
+        totalKbm++;
+
+        // Insert observasi linked ke kbm ini
+        var tepatWaktu = pick(TEPAT);
+        var { error: e2 } = await _sb.from('observasi_kbm').insert({
+          id_kbm,
+          id_halaqah      : h.id_halaqah,
+          id_ketua        : ketuaId,
+          pertemuan_ke    : pertemuanKe,
+          tanggal         : tgl,
+          kondisi_kelas   : pick(KONDISI),
+          ada_latihan     : pick(LATIHAN),
+          ketepatan_waktu : tepatWaktu,
+          estimasi_menit  : tepatWaktu !== 'Tepat Waktu' ? Math.floor(Math.random() * 20) + 5 : null,
+          kamera_peserta  : pick(KAMERA),
+          catatan_tambahan: MARKER,
+          status          : 'submitted',
+        });
+        if (e2) {
+          console.error('[StressTest OBS] error:', e2.code, e2.message);
+          errors.push('observasi [' + (e2.code||'?') + ']: ' + e2.message);
+        } else {
+          totalObs++;
+        }
+      }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalKbm, totalObs, errors };
+  },
+
+  // Hapus semua data stress test Observasi
+  cleanupStressTestObservasi: async function() {
+    var MARKER = '[STRESS_TEST]';
+    // Observasi dulu (FK anak), lalu kbm_log (FK induk)
+    var r1 = await _sb.from('observasi_kbm').delete({ count:'exact' }).eq('catatan_tambahan', MARKER);
+    if (r1.error) console.error('[Cleanup OBS] observasi_kbm error:', r1.error);
+
+    var r2 = await _sb.from('kbm_log').delete({ count:'exact' }).eq('catatan_umum', MARKER);
+    if (r2.error) console.error('[Cleanup OBS] kbm_log error:', r2.error);
+
+    console.log('[Cleanup OBS] deleted — observasi:', r1.count, 'kbm:', r2.count);
+
+    var errs = [r1.error, r2.error].filter(Boolean);
+    return errs.length
+      ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
+      : { status:'ok', deleted: { observasi: r1.count, kbm: r2.count } };
+  },
 };
 
 // ─────────────────────────────────────────────
