@@ -11185,11 +11185,13 @@ function renderSPP(data) {
     badge.textContent = tunggakan===0 ? '✅ Lunas' : '⚠ ' + tunggakan + ' bulan';
   }
 
-  // ── Grid 12 bulan (hanya tampilkan s.d. bulan berjalan) ──
+  // ── Grid 12 bulan ──
   var BNAME = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  var bulanMulaiIdx = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
   grid.innerHTML = (bulanGrid || []).map(function(b, i) {
-    var past = (i + 1) <= bulanBerjalan;
-    var ico  = b.status==='lunas' ? '✅' : b.status==='menunggu' ? '⏳' : (past ? '❌' : '○');
+    var sudahMulai = i >= bulanMulaiIdx;
+    var lewat      = (i + 1) <= bulanBerjalan;
+    var ico  = b.status==='lunas' ? '✅' : b.status==='menunggu' ? '⏳' : (sudahMulai && lewat ? '❌' : '○');
     var cls  = b.status==='lunas' ? 'spp-lunas' : b.status==='menunggu' ? 'spp-menunggu' : 'spp-belum';
     return '<div class="spp-bulan ' + cls + '" title="' + b.bulan + '">'
       + '<span class="spp-bulan-ico">' + ico + '</span>'
