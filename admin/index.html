@@ -1853,6 +1853,36 @@ html.theme-dark .tbl-wrap thead th {
             </div>
           </div>
 
+          <!-- Stress Test At-Tibyan -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚡ Stress Test At-Tibyan</div>
+              <div style="font-size:12px;color:var(--text-3)">Generate data presensi At-Tibyan ke DB</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px">
+                <label style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px">Jumlah Sesi</label>
+                <select id="atStSesiCount" class="form-control" style="font-size:13px">
+                  <option value="1">1 sesi</option>
+                  <option value="3" selected>3 sesi</option>
+                  <option value="5">5 sesi</option>
+                  <option value="10">10 sesi</option>
+                </select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="atStressTestMulai()" id="btnAtStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="atStressTestCleanup()" id="btnAtStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+              </div>
+              <div id="atStProgressWrap" style="display:none;margin-bottom:10px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="atStProgressLabel">Memulai...</div>
+                <div style="background:var(--bg-2);border-radius:99px;height:8px;overflow:hidden">
+                  <div id="atStProgressBar" style="height:100%;background:linear-gradient(90deg,#8b5cf6,#ec4899);border-radius:99px;width:0%;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="atStResult" style="display:none"></div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Log -->
@@ -5622,6 +5652,56 @@ async function stressTestCleanup() {
   } catch(e) {
     toast('Error: ' + e.message, 'error');
   }
+  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+}
+
+// ══════════════════════════════════════════
+//  STRESS TEST AT-TIBYAN
+// ══════════════════════════════════════════
+async function atStressTestMulai() {
+  var btn = document.getElementById('btnAtStressStart');
+  var wrap = document.getElementById('atStProgressWrap');
+  var bar  = document.getElementById('atStProgressBar');
+  var lbl  = document.getElementById('atStProgressLabel');
+  var res  = document.getElementById('atStResult');
+  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  wrap.style.display = 'block'; res.style.display = 'none';
+  var sesiCount = parseInt(document.getElementById('atStSesiCount').value) || 3;
+  try {
+    var r = await window.HQ.AdminAPI.stressTestAtTibyan(
+      { sesiCount },
+      function(pct, msg) { bar.style.width = pct + '%'; lbl.textContent = msg; }
+    );
+    if (r.errors && r.errors.length) console.warn('[StressTest AT] Errors:', r.errors);
+    res.style.display = 'block';
+    res.innerHTML = '<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
+      + '<div style="font-weight:600;color:var(--success);margin-bottom:6px">'
+      + (r.status === 'ok' ? '✅ Stress Test Selesai' : '⚠️ Selesai dengan ' + r.errors.length + ' error') + '</div>'
+      + '<div>📖 Sesi At-Tibyan: <b>' + r.totalSesi + '</b></div>'
+      + '<div>👥 Log Presensi: <b>' + r.totalLog + '</b></div>'
+      + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
+      + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
+      + '</div>';
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+}
+
+async function atStressTestCleanup() {
+  if (!confirm('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.')) return;
+  var btn = document.getElementById('btnAtStressCleanup');
+  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  try {
+    var r = await window.HQ.AdminAPI.cleanupStressTestAtTibyan();
+    if (r.status === 'ok') {
+      var d = r.deleted || {};
+      toast('Terhapus — Sesi: ' + (d.sesi||0) + ', Log: ' + (d.log||0), 'ok');
+      document.getElementById('atStResult').style.display = 'none';
+      document.getElementById('atStProgressWrap').style.display = 'none';
+      document.getElementById('atStProgressBar').style.width = '0%';
+    } else {
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
   btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
 }
 

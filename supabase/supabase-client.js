@@ -3304,6 +3304,112 @@ var AdminAPI = {
       ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
       : { status:'ok', deleted: { setoran: r1.count, nilai: r2.count, kbm: r3.count } };
   },
+
+  // Stress test At-Tibyan: insert at_tibyan_sesi + at_tibyan_log
+  // Semua sesi ditandai nama_guru='[STRESS_TEST]' dan pertemuan_ke mulai dari 9000
+  stressTestAtTibyan: async function(opts, onProgress) {
+    var sesiCount = opts.sesiCount || 3;
+    var MARKER    = '[STRESS_TEST]';
+    var HADIR     = ['H','H','H','H','H','T','I','A']; // ~62.5% H, 12.5% T, 12.5% I, 12.5% A
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function stId(p) {
+      var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID().replace(/-/g,'').substring(0,12).toUpperCase()
+        : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,8).toUpperCase();
+      return p + '-ST' + uuid;
+    }
+
+    if (onProgress) onProgress(5, 'Memuat data murid...');
+    var [anggotaRes, halaqahRes] = await Promise.all([
+      _sb.from('anggota').select('id_murid, nama_murid, id_halaqah').eq('status','aktif'),
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah').eq('status','aktif'),
+    ]);
+    var anggotaList = anggotaRes.data || [];
+    if (!anggotaList.length) return { status:'error', message:'Tidak ada anggota aktif' };
+
+    var halaqahMap = {};
+    (halaqahRes.data || []).forEach(function(h) { halaqahMap[h.id_halaqah] = h.nama_halaqah; });
+
+    var currentUserId = _uid();
+    var totalSesi = 0, totalLog = 0, errors = [];
+
+    for (var si = 0; si < sesiCount; si++) {
+      var pertemuanKe = 9000 + Math.floor(Math.random() * 9000);
+      var daysAgo = (sesiCount - si) * 7;
+      var tgl     = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+      var id_sesi = stId('ATS');
+
+      if (onProgress) onProgress(
+        Math.round(10 + (si / sesiCount) * 80),
+        'Sesi ' + (si+1) + '/' + sesiCount + ' — pertemuan ke-' + pertemuanKe
+      );
+
+      var logRows = anggotaList.map(function(m) {
+        return {
+          id_sesi,
+          id_murid      : m.id_murid,
+          nama_murid    : m.nama_murid || '',
+          id_halaqah    : m.id_halaqah || null,
+          nama_halaqah  : halaqahMap[m.id_halaqah] || '',
+          status_hadir  : pick(HADIR),
+          tanggal       : tgl,
+        };
+      });
+
+      var hadirCount = logRows.filter(function(r) { return ['H','T'].includes(r.status_hadir); }).length;
+
+      var { error: e1 } = await _sb.from('at_tibyan_sesi').insert({
+        id_sesi,
+        tanggal      : tgl,
+        id_guru      : currentUserId,
+        nama_guru    : MARKER,
+        total_hadir  : hadirCount,
+        total_murid  : logRows.length,
+        status       : 'selesai',
+        pertemuan_ke : pertemuanKe,
+      });
+      if (e1) { errors.push('at_tibyan_sesi: ' + e1.message); continue; }
+      totalSesi++;
+
+      for (var bi = 0; bi < logRows.length; bi += 50) {
+        var { error: e2 } = await _sb.from('at_tibyan_log').insert(logRows.slice(bi, bi+50));
+        if (e2) {
+          console.error('[StressTest AT] at_tibyan_log error:', e2.code, e2.message);
+          errors.push('at_tibyan_log [' + (e2.code||'?') + ']: ' + e2.message);
+        } else {
+          totalLog += Math.min(50, logRows.length - bi);
+        }
+      }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalSesi, totalLog, errors };
+  },
+
+  // Hapus semua data stress test At-Tibyan (nama_guru = '[STRESS_TEST]')
+  cleanupStressTestAtTibyan: async function() {
+    var MARKER = '[STRESS_TEST]';
+    // Ambil id_sesi dulu
+    var { data: sesiList, error: eq } = await _sb.from('at_tibyan_sesi').select('id_sesi').eq('nama_guru', MARKER);
+    if (eq) return { status:'error', errors:[eq.message] };
+    var sesiIds = (sesiList || []).map(function(s) { return s.id_sesi; });
+    if (!sesiIds.length) return { status:'ok', deleted: { sesi:0, log:0 } };
+
+    // Hapus log dulu (FK anak), lalu sesi (FK induk)
+    var r1 = await _sb.from('at_tibyan_log').delete({ count:'exact' }).in('id_sesi', sesiIds);
+    if (r1.error) console.error('[Cleanup AT] at_tibyan_log error:', r1.error);
+
+    var r2 = await _sb.from('at_tibyan_sesi').delete({ count:'exact' }).eq('nama_guru', MARKER);
+    if (r2.error) console.error('[Cleanup AT] at_tibyan_sesi error:', r2.error);
+
+    console.log('[Cleanup AT] deleted — sesi:', r2.count, 'log:', r1.count);
+
+    var errs = [r1.error, r2.error].filter(Boolean);
+    return errs.length
+      ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
+      : { status:'ok', deleted: { sesi: r2.count, log: r1.count } };
+  },
 };
 
 // ─────────────────────────────────────────────
