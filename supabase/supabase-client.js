@@ -3288,13 +3288,13 @@ var AdminAPI = {
     var MARKER = '[STRESS_TEST]';
     // Urutan: anak (setoran + nilai) dulu, lalu induk (kbm_log) — karena FK id_kbm
     var [r1, r2] = await Promise.all([
-      _sb.from('setoran_hafalan').delete().eq('catatan', MARKER).select('id', { count: 'exact', head: true }),
-      _sb.from('nilai_kbm').delete().eq('catatan_murid', MARKER).select('id_nilai', { count: 'exact', head: true }),
+      _sb.from('setoran_hafalan').delete({ count: 'exact' }).eq('catatan', MARKER),
+      _sb.from('nilai_kbm').delete({ count: 'exact' }).eq('catatan_murid', MARKER),
     ]);
     if (r1.error) console.error('[Cleanup] setoran_hafalan error:', r1.error);
     if (r2.error) console.error('[Cleanup] nilai_kbm error:', r2.error);
 
-    var r3 = await _sb.from('kbm_log').delete().eq('catatan_umum', MARKER).select('id_kbm', { count: 'exact', head: true });
+    var r3 = await _sb.from('kbm_log').delete({ count: 'exact' }).eq('catatan_umum', MARKER);
     if (r3.error) console.error('[Cleanup] kbm_log error:', r3.error);
 
     console.log('[Cleanup] deleted — setoran:', r1.count, 'nilai:', r2.count, 'kbm:', r3.count);
