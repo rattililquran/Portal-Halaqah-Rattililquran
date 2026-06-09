@@ -3194,7 +3194,7 @@ var AdminAPI = {
         'Halaqah ' + (hi+1) + '/' + total + ': ' + h.nama_halaqah + ' (' + murid.length + ' murid)'
       );
       if (!murid.length) continue;
-      if (!h.id_guru) continue; // skip halaqah tanpa guru — id_guru FK tidak boleh kosong
+      if (!h.id_guru) continue; // skip halaqah tanpa guru — id_guru FK ke users.id_user tidak boleh null
 
       for (var si = 0; si < sesiCount; si++) {
         var daysAgo = (sesiCount - si) * 7;
@@ -3206,7 +3206,7 @@ var AdminAPI = {
         var { error: e1 } = await _sb.from('kbm_log').insert({
           id_kbm,
           id_halaqah        : h.id_halaqah,
-          id_guru           : h.id_guru || '',
+          id_guru           : h.id_guru,
           nama_guru         : h.nama_guru || '',
           tanggal_pertemuan : tgl,
           pertemuan_ke      : stPertemuanKe,
