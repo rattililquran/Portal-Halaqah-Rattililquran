@@ -5611,12 +5611,13 @@ async function stressTestCleanup() {
   try {
     var r = await window.HQ.AdminAPI.cleanupStressTest();
     if (r.status === 'ok') {
-      toast('Data stress test berhasil dihapus', 'ok');
+      var d = r.deleted || {};
+      toast('Terhapus — KBM: ' + (d.kbm||0) + ', Nilai: ' + (d.nilai||0) + ', Setoran: ' + (d.setoran||0), 'ok');
       document.getElementById('stResult').style.display = 'none';
       document.getElementById('stProgressWrap').style.display = 'none';
       document.getElementById('stProgressBar').style.width = '0%';
     } else {
-      toast('Ada error saat cleanup: ' + (r.errors || []).join(', '), 'error');
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
     }
   } catch(e) {
     toast('Error: ' + e.message, 'error');

@@ -3285,16 +3285,23 @@ var AdminAPI = {
   // Hapus semua data stress test (semua bertanda [STRESS_TEST])
   cleanupStressTest: async function() {
     var MARKER = '[STRESS_TEST]';
-    // Urutan: anak dulu, lalu induk
-    var [r1, r2, r3] = await Promise.all([
-      _sb.from('setoran_hafalan').delete().eq('catatan', MARKER),
-      _sb.from('nilai_kbm').delete().eq('catatan_murid', MARKER),
+    // Urutan: anak (setoran + nilai) dulu, lalu induk (kbm_log) — karena FK id_kbm
+    var [r1, r2] = await Promise.all([
+      _sb.from('setoran_hafalan').delete().eq('catatan', MARKER).select('id', { count: 'exact', head: true }),
+      _sb.from('nilai_kbm').delete().eq('catatan_murid', MARKER).select('id_nilai', { count: 'exact', head: true }),
     ]);
-    var r3res = await _sb.from('kbm_log').delete().eq('catatan_umum', MARKER);
-    var errs = [r1.error, r2.error, r3res.error].filter(Boolean);
+    if (r1.error) console.error('[Cleanup] setoran_hafalan error:', r1.error);
+    if (r2.error) console.error('[Cleanup] nilai_kbm error:', r2.error);
+
+    var r3 = await _sb.from('kbm_log').delete().eq('catatan_umum', MARKER).select('id_kbm', { count: 'exact', head: true });
+    if (r3.error) console.error('[Cleanup] kbm_log error:', r3.error);
+
+    console.log('[Cleanup] deleted — setoran:', r1.count, 'nilai:', r2.count, 'kbm:', r3.count);
+
+    var errs = [r1.error, r2.error, r3.error].filter(Boolean);
     return errs.length
       ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
-      : { status:'ok' };
+      : { status:'ok', deleted: { setoran: r1.count, nilai: r2.count, kbm: r3.count } };
   },
 };
 
