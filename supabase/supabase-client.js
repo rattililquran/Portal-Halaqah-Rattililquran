@@ -3163,8 +3163,13 @@ var AdminAPI = {
     var KELANCARAN = ['Lancar','Cukup Lancar','Perlu Latihan'];
 
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    // [DESAIN SENGAJA] Gunakan crypto.randomUUID agar ID benar-benar unik meski loop cepat.
+    // Date.now() bisa sama di iterasi berurutan (same ms) → 409 collision di kbm_log.
     function stId(p) {
-      return p + '-ST' + Date.now().toString(36).toUpperCase().slice(-5) + Math.random().toString(36).substring(2,5).toUpperCase();
+      var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID().replace(/-/g,'').substring(0,12).toUpperCase()
+        : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,8).toUpperCase();
+      return p + '-ST' + uuid;
     }
 
     if (onProgress) onProgress(5, 'Memuat data halaqah...');
@@ -3261,8 +3266,12 @@ var AdminAPI = {
             });
           for (var bj = 0; bj < stRows.length; bj += 50) {
             var { error: e3 } = await _sb.from('setoran_hafalan').insert(stRows.slice(bj, bj+50));
-            if (e3) errors.push('setoran: ' + e3.message);
-            else totalSetoran += Math.min(50, stRows.length - bj);
+            if (e3) {
+              console.error('[StressTest] setoran_hafalan error:', e3.code, e3.message, e3.details, e3.hint);
+              errors.push('setoran [' + (e3.code||'?') + ']: ' + e3.message);
+            } else {
+              totalSetoran += Math.min(50, stRows.length - bj);
+            }
           }
         }
       }
