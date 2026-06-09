@@ -3573,7 +3573,6 @@ var AdminAPI = {
           status      : 'aktif',
           email       : id_user.toLowerCase() + '@stress.test',
           no_hp       : '08' + Math.floor(Math.random() * 9e9).toString().padStart(9,'0'),
-          level,
           catatan     : MARKER,
         });
         if (e1) { errors.push('users: ' + e1.message); continue; }
