@@ -1464,9 +1464,6 @@ html.theme-dark .tbl-wrap thead th {
               <button class="btn btn-outline btn-sm" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
                 <span>📋</span> Salin Tagihan WA
               </button>
-              <button class="btn btn-outline btn-sm" onclick="window.simulasiStressTestUI(2000)" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px;border-color:var(--amber);color:var(--amber-txt)">
-                <span>⚡</span> Stress Test 2K
-              </button>
             </div>
           </div>
           <div class="tbl-wrap">
@@ -1817,6 +1814,42 @@ html.theme-dark .tbl-wrap thead th {
             <div class="card-body">
               <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="width:100%;margin-bottom:8px">🔍 Jalankan Diagnostik</button>
               <div id="pushDiagResult" style="font-family:monospace;font-size:11px;line-height:1.8;background:var(--bg-2,#f8fafc);border-radius:8px;padding:10px;display:none;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto"></div>
+            </div>
+          </div>
+
+          <!-- Stress Test KBM -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚡ Stress Test KBM</div>
+              <div style="font-size:12px;color:var(--text-3)">Generate data presensi, nilai, setoran ke DB</div>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px">Sesi per Halaqah</label>
+                  <select id="stSesiCount" class="form-control" style="font-size:13px">
+                    <option value="1">1 sesi</option>
+                    <option value="3" selected>3 sesi</option>
+                    <option value="5">5 sesi</option>
+                    <option value="10">10 sesi</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding-top:18px">
+                  <input type="checkbox" id="stIncludeSetoran" checked style="width:16px;height:16px;cursor:pointer">
+                  <label for="stIncludeSetoran" style="font-size:13px;cursor:pointer">Include Setoran Hafalan</label>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="stressTestMulai()" id="btnStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="stressTestCleanup()" id="btnStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+              </div>
+              <div id="stProgressWrap" style="display:none;margin-bottom:10px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="stProgressLabel">Memulai...</div>
+                <div style="background:var(--bg-2);border-radius:99px;height:8px;overflow:hidden">
+                  <div id="stProgressBar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);border-radius:99px;width:0%;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="stResult" style="display:none"></div>
             </div>
           </div>
 
@@ -5530,6 +5563,68 @@ async function testTrigger(trigger) {
 }
 
 // ══════════════════════════════════════════
+//  STRESS TEST KBM
+// ══════════════════════════════════════════
+async function stressTestMulai() {
+  var btn = document.getElementById('btnStressStart');
+  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  document.getElementById('stResult').style.display = 'none';
+  document.getElementById('stProgressWrap').style.display = 'block';
+
+  var sesiCount    = parseInt(document.getElementById('stSesiCount').value) || 3;
+  var incSetoran   = document.getElementById('stIncludeSetoran').checked;
+
+  try {
+    var hasil = await window.HQ.AdminAPI.stressTestKBM(
+      { sesiPerHalaqah: sesiCount, includeSetoran: incSetoran },
+      function(pct, label) {
+        document.getElementById('stProgressBar').style.width   = pct + '%';
+        document.getElementById('stProgressLabel').textContent = label;
+      }
+    );
+
+    var errHtml = hasil.errors && hasil.errors.length
+      ? '<div style="color:#ef4444;font-size:11px;margin-top:8px">⚠ ' + hasil.errors.length + ' error — cek console</div>'
+      : '';
+    if (hasil.errors && hasil.errors.length) console.warn('[StressTest] Errors:', hasil.errors);
+
+    document.getElementById('stResult').style.display = 'block';
+    document.getElementById('stResult').innerHTML = '<div style="background:var(--bg-2);padding:12px;border-radius:8px;font-size:13px">'
+      + '<div style="font-weight:700;margin-bottom:8px;color:#22c55e">✅ Stress Test Selesai</div>'
+      + '<div>📚 KBM Log: <b>' + hasil.totalKbm + '</b> sesi</div>'
+      + '<div>📋 Nilai KBM: <b>' + hasil.totalNilai + '</b> record</div>'
+      + (incSetoran ? '<div>📖 Setoran Hafalan: <b>' + hasil.totalSetoran + '</b> record</div>' : '')
+      + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
+      + errHtml + '</div>';
+  } catch(e) {
+    document.getElementById('stResult').style.display = 'block';
+    document.getElementById('stResult').innerHTML = '<div style="color:#ef4444;padding:10px;background:var(--bg-2);border-radius:8px;font-size:13px">❌ Error: ' + e.message + '</div>';
+  }
+
+  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+}
+
+async function stressTestCleanup() {
+  if (!confirm('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.')) return;
+  var btn = document.getElementById('btnStressCleanup');
+  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  try {
+    var r = await window.HQ.AdminAPI.cleanupStressTest();
+    if (r.status === 'ok') {
+      toast('Data stress test berhasil dihapus', 'ok');
+      document.getElementById('stResult').style.display = 'none';
+      document.getElementById('stProgressWrap').style.display = 'none';
+      document.getElementById('stProgressBar').style.width = '0%';
+    } else {
+      toast('Ada error saat cleanup: ' + (r.errors || []).join(', '), 'error');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+}
+
+// ══════════════════════════════════════════
 //  MATERI KAJIAN
 // ══════════════════════════════════════════
 var _atMateriData  = [];
@@ -6146,66 +6241,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// ── STRESS TEST UI SIMULATOR ──
-window.simulasiStressTestUI = function(jumlahMurid = 2000) {
-  showLoad('Bismillah, mensimulasikan data stress test...');
-  console.log(`[Stress Test UI] Memulai simulasi dengan ${jumlahMurid} data murid...`);
-  
-  const namaDepan = ["Ahmad", "Muhammad", "Annisa", "Fatima", "Umar", "Ali", "Aisyah", "Zainab", "Usman", "Abu Bakar", "Hamzah", "Khadijah", "Bilal", "Yusuf", "Ibrahim", "Sarah", "Hajar", "Maryam", "Yahya", "Zakaria"];
-  const namaBelakang = ["Al-Fatih", "Zuhair", "Rasyid", "Siddiq", "Ghazali", "Qayyim", "Nawawi", "Hajar", "Mubarak", "Haddad", "Rabbani", "Syam", "Muzakki", "Jamil", "Hasan", "Husain", "Ridho", "Fadhlurrahman", "Az-Zahra", "Salsabila"];
-  const halaqahList = ["Halaqah Utsman Bin Affan", "Halaqah Ali Bin Abi Thalib", "Halaqah Abu Bakar Ash-Shiddiq", "Halaqah Umar Bin Khattab", "Halaqah Bilal Bin Rabah", "Halaqah Khalid Bin Walid"];
-  const levelList = ["Pra-Tahsin", "Tahsin 1", "Tahsin 2", "Tahfidz Anak", "Tahfidz Dewasa", "Talaqqi"];
-  const bulanList = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-  
-  const mockData = [];
-  for (let i = 1; i <= jumlahMurid; i++) {
-    const fn = namaDepan[Math.floor(Math.random() * namaDepan.length)];
-    const ln = namaBelakang[Math.floor(Math.random() * namaBelakang.length)];
-    const nama = `${fn} ${ln} #${i}`;
-    const nis = `NIS-${String(i).padStart(4, '0')}`;
-    const level = levelList[Math.floor(Math.random() * levelList.length)];
-    const hal = halaqahList[Math.floor(Math.random() * halaqahList.length)];
-    const tunggakan = Math.floor(Math.random() * 5); // 0 sd 4
-    const bulan_belum = [];
-    if (tunggakan > 0) {
-      for (let b = 0; b < tunggakan; b++) {
-        const bln = bulanList[b];
-        if (!bulan_belum.includes(bln)) bulan_belum.push(bln);
-      }
-    }
-    mockData.push({
-      nama_murid: nama,
-      id_murid: nis,
-      level: level,
-      nama_halaqah: hal,
-      id_halaqah: `H-${Math.floor(Math.random() * 6) + 1}`,
-      tunggakan: tunggakan,
-      bulan_belum: bulan_belum,
-      no_hp: "081234567890"
-    });
-  }
-  
-  _sppRekapData = mockData;
-  
-  const start = performance.now();
-  filterSPPTable();
-  const end = performance.now();
-  const duration = (end - start).toFixed(2);
-  console.log(`[Stress Test UI] Render ${jumlahMurid} baris selesai dalam ${duration} ms.`);
-  
-  const lunasCount = mockData.filter(m => m.tunggakan === 0).length;
-  const menunggakCount = mockData.length - lunasCount;
-  const totalTunggakan = mockData.reduce((acc, m) => acc + m.tunggakan, 0);
-  const belumTertagih = totalTunggakan * SPP_NOMINAL_BULANAN;
-  
-  document.getElementById('sppStatLunas').textContent = lunasCount;
-  document.getElementById('sppStatLunasSub').textContent = `${Math.round(lunasCount / mockData.length * 100)}% dari ${mockData.length} murid`;
-  document.getElementById('sppStatTunggak').textContent = menunggakCount;
-  document.getElementById('sppStatTunggakSub').textContent = `Belum tertagih: Rp ${belumTertagih.toLocaleString('id-ID')}`;
-  
-  hideLoad();
-  toast(`Sukses memuat ${jumlahMurid} data murid tiruan! Render selesai dalam ${duration} ms. (Cek DevTools Console)`, 'ok');
-};
 </script>
 
 

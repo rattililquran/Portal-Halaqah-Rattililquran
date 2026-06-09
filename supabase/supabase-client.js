@@ -3146,6 +3146,146 @@ var AdminAPI = {
     _check(error,'deleteMateriLevel');
     return {status:'ok'};
   },
+
+  // ── STRESS TEST: generate data KBM, nilai, setoran untuk uji performa ──────
+  // Semua data ditandai [STRESS_TEST] — hapus via cleanupStressTest().
+  stressTestKBM: async function(opts, onProgress) {
+    var sesiCount  = opts.sesiPerHalaqah || 3;
+    var incSetoran = opts.includeSetoran !== false;
+    var MARKER     = '[STRESS_TEST]';
+    var MATERI     = ['Tahsin Makhraj','Tahsin Sifat Huruf','Tajwid Ghunnah','Tajwid Mad','Muraja\'ah Juz 30','Ziyadah Al-Baqarah','Tahfidz Review'];
+    var KOREKSI    = ['Perhatikan mad jaiz munfashil','Ikhfa\' kurang sempurna','Qalqalah perlu diperbaiki','Bacaan sudah lancar, tingkatkan tartil','Perbaiki makharijul huruf'];
+    var ADAB       = ['Baik','Perlu Perhatian'];
+    var KAMERA     = ['kamera terbuka','kamera tertutup'];
+    var HADIR      = ['H','H','H','H','H','H','I','A']; // ~75% H, 12.5% I, 12.5% A
+    var NILAI      = [75,78,80,82,85,87,88,90,92,95,100];
+    var SURAT      = [{nama:'Al-Fatihah',max:7},{nama:'Al-Baqarah',max:30},{nama:'Al-Imran',max:20},{nama:'Al-Mulk',max:30},{nama:'Yasin',max:30}];
+    var KELANCARAN = ['Lancar','Cukup Lancar','Perlu Latihan'];
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function stId(p) {
+      return p + '-ST' + Date.now().toString(36).toUpperCase().slice(-5) + Math.random().toString(36).substring(2,5).toUpperCase();
+    }
+
+    if (onProgress) onProgress(5, 'Memuat data halaqah...');
+    var { data: halaqahList, error: hqErr } = await _sb.from('halaqah').select('id_halaqah, nama_halaqah, id_guru, nama_guru').eq('status','aktif');
+    if (hqErr || !halaqahList?.length) return { status:'error', message:'Tidak ada halaqah aktif' };
+
+    var { data: anggotaAll } = await _sb.from('anggota').select('id_murid, nama_murid, id_halaqah').eq('status','aktif');
+    var anggotaMap = {};
+    (anggotaAll || []).forEach(function(a) {
+      if (!anggotaMap[a.id_halaqah]) anggotaMap[a.id_halaqah] = [];
+      anggotaMap[a.id_halaqah].push(a);
+    });
+
+    var totalKbm = 0, totalNilai = 0, totalSetoran = 0, errors = [];
+    var total = halaqahList.length;
+
+    for (var hi = 0; hi < total; hi++) {
+      var h    = halaqahList[hi];
+      var murid = anggotaMap[h.id_halaqah] || [];
+      if (onProgress) onProgress(
+        Math.round(10 + (hi / total) * 80),
+        'Halaqah ' + (hi+1) + '/' + total + ': ' + h.nama_halaqah + ' (' + murid.length + ' murid)'
+      );
+      if (!murid.length) continue;
+
+      for (var si = 0; si < sesiCount; si++) {
+        var daysAgo = (sesiCount - si) * 7;
+        var tgl     = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var id_kbm  = stId('KBM');
+        var materi  = pick(MATERI);
+
+        var { error: e1 } = await _sb.from('kbm_log').insert({
+          id_kbm,
+          id_halaqah        : h.id_halaqah,
+          id_guru           : h.id_guru || '',
+          nama_guru         : h.nama_guru || '',
+          tanggal_pertemuan : tgl,
+          pertemuan_ke      : 90 + si + 1,
+          status            : 'selesai',
+          jenis_sesi        : 'KBM Reguler',
+          materi_belajar    : materi,
+          pencapaian_modul  : materi,
+          catatan_umum      : MARKER,
+          jumlah_hadir      : Math.round(murid.length * 0.75),
+          jumlah_alpa       : murid.length - Math.round(murid.length * 0.75),
+          jam_mulai         : '15:00',
+          jam_selesai       : '16:00',
+        });
+        if (e1) { errors.push('kbm_log: ' + e1.message); continue; }
+        totalKbm++;
+
+        // nilai_kbm — presensi + nilai per murid
+        var nilaiRows = murid.map(function(m) {
+          return {
+            id_kbm, id_halaqah: h.id_halaqah, id_murid: m.id_murid,
+            pertemuan_ke  : 90 + si + 1,
+            tanggal       : tgl,
+            jenis_sesi    : 'KBM Reguler',
+            status_hadir  : pick(HADIR),
+            adab          : pick(ADAB),
+            kamera_murid  : pick(KAMERA),
+            nilai         : pick(NILAI),
+            koreksi_tahsin: pick(KOREKSI),
+            catatan_murid : MARKER,
+          };
+        });
+        for (var bi = 0; bi < nilaiRows.length; bi += 50) {
+          var { error: e2 } = await _sb.from('nilai_kbm').upsert(nilaiRows.slice(bi, bi+50), { onConflict: 'id_kbm,id_murid' });
+          if (e2) errors.push('nilai_kbm: ' + e2.message);
+          else totalNilai += Math.min(50, nilaiRows.length - bi);
+        }
+
+        // setoran_hafalan (opsional)
+        if (incSetoran) {
+          var st       = pick(SURAT);
+          var stRows   = murid
+            .filter(function() { return Math.random() > 0.3; }) // 70% murid setoran per sesi
+            .map(function(m) {
+              return {
+                id_murid  : m.id_murid,
+                nama_murid: m.nama_murid || '',
+                id_halaqah: h.id_halaqah,
+                id_kbm,
+                id_guru   : h.id_guru || '',
+                nama_guru : h.nama_guru || '',
+                jenis     : 'Ziyadah',
+                surat     : st.nama,
+                ayat_dari : 1,
+                ayat_sampai: Math.min(st.max, 7),
+                nilai     : pick(NILAI),
+                kelancaran: pick(KELANCARAN),
+                catatan   : MARKER,
+              };
+            });
+          for (var bj = 0; bj < stRows.length; bj += 50) {
+            var { error: e3 } = await _sb.from('setoran_hafalan').insert(stRows.slice(bj, bj+50));
+            if (e3) errors.push('setoran: ' + e3.message);
+            else totalSetoran += Math.min(50, stRows.length - bj);
+          }
+        }
+      }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalKbm, totalNilai, totalSetoran, errors };
+  },
+
+  // Hapus semua data stress test (semua bertanda [STRESS_TEST])
+  cleanupStressTest: async function() {
+    var MARKER = '[STRESS_TEST]';
+    // Urutan: anak dulu, lalu induk
+    var [r1, r2, r3] = await Promise.all([
+      _sb.from('setoran_hafalan').delete().eq('catatan', MARKER),
+      _sb.from('nilai_kbm').delete().eq('catatan_murid', MARKER),
+    ]);
+    var r3res = await _sb.from('kbm_log').delete().eq('catatan_umum', MARKER);
+    var errs = [r1.error, r2.error, r3res.error].filter(Boolean);
+    return errs.length
+      ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
+      : { status:'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
