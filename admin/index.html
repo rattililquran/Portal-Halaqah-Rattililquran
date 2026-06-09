@@ -4480,9 +4480,20 @@ async function loadSPPAdmin() {
           var jenisBadge = p.jenis === 'SPP Pribadi'
             ? '<span style="background:var(--green-bg, #f0fdf4);color:var(--green-txt, #065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
             : '<span style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
-          var buktiLink = p.bukti_url
-            ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
-            : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>';
+          var isGateway = p.metode_bayar === 'gateway';
+          var buktiLink = isGateway
+            ? ''
+            : (p.bukti_url
+                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+                : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
+          var actionBtns = isGateway
+            ? '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+              + '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>'
+              + '</div>'
+            : '<div style="display:flex;gap:6px;flex-shrink:0">'
+              + '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
+              + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
+              + '</div>';
           return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">'
             + '<div style="flex:1;min-width:160px">'
             + '<div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(p.nama_murid||p.id_murid)+'</div>'
@@ -4491,12 +4502,10 @@ async function loadSPPAdmin() {
               +' &nbsp;·&nbsp; <strong>'+nominal+'</strong>'
               +(p.metode_transfer?'&nbsp;·&nbsp;<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">'+esc(p.metode_transfer)+'</span>':'')+'</div>'
             + (p.catatan ? '<div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px;font-style:italic">'+esc(p.catatan)+'</div>' : '')
-            + '<div style="margin-top:4px">'+buktiLink+'</div>'
+            + (buktiLink ? '<div style="margin-top:4px">'+buktiLink+'</div>' : '')
             + '</div>'
-            + '<div style="display:flex;gap:6px;flex-shrink:0">'
-            + '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>'
-            + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
-            + '</div></div>';
+            + actionBtns
+            + '</div>';
         }).join('');
       } else {
         pendSec.style.display = 'none';
