@@ -10972,7 +10972,7 @@ async function bukaModalKonfirmasiSPP() {
     var wrap = document.getElementById('sppMetodeInfo');
     var list = document.getElementById('sppMetodeList');
     if (!metode.length) { wrap.style.display='none'; return; }
-    wrap.style.display = '';
+    if (_sppManualOpen) wrap.style.display = '';
     list.innerHTML = metode.map(function(m, i) {
       var btnId = 'salinBtn' + i;
       if (m.jenis === 'qris') {
@@ -12403,8 +12403,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Body scroll -->
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
 
-      <!-- Info Metode Pembayaran -->
-      <div id="sppMetodeInfo" style="display:none">
+      <!-- Info Metode Pembayaran (manual only) -->
+      <div id="sppMetodeInfo" class="spp-manual-only" style="display:none">
         <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Transfer ke</div>
         <div id="sppMetodeList" style="display:flex;flex-direction:column;gap:8px"></div>
         <div style="height:1px;background:var(--border);margin:14px 0"></div>
