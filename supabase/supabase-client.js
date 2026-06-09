@@ -3160,7 +3160,7 @@ var AdminAPI = {
     var HADIR      = ['H','H','H','H','H','H','I','A']; // ~75% H, 12.5% I, 12.5% A
     var NILAI      = [75,78,80,82,85,87,88,90,92,95,100];
     var SURAT      = [{nama:'Al-Fatihah',max:7},{nama:'Al-Baqarah',max:30},{nama:'Al-Imran',max:20},{nama:'Al-Mulk',max:30},{nama:'Yasin',max:30}];
-    var KELANCARAN = ['Lancar','Cukup Lancar','Perlu Latihan'];
+    var KELANCARAN = ['Lancar','Cukup','Perlu Perbaikan']; // harus sesuai konfigurasi_penilaian default
 
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     // [DESAIN SENGAJA] Gunakan crypto.randomUUID agar ID benar-benar unik meski loop cepat.
@@ -3201,13 +3201,14 @@ var AdminAPI = {
         var id_kbm  = stId('KBM');
         var materi  = pick(MATERI);
 
+        var stPertemuanKe = 9000 + Math.floor(Math.random() * 9000);
         var { error: e1 } = await _sb.from('kbm_log').insert({
           id_kbm,
           id_halaqah        : h.id_halaqah,
           id_guru           : h.id_guru || '',
           nama_guru         : h.nama_guru || '',
           tanggal_pertemuan : tgl,
-          pertemuan_ke      : 90 + si + 1,
+          pertemuan_ke      : stPertemuanKe,
           status            : 'selesai',
           jenis_sesi        : 'KBM Reguler',
           materi_belajar    : materi,
@@ -3225,7 +3226,7 @@ var AdminAPI = {
         var nilaiRows = murid.map(function(m) {
           return {
             id_kbm, id_halaqah: h.id_halaqah, id_murid: m.id_murid,
-            pertemuan_ke  : 90 + si + 1,
+            pertemuan_ke  : stPertemuanKe,
             tanggal       : tgl,
             jenis_sesi    : 'KBM Reguler',
             status_hadir  : pick(HADIR),
