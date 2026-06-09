@@ -1896,13 +1896,10 @@ var MuridAPI = {
   getSPPStatus: async function() {
     var id_murid = _uid();
     var tahunIni = new Date().getFullYear();
-    var [sppRes, anggotaRes] = await Promise.all([
-      _sb.from('spp_pembayaran').select('*').eq('id_murid', id_murid)
-        .order('tahun',{ascending:false}).order('created_at',{ascending:false}),
-      _sb.from('anggota').select('created_at').eq('id_murid', id_murid).eq('status','aktif').maybeSingle(),
-    ]);
-    if (sppRes.error) return { status: 'ok', data: { rows: [], lunas_bulan: [], tunggakan: 0, total_nominal: 0 } };
-    var rows = sppRes.data || [];
+    var { data, error } = await _sb.from('spp_pembayaran').select('*').eq('id_murid', id_murid)
+      .order('tahun',{ascending:false}).order('created_at',{ascending:false});
+    if (error) return { status: 'ok', data: { rows: [], lunas_bulan: [], tunggakan: 0, total_nominal: 0 } };
+    var rows = data || [];
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
     var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
@@ -1914,26 +1911,14 @@ var MuridAPI = {
       return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
     });
     var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    var bulanSelesai = new Date().getMonth(); // bulan yg sudah lewat (0-indexed; Juni=5 → Jan-Mei selesai)
-    // startIdx = bulan bergabung (dari anggota.created_at), jika tahun bergabung = tahunAktif
-    // jika bergabung tahun sebelumnya atau data tidak ada → fallback window 5 bulan terakhir
-    var TOTAL_REKAP = 5;
-    var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP); // default: 5 bulan terakhir
-    if (anggotaRes.data && anggotaRes.data.created_at) {
-      var tglGabung = new Date(anggotaRes.data.created_at);
-      if (tglGabung.getFullYear() === tahunAktif) {
-        startIdx = tglGabung.getMonth(); // bulan bergabung sebagai awal kewajiban SPP
-      }
-    }
-    var endIdx   = bulanSelesai; // eksklusif — bulan berjalan belum jatuh tempo
-    var bulanDiWindow = BULAN.slice(startIdx, endIdx);
-    var tunggakan = bulanDiWindow.filter(function(b){ return !lunasBulan.includes(b); }).length;
+    // Kewajiban SPP = 5 bulan per periode, tidak tergantung bulan kalender
+    var TOTAL_SPP = 5;
+    var tunggakan = Math.max(0, TOTAL_SPP - lunasBulan.length);
     return { status: 'ok', data: {
       rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
       bulan_grid: bulanGrid, tunggakan, total_nominal: totalNominal,
       tahun_aktif: tahunAktif, has_paid: lunasBulan.length > 0,
-      start_bulan: BULAN[startIdx], end_bulan: BULAN[endIdx > 0 ? endIdx-1 : 0],
-      window_size: Math.max(0, endIdx - startIdx),
+      window_size: TOTAL_SPP,
     }};
   },
 
