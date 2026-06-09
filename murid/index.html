@@ -10893,9 +10893,31 @@ function getSppMetodeSelected() {
   return el ? el.value : '';
 }
 
+var _sppManualOpen = false;
+function toggleSppManual() {
+  _sppManualOpen = !_sppManualOpen;
+  document.querySelectorAll('.spp-manual-only').forEach(function(el) {
+    el.style.display = _sppManualOpen ? '' : 'none';
+  });
+  var footer = document.getElementById('sppManualFooter');
+  if (footer) footer.style.display = _sppManualOpen ? '' : 'none';
+  var toggle = document.getElementById('sppManualToggle');
+  if (toggle) toggle.textContent = _sppManualOpen
+    ? 'sembunyikan opsi manual ▴'
+    : 'atau bayar manual / transfer bank ▾';
+  if (_sppManualOpen) {
+    var sheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
+    if (sheet) setTimeout(function(){ sheet.scrollTop = sheet.scrollHeight; }, 50);
+  }
+}
+
 async function bukaModalKonfirmasiSPP() {
   _sppFormJenis = 'SPP Pribadi';
   _sppBuktiBlob = null;
+  _sppManualOpen = false;
+  document.querySelectorAll('.spp-manual-only').forEach(function(el){ el.style.display='none'; });
+  var _mf = document.getElementById('sppManualFooter'); if (_mf) _mf.style.display='none';
+  var _mt = document.getElementById('sppManualToggle'); if (_mt) _mt.textContent='atau bayar manual / transfer bank ▾';
   document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
   document.getElementById('sppFormBulanWrap').style.display = '';
   // Reset checkboxes & radio
@@ -12429,8 +12451,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </select>
       </div>
 
-      <!-- Metode Pembayaran -->
-      <div class="fg" style="margin:0">
+      <!-- Metode Pembayaran (manual only) -->
+      <div class="fg spp-manual-only" style="margin:0;display:none">
         <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:8px">Metode Pembayaran <span style="color:var(--red)">*</span></label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="sppMetodeTransferGrid">
           <label class="spp-metode-radio"><input type="radio" name="sppMetodeTransfer" value="TF BSI" onchange="updateSppMetode(this)"><span>🏦 TF BSI</span></label>
@@ -12449,8 +12471,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
-      <!-- Bukti Upload -->
-      <div class="fg" style="margin:0">
+      <!-- Bukti Upload (manual only) -->
+      <div class="fg spp-manual-only" style="margin:0;display:none">
         <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">
           Foto Bukti Transfer
           <span style="font-weight:500;color:var(--text-3);font-size:11px"> · maks 5 MB</span>
@@ -12478,8 +12500,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
-      <!-- Catatan -->
-      <div class="fg" style="margin:0">
+      <!-- Catatan (manual only) -->
+      <div class="fg spp-manual-only" style="margin:0;display:none">
         <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
         <textarea id="sppFormCatatan" class="fc" rows="2" placeholder="Misal: Transfer via BCA atas nama Ahmad..." style="width:100%;resize:none"></textarea>
       </div>
@@ -12490,18 +12512,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Footer sticky -->
     <div class="modal-foot" style="flex-shrink:0;flex-direction:column;gap:8px">
+      <!-- Primary: Gateway -->
       <div style="display:flex;gap:8px;width:100%">
         <button class="btn btn-ghost" onclick="tutupModalKonfirmasiSPP()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
-        <button class="btn btn-primary" style="flex:1" onclick="submitKonfirmasiSPP()">
+        <button class="btn" id="btnBayarGateway" onclick="bayarViaGateway()"
+          style="flex:1;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:700;border:none;padding:13px;border-radius:var(--r-pill);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:16px">⚡</span> Bayar Sekarang
+        </button>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text-3)">QRIS · Virtual Account · e-Wallet · otomatis terkonfirmasi</div>
+      <!-- Toggle manual -->
+      <button type="button" id="sppManualToggle" onclick="toggleSppManual()"
+        style="width:100%;background:none;border:none;padding:4px 0;font-size:12px;color:var(--text-3);cursor:pointer;text-decoration:underline;text-underline-offset:3px">
+        atau bayar manual / transfer bank ▾
+      </button>
+      <!-- Manual footer (hidden by default) -->
+      <div id="sppManualFooter" style="display:none;width:100%">
+        <button class="btn btn-primary" style="width:100%" onclick="submitKonfirmasiSPP()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
           Kirim Bukti Transfer
         </button>
       </div>
-      <button class="btn" id="btnBayarGateway" onclick="bayarViaGateway()"
-        style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-weight:700;border:none;padding:13px;border-radius:var(--r-pill);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span style="font-size:16px">⚡</span> Bayar Sekarang · QRIS / VA / e-Wallet
-      </button>
-      <div style="text-align:center;font-size:11px;color:var(--text-3)">Bayar via gateway → otomatis terkonfirmasi, tanpa perlu upload bukti</div>
     </div>
   </div>
 </div>
