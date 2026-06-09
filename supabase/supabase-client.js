@@ -3411,6 +3411,197 @@ var AdminAPI = {
       : { status:'ok', deleted: { sesi: r2.count, log: r1.count } };
   },
 
+  // Stress test Rekap Status: buat kbm_log ringan lalu rekap_status per halaqah
+  // Marker: catatan_ustadz='[STRESS_TEST]' di rekap_status, catatan_umum='[STRESS_TEST]' di kbm_log
+  stressTestRekapStatus: async function(opts, onProgress) {
+    var sesiCount = opts.sesiPerHalaqah || 2;
+    var MARKER    = '[STRESS_TEST]';
+    var CATATAN   = ['Ustadz hadir tepat waktu','Murid aktif dan responsif','Ada beberapa murid terlambat','Sesi berjalan lancar','Perlu peningkatan kedisiplinan'];
+    var MATERI    = ['Tahsin Makhraj','Tajwid Ghunnah','Muraja\'ah Juz 30','Ziyadah Al-Baqarah'];
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function stId(p) {
+      var uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID().replace(/-/g,'').substring(0,12).toUpperCase()
+        : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,8).toUpperCase();
+      return p + '-ST' + uuid;
+    }
+
+    if (onProgress) onProgress(5, 'Memuat halaqah & ketua...');
+    var [hqRes, ketuaRes] = await Promise.all([
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah, id_guru, nama_guru').eq('status','aktif'),
+      _sb.from('anggota').select('id_murid, id_halaqah').eq('is_ketua', true).eq('status','aktif'),
+    ]);
+    var halaqahList = (hqRes.data || []).filter(function(h) { return h.id_guru; });
+    if (!halaqahList.length) return { status:'error', message:'Tidak ada halaqah aktif dengan guru' };
+
+    var ketuaMap = {};
+    (ketuaRes.data || []).forEach(function(k) { ketuaMap[k.id_halaqah] = k.id_murid; });
+    var fallbackId = _uid();
+
+    var totalKbm = 0, totalRekap = 0, errors = [];
+
+    for (var hi = 0; hi < halaqahList.length; hi++) {
+      var h = halaqahList[hi];
+      var ketuaId = ketuaMap[h.id_halaqah] || fallbackId;
+      if (onProgress) onProgress(
+        Math.round(10 + (hi / halaqahList.length) * 80),
+        'Halaqah ' + (hi+1) + '/' + halaqahList.length + ': ' + h.nama_halaqah
+      );
+
+      for (var si = 0; si < sesiCount; si++) {
+        var daysAgo     = (sesiCount - si) * 7;
+        var tgl         = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var id_kbm      = stId('KBM');
+        var pertemuanKe = 9000 + Math.floor(Math.random() * 9000);
+
+        var { error: e1 } = await _sb.from('kbm_log').insert({
+          id_kbm, id_halaqah: h.id_halaqah, id_guru: h.id_guru,
+          nama_guru: h.nama_guru || '', tanggal_pertemuan: tgl,
+          pertemuan_ke: pertemuanKe, status: 'selesai',
+          jenis_sesi: 'KBM Reguler', materi_belajar: pick(MATERI),
+          catatan_umum: MARKER, jumlah_hadir: 4, jumlah_alpa: 1,
+          jam_mulai: '15:00', jam_selesai: '16:00',
+        });
+        if (e1) { errors.push('kbm_log: ' + e1.message); continue; }
+        totalKbm++;
+
+        var { error: e2 } = await _sb.from('rekap_status').insert({
+          id_halaqah   : h.id_halaqah,
+          id_kbm,
+          id_ketua     : ketuaId,
+          catatan_ustadz: MARKER + ' ' + pick(CATATAN),
+        });
+        if (e2) {
+          console.error('[StressTest REKAP] error:', e2.code, e2.message);
+          errors.push('rekap_status [' + (e2.code||'?') + ']: ' + e2.message);
+        } else { totalRekap++; }
+      }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalKbm, totalRekap, errors };
+  },
+
+  cleanupStressTestRekapStatus: async function() {
+    var MARKER = '[STRESS_TEST]';
+    var r1 = await _sb.from('rekap_status').delete({ count:'exact' }).like('catatan_ustadz', MARKER + '%');
+    if (r1.error) console.error('[Cleanup REKAP] rekap_status error:', r1.error);
+    var r2 = await _sb.from('kbm_log').delete({ count:'exact' }).eq('catatan_umum', MARKER);
+    if (r2.error) console.error('[Cleanup REKAP] kbm_log error:', r2.error);
+    console.log('[Cleanup REKAP] deleted — rekap:', r1.count, 'kbm:', r2.count);
+    var errs = [r1.error, r2.error].filter(Boolean);
+    return errs.length
+      ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
+      : { status:'ok', deleted: { rekap: r1.count, kbm: r2.count } };
+  },
+
+  // Stress test Push User Prefs: upsert prefs semua user aktif dengan key '_st: true'
+  // Tidak mengganggu prefs nyata — key '_st' diabaikan oleh filterByUserPrefs
+  stressTestPushPrefs: async function(onProgress) {
+    if (onProgress) onProgress(5, 'Memuat users aktif...');
+    var { data: userList, error } = await _sb.from('users').select('id_user').eq('status','aktif');
+    if (error || !userList?.length) return { status:'error', message:'Tidak ada user aktif' };
+
+    var total = userList.length, done = 0, errors = [];
+    var BATCH = 50;
+
+    for (var bi = 0; bi < userList.length; bi += BATCH) {
+      var batch = userList.slice(bi, bi + BATCH);
+      if (onProgress) onProgress(
+        Math.round(10 + (bi / total) * 80),
+        'Batch ' + (bi+1) + '–' + Math.min(bi+BATCH, total) + ' dari ' + total + ' user'
+      );
+
+      // Fetch prefs saat ini dulu agar merge (tidak tiban prefs nyata)
+      var ids = batch.map(function(u) { return u.id_user; });
+      var { data: existing } = await _sb.from('push_user_prefs').select('id_user, prefs').in('id_user', ids);
+      var existingMap = {};
+      (existing || []).forEach(function(r) { existingMap[r.id_user] = r.prefs || {}; });
+
+      var rows = batch.map(function(u) {
+        var merged = Object.assign({}, existingMap[u.id_user] || {}, { _st: true });
+        return { id_user: u.id_user, prefs: merged, updated_at: new Date().toISOString() };
+      });
+
+      var { error: e } = await _sb.from('push_user_prefs').upsert(rows, { onConflict: 'id_user' });
+      if (e) { errors.push('push_user_prefs [' + (e.code||'?') + ']: ' + e.message); }
+      else { done += batch.length; }
+    }
+
+    if (onProgress) onProgress(100, 'Selesai!');
+    return { status: errors.length ? 'partial' : 'ok', totalUsers: done, errors };
+  },
+
+  cleanupStressTestPushPrefs: async function() {
+    // Ambil semua rows yang punya key '_st'
+    var { data: rows, error: eq } = await _sb.from('push_user_prefs')
+      .select('id_user, prefs').filter('prefs', 'cs', '{"_st":true}');
+    if (eq) return { status:'error', errors:[eq.message] };
+    if (!rows?.length) return { status:'ok', deleted: { rows: 0 } };
+
+    var deleted = 0, errors = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var newPrefs = Object.assign({}, r.prefs);
+      delete newPrefs._st;
+      var res;
+      if (Object.keys(newPrefs).length === 0) {
+        // Hapus row jika prefs jadi kosong (user tidak punya prefs nyata)
+        res = await _sb.from('push_user_prefs').delete().eq('id_user', r.id_user);
+      } else {
+        res = await _sb.from('push_user_prefs').update({ prefs: newPrefs }).eq('id_user', r.id_user);
+      }
+      if (res.error) errors.push(res.error.message);
+      else deleted++;
+    }
+    console.log('[Cleanup PREFS] cleaned:', deleted, 'rows');
+    return errors.length
+      ? { status:'error', errors }
+      : { status:'ok', deleted: { rows: deleted } };
+  },
+
+  // Combined Load: jalankan semua ST secara berurutan
+  stressTestCombined: async function(opts, onProgress) {
+    var results = {};
+    var step = 0, totalSteps = 5;
+    function prog(pct, msg) {
+      if (onProgress) onProgress(
+        Math.round((step / totalSteps) * 100 + pct / totalSteps),
+        '[' + (step+1) + '/' + totalSteps + '] ' + msg
+      );
+    }
+
+    step = 0; results.kbm = await window.HQ.AdminAPI.stressTestKBM(
+      { sesiPerHalaqah: opts.sesi || 2, includeSetoran: true }, prog);
+
+    step = 1; results.atTibyan = await window.HQ.AdminAPI.stressTestAtTibyan(
+      { sesiCount: opts.sesi || 2 }, prog);
+
+    step = 2; results.observasi = await window.HQ.AdminAPI.stressTestObservasi(
+      { sesiPerHalaqah: opts.sesi || 2 }, prog);
+
+    step = 3; results.rekapStatus = await window.HQ.AdminAPI.stressTestRekapStatus(
+      { sesiPerHalaqah: opts.sesi || 2 }, prog);
+
+    step = 4; results.users = await window.HQ.AdminAPI.stressTestUsers(
+      { muridPerHalaqah: 2 }, prog);
+
+    if (onProgress) onProgress(100, 'Combined load selesai!');
+    return results;
+  },
+
+  cleanupStressTestCombined: async function() {
+    var [r1, r2, r3, r4, r5] = await Promise.all([
+      window.HQ.AdminAPI.cleanupStressTest(),
+      window.HQ.AdminAPI.cleanupStressTestAtTibyan(),
+      window.HQ.AdminAPI.cleanupStressTestObservasi(),
+      window.HQ.AdminAPI.cleanupStressTestRekapStatus(),
+      window.HQ.AdminAPI.cleanupStressTestUsers(),
+    ]);
+    return { kbm: r1, atTibyan: r2, observasi: r3, rekapStatus: r4, users: r5 };
+  },
+
   // Stress test Observasi KBM: buat kbm_log ringan per halaqah lalu observasi linked ke sesi tsb
   // Marker: catatan_tambahan='[STRESS_TEST]' di observasi, catatan_umum='[STRESS_TEST]' di kbm_log
   stressTestObservasi: async function(opts, onProgress) {

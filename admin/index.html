@@ -1853,6 +1853,86 @@ html.theme-dark .tbl-wrap thead th {
             </div>
           </div>
 
+          <!-- Stress Test Rekap Status -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚡ Stress Test Rekap Status</div>
+              <div style="font-size:12px;color:var(--text-3)">Generate rekap ketua per sesi KBM ke DB</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px">
+                <label style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px">Sesi per Halaqah</label>
+                <select id="rsStSesiCount" class="form-control" style="font-size:13px">
+                  <option value="1">1 sesi</option>
+                  <option value="2" selected>2 sesi</option>
+                  <option value="3">3 sesi</option>
+                </select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="rsStressTestMulai()" id="btnRsStressStart">⚡ Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="rsStressTestCleanup()" id="btnRsStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+              </div>
+              <div id="rsStProgressWrap" style="display:none;margin-bottom:10px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="rsStProgressLabel">Memulai...</div>
+                <div style="background:var(--bg-2);border-radius:99px;height:8px;overflow:hidden">
+                  <div id="rsStProgressBar" style="height:100%;background:linear-gradient(90deg,#06b6d4,#10b981);border-radius:99px;width:0%;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="rsStResult" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- Stress Test Push Prefs -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚡ Stress Test Push Prefs</div>
+              <div style="font-size:12px;color:var(--text-3)">Upsert preferensi notifikasi semua user aktif</div>
+            </div>
+            <div class="card-body">
+              <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Menambahkan key <code>_st: true</code> ke prefs tiap user tanpa menghapus prefs nyata.</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="prefsStressTestMulai()" id="btnPrefsStressStart">⚡ Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="prefsStressTestCleanup()" id="btnPrefsStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+              </div>
+              <div id="prefsStProgressWrap" style="display:none;margin-bottom:10px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="prefsStProgressLabel">Memulai...</div>
+                <div style="background:var(--bg-2);border-radius:99px;height:8px;overflow:hidden">
+                  <div id="prefsStProgressBar" style="height:100%;background:linear-gradient(90deg,#f59e0b,#8b5cf6);border-radius:99px;width:0%;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="prefsStResult" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- Stress Test Combined Load -->
+          <div class="card" style="border:2px solid var(--primary-light)">
+            <div class="card-head">
+              <div class="card-title">🔥 Combined Load Test</div>
+              <div style="font-size:12px;color:var(--text-3)">Jalankan semua ST sekaligus — KBM + At-Tibyan + Observasi + Rekap + User</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px">
+                <label style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px">Sesi per Area</label>
+                <select id="combStSesi" class="form-control" style="font-size:13px">
+                  <option value="1">1 sesi (cepat)</option>
+                  <option value="2" selected>2 sesi</option>
+                  <option value="3">3 sesi</option>
+                </select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                <button class="btn btn-primary btn-sm" onclick="combStressTestMulai()" id="btnCombStressStart">🔥 Mulai Combined Test</button>
+                <button class="btn btn-outline btn-sm" onclick="combStressTestCleanup()" id="btnCombStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Cleanup Semua</button>
+              </div>
+              <div id="combStProgressWrap" style="display:none;margin-bottom:10px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="combStProgressLabel">Memulai...</div>
+                <div style="background:var(--bg-2);border-radius:99px;height:8px;overflow:hidden">
+                  <div id="combStProgressBar" style="height:100%;background:linear-gradient(90deg,#ef4444,#f59e0b,#10b981);border-radius:99px;width:0%;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="combStResult" style="display:none"></div>
+            </div>
+          </div>
+
           <!-- Stress Test User Manajemen -->
           <div class="card">
             <div class="card-head">
@@ -5713,6 +5793,112 @@ async function stressTestCleanup() {
     toast('Error: ' + e.message, 'error');
   }
   btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+}
+
+// ══════════════════════════════════════════
+//  STRESS TEST REKAP STATUS
+// ══════════════════════════════════════════
+async function rsStressTestMulai() {
+  var btn=document.getElementById('btnRsStressStart'), wrap=document.getElementById('rsStProgressWrap'),
+      bar=document.getElementById('rsStProgressBar'), lbl=document.getElementById('rsStProgressLabel'),
+      res=document.getElementById('rsStResult');
+  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  wrap.style.display='block'; res.style.display='none';
+  var sesiPerHalaqah=parseInt(document.getElementById('rsStSesiCount').value)||2;
+  try {
+    var r=await window.HQ.AdminAPI.stressTestRekapStatus({sesiPerHalaqah},function(pct,msg){bar.style.width=pct+'%';lbl.textContent=msg;});
+    if(r.errors&&r.errors.length) console.warn('[ST REKAP] Errors:',r.errors);
+    res.style.display='block';
+    res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
+      +'<div style="font-weight:600;color:var(--success);margin-bottom:6px">'+(r.status==='ok'?'✅ Selesai':'⚠️ '+r.errors.length+' error')+'</div>'
+      +'<div>📚 KBM Log: <b>'+r.totalKbm+'</b></div><div>📋 Rekap Status: <b>'+r.totalRekap+'</b></div>'
+      +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
+      +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Ditandai [STRESS_TEST]</div></div>';
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
+}
+async function rsStressTestCleanup() {
+  if(!confirm('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?')) return;
+  var btn=document.getElementById('btnRsStressCleanup');
+  btn.disabled=true; btn.textContent='⏳ Menghapus...';
+  try {
+    var r=await window.HQ.AdminAPI.cleanupStressTestRekapStatus();
+    if(r.status==='ok'){var d=r.deleted||{};toast('Terhapus — Rekap: '+(d.rekap||0)+', KBM: '+(d.kbm||0),'ok');document.getElementById('rsStResult').style.display='none';document.getElementById('rsStProgressWrap').style.display='none';document.getElementById('rsStProgressBar').style.width='0%';}
+    else toast('Error: '+(r.errors||[]).join(', '),'error');
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='🗑️ Hapus Data Test';
+}
+
+// ══════════════════════════════════════════
+//  STRESS TEST PUSH PREFS
+// ══════════════════════════════════════════
+async function prefsStressTestMulai() {
+  var btn=document.getElementById('btnPrefsStressStart'), wrap=document.getElementById('prefsStProgressWrap'),
+      bar=document.getElementById('prefsStProgressBar'), lbl=document.getElementById('prefsStProgressLabel'),
+      res=document.getElementById('prefsStResult');
+  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  wrap.style.display='block'; res.style.display='none';
+  try {
+    var r=await window.HQ.AdminAPI.stressTestPushPrefs(function(pct,msg){bar.style.width=pct+'%';lbl.textContent=msg;});
+    res.style.display='block';
+    res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
+      +'<div style="font-weight:600;color:var(--success);margin-bottom:6px">'+(r.status==='ok'?'✅ Selesai':'⚠️ '+r.errors.length+' error')+'</div>'
+      +'<div>👤 User diupdate: <b>'+r.totalUsers+'</b></div>'
+      +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
+      +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Key <code>_st:true</code> ditambahkan ke prefs — tidak mempengaruhi notifikasi nyata</div></div>';
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
+}
+async function prefsStressTestCleanup() {
+  if(!confirm('Hapus key _st dari semua push_user_prefs?')) return;
+  var btn=document.getElementById('btnPrefsStressCleanup');
+  btn.disabled=true; btn.textContent='⏳ Menghapus...';
+  try {
+    var r=await window.HQ.AdminAPI.cleanupStressTestPushPrefs();
+    if(r.status==='ok'){var d=r.deleted||{};toast('Cleaned — '+d.rows+' rows','ok');document.getElementById('prefsStResult').style.display='none';document.getElementById('prefsStProgressWrap').style.display='none';document.getElementById('prefsStProgressBar').style.width='0%';}
+    else toast('Error: '+(r.errors||[]).join(', '),'error');
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='🗑️ Hapus Data Test';
+}
+
+// ══════════════════════════════════════════
+//  COMBINED LOAD TEST
+// ══════════════════════════════════════════
+async function combStressTestMulai() {
+  var btn=document.getElementById('btnCombStressStart'), wrap=document.getElementById('combStProgressWrap'),
+      bar=document.getElementById('combStProgressBar'), lbl=document.getElementById('combStProgressLabel'),
+      res=document.getElementById('combStResult');
+  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  wrap.style.display='block'; res.style.display='none';
+  var sesi=parseInt(document.getElementById('combStSesi').value)||2;
+  try {
+    var r=await window.HQ.AdminAPI.stressTestCombined({sesi},function(pct,msg){bar.style.width=pct+'%';lbl.textContent=msg;});
+    var totalErrors=[r.kbm,r.atTibyan,r.observasi,r.rekapStatus,r.users].reduce(function(s,x){return s+((x&&x.errors&&x.errors.length)||0);},0);
+    res.style.display='block';
+    res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
+      +'<div style="font-weight:600;color:'+(totalErrors?'#f59e0b':'var(--success)')+';margin-bottom:8px">'+(totalErrors?'⚠️ Selesai ('+totalErrors+' error)':'🔥 Combined Load Selesai')+'</div>'
+      +'<div>📚 KBM: <b>'+(r.kbm&&r.kbm.totalKbm||0)+'</b> sesi</div>'
+      +'<div>📖 At-Tibyan: <b>'+(r.atTibyan&&r.atTibyan.totalSesi||0)+'</b> sesi / <b>'+(r.atTibyan&&r.atTibyan.totalLog||0)+'</b> log</div>'
+      +'<div>📋 Observasi: <b>'+(r.observasi&&r.observasi.totalObs||0)+'</b> record</div>'
+      +'<div>📝 Rekap Status: <b>'+(r.rekapStatus&&r.rekapStatus.totalRekap||0)+'</b> record</div>'
+      +'<div>👤 Users: <b>'+(r.users&&r.users.totalUsers||0)+'</b> murid</div>'
+      +'<div style="color:var(--text-3);font-size:11px;margin-top:8px">Semua ditandai [STRESS_TEST] — klik "Cleanup Semua" untuk bersihkan</div></div>';
+    if(totalErrors) console.warn('[Combined ST] errors:',r);
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='🔥 Mulai Combined Test';
+}
+async function combStressTestCleanup() {
+  if(!confirm('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.')) return;
+  var btn=document.getElementById('btnCombStressCleanup');
+  btn.disabled=true; btn.textContent='⏳ Cleanup semua...';
+  try {
+    var r=await window.HQ.AdminAPI.cleanupStressTestCombined();
+    toast('Cleanup selesai — semua tabel bersih','ok');
+    ['combStResult','combStProgressWrap'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
+    document.getElementById('combStProgressBar').style.width='0%';
+    console.log('[Combined Cleanup]',r);
+  } catch(e){toast('Error: '+e.message,'error');}
+  btn.disabled=false; btn.textContent='🗑️ Cleanup Semua';
 }
 
 // ══════════════════════════════════════════
