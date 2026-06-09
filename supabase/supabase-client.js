@@ -3194,6 +3194,7 @@ var AdminAPI = {
         'Halaqah ' + (hi+1) + '/' + total + ': ' + h.nama_halaqah + ' (' + murid.length + ' murid)'
       );
       if (!murid.length) continue;
+      if (!h.id_guru) continue; // skip halaqah tanpa guru — id_guru FK tidak boleh kosong
 
       for (var si = 0; si < sesiCount; si++) {
         var daysAgo = (sesiCount - si) * 7;
