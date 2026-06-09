@@ -1911,10 +1911,15 @@ var MuridAPI = {
       return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
     });
     var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    // Kewajiban SPP = 5 bulan per periode, tidak tergantung bulan kalender
+    // [DESAIN SENGAJA] Kewajiban SPP = 5 bulan flat per periode.
+    // JANGAN diganti window kalender (Jan–bulanBerjalan) — setiap level/kelas
+    // bisa dibuka di bulan berbeda, tidak selalu mulai Januari.
+    // tunggakan = sisa dari 5, bukan "bulan lewat yang belum dibayar".
     var TOTAL_SPP = 5;
     var tunggakan = Math.max(0, TOTAL_SPP - lunasBulan.length);
-    // Bulan mulai = bulan pertama yang pernah diisi murid (lunas atau menunggu)
+    // [DESAIN SENGAJA] Bulan mulai grid diambil dari bulan pertama yang pernah
+    // disubmit murid — bukan Januari, bukan tanggal bergabung anggota.
+    // Bulan sebelum itu tampil ○ (tidak berlaku), bukan ❌.
     var semuaBulanSpp = rowsTahunIni.filter(function(r){ return r.jenis==='SPP Pribadi'||!r.jenis; });
     var bulanMulaiIdx = semuaBulanSpp.length
       ? semuaBulanSpp.reduce(function(min,r){ var i=BULAN.indexOf(r.bulan); return i>=0&&i<min?i:min; }, 11)

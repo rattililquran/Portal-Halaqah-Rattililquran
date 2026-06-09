@@ -11159,7 +11159,8 @@ function renderSPP(data) {
   var menungguBulan= data.menunggu_bulan || [];
   // Hitung lunas dari grid
   var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-  // BUG-04 fix: gunakan tunggakan dari server, jangan override di client
+  // [DESAIN SENGAJA] tunggakan & totalBulanLevel dari server — jangan dihitung ulang di sini.
+  // Kewajiban SPP = 5 bulan flat, tidak mengikuti window kalender Jan–bulanBerjalan.
   var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, 5 - lunasCount);
   var totalBulanLevel = (data.window_size !== undefined) ? data.window_size : 5;
 
@@ -11187,6 +11188,8 @@ function renderSPP(data) {
 
   // ── Grid 12 bulan ──
   var BNAME = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  // [DESAIN SENGAJA] bulanMulaiIdx = bulan pertama yang pernah disubmit murid (dari server).
+  // Bulan sebelumnya tampil ○, bukan ❌ — karena kelas bisa dibuka di bulan mana saja.
   var bulanMulaiIdx = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
   grid.innerHTML = (bulanGrid || []).map(function(b, i) {
     var sudahMulai = i >= bulanMulaiIdx;
