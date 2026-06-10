@@ -51,6 +51,15 @@ function _check(error, ctx) {
   if (error) { console.error('[SB] ' + ctx + ':', error); throw new Error(error.message || ctx); }
 }
 
+// Normalisasi jam dari CSV: "15.00" / "15.30" (pakai titik) -> "15:00" / "15:30"
+// agar valid untuk kolom time di Postgres. Mengembalikan null jika kosong.
+function _normJam(v) {
+  if (!v) return null;
+  var s = String(v).trim();
+  if (!s) return null;
+  return s.replace(/\./g, ':');
+}
+
 // Catat transaksi penting (validasi SPP, perubahan role/status, publish raport) ke audit_log
 // lewat RPC log_audit_action — user_id dikunci ke pemanggil sendiri (anti-pemalsuan log).
 // Logging tidak boleh menggagalkan transaksi utama jika gagal — karena itu tidak di-_check().
@@ -2762,7 +2771,7 @@ var AdminAPI = {
       var { error } = await _sb.from('halaqah').insert({
         id_halaqah, nama_halaqah:h.nama_halaqah, id_guru, nama_guru:h.nama_guru,
         level:h.level||'Level 1', jadwal_hari:h.jadwal_hari||null,
-        jam_mulai:h.jam_mulai||null, jam_selesai:h.jam_selesai||null, status:'aktif',
+        jam_mulai:_normJam(h.jam_mulai), jam_selesai:_normJam(h.jam_selesai), status:'aktif',
       });
       if (!error) { dibuat.push(h.nama_halaqah); existingSet.add(h.nama_halaqah.toLowerCase()); usedIds.add(id_halaqah); }
       else skipped.push(h.nama_halaqah + ' (error: ' + error.message + ')');
