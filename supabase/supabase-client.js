@@ -2758,23 +2758,27 @@ var AdminAPI = {
     (gurus||[]).forEach(function(g){ guruMap[g.nama_lengkap.toLowerCase()] = g.id_user; });
     for (var i = 0; i < halaqah.length; i++) {
       var h = halaqah[i];
-      if (existingSet.has(h.nama_halaqah.toLowerCase())) { skipped.push(h.nama_halaqah); continue; }
-      var id_guru = guruMap[h.nama_guru.toLowerCase()] || null;
+      // Trim nama_halaqah/nama_guru -- spasi liar dari CSV (mis. "Rumaysho ")
+      // membuat halaqah yang sama dianggap berbeda antar baris/level.
+      var namaHalaqah = (h.nama_halaqah||'').trim();
+      var namaGuru    = (h.nama_guru||'').trim();
+      if (existingSet.has(namaHalaqah.toLowerCase())) { skipped.push(namaHalaqah); continue; }
+      var id_guru = guruMap[namaGuru.toLowerCase()] || null;
       // BUG-031 fix: nama halaqah yang berbagi 12 karakter awal yang sama
       // (mis. "Halaqah Tahsin Akhwat 1", "...2", dst) menghasilkan id_halaqah
       // yang sama -> tabrakan primary key -> insert gagal diam-diam. Tambah
       // suffix angka jika id_halaqah sudah dipakai.
-      var suffix  = h.nama_halaqah.replace(/^halaqah\s*/i,'').replace(/^al-?/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,12);
+      var suffix  = namaHalaqah.replace(/^halaqah\s*/i,'').replace(/^al-?/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,12);
       var baseId  = 'HQ-' + (suffix || String(Date.now()).slice(-6));
       var id_halaqah = baseId, n = 1;
       while (usedIds.has(id_halaqah)) { n++; id_halaqah = baseId + '-' + n; }
       var { error } = await _sb.from('halaqah').insert({
-        id_halaqah, nama_halaqah:h.nama_halaqah, id_guru, nama_guru:h.nama_guru,
+        id_halaqah, nama_halaqah:namaHalaqah, id_guru, nama_guru:namaGuru,
         level:h.level||'Level 1', jadwal_hari:h.jadwal_hari||null,
         jam_mulai:_normJam(h.jam_mulai), jam_selesai:_normJam(h.jam_selesai), status:'aktif',
       });
-      if (!error) { dibuat.push(h.nama_halaqah); existingSet.add(h.nama_halaqah.toLowerCase()); usedIds.add(id_halaqah); }
-      else skipped.push(h.nama_halaqah + ' (error: ' + error.message + ')');
+      if (!error) { dibuat.push(namaHalaqah); existingSet.add(namaHalaqah.toLowerCase()); usedIds.add(id_halaqah); }
+      else skipped.push(namaHalaqah + ' (error: ' + error.message + ')');
     }
     return { status:'ok', dibuat, skipped, message: dibuat.length + ' halaqah dibuat, ' + skipped.length + ' dilewati' };
   },
@@ -2849,7 +2853,7 @@ var AdminAPI = {
     var existSet = new Set((existAnggota||[]).map(function(a){return a.id_murid+'|'+a.id_halaqah;}));
     for (var i = 0; i < anggota.length; i++) {
       var a = anggota[i];
-      var id_halaqah = hqMap[(a.nama_halaqah||'').toLowerCase()];
+      var id_halaqah = hqMap[(a.nama_halaqah||'').trim().toLowerCase()];
       if (!id_halaqah) { not_found.push('Halaqah tidak ditemukan: '+a.nama_halaqah); continue; }
       var id_murid = (a.nis||'').toUpperCase().trim();
       // Jika NIS kosong, cari berdasarkan nama
