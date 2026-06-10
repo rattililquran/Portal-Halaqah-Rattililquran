@@ -23,6 +23,7 @@
 --    - Semua murid & guru (akun + seluruh data transaksi terkait)
 --    - Semua halaqah (kelas) dummy
 --    - Pengumuman & periode testing
+--    - Push subscription (device), riwayat push_log, & catatan Charging milik murid/guru
 --
 --  APA YANG DIPERTAHANKAN (tidak disentuh):
 --    - Akun ADMIN-001 dan SUPERADMIN-001 (supaya Anda tidak terkunci dari sistem)
@@ -36,8 +37,12 @@ begin;
 
 -- --- 1. Data transaksional yang merujuk ke murid/guru/halaqah (anak dulu) ---
 delete from public.notif_inbox;
+delete from public.push_log;
 delete from public.push_user_prefs
   where id_user not in ('ADMIN-001', 'SUPERADMIN-001');
+delete from public.push_subscriptions
+  where id_user not in ('ADMIN-001', 'SUPERADMIN-001');
+delete from public.charging_notes;
 delete from public.assessment_murid;
 
 delete from public.spp_pembayaran;
