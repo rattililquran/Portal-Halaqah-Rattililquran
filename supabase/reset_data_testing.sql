@@ -20,13 +20,15 @@
 --     menghapus baris di public.users TIDAK menghapus akun di auth.users.
 --
 --  APA YANG DIHAPUS:
---    - Semua murid & guru (akun + seluruh data transaksi terkait)
---    - Semua halaqah (kelas) dummy
+--    - Semua murid (akun + seluruh data transaksi terkait)
+--    - Semua halaqah (kelas) dummy & keanggotaannya
 --    - Pengumuman & periode testing
---    - Push subscription (device), riwayat push_log, & catatan Charging milik murid/guru
+--    - Seluruh data KBM/nilai/raport/SPP/dll (termasuk milik guru)
+--    - Push subscription (device), riwayat push_log, & catatan Charging milik murid
 --
 --  APA YANG DIPERTAHANKAN (tidak disentuh):
---    - Akun ADMIN-001 dan SUPERADMIN-001 (supaya Anda tidak terkunci dari sistem)
+--    - Akun ADMIN-001, SUPERADMIN-001, dan SEMUA akun guru (role='guru')
+--      supaya tidak perlu setup ulang akun & link auth_id guru
 --    - Tabel master/konfigurasi: level, materi_level, template_koreksi,
 --      konfigurasi_*, assessment_items, push_config, spp_metode_bayar,
 --      at_tibyan_materi
@@ -39,9 +41,13 @@ begin;
 delete from public.notif_inbox;
 delete from public.push_log;
 delete from public.push_user_prefs
-  where id_user not in ('ADMIN-001', 'SUPERADMIN-001');
+  where id_user not in (
+    select id_user from public.users where role in ('admin', 'superadmin', 'guru')
+  );
 delete from public.push_subscriptions
-  where id_user not in ('ADMIN-001', 'SUPERADMIN-001');
+  where id_user not in (
+    select id_user from public.users where role in ('admin', 'superadmin', 'guru')
+  );
 delete from public.charging_notes;
 delete from public.assessment_murid;
 
@@ -72,9 +78,9 @@ delete from public.halaqah;
 delete from public.pengumuman;
 delete from public.periode;
 
--- --- 4. Akun murid & guru (admin/superadmin DIPERTAHANKAN) ---
+-- --- 4. Akun murid (admin/superadmin/guru DIPERTAHANKAN) ---
 delete from public.users
-  where role in ('murid', 'guru');
+  where role = 'murid';
 
 commit;
 
@@ -82,7 +88,7 @@ commit;
 --  VERIFIKASI SETELAH RESET — jalankan terpisah untuk mengecek hasil
 -- ============================================================================
 -- select role, count(*) from public.users group by role;
---   -> harus hanya tersisa: admin (1), superadmin (1)
+--   -> harus tersisa: admin, superadmin, dan semua guru (murid = 0)
 -- select count(*) from public.halaqah;   -> harus 0
 -- select count(*) from public.anggota;   -> harus 0
 -- select count(*) from public.pengumuman; -> harus 0
@@ -99,11 +105,11 @@ commit;
 --  di Supabase Auth.
 --
 --  CARA TERMUDAH — via Supabase Dashboard:
---    Authentication → Users → cari & hapus satu per satu akun murid+guru
---    (akun admin/superadmin JANGAN dihapus).
+--    Authentication → Users → cari & hapus satu per satu akun murid
+--    (akun admin/superadmin/guru JANGAN dihapus).
 --
 --  CARA CEPAT — via SQL, hapus auth.users yang TIDAK terhubung lagi ke
---  public.users (karena baris murid/guru sudah dihapus di langkah atas,
+--  public.users (karena baris murid sudah dihapus di langkah atas,
 --  auth_id mereka otomatis jadi orphan):
 --
 --    select au.id, au.email
