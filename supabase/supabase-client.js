@@ -2739,9 +2739,10 @@ var AdminAPI = {
   importTahap1: async function(d) {
     var halaqah = d.halaqah || [];
     var dibuat = [], skipped = [];
-    // Ambil semua halaqah existing untuk cek duplikat
-    var { data: existing } = await _sb.from('halaqah').select('nama_halaqah');
+    // Ambil semua halaqah existing untuk cek duplikat & tabrakan id_halaqah
+    var { data: existing } = await _sb.from('halaqah').select('id_halaqah, nama_halaqah');
     var existingSet = new Set((existing||[]).map(function(h){return h.nama_halaqah.toLowerCase();}));
+    var usedIds = new Set((existing||[]).map(function(h){return h.id_halaqah;}));
     // Ambil semua guru untuk mapping nama → id_user
     var { data: gurus } = await _sb.from('users').select('id_user, nama_lengkap').eq('role','guru');
     var guruMap = {};
@@ -2750,14 +2751,20 @@ var AdminAPI = {
       var h = halaqah[i];
       if (existingSet.has(h.nama_halaqah.toLowerCase())) { skipped.push(h.nama_halaqah); continue; }
       var id_guru = guruMap[h.nama_guru.toLowerCase()] || null;
+      // BUG-031 fix: nama halaqah yang berbagi 12 karakter awal yang sama
+      // (mis. "Halaqah Tahsin Akhwat 1", "...2", dst) menghasilkan id_halaqah
+      // yang sama -> tabrakan primary key -> insert gagal diam-diam. Tambah
+      // suffix angka jika id_halaqah sudah dipakai.
       var suffix  = h.nama_halaqah.replace(/^halaqah\s*/i,'').replace(/^al-?/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,12);
-      var id_halaqah = 'HQ-' + (suffix || String(Date.now()).slice(-6));
+      var baseId  = 'HQ-' + (suffix || String(Date.now()).slice(-6));
+      var id_halaqah = baseId, n = 1;
+      while (usedIds.has(id_halaqah)) { n++; id_halaqah = baseId + '-' + n; }
       var { error } = await _sb.from('halaqah').insert({
         id_halaqah, nama_halaqah:h.nama_halaqah, id_guru, nama_guru:h.nama_guru,
         level:h.level||'Level 1', jadwal_hari:h.jadwal_hari||null,
         jam_mulai:h.jam_mulai||null, jam_selesai:h.jam_selesai||null, status:'aktif',
       });
-      if (!error) { dibuat.push(h.nama_halaqah); existingSet.add(h.nama_halaqah.toLowerCase()); }
+      if (!error) { dibuat.push(h.nama_halaqah); existingSet.add(h.nama_halaqah.toLowerCase()); usedIds.add(id_halaqah); }
       else skipped.push(h.nama_halaqah + ' (error: ' + error.message + ')');
     }
     return { status:'ok', dibuat, skipped, message: dibuat.length + ' halaqah dibuat, ' + skipped.length + ' dilewati' };
