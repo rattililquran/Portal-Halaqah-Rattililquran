@@ -3679,6 +3679,11 @@ async function doImportTerintegrasi() {
     }
     setProgress(70, 'Tahap 2/3: ' + rekap.user_berhasil + ' user disimpan', '');
 
+    // Tautkan halaqah -> guru yang id_guru-nya masih kosong (halaqah dibuat
+    // di Tahap 1 sebelum guru-nya ada di tabel users)
+    var rLink = await window.HQ.AdminAPI.linkHalaqahGuru();
+    rekap.guru_linked = rLink.linked || 0;
+
     // ── TAHAP 3: Anggota — batch per 50 ──
     var anggotaList = importedUsers.filter(function(u){ return u.nama_halaqah && u.role === 'murid'; });
     if (anggotaList.length) {
@@ -3710,6 +3715,7 @@ async function doImportTerintegrasi() {
     var msg = 'Import selesai!\n'
       + '🏫 Halaqah baru: ' + rekap.halaqah_baru + '\n'
       + '✅ User berhasil: ' + rekap.user_berhasil + '\n'
+      + (rekap.guru_linked ? '🔗 Halaqah ditautkan ke guru: ' + rekap.guru_linked + '\n' : '')
       + '👥 Didaftarkan ke halaqah: ' + rekap.assigned + '\n'
       + (rekap.user_duplikat ? '⚠️ Duplikat diskip: ' + rekap.user_duplikat + '\n' : '')
       + (rekap.user_gagal.length ? '❌ Gagal: ' + rekap.user_gagal.length + '\n' : '')

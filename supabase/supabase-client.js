@@ -2322,7 +2322,7 @@ var AdminAPI = {
     var {data,error} = await q; _check(error,'getAllUsers'); return {status:'ok',data};
   },
   createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
-  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select().single(); _check(error,'updateUser'); if('role' in u || 'status' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data}; },
+  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select(); _check(error,'updateUser'); if(!data || !data.length) throw new Error('User '+id_user+' tidak ditemukan atau tidak ada perubahan tersimpan -- coba muat ulang halaman dan login ulang'); if('role' in u || 'status' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data:data[0]}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
   getAllHalaqah: async function() {
     // Fetch halaqah + ketua kelas (anggota where is_ketua=TRUE) in parallel
@@ -2850,6 +2850,26 @@ var AdminAPI = {
       else not_found.push(id_murid+' (error: '+error.message+')');
     }
     return { status:'ok', assigned, not_found };
+  },
+
+  // Tautkan halaqah.id_guru yang masih kosong (mis. halaqah dibuat di
+  // Tahap 1 sebelum guru-nya dibuat di Tahap 2) ke id_user guru terkait
+  // berdasarkan kecocokan nama_guru <-> nama_lengkap.
+  linkHalaqahGuru: async function() {
+    var { data: belum } = await _sb.from('halaqah').select('id_halaqah, nama_guru').is('id_guru', null);
+    if (!belum || !belum.length) return { status:'ok', linked:0 };
+    var { data: gurus } = await _sb.from('users').select('id_user, nama_lengkap').eq('role','guru');
+    var guruMap = {};
+    (gurus||[]).forEach(function(g){ guruMap[g.nama_lengkap.toLowerCase()] = g.id_user; });
+    var linked = 0;
+    for (var i = 0; i < belum.length; i++) {
+      var h = belum[i];
+      var id_guru = h.nama_guru ? guruMap[h.nama_guru.toLowerCase()] : null;
+      if (!id_guru) continue;
+      var { error } = await _sb.from('halaqah').update({ id_guru: id_guru }).eq('id_halaqah', h.id_halaqah);
+      if (!error) linked++;
+    }
+    return { status:'ok', linked: linked };
   },
   // Raport bulk — TODO: implementasi penuh
   generateRaportByHalaqah: async function(p) { return GuruAPI.generateRaportHalaqah ? GuruAPI.generateRaportHalaqah(p) : {status:'ok',data:[]}; },
