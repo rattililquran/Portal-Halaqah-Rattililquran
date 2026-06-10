@@ -3136,6 +3136,12 @@ async function savePeriode() {
     status         : document.getElementById('prdStatus').value,
   };
   if (!data.nama_periode) return toast('Nama periode wajib diisi','err');
+  if (!id) {
+    var tahun = (data.tanggal_mulai ? new Date(data.tanggal_mulai).getFullYear() : new Date().getFullYear());
+    var prefix = 'P' + tahun + '-';
+    var seq = allPeriode.filter(function(p){ return (p.id_periode||'').indexOf(prefix) === 0; }).length + 1;
+    data.id_periode = prefix + seq;
+  }
   showLoad('Bismillah, menyimpan...');
   try {
     if (id) { data.id_periode = id; await window.HQ.AdminAPI.updatePeriode(data); }
