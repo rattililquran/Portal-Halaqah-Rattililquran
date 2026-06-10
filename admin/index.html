@@ -2398,7 +2398,7 @@ html.theme-dark .tbl-wrap thead th {
       </div>
       <div class="f2">
         <div class="fg"><label>ID User / NIS</label><input type="text" class="fc" id="usrIdUser" placeholder="Contoh: AHMAD atau RTL24180001" style="text-transform:uppercase" oninput="this.dataset.manual='1'"></div>
-        <div class="fg" id="usrPasswordWrap"><label>Password Awal</label><input type="password" class="fc" id="usrPassword" placeholder="Minimal 6 karakter" minlength="6"></div>
+        <div class="fg" id="usrPasswordWrap"><label id="usrPasswordLabel">Password Awal</label><input type="password" class="fc" id="usrPassword" placeholder="Minimal 6 karakter" minlength="6"></div>
       </div>
       <div class="fg" id="usrBendaharaWrap" style="display:none">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -3346,6 +3346,8 @@ function openModalUser() {
   document.getElementById('usrIdUser').disabled = false;
   delete document.getElementById('usrIdUser').dataset.manual;
   document.getElementById('usrPasswordWrap').style.display = '';
+  document.getElementById('usrPasswordLabel').textContent = 'Password Awal';
+  document.getElementById('usrPassword').placeholder = 'Minimal 6 karakter';
   toggleUsrBendahara();
   openModal('modalUser');
 }
@@ -3376,7 +3378,10 @@ function editUser(id) {
   document.getElementById('usrIsBendahara').checked = !!u.is_bendahara;
   document.getElementById('usrIdUser').value  = u.id_user;
   document.getElementById('usrIdUser').disabled = true;
-  document.getElementById('usrPasswordWrap').style.display = 'none';
+  document.getElementById('usrPasswordWrap').style.display = '';
+  document.getElementById('usrPasswordLabel').textContent = 'Reset Password (opsional)';
+  document.getElementById('usrPassword').placeholder = 'Kosongkan jika tidak diubah';
+  document.getElementById('usrPassword').value = '';
   toggleUsrBendahara();
   openModal('modalUser');
 }
@@ -3404,12 +3409,16 @@ async function saveUser() {
     password = document.getElementById('usrPassword').value.trim();
     if (!password) return toast('Password awal wajib diisi','err');
     if (password.length < 6) return toast('Password awal minimal 6 karakter','err');
+  } else {
+    password = document.getElementById('usrPassword').value.trim();
+    if (password && password.length < 6) return toast('Password baru minimal 6 karakter','err');
   }
   showLoad('Bismillah, menyimpan...');
   try {
     if (id) {
       data.id_user = id;
       await window.HQ.AdminAPI.updateUser(data);
+      if (password) await window.HQ.AdminAPI.resetPassword(data.id_user, password);
     } else {
       await window.HQ.AdminAPI.createUser(data);
       await window.HQ.AdminAPI.resetPassword(data.id_user, password);
