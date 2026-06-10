@@ -2391,10 +2391,14 @@ html.theme-dark .tbl-wrap thead th {
     <div class="modal-head"><div class="modal-title" id="modalUserTitle">👤 User Baru</div><button class="modal-x" onclick="closeModal('modalUser')">✕</button></div>
     <div class="modal-body">
       <div class="f2">
-        <div class="fg"><label>Nama Lengkap</label><input type="text" class="fc" id="usrNama" placeholder="Nama lengkap"></div>
+        <div class="fg"><label>Nama Lengkap</label><input type="text" class="fc" id="usrNama" placeholder="Nama lengkap" oninput="suggestUsrIdUser()"></div>
         <div class="fg"><label>Role</label>
           <select class="fc" id="usrRole" onchange="toggleUsrBendahara()"><option value="murid">Murid</option><option value="guru">Guru</option><option value="admin">Admin</option><option value="superadmin">Super Admin</option></select>
         </div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label>ID User / NIS</label><input type="text" class="fc" id="usrIdUser" placeholder="Contoh: AHMAD atau RTL24180001" style="text-transform:uppercase" oninput="this.dataset.manual='1'"></div>
+        <div class="fg" id="usrPasswordWrap"><label>Password Awal</label><input type="password" class="fc" id="usrPassword" placeholder="Minimal 6 karakter" minlength="6"></div>
       </div>
       <div class="fg" id="usrBendaharaWrap" style="display:none">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -3334,13 +3338,27 @@ function toggleUsrBendahara() {
 
 function openModalUser() {
   document.getElementById('modalUserTitle').textContent = '👤 User Baru';
-  ['usrNama','usrHp','usrEmail','usrAlamat','usrCatatan'].forEach(id => document.getElementById(id).value='');
+  ['usrNama','usrHp','usrEmail','usrAlamat','usrCatatan','usrIdUser','usrPassword'].forEach(id => document.getElementById(id).value='');
   document.getElementById('usrRole').value = 'murid';
   document.getElementById('usrStatus').value = 'aktif';
   document.getElementById('usrId').value = '';
   document.getElementById('usrIsBendahara').checked = false;
+  document.getElementById('usrIdUser').disabled = false;
+  delete document.getElementById('usrIdUser').dataset.manual;
+  document.getElementById('usrPasswordWrap').style.display = '';
   toggleUsrBendahara();
   openModal('modalUser');
+}
+
+// Saran ID User otomatis dari Nama Lengkap (hanya saat tambah user baru,
+// dan hanya jika user belum mengetik manual di kolom ID User)
+function suggestUsrIdUser() {
+  var idField = document.getElementById('usrIdUser');
+  if (idField.disabled || idField.dataset.manual === '1') return;
+  var nama = document.getElementById('usrNama').value || '';
+  var base = nama.replace(/^(al-|al\s|ustadz\s|ustadzah\s)/gi, '')
+    .split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g, '').substring(0, 6);
+  idField.value = base;
 }
 
 function editUser(id) {
@@ -3356,6 +3374,9 @@ function editUser(id) {
   document.getElementById('usrStatus').value  = u.status;
   document.getElementById('usrCatatan').value = u.catatan || '';
   document.getElementById('usrIsBendahara').checked = !!u.is_bendahara;
+  document.getElementById('usrIdUser').value  = u.id_user;
+  document.getElementById('usrIdUser').disabled = true;
+  document.getElementById('usrPasswordWrap').style.display = 'none';
   toggleUsrBendahara();
   openModal('modalUser');
 }
@@ -3374,10 +3395,25 @@ async function saveUser() {
     is_bendahara: role === 'admin' ? document.getElementById('usrIsBendahara').checked : false,
   };
   if (!data.nama_lengkap) return toast('Nama wajib diisi','err');
+  var password = '';
+  if (!id) {
+    var idUser = document.getElementById('usrIdUser').value.trim().toUpperCase();
+    if (!idUser) return toast('ID User wajib diisi','err');
+    if (!/^[A-Z0-9_-]+$/.test(idUser)) return toast('ID User hanya boleh huruf, angka, - dan _','err');
+    data.id_user = idUser;
+    password = document.getElementById('usrPassword').value.trim();
+    if (!password) return toast('Password awal wajib diisi','err');
+    if (password.length < 6) return toast('Password awal minimal 6 karakter','err');
+  }
   showLoad('Bismillah, menyimpan...');
   try {
-    if (id) { data.id_user = id; await window.HQ.AdminAPI.updateUser(data); }
-    else await window.HQ.AdminAPI.createUser(data);
+    if (id) {
+      data.id_user = id;
+      await window.HQ.AdminAPI.updateUser(data);
+    } else {
+      await window.HQ.AdminAPI.createUser(data);
+      await window.HQ.AdminAPI.resetPassword(data.id_user, password);
+    }
     closeModal('modalUser');
     toast(id ? 'User diperbarui!' : 'User baru dibuat!', 'ok');
     await loadMasterData(); loadUsers(currentUserTab);
