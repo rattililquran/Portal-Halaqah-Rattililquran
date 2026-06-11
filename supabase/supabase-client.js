@@ -2960,7 +2960,13 @@ var AdminAPI = {
     var muridList = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
       var personalStart = firstBulanMap[a.id_murid];
-      var startForMurid = personalStart === undefined ? startIdx : Math.max(startIdx, personalStart);
+      // Hanya pakai bulan pertama murid sebagai awal window jika bulan itu
+      // sudah lewat/berjalan (< endIdx). Kalau catatan pertamanya justru
+      // bulan masa depan (mis. bayar di muka), itu bukan "mulai bayar dari
+      // bulan itu" — tunggakan tetap dihitung dari Januari seperti biasa.
+      var startForMurid = (personalStart === undefined || personalStart >= endIdx)
+        ? startIdx
+        : Math.max(startIdx, personalStart);
       var bulanRekapMurid = BULAN.slice(startForMurid, endIdx);
       var bulanBelum = bulanRekapMurid.filter(function(b){ return !lunasBulan.includes(b); });
       var tunggakan  = bulanBelum.length;
