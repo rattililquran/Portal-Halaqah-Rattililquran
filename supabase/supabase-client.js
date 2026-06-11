@@ -82,6 +82,22 @@ function _hariIni() {
   return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
 }
 
+// Tanggal hari ini di zona waktu Asia/Jakarta, format YYYY-MM-DD
+// (new Date().toISOString() pakai UTC -- bisa nyasar ke tanggal kemarin
+// sekitar jam 00:00-07:00 WIB. Lihat rencana_kelas_pengganti.md §10.G)
+function _todayJakarta() {
+  var parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  var y, m, d;
+  parts.forEach(function(p) {
+    if (p.type === 'year') y = p.value;
+    else if (p.type === 'month') m = p.value;
+    else if (p.type === 'day') d = p.value;
+  });
+  return y + '-' + m + '-' + d;
+}
+
 // ─────────────────────────────────────────────
 //  AUTH
 // ─────────────────────────────────────────────
@@ -229,23 +245,38 @@ var GuruAPI = {
   getJadwalHariIni: async function() {
     var id_guru = _uid();
     var hari    = _hariIni();
+    var today   = _todayJakarta();
 
-    var { data: halaqah, error } = await _sb.from('halaqah')
-      .select('*, anggota(count)')
-      .eq('id_guru', id_guru).eq('status', 'aktif');
+    var [{ data: halaqah, error }, { data: liburResmi }] = await Promise.all([
+      _sb.from('halaqah').select('*, anggota(count)')
+        .eq('id_guru', id_guru).eq('status', 'aktif'),
+      _sb.from('hari_libur_resmi').select('tanggal, keterangan').eq('tanggal', today).maybeSingle(),
+    ]);
     _check(error, 'getJadwalHariIni');
 
     // Hitung pertemuan_ke per halaqah — pisahkan Reguler dan Qiyam
     var hqIds = (halaqah || []).map(function(h) { return h.id_halaqah; });
     // Hitung pertemuan per jenis KBM — masing-masing punya counter sendiri
-    var kbmByJenis = {};  // { id_halaqah: { 'KBM Reguler': N, 'KBM Qiyam': N, ... } }
+    var kbmByJenis       = {};  // { id_halaqah: { 'KBM Reguler': N (selesai), ... } }
+    var liburByJenis     = {};  // { id_halaqah: { jenis: N (status='libur') } }
+    var penggantiByJenis = {};  // { id_halaqah: { jenis: N (selesai & is_pengganti) } }
     if (hqIds.length > 0) {
       var { data: kbmAll } = await _sb.from('kbm_log')
-        .select('id_halaqah, jenis_sesi').in('id_halaqah', hqIds).eq('status', 'selesai');
+        .select('id_halaqah, jenis_sesi, status, is_pengganti')
+        .in('id_halaqah', hqIds).in('status', ['selesai', 'libur']);
       (kbmAll || []).forEach(function(k) {
         var jenis = k.jenis_sesi || 'KBM Reguler';
-        if (!kbmByJenis[k.id_halaqah]) kbmByJenis[k.id_halaqah] = {};
-        kbmByJenis[k.id_halaqah][jenis] = (kbmByJenis[k.id_halaqah][jenis] || 0) + 1;
+        if (k.status === 'selesai') {
+          if (!kbmByJenis[k.id_halaqah]) kbmByJenis[k.id_halaqah] = {};
+          kbmByJenis[k.id_halaqah][jenis] = (kbmByJenis[k.id_halaqah][jenis] || 0) + 1;
+          if (k.is_pengganti) {
+            if (!penggantiByJenis[k.id_halaqah]) penggantiByJenis[k.id_halaqah] = {};
+            penggantiByJenis[k.id_halaqah][jenis] = (penggantiByJenis[k.id_halaqah][jenis] || 0) + 1;
+          }
+        } else if (k.status === 'libur') {
+          if (!liburByJenis[k.id_halaqah]) liburByJenis[k.id_halaqah] = {};
+          liburByJenis[k.id_halaqah][jenis] = (liburByJenis[k.id_halaqah][jenis] || 0) + 1;
+        }
       });
     }
 
@@ -259,6 +290,13 @@ var GuruAPI = {
       var qiyamCount  = jenisCounts['KBM Qiyam']      || 0;
       var microCount  = jenisCounts['Micro Teaching']  || 0;
       var lainCount   = jenisCounts['Lainnya']          || 0;
+      // sisa_pengganti per jenis_sesi = count(libur) - count(selesai & is_pengganti), clamp >= 0
+      var liburCounts     = liburByJenis[h.id_halaqah] || {};
+      var penggantiCounts = penggantiByJenis[h.id_halaqah] || {};
+      var sisaPengganti = {};
+      ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching', 'Lainnya'].forEach(function(j) {
+        sisaPengganti[j] = Math.max(0, (liburCounts[j] || 0) - (penggantiCounts[j] || 0));
+      });
       return {
         id_halaqah             : h.id_halaqah,
         nama_halaqah           : h.nama_halaqah,
@@ -275,6 +313,7 @@ var GuruAPI = {
         pertemuan_ke_lainnya   : lainCount + 1,
         total_sesi             : regCount,           // hanya Reguler untuk progress 40
         sisa_sesi              : Math.max(0, 40 - regCount),
+        sisa_pengganti         : sisaPengganti,
         is_hari_ini            : isHariIni,
       };
     });
@@ -285,7 +324,7 @@ var GuruAPI = {
       return (a.jam_mulai || '').localeCompare(b.jam_mulai || '');
     });
 
-    return { status: 'ok', data: result, hari_ini: hari };
+    return { status: 'ok', data: result, hari_ini: hari, libur_resmi_hari_ini: liburResmi || null };
   },
 
   // ── Halaqah ────────────────────────────────
@@ -386,6 +425,7 @@ var GuruAPI = {
       jam_mulai: d.jam_mulai, jenis_sesi: d.jenis_sesi || 'KBM Reguler',
       pertemuan_ke: d.pertemuan_ke_custom || ((count || 0) + 1),
       status: 'draft',
+      is_pengganti: !!d.is_pengganti,
     }).select().single();
     // Unique partial index uniq_kbm_log_draft_per_guru menolak draft kedua
     // untuk guru yang sama secara atomik di level DB (cegah race condition
@@ -405,6 +445,61 @@ var GuruAPI = {
     var { count } = await _sb.from('kbm_log').select('*', { count: 'exact', head: true })
       .eq('id_guru', _uid()).eq('status', 'draft');
     return { status: 'ok', data: count || 0 };
+  },
+
+  // ── Kelas Pengganti: Flow 1 — tandai sesi hari ini sebagai libur ──
+  tandaiLibur: async function(d) {
+    var keterangan = (d.keterangan_libur || '').trim();
+    if (!keterangan) return { status: 'error', message: 'Alasan libur wajib diisi' };
+
+    // Cek tidak ada draft aktif (harus diselesaikan dulu lewat Flow 5a/5b)
+    var { data: draft } = await _sb.from('kbm_log')
+      .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
+    if (draft) return { status: 'error', message: 'Masih ada sesi yang belum diselesaikan: ' + draft.id_kbm };
+
+    // Cegah duplikat: sesi (halaqah + tanggal + jenis_sesi) sudah dicatat hari ini
+    var { data: existing } = await _sb.from('kbm_log')
+      .select('id_kbm').eq('id_halaqah', d.id_halaqah).eq('tanggal_pertemuan', d.tanggal_pertemuan)
+      .eq('jenis_sesi', d.jenis_sesi || 'KBM Reguler').maybeSingle();
+    if (existing) return { status: 'error', message: 'Sudah ada catatan KBM untuk halaqah dan tanggal ini' };
+
+    var id_kbm = _genId('KBM');
+    var { data, error } = await _sb.from('kbm_log').insert({
+      id_kbm, id_halaqah: d.id_halaqah,
+      id_guru: _uid(), nama_guru: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '',
+      tanggal_pertemuan: d.tanggal_pertemuan,
+      jenis_sesi: d.jenis_sesi || 'KBM Reguler',
+      status: 'libur',
+      keterangan_libur: keterangan,
+      pertemuan_ke: null,
+      is_pengganti: false,
+    }).select().single();
+    _check(error, 'tandaiLibur');
+    return { status: 'ok', message: 'Sesi ditandai libur', data };
+  },
+
+  // ── Kelas Pengganti: Flow 5b — batalkan draft aktif & tandai libur ──
+  batalkanTandaiLibur: async function(d) {
+    var keterangan = (d.keterangan_libur || '').trim();
+    if (!keterangan) return { status: 'error', message: 'Alasan libur wajib diisi' };
+
+    var { data: draft } = await _sb.from('kbm_log')
+      .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
+    if (!draft) return { status: 'error', message: 'Tidak ada sesi draft yang aktif' };
+
+    // Bersihkan presensi/nilai parsial yang sudah terlanjur diisi pada draft ini
+    await _sb.from('nilai_kbm').delete().eq('id_kbm', draft.id_kbm);
+
+    var { data, error } = await _sb.from('kbm_log').update({
+      status: 'libur',
+      keterangan_libur: keterangan,
+      pertemuan_ke: null,
+      is_pengganti: false,
+      jumlah_hadir: null,
+      jumlah_alpa: null,
+    }).eq('id_kbm', draft.id_kbm).select().single();
+    _check(error, 'batalkanTandaiLibur');
+    return { status: 'ok', message: 'Sesi dibatalkan dan ditandai libur', data };
   },
 
   simpanPresensi: async function(d) {
@@ -2374,6 +2469,85 @@ var AdminAPI = {
     return {status:'ok',data};
   },
   deleteHalaqah: async function(id) { var {error}=await _sb.from('halaqah').update({status:'nonaktif'}).eq('id_halaqah',id); _check(error,'deleteHalaqah'); return {status:'ok'}; },
+
+  // ── Kelas Pengganti: Hari Libur Resmi (admin) ─────────────────
+  getHariLiburResmi: async function() {
+    var { data, error } = await _sb.from('hari_libur_resmi').select('*').order('tanggal', { ascending: false });
+    _check(error, 'getHariLiburResmi');
+    return { status: 'ok', data };
+  },
+  // d: { tanggal_mulai, tanggal_selesai (opsional, default = tanggal_mulai), keterangan }
+  // Disimpan 1 baris per tanggal (lihat rencana_kelas_pengganti.md §10.E)
+  simpanHariLiburResmi: async function(d) {
+    if (!d.tanggal_mulai || !(d.keterangan || '').trim()) {
+      return { status: 'error', message: 'Tanggal dan keterangan wajib diisi' };
+    }
+    var start = new Date(d.tanggal_mulai + 'T00:00:00');
+    var end   = new Date((d.tanggal_selesai || d.tanggal_mulai) + 'T00:00:00');
+    if (end < start) return { status: 'error', message: 'Tanggal selesai harus sama atau setelah tanggal mulai' };
+
+    var rows = [];
+    for (var dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+      var y = dt.getFullYear();
+      var m = String(dt.getMonth() + 1).padStart(2, '0');
+      var day = String(dt.getDate()).padStart(2, '0');
+      rows.push({ tanggal: y + '-' + m + '-' + day, keterangan: d.keterangan.trim(), dibuat_oleh: _uid() });
+    }
+    var { data, error } = await _sb.from('hari_libur_resmi').upsert(rows, { onConflict: 'tanggal' }).select();
+    _check(error, 'simpanHariLiburResmi');
+    return { status: 'ok', message: 'Hari libur resmi disimpan (' + rows.length + ' tanggal)', data };
+  },
+  hapusHariLiburResmi: async function(tanggal) {
+    var { error } = await _sb.from('hari_libur_resmi').delete().eq('tanggal', tanggal);
+    _check(error, 'hapusHariLiburResmi');
+    return { status: 'ok' };
+  },
+
+  // ── Kelas Pengganti: Flow 6 — toggle is_pengganti (admin) ─────
+  toggleIsPengganti: async function(d) {
+    var { data, error } = await _sb.from('kbm_log').update({ is_pengganti: !!d.is_pengganti })
+      .eq('id_kbm', d.id_kbm).eq('status', 'selesai').select().single();
+    _check(error, 'toggleIsPengganti');
+    if (!data) throw new Error('Sesi tidak ditemukan atau bukan sesi berstatus selesai');
+    return { status: 'ok', data };
+  },
+
+  // ── Kelas Pengganti: Flow 7 — ringkasan sisa_pengganti per halaqah/jenis_sesi ──
+  getSisaPenggantiSummary: async function() {
+    var { data: kbmAll, error } = await _sb.from('kbm_log')
+      .select('id_halaqah, jenis_sesi, status, is_pengganti')
+      .in('status', ['selesai', 'libur']);
+    _check(error, 'getSisaPenggantiSummary');
+
+    var liburByJenis = {}, penggantiByJenis = {};
+    (kbmAll || []).forEach(function(k) {
+      var jenis = k.jenis_sesi || 'KBM Reguler';
+      if (k.status === 'libur') {
+        if (!liburByJenis[k.id_halaqah]) liburByJenis[k.id_halaqah] = {};
+        liburByJenis[k.id_halaqah][jenis] = (liburByJenis[k.id_halaqah][jenis] || 0) + 1;
+      } else if (k.status === 'selesai' && k.is_pengganti) {
+        if (!penggantiByJenis[k.id_halaqah]) penggantiByJenis[k.id_halaqah] = {};
+        penggantiByJenis[k.id_halaqah][jenis] = (penggantiByJenis[k.id_halaqah][jenis] || 0) + 1;
+      }
+    });
+
+    var result = {};
+    var allHalaqah = Object.keys(Object.assign({}, liburByJenis, penggantiByJenis));
+    allHalaqah.forEach(function(id_halaqah) {
+      var libur = liburByJenis[id_halaqah] || {};
+      var pengganti = penggantiByJenis[id_halaqah] || {};
+      var jenisSet = Object.keys(Object.assign({}, libur, pengganti));
+      var perJenis = {};
+      var hasAnomali = false;
+      jenisSet.forEach(function(jenis) {
+        var raw = (libur[jenis] || 0) - (pengganti[jenis] || 0);
+        perJenis[jenis] = { sisa: Math.max(0, raw), raw: raw };
+        if (raw < 0) hasAnomali = true;
+      });
+      result[id_halaqah] = { per_jenis: perJenis, has_anomali: hasAnomali };
+    });
+    return { status: 'ok', data: result };
+  },
   getAllAnggota: async function(id_halaqah) {
     var q = _sb.from('anggota').select('*, users!anggota_id_murid_fkey(nama_lengkap,no_hp)');
     if (id_halaqah) q = q.eq('id_halaqah',id_halaqah);
