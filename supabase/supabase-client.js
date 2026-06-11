@@ -2921,11 +2921,13 @@ var AdminAPI = {
       (usersHp||[]).forEach(function(u){ hpMap[u.id_user] = u.no_hp; });
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    var TOTAL_REKAP   = 5;
+    var TOTAL_REKAP   = 12;
     // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → Jan-Mei sudah lewat)
     var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif
-    // Window SELALU dari max(0, bulanSelesai-TOTAL_REKAP) sampai bulanSelesai
-    // agar murid tidak dianggap lunas hanya karena bayar sebagian di akhir window
+    // Window SELALU dari Januari (max(0, bulanSelesai-TOTAL_REKAP)) sampai bulanSelesai,
+    // sehingga tunggakan dihitung dari awal tahun berjalan — murid yang bayar
+    // banyak bulan sekaligus (>5 bulan) tetap terhitung lunas untuk seluruh
+    // periode yang sudah lewat, bukan hanya 5 bulan terakhir.
     var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
     var endIdx   = bulanSelesai;
     var bulanRekap = BULAN.slice(startIdx, endIdx);
