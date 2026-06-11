@@ -978,6 +978,7 @@ html.theme-dark .tbl-wrap thead th {
       <button class="nav-btn" onclick="goPage('users')" data-p="users"><span class="ni">👥</span>Manajemen User</button>
       <button class="nav-btn" onclick="goPage('halaqah')" data-p="halaqah"><span class="ni">📚</span>Halaqah</button>
       <button class="nav-btn" onclick="goPage('anggota')" data-p="anggota"><span class="ni">📋</span>Anggota Kelas</button>
+      <button class="nav-btn" onclick="goPage('pengganti')" data-p="pengganti"><span class="ni">🔄</span>Kelas Pengganti</button>
 
       <div class="sb-sec">Penilaian</div>
       <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
@@ -1185,6 +1186,59 @@ html.theme-dark .tbl-wrap thead th {
               </tr></thead>
               <tbody id="anggotaTbl"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ KELAS PENGGANTI ══ -->
+      <div class="page" id="page-pengganti">
+        <div class="section-title">🔄 Kelas Pengganti</div>
+        <div class="section-sub">Kelola hari libur resmi, pantau sisa kelas pengganti, dan tandai sesi sebagai pengganti.</div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">🏖️ Hari Libur Resmi</div></div>
+          <div class="card-body">
+            <div class="f3">
+              <div class="fg"><label>Tanggal Mulai</label><input type="date" class="fc" id="hlrMulai"></div>
+              <div class="fg"><label>Tanggal Selesai (opsional)</label><input type="date" class="fc" id="hlrSelesai"></div>
+              <div class="fg"><label>Keterangan</label><input type="text" class="fc" id="hlrKeterangan" placeholder="Contoh: Libur Idul Fitri"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="simpanHariLiburResmi()">+ Tambah Hari Libur</button>
+            <div class="tbl-wrap" style="margin-top:14px">
+              <table>
+                <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+                <tbody id="hlrTbl"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">📊 Sisa Kelas Pengganti per Halaqah</div></div>
+          <div class="card-body">
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Halaqah</th><th>Guru</th><th>Sisa Pengganti</th></tr></thead>
+                <tbody id="sisaPenggantiTbl"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📋 Riwayat Sesi &amp; Tandai Pengganti</div>
+            <select class="fc" id="penggantiHalaqahSel" onchange="loadRiwayatPengganti()" style="max-width:260px">
+              <option value="">— Pilih Halaqah —</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Tanggal</th><th>Jenis Sesi</th><th>Pertemuan</th><th>Status</th><th>Pengganti?</th></tr></thead>
+                <tbody id="riwayatPenggantiTbl"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</td></tr></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -2648,7 +2702,7 @@ const SPP_NOMINAL_BULANAN = 75000;
 
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
-  halaqah:'Halaqah', anggota:'Anggota Kelas', komponen:'Komponen Raport',
+  halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', komponen:'Komponen Raport',
   nilai:'Input Nilai Manual', raport:'Generate Raport',
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
@@ -2991,6 +3045,7 @@ function goPage(name) {
     users     : () => loadUsers(currentUserTab),
     halaqah   : loadHalaqah,
     anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); const sel = document.getElementById('anggotaHalaqahSel'); if (sel && !sel.value && allHalaqah.length) { sel.value = allHalaqah[0].id_halaqah; loadAnggota(); } },
+    pengganti : loadKelasPengganti,
     komponen  : () => { populatePeriodeSel('komponenPeriodeSel'); },
     nilai     : () => { populatePeriodeSel('nilaiPeriodeSel'); populateSel('nilaiHalaqahSel', allHalaqah); },
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
@@ -3801,6 +3856,152 @@ function renderHalaqahTable() {
 }
 
 function filterHalaqahTable() { renderHalaqahTable(); }
+
+// ══════════════════════════════════════════
+//  KELAS PENGGANTI
+// ══════════════════════════════════════════
+let _sisaPenggantiData = {};
+
+async function loadKelasPengganti() {
+  populateSel('penggantiHalaqahSel', allHalaqah);
+  await Promise.all([loadHariLiburResmi(), loadSisaPenggantiSummary()]);
+}
+
+async function loadHariLiburResmi() {
+  try {
+    const r = await window.HQ.AdminAPI.getHariLiburResmi();
+    renderHariLiburResmiTable(r.data || []);
+  } catch(e) { toast('Gagal memuat hari libur resmi: '+e.message,'err'); }
+}
+
+function renderHariLiburResmiTable(data) {
+  const tbody = document.getElementById('hlrTbl');
+  tbody.innerHTML = (data||[]).map(d => `<tr>
+    <td>${fmtDate(d.tanggal)}</td>
+    <td>${esc(d.keterangan)}</td>
+    <td><button class="btn btn-red btn-sm" onclick="hapusHariLiburResmi('${esc(d.tanggal)}')">🗑</button></td>
+  </tr>`).join('') || '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada hari libur resmi</td></tr>';
+}
+
+async function simpanHariLiburResmi() {
+  const tanggal_mulai   = document.getElementById('hlrMulai').value;
+  const tanggal_selesai = document.getElementById('hlrSelesai').value;
+  const keterangan      = document.getElementById('hlrKeterangan').value.trim();
+  if (!tanggal_mulai || !keterangan) return toast('Tanggal mulai dan keterangan wajib diisi','err');
+  showLoad('Bismillah, menyimpan...');
+  try {
+    const r = await window.HQ.AdminAPI.simpanHariLiburResmi({ tanggal_mulai, tanggal_selesai, keterangan });
+    toast(r.message || 'Tersimpan','ok');
+    document.getElementById('hlrMulai').value = '';
+    document.getElementById('hlrSelesai').value = '';
+    document.getElementById('hlrKeterangan').value = '';
+    loadHariLiburResmi();
+  } catch(e) { toast('Gagal: '+e.message,'err'); } finally { hideLoad(); }
+}
+
+async function hapusHariLiburResmi(tanggal) {
+  if (!confirm('Hapus hari libur resmi tanggal ' + fmtDate(tanggal) + '?')) return;
+  showLoad('Bismillah, menghapus...');
+  try {
+    await window.HQ.AdminAPI.hapusHariLiburResmi(tanggal);
+    toast('Hari libur resmi dihapus','ok');
+    loadHariLiburResmi();
+  } catch(e) { toast('Gagal: '+e.message,'err'); } finally { hideLoad(); }
+}
+
+async function loadSisaPenggantiSummary() {
+  try {
+    const r = await window.HQ.AdminAPI.getSisaPenggantiSummary();
+    _sisaPenggantiData = r.data || {};
+    renderSisaPenggantiTable();
+  } catch(e) { toast('Gagal memuat sisa pengganti: '+e.message,'err'); }
+}
+
+function renderSisaPenggantiTable() {
+  const tbody = document.getElementById('sisaPenggantiTbl');
+  const rows = Object.keys(_sisaPenggantiData).map(function(id_halaqah) {
+    const h    = allHalaqah.find(x => x.id_halaqah === id_halaqah);
+    const info = _sisaPenggantiData[id_halaqah];
+    const badges = Object.keys(info.per_jenis).map(function(jenis) {
+      const pj = info.per_jenis[jenis];
+      if (pj.sisa <= 0 && pj.raw >= 0) return '';
+      const style = pj.raw < 0 ? 'background:#fee2e2;color:#b91c1c' : 'background:#fff7ed;color:#c2410c';
+      const warn  = pj.raw < 0 ? ' ⚠' : '';
+      return `<span class="badge" style="${style};margin-right:4px">${esc(jenis)}: ${pj.sisa}${warn}</span>`;
+    }).filter(Boolean).join('');
+    return { h, badges, hasAnomali: info.has_anomali };
+  }).filter(r => r.h && r.badges);
+
+  tbody.innerHTML = rows.map(function(r) {
+    const anomaliIco = r.hasAnomali
+      ? ' <span title="Data tidak konsisten — periksa riwayat sesi" style="cursor:help">⚠️</span>' : '';
+    return `<tr>
+      <td><strong>${esc(r.h.nama_halaqah)}</strong>${anomaliIco}</td>
+      <td>${esc(r.h.nama_guru||'-')}</td>
+      <td>${r.badges}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-3)">Tidak ada sisa kelas pengganti</td></tr>';
+}
+
+async function loadRiwayatPengganti() {
+  const id_halaqah = document.getElementById('penggantiHalaqahSel').value;
+  const tbody = document.getElementById('riwayatPenggantiTbl');
+  if (!id_halaqah) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr>';
+  try {
+    const r = await window.HQ.GuruAPI.getRiwayatKBM(id_halaqah, 50);
+    renderRiwayatPenggantiTable(r.data || []);
+  } catch(e) { toast('Gagal memuat riwayat: '+e.message,'err'); }
+}
+
+function renderRiwayatPenggantiTable(data) {
+  const tbody = document.getElementById('riwayatPenggantiTbl');
+  tbody.innerHTML = (data||[]).map(function(k) {
+    if (k.status === 'libur') {
+      return `<tr>
+        <td>${fmtDate(k.tanggal_pertemuan)}</td>
+        <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
+        <td>—</td>
+        <td><span class="badge b-amber">libur</span></td>
+        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.keterangan_libur||'-')}">📵 ${esc(k.keterangan_libur||'-')}</td>
+      </tr>`;
+    }
+    if (k.status !== 'selesai') {
+      return `<tr>
+        <td>${fmtDate(k.tanggal_pertemuan)}</td>
+        <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
+        <td>${k.pertemuan_ke!=null ? 'ke-'+k.pertemuan_ke : '—'}</td>
+        <td><span class="badge b-amber">${esc(k.status)}</span></td>
+        <td>—</td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${fmtDate(k.tanggal_pertemuan)}</td>
+      <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
+      <td>ke-${k.pertemuan_ke}</td>
+      <td><span class="badge b-green">selesai</span></td>
+      <td><label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600">
+        <input type="checkbox" ${k.is_pengganti?'checked':''} onchange="onToggleIsPengganti('${esc(k.id_kbm)}', this.checked)">
+        🔄 Pengganti
+      </label></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada riwayat sesi</td></tr>';
+}
+
+async function onToggleIsPengganti(id_kbm, checked) {
+  showLoad('Bismillah, memproses...');
+  try {
+    await window.HQ.AdminAPI.toggleIsPengganti({ id_kbm, is_pengganti: checked });
+    toast(checked ? 'Ditandai sebagai pengganti' : 'Penanda pengganti dihapus','ok');
+    await loadSisaPenggantiSummary();
+  } catch(e) {
+    toast('Gagal: '+e.message,'err');
+    loadRiwayatPengganti();
+  } finally { hideLoad(); }
+}
 
 function openModalHalaqah() {
   document.getElementById('modalHalaqahTitle').textContent = '📚 Halaqah Baru';
