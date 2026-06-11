@@ -2195,11 +2195,23 @@ html.theme-dark .rt-surat-tbl th {
             <div class="draft-warning-btns">
               <button class="btn btn-sm" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700"
                 onclick="lanjutSesi()">▶ Lanjutkan Sesi</button>
+              <button class="btn btn-outline btn-sm" id="btnDraftLibur" style="color:#e0772a;border-color:#e0772a;background:rgba(224,119,42,0.05)"
+                onclick="batalkanDanTandaiLibur()">📵 Batalkan &amp; Tandai Libur</button>
               <button class="btn btn-outline btn-sm" id="btnDraftHapus" style="color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05)"
                 onclick="hapusSesiDraft()">🗑️ Hapus Sesi</button>
             </div>
           </div>
         </div>
+
+        <!-- Banner Libur Resmi (Flow 4) -->
+        <div class="draft-warning" id="liburResmiBanner">
+          <div class="draft-warning-ico">🏖️</div>
+          <div class="draft-warning-body">
+            <div class="draft-warning-title">Hari Ini Libur Resmi</div>
+            <div class="draft-warning-sub" id="liburResmiInfo">-</div>
+          </div>
+        </div>
+
         <!-- sesiBanner hidden — tidak dipakai lagi -->
         <div id="sesiBanner" style="display:none"><span id="sesiInfo"></span></div>
 
@@ -2261,6 +2273,14 @@ html.theme-dark .rt-surat-tbl th {
               </div>
             </div>
 
+            <!-- ── KELAS PENGGANTI: tandai sesi ini sebagai pengganti (Flow 2/3) ── -->
+            <div class="fg" id="kbmPenggantiWrap" style="display:none;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600">
+                <input type="checkbox" id="kbmIsPengganti" style="width:18px;height:18px;flex-shrink:0">
+                <span>🔄 Tandai sesi ini sebagai <strong>Kelas Pengganti</strong> (sisa: <span id="kbmSisaPengganti">0</span>)</span>
+              </label>
+            </div>
+
             <!-- ── PERSIAPAN SEBELUM MENGAJAR ── -->
             <div class="persiapan-wrap" id="persiapanWrap">
               <div class="persiapan-title">☑ Persiapan Sebelum Mengajar</div>
@@ -2309,6 +2329,23 @@ html.theme-dark .rt-surat-tbl th {
             <div class="persiapan-hint show" id="persiapanHint">
               ☝ Centang semua persiapan di atas untuk mengaktifkan tombol
             </div>
+          </div>
+        </div>
+
+        <!-- ── KELAS DILIBURKAN (Flow 1) ── -->
+        <div class="card" id="cardKelasLibur" style="margin-top:14px">
+          <div class="card-head"><div class="card-title">📵 Tidak Bisa Mengajar Hari Ini?</div></div>
+          <div class="card-body">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+              Pilih halaqah &amp; jenis sesi di atas, lalu isi alasan di bawah untuk menandai sesi ini sebagai <strong>libur</strong>.
+              Pertemuan ke- tidak akan bertambah, dan akan tercatat sebagai sisa kelas pengganti.
+            </div>
+            <div class="fg">
+              <label>Alasan Libur</label>
+              <textarea class="fc" id="liburAlasan" rows="2" placeholder="Contoh: Sakit demam, ada keperluan mendadak, dll"></textarea>
+            </div>
+            <button class="btn btn-outline btn-sm" style="color:#e0772a;border-color:#e0772a;width:100%;justify-content:center;font-weight:700"
+              onclick="doTandaiLibur()">📵 Tandai Kelas Diliburkan</button>
           </div>
         </div>
       </div>
@@ -2769,6 +2806,7 @@ html.theme-dark .rt-surat-tbl th {
             <option value="">— Semua Status —</option>
             <option value="selesai">Selesai</option>
             <option value="draft">Draft</option>
+            <option value="libur">Libur</option>
           </select>
           <select id="riwayatSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterRiwayatTable()">
             <option value="tanggal_desc">Urutan: Tanggal Terbaru</option>
@@ -4284,18 +4322,22 @@ function cekSesiDraft() {
 function updateDraftWarning() {
   const banner      = document.getElementById('draftWarning');
   const formBukaKBM = document.getElementById('formBukaKBM');
+  const cardLibur   = document.getElementById('cardKelasLibur');
   if (!banner) return;
 
   if (!sesiAktif) {
     banner.classList.remove('show');
-    // Tidak ada sesi aktif — tampilkan form buka sesi + checklist
-    if (formBukaKBM) formBukaKBM.style.display = '';
+    // Tidak ada sesi aktif — cek hari_libur_resmi (Flow 4) sebelum tampilkan form
+    updateLiburResmiBanner();
     return;
   }
 
-  // Ada sesi aktif: sembunyikan form buka sesi (checklist tidak perlu diisi ulang)
-  // Guru cukup lanjutkan sesi via banner atau hapus sesi draft
+  // Ada sesi aktif (draft): wajib diselesaikan dulu — Lanjutkan (5a) atau
+  // Batalkan & Tandai Libur (5b). Sembunyikan form buka sesi & libur resmi banner.
   if (formBukaKBM) formBukaKBM.style.display = 'none';
+  if (cardLibur)   cardLibur.style.display = 'none';
+  const liburResmi = document.getElementById('liburResmiBanner');
+  if (liburResmi) liburResmi.classList.remove('show');
 
   const h    = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
   const nama = (h && h.nama_halaqah) || sesiAktif.id_halaqah;
@@ -4307,6 +4349,25 @@ function updateDraftWarning() {
     btnLanjut.textContent = `▶ Lanjutkan KBM Pertemuan ${sesiAktif.pertemuan_ke}`;
   }
   banner.classList.add('show');
+}
+
+// Flow 4 — sembunyikan tombol buka sesi & tampilkan banner jika hari ini libur resmi
+function updateLiburResmiBanner() {
+  const banner      = document.getElementById('liburResmiBanner');
+  const formBukaKBM = document.getElementById('formBukaKBM');
+  const cardLibur   = document.getElementById('cardKelasLibur');
+  if (!banner) return;
+
+  if (window._liburResmiHariIni) {
+    document.getElementById('liburResmiInfo').textContent = window._liburResmiHariIni.keterangan || 'Hari ini libur resmi.';
+    banner.classList.add('show');
+    if (formBukaKBM) formBukaKBM.style.display = 'none';
+    if (cardLibur)   cardLibur.style.display = 'none';
+  } else {
+    banner.classList.remove('show');
+    if (formBukaKBM) formBukaKBM.style.display = '';
+    if (cardLibur)   cardLibur.style.display = '';
+  }
 }
 
 async function hapusSesiDraft() {
@@ -4327,9 +4388,82 @@ async function hapusSesiDraft() {
     loadDashboard();
     toast('Sesi KBM berhasil dihapus dan dibatalkan!','ok');
   } catch(e) { 
-    toast(e.message,'err'); 
-  } finally { 
-    hideLoad(); 
+    toast(e.message,'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+// Flow 5b — sesi draft TIDAK BERLANGSUNG: tutup sebagai 'libur' (tercatat sebagai sisa pengganti)
+async function batalkanDanTandaiLibur() {
+  if (!sesiAktif) return;
+
+  const keterangan = prompt('Sesi ini akan ditutup TANPA presensi/nilai dan dicatat sebagai LIBUR.\n\nIsi alasan kelas diliburkan:');
+  if (keterangan === null) return;
+  const trimmed = keterangan.trim();
+  if (!trimmed) return toast('Alasan libur wajib diisi','err');
+
+  const confirmMsg = `PERHATIAN: Pilih ini HANYA jika sesi Pertemuan ${sesiAktif.pertemuan_ke} ini BENAR-BENAR TIDAK BERLANGSUNG.\n\n`
+    + `Jika sesi sudah/sedang diajarkan, klik "Lanjutkan Sesi" sebagai gantinya — JANGAN tandai libur.\n\n`
+    + `Lanjutkan menandai sesi ini sebagai libur?`;
+  if (!confirm(confirmMsg)) return;
+
+  showLoad('Bismillah, memproses...');
+  try {
+    await window.HQ.GuruAPI.batalkanTandaiLibur({ keterangan_libur: trimmed });
+    sesiAktif      = null;
+    muridSesi      = [];
+    doaSudahMuncul = false;
+    window._nilaiCache = {};
+    window._microteachingKbmCache = {};
+    updateDraftWarning();
+    loadDashboard();
+    toast('Sesi dibatalkan dan ditandai libur. Sisa kelas pengganti bertambah.','ok');
+  } catch(e) {
+    toast(e.message,'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+// Flow 1 — tandai sesi hari ini sebagai libur (tanpa membuka draft)
+async function doTandaiLibur() {
+  if (sesiAktif) return toast('Masih ada sesi berjalan. Selesaikan dulu!','warn');
+
+  const id_halaqah = document.getElementById('kbmHalaqah').value;
+  const tanggal    = document.getElementById('kbmTanggal').value;
+  const jenis_sesi = document.getElementById('kbmJenis').value || 'KBM Reguler';
+  const alasanEl   = document.getElementById('liburAlasan');
+  const keterangan = (alasanEl.value || '').trim();
+
+  if (!id_halaqah) return toast('Pilih halaqah terlebih dahulu','err');
+  if (!tanggal)    return toast('Pilih tanggal terlebih dahulu','err');
+  if (!keterangan) {
+    alasanEl.classList.add('field-error');
+    setTimeout(function(){ alasanEl.classList.remove('field-error'); }, 800);
+    return toast('Alasan libur wajib diisi','err');
+  }
+
+  const h    = halaqahList.find(x => x.id_halaqah === id_halaqah);
+  const nama = (h && h.nama_halaqah) || id_halaqah;
+  const confirmMsg = `Tandai sesi "${nama}" (${jenis_sesi}) tanggal ${fmtDate(tanggal)} sebagai LIBUR?\n\n`
+    + `Alasan: ${keterangan}\n\n`
+    + `Pertemuan ke- TIDAK akan bertambah, dan akan tercatat sebagai +1 sisa kelas pengganti.`;
+  if (!confirm(confirmMsg)) return;
+
+  showLoad('Bismillah, menyimpan...');
+  try {
+    await window.HQ.GuruAPI.tandaiLibur({
+      id_halaqah, tanggal_pertemuan: tanggal, jenis_sesi, keterangan_libur: keterangan,
+    });
+    alasanEl.value = '';
+    toast('Sesi ditandai libur. Sisa kelas pengganti bertambah.','ok');
+    loadDashboard();
+    goPage('dashboard');
+  } catch(e) {
+    toast(e.message,'err');
+  } finally {
+    hideLoad();
   }
 }
 
@@ -4572,12 +4706,14 @@ async function doBukaKBM() {
   showLoad('Bismillah, kita buka sesi KBM dengan doa terlebih dahulu...');
   try {
     const pertemuanCustom = (document.getElementById('kbmPertemuan') ? document.getElementById('kbmPertemuan').value : '');
+    const isPengganti = !!document.getElementById('kbmIsPengganti')?.checked;
     const r = await window.HQ.GuruAPI.bukaKBM({
       id_halaqah,
       tanggal_pertemuan: tanggal,
       jam_mulai,
       jenis_sesi,
       pertemuan_ke_custom: pertemuanCustom ? Number(pertemuanCustom) : null,
+      is_pengganti: isPengganti,
     });
     sesiAktif      = r.data;
     muridSesi      = await getMurid(id_halaqah);
@@ -6609,13 +6745,25 @@ function filterRiwayatTable() {
     return;
   }
 
-  tbody.innerHTML = _riwayatDataFiltered.map(k => `<tr>
+  tbody.innerHTML = _riwayatDataFiltered.map(k => {
+    if (k.status === 'libur') {
+      return `<tr>
+        <td>${fmtDate(k.tanggal_pertemuan)}</td>
+        <td><span class="badge b-gray">—</span></td>
+        <td>${jenisKbmBadge(k.jenis_sesi)}</td>
+        <td colspan="2" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.keterangan_libur||'-')}">📵 ${esc(k.keterangan_libur||'-')}</td>
+        <td>${statusBadge(k.status)}</td>
+        <td>—</td>
+      </tr>`;
+    }
+    const penggantiBadge = k.is_pengganti ? ' <span class="badge" style="background:#fff7ed;color:#c2410c">🔄 Pengganti</span>' : '';
+    return `<tr>
     <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
     <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
     <td>${jenisKbmBadge(k.jenis_sesi)}</td>
     <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.pencapaian_modul||'-')}">${esc(k.pencapaian_modul||'-')}</td>
     <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
-    <td>${statusBadge(k.status)}</td>
+    <td>${statusBadge(k.status)}${penggantiBadge}</td>
     <td style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
       <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
@@ -6623,7 +6771,8 @@ function filterRiwayatTable() {
       ${k.status === 'draft' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
         onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">🗑 Hapus Draft</button>` : ''}
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 // Cek draft via getRiwayatKBM
@@ -6948,8 +7097,9 @@ function jenisKbmBadge(jenis) {
 }
 
 function statusBadge(s) {
-  const m = {selesai:'b-green',draft:'b-amber',batal:'b-red'};
-  return `<span class="badge ${m[s]||'b-gray'}">${s||'-'}</span>`;
+  const m = {selesai:'b-green',draft:'b-amber',batal:'b-red',libur:'b-amber'};
+  const l = {selesai:'selesai',draft:'draft',batal:'batal',libur:'libur'};
+  return `<span class="badge ${m[s]||'b-gray'}">${l[s]||s||'-'}</span>`;
 }
 
 function hadirBadge(k) {
@@ -7386,7 +7536,10 @@ async function loadJadwal() {
     var hari = r.hari_ini || '';
     var el = document.getElementById('dashHariIni');
     if (el) el.textContent = 'Hari ' + hari + ' — Semoga Allah mudahkan perjuangan hari ini.';
+    window._liburResmiHariIni = r.libur_resmi_hari_ini || null;
+    updateDraftWarning();
     renderJadwal();
+    updatePenggantiCheckbox();
   } catch(e) {
     console.error('loadJadwal error:', e);
     // Tampilkan error di UI agar bisa debug
@@ -7428,10 +7581,19 @@ function renderJadwal() {
     var color = getHqColor(h.id_halaqah);
     var jamInfo = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '\u2013'+h.jam_selesai : '')) : '';
 
+    // Sisa kelas pengganti \u2014 total dari semua jenis_sesi (Flow 7-lite untuk guru)
+    var sisaTotal = 0;
+    if (h.sisa_pengganti) {
+      Object.keys(h.sisa_pengganti).forEach(function(j){ sisaTotal += h.sisa_pengganti[j] || 0; });
+    }
+    var sisaBadge = sisaTotal > 0
+      ? ' <span class="badge-hari-ini" style="background:#fff7ed;color:#c2410c;border:1px solid #fdba74">\ud83d\udd04 Sisa Pengganti: ' + sisaTotal + '</span>'
+      : '';
+
     return '<div class="hq-card-new ' + color + '" style="cursor:default">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
       + '<div>'
-      + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + '</span>'
+      + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + sisaBadge + '</span>'
       + '</div>'
       + '<div class="hq-pertemuan">'
       + '<div style="font-size:9px;color:var(--text-3);font-weight:600;text-align:right;margin-bottom:1px">Pertemuan berikutnya</div>'
@@ -7815,7 +7977,7 @@ function filterRiwayatHalaqah() {
 function autoFillPertemuan() {
   var id_h  = document.getElementById('kbmHalaqah')?.value;
   var jenis = (document.getElementById('kbmJenis')?.value) || 'KBM Reguler';
-  if (!id_h) return;
+  if (!id_h) { updatePenggantiCheckbox(); return; }
   var h = jadwalData.find(function(x){ return x.id_halaqah === id_h; });
   if (h) {
     // Isi jam otomatis jika belum diisi
@@ -7833,6 +7995,28 @@ function autoFillPertemuan() {
       else                                 { nextPt = h.pertemuan_ke_reguler    || h.pertemuan_ke || 1; label = 'Pertemuan ke-'; }
       ptInput.placeholder = 'Auto (' + label + nextPt + ')';
     }
+  }
+  updatePenggantiCheckbox();
+}
+
+// Flow 2/3 — tampilkan checkbox "Tandai sebagai Pengganti" jika sisa_pengganti > 0
+// untuk halaqah & jenis_sesi yang sedang dipilih
+function updatePenggantiCheckbox() {
+  var wrap = document.getElementById('kbmPenggantiWrap');
+  var cb   = document.getElementById('kbmIsPengganti');
+  if (!wrap || !cb) return;
+
+  var id_h  = document.getElementById('kbmHalaqah')?.value;
+  var jenis = (document.getElementById('kbmJenis')?.value) || 'KBM Reguler';
+  var h     = jadwalData.find(function(x){ return x.id_halaqah === id_h; });
+  var sisa  = (h && h.sisa_pengganti && h.sisa_pengganti[jenis]) || 0;
+
+  if (sisa > 0) {
+    document.getElementById('kbmSisaPengganti').textContent = sisa;
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+    cb.checked = false;
   }
 }
 
