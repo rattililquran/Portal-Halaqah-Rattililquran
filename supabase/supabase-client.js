@@ -2931,6 +2931,26 @@ var AdminAPI = {
     var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
     var endIdx   = bulanSelesai;
     var bulanRekap = BULAN.slice(startIdx, endIdx);
+
+    // Cari bulan pertama tiap murid mulai punya catatan SPP Pribadi tahun ini —
+    // murid yang baru mulai/bayar di muka (mis. baru tercatat mulai Oktober)
+    // tidak dianggap nunggak untuk bulan-bulan sebelum itu.
+    var firstBulanMap = {};
+    if (muridIds.length) {
+      var { data: allSppRows } = await _sb.from('spp_pembayaran')
+        .select('id_murid, bulan, jenis')
+        .eq('tahun', tahun)
+        .in('id_murid', muridIds);
+      (allSppRows||[]).forEach(function(r){
+        if (r.jenis && r.jenis !== 'SPP Pribadi') return;
+        var idx = BULAN.indexOf(r.bulan);
+        if (idx < 0) return;
+        if (firstBulanMap[r.id_murid] === undefined || idx < firstBulanMap[r.id_murid]) {
+          firstBulanMap[r.id_murid] = idx;
+        }
+      });
+    }
+
     // Map id_murid → bulan lunas (menggunakan data SPP Pribadi saja)
     var lunasMap = {};
     sppPribadi.forEach(function(s){
@@ -2939,7 +2959,10 @@ var AdminAPI = {
     });
     var muridList = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
-      var bulanBelum = bulanRekap.filter(function(b){ return !lunasBulan.includes(b); });
+      var personalStart = firstBulanMap[a.id_murid];
+      var startForMurid = personalStart === undefined ? startIdx : Math.max(startIdx, personalStart);
+      var bulanRekapMurid = BULAN.slice(startForMurid, endIdx);
+      var bulanBelum = bulanRekapMurid.filter(function(b){ return !lunasBulan.includes(b); });
       var tunggakan  = bulanBelum.length;
       return {
         id_murid: a.id_murid, nama_murid: a.nama_murid,
