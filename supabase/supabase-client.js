@@ -2515,16 +2515,22 @@ var AdminAPI = {
   // ── Kelas Pengganti: Flow 7 — ringkasan sisa_pengganti per halaqah/jenis_sesi ──
   getSisaPenggantiSummary: async function() {
     var { data: kbmAll, error } = await _sb.from('kbm_log')
-      .select('id_halaqah, jenis_sesi, status, is_pengganti')
+      .select('id_halaqah, jenis_sesi, status, is_pengganti, tanggal_pertemuan, keterangan_libur')
       .in('status', ['selesai', 'libur']);
     _check(error, 'getSisaPenggantiSummary');
 
-    var liburByJenis = {}, penggantiByJenis = {};
+    var liburByJenis = {}, penggantiByJenis = {}, liburEntries = {};
     (kbmAll || []).forEach(function(k) {
       var jenis = k.jenis_sesi || 'KBM Reguler';
       if (k.status === 'libur') {
         if (!liburByJenis[k.id_halaqah]) liburByJenis[k.id_halaqah] = {};
         liburByJenis[k.id_halaqah][jenis] = (liburByJenis[k.id_halaqah][jenis] || 0) + 1;
+        if (!liburEntries[k.id_halaqah]) liburEntries[k.id_halaqah] = [];
+        liburEntries[k.id_halaqah].push({
+          tanggal_pertemuan: k.tanggal_pertemuan,
+          jenis_sesi: jenis,
+          keterangan_libur: k.keterangan_libur || '',
+        });
       } else if (k.status === 'selesai' && k.is_pengganti) {
         if (!penggantiByJenis[k.id_halaqah]) penggantiByJenis[k.id_halaqah] = {};
         penggantiByJenis[k.id_halaqah][jenis] = (penggantiByJenis[k.id_halaqah][jenis] || 0) + 1;
@@ -2544,7 +2550,10 @@ var AdminAPI = {
         perJenis[jenis] = { sisa: Math.max(0, raw), raw: raw };
         if (raw < 0) hasAnomali = true;
       });
-      result[id_halaqah] = { per_jenis: perJenis, has_anomali: hasAnomali };
+      var riwayatLibur = (liburEntries[id_halaqah] || []).slice().sort(function(a, b) {
+        return (b.tanggal_pertemuan || '').localeCompare(a.tanggal_pertemuan || '');
+      });
+      result[id_halaqah] = { per_jenis: perJenis, has_anomali: hasAnomali, riwayat_libur: riwayatLibur };
     });
     return { status: 'ok', data: result };
   },
