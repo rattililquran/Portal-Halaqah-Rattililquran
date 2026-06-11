@@ -2922,15 +2922,14 @@ var AdminAPI = {
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var TOTAL_REKAP   = 12;
+    var WINDOW_SIZE   = 5; // jumlah bulan kewajiban berturut-turut sejak bulan pertama murid bayar
     // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → Jan-Mei sudah lewat)
     var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif
-    // Window SELALU dari Januari (max(0, bulanSelesai-TOTAL_REKAP)) sampai bulanSelesai,
-    // sehingga tunggakan dihitung dari awal tahun berjalan — murid yang bayar
-    // banyak bulan sekaligus (>5 bulan) tetap terhitung lunas untuk seluruh
-    // periode yang sudah lewat, bukan hanya 5 bulan terakhir.
+    // Window default (untuk murid yang belum pernah punya catatan SPP Pribadi tahun ini):
+    // dari Januari sampai bulan berjalan.
     var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
     var endIdx   = bulanSelesai;
-    var bulanRekap = BULAN.slice(startIdx, endIdx);
+    var bulanRekapDefault = BULAN.slice(startIdx, endIdx);
 
     // Cari bulan pertama tiap murid mulai punya catatan SPP Pribadi tahun ini —
     // murid yang baru mulai/bayar di muka (mis. baru tercatat mulai Oktober)
@@ -2957,31 +2956,50 @@ var AdminAPI = {
       if (!lunasMap[s.id_murid]) lunasMap[s.id_murid] = [];
       lunasMap[s.id_murid].push(s.bulan);
     });
-    var muridList = (anggota||[]).map(function(a) {
+    var muridListRaw = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
-      var personalStart = firstBulanMap[a.id_murid];
-      var startForMurid = personalStart === undefined ? startIdx : Math.max(startIdx, personalStart);
-      var bulanRekapMurid = BULAN.slice(startForMurid, endIdx);
-      var bulanBelum = bulanRekapMurid.filter(function(b){ return !lunasBulan.includes(b); });
-      var tunggakan  = bulanBelum.length;
+      var firstIdx = firstBulanMap[a.id_murid];
+      var bulanBelum, tunggakan, winLen;
+      if (firstIdx === undefined) {
+        // Belum pernah punya catatan SPP Pribadi sama sekali → anggap nunggak WINDOW_SIZE bulan
+        bulanBelum = [];
+        tunggakan  = WINDOW_SIZE;
+        winLen     = WINDOW_SIZE;
+      } else {
+        // Window kewajiban = WINDOW_SIZE bulan berturut-turut mulai dari bulan
+        // pertama murid bayar, melingkar ke tahun berikutnya jika perlu
+        // (mis. mulai Oktober → Okt, Nov, Des, Jan, Feb).
+        var bulanRekapMurid = [];
+        for (var i = 0; i < WINDOW_SIZE; i++) {
+          bulanRekapMurid.push(BULAN[(firstIdx + i) % 12]);
+        }
+        bulanBelum = bulanRekapMurid.filter(function(b){ return !lunasBulan.includes(b); });
+        tunggakan  = bulanBelum.length;
+        winLen     = bulanRekapMurid.length;
+      }
       return {
         id_murid: a.id_murid, nama_murid: a.nama_murid,
         id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
         level: a.level, no_hp: hpMap[a.id_murid] || '',
         lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
+        _winLen: winLen,
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
-    
+
     // Hitung masing-masing total nominal
     var totalSPP = sppPribadi.reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var totalInfaq = infaqData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var totalMasuk = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
 
-    // Lunas = tunggakan===0 DAN sudah bayar minimal TOTAL_REKAP bulan di window
-    var lunas     = muridList.filter(function(m){ return m.tunggakan===0 && bulanRekap.length>0; }).length;
-    var menunggak = muridList.filter(function(m){ return m.tunggakan>0; }).length;
+    // Lunas = tunggakan===0 DAN window kewajibannya tidak kosong
+    var lunas     = muridListRaw.filter(function(m){ return m.tunggakan===0 && m._winLen>0; }).length;
+    var menunggak = muridListRaw.filter(function(m){ return m.tunggakan>0; }).length;
+    var muridList = muridListRaw.map(function(m){
+      return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
+        level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum };
+    });
     return { status:'ok', data:{ murid_list: muridList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
-      bulan_rekap: bulanRekap, total_rekap: TOTAL_REKAP } };
+      bulan_rekap: bulanRekapDefault, total_rekap: TOTAL_REKAP, window_size: WINDOW_SIZE } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { throw new Error('Fitur arsip data belum tersedia. Data BELUM dipindahkan — jangan jadikan ini sebagai pengganti backup.'); },
