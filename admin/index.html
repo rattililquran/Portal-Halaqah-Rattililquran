@@ -4836,20 +4836,7 @@ async function loadMetodeBayarAdmin() {
 }
 
 var _allMetode = [];
-var _sppBankInfoText = ''; // baris "Transfer ... a.n. ..." untuk pesan WA — diisi dari spp_metode_bayar (bukan hardcoded)
 
-// Bangun teks daftar rekening aktif dari spp_metode_bayar untuk disisipkan ke pesan WA SPP
-async function _loadSppBankInfoText() {
-  if (_sppBankInfoText) return _sppBankInfoText;
-  try {
-    var r = await window.HQ.AdminAPI.getMetodeBayar();
-    var rekening = (r.data || []).filter(function(m) { return m.jenis === 'rekening' && m.nomor; });
-    _sppBankInfoText = rekening.map(function(m) {
-      return 'Transfer ' + (m.bank || m.nama || '') + ' ' + m.nomor + ' a.n. ' + (m.atas_nama || '');
-    }).join('\n\n');
-  } catch (e) { console.error('_loadSppBankInfoText error:', e); }
-  return _sppBankInfoText;
-}
 async function bukaFormMetode(data) {
   if (!_allMetode.length) {
     try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
@@ -5018,7 +5005,6 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
       document.getElementById('sppStatMasukSub').textContent = 'Terbayar tahun ' + tahun;
 
-      await _loadSppBankInfoText();
       filterSPPTable();
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
@@ -5096,9 +5082,10 @@ function filterSPPTable() {
       var msg = 'Assalamualaikum ' + m.nama_murid + ',\n\n'
         + 'Izin Kami ingatkan kembali perihal pembayaran SPP yang belum tertunaikan:\n\n'
         + 'Bulan : ' + (m.bulan_belum.length ? m.bulan_belum.join(', ') : (m.tunggakan + ' bulan terakhir')) + '\n'
-        + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n'
-        + 'Pembayaran dapat dilakukan melalui: ' + (_sppBankInfoText || 'lihat menu Metode Bayar di portal') + '\n\n'
-        + 'Setelah membayar, mohon konfirmasi di Portal Rattililquran yaaa\n\n'
+        + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n\n'
+        + 'Cara pembayaran:\n'
+        + '1. Buka Portal Rattililqur\'an → menu *SPP* → *Konfirmasi SPP* (info rekening/QRIS terbaru ada di sana)\n'
+        + '2. Transfer sesuai nominal, lalu pilih bulan & metode bayar dan upload bukti transfer\n\n'
         + 'Jika ada kendala teknis ataupun finansial, jangan ragu hubungi kami. Semoga Allah mudahkan. Jazakumullahu khairan. 🤲\n\n'
         + '-Data ini direkap otomatis melalui portal Rattililqur\'an, jika ada ketidak cocokan data mohon untuk konfirmasi-';
       waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">💬 WA</a>';
