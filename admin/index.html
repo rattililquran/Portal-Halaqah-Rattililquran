@@ -314,7 +314,7 @@ html.theme-dark .premium-table tbody tr:nth-child(even) {
 .modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
 
 /* NOTIF */
-.notif-overlay{display:none;position:fixed;inset:0;z-index:700;align-items:center;justify-content:center;background:rgba(15,23,42,.35);backdrop-filter:blur(3px);padding:20px}
+.notif-overlay{display:none;position:fixed;inset:0;z-index:10500;align-items:center;justify-content:center;background:rgba(15,23,42,.35);backdrop-filter:blur(3px);padding:20px}
 .notif-overlay.show{display:flex}
 .notif-box{background:#fff;border-radius:var(--r-xl);padding:28px 28px 24px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:notifPop .28s cubic-bezier(.34,1.56,.64,1);text-align:center}
 @keyframes notifPop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
@@ -2411,20 +2411,6 @@ html.theme-dark .tbl-wrap thead th {
   </div>
 </div>
 
-<!-- MODAL KONFIRMASI / ALERT GENERIK -->
-<div class="overlay" id="confirmModalOverlay" style="z-index:10000">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head">
-      <div class="modal-title" id="confirmModalTitle">Konfirmasi</div>
-    </div>
-    <div class="modal-body" id="confirmModalBody" style="font-size:13.5px;line-height:1.7;color:var(--text-2)"></div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="confirmModalCancel">Batal</button>
-      <button class="btn btn-primary" id="confirmModalOk">Oke</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL GANTI PASSWORD -->
 <div class="overlay" id="modalChangePassword">
   <div class="modal">
@@ -2700,6 +2686,7 @@ html.theme-dark .tbl-wrap thead th {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
 <script src="../assets/push-permission.js"></script>
+<script src="../assets/confirm-modal.js"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -5564,49 +5551,7 @@ function populatePeriodeSel(selId) {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Modal konfirmasi/alert custom — pengganti window.confirm()/window.alert()
-// Resolve true jika "Oke" diklik, false jika "Batal"/klik luar/tombol X.
-function showConfirm(message, opts) {
-  opts = opts || {};
-  return new Promise(function(resolve) {
-    var overlay  = document.getElementById('confirmModalOverlay');
-    var titleEl  = document.getElementById('confirmModalTitle');
-    var bodyEl   = document.getElementById('confirmModalBody');
-    var okBtn    = document.getElementById('confirmModalOk');
-    var cancelBtn = document.getElementById('confirmModalCancel');
-
-    titleEl.textContent = opts.title || 'Konfirmasi';
-    bodyEl.innerHTML = opts.html || esc(message || '').replace(/\n/g, '<br>');
-    okBtn.textContent = opts.okText || 'Oke';
-    okBtn.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-primary');
-    cancelBtn.style.display = opts.alertOnly ? 'none' : '';
-    cancelBtn.textContent = opts.cancelText || 'Batal';
-
-    function cleanup(result) {
-      overlay.classList.remove('open');
-      okBtn.removeEventListener('click', onOk);
-      cancelBtn.removeEventListener('click', onCancel);
-      overlay.removeEventListener('click', onOverlay);
-      resolve(result);
-    }
-    function onOk()     { cleanup(true); }
-    function onCancel() { cleanup(false); }
-    function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(false); }
-
-    okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
-    overlay.addEventListener('click', onOverlay);
-    overlay.classList.add('open');
-  });
-}
-
-// Modal alert custom — pengganti window.alert(). Hanya tombol "Oke".
-function showAlertModal(message, opts) {
-  return showConfirm(message, Object.assign({ alertOnly: true, okText: 'Oke' }, opts || {}));
-}
-
-let _notifTimer;
-function toast(msg, type='', autoDismiss=true) {
+function toast(msg, type='') {
   const icons  = {ok:'✅',err:'❌',warn:'⚠️','':'ℹ️'};
   const titles = {ok:'Berhasil',err:'Gagal',warn:'Perhatian','':'Info'};
   document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
@@ -5617,10 +5562,8 @@ function toast(msg, type='', autoDismiss=true) {
   btn.textContent = type==='err'?'Tutup':type==='warn'?'Mengerti':'OK';
   btn.onclick = closeNotif;
   document.getElementById('notifOverlay').classList.add('show');
-  clearTimeout(_notifTimer);
-  if (autoDismiss && type==='ok') _notifTimer = setTimeout(closeNotif, 2800);
 }
-function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); clearTimeout(_notifTimer); }
+function closeNotif() { document.getElementById('notifOverlay').classList.remove('show'); }
 
 function showLoad(msg='Bismillah...') { document.getElementById('loaderTxt').textContent=msg; document.getElementById('loader').classList.add('show'); }
 function hideLoad() { document.getElementById('loader').classList.remove('show'); }
@@ -6052,6 +5995,10 @@ async function testTrigger(trigger) {
   }
 }
 
+function _confirmStressCleanup(msg) {
+  return showConfirm(msg, { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true });
+}
+
 // ══════════════════════════════════════════
 //  STRESS TEST KBM
 // ══════════════════════════════════════════
@@ -6095,7 +6042,7 @@ async function stressTestMulai() {
 }
 
 async function stressTestCleanup() {
-  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6138,7 +6085,7 @@ async function rsStressTestMulai() {
   btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
 }
 async function rsStressTestCleanup() {
-  if(!(await showConfirm('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if(!(await _confirmStressCleanup('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?'))) return;
   var btn=document.getElementById('btnRsStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Menghapus...';
   try {
@@ -6170,7 +6117,7 @@ async function prefsStressTestMulai() {
   btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
 }
 async function prefsStressTestCleanup() {
-  if(!(await showConfirm('Hapus key _st dari semua push_user_prefs?', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if(!(await _confirmStressCleanup('Hapus key _st dari semua push_user_prefs?'))) return;
   var btn=document.getElementById('btnPrefsStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Menghapus...';
   try {
@@ -6208,7 +6155,7 @@ async function combStressTestMulai() {
   btn.disabled=false; btn.textContent='🔥 Mulai Combined Test';
 }
 async function combStressTestCleanup() {
-  if(!(await showConfirm('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if(!(await _confirmStressCleanup('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.'))) return;
   var btn=document.getElementById('btnCombStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Cleanup semua...';
   try {
@@ -6253,7 +6200,7 @@ async function usrStressTestMulai() {
 }
 
 async function usrStressTestCleanup() {
-  if (!(await showConfirm('Hapus semua user [STRESS_TEST] dari users dan anggota?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmStressCleanup('Hapus semua user [STRESS_TEST] dari users dan anggota?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnUsrStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6303,7 +6250,7 @@ async function obsStressTestMulai() {
 }
 
 async function obsStressTestCleanup() {
-  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari observasi_kbm dan kbm_log (observasi)?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari observasi_kbm dan kbm_log (observasi)?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnObsStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6353,7 +6300,7 @@ async function atStressTestMulai() {
 }
 
 async function atStressTestCleanup() {
-  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnAtStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {

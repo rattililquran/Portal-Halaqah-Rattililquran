@@ -36,6 +36,8 @@
   --red-txt:#dc2626;--red-bg:#fff5f5;
   --blue-txt:#1a73e8;--blue-bg:#eff6ff;
   --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
+  --libur-bg:#fff7ed;--libur-border:#fdba74;
+  --libur-title:#9a3412;--libur-sub:#c2410c;--libur-note:#7c2d12;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
@@ -580,7 +582,7 @@ html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;bord
 
 /* ── NOTIF CENTER ── */
 .notif-overlay{
-  display:none;position:fixed;inset:0;z-index:700;
+  display:none;position:fixed;inset:0;z-index:10500;
   align-items:center;justify-content:center;
   background:rgba(15,23,42,.35);backdrop-filter:blur(3px);
   padding:20px;
@@ -3493,20 +3495,6 @@ html.theme-dark .rt-surat-tbl th {
   </div>
 </div>
 
-<!-- MODAL KONFIRMASI / ALERT GENERIK -->
-<div class="overlay" id="confirmModalOverlay" style="z-index:10000">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head">
-      <div class="modal-title" id="confirmModalTitle">Konfirmasi</div>
-    </div>
-    <div class="modal-body" id="confirmModalBody" style="font-size:13.5px;line-height:1.7;color:var(--text-2)"></div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="confirmModalCancel">Batal</button>
-      <button class="btn btn-primary" id="confirmModalOk">Oke</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL BERKAS PENGAJAR -->
 <div class="overlay" id="berkasOverlay" onclick="if(event.target===this)tutupTabBerkas()">
   <div class="modal modal-lg">
@@ -3959,6 +3947,7 @@ html.theme-dark .rt-surat-tbl th {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js"></script>
 <script src="../assets/push-permission.js"></script>
+<script src="../assets/confirm-modal.js"></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -4513,10 +4502,10 @@ async function doTandaiLibur() {
 
   const h    = halaqahList.find(x => x.id_halaqah === id_halaqah);
   const nama = (h && h.nama_halaqah) || id_halaqah;
-  const confirmHtml = `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:12px 14px;margin-bottom:10px">`
-    + `<div style="font-size:14px;font-weight:800;color:#9a3412">📵 ${esc(nama)}</div>`
-    + `<div style="font-size:12px;font-weight:700;color:#c2410c;margin-top:2px">${esc(jenis_sesi)} · ${fmtDate(tanggal)}</div>`
-    + `<div style="font-size:12.5px;color:#7c2d12;margin-top:8px;font-style:italic">"${esc(keterangan)}"</div>`
+  const confirmHtml = `<div style="background:var(--libur-bg);border:1px solid var(--libur-border);border-radius:10px;padding:12px 14px;margin-bottom:10px">`
+    + `<div style="font-size:14px;font-weight:800;color:var(--libur-title)">📵 ${esc(nama)}</div>`
+    + `<div style="font-size:12px;font-weight:700;color:var(--libur-sub);margin-top:2px">${esc(jenis_sesi)} · ${fmtDate(tanggal)}</div>`
+    + `<div style="font-size:12.5px;color:var(--libur-note);margin-top:8px;font-style:italic">"${esc(keterangan)}"</div>`
     + `</div>`
     + `<div style="font-size:12.5px;color:var(--text-3)">Pertemuan ke- <strong>tidak</strong> akan bertambah, dan akan tercatat sebagai <strong>+1 sisa kelas pengganti</strong>.</div>`;
   const ok = await showConfirm('', { title: 'Tandai sesi sebagai LIBUR?', html: confirmHtml, okText: 'Ya, Tandai Libur' });
@@ -6956,12 +6945,12 @@ function _showPenggantiReminderDetail() {
   var html = '<div style="font-size:13px;color:var(--text-2);margin-bottom:12px">'
     + 'Sesi berikut sudah ditandai <strong>libur</strong> dan tercatat sebagai sisa kelas pengganti yang belum digantikan:</div>'
     + _penggantiPendingRows.map(function(r) {
-      return '<div style="display:flex;align-items:flex-start;gap:10px;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+      return '<div style="display:flex;align-items:flex-start;gap:10px;background:var(--libur-bg);border:1px solid var(--libur-border);border-radius:10px;padding:10px 12px;margin-bottom:8px">'
         + '<div style="font-size:18px;line-height:1">🔄</div>'
         + '<div style="flex:1">'
-        + '<div style="font-size:13.5px;font-weight:800;color:#9a3412">' + esc(r.nama) + '</div>'
-        + '<div style="font-size:11.5px;font-weight:700;color:#c2410c;margin-top:2px">' + esc(r.jenis) + ' · ' + fmtDate(r.tanggal) + '</div>'
-        + (r.keterangan ? '<div style="font-size:12px;color:#7c2d12;margin-top:4px;font-style:italic">' + esc(r.keterangan) + '</div>' : '')
+        + '<div style="font-size:13.5px;font-weight:800;color:var(--libur-title)">' + esc(r.nama) + '</div>'
+        + '<div style="font-size:11.5px;font-weight:700;color:var(--libur-sub);margin-top:2px">' + esc(r.jenis) + ' · ' + fmtDate(r.tanggal) + '</div>'
+        + (r.keterangan ? '<div style="font-size:12px;color:var(--libur-note);margin-top:4px;font-style:italic">' + esc(r.keterangan) + '</div>' : '')
         + '</div></div>';
     }).join('');
 
@@ -7136,47 +7125,6 @@ function populateSel(selId, preserveValue) {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Modal konfirmasi/alert custom — pengganti window.confirm()/window.alert()
-// Resolve true jika "Oke" diklik, false jika "Batal"/klik luar/tombol X.
-function showConfirm(message, opts) {
-  opts = opts || {};
-  return new Promise(function(resolve) {
-    var overlay  = document.getElementById('confirmModalOverlay');
-    var titleEl  = document.getElementById('confirmModalTitle');
-    var bodyEl   = document.getElementById('confirmModalBody');
-    var okBtn    = document.getElementById('confirmModalOk');
-    var cancelBtn = document.getElementById('confirmModalCancel');
-
-    titleEl.textContent = opts.title || 'Konfirmasi';
-    bodyEl.innerHTML = opts.html || esc(message || '').replace(/\n/g, '<br>');
-    okBtn.textContent = opts.okText || 'Oke';
-    okBtn.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-primary');
-    cancelBtn.style.display = opts.alertOnly ? 'none' : '';
-    cancelBtn.textContent = opts.cancelText || 'Batal';
-
-    function cleanup(result) {
-      overlay.classList.remove('open');
-      okBtn.removeEventListener('click', onOk);
-      cancelBtn.removeEventListener('click', onCancel);
-      overlay.removeEventListener('click', onOverlay);
-      resolve(result);
-    }
-    function onOk()     { cleanup(true); }
-    function onCancel() { cleanup(false); }
-    function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(false); }
-
-    okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
-    overlay.addEventListener('click', onOverlay);
-    overlay.classList.add('open');
-  });
-}
-
-// Modal alert custom — pengganti window.alert(). Hanya tombol "Oke".
-function showAlertModal(message, opts) {
-  return showConfirm(message, Object.assign({ alertOnly: true, okText: 'Oke' }, opts || {}));
-}
-
 function showLoad(msg='Bismillah...') {
   document.getElementById('loaderTxt').textContent = msg;
   document.getElementById('loader').classList.add('show');
@@ -7184,8 +7132,7 @@ function showLoad(msg='Bismillah...') {
 function hideLoad() { document.getElementById('loader').classList.remove('show'); }
 
 // ── NOTIF CENTER (ganti toast) ──
-let _notifTimer;
-function toast(msg, type='', autoDismiss=true) {
+function toast(msg, type='') {
   const icons = { ok:'✅', err:'❌', warn:'⚠️', '':'ℹ️' };
   const titles = { ok:'Berhasil', err:'Gagal', warn:'Perhatian', '':'Info' };
   const overlay = document.getElementById('notifOverlay');
@@ -7199,17 +7146,10 @@ function toast(msg, type='', autoDismiss=true) {
   btn.textContent = type === 'err' ? 'Tutup' : type === 'warn' ? 'Mengerti' : 'OK';
 
   overlay.classList.add('show');
-
-  // Auto dismiss hanya untuk sukses sederhana
-  clearTimeout(_notifTimer);
-  if (autoDismiss && type === 'ok') {
-    _notifTimer = setTimeout(closeNotif, 2800);
-  }
 }
 
 function closeNotif() {
   document.getElementById('notifOverlay').classList.remove('show');
-  clearTimeout(_notifTimer);
 }
 
 // Untuk pesan cepat yang tidak perlu klik (info ringan)
@@ -10139,6 +10079,10 @@ function renderKelolaPenilaianHafalan() {
   _hfRenderAllDropdowns();
 }
 
+function _confirmHapusOpsi() {
+  return showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true });
+}
+
 async function hfAddKelancaran() {
   var nama = (document.getElementById('hfAddKelNama').value || '').trim();
   var poin = parseInt(document.getElementById('hfAddKelPoin').value) || 0;
@@ -10153,7 +10097,7 @@ async function hfAddKelancaran() {
 }
 
 async function hfDelKelancaran(i) {
-  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmHapusOpsi())) return;
   var cfg = _hfLoadConfig();
   cfg.kelancaran.splice(i, 1);
   await _hfSaveConfig(cfg);
@@ -10176,7 +10120,7 @@ async function hfAddNilai() {
 }
 
 async function hfDelNilai(i) {
-  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmHapusOpsi())) return;
   var cfg = _hfLoadConfig();
   cfg.nilai.splice(i, 1);
   await _hfSaveConfig(cfg);
@@ -10207,7 +10151,7 @@ async function hfAddKamera() {
 }
 
 async function hfDelKamera(i) {
-  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
+  if (!(await _confirmHapusOpsi())) return;
   var cfg = _hfLoadConfig();
   if (!cfg.kamera) return;
   cfg.kamera.splice(i, 1);
