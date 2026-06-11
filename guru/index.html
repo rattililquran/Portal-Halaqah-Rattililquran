@@ -2910,6 +2910,10 @@ html.theme-dark .rt-surat-tbl th {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Kelola Penilaian
             </button>
+            <button class="guru-refresh-btn" onclick="toggleKelolaKelompokPartner()" id="btnKelolaKelompokPartner" title="Kelola Kelompok Partner Qiyam">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Kelompok Partner
+            </button>
             <button class="guru-refresh-btn" onclick="refreshHafalanGuru()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
             </button>
@@ -10159,6 +10163,188 @@ async function hfDelKamera(i) {
   showToast('Opsi dihapus', 'success');
 }
 
+// ── Kelola Kelompok Partner Qiyam UI ─────────────────────────────────────
+var _kpData = { id_halaqah: null, kelompok: [], murid: [] };
+
+function toggleKelolaKelompokPartner() {
+  var modal = document.getElementById('modalKelolaKelompokPartner');
+  if (!modal) return;
+  var isOpen = modal.style.display !== 'none';
+  modal.style.display = isOpen ? 'none' : 'flex';
+  modal.style.alignItems = 'flex-start';
+  if (!isOpen) {
+    renderKelolaKelompokPartner();
+    setTimeout(function(){ modal.scrollTop = 0; }, 50);
+  }
+}
+
+async function renderKelolaKelompokPartner() {
+  var id_halaqah = document.getElementById('hafalanGuruHalaqahSel').value;
+  var listWrap   = document.getElementById('kpListWrap');
+  var newWrap    = document.getElementById('kpNewAnggotaList');
+  if (!id_halaqah) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Pilih halaqah Qiyam terlebih dahulu</div>';
+    newWrap.innerHTML = '';
+    return;
+  }
+  listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">⏳ Memuat…</div>';
+  try {
+    var muridList = _hafalanGuruMuridCache[id_halaqah];
+    if (!muridList) {
+      var resM = await window.HQ.GuruAPI.getMuridQiyam(id_halaqah);
+      muridList = resM.data || [];
+      _hafalanGuruMuridCache[id_halaqah] = muridList;
+    }
+    var resK = await window.HQ.GuruAPI.getKelompokPartnerHalaqah(id_halaqah);
+    var kelompokList = (resK.data || []).filter(function(k) { return k.status === 'aktif'; });
+    _kpData = { id_halaqah: id_halaqah, kelompok: kelompokList, murid: muridList };
+    _kpRenderList();
+    _kpRenderNewForm();
+  } catch(e) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px">Gagal memuat data</div>';
+  }
+}
+
+// id_murid yang sudah jadi anggota kelompok aktif lain (selain id_kelompok yang dikecualikan)
+function _kpAssignedMurid(excludeKelompok) {
+  var ids = {};
+  _kpData.kelompok.forEach(function(k) {
+    if (k.id_kelompok === excludeKelompok) return;
+    (k.anggota_kelompok_partner || []).forEach(function(a) { ids[a.id_murid] = true; });
+  });
+  return ids;
+}
+
+function _kpRenderList() {
+  var listWrap = document.getElementById('kpListWrap');
+  if (!_kpData.kelompok.length) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px">Belum ada kelompok partner di halaqah ini</div>';
+    return;
+  }
+  listWrap.innerHTML = _kpData.kelompok.map(function(k) {
+    var anggota = k.anggota_kelompok_partner || [];
+    var chips = anggota.map(function(a) {
+      return '<span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 4px 4px 0">'
+        + esc(a.nama_murid || a.id_murid)
+        + '<button onclick="kpRemoveAnggota(\'' + esc(k.id_kelompok) + '\',\'' + esc(a.id_murid) + '\')" style="border:none;background:none;color:#1d4ed8;cursor:pointer;font-size:12px;padding:0;line-height:1" title="Hapus dari kelompok">✕</button>'
+      + '</span>';
+    }).join('');
+
+    var assigned  = _kpAssignedMurid(k.id_kelompok);
+    var available = _kpData.murid.filter(function(m) {
+      return !anggota.some(function(a) { return a.id_murid === m.id_murid; }) && !assigned[m.id_murid];
+    });
+    var addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(function(m) {
+      return '<option value="' + esc(m.id_murid) + '" data-nama="' + esc(m.nama_murid) + '">' + esc(m.nama_murid) + '</option>';
+    }).join('');
+
+    return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin-bottom:10px">'
+      + '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border-bottom:1px solid #f0f0f0">'
+        + '<input type="text" class="fc" value="' + esc(k.nama_kelompok || '') + '" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kpRenameKelompok(\'' + esc(k.id_kelompok) + '\',this.value)">'
+        + '<button onclick="kpDeleteKelompok(\'' + esc(k.id_kelompok) + '\')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>'
+      + '</div>'
+      + '<div style="padding:10px 12px">'
+        + (chips || '<div style="font-size:11px;color:#9ca3af;margin-bottom:6px">Belum ada anggota</div>')
+        + (available.length ? '<div style="margin-top:6px"><select class="fc" style="font-size:11px;padding:5px 9px" onchange="kpAddAnggota(\'' + esc(k.id_kelompok) + '\',this)">' + addOpts + '</select></div>' : '')
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function _kpRenderNewForm() {
+  var assigned  = _kpAssignedMurid(null);
+  var available = _kpData.murid.filter(function(m) { return !assigned[m.id_murid]; });
+  var wrap = document.getElementById('kpNewAnggotaList');
+  if (!available.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:#9ca3af">Semua murid sudah tergabung di kelompok partner</div>';
+    return;
+  }
+  wrap.innerHTML = available.map(function(m) {
+    return '<label style="display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #f3f4f6;border-radius:9px;margin-bottom:5px;font-size:12px;cursor:pointer">'
+      + '<input type="checkbox" value="' + esc(m.id_murid) + '" data-nama="' + esc(m.nama_murid) + '" class="kp-new-anggota">'
+      + esc(m.nama_murid)
+    + '</label>';
+  }).join('');
+}
+
+async function kpCreateKelompok() {
+  var checks = Array.prototype.slice.call(document.querySelectorAll('.kp-new-anggota:checked'));
+  if (checks.length < 2 || checks.length > 3) {
+    showToast('Pilih 2-3 murid untuk satu kelompok', 'warning');
+    return;
+  }
+  var anggota = checks.map(function(c) { return { id_murid: c.value, nama_murid: c.getAttribute('data-nama') }; });
+  var nama = (document.getElementById('kpNewNama').value || '').trim() || null;
+  try {
+    await window.HQ.GuruAPI.createKelompokPartner(_kpData.id_halaqah, nama, anggota);
+    showToast('Kelompok partner dibuat ✓', 'success');
+    document.getElementById('kpNewNama').value = '';
+    renderKelolaKelompokPartner();
+  } catch(e) {
+    showToast(e.message || 'Gagal membuat kelompok', 'error');
+  }
+}
+
+async function kpRenameKelompok(id_kelompok, nama) {
+  try {
+    await window.HQ.GuruAPI.updateKelompokPartner(id_kelompok, { nama_kelompok: nama.trim() || null });
+    showToast('Nama kelompok disimpan ✓', 'success');
+    var k = _kpData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
+    if (k) k.nama_kelompok = nama.trim() || null;
+  } catch(e) {
+    showToast(e.message || 'Gagal menyimpan nama', 'error');
+  }
+}
+
+async function kpDeleteKelompok(id_kelompok) {
+  var ok = await showConfirm('Hapus kelompok ini? Anggota akan kehilangan akses partner.', { title: 'Hapus Kelompok?', okText: 'Ya, Hapus', danger: true });
+  if (!ok) return;
+  try {
+    await window.HQ.GuruAPI.deleteKelompokPartner(id_kelompok);
+    showToast('Kelompok dihapus', 'success');
+    renderKelolaKelompokPartner();
+  } catch(e) {
+    showToast(e.message || 'Gagal menghapus kelompok', 'error');
+  }
+}
+
+async function kpRemoveAnggota(id_kelompok, id_murid) {
+  var k = _kpData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
+  if (!k) return;
+  var anggotaBaru = (k.anggota_kelompok_partner || [])
+    .filter(function(a) { return a.id_murid !== id_murid; })
+    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; });
+  try {
+    await window.HQ.GuruAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    showToast('Anggota diperbarui ✓', 'success');
+    renderKelolaKelompokPartner();
+  } catch(e) {
+    showToast(e.message || 'Gagal memperbarui anggota', 'error');
+  }
+}
+
+async function kpAddAnggota(id_kelompok, selectEl) {
+  var id_murid = selectEl.value;
+  if (!id_murid) return;
+  var nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
+  var k = _kpData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
+  if (!k) return;
+  var anggotaBaru = (k.anggota_kelompok_partner || [])
+    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; })
+    .concat([{ id_murid: id_murid, nama_murid: nama_murid }]);
+  if (anggotaBaru.length > 3) {
+    showToast('Maksimal 3 anggota per kelompok', 'warning');
+    return;
+  }
+  try {
+    await window.HQ.GuruAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    showToast('Anggota ditambahkan ✓', 'success');
+    renderKelolaKelompokPartner();
+  } catch(e) {
+    showToast(e.message || 'Gagal menambah anggota', 'error');
+  }
+}
+
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
 function _initNavHafalan() {
   var qiyamHalaqah = (halaqahList || []).filter(function(h) { return h.level === 'Level Qiyam'; });
@@ -10264,6 +10450,9 @@ async function onHafalanHalaqahChange() {
   var id_halaqah = document.getElementById('hafalanGuruHalaqahSel').value;
   if (id_halaqah) loadTargetHafalanGuru(id_halaqah);
   loadRiwayatHafalan();
+  // Refresh modal kelompok partner jika sedang terbuka
+  var kpModal = document.getElementById('modalKelolaKelompokPartner');
+  if (kpModal && kpModal.style.display !== 'none') renderKelolaKelompokPartner();
 }
 
 // Dipanggil saat murid dipilih — fetch Ziyadah data untuk semua mode
@@ -11644,6 +11833,45 @@ function cetakRaportTahfidz() {
           </div>
         </div>
         <p style="font-size:11px;color:#9ca3af;margin-top:10px">Perubahan tersimpan otomatis dan langsung berlaku di form Input Setoran.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: KELOLA KELOMPOK PARTNER QIYAM ════ -->
+<div id="modalKelolaKelompokPartner" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:16px;overflow-y:auto"
+  onclick="if(event.target===this)toggleKelolaKelompokPartner()">
+  <div style="background:#fff;border-radius:20px;max-width:640px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,0.25);overflow:hidden">
+
+    <!-- Modal Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;background:linear-gradient(90deg,#eef3fb,#fff)">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#111827">👥 Kelola Kelompok Partner Qiyam</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:1px">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
+      </div>
+      <button onclick="toggleKelolaKelompokPartner()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding:20px">
+      <div id="kpListWrap" style="margin-bottom:16px"></div>
+
+      <!-- Form buat kelompok baru -->
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#eff6ff,#fff);border-bottom:1px solid #f0f0f0">
+          <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#111827">Buat Kelompok Baru</div>
+            <div style="font-size:10px;color:#9ca3af">Pilih 2-3 murid Level Qiyam</div>
+          </div>
+        </div>
+        <div style="padding:12px 14px">
+          <label class="hf-lbl">Nama Kelompok (opsional)</label>
+          <input type="text" class="fc" id="kpNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
+          <label class="hf-lbl">Anggota</label>
+          <div id="kpNewAnggotaList" style="margin:6px 0 10px"></div>
+          <button onclick="kpCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
+        </div>
       </div>
     </div>
   </div>

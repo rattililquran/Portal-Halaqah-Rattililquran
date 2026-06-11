@@ -979,6 +979,7 @@ html.theme-dark .tbl-wrap thead th {
       <button class="nav-btn" onclick="goPage('halaqah')" data-p="halaqah"><span class="ni">📚</span>Halaqah</button>
       <button class="nav-btn" onclick="goPage('anggota')" data-p="anggota"><span class="ni">📋</span>Anggota Kelas</button>
       <button class="nav-btn" onclick="goPage('pengganti')" data-p="pengganti"><span class="ni">🔄</span>Kelas Pengganti</button>
+      <button class="nav-btn" onclick="goPage('kelompok-qiyam')" data-p="kelompok-qiyam"><span class="ni">👥</span>Kelompok Partner Qiyam</button>
 
       <div class="sb-sec">Penilaian</div>
       <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
@@ -1243,6 +1244,35 @@ html.theme-dark .tbl-wrap thead th {
         </div>
       </div>
 
+      <!-- ══ KELOMPOK PARTNER QIYAM ══ -->
+      <div class="page" id="page-kelompok-qiyam">
+        <div class="section-title">👥 Kelompok Partner Qiyam</div>
+        <div class="section-sub">Kelola kelompok 2-3 murid Level Qiyam untuk saling setor &amp; konfirmasi hafalan mandiri.</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="kqHalaqahSel" onchange="onKqHalaqahChange()" style="max-width:280px">
+            <option value="">— Pilih Halaqah Qiyam —</option>
+          </select>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">📋 Daftar Kelompok</div></div>
+          <div class="card-body">
+            <div id="kqListWrap"><div style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</div></div>
+          </div>
+        </div>
+
+        <div class="card" id="kqNewCard" style="display:none">
+          <div class="card-head"><div class="card-title">+ Buat Kelompok Baru</div></div>
+          <div class="card-body">
+            <div class="fg" style="margin-bottom:10px"><label>Nama Kelompok (opsional)</label><input type="text" class="fc" id="kqNewNama" placeholder="Misal: Kelompok 1"></div>
+            <label style="font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Anggota (2-3 murid)</label>
+            <div id="kqNewAnggotaList" style="margin-bottom:10px"></div>
+            <button class="btn btn-primary btn-sm" onclick="kqCreateKelompok()">+ Buat Kelompok</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ══ KOMPONEN RAPORT ══ -->
       <div class="page" id="page-komponen">
         <div class="section-title">Komponen Raport</div>
@@ -1488,11 +1518,15 @@ html.theme-dark .tbl-wrap thead th {
           <!-- Header rekap -->
           <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)">📋 Rekap SPP Pribadi</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Infaq tidak masuk rekap tunggakan per bulan</div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)">📋 Rekap Pembayaran</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px" id="sppRekapSubtitle">Rekap tunggakan SPP Pribadi per bulan</div>
             </div>
             <!-- Filter -->
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <select id="sppFilterJenis" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="filterSPPTable()">
+                <option value="spp">SPP Pribadi</option>
+                <option value="infaq">Infaq/Operasional</option>
+              </select>
               <input type="text" id="sppSearchInput" class="fc" style="width:140px;font-size:12px;padding:6px 10px" placeholder="Cari nama/NIS..." oninput="filterSPPTable()">
               <select id="sppFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
                 <option value="">Semua Status</option>
@@ -1515,14 +1549,14 @@ html.theme-dark .tbl-wrap thead th {
               <button class="btn btn-outline btn-sm" onclick="eksporSPP()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
                 <span>📥</span> Ekspor CSV
               </button>
-              <button class="btn btn-outline btn-sm" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
+              <button class="btn btn-outline btn-sm" id="btnSalinTagihan" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
                 <span>📋</span> Salin Tagihan WA
               </button>
             </div>
           </div>
           <div class="tbl-wrap">
           <table class="premium-table" id="sppRekapTable">
-            <thead>
+            <thead id="sppRekapHead">
               <tr>
                 <th>Nama Murid</th>
                 <th>Halaqah</th>
@@ -2703,7 +2737,7 @@ const SPP_NOMINAL_BULANAN = 75000;
 
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
-  halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', komponen:'Komponen Raport',
+  halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', komponen:'Komponen Raport',
   nilai:'Input Nilai Manual', raport:'Generate Raport',
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
@@ -3047,6 +3081,7 @@ function goPage(name) {
     halaqah   : loadHalaqah,
     anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); const sel = document.getElementById('anggotaHalaqahSel'); if (sel && !sel.value && allHalaqah.length) { sel.value = allHalaqah[0].id_halaqah; loadAnggota(); } },
     pengganti : loadKelasPengganti,
+    'kelompok-qiyam' : loadKelompokQiyam,
     komponen  : () => { populatePeriodeSel('komponenPeriodeSel'); },
     nilai     : () => { populatePeriodeSel('nilaiPeriodeSel'); populateSel('nilaiHalaqahSel', allHalaqah); },
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
@@ -3866,6 +3901,175 @@ let _sisaPenggantiData = {};
 async function loadKelasPengganti() {
   populateSel('penggantiHalaqahSel', allHalaqah, true);
   await Promise.all([loadHariLiburResmi(), loadSisaPenggantiSummary(), loadRiwayatPengganti()]);
+}
+
+// ══════════════════════════════════════════
+//  KELOMPOK PARTNER QIYAM
+// ══════════════════════════════════════════
+var _kqData = { id_halaqah: null, kelompok: [], murid: [] };
+
+async function loadKelompokQiyam() {
+  const qiyamHalaqah = allHalaqah.filter(h => h.level === 'Level Qiyam');
+  populateSel('kqHalaqahSel', qiyamHalaqah);
+  const sel = document.getElementById('kqHalaqahSel');
+  if (sel && !sel.value && qiyamHalaqah.length === 1) sel.value = qiyamHalaqah[0].id_halaqah;
+  await onKqHalaqahChange();
+}
+
+async function onKqHalaqahChange() {
+  const id_halaqah = document.getElementById('kqHalaqahSel').value;
+  const newCard  = document.getElementById('kqNewCard');
+  const listWrap = document.getElementById('kqListWrap');
+  if (!id_halaqah) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</div>';
+    newCard.style.display = 'none';
+    return;
+  }
+  listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div>';
+  newCard.style.display = 'none';
+  try {
+    const [resM, resK] = await Promise.all([
+      window.HQ.AdminAPI.getMuridQiyam(id_halaqah),
+      window.HQ.AdminAPI.getKelompokPartnerHalaqah(id_halaqah),
+    ]);
+    _kqData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[] };
+    _kqRenderList();
+    _kqRenderNewForm();
+    newCard.style.display = '';
+  } catch(e) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">Gagal memuat data</div>';
+    toast('Gagal: '+e.message,'err');
+  }
+}
+
+// id_murid yang sudah jadi anggota kelompok aktif lain (selain id_kelompok yang dikecualikan)
+function _kqAssignedMurid(excludeKelompok) {
+  const ids = {};
+  _kqData.kelompok.forEach(k => {
+    if (k.id_kelompok === excludeKelompok) return;
+    (k.anggota_kelompok_partner||[]).forEach(a => { ids[a.id_murid] = true; });
+  });
+  return ids;
+}
+
+function _kqRenderList() {
+  const listWrap = document.getElementById('kqListWrap');
+  if (!_kqData.kelompok.length) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Belum ada kelompok partner di halaqah ini</div>';
+    return;
+  }
+  listWrap.innerHTML = _kqData.kelompok.map(k => {
+    const anggota = k.anggota_kelompok_partner || [];
+    const chips = anggota.map(a =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 4px 4px 0">`
+        + esc(a.nama_murid || a.id_murid)
+        + `<button onclick="kqRemoveAnggota('${esc(k.id_kelompok)}','${esc(a.id_murid)}')" style="border:none;background:none;color:#1d4ed8;cursor:pointer;font-size:12px;padding:0;line-height:1" title="Hapus dari kelompok">✕</button>`
+      + `</span>`
+    ).join('');
+
+    const assigned  = _kqAssignedMurid(k.id_kelompok);
+    const available = _kqData.murid.filter(m =>
+      !anggota.some(a => a.id_murid === m.id_murid) && !assigned[m.id_murid]
+    );
+    const addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(m =>
+      `<option value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}">${esc(m.nama_murid)}</option>`
+    ).join('');
+
+    return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
+      + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
+        + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kqRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
+        + `<button onclick="kqDeleteKelompok('${esc(k.id_kelompok)}')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
+      + `</div>`
+      + `<div style="padding:10px 12px">`
+        + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
+        + (available.length ? `<div style="margin-top:6px"><select class="fc" style="font-size:11px;padding:5px 9px" onchange="kqAddAnggota('${esc(k.id_kelompok)}',this)">${addOpts}</select></div>` : '')
+      + `</div>`
+    + `</div>`;
+  }).join('');
+}
+
+function _kqRenderNewForm() {
+  const assigned  = _kqAssignedMurid(null);
+  const available = _kqData.murid.filter(m => !assigned[m.id_murid]);
+  const wrap = document.getElementById('kqNewAnggotaList');
+  if (!available.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Semua murid sudah tergabung di kelompok partner</div>';
+    return;
+  }
+  wrap.innerHTML = available.map(m =>
+    `<label style="display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--border,#f3f4f6);border-radius:9px;margin-bottom:5px;font-size:12px;cursor:pointer">`
+      + `<input type="checkbox" value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}" class="kq-new-anggota">`
+      + esc(m.nama_murid)
+    + `</label>`
+  ).join('');
+}
+
+async function kqCreateKelompok() {
+  const checks = Array.from(document.querySelectorAll('.kq-new-anggota:checked'));
+  if (checks.length < 2 || checks.length > 3) {
+    toast('Pilih 2-3 murid untuk satu kelompok', 'err');
+    return;
+  }
+  const anggota = checks.map(c => ({ id_murid: c.value, nama_murid: c.getAttribute('data-nama') }));
+  const nama = (document.getElementById('kqNewNama').value || '').trim() || null;
+  try {
+    await window.HQ.AdminAPI.createKelompokPartner(_kqData.id_halaqah, nama, anggota);
+    toast('Kelompok partner dibuat', 'ok');
+    document.getElementById('kqNewNama').value = '';
+    onKqHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kqRenameKelompok(id_kelompok, nama) {
+  try {
+    await window.HQ.AdminAPI.updateKelompokPartner(id_kelompok, { nama_kelompok: nama.trim() || null });
+    toast('Nama kelompok disimpan', 'ok');
+    const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+    if (k) k.nama_kelompok = nama.trim() || null;
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kqDeleteKelompok(id_kelompok) {
+  const ok = await showConfirm('Hapus kelompok ini? Anggota akan kehilangan akses partner.', { title: 'Hapus Kelompok?', okText: 'Ya, Hapus', danger: true });
+  if (!ok) return;
+  try {
+    await window.HQ.AdminAPI.deleteKelompokPartner(id_kelompok);
+    toast('Kelompok dihapus', 'ok');
+    onKqHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kqRemoveAnggota(id_kelompok, id_murid) {
+  const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  if (!k) return;
+  const anggotaBaru = (k.anggota_kelompok_partner||[])
+    .filter(a => a.id_murid !== id_murid)
+    .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }));
+  try {
+    await window.HQ.AdminAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    toast('Anggota diperbarui', 'ok');
+    onKqHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kqAddAnggota(id_kelompok, selectEl) {
+  const id_murid = selectEl.value;
+  if (!id_murid) return;
+  const nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
+  const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  if (!k) return;
+  const anggotaBaru = (k.anggota_kelompok_partner||[])
+    .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }))
+    .concat([{ id_murid, nama_murid }]);
+  if (anggotaBaru.length > 3) {
+    toast('Maksimal 3 anggota per kelompok', 'err');
+    return;
+  }
+  try {
+    await window.HQ.AdminAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    toast('Anggota ditambahkan', 'ok');
+    onKqHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
 }
 
 async function loadHariLiburResmi() {
@@ -4805,6 +5009,8 @@ function filterAbsensiTable() {
 // ══════════════════════════════════════════
 var _sppRekapData = [];
 var _sppRekapDataFiltered = [];
+var _sppInfaqData = [];
+var _sppInfaqDataFiltered = [];
 
 // ── Metode Bayar ──
 async function loadMetodeBayarAdmin() {
@@ -4983,6 +5189,7 @@ async function loadSPPAdmin() {
       var rekapRes = await window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined });
       var rekap = rekapRes.data || {};
       _sppRekapData = rekap.murid_list || [];
+      _sppInfaqData = rekap.infaq_list || [];
       
       // Update Dashboard Kinerja SPP Bulanan
       var totalMurid = (rekap.lunas || 0) + (rekap.menunggak || 0);
@@ -5015,6 +5222,26 @@ async function loadSPPAdmin() {
 }
 
 function filterSPPTable() {
+  var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
+
+  // Toggle visibilitas kontrol yang hanya relevan untuk SPP Pribadi
+  var statusSel = document.getElementById('sppFilterStatus');
+  var btnSalin  = document.getElementById('btnSalinTagihan');
+  var subtitle  = document.getElementById('sppRekapSubtitle');
+  if (statusSel) statusSel.style.display = jenis === 'infaq' ? 'none' : '';
+  if (btnSalin)  btnSalin.style.display  = jenis === 'infaq' ? 'none' : '';
+  if (subtitle)  subtitle.textContent    = jenis === 'infaq'
+    ? 'Daftar pembayaran Infaq/Operasional yang sudah lunas'
+    : 'Rekap tunggakan SPP Pribadi per bulan';
+
+  // Ganti header tabel sesuai jenis
+  var thead = document.getElementById('sppRekapHead');
+  thead.innerHTML = jenis === 'infaq'
+    ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal</th></tr>'
+    : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
+
+  if (jenis === 'infaq') return filterInfaqTable();
+
   var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
   var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
   var bulanFilter = document.getElementById('sppFilterBulan').value;
@@ -5023,8 +5250,8 @@ function filterSPPTable() {
   // 1. Filter bulan
   var data = _sppRekapData;
   if (bulanFilter) {
-    data = data.filter(function(m) { 
-      return m.bulan_belum.includes(bulanFilter); 
+    data = data.filter(function(m) {
+      return m.bulan_belum.includes(bulanFilter);
     });
   }
 
@@ -5100,6 +5327,51 @@ function filterSPPTable() {
   }).join('');
 }
 
+function filterInfaqTable() {
+  var searchVal = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
+  var bulanFilter = document.getElementById('sppFilterBulan').value;
+  var tbody = document.getElementById('sppRekapBody');
+
+  var data = _sppInfaqData;
+
+  // Filter bulan
+  if (bulanFilter) {
+    data = data.filter(function(r) { return r.bulan === bulanFilter; });
+  }
+
+  // Filter pencarian teks (Nama, NIS, Halaqah, Level)
+  if (searchVal) {
+    data = data.filter(function(r) {
+      var namaMatch  = (r.nama_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var idMatch    = (r.id_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var halaqahMatch = (r.nama_halaqah || r.id_halaqah || '').toLowerCase().indexOf(searchVal) !== -1;
+      var levelMatch = (r.level || '').toLowerCase().indexOf(searchVal) !== -1;
+      return namaMatch || idMatch || halaqahMatch || levelMatch;
+    });
+  }
+
+  _sppInfaqDataFiltered = data;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(function(r) {
+    var metodeBadge = r.metode_bayar === 'gateway'
+      ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+      : '<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">Manual</span>';
+    return '<tr>'
+      + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+' · '+esc(r.level||'')+'</div></td>'
+      + '<td><div style="font-weight:600;color:var(--text-2)">'+esc(r.nama_halaqah||r.id_halaqah||'—')+'</div></td>'
+      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'</td>'
+      + '<td>'+esc(r.tanggal_bayar||'—')+'</td>'
+      + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br>'+metodeBadge+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
 // Cegah CSV/Formula Injection: jika nilai diawali =,+,-,@ (atau tab/CR),
 // Excel/Sheets bisa menafsirkannya sebagai formula saat file dibuka.
 // Beri prefiks tanda kutip tunggal agar dibaca sebagai teks biasa.
@@ -5110,32 +5382,53 @@ function _csvSafe(val) {
 }
 
 function eksporSPP() {
-  var list = _sppRekapDataFiltered || [];
-  if (!list.length) {
-    showAlertModal('Tidak ada data SPP untuk diekspor.', { title: 'Ekspor SPP' });
-    return;
+  var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
+  var tahun = document.getElementById('sppFilterTahun').value;
+  var halaqahVal = document.getElementById('sppFilterHalaqah').value || 'Semua-Halaqah';
+  var bulanVal = document.getElementById('sppFilterBulan').value || 'Semua-Bulan';
+
+  var csv, namaFile;
+  if (jenis === 'infaq') {
+    var infaqList = _sppInfaqDataFiltered || [];
+    if (!infaqList.length) {
+      showAlertModal('Tidak ada data Infaq untuk diekspor.', { title: 'Ekspor Infaq' });
+      return;
+    }
+    csv = 'ID Murid,Nama Murid,Halaqah,Level,Bulan,Tahun,Tanggal Bayar,Nominal,Metode\r\n';
+    infaqList.forEach(function(r) {
+      var nama = _csvSafe(r.nama_murid || '');
+      var hal = _csvSafe(r.nama_halaqah || r.id_halaqah || '—');
+      var lvl = _csvSafe(r.level || '');
+      var metode = _csvSafe(r.metode_bayar === 'gateway' ? 'Gateway' : 'Manual');
+      csv += '"' + _csvSafe(r.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '","' + _csvSafe(r.bulan) + '",' + r.tahun + ',"' + _csvSafe(r.tanggal_bayar||'') + '",' + Number(r.nominal||0) + ',"' + metode + '"\r\n';
+    });
+    namaFile = 'rekap_infaq_' + tahun + '_' + halaqahVal + '_' + bulanVal + '.csv';
+  } else {
+    var list = _sppRekapDataFiltered || [];
+    if (!list.length) {
+      showAlertModal('Tidak ada data SPP untuk diekspor.', { title: 'Ekspor SPP' });
+      return;
+    }
+    var statusVal = document.getElementById('sppFilterStatus').value || 'Semua-Status';
+    csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
+    list.forEach(function(m) {
+      var nama = _csvSafe(m.nama_murid || '');
+      var hal = _csvSafe(m.nama_halaqah || m.id_halaqah || '—');
+      var lvl = _csvSafe(m.level || '');
+      var bln = _csvSafe(m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas');
+      var hp  = _csvSafe(m.no_hp || '');
+      csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
+    });
+    namaFile = 'rekap_spp_' + tahun + '_' + halaqahVal + '_' + bulanVal + '_' + statusVal + '.csv';
   }
-  var csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
-  list.forEach(function(m) {
-    var nama = _csvSafe(m.nama_murid || '');
-    var hal = _csvSafe(m.nama_halaqah || m.id_halaqah || '—');
-    var lvl = _csvSafe(m.level || '');
-    var bln = _csvSafe(m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas');
-    var hp  = _csvSafe(m.no_hp || '');
-    csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
-  });
 
   // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
   var blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  var tahun = document.getElementById('sppFilterTahun').value;
-  var halaqahVal = document.getElementById('sppFilterHalaqah').value || 'Semua-Halaqah';
-  var bulanVal = document.getElementById('sppFilterBulan').value || 'Semua-Bulan';
-  var statusVal = document.getElementById('sppFilterStatus').value || 'Semua-Status';
 
   a.href   = url;
-  a.download = 'rekap_spp_' + tahun + '_' + halaqahVal + '_' + bulanVal + '_' + statusVal + '.csv';
+  a.download = namaFile;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

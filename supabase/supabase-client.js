@@ -1492,12 +1492,19 @@ var GuruAPI = {
   },
 
   // Ambil data Ziyadah murid tertentu (untuk validasi range Murajaah)
-  getZiyadahMurid: async function(id_halaqah, id_murid) {
-    var { data, error } = await _sb.from('setoran_hafalan')
+  // includePartnerConfirmed: jika true, ikut sertakan setoran mandiri (sumber='partner')
+  // yang sudah dikonfirmasi partner — dipakai validasi Murajaah mandiri murid (§3.8).
+  // Default false: hanya sumber='guru' (perilaku lama, dipakai form guru).
+  getZiyadahMurid: async function(id_halaqah, id_murid, includePartnerConfirmed) {
+    var q = _sb.from('setoran_hafalan')
       .select('surat, juz, ayat_dari, ayat_sampai')
       .eq('id_halaqah', id_halaqah)
       .eq('id_murid', id_murid)
       .eq('jenis', 'Ziyadah');
+    q = includePartnerConfirmed
+      ? q.or('sumber.eq.guru,and(sumber.eq.partner,status_konfirmasi.eq.dikonfirmasi)')
+      : q.eq('sumber', 'guru');
+    var { data, error } = await q;
     _check(error, 'getZiyadahMurid');
     return { status: 'ok', data: data || [] };
   },
@@ -1518,6 +1525,7 @@ var GuruAPI = {
     var q = _sb.from('setoran_hafalan')
       .select('*')
       .eq('id_halaqah', id_halaqah)
+      .eq('sumber', 'guru') // §3.7: raport resmi hanya hitung setoran guru
       .order('created_at', { ascending: true })
       .limit(500); // BUG-14 fix: cegah timeout untuk dataset besar
     if (id_murid)    q = q.eq('id_murid', id_murid);
@@ -1526,6 +1534,26 @@ var GuruAPI = {
     var { data, error } = await q;
     _check(error, 'getRaportTahfidzData');
     return { status: 'ok', data: data || [] };
+  },
+
+  // §3.7: ringkasan aktivitas mandiri bersama partner (sudah dikonfirmasi),
+  // ditampilkan terpisah dari statistik resmi raport
+  getAktivitasPartnerHalaqah: async function(id_halaqah, id_murid, tgl_mulai, tgl_selesai) {
+    var q = _sb.from('setoran_hafalan')
+      .select('jenis')
+      .eq('id_halaqah', id_halaqah)
+      .eq('sumber', 'partner')
+      .eq('status_konfirmasi', 'dikonfirmasi');
+    if (id_murid)    q = q.eq('id_murid', id_murid);
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    var { data, error } = await q;
+    _check(error, 'getAktivitasPartnerHalaqah');
+    var rows = data || [];
+    return { status: 'ok', data: {
+      ziyadah  : rows.filter(function(r) { return r.jenis === 'Ziyadah'; }).length,
+      murajaah : rows.filter(function(r) { return r.jenis === 'Murajaah'; }).length,
+    }};
   },
 
   // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)
@@ -1572,6 +1600,64 @@ var GuruAPI = {
       return true;
     });
     return { status: 'ok', data: result };
+  },
+
+  // ── Kelompok Partner Qiyam ───────────────────────────────────────────
+  // Daftar kelompok + anggota di sebuah halaqah Qiyam
+  getKelompokPartnerHalaqah: async function(id_halaqah) {
+    var { data, error } = await _sb.from('kelompok_partner_qiyam')
+      .select('*, anggota_kelompok_partner(*)')
+      .eq('id_halaqah', id_halaqah)
+      .order('created_at', { ascending: true });
+    _check(error, 'getKelompokPartnerHalaqah');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Buat kelompok baru. anggota: [{id_murid, nama_murid}]
+  createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) {
+    var { data: kelompok, error } = await _sb.from('kelompok_partner_qiyam')
+      .insert({ id_halaqah: id_halaqah, nama_kelompok: nama_kelompok || null, dibuat_oleh: _uid() })
+      .select().single();
+    _check(error, 'createKelompokPartner');
+    if (anggota && anggota.length > 0) {
+      var rows = anggota.map(function(a) {
+        return { id_kelompok: kelompok.id_kelompok, id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+      });
+      var { error: e2 } = await _sb.from('anggota_kelompok_partner').insert(rows);
+      _check(e2, 'createKelompokPartner - anggota');
+    }
+    return { status: 'ok', data: kelompok };
+  },
+
+  // Ubah nama/status kelompok
+  updateKelompokPartner: async function(id_kelompok, updates) {
+    var payload = { updated_at: new Date().toISOString() };
+    if (updates.nama_kelompok !== undefined) payload.nama_kelompok = updates.nama_kelompok;
+    if (updates.status !== undefined)        payload.status = updates.status;
+    var { error } = await _sb.from('kelompok_partner_qiyam').update(payload).eq('id_kelompok', id_kelompok);
+    _check(error, 'updateKelompokPartner');
+    return { status: 'ok' };
+  },
+
+  // Ganti seluruh anggota kelompok (replace). anggota: [{id_murid, nama_murid}]
+  setAnggotaKelompok: async function(id_kelompok, anggota) {
+    var { error: delErr } = await _sb.from('anggota_kelompok_partner').delete().eq('id_kelompok', id_kelompok);
+    _check(delErr, 'setAnggotaKelompok - delete');
+    if (anggota && anggota.length > 0) {
+      var rows = anggota.map(function(a) {
+        return { id_kelompok: id_kelompok, id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+      });
+      var { error: insErr } = await _sb.from('anggota_kelompok_partner').insert(rows);
+      _check(insErr, 'setAnggotaKelompok - insert');
+    }
+    return { status: 'ok' };
+  },
+
+  // Hapus kelompok (anggota ikut terhapus via on delete cascade)
+  deleteKelompokPartner: async function(id_kelompok) {
+    var { error } = await _sb.from('kelompok_partner_qiyam').delete().eq('id_kelompok', id_kelompok);
+    _check(error, 'deleteKelompokPartner');
+    return { status: 'ok' };
   },
 };
 
@@ -1779,11 +1865,13 @@ var MuridAPI = {
 
     var qiyamCountQuery = _sb.from('setoran_hafalan')
       .select('id_setoran', { count: 'exact', head: true })
-      .eq('id_murid', id_murid);
+      .eq('id_murid', id_murid)
+      .eq('sumber', 'guru');
 
     var qiyamLatestQuery = _sb.from('setoran_hafalan')
       .select('*')
       .eq('id_murid', id_murid)
+      .eq('sumber', 'guru')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -2325,11 +2413,112 @@ var MuridAPI = {
     var q = _sb.from('setoran_hafalan')
       .select('*')
       .eq('id_murid', _uid())
+      .eq('sumber', 'guru') // §3.7: raport resmi hanya hitung setoran guru
       .order('created_at', { ascending: true });
     if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
     if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
     var { data, error } = await q;
     _check(error, 'getMyRaportTahfidz');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // §3.7: ringkasan aktivitas mandiri bersama partner (sudah dikonfirmasi)
+  getMyAktivitasPartner: async function(tgl_mulai, tgl_selesai) {
+    var q = _sb.from('setoran_hafalan')
+      .select('jenis')
+      .eq('id_murid', _uid())
+      .eq('sumber', 'partner')
+      .eq('status_konfirmasi', 'dikonfirmasi');
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    var { data, error } = await q;
+    _check(error, 'getMyAktivitasPartner');
+    var rows = data || [];
+    return { status: 'ok', data: {
+      ziyadah  : rows.filter(function(r) { return r.jenis === 'Ziyadah'; }).length,
+      murajaah : rows.filter(function(r) { return r.jenis === 'Murajaah'; }).length,
+    }};
+  },
+
+  // ── Kelompok Partner Qiyam ───────────────────────────────────────────
+  // id_halaqah Level Qiyam aktif murid (dipakai sebagai id_halaqah saat insert setoran mandiri)
+  getMyQiyamHalaqah: async function() {
+    var { data, error } = await _sb.from('anggota')
+      .select('id_halaqah')
+      .eq('id_murid', _uid())
+      .eq('status', 'aktif')
+      .eq('level', 'Level Qiyam')
+      .maybeSingle();
+    _check(error, 'getMyQiyamHalaqah');
+    return { status: 'ok', data: data ? data.id_halaqah : null };
+  },
+
+  // Kelompok partner aktif milik murid (beserta anggota)
+  getMyKelompokPartner: async function() {
+    var { data, error } = await _sb.from('kelompok_partner_qiyam')
+      .select('*, anggota_kelompok_partner(*)')
+      .eq('status', 'aktif')
+      .maybeSingle();
+    _check(error, 'getMyKelompokPartner');
+    return { status: 'ok', data: data || null };
+  },
+
+  // Data Ziyadah milik sendiri (resmi + mandiri yang sudah dikonfirmasi) — validasi range Murajaah (§3.8)
+  getZiyadahSaya: async function() {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('surat, juz, ayat_dari, ayat_sampai')
+      .eq('id_murid', _uid())
+      .eq('jenis', 'Ziyadah')
+      .or('sumber.eq.guru,and(sumber.eq.partner,status_konfirmasi.eq.dikonfirmasi)');
+    _check(error, 'getZiyadahSaya');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Input setoran mandiri ke partner (§3.8)
+  addSetoranMandiri: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_murid    : _uid(),
+      nama_murid  : (user && (user.nama_lengkap || user.nama)) || '',
+      id_halaqah  : d.id_halaqah,
+      juz         : d.juz ? parseInt(d.juz) : null,
+      surat       : d.surat,
+      ayat_dari   : parseInt(d.ayat_dari),
+      ayat_sampai : parseInt(d.ayat_sampai),
+      jenis       : d.jenis,
+      catatan     : d.catatan || null,
+      sumber      : 'partner',
+      status_konfirmasi: 'menunggu',
+      nilai       : null,
+    };
+    if (d.tanggal) {
+      payload.created_at = new Date(d.tanggal + 'T12:00:00').toISOString();
+    }
+    var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
+    _check(error, 'addSetoranMandiri');
+    return { status: 'ok', data };
+  },
+
+  // Daftar setoran mandiri partner sekelompok yang menunggu konfirmasi (§3.6 langkah 3)
+  getSetoranMenungguKonfirmasi: async function() {
+    var { data, error } = await _sb.rpc('get_setoran_menunggu_konfirmasi');
+    _check(error, 'getSetoranMenungguKonfirmasi');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Konfirmasi setoran mandiri partner + isi kelancaran
+  konfirmasiSetoranPartner: async function(id_setoran, kelancaran) {
+    var { error } = await _sb.rpc('konfirmasi_setoran_partner', {
+      p_id_setoran: id_setoran, p_kelancaran: kelancaran,
+    });
+    _check(error, 'konfirmasiSetoranPartner');
+    return { status: 'ok' };
+  },
+
+  // Tanggal setoran mandiri terakhir tiap anggota kelompok — kartu status pasif (§5.7)
+  getStatusKelompokPartner: async function() {
+    var { data, error } = await _sb.rpc('get_status_kelompok_partner');
+    _check(error, 'getStatusKelompokPartner');
     return { status: 'ok', data: data || [] };
   },
 
@@ -2613,6 +2802,14 @@ var AdminAPI = {
     }
     return {status:'ok'};
   },
+  // Kelompok Partner Qiyam — admin lihat/atur lintas halaqah (RLS admin_all_*)
+  getMuridQiyam: async function(id_halaqah) { return GuruAPI.getMuridQiyam(id_halaqah); },
+  getKelompokPartnerHalaqah: async function(id_halaqah) { return GuruAPI.getKelompokPartnerHalaqah(id_halaqah); },
+  createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) { return GuruAPI.createKelompokPartner(id_halaqah, nama_kelompok, anggota); },
+  updateKelompokPartner: async function(id_kelompok, updates) { return GuruAPI.updateKelompokPartner(id_kelompok, updates); },
+  setAnggotaKelompok: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompok(id_kelompok, anggota); },
+  deleteKelompokPartner: async function(id_kelompok) { return GuruAPI.deleteKelompokPartner(id_kelompok); },
+
   getAllPeriode: async function() { return GuruAPI.getAllPeriode(); },
   createPeriode: async function(d) { var {data,error}=await _sb.from('periode').insert(d).select().single(); _check(error,'createPeriode'); return {status:'ok',data}; },
   updatePeriode: async function(d) { var {id_periode,...u}=d; var {data,error}=await _sb.from('periode').update(u).eq('id_periode',id_periode).select().single(); _check(error,'updatePeriode'); return {status:'ok',data}; },
@@ -2986,6 +3183,22 @@ var AdminAPI = {
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
 
+    // Map id_murid → info halaqah/level (untuk daftar Infaq)
+    var anggotaMap = {};
+    (anggota||[]).forEach(function(a){
+      anggotaMap[a.id_murid] = { nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '', id_halaqah: a.id_halaqah, level: a.level };
+    });
+    // Daftar pembayaran Infaq/Operasional (per transaksi, untuk Rekap Pembayaran)
+    var infaqList = infaqData.map(function(r){
+      var info = anggotaMap[r.id_murid] || {};
+      return {
+        id_murid: r.id_murid, nama_murid: r.nama_murid,
+        id_halaqah: r.id_halaqah || info.id_halaqah || '', nama_halaqah: info.nama_halaqah || '',
+        level: info.level || '', bulan: r.bulan, tahun: r.tahun,
+        nominal: r.nominal, tanggal_bayar: r.tanggal_bayar, metode_bayar: r.metode_bayar,
+      };
+    }).sort(function(a,b){ return (b.tanggal_bayar||'').localeCompare(a.tanggal_bayar||'') || a.nama_murid.localeCompare(b.nama_murid); });
+
     // Hitung masing-masing total nominal
     var totalSPP = sppPribadi.reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var totalInfaq = infaqData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
@@ -2998,7 +3211,7 @@ var AdminAPI = {
       return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
         level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum };
     });
-    return { status:'ok', data:{ murid_list: muridList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
+    return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
       bulan_rekap: bulanRekapDefault, total_rekap: TOTAL_REKAP, window_size: WINDOW_SIZE } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
