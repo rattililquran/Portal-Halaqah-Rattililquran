@@ -10314,6 +10314,10 @@ async function kpRemoveAnggota(id_kelompok, id_murid) {
   var anggotaBaru = (k.anggota_kelompok_partner || [])
     .filter(function(a) { return a.id_murid !== id_murid; })
     .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; });
+  if (anggotaBaru.length < 2) {
+    showToast('Kelompok minimal harus punya 2 anggota. Hapus kelompok ini jika ingin mengosongkannya.', 'warning');
+    return;
+  }
   try {
     await window.HQ.GuruAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
     showToast('Anggota diperbarui ✓', 'success');

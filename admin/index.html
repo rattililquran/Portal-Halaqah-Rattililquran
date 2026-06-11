@@ -4045,6 +4045,10 @@ async function kqRemoveAnggota(id_kelompok, id_murid) {
   const anggotaBaru = (k.anggota_kelompok_partner||[])
     .filter(a => a.id_murid !== id_murid)
     .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }));
+  if (anggotaBaru.length < 2) {
+    toast('Kelompok minimal harus punya 2 anggota. Hapus kelompok ini jika ingin mengosongkannya.', 'err');
+    return;
+  }
   try {
     await window.HQ.AdminAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
     toast('Anggota diperbarui', 'ok');
