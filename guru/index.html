@@ -867,6 +867,8 @@ html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;bord
 }
 @media(max-width:600px){.stats-top{grid-template-columns:repeat(2,1fr)}}
 .stats-top-2col{grid-template-columns:repeat(2,1fr) !important}
+.stats-top-2col.has-pengganti{grid-template-columns:repeat(3,1fr) !important}
+@media(max-width:600px){.stats-top-2col.has-pengganti{grid-template-columns:repeat(2,1fr) !important}}
 .stat-top{
   background:rgba(255,255,255,.8);
   backdrop-filter:blur(16px);
@@ -1525,6 +1527,7 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
 @media(min-width:769px){
   .stats-top{grid-template-columns:repeat(4,1fr)!important}
   .stats-top-2col{grid-template-columns:repeat(2,1fr)!important}
+  .stats-top-2col.has-pengganti{grid-template-columns:repeat(3,1fr)!important}
 }
 
 /* Step indicator KBM: kompak di 640-1024px */
@@ -2122,6 +2125,7 @@ html.theme-dark .rt-surat-tbl th {
           </div>
         </div>
 
+
         <!-- Header gradient -->
         <div class="dash-header-gradient">
           <div class="dash-greet" id="greet">Assalamu'alaikum,</div>
@@ -2154,7 +2158,7 @@ html.theme-dark .rt-surat-tbl th {
         </div>
 
         <!-- Kartu akses cepat baris 2 -->
-        <div class="stats-top stats-top-2col" style="margin-bottom:18px">
+        <div class="stats-top stats-top-2col" id="statsTopBaris2" style="margin-bottom:18px">
           <div class="stat-top clickable" onclick="goPage('keaktifan')" title="Lihat keaktifan murid">
             <div class="ico">🚨</div>
             <div class="val" id="st-keaktifan-kritis">–</div>
@@ -2165,6 +2169,12 @@ html.theme-dark .rt-surat-tbl th {
             <div class="ico">📂</div>
             <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Berkas</div>
             <div class="lbl">Berkas Pengajar ↗</div>
+          </div>
+          <div class="stat-top clickable" id="statPengganti" onclick="_showPenggantiReminderDetail()" title="Lihat kelas pengganti yang belum diganti" style="display:none">
+            <div class="ico">🔄</div>
+            <div class="val" id="st-pengganti" style="color:#c2410c">–</div>
+            <div class="lbl">Kelas Pengganti ↗</div>
+            <div id="st-pengganti-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
           </div>
         </div>
 
@@ -6847,6 +6857,46 @@ function _updateDraftOrphanAlert(totalDraft, draftPerHalaqah) {
   }
 }
 
+// Reminder: kelas pengganti yang belum diganti (Flow 7-lite untuk guru)
+var _penggantiPendingRows = []; // [{nama, jenis, tanggal, keterangan}]
+function _updatePenggantiReminder(jadwal) {
+  var card     = document.getElementById('statPengganti');
+  var valEl    = document.getElementById('st-pengganti');
+  var subEl    = document.getElementById('st-pengganti-sub');
+  var rowEl    = document.getElementById('statsTopBaris2');
+  if (!card) return;
+
+  var rows = []; // [{nama, jenis, tanggal, keterangan}]
+  (jadwal || []).forEach(function(h) {
+    var pending = h.pengganti_pending || {};
+    Object.keys(pending).forEach(function(jenis) {
+      (pending[jenis] || []).forEach(function(entry) {
+        rows.push({ nama: h.nama_halaqah, jenis: jenis, tanggal: entry.tanggal_pertemuan, keterangan: entry.keterangan_libur });
+      });
+    });
+  });
+  _penggantiPendingRows = rows;
+
+  if (rows.length > 0) {
+    valEl.textContent = String(rows.length);
+    subEl.textContent = rows.length === 1 ? rows[0].nama : rows.length + ' jadwal';
+    card.style.display = '';
+    if (rowEl) rowEl.classList.add('has-pengganti');
+  } else {
+    card.style.display = 'none';
+    if (rowEl) rowEl.classList.remove('has-pengganti');
+  }
+}
+
+function _showPenggantiReminderDetail() {
+  if (!_penggantiPendingRows.length) return;
+  var lines = _penggantiPendingRows.map(function(r) {
+    return '• ' + r.nama + ' (' + r.jenis + ', ' + fmtDate(r.tanggal) + ')'
+      + (r.keterangan ? ': ' + r.keterangan : '');
+  });
+  alert('Kelas pengganti yang belum diganti:\n\n' + lines.join('\n'));
+}
+
 async function hapusDraftKBM(id_kbm, pertemuan_ke, jenis) {
   if (!confirm('Hapus sesi draft ' + jenis + ' ke-' + pertemuan_ke + '?\n\nSesi ini belum selesai dan tidak ada data presensi/nilai yang tersimpan.')) return;
   showLoad('Menghapus sesi draft...');
@@ -7540,6 +7590,7 @@ async function loadJadwal() {
     updateDraftWarning();
     renderJadwal();
     updatePenggantiCheckbox();
+    _updatePenggantiReminder(jadwalData);
   } catch(e) {
     console.error('loadJadwal error:', e);
     // Tampilkan error di UI agar bisa debug

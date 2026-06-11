@@ -260,9 +260,10 @@ var GuruAPI = {
     var kbmByJenis       = {};  // { id_halaqah: { 'KBM Reguler': N (selesai), ... } }
     var liburByJenis     = {};  // { id_halaqah: { jenis: N (status='libur') } }
     var penggantiByJenis = {};  // { id_halaqah: { jenis: N (selesai & is_pengganti) } }
+    var liburEntries     = {};  // { id_halaqah: { jenis: [{tanggal_pertemuan, keterangan_libur}, ...] } }
     if (hqIds.length > 0) {
       var { data: kbmAll } = await _sb.from('kbm_log')
-        .select('id_halaqah, jenis_sesi, status, is_pengganti')
+        .select('id_halaqah, jenis_sesi, status, is_pengganti, tanggal_pertemuan, keterangan_libur')
         .in('id_halaqah', hqIds).in('status', ['selesai', 'libur']);
       (kbmAll || []).forEach(function(k) {
         var jenis = k.jenis_sesi || 'KBM Reguler';
@@ -276,6 +277,12 @@ var GuruAPI = {
         } else if (k.status === 'libur') {
           if (!liburByJenis[k.id_halaqah]) liburByJenis[k.id_halaqah] = {};
           liburByJenis[k.id_halaqah][jenis] = (liburByJenis[k.id_halaqah][jenis] || 0) + 1;
+          if (!liburEntries[k.id_halaqah]) liburEntries[k.id_halaqah] = {};
+          if (!liburEntries[k.id_halaqah][jenis]) liburEntries[k.id_halaqah][jenis] = [];
+          liburEntries[k.id_halaqah][jenis].push({
+            tanggal_pertemuan: k.tanggal_pertemuan,
+            keterangan_libur: k.keterangan_libur || '',
+          });
         }
       });
     }
@@ -294,8 +301,17 @@ var GuruAPI = {
       var liburCounts     = liburByJenis[h.id_halaqah] || {};
       var penggantiCounts = penggantiByJenis[h.id_halaqah] || {};
       var sisaPengganti = {};
+      var penggantiPending = {};  // { jenis: [{tanggal_pertemuan, keterangan_libur}, ...] } -- reminder libur belum diganti
+      var entriesByJenis = liburEntries[h.id_halaqah] || {};
       ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching', 'Lainnya'].forEach(function(j) {
-        sisaPengganti[j] = Math.max(0, (liburCounts[j] || 0) - (penggantiCounts[j] || 0));
+        var sisa = Math.max(0, (liburCounts[j] || 0) - (penggantiCounts[j] || 0));
+        sisaPengganti[j] = sisa;
+        if (sisa > 0) {
+          var entries = (entriesByJenis[j] || []).slice().sort(function(a, b) {
+            return (b.tanggal_pertemuan || '').localeCompare(a.tanggal_pertemuan || '');
+          });
+          penggantiPending[j] = entries.slice(0, sisa);
+        }
       });
       return {
         id_halaqah             : h.id_halaqah,
@@ -314,6 +330,7 @@ var GuruAPI = {
         total_sesi             : regCount,           // hanya Reguler untuk progress 40
         sisa_sesi              : Math.max(0, 40 - regCount),
         sisa_pengganti         : sisaPengganti,
+        pengganti_pending      : penggantiPending,
         is_hari_ini            : isHariIni,
       };
     });
