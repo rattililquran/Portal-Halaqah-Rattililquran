@@ -3891,6 +3891,7 @@ async function simpanHariLiburResmi() {
   showLoad('Bismillah, menyimpan...');
   try {
     const r = await window.HQ.AdminAPI.simpanHariLiburResmi({ tanggal_mulai, tanggal_selesai, keterangan });
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menyimpan');
     toast(r.message || 'Tersimpan','ok');
     document.getElementById('hlrMulai').value = '';
     document.getElementById('hlrSelesai').value = '';

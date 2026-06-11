@@ -4420,7 +4420,8 @@ async function batalkanDanTandaiLibur() {
 
   showLoad('Bismillah, memproses...');
   try {
-    await window.HQ.GuruAPI.batalkanTandaiLibur({ keterangan_libur: trimmed });
+    const r = await window.HQ.GuruAPI.batalkanTandaiLibur({ keterangan_libur: trimmed });
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menandai libur');
     sesiAktif      = null;
     muridSesi      = [];
     doaSudahMuncul = false;
@@ -4463,9 +4464,10 @@ async function doTandaiLibur() {
 
   showLoad('Bismillah, menyimpan...');
   try {
-    await window.HQ.GuruAPI.tandaiLibur({
+    const r = await window.HQ.GuruAPI.tandaiLibur({
       id_halaqah, tanggal_pertemuan: tanggal, jenis_sesi, keterangan_libur: keterangan,
     });
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menandai libur');
     alasanEl.value = '';
     toast('Sesi ditandai libur. Sisa kelas pengganti bertambah.','ok');
     loadDashboard();
