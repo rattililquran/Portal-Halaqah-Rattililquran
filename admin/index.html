@@ -2411,6 +2411,20 @@ html.theme-dark .tbl-wrap thead th {
   </div>
 </div>
 
+<!-- MODAL KONFIRMASI / ALERT GENERIK -->
+<div class="overlay" id="confirmModalOverlay" style="z-index:300">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title" id="confirmModalTitle">Konfirmasi</div>
+    </div>
+    <div class="modal-body" id="confirmModalBody" style="font-size:13.5px;line-height:1.7;color:var(--text-2)"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="confirmModalCancel">Batal</button>
+      <button class="btn btn-primary" id="confirmModalOk">Oke</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL GANTI PASSWORD -->
 <div class="overlay" id="modalChangePassword">
   <div class="modal">
@@ -3901,7 +3915,7 @@ async function simpanHariLiburResmi() {
 }
 
 async function hapusHariLiburResmi(tanggal) {
-  if (!confirm('Hapus hari libur resmi tanggal ' + fmtDate(tanggal) + '?')) return;
+  if (!(await showConfirm('Hapus hari libur resmi tanggal ' + fmtDate(tanggal) + '?', { title: 'Hapus Hari Libur Resmi?', okText: 'Ya, Hapus', danger: true }))) return;
   showLoad('Bismillah, menghapus...');
   try {
     await window.HQ.AdminAPI.hapusHariLiburResmi(tanggal);
@@ -4914,7 +4928,7 @@ async function simpanMetode() {
     urutan    : Number(document.getElementById('metodeUrutan').value)||1,
     aktif     : true,
   };
-  if (!d.nama) { alert('Nama harus diisi'); return; }
+  if (!d.nama) { showAlertModal('Nama harus diisi', { title: 'Validasi' }); return; }
   try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan ✅','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
   catch(e) { toast(e.message,'err'); }
 }
@@ -5112,7 +5126,7 @@ function _csvSafe(val) {
 function eksporSPP() {
   var list = _sppRekapDataFiltered || [];
   if (!list.length) {
-    alert('Tidak ada data SPP untuk diekspor.');
+    showAlertModal('Tidak ada data SPP untuk diekspor.', { title: 'Ekspor SPP' });
     return;
   }
   var csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
@@ -5145,7 +5159,7 @@ function salinTagihanMassal() {
   var list = _sppRekapDataFiltered || [];
   var menunggakList = list.filter(function(m) { return m.tunggakan > 0; });
   if (!menunggakList.length) {
-    alert('Tidak ada data murid yang menunggak untuk disalin.');
+    showAlertModal('Tidak ada data murid yang menunggak untuk disalin.', { title: 'Salin Tagihan' });
     return;
   }
   
@@ -5244,7 +5258,7 @@ async function toggleKetua(idAnggota, currentStatus, nama) {
   var msg = isKetua
     ? 'Cabut status ketua kelas dari ' + nama + '?'
     : 'Jadikan ' + nama + ' sebagai ketua kelas halaqah ini?\n(Ketua lama akan otomatis diganti)';
-  if (!confirm(msg)) return;
+  if (!(await showConfirm(msg, { title: 'Konfirmasi Ketua Kelas', okText: 'Ya, Lanjutkan' }))) return;
   showLoad('Memproses...');
   try {
     await window.HQ.SuperAdminAPI.assignKetuaKelas({ id_anggota: idAnggota, assign: !isKetua });
@@ -5549,6 +5563,47 @@ function populatePeriodeSel(selId) {
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Modal konfirmasi/alert custom — pengganti window.confirm()/window.alert()
+// Resolve true jika "Oke" diklik, false jika "Batal"/klik luar/tombol X.
+function showConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(function(resolve) {
+    var overlay  = document.getElementById('confirmModalOverlay');
+    var titleEl  = document.getElementById('confirmModalTitle');
+    var bodyEl   = document.getElementById('confirmModalBody');
+    var okBtn    = document.getElementById('confirmModalOk');
+    var cancelBtn = document.getElementById('confirmModalCancel');
+
+    titleEl.textContent = opts.title || 'Konfirmasi';
+    bodyEl.innerHTML = opts.html || esc(message || '').replace(/\n/g, '<br>');
+    okBtn.textContent = opts.okText || 'Oke';
+    okBtn.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-primary');
+    cancelBtn.style.display = opts.alertOnly ? 'none' : '';
+    cancelBtn.textContent = opts.cancelText || 'Batal';
+
+    function cleanup(result) {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk()     { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+    overlay.classList.add('open');
+  });
+}
+
+// Modal alert custom — pengganti window.alert(). Hanya tombol "Oke".
+function showAlertModal(message, opts) {
+  return showConfirm(message, Object.assign({ alertOnly: true, okText: 'Oke' }, opts || {}));
+}
 
 let _notifTimer;
 function toast(msg, type='', autoDismiss=true) {
@@ -6040,7 +6095,7 @@ async function stressTestMulai() {
 }
 
 async function stressTestCleanup() {
-  if (!confirm('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.')) return;
+  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn = document.getElementById('btnStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6083,7 +6138,7 @@ async function rsStressTestMulai() {
   btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
 }
 async function rsStressTestCleanup() {
-  if(!confirm('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?')) return;
+  if(!(await showConfirm('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn=document.getElementById('btnRsStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Menghapus...';
   try {
@@ -6115,7 +6170,7 @@ async function prefsStressTestMulai() {
   btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
 }
 async function prefsStressTestCleanup() {
-  if(!confirm('Hapus key _st dari semua push_user_prefs?')) return;
+  if(!(await showConfirm('Hapus key _st dari semua push_user_prefs?', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn=document.getElementById('btnPrefsStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Menghapus...';
   try {
@@ -6153,7 +6208,7 @@ async function combStressTestMulai() {
   btn.disabled=false; btn.textContent='🔥 Mulai Combined Test';
 }
 async function combStressTestCleanup() {
-  if(!confirm('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.')) return;
+  if(!(await showConfirm('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn=document.getElementById('btnCombStressCleanup');
   btn.disabled=true; btn.textContent='⏳ Cleanup semua...';
   try {
@@ -6198,7 +6253,7 @@ async function usrStressTestMulai() {
 }
 
 async function usrStressTestCleanup() {
-  if (!confirm('Hapus semua user [STRESS_TEST] dari users dan anggota?\n\nTidak dapat di-undo.')) return;
+  if (!(await showConfirm('Hapus semua user [STRESS_TEST] dari users dan anggota?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn = document.getElementById('btnUsrStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6248,7 +6303,7 @@ async function obsStressTestMulai() {
 }
 
 async function obsStressTestCleanup() {
-  if (!confirm('Hapus semua data [STRESS_TEST] dari observasi_kbm dan kbm_log (observasi)?\n\nTidak dapat di-undo.')) return;
+  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari observasi_kbm dan kbm_log (observasi)?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn = document.getElementById('btnObsStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6298,7 +6353,7 @@ async function atStressTestMulai() {
 }
 
 async function atStressTestCleanup() {
-  if (!confirm('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.')) return;
+  if (!(await showConfirm('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.', { title: 'Stress Test Cleanup', okText: 'Ya, Hapus', danger: true }))) return;
   var btn = document.getElementById('btnAtStressCleanup');
   btn.disabled = true; btn.textContent = '⏳ Menghapus...';
   try {
@@ -6660,7 +6715,7 @@ async function saveTemplate() {
 function doExportAbsensi() {
   var list = _absensiRekapDataFiltered || [];
   if (!list.length) {
-    alert('Tidak ada data absensi untuk diekspor.');
+    showAlertModal('Tidak ada data absensi untuk diekspor.', { title: 'Ekspor Absensi' });
     return;
   }
   var csv = 'ID Murid,Nama Murid,Halaqah,Hadir (H),Terlambat (T),Izin (I),Alpa (A),Total Sesi,Persentase Hadir,Skor Kehadiran\r\n';
@@ -6796,7 +6851,7 @@ async function doArsip() {
     label = 'data > 1 tahun';
   }
 
-  if (!confirm('Arsipkan ' + label + '? Data akan dipindah ke arsip database. Pastikan sudah backup data terlebih dahulu.')) return;
+  if (!(await showConfirm('Arsipkan ' + label + '? Data akan dipindah ke arsip database. Pastikan sudah backup data terlebih dahulu.', { title: 'Arsipkan Data?', okText: 'Ya, Arsipkan', danger: true }))) return;
 
   showLoad('Bismillah, mengarsipkan ' + label + '...');
   try {

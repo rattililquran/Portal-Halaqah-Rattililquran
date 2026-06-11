@@ -3493,6 +3493,20 @@ html.theme-dark .rt-surat-tbl th {
   </div>
 </div>
 
+<!-- MODAL KONFIRMASI / ALERT GENERIK -->
+<div class="overlay" id="confirmModalOverlay" style="z-index:300">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title" id="confirmModalTitle">Konfirmasi</div>
+    </div>
+    <div class="modal-body" id="confirmModalBody" style="font-size:13.5px;line-height:1.7;color:var(--text-2)"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="confirmModalCancel">Batal</button>
+      <button class="btn btn-primary" id="confirmModalOk">Oke</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL BERKAS PENGAJAR -->
 <div class="overlay" id="berkasOverlay" onclick="if(event.target===this)tutupTabBerkas()">
   <div class="modal modal-lg">
@@ -4426,7 +4440,7 @@ async function hapusSesiDraft() {
   if (!sesiAktif) return;
 
   const confirmMsg = `Apakah Anda yakin ingin membatalkan dan menghapus sesi KBM Pertemuan ${sesiAktif.pertemuan_ke} ini? Seluruh data presensi yang sudah diisi sementara pada sesi ini akan dihapus permanen.`;
-  if (!confirm(confirmMsg)) return;
+  if (!(await showConfirm(confirmMsg, { title: 'Hapus Sesi Draft?', okText: 'Ya, Hapus', danger: true }))) return;
 
   showLoad('Bismillah, membatalkan dan menghapus sesi...');
   try {
@@ -4458,7 +4472,7 @@ async function batalkanDanTandaiLibur() {
   const confirmMsg = `PERHATIAN: Pilih ini HANYA jika sesi Pertemuan ${sesiAktif.pertemuan_ke} ini BENAR-BENAR TIDAK BERLANGSUNG.\n\n`
     + `Jika sesi sudah/sedang diajarkan, klik "Lanjutkan Sesi" sebagai gantinya — JANGAN tandai libur.\n\n`
     + `Lanjutkan menandai sesi ini sebagai libur?`;
-  if (!confirm(confirmMsg)) return;
+  if (!(await showConfirm(confirmMsg, { title: '⚠️ Konfirmasi Tandai Libur', okText: 'Ya, Tandai Libur', danger: true }))) return;
 
   showLoad('Bismillah, memproses...');
   try {
@@ -4499,10 +4513,14 @@ async function doTandaiLibur() {
 
   const h    = halaqahList.find(x => x.id_halaqah === id_halaqah);
   const nama = (h && h.nama_halaqah) || id_halaqah;
-  const confirmMsg = `Tandai sesi "${nama}" (${jenis_sesi}) tanggal ${fmtDate(tanggal)} sebagai LIBUR?\n\n`
-    + `Alasan: ${keterangan}\n\n`
-    + `Pertemuan ke- TIDAK akan bertambah, dan akan tercatat sebagai +1 sisa kelas pengganti.`;
-  if (!confirm(confirmMsg)) return;
+  const confirmHtml = `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:12px 14px;margin-bottom:10px">`
+    + `<div style="font-size:14px;font-weight:800;color:#9a3412">📵 ${esc(nama)}</div>`
+    + `<div style="font-size:12px;font-weight:700;color:#c2410c;margin-top:2px">${esc(jenis_sesi)} · ${fmtDate(tanggal)}</div>`
+    + `<div style="font-size:12.5px;color:#7c2d12;margin-top:8px;font-style:italic">"${esc(keterangan)}"</div>`
+    + `</div>`
+    + `<div style="font-size:12.5px;color:var(--text-3)">Pertemuan ke- <strong>tidak</strong> akan bertambah, dan akan tercatat sebagai <strong>+1 sisa kelas pengganti</strong>.</div>`;
+  const ok = await showConfirm('', { title: 'Tandai sesi sebagai LIBUR?', html: confirmHtml, okText: 'Ya, Tandai Libur' });
+  if (!ok) return;
 
   showLoad('Bismillah, menyimpan...');
   try {
@@ -6242,7 +6260,7 @@ async function doSelesaiKBM() {
         `Nilai yang belum lengkap akan langsung memengaruhi raport akhir Murid.\n` +
         `Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan AMANAH kita sebagai guru.\n\n` +
         `Apakah Anda yakin tetap ingin menutup sesi ini?`;
-      if (!confirm(confirmMsg)) return;
+      if (!(await showConfirm(confirmMsg, { title: '⚠️ Nilai Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
     }
   }
 
@@ -6445,7 +6463,7 @@ async function doSelesaiKBM() {
 }
 
 async function konfirmasiTutup() {
-  if (!confirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.')) return;
+  if (!(await showConfirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.', { title: 'Tutup Sesi?', okText: 'Ya, Tutup' }))) return;
   showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
   try {
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
@@ -6935,15 +6953,23 @@ function _updatePenggantiReminder(jadwal) {
 
 function _showPenggantiReminderDetail() {
   if (!_penggantiPendingRows.length) return;
-  var lines = _penggantiPendingRows.map(function(r) {
-    return '• ' + r.nama + ' (' + r.jenis + ', ' + fmtDate(r.tanggal) + ')'
-      + (r.keterangan ? ': ' + r.keterangan : '');
-  });
-  alert('Kelas pengganti yang belum diganti:\n\n' + lines.join('\n'));
+  var html = '<div style="font-size:13px;color:var(--text-2);margin-bottom:12px">'
+    + 'Sesi berikut sudah ditandai <strong>libur</strong> dan tercatat sebagai sisa kelas pengganti yang belum digantikan:</div>'
+    + _penggantiPendingRows.map(function(r) {
+      return '<div style="display:flex;align-items:flex-start;gap:10px;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="font-size:18px;line-height:1">🔄</div>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:13.5px;font-weight:800;color:#9a3412">' + esc(r.nama) + '</div>'
+        + '<div style="font-size:11.5px;font-weight:700;color:#c2410c;margin-top:2px">' + esc(r.jenis) + ' · ' + fmtDate(r.tanggal) + '</div>'
+        + (r.keterangan ? '<div style="font-size:12px;color:#7c2d12;margin-top:4px;font-style:italic">' + esc(r.keterangan) + '</div>' : '')
+        + '</div></div>';
+    }).join('');
+
+  showAlertModal('', { title: '🔄 Kelas Pengganti Belum Diganti', html: html });
 }
 
 async function hapusDraftKBM(id_kbm, pertemuan_ke, jenis) {
-  if (!confirm('Hapus sesi draft ' + jenis + ' ke-' + pertemuan_ke + '?\n\nSesi ini belum selesai dan tidak ada data presensi/nilai yang tersimpan.')) return;
+  if (!(await showConfirm('Hapus sesi draft ' + jenis + ' ke-' + pertemuan_ke + '?\n\nSesi ini belum selesai dan tidak ada data presensi/nilai yang tersimpan.', { title: 'Hapus Draft?', okText: 'Ya, Hapus', danger: true }))) return;
   showLoad('Menghapus sesi draft...');
   try {
     await window.HQ.GuruAPI.hapusKBM(id_kbm);
@@ -7109,6 +7135,47 @@ function populateSel(selId, preserveValue) {
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Modal konfirmasi/alert custom — pengganti window.confirm()/window.alert()
+// Resolve true jika "Oke" diklik, false jika "Batal"/klik luar/tombol X.
+function showConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(function(resolve) {
+    var overlay  = document.getElementById('confirmModalOverlay');
+    var titleEl  = document.getElementById('confirmModalTitle');
+    var bodyEl   = document.getElementById('confirmModalBody');
+    var okBtn    = document.getElementById('confirmModalOk');
+    var cancelBtn = document.getElementById('confirmModalCancel');
+
+    titleEl.textContent = opts.title || 'Konfirmasi';
+    bodyEl.innerHTML = opts.html || esc(message || '').replace(/\n/g, '<br>');
+    okBtn.textContent = opts.okText || 'Oke';
+    okBtn.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-primary');
+    cancelBtn.style.display = opts.alertOnly ? 'none' : '';
+    cancelBtn.textContent = opts.cancelText || 'Batal';
+
+    function cleanup(result) {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk()     { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+    overlay.classList.add('open');
+  });
+}
+
+// Modal alert custom — pengganti window.alert(). Hanya tombol "Oke".
+function showAlertModal(message, opts) {
+  return showConfirm(message, Object.assign({ alertOnly: true, okText: 'Oke' }, opts || {}));
+}
 
 function showLoad(msg='Bismillah...') {
   document.getElementById('loaderTxt').textContent = msg;
@@ -7351,7 +7418,7 @@ async function simpanEditPresensi() {
 
 async function konfirmasiHapusKBM() {
   if (!editPresensiKBMId) return;
-  if (!confirm('Apakah Anda yakin ingin menghapus sesi KBM ini? Semua data presensi, nilai, jurnal, dan pencapaian modul pada sesi ini akan terhapus permanen dari database sistem.')) {
+  if (!(await showConfirm('Apakah Anda yakin ingin menghapus sesi KBM ini? Semua data presensi, nilai, jurnal, dan pencapaian modul pada sesi ini akan terhapus permanen dari database sistem.', { title: 'Hapus Sesi KBM?', okText: 'Ya, Hapus', danger: true }))) {
     return;
   }
   
@@ -8907,7 +8974,7 @@ function openWAMurid(nama, hp, level) {
 var _keaktifanContacted = new Set();
 
 async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
-  if (!confirm('Tindak lanjuti murid ini dan hubungi via WhatsApp?')) return;
+  if (!(await showConfirm('Tindak lanjuti murid ini dan hubungi via WhatsApp?', { title: 'Tindak Lanjut Murid', okText: 'Ya, Lanjutkan' }))) return;
 
   // Cari data murid di data lokal
   var alertItem = null;
@@ -9809,7 +9876,7 @@ async function raportPublishSemua() {
   if (!_raportHalaqah || !_raportPeriode) return;
   var draftCount = _raportData.filter(function(r){ return r.status==='draft'||!r.status; }).length;
   if (!draftCount) return toast('Semua raport sudah dipublish','warn');
-  if (!confirm('Publish '+draftCount+' raport ke murid?\n\nRaport yang sudah dipublish akan langsung terlihat oleh murid di portal mereka. Pastikan semua nilai dan catatan sudah benar.')) return;
+  if (!(await showConfirm('Publish '+draftCount+' raport ke murid?\n\nRaport yang sudah dipublish akan langsung terlihat oleh murid di portal mereka. Pastikan semua nilai dan catatan sudah benar.', { title: 'Publish Raport?', okText: 'Ya, Publish' }))) return;
   showLoad('Mempublish raport...');
   try {
     var r = await window.HQ.GuruAPI.publishAllRaportHalaqah({ id_halaqah:_raportHalaqah, id_periode:_raportPeriode });
@@ -10086,7 +10153,7 @@ async function hfAddKelancaran() {
 }
 
 async function hfDelKelancaran(i) {
-  if (!confirm('Hapus opsi ini?')) return;
+  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
   var cfg = _hfLoadConfig();
   cfg.kelancaran.splice(i, 1);
   await _hfSaveConfig(cfg);
@@ -10109,7 +10176,7 @@ async function hfAddNilai() {
 }
 
 async function hfDelNilai(i) {
-  if (!confirm('Hapus opsi ini?')) return;
+  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
   var cfg = _hfLoadConfig();
   cfg.nilai.splice(i, 1);
   await _hfSaveConfig(cfg);
@@ -10117,7 +10184,7 @@ async function hfDelNilai(i) {
 }
 
 async function hfResetPenilaian() {
-  if (!confirm('Reset semua penilaian ke pengaturan default?')) return;
+  if (!(await showConfirm('Reset semua penilaian ke pengaturan default?', { title: 'Reset Penilaian?', okText: 'Ya, Reset', danger: true }))) return;
   localStorage.removeItem(_HF_PENILAIAN_KEY);
   _hfConfigCache = null;
   await _hfSaveConfig(_hfDefaultConfig());
@@ -10140,7 +10207,7 @@ async function hfAddKamera() {
 }
 
 async function hfDelKamera(i) {
-  if (!confirm('Hapus opsi ini?')) return;
+  if (!(await showConfirm('Hapus opsi ini?', { title: 'Hapus Opsi?', okText: 'Ya, Hapus', danger: true }))) return;
   var cfg = _hfLoadConfig();
   if (!cfg.kamera) return;
   cfg.kamera.splice(i, 1);
@@ -10986,7 +11053,7 @@ function _fmtHafalanDateGuru(iso) {
 }
 
 async function deleteSetoranHafalanGuru(id_setoran, nama_murid, surat) {
-  if (!confirm('Apakah Anda yakin ingin menghapus setoran hafalan ' + (surat ? '"' + surat + '" ' : '') + 'milik ' + (nama_murid || 'murid') + '?\n\nTindakan ini akan menghapus data setoran secara permanen dan memperbarui data raport.')) {
+  if (!(await showConfirm('Apakah Anda yakin ingin menghapus setoran hafalan ' + (surat ? '"' + surat + '" ' : '') + 'milik ' + (nama_murid || 'murid') + '?\n\nTindakan ini akan menghapus data setoran secara permanen dan memperbarui data raport.', { title: 'Hapus Setoran Hafalan?', okText: 'Ya, Hapus', danger: true }))) {
     return;
   }
   try {
