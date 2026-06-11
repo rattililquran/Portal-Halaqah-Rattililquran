@@ -1067,6 +1067,32 @@ html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;bord
   margin-top:6px;display:none;
 }
 .persiapan-hint.show{display:block}
+/* ── KARTU "TIDAK BISA MENGAJAR HARI INI" — checklist konfirmasi ── */
+.libur-checklist{margin:14px 0}
+.libur-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 12px;border-radius:10px;margin-bottom:6px;
+  border:1.5px solid #fed7aa;cursor:pointer;
+  transition:all .2s;background:#fff7ed;
+  user-select:none;
+}
+.libur-item:last-of-type{margin-bottom:0}
+.libur-item:hover{background:#ffedd5;border-color:#fdba74}
+.libur-item.checked{background:#ffedd5;border-color:#ea580c}
+.libur-cb{
+  width:22px;height:22px;border-radius:6px;
+  border:2px solid #fdba74;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;transition:all .2s;font-size:13px;font-weight:800;
+}
+.libur-item.checked .libur-cb{background:#ea580c;border-color:#ea580c;color:#fff}
+.libur-item-label{flex:1;font-size:13px;font-weight:700;color:#9a3412;line-height:1.4}
+.libur-item.checked .libur-item-label{color:#7c2d12}
+.libur-hint{
+  font-size:11.5px;color:#c2410c;font-weight:700;text-align:center;
+  margin-top:8px;display:none;
+}
+.libur-hint.show{display:block}
 /* ── TEMPLATE KOREKSI ACCORDION ── */
 .kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
   border:1px solid var(--border)}
@@ -2343,19 +2369,35 @@ html.theme-dark .rt-surat-tbl th {
         </div>
 
         <!-- ── KELAS DILIBURKAN (Flow 1) ── -->
-        <div class="card" id="cardKelasLibur" style="margin-top:14px">
-          <div class="card-head"><div class="card-title">📵 Tidak Bisa Mengajar Hari Ini?</div></div>
+        <div class="card" id="cardKelasLibur" style="margin-top:14px;border:1.5px solid #fdba74">
+          <div class="card-head" style="background:linear-gradient(135deg,#fff7ed,#ffedd5)">
+            <div class="card-title" style="color:#c2410c;font-size:15px;font-weight:800">📵 Tidak Bisa Mengajar Hari Ini?</div>
+          </div>
           <div class="card-body">
-            <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+            <div style="font-size:12.5px;color:#9a3412;margin-bottom:12px;line-height:1.6;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px">
               Pilih halaqah &amp; jenis sesi di atas, lalu isi alasan di bawah untuk menandai sesi ini sebagai <strong>libur</strong>.
               Pertemuan ke- tidak akan bertambah, dan akan tercatat sebagai sisa kelas pengganti.
             </div>
             <div class="fg">
-              <label>Alasan Libur</label>
-              <textarea class="fc" id="liburAlasan" rows="2" placeholder="Contoh: Sakit demam, ada keperluan mendadak, dll"></textarea>
+              <label style="color:#c2410c;font-weight:800">Alasan Libur</label>
+              <textarea class="fc" id="liburAlasan" rows="2" placeholder="Contoh: Sakit demam, ada keperluan mendadak, dll" oninput="_updateLiburCheckUI()"></textarea>
             </div>
-            <button class="btn btn-outline btn-sm" style="color:#e0772a;border-color:#e0772a;width:100%;justify-content:center;font-weight:700"
+
+            <div class="libur-checklist" id="liburChecklist">
+              <div class="libur-item" id="lcItem0" onclick="toggleLiburCheck(0)">
+                <div class="libur-cb" id="lcCb0"></div>
+                <div class="libur-item-label">Sudah konfirmasi ke Manajemen Rattililquran lewat pesan WA</div>
+              </div>
+              <div class="libur-item" id="lcItem1" onclick="toggleLiburCheck(1)">
+                <div class="libur-cb" id="lcCb1"></div>
+                <div class="libur-item-label">Sudah info kepada Murid di Grup WhatsApp</div>
+              </div>
+            </div>
+
+            <button class="btn btn-outline btn-sm" id="btnTandaiLibur" disabled
+              style="color:#e0772a;border-color:#e0772a;width:100%;justify-content:center;font-weight:800;font-size:14px;padding:12px;opacity:.45;cursor:not-allowed"
               onclick="doTandaiLibur()">📵 Tandai Kelas Diliburkan</button>
+            <div class="libur-hint show" id="liburHint">☝ Centang konfirmasi & isi alasan libur untuk mengaktifkan tombol</div>
           </div>
         </div>
       </div>
@@ -4469,6 +4511,7 @@ async function doTandaiLibur() {
     });
     if (r.status !== 'ok') throw new Error(r.message || 'Gagal menandai libur');
     alasanEl.value = '';
+    resetLiburCheck();
     toast('Sesi ditandai libur. Sisa kelas pengganti bertambah.','ok');
     loadDashboard();
     goPage('dashboard');
@@ -8079,6 +8122,45 @@ function filterMuridSearch() { renderMuridTable(); }
 
 
 // ══ PERSIAPAN SEBELUM MENGAJAR ══════════════════
+// ── Checklist konfirmasi sebelum "Tandai Kelas Diliburkan" ──
+var _liburCheckState = [false, false];
+
+function toggleLiburCheck(idx) {
+  _liburCheckState[idx] = !_liburCheckState[idx];
+  var item = document.getElementById('lcItem' + idx);
+  var cb   = document.getElementById('lcCb' + idx);
+  if (item) item.classList.toggle('checked', _liburCheckState[idx]);
+  if (cb)   cb.textContent = _liburCheckState[idx] ? '✓' : '';
+  _updateLiburCheckUI();
+}
+
+function _updateLiburCheckUI() {
+  var btn  = document.getElementById('btnTandaiLibur');
+  var hint = document.getElementById('liburHint');
+  var alasanEl = document.getElementById('liburAlasan');
+  var allChecked = _liburCheckState.every(Boolean);
+  var hasAlasan  = !!(alasanEl && alasanEl.value.trim());
+  var ready = allChecked && hasAlasan;
+
+  if (btn) {
+    btn.disabled = !ready;
+    btn.style.opacity = ready ? '1' : '.45';
+    btn.style.cursor  = ready ? 'pointer' : 'not-allowed';
+  }
+  if (hint) hint.classList.toggle('show', !ready);
+}
+
+function resetLiburCheck() {
+  _liburCheckState = [false, false];
+  for (var i = 0; i < 2; i++) {
+    var item = document.getElementById('lcItem' + i);
+    var cb   = document.getElementById('lcCb' + i);
+    if (item) item.classList.remove('checked');
+    if (cb)   cb.textContent = '';
+  }
+  _updateLiburCheckUI();
+}
+
 var _persiapanState = [false, false, false];
 
 function togglePersiapan(idx) {
