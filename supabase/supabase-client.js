@@ -2574,6 +2574,24 @@ var AdminAPI = {
     });
     return { status: 'ok', data: result };
   },
+
+  // ── Kelas Pengganti: riwayat libur/pengganti dari SEMUA halaqah (untuk monitoring) ──
+  getRiwayatPenggantiSemua: async function(limit) {
+    var { data, error } = await _sb.from('kbm_log').select('*')
+      .or('status.eq.libur,is_pengganti.eq.true')
+      .order('tanggal_pertemuan', { ascending: false })
+      .limit(limit || 100);
+    _check(error, 'getRiwayatPenggantiSemua');
+    if (data) {
+      data = data.map(function(k) {
+        return Object.assign({}, k, {
+          jam_mulai: k.jam_mulai ? k.jam_mulai.substring(0, 5) : null,
+          jam_selesai: k.jam_selesai ? k.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
+    return { status: 'ok', data: data || [] };
+  },
   getAllAnggota: async function(id_halaqah) {
     var q = _sb.from('anggota').select('*, users!anggota_id_murid_fkey(nama_lengkap,no_hp)');
     if (id_halaqah) q = q.eq('id_halaqah',id_halaqah);

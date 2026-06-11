@@ -1235,8 +1235,8 @@ html.theme-dark .tbl-wrap thead th {
           <div class="card-body">
             <div class="tbl-wrap">
               <table>
-                <thead><tr><th>Tanggal</th><th>Jenis Sesi</th><th>Pertemuan</th><th>Status</th><th>Pengganti?</th></tr></thead>
-                <tbody id="riwayatPenggantiTbl"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</td></tr></tbody>
+                <thead id="riwayatPenggantiThead"><tr><th>Tanggal</th><th>Jenis Sesi</th><th>Pertemuan</th><th>Status</th><th>Pengganti?</th></tr></thead>
+                <tbody id="riwayatPenggantiTbl"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -3864,8 +3864,8 @@ function filterHalaqahTable() { renderHalaqahTable(); }
 let _sisaPenggantiData = {};
 
 async function loadKelasPengganti() {
-  populateSel('penggantiHalaqahSel', allHalaqah);
-  await Promise.all([loadHariLiburResmi(), loadSisaPenggantiSummary()]);
+  populateSel('penggantiHalaqahSel', allHalaqah, true);
+  await Promise.all([loadHariLiburResmi(), loadSisaPenggantiSummary(), loadRiwayatPengganti()]);
 }
 
 async function loadHariLiburResmi() {
@@ -3952,22 +3952,30 @@ function renderSisaPenggantiTable() {
 async function loadRiwayatPengganti() {
   const id_halaqah = document.getElementById('penggantiHalaqahSel').value;
   const tbody = document.getElementById('riwayatPenggantiTbl');
-  if (!id_halaqah) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</td></tr>';
-    return;
-  }
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</td></tr>';
   try {
-    const r = await window.HQ.GuruAPI.getRiwayatKBM(id_halaqah, 50);
-    renderRiwayatPenggantiTable(r.data || []);
+    if (!id_halaqah) {
+      const r = await window.HQ.AdminAPI.getRiwayatPenggantiSemua(100);
+      renderRiwayatPenggantiTable(r.data || [], true);
+    } else {
+      const r = await window.HQ.GuruAPI.getRiwayatKBM(id_halaqah, 50);
+      renderRiwayatPenggantiTable(r.data || [], false);
+    }
   } catch(e) { toast('Gagal memuat riwayat: '+e.message,'err'); }
 }
 
-function renderRiwayatPenggantiTable(data) {
+function renderRiwayatPenggantiTable(data, showHalaqah) {
+  const thead = document.getElementById('riwayatPenggantiThead');
   const tbody = document.getElementById('riwayatPenggantiTbl');
+  const colspan = showHalaqah ? 6 : 5;
+  thead.innerHTML = '<tr>' + (showHalaqah ? '<th>Halaqah</th>' : '')
+    + '<th>Tanggal</th><th>Jenis Sesi</th><th>Pertemuan</th><th>Status</th><th>Pengganti?</th></tr>';
   tbody.innerHTML = (data||[]).map(function(k) {
+    const hCell = showHalaqah
+      ? `<td><strong>${esc((allHalaqah.find(h=>h.id_halaqah===k.id_halaqah)||{}).nama_halaqah || k.id_halaqah)}</strong></td>`
+      : '';
     if (k.status === 'libur') {
-      return `<tr>
+      return `<tr>${hCell}
         <td>${fmtDate(k.tanggal_pertemuan)}</td>
         <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
         <td>—</td>
@@ -3976,7 +3984,7 @@ function renderRiwayatPenggantiTable(data) {
       </tr>`;
     }
     if (k.status !== 'selesai') {
-      return `<tr>
+      return `<tr>${hCell}
         <td>${fmtDate(k.tanggal_pertemuan)}</td>
         <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
         <td>${k.pertemuan_ke!=null ? 'ke-'+k.pertemuan_ke : '—'}</td>
@@ -3984,7 +3992,7 @@ function renderRiwayatPenggantiTable(data) {
         <td>—</td>
       </tr>`;
     }
-    return `<tr>
+    return `<tr>${hCell}
       <td>${fmtDate(k.tanggal_pertemuan)}</td>
       <td>${esc(k.jenis_sesi||'KBM Reguler')}</td>
       <td>ke-${k.pertemuan_ke}</td>
@@ -3994,7 +4002,7 @@ function renderRiwayatPenggantiTable(data) {
         🔄 Pengganti
       </label></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada riwayat sesi</td></tr>';
+  }).join('') || `<tr><td colspan="${colspan}" style="text-align:center;padding:20px;color:var(--text-3)">${showHalaqah ? 'Tidak ada riwayat libur/pengganti' : 'Belum ada riwayat sesi'}</td></tr>`;
 }
 
 async function onToggleIsPengganti(id_kbm, checked) {
