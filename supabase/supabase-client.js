@@ -2403,7 +2403,7 @@ var MuridAPI = {
     var { data, error } = await _sb.from('setoran_hafalan')
       .select('*')
       .eq('id_murid', _uid())
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false }) // urut per tanggal update (mis. setoran partner naik saat dikonfirmasi)
       .range(off, off + lim);
     _check(error, 'getSetoranHafalan');
     var rows = data || [];
