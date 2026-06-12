@@ -1513,6 +1513,14 @@ html.theme-dark .tbl-wrap thead th {
           <div id="sppPendingList" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
 
+        <!-- ── Riwayat Konfirmasi Terbaru (untuk batalkan jika salah klik) ── -->
+        <div style="margin-bottom:20px">
+          <button type="button" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px" onclick="toggleSPPRiwayat()">
+            🕘 Riwayat Konfirmasi Terbaru
+          </button>
+          <div id="sppRiwayatSection" style="display:none;margin-top:10px;flex-direction:column;gap:8px"></div>
+        </div>
+
         <!-- ── Rekap Tunggakan ── -->
         <div class="card" style="padding:0;overflow:hidden">
           <!-- Header rekap -->
@@ -5494,6 +5502,76 @@ async function konfirmasiManualGateway(id_spp, namaMurid, bulanTahun) {
   var ok = await showConfirm('', { html: msg, title: 'Double Check: Sudah Dibayar?', okText: 'Ya, Sudah Saya Cek & Lunas', danger: true });
   if (!ok) return;
   validasiSPP(id_spp, 'lunas');
+}
+
+var _sppRiwayatLoaded = false;
+function toggleSPPRiwayat() {
+  var sec = document.getElementById('sppRiwayatSection');
+  var hidden = sec.style.display === 'none';
+  sec.style.display = hidden ? 'flex' : 'none';
+  if (hidden && !_sppRiwayatLoaded) loadSPPRiwayat();
+}
+
+async function loadSPPRiwayat() {
+  var listEl = document.getElementById('sppRiwayatSection');
+  listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Memuat...</div>';
+  try {
+    var res = await window.HQ.AdminAPI.getSPPRecentValidasi();
+    _sppRiwayatLoaded = true;
+    var rows = res.data || [];
+    if (!rows.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Belum ada riwayat konfirmasi.</div>';
+      return;
+    }
+    listEl.innerHTML = rows.map(function(p) {
+      var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
+      var isGateway  = p.metode_bayar === 'gateway' && !p.validated_by;
+      var bulanTahun = (p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'');
+      var statusBadge = p.status === 'lunas'
+        ? '<span style="background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Lunas</span>'
+        : '<span style="background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Ditolak</span>';
+      var sumberBadge = isGateway
+        ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+        : '<span style="background:var(--bg,#f1f5f9);color:var(--text-2,#64748b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Manual Admin</span>';
+      var when = fmtDate(p.validated_at || p.tanggal_bayar);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">'
+        + '<div style="flex:1;min-width:160px">'
+        + '<div style="font-size:13px;font-weight:800;color:var(--text)">'+esc(p.nama_murid||p.id_murid)+'</div>'
+        + '<div style="font-size:11px;color:var(--text-2, #64748b);margin-top:3px">'+statusBadge+' '+sumberBadge
+          +' <span style="margin-left:4px">'+esc(bulanTahun)+'</span>'
+          +' &nbsp;·&nbsp; <strong>'+nominal+'</strong>'
+          +' &nbsp;·&nbsp; <span style="color:var(--text-3, #94a3b8)">'+esc(when)+'</span></div>'
+        + '</div>'
+        + '<button class="btn btn-sm" style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);border:1px solid #fcd34d;font-size:12px;padding:7px 12px;flex-shrink:0" '
+          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+esc(p.nama_murid||p.id_murid)+'\',\''+esc(bulanTahun)+'\',\''+p.status+'\')">↩️ Batalkan</button>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#ef4444;font-size:13px">Gagal memuat riwayat: '+esc(e.message)+'</div>';
+  }
+}
+
+async function batalkanKonfirmasi(id_spp, namaMurid, bulanTahun, statusSebelumnya) {
+  var aksiLabel = statusSebelumnya === 'lunas' ? 'LUNAS' : 'DITOLAK';
+  var msg = '⚠️ Anda akan membatalkan konfirmasi <strong>' + aksiLabel + '</strong> untuk '
+    + esc(namaMurid) + ' — SPP ' + esc(bulanTahun) + '.<br><br>'
+    + 'Status akan dikembalikan ke <strong>"Menunggu Validasi"</strong> agar bisa dikonfirmasi/ditolak ulang dengan benar.<br><br>'
+    + 'Pastikan ini memang salah konfirmasi sebelum lanjut.';
+  var ok = await showConfirm('', { html: msg, title: 'Batalkan Konfirmasi?', okText: 'Ya, Batalkan', danger: true });
+  if (!ok) return;
+  showLoad('Membatalkan...');
+  try {
+    var r = await window.HQ.AdminAPI.batalkanValidasiSPP(id_spp);
+    if (r && r.status === 'error') {
+      toast(r.message || 'Gagal membatalkan.', 'warn');
+    } else {
+      toast('Konfirmasi dibatalkan, status kembali ke Menunggu ✅', 'ok');
+    }
+    _sppRiwayatLoaded = false;
+    loadSPPRiwayat();
+    loadSPPAdmin();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
 }
 
 async function validasiSPP(id_spp, aksi) {

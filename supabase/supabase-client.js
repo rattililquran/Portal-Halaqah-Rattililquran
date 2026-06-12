@@ -3078,6 +3078,41 @@ var AdminAPI = {
     }
     return { status:'ok' };
   },
+  // Riwayat konfirmasi terbaru (manual maupun otomatis via gateway) — untuk
+  // menemukan & membatalkan salah konfirmasi tanpa perlu SQL manual.
+  getSPPRecentValidasi: async function() {
+    var { data: manual, error: e1 } = await _sb.from('spp_pembayaran')
+      .select('*').not('validated_by','is',null)
+      .order('validated_at',{ascending:false}).limit(10);
+    _check(e1,'getSPPRecentValidasi');
+    var { data: gateway, error: e2 } = await _sb.from('spp_pembayaran')
+      .select('*').eq('metode_bayar','gateway').eq('status','lunas').is('validated_by',null)
+      .order('tanggal_bayar',{ascending:false}).limit(10);
+    _check(e2,'getSPPRecentValidasi');
+    var all = (manual||[]).concat(gateway||[]);
+    all.forEach(function(r) {
+      r._when = r.validated_at || (r.tanggal_bayar ? r.tanggal_bayar + 'T00:00:00Z' : r.created_at);
+    });
+    all.sort(function(a,b) { return new Date(b._when) - new Date(a._when); });
+    return { status:'ok', data: all.slice(0,10) };
+  },
+  // Batalkan konfirmasi/penolakan yang salah — kembalikan ke 'menunggu'
+  // supaya bisa dikonfirmasi ulang dengan benar (tanpa SQL manual).
+  batalkanValidasiSPP: async function(id_spp) {
+    var { data: sppRow } = await _sb.from('spp_pembayaran').select('id_murid, bulan, tahun, status').eq('id_spp', id_spp).maybeSingle();
+    if (!sppRow || (sppRow.status !== 'lunas' && sppRow.status !== 'ditolak')) {
+      return { status:'error', message:'Status saat ini tidak bisa dibatalkan.' };
+    }
+    var { data: updRows, error } = await _sb.from('spp_pembayaran').update({
+      status: 'menunggu', validated_by: null, validated_at: null, tanggal_bayar: null,
+    }).eq('id_spp', id_spp).in('status', ['lunas','ditolak']).select('id_spp');
+    _check(error,'batalkanValidasiSPP');
+    if (!updRows || !updRows.length) {
+      return { status:'error', message:'Status sudah berubah, gagal membatalkan.' };
+    }
+    _logAudit('batal_validasi_spp', {id_spp: id_spp, status_sebelumnya: sppRow.status, id_murid: sppRow.id_murid});
+    return { status:'ok' };
+  },
   getSPPRekap: async function(p) {
     // p: { tahun, id_halaqah, bulan }
     var tahun = p && p.tahun ? Number(p.tahun) : new Date().getFullYear();
