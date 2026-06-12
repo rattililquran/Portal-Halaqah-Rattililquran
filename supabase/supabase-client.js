@@ -458,12 +458,6 @@ var GuruAPI = {
     return { status: 'ok', message: 'Sesi KBM berhasil dibuka', data };
   },
 
-  getDraftCount: async function() {
-    var { count } = await _sb.from('kbm_log').select('*', { count: 'exact', head: true })
-      .eq('id_guru', _uid()).eq('status', 'draft');
-    return { status: 'ok', data: count || 0 };
-  },
-
   // ── Kelas Pengganti: Flow 1 — tandai sesi hari ini sebagai libur ──
   tandaiLibur: async function(d) {
     var keterangan = (d.keterangan_libur || '').trim();
