@@ -3998,6 +3998,15 @@ function _kqRenderList() {
       + `</div>`
       : '';
 
+    // Lini Masa Kelompok: toggle + tambah milestone (lazy-load)
+    const liniBlock = `<div style="border-top:1px dashed var(--border,#e5e7eb);margin-top:8px;padding-top:8px">`
+      + `<div style="display:flex;gap:6px;align-items:center">`
+        + `<button onclick="kqToggleLiniMasa('${esc(k.id_kelompok)}')" style="background:rgba(13,148,136,.1);color:#0f766e;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🗓️ Lini Masa</button>`
+        + `<button onclick="kqAddMilestone('${esc(k.id_kelompok)}')" style="background:var(--bg-2,#f3f4f6);color:var(--text-1,#374151);border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Milestone</button>`
+      + `</div>`
+      + `<div id="kqLini_${esc(k.id_kelompok)}" style="display:none;margin-top:8px"></div>`
+    + `</div>`;
+
     return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
       + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
         + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kqRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
@@ -4007,9 +4016,83 @@ function _kqRenderList() {
         + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
         + (available.length ? `<div style="margin-top:6px"><select class="fc" style="font-size:11px;padding:5px 9px" onchange="kqAddAnggota('${esc(k.id_kelompok)}',this)">${addOpts}</select></div>` : '')
         + denyutBlock
+        + liniBlock
       + `</div>`
     + `</div>`;
   }).join('');
+}
+
+// ── Lini Masa Kelompok (admin) — gabungan setoran dikonfirmasi + milestone ──
+function _kqRenderLiniMasa(setoran, milestones) {
+  const jenisIcon = { Ziyadah:'📖', Murajaah:'🔄' };
+  const events = [];
+  (setoran || []).forEach(s => {
+    events.push({ t:new Date(s.tanggal).getTime(), dot:'#16a34a', tgl:s.tanggal, html:
+      `<div style="font-weight:700;color:var(--text-1,#374151)">${jenisIcon[s.jenis]||'📖'} ${esc(s.nama_murid)} — ${esc(s.jenis)}</div>`
+      + `<div style="color:var(--text-3)">QS. ${esc(s.surat)} ayat ${esc(s.ayat_dari)}-${esc(s.ayat_sampai)}${s.kelancaran ? ' · '+esc(s.kelancaran) : ''}</div>`
+      + (s.catatan_partner ? `<div style="color:#0f766e">💬 ${esc(s.catatan_partner)}${s.reaksi_partner ? ' '+esc(s.reaksi_partner) : ''}</div>` : '')
+    });
+  });
+  (milestones || []).forEach(m => {
+    events.push({ t:new Date(m.tanggal).getTime(), dot:'#f59e0b', tgl:m.tanggal, html:
+      `<div style="font-weight:800;color:#b45309">🏆 ${esc(m.judul)}`
+        + `<button onclick="kqDeleteMilestone('${esc(m.id_milestone)}','${esc(m.id_kelompok)}')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:12px;margin-left:6px" title="Hapus">✕</button>`
+      + `</div>`
+      + `<div style="color:var(--text-3);font-size:10px">ditandai oleh ${esc(m.nama_pembuat || '-')}</div>`
+    });
+  });
+  if (!events.length) return '<div style="font-size:11px;color:var(--text-3)">Belum ada jejak.</div>';
+  events.sort((a,b) => b.t - a.t);
+  return events.map(e =>
+    `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border,#f0f0f0);font-size:11px">`
+      + `<span style="width:8px;height:8px;border-radius:50%;background:${e.dot};flex-shrink:0;margin-top:4px"></span>`
+      + `<div style="flex:1;min-width:0">${e.html}<div style="color:var(--text-3);font-size:10px">${esc(_kqFmtTgl(e.tgl))}</div></div>`
+    + `</div>`
+  ).join('');
+}
+
+function _kqFmtTgl(iso) {
+  try { return new Date(iso).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); }
+  catch(e) { return iso; }
+}
+
+async function _kqLoadLiniMasa(id_kelompok) {
+  const c = document.getElementById('kqLini_' + id_kelompok);
+  if (!c) return;
+  c.style.display = 'block';
+  c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+  try {
+    const res = await Promise.all([
+      window.HQ.AdminAPI.getLiniMasaSetoranKelompok(id_kelompok),
+      window.HQ.AdminAPI.getMilestoneByKelompok(id_kelompok),
+    ]);
+    c.innerHTML = _kqRenderLiniMasa(res[0].data || [], res[1].data || []);
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+}
+
+function kqToggleLiniMasa(id_kelompok) {
+  const c = document.getElementById('kqLini_' + id_kelompok);
+  if (!c) return;
+  if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+  _kqLoadLiniMasa(id_kelompok);
+}
+
+async function kqAddMilestone(id_kelompok) {
+  const judul = prompt('Tandai milestone kelompok (mis: Dedy khatam Juz 30):');
+  if (!judul || !judul.trim()) return;
+  try {
+    await window.HQ.AdminAPI.addMilestoneKelompok({ id_kelompok, id_halaqah: _kqData.id_halaqah, judul: judul.trim() });
+    toast('Milestone ditandai', 'ok');
+    _kqLoadLiniMasa(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+
+async function kqDeleteMilestone(id_milestone, id_kelompok) {
+  try {
+    await window.HQ.AdminAPI.deleteMilestoneKelompok(id_milestone);
+    toast('Milestone dihapus', 'ok');
+    _kqLoadLiniMasa(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
 }
 
 // Satu baris denyut anggota (admin): tanggal terakhir + status aktif/mandek + ingatkan WA

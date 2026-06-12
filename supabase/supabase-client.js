@@ -1621,6 +1621,39 @@ var GuruAPI = {
     return { status: 'ok', data: data || [] };
   },
 
+  // ── Lini Masa Kelompok (Fase 3) untuk guru/admin (per kelompok) ──
+  getLiniMasaSetoranKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.rpc('get_lini_masa_setoran', { p_id_kelompok: id_kelompok });
+    _check(error, 'getLiniMasaSetoranKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  getMilestoneByKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.from('milestone_kelompok_partner')
+      .select('*').eq('id_kelompok', id_kelompok)
+      .order('tanggal', { ascending: false }).order('created_at', { ascending: false });
+    _check(error, 'getMilestoneByKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  addMilestoneKelompok: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok  : d.id_kelompok,
+      id_halaqah   : d.id_halaqah,
+      judul        : d.judul,
+      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      dibuat_oleh  : _uid(),
+      nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
+    };
+    var { data, error } = await _sb.from('milestone_kelompok_partner').insert(payload).select().single();
+    _check(error, 'addMilestoneKelompok');
+    return { status: 'ok', data: data };
+  },
+  deleteMilestoneKelompok: async function(id_milestone) {
+    var { error } = await _sb.from('milestone_kelompok_partner').delete().eq('id_milestone', id_milestone);
+    _check(error, 'deleteMilestoneKelompok');
+    return { status: 'ok' };
+  },
+
   // Buat kelompok baru. anggota: [{id_murid, nama_murid}]
   // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
   // insert anggota gagal (validasi roster/aktif atau koneksi putus)
@@ -2525,6 +2558,40 @@ var MuridAPI = {
     return { status: 'ok', data: data || [] };
   },
 
+  // ── Lini Masa Kelompok (Fase 3) — auto-feed setoran + milestone manual ──
+  // Feed setoran partner yang sudah dikonfirmasi (anggota kelompok sendiri)
+  getLiniMasaSetoran: async function() {
+    var { data, error } = await _sb.rpc('get_lini_masa_setoran', { p_id_kelompok: null });
+    _check(error, 'getLiniMasaSetoran');
+    return { status: 'ok', data: data || [] };
+  },
+  // Milestone manual kelompok sendiri (RLS membatasi ke kelompok murid)
+  getMyMilestones: async function() {
+    var { data, error } = await _sb.from('milestone_kelompok_partner')
+      .select('*').order('tanggal', { ascending: false }).order('created_at', { ascending: false });
+    _check(error, 'getMyMilestones');
+    return { status: 'ok', data: data || [] };
+  },
+  addMilestone: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok  : d.id_kelompok,
+      id_halaqah   : d.id_halaqah,
+      judul        : d.judul,
+      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      dibuat_oleh  : _uid(),
+      nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
+    };
+    var { data, error } = await _sb.from('milestone_kelompok_partner').insert(payload).select().single();
+    _check(error, 'addMilestone');
+    return { status: 'ok', data: data };
+  },
+  deleteMilestone: async function(id_milestone) {
+    var { error } = await _sb.from('milestone_kelompok_partner').delete().eq('id_milestone', id_milestone);
+    _check(error, 'deleteMilestone');
+    return { status: 'ok' };
+  },
+
   // Target hafalan berikutnya (setoran terbaru yang punya target_surat)
   getTargetHafalan: async function() {
     var { data, error } = await _sb.from('setoran_hafalan')
@@ -2809,6 +2876,10 @@ var AdminAPI = {
   getMuridQiyam: async function(id_halaqah) { return GuruAPI.getMuridQiyam(id_halaqah); },
   getKelompokPartnerHalaqah: async function(id_halaqah) { return GuruAPI.getKelompokPartnerHalaqah(id_halaqah); },
   getPantauKelompokPartner: async function(id_halaqah) { return GuruAPI.getPantauKelompokPartner(id_halaqah); },
+  getLiniMasaSetoranKelompok: async function(id_kelompok) { return GuruAPI.getLiniMasaSetoranKelompok(id_kelompok); },
+  getMilestoneByKelompok: async function(id_kelompok) { return GuruAPI.getMilestoneByKelompok(id_kelompok); },
+  addMilestoneKelompok: async function(d) { return GuruAPI.addMilestoneKelompok(d); },
+  deleteMilestoneKelompok: async function(id_milestone) { return GuruAPI.deleteMilestoneKelompok(id_milestone); },
   createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) { return GuruAPI.createKelompokPartner(id_halaqah, nama_kelompok, anggota); },
   updateKelompokPartner: async function(id_kelompok, updates) { return GuruAPI.updateKelompokPartner(id_kelompok, updates); },
   setAnggotaKelompok: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompok(id_kelompok, anggota); },
