@@ -2397,13 +2397,19 @@ var MuridAPI = {
       return { status: 'ok', data: [], total: 0, has_more: false };
     }
     var lim = limit || 10;
-    var { data, error, count } = await _sb.from('setoran_hafalan')
-      .select('*', { count: 'exact' })
+    var off = offset || 0;
+    // Ambil lim+1 baris untuk deteksi has_more — hindari count:'exact' yang
+    // memaksa COUNT(*) terpisah (lambat di PostgREST, apalagi dgn RLS).
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('*')
       .eq('id_murid', _uid())
       .order('created_at', { ascending: false })
-      .range(offset || 0, (offset || 0) + lim - 1);
+      .range(off, off + lim);
     _check(error, 'getSetoranHafalan');
-    return { status: 'ok', data: data || [], total: count || 0, has_more: (offset || 0) + lim < (count || 0) };
+    var rows = data || [];
+    var hasMore = rows.length > lim;
+    if (hasMore) rows = rows.slice(0, lim);
+    return { status: 'ok', data: rows, total: null, has_more: hasMore };
   },
 
   // Raport tahfidz murid sendiri (berdasarkan rentang tanggal)
