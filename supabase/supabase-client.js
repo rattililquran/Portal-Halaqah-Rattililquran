@@ -1613,6 +1613,14 @@ var GuruAPI = {
     return { status: 'ok', data: data || [] };
   },
 
+  // Pantau denyut tiap anggota kelompok partner di sebuah halaqah Qiyam
+  // (tanggal setoran mandiri terakhir, jumlah menunggu/dikonfirmasi, no_hp)
+  getPantauKelompokPartner: async function(id_halaqah) {
+    var { data, error } = await _sb.rpc('get_pantau_kelompok_partner', { p_id_halaqah: id_halaqah });
+    _check(error, 'getPantauKelompokPartner');
+    return { status: 'ok', data: data || [] };
+  },
+
   // Buat kelompok baru. anggota: [{id_murid, nama_murid}]
   // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
   // insert anggota gagal (validasi roster/aktif atau koneksi putus)
