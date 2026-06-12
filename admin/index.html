@@ -3940,7 +3940,13 @@ async function onKqHalaqahChange() {
       window.HQ.AdminAPI.getMuridQiyam(id_halaqah),
       window.HQ.AdminAPI.getKelompokPartnerHalaqah(id_halaqah),
     ]);
-    _kqData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[] };
+    // Denyut anggota (pantau) — non-fatal: kalau RPC belum ada/gagal, kelola tetap jalan
+    let pantauMap = {};
+    try {
+      const resP = await window.HQ.AdminAPI.getPantauKelompokPartner(id_halaqah);
+      (resP.data || []).forEach(p => { pantauMap[p.id_murid] = p; });
+    } catch(e) { pantauMap = {}; }
+    _kqData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[], pantau: pantauMap };
     _kqRenderList();
     _kqRenderNewForm();
     newCard.style.display = '';
@@ -3983,6 +3989,15 @@ function _kqRenderList() {
       `<option value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}">${esc(m.nama_murid)}</option>`
     ).join('');
 
+    // Denyut anggota: tanggal setoran mandiri terakhir + status aktif/mandek + ingatkan WA
+    const denyutRows = anggota.map(a => _kqDenyutRow(a)).join('');
+    const denyutBlock = anggota.length
+      ? `<div style="border-top:1px dashed var(--border,#e5e7eb);margin-top:8px;padding-top:8px">`
+        + `<div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Denyut Setoran Partner</div>`
+        + denyutRows
+      + `</div>`
+      : '';
+
     return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
       + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
         + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kqRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
@@ -3991,9 +4006,51 @@ function _kqRenderList() {
       + `<div style="padding:10px 12px">`
         + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
         + (available.length ? `<div style="margin-top:6px"><select class="fc" style="font-size:11px;padding:5px 9px" onchange="kqAddAnggota('${esc(k.id_kelompok)}',this)">${addOpts}</select></div>` : '')
+        + denyutBlock
       + `</div>`
     + `</div>`;
   }).join('');
+}
+
+// Satu baris denyut anggota (admin): tanggal terakhir + status aktif/mandek + ingatkan WA
+function _kqDenyutRow(a) {
+  const p = (_kqData.pantau && _kqData.pantau[a.id_murid]) || null;
+  const last = p && p.tanggal_terakhir;
+  const hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+  const menunggu = p ? (p.jumlah_menunggu || 0) : 0;
+  const mandek = (hari === null) || (hari >= 7);
+  const dot = mandek ? '#f59e0b' : '#16a34a';
+  const statusTxt = (hari === null)
+    ? 'Belum pernah setor'
+    : (hari === 0 ? 'Setor hari ini' : (hari === 1 ? 'Setor kemarin' : `Terakhir ${hari} hari lalu`));
+  const menungguBadge = menunggu > 0
+    ? `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:1px 7px;margin-left:6px">${menunggu} menunggu</span>`
+    : '';
+  let nudgeBtn = '';
+  if (mandek && p && p.no_hp) {
+    nudgeBtn = `<button onclick="kqNudgeAnggota('${esc(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
+  }
+  return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
+    + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`
+    + `<span style="font-weight:700;color:var(--text-1,#374151)">${esc(a.nama_murid || a.id_murid)}</span>`
+    + `<span style="color:var(--text-3);font-size:11px">· ${statusTxt}</span>`
+    + menungguBadge
+    + nudgeBtn
+  + `</div>`;
+}
+
+// Kirim WA pengingat dari admin ke anggota yang mandek
+function kqNudgeAnggota(nama, hp) {
+  let raw = String(hp || '').replace(/[^0-9]/g, '');
+  if (!raw || raw.length < 9) { toast('Nomor HP murid ini belum tersedia di data pengguna.', 'err'); return; }
+  if (raw.charAt(0) === '0') raw = '62' + raw.slice(1);
+  else if (raw.slice(0,2) !== '62') raw = '62' + raw;
+  const msg =
+    'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n' +
+    'Ananda *' + (nama || 'Murid') + '*, kami memantau setoran hafalan qiyam bersama partnermu. ' +
+    'Sudah beberapa waktu belum ada setoran baru — yuk semangat lanjutkan setoran & muraja\'ah bersama partner ya 🤝\n\n' +
+    'Barakallahu fiikum.';
+  window.open('https://wa.me/' + raw + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function _kqRenderNewForm() {

@@ -2808,6 +2808,7 @@ var AdminAPI = {
   // Kelompok Partner Qiyam — admin lihat/atur lintas halaqah (RLS admin_all_*)
   getMuridQiyam: async function(id_halaqah) { return GuruAPI.getMuridQiyam(id_halaqah); },
   getKelompokPartnerHalaqah: async function(id_halaqah) { return GuruAPI.getKelompokPartnerHalaqah(id_halaqah); },
+  getPantauKelompokPartner: async function(id_halaqah) { return GuruAPI.getPantauKelompokPartner(id_halaqah); },
   createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) { return GuruAPI.createKelompokPartner(id_halaqah, nama_kelompok, anggota); },
   updateKelompokPartner: async function(id_kelompok, updates) { return GuruAPI.updateKelompokPartner(id_kelompok, updates); },
   setAnggotaKelompok: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompok(id_kelompok, anggota); },
