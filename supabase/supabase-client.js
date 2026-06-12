@@ -1536,26 +1536,6 @@ var GuruAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  // §3.7: ringkasan aktivitas mandiri bersama partner (sudah dikonfirmasi),
-  // ditampilkan terpisah dari statistik resmi raport
-  getAktivitasPartnerHalaqah: async function(id_halaqah, id_murid, tgl_mulai, tgl_selesai) {
-    var q = _sb.from('setoran_hafalan')
-      .select('jenis')
-      .eq('id_halaqah', id_halaqah)
-      .eq('sumber', 'partner')
-      .eq('status_konfirmasi', 'dikonfirmasi');
-    if (id_murid)    q = q.eq('id_murid', id_murid);
-    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
-    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
-    var { data, error } = await q;
-    _check(error, 'getAktivitasPartnerHalaqah');
-    var rows = data || [];
-    return { status: 'ok', data: {
-      ziyadah  : rows.filter(function(r) { return r.jenis === 'Ziyadah'; }).length,
-      murajaah : rows.filter(function(r) { return r.jenis === 'Murajaah'; }).length,
-    }};
-  },
-
   // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)
   getPenilaianHafalan: async function() {
     var { data, error } = await _sb.from('konfigurasi_penilaian_hafalan')
