@@ -4021,8 +4021,8 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
             </div>
 
             <div style="margin-bottom:12px">
-              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Catatan (opsional)</label>
-              <textarea class="fc" id="pqCatatan" rows="2" placeholder="Catatan tambahan..." style="resize:vertical"></textarea>
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Titip fokus untuk partner (opsional)</label>
+              <textarea class="fc" id="pqCatatan" rows="2" placeholder="Mis: tolong perhatikan tajwid ayat 5-7, aku masih ragu..." style="resize:vertical"></textarea>
             </div>
 
             <button onclick="submitSetoranMandiri()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%">
@@ -8957,6 +8957,15 @@ function _renderHafalanList() {
         + '</div>'
       : '';
 
+    // Respons partner (koreksi/semangat + reaksi) — terlihat oleh A setelah dikonfirmasi
+    var responsPartner = '';
+    if (isPartner && r.status_konfirmasi === 'dikonfirmasi' && (r.catatan_partner || r.reaksi_partner)) {
+      responsPartner = '<div style="margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(13,148,136,.08);border:1px solid rgba(13,148,136,.2);font-size:11px;color:#0f766e">'
+        + '<span style="font-weight:700">💬 Dari partner' + (r.reaksi_partner ? ' ' + _esc(r.reaksi_partner) : '') + '</span>'
+        + (r.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">' + _esc(r.catatan_partner) + '</div>' : '')
+        + '</div>';
+    }
+
     var statusBadge;
     var sumberInfo;
     if (isPartner) {
@@ -8985,7 +8994,7 @@ function _renderHafalanList() {
         + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + _esc(r.ayat_dari) + '</strong> – <strong>' + _esc(r.ayat_sampai) + '</strong>'
           + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
         + '<div style="font-size:11px;color:var(--text-3)">' + _fmtDateHafalan(r.created_at) + ' &nbsp;·&nbsp; ' + sumberInfo + '</div>'
-        + catatan + target
+        + catatan + target + responsPartner
       + '</div>'
     + '</div>';
   }).join('');
@@ -8998,8 +9007,35 @@ function _fmtDateHafalan(iso) {
   } catch(e) { return iso; }
 }
 
+// Umur relatif untuk "ajakan" partner (hari ini / kemarin / X hari lalu)
+function _fmtAgo(iso) {
+  if (!iso) return '';
+  try {
+    var diffMs = Date.now() - new Date(iso).getTime();
+    var hari = Math.floor(diffMs / 86400000);
+    if (hari <= 0) return 'hari ini';
+    if (hari === 1) return 'kemarin';
+    return hari + ' hari lalu';
+  } catch(e) { return ''; }
+}
+
 function _esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Normalisasi no HP Indonesia → format internasional 62 (untuk wa.me)
+function _normHp(hp) {
+  var num = String(hp || '').replace(/\D/g, '');
+  if (!num) return '';
+  if (num.charAt(0) === '0') num = '62' + num.slice(1);
+  else if (num.slice(0,2) !== '62') num = '62' + num;
+  return num;
+}
+// Bangun URL wa.me dengan pesan otomatis. Kembalikan '' jika nomor kosong.
+function _waLink(hp, msg) {
+  var num = _normHp(hp);
+  if (!num) return '';
+  return 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
 }
 
 // ── Tab Partner Qiyam ────────────────────────────────────────────────
@@ -9120,6 +9156,15 @@ async function _initPartnerPanel() {
   await Promise.all([loadPartnerKelompok(), loadPartnerMenunggu()]);
 }
 
+// Tombol WA kecil untuk menghubungi sesama anggota kelompok (koordinasi simakan)
+function _pqMemberWaBtn(nama, no_hp) {
+  var msg = 'Assalamualaikum ' + (nama || '') + ', yuk kita saling simak hafalan qiyam ya 🌙\n\nBarakallahu fiikum.';
+  var url = _waLink(no_hp, msg);
+  if (!url) return '';
+  return '<a href="' + url + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" '
+    + 'style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#25d366;color:#fff;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
+}
+
 async function loadPartnerKelompok() {
   var body = document.getElementById('pqKelompokBody');
   if (!body) return;
@@ -9134,11 +9179,14 @@ async function loadPartnerKelompok() {
     var statusList = resStatus.data || [];
     var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
     var rows = statusList.map(function(m){
+      var isMe = m.id_murid === myId;
       var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada setoran mandiri';
-      var nameLabel = _esc(m.nama_murid) + (m.id_murid === myId ? ' (Kamu)' : '');
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
-        + '<span style="font-weight:600;font-size:12px;color:var(--text)">' + nameLabel + '</span>'
+      var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+      var waBtn = isMe ? '' : _pqMemberWaBtn(m.nama_murid, m.no_hp);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
+        + '<span style="font-weight:600;font-size:12px;color:var(--text);flex:1;min-width:0">' + nameLabel + '</span>'
         + '<span style="font-size:11px;color:var(--text-3)">' + _esc(tgl) + '</span>'
+        + waBtn
         + '</div>';
     }).join('');
     body.innerHTML = '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:6px">' + _esc(_pqKelompok.nama_kelompok || 'Kelompok Partner') + '</div>' + rows;
@@ -9147,8 +9195,9 @@ async function loadPartnerKelompok() {
   }
 }
 
-// Kartu "Partner Qiyam" di Dashboard — ringkasan kelompok + badge setoran
-// partner yang menunggu konfirmasi, supaya mudah dinotice murid.
+// Kartu "Partner Qiyam" di Dashboard — CTA state-aware (framing "Y") supaya
+// menggugah: prioritaskan ajakan partner yang menunggu disimak, lalu nudge
+// kalau murid sendiri sudah lama vakum. Tiap anggota ada tombol WA.
 async function loadPartnerDashCard() {
   var card  = document.getElementById('dashPartnerCard');
   var body  = document.getElementById('dashPartnerBody');
@@ -9160,22 +9209,50 @@ async function loadPartnerDashCard() {
     if (!kel) { card.style.display = 'none'; return; }
     card.style.display = 'block';
 
-    var resStatus  = await window.HQ.MuridAPI.getStatusKelompokPartner();
-    var statusList = resStatus.data || [];
+    var both = await Promise.all([
+      window.HQ.MuridAPI.getStatusKelompokPartner(),
+      window.HQ.MuridAPI.getSetoranMenungguKonfirmasi(),
+    ]);
+    var statusList = both[0].data || [];
+    var jumlahMenunggu = (both[1].data || []).length;
     var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+    var myRow = null;
+    for (var i = 0; i < statusList.length; i++) { if (statusList[i].id_murid === myId) { myRow = statusList[i]; break; } }
+    var myLast = myRow && myRow.tanggal_terakhir;
+    var hariSejak = myLast ? Math.floor((Date.now() - new Date(myLast).getTime()) / 86400000) : null;
+
+    // CTA prioritas: (1) ada ajakan partner menunggu disimak, (2) aku vakum
+    var ctaHtml = '';
+    if (jumlahMenunggu > 0) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🎧 Ada ' + jumlahMenunggu + ' teman ingin setor ke kamu — simak via WA lalu konfirmasi</div>';
+    } else if (myLast === null) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🌙 Belum ada setoran mandiri. Ajak partnermu menyimak hafalanmu</div>';
+    } else if (hariSejak >= 3) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🌙 Sudah ' + hariSejak + ' hari belum setor. Partnermu menanti kabar hafalanmu</div>';
+    }
+
     var rows = statusList.map(function(m){
+      var isMe = m.id_murid === myId;
       var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada setoran mandiri';
-      var nameLabel = _esc(m.nama_murid) + (m.id_murid === myId ? ' (Kamu)' : '');
-      return '<div class="partner-dash-row"><span class="partner-dash-name">' + nameLabel + '</span><span class="partner-dash-date">' + _esc(tgl) + '</span></div>';
+      var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+      var waBtn = isMe ? '' : _pqMemberWaBtn(m.nama_murid, m.no_hp);
+      return '<div class="partner-dash-row">'
+        + '<span class="partner-dash-name">' + nameLabel + '</span>'
+        + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
+        + '</div>';
     }).join('');
-    body.innerHTML = '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>' + rows;
+    body.innerHTML = ctaHtml
+      + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>'
+      + rows;
 
     if (badge) {
-      var resMenunggu = await window.HQ.MuridAPI.getSetoranMenungguKonfirmasi();
-      var jumlah = (resMenunggu.data || []).length;
-      if (jumlah > 0) {
+      if (jumlahMenunggu > 0) {
         badge.style.display = 'inline-flex';
-        badge.textContent = jumlah + ' menunggu konfirmasi';
+        badge.textContent = jumlahMenunggu + ' menunggu konfirmasi';
       } else {
         badge.style.display = 'none';
       }
@@ -9203,14 +9280,35 @@ async function loadPartnerMenunggu() {
 
     list.innerHTML = data.map(function(r){
       var icon = jenisIcon[r.jenis] || '📖';
+      var id   = _esc(r.id_setoran);
+      // Tombol WA — partner B siap menyimak setoran A (simakan terjadi di WA, luar app)
+      var waMsg = 'Assalamualaikum ' + (r.nama_murid || '') + ', aku siap menyimak setoranmu ('
+        + (r.jenis || '') + ' QS. ' + (r.surat || '') + ' ayat ' + (r.ayat_dari || '') + '-' + (r.ayat_sampai || '')
+        + '). Kabari kalau sempat ya 🤝\n\nBarakallahu fiikum.';
+      var waUrl = _waLink(r.no_hp, waMsg);
+      var waBtn = waUrl
+        ? '<a href="' + waUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:#25d366;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px">💬 Hubungi & siap simak</a>'
+        : '<span style="font-size:11px;color:var(--text-3)">Nomor WA partner belum tersedia</span>';
+      var reaksiChips = ['🔥','🤲','💚','👏','⭐'].map(function(em){
+        return '<button type="button" onclick="pqPickReaksi(\'' + id + '\',\'' + em + '\',this)" '
+          + 'style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;line-height:1">' + em + '</button>';
+      }).join('');
+
       return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
-        + '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:2px">' + _esc(r.nama_murid) + '</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px">'
+          + '<span style="font-weight:800;font-size:13px;color:var(--text)">' + _esc(r.nama_murid) + ' ingin setor</span>'
+          + '<span style="font-size:10px;color:var(--text-3);white-space:nowrap">diajukan ' + _esc(_fmtAgo(r.created_at)) + '</span>'
+        + '</div>'
         + '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px">' + icon + ' ' + _esc(r.jenis) + ' · Juz ' + _esc(r.juz || '-') + ' · ' + _esc(r.surat) + ' ayat ' + _esc(r.ayat_dari) + '-' + _esc(r.ayat_sampai) + '</div>'
-        + (r.catatan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">💬 ' + _esc(r.catatan) + '</div>' : '')
-        + '<div style="font-size:11px;color:var(--text-3);margin-bottom:8px">' + _fmtDateHafalan(r.created_at) + '</div>'
-        + '<div style="display:flex;gap:8px">'
-          + '<select class="fc" id="pqKel_' + _esc(r.id_setoran) + '" style="flex:1">' + kelOpts + '</select>'
-          + '<button onclick="confirmSetoranPartner(\'' + r.id_setoran + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer">✓ Konfirmasi</button>'
+        + (r.catatan ? '<div style="font-size:11px;color:var(--blue);margin-bottom:8px;font-weight:600">🎯 Titip fokus: ' + _esc(r.catatan) + '</div>' : '')
+        + '<div style="margin-bottom:10px">' + waBtn + '</div>'
+        + '<div style="border-top:1px dashed var(--border);padding-top:10px">'
+          + '<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Setelah menyimak, beri hasilnya</div>'
+          + '<select class="fc" id="pqKel_' + id + '" style="width:100%;margin-bottom:6px">' + kelOpts + '</select>'
+          + '<textarea class="fc" id="pqCat_' + id + '" rows="2" placeholder="Catatan koreksi & semangat (mis: ayat 5 mad-nya dipanjangkan, lanjut terus 💪)" style="resize:vertical;margin-bottom:6px"></textarea>'
+          + '<input type="hidden" id="pqReaksi_' + id + '">'
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="pqReaksiWrap_' + id + '">' + reaksiChips + '</div>'
+          + '<button onclick="confirmSetoranPartner(\'' + r.id_setoran + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;width:100%">✓ Konfirmasi Setoran</button>'
         + '</div>'
         + '</div>';
     }).join('');
@@ -9220,11 +9318,34 @@ async function loadPartnerMenunggu() {
   }
 }
 
+// Pilih reaksi emoji untuk setoran partner (toggle, satu aktif per item)
+function pqPickReaksi(idSetoran, emoji, el) {
+  var input = document.getElementById('pqReaksi_' + idSetoran);
+  if (!input) return;
+  var wrap = document.getElementById('pqReaksiWrap_' + idSetoran);
+  var already = input.value === emoji;
+  input.value = already ? '' : emoji;
+  if (wrap) {
+    Array.prototype.forEach.call(wrap.children, function(b){
+      b.style.background = 'var(--bg-2)';
+      b.style.borderColor = 'var(--border)';
+    });
+  }
+  if (!already && el) {
+    el.style.background = 'rgba(22,163,74,0.15)';
+    el.style.borderColor = '#16a34a';
+  }
+}
+
 async function confirmSetoranPartner(idSetoran) {
   var sel = document.getElementById('pqKel_' + idSetoran);
+  var cat = document.getElementById('pqCat_' + idSetoran);
+  var rea = document.getElementById('pqReaksi_' + idSetoran);
   var kelancaran = sel ? sel.value : null;
+  var catatan    = cat ? cat.value.trim() : '';
+  var reaksi     = rea ? rea.value : '';
   try {
-    await window.HQ.MuridAPI.konfirmasiSetoranPartner(idSetoran, kelancaran);
+    await window.HQ.MuridAPI.konfirmasiSetoranPartner(idSetoran, kelancaran, catatan, reaksi);
     toast('Setoran dikonfirmasi ✓', 'ok');
   } catch(e) {
     if (/sudah dikonfirmasi|tidak ditemukan/i.test(e.message)) {

@@ -2492,10 +2492,13 @@ var MuridAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  // Konfirmasi setoran mandiri partner + isi kelancaran
-  konfirmasiSetoranPartner: async function(id_setoran, kelancaran) {
+  // Konfirmasi setoran mandiri partner + isi kelancaran, catatan & reaksi
+  konfirmasiSetoranPartner: async function(id_setoran, kelancaran, catatan_partner, reaksi_partner) {
     var { error } = await _sb.rpc('konfirmasi_setoran_partner', {
-      p_id_setoran: id_setoran, p_kelancaran: kelancaran,
+      p_id_setoran      : id_setoran,
+      p_kelancaran      : kelancaran,
+      p_catatan_partner : catatan_partner || null,
+      p_reaksi_partner  : reaksi_partner || null,
     });
     _check(error, 'konfirmasiSetoranPartner');
     return { status: 'ok' };
