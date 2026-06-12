@@ -1614,19 +1614,17 @@ var GuruAPI = {
   },
 
   // Buat kelompok baru. anggota: [{id_murid, nama_murid}]
+  // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
+  // insert anggota gagal (validasi roster/aktif atau koneksi putus)
   createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) {
-    var { data: kelompok, error } = await _sb.from('kelompok_partner_qiyam')
-      .insert({ id_halaqah: id_halaqah, nama_kelompok: nama_kelompok || null, dibuat_oleh: _uid() })
-      .select().single();
+    var rows = (anggota || []).map(function(a) {
+      return { id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+    });
+    var { data: id_kelompok, error } = await _sb.rpc('create_kelompok_partner', {
+      p_id_halaqah: id_halaqah, p_nama_kelompok: nama_kelompok || null, p_anggota: rows
+    });
     _check(error, 'createKelompokPartner');
-    if (anggota && anggota.length > 0) {
-      var rows = anggota.map(function(a) {
-        return { id_kelompok: kelompok.id_kelompok, id_murid: a.id_murid, nama_murid: a.nama_murid || null };
-      });
-      var { error: e2 } = await _sb.from('anggota_kelompok_partner').insert(rows);
-      _check(e2, 'createKelompokPartner - anggota');
-    }
-    return { status: 'ok', data: kelompok };
+    return { status: 'ok', data: { id_kelompok: id_kelompok } };
   },
 
   // Ubah nama/status kelompok
@@ -1640,16 +1638,16 @@ var GuruAPI = {
   },
 
   // Ganti seluruh anggota kelompok (replace). anggota: [{id_murid, nama_murid}]
+  // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok tanpa
+  // anggota jika insert pengganti gagal (validasi roster/aktif atau koneksi putus)
   setAnggotaKelompok: async function(id_kelompok, anggota) {
-    var { error: delErr } = await _sb.from('anggota_kelompok_partner').delete().eq('id_kelompok', id_kelompok);
-    _check(delErr, 'setAnggotaKelompok - delete');
-    if (anggota && anggota.length > 0) {
-      var rows = anggota.map(function(a) {
-        return { id_kelompok: id_kelompok, id_murid: a.id_murid, nama_murid: a.nama_murid || null };
-      });
-      var { error: insErr } = await _sb.from('anggota_kelompok_partner').insert(rows);
-      _check(insErr, 'setAnggotaKelompok - insert');
-    }
+    var rows = (anggota || []).map(function(a) {
+      return { id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+    });
+    var { error } = await _sb.rpc('set_anggota_kelompok_partner', {
+      p_id_kelompok: id_kelompok, p_anggota: rows
+    });
+    _check(error, 'setAnggotaKelompok');
     return { status: 'ok' };
   },
 
@@ -2441,18 +2439,6 @@ var MuridAPI = {
   },
 
   // ── Kelompok Partner Qiyam ───────────────────────────────────────────
-  // id_halaqah Level Qiyam aktif murid (dipakai sebagai id_halaqah saat insert setoran mandiri)
-  getMyQiyamHalaqah: async function() {
-    var { data, error } = await _sb.from('anggota')
-      .select('id_halaqah')
-      .eq('id_murid', _uid())
-      .eq('status', 'aktif')
-      .eq('level', 'Level Qiyam')
-      .maybeSingle();
-    _check(error, 'getMyQiyamHalaqah');
-    return { status: 'ok', data: data ? data.id_halaqah : null };
-  },
-
   // Kelompok partner aktif milik murid (beserta anggota)
   getMyKelompokPartner: async function() {
     var { data, error } = await _sb.from('kelompok_partner_qiyam')
