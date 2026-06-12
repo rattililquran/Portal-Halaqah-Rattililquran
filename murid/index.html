@@ -302,6 +302,32 @@ html.theme-dark .qiyam-target-box{background:rgba(251,191,36,.08);border-color:r
 html.theme-dark .qiyam-target-label{color:#fcd34d;opacity:.75}
 html.theme-dark .qiyam-target-value{color:#fde68a}
 html.theme-dark .qiyam-target-hint{color:#fcd34d;opacity:.5}
+/* ── PARTNER QIYAM DASH CARD ── */
+.partner-dash-card{border-radius:20px;border:1px solid rgba(13,148,136,.25);
+  background:linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 60%,#99f6e4 100%);
+  padding:18px 20px;margin-bottom:16px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(13,148,136,.15);transition:transform .15s ease,box-shadow .15s ease}
+.partner-dash-card:hover{box-shadow:0 6px 20px rgba(13,148,136,.22)}
+.partner-dash-card:active{transform:scale(.98)}
+.partner-dash-card .prog-title{color:#134e4a !important;margin-bottom:10px;justify-content:space-between}
+.partner-dash-badge{
+  background:#ef4444;color:#fff;font-size:11px;font-weight:900;
+  border-radius:100px;padding:3px 10px;text-align:center;
+  box-shadow:0 2px 6px rgba(239,68,68,.35);
+  animation:partnerDashPulse 1.8s ease-in-out infinite;
+}
+@keyframes partnerDashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.partner-dash-body{font-size:12px;color:#0f766e}
+.partner-dash-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(13,148,136,.12)}
+.partner-dash-row:last-child{border-bottom:none}
+.partner-dash-name{font-weight:700;font-size:12px;color:#134e4a}
+.partner-dash-date{font-size:11px;color:#0d9488}
+html.theme-dark .partner-dash-card{background:linear-gradient(135deg,rgba(13,148,136,.12),rgba(20,184,166,.06));border-color:rgba(45,212,191,.25)}
+html.theme-dark .partner-dash-card .prog-title{color:#5eead4 !important}
+html.theme-dark .partner-dash-name{color:#ccfbf1}
+html.theme-dark .partner-dash-date{color:#5eead4}
+html.theme-dark .partner-dash-row{border-color:rgba(45,212,191,.15)}
+html.theme-dark .partner-dash-card>.partner-dash-body>div:first-child{color:#5eead4 !important}
 .prog-estimasi-middle{
   background:rgba(255,255,255,0.18);
   border:1px solid rgba(255,255,255,0.3);
@@ -3369,6 +3395,15 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         </div><!-- /prog-inner-wrap -->
       </div>
 
+      <!-- Partner Qiyam Card -->
+      <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
+        <div class="prog-title">
+          <span>🤝 Partner Qiyam</span>
+          <span id="dashPartnerBadge" class="partner-dash-badge" style="display:none"></span>
+        </div>
+        <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
+      </div>
+
       <!-- At-Tibyan Card -->
       <div class="attibyan-dash-card" onclick="goPage('attibyan')">
         <!-- Judul At-Tibyan -->
@@ -6199,6 +6234,7 @@ async function loadDashboard() {
     if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
     if (document.getElementById('dashQiyamSetoranStat')) document.getElementById('dashQiyamSetoranStat').style.display = 'none';
     if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
+    if (document.getElementById('dashPartnerCard')) document.getElementById('dashPartnerCard').style.display = 'none';
     if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
 
     var donutRing = document.getElementById('dashDonutRing');
@@ -6243,6 +6279,8 @@ async function loadDashboard() {
         document.getElementById('dashSisa').textContent = 'Mulai setoran pertama Anda';
         document.getElementById('dashQiyamTargetTxt').innerHTML = '<span style="opacity:.6;font-style:italic;font-weight:600">Diskusikan dengan Ustadz untuk target pertama</span>';
       }
+
+      loadPartnerDashCard();
     } else if (isMicro) {
       if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
@@ -9106,6 +9144,44 @@ async function loadPartnerKelompok() {
     body.innerHTML = '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:6px">' + _esc(_pqKelompok.nama_kelompok || 'Kelompok Partner') + '</div>' + rows;
   } catch(e) {
     body.innerHTML = '<div style="color:#ef4444">Gagal memuat: ' + _esc(e.message) + '</div>';
+  }
+}
+
+// Kartu "Partner Qiyam" di Dashboard — ringkasan kelompok + badge setoran
+// partner yang menunggu konfirmasi, supaya mudah dinotice murid.
+async function loadPartnerDashCard() {
+  var card  = document.getElementById('dashPartnerCard');
+  var body  = document.getElementById('dashPartnerBody');
+  var badge = document.getElementById('dashPartnerBadge');
+  if (!card || !body) return;
+  try {
+    var resKel = await window.HQ.MuridAPI.getMyKelompokPartner();
+    var kel = resKel.data;
+    if (!kel) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    var resStatus  = await window.HQ.MuridAPI.getStatusKelompokPartner();
+    var statusList = resStatus.data || [];
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+    var rows = statusList.map(function(m){
+      var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada setoran mandiri';
+      var nameLabel = _esc(m.nama_murid) + (m.id_murid === myId ? ' (Kamu)' : '');
+      return '<div class="partner-dash-row"><span class="partner-dash-name">' + nameLabel + '</span><span class="partner-dash-date">' + _esc(tgl) + '</span></div>';
+    }).join('');
+    body.innerHTML = '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>' + rows;
+
+    if (badge) {
+      var resMenunggu = await window.HQ.MuridAPI.getSetoranMenungguKonfirmasi();
+      var jumlah = (resMenunggu.data || []).length;
+      if (jumlah > 0) {
+        badge.style.display = 'inline-flex';
+        badge.textContent = jumlah + ' menunggu konfirmasi';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {
+    card.style.display = 'none';
   }
 }
 
