@@ -1269,6 +1269,13 @@ html.theme-dark .myrt-ring-bg{stroke:rgba(255,255,255,0.08)}
 /* ── Hafalan setoran card ── */
 .hfal-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;transition:all .2s ease}
 .hfal-card:hover{border-color:#93c5fd;box-shadow:0 4px 14px rgba(37,99,235,.06);transform:translateY(-1px)}
+/* Pembeda sumber setoran: Guru = emas (resmi), Partner = teal (mandiri) */
+.hfal-card-guru{border-left:4px solid #f59e0b;background:#fffbf2}
+.hfal-card-guru:hover{border-color:#fcd34d;border-left-color:#f59e0b}
+.hfal-card-partner{border-left:4px solid #14b8a6;background:#f2fdfb}
+.hfal-card-partner:hover{border-color:#5eead4;border-left-color:#14b8a6}
+html.theme-dark .hfal-card-guru{border-left:4px solid #f59e0b !important}
+html.theme-dark .hfal-card-partner{border-left:4px solid #2dd4bf !important}
 .hfal-icon {width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:transform .2s}
 .hfal-card:hover .hfal-icon {transform:scale(1.05)}
 .hfal-icon-ziyadah {background:var(--green-bg);color:var(--green-txt)}
@@ -8981,7 +8988,7 @@ function _renderHafalanList() {
       sumberInfo = _esc(r.nama_guru || '-');
     }
 
-    return '<div class="hfal-card">'
+    return '<div class="hfal-card ' + (isPartner ? 'hfal-card-partner' : 'hfal-card-guru') + '">'
       + '<div class="hfal-icon hfal-icon-' + iconName + '">' + icon + '</div>'
       + '<div style="flex:1;min-width:0">'
         + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">'
