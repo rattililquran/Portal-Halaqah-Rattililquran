@@ -9070,12 +9070,16 @@ async function _pqLoadZiyadahMap() {
 }
 
 async function _initPartnerPanel() {
-  if (_pqInitialized) return;
-  _pqInitialized = true;
-  _pqFillSuratDatalist();
-  var tgl = document.getElementById('pqTanggal');
-  if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0,10);
-  await Promise.all([loadPartnerKelompok(), loadPartnerMenunggu(), _pqLoadZiyadahMap()]);
+  if (!_pqInitialized) {
+    _pqInitialized = true;
+    _pqFillSuratDatalist();
+    var tgl = document.getElementById('pqTanggal');
+    if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0,10);
+    await _pqLoadZiyadahMap();
+  }
+  // Selalu refresh status kelompok & daftar menunggu konfirmasi setiap kali tab dibuka,
+  // supaya setoran baru dari partner tidak basi (lihat error "sudah dikonfirmasi" akibat klik item lama).
+  await Promise.all([loadPartnerKelompok(), loadPartnerMenunggu()]);
 }
 
 async function loadPartnerKelompok() {
@@ -9146,10 +9150,14 @@ async function confirmSetoranPartner(idSetoran) {
   try {
     await window.HQ.MuridAPI.konfirmasiSetoranPartner(idSetoran, kelancaran);
     toast('Setoran dikonfirmasi ✓', 'ok');
-    await loadPartnerMenunggu();
   } catch(e) {
-    toast('Gagal konfirmasi: ' + e.message, 'err');
+    if (/sudah dikonfirmasi|tidak ditemukan/i.test(e.message)) {
+      toast('Setoran ini sudah dikonfirmasi sebelumnya', 'ok');
+    } else {
+      toast('Gagal konfirmasi: ' + e.message, 'err');
+    }
   }
+  await loadPartnerMenunggu();
 }
 
 function onPqJenisChange() {
