@@ -2789,8 +2789,9 @@ const PAGE_TITLES = {
 //  INIT
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  const _safeParse = (s) => { try { return JSON.parse(s); } catch(e) { return null; } };
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-  const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
+  const us = _safeParse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && ['admin','superadmin'].includes(us.role)) { token = tk; currentUser = us; startApp(); return; }
   document.getElementById('nisInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 });
@@ -3422,7 +3423,7 @@ function renderUsersTable(role) {
       }
     }
     var btnDel = (u.id_user !== 'USR-ADMIN-001')
-      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + esc(u.nama_lengkap) + '\')">🗑</button>'
+      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')">🗑</button>'
       : '';
     return '<tr>'
       + '<td><code style="font-size:11.5px">' + esc(u.id_user) + '</code></td>'
@@ -3923,7 +3924,7 @@ function renderHalaqahTable() {
       + '<td>' + (h.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
       + '<td style="display:flex;gap:5px">'
       + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + esc(h.nama_halaqah) + '\')">🗑</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')">🗑</button>'
       + '</td></tr>';
   }).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada halaqah ditemukan</td></tr>';
 
@@ -4244,7 +4245,7 @@ function _kqDenyutRow(a) {
     : '';
   let nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = `<button onclick="kqNudgeAnggota('${esc(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
+    nudgeBtn = `<button onclick="kqNudgeAnggota('${escJs(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
   }
   return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
     + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`
@@ -4648,7 +4649,7 @@ function _kbaDenyutRow(a) {
     : '';
   let nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = `<button onclick="kbaNudgeAnggota('${esc(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
+    nudgeBtn = `<button onclick="kbaNudgeAnggota('${escJs(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
   }
   return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
     + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`
@@ -5026,9 +5027,9 @@ function renderAnggotaTable() {
       <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
         ${currentUser && currentUser.role === 'superadmin'
-          ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${esc(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
+          ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${escJs(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
           : ''}
-        <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${esc(a.nama_murid)}')">🗑</button>
+        <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${escJs(a.nama_murid)}')">🗑</button>
       </td>
     </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>';
   updateSortIndicators('anggota');
@@ -5723,7 +5724,7 @@ async function loadMetodeBayarAdmin() {
         + '</div>'
         + '<div style="display:flex;gap:6px;flex-shrink:0">'
         + '<button class="btn btn-outline btn-sm" onclick="editMetode(\''+m.id+'\')">Edit</button>'
-        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+esc(m.nama)+'\')">Hapus</button>'
+        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+escJs(m.nama)+'\')">Hapus</button>'
         + '</div></div>';
     }).join('');
   } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(e.message)+'</div>'; }
@@ -5848,7 +5849,7 @@ async function loadSPPAdmin() {
             + (isGateway ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>' : '')
             + '<div style="display:flex;gap:6px">'
               + (isGateway
-                  ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+esc(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">✅ Konfirmasi Manual</button>'
+                  ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">✅ Konfirmasi Manual</button>'
                   : '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>')
               + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
               + '</div>'
@@ -6219,7 +6220,7 @@ async function loadSPPRiwayat() {
           +' &nbsp;·&nbsp; <span style="color:var(--text-3, #94a3b8)">'+esc(when)+'</span></div>'
         + '</div>'
         + '<button class="btn btn-sm" style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);border:1px solid #fcd34d;font-size:12px;padding:7px 12px;flex-shrink:0" '
-          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+esc(p.nama_murid||p.id_murid)+'\',\''+esc(bulanTahun)+'\',\''+p.status+'\')">↩️ Batalkan</button>'
+          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+p.status+'\')">↩️ Batalkan</button>'
         + '</div>';
     }).join('');
   } catch(e) {
@@ -6387,7 +6388,7 @@ function renderObsStats() {
       var badgeSedikit = sedikit
         ? '<span class="badge b-gray" style="font-size:9.5px;font-weight:700" title="Persentase dari sampel kecil belum tentu mencerminkan performa keseluruhan — tunggu lebih banyak data observasi sebelum menyimpulkan">📋 Data masih sedikit (n='+g.total+')</span>'
         : '';
-      return '<div class="card" style="padding:16px;cursor:pointer" onclick="filterObsByGuru(\''+esc(g.id_guru||'')+'\',\''+esc(g.nama_guru||'')+'\')" title="Klik untuk lihat detail observasi guru ini">'
+      return '<div class="card" style="padding:16px;cursor:pointer" onclick="filterObsByGuru(\''+esc(g.id_guru||'')+'\',\''+escJs(g.nama_guru||'')+'\')" title="Klik untuk lihat detail observasi guru ini">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
         + '<div style="font-size:14px;font-weight:800;color:var(--text)">'+esc(g.nama_guru)+'</div>'
         + badgeSedikit
@@ -6667,6 +6668,10 @@ function pctBar(pct) {
 }
 function fmtDate(d) { if(!d) return '–'; return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
 function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// escJs: aman untuk teks yang ditaruh di dalam string ber-kutip-tunggal pada atribut onclick="...".
+// esc() TIDAK escape kutip tunggal, sehingga nama ber-apostrof (mis. "Mu'adz") memutus string JS
+// dan tombolnya mati. Urutan: entity HTML dulu, lalu escape backslash & kutip tunggal untuk JS.
+function escJs(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
 
 // ══════════════════════════════════════════
@@ -7520,7 +7525,7 @@ function renderMateriLevelAdmin() {
       + '<td style="text-align:center">'+esc(m.urutan||'-')+'</td>'
       + '<td><div style="display:flex;gap:6px">'
       + '<button class="btn btn-outline btn-sm" onclick="editMateriLevel('+m.id+')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" onclick="hapusMateriLevel('+m.id+',\''+esc(m.judul)+'\')">🗑️</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusMateriLevel('+m.id+',\''+escJs(m.judul)+'\')">🗑️</button>'
       + '</div></td></tr>';
   }).join('');
 }

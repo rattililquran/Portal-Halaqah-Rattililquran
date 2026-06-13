@@ -4029,9 +4029,16 @@ const OPT_MT = [
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+// Tanggal lokal (YYYY-MM-DD) — JANGAN pakai toISOString() yang berbasis UTC,
+// karena di WIB sebelum jam 07:00 tanggalnya masih mundur 1 hari (bug sesi Subuh/Qiyam pagi).
+function _localDateStr(d) {
+  d = d || new Date();
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
 window.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
-  document.getElementById('kbmTanggal').value = now.toISOString().split('T')[0];
+  document.getElementById('kbmTanggal').value = _localDateStr(now);
   document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
   document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
@@ -6254,6 +6261,8 @@ async function doSelesaiKBM() {
   });
 
   const isRegulerSesi = !sesiAktif || sesiAktif.jenis_sesi === 'KBM Reguler';
+  const isQiyamSesi = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
+  const isMicroteachingSesi = sesiAktif && sesiAktif.jenis_sesi === 'Micro Teaching';
 
   // Validasi kelengkapan adab/kamera hanya untuk KBM Reguler
   if (isRegulerSesi) {
@@ -6273,11 +6282,27 @@ async function doSelesaiKBM() {
     }
   }
 
+  // Validasi kelengkapan rubrik untuk Micro Teaching: rubrik yang terisi sebagian
+  // akan disimpan nilai=null (hilang permanen). Peringatkan guru dulu.
+  if (isMicroteachingSesi) {
+    const incompleteMT = muridSesi.filter(m => {
+      const cache = window._microteachingKbmCache[m.id_murid] || {};
+      const status = presensiMapPv[m.id_murid] || 'H';
+      if (!cache.isToggled || ['A','I'].includes(status)) return false;
+      const filled = KRITERIA_MT.filter(k => cache[k.id]).length;
+      return filled > 0 && filled < KRITERIA_MT.length;
+    }).length;
+    if (incompleteMT > 0) {
+      const confirmMsg = `Peringatan: Ada ${incompleteMT} peserta Praktik Mengajar yang rubrik penilaiannya baru terisi sebagian.\n\n` +
+        `Penilaian yang belum lengkap TIDAK akan tersimpan (nilai kosong) dan tidak bisa diisi lagi setelah sesi ditutup.\n\n` +
+        `Apakah Anda yakin tetap ingin menutup sesi ini?`;
+      if (!(await showConfirm(confirmMsg, { title: '⚠️ Penilaian Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
+    }
+  }
+
   // Tutup modal preview dulu
   closeModal('previewModal');
 
-  const isQiyamSesi = sesiAktif && sesiAktif.jenis_sesi === 'KBM Qiyam';
-  const isMicroteachingSesi = sesiAktif && sesiAktif.jenis_sesi === 'Micro Teaching';
   // Materi, catatan, jam selesai: berlaku untuk Reguler, Qiyam, dan Micro Teaching
   const saveJurnal  = isRegulerSesi || isQiyamSesi || isMicroteachingSesi;
   const materi     = saveJurnal ? document.getElementById('jurnalMateri').value.trim() : '';
@@ -6317,7 +6342,8 @@ async function doSelesaiKBM() {
         if (!['H','T'].includes(status)) continue;
 
         const cache = window._hafalanKbmCache[m.id_murid] || {};
-        if (cache.jenis) {
+        // _saved: cegah duplikat bila simpan gagal di tengah loop lalu guru retry.
+        if (cache.jenis && !cache._saved) {
           await window.HQ.GuruAPI.addSetoranHafalan({
             id_murid           : m.id_murid,
             nama_murid         : m.nama_murid,
@@ -6337,6 +6363,7 @@ async function doSelesaiKBM() {
             target_ayat_dari   : cache.tgtDari || null,
             target_ayat_sampai : cache.tgtSmp || null,
           });
+          cache._saved = true;
         }
       }
     } else {
@@ -6450,6 +6477,7 @@ async function doSelesaiKBM() {
     doaSudahMuncul   = false;
     window._nilaiCache = {}; // hapus cache nilai agar tidak terbawa ke sesi berikutnya
     window._microteachingKbmCache = {}; // hapus cache Micro Teaching
+    window._hafalanKbmCache = {}; // hapus cache hafalan Qiyam (termasuk flag _saved)
 
     // Sembunyikan banner draft
     const dw = document.getElementById('draftWarning');
@@ -6731,7 +6759,7 @@ function doExportMuridCSV() {
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
   a.href   = url;
-  a.download = 'daftar-murid-'+nama.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download = 'daftar-murid-'+nama.replace(/\s+/g,'-')+'-'+_localDateStr()+'.csv';
   a.click();
   URL.revokeObjectURL(url);
   toast('CSV diunduh \u2014 '+rows.length+' murid','ok');
@@ -11124,7 +11152,7 @@ async function initHafalanGuruPage() {
   // Set tanggal default ke hari ini
   var tglInput = document.getElementById('hafalanTanggal');
   if (tglInput && !tglInput.value) {
-    tglInput.value = new Date().toISOString().slice(0, 10);
+    tglInput.value = _localDateStr();
   }
 
   // Clear localStorage lama agar config DB selalu dipakai

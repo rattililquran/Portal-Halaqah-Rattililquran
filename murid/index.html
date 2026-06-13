@@ -9048,9 +9048,9 @@ async function loadTargetHafalan() {
     card.style.display = 'block';
     document.getElementById('hafalanTargetSurat').textContent = t.target_surat;
     document.getElementById('hafalanTargetAyat').innerHTML =
-      '📌 Ayat <strong>' + t.target_ayat_dari + '</strong> – <strong>' + t.target_ayat_sampai + '</strong>';
+      '📌 Ayat <strong>' + _esc(t.target_ayat_dari) + '</strong> – <strong>' + _esc(t.target_ayat_sampai) + '</strong>';
     document.getElementById('hafalanTargetMeta').innerHTML =
-      'Ditetapkan oleh <strong style="color:#93c5fd">' + (t.nama_guru || 'Guru') + '</strong>'
+      'Ditetapkan oleh <strong style="color:#93c5fd">' + _esc(t.nama_guru || 'Guru') + '</strong>'
       + ' &nbsp;·&nbsp; ' + _fmtDateHafalan(t.created_at);
   } catch(e) {
     console.warn('loadTargetHafalan:', e);
@@ -12801,11 +12801,11 @@ function renderSPP(data) {
   // [DESAIN SENGAJA] tunggakan & totalBulanLevel dari server — jangan dihitung ulang di sini.
   // Kewajiban SPP = 5 bulan flat, tidak mengikuti window kalender Jan–bulanBerjalan.
   var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, 5 - lunasCount);
-  var totalBulanLevel = (data.window_size !== undefined) ? data.window_size : 5;
+  var totalBulanLevel = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : 5;
 
   // ── Donut chart ──
   var circ = 2 * Math.PI * 15; // 94.25
-  var pct  = lunasCount / totalBulanLevel;
+  var pct  = totalBulanLevel > 0 ? (lunasCount / totalBulanLevel) : 0;
   var arc  = document.getElementById('sppDonutArc');
   var num  = document.getElementById('sppDonutNum');
   var titleEl = document.getElementById('sppDonutTitle');

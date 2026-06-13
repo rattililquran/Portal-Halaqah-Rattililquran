@@ -930,10 +930,14 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// Parse JSON dengan aman — localStorage yang korup/ter-tamper tidak boleh
+// melempar error sinkron yang membekukan init halaman.
+function _safeParse(s) { try { return JSON.parse(s); } catch(e) { return null; } }
+
 // Cek session aktif
 window.addEventListener('DOMContentLoaded', function() {
   var tk = localStorage.getItem('hq_token');
-  var us = JSON.parse(localStorage.getItem('hq_user') || 'null');
+  var us = _safeParse(localStorage.getItem('hq_user') || 'null');
 
   if (tk && us) {
     // Cek apakah user kembali via tombol Back
@@ -991,7 +995,7 @@ function showResumeCard(us) {
 }
 
 function resumeSession() {
-  var us = JSON.parse(localStorage.getItem('hq_user') || 'null');
+  var us = _safeParse(localStorage.getItem('hq_user') || 'null');
   if (!us) return gantiAkun();
   var rd = ROLE_META[us.role] ? ROLE_META[us.role].redirect : null;
   if (rd) window.location.href = rd;
