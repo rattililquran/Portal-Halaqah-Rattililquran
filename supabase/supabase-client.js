@@ -1843,11 +1843,16 @@ var GuruAPI = {
 
   // Target bersama kelompok (guru/admin)
   getTargetBelajarByKelompok: async function(id_kelompok) {
-    var { data, error } = await _sb.from('target_kelompok_belajar')
+    var res = await _sb.from('target_kelompok_belajar')
       .select('*, target_belajar_progress(id_murid, nama_murid)')
       .eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
-    _check(error, 'getTargetBelajarByKelompok');
-    return { status: 'ok', data: data || [] };
+    if (res.error) {
+      var fb = await _sb.from('target_kelompok_belajar')
+        .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+      _check(fb.error, 'getTargetBelajarByKelompok');
+      return { status: 'ok', data: fb.data || [] };
+    }
+    return { status: 'ok', data: res.data || [] };
   },
   addTargetBelajarByKelompok: async function(d) {
     var user = _currentUser || {};
@@ -2855,12 +2860,28 @@ var MuridAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  // #4 Target bersama kelompok (murid)
+  // #4 Target bersama kelompok (murid) — beserta progres konsensus tiap anggota.
+  // Resilient: bila tabel/relasi target_partner_progress belum ada (migration 021
+  // belum dideploy), fallback ke select biasa agar kartu target tetap hidup.
   getTargetKelompok: async function() {
-    var { data, error } = await _sb.from('target_kelompok_partner')
-      .select('*').order('created_at', { ascending: false });
-    _check(error, 'getTargetKelompok');
-    return { status: 'ok', data: data || [] };
+    var res = await _sb.from('target_kelompok_partner')
+      .select('*, target_partner_progress(id_murid, nama_murid, selesai_at)')
+      .order('created_at', { ascending: false });
+    if (res.error) {
+      var fb = await _sb.from('target_kelompok_partner')
+        .select('*').order('created_at', { ascending: false });
+      _check(fb.error, 'getTargetKelompok');
+      return { status: 'ok', data: fb.data || [] };
+    }
+    return { status: 'ok', data: res.data || [] };
+  },
+  // Konsensus: tandai/batalkan progres target Qiyam untuk diri sendiri.
+  tandaiProgressTargetPartner: async function(id_target, selesai) {
+    var { error } = await _sb.rpc('tandai_progress_target_partner', {
+      p_id_target: id_target, p_selesai: !!selesai,
+    });
+    _check(error, 'tandaiProgressTargetPartner');
+    return { status: 'ok' };
   },
   addTargetKelompok: async function(d) {
     var user = _currentUser || {};
@@ -3006,13 +3027,20 @@ var MuridAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  // Target bersama kelompok (murid) — beserta progres konsensus tiap anggota
+  // Target bersama kelompok (murid) — beserta progres konsensus tiap anggota.
+  // Resilient: bila tabel/relasi target_belajar_progress belum ada (migration
+  // belum dideploy), fallback ke select biasa agar kartu target tetap hidup.
   getTargetKelompokBelajar: async function() {
-    var { data, error } = await _sb.from('target_kelompok_belajar')
+    var res = await _sb.from('target_kelompok_belajar')
       .select('*, target_belajar_progress(id_murid, nama_murid, selesai_at)')
       .order('created_at', { ascending: false });
-    _check(error, 'getTargetKelompokBelajar');
-    return { status: 'ok', data: data || [] };
+    if (res.error) {
+      var fb = await _sb.from('target_kelompok_belajar')
+        .select('*').order('created_at', { ascending: false });
+      _check(fb.error, 'getTargetKelompokBelajar');
+      return { status: 'ok', data: fb.data || [] };
+    }
+    return { status: 'ok', data: res.data || [] };
   },
   // Konsensus: tandai/batalkan progres target untuk diri sendiri.
   // selesai=true menandai; false membatalkan. Status target dihitung ulang
