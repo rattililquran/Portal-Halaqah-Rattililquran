@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partner Belajar — Panduan Admin</title>
+<style>
+  :root{--green:#10b981;--green-d:#065f46;--green-l:#d1fae5;--teal:#0ea5e9;--teal-d:#0369a1;--teal-l:#e0f2fe;--amber:#f59e0b;--amber-l:#fef3c7;--amber-d:#92400e;--text:#0f172a;--text-2:#475569;--gray:#64748b;--border:#e2e8f0;--bg-soft:#f8fafc}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'Segoe UI','Plus Jakarta Sans',sans-serif;font-size:15px;line-height:1.7;color:var(--text);background:#f1f5f9;padding:20px 12px}
+  .wrap{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 10px 36px rgba(0,0,0,.08)}
+  .cover{background:linear-gradient(145deg,#065f46,#059669 50%,#34d399);color:#fff;padding:30px 26px 24px}
+  .cover .role{display:inline-block;background:rgba(255,255,255,.2);font-size:11px;font-weight:800;letter-spacing:.1em;padding:4px 11px;border-radius:100px;text-transform:uppercase}
+  .cover h1{font-size:26px;font-weight:900;margin:8px 0 6px;letter-spacing:-.02em}
+  .cover p{color:rgba(255,255,255,.88);font-size:13.5px}
+  .body{padding:22px 26px 34px}
+  h2{font-size:17px;font-weight:800;color:#fff;background:linear-gradient(135deg,#059669,#10b981);padding:9px 15px;border-radius:9px;margin:26px 0 12px}
+  h3{font-size:14.5px;font-weight:800;color:var(--green-d);margin:18px 0 7px;padding:5px 11px;background:var(--green-l);border-radius:7px;border-left:3px solid var(--green)}
+  p{margin:0 0 9px;color:var(--text-2)}
+  ul{margin:7px 0 11px 20px}li{margin-bottom:5px;color:var(--text-2)}ul li::marker{color:var(--green)}
+  strong{color:var(--text);font-weight:700}
+  code{background:var(--bg-soft);color:var(--green-d);padding:2px 6px;border-radius:5px;font-size:13px;border:1px solid var(--border);font-family:'Courier New',monospace}
+  .steps{counter-reset:s;list-style:none;margin:8px 0 12px}
+  .steps li{position:relative;padding-left:32px;margin-bottom:8px}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:1px;width:22px;height:22px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .tip{background:var(--amber-l);border-left:4px solid var(--amber);border-radius:0 9px 9px 0;padding:10px 14px;margin:11px 0;font-size:13.5px;color:var(--amber-d)}
+  .note{background:var(--teal-l);border-left:4px solid var(--teal);border-radius:0 9px 9px 0;padding:10px 14px;margin:11px 0;font-size:13.5px;color:var(--teal-d)}
+  .footer{text-align:center;color:var(--gray);font-size:12px;padding:16px;border-top:1px solid var(--border)}
+  @media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border-radius:0}h2,h3,.tip,.note{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="cover">
+    <span class="role">Panduan Admin</span>
+    <h1>📚 Partner Belajar</h1>
+    <p>Mengelola kelompok belajar mandiri lintas halaqah Level 1-4.</p>
+  </div>
+  <div class="body">
+
+    <h2>Membuka halaman</h2>
+    <p>Sidebar admin → <strong>👥 Kelompok Partner Belajar</strong>. Pilih halaqah pada selektor (otomatis difilter ke level yang mengaktifkan Partner Belajar). Fungsinya identik dengan panel guru, tetapi bisa untuk <strong>semua halaqah</strong> Level 1-4.</p>
+
+    <h2>1. Mengaktifkan per level</h2>
+    <p>Partner Belajar dihidupkan per level melalui kolom <code>level.partner_belajar_enabled</code> (Level 1-4 aktif secara default). Hanya halaqah pada level yang aktif yang menampilkan menu &amp; kartu Partner Belajar di sisi murid/guru.</p>
+    <div class="note">Untuk menambah/menonaktifkan level, ubah nilai <code>partner_belajar_enabled</code> pada tabel <code>level</code>. Kelompok yang sudah ada tidak terhapus.</div>
+
+    <h2>2. Mengelola kelompok</h2>
+    <ol class="steps">
+      <li>Pilih halaqah → "Buat Kelompok Baru" → centang <strong>3-5 murid</strong> → beri nama → <strong>+ Buat Kelompok</strong>.</li>
+      <li>Pantau <strong>denyut aktivitas</strong> tiap anggota + tombol <strong>💬 Ingatkan</strong> (WA).</li>
+      <li>Konfirmasi aktivitas yang menunggu (jalan keluar bila partner berhalangan).</li>
+      <li>Kelola <strong>Lini Masa, Milestone</strong>, dan <strong>Target Bersama</strong>.</li>
+    </ol>
+    <div class="tip">Satu murid hanya boleh di satu kelompok aktif. Validasi 3-5 anggota berlaku di server (tidak bisa ditembus dari UI).</div>
+
+    <h2>3. Target Bersama (konsensus)</h2>
+    <p>Target jadi <strong>tercapai otomatis</strong> hanya bila <strong>semua anggota</strong> menandai "Saya Selesai". Anda melihat progres <strong>X/Y</strong> dan dapat melakukan <strong>override</strong> (paksa tercapai, dengan konfirmasi).</p>
+
+  </div>
+  <div class="footer">Partner Belajar • Panduan Admin • Portal Halaqah Rattililqur'an</div>
+</div>
+</body>
+</html>
