@@ -4145,12 +4145,12 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
             <div>
               <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
               <select class="fc" id="pbJenisSel">
-                <option value="Shifat Huruf">🔤 Shifat Huruf</option>
-                <option value="Tajwid">📐 Tajwid</option>
-                <option value="Makhraj">🗣️ Makhraj</option>
+                <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
+                <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
                 <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+                <option value="Tajwid">📐 Tajwid</option>
+                <option value="Doa-Doa Pilihan">🤲 Doa-Doa Pilihan</option>
                 <option value="Murajaah">🔄 Murajaah</option>
-                <option value="Lainnya">✨ Lainnya</option>
               </select>
             </div>
             <div>
@@ -9949,9 +9949,9 @@ var _pbKelompok = null;
 var _pbInitialized = false;
 var _pbEditId = null;
 var _pbRiwayatData = [];
-var PB_JENIS_ICON = { 'Shifat Huruf':'🔤', 'Tajwid':'📐', 'Makhraj':'🗣️', 'Hafalan Materi':'🧠', 'Murajaah':'🔄', 'Lainnya':'✨' };
+var PB_JENIS_ICON = { 'Makharijul Huruf':'🗣️', 'Shifatul Huruf':'🔤', 'Hafalan Materi':'🧠', 'Tajwid':'📐', 'Doa-Doa Pilihan':'🤲', 'Murajaah':'🔄' };
 // Jenis yang dipantau untuk "aktivitas tertunda" (exclude Lainnya yang terlalu generik)
-var PB_JENIS_PANTAU = ['Shifat Huruf','Tajwid','Makhraj','Hafalan Materi','Murajaah'];
+var PB_JENIS_PANTAU = ['Makharijul Huruf','Shifatul Huruf','Hafalan Materi','Tajwid','Murajaah'];
 
 async function loadPagePartnerBelajar() {
   if (!_pbInitialized) {
@@ -10431,7 +10431,7 @@ function pbEditLog(id) {
   var r = _pbRiwayatData.filter(function(x){ return x.id_log === id; })[0];
   if (!r) return;
   _pbEditId = id;
-  document.getElementById('pbJenisSel').value  = r.jenis_aktivitas || 'Shifat Huruf';
+  document.getElementById('pbJenisSel').value  = r.jenis_aktivitas || 'Makharijul Huruf';
   document.getElementById('pbDeskripsi').value = r.deskripsi || '';
   document.getElementById('pbDurasi').value    = r.durasi_menit || '';
   if (r.tanggal) document.getElementById('pbTanggal').value = r.tanggal;
