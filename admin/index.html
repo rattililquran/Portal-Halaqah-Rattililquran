@@ -980,6 +980,7 @@ html.theme-dark .tbl-wrap thead th {
       <button class="nav-btn" onclick="goPage('anggota')" data-p="anggota"><span class="ni">📋</span>Anggota Kelas</button>
       <button class="nav-btn" onclick="goPage('pengganti')" data-p="pengganti"><span class="ni">🔄</span>Kelas Pengganti</button>
       <button class="nav-btn" onclick="goPage('kelompok-qiyam')" data-p="kelompok-qiyam"><span class="ni">👥</span>Kelompok Partner Qiyam</button>
+      <button class="nav-btn" onclick="goPage('kelompok-belajar')" data-p="kelompok-belajar"><span class="ni">📚</span>Kelompok Partner Belajar</button>
 
       <div class="sb-sec">Penilaian</div>
       <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
@@ -1270,6 +1271,36 @@ html.theme-dark .tbl-wrap thead th {
             <label style="font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Anggota (2-3 murid)</label>
             <div id="kqNewAnggotaList" style="margin-bottom:10px"></div>
             <button class="btn btn-primary btn-sm" onclick="kqCreateKelompok()">+ Buat Kelompok</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ KELOMPOK PARTNER BELAJAR (Level 1-4) ══ -->
+      <div class="page" id="page-kelompok-belajar">
+        <div class="section-title">📚 Kelompok Partner Belajar</div>
+        <div class="section-sub">Kelola kelompok 3-4 murid Level 1-4 untuk saling catat &amp; konfirmasi aktivitas belajar mandiri.</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="kbaHalaqahSel" onchange="onKbaHalaqahChange()" style="max-width:280px">
+            <option value="">— Pilih Halaqah —</option>
+          </select>
+        </div>
+
+        <div id="kbaMenungguWrap" style="display:none;margin-bottom:14px"></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><div class="card-title">📋 Daftar Kelompok</div></div>
+          <div class="card-body">
+            <div id="kbaListWrap"><div style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</div></div>
+          </div>
+        </div>
+
+        <div class="card" id="kbaNewCard" style="display:none">
+          <div class="card-head"><div class="card-title">+ Buat Kelompok Baru</div></div>
+          <div class="card-body">
+            <div class="fg" style="margin-bottom:10px"><label>Nama Kelompok (opsional)</label><input type="text" class="fc" id="kbaNewNama" placeholder="Misal: Kelompok 1"></div>
+            <label style="font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Anggota (3-4 murid)</label>
+            <div id="kbaNewAnggotaList" style="margin-bottom:10px"></div>
+            <button class="btn btn-primary btn-sm" onclick="kbaCreateKelompok()">+ Buat Kelompok</button>
           </div>
         </div>
       </div>
@@ -2746,7 +2777,7 @@ const SPP_NOMINAL_BULANAN = 75000;
 
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
-  halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', komponen:'Komponen Raport',
+  halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', 'kelompok-belajar':'Kelompok Partner Belajar', komponen:'Komponen Raport',
   nilai:'Input Nilai Manual', raport:'Generate Raport',
   laporan:'Laporan Global', absensi:'Rekap Absensi',
   pengumuman:'Pengumuman', audit:'Audit Log',
@@ -3091,6 +3122,7 @@ function goPage(name) {
     anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); const sel = document.getElementById('anggotaHalaqahSel'); if (sel && !sel.value && allHalaqah.length) { sel.value = allHalaqah[0].id_halaqah; loadAnggota(); } },
     pengganti : loadKelasPengganti,
     'kelompok-qiyam' : loadKelompokQiyam,
+    'kelompok-belajar' : loadKelompokBelajar,
     komponen  : () => { populatePeriodeSel('komponenPeriodeSel'); },
     nilai     : () => { populatePeriodeSel('nilaiPeriodeSel'); populateSel('nilaiHalaqahSel', allHalaqah); },
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
@@ -4312,6 +4344,399 @@ async function kqAddAnggota(id_kelompok, selectEl) {
     await window.HQ.AdminAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
     toast('Anggota ditambahkan', 'ok');
     onKqHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+// ══════════════════════════════════════════
+//  KELOMPOK PARTNER BELAJAR (Level 1-4) — mirror kq*, prefix kba
+// ══════════════════════════════════════════
+var _kbaData = { id_halaqah: null, kelompok: [], murid: [], pantau: {} };
+var _kbaEnabledLevels = null;
+const KBA_JENIS_ICON = { 'Tilawah':'📖', 'Tajwid':'📐', 'Makhraj':'🗣️', 'Hafalan Materi':'🧠', 'Murajaah':'🔄', 'Lainnya':'✨' };
+
+async function loadKelompokBelajar() {
+  if (!_kbaEnabledLevels) {
+    try { const r = await window.HQ.AdminAPI.getLevelBelajarEnabled(); _kbaEnabledLevels = r.data || []; }
+    catch(e) { _kbaEnabledLevels = []; }
+  }
+  const belajarHalaqah = allHalaqah.filter(h => (_kbaEnabledLevels || []).indexOf(h.level) !== -1);
+  populateSel('kbaHalaqahSel', belajarHalaqah);
+  const sel = document.getElementById('kbaHalaqahSel');
+  if (sel && !sel.value && belajarHalaqah.length === 1) sel.value = belajarHalaqah[0].id_halaqah;
+  await onKbaHalaqahChange();
+}
+
+async function onKbaHalaqahChange() {
+  const id_halaqah = document.getElementById('kbaHalaqahSel').value;
+  const newCard  = document.getElementById('kbaNewCard');
+  const listWrap = document.getElementById('kbaListWrap');
+  if (!id_halaqah) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Pilih halaqah</div>';
+    newCard.style.display = 'none';
+    return;
+  }
+  listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div>';
+  newCard.style.display = 'none';
+  try {
+    const [resM, resK] = await Promise.all([
+      window.HQ.AdminAPI.getMuridBelajar(id_halaqah),
+      window.HQ.AdminAPI.getKelompokBelajarHalaqah(id_halaqah),
+    ]);
+    let pantauMap = {};
+    try {
+      const resP = await window.HQ.AdminAPI.getPantauKelompokBelajar(id_halaqah);
+      (resP.data || []).forEach(p => { pantauMap[p.id_murid] = p; });
+    } catch(e) { pantauMap = {}; }
+    _kbaData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[], pantau: pantauMap };
+    _kbaRenderList();
+    _kbaRenderNewForm();
+    _kbaRenderMenunggu();
+    newCard.style.display = '';
+  } catch(e) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">Gagal memuat data</div>';
+    toast('Gagal: '+e.message,'err');
+  }
+}
+
+function _kbaAssignedMurid(excludeKelompok) {
+  const ids = {};
+  _kbaData.kelompok.forEach(k => {
+    if (k.id_kelompok === excludeKelompok) return;
+    (k.anggota_kelompok_belajar||[]).forEach(a => { ids[a.id_murid] = true; });
+  });
+  return ids;
+}
+
+function _kbaRenderList() {
+  const listWrap = document.getElementById('kbaListWrap');
+  if (!_kbaData.kelompok.length) {
+    listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Belum ada kelompok belajar di halaqah ini</div>';
+    return;
+  }
+  listWrap.innerHTML = _kbaData.kelompok.map(k => {
+    const anggota = k.anggota_kelompok_belajar || [];
+    const chips = anggota.map(a =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 4px 4px 0">`
+        + esc(a.nama_murid || a.id_murid)
+        + `<button onclick="kbaRemoveAnggota('${esc(k.id_kelompok)}','${esc(a.id_murid)}')" style="border:none;background:none;color:#1d4ed8;cursor:pointer;font-size:12px;padding:0;line-height:1" title="Hapus dari kelompok">✕</button>`
+      + `</span>`
+    ).join('');
+
+    const assigned  = _kbaAssignedMurid(k.id_kelompok);
+    const available = _kbaData.murid.filter(m =>
+      !anggota.some(a => a.id_murid === m.id_murid) && !assigned[m.id_murid]
+    );
+    const canAdd = anggota.length < 4;
+    const addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(m =>
+      `<option value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}">${esc(m.nama_murid)}</option>`
+    ).join('');
+
+    const denyutRows = anggota.map(a => _kbaDenyutRow(a)).join('');
+    const denyutBlock = anggota.length
+      ? `<div style="border-top:1px dashed var(--border,#e5e7eb);margin-top:8px;padding-top:8px">`
+        + `<div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Denyut Aktivitas Partner</div>`
+        + denyutRows
+      + `</div>`
+      : '';
+
+    const liniBlock = `<div style="border-top:1px dashed var(--border,#e5e7eb);margin-top:8px;padding-top:8px">`
+      + `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">`
+        + `<button onclick="kbaToggleLiniMasa('${esc(k.id_kelompok)}')" style="background:rgba(13,148,136,.1);color:#0f766e;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🗓️ Lini Masa</button>`
+        + `<button onclick="kbaAddMilestone('${esc(k.id_kelompok)}')" style="background:var(--bg-2,#f3f4f6);color:var(--text-1,#374151);border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Milestone</button>`
+        + `<button onclick="kbaToggleTarget('${esc(k.id_kelompok)}')" style="background:rgba(245,158,11,.12);color:#b45309;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🎯 Target</button>`
+      + `</div>`
+      + `<div id="kbaLini_${esc(k.id_kelompok)}" style="display:none;margin-top:8px"></div>`
+      + `<div id="kbaTarget_${esc(k.id_kelompok)}" style="display:none;margin-top:8px"></div>`
+    + `</div>`;
+
+    return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
+      + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
+        + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kbaRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
+        + `<button onclick="kbaDeleteKelompok('${esc(k.id_kelompok)}')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
+      + `</div>`
+      + `<div style="padding:10px 12px">`
+        + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
+        + (canAdd && available.length ? `<div style="margin-top:6px"><select class="fc" style="font-size:11px;padding:5px 9px" onchange="kbaAddAnggota('${esc(k.id_kelompok)}',this)">${addOpts}</select></div>` : '')
+        + denyutBlock
+        + liniBlock
+      + `</div>`
+    + `</div>`;
+  }).join('');
+}
+
+function _kbaRenderLiniMasa(logs, milestones) {
+  const events = [];
+  (logs || []).forEach(s => {
+    events.push({ t:new Date(s.tanggal).getTime(), dot:'#16a34a', tgl:s.tanggal, html:
+      `<div style="font-weight:700;color:var(--text-1,#374151)">${KBA_JENIS_ICON[s.jenis_aktivitas]||'📚'} ${esc(s.nama_murid)} — ${esc(s.jenis_aktivitas)}</div>`
+      + (s.deskripsi ? `<div style="color:var(--text-3)">${esc(s.deskripsi)}${s.durasi_menit ? ' · '+esc(s.durasi_menit)+' menit' : ''}${s.kelancaran ? ' · '+esc(s.kelancaran) : ''}</div>` : (s.kelancaran ? `<div style="color:var(--text-3)">${esc(s.kelancaran)}</div>` : ''))
+      + (s.catatan_partner ? `<div style="color:#0f766e">💬 ${esc(s.catatan_partner)}${s.reaksi_partner ? ' '+esc(s.reaksi_partner) : ''}</div>` : '')
+    });
+  });
+  (milestones || []).forEach(m => {
+    events.push({ t:new Date(m.tanggal).getTime(), dot:'#f59e0b', tgl:m.tanggal, html:
+      `<div style="font-weight:800;color:#b45309">🏆 ${esc(m.judul)}`
+        + `<button onclick="kbaDeleteMilestone('${esc(m.id_milestone)}','${esc(m.id_kelompok)}')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:12px;margin-left:6px" title="Hapus">✕</button>`
+      + `</div>`
+      + `<div style="color:var(--text-3);font-size:10px">ditandai oleh ${esc(m.nama_pembuat || '-')}</div>`
+    });
+  });
+  if (!events.length) return '<div style="font-size:11px;color:var(--text-3)">Belum ada jejak.</div>';
+  events.sort((a,b) => b.t - a.t);
+  return events.map(e =>
+    `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border,#f0f0f0);font-size:11px">`
+      + `<span style="width:8px;height:8px;border-radius:50%;background:${e.dot};flex-shrink:0;margin-top:4px"></span>`
+      + `<div style="flex:1;min-width:0">${e.html}<div style="color:var(--text-3);font-size:10px">${esc(_kqFmtTgl(e.tgl))}</div></div>`
+    + `</div>`
+  ).join('');
+}
+
+async function _kbaLoadLiniMasa(id_kelompok) {
+  const c = document.getElementById('kbaLini_' + id_kelompok);
+  if (!c) return;
+  c.style.display = 'block';
+  c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+  try {
+    const res = await Promise.all([
+      window.HQ.AdminAPI.getLiniMasaBelajarKelompok(id_kelompok),
+      window.HQ.AdminAPI.getMilestoneBelajarByKelompok(id_kelompok),
+    ]);
+    c.innerHTML = _kbaRenderLiniMasa(res[0].data || [], res[1].data || []);
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+}
+
+function kbaToggleLiniMasa(id_kelompok) {
+  const c = document.getElementById('kbaLini_' + id_kelompok);
+  if (!c) return;
+  if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+  _kbaLoadLiniMasa(id_kelompok);
+}
+
+async function kbaAddMilestone(id_kelompok) {
+  const judul = prompt('Tandai milestone kelompok (mis: Dedy lancar makhraj halqi):');
+  if (!judul || !judul.trim()) return;
+  try {
+    await window.HQ.AdminAPI.addMilestoneBelajarKelompok({ id_kelompok, id_halaqah: _kbaData.id_halaqah, judul: judul.trim() });
+    toast('Milestone ditandai', 'ok');
+    _kbaLoadLiniMasa(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+
+async function kbaDeleteMilestone(id_milestone, id_kelompok) {
+  try {
+    await window.HQ.AdminAPI.deleteMilestoneBelajarKelompok(id_milestone);
+    toast('Milestone dihapus', 'ok');
+    _kbaLoadLiniMasa(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+
+async function _kbaRenderMenunggu() {
+  const wrap = document.getElementById('kbaMenungguWrap');
+  if (!wrap) return;
+  try {
+    const res = await window.HQ.AdminAPI.getLogBelajarMenungguHalaqah(_kbaData.id_halaqah);
+    const data = res.data || [];
+    if (!data.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    const kelOpts = ['Lancar','Cukup','Perlu Perbaikan'].map(k => `<option value="${k}">${k}</option>`).join('');
+    wrap.style.display = 'block';
+    wrap.innerHTML = `<div class="card"><div class="card-body" style="background:#fffbeb">`
+      + `<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px">⏳ Aktivitas Menunggu Konfirmasi (${data.length})</div>`
+      + data.map(r =>
+          `<div style="background:#fff;border:1px solid #fde68a;border-radius:10px;padding:10px;margin-bottom:6px">`
+          + `<div style="font-weight:800;font-size:12px">${esc(r.nama_murid)}</div>`
+          + `<div style="font-size:11px;color:#6b7280;margin-bottom:6px">${KBA_JENIS_ICON[r.jenis_aktivitas]||'📚'} ${esc(r.jenis_aktivitas)}${r.durasi_menit ? ' · '+esc(r.durasi_menit)+' menit' : ''}${r.deskripsi ? ' · '+esc(r.deskripsi) : ''}</div>`
+          + `<div style="display:flex;gap:6px"><select class="fc" id="kbaKonf_${esc(r.id_log)}" style="flex:1;font-size:11px;padding:5px 8px">${kelOpts}</select>`
+          + `<button onclick="kbaGuruKonfirmasi('${esc(r.id_log)}')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:800;font-size:11px;cursor:pointer">✓ Konfirmasi</button></div>`
+          + `</div>`
+        ).join('')
+      + `</div></div>`;
+  } catch(e) { wrap.style.display = 'none'; }
+}
+async function kbaGuruKonfirmasi(id_log) {
+  const sel = document.getElementById('kbaKonf_' + id_log);
+  try {
+    await window.HQ.AdminAPI.guruKonfirmasiLogBelajar(id_log, sel ? sel.value : null, null);
+    toast('Aktivitas dikonfirmasi', 'ok');
+    onKbaHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+
+function _kbaRenderTargetHtml(targets) {
+  const aktif = (targets || []).filter(t => t.status === 'aktif');
+  let html = `<div style="display:flex;gap:6px;margin-bottom:8px"><input type="text" class="fc" id="kbaTgtInput" placeholder="Target baru (mis: Khatam tilawah Juz 30)" style="flex:1;font-size:11px;padding:5px 8px"><button onclick="kbaAddTarget('__K__')" style="background:#d97706;color:#fff;border:none;border-radius:7px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer">+ Set</button></div>`;
+  if (!aktif.length) return html + `<div style="font-size:11px;color:var(--text-3)">Belum ada target aktif.</div>`;
+  return html + aktif.map(t =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">`
+    + `<span style="font-size:11px;font-weight:700;color:#92400e">🎯 ${esc(t.judul)}</span>`
+    + `<span style="display:flex;gap:4px"><button onclick="kbaMarkTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>`
+    + `<button onclick="kbaDeleteTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button></span>`
+  + `</div>`).join('');
+}
+async function _kbaLoadTarget(id_kelompok) {
+  const c = document.getElementById('kbaTarget_' + id_kelompok);
+  if (!c) return;
+  c.style.display = 'block';
+  c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+  try {
+    const res = await window.HQ.AdminAPI.getTargetBelajarByKelompok(id_kelompok);
+    c.innerHTML = _kbaRenderTargetHtml(res.data || []).replace(/__K__/g, id_kelompok);
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+}
+function kbaToggleTarget(id_kelompok) {
+  const c = document.getElementById('kbaTarget_' + id_kelompok);
+  if (!c) return;
+  if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+  _kbaLoadTarget(id_kelompok);
+}
+async function kbaAddTarget(id_kelompok) {
+  const inp = document.getElementById('kbaTgtInput');
+  const judul = inp ? (inp.value || '').trim() : '';
+  if (!judul) { toast('Tulis dulu targetnya', 'err'); return; }
+  try {
+    await window.HQ.AdminAPI.addTargetBelajarByKelompok({ id_kelompok, id_halaqah: _kbaData.id_halaqah, judul });
+    toast('Target ditetapkan', 'ok');
+    _kbaLoadTarget(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+async function kbaMarkTarget(id_target, id_kelompok) {
+  try {
+    await window.HQ.AdminAPI.updateTargetBelajarByKelompok(id_target, { status: 'tercapai' });
+    toast('Target tercapai', 'ok');
+    _kbaLoadTarget(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+async function kbaDeleteTarget(id_target, id_kelompok) {
+  try {
+    await window.HQ.AdminAPI.deleteTargetBelajarByKelompok(id_target);
+    toast('Target dihapus', 'ok');
+    _kbaLoadTarget(id_kelompok);
+  } catch(e) { toast('Gagal: '+e.message, 'err'); }
+}
+
+function _kbaDenyutRow(a) {
+  const p = (_kbaData.pantau && _kbaData.pantau[a.id_murid]) || null;
+  const last = p && p.tanggal_terakhir;
+  const hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+  const menunggu = p ? (p.jumlah_menunggu || 0) : 0;
+  const mandek = (hari === null) || (hari >= 7);
+  const dot = mandek ? '#f59e0b' : '#16a34a';
+  const statusTxt = (hari === null)
+    ? 'Belum pernah catat'
+    : (hari === 0 ? 'Aktivitas hari ini' : (hari === 1 ? 'Aktivitas kemarin' : `Terakhir ${hari} hari lalu`));
+  const menungguBadge = menunggu > 0
+    ? `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:1px 7px;margin-left:6px">${menunggu} menunggu</span>`
+    : '';
+  let nudgeBtn = '';
+  if (mandek && p && p.no_hp) {
+    nudgeBtn = `<button onclick="kbaNudgeAnggota('${esc(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
+  }
+  return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
+    + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`
+    + `<span style="font-weight:700;color:var(--text-1,#374151)">${esc(a.nama_murid || a.id_murid)}</span>`
+    + `<span style="color:var(--text-3);font-size:11px">· ${statusTxt}</span>`
+    + menungguBadge
+    + nudgeBtn
+  + `</div>`;
+}
+
+function kbaNudgeAnggota(nama, hp) {
+  let raw = String(hp || '').replace(/[^0-9]/g, '');
+  if (!raw || raw.length < 9) { toast('Nomor HP murid ini belum tersedia di data pengguna.', 'err'); return; }
+  if (raw.charAt(0) === '0') raw = '62' + raw.slice(1);
+  else if (raw.slice(0,2) !== '62') raw = '62' + raw;
+  const msg =
+    'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n' +
+    'Ananda *' + (nama || 'Murid') + '*, kami memantau aktivitas belajar mandiri bersama partnermu. ' +
+    'Sudah beberapa waktu belum ada catatan baru — yuk semangat lanjutkan tilawah, tajwid & muraja\'ah bersama partner ya 📚\n\n' +
+    'Barakallahu fiikum.';
+  window.open('https://wa.me/' + raw + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function _kbaRenderNewForm() {
+  const assigned  = _kbaAssignedMurid(null);
+  const available = _kbaData.murid.filter(m => !assigned[m.id_murid]);
+  const wrap = document.getElementById('kbaNewAnggotaList');
+  if (!available.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Semua murid sudah tergabung di kelompok belajar</div>';
+    return;
+  }
+  wrap.innerHTML = available.map(m =>
+    `<label style="display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--border,#f3f4f6);border-radius:9px;margin-bottom:5px;font-size:12px;cursor:pointer">`
+      + `<input type="checkbox" value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}" class="kba-new-anggota">`
+      + esc(m.nama_murid)
+    + `</label>`
+  ).join('');
+}
+
+async function kbaCreateKelompok() {
+  const checks = Array.from(document.querySelectorAll('.kba-new-anggota:checked'));
+  if (checks.length < 3 || checks.length > 4) {
+    toast('Pilih 3-4 murid untuk satu kelompok', 'err');
+    return;
+  }
+  const anggota = checks.map(c => ({ id_murid: c.value, nama_murid: c.getAttribute('data-nama') }));
+  const nama = (document.getElementById('kbaNewNama').value || '').trim() || null;
+  try {
+    await window.HQ.AdminAPI.createKelompokBelajar(_kbaData.id_halaqah, nama, anggota);
+    toast('Kelompok belajar dibuat', 'ok');
+    document.getElementById('kbaNewNama').value = '';
+    onKbaHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kbaRenameKelompok(id_kelompok, nama) {
+  try {
+    await window.HQ.AdminAPI.updateKelompokBelajar(id_kelompok, { nama_kelompok: nama.trim() || null });
+    toast('Nama kelompok disimpan', 'ok');
+    const k = _kbaData.kelompok.find(x => x.id_kelompok === id_kelompok);
+    if (k) k.nama_kelompok = nama.trim() || null;
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kbaDeleteKelompok(id_kelompok) {
+  const ok = await showConfirm('Hapus kelompok ini? Anggota akan kehilangan akses partner belajar.', { title: 'Hapus Kelompok?', okText: 'Ya, Hapus', danger: true });
+  if (!ok) return;
+  try {
+    await window.HQ.AdminAPI.deleteKelompokBelajar(id_kelompok);
+    toast('Kelompok dihapus', 'ok');
+    onKbaHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kbaRemoveAnggota(id_kelompok, id_murid) {
+  const k = _kbaData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  if (!k) return;
+  const anggotaBaru = (k.anggota_kelompok_belajar||[])
+    .filter(a => a.id_murid !== id_murid)
+    .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }));
+  if (anggotaBaru.length < 3) {
+    toast('Kelompok minimal harus punya 3 anggota. Hapus kelompok ini jika ingin mengosongkannya.', 'err');
+    return;
+  }
+  try {
+    await window.HQ.AdminAPI.setAnggotaKelompokBelajar(id_kelompok, anggotaBaru);
+    toast('Anggota diperbarui', 'ok');
+    onKbaHalaqahChange();
+  } catch(e) { toast('Gagal: '+e.message,'err'); }
+}
+
+async function kbaAddAnggota(id_kelompok, selectEl) {
+  const id_murid = selectEl.value;
+  if (!id_murid) return;
+  const nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
+  const k = _kbaData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  if (!k) return;
+  const anggotaBaru = (k.anggota_kelompok_belajar||[])
+    .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }))
+    .concat([{ id_murid, nama_murid }]);
+  if (anggotaBaru.length > 4) {
+    toast('Maksimal 4 anggota per kelompok', 'err');
+    return;
+  }
+  try {
+    await window.HQ.AdminAPI.setAnggotaKelompokBelajar(id_kelompok, anggotaBaru);
+    toast('Anggota ditambahkan', 'ok');
+    onKbaHalaqahChange();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
 }
 
