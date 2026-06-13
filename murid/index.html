@@ -4127,8 +4127,12 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         </div>
 
         <!-- Aktivitas tertunda (adaptasi muraja'ah cerdas) -->
-        <div id="pbTertundaCard" style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border:1px solid rgba(13,148,136,.2);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
-          <div style="font-size:13px;font-weight:800;color:#0f766e;margin-bottom:8px">🔄 Saatnya Lakukan Lagi</div>
+        <div id="pbTertundaCard" style="background:linear-gradient(135deg,#fffbeb,#fff7ed);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:14px;margin-bottom:14px;display:none;box-shadow:0 2px 10px rgba(245,158,11,.12)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:18px">⏰</span>
+            <div style="font-size:14px;font-weight:900;color:#b45309">Saatnya Lakukan Lagi!</div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:10px;line-height:1.45">Sudah <b>lebih dari 7 hari</b> kamu belum melaporkan poin belajar di bawah ini. Yuk mulai kembali — konsistensi itu kunci 💪</div>
           <div id="pbTertundaBody" style="font-size:12px;color:var(--text-2)"></div>
         </div>
 
@@ -10017,18 +10021,23 @@ async function loadAktivitasTertunda() {
       if (!lastByJenis[r.jenis_aktivitas] || t > lastByJenis[r.jenis_aktivitas]) lastByJenis[r.jenis_aktivitas] = t;
     });
     var now = Date.now();
+    // Hanya jenis yang PERNAH dilakukan tapi terakhir >=7 hari lalu
+    // (spaced repetition murni, sesuai judul "Lakukan Lagi"). Jenis yang belum
+    // pernah dicoba TIDAK dimunculkan -> murid bebas fokus jenis tertentu tanpa
+    // diganggu nudge jenis lain.
     var tertunda = PB_JENIS_PANTAU.filter(function(j){
       var last = lastByJenis[j];
-      return !last || (now - last) >= 7*86400000;
+      return last && (now - last) >= 7*86400000;
     });
     if (!tertunda.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     body.innerHTML = tertunda.map(function(j){
       var last = lastByJenis[j];
-      var label = last ? ('terakhir ' + Math.floor((now - last)/86400000) + ' hari lalu') : 'belum pernah';
-      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
-        + '<div><span style="font-weight:700;color:var(--text)">' + (PB_JENIS_ICON[j]||'') + ' ' + _esc(j) + '</span> <span style="color:var(--text-3);font-size:11px">· ' + label + '</span></div>'
-        + '<button onclick="pbTertundaNow(\'' + _esc(j) + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Lakukan</button>'
+      var hari = Math.floor((now - last)/86400000);
+      var warnChip = '<span style="display:inline-block;background:rgba(239,68,68,.12);color:#dc2626;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;margin-left:4px;white-space:nowrap">⏰ ' + hari + ' hari</span>';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(245,158,11,.18)">'
+        + '<div style="min-width:0"><span style="font-weight:800;color:var(--text)">' + (PB_JENIS_ICON[j]||'') + ' ' + _esc(j) + '</span>' + warnChip + '</div>'
+        + '<button onclick="pbTertundaNow(\'' + _esc(j) + '\')" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(217,119,6,.3)">Mulai Lagi</button>'
       + '</div>';
     }).join('');
   } catch(e) { card.style.display = 'none'; }
