@@ -5914,6 +5914,9 @@ async function loadSPPAdmin() {
 
 function filterSPPTable() {
   var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
+  var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
+  var bulanFilter = document.getElementById('sppFilterBulan').value;
+  var modeLunasBulan = jenis !== 'infaq' && !!bulanFilter && statusFilter === 'lunas';
 
   // Toggle visibilitas kontrol yang hanya relevan untuk SPP Pribadi
   var statusSel = document.getElementById('sppFilterStatus');
@@ -5923,37 +5926,48 @@ function filterSPPTable() {
   if (btnSalin)  btnSalin.style.display  = jenis === 'infaq' ? 'none' : '';
   if (subtitle)  subtitle.textContent    = jenis === 'infaq'
     ? 'Daftar pembayaran Infaq/Operasional yang sudah lunas'
-    : 'Rekap tunggakan SPP Pribadi per bulan';
+    : modeLunasBulan
+      ? 'Murid yang sudah membayar SPP Pribadi ' + bulanFilter
+      : 'Rekap tunggakan SPP Pribadi per bulan';
 
   // Ganti header tabel sesuai jenis
   var thead = document.getElementById('sppRekapHead');
   thead.innerHTML = jenis === 'infaq'
     ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal</th></tr>'
-    : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
+    : modeLunasBulan
+      ? '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Status ' + bulanFilter + '</th><th class="align-center">Reminder</th></tr>'
+      : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
 
   if (jenis === 'infaq') return filterInfaqTable();
 
   var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
-  var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
-  var bulanFilter = document.getElementById('sppFilterBulan').value;
   var tbody = document.getElementById('sppRekapBody');
 
-  // 1. Filter bulan
   var data = _sppRekapData;
-  if (bulanFilter) {
-    data = data.filter(function(m) {
-      return m.bulan_belum.includes(bulanFilter);
-    });
-  }
 
-  // 2. Filter status pembayaran
-  if (statusFilter) {
-    if (statusFilter === 'lunas') {
-      data = data.filter(function(m) { return m.tunggakan === 0; });
-    } else if (statusFilter === 'menunggak') {
-      data = data.filter(function(m) { return m.tunggakan > 0; });
-    } else if (statusFilter === 'tunggakan_berat') {
-      data = data.filter(function(m) { return m.tunggakan >= 3; });
+  // Kombinasi "Bulan" + "Lunas" → tampilkan murid yang SUDAH membayar
+  // bulan tersebut (bukan "tunggakan 0 secara keseluruhan").
+  if (modeLunasBulan) {
+    data = data.filter(function(m) {
+      return (m.lunas_bulan||[]).includes(bulanFilter);
+    });
+  } else {
+    // 1. Filter bulan (default: murid yang BELUM bayar bulan tsb)
+    if (bulanFilter) {
+      data = data.filter(function(m) {
+        return m.bulan_belum.includes(bulanFilter);
+      });
+    }
+
+    // 2. Filter status pembayaran
+    if (statusFilter) {
+      if (statusFilter === 'lunas') {
+        data = data.filter(function(m) { return m.tunggakan === 0; });
+      } else if (statusFilter === 'menunggak') {
+        data = data.filter(function(m) { return m.tunggakan > 0; });
+      } else if (statusFilter === 'tunggakan_berat') {
+        data = data.filter(function(m) { return m.tunggakan >= 3; });
+      }
     }
   }
 
@@ -5983,7 +5997,9 @@ function filterSPPTable() {
       ? 'badge b-red'
       : 'badge b-amber';
     var bulanBelum;
-    if (m.tunggakan === 0) {
+    if (modeLunasBulan) {
+      bulanBelum = '<span class="badge b-green">✅ Lunas '+esc(bulanFilter)+'</span>';
+    } else if (m.tunggakan === 0) {
       bulanBelum = '<span class="badge b-green">✅ Lunas</span>';
     } else if (m.bulan_belum.length) {
       bulanBelum = m.bulan_belum.map(function(b){ return '<span class="tag-spp-belum">'+b+'</span>'; }).join('');
