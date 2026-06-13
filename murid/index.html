@@ -3411,6 +3411,15 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
       </div>
 
+      <!-- Partner Belajar Card (Level 1-4) -->
+      <div class="partner-dash-card" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
+        <div class="prog-title">
+          <span>📚 Partner Belajar</span>
+          <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
+        </div>
+        <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
+      </div>
+
       <!-- At-Tibyan Card -->
       <div class="attibyan-dash-card" onclick="goPage('attibyan')">
         <!-- Judul At-Tibyan -->
@@ -4082,6 +4091,116 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
       </div>
     </div><!-- /page-hafalan -->
 
+    <!-- ════ PARTNER BELAJAR (Level 1-4) ════ -->
+    <div class="page" id="page-partner-belajar">
+      <div style="padding:16px;max-width:600px;margin:0 auto">
+
+        <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:2px">📚 Partner Belajar</div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Saling catat & konfirmasi aktivitas belajar mandiri bersama kelompokmu</div>
+
+        <!-- Kartu Kelompok -->
+        <div id="pbKelompokCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px">👥 Kelompok Belajar Saya</div>
+          <div id="pbKelompokBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+        </div>
+
+        <!-- Menunggu Konfirmasi -->
+        <div id="pbMenungguWrap" style="margin-bottom:14px;display:none">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px">⏳ Menunggu Konfirmasi dari Kamu</div>
+          <div id="pbMenungguList"></div>
+        </div>
+
+        <!-- Target Bersama Kelompok -->
+        <div id="pbTargetCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">🎯 Target Bersama</div>
+            <button onclick="pbToggleTargetForm()" id="pbTargetBtn" style="background:rgba(245,158,11,.14);color:#b45309;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Set Target</button>
+          </div>
+          <div id="pbTargetForm" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">
+            <input type="text" class="fc" id="pbTargetJudul" placeholder="Mis: Khatam tilawah Juz 30 bersama" style="margin-bottom:6px">
+            <div style="display:flex;gap:6px">
+              <input type="date" class="fc" id="pbTargetTgl" style="flex:1">
+              <button onclick="pbSaveTarget()" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">Simpan</button>
+            </div>
+          </div>
+          <div id="pbTargetBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+        </div>
+
+        <!-- Aktivitas tertunda (adaptasi muraja'ah cerdas) -->
+        <div id="pbTertundaCard" style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border:1px solid rgba(13,148,136,.2);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
+          <div style="font-size:13px;font-weight:800;color:#0f766e;margin-bottom:8px">🔄 Saatnya Lakukan Lagi</div>
+          <div id="pbTertundaBody" style="font-size:12px;color:var(--text-2)"></div>
+        </div>
+
+        <!-- Form Lapor Aktivitas -->
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px">📝 Lapor Aktivitas Belajar</div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Catat aktivitas mandirimu — partner kelompokmu akan konfirmasi</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
+              <select class="fc" id="pbJenisSel">
+                <option value="Tilawah">📖 Tilawah</option>
+                <option value="Tajwid">📐 Tajwid</option>
+                <option value="Makhraj">🗣️ Makhraj</option>
+                <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+                <option value="Murajaah">🔄 Murajaah</option>
+                <option value="Lainnya">✨ Lainnya</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
+              <input type="date" class="fc" id="pbTanggal">
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px">
+            <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
+            <textarea class="fc" id="pbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1-20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical"></textarea>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Durasi (menit, opsional)</label>
+            <input type="number" class="fc" id="pbDurasi" min="1" placeholder="Mis: 20">
+          </div>
+
+          <button id="pbSubmitBtn" onclick="submitLogBelajar()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%">
+            📚 Simpan &amp; Kirim ke Partner
+          </button>
+          <button id="pbCancelEditBtn" onclick="pbCancelEdit()" style="display:none;background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:6px">
+            Batal Edit
+          </button>
+        </div>
+
+        <!-- Lini Masa Kelompok -->
+        <div id="pbLiniMasaCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:14px;display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">🗓️ Lini Masa Kelompok</div>
+            <button onclick="pbToggleMilestoneForm()" id="pbMilestoneBtn" style="background:rgba(13,148,136,.12);color:#0f766e;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Tandai Milestone</button>
+          </div>
+          <div id="pbMilestoneForm" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">
+            <input type="text" class="fc" id="pbMilestoneJudul" placeholder="Mis: Dedy lancar makhraj huruf halqi 🎉" style="margin-bottom:6px">
+            <div style="display:flex;gap:6px">
+              <input type="date" class="fc" id="pbMilestoneTgl" style="flex:1">
+              <button onclick="pbSaveMilestone()" style="background:#0d9488;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">Simpan</button>
+            </div>
+          </div>
+          <div id="pbLiniMasaBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+        </div>
+
+        <!-- Riwayat Aktivitas Saya -->
+        <div style="margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">📖 Riwayat Aktivitas Saya</div>
+            <button onclick="loadPbRiwayat()" style="font-size:11px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:4px 0">↺ Refresh</button>
+          </div>
+          <div id="pbRiwayatList" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+        </div>
+
+      </div>
+    </div><!-- /page-partner-belajar -->
+
     <!-- ════ PANDUAN MURID ════ -->
     <div class="page" id="page-panduan">
       <div style="padding:16px 16px 0;max-width:640px;margin:0 auto">
@@ -4527,6 +4646,12 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         <span style="flex:1">Setoran Hafalan</span>
         <span id="sidebarQiyamBadge" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4">Qiyam</span>
         <span id="sidebarHafalanLockIcon" style="font-size:13px;color:#9ca3af">🔒</span>
+      </button>
+
+      <button class="sidebar-item ico-teal" id="sidebarBelajarBtn" onclick="closeSidebar();goPage('partner-belajar')" data-p="partner-belajar" style="display:none">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span style="flex:1">Partner Belajar</span>
+        <span id="sidebarBelajarBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
 
       <!-- ── AKUN ── -->
@@ -6167,6 +6292,7 @@ function goPage(name, swipeDir) {
   else if (name === 'attibyan') { loadAtTibyan(); }
   else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
+  else if (name === 'partner-belajar') { loadPagePartnerBelajar(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -6249,6 +6375,9 @@ async function loadDashboard() {
       if (navPr)      navPr.style.display = 'flex';
       if (navMateri)  navMateri.style.display = 'flex';
     }
+    // Sidebar Partner Belajar — hanya untuk halaqah dengan level partner_belajar_enabled
+    var sbBelajar = document.getElementById('sidebarBelajarBtn');
+    if (sbBelajar) sbBelajar.style.display = (d.halaqah && d.halaqah.partner_belajar_enabled) ? 'flex' : 'none';
     // Init ketua kelas jika is_ketua = true
     initKetua(ang.is_ketua || false, ang.halaqah_ketua || null);
 
@@ -6283,7 +6412,10 @@ async function loadDashboard() {
     if (document.getElementById('dashQiyamSetoranStat')) document.getElementById('dashQiyamSetoranStat').style.display = 'none';
     if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
     if (document.getElementById('dashPartnerCard')) document.getElementById('dashPartnerCard').style.display = 'none';
+    if (document.getElementById('dashPartnerBelajarCard')) document.getElementById('dashPartnerBelajarCard').style.display = 'none';
     if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
+    // Kartu Partner Belajar di dashboard — muncul jika level halaqah mengaktifkannya
+    if (d.halaqah && d.halaqah.partner_belajar_enabled) loadPartnerBelajarDashCard();
 
     var donutRing = document.getElementById('dashDonutRing');
     var pctNum = document.getElementById('dashProgressPctNum');
@@ -9771,6 +9903,553 @@ function pqCancelEdit() {
   ['pqSuratInput','pqJuzInput','pqAyatDari','pqAyatSampai','pqCatatan'].forEach(function(idf){
     var el = document.getElementById(idf); if (el) el.value = '';
   });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  PARTNER BELAJAR (Level 1-4) — mirror Partner Qiyam, prefix pb
+// ══════════════════════════════════════════════════════════════════════
+var _pbKelompok = null;
+var _pbInitialized = false;
+var _pbEditId = null;
+var _pbRiwayatData = [];
+var PB_JENIS_ICON = { 'Tilawah':'📖', 'Tajwid':'📐', 'Makhraj':'🗣️', 'Hafalan Materi':'🧠', 'Murajaah':'🔄', 'Lainnya':'✨' };
+// Jenis yang dipantau untuk "aktivitas tertunda" (exclude Lainnya yang terlalu generik)
+var PB_JENIS_PANTAU = ['Tilawah','Tajwid','Makhraj','Hafalan Materi','Murajaah'];
+
+async function loadPagePartnerBelajar() {
+  if (!_pbInitialized) {
+    _pbInitialized = true;
+    var tgl = document.getElementById('pbTanggal');
+    if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0,10);
+  }
+  await Promise.all([loadPartnerBelajarKelompok(), loadPartnerBelajarMenunggu()]);
+  loadPartnerBelajarLiniMasa();
+  loadTargetBelajar();
+  loadPbRiwayat();
+}
+
+// Tombol WA kecil untuk menghubungi sesama anggota kelompok belajar
+function _pbMemberWaBtn(nama, no_hp) {
+  var msg = 'Assalamualaikum ' + (nama || '') + ', yuk kita saling pantau aktivitas belajar ya 📚\n\nBarakallahu fiikum.';
+  var url = _waLink(no_hp, msg);
+  if (!url) return '';
+  return '<a href="' + url + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" '
+    + 'style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#25d366;color:#fff;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
+}
+
+async function loadPartnerBelajarKelompok() {
+  var body = document.getElementById('pbKelompokBody');
+  if (!body) return;
+  try {
+    var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
+    _pbKelompok = resKel.data;
+    if (!_pbKelompok) {
+      body.innerHTML = '<div style="color:var(--text-3)">Kamu belum tergabung di kelompok belajar. Hubungi guru/admin untuk dimasukkan ke kelompok.</div>';
+      loadAktivitasTertunda();
+      return;
+    }
+    var resStatus  = await window.HQ.MuridAPI.getStatusKelompokBelajar();
+    var statusList = resStatus.data || [];
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+    var rows = statusList.map(function(m){
+      var isMe = m.id_murid === myId;
+      var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada aktivitas';
+      var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+      var waBtn = isMe ? '' : _pbMemberWaBtn(m.nama_murid, m.no_hp);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
+        + '<span style="font-weight:600;font-size:12px;color:var(--text);flex:1;min-width:0">' + nameLabel + '</span>'
+        + '<span style="font-size:11px;color:var(--text-3)">' + _esc(tgl) + '</span>'
+        + waBtn
+        + '</div>';
+    }).join('');
+    body.innerHTML = '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:6px">' + _esc(_pbKelompok.nama_kelompok || 'Kelompok Belajar') + '</div>' + rows;
+    loadAktivitasTertunda();
+  } catch(e) {
+    body.innerHTML = '<div style="color:#ef4444">Gagal memuat: ' + _esc(e.message) + '</div>';
+  }
+}
+
+// Adaptasi "muraja'ah cerdas": jenis aktivitas yang belum dilakukan >=7 hari (atau belum pernah)
+async function loadAktivitasTertunda() {
+  var card = document.getElementById('pbTertundaCard');
+  var body = document.getElementById('pbTertundaBody');
+  if (!card || !body) return;
+  if (!_pbKelompok) { card.style.display = 'none'; return; }
+  try {
+    var res = await window.HQ.MuridAPI.getLogRingkasSaya();
+    var rows = res.data || [];
+    var lastByJenis = {};
+    rows.forEach(function(r){
+      var t = new Date(r.created_at).getTime();
+      if (!lastByJenis[r.jenis_aktivitas] || t > lastByJenis[r.jenis_aktivitas]) lastByJenis[r.jenis_aktivitas] = t;
+    });
+    var now = Date.now();
+    var tertunda = PB_JENIS_PANTAU.filter(function(j){
+      var last = lastByJenis[j];
+      return !last || (now - last) >= 7*86400000;
+    });
+    if (!tertunda.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    body.innerHTML = tertunda.map(function(j){
+      var last = lastByJenis[j];
+      var label = last ? ('terakhir ' + Math.floor((now - last)/86400000) + ' hari lalu') : 'belum pernah';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
+        + '<div><span style="font-weight:700;color:var(--text)">' + (PB_JENIS_ICON[j]||'') + ' ' + _esc(j) + '</span> <span style="color:var(--text-3);font-size:11px">· ' + label + '</span></div>'
+        + '<button onclick="pbTertundaNow(\'' + _esc(j) + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Lakukan</button>'
+      + '</div>';
+    }).join('');
+  } catch(e) { card.style.display = 'none'; }
+}
+function pbTertundaNow(jenis) {
+  var sel = document.getElementById('pbJenisSel');
+  if (sel) sel.value = jenis;
+  var btn = document.getElementById('pbSubmitBtn');
+  if (btn && btn.scrollIntoView) btn.scrollIntoView({ behavior:'smooth', block:'center' });
+  var desk = document.getElementById('pbDeskripsi');
+  if (desk) desk.focus();
+}
+
+// Target bersama kelompok
+async function loadTargetBelajar() {
+  var card = document.getElementById('pbTargetCard');
+  var body = document.getElementById('pbTargetBody');
+  if (!card || !body) return;
+  if (!_pbKelompok) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  var ttgl = document.getElementById('pbTargetTgl');
+  if (ttgl && !ttgl.value) ttgl.value = new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+  try {
+    var res = await window.HQ.MuridAPI.getTargetKelompokBelajar();
+    var aktif = (res.data || []).filter(function(t){ return t.status === 'aktif'; });
+    if (!aktif.length) { body.innerHTML = '<div style="color:var(--text-3)">Belum ada target. Tetapkan tujuan bersama kelompok 🎯</div>'; return; }
+    body.innerHTML = aktif.map(function(t){
+      var dl = t.tanggal_target ? '<span style="color:var(--text-3);font-size:11px"> · target ' + _esc(_fmtDateHafalan(t.tanggal_target)) + '</span>' : '';
+      return '<div style="padding:8px 10px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);margin-bottom:6px">'
+        + '<div style="font-weight:800;color:#92400e">🎯 ' + _esc(t.judul) + dl + '</div>'
+        + '<div style="display:flex;gap:8px;margin-top:6px">'
+          + '<button onclick="pbMarkTarget(\'' + _esc(t.id_target) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">✓ Tercapai</button>'
+          + '<button onclick="pbDeleteTarget(\'' + _esc(t.id_target) + '\')" style="background:var(--bg-2);color:var(--text-3);border:1px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Hapus</button>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  } catch(e) { body.innerHTML = '<div style="color:#ef4444">Gagal memuat target: ' + _esc(e.message) + '</div>'; }
+}
+function pbToggleTargetForm() { var f = document.getElementById('pbTargetForm'); if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+async function pbSaveTarget() {
+  var judul = (document.getElementById('pbTargetJudul').value || '').trim();
+  var tgl = document.getElementById('pbTargetTgl').value;
+  if (!judul) { toast('Tulis dulu targetnya', 'err'); return; }
+  if (!_pbKelompok) { toast('Kamu belum tergabung di kelompok belajar', 'err'); return; }
+  try {
+    await window.HQ.MuridAPI.addTargetKelompokBelajar({ id_kelompok:_pbKelompok.id_kelompok, id_halaqah:_pbKelompok.id_halaqah, judul:judul, tanggal_target:tgl||null });
+    toast('Target ditetapkan 🎯', 'ok');
+    document.getElementById('pbTargetJudul').value = '';
+    pbToggleTargetForm();
+    loadTargetBelajar();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+}
+async function pbMarkTarget(id) {
+  try {
+    await window.HQ.MuridAPI.updateTargetKelompokBelajar(id, { status:'tercapai' });
+    toast('Alhamdulillah, target tercapai 🎉', 'ok');
+    loadTargetBelajar();
+    loadPartnerBelajarLiniMasa();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+}
+async function pbDeleteTarget(id) {
+  if (!confirm('Hapus target ini?')) return;
+  try {
+    await window.HQ.MuridAPI.deleteTargetKelompokBelajar(id);
+    toast('Target dihapus', 'ok');
+    loadTargetBelajar();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+}
+
+// Lini Masa Kelompok: auto-feed aktivitas dikonfirmasi + milestone + target tercapai
+async function loadPartnerBelajarLiniMasa() {
+  var card = document.getElementById('pbLiniMasaCard');
+  var body = document.getElementById('pbLiniMasaBody');
+  if (!card || !body) return;
+  if (!_pbKelompok) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  var mtgl = document.getElementById('pbMilestoneTgl');
+  if (mtgl && !mtgl.value) mtgl.value = new Date().toISOString().slice(0,10);
+  try {
+    var res = await Promise.all([
+      window.HQ.MuridAPI.getLiniMasaBelajar(),
+      window.HQ.MuridAPI.getMyMilestonesBelajar(),
+      window.HQ.MuridAPI.getTargetKelompokBelajar(),
+    ]);
+    var logs = res[0].data || [];
+    var milestones = res[1].data || [];
+    var targets = res[2].data || [];
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+    var events = [];
+
+    logs.forEach(function(s){
+      events.push({ t: new Date(s.tanggal).getTime(), html:
+        '<div style="font-weight:700;color:var(--text)">' + (PB_JENIS_ICON[s.jenis_aktivitas]||'📚') + ' ' + _esc(s.nama_murid) + ' — ' + _esc(s.jenis_aktivitas) + '</div>'
+        + (s.deskripsi ? '<div style="color:var(--text-2)">' + _esc(s.deskripsi) + (s.durasi_menit ? ' · ' + _esc(s.durasi_menit) + ' menit' : '') + (s.kelancaran ? ' · ' + _esc(s.kelancaran) : '') + '</div>' : (s.kelancaran ? '<div style="color:var(--text-2)">' + _esc(s.kelancaran) + '</div>' : ''))
+        + (s.catatan_partner || s.reaksi_partner ? '<div style="color:#0f766e;margin-top:2px">💬 ' + _esc(s.catatan_partner||'') + (s.reaksi_partner ? ' ' + _esc(s.reaksi_partner) : '') + '</div>' : '')
+      , dot:'#16a34a', tgl:s.tanggal });
+    });
+    targets.filter(function(t){ return t.status === 'tercapai'; }).forEach(function(t){
+      events.push({ t: new Date(t.created_at).getTime(), dot:'#f59e0b', tgl:t.created_at, html:
+        '<div style="font-weight:800;color:#92400e">🎯 Target tercapai: ' + _esc(t.judul) + '</div>'
+      });
+    });
+    milestones.forEach(function(m){
+      var delBtn = (m.dibuat_oleh === myId)
+        ? '<button onclick="pbDeleteMilestone(\'' + _esc(m.id_milestone) + '\')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:12px;padding:0;margin-left:6px" title="Hapus">✕</button>'
+        : '';
+      events.push({ t: new Date(m.tanggal).getTime(), html:
+        '<div style="font-weight:800;color:#b45309">🏆 ' + _esc(m.judul) + delBtn + '</div>'
+        + '<div style="color:var(--text-3);font-size:11px">ditandai oleh ' + _esc(m.nama_pembuat || '-') + '</div>'
+      , dot:'#f59e0b', tgl:m.tanggal });
+    });
+    if (_pbKelompok.created_at) {
+      events.push({ t: new Date(_pbKelompok.created_at).getTime(), html:
+        '<div style="font-weight:700;color:var(--text)">📚 Kelompok dibentuk</div>'
+      , dot:'#2563eb', tgl:_pbKelompok.created_at });
+    }
+
+    if (!events.length) {
+      body.innerHTML = '<div style="color:var(--text-3)">Belum ada jejak. Aktivitas yang dikonfirmasi & milestone akan muncul di sini.</div>';
+      return;
+    }
+    events.sort(function(a,b){ return b.t - a.t; });
+    body.innerHTML = events.map(function(e){
+      return '<div style="display:flex;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:3px">'
+          + '<span style="width:9px;height:9px;border-radius:50%;background:' + e.dot + '"></span>'
+        + '</div>'
+        + '<div style="flex:1;min-width:0">' + e.html
+          + '<div style="color:var(--text-3);font-size:10px;margin-top:1px">' + _esc(_fmtDateHafalan(e.tgl)) + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  } catch(e) {
+    body.innerHTML = '<div style="color:#ef4444">Gagal memuat lini masa: ' + _esc(e.message) + '</div>';
+  }
+}
+
+function pbToggleMilestoneForm() {
+  var f = document.getElementById('pbMilestoneForm');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+async function pbSaveMilestone() {
+  var judul = (document.getElementById('pbMilestoneJudul').value || '').trim();
+  var tgl   = document.getElementById('pbMilestoneTgl').value;
+  if (!judul) { toast('Tulis dulu milestone-nya', 'err'); return; }
+  if (!_pbKelompok) { toast('Kamu belum tergabung di kelompok belajar', 'err'); return; }
+  try {
+    await window.HQ.MuridAPI.addMilestoneBelajar({
+      id_kelompok: _pbKelompok.id_kelompok,
+      id_halaqah : _pbKelompok.id_halaqah,
+      judul      : judul,
+      tanggal    : tgl,
+    });
+    toast('Milestone ditandai 🏆', 'ok');
+    document.getElementById('pbMilestoneJudul').value = '';
+    pbToggleMilestoneForm();
+    loadPartnerBelajarLiniMasa();
+  } catch(e) { toast('Gagal menyimpan: ' + e.message, 'err'); }
+}
+async function pbDeleteMilestone(id) {
+  try {
+    await window.HQ.MuridAPI.deleteMilestoneBelajar(id);
+    toast('Milestone dihapus', 'ok');
+    loadPartnerBelajarLiniMasa();
+  } catch(e) { toast('Gagal menghapus: ' + e.message, 'err'); }
+}
+
+// Daftar aktivitas partner sekelompok yang menunggu konfirmasi
+async function loadPartnerBelajarMenunggu() {
+  var wrap = document.getElementById('pbMenungguWrap');
+  var list = document.getElementById('pbMenungguList');
+  if (!wrap || !list) return;
+  try {
+    var res  = await window.HQ.MuridAPI.getLogMenungguKonfirmasi();
+    var data = res.data || [];
+    if (!data.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    var kelOpts = ['Lancar','Cukup','Perlu Perbaikan'].map(function(k){
+      return '<option value="' + k + '">' + k + '</option>';
+    }).join('');
+
+    list.innerHTML = data.map(function(r){
+      var icon = PB_JENIS_ICON[r.jenis_aktivitas] || '📚';
+      var id   = _esc(r.id_log);
+      var waMsg = 'Assalamualaikum ' + (r.nama_murid || '') + ', aku siap memantau aktivitas belajarmu ('
+        + (r.jenis_aktivitas || '') + (r.deskripsi ? ' — ' + r.deskripsi : '')
+        + '). Kabari kalau sempat ya 📚\n\nBarakallahu fiikum.';
+      var waUrl = _waLink(r.no_hp, waMsg);
+      var waBtn = waUrl
+        ? '<a href="' + waUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:#25d366;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px">💬 Hubungi & pantau</a>'
+        : '<span style="font-size:11px;color:var(--text-3)">Nomor WA partner belum tersedia</span>';
+      var reaksiChips = ['🔥','🤲','💚','👏','⭐'].map(function(em){
+        return '<button type="button" onclick="pbPickReaksi(\'' + id + '\',\'' + em + '\',this)" '
+          + 'style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;line-height:1">' + em + '</button>';
+      }).join('');
+
+      return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px">'
+          + '<span style="font-weight:800;font-size:13px;color:var(--text)">' + _esc(r.nama_murid) + ' lapor aktivitas</span>'
+          + '<span style="font-size:10px;color:var(--text-3);white-space:nowrap">diajukan ' + _esc(_fmtAgo(r.created_at)) + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px">' + icon + ' ' + _esc(r.jenis_aktivitas) + (r.durasi_menit ? ' · ' + _esc(r.durasi_menit) + ' menit' : '') + '</div>'
+        + (r.deskripsi ? '<div style="font-size:11px;color:var(--blue);margin-bottom:8px;font-weight:600">📝 ' + _esc(r.deskripsi) + '</div>' : '')
+        + '<div style="margin-bottom:10px">' + waBtn + '</div>'
+        + '<div style="border-top:1px dashed var(--border);padding-top:10px">'
+          + '<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Setelah memantau, beri hasilnya</div>'
+          + '<select class="fc" id="pbKel_' + id + '" style="width:100%;margin-bottom:6px">' + kelOpts + '</select>'
+          + '<textarea class="fc" id="pbCat_' + id + '" rows="2" placeholder="Catatan & semangat (mis: makhraj huruf qaf sudah pas, lanjut terus 💪)" style="resize:vertical;margin-bottom:6px"></textarea>'
+          + '<input type="hidden" id="pbReaksi_' + id + '">'
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="pbReaksiWrap_' + id + '">' + reaksiChips + '</div>'
+          + '<button onclick="confirmLogBelajar(\'' + r.id_log + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:10px;font-weight:800;font-size:12px;cursor:pointer;width:100%">✓ Konfirmasi Aktivitas</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    wrap.style.display = 'block';
+    list.innerHTML = '<div style="color:#ef4444;font-size:12px">Gagal memuat: ' + _esc(e.message) + '</div>';
+  }
+}
+
+function pbPickReaksi(idLog, emoji, el) {
+  var input = document.getElementById('pbReaksi_' + idLog);
+  if (!input) return;
+  var wrap = document.getElementById('pbReaksiWrap_' + idLog);
+  var already = input.value === emoji;
+  input.value = already ? '' : emoji;
+  if (wrap) {
+    Array.prototype.forEach.call(wrap.children, function(b){
+      b.style.background = 'var(--bg-2)';
+      b.style.borderColor = 'var(--border)';
+    });
+  }
+  if (!already && el) {
+    el.style.background = 'rgba(22,163,74,0.15)';
+    el.style.borderColor = '#16a34a';
+  }
+}
+
+async function confirmLogBelajar(idLog) {
+  var sel = document.getElementById('pbKel_' + idLog);
+  var cat = document.getElementById('pbCat_' + idLog);
+  var rea = document.getElementById('pbReaksi_' + idLog);
+  var kelancaran = sel ? sel.value : null;
+  var catatan    = cat ? cat.value.trim() : '';
+  var reaksi     = rea ? rea.value : '';
+  try {
+    await window.HQ.MuridAPI.konfirmasiLogBelajar(idLog, kelancaran, catatan, reaksi);
+    toast('Aktivitas dikonfirmasi ✓', 'ok');
+  } catch(e) {
+    if (/sudah dikonfirmasi|tidak ditemukan/i.test(e.message)) {
+      toast('Aktivitas ini sudah dikonfirmasi sebelumnya', 'ok');
+    } else {
+      toast('Gagal konfirmasi: ' + e.message, 'err');
+    }
+  }
+  await loadPartnerBelajarMenunggu();
+  loadPartnerBelajarLiniMasa();
+}
+
+async function submitLogBelajar() {
+  var jenis    = document.getElementById('pbJenisSel').value;
+  var tanggal  = document.getElementById('pbTanggal').value;
+  var deskripsi= document.getElementById('pbDeskripsi').value.trim();
+  var durasi   = document.getElementById('pbDurasi').value;
+
+  if (!_pbKelompok) { toast('Kamu belum tergabung di kelompok belajar', 'err'); return; }
+  if (!jenis) { toast('Pilih jenis aktivitas', 'err'); return; }
+  if (durasi && parseInt(durasi) <= 0) { toast('Durasi tidak valid', 'err'); return; }
+
+  try {
+    if (_pbEditId) {
+      await window.HQ.MuridAPI.updateLogBelajar(_pbEditId, {
+        jenis_aktivitas: jenis, deskripsi: deskripsi, durasi_menit: durasi, tanggal: tanggal,
+      });
+      toast('Aktivitas diperbarui ✓', 'ok');
+      pbCancelEdit();
+    } else {
+      await window.HQ.MuridAPI.addLogBelajar({
+        id_kelompok : _pbKelompok.id_kelompok,
+        id_halaqah  : _pbKelompok.id_halaqah,
+        jenis_aktivitas: jenis,
+        deskripsi   : deskripsi,
+        durasi_menit: durasi,
+        tanggal     : tanggal,
+      });
+      toast('Aktivitas terkirim ke partner ✓', 'ok');
+    }
+    document.getElementById('pbDeskripsi').value = '';
+    document.getElementById('pbDurasi').value    = '';
+    loadPbRiwayat();
+    loadAktivitasTertunda();
+    loadPartnerBelajarLiniMasa();
+  } catch(e) {
+    toast('Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+// Riwayat aktivitas sendiri (semua status): menunggu → edit/batalkan; dikonfirmasi → tampilkan respons partner
+async function loadPbRiwayat() {
+  var list = document.getElementById('pbRiwayatList');
+  if (!list) return;
+  try {
+    var res = await window.HQ.MuridAPI.getLogRingkasSaya();
+    _pbRiwayatData = res.data || [];
+    if (!_pbRiwayatData.length) {
+      list.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--text-3)">📭 Belum ada aktivitas. Laporan pertamamu akan muncul di sini.</div>';
+      return;
+    }
+    list.innerHTML = _pbRiwayatData.map(function(r){
+      var icon = PB_JENIS_ICON[r.jenis_aktivitas] || '📚';
+      var id = _esc(r.id_log);
+      var pending = r.status_konfirmasi === 'menunggu';
+      var statusBadge = pending
+        ? '<span style="font-size:10px;font-weight:800;color:#b45309;background:rgba(245,158,11,.14);border-radius:100px;padding:2px 8px">⏳ Menunggu</span>'
+        : '<span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.12);border-radius:100px;padding:2px 8px">✓ Dikonfirmasi</span>';
+      var aksi = pending
+        ? '<div style="display:flex;gap:6px;margin-top:8px">'
+            + '<button onclick="pbEditLog(\'' + id + '\')" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">✎ Edit</button>'
+            + '<button onclick="pbBatalkanLog(\'' + id + '\')" style="background:rgba(239,68,68,.1);color:#dc2626;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🗑️ Batalkan</button>'
+          + '</div>'
+        : '';
+      var respons = (!pending && (r.catatan_partner || r.reaksi_partner || r.kelancaran))
+        ? '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.2);border-radius:9px;padding:8px 10px;margin-top:8px;font-size:11px;color:#0f766e">'
+            + '<span style="font-weight:800">💬 Dari partner' + (r.reaksi_partner ? ' ' + _esc(r.reaksi_partner) : '') + (r.kelancaran ? ' · ' + _esc(r.kelancaran) : '') + '</span>'
+            + (r.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(r.catatan_partner) + '"</div>' : '')
+          + '</div>'
+        : '';
+      return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px">'
+          + '<span style="font-weight:800;font-size:13px;color:var(--text)">' + icon + ' ' + _esc(r.jenis_aktivitas) + '</span>'
+          + statusBadge
+        + '</div>'
+        + (r.deskripsi ? '<div style="font-size:12px;color:var(--text-2)">' + _esc(r.deskripsi) + '</div>' : '')
+        + '<div style="font-size:10px;color:var(--text-3);margin-top:2px">' + _esc(_fmtDateHafalan(r.tanggal)) + (r.durasi_menit ? ' · ' + _esc(r.durasi_menit) + ' menit' : '') + '</div>'
+        + respons + aksi
+      + '</div>';
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:#ef4444;font-size:12px">Gagal memuat riwayat: ' + _esc(e.message) + '</div>';
+  }
+}
+
+async function pbBatalkanLog(id) {
+  if (!confirm('Batalkan aktivitas ini? Tindakan tidak bisa dibatalkan.')) return;
+  try {
+    await window.HQ.MuridAPI.deleteLogBelajar(id);
+    toast('Aktivitas dibatalkan', 'ok');
+    if (_pbEditId === id) pbCancelEdit();
+    loadPbRiwayat();
+    loadAktivitasTertunda();
+  } catch(e) { toast('Gagal membatalkan: ' + e.message, 'err'); }
+}
+function pbEditLog(id) {
+  var r = _pbRiwayatData.filter(function(x){ return x.id_log === id; })[0];
+  if (!r) return;
+  _pbEditId = id;
+  document.getElementById('pbJenisSel').value  = r.jenis_aktivitas || 'Tilawah';
+  document.getElementById('pbDeskripsi').value = r.deskripsi || '';
+  document.getElementById('pbDurasi').value    = r.durasi_menit || '';
+  if (r.tanggal) document.getElementById('pbTanggal').value = r.tanggal;
+  var btn = document.getElementById('pbSubmitBtn');
+  if (btn) btn.innerHTML = '💾 Simpan Perubahan';
+  var cbtn = document.getElementById('pbCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'block';
+  if (btn && btn.scrollIntoView) btn.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function pbCancelEdit() {
+  _pbEditId = null;
+  var btn = document.getElementById('pbSubmitBtn');
+  if (btn) btn.innerHTML = '📚 Simpan &amp; Kirim ke Partner';
+  var cbtn = document.getElementById('pbCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'none';
+  document.getElementById('pbDeskripsi').value = '';
+  document.getElementById('pbDurasi').value    = '';
+}
+
+// Kartu "Partner Belajar" di Dashboard — CTA state-aware (mirror loadPartnerDashCard)
+async function loadPartnerBelajarDashCard() {
+  var card  = document.getElementById('dashPartnerBelajarCard');
+  var body  = document.getElementById('dashPartnerBelajarBody');
+  var badge = document.getElementById('dashPartnerBelajarBadge');
+  if (!card || !body) return;
+  try {
+    var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
+    var kel = resKel.data;
+    if (!kel) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    var both = await Promise.all([
+      window.HQ.MuridAPI.getStatusKelompokBelajar(),
+      window.HQ.MuridAPI.getLogMenungguKonfirmasi(),
+      window.HQ.MuridAPI.getLogRingkasSaya(),
+    ]);
+    var statusList = both[0].data || [];
+    var jumlahMenunggu = (both[1].data || []).length;
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+    // Notif: aktivitas sendiri yang baru dikonfirmasi partner + ada pesan (3 hari terakhir)
+    var notifHtml = '';
+    var recent = (both[2].data || []).filter(function(r){
+      var when = r.updated_at || r.created_at;
+      return r.status_konfirmasi === 'dikonfirmasi' && (r.catatan_partner || r.reaksi_partner)
+        && when && (Date.now() - new Date(when).getTime()) < 3*86400000;
+    })[0];
+    if (recent) {
+      notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
+        + '<span style="font-weight:800">💚 Partnermu mengonfirmasi aktivitasmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+        + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
+      + '</div>';
+    }
+
+    var myRow = null;
+    for (var i = 0; i < statusList.length; i++) { if (statusList[i].id_murid === myId) { myRow = statusList[i]; break; } }
+    var myLast = myRow && myRow.tanggal_terakhir;
+    var hariSejak = myLast ? Math.floor((Date.now() - new Date(myLast).getTime()) / 86400000) : null;
+
+    var ctaHtml = '';
+    if (jumlahMenunggu > 0) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🎧 Ada ' + jumlahMenunggu + ' teman lapor aktivitas — pantau lalu konfirmasi</div>';
+    } else if (myLast === null) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '📚 Belum ada aktivitas. Mulai catat belajar mandirimu</div>';
+    } else if (hariSejak >= 3) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '📚 Sudah ' + hariSejak + ' hari belum catat aktivitas. Partnermu menanti kabarmu</div>';
+    }
+
+    var rows = statusList.map(function(m){
+      var isMe = m.id_murid === myId;
+      var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada aktivitas';
+      var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+      var waBtn = isMe ? '' : _pbMemberWaBtn(m.nama_murid, m.no_hp);
+      return '<div class="partner-dash-row">'
+        + '<span class="partner-dash-name">' + nameLabel + '</span>'
+        + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
+        + '</div>';
+    }).join('');
+    body.innerHTML = notifHtml + ctaHtml
+      + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Belajar') + '</div>'
+      + rows;
+
+    var sbBadge = document.getElementById('sidebarBelajarBadge');
+    if (badge) {
+      if (jumlahMenunggu > 0) { badge.style.display = 'inline-flex'; badge.textContent = jumlahMenunggu + ' menunggu konfirmasi'; }
+      else { badge.style.display = 'none'; }
+    }
+    if (sbBadge) {
+      if (jumlahMenunggu > 0) { sbBadge.style.display = 'inline-flex'; sbBadge.textContent = jumlahMenunggu; }
+      else { sbBadge.style.display = 'none'; }
+    }
+  } catch(e) {
+    card.style.display = 'none';
+  }
 }
 
 // ── Tab Riwayat / Raport ──────────────────────────────────────────────
