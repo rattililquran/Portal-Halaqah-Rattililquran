@@ -1658,10 +1658,16 @@ var GuruAPI = {
 
   // #4 Target bersama kelompok (guru/admin)
   getTargetByKelompok: async function(id_kelompok) {
-    var { data, error } = await _sb.from('target_kelompok_partner')
-      .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
-    _check(error, 'getTargetByKelompok');
-    return { status: 'ok', data: data || [] };
+    var res = await _sb.from('target_kelompok_partner')
+      .select('*, target_partner_progress(id_murid, nama_murid)')
+      .eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+    if (res.error) {
+      var fb = await _sb.from('target_kelompok_partner')
+        .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+      _check(fb.error, 'getTargetByKelompok');
+      return { status: 'ok', data: fb.data || [] };
+    }
+    return { status: 'ok', data: res.data || [] };
   },
   addTargetByKelompok: async function(d) {
     var user = _currentUser || {};

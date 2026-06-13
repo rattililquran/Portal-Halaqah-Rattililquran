@@ -4165,17 +4165,24 @@ async function kqGuruKonfirmasi(id_setoran) {
   } catch(e) { toast('Gagal: '+e.message, 'err'); }
 }
 
-// ── #4 Target bersama kelompok (admin) ──
-function _kqRenderTargetHtml(targets) {
-  const aktif = (targets || []).filter(t => t.status === 'aktif');
+// ── #4 Target bersama kelompok (admin) ── konsensus: progres X/Y dari murid
+function _kqRenderTargetHtml(targets, total) {
+  total = total || 0;
   let html = `<div style="display:flex;gap:6px;margin-bottom:8px"><input type="text" class="fc" id="kqTgtInput" placeholder="Target baru (mis: Khatam Juz 30)" style="flex:1;font-size:11px;padding:5px 8px"><button onclick="kqAddTarget('__K__')" style="background:#d97706;color:#fff;border:none;border-radius:7px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer">+ Set</button></div>`;
-  if (!aktif.length) return html + `<div style="font-size:11px;color:var(--text-3)">Belum ada target aktif.</div>`;
-  return html + aktif.map(t =>
-    `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">`
-    + `<span style="font-size:11px;font-weight:700;color:#92400e">🎯 ${esc(t.judul)}</span>`
-    + `<span style="display:flex;gap:4px"><button onclick="kqMarkTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>`
+  if (!(targets || []).length) return html + `<div style="font-size:11px;color:var(--text-3)">Belum ada target.</div>`;
+  return html + targets.map(t => {
+    const done = (t.target_partner_progress || []).length;
+    const tercapai = t.status === 'tercapai';
+    const badge = tercapai
+      ? `<span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px">🎉 tercapai</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:1px 7px">${done}/${total} selesai</span>`;
+    const markBtn = tercapai ? '' : `<button onclick="kqMarkTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" title="Tandai tercapai (paksa, override konsensus)" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">`
+    + `<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0">🎯 ${esc(t.judul)} ${badge}</span>`
+    + `<span style="display:flex;gap:4px;flex-shrink:0">${markBtn}`
     + `<button onclick="kqDeleteTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button></span>`
-  + `</div>`).join('');
+  + `</div>`;
+  }).join('');
 }
 async function _kqLoadTarget(id_kelompok) {
   const c = document.getElementById('kqTarget_' + id_kelompok);
@@ -4183,8 +4190,10 @@ async function _kqLoadTarget(id_kelompok) {
   c.style.display = 'block';
   c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
   try {
+    const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+    const total = k ? (k.anggota_kelompok_partner || []).length : 0;
     const res = await window.HQ.AdminAPI.getTargetByKelompok(id_kelompok);
-    c.innerHTML = _kqRenderTargetHtml(res.data || []).replace(/__K__/g, id_kelompok);
+    c.innerHTML = _kqRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
   } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
 }
 function kqToggleTarget(id_kelompok) {
@@ -4204,6 +4213,7 @@ async function kqAddTarget(id_kelompok) {
   } catch(e) { toast('Gagal: '+e.message, 'err'); }
 }
 async function kqMarkTarget(id_target, id_kelompok) {
+  if (!confirm('Tandai target ini TERCAPAI untuk seluruh kelompok? Ini menimpa konsensus murid (tidak menunggu semua anggota menandai).')) return;
   try {
     await window.HQ.AdminAPI.updateTargetByKelompok(id_target, { status: 'tercapai' });
     toast('Target tercapai', 'ok');
