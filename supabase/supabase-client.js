@@ -98,6 +98,16 @@ function _todayJakarta() {
   return y + '-' + m + '-' + d;
 }
 
+// Daftar nama_level dengan partner_belajar_enabled=true (cache ringan per sesi)
+var _belajarLevelNamesCache = null;
+async function _belajarLevelNames() {
+  if (_belajarLevelNamesCache) return _belajarLevelNamesCache;
+  var { data, error } = await _sb.from('level').select('nama_level').eq('partner_belajar_enabled', true);
+  if (error) return [];
+  _belajarLevelNamesCache = (data || []).map(function(l) { return l.nama_level; });
+  return _belajarLevelNamesCache;
+}
+
 // ─────────────────────────────────────────────
 //  AUTH
 // ─────────────────────────────────────────────
@@ -1722,6 +1732,192 @@ var GuruAPI = {
     _check(error, 'deleteKelompokPartner');
     return { status: 'ok' };
   },
+
+  // ── Kelompok Partner Belajar (Level 1-4, non-Qiyam) ──────────────────
+  // Daftar nama_level dengan Partner Belajar aktif (untuk filter selector)
+  getLevelBelajarEnabled: async function() {
+    var data = await _belajarLevelNames();
+    return { status: 'ok', data: data };
+  },
+
+  // Halaqah guru dengan level partner_belajar_enabled=true
+  getBelajarHalaqah: async function() {
+    var namaLevels = await _belajarLevelNames();
+    if (!namaLevels.length) return { status: 'ok', data: [] };
+    var { data, error } = await _sb.from('halaqah')
+      .select('id_halaqah, nama_halaqah, level, jadwal_hari, jam_mulai, jam_selesai')
+      .eq('id_guru', _uid())
+      .in('level', namaLevels)
+      .eq('status', 'aktif')
+      .order('nama_halaqah');
+    _check(error, 'getBelajarHalaqah');
+    if (data) {
+      data = data.map(function(h) {
+        return Object.assign({}, h, {
+          jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
+          jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null
+        });
+      });
+    }
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Murid aktif di halaqah Partner Belajar tertentu (untuk form kelompok)
+  getMuridBelajar: async function(id_halaqah) {
+    var { data, error } = await _sb.from('anggota')
+      .select('id_murid, nama_murid')
+      .eq('id_halaqah', id_halaqah)
+      .eq('status', 'aktif')
+      .order('nama_murid');
+    _check(error, 'getMuridBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+
+  getKelompokBelajarHalaqah: async function(id_halaqah) {
+    var { data, error } = await _sb.from('kelompok_partner_belajar')
+      .select('*, anggota_kelompok_belajar(*)')
+      .eq('id_halaqah', id_halaqah)
+      .order('created_at', { ascending: true });
+    _check(error, 'getKelompokBelajarHalaqah');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Pantau denyut tiap anggota kelompok belajar di sebuah halaqah
+  // (tanggal aktivitas terakhir, jumlah menunggu/dikonfirmasi, no_hp)
+  getPantauKelompokBelajar: async function(id_halaqah) {
+    var { data, error } = await _sb.rpc('get_pantau_kelompok_belajar', { p_id_halaqah: id_halaqah });
+    _check(error, 'getPantauKelompokBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // ── Lini Masa Kelompok untuk guru/admin (per kelompok) ──
+  getLiniMasaBelajarKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.rpc('get_lini_masa_belajar', { p_id_kelompok: id_kelompok });
+    _check(error, 'getLiniMasaBelajarKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  getMilestoneBelajarByKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.from('milestone_kelompok_belajar')
+      .select('*').eq('id_kelompok', id_kelompok)
+      .order('tanggal', { ascending: false }).order('created_at', { ascending: false });
+    _check(error, 'getMilestoneBelajarByKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  addMilestoneBelajarKelompok: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok  : d.id_kelompok,
+      id_halaqah   : d.id_halaqah,
+      judul        : d.judul,
+      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      dibuat_oleh  : _uid(),
+      nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
+    };
+    var { data, error } = await _sb.from('milestone_kelompok_belajar').insert(payload).select().single();
+    _check(error, 'addMilestoneBelajarKelompok');
+    return { status: 'ok', data: data };
+  },
+  deleteMilestoneBelajarKelompok: async function(id_milestone) {
+    var { error } = await _sb.from('milestone_kelompok_belajar').delete().eq('id_milestone', id_milestone);
+    _check(error, 'deleteMilestoneBelajarKelompok');
+    return { status: 'ok' };
+  },
+
+  // Konfirmasi aktivitas belajar oleh guru/admin (jalan keluar bila partner berhalangan)
+  guruKonfirmasiLogBelajar: async function(id_log, kelancaran, catatan) {
+    var { error } = await _sb.rpc('guru_konfirmasi_log_belajar', {
+      p_id_log: id_log, p_kelancaran: kelancaran, p_catatan: catatan || null,
+    });
+    _check(error, 'guruKonfirmasiLogBelajar');
+    return { status: 'ok' };
+  },
+  // Daftar aktivitas belajar yang masih menunggu di sebuah halaqah (untuk guru konfirmasi)
+  getLogBelajarMenungguHalaqah: async function(id_halaqah) {
+    var { data, error } = await _sb.from('log_belajar_mandiri')
+      .select('id_log, id_murid, nama_murid, tanggal, jenis_aktivitas, deskripsi, durasi_menit, created_at')
+      .eq('id_halaqah', id_halaqah).eq('status_konfirmasi', 'menunggu')
+      .order('created_at', { ascending: true });
+    _check(error, 'getLogBelajarMenungguHalaqah');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Target bersama kelompok (guru/admin)
+  getTargetBelajarByKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.from('target_kelompok_belajar')
+      .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+    _check(error, 'getTargetBelajarByKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  addTargetBelajarByKelompok: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok : d.id_kelompok,
+      id_halaqah  : d.id_halaqah,
+      judul       : d.judul,
+      tanggal_target: d.tanggal_target || null,
+      dibuat_oleh : _uid(),
+      nama_pembuat: (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
+    };
+    var { data, error } = await _sb.from('target_kelompok_belajar').insert(payload).select().single();
+    _check(error, 'addTargetBelajarByKelompok');
+    return { status: 'ok', data: data };
+  },
+  updateTargetBelajarByKelompok: async function(id_target, updates) {
+    var { error } = await _sb.from('target_kelompok_belajar').update(updates).eq('id_target', id_target);
+    _check(error, 'updateTargetBelajarByKelompok');
+    return { status: 'ok' };
+  },
+  deleteTargetBelajarByKelompok: async function(id_target) {
+    var { error } = await _sb.from('target_kelompok_belajar').delete().eq('id_target', id_target);
+    _check(error, 'deleteTargetBelajarByKelompok');
+    return { status: 'ok' };
+  },
+
+  // Buat kelompok baru (3-4 anggota). anggota: [{id_murid, nama_murid}]
+  // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
+  // insert anggota gagal (validasi roster/aktif atau koneksi putus)
+  createKelompokBelajar: async function(id_halaqah, nama_kelompok, anggota) {
+    var rows = (anggota || []).map(function(a) {
+      return { id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+    });
+    var { data: id_kelompok, error } = await _sb.rpc('create_kelompok_belajar', {
+      p_id_halaqah: id_halaqah, p_nama_kelompok: nama_kelompok || null, p_anggota: rows
+    });
+    _check(error, 'createKelompokBelajar');
+    return { status: 'ok', data: { id_kelompok: id_kelompok } };
+  },
+
+  // Ubah nama/status kelompok
+  updateKelompokBelajar: async function(id_kelompok, updates) {
+    var payload = { updated_at: new Date().toISOString() };
+    if (updates.nama_kelompok !== undefined) payload.nama_kelompok = updates.nama_kelompok;
+    if (updates.status !== undefined)        payload.status = updates.status;
+    var { error } = await _sb.from('kelompok_partner_belajar').update(payload).eq('id_kelompok', id_kelompok);
+    _check(error, 'updateKelompokBelajar');
+    return { status: 'ok' };
+  },
+
+  // Ganti seluruh anggota kelompok (replace, 3-4 anggota). anggota: [{id_murid, nama_murid}]
+  // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok tanpa
+  // anggota jika insert pengganti gagal (validasi roster/aktif atau koneksi putus)
+  setAnggotaKelompokBelajar: async function(id_kelompok, anggota) {
+    var rows = (anggota || []).map(function(a) {
+      return { id_murid: a.id_murid, nama_murid: a.nama_murid || null };
+    });
+    var { error } = await _sb.rpc('set_anggota_kelompok_belajar', {
+      p_id_kelompok: id_kelompok, p_anggota: rows
+    });
+    _check(error, 'setAnggotaKelompokBelajar');
+    return { status: 'ok' };
+  },
+
+  // Hapus kelompok (anggota ikut terhapus via on delete cascade; log_belajar_mandiri
+  // TIDAK ikut terhapus -- id_kelompok tanpa FK, riwayat aktivitas tetap utuh)
+  deleteKelompokBelajar: async function(id_kelompok) {
+    var { error } = await _sb.from('kelompok_partner_belajar').delete().eq('id_kelompok', id_kelompok);
+    _check(error, 'deleteKelompokBelajar');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -1939,16 +2135,24 @@ var MuridAPI = {
       .limit(1)
       .maybeSingle();
 
+    // Apakah level halaqah murid mengaktifkan Partner Belajar (gating UI). Non-fatal:
+    // kalau kolom/baris belum ada (migration 020 belum jalan), anggap false.
+    var levelBelajarQuery = (anggota && anggota.halaqah && anggota.halaqah.level)
+      ? _sb.from('level').select('partner_belajar_enabled').eq('nama_level', anggota.halaqah.level).maybeSingle()
+      : Promise.resolve({ data: null });
+
     var [
       { data: pengumuman },
       { data: prRaw },
       qiyamCountRes,
-      qiyamLatestRes
+      qiyamLatestRes,
+      levelBelajarRes
     ] = await Promise.all([
       pengumumanQuery,
       prQuery,
       qiyamCountQuery,
-      qiyamLatestQuery
+      qiyamLatestQuery,
+      levelBelajarQuery
     ]);
 
     _check(qiyamLatestRes.error, 'getDashboard - qiyamLatest');
@@ -2013,6 +2217,7 @@ var MuridAPI = {
         jam       : hq.jam_mulai    ? String(hq.jam_mulai).substring(0, 5)    : '',
         jam_selesai: hq.jam_selesai ? String(hq.jam_selesai).substring(0, 5)  : '',
         id_halaqah: hq.id_halaqah   || '',
+        partner_belajar_enabled: !!(levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.partner_belajar_enabled),
       },
       kehadiran: {
         skor_hadir  : regHadir,
@@ -2681,6 +2886,157 @@ var MuridAPI = {
     return { status: 'ok' };
   },
 
+  // ── Kelompok Partner Belajar (Level 1-4, non-Qiyam) ──────────────────
+  // Kelompok belajar aktif milik murid (beserta anggota)
+  getMyKelompokBelajar: async function() {
+    var { data, error } = await _sb.from('kelompok_partner_belajar')
+      .select('*, anggota_kelompok_belajar(*)')
+      .eq('status', 'aktif')
+      .maybeSingle();
+    _check(error, 'getMyKelompokBelajar');
+    return { status: 'ok', data: data || null };
+  },
+
+  // Lapor aktivitas belajar mandiri
+  addLogBelajar: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok    : d.id_kelompok,
+      id_halaqah     : d.id_halaqah,
+      id_murid       : _uid(),
+      nama_murid     : (user && (user.nama_lengkap || user.nama)) || '',
+      jenis_aktivitas: d.jenis_aktivitas,
+      deskripsi      : d.deskripsi || null,
+      durasi_menit   : d.durasi_menit ? parseInt(d.durasi_menit) : null,
+      status_konfirmasi: 'menunggu',
+      kelancaran     : null,
+    };
+    if (d.tanggal) payload.tanggal = d.tanggal;
+    var { data, error } = await _sb.from('log_belajar_mandiri').insert(payload).select().single();
+    _check(error, 'addLogBelajar');
+    return { status: 'ok', data: data };
+  },
+
+  // Daftar aktivitas partner sekelompok yang menunggu konfirmasi
+  getLogMenungguKonfirmasi: async function() {
+    var { data, error } = await _sb.rpc('get_log_menunggu_konfirmasi');
+    _check(error, 'getLogMenungguKonfirmasi');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Konfirmasi aktivitas partner + isi kelancaran, catatan & reaksi
+  konfirmasiLogBelajar: async function(id_log, kelancaran, catatan_partner, reaksi_partner) {
+    var { error } = await _sb.rpc('konfirmasi_log_belajar', {
+      p_id_log          : id_log,
+      p_kelancaran      : kelancaran,
+      p_catatan_partner : catatan_partner || null,
+      p_reaksi_partner  : reaksi_partner || null,
+    });
+    _check(error, 'konfirmasiLogBelajar');
+    return { status: 'ok' };
+  },
+
+  // Tanggal aktivitas terakhir tiap anggota kelompok — kartu status pasif
+  getStatusKelompokBelajar: async function() {
+    var { data, error } = await _sb.rpc('get_status_kelompok_belajar');
+    _check(error, 'getStatusKelompokBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // ── Lini Masa Kelompok — auto-feed aktivitas + milestone manual ──
+  getLiniMasaBelajar: async function() {
+    var { data, error } = await _sb.rpc('get_lini_masa_belajar', { p_id_kelompok: null });
+    _check(error, 'getLiniMasaBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+  // Milestone manual kelompok sendiri (RLS membatasi ke kelompok murid)
+  getMyMilestonesBelajar: async function() {
+    var { data, error } = await _sb.from('milestone_kelompok_belajar')
+      .select('*').order('tanggal', { ascending: false }).order('created_at', { ascending: false });
+    _check(error, 'getMyMilestonesBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+  addMilestoneBelajar: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok  : d.id_kelompok,
+      id_halaqah   : d.id_halaqah,
+      judul        : d.judul,
+      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      dibuat_oleh  : _uid(),
+      nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
+    };
+    var { data, error } = await _sb.from('milestone_kelompok_belajar').insert(payload).select().single();
+    _check(error, 'addMilestoneBelajar');
+    return { status: 'ok', data: data };
+  },
+  deleteMilestoneBelajar: async function(id_milestone) {
+    var { error } = await _sb.from('milestone_kelompok_belajar').delete().eq('id_milestone', id_milestone);
+    _check(error, 'deleteMilestoneBelajar');
+    return { status: 'ok' };
+  },
+
+  // Batalkan / edit aktivitas mandiri yang masih 'menunggu'
+  deleteLogBelajar: async function(id_log) {
+    var { error } = await _sb.from('log_belajar_mandiri').delete()
+      .eq('id_log', id_log).eq('id_murid', _uid()).eq('status_konfirmasi', 'menunggu');
+    _check(error, 'deleteLogBelajar');
+    return { status: 'ok' };
+  },
+  updateLogBelajar: async function(id_log, d) {
+    var payload = {};
+    if (d.jenis_aktivitas !== undefined) payload.jenis_aktivitas = d.jenis_aktivitas;
+    if (d.deskripsi       !== undefined) payload.deskripsi       = d.deskripsi || null;
+    if (d.durasi_menit    !== undefined) payload.durasi_menit    = d.durasi_menit ? parseInt(d.durasi_menit) : null;
+    if (d.tanggal         !== undefined) payload.tanggal         = d.tanggal;
+    var { error } = await _sb.from('log_belajar_mandiri').update(payload)
+      .eq('id_log', id_log).eq('id_murid', _uid()).eq('status_konfirmasi', 'menunggu');
+    _check(error, 'updateLogBelajar');
+    return { status: 'ok' };
+  },
+
+  // Riwayat aktivitas sendiri (semua status) — data utk Riwayat & "aktivitas tertunda"
+  getLogRingkasSaya: async function() {
+    var { data, error } = await _sb.from('log_belajar_mandiri')
+      .select('id_log, jenis_aktivitas, deskripsi, durasi_menit, tanggal, status_konfirmasi, kelancaran, catatan_partner, reaksi_partner, created_at, updated_at')
+      .eq('id_murid', _uid())
+      .order('created_at', { ascending: false });
+    _check(error, 'getLogRingkasSaya');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Target bersama kelompok (murid)
+  getTargetKelompokBelajar: async function() {
+    var { data, error } = await _sb.from('target_kelompok_belajar')
+      .select('*').order('created_at', { ascending: false });
+    _check(error, 'getTargetKelompokBelajar');
+    return { status: 'ok', data: data || [] };
+  },
+  addTargetKelompokBelajar: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok : d.id_kelompok,
+      id_halaqah  : d.id_halaqah,
+      judul       : d.judul,
+      tanggal_target: d.tanggal_target || null,
+      dibuat_oleh : _uid(),
+      nama_pembuat: (user && (user.nama_lengkap || user.nama)) || '',
+    };
+    var { data, error } = await _sb.from('target_kelompok_belajar').insert(payload).select().single();
+    _check(error, 'addTargetKelompokBelajar');
+    return { status: 'ok', data: data };
+  },
+  updateTargetKelompokBelajar: async function(id_target, updates) {
+    var { error } = await _sb.from('target_kelompok_belajar').update(updates).eq('id_target', id_target);
+    _check(error, 'updateTargetKelompokBelajar');
+    return { status: 'ok' };
+  },
+  deleteTargetKelompokBelajar: async function(id_target) {
+    var { error } = await _sb.from('target_kelompok_belajar').delete().eq('id_target', id_target);
+    _check(error, 'deleteTargetKelompokBelajar');
+    return { status: 'ok' };
+  },
+
   // Target hafalan berikutnya (setoran terbaru yang punya target_surat)
   getTargetHafalan: async function() {
     var { data, error } = await _sb.from('setoran_hafalan')
@@ -2979,6 +3335,26 @@ var AdminAPI = {
   updateKelompokPartner: async function(id_kelompok, updates) { return GuruAPI.updateKelompokPartner(id_kelompok, updates); },
   setAnggotaKelompok: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompok(id_kelompok, anggota); },
   deleteKelompokPartner: async function(id_kelompok) { return GuruAPI.deleteKelompokPartner(id_kelompok); },
+
+  // Kelompok Partner Belajar — admin lihat/atur lintas halaqah (RLS admin_all_*)
+  getLevelBelajarEnabled: async function() { return GuruAPI.getLevelBelajarEnabled(); },
+  getMuridBelajar: async function(id_halaqah) { return GuruAPI.getMuridBelajar(id_halaqah); },
+  getKelompokBelajarHalaqah: async function(id_halaqah) { return GuruAPI.getKelompokBelajarHalaqah(id_halaqah); },
+  getPantauKelompokBelajar: async function(id_halaqah) { return GuruAPI.getPantauKelompokBelajar(id_halaqah); },
+  getLiniMasaBelajarKelompok: async function(id_kelompok) { return GuruAPI.getLiniMasaBelajarKelompok(id_kelompok); },
+  getMilestoneBelajarByKelompok: async function(id_kelompok) { return GuruAPI.getMilestoneBelajarByKelompok(id_kelompok); },
+  addMilestoneBelajarKelompok: async function(d) { return GuruAPI.addMilestoneBelajarKelompok(d); },
+  deleteMilestoneBelajarKelompok: async function(id_milestone) { return GuruAPI.deleteMilestoneBelajarKelompok(id_milestone); },
+  guruKonfirmasiLogBelajar: async function(id_log, kelancaran, catatan) { return GuruAPI.guruKonfirmasiLogBelajar(id_log, kelancaran, catatan); },
+  getLogBelajarMenungguHalaqah: async function(id_halaqah) { return GuruAPI.getLogBelajarMenungguHalaqah(id_halaqah); },
+  getTargetBelajarByKelompok: async function(id_kelompok) { return GuruAPI.getTargetBelajarByKelompok(id_kelompok); },
+  addTargetBelajarByKelompok: async function(d) { return GuruAPI.addTargetBelajarByKelompok(d); },
+  updateTargetBelajarByKelompok: async function(id_target, updates) { return GuruAPI.updateTargetBelajarByKelompok(id_target, updates); },
+  deleteTargetBelajarByKelompok: async function(id_target) { return GuruAPI.deleteTargetBelajarByKelompok(id_target); },
+  createKelompokBelajar: async function(id_halaqah, nama_kelompok, anggota) { return GuruAPI.createKelompokBelajar(id_halaqah, nama_kelompok, anggota); },
+  updateKelompokBelajar: async function(id_kelompok, updates) { return GuruAPI.updateKelompokBelajar(id_kelompok, updates); },
+  setAnggotaKelompokBelajar: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompokBelajar(id_kelompok, anggota); },
+  deleteKelompokBelajar: async function(id_kelompok) { return GuruAPI.deleteKelompokBelajar(id_kelompok); },
 
   getAllPeriode: async function() { return GuruAPI.getAllPeriode(); },
   createPeriode: async function(d) { var {data,error}=await _sb.from('periode').insert(d).select().single(); _check(error,'createPeriode'); return {status:'ok',data}; },
