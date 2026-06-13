@@ -3986,6 +3986,28 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
             <div id="pqMenungguList"></div>
           </div>
 
+          <!-- #4 Target Bersama Kelompok -->
+          <div id="pqTargetCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">🎯 Target Bersama</div>
+              <button onclick="pqToggleTargetForm()" id="pqTargetBtn" style="background:rgba(245,158,11,.14);color:#b45309;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Set Target</button>
+            </div>
+            <div id="pqTargetForm" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">
+              <input type="text" class="fc" id="pqTargetJudul" placeholder="Mis: Khatam muraja'ah Juz 30 bersama" style="margin-bottom:6px">
+              <div style="display:flex;gap:6px">
+                <input type="date" class="fc" id="pqTargetTgl" style="flex:1">
+                <button onclick="pqSaveTarget()" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">Simpan</button>
+              </div>
+            </div>
+            <div id="pqTargetBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+          </div>
+
+          <!-- #1 Saran Muraja'ah -->
+          <div id="pqMurajaahCard" style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border:1px solid rgba(13,148,136,.2);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
+            <div style="font-size:13px;font-weight:800;color:#0f766e;margin-bottom:8px">🔄 Saatnya Muraja'ah</div>
+            <div id="pqMurajaahBody" style="font-size:12px;color:var(--text-2)"></div>
+          </div>
+
           <!-- Form Setoran Mandiri -->
           <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px">
             <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px">📝 Setor ke Partner</div>
@@ -4032,8 +4054,11 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
               <textarea class="fc" id="pqCatatan" rows="2" placeholder="Mis: tolong perhatikan tajwid ayat 5-7, aku masih ragu..." style="resize:vertical"></textarea>
             </div>
 
-            <button onclick="submitSetoranMandiri()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%">
+            <button id="pqSubmitBtn" onclick="submitSetoranMandiri()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%">
               🤝 Simpan & Kirim ke Partner
+            </button>
+            <button id="pqCancelEditBtn" onclick="pqCancelEdit()" style="display:none;background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-top:6px">
+              Batal Edit
             </button>
           </div>
 
@@ -8989,6 +9014,15 @@ function _renderHafalanList() {
         + '</div>';
     }
 
+    // #2: setoran mandiri yang masih menunggu boleh dibatalkan/diedit murid sendiri
+    var pendingActions = '';
+    if (isPartner && r.status_konfirmasi === 'menunggu') {
+      pendingActions = '<div style="display:flex;gap:8px;margin-top:8px">'
+        + '<button onclick="pqEditSetoran(\'' + _esc(r.id_setoran) + '\')" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">✏️ Edit</button>'
+        + '<button onclick="pqBatalkanSetoran(\'' + _esc(r.id_setoran) + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">✕ Batalkan</button>'
+      + '</div>';
+    }
+
     var statusBadge;
     var sumberInfo;
     if (isPartner) {
@@ -9017,7 +9051,7 @@ function _renderHafalanList() {
         + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + _esc(r.ayat_dari) + '</strong> – <strong>' + _esc(r.ayat_sampai) + '</strong>'
           + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
         + '<div style="font-size:11px;color:var(--text-3)">' + _fmtDateHafalan(r.updated_at || r.created_at) + ' &nbsp;·&nbsp; ' + sumberInfo + '</div>'
-        + catatan + target + responsPartner
+        + catatan + target + responsPartner + pendingActions
       + '</div>'
     + '</div>';
   }).join('');
@@ -9178,6 +9212,107 @@ async function _initPartnerPanel() {
   // supaya setoran baru dari partner tidak basi (lihat error "sudah dikonfirmasi" akibat klik item lama).
   await Promise.all([loadPartnerKelompok(), loadPartnerMenunggu()]);
   loadPartnerLiniMasa();
+  loadMurajaahSuggest();
+  loadTargetKelompok();
+}
+
+// #1 Saran Muraja'ah (spaced repetition): surat yang sudah dihafal tapi lama tak disentuh
+async function loadMurajaahSuggest() {
+  var card = document.getElementById('pqMurajaahCard');
+  var body = document.getElementById('pqMurajaahBody');
+  if (!card || !body) return;
+  if (!_pqKelompok) { card.style.display = 'none'; return; }
+  try {
+    var res = await window.HQ.MuridAPI.getSetoranRingkasSaya();
+    var rows = res.data || [];
+    var map = {};
+    rows.forEach(function(r){
+      var sah = (r.sumber === 'guru') || (r.sumber === 'partner' && r.status_konfirmasi === 'dikonfirmasi');
+      if (!sah) return;
+      if (!map[r.surat]) map[r.surat] = { surat:r.surat, juz:r.juz, memorized:false, last:0 };
+      if (r.jenis === 'Ziyadah') map[r.surat].memorized = true;
+      var t = new Date(r.created_at).getTime();
+      if (t > map[r.surat].last) map[r.surat].last = t;
+    });
+    var now = Date.now();
+    var suggest = Object.keys(map).map(function(k){ return map[k]; })
+      .filter(function(m){ return m.memorized && (now - m.last) >= 7*86400000; })
+      .sort(function(a,b){ return a.last - b.last; }).slice(0,3);
+    if (!suggest.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    body.innerHTML = suggest.map(function(m){
+      var hari = Math.floor((now - m.last)/86400000);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
+        + '<div><span style="font-weight:700;color:var(--text)">QS. ' + _esc(m.surat) + '</span> <span style="color:var(--text-3);font-size:11px">· terakhir ' + hari + ' hari lalu</span></div>'
+        + '<button onclick="pqMurajaahNow(\'' + _esc(m.surat) + '\',\'' + (m.juz||'') + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Muraja\'ah</button>'
+      + '</div>';
+    }).join('');
+  } catch(e) { card.style.display = 'none'; }
+}
+function pqMurajaahNow(surat, juz) {
+  switchHafalanTab('partner');
+  document.getElementById('pqJenisSel').value = 'Murajaah';
+  document.getElementById('pqSuratInput').value = surat;
+  if (juz) document.getElementById('pqJuzInput').value = juz;
+  onPqJenisChange();
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn && btn.scrollIntoView) btn.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// #4 Target bersama kelompok
+async function loadTargetKelompok() {
+  var card = document.getElementById('pqTargetCard');
+  var body = document.getElementById('pqTargetBody');
+  if (!card || !body) return;
+  if (!_pqKelompok) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  var ttgl = document.getElementById('pqTargetTgl');
+  if (ttgl && !ttgl.value) ttgl.value = new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+  try {
+    var res = await window.HQ.MuridAPI.getTargetKelompok();
+    var aktif = (res.data || []).filter(function(t){ return t.status === 'aktif'; });
+    if (!aktif.length) { body.innerHTML = '<div style="color:var(--text-3)">Belum ada target. Tetapkan tujuan bersama kelompok 🎯</div>'; return; }
+    body.innerHTML = aktif.map(function(t){
+      var dl = t.tanggal_target ? '<span style="color:var(--text-3);font-size:11px"> · target ' + _esc(_fmtDateHafalan(t.tanggal_target)) + '</span>' : '';
+      return '<div style="padding:8px 10px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);margin-bottom:6px">'
+        + '<div style="font-weight:800;color:#92400e">🎯 ' + _esc(t.judul) + dl + '</div>'
+        + '<div style="display:flex;gap:8px;margin-top:6px">'
+          + '<button onclick="pqMarkTarget(\'' + _esc(t.id_target) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">✓ Tercapai</button>'
+          + '<button onclick="pqDeleteTarget(\'' + _esc(t.id_target) + '\')" style="background:var(--bg-2);color:var(--text-3);border:1px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Hapus</button>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  } catch(e) { body.innerHTML = '<div style="color:#ef4444">Gagal memuat target: ' + _esc(e.message) + '</div>'; }
+}
+function pqToggleTargetForm() { var f = document.getElementById('pqTargetForm'); if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
+async function pqSaveTarget() {
+  var judul = (document.getElementById('pqTargetJudul').value || '').trim();
+  var tgl = document.getElementById('pqTargetTgl').value;
+  if (!judul) { toast('Tulis dulu targetnya', 'err'); return; }
+  if (!_pqKelompok) { toast('Kamu belum tergabung di kelompok partner', 'err'); return; }
+  try {
+    await window.HQ.MuridAPI.addTargetKelompok({ id_kelompok:_pqKelompok.id_kelompok, id_halaqah:_pqKelompok.id_halaqah, judul:judul, tanggal_target:tgl||null });
+    toast('Target ditetapkan 🎯', 'ok');
+    document.getElementById('pqTargetJudul').value = '';
+    pqToggleTargetForm();
+    loadTargetKelompok();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+}
+async function pqMarkTarget(id) {
+  try {
+    await window.HQ.MuridAPI.updateTargetKelompok(id, { status:'tercapai' });
+    toast('Alhamdulillah, target tercapai 🎉', 'ok');
+    loadTargetKelompok();
+    loadPartnerLiniMasa();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
+}
+async function pqDeleteTarget(id) {
+  if (!confirm('Hapus target ini?')) return;
+  try {
+    await window.HQ.MuridAPI.deleteTargetKelompok(id);
+    toast('Target dihapus', 'ok');
+    loadTargetKelompok();
+  } catch(e) { toast('Gagal: ' + e.message, 'err'); }
 }
 
 // Lini Masa Kelompok (Fase 3): gabungan auto-feed setoran dikonfirmasi +
@@ -9195,9 +9330,11 @@ async function loadPartnerLiniMasa() {
     var res = await Promise.all([
       window.HQ.MuridAPI.getLiniMasaSetoran(),
       window.HQ.MuridAPI.getMyMilestones(),
+      window.HQ.MuridAPI.getTargetKelompok(),
     ]);
     var setoran = res[0].data || [];
     var milestones = res[1].data || [];
+    var targets = res[2].data || [];
     var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
     var jenisIcon = { Ziyadah:'📖', Murajaah:'🔄' };
     var events = [];
@@ -9208,6 +9345,21 @@ async function loadPartnerLiniMasa() {
         + '<div style="color:var(--text-2)">QS. ' + _esc(s.surat) + ' ayat ' + _esc(s.ayat_dari) + '-' + _esc(s.ayat_sampai) + (s.kelancaran ? ' · ' + _esc(s.kelancaran) : '') + '</div>'
         + (s.catatan_partner || s.reaksi_partner ? '<div style="color:#0f766e;margin-top:2px">💬 ' + _esc(s.catatan_partner||'') + (s.reaksi_partner ? ' ' + _esc(s.reaksi_partner) : '') + '</div>' : '')
       , dot:'#16a34a', tgl:s.tanggal });
+      // #6 auto-khatam surat: ziyadah yang menyentuh ayat terakhir surat
+      if (s.jenis === 'Ziyadah') {
+        var sd = _pqFindSurat(s.surat);
+        if (sd && parseInt(s.ayat_sampai) >= sd.ayat) {
+          events.push({ t: new Date(s.tanggal).getTime()+1, dot:'#9333ea', tgl:s.tanggal, html:
+            '<div style="font-weight:800;color:#7e22ce">🎉 ' + _esc(s.nama_murid) + ' khatam QS. ' + _esc(s.surat) + '</div>'
+          });
+        }
+      }
+    });
+    // Target yang sudah tercapai → masuk lini masa
+    targets.filter(function(t){ return t.status === 'tercapai'; }).forEach(function(t){
+      events.push({ t: new Date(t.created_at).getTime(), dot:'#f59e0b', tgl:t.created_at, html:
+        '<div style="font-weight:800;color:#92400e">🎯 Target tercapai: ' + _esc(t.judul) + '</div>'
+      });
     });
     milestones.forEach(function(m){
       var delBtn = (m.dibuat_oleh === myId)
@@ -9332,10 +9484,24 @@ async function loadPartnerDashCard() {
     var both = await Promise.all([
       window.HQ.MuridAPI.getStatusKelompokPartner(),
       window.HQ.MuridAPI.getSetoranMenungguKonfirmasi(),
+      window.HQ.MuridAPI.getSetoranHafalan(5, 0),
     ]);
     var statusList = both[0].data || [];
     var jumlahMenunggu = (both[1].data || []).length;
     var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+    // #5 Notifikasi: setoran sendiri yang baru saja dikonfirmasi partner + ada pesan (3 hari terakhir)
+    var notifHtml = '';
+    var recent = (both[2].data || []).filter(function(r){
+      return r.sumber === 'partner' && r.status_konfirmasi === 'dikonfirmasi' && (r.catatan_partner || r.reaksi_partner)
+        && r.updated_at && (Date.now() - new Date(r.updated_at).getTime()) < 3*86400000;
+    })[0];
+    if (recent) {
+      notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
+        + '<span style="font-weight:800">💚 Partnermu mengonfirmasi setoranmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+        + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
+      + '</div>';
+    }
 
     var myRow = null;
     for (var i = 0; i < statusList.length; i++) { if (statusList[i].id_murid === myId) { myRow = statusList[i]; break; } }
@@ -9365,7 +9531,7 @@ async function loadPartnerDashCard() {
         + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
         + '</div>';
     }).join('');
-    body.innerHTML = ctaHtml
+    body.innerHTML = notifHtml + ctaHtml
       + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>'
       + rows;
 
@@ -9532,17 +9698,26 @@ async function submitSetoranMandiri() {
   }
 
   try {
-    await window.HQ.MuridAPI.addSetoranMandiri({
-      id_halaqah  : dashData && dashData.halaqah && dashData.halaqah.id_halaqah,
-      jenis       : jenis,
-      surat       : suratData.latin,
-      juz         : juz,
-      ayat_dari   : ayatDari,
-      ayat_sampai : ayatSampai,
-      catatan     : catatan,
-      tanggal     : tanggal,
-    });
-    toast('Setoran berhasil dikirim ke partner ✓', 'ok');
+    if (_pqEditId) {
+      await window.HQ.MuridAPI.updateSetoranMandiri(_pqEditId, {
+        jenis: jenis, surat: suratData.latin, juz: juz,
+        ayat_dari: ayatDari, ayat_sampai: ayatSampai, catatan: catatan,
+      });
+      toast('Setoran diperbarui ✓', 'ok');
+      pqCancelEdit();
+    } else {
+      await window.HQ.MuridAPI.addSetoranMandiri({
+        id_halaqah  : dashData && dashData.halaqah && dashData.halaqah.id_halaqah,
+        jenis       : jenis,
+        surat       : suratData.latin,
+        juz         : juz,
+        ayat_dari   : ayatDari,
+        ayat_sampai : ayatSampai,
+        catatan     : catatan,
+        tanggal     : tanggal,
+      });
+      toast('Setoran berhasil dikirim ke partner ✓', 'ok');
+    }
     document.getElementById('pqSuratInput').value  = '';
     document.getElementById('pqJuzInput').value    = '';
     document.getElementById('pqAyatDari').value    = '';
@@ -9551,9 +9726,51 @@ async function submitSetoranMandiri() {
     document.getElementById('pqMurajaahHint').style.display = 'none';
     await loadSetoranHafalan(true);
     await _pqLoadZiyadahMap();
+    loadPartnerLiniMasa();
   } catch(e) {
     toast('Gagal menyimpan: ' + e.message, 'err');
   }
+}
+
+// #2 Batalkan / edit setoran mandiri yang masih menunggu
+var _pqEditId = null;
+async function pqBatalkanSetoran(id) {
+  if (!confirm('Batalkan setoran ini? Tindakan tidak bisa dibatalkan.')) return;
+  try {
+    await window.HQ.MuridAPI.deleteSetoranMandiri(id);
+    toast('Setoran dibatalkan', 'ok');
+    if (_pqEditId === id) pqCancelEdit();
+    await loadSetoranHafalan(true);
+  } catch(e) { toast('Gagal membatalkan: ' + e.message, 'err'); }
+}
+function pqEditSetoran(id) {
+  var r = _hafalanAllData.filter(function(x){ return x.id_setoran === id; })[0];
+  if (!r) return;
+  switchHafalanTab('partner');
+  _pqEditId = id;
+  document.getElementById('pqJenisSel').value    = r.jenis || 'Ziyadah';
+  document.getElementById('pqSuratInput').value  = r.surat || '';
+  document.getElementById('pqJuzInput').value    = r.juz || '';
+  document.getElementById('pqAyatDari').value    = r.ayat_dari || '';
+  document.getElementById('pqAyatSampai').value  = r.ayat_sampai || '';
+  document.getElementById('pqCatatan').value     = r.catatan || '';
+  onPqJenisChange();
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn) btn.innerHTML = '💾 Simpan Perubahan';
+  var cbtn = document.getElementById('pqCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'block';
+  var form = document.getElementById('pqSubmitBtn');
+  if (form && form.scrollIntoView) form.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function pqCancelEdit() {
+  _pqEditId = null;
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn) btn.innerHTML = '🤝 Simpan &amp; Kirim ke Partner';
+  var cbtn = document.getElementById('pqCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'none';
+  ['pqSuratInput','pqJuzInput','pqAyatDari','pqAyatSampai','pqCatatan'].forEach(function(idf){
+    var el = document.getElementById(idf); if (el) el.value = '';
+  });
 }
 
 // ── Tab Riwayat / Raport ──────────────────────────────────────────────

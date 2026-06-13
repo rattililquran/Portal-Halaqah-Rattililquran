@@ -10233,6 +10233,7 @@ async function renderKelolaKelompokPartner() {
     _kpData = { id_halaqah: id_halaqah, kelompok: kelompokList, murid: muridList, pantau: pantauMap };
     _kpRenderList();
     _kpRenderNewForm();
+    _kpRenderMenunggu();
   } catch(e) {
     listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px">Gagal memuat data</div>';
   }
@@ -10282,11 +10283,13 @@ function _kpRenderList() {
 
     // Lini Masa Kelompok: toggle + tambah milestone (lazy-load)
     var liniBlock = '<div style="border-top:1px dashed #e5e7eb;margin-top:8px;padding-top:8px">'
-      + '<div style="display:flex;gap:6px;align-items:center">'
+      + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
         + '<button onclick="kpToggleLiniMasa(\'' + esc(k.id_kelompok) + '\')" style="background:rgba(13,148,136,.1);color:#0f766e;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🗓️ Lini Masa</button>'
         + '<button onclick="kpAddMilestone(\'' + esc(k.id_kelompok) + '\')" style="background:#f3f4f6;color:#374151;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Milestone</button>'
+        + '<button onclick="kpToggleTarget(\'' + esc(k.id_kelompok) + '\')" style="background:rgba(245,158,11,.12);color:#b45309;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🎯 Target</button>'
       + '</div>'
       + '<div id="kpLini_' + esc(k.id_kelompok) + '" style="display:none;margin-top:8px"></div>'
+      + '<div id="kpTarget_' + esc(k.id_kelompok) + '" style="display:none;margin-top:8px"></div>'
     + '</div>';
 
     return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin-bottom:10px">'
@@ -10375,6 +10378,101 @@ async function kpDeleteMilestone(id_milestone, id_kelompok) {
     showToast('Milestone dihapus', 'success');
     _kpLoadLiniMasa(id_kelompok);
   } catch(e) { showToast(e.message || 'Gagal menghapus', 'error'); }
+}
+
+// ── #3 Konfirmasi setoran partner yang menunggu (guru sebagai jalan keluar) ──
+async function _kpRenderMenunggu() {
+  var wrap = document.getElementById('kpMenungguWrap');
+  if (!wrap) return;
+  try {
+    var res = await window.HQ.GuruAPI.getSetoranPartnerMenungguHalaqah(_kpData.id_halaqah);
+    var data = res.data || [];
+    if (!data.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    var cfgRes = await window.HQ.GuruAPI.getPenilaianHafalan();
+    var kelOpts = ((cfgRes.data && cfgRes.data.kelancaran) || []).map(function(k){
+      return '<option value="' + esc(k.nama) + '">' + esc(k.icon || '') + ' ' + esc(k.nama) + '</option>';
+    }).join('');
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px">'
+      + '<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px">⏳ Setoran Partner Menunggu Konfirmasi (' + data.length + ')</div>'
+      + '<div style="font-size:10px;color:#b45309;margin-bottom:8px">Konfirmasi di sini bila partner berhalangan menyimak.</div>'
+      + data.map(function(r){
+          return '<div style="background:#fff;border:1px solid #fde68a;border-radius:10px;padding:10px;margin-bottom:6px">'
+            + '<div style="font-weight:800;font-size:12px;color:#111827">' + esc(r.nama_murid) + '</div>'
+            + '<div style="font-size:11px;color:#6b7280;margin-bottom:6px">' + esc(r.jenis) + ' · Juz ' + esc(r.juz||'-') + ' · ' + esc(r.surat) + ' ayat ' + esc(r.ayat_dari) + '-' + esc(r.ayat_sampai) + '</div>'
+            + '<div style="display:flex;gap:6px">'
+              + '<select class="fc" id="kpKonf_' + esc(r.id_setoran) + '" style="flex:1;font-size:11px;padding:5px 8px">' + kelOpts + '</select>'
+              + '<button onclick="kpGuruKonfirmasi(\'' + esc(r.id_setoran) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:800;font-size:11px;cursor:pointer">✓ Konfirmasi</button>'
+            + '</div>'
+          + '</div>';
+        }).join('')
+      + '</div>';
+  } catch(e) { wrap.style.display = 'none'; }
+}
+
+async function kpGuruKonfirmasi(id_setoran) {
+  var sel = document.getElementById('kpKonf_' + id_setoran);
+  var kelancaran = sel ? sel.value : null;
+  try {
+    await window.HQ.GuruAPI.guruKonfirmasiSetoran(id_setoran, kelancaran, null);
+    showToast('Setoran dikonfirmasi ✓', 'success');
+    _kpRenderMenunggu();
+    renderKelolaKelompokPartner();
+  } catch(e) { showToast(e.message || 'Gagal konfirmasi', 'error'); }
+}
+
+// ── #4 Target bersama kelompok (guru) ──
+function _kpRenderTargetHtml(targets) {
+  var aktif = (targets || []).filter(function(t){ return t.status === 'aktif'; });
+  var html = '<div style="display:flex;gap:6px;margin-bottom:8px"><input type="text" class="fc" id="kpTgtInput" placeholder="Target baru (mis: Khatam Juz 30)" style="flex:1;font-size:11px;padding:5px 8px"><button onclick="kpAddTarget(\'__K__\')" style="background:#d97706;color:#fff;border:none;border-radius:7px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer">+ Set</button></div>';
+  if (!aktif.length) return html + '<div style="font-size:11px;color:#9ca3af">Belum ada target aktif.</div>';
+  return html + aktif.map(function(t){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">'
+      + '<span style="font-size:11px;font-weight:700;color:#92400e">🎯 ' + esc(t.judul) + '</span>'
+      + '<span style="display:flex;gap:4px"><button onclick="kpMarkTarget(\'' + esc(t.id_target) + '\',\'' + esc(t.id_kelompok) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>'
+      + '<button onclick="kpDeleteTarget(\'' + esc(t.id_target) + '\',\'' + esc(t.id_kelompok) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button></span>'
+    + '</div>';
+  }).join('');
+}
+async function _kpLoadTarget(id_kelompok) {
+  var c = document.getElementById('kpTarget_' + id_kelompok);
+  if (!c) return;
+  c.style.display = 'block';
+  c.innerHTML = '<div style="font-size:11px;color:#9ca3af">⏳ Memuat...</div>';
+  try {
+    var res = await window.HQ.GuruAPI.getTargetByKelompok(id_kelompok);
+    c.innerHTML = _kpRenderTargetHtml(res.data || []).replace(/__K__/g, id_kelompok);
+  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
+}
+function kpToggleTarget(id_kelompok) {
+  var c = document.getElementById('kpTarget_' + id_kelompok);
+  if (!c) return;
+  if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+  _kpLoadTarget(id_kelompok);
+}
+async function kpAddTarget(id_kelompok) {
+  var inp = document.getElementById('kpTgtInput');
+  var judul = inp ? (inp.value || '').trim() : '';
+  if (!judul) { showToast('Tulis dulu targetnya', 'warn'); return; }
+  try {
+    await window.HQ.GuruAPI.addTargetByKelompok({ id_kelompok: id_kelompok, id_halaqah: _kpData.id_halaqah, judul: judul });
+    showToast('Target ditetapkan 🎯', 'success');
+    _kpLoadTarget(id_kelompok);
+  } catch(e) { showToast(e.message || 'Gagal', 'error'); }
+}
+async function kpMarkTarget(id_target, id_kelompok) {
+  try {
+    await window.HQ.GuruAPI.updateTargetByKelompok(id_target, { status: 'tercapai' });
+    showToast('Target tercapai 🎉', 'success');
+    _kpLoadTarget(id_kelompok);
+  } catch(e) { showToast(e.message || 'Gagal', 'error'); }
+}
+async function kpDeleteTarget(id_target, id_kelompok) {
+  try {
+    await window.HQ.GuruAPI.deleteTargetByKelompok(id_target);
+    showToast('Target dihapus', 'success');
+    _kpLoadTarget(id_kelompok);
+  } catch(e) { showToast(e.message || 'Gagal', 'error'); }
 }
 
 // Satu baris denyut anggota: tanggal terakhir + status aktif/mandek + ingatkan WA
@@ -12034,6 +12132,7 @@ function cetakRaportTahfidz() {
         <label class="hf-lbl">Halaqah Qiyam</label>
         <select class="fc" id="kpHalaqahSel" onchange="renderKelolaKelompokPartner()"></select>
       </div>
+      <div id="kpMenungguWrap" style="display:none;margin-bottom:14px"></div>
       <div id="kpListWrap" style="margin-bottom:16px"></div>
 
       <!-- Form buat kelompok baru -->

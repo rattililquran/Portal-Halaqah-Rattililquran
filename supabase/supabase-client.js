@@ -1628,6 +1628,56 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // #3 Konfirmasi setoran partner oleh guru/admin (jalan keluar bila partner berhalangan)
+  guruKonfirmasiSetoran: async function(id_setoran, kelancaran, catatan) {
+    var { error } = await _sb.rpc('guru_konfirmasi_setoran_partner', {
+      p_id_setoran: id_setoran, p_kelancaran: kelancaran, p_catatan: catatan || null,
+    });
+    _check(error, 'guruKonfirmasiSetoran');
+    return { status: 'ok' };
+  },
+  // Daftar setoran partner yang masih menunggu di sebuah halaqah (untuk guru konfirmasi)
+  getSetoranPartnerMenungguHalaqah: async function(id_halaqah) {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('id_setoran, id_murid, nama_murid, jenis, surat, juz, ayat_dari, ayat_sampai, catatan, created_at')
+      .eq('id_halaqah', id_halaqah).eq('sumber', 'partner').eq('status_konfirmasi', 'menunggu')
+      .order('created_at', { ascending: true });
+    _check(error, 'getSetoranPartnerMenungguHalaqah');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // #4 Target bersama kelompok (guru/admin)
+  getTargetByKelompok: async function(id_kelompok) {
+    var { data, error } = await _sb.from('target_kelompok_partner')
+      .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+    _check(error, 'getTargetByKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  addTargetByKelompok: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok : d.id_kelompok,
+      id_halaqah  : d.id_halaqah,
+      judul       : d.judul,
+      tanggal_target: d.tanggal_target || null,
+      dibuat_oleh : _uid(),
+      nama_pembuat: (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
+    };
+    var { data, error } = await _sb.from('target_kelompok_partner').insert(payload).select().single();
+    _check(error, 'addTargetByKelompok');
+    return { status: 'ok', data: data };
+  },
+  updateTargetByKelompok: async function(id_target, updates) {
+    var { error } = await _sb.from('target_kelompok_partner').update(updates).eq('id_target', id_target);
+    _check(error, 'updateTargetByKelompok');
+    return { status: 'ok' };
+  },
+  deleteTargetByKelompok: async function(id_target) {
+    var { error } = await _sb.from('target_kelompok_partner').delete().eq('id_target', id_target);
+    _check(error, 'deleteTargetByKelompok');
+    return { status: 'ok' };
+  },
+
   // Buat kelompok baru. anggota: [{id_murid, nama_murid}]
   // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
   // insert anggota gagal (validasi roster/aktif atau koneksi putus)
@@ -2566,6 +2616,71 @@ var MuridAPI = {
     return { status: 'ok' };
   },
 
+  // #2 Batalkan / edit setoran mandiri yang masih 'menunggu'
+  deleteSetoranMandiri: async function(id_setoran) {
+    var { error } = await _sb.from('setoran_hafalan').delete()
+      .eq('id_setoran', id_setoran).eq('id_murid', _uid())
+      .eq('sumber', 'partner').eq('status_konfirmasi', 'menunggu');
+    _check(error, 'deleteSetoranMandiri');
+    return { status: 'ok' };
+  },
+  updateSetoranMandiri: async function(id_setoran, d) {
+    var payload = {};
+    if (d.jenis      !== undefined) payload.jenis      = d.jenis;
+    if (d.surat      !== undefined) payload.surat      = d.surat;
+    if (d.juz        !== undefined) payload.juz        = d.juz ? parseInt(d.juz) : null;
+    if (d.ayat_dari  !== undefined) payload.ayat_dari  = parseInt(d.ayat_dari);
+    if (d.ayat_sampai!== undefined) payload.ayat_sampai= parseInt(d.ayat_sampai);
+    if (d.catatan    !== undefined) payload.catatan    = d.catatan || null;
+    var { error } = await _sb.from('setoran_hafalan').update(payload)
+      .eq('id_setoran', id_setoran).eq('id_murid', _uid())
+      .eq('sumber', 'partner').eq('status_konfirmasi', 'menunggu');
+    _check(error, 'updateSetoranMandiri');
+    return { status: 'ok' };
+  },
+
+  // #1 Data untuk Saran Muraja'ah (semua setoran sendiri yang sah, ringkas)
+  getSetoranRingkasSaya: async function() {
+    var { data, error } = await _sb.from('setoran_hafalan')
+      .select('surat, juz, jenis, sumber, status_konfirmasi, ayat_dari, ayat_sampai, created_at')
+      .eq('id_murid', _uid())
+      .order('created_at', { ascending: false });
+    _check(error, 'getSetoranRingkasSaya');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // #4 Target bersama kelompok (murid)
+  getTargetKelompok: async function() {
+    var { data, error } = await _sb.from('target_kelompok_partner')
+      .select('*').order('created_at', { ascending: false });
+    _check(error, 'getTargetKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+  addTargetKelompok: async function(d) {
+    var user = _currentUser || {};
+    var payload = {
+      id_kelompok : d.id_kelompok,
+      id_halaqah  : d.id_halaqah,
+      judul       : d.judul,
+      tanggal_target: d.tanggal_target || null,
+      dibuat_oleh : _uid(),
+      nama_pembuat: (user && (user.nama_lengkap || user.nama)) || '',
+    };
+    var { data, error } = await _sb.from('target_kelompok_partner').insert(payload).select().single();
+    _check(error, 'addTargetKelompok');
+    return { status: 'ok', data: data };
+  },
+  updateTargetKelompok: async function(id_target, updates) {
+    var { error } = await _sb.from('target_kelompok_partner').update(updates).eq('id_target', id_target);
+    _check(error, 'updateTargetKelompok');
+    return { status: 'ok' };
+  },
+  deleteTargetKelompok: async function(id_target) {
+    var { error } = await _sb.from('target_kelompok_partner').delete().eq('id_target', id_target);
+    _check(error, 'deleteTargetKelompok');
+    return { status: 'ok' };
+  },
+
   // Target hafalan berikutnya (setoran terbaru yang punya target_surat)
   getTargetHafalan: async function() {
     var { data, error } = await _sb.from('setoran_hafalan')
@@ -2854,6 +2969,12 @@ var AdminAPI = {
   getMilestoneByKelompok: async function(id_kelompok) { return GuruAPI.getMilestoneByKelompok(id_kelompok); },
   addMilestoneKelompok: async function(d) { return GuruAPI.addMilestoneKelompok(d); },
   deleteMilestoneKelompok: async function(id_milestone) { return GuruAPI.deleteMilestoneKelompok(id_milestone); },
+  guruKonfirmasiSetoran: async function(id_setoran, kelancaran, catatan) { return GuruAPI.guruKonfirmasiSetoran(id_setoran, kelancaran, catatan); },
+  getSetoranPartnerMenungguHalaqah: async function(id_halaqah) { return GuruAPI.getSetoranPartnerMenungguHalaqah(id_halaqah); },
+  getTargetByKelompok: async function(id_kelompok) { return GuruAPI.getTargetByKelompok(id_kelompok); },
+  addTargetByKelompok: async function(d) { return GuruAPI.addTargetByKelompok(d); },
+  updateTargetByKelompok: async function(id_target, updates) { return GuruAPI.updateTargetByKelompok(id_target, updates); },
+  deleteTargetByKelompok: async function(id_target) { return GuruAPI.deleteTargetByKelompok(id_target); },
   createKelompokPartner: async function(id_halaqah, nama_kelompok, anggota) { return GuruAPI.createKelompokPartner(id_halaqah, nama_kelompok, anggota); },
   updateKelompokPartner: async function(id_kelompok, updates) { return GuruAPI.updateKelompokPartner(id_kelompok, updates); },
   setAnggotaKelompok: async function(id_kelompok, anggota) { return GuruAPI.setAnggotaKelompok(id_kelompok, anggota); },
