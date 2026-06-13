@@ -51,6 +51,24 @@ function _check(error, ctx) {
   if (error) { console.error('[SB] ' + ctx + ':', error); throw new Error(error.message || ctx); }
 }
 
+// Ambil SEMUA baris menembus batas PostgREST max_rows (1000) dengan paginasi .range().
+// applyFn(q) HARUS menerapkan filter + .order() pada kolom UNIK agar paginasi stabil
+// (tanpa order, urutan antar-halaman tidak dijamin -> baris bisa dobel/terlewat).
+async function _selectAllPaged(table, columns, applyFn, ctx) {
+  var PAGE = 1000, from = 0, all = [];
+  while (true) {
+    var q = _sb.from(table).select(columns).range(from, from + PAGE - 1);
+    if (applyFn) q = applyFn(q);
+    var res = await q;
+    _check(res.error, ctx || ('selectAllPaged:' + table));
+    var rows = res.data || [];
+    all = all.concat(rows);
+    if (rows.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
 // Normalisasi jam dari CSV: "15.00" / "15.30" (pakai titik) -> "15:00" / "15:30"
 // agar valid untuk kolom time di Postgres. Mengembalikan null jika kosong.
 function _normJam(v) {
@@ -182,7 +200,7 @@ var GuruAPI = {
   // ── Dashboard ──────────────────────────────
   getDashboard: async function() {
     var id_guru = _uid();
-    var today   = new Date().toISOString().slice(0, 10);
+    var today   = _todayJakarta();   // L2: zona Asia/Jakarta, bukan UTC (hindari off-by-one < 07:00 WIB)
     var month   = today.slice(0, 7);
 
     var [hqRes, anggotaRes, kbmHariRes, kbmBulanRes, draftRes] = await Promise.all([
@@ -372,14 +390,13 @@ var GuruAPI = {
 
   // ── Murid ──────────────────────────────────
   getMurid: async function(id_halaqah) {
-    var [anggotaRes, nilaiRes] = await Promise.all([
+    var [anggotaRes, nilaiAll] = await Promise.all([
       _sb.from('anggota').select('*, users!anggota_id_murid_fkey(no_hp, email)')
         .eq('id_halaqah', id_halaqah).eq('status', 'aktif').order('nama_murid'),
-      _sb.from('nilai_kbm').select('id_murid, status_hadir, adab, kamera_murid')
-        .eq('id_halaqah', id_halaqah),
+      _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, status_hadir, adab, kamera_murid',
+        function(q){ return q.eq('id_halaqah', id_halaqah).order('id_nilai'); }, 'getMurid:nilai_kbm'),
     ]);
     _check(anggotaRes.error, 'getMurid');
-    var nilaiAll = nilaiRes.data || [];
     return { status: 'ok', data: (anggotaRes.data || []).map(function(a) {
       var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
       var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
@@ -538,11 +555,12 @@ var GuruAPI = {
     // jumlah_alpa di kbm_log = "tidak hadir" (Izin + Alpa) agar hadir+alpa selalu = total murid di sesi
     var alpa  = d.presensi.filter(function(p) { return ['I','A'].includes(p.status_hadir); }).length;
     // BUG-011 fix: sync tanggal_pertemuan ke kbm_log jika guru mengubah tanggal
-    await _sb.from('kbm_log').update({
+    var { error: kbmErr } = await _sb.from('kbm_log').update({
       jumlah_hadir: hadir,
       jumlah_alpa: alpa,
       tanggal_pertemuan: tanggal,  // sinkronkan tanggal agar konsisten
     }).eq('id_kbm', d.id_kbm);
+    _check(kbmErr, 'simpanPresensi:kbm_log');
     return { status: 'ok', message: 'Presensi berhasil disimpan', jumlah_hadir: hadir };
   },
 
@@ -664,7 +682,8 @@ var GuruAPI = {
     // Update tanggal & pertemuan_ke di kbm_log jika berubah
     if (d.tanggal_pertemuan) upd.tanggal_pertemuan = d.tanggal_pertemuan;
     if (d.pertemuan_ke)      upd.pertemuan_ke      = d.pertemuan_ke;
-    await _sb.from('kbm_log').update(upd).eq('id_kbm', d.id_kbm);
+    var { error: kbmErr } = await _sb.from('kbm_log').update(upd).eq('id_kbm', d.id_kbm);
+    _check(kbmErr, 'editPresensi:kbm_log');
     return { status: 'ok', message: 'Presensi berhasil diperbarui' };
   },
 
@@ -1033,12 +1052,10 @@ var GuruAPI = {
     var sesiIds = (sesiList || []).map(function(s){ return s.id_sesi; });
     var totalSesi = sesiIds.length;
     if (!sesiIds.length) return { status: 'ok', data: [], total_sesi: 0, summary: { pct_keseluruhan: 0, total_murid: 0, total_hadir: 0, total_izin: 0, total_absen: 0 } };
-    var q = _sb.from('at_tibyan_log')
-      .select('id_murid, nama_murid, status_hadir, id_halaqah, nama_halaqah')
-      .in('id_sesi', sesiIds);
-    if (id_halaqah) q = q.eq('id_halaqah', id_halaqah);
-    var { data, error } = await q;
-    _check(error, 'getAtTibyanRekap');
+    var data = await _selectAllPaged('at_tibyan_log',
+      'id_log, id_murid, nama_murid, status_hadir, id_halaqah, nama_halaqah',
+      function(q){ q = q.in('id_sesi', sesiIds); if (id_halaqah) q = q.eq('id_halaqah', id_halaqah); return q.order('id_log'); },
+      'getAtTibyanRekap');
     var muridMap = {};
     (data || []).forEach(function(r) {
       if (!muridMap[r.id_murid]) muridMap[r.id_murid] = { id_murid: r.id_murid, nama_murid: r.nama_murid || '', nama_halaqah: r.nama_halaqah, level: '', hadir: 0, izin: 0, absen: 0, total: 0 };
@@ -1078,11 +1095,11 @@ var GuruAPI = {
     var sesiIds = (sesiList || []).map(function(s){ return s.id_sesi; });
     var totalSesi = sesiIds.length;
     if (!sesiIds.length) return { status: 'ok', data: { alerts: [], summary: { kritis: 0, peringatan: 0, normal: 0 } } };
-    var { data, error } = await _sb.from('at_tibyan_log')
-      .select('id_murid, nama_murid, id_halaqah, nama_halaqah, status_hadir, tanggal')
-      // BUG-015 fix: filter by sesiIds (sesi milik guru ini saja) agar murid cross-guru tidak dihitung ganda
-      .in('id_sesi', sesiIds).order('tanggal', { ascending: true });
-    _check(error, 'getAtTibyanKeaktifan');
+    // BUG-015 fix: filter by sesiIds (sesi milik guru ini saja) agar murid cross-guru tidak dihitung ganda
+    var data = await _selectAllPaged('at_tibyan_log',
+      'id_log, id_murid, nama_murid, id_halaqah, nama_halaqah, status_hadir, tanggal',
+      function(q){ return q.in('id_sesi', sesiIds).order('tanggal', { ascending: true }).order('id_log'); },
+      'getAtTibyanKeaktifan');
     var muridMap = {};
     (data || []).forEach(function(r) {
       if (!muridMap[r.id_murid]) muridMap[r.id_murid] = {
@@ -1164,7 +1181,10 @@ var GuruAPI = {
       status_hadir: p.status_hadir, tanggal: tanggal,
     }; });
 
-    await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
+    // Cek error delete dulu (sebelum insert): kalau delete gagal diam-diam,
+    // insert berikutnya akan menghasilkan baris log dobel.
+    var { error: delErr } = await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
+    _check(delErr, 'editAtTibyan:delete');
     await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
 
     var { error: insertErr } = await _sb.from('at_tibyan_log').insert(logRows);
@@ -3760,10 +3780,9 @@ var AdminAPI = {
     // tidak dianggap nunggak untuk bulan-bulan sebelum itu.
     var firstBulanMap = {};
     if (muridIds.length) {
-      var { data: allSppRows } = await _sb.from('spp_pembayaran')
-        .select('id_murid, bulan, jenis')
-        .eq('tahun', tahun)
-        .in('id_murid', muridIds);
+      var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, jenis',
+        function(q){ return q.eq('tahun', tahun).in('id_murid', muridIds).order('id_spp'); },
+        'getSPPRekap:allSppRows');
       (allSppRows||[]).forEach(function(r){
         if (r.jenis && r.jenis !== 'SPP Pribadi') return;
         var idx = BULAN.indexOf(r.bulan);
