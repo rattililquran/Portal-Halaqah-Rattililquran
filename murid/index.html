@@ -10020,14 +10020,44 @@ async function loadTargetBelajar() {
   if (ttgl && !ttgl.value) ttgl.value = new Date(Date.now()+7*86400000).toISOString().slice(0,10);
   try {
     var res = await window.HQ.MuridAPI.getTargetKelompokBelajar();
-    var aktif = (res.data || []).filter(function(t){ return t.status === 'aktif'; });
-    if (!aktif.length) { body.innerHTML = '<div style="color:var(--text-3)">Belum ada target. Tetapkan tujuan bersama kelompok 🎯</div>'; return; }
-    body.innerHTML = aktif.map(function(t){
+    var targets = res.data || [];
+    if (!targets.length) { body.innerHTML = '<div style="color:var(--text-3)">Belum ada target. Tetapkan tujuan bersama kelompok 🎯</div>'; return; }
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+    var anggota = (_pbKelompok && _pbKelompok.anggota_kelompok_belajar) || [];
+    var memberIds = {}; anggota.forEach(function(a){ memberIds[a.id_murid] = true; });
+    var total = anggota.length || 1;
+    body.innerHTML = targets.map(function(t){
+      // hanya hitung progres dari anggota yang masih terdaftar
+      var prog = (t.target_belajar_progress || []).filter(function(p){ return memberIds[p.id_murid]; });
+      var done = prog.length;
+      var sudahSaya = prog.some(function(p){ return p.id_murid === myId; });
+      var tercapai = t.status === 'tercapai';
+      var pct = Math.min(100, Math.round(done / total * 100));
       var dl = t.tanggal_target ? '<span style="color:var(--text-3);font-size:11px"> · target ' + _esc(_fmtDateHafalan(t.tanggal_target)) + '</span>' : '';
-      return '<div style="padding:8px 10px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);margin-bottom:6px">'
-        + '<div style="font-weight:800;color:#92400e">🎯 ' + _esc(t.judul) + dl + '</div>'
-        + '<div style="display:flex;gap:8px;margin-top:6px">'
-          + '<button onclick="pbMarkTarget(\'' + _esc(t.id_target) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">✓ Tercapai</button>'
+      // chip nama anggota yang sudah menandai selesai
+      var chips = prog.map(function(p){
+        var me = p.id_murid === myId;
+        return '<span style="display:inline-block;background:rgba(22,163,74,.12);color:#15803d;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;margin:0 4px 4px 0">✓ ' + _esc((p.nama_murid || '') + (me ? ' (Kamu)' : '')) + '</span>';
+      }).join('') || '<span style="font-size:11px;color:var(--text-3)">Belum ada yang menandai selesai</span>';
+
+      var bar = '<div style="height:7px;border-radius:100px;background:var(--bg-2);overflow:hidden;margin:6px 0 4px">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + (tercapai ? '#16a34a' : '#f59e0b') + ';border-radius:100px;transition:width .3s"></div></div>';
+
+      var headBadge = tercapai
+        ? '<span style="display:inline-block;background:rgba(22,163,74,.15);color:#15803d;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;margin-left:6px">🎉 Tercapai semua</span>'
+        : '';
+
+      var toggleBtn = sudahSaya
+        ? '<button onclick="pbToggleProgressTarget(\'' + _esc(t.id_target) + '\',false)" style="background:var(--bg-2);color:#b45309;border:1px solid rgba(245,158,11,.3);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">↩ Batalkan tanda saya</button>'
+        : '<button onclick="pbToggleProgressTarget(\'' + _esc(t.id_target) + '\',true)" style="background:#16a34a;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">✓ Saya Selesai</button>';
+
+      return '<div style="padding:10px 12px;border-radius:10px;background:rgba(245,158,11,.08);border:1px solid ' + (tercapai ? 'rgba(22,163,74,.3)' : 'rgba(245,158,11,.18)') + ';margin-bottom:8px">'
+        + '<div style="font-weight:800;color:#92400e">🎯 ' + _esc(t.judul) + headBadge + dl + '</div>'
+        + bar
+        + '<div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">' + done + '/' + total + ' anggota menandai selesai</div>'
+        + '<div style="margin-bottom:8px">' + chips + '</div>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+          + toggleBtn
           + '<button onclick="pbDeleteTarget(\'' + _esc(t.id_target) + '\')" style="background:var(--bg-2);color:var(--text-3);border:1px solid var(--border);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Hapus</button>'
         + '</div>'
       + '</div>';
@@ -10048,10 +10078,17 @@ async function pbSaveTarget() {
     loadTargetBelajar();
   } catch(e) { toast('Gagal: ' + e.message, 'err'); }
 }
-async function pbMarkTarget(id) {
+// Konsensus: tandai / batalkan bagian SAYA. Target jadi 'tercapai' otomatis
+// hanya bila semua anggota menandai (dihitung server). Konfirmasi cegah salah-klik.
+async function pbToggleProgressTarget(id, selesai) {
+  if (selesai) {
+    if (!confirm('Tandai bagian KAMU selesai untuk target ini?\n\nTarget baru dianggap tercapai bila SEMUA anggota kelompok menandai selesai.')) return;
+  } else {
+    if (!confirm('Batalkan tanda selesai kamu untuk target ini?')) return;
+  }
   try {
-    await window.HQ.MuridAPI.updateTargetKelompokBelajar(id, { status:'tercapai' });
-    toast('Alhamdulillah, target tercapai 🎉', 'ok');
+    await window.HQ.MuridAPI.tandaiProgressTargetBelajar(id, selesai);
+    toast(selesai ? 'Bagianmu ditandai selesai ✓' : 'Tanda selesaimu dibatalkan', 'ok');
     loadTargetBelajar();
     loadPartnerBelajarLiniMasa();
   } catch(e) { toast('Gagal: ' + e.message, 'err'); }

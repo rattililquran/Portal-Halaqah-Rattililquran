@@ -1844,7 +1844,8 @@ var GuruAPI = {
   // Target bersama kelompok (guru/admin)
   getTargetBelajarByKelompok: async function(id_kelompok) {
     var { data, error } = await _sb.from('target_kelompok_belajar')
-      .select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
+      .select('*, target_belajar_progress(id_murid, nama_murid)')
+      .eq('id_kelompok', id_kelompok).order('created_at', { ascending: false });
     _check(error, 'getTargetBelajarByKelompok');
     return { status: 'ok', data: data || [] };
   },
@@ -3005,12 +3006,23 @@ var MuridAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  // Target bersama kelompok (murid)
+  // Target bersama kelompok (murid) — beserta progres konsensus tiap anggota
   getTargetKelompokBelajar: async function() {
     var { data, error } = await _sb.from('target_kelompok_belajar')
-      .select('*').order('created_at', { ascending: false });
+      .select('*, target_belajar_progress(id_murid, nama_murid, selesai_at)')
+      .order('created_at', { ascending: false });
     _check(error, 'getTargetKelompokBelajar');
     return { status: 'ok', data: data || [] };
+  },
+  // Konsensus: tandai/batalkan progres target untuk diri sendiri.
+  // selesai=true menandai; false membatalkan. Status target dihitung ulang
+  // server-side -> 'tercapai' hanya bila SEMUA anggota aktif menandai.
+  tandaiProgressTargetBelajar: async function(id_target, selesai) {
+    var { error } = await _sb.rpc('tandai_progress_target_belajar', {
+      p_id_target: id_target, p_selesai: !!selesai,
+    });
+    _check(error, 'tandaiProgressTargetBelajar');
+    return { status: 'ok' };
   },
   addTargetKelompokBelajar: async function(d) {
     var user = _currentUser || {};

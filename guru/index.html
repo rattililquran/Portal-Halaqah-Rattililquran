@@ -10887,15 +10887,21 @@ async function kbGuruKonfirmasi(id_log) {
   } catch(e) { showToast(e.message || 'Gagal konfirmasi', 'error'); }
 }
 
-// ── Target bersama kelompok (guru) ──
-function _kbRenderTargetHtml(targets) {
-  var aktif = (targets || []).filter(function(t){ return t.status === 'aktif'; });
+// ── Target bersama kelompok (guru) ── konsensus: progres X/Y dari murid
+function _kbRenderTargetHtml(targets, total) {
+  total = total || 0;
   var html = '<div style="display:flex;gap:6px;margin-bottom:8px"><input type="text" class="fc" id="kbTgtInput" placeholder="Target baru (mis: Khatam tilawah Juz 30)" style="flex:1;font-size:11px;padding:5px 8px"><button onclick="kbAddTarget(\'__K__\')" style="background:#d97706;color:#fff;border:none;border-radius:7px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer">+ Set</button></div>';
-  if (!aktif.length) return html + '<div style="font-size:11px;color:#9ca3af">Belum ada target aktif.</div>';
-  return html + aktif.map(function(t){
+  if (!(targets || []).length) return html + '<div style="font-size:11px;color:#9ca3af">Belum ada target.</div>';
+  return html + targets.map(function(t){
+    var done = (t.target_belajar_progress || []).length;
+    var tercapai = t.status === 'tercapai';
+    var badge = tercapai
+      ? '<span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px">🎉 tercapai</span>'
+      : '<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:1px 7px">' + done + '/' + total + ' selesai</span>';
+    var markBtn = tercapai ? '' : '<button onclick="kbMarkTarget(\'' + esc(t.id_target) + '\',\'' + esc(t.id_kelompok) + '\')" title="Tandai tercapai (paksa, override konsensus)" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>';
     return '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">'
-      + '<span style="font-size:11px;font-weight:700;color:#92400e">🎯 ' + esc(t.judul) + '</span>'
-      + '<span style="display:flex;gap:4px"><button onclick="kbMarkTarget(\'' + esc(t.id_target) + '\',\'' + esc(t.id_kelompok) + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>'
+      + '<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0">🎯 ' + esc(t.judul) + ' ' + badge + '</span>'
+      + '<span style="display:flex;gap:4px;flex-shrink:0">' + markBtn
       + '<button onclick="kbDeleteTarget(\'' + esc(t.id_target) + '\',\'' + esc(t.id_kelompok) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button></span>'
     + '</div>';
   }).join('');
@@ -10906,8 +10912,10 @@ async function _kbLoadTarget(id_kelompok) {
   c.style.display = 'block';
   c.innerHTML = '<div style="font-size:11px;color:#9ca3af">⏳ Memuat...</div>';
   try {
+    var k = _kbData.kelompok.find(function(x){ return x.id_kelompok === id_kelompok; });
+    var total = k ? (k.anggota_kelompok_belajar || []).length : 0;
     var res = await window.HQ.GuruAPI.getTargetBelajarByKelompok(id_kelompok);
-    c.innerHTML = _kbRenderTargetHtml(res.data || []).replace(/__K__/g, id_kelompok);
+    c.innerHTML = _kbRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
   } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
 }
 function kbToggleTarget(id_kelompok) {
@@ -10927,6 +10935,8 @@ async function kbAddTarget(id_kelompok) {
   } catch(e) { showToast(e.message || 'Gagal', 'error'); }
 }
 async function kbMarkTarget(id_target, id_kelompok) {
+  var ok = await showConfirm('Tandai target ini TERCAPAI untuk seluruh kelompok? Ini menimpa konsensus murid (tidak menunggu semua anggota menandai).', { title: 'Tandai Tercapai?', okText: 'Ya, Tandai' });
+  if (!ok) return;
   try {
     await window.HQ.GuruAPI.updateTargetBelajarByKelompok(id_target, { status: 'tercapai' });
     showToast('Target tercapai 🎉', 'success');
