@@ -10742,7 +10742,7 @@ function _kbRenderList() {
     var available = _kbData.murid.filter(function(m) {
       return !anggota.some(function(a) { return a.id_murid === m.id_murid; }) && !assigned[m.id_murid];
     });
-    var canAdd = anggota.length < 4;
+    var canAdd = anggota.length < 5;
     var addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(function(m) {
       return '<option value="' + esc(m.id_murid) + '" data-nama="' + esc(m.nama_murid) + '">' + esc(m.nama_murid) + '</option>';
     }).join('');
@@ -11004,8 +11004,8 @@ function _kbRenderNewForm() {
 
 async function kbCreateKelompok() {
   var checks = Array.prototype.slice.call(document.querySelectorAll('.kb-new-anggota:checked'));
-  if (checks.length < 3 || checks.length > 4) {
-    showToast('Pilih 3-4 murid untuk satu kelompok', 'warning');
+  if (checks.length < 3 || checks.length > 5) {
+    showToast('Pilih 3-5 murid untuk satu kelompok', 'warning');
     return;
   }
   var anggota = checks.map(function(c) { return { id_murid: c.value, nama_murid: c.getAttribute('data-nama') }; });
@@ -11071,8 +11071,8 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   var anggotaBaru = (k.anggota_kelompok_belajar || [])
     .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; })
     .concat([{ id_murid: id_murid, nama_murid: nama_murid }]);
-  if (anggotaBaru.length > 4) {
-    showToast('Maksimal 4 anggota per kelompok', 'warning');
+  if (anggotaBaru.length > 5) {
+    showToast('Maksimal 5 anggota per kelompok', 'warning');
     return;
   }
   try {
@@ -12630,7 +12630,7 @@ function cetakRaportTahfidz() {
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;background:linear-gradient(90deg,#eef3fb,#fff)">
       <div>
         <div style="font-size:15px;font-weight:800;color:#111827">📚 Kelola Kelompok Partner Belajar</div>
-        <div style="font-size:11px;color:#9ca3af;margin-top:1px">Atur kelompok 3-4 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:1px">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
       </div>
       <button onclick="toggleKelolaKelompokBelajar()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
     </div>
@@ -12650,7 +12650,7 @@ function cetakRaportTahfidz() {
           <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
           <div style="flex:1">
             <div style="font-size:13px;font-weight:800;color:#111827">Buat Kelompok Baru</div>
-            <div style="font-size:10px;color:#9ca3af">Pilih 3-4 murid</div>
+            <div style="font-size:10px;color:#9ca3af">Pilih 3-5 murid</div>
           </div>
         </div>
         <div style="padding:12px 14px">

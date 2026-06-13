@@ -1278,7 +1278,7 @@ html.theme-dark .tbl-wrap thead th {
       <!-- ══ KELOMPOK PARTNER BELAJAR (Level 1-4) ══ -->
       <div class="page" id="page-kelompok-belajar">
         <div class="section-title">📚 Kelompok Partner Belajar</div>
-        <div class="section-sub">Kelola kelompok 3-4 murid Level 1-4 untuk saling catat &amp; konfirmasi aktivitas belajar mandiri.</div>
+        <div class="section-sub">Kelola kelompok 3-5 murid Level 1-4 untuk saling catat &amp; konfirmasi aktivitas belajar mandiri.</div>
 
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="kbaHalaqahSel" onchange="onKbaHalaqahChange()" style="max-width:280px">
@@ -1298,7 +1298,7 @@ html.theme-dark .tbl-wrap thead th {
           <div class="card-head"><div class="card-title">+ Buat Kelompok Baru</div></div>
           <div class="card-body">
             <div class="fg" style="margin-bottom:10px"><label>Nama Kelompok (opsional)</label><input type="text" class="fc" id="kbaNewNama" placeholder="Misal: Kelompok 1"></div>
-            <label style="font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Anggota (3-4 murid)</label>
+            <label style="font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Anggota (3-5 murid)</label>
             <div id="kbaNewAnggotaList" style="margin-bottom:10px"></div>
             <button class="btn btn-primary btn-sm" onclick="kbaCreateKelompok()">+ Buat Kelompok</button>
           </div>
@@ -4426,7 +4426,7 @@ function _kbaRenderList() {
     const available = _kbaData.murid.filter(m =>
       !anggota.some(a => a.id_murid === m.id_murid) && !assigned[m.id_murid]
     );
-    const canAdd = anggota.length < 4;
+    const canAdd = anggota.length < 5;
     const addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(m =>
       `<option value="${esc(m.id_murid)}" data-nama="${esc(m.nama_murid)}">${esc(m.nama_murid)}</option>`
     ).join('');
@@ -4670,8 +4670,8 @@ function _kbaRenderNewForm() {
 
 async function kbaCreateKelompok() {
   const checks = Array.from(document.querySelectorAll('.kba-new-anggota:checked'));
-  if (checks.length < 3 || checks.length > 4) {
-    toast('Pilih 3-4 murid untuk satu kelompok', 'err');
+  if (checks.length < 3 || checks.length > 5) {
+    toast('Pilih 3-5 murid untuk satu kelompok', 'err');
     return;
   }
   const anggota = checks.map(c => ({ id_murid: c.value, nama_murid: c.getAttribute('data-nama') }));
@@ -4729,8 +4729,8 @@ async function kbaAddAnggota(id_kelompok, selectEl) {
   const anggotaBaru = (k.anggota_kelompok_belajar||[])
     .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }))
     .concat([{ id_murid, nama_murid }]);
-  if (anggotaBaru.length > 4) {
-    toast('Maksimal 4 anggota per kelompok', 'err');
+  if (anggotaBaru.length > 5) {
+    toast('Maksimal 5 anggota per kelompok', 'err');
     return;
   }
   try {

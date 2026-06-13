@@ -1873,7 +1873,7 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
-  // Buat kelompok baru (3-4 anggota). anggota: [{id_murid, nama_murid}]
+  // Buat kelompok baru (3-5 anggota). anggota: [{id_murid, nama_murid}]
   // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok kosong jika
   // insert anggota gagal (validasi roster/aktif atau koneksi putus)
   createKelompokBelajar: async function(id_halaqah, nama_kelompok, anggota) {
@@ -1897,7 +1897,7 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
-  // Ganti seluruh anggota kelompok (replace, 3-4 anggota). anggota: [{id_murid, nama_murid}]
+  // Ganti seluruh anggota kelompok (replace, 3-5 anggota). anggota: [{id_murid, nama_murid}]
   // [Atomic] 1 transaksi via RPC agar tidak menyisakan kelompok tanpa
   // anggota jika insert pengganti gagal (validasi roster/aktif atau koneksi putus)
   setAnggotaKelompokBelajar: async function(id_kelompok, anggota) {
