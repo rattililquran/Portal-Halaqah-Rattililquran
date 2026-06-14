@@ -3619,8 +3619,9 @@ var AdminAPI = {
     var rows = ((d && d.templates) || []).filter(function(t){ return t.teks && String(t.teks).trim(); });
     var existing = [], fresh = [];
     rows.forEach(function(t, i){
+      var tid = t.id || t.id_template;   // tahan beda versi frontend
       var r = { kategori: String(t.kategori || 'Umum').trim(), teks: String(t.teks).trim(), urutan: i + 1, status: 'aktif' };
-      if (t.id) { r.id_template = t.id; existing.push(r); } else { fresh.push(r); }
+      if (tid) { r.id_template = tid; existing.push(r); } else { fresh.push(r); }
     });
     var keptIds = existing.map(function(r){ return r.id_template; });
     // 1) Nonaktifkan template aktif yang dihapus dari editor
@@ -3628,20 +3629,26 @@ var AdminAPI = {
     _check(curErr, 'saveTemplateKoreksi.fetch');
     var toOff = (cur || []).map(function(r){ return r.id_template; }).filter(function(id){ return keptIds.indexOf(id) < 0; });
     if (toOff.length) {
-      var { error: offErr } = await _sb.from('template_koreksi').update({ status:'nonaktif' }).in('id_template', toOff);
-      _check(offErr, 'saveTemplateKoreksi.deactivate');
+      var off = await _sb.from('template_koreksi').update({ status:'nonaktif' }).in('id_template', toOff).select('id_template');
+      _check(off.error, 'saveTemplateKoreksi.deactivate');
     }
-    // 2) Update template lama
+    // 2) Update template lama -- pakai .select() agar 0-baris-ditulis (RLS no-op) terdeteksi
+    var written = 0;
     if (existing.length) {
-      var { error: upErr } = await _sb.from('template_koreksi').upsert(existing, { onConflict:'id_template' });
-      _check(upErr, 'saveTemplateKoreksi.update');
+      var up = await _sb.from('template_koreksi').upsert(existing, { onConflict:'id_template' }).select('id_template');
+      _check(up.error, 'saveTemplateKoreksi.update');
+      written += (up.data || []).length;
     }
     // 3) Insert template baru (biarkan id_template default ter-generate)
     if (fresh.length) {
-      var { error: insErr } = await _sb.from('template_koreksi').insert(fresh);
-      _check(insErr, 'saveTemplateKoreksi.insert');
+      var ins = await _sb.from('template_koreksi').insert(fresh).select('id_template');
+      _check(ins.error, 'saveTemplateKoreksi.insert');
+      written += (ins.data || []).length;
     }
-    return { status:'ok' };
+    if ((existing.length + fresh.length) > 0 && written === 0) {
+      throw new Error('Template tidak tersimpan (0 baris ditulis ke DB). Kemungkinan sesi ini tidak punya hak admin (RLS admin_write_template). Coba logout lalu login ulang sebagai admin.');
+    }
+    return { status:'ok', written: written };
   },
   resetPassword: async function(id_user, new_password) {
     var token = localStorage.getItem('hq_token');
