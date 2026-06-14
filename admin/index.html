@@ -7695,7 +7695,9 @@ async function loadTemplate() {
   showLoad('Bismillah, memuat template koreksi...');
   try {
     const r = await window.HQ.AdminAPI.getTemplateKoreksi();
-    templateRows = r.flat || [];
+    templateRows = (r.flat || []).map(function(t){
+      return { id: t.id_template || '', kategori: t.kategori || 'Umum', teks: t.teks || '' };
+    });
     if (!templateRows.length) {
       templateRows = [
         { id:'',teks:'Makhraj ح perlu diperjelas',kategori:'Makhraj' },

@@ -3607,8 +3607,42 @@ var AdminAPI = {
   },
   getLevelList: async function() { var {data,error}=await _sb.from('level').select('*').eq('status','aktif').order('urutan'); _check(error,'getLevelList'); return {status:'ok',data}; },
   saveLevel: async function(d) { var {data,error}=await _sb.from('level').upsert(d,{onConflict:'id_level'}).select(); _check(error,'saveLevel'); return {status:'ok',data}; },
-  getTemplateKoreksi: async function() { return GuruAPI.getTemplateKoreksi(); },
-  saveTemplateKoreksi: async function(d) { var {error}=await _sb.from('template_koreksi').upsert(d,{onConflict:'id_template'}); _check(error,'saveTemplateKoreksi'); return {status:'ok'}; },
+  // Admin: kembalikan baris MENTAH (incl id_template & urutan) utk editor,
+  // bukan versi guru yang sudah dikelompokkan per kategori.
+  getTemplateKoreksi: async function() {
+    var { data, error } = await _sb.from('template_koreksi')
+      .select('id_template, kategori, teks, urutan').eq('status','aktif').order('urutan');
+    _check(error, 'getTemplateKoreksi(admin)');
+    return { status:'ok', flat: data || [] };
+  },
+  saveTemplateKoreksi: async function(d) {
+    var rows = ((d && d.templates) || []).filter(function(t){ return t.teks && String(t.teks).trim(); });
+    var existing = [], fresh = [];
+    rows.forEach(function(t, i){
+      var r = { kategori: String(t.kategori || 'Umum').trim(), teks: String(t.teks).trim(), urutan: i + 1, status: 'aktif' };
+      if (t.id) { r.id_template = t.id; existing.push(r); } else { fresh.push(r); }
+    });
+    var keptIds = existing.map(function(r){ return r.id_template; });
+    // 1) Nonaktifkan template aktif yang dihapus dari editor
+    var { data: cur, error: curErr } = await _sb.from('template_koreksi').select('id_template').eq('status','aktif');
+    _check(curErr, 'saveTemplateKoreksi.fetch');
+    var toOff = (cur || []).map(function(r){ return r.id_template; }).filter(function(id){ return keptIds.indexOf(id) < 0; });
+    if (toOff.length) {
+      var { error: offErr } = await _sb.from('template_koreksi').update({ status:'nonaktif' }).in('id_template', toOff);
+      _check(offErr, 'saveTemplateKoreksi.deactivate');
+    }
+    // 2) Update template lama
+    if (existing.length) {
+      var { error: upErr } = await _sb.from('template_koreksi').upsert(existing, { onConflict:'id_template' });
+      _check(upErr, 'saveTemplateKoreksi.update');
+    }
+    // 3) Insert template baru (biarkan id_template default ter-generate)
+    if (fresh.length) {
+      var { error: insErr } = await _sb.from('template_koreksi').insert(fresh);
+      _check(insErr, 'saveTemplateKoreksi.insert');
+    }
+    return { status:'ok' };
+  },
   resetPassword: async function(id_user, new_password) {
     var token = localStorage.getItem('hq_token');
     var res = await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
