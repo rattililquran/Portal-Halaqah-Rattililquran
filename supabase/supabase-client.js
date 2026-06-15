@@ -3259,6 +3259,14 @@ var AdminAPI = {
   createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
   updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select(); _check(error,'updateUser'); if(!data || !data.length) throw new Error('User '+id_user+' tidak ditemukan atau tidak ada perubahan tersimpan -- coba muat ulang halaman dan login ulang'); if('role' in u || 'status' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data:data[0]}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
+  // Hapus murid PERMANEN & bersih (RPC patch_043, superadmin only):
+  // hapus data + cascade, bebaskan ID, hapus akun auth login.
+  hardDeleteMurid: async function(id_user) {
+    var {data,error}=await _sb.rpc('hard_delete_murid', { p_id_user: id_user });
+    _check(error,'hardDeleteMurid');
+    _logAudit('hard_delete_murid', { id_user: id_user });
+    return {status:'ok',data};
+  },
   getAllHalaqah: async function() {
     // Fetch halaqah + seluruh anggota aktif (untuk ketua + hitung jumlah murid) in parallel
     var [{data: hqData, error: hqErr}, {data: anggotaData}] = await Promise.all([
