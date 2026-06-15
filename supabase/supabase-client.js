@@ -95,6 +95,15 @@ function _genId(prefix) {
   return prefix + '-' + uuid;
 }
 
+// M1: baris SPP gateway 'menunggu' yang invoice Mayar-nya sudah kedaluwarsa
+// (ditinggalkan, tak jadi dibayar). Diperlakukan sebagai 'belum' di tampilan
+// supaya tidak terlihat "sedang diproses" selamanya. Backend (claim_spp_gateway)
+// juga mengizinkan pembuatan invoice baru untuk baris seperti ini.
+function _sppGatewayExpired(r) {
+  return r && r.metode_bayar === 'gateway' && r.status === 'menunggu'
+    && r.mayar_expired_at && new Date(r.mayar_expired_at).getTime() < Date.now();
+}
+
 // Nama hari Indonesia
 function _hariIni() {
   return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
@@ -2413,7 +2422,7 @@ var MuridAPI = {
     var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
     var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
     var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas' && (r.jenis==='SPP Pribadi' || !r.jenis); }).map(function(r){ return r.bulan; });
-    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu' && (r.jenis==='SPP Pribadi' || !r.jenis); }).map(function(r){ return r.bulan; });
+    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu' && (r.jenis==='SPP Pribadi' || !r.jenis) && !_sppGatewayExpired(r); }).map(function(r){ return r.bulan; });
     var bulanGrid   = BULAN.map(function(b) {
       var l = lunasBulan.includes(b);
       var m = menunggu.includes(b);
@@ -3713,7 +3722,12 @@ var AdminAPI = {
   // ── SPP Admin ──────────────────────────────
   getSPPPending: async function() {
     var { data, error } = await _sb.from('spp_pembayaran').select('*').eq('status','menunggu').order('created_at',{ascending:false});
-    _check(error,'getSPPPending'); return { status:'ok', data: data||[] };
+    _check(error,'getSPPPending');
+    // M1: sembunyikan reservasi gateway yang sudah kedaluwarsa (invoice tak
+    // jadi dibayar) — itu bukan pengajuan manual yang perlu divalidasi admin.
+    // Pengajuan manual & invoice gateway yang masih berlaku tetap tampil.
+    var rows = (data||[]).filter(function(r){ return !_sppGatewayExpired(r); });
+    return { status:'ok', data: rows };
   },
   validasiSPP: async function(id_spp, aksi) {
     // Ambil data SPP dulu untuk push ke murid
