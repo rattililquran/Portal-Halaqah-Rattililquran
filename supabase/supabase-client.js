@@ -3260,21 +3260,25 @@ var AdminAPI = {
   updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select(); _check(error,'updateUser'); if(!data || !data.length) throw new Error('User '+id_user+' tidak ditemukan atau tidak ada perubahan tersimpan -- coba muat ulang halaman dan login ulang'); if('role' in u || 'status' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data:data[0]}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
   getAllHalaqah: async function() {
-    // Fetch halaqah + ketua kelas (anggota where is_ketua=TRUE) in parallel
-    var [{data: hqData, error: hqErr}, {data: ketuaData}] = await Promise.all([
+    // Fetch halaqah + seluruh anggota aktif (untuk ketua + hitung jumlah murid) in parallel
+    var [{data: hqData, error: hqErr}, {data: anggotaData}] = await Promise.all([
       _sb.from('halaqah').select('*').order('nama_halaqah'),
-      _sb.from('anggota').select('id_halaqah, nama_murid').eq('is_ketua', true).eq('status', 'aktif'),
+      _sb.from('anggota').select('id_halaqah, nama_murid, is_ketua').eq('status', 'aktif'),
     ]);
     _check(hqErr,'getAllHalaqah');
-    // Build ketua map
-    var ketuaMap = {};
-    (ketuaData || []).forEach(function(a) { ketuaMap[a.id_halaqah] = a.nama_murid; });
+    // Build ketua map + count murid aktif per halaqah
+    var ketuaMap = {}, countMap = {};
+    (anggotaData || []).forEach(function(a) {
+      countMap[a.id_halaqah] = (countMap[a.id_halaqah] || 0) + 1;
+      if (a.is_ketua === true) ketuaMap[a.id_halaqah] = a.nama_murid;
+    });
     if (hqData) {
       hqData = hqData.map(function(h) {
         return Object.assign({}, h, {
           jam_mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
           jam_selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
           nama_ketua: ketuaMap[h.id_halaqah] || null,
+          total_murid: countMap[h.id_halaqah] || 0,
         });
       });
     }
@@ -3409,9 +3413,21 @@ var AdminAPI = {
   getAllAnggota: async function(id_halaqah) {
     var q = _sb.from('anggota').select('*, users!anggota_id_murid_fkey(nama_lengkap,no_hp)');
     if (id_halaqah) q = q.eq('id_halaqah',id_halaqah);
-    var {data,error}=await q.order('nama_murid'); _check(error,'getAllAnggota'); return {status:'ok',data};
+    var {data,error}=await q.order('nama_murid'); _check(error,'getAllAnggota');
+    // Fallback nama dari join users bila kolom denormalisasi nama_murid kosong (baris lama)
+    if (data) data = data.map(function(a) {
+      return Object.assign({}, a, { nama_murid: a.nama_murid || (a.users && a.users.nama_lengkap) || '' });
+    });
+    return {status:'ok',data};
   },
-  addAnggota: async function(d) { var {data,error}=await _sb.from('anggota').insert(d).select().single(); _check(error,'addAnggota'); return {status:'ok',data}; },
+  addAnggota: async function(d) {
+    // Isi nama_murid (denormalisasi) bila belum ada — dipakai untuk display & nama ketua
+    if (!d.nama_murid && d.id_murid) {
+      var {data:u}=await _sb.from('users').select('nama_lengkap').eq('id_user',d.id_murid).single();
+      if (u && u.nama_lengkap) d = Object.assign({}, d, { nama_murid: u.nama_lengkap });
+    }
+    var {data,error}=await _sb.from('anggota').insert(d).select().single(); _check(error,'addAnggota'); return {status:'ok',data};
+  },
   updateAnggota: async function(d) { var {id_anggota,...u}=d; var {error}=await _sb.from('anggota').update(u).eq('id_anggota',id_anggota); _check(error,'updateAnggota'); return {status:'ok'}; },
   removeAnggota: async function(d) { var id=typeof d==='string'?d:(d&&d.id_anggota); var {error}=await _sb.from('anggota').update({status:'nonaktif'}).eq('id_anggota',id); _check(error,'removeAnggota'); return {status:'ok'}; },
   assignKetuaKelas: async function(d) {
