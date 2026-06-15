@@ -3429,6 +3429,17 @@ var AdminAPI = {
     var {data,error}=await _sb.from('anggota').insert(d).select().single(); _check(error,'addAnggota'); return {status:'ok',data};
   },
   updateAnggota: async function(d) { var {id_anggota,...u}=d; var {error}=await _sb.from('anggota').update(u).eq('id_anggota',id_anggota); _check(error,'updateAnggota'); return {status:'ok'}; },
+  // Pindah murid dari halaqah asal ke tujuan secara atomik (RPC patch_042).
+  // Tidak meninggalkan baris nyangkut di halaqah lama + aman dari duplikat.
+  pindahHalaqah: async function(d) {
+    var {data,error}=await _sb.rpc('pindah_anggota_halaqah', {
+      p_id_anggota        : d.id_anggota,
+      p_id_halaqah_tujuan : d.id_halaqah_tujuan,
+      p_level             : d.level || null,
+      p_target_level      : d.target_level || null,
+    });
+    _check(error,'pindahHalaqah'); return {status:'ok',data};
+  },
   removeAnggota: async function(d) { var id=typeof d==='string'?d:(d&&d.id_anggota); var {error}=await _sb.from('anggota').update({status:'nonaktif'}).eq('id_anggota',id); _check(error,'removeAnggota'); return {status:'ok'}; },
   assignKetuaKelas: async function(d) {
     var {data:row,error:errRow}=await _sb.from('anggota').select('id_halaqah').eq('id_anggota',d.id_anggota).single();

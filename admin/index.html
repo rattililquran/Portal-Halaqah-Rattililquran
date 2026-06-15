@@ -5026,6 +5026,7 @@ function renderAnggotaTable() {
       <td>${a.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-amber">'+esc(a.status)+'</span>'}</td>
       <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
+        <button class="btn btn-ghost btn-sm" onclick="pindahAnggotaModal('${esc(a.id_anggota)}','${escJs(a.nama_murid)}','${esc(a.id_halaqah)}','${esc(a.level)}','${esc(a.target_level)}')">↪️ Pindah</button>
         ${currentUser && currentUser.role === 'superadmin'
           ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${escJs(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
           : ''}
@@ -5086,6 +5087,64 @@ async function saveEditAnggota(id) {
   try {
     await window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget });
     toast('Level diperbarui!','ok');
+    loadAnggota();
+  } catch(e) { toast(e.message,'err'); }
+  finally { hideLoad(); }
+}
+
+function pindahAnggotaModal(id_anggota, nama, id_halaqah_asal, level, target) {
+  var existing = document.getElementById('_angPindahOverlay');
+  if (existing) existing.remove();
+
+  // Hanya halaqah aktif selain asal sebagai tujuan
+  var opsi = (allHalaqah || [])
+    .filter(function(h){ return h.id_halaqah !== id_halaqah_asal && h.status === 'aktif'; })
+    .map(function(h){ return '<option value="'+esc(h.id_halaqah)+'">'+esc(h.nama_halaqah)+' ('+esc(h.level||'–')+')</option>'; })
+    .join('');
+
+  var ov = document.createElement('div');
+  ov.id = '_angPindahOverlay';
+  ov.className = 'overlay open';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title">↪️ Pindah Halaqah</div>
+        <button class="modal-x" onclick="document.getElementById('_angPindahOverlay').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">Memindahkan <strong>${esc(nama)}</strong> ke halaqah lain. Murid akan keluar bersih dari halaqah lama (tidak ada sisa).</div>
+        <div class="fg"><label>Halaqah Tujuan</label>
+          <select id="_angPindahTujuan" class="fc">
+            <option value="">— Pilih Halaqah —</option>${opsi}
+          </select>
+        </div>
+        <div class="fg"><label>Level</label>
+          <input id="_angPindahLevel" class="fc" value="${esc(level||'')}" placeholder="Level 1">
+        </div>
+        <div class="fg"><label>Target Level</label>
+          <input id="_angPindahTarget" class="fc" value="${esc(target||'')}" placeholder="Level 2">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('_angPindahOverlay').remove()">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="savePindahAnggota('${esc(id_anggota)}')">↪️ Pindahkan</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click', function(){ ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+async function savePindahAnggota(id_anggota) {
+  const tujuan = document.getElementById('_angPindahTujuan').value;
+  const level  = document.getElementById('_angPindahLevel').value.trim();
+  const target = document.getElementById('_angPindahTarget').value.trim();
+  if (!tujuan) return toast('Pilih halaqah tujuan dulu','err');
+  document.getElementById('_angPindahOverlay').remove();
+  showLoad('Bismillah, memindahkan murid...');
+  try {
+    await window.HQ.AdminAPI.pindahHalaqah({ id_anggota: id_anggota, id_halaqah_tujuan: tujuan, level: level, target_level: target });
+    toast('Murid berhasil dipindahkan!','ok');
+    await loadMasterData();   // segarkan jumlah murid per halaqah
     loadAnggota();
   } catch(e) { toast(e.message,'err'); }
   finally { hideLoad(); }
