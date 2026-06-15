@@ -104,6 +104,41 @@ function _sppGatewayExpired(r) {
     && r.mayar_expired_at && new Date(r.mayar_expired_at).getTime() < Date.now();
 }
 
+// L4: jalur lama simpan template koreksi (3 request, NON-ATOMIK). Hanya
+// dipakai sebagai fallback bila RPC save_template_koreksi belum ada di DB
+// (patch_039 belum dijalankan). p_templates sudah dinormalisasi:
+// [{ id_template|null, kategori, teks }].
+async function _saveTemplateKoreksiLegacy(templates) {
+  var existing = [], fresh = [];
+  templates.forEach(function(t, i){
+    var r = { kategori: t.kategori, teks: t.teks, urutan: i + 1, status: 'aktif' };
+    if (t.id_template) { r.id_template = t.id_template; existing.push(r); } else { fresh.push(r); }
+  });
+  var keptIds = existing.map(function(r){ return r.id_template; });
+  var { data: cur, error: curErr } = await _sb.from('template_koreksi').select('id_template').eq('status','aktif');
+  _check(curErr, 'saveTemplateKoreksi.fetch');
+  var toOff = (cur || []).map(function(r){ return r.id_template; }).filter(function(id){ return keptIds.indexOf(id) < 0; });
+  if (toOff.length) {
+    var off = await _sb.from('template_koreksi').update({ status:'nonaktif' }).in('id_template', toOff).select('id_template');
+    _check(off.error, 'saveTemplateKoreksi.deactivate');
+  }
+  var written = 0;
+  if (existing.length) {
+    var up = await _sb.from('template_koreksi').upsert(existing, { onConflict:'id_template' }).select('id_template');
+    _check(up.error, 'saveTemplateKoreksi.update');
+    written += (up.data || []).length;
+  }
+  if (fresh.length) {
+    var ins = await _sb.from('template_koreksi').insert(fresh).select('id_template');
+    _check(ins.error, 'saveTemplateKoreksi.insert');
+    written += (ins.data || []).length;
+  }
+  if (templates.length > 0 && written === 0) {
+    throw new Error('Template tidak tersimpan (0 baris ditulis ke DB). Kemungkinan sesi ini tidak punya hak admin (RLS admin_write_template). Coba logout lalu login ulang sebagai admin.');
+  }
+  return { status:'ok', written: written };
+}
+
 // Nama hari Indonesia
 function _hariIni() {
   return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
@@ -3625,36 +3660,27 @@ var AdminAPI = {
     return { status:'ok', flat: data || [] };
   },
   saveTemplateKoreksi: async function(d) {
-    var rows = ((d && d.templates) || []).filter(function(t){ return t.teks && String(t.teks).trim(); });
-    var existing = [], fresh = [];
-    rows.forEach(function(t, i){
-      var tid = t.id || t.id_template;   // tahan beda versi frontend
-      var r = { kategori: String(t.kategori || 'Umum').trim(), teks: String(t.teks).trim(), urutan: i + 1, status: 'aktif' };
-      if (tid) { r.id_template = tid; existing.push(r); } else { fresh.push(r); }
-    });
-    var keptIds = existing.map(function(r){ return r.id_template; });
-    // 1) Nonaktifkan template aktif yang dihapus dari editor
-    var { data: cur, error: curErr } = await _sb.from('template_koreksi').select('id_template').eq('status','aktif');
-    _check(curErr, 'saveTemplateKoreksi.fetch');
-    var toOff = (cur || []).map(function(r){ return r.id_template; }).filter(function(id){ return keptIds.indexOf(id) < 0; });
-    if (toOff.length) {
-      var off = await _sb.from('template_koreksi').update({ status:'nonaktif' }).in('id_template', toOff).select('id_template');
-      _check(off.error, 'saveTemplateKoreksi.deactivate');
+    // L4: simpan atomik (nonaktif+upsert+insert dalam 1 transaksi) via RPC.
+    // Tahan beda versi frontend (t.id maupun t.id_template).
+    var templates = ((d && d.templates) || [])
+      .filter(function(t){ return t.teks && String(t.teks).trim(); })
+      .map(function(t){
+        return {
+          id_template: t.id || t.id_template || null,
+          kategori   : String(t.kategori || 'Umum').trim(),
+          teks       : String(t.teks).trim(),
+        };
+      });
+    var rpc = await _sb.rpc('save_template_koreksi', { p_templates: templates });
+    if (rpc.error) {
+      // Fallback bila RPC belum ada di DB (patch_039 belum dijalankan).
+      if (rpc.error.code === 'PGRST202' || /save_template_koreksi/i.test(rpc.error.message || '')) {
+        return await _saveTemplateKoreksiLegacy(templates);
+      }
+      _check(rpc.error, 'saveTemplateKoreksi');
     }
-    // 2) Update template lama -- pakai .select() agar 0-baris-ditulis (RLS no-op) terdeteksi
-    var written = 0;
-    if (existing.length) {
-      var up = await _sb.from('template_koreksi').upsert(existing, { onConflict:'id_template' }).select('id_template');
-      _check(up.error, 'saveTemplateKoreksi.update');
-      written += (up.data || []).length;
-    }
-    // 3) Insert template baru (biarkan id_template default ter-generate)
-    if (fresh.length) {
-      var ins = await _sb.from('template_koreksi').insert(fresh).select('id_template');
-      _check(ins.error, 'saveTemplateKoreksi.insert');
-      written += (ins.data || []).length;
-    }
-    if ((existing.length + fresh.length) > 0 && written === 0) {
+    var written = Number(rpc.data || 0);
+    if (templates.length > 0 && written === 0) {
       throw new Error('Template tidak tersimpan (0 baris ditulis ke DB). Kemungkinan sesi ini tidak punya hak admin (RLS admin_write_template). Coba logout lalu login ulang sebagai admin.');
     }
     return { status:'ok', written: written };
