@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install Portal & Aktifkan Notifikasi — Rattililqur'an</title>
+<meta name="description" content="Panduan install Portal Rattililqur'an ke HP seperti aplikasi (Android & iPhone) dan cara mengaktifkan notifikasi jadwal KBM, raport, serta pengumuman penting.">
+<meta name="theme-color" content="#0c4a6e">
+<link rel="icon" href="assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<link rel="canonical" href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/panduan-install.html">
+<!-- Open Graph / preview share (WhatsApp, Telegram, dll) -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="id_ID">
+<meta property="og:site_name" content="Portal Rattililqur'an">
+<meta property="og:title" content="Install Portal & Aktifkan Notifikasi — Rattililqur'an">
+<meta property="og:description" content="Panduan install Portal Rattililqur'an ke HP seperti aplikasi (Android & iPhone) dan cara mengaktifkan notifikasi jadwal KBM, raport, serta pengumuman penting.">
+<meta property="og:url" content="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/panduan-install.html">
+<meta property="og:image" content="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/assets/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Install Portal & Aktifkan Notifikasi — Rattililqur'an">
+<meta name="twitter:description" content="Panduan install Portal Rattililqur'an ke HP & cara aktifkan notifikasi jadwal KBM, raport, dan pengumuman.">
+<meta name="twitter:image" content="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/assets/icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ DESIGN TOKENS ═══════════════ */
+:root{
+  --bg:#e9f3fc;
+  --bg-glow:#d3ebfd;
+  --surface:#ffffff;
+  --surface-2:#f2f8ff;
+  --border:#e2edfa;
+  --border-2:#cfe2f7;
+  --ink:#0b2c46;
+  --ink-2:#45596e;
+  --ink-3:#7e93a8;
+  --brand:#0ea5e9;
+  --brand-d:#0369a1;
+  --brand-dd:#0c4a6e;
+  --accent:#1d4ed8;
+  --amber-bg:#fff8e8; --amber-bd:#fde3a7; --amber-ink:#8a5a00; --amber-ink-2:#6b4500;
+  --green-bg:#eafaf0; --green-bd:#a7e9c4; --green-ink:#0d7a44;
+  --info-bg:#eaf5ff; --info-bd:#bfe0fb; --info-ink:#0b5e90;
+  --radius:16px; --radius-lg:22px; --radius-xl:28px;
+  --shadow-sm:0 1px 2px rgba(11,44,70,.05);
+  --shadow:0 6px 22px rgba(11,44,70,.08),0 1px 3px rgba(11,44,70,.05);
+  --shadow-lg:0 20px 48px rgba(11,44,70,.16);
+  --shadow-brand:0 12px 30px rgba(14,165,233,.32);
+  --ring:rgba(14,165,233,.4);
+  --maxw:680px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#091523;
+    --bg-glow:#0e2138;
+    --surface:#0f2032;
+    --surface-2:#15293f;
+    --border:#213a52;
+    --border-2:#2c4760;
+    --ink:#e9f1fa;
+    --ink-2:#aabccf;
+    --ink-3:#6f8398;
+    --amber-bg:rgba(245,158,11,.12); --amber-bd:rgba(245,158,11,.34); --amber-ink:#f0b95a; --amber-ink-2:#f6cd84;
+    --green-bg:rgba(16,185,129,.12); --green-bd:rgba(16,185,129,.34); --green-ink:#5fd6a0;
+    --info-bg:rgba(14,165,233,.12); --info-bd:rgba(14,165,233,.34); --info-ink:#7cc8f3;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow:0 8px 26px rgba(0,0,0,.45);
+    --shadow-lg:0 22px 50px rgba(0,0,0,.55);
+  }
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  padding-bottom:92px; /* ruang untuk sticky CTA */
+}
+
+/* ─── Entrance animation — konten SELALU tampil; animasi hanya enhancement.
+       (Jangan gantungkan visibilitas pada JS/IntersectionObserver: di banyak
+        in-app browser HP, mis. WhatsApp/IG, observer tak jalan → konten hilang.) ─── */
+.reveal{opacity:1}
+@media (prefers-reduced-motion: no-preference){
+  .reveal{animation:revealIn .6s cubic-bezier(.2,.7,.2,1) both}
+}
+@keyframes revealIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+/* ═══════════════ HERO ═══════════════ */
+.hero{
+  position:relative;overflow:hidden;text-align:center;
+  padding:58px 22px 84px;
+  background:linear-gradient(155deg,#042235 0%,#0a4a73 46%,#0ea5e9 116%);
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:30px 30px;
+}
+.hero-glow{
+  position:absolute;border-radius:50%;pointer-events:none;filter:blur(46px);opacity:.55;
+}
+.hero-glow.g1{width:240px;height:240px;background:#38bdf8;top:-70px;right:-50px}
+.hero-glow.g2{width:200px;height:200px;background:#0284c7;bottom:-60px;left:-50px;opacity:.4}
+.hero-inner{position:relative;z-index:1;max-width:560px;margin:0 auto}
+.hero-app-icon{
+  position:relative;width:88px;height:88px;border-radius:24px;margin:0 auto 22px;
+  background:linear-gradient(135deg,rgba(255,255,255,.28),rgba(255,255,255,.1));
+  border:1.5px solid rgba(255,255,255,.45);backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  box-shadow:0 14px 38px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.4);
+}
+.hero-app-icon::after{
+  content:'';position:absolute;inset:-8px;border-radius:30px;
+  border:1.5px solid rgba(255,255,255,.18);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+  border-radius:100px;padding:7px 16px;
+  font-size:12px;font-weight:700;color:#fff;
+  letter-spacing:.02em;margin-bottom:20px;backdrop-filter:blur(8px);
+}
+.hero h1{
+  font-size:clamp(29px,6.4vw,46px);font-weight:900;color:#fff;
+  line-height:1.12;letter-spacing:-.025em;margin-bottom:16px;
+}
+.hero h1 span{
+  background:linear-gradient(100deg,#bae6fd,#7dd3fc);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{
+  font-size:clamp(14.5px,3.2vw,17px);color:rgba(255,255,255,.82);
+  font-weight:500;line-height:1.7;max-width:480px;margin:0 auto 30px;
+}
+.hero-stats{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  max-width:340px;margin:30px auto 0;
+}
+.hero-stat{
+  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;padding:13px 10px;backdrop-filter:blur(8px);text-align:center;
+  transition:transform .25s,background .25s;
+}
+.hero-stat:hover{transform:translateY(-2px);background:rgba(255,255,255,.2)}
+.hero-stat-num{font-size:23px;font-weight:900;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:10.5px;color:rgba(255,255,255,.72);font-weight:600;margin-top:4px;letter-spacing:.01em}
+
+.wave{height:46px;background:var(--bg);border-radius:46px 46px 0 0;margin-top:-26px;position:relative;z-index:2}
+
+/* ═══════════════ SECTIONS ═══════════════ */
+.section{padding:34px 16px;width:100%;max-width:var(--maxw);margin:0 auto}
+@media(min-width:480px){.section{padding:40px 22px}}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--brand-d);background:var(--surface-2);border:1px solid var(--border);
+  padding:5px 13px;border-radius:100px;margin-bottom:14px;
+}
+.section-title{
+  font-size:clamp(21px,4.4vw,28px);font-weight:900;color:var(--ink);
+  margin-bottom:8px;letter-spacing:-.025em;line-height:1.2;
+}
+.section-sub{font-size:14px;color:var(--ink-3);font-weight:500;line-height:1.65;margin-bottom:26px;max-width:480px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:-12px 0 26px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:100px;padding:7px 13px;box-shadow:var(--shadow-sm);
+}
+
+/* ─── WHY CARDS ─── */
+.why-grid{display:grid;grid-template-columns:1fr;gap:13px}
+@media(min-width:560px){.why-grid{grid-template-columns:1fr 1fr}}
+.why-card{
+  background:var(--surface);border-radius:var(--radius-lg);padding:20px;
+  display:flex;align-items:flex-start;gap:15px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s,border-color .28s;
+}
+.why-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--border-2)}
+.why-ico{
+  width:50px;height:50px;border-radius:15px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:25px;
+  box-shadow:inset 0 0 0 1px rgba(11,44,70,.04);
+}
+.why-ico.blue{background:linear-gradient(135deg,#e0f2fe,#eff8ff)}
+.why-ico.green{background:linear-gradient(135deg,#dcfce7,#f0fdf4)}
+.why-ico.amber{background:linear-gradient(135deg,#fef3c7,#fffbeb)}
+.why-ico.purple{background:linear-gradient(135deg,#f3e8ff,#faf5ff)}
+.why-text h3{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:5px;line-height:1.3}
+.why-text p{font-size:13px;color:var(--ink-2);line-height:1.6;font-weight:500}
+.why-text strong{color:var(--brand-d);font-weight:700}
+
+/* ─── NOTIF REASONS ─── */
+.notif-card{
+  background:linear-gradient(140deg,#0c4a6e,#0369a1 70%,#0284c7);
+  border-radius:var(--radius-xl);padding:28px 22px;color:#fff;margin-bottom:16px;
+  position:relative;overflow:hidden;box-shadow:var(--shadow-lg);
+}
+.notif-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;
+  border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;
+}
+.notif-card::after{
+  content:'';position:absolute;bottom:-50px;left:-30px;width:120px;height:120px;
+  border-radius:50%;background:rgba(56,189,248,.18);filter:blur(30px);pointer-events:none;
+}
+.notif-card-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;position:relative}
+.notif-card-badge{
+  width:42px;height:42px;border-radius:13px;flex-shrink:0;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;font-size:21px;
+}
+.notif-card-title{font-size:19px;font-weight:900;line-height:1.15}
+.notif-card-sub{font-size:13px;color:rgba(255,255,255,.78);font-weight:500;margin-bottom:20px;position:relative}
+.notif-list{display:grid;grid-template-columns:1fr;gap:9px;position:relative}
+@media(min-width:560px){.notif-list{grid-template-columns:1fr 1fr}}
+.notif-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;padding:13px 14px;transition:background .22s,transform .22s;
+}
+.notif-item:hover{background:rgba(255,255,255,.17);transform:translateY(-1px)}
+.notif-item-ico{font-size:21px;flex-shrink:0;margin-top:1px}
+.notif-item-text{flex:1;min-width:0}
+.notif-item-text strong{display:block;font-size:13.5px;font-weight:800;margin-bottom:3px}
+.notif-item-text span{font-size:12px;color:rgba(255,255,255,.74);line-height:1.5}
+
+/* ─── ALERT / BOXES ─── */
+.warn-box{
+  border-radius:var(--radius);padding:15px 17px;
+  display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;
+  background:var(--amber-bg);border:1.5px solid var(--amber-bd);
+}
+.warn-box.info{background:var(--info-bg);border-color:var(--info-bd)}
+.warn-box-ico{font-size:20px;flex-shrink:0;margin-top:1px}
+.warn-box-text{font-size:13px;color:var(--amber-ink);line-height:1.6;font-weight:500}
+.warn-box-text strong{color:var(--amber-ink-2);font-weight:800;display:block;margin-bottom:3px;font-size:13.5px}
+.warn-box.info .warn-box-text{color:var(--info-ink)}
+.warn-box.info .warn-box-text strong{color:var(--info-ink)}
+
+/* ─── STEPS ─── */
+.os-tabs{
+  display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:16px;padding:5px;margin-bottom:22px;
+}
+.os-tab{
+  flex:1;padding:11px 8px;border-radius:11px;border:none;
+  font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;
+  background:transparent;color:var(--brand-d);transition:all .22s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.os-tab.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.steps-panel{display:none;animation:fadeUp .4s ease}
+.steps-panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.steps-list{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:6px 18px;box-shadow:var(--shadow);
+}
+.step-item{display:flex;gap:16px;padding:17px 0;border-bottom:1px solid var(--border);position:relative}
+.step-item:last-child{border-bottom:none}
+.step-item:not(:last-child)::after{
+  content:'';position:absolute;left:19px;top:54px;bottom:-1px;width:2px;
+  background:linear-gradient(var(--border-2),transparent);
+}
+.step-num{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;
+  font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;position:relative;z-index:1;box-shadow:var(--shadow-brand);
+}
+.step-body{flex:1;padding-top:7px;min-width:0}
+.step-title{font-size:14.5px;font-weight:800;color:var(--ink);margin-bottom:5px;line-height:1.35}
+.step-desc{font-size:13px;color:var(--ink-2);line-height:1.6;font-weight:500}
+.step-desc code{
+  background:var(--surface-2);color:var(--brand-d);border:1px solid var(--border);
+  border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700;
+  font-family:ui-monospace,monospace;
+}
+.step-tip{
+  display:inline-flex;align-items:flex-start;gap:6px;
+  background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:9px;
+  padding:6px 11px;font-size:12px;font-weight:600;color:var(--amber-ink);
+  margin-top:9px;line-height:1.45;
+}
+
+/* ─── MOTIVASI ─── */
+.motiv-box{
+  background:linear-gradient(140deg,var(--green-bg),var(--surface-2));
+  border:1.5px solid var(--green-bd);border-radius:var(--radius-xl);
+  padding:26px 20px;text-align:center;max-width:var(--maxw);
+  margin:4px auto 8px;position:relative;overflow:hidden;
+}
+.motiv-arabic{
+  font-size:23px;color:var(--green-ink);direction:rtl;
+  font-family:'Times New Roman',serif;line-height:2;margin-bottom:10px;
+}
+.motiv-trans{font-size:13px;color:var(--green-ink);font-style:italic;font-weight:600;margin-bottom:5px;opacity:.92}
+.motiv-source{font-size:11.5px;color:var(--green-ink);font-weight:800;opacity:.85}
+.motiv-box p{font-size:13px;color:var(--ink-2);font-weight:500;margin-top:14px;line-height:1.7}
+.motiv-box p strong{color:var(--green-ink);font-weight:800}
+
+/* ─── FAQ ─── */
+.faq-item{
+  background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:9px;
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:box-shadow .25s,border-color .25s;
+}
+.faq-item:hover{box-shadow:var(--shadow);border-color:var(--border-2)}
+.faq-head{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  width:100%;padding:16px 18px;cursor:pointer;text-align:left;
+  font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);
+  background:transparent;border:none;transition:background .15s;
+}
+.faq-head:hover,.faq-head.open{background:var(--surface-2)}
+.faq-chev{font-size:19px;color:var(--brand);transition:transform .25s;flex-shrink:0}
+.faq-head.open .faq-chev{transform:rotate(180deg)}
+.faq-body{display:none;padding:0 18px 17px;font-size:13px;color:var(--ink-2);line-height:1.7;font-weight:500}
+.faq-body.open{display:block;animation:fadeUp .3s ease}
+
+/* ─── CTA ─── */
+.cta-wrap{text-align:center;padding:26px 16px 40px;width:100%;max-width:var(--maxw);margin:0 auto}
+.video-card{
+  background:var(--surface);border-radius:var(--radius-lg);padding:24px 20px;margin-bottom:24px;
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  transition:transform .28s,box-shadow .28s;
+}
+.video-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.video-card-label{
+  font-size:13.5px;font-weight:800;color:#dc2626;margin-bottom:5px;
+  display:flex;align-items:center;gap:7px;justify-content:center;
+}
+.video-card-sub{font-size:12.5px;color:var(--ink-3);font-weight:500;margin-bottom:18px}
+.yt-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:#FF0000;color:#fff;border:none;border-radius:100px;
+  padding:15px 28px;font-family:inherit;font-size:15px;font-weight:800;
+  cursor:pointer;text-decoration:none;width:100%;max-width:340px;
+  box-shadow:0 8px 22px rgba(255,0,0,.32);transition:transform .2s,box-shadow .2s;
+}
+.yt-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(255,0,0,.42)}
+.cta-lead{font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:18px;line-height:1.7}
+.cta-lead strong{color:var(--brand-d);font-weight:800}
+.cta-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,#0284c7,#1d4ed8);color:#fff;border:none;border-radius:100px;
+  padding:17px 38px;font-family:inherit;font-size:16px;font-weight:900;
+  cursor:pointer;text-decoration:none;box-shadow:var(--shadow-brand);
+  transition:transform .2s,box-shadow .2s;
+}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(2,132,199,.45)}
+.cta-secondary{display:block;margin-top:14px;font-size:12.5px;color:var(--ink-3);font-weight:600}
+.cta-trust{margin-top:24px;font-size:11.5px;color:var(--ink-3);font-weight:600;line-height:1.7}
+
+/* ─── STICKY CTA ─── */
+.sticky-cta{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  padding:11px 14px calc(11px + env(safe-area-inset-bottom,0px));
+  background:var(--surface);
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:blur(16px);border-top:1px solid var(--border);
+  box-shadow:0 -8px 28px rgba(11,44,70,.1);
+  transform:translateY(130%);transition:transform .38s cubic-bezier(.2,.7,.2,1);
+}
+.sticky-cta.show{transform:none}
+.sticky-cta-inner{
+  max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:12px;
+}
+.sticky-cta-text{flex:1;min-width:0;text-align:left}
+.sticky-cta-text b{display:block;font-size:13px;font-weight:800;color:var(--ink);line-height:1.2}
+.sticky-cta-text small{font-size:11px;color:var(--ink-3);font-weight:600}
+.sticky-cta-btn{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,#0284c7,#1d4ed8);color:#fff;text-decoration:none;
+  border-radius:100px;padding:12px 20px;font-size:13.5px;font-weight:800;
+  box-shadow:var(--shadow-brand);transition:transform .2s;
+}
+.sticky-cta-btn:hover{transform:translateY(-1px)}
+
+/* ─── MOBILE COMPACT ─── */
+@media(max-width:380px){
+  body{font-size:14.5px}
+  .hero{padding:48px 14px 70px}
+  .hero-app-icon{width:78px;height:78px;font-size:38px}
+  .why-card{padding:16px;gap:12px}
+  .why-ico{width:44px;height:44px;font-size:22px}
+  .notif-card{padding:22px 16px}
+  .notif-item{padding:11px 12px;gap:10px}
+  .step-item{gap:12px}
+  .sticky-cta-text small{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ HERO ════ -->
+<header class="hero">
+  <span class="hero-glow g1" aria-hidden="true"></span>
+  <span class="hero-glow g2" aria-hidden="true"></span>
+  <div class="hero-inner">
+    <div class="hero-app-icon" aria-hidden="true">📲</div>
+    <div class="hero-badge">✨ Gratis · Tanpa App Store · Langsung Jalan</div>
+    <h1>Portal di Genggaman,<br><span>Notifikasi Selalu Tepat Waktu</span></h1>
+    <p class="hero-sub">
+      Install portal Rattililqur'an ke HP kamu seperti aplikasi sungguhan —
+      dan aktifkan notifikasi agar tidak pernah ketinggalan dzikir harian, jadwal KBM, raport, atau pengumuman penting.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num" aria-hidden="true">⚡</div>
+        <div class="hero-stat-lbl">Buka Lebih Cepat</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" aria-hidden="true">🔔</div>
+        <div class="hero-stat-lbl">Notif Real-Time</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" aria-hidden="true">📵</div>
+        <div class="hero-stat-lbl">Tanpa Kuota Lebih</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">0 MB</div>
+        <div class="hero-stat-lbl">Download</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wave"></div>
+
+<!-- ════ KENAPA INSTALL? ════ -->
+<section class="section reveal">
+  <span class="eyebrow">🤔 Mengapa</span>
+  <h2 class="section-title">Kenapa Harus Diinstall?</h2>
+  <p class="section-sub">Perbedaan antara buka dari browser biasa vs install ke home screen sangat terasa.</p>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-ico blue" aria-hidden="true">⚡</div>
+      <div class="why-text">
+        <h3>Buka Langsung, Tanpa Ketik URL</h3>
+        <p>Cukup ketuk ikon di home screen HP — langsung masuk portal. <strong>Tidak perlu buka browser, tidak perlu ingat alamat website.</strong></p>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-ico green" aria-hidden="true">📺</div>
+      <div class="why-text">
+        <h3>Tampilan Penuh Seperti Aplikasi Asli</h3>
+        <p>Tidak ada address bar browser yang mengganggu. <strong>Seluruh layar untuk portal kamu</strong> — lebih nyaman dan profesional.</p>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-ico amber" aria-hidden="true">🔄</div>
+      <div class="why-text">
+        <h3>Selalu Versi Terbaru, Otomatis</h3>
+        <p>Tidak perlu update manual dari Play Store. <strong>Setiap kali dibuka, sudah versi terbaru</strong> — fitur baru langsung tersedia.</p>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-ico purple" aria-hidden="true">🔔</div>
+      <div class="why-text">
+        <h3>Notifikasi Bisa Diaktifkan</h3>
+        <p>Hanya setelah install, kamu bisa aktifkan notifikasi. <strong>Pengingat dzikir pagi-petang, jadwal KBM, raport, &amp; pengumuman</strong> — langsung ke HP.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ KENAPA IZINKAN NOTIFIKASI? ════ -->
+<section class="section reveal">
+  <span class="eyebrow">🔔 Notifikasi</span>
+  <h2 class="section-title">Kenapa Izinkan Notifikasi?</h2>
+  <p class="section-sub">Ini bukan notif spam — semua pesan punya tujuan yang jelas dan bermakna.</p>
+
+  <div class="notif-card">
+    <div class="notif-card-head">
+      <div class="notif-card-badge" aria-hidden="true">🔔</div>
+      <div class="notif-card-title">Yang akan kamu terima</div>
+    </div>
+    <div class="notif-card-sub">Semua bisa diatur per jenis kapan saja lewat Preferensi Notifikasi.</div>
+    <div class="notif-list">
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">☀️</div>
+        <div class="notif-item-text">
+          <strong>Pengingat Dzikir Pagi</strong>
+          <span>Setiap hari pukul 05:15 WIB — memulai hari dengan dzikir</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">🌙</div>
+        <div class="notif-item-text">
+          <strong>Pengingat Dzikir Petang</strong>
+          <span>Setiap hari pukul 15:30 WIB — jangan sampai terlewat</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">⏰</div>
+        <div class="notif-item-text">
+          <strong>Reminder H-1 Jadwal KBM</strong>
+          <span>Sehari sebelum jadwal halaqah — agar bisa siap lebih awal</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">📖</div>
+        <div class="notif-item-text">
+          <strong>Kajian At-Tibyan: H-1 &amp; 30 Menit Lagi</strong>
+          <span>Pengingat Sabtu malam dan 30 menit sebelum kajian mulai (Ahad 19.00 WIB)</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">✏️</div>
+        <div class="notif-item-text">
+          <strong>Deadline Latihan Mandiri</strong>
+          <span>Sehari sebelum batas waktu PR — jangan sampai terlewat</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">📢</div>
+        <div class="notif-item-text">
+          <strong>Pengumuman Baru</strong>
+          <span>Saat guru atau admin mengirim info penting — jadwal libur, perubahan jam, dll</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">📄</div>
+        <div class="notif-item-text">
+          <strong>Raport Dipublish</strong>
+          <span>Begitu nilai tersedia — kamu langsung tahu tanpa perlu cek portal terus</span>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-item-ico" aria-hidden="true">💳</div>
+        <div class="notif-item-text">
+          <strong>Status Pembayaran SPP</strong>
+          <span>Konfirmasi saat pembayaran diterima atau ditolak admin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-ico" aria-hidden="true">🔒</div>
+    <div class="warn-box-text">
+      <strong>Privasi &amp; Keamananmu Terjaga</strong>
+      Notifikasi hanya dari portal Rattililqur'an. Tidak ada iklan, tidak ada tracking, tidak ada data yang dijual ke pihak ketiga. Bisa dimatikan kapan saja dari pengaturan HP.
+    </div>
+  </div>
+</section>
+
+<!-- ════ MOTIVASI ════ -->
+<div class="section reveal" style="padding-top:8px;padding-bottom:8px">
+  <div class="motiv-box">
+    <div class="motiv-arabic" lang="ar" dir="rtl">وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ</div>
+    <div class="motiv-trans">"Dan tolong-menolonglah kamu dalam kebajikan dan ketakwaan"</div>
+    <div class="motiv-source">— QS. Al-Maidah: 2</div>
+    <p>
+      Portal ini hadir untuk memudahkan perjalanan belajar Al-Qur'anmu. Dengan menginstall dan mengaktifkan notifikasi, kamu membantu dirimu sendiri untuk <strong>lebih disiplin, lebih siap, dan lebih hadir</strong>.
+    </p>
+  </div>
+</div>
+
+<!-- ════ CARA INSTALL ════ -->
+<section class="section reveal">
+  <span class="eyebrow">📲 Panduan</span>
+  <h2 class="section-title">Cara Install ke HP</h2>
+  <p class="section-sub">Pilih sesuai HP dan browser yang kamu pakai.</p>
+  <div class="chips">
+    <span class="chip">⏱ ± 2 menit</span>
+    <span class="chip">✅ 5 langkah mudah</span>
+    <span class="chip">🆓 Tanpa biaya</span>
+  </div>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="switchOS('android', this)">🤖 Android</button>
+    <button class="os-tab" onclick="switchOS('ios', this)">🍎 iPhone / iPad</button>
+  </div>
+
+  <!-- ANDROID STEPS -->
+  <div class="steps-panel active" id="steps-android">
+    <div class="warn-box info">
+      <div class="warn-box-ico" aria-hidden="true">💡</div>
+      <div class="warn-box-text">
+        <strong>Gunakan Google Chrome</strong>
+        Browser lain mungkin tidak punya opsi install. Jika belum punya Chrome, download dulu dari Play Store — gratis.
+      </div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Buka portal di Chrome Android</div>
+          <div class="step-desc">Pastikan kamu sudah login ke akunmu. Tunggu halaman terbuka sepenuhnya.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Ketuk menu tiga titik <code>⋮</code></div>
+          <div class="step-desc">Di pojok kanan atas Chrome, ketuk tombol tiga titik vertikal (⋮).</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Pilih "Tambahkan ke layar utama" atau "Install App"</div>
+          <div class="step-desc">Akan muncul pilihan <code>Tambahkan ke layar utama</code> atau <code>Install App</code>. Ketuk salah satunya.
+            <span class="step-tip">💡 Jika muncul pop-up install otomatis di bawah layar, itu lebih mudah — langsung ketuk!</span>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Ketuk "Install" atau "Tambahkan"</div>
+          <div class="step-desc">Konfirmasi — ikon portal akan muncul di home screen HP kamu.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Buka dari ikon baru dan aktifkan notifikasi</div>
+          <div class="step-desc">Ketuk ikon Rattililqur'an di home screen → tunggu beberapa detik → dialog notifikasi muncul → pilih <strong>"Ya, Aktifkan Notifikasi"</strong> → izinkan ketika HP bertanya.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IOS STEPS -->
+  <div class="steps-panel" id="steps-ios">
+    <div class="warn-box info">
+      <div class="warn-box-ico" aria-hidden="true">💡</div>
+      <div class="warn-box-text">
+        <strong>Wajib pakai Safari</strong>
+        Install aplikasi di iPhone hanya bisa melalui browser Safari bawaan Apple. Chrome/Firefox di iPhone tidak bisa install.
+      </div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Buka portal di Safari</div>
+          <div class="step-desc">Pastikan kamu membuka portal menggunakan aplikasi <strong>Safari</strong> (bukan Chrome atau browser lain).</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Ketuk ikon Bagikan <code>□↑</code></div>
+          <div class="step-desc">Di toolbar bawah Safari, ketuk ikon kotak dengan panah ke atas. Di iPhone terbaru, ini ada di bawah layar.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Gulir ke bawah → "Tambahkan ke Layar Utama"</div>
+          <div class="step-desc">Dari menu yang muncul, gulir ke bawah sampai menemukan <code>Tambahkan ke Layar Utama</code> → ketuk.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Ketuk "Tambahkan"</div>
+          <div class="step-desc">Konfirmasi nama aplikasi → ketuk <strong>Tambahkan</strong> di pojok kanan atas. Ikon portal muncul di home screen.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Buka dari ikon dan aktifkan notifikasi</div>
+          <div class="step-desc">
+            <strong>Wajib buka dari ikon</strong> — bukan dari Safari! Ketuk ikon Rattililqur'an di home screen → login → tunggu dialog → aktifkan notifikasi.
+            <span class="step-tip">⚠️ iPhone butuh iOS 16.4+ agar notifikasi berfungsi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FAQ ════ -->
+<section class="section reveal" style="padding-top:8px">
+  <span class="eyebrow">❓ Bantuan</span>
+  <h2 class="section-title">Pertanyaan Umum</h2>
+  <p class="section-sub">Hal yang sering ditanyakan.</p>
+
+  <div class="faq-item">
+    <button type="button" class="faq-head" aria-expanded="false" onclick="toggleFaq(this)">
+      Apakah ini aman? Data saya tidak dicuri?
+      <span class="faq-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="faq-body">
+      Insya Allah, sangat aman. Portal ini berjalan di server terpercaya dengan enkripsi HTTPS. Data tersimpan di layanan database berstandar enterprise. Tidak ada data yang dijual atau dibagikan ke pihak luar.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <button type="button" class="faq-head" aria-expanded="false" onclick="toggleFaq(this)">
+      Apakah install menghabiskan ruang HP?
+      <span class="faq-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="faq-body">
+      Hampir tidak ada. Aplikasi ini hanya menyimpan beberapa file kecil untuk loading lebih cepat — biasanya kurang dari 5 MB, jauh lebih ringan dari aplikasi biasa yang bisa 50-100 MB.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <button type="button" class="faq-head" aria-expanded="false" onclick="toggleFaq(this)">
+      Apakah notifikasi bisa dimatikan nanti?
+      <span class="faq-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="faq-body">
+      Bisa kapan saja. Dari portal: Sidebar → Preferensi Notifikasi → matikan jenis yang tidak diinginkan. Atau dari pengaturan HP: Pengaturan → Notifikasi → Chrome/Safari → matikan.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <button type="button" class="faq-head" aria-expanded="false" onclick="toggleFaq(this)">
+      Bagaimana kalau notifikasi tidak muncul?
+      <span class="faq-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="faq-body">
+      Coba hard refresh dulu: tutup portal → buka lagi dari ikon. Jika masih tidak muncul, cek pengaturan HP: Pengaturan → Aplikasi → Chrome → Notifikasi → pastikan diizinkan. Jika masih bermasalah, hubungi admin.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <button type="button" class="faq-head" aria-expanded="false" onclick="toggleFaq(this)">
+      Saya pakai iPhone tapi notifikasi tidak aktif
+      <span class="faq-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="faq-body">
+      Pastikan dua hal: (1) iPhone kamu iOS 16.4 atau lebih baru — cek di Pengaturan → Umum → Tentang → Versi iOS. (2) Buka portal dari ikon di home screen, bukan dari Safari browser. Notifikasi di iPhone hanya berfungsi dari ikon, bukan dari browser.
+    </div>
+  </div>
+</section>
+
+<!-- ════ CTA ════ -->
+<div class="cta-wrap reveal">
+  <!-- YouTube Tutorial -->
+  <div class="video-card">
+    <div class="video-card-label">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      Lebih mudah lihat video dulu!
+    </div>
+    <div class="video-card-sub">Panduan visual langkah demi langkah — lebih jelas dari teks.</div>
+    <a href="https://www.youtube.com/@rattililquran01" target="_blank" rel="noopener" class="yt-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      Tonton Video Tutorial di Channel
+    </a>
+  </div>
+
+  <!-- Portal CTA -->
+  <p class="cta-lead">
+    Sudah install dan aktifkan notifikasi?<br>
+    <strong>Jazakallahu khairan! 🤲</strong>
+  </p>
+  <a href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/"
+     class="cta-btn" target="_blank" rel="noopener">
+    📲 Buka Portal Murid Sekarang
+  </a>
+  <span class="cta-secondary">Ketuk → login → ikuti panduan install di halaman ini</span>
+  <div class="cta-trust">
+    🔒 Privasi terjaga &nbsp;·&nbsp; 0 MB download &nbsp;·&nbsp; Bisa dihapus kapan saja
+  </div>
+</div>
+
+<!-- ════ STICKY CTA ════ -->
+<div class="sticky-cta" id="stickyCta">
+  <div class="sticky-cta-inner">
+    <div class="sticky-cta-text">
+      <b>Siap mulai?</b>
+      <small>Buka portal lalu ikuti langkahnya</small>
+    </div>
+    <a href="https://rattililquran.github.io/Portal-Halaqah-Rattililquran/"
+       class="sticky-cta-btn" target="_blank" rel="noopener">📲 Buka Portal</a>
+  </div>
+</div>
+
+<script>
+function switchOS(os, btn) {
+  document.querySelectorAll('.os-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.steps-panel').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('steps-' + os).classList.add('active');
+}
+
+function toggleFaq(head) {
+  var body = head.nextElementSibling;
+  var isOpen = head.classList.contains('open');
+  // Tutup semua
+  document.querySelectorAll('.faq-head.open').forEach(function(h){
+    h.classList.remove('open');
+    h.setAttribute('aria-expanded', 'false');
+    h.nextElementSibling.classList.remove('open');
+  });
+  // Buka yang diklik jika sebelumnya tertutup
+  if (!isOpen) {
+    head.classList.add('open');
+    head.setAttribute('aria-expanded', 'true');
+    body.classList.add('open');
+  }
+}
+
+// ─── Sticky CTA muncul setelah lewat hero ───
+(function(){
+  var bar = document.getElementById('stickyCta');
+  if (!bar) return;
+  var onScroll = function(){
+    if (window.scrollY > 420) bar.classList.add('show');
+    else bar.classList.remove('show');
+  };
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
