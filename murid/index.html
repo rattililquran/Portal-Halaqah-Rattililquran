@@ -13049,8 +13049,20 @@ async function openPushPrefsPanel() {
   var sub          = isSubscribed ? await (window.HQ.PushAPI.getActiveSubscription().catch(function(){return null;})) : null;
 
   if (!sub) {
+    // Pesan menyesuaikan kondisi: iOS belum dipasang / izin diblokir / siap aktif.
+    // Tombol selalu membuka dialog PINTAR (openPushDialog) yang menampilkan
+    // instruksi tepat — bukan _pushAllow() yang gagal diam-diam di iOS/denied.
+    var pinfo = (function(){
+      var P = window.HQ && window.HQ.PushAPI;
+      var perm = P ? P.getPermissionStatus() : 'unsupported';
+      var iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+      var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      if (iOS && !standalone) return 'Belum aktif — di iPhone perlu dipasang ke Layar Utama dulu.';
+      if (perm === 'denied')  return 'Notifikasi diblokir — ketuk untuk panduan mengaktifkan ulang.';
+      return 'Notifikasi belum diaktifkan.';
+    })();
     statusEl.style.background = '#fff5f5'; statusEl.style.borderColor = '#fecaca'; statusEl.style.color = '#991b1b';
-    statusEl.innerHTML = '<span style="font-size:16px">🔕</span> Notifikasi belum diaktifkan. <button onclick="window._pushAllow&&window._pushAllow()" style="margin-left:8px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Aktifkan</button>';
+    statusEl.innerHTML = '<span style="font-size:16px">🔕</span> ' + pinfo + ' <button onclick="window.openPushDialog&&window.openPushDialog(\'murid\')" style="margin-left:8px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Aktifkan</button>';
   } else {
     statusEl.style.background = '#f0fdf4'; statusEl.style.borderColor = '#bbf7d0'; statusEl.style.color = '#065f46';
     statusEl.innerHTML = '<span style="font-size:16px">🔔</span> Notifikasi aktif di perangkat ini.';

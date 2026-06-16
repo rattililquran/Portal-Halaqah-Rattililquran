@@ -84,6 +84,24 @@ html.theme-dark .push-benefit-item{background:#0d1f35}
 html.theme-dark .push-benefit-text{color:#94a3b8}
 html.theme-dark .push-benefit-text strong{color:#f0f4ff}
 html.theme-dark .push-privacy-note{color:#4a5568}
+
+.push-steps{display:flex;flex-direction:column;gap:11px;margin-bottom:16px}
+.push-step{display:flex;align-items:flex-start;gap:12px}
+.push-step-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;
+  font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+}
+.push-step-text{font-size:13px;color:#334155;line-height:1.5;padding-top:2px}
+.push-step-text strong{color:#0f172a;font-weight:700}
+.push-step-text .push-ico-inline{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:5px;background:#e0f2fe;
+  font-size:13px;vertical-align:-4px;margin:0 1px;
+}
+html.theme-dark .push-step-text{color:#94a3b8}
+html.theme-dark .push-step-text strong{color:#f0f4ff}
+html.theme-dark .push-step-text .push-ico-inline{background:#0d2a45}
 `;
 
 // ── Inject CSS ────────────────────────────────────────────────
@@ -94,12 +112,36 @@ function injectStyle() {
   document.head.appendChild(s);
 }
 
-// ── Buat dialog HTML ─────────────────────────────────────────
-function createDialog(roleLabel) {
-  var overlay = document.createElement('div');
-  overlay.id  = 'push-dialog-overlay';
+// ── Deteksi lingkungan perangkat ─────────────────────────────
+function isIOS() {
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    // iPadOS 13+ menyamar sebagai Macintosh; bedakan via touch points
+    (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+}
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true; // iOS Safari home-screen
+}
 
-  // Benefits disesuaikan per role
+// Tentukan kondisi pengguna agar dialog menampilkan instruksi yang TEPAT:
+//  'ios-install' = iPhone/iPad belum dipasang ke Layar Utama → push mustahil
+//                  sebelum install (penyebab utama "kesusahan aktifkan")
+//  'denied'      = izin pernah ditolak → browser tak bisa di-prompt lagi,
+//                  harus lewat setelan (kalau diam saja = buntu permanen)
+//  'granted'     = izin sudah diberikan
+//  'unsupported' = browser tak mendukung push (selain kasus iOS di atas)
+//  'ask'         = siap diminta izin secara normal
+function getPushState() {
+  if (isIOS() && !isStandalone()) return 'ios-install';
+  if (!window.HQ || !window.HQ.PushAPI || !window.HQ.PushAPI.isSupported()) return 'unsupported';
+  var perm = window.HQ.PushAPI.getPermissionStatus();
+  if (perm === 'denied')  return 'denied';
+  if (perm === 'granted') return 'granted';
+  return 'ask';
+}
+
+// ── Konten dialog: state 'ask' (ajakan normal) ───────────────
+function contentAsk(roleLabel) {
   var benefits = [
     { ico:'⏰', text:'<strong>Reminder jadwal KBM</strong> sehari sebelumnya — tidak perlu khawatir lupa lagi' },
     { ico:'📢', text:'<strong>Pengumuman penting</strong> langsung muncul di HP meski aplikasi ditutup' },
@@ -120,83 +162,176 @@ function createDialog(roleLabel) {
       { ico:'⚠️', text:'<strong>Draft KBM</strong> — pengingat jika sesi belum ditutup setelah 2 jam' },
     ];
   }
-
-  overlay.innerHTML = `
-    <div id="push-dialog">
-      <div class="push-header">
-        <div class="push-header-ico">🔔</div>
-        <div class="push-header-title">Aktifkan Notifikasi Portal</div>
-        <div class="push-header-sub">Agar kamu tidak ketinggalan hal-hal penting dari Rattililqur'an</div>
+  return `
+    <div class="push-header">
+      <div class="push-header-ico">🔔</div>
+      <div class="push-header-title">Aktifkan Notifikasi Portal</div>
+      <div class="push-header-sub">Agar kamu tidak ketinggalan hal-hal penting dari Rattililqur'an</div>
+    </div>
+    <div class="push-body">
+      <div class="push-benefits">
+        ${benefits.map(b => `
+          <div class="push-benefit-item">
+            <div class="push-benefit-ico">${b.ico}</div>
+            <div class="push-benefit-text">${b.text}</div>
+          </div>
+        `).join('')}
       </div>
-      <div class="push-body">
-        <div class="push-benefits">
-          ${benefits.map(b => `
-            <div class="push-benefit-item">
-              <div class="push-benefit-ico">${b.ico}</div>
-              <div class="push-benefit-text">${b.text}</div>
-            </div>
-          `).join('')}
+      <div class="push-warning">
+        <div style="font-size:18px;flex-shrink:0">⚠️</div>
+        <div class="push-warning-text">
+          <strong>Jika kamu menolak izin notifikasi:</strong>
+          Kamu tidak akan mendapat pengingat jadwal KBM, info pengumuman, atau notif raport baru.
+          Kamu harus buka portal secara manual untuk mengecek pembaruan.
+          Izin bisa diaktifkan kembali nanti melalui pengaturan browser.
         </div>
-
-        <div class="push-warning">
-          <div style="font-size:18px;flex-shrink:0">⚠️</div>
-          <div class="push-warning-text">
-            <strong>Jika kamu menolak izin notifikasi:</strong>
-            Kamu tidak akan mendapat pengingat jadwal KBM, info pengumuman, atau notif raport baru.
-            Kamu harus buka portal secara manual untuk mengecek pembaruan.
-            Izin bisa diaktifkan kembali nanti melalui pengaturan browser.
-          </div>
-        </div>
-
-        <div class="push-actions">
-          <button class="push-btn-allow" id="pushBtnAllow" onclick="window._pushAllow()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Ya, Aktifkan Notifikasi
-          </button>
-          <button class="push-btn-skip" onclick="window._pushSkip()">Nanti Saja</button>
-          <div class="push-privacy-note">
-            🔒 Notifikasi hanya dari portal Rattililqur'an.<br>
-            Tidak ada iklan. Bisa dimatikan kapan saja.
-          </div>
+      </div>
+      <div class="push-actions">
+        <button class="push-btn-allow" id="pushBtnAllow" onclick="window._pushAllow()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Ya, Aktifkan Notifikasi
+        </button>
+        <button class="push-btn-skip" onclick="window._pushSkip()">Nanti Saja</button>
+        <div class="push-privacy-note">
+          🔒 Notifikasi hanya dari portal Rattililqur'an.<br>
+          Tidak ada iklan. Bisa dimatikan kapan saja.
         </div>
       </div>
     </div>
   `;
-  return overlay;
+}
+
+// ── Konten dialog: state 'ios-install' (iPhone belum dipasang) ─
+function contentIosInstall() {
+  return `
+    <div class="push-header">
+      <div class="push-header-ico">📲</div>
+      <div class="push-header-title">Pasang Portal Dulu, Yuk</div>
+      <div class="push-header-sub">Di iPhone/iPad, notifikasi hanya bisa aktif setelah portal ditambahkan ke Layar Utama</div>
+    </div>
+    <div class="push-body">
+      <div class="push-steps">
+        <div class="push-step">
+          <div class="push-step-num">1</div>
+          <div class="push-step-text">Ketuk ikon <span class="push-ico-inline">⎙</span> <strong>Bagikan</strong> di bagian bawah Safari (di iPad ada di kanan atas).</div>
+        </div>
+        <div class="push-step">
+          <div class="push-step-num">2</div>
+          <div class="push-step-text">Gulir, lalu pilih <strong>"Tambahkan ke Layar Utama"</strong>.</div>
+        </div>
+        <div class="push-step">
+          <div class="push-step-num">3</div>
+          <div class="push-step-text">Buka portal dari <strong>ikon baru di Layar Utama</strong> (bukan dari Safari), lalu aktifkan notifikasi dari sana.</div>
+        </div>
+      </div>
+      <div class="push-warning">
+        <div style="font-size:18px;flex-shrink:0">💡</div>
+        <div class="push-warning-text">
+          <strong>Kenapa harus dipasang?</strong>
+          Ini aturan Apple — notifikasi web di iPhone hanya jalan kalau portal dibuka sebagai aplikasi (dari Layar Utama), bukan dari tab Safari.
+        </div>
+      </div>
+      <div class="push-actions">
+        <button class="push-btn-allow" onclick="window._pushOpenInstall()">
+          📖 Lihat Panduan Lengkap (dengan Gambar)
+        </button>
+        <button class="push-btn-skip" onclick="window._pushSkip()">Nanti Saja</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Konten dialog: state 'denied' (izin diblokir) ────────────
+function contentDenied() {
+  var ua = navigator.userAgent;
+  var steps;
+  if (isIOS()) {
+    steps = [
+      'Buka <strong>Setelan</strong> iPhone → gulir cari <strong>"Rattililqur\'an"</strong> (atau nama portal).',
+      'Ketuk <strong>Notifikasi</strong>, lalu nyalakan <strong>"Izinkan Notifikasi"</strong>.',
+      'Kembali ke portal dan tekan tombol di bawah.',
+    ];
+  } else if (/Android/.test(ua)) {
+    steps = [
+      'Ketuk ikon <span class="push-ico-inline">⋮</span> menu Chrome → <strong>Setelan situs</strong> (Site settings).',
+      'Pilih <strong>Notifikasi</strong> → ubah dari "Diblokir" menjadi <strong>"Izinkan"</strong>.',
+      'Kembali ke portal dan tekan tombol di bawah.',
+    ];
+  } else {
+    steps = [
+      'Klik ikon <span class="push-ico-inline">🔒</span> gembok di kiri kolom alamat browser.',
+      'Cari <strong>Notifikasi</strong> → ubah menjadi <strong>"Izinkan"</strong> (Allow).',
+      'Muat ulang halaman, lalu tekan tombol di bawah.',
+    ];
+  }
+  return `
+    <div class="push-header" style="background:linear-gradient(135deg,#7c2d12,#ea580c)">
+      <div class="push-header-ico">🔕</div>
+      <div class="push-header-title">Notifikasi Sedang Diblokir</div>
+      <div class="push-header-sub">Izin notifikasi pernah ditolak. Ikuti langkah berikut untuk mengaktifkannya kembali.</div>
+    </div>
+    <div class="push-body">
+      <div class="push-steps">
+        ${steps.map((s, i) => `
+          <div class="push-step">
+            <div class="push-step-num">${i + 1}</div>
+            <div class="push-step-text">${s}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="push-actions">
+        <button class="push-btn-allow" id="pushBtnAllow" onclick="window._pushRetry()">
+          🔄 Saya Sudah Aktifkan — Coba Lagi
+        </button>
+        <button class="push-btn-skip" onclick="window._pushSkip()">Tutup</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Konten dialog: state 'unsupported' ───────────────────────
+function contentUnsupported() {
+  return `
+    <div class="push-header" style="background:linear-gradient(135deg,#334155,#64748b)">
+      <div class="push-header-ico">🚫</div>
+      <div class="push-header-title">Browser Belum Mendukung</div>
+      <div class="push-header-sub">Notifikasi web belum tersedia di browser ini</div>
+    </div>
+    <div class="push-body">
+      <div class="push-warning">
+        <div style="font-size:18px;flex-shrink:0">💡</div>
+        <div class="push-warning-text">
+          Coba buka portal lewat <strong>Google Chrome</strong> (Android/desktop) atau <strong>Safari</strong> terbaru (iPhone) lalu pasang ke Layar Utama. Sementara itu, cek pembaruan langsung di portal lewat ikon lonceng 🔔.
+        </div>
+      </div>
+      <div class="push-actions">
+        <button class="push-btn-skip" onclick="window._pushSkip()">Mengerti</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Pilih konten sesuai state & render ───────────────────────
+function dialogInner(state, roleLabel) {
+  if (state === 'ios-install') return contentIosInstall();
+  if (state === 'denied')      return contentDenied();
+  if (state === 'unsupported') return contentUnsupported();
+  return contentAsk(roleLabel);
+}
+
+function showDialog(state, roleLabel) {
+  injectStyle();
+  removeDialog();
+  var overlay = document.createElement('div');
+  overlay.id  = 'push-dialog-overlay';
+  overlay.innerHTML = '<div id="push-dialog">' + dialogInner(state, roleLabel) + '</div>';
+  document.body.appendChild(overlay);
 }
 
 // ── Hapus dialog ─────────────────────────────────────────────
 function removeDialog() {
   var el = document.getElementById('push-dialog-overlay');
   if (el) el.remove();
-}
-
-// ── Cek apakah sudah waktunya tampilkan prompt ────────────────
-function shouldShowPrompt() {
-  if (!window.HQ || !window.HQ.PushAPI) return false;
-  if (!window.HQ.PushAPI.isSupported()) return false;
-  if (window.HQ.PushAPI.getPermissionStatus() === 'denied') return false;
-  // Jika permission sudah granted, cek apakah browser punya subscription aktif
-  // (localStorage bisa stale jika browser clear data)
-  if (window.HQ.PushAPI.getPermissionStatus() === 'granted') {
-    // Cek async — jika subscription hilang, tampilkan dialog lagi
-    window.HQ.PushAPI.getActiveSubscription().then(function(sub) {
-      if (!sub && localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') {
-        // Subscription hilang dari browser tapi localStorage masih ada → reset dan tampilkan
-        localStorage.removeItem(STORAGE_KEY_SUBSCRIBED);
-        localStorage.removeItem(STORAGE_KEY_DISMISSED);
-      }
-    }).catch(function(){});
-    return false; // jangan tampilkan sekarang, akan muncul di reload berikutnya jika perlu
-  }
-  if (localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') return false;
-
-  var dismissedAt = localStorage.getItem(STORAGE_KEY_DISMISSED);
-  if (dismissedAt) {
-    var daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 86400);
-    if (daysSince < DISMISS_DAYS) return false;
-  }
-  return true;
 }
 
 // ── Aksi tombol ──────────────────────────────────────────────
@@ -224,22 +359,93 @@ window._pushAllow = async function() {
   }
 };
 
+// Buka panduan install (untuk state iOS belum dipasang)
+window._pushOpenInstall = function() {
+  window.open('../panduan-install.html', '_blank');
+  // Jangan tutup dialog & jangan set timer skip — biar murid bisa ikuti langkah
+  // sambil dialog tetap terlihat saat kembali. Cukup biarkan terbuka.
+};
+
+// Coba ulang setelah murid mengaktifkan izin lewat setelan (state 'denied')
+window._pushRetry = async function() {
+  var btn = document.getElementById('pushBtnAllow');
+  if (btn) { btn.disabled = true; btn.textContent = 'Memeriksa...'; }
+  // Browser tak akan memunculkan prompt lagi saat 'denied'; subscribe() hanya
+  // berhasil jika murid sudah mengubahnya ke "Izinkan" di setelan.
+  if (window.HQ.PushAPI.getPermissionStatus() === 'denied') {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '⚠️ Masih diblokir — selesaikan langkah di atas dulu';
+    }
+    return;
+  }
+  try {
+    await window.HQ.PushAPI.subscribe();
+    localStorage.setItem(STORAGE_KEY_SUBSCRIBED, 'true');
+    removeDialog();
+    if (typeof toast === 'function') toast('🔔 Notifikasi berhasil diaktifkan!', 'ok');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Coba Lagi'; }
+  }
+};
+
 window._pushSkip = function() {
   localStorage.setItem(STORAGE_KEY_DISMISSED, String(Date.now()));
   removeDialog();
 };
 
-// ── Entry point: tampilkan dialog setelah login ───────────────
+// ── Entry point otomatis: tampilkan dialog setelah login ─────
 window.initPushPrompt = function(roleLabel) {
-  if (!shouldShowPrompt()) return;
+  var state = getPushState();
 
-  // Tunda 3 detik agar tidak langsung popup saat buka halaman
+  // Sudah granted: pastikan subscription browser masih ada (localStorage bisa
+  // stale jika data browser dibersihkan). Jika hilang → reset agar muncul lagi.
+  if (state === 'granted') {
+    if (window.HQ && window.HQ.PushAPI) {
+      window.HQ.PushAPI.getActiveSubscription().then(function(sub) {
+        if (!sub && localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') {
+          localStorage.removeItem(STORAGE_KEY_SUBSCRIBED);
+          localStorage.removeItem(STORAGE_KEY_DISMISSED);
+        }
+      }).catch(function(){});
+    }
+    return;
+  }
+  // Browser tak didukung (non-iOS): jangan ganggu otomatis.
+  if (state === 'unsupported') return;
+  // Sudah pernah subscribe & memang siap-tanya → jangan ganggu.
+  if (state === 'ask' && localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') return;
+
+  // Hormati timer "Nanti Saja" (30 hari) untuk popup OTOMATIS.
+  var dismissedAt = localStorage.getItem(STORAGE_KEY_DISMISSED);
+  if (dismissedAt) {
+    var daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 86400);
+    if (daysSince < DISMISS_DAYS) return;
+  }
+
+  // Tunda 3 detik agar tidak langsung popup saat buka halaman.
   setTimeout(function() {
     if (document.getElementById('push-dialog-overlay')) return;
-    injectStyle();
-    var dialog = createDialog(roleLabel || 'murid');
-    document.body.appendChild(dialog);
+    showDialog(state, roleLabel || 'murid');
   }, 3000);
+};
+
+// ── Entry point PERMANEN: dipanggil dari tombol "Aktifkan" di portal ─
+// Selalu buka (abaikan timer skip) & tampilkan instruksi sesuai kondisi.
+window.openPushDialog = function(roleLabel) {
+  var state = getPushState();
+  if (state === 'granted') {
+    // Sudah granted: kalau subscription ada, cukup beri tahu; kalau hilang,
+    // tawarkan aktifkan ulang lewat dialog normal.
+    if (window.HQ && window.HQ.PushAPI) {
+      window.HQ.PushAPI.getActiveSubscription().then(function(sub) {
+        if (sub) { if (typeof toast === 'function') toast('🔔 Notifikasi sudah aktif di perangkat ini', 'ok'); }
+        else showDialog('ask', roleLabel || 'murid');
+      }).catch(function(){ showDialog('ask', roleLabel || 'murid'); });
+    }
+    return;
+  }
+  showDialog(state, roleLabel || 'murid');
 };
 
 // ── Handle pesan dari Service Worker ─────────────────────────
