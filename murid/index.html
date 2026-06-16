@@ -13145,8 +13145,9 @@ function pdInitKetua() {
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
-// Tampilkan dialog izin push 3 detik setelah halaman siap
+// Tampilkan pengumuman onboarding (jika admin aktifkan) lalu dialog izin push
 window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() { if (typeof initOnboarding === 'function') initOnboarding('murid'); }, 3500);
   setTimeout(function() { if (typeof initPushPrompt === 'function') initPushPrompt('murid'); }, 4000);
 });
 

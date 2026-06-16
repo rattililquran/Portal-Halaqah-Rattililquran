@@ -4373,6 +4373,26 @@ var AdminAPI = {
     var {error} = await _sb.from('push_config').update({enabled,updated_at:new Date().toISOString()}).eq('key',key);
     _check(error,'updatePushConfig'); return {status:'ok'};
   },
+  // Pengumuman onboarding (single-row id=1). Read diizinkan semua user (RLS);
+  // write hanya admin. Dipakai murid untuk menampilkan popup saat login.
+  getOnboarding: async function() {
+    var {data,error} = await _sb.from('onboarding_config').select('*').eq('id',1).maybeSingle();
+    _check(error,'getOnboarding'); return {status:'ok',data:data||null};
+  },
+  saveOnboarding: async function(cfg) {
+    var row = {
+      id         : 1,
+      enabled    : !!cfg.enabled,
+      judul      : cfg.judul || '',
+      pesan      : cfg.pesan || '',
+      target_role: cfg.target_role || 'murid',
+      cta_label  : cfg.cta_label || '',
+      cta_action : cfg.cta_action || '',
+      updated_at : new Date().toISOString(),
+    };
+    var {error} = await _sb.from('onboarding_config').upsert(row, {onConflict:'id'});
+    _check(error,'saveOnboarding'); return {status:'ok'};
+  },
   getPushStats: async function() {
     var [total,murid,guru,admin] = await Promise.all([
       _sb.from('push_subscriptions').select('*',{count:'exact',head:true}),

@@ -1860,6 +1860,51 @@ html.theme-dark .tbl-wrap thead th {
             </div>
           </div>
 
+          <!-- Pengumuman Onboarding -->
+          <div class="card" style="grid-column:1/3">
+            <div class="card-head" style="border-bottom:1px solid var(--border);padding-bottom:14px">
+              <div>
+                <div class="card-title">👋 Pengumuman Onboarding</div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:2px">Popup yang muncul sekali saat user login. Begitu disimpan, tampil lagi ke semua user yang ditarget.</div>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer">
+                <input type="checkbox" id="obEnabled" style="width:18px;height:18px;cursor:pointer">
+                Aktifkan
+              </label>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;padding-top:12px">
+              <div class="fg" style="margin:0"><label>Judul</label>
+                <input class="fc" id="obJudul" maxlength="120" placeholder="mis. Selamat Datang 👋">
+              </div>
+              <div class="fg" style="margin:0"><label>Pesan</label>
+                <textarea class="fc" id="obPesan" rows="4" maxlength="800" placeholder="Tulis isi pengumuman. Baris baru didukung."></textarea>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div class="fg" style="margin:0;flex:1;min-width:140px"><label>Target</label>
+                  <select class="fc" id="obTarget">
+                    <option value="murid">👩‍🎓 Murid</option>
+                    <option value="guru">👨‍🏫 Guru</option>
+                    <option value="admin">🛡️ Admin</option>
+                    <option value="all">🌐 Semua</option>
+                  </select>
+                </div>
+                <div class="fg" style="margin:0;flex:1;min-width:140px"><label>Aksi Tombol</label>
+                  <select class="fc" id="obCtaAction" onchange="onObCtaChange(this.value)">
+                    <option value="">Tanpa tombol aksi</option>
+                    <option value="push">Buka aktivasi notifikasi</option>
+                  </select>
+                </div>
+                <div class="fg" style="margin:0;flex:1;min-width:140px" id="obCtaLabelWrap"><label>Teks Tombol</label>
+                  <input class="fc" id="obCtaLabel" maxlength="40" placeholder="mis. Aktifkan Notifikasi">
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+                <button class="btn btn-outline btn-sm" onclick="previewOnboarding()">👁️ Pratinjau</button>
+                <button class="btn btn-green btn-sm" onclick="saveOnboarding()">💾 Simpan</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Kirim Notifikasi -->
           <div class="card">
             <div class="card-head"><div class="card-title">📤 Kirim Notifikasi</div></div>
@@ -6820,8 +6865,54 @@ async function loadPushAdmin() {
     var r2 = await window.HQ.AdminAPI.getPushConfig();
     renderPushConfig(r2.data);
   } catch(e) { console.warn('loadPushConfig:', e); }
+  loadOnboarding();
   // Load halaqah & level untuk dropdown target
   loadPushTargetOptions();
+}
+
+// ── Pengumuman Onboarding (admin editor) ─────────────────────
+function onObCtaChange(v) {
+  var wrap = document.getElementById('obCtaLabelWrap');
+  if (wrap) wrap.style.display = v ? '' : 'none';
+}
+async function loadOnboarding() {
+  try {
+    var r = await window.HQ.AdminAPI.getOnboarding();
+    var c = r.data || {};
+    document.getElementById('obEnabled').checked   = !!c.enabled;
+    document.getElementById('obJudul').value       = c.judul || '';
+    document.getElementById('obPesan').value       = c.pesan || '';
+    document.getElementById('obTarget').value      = c.target_role || 'murid';
+    document.getElementById('obCtaAction').value   = c.cta_action || '';
+    document.getElementById('obCtaLabel').value    = c.cta_label || '';
+    onObCtaChange(c.cta_action || '');
+  } catch(e) { console.warn('loadOnboarding:', e); }
+}
+function _obReadForm() {
+  return {
+    enabled    : document.getElementById('obEnabled').checked,
+    judul      : document.getElementById('obJudul').value.trim(),
+    pesan      : document.getElementById('obPesan').value.trim(),
+    target_role: document.getElementById('obTarget').value,
+    cta_action : document.getElementById('obCtaAction').value,
+    cta_label  : document.getElementById('obCtaAction').value ? document.getElementById('obCtaLabel').value.trim() : '',
+  };
+}
+async function saveOnboarding() {
+  var cfg = _obReadForm();
+  if (cfg.enabled && (!cfg.judul || !cfg.pesan)) { toast('Judul & pesan wajib diisi saat aktif.', 'err'); return; }
+  if (cfg.cta_action && !cfg.cta_label) { toast('Isi teks tombol, atau pilih "Tanpa tombol aksi".', 'err'); return; }
+  try {
+    await window.HQ.AdminAPI.saveOnboarding(cfg);
+    toast('💾 Pengumuman onboarding tersimpan' + (cfg.enabled ? ' & aktif' : ''), 'ok');
+  } catch(e) { toast(e.message, 'err'); }
+}
+function previewOnboarding() {
+  var cfg = _obReadForm();
+  if (!cfg.judul && !cfg.pesan) { toast('Isi judul/pesan dulu untuk pratinjau.', 'err'); return; }
+  if (typeof window.renderOnboardingPopup === 'function') {
+    window.renderOnboardingPopup(cfg, 'admin', true); // preview = abaikan status "sudah dilihat"
+  } else { toast('Pratinjau tidak tersedia.', 'err'); }
 }
 
 var PUSH_CONFIG_META = {

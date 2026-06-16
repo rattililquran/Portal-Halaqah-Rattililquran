@@ -102,6 +102,21 @@ html.theme-dark .push-privacy-note{color:#4a5568}
 html.theme-dark .push-step-text{color:#94a3b8}
 html.theme-dark .push-step-text strong{color:#f0f4ff}
 html.theme-dark .push-step-text .push-ico-inline{background:#0d2a45}
+
+#ob-overlay{
+  position:fixed;inset:0;z-index:10001;
+  background:rgba(15,23,42,.55);backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  animation:pushFadeIn .3s ease;
+}
+#ob-card{
+  background:#fff;border-radius:24px;width:100%;max-width:440px;
+  box-shadow:0 24px 64px rgba(15,23,42,.25);overflow:hidden;
+}
+html.theme-dark #ob-card{background:#111c30}
+.ob-msg{font-size:13.5px;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:16px}
+html.theme-dark .ob-msg{color:#94a3b8}
 `;
 
 // ── Inject CSS ────────────────────────────────────────────────
@@ -426,6 +441,7 @@ window.initPushPrompt = function(roleLabel) {
   // Tunda 3 detik agar tidak langsung popup saat buka halaman.
   setTimeout(function() {
     if (document.getElementById('push-dialog-overlay')) return;
+    if (document.getElementById('ob-overlay')) return; // jangan tumpuk di atas onboarding
     showDialog(state, roleLabel || 'murid');
   }, 3000);
 };
@@ -476,5 +492,91 @@ navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', f
     }
   }
 });
+
+// ============================================================
+//  Pengumuman Onboarding — popup admin-editable saat login
+// ============================================================
+function _escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+var _obCtx = null;
+
+function _obMarkSeen() {
+  if (!_obCtx || _obCtx.preview) return; // pratinjau admin tak menandai
+  try {
+    var u   = window.HQ && window.HQ.getCurrentUser && window.HQ.getCurrentUser();
+    var uid = (u && u.id_user) || 'anon';
+    var stamp = (_obCtx.cfg && _obCtx.cfg.updated_at) ? String(_obCtx.cfg.updated_at) : '1';
+    localStorage.setItem('onboarding_seen_' + uid, stamp);
+  } catch (_) {}
+}
+
+window._obClose = function() {
+  _obMarkSeen();
+  var el = document.getElementById('ob-overlay'); if (el) el.remove();
+};
+
+window._obCta = function() {
+  var ctx = _obCtx;
+  _obMarkSeen();
+  var el = document.getElementById('ob-overlay'); if (el) el.remove();
+  // Satu-satunya aksi yang didukung saat ini: buka dialog aktivasi notifikasi.
+  if (ctx && ctx.cfg && ctx.cfg.cta_action === 'push' && typeof window.openPushDialog === 'function') {
+    window.openPushDialog(ctx.roleLabel);
+  }
+};
+
+// Render popup. isPreview=true dipakai admin untuk pratinjau (abaikan "sudah dilihat").
+window.renderOnboardingPopup = function(cfg, roleLabel, isPreview) {
+  if (!cfg) return;
+  injectStyle();
+  var old = document.getElementById('ob-overlay'); if (old) old.remove();
+
+  var ctaBtn = '';
+  if (cfg.cta_action && cfg.cta_label) {
+    ctaBtn = '<button class="push-btn-allow" onclick="window._obCta()">' + _escHtml(cfg.cta_label) + '</button>';
+  }
+  var overlay = document.createElement('div');
+  overlay.id = 'ob-overlay';
+  overlay.innerHTML =
+    '<div id="ob-card">' +
+      '<div class="push-header">' +
+        '<div class="push-header-ico">📣</div>' +
+        '<div class="push-header-title">' + _escHtml(cfg.judul) + '</div>' +
+      '</div>' +
+      '<div class="push-body">' +
+        '<div class="ob-msg">' + _escHtml(cfg.pesan) + '</div>' +
+        '<div class="push-actions">' +
+          ctaBtn +
+          '<button class="push-btn-skip" onclick="window._obClose()">' + (ctaBtn ? 'Nanti Saja' : 'Mengerti') + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  _obCtx = { cfg: cfg, roleLabel: roleLabel || 'murid', preview: !!isPreview };
+};
+
+// Entry point: cek config & tampilkan popup sekali per (versi config × user).
+window.initOnboarding = function(roleLabel) {
+  if (!window.HQ || !window.HQ.AdminAPI || !window.HQ.AdminAPI.getOnboarding) return;
+  window.HQ.AdminAPI.getOnboarding().then(function(r) {
+    var cfg = r && r.data;
+    if (!cfg || !cfg.enabled || !cfg.judul) return;
+    var role = roleLabel || 'murid';
+    if (cfg.target_role !== 'all' && cfg.target_role !== role) return;
+
+    var u   = window.HQ.getCurrentUser && window.HQ.getCurrentUser();
+    var uid = (u && u.id_user) || 'anon';
+    var stamp = cfg.updated_at ? String(cfg.updated_at) : '1';
+    if (localStorage.getItem('onboarding_seen_' + uid) === stamp) return; // sudah lihat versi ini
+
+    setTimeout(function() {
+      if (document.getElementById('ob-overlay')) return;
+      window.renderOnboardingPopup(cfg, role, false);
+    }, 1500);
+  }).catch(function(){});
+};
 
 })();
