@@ -558,6 +558,16 @@ window.renderOnboardingPopup = function(cfg, roleLabel, isPreview) {
   _obCtx = { cfg: cfg, roleLabel: roleLabel || 'murid', preview: !!isPreview };
 };
 
+// Cek apakah perangkat ini SUDAH punya notifikasi aktif (izin granted +
+// subscription aktif). Dipakai untuk opsi "hanya tampilkan ke yang belum aktif".
+function hasActivePush() {
+  return new Promise(function(resolve) {
+    var P = window.HQ && window.HQ.PushAPI;
+    if (!P || P.getPermissionStatus() !== 'granted') return resolve(false);
+    P.getActiveSubscription().then(function(sub) { resolve(!!sub); }).catch(function() { resolve(false); });
+  });
+}
+
 // Entry point: cek config & tampilkan popup sekali per (versi config × user).
 window.initOnboarding = function(roleLabel) {
   if (!window.HQ || !window.HQ.AdminAPI || !window.HQ.AdminAPI.getOnboarding) return;
@@ -572,10 +582,15 @@ window.initOnboarding = function(roleLabel) {
     var stamp = cfg.updated_at ? String(cfg.updated_at) : '1';
     if (localStorage.getItem('onboarding_seen_' + uid) === stamp) return; // sudah lihat versi ini
 
-    setTimeout(function() {
-      if (document.getElementById('ob-overlay')) return;
-      window.renderOnboardingPopup(cfg, role, false);
-    }, 1500);
+    // Opsi targeting: lewati user yang notifikasinya sudah aktif.
+    var gate = cfg.only_unsubscribed ? hasActivePush() : Promise.resolve(false);
+    gate.then(function(sudahAktif) {
+      if (sudahAktif) return; // sudah aktif & admin minta hanya yang belum → lewati
+      setTimeout(function() {
+        if (document.getElementById('ob-overlay')) return;
+        window.renderOnboardingPopup(cfg, role, false);
+      }, 1500);
+    });
   }).catch(function(){});
 };
 

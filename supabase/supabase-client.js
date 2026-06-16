@@ -4388,6 +4388,7 @@ var AdminAPI = {
       target_role: cfg.target_role || 'murid',
       cta_label  : cfg.cta_label || '',
       cta_action : cfg.cta_action || '',
+      only_unsubscribed: !!cfg.only_unsubscribed,
       updated_at : new Date().toISOString(),
     };
     var {error} = await _sb.from('onboarding_config').upsert(row, {onConflict:'id'});
