@@ -5446,6 +5446,17 @@ var PushAPI = {
       updated_at : new Date().toISOString(),
     }, { onConflict: 'endpoint' });
     if (error) throw new Error(error.message);
+    // Dedup: saat device re-subscribe, browser membuat endpoint BARU sehingga
+    // row endpoint lama jadi yatim → gagal 410 di broadcast berikutnya (sumber
+    // utama angka "gagal"). Hapus row lama milik user+device yang sama yang
+    // endpoint-nya berbeda dari yang baru saja disimpan. Tidak menggagalkan
+    // proses subscribe kalau cleanup error (best-effort).
+    try {
+      await _sb.from('push_subscriptions').delete()
+        .eq('id_user', user.id_user)
+        .eq('device_hint', deviceHint)
+        .neq('endpoint', sub.endpoint);
+    } catch (_) { /* cleanup best-effort */ }
   },
 
   // Kirim push (dipanggil dari portal, hanya untuk admin/guru)
