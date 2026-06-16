@@ -6913,17 +6913,41 @@ async function togglePushConfig(key, enabled) {
   }
 }
 
+// Terjemahkan status code kegagalan push (web-push) jadi sebab manusiawi.
+function _pushFailLabel(code) {
+  switch (String(code)) {
+    case '410':
+    case '404': return 'device expired/uninstall (otomatis dibersihkan)';
+    case '429': return 'rate-limit push service';
+    case '413': return 'payload terlalu besar';
+    case '401':
+    case '403': return 'VAPID/otorisasi ditolak';
+    case '0':   return 'jaringan/timeout';
+    default:    return 'error HTTP '+code;
+  }
+}
+// Rangkum push_log.fail_detail (mis. {"410":5,"429":2}) jadi teks tooltip.
+function _pushFailSummary(fd) {
+  if (!fd || typeof fd !== 'object') return 'Sebab tidak tercatat (broadcast sebelum fitur pelacakan aktif).';
+  return Object.keys(fd).map(function(code) {
+    return fd[code]+' device — '+_pushFailLabel(code);
+  }).join('\n');
+}
+
 function renderPushLog(logs) {
   var tbody = document.getElementById('pushLogTbl');
   if (!logs.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada log.</td></tr>'; return; }
   tbody.innerHTML = logs.map(function(l) {
     var d = new Date(l.created_at);
     var waktu = d.toLocaleDateString('id')+' '+d.toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit'});
+    var gagalCell = l.failed_count
+      ? '<span title="'+esc(_pushFailSummary(l.fail_detail))+'" style="color:var(--red);cursor:help;border-bottom:1px dotted var(--red)">'+l.failed_count+'</span>'
+      : '<span style="color:var(--text-3)">'+l.failed_count+'</span>';
     return '<tr><td style="font-size:12px;white-space:nowrap">'+waktu+'</td>'
       + '<td><code style="font-size:11px;background:var(--bg-2);padding:2px 6px;border-radius:4px">'+esc(l.trigger_type)+'</code></td>'
       + '<td style="font-size:12px">'+(l.target_role||'spesifik')+'</td>'
       + '<td><span style="color:var(--green);font-weight:700">'+l.sent_count+'</span></td>'
-      + '<td><span style="color:'+(l.failed_count?'var(--red)':'var(--text-3)')+'">'+l.failed_count+'</span></td></tr>';
+      + '<td>'+gagalCell+'</td></tr>';
   }).join('');
 }
 
