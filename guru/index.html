@@ -5251,6 +5251,7 @@ function renderHafalanKbm() {
 
   // Event listeners via delegation (hindari inline handler dengan quote escaping)
   cont.addEventListener('input', function(e) {
+    _kbmDraftSaveDebounced(); // Fase 1: persist ketikan hafalan ke localStorage (anti-hilang)
     // Surat autocomplete
     if (e.target.id && e.target.id.startsWith('hfkbm-surat-display-')) {
       var mid2 = e.target.dataset.mid;
@@ -5297,6 +5298,7 @@ function renderHafalanKbm() {
     }
   }, true);
   cont.addEventListener('change', function(e) {
+    _kbmDraftSaveDebounced(); // Fase 1: persist perubahan hafalan ke localStorage
     var mid2 = e.target.dataset && e.target.dataset.mid;
     if (!mid2) return;
     if (e.target.classList.contains('hfkbm-kel') || e.target.classList.contains('hfkbm-nil')) {
@@ -5627,6 +5629,7 @@ function buildMicroteachingCard(m) {
 }
 
 function toggleMicroteachingPracticing(id) {
+  _kbmDraftSaveDebounced(); // Fase 1: persist perubahan rubrik MT ke localStorage
   var toggle = document.getElementById('mt-toggle-' + id);
   var wrapper = document.getElementById('mt-content-wrapper-' + id);
   if (!toggle || !wrapper) return;
@@ -5691,11 +5694,12 @@ function toggleMicroteachingPracticing(id) {
     + '</div>'
     + '<div class="catatan-wrap" style="padding:12px 18px 18px;">'
       + '<label style="font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-3); display:block; margin-bottom:6px;">Catatan Penilaian</label>'
-      + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12.5px; resize:vertical; padding:10px; border-radius:10px; border: 1.5px solid var(--border);"></textarea>'
+      + '<textarea class="fc" id="mt-catatan-' + id + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Saran perbaikan, kendala, atau pencapaian spesifik murid..." style="font-size:12.5px; resize:vertical; padding:10px; border-radius:10px; border: 1.5px solid var(--border);"></textarea>'
     + '</div>';
 }
 
 function updateMicroteachingScore(id) {
+  _kbmDraftSaveDebounced(); // Fase 1: persist perubahan rubrik MT ke localStorage
   var total = 0; var filled = 0; var filledBobot = 0;
   KRITERIA_MT.forEach(function(k) {
     var checked = document.querySelector('input[name="mt-'+id+'-'+k.id+'"]:checked');
