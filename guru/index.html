@@ -5292,7 +5292,6 @@ function renderHafalanKbm() {
     }
   }, true);
   cont.addEventListener('blur', function(e) {
-    _saveKbmDraftLocal(); // flush segera saat meninggalkan field (jaring pengaman selain debounce)
     if (e.target.id && (e.target.id.startsWith('hfkbm-surat-display-') || e.target.id.startsWith('hfkbm-tgt-surat-'))) {
       var eid2 = e.target.id.includes('tgt') ? 'hfkbm-tgt-dd-' + e.target.id.replace('hfkbm-tgt-surat-','') : 'hfkbm-dd-' + e.target.id.replace('hfkbm-surat-display-','');
       setTimeout(function(){ var dd = document.getElementById(eid2); if (dd) dd.style.display='none'; }, 200);
@@ -6090,7 +6089,7 @@ function _saveHafalanKbmCache() {
     var eid = _hfKbmEid(m.id_murid);
     if (!document.getElementById('hfkbm-jenis-'+eid)) return; // field belum dirender → jangan timpa cache kosong
     var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
-    window._hafalanKbmCache[m.id_murid] = {
+    var obj = {
       jenis  : getV('hfkbm-jenis-'+eid), juz     : getV('hfkbm-juz-'+eid),
       surat  : getV('hfkbm-surat-'+eid), suratD  : getV('hfkbm-surat-display-'+eid),
       dari   : getV('hfkbm-ayat-dari-'+eid), sampai: getV('hfkbm-ayat-sampai-'+eid),
@@ -6099,6 +6098,14 @@ function _saveHafalanKbmCache() {
       tgtSrt : getV('hfkbm-tgt-surat-'+eid),
       tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
     };
+    // ANTI-CLOBBER: jangan timpa data lama dengan form KOSONG — mis. dibaca tepat
+    // setelah renderHafalanKbm rebuild (sebelum restore mengisi) atau saat node
+    // dihancurkan. Form kosong + sudah ada data tersimpan → lewati murid ini.
+    var kosong = !(obj.jenis||obj.juz||obj.surat||obj.suratD||obj.dari||obj.sampai||obj.kel||obj.nil||obj.kam||obj.catatan||obj.tgtSrt||obj.tgtDari||obj.tgtSmp);
+    var prev = window._hafalanKbmCache[m.id_murid];
+    var prevAda = prev && (prev.jenis||prev.surat||prev.dari||prev.sampai||prev.nil||prev.kel||prev.kam||prev.catatan||prev.juz);
+    if (kosong && prevAda) return;
+    window._hafalanKbmCache[m.id_murid] = obj;
   });
 }
 
