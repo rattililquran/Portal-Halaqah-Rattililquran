@@ -4770,6 +4770,8 @@ async function doBukaKBM() {
     window._hfKbmZiyadah   = {};
     window._lastTargetDataKbm = null;
     _pruneKbmDrafts(sesiAktif.id_kbm); // buang draft basi (>7 hari) milik sesi lain
+    window._presensiState = {};                       // sesi baru: presensi mulai bersih
+    window._presensiStateKbm = sesiAktif.id_kbm;
     // Reset form jurnal
     ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline'].forEach(function(id){
       var el = document.getElementById(id); if (el) el.value = '';
@@ -4813,14 +4815,38 @@ function lanjutSesi() {
   // Saat lanjutkan sesi, popup DOA tidak muncul lagi
   doaSudahMuncul = true;
   _hydrateKbmCacheFromDraft(sesiAktif.id_kbm); // pulihkan draft (mis. setelah reload iOS) sebelum lanjut
-  if (muridSesi.length) {
+
+  // Sesi berganti → buang state presensi sesi lama (cegah tercampur antar sesi)
+  if (window._presensiStateKbm !== sesiAktif.id_kbm) {
+    window._presensiState = {};
+    window._presensiStateKbm = sesiAktif.id_kbm;
+  }
+
+  var proceed = function() {
     goPage('presensi'); renderPresensi(); renderSteps('presensi');
     document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+  };
+  // Muat presensi tersimpan dari server agar tidak ter-reset saat melanjutkan sesi.
+  // Gap-fill: hanya isi murid yang BELUM ada di _presensiState (jaga toggle in-session
+  // yang belum sempat tersimpan agar tidak tertimpa data server lama).
+  var loadPresensiThen = function(cb) {
+    window.HQ.GuruAPI.getPresensiByKBM(sesiAktif.id_kbm).then(function(res) {
+      window._presensiState = window._presensiState || {};
+      (((res && res.data) || [])).forEach(function(p) {
+        if (p.status_hadir && !(p.id_murid in window._presensiState)) {
+          window._presensiState[p.id_murid] = p.status_hadir;
+        }
+      });
+      cb();
+    }, function() { cb(); });
+  };
+
+  if (muridSesi.length) {
+    loadPresensiThen(proceed);
   } else {
-    getMurid(sesiAktif.id_halaqah).then(murid => {
+    getMurid(sesiAktif.id_halaqah).then(function(murid) {
       muridSesi = murid;
-      goPage('presensi'); renderPresensi(); renderSteps('presensi');
-      document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+      loadPresensiThen(proceed);
     });
   }
 }
@@ -4848,6 +4874,10 @@ function renderPresensi() {
   if (!muridSesi.length) {
     cont.innerHTML = emptyHTML('👥','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
   }
+  // Pulihkan status presensi yang sudah ada agar tidak ter-reset ke default Hadir
+  // saat re-render (mis. lanjut sesi / navigasi 3→2→1→2). Sumber: window._presensiState
+  // (diisi dari server saat lanjutSesi, di-update saat togPresensi/setAllPresensi).
+  const _ps = window._presensiState || {};
   cont.innerHTML = muridSesi.map(m => `
     <div class="prow" id="prow-${esc(m.id_murid)}">
       <div>
@@ -4856,26 +4886,29 @@ function renderPresensi() {
       </div>
       <div class="prow-btns">
         ${['H','T','I','A'].map(k=>`
-          <button class="pb ${k==='H'?'on':''}" data-k="${k}" data-id="${esc(m.id_murid)}"
+          <button class="pb ${k===(_ps[m.id_murid]||'H')?'on':''}" data-k="${k}" data-id="${esc(m.id_murid)}"
             data-nama="${esc(m.nama_murid)}" onclick="togPresensi(this)"
             title="${{H:'Hadir (100%)',T:'Terlambat (90%)',I:'Izin (70%)',A:'Alpa (0%)'}[k]}">${k}</button>
         `).join('')}
       </div>
     </div>`).join('');
 
-  document.getElementById('presensiCount').textContent = muridSesi.length + ' murid';
+  updatePresensiCount();
 }
 
 function togPresensi(btn) {
   btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  (window._presensiState = window._presensiState || {})[btn.dataset.id] = btn.dataset.k;
   updatePresensiCount();
 }
 
 function setAllPresensi(kode) {
+  window._presensiState = window._presensiState || {};
   document.querySelectorAll('.pb[data-k="' + kode + '"]').forEach(btn => {
     btn.closest('.prow-btns').querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
+    window._presensiState[btn.dataset.id] = kode;
   });
   updatePresensiCount();
 }
