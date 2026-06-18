@@ -254,7 +254,10 @@ var GuruAPI = {
          .eq('status', 'selesai').eq('tanggal_pertemuan', today),
       _sb.from('kbm_log').select('id_kbm').eq('id_guru', id_guru)
          .eq('status', 'selesai').gte('tanggal_pertemuan', month + '-01'),
-      _sb.from('kbm_log').select('*').eq('id_guru', id_guru).eq('status', 'draft').maybeSingle(),
+      // Defensif: pakai limit(1) (bukan maybeSingle) agar dashboard tetap load
+      // walau terjadi anomali >1 draft (maybeSingle akan melempar error).
+      _sb.from('kbm_log').select('*').eq('id_guru', id_guru).eq('status', 'draft')
+         .order('tanggal_pertemuan', { ascending: false }).limit(1),
     ]);
 
     var halaqah   = hqRes.data || [];
@@ -294,7 +297,7 @@ var GuruAPI = {
       });
     });
 
-    var draft = draftRes.data || null;
+    var draft = (draftRes.data && draftRes.data[0]) || null;
     if (draft) {
       draft.jam_mulai = draft.jam_mulai ? draft.jam_mulai.substring(0, 5) : null;
       draft.jam_selesai = draft.jam_selesai ? draft.jam_selesai.substring(0, 5) : null;
@@ -1349,25 +1352,31 @@ var GuruAPI = {
       bonusPerfect: parseInt(cfgMap['bonus_perfect_attendance'] || '5'),
     };
 
-    var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
+    var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes, periodeRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
-      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status)').eq('id_halaqah', d.id_halaqah),
+      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status, tanggal_pertemuan)').eq('id_halaqah', d.id_halaqah),
       _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah).in('id_murid', ids),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
+      _sb.from('periode').select('tanggal_mulai, tanggal_selesai').eq('id_periode', d.id_periode).maybeSingle(),
     ]);
     var nilaiManual = nilaiManualRes.data;
     var nilaiKBM    = nilaiKBMRes.data;
     var atLog       = atLogRes.data;
     var totalAt     = atSesiRes.count || 0;
     var catatan     = catatanRes.data;
+    // Rentang periode untuk membatasi KBM yang dihitung (defensif: hanya bila
+    // kedua tanggal terisi; periode lama tanpa tanggal → perilaku lama, tak difilter).
+    var pr = periodeRes.data || {};
+    var periodeRange = (pr.tanggal_mulai && pr.tanggal_selesai)
+      ? { mulai: pr.tanggal_mulai, selesai: pr.tanggal_selesai } : null;
 
     var berhasil = [], gagal = [];
     for (var i = 0; i < (anggota || []).length; i++) {
       var m = anggota[i];
       try {
         var raportData = _kalkulasiRaport(m.id_murid, d.id_periode, d.id_halaqah,
-          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level);
+          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level, periodeRange);
         var detailJson = raportData.komponen;
         var { error: upErr } = await _sb.from('raport')
           .upsert({
@@ -2029,12 +2038,18 @@ var GuruAPI = {
 //  KALKULASI RAPORT (helper internal)
 // ─────────────────────────────────────────────
 // BUG-021 fix: gradeConfig parameter opsional untuk backward compat
-function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel) {
+function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel, periodeRange) {
   // Fase 1.5: hanya hitung baris dari sesi yang BUKAN draft (predikat <> 'draft' agar
   // tahan data legacy ber-status NULL). Sesi draft yang belum diselesaikan tidak boleh
   // mencemari raport (lihat RENCANA_persistensi_nilai_kbm.md §6).
   var myKBM = (nilaiKBM || []).filter(function(n) {
-    return n.id_murid === idMurid && (!n.kbm_log || n.kbm_log.status !== 'draft');
+    if (n.id_murid !== idMurid) return false;
+    if (n.kbm_log && n.kbm_log.status === 'draft') return false;   // Fase 1.5: buang sesi draft
+    if (periodeRange) {                                            // #2: batasi ke rentang periode
+      var tgl = n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan);
+      if (!tgl || tgl < periodeRange.mulai || tgl > periodeRange.selesai) return false;
+    }
+    return true;
   });
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });

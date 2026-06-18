@@ -647,6 +647,18 @@ html.theme-dark #draftWarning{
   background:linear-gradient(135deg,#2a2417,#33291a)!important;border-color:#b8862f!important;
 }
 html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;color:#e8c98a!important}
+/* Chip status sinkron Fase 2 */
+.kbm-sync-chip{
+  position:fixed;left:50%;bottom:16px;transform:translate(-50%,16px);
+  background:#1e293b;color:#e2e8f0;font-size:11.5px;font-weight:700;
+  padding:7px 14px;border-radius:100px;box-shadow:0 6px 20px rgba(0,0,0,.28);
+  z-index:10010;opacity:0;pointer-events:none;white-space:nowrap;
+  transition:opacity .2s ease,transform .2s ease;
+}
+.kbm-sync-chip.show{opacity:1;transform:translate(-50%,0)}
+.kbm-sync-chip.syncing{background:#1e3a5f}
+.kbm-sync-chip.synced{background:#0a6b4e}
+.kbm-sync-chip.offline{background:#9a3412}
 
 /* Preview modal */
 .preview-box{background:#f8fafc;border-radius:var(--r);padding:14px;margin-bottom:12px}
@@ -4142,6 +4154,14 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('pagehide', function() { _saveKbmDraftLocal(); _kbmServerSyncFlush(); });
   window.addEventListener('online', function() { _kbmServerSyncFlush(); }); // Fase 2: retry sinkron saat koneksi balik
 
+  // Chip status sinkron Fase 2
+  if (!document.getElementById('kbmSyncChip')) {
+    var _chip = document.createElement('div');
+    _chip.id = 'kbmSyncChip';
+    _chip.className = 'kbm-sync-chip';
+    document.body.appendChild(_chip);
+  }
+
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'guru') {
@@ -5897,18 +5917,36 @@ function _hydrateKbmCacheFromDraft(id) {
 
 // ── Fase 2: sinkron draft ke server (kbm_draft) — best-effort, fallback localStorage ──
 // Bila tabel belum dibuat / offline → gagal diam-diam, localStorage tetap jadi jaring pengaman.
-var _kbmSyncTimer = null;
+var _kbmSyncTimer = null, _kbmSyncChipTimer = null;
+// Indikator status sinkron Fase 2 (chip kecil non-blocking; no-op bila elemen tak ada)
+function _setKbmSyncStatus(state) {
+  var el = document.getElementById('kbmSyncChip');
+  if (!el) return;
+  if (_kbmSyncChipTimer) { clearTimeout(_kbmSyncChipTimer); _kbmSyncChipTimer = null; }
+  el.className = 'kbm-sync-chip show ' + state;
+  if (state === 'syncing') {
+    el.textContent = '↑ Menyinkronkan…';
+  } else if (state === 'synced') {
+    el.textContent = '✓ Tersimpan ke server';
+    _kbmSyncChipTimer = setTimeout(function(){ el.className = 'kbm-sync-chip'; }, 1800);
+  } else { // offline / gagal
+    el.textContent = '⚠ Tersimpan lokal · menunggu koneksi';
+    _kbmSyncChipTimer = setTimeout(function(){ el.className = 'kbm-sync-chip'; }, 3500);
+  }
+}
 function _kbmServerSyncFlush() {
   if (!sesiAktif || !sesiAktif.id_kbm) return;
   var d = _loadKbmDraftLocal(sesiAktif.id_kbm);
   if (!d) return;
   try {
+    _setKbmSyncStatus('syncing');
     window.HQ.GuruAPI.saveKbmDraftServer({
       id_kbm     : sesiAktif.id_kbm,
       jenis_sesi : sesiAktif.jenis_sesi,
       draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {} },
-    }).catch(function(){ /* offline / tabel belum ada → retry saat 'online' */ });
-  } catch (e) {}
+    }).then(function(){ _setKbmSyncStatus('synced'); })
+      .catch(function(){ _setKbmSyncStatus('offline'); /* retry saat 'online' */ });
+  } catch (e) { _setKbmSyncStatus('offline'); }
 }
 function _kbmServerSyncDebounced() {
   if (_kbmSyncTimer) clearTimeout(_kbmSyncTimer);
@@ -6340,7 +6378,7 @@ function renderNilaiMuridStep() {
       '</div>',
       '<div class="fg" style="margin-top:10px">',
       '  <div class="nm-section-label">📝 Catatan Lainnya</div><div style="font-size:10px;color:var(--text-3);font-weight:500;margin-bottom:5px">(opsional)</div>',
-      '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + catVal + '</textarea>',
+      '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + esc(catVal) + '</textarea>',
       '</div>',
     ].join('\n');
 
