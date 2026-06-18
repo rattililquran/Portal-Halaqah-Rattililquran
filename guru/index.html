@@ -624,6 +624,29 @@ html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;bord
 .draft-warning-title{font-size:14px;font-weight:700;color:var(--amber-txt);margin-bottom:3px}
 .draft-warning-sub{font-size:12.5px;color:var(--text-2);margin-bottom:10px}
 .draft-warning-btns{display:flex;gap:8px;flex-wrap:wrap}
+/* Kartu draft KBM — penekanan "amanah belum tuntas" (scope #draftWarning saja,
+   agar banner libur resmi yang berbagi kelas .draft-warning tetap hijau) */
+#draftWarning{
+  background:linear-gradient(135deg,#fff8ec,#fdeccf);
+  border-color:#e0a93a;border-left:6px solid #e0a93a;
+  box-shadow:0 4px 16px rgba(224,169,58,.18);
+}
+#draftWarning .draft-warning-title{color:#9a6212;font-size:15px}
+.draft-warning-note{
+  font-size:12.5px;color:#7a5a1e;font-style:italic;line-height:1.55;
+  background:rgba(224,169,58,.10);border-radius:10px;padding:8px 11px;margin-bottom:11px;
+}
+#btnDraftLanjut{box-shadow:0 4px 14px rgba(22,155,107,.35)}
+@keyframes draftPulse{
+  0%{box-shadow:0 0 0 0 rgba(224,169,58,.55)}
+  70%{box-shadow:0 0 0 16px rgba(224,169,58,0)}
+  100%{box-shadow:0 0 0 0 rgba(224,169,58,0)}
+}
+#draftWarning.pulse-attn{animation:draftPulse 1.1s ease-out 2}
+html.theme-dark #draftWarning{
+  background:linear-gradient(135deg,#2a2417,#33291a)!important;border-color:#b8862f!important;
+}
+html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;color:#e8c98a!important}
 
 /* Preview modal */
 .preview-box{background:#f8fafc;border-radius:var(--r);padding:14px;margin-bottom:12px}
@@ -2236,15 +2259,16 @@ html.theme-dark .rt-surat-tbl th {
 
         <!-- Sesi aktif — satu kartu saja -->
         <div class="draft-warning" id="draftWarning">
-          <div class="draft-warning-ico">🟢</div>
+          <div class="draft-warning-ico">⏳</div>
           <div class="draft-warning-body">
-            <div class="draft-warning-title">Sesi Sedang Berjalan</div>
+            <div class="draft-warning-title">Masih ada amanah KBM yang belum tuntas</div>
             <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
+            <div class="draft-warning-note">Tuntaskan dulu sesi ini agar tidak ada nilai murid yang tertinggal. Bismillah, kita selesaikan. 🤲</div>
             <div class="draft-warning-btns">
               <button class="btn btn-sm" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700"
-                onclick="lanjutSesi()">▶ Lanjutkan Sesi</button>
+                onclick="lanjutSesi()">▶ Lanjutkan &amp; Selesaikan</button>
               <button class="btn btn-outline btn-sm" id="btnDraftLibur" style="color:#e0772a;border-color:#e0772a;background:rgba(224,119,42,0.05)"
-                onclick="batalkanDanTandaiLibur()">📵 Batalkan &amp; Tandai Libur</button>
+                onclick="batalkanDanTandaiLibur()">📵 Tandai Libur</button>
               <button class="btn btn-outline btn-sm" id="btnDraftHapus" style="color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05)"
                 onclick="hapusSesiDraft()">🗑️ Hapus Sesi</button>
             </div>
@@ -4376,7 +4400,7 @@ function updateDraftWarning() {
 
   const btnLanjut = document.getElementById('btnDraftLanjut');
   if (btnLanjut) {
-    btnLanjut.textContent = `▶ Lanjutkan KBM Pertemuan ${sesiAktif.pertemuan_ke}`;
+    btnLanjut.textContent = `▶ Lanjutkan & Selesaikan Pertemuan ${sesiAktif.pertemuan_ke}`;
   }
   banner.classList.add('show');
 }
@@ -8640,12 +8664,23 @@ async function saveSemuaNilai() {
   }
 }
 
+// Sorot kartu draft (scroll + pulse) agar guru langsung sadar ada amanah belum tuntas
+function _highlightDraftCard() {
+  var el = document.getElementById('draftWarning');
+  if (!el) return;
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+  el.classList.remove('pulse-attn');
+  void el.offsetWidth; // paksa reflow agar animasi bisa diputar ulang
+  el.classList.add('pulse-attn');
+  setTimeout(function() { el.classList.remove('pulse-attn'); }, 2400);
+}
+
 async function mulaiSesiBaruCepat() {
   if (sesiAktif) {
-    toast('Mengarahkan ke sesi KBM yang sedang berjalan...', 'ok');
-    if (sesiAktif.status === 'draft') {
-      lanjutSesi();
-    }
+    // Masih ada amanah KBM belum tuntas → hentikan di kartu draft (sadar + pilih
+    // sendiri: Lanjutkan / Tandai Libur / Hapus), jangan auto-lompat ke presensi lama.
+    goPage('kbm');
+    setTimeout(_highlightDraftCard, 140); // beri jeda agar kartu sudah tampil
     return;
   }
 
