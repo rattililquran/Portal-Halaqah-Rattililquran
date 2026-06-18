@@ -1322,7 +1322,7 @@ var GuruAPI = {
 
     var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
-      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi)').eq('id_halaqah', d.id_halaqah),
+      _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status)').eq('id_halaqah', d.id_halaqah),
       _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah).in('id_murid', ids),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
@@ -2001,7 +2001,12 @@ var GuruAPI = {
 // ─────────────────────────────────────────────
 // BUG-021 fix: gradeConfig parameter opsional untuk backward compat
 function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel) {
-  var myKBM = (nilaiKBM || []).filter(function(n) { return n.id_murid === idMurid; });
+  // Fase 1.5: hanya hitung baris dari sesi yang BUKAN draft (predikat <> 'draft' agar
+  // tahan data legacy ber-status NULL). Sesi draft yang belum diselesaikan tidak boleh
+  // mencemari raport (lihat RENCANA_persistensi_nilai_kbm.md §6).
+  var myKBM = (nilaiKBM || []).filter(function(n) {
+    return n.id_murid === idMurid && (!n.kbm_log || n.kbm_log.status !== 'draft');
+  });
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });
   var lvl = (studentLevel || '').trim();

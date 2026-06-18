@@ -4111,6 +4111,12 @@ window.addEventListener('DOMContentLoaded', () => {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
   });
 
+  // Selamatkan draft nilai saat app di-background / ditutup (event andalan di iOS)
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') _saveKbmDraftLocal();
+  });
+  window.addEventListener('pagehide', function() { _saveKbmDraftLocal(); });
+
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'guru') {
@@ -4521,7 +4527,9 @@ async function hapusSesiDraft() {
 
   showLoad('Bismillah, membatalkan dan menghapus sesi...');
   try {
+    const idKbmHapus = sesiAktif.id_kbm;
     await window.HQ.GuruAPI.hapusKBM(sesiAktif.id_kbm);
+    _clearKbmDraftLocal(idKbmHapus);
     sesiAktif      = null;
     muridSesi      = [];
     doaSudahMuncul = false;
@@ -4555,6 +4563,7 @@ async function batalkanDanTandaiLibur() {
   try {
     const r = await window.HQ.GuruAPI.batalkanTandaiLibur({ keterangan_libur: trimmed });
     if (r.status !== 'ok') throw new Error(r.message || 'Gagal menandai libur');
+    _clearKbmDraftLocal(sesiAktif && sesiAktif.id_kbm);
     sesiAktif      = null;
     muridSesi      = [];
     doaSudahMuncul = false;
@@ -4880,6 +4889,7 @@ async function doBukaKBM() {
     window._microteachingKbmCache = {};
     window._hfKbmZiyadah   = {};
     window._lastTargetDataKbm = null;
+    _pruneKbmDrafts(sesiAktif.id_kbm); // buang draft basi (>7 hari) milik sesi lain
     // Reset form jurnal
     ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline'].forEach(function(id){
       var el = document.getElementById(id); if (el) el.value = '';
@@ -4922,6 +4932,7 @@ function lanjutSesi() {
   if (!sesiAktif) return;
   // Saat lanjutkan sesi, popup DOA tidak muncul lagi
   doaSudahMuncul = true;
+  _hydrateKbmCacheFromDraft(sesiAktif.id_kbm); // pulihkan draft (mis. setelah reload iOS) sebelum lanjut
   if (muridSesi.length) {
     goPage('presensi'); renderPresensi(); renderSteps('presensi');
     document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
@@ -5040,6 +5051,7 @@ async function doSimpanPresensi() {
 //  JURNAL & NILAI
 // ══════════════════════════════════════════
 function goToNilai() {
+  _hydrateKbmCacheFromDraft(sesiAktif && sesiAktif.id_kbm); // pulihkan draft sebelum render
   renderNilaiMuridStep();
   goPage('nilai-murid');
   renderSteps('nilai-murid');
@@ -5092,6 +5104,7 @@ function selectKbmJenis(val) {
 
 function goToHafalanQiyam() {
   _saveHafalanKbmCache();
+  _hydrateKbmCacheFromDraft(sesiAktif && sesiAktif.id_kbm); // pulihkan draft; renderHafalanKbm self-restore di akhirnya
   var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
   goPage('hafalan-kbm');
   renderSteps('hafalan-kbm');
@@ -5109,6 +5122,7 @@ function goToHafalanQiyam() {
 
 function goToMicroteachingAssessment() {
   _saveMicroteachingKbmCache();
+  _hydrateKbmCacheFromDraft(sesiAktif && sesiAktif.id_kbm); // pulihkan draft; renderMicroteachingKbm self-restore di akhirnya
   goPage('microteaching-kbm');
   renderSteps('microteaching-kbm');
   document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
@@ -5804,6 +5818,7 @@ function _saveMicroteachingKbmCache() {
   if (!muridSesi) return;
   muridSesi.forEach(function(m) {
     var id = m.id_murid;
+    if (!document.getElementById('mt-toggle-'+id)) return; // step belum dirender → jangan timpa cache kosong
     var toggle = document.getElementById('mt-toggle-'+id);
     var isToggled = toggle ? toggle.checked : false;
     
@@ -5859,6 +5874,99 @@ function _restoreMicroteachingKbmCache() {
       }
     }
   });
+}
+
+// ══════════════════════════════════════════
+//  DRAFT NILAI KBM — persistensi localStorage (anti-hilang saat reload iOS)
+//  Menyimpan ketiga cache (Reguler/Qiyam/MT) per id_kbm.
+//  Ref: Panduan dan Penjelasan/RENCANA_persistensi_nilai_kbm.md
+// ══════════════════════════════════════════
+function _kbmDraftKey(id) { return 'hq_kbm_draft_' + id; }
+
+// Snapshot nilai Reguler dari DOM ke _nilaiCache.
+// Guard murid-level: lewati murid yang field-nya TIDAK ada di DOM (Izin/Alpa atau
+// step belum dirender) agar entry lama tidak ter-overwrite menjadi kosong.
+function _snapshotNilaiCache() {
+  if (!window._nilaiCache) window._nilaiCache = {};
+  if (!muridSesi) return;
+  muridSesi.forEach(function(m) {
+    var a = document.getElementById('adab-' + m.id_murid);
+    if (!a) return; // field belum dirender untuk murid ini → jangan sentuh
+    var k  = document.getElementById('kamera-'  + m.id_murid);
+    var ko = document.getElementById('koreksi-' + m.id_murid);
+    var c  = document.getElementById('catatan-' + m.id_murid);
+    var cur = window._nilaiCache[m.id_murid] || (window._nilaiCache[m.id_murid] = {});
+    cur.adab = a.value;
+    if (k)  cur.kamera  = k.value;
+    if (ko) cur.koreksi = ko.value;
+    if (c)  cur.catatan = c.value;
+  });
+}
+
+// Merge per-murid: cur menimpa prev HANYA untuk murid yang ada di cur.
+function _mergeCacheObj(prev, cur) { return Object.assign({}, prev || {}, cur || {}); }
+
+function _saveKbmDraftLocal() {
+  if (!sesiAktif || !sesiAktif.id_kbm) return;
+  var jenis = sesiAktif.jenis_sesi;
+  // Refresh cache relevan dari DOM (fungsi-fungsi ini sudah ber-guard murid-level).
+  if (jenis === 'KBM Qiyam')           { _saveHafalanKbmCache(); }
+  else if (jenis === 'Micro Teaching') { _saveMicroteachingKbmCache(); }
+  else                                 { _snapshotNilaiCache(); }
+  // MERGE dengan draft tersimpan agar cache memori yang kosong tidak menghapus data.
+  var prev = _loadKbmDraftLocal(sesiAktif.id_kbm) || {};
+  var draft = {
+    id_kbm        : sesiAktif.id_kbm,
+    jenis_sesi    : jenis,
+    updated_at    : new Date().toISOString(),
+    nilai         : _mergeCacheObj(prev.nilai,         window._nilaiCache),
+    hafalan       : _mergeCacheObj(prev.hafalan,       window._hafalanKbmCache),
+    microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
+  };
+  try { localStorage.setItem(_kbmDraftKey(sesiAktif.id_kbm), JSON.stringify(draft)); }
+  catch (e) { /* private mode / quota penuh: abaikan, cache memori tetap jalan */ }
+}
+
+var _kbmDraftTimer = null;
+function _kbmDraftSaveDebounced() {
+  if (_kbmDraftTimer) clearTimeout(_kbmDraftTimer);
+  _kbmDraftTimer = setTimeout(_saveKbmDraftLocal, 400);
+}
+
+function _loadKbmDraftLocal(id) {
+  if (!id) return null;
+  try { var r = localStorage.getItem(_kbmDraftKey(id)); return r ? JSON.parse(r) : null; }
+  catch (e) { return null; }
+}
+
+function _clearKbmDraftLocal(id) {
+  if (!id) return;
+  try { localStorage.removeItem(_kbmDraftKey(id)); } catch (e) {}
+}
+
+// Hidrasi cache memori dari draft localStorage (restore lebih awal saat resume).
+function _hydrateKbmCacheFromDraft(id) {
+  var d = _loadKbmDraftLocal(id);
+  if (!d) return;
+  if (d.nilai)         window._nilaiCache            = _mergeCacheObj(window._nilaiCache, d.nilai);
+  if (d.hafalan)       window._hafalanKbmCache        = _mergeCacheObj(window._hafalanKbmCache, d.hafalan);
+  if (d.microteaching) window._microteachingKbmCache  = _mergeCacheObj(window._microteachingKbmCache, d.microteaching);
+}
+
+// Buang draft basi: selain sesi aktif & lebih tua dari 7 hari.
+function _pruneKbmDrafts(idAktif) {
+  var MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000, now = Date.now();
+  try {
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+      var key = localStorage.key(i);
+      if (!key || key.indexOf('hq_kbm_draft_') !== 0) continue;
+      if (idAktif && key === _kbmDraftKey(idAktif)) continue;
+      var d = null;
+      try { d = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+      var age = (d && d.updated_at) ? (now - new Date(d.updated_at).getTime()) : Infinity;
+      if (age > MAX_AGE_MS) localStorage.removeItem(key);
+    }
+  } catch (e) {}
 }
 
 async function simpanMicroteachingKBM() {
@@ -5951,6 +6059,7 @@ function _saveHafalanKbmCache() {
   if (!muridSesi) return;
   muridSesi.forEach(function(m) {
     var eid = _hfKbmEid(m.id_murid);
+    if (!document.getElementById('hfkbm-jenis-'+eid)) return; // field belum dirender → jangan timpa cache kosong
     var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
     window._hafalanKbmCache[m.id_murid] = {
       jenis  : getV('hfkbm-jenis-'+eid), juz     : getV('hfkbm-juz-'+eid),
@@ -6132,6 +6241,7 @@ function kembaliKeStep1() {
 }
 
 function kembaliKeStep2() {
+  _saveKbmDraftLocal(); // simpan nilai/hafalan/MT sebelum tinggalkan step 3 (anti-hilang)
   goPage('presensi');
   renderSteps('presensi');
   document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
@@ -6216,7 +6326,7 @@ function renderNilaiMuridStep() {
       '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
       '    <div class="nm-section-label">😊 Adab</div>',
-      '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\')">',
+      '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
       '      <option value="">— Pilih —</option>',
       '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
       '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>⚠️ Butuh Perhatian</option>',
@@ -6226,7 +6336,7 @@ function renderNilaiMuridStep() {
       '<div style="margin-bottom:8px">',
       '  <div class="fg" style="margin:0">',
       '    <div class="nm-section-label">📷 Kamera Murid</div>',
-      '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px">',
+      '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px" onchange="_saveKbmDraftLocal()">',
       '      <option value="">— Pilih —</option>',
       '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
       '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>🟡 kamera sering buka tutup</option>',
@@ -6237,14 +6347,14 @@ function renderNilaiMuridStep() {
       '<div class="fg" style="margin:0">',
       '  <div class="nm-section-label">✏️ Koreksi Tahsin</div>',
       '  <div id="chips-' + esc(m.id_murid) + '" style="margin-bottom:8px"></div>',
-      '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this)" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;resize:vertical;min-height:72px">' + esc(korVal) + '</textarea>',
+      '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;resize:vertical;min-height:72px">' + esc(korVal) + '</textarea>',
       '  <div style="display:flex;justify-content:flex-end;margin-top:4px">',
       '    <button type="button" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)" style="background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;display:block">📋 Lihat Riwayat Koreksi Sebelumnya</button>',
       '  </div>',
       '</div>',
       '<div class="fg" style="margin-top:10px">',
       '  <div class="nm-section-label">📝 Catatan Lainnya</div><div style="font-size:10px;color:var(--text-3);font-weight:500;margin-bottom:5px">(opsional)</div>',
-      '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + catVal + '</textarea>',
+      '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + catVal + '</textarea>',
       '</div>',
     ].join('\n');
 
@@ -6518,7 +6628,9 @@ async function doSelesaiKBM() {
 
     // 3. Tutup sesi
     const idHalaqahSelesai = sesiAktif.id_halaqah; // simpan sebelum di-null
+    const idKbmSelesai = sesiAktif.id_kbm;         // simpan sebelum di-null (untuk hapus draft)
     await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
+    _clearKbmDraftLocal(idKbmSelesai); // hapus draft lokal setelah finalisasi sukses
 
     // Sembunyikan loading SEBELUM popup muncul agar tidak tertutup overlay
     hideLoad();
@@ -6570,8 +6682,10 @@ async function konfirmasiTutup() {
   if (!(await showConfirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.', { title: 'Tutup Sesi?', okText: 'Ya, Tutup' }))) return;
   showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
   try {
+    const idKbmTutup = sesiAktif.id_kbm;
     const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
     toast(res.message || 'Sesi ditutup','ok');
+    _clearKbmDraftLocal(idKbmTutup);
     sesiAktif = null; muridSesi = []; window._nilaiCache = {}; window._microteachingKbmCache = {};
     resetPersiapan();
     updateSesiBanner();
@@ -7480,6 +7594,7 @@ async function konfirmasiHapusKBM() {
   showLoad('Bismillah, menghapus sesi KBM...');
   try {
     await window.HQ.GuruAPI.hapusKBM(editPresensiKBMId);
+    _clearKbmDraftLocal(editPresensiKBMId);
     closeModal('editPresensiModal');
     toast('Sesi KBM berhasil dihapus!','ok');
     // Refresh riwayat & murid
