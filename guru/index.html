@@ -6098,13 +6098,15 @@ function _saveHafalanKbmCache() {
       tgtSrt : getV('hfkbm-tgt-surat-'+eid),
       tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
     };
-    // ANTI-CLOBBER: jangan timpa data lama dengan form KOSONG — mis. dibaca tepat
-    // setelah renderHafalanKbm rebuild (sebelum restore mengisi) atau saat node
-    // dihancurkan. Form kosong + sudah ada data tersimpan → lewati murid ini.
-    var kosong = !(obj.jenis||obj.juz||obj.surat||obj.suratD||obj.dari||obj.sampai||obj.kel||obj.nil||obj.kam||obj.catatan||obj.tgtSrt||obj.tgtDari||obj.tgtSmp);
+    // ANTI-CLOBBER: jangan timpa data lama dengan form yang BELUM DIISI — mis. dibaca
+    // tepat setelah renderHafalanKbm rebuild (sebelum restore mengisi) atau saat node
+    // dihancurkan. PENTING: select jenis/kelancaran/makhraj/kamera TIDAK punya opsi
+    // kosong → setelah rebuild otomatis bernilai opsi pertama (Ziyadah/Lancar/Mumtaz/
+    // kamera terbuka). Jadi indikator "terisi" hanya dari KONTEN yang diketik guru:
+    // surat/ayat/catatan, atau jenis non-default (Murajaah/Tahsin).
+    var _terisi = function(o){ return !!(o && (o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah'))); };
     var prev = window._hafalanKbmCache[m.id_murid];
-    var prevAda = prev && (prev.jenis||prev.surat||prev.dari||prev.sampai||prev.nil||prev.kel||prev.kam||prev.catatan||prev.juz);
-    if (kosong && prevAda) return;
+    if (!_terisi(obj) && _terisi(prev)) return; // form belum diisi tapi sudah ada data → jangan timpa
     window._hafalanKbmCache[m.id_murid] = obj;
   });
 }
