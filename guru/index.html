@@ -5292,6 +5292,7 @@ function renderHafalanKbm() {
     }
   }, true);
   cont.addEventListener('blur', function(e) {
+    _saveKbmDraftLocal(); // flush segera saat meninggalkan field (jaring pengaman selain debounce)
     if (e.target.id && (e.target.id.startsWith('hfkbm-surat-display-') || e.target.id.startsWith('hfkbm-tgt-surat-'))) {
       var eid2 = e.target.id.includes('tgt') ? 'hfkbm-tgt-dd-' + e.target.id.replace('hfkbm-tgt-surat-','') : 'hfkbm-dd-' + e.target.id.replace('hfkbm-surat-display-','');
       setTimeout(function(){ var dd = document.getElementById(eid2); if (dd) dd.style.display='none'; }, 200);
@@ -6108,15 +6109,21 @@ function _restoreHafalanKbmCache() {
     var cache = window._hafalanKbmCache[m.id_murid];
     if (!cache) return;
     var setV = function(id,v){ var el=document.getElementById(id);if(el&&v)el.value=v; };
-    setV('hfkbm-jenis-'+eid,   cache.jenis);
-    setV('hfkbm-juz-'+eid,     cache.juz);
+    // Robust untuk <select> berbasis config (jenis/juz/kel/nil/kam): bila opsi dengan
+    // nilai tsb tidak ada (mis. config penilaian hafalan berubah/asinkron), suntik
+    // opsinya agar value tetap pulih. (Reguler kebal karena opsinya statis.)
+    var setSel = function(id,v){ var el=document.getElementById(id); if(!el||(v===undefined||v==='')) return;
+      el.value=v;
+      if(el.value!==v){ var o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); el.value=v; } };
+    setSel('hfkbm-jenis-'+eid, cache.jenis);
+    setSel('hfkbm-juz-'+eid,   cache.juz);
     setV('hfkbm-surat-'+eid,   cache.surat);
     setV('hfkbm-surat-display-'+eid, cache.suratD);
     setV('hfkbm-ayat-dari-'+eid,  cache.dari);
     setV('hfkbm-ayat-sampai-'+eid,cache.sampai);
-    setV('hfkbm-kel-'+eid,     cache.kel);
-    setV('hfkbm-nil-'+eid,     cache.nil);
-    setV('hfkbm-kam-'+eid,     cache.kam);
+    setSel('hfkbm-kel-'+eid,    cache.kel);
+    setSel('hfkbm-nil-'+eid,    cache.nil);
+    setSel('hfkbm-kam-'+eid,    cache.kam);
     setV('hfkbm-catatan-'+eid, cache.catatan);
     setV('hfkbm-tgt-surat-'+eid, cache.tgtSrt);
     setV('hfkbm-tgt-dari-'+eid,  cache.tgtDari);
