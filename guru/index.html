@@ -2154,13 +2154,13 @@ html.theme-dark .rt-surat-tbl th {
         <!-- Alert: ada draft KBM terbengkalai -->
         <div class="draft-orphan-alert" id="draftOrphanAlert" style="flex-direction:column;gap:10px">
           <!-- Baris atas: judul + tombol -->
-          <div style="display:flex;align-items:center;gap:12px;width:100%;cursor:pointer" onclick="goPage('riwayat')">
+          <div style="display:flex;align-items:center;gap:12px;width:100%;cursor:pointer" onclick="_gotoSesiBerjalan()">
             <div style="font-size:26px;flex-shrink:0">⚠️</div>
             <div style="flex:1">
               <div style="font-size:13.5px;font-weight:800;color:#92400e" id="draftOrphanTitle">Ada sesi KBM yang belum diselesaikan</div>
-              <div style="font-size:12px;color:#b45309;margin-top:2px;font-weight:600">Ketuk untuk buka Riwayat KBM → hapus atau selesaikan</div>
+              <div style="font-size:12px;color:#b45309;margin-top:2px;font-weight:600">Ketuk untuk lanjutkan &amp; selesaikan sekarang</div>
             </div>
-            <div style="font-size:12px;font-weight:800;color:#d97706;flex-shrink:0">Lihat →</div>
+            <div style="font-size:12px;font-weight:800;color:#d97706;flex-shrink:0">Selesaikan →</div>
           </div>
           <!-- Detail per halaqah -->
           <div id="draftOrphanDetail" style="display:none;background:rgba(217,119,6,.08);border-radius:10px;padding:10px 12px;width:100%;box-sizing:border-box;border:1px solid rgba(217,119,6,.2)"></div>
@@ -8675,12 +8675,19 @@ function _highlightDraftCard() {
   setTimeout(function() { el.classList.remove('pulse-attn'); }, 2400);
 }
 
+// Ketuk kartu draft (dashboard / Mulai Sesi Baru) → arahkan ke halaman KBM &
+// sorot kartu amanah. Fallback ke Riwayat bila tak ada sesi aktif (mis. draft
+// orphan terdeteksi via riwayat tapi belum jadi sesiAktif).
+function _gotoSesiBerjalan() {
+  if (sesiAktif) { goPage('kbm'); setTimeout(_highlightDraftCard, 140); }
+  else { goPage('riwayat'); }
+}
+
 async function mulaiSesiBaruCepat() {
   if (sesiAktif) {
     // Masih ada amanah KBM belum tuntas → hentikan di kartu draft (sadar + pilih
     // sendiri: Lanjutkan / Tandai Libur / Hapus), jangan auto-lompat ke presensi lama.
-    goPage('kbm');
-    setTimeout(_highlightDraftCard, 140); // beri jeda agar kartu sudah tampil
+    _gotoSesiBerjalan();
     return;
   }
 
