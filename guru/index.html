@@ -4113,9 +4113,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Selamatkan draft nilai saat app di-background / ditutup (event andalan di iOS)
   document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') _saveKbmDraftLocal();
+    if (document.visibilityState === 'hidden') { _saveKbmDraftLocal(); _kbmServerSyncFlush(); }
   });
-  window.addEventListener('pagehide', function() { _saveKbmDraftLocal(); });
+  window.addEventListener('pagehide', function() { _saveKbmDraftLocal(); _kbmServerSyncFlush(); });
+  window.addEventListener('online', function() { _kbmServerSyncFlush(); }); // Fase 2: retry sinkron saat koneksi balik
 
   const tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   const us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
@@ -4815,6 +4816,7 @@ function lanjutSesi() {
   // Saat lanjutkan sesi, popup DOA tidak muncul lagi
   doaSudahMuncul = true;
   _hydrateKbmCacheFromDraft(sesiAktif.id_kbm); // pulihkan draft (mis. setelah reload iOS) sebelum lanjut
+  _reconcileKbmDraftServer(sesiAktif.id_kbm);  // Fase 2: rekonsiliasi dgn draft server (lintas perangkat)
 
   // Sesi berganti → buang state presensi sesi lama (cegah tercampur antar sesi)
   if (window._presensiStateKbm !== sesiAktif.id_kbm) {
@@ -5838,6 +5840,7 @@ function _saveKbmDraftLocal() {
   };
   try { localStorage.setItem(_kbmDraftKey(sesiAktif.id_kbm), JSON.stringify(draft)); }
   catch (e) { /* private mode / quota penuh: abaikan, cache memori tetap jalan */ }
+  _kbmServerSyncDebounced(); // Fase 2: jadwalkan sinkron ke server (best-effort)
 }
 
 var _kbmDraftTimer = null;
@@ -5855,6 +5858,8 @@ function _loadKbmDraftLocal(id) {
 function _clearKbmDraftLocal(id) {
   if (!id) return;
   try { localStorage.removeItem(_kbmDraftKey(id)); } catch (e) {}
+  // Fase 2: hapus juga draft server (best-effort; aman bila tabel belum ada)
+  try { window.HQ.GuruAPI.clearKbmDraftServer(id).catch(function(){}); } catch (e) {}
 }
 
 // Hidrasi cache memori dari draft localStorage (restore lebih awal saat resume).
@@ -5864,6 +5869,50 @@ function _hydrateKbmCacheFromDraft(id) {
   if (d.nilai)         window._nilaiCache            = _mergeCacheObj(window._nilaiCache, d.nilai);
   if (d.hafalan)       window._hafalanKbmCache        = _mergeCacheObj(window._hafalanKbmCache, d.hafalan);
   if (d.microteaching) window._microteachingKbmCache  = _mergeCacheObj(window._microteachingKbmCache, d.microteaching);
+}
+
+// ── Fase 2: sinkron draft ke server (kbm_draft) — best-effort, fallback localStorage ──
+// Bila tabel belum dibuat / offline → gagal diam-diam, localStorage tetap jadi jaring pengaman.
+var _kbmSyncTimer = null;
+function _kbmServerSyncFlush() {
+  if (!sesiAktif || !sesiAktif.id_kbm) return;
+  var d = _loadKbmDraftLocal(sesiAktif.id_kbm);
+  if (!d) return;
+  try {
+    window.HQ.GuruAPI.saveKbmDraftServer({
+      id_kbm     : sesiAktif.id_kbm,
+      jenis_sesi : sesiAktif.jenis_sesi,
+      draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {} },
+    }).catch(function(){ /* offline / tabel belum ada → retry saat 'online' */ });
+  } catch (e) {}
+}
+function _kbmServerSyncDebounced() {
+  if (_kbmSyncTimer) clearTimeout(_kbmSyncTimer);
+  _kbmSyncTimer = setTimeout(_kbmServerSyncFlush, 3000);
+}
+
+// Rekonsiliasi saat resume: ambil draft server, pilih updated_at terbaru,
+// tulis ke localStorage, lalu hidrasi cache memori. Fire-and-forget.
+function _reconcileKbmDraftServer(id_kbm) {
+  if (!id_kbm) return;
+  try {
+    window.HQ.GuruAPI.getKbmDraftServer(id_kbm).then(function(res) {
+      var server = res && res.data;
+      if (!server || !server.draft) return;
+      var local = _loadKbmDraftLocal(id_kbm);
+      var serverNewer = !local || !local.updated_at ||
+        (server.updated_at && new Date(server.updated_at) > new Date(local.updated_at));
+      if (!serverNewer) return;
+      var dd = server.draft;
+      try {
+        localStorage.setItem(_kbmDraftKey(id_kbm), JSON.stringify({
+          id_kbm: id_kbm, jenis_sesi: server.jenis_sesi, updated_at: server.updated_at,
+          nilai: dd.nilai || {}, hafalan: dd.hafalan || {}, microteaching: dd.microteaching || {},
+        }));
+      } catch (e) {}
+      _hydrateKbmCacheFromDraft(id_kbm);
+    }).catch(function(){});
+  } catch (e) {}
 }
 
 // Buang draft basi: selain sesi aktif & lebih tua dari 7 hari.

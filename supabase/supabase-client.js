@@ -800,6 +800,35 @@ var GuruAPI = {
     })};
   },
 
+  // ── Fase 2: server staging draft nilai KBM (kbm_draft) ──
+  // JSON inert; TIDAK menggantikan commit final. Melempar error bila gagal
+  // (mis. tabel belum dibuat) → pemanggil di klien menangkap & no-op (fallback
+  // ke localStorage). Lihat patch_047_kbm_draft.sql.
+  saveKbmDraftServer: async function(d) {
+    var { error } = await _sb.from('kbm_draft').upsert({
+      id_kbm     : d.id_kbm,
+      id_guru    : _uid(),
+      jenis_sesi : d.jenis_sesi || null,
+      draft      : d.draft || {},
+      updated_at : new Date().toISOString(),
+    }, { onConflict: 'id_kbm' });
+    _check(error, 'saveKbmDraftServer');
+    return { status: 'ok' };
+  },
+
+  getKbmDraftServer: async function(id_kbm) {
+    var { data, error } = await _sb.from('kbm_draft')
+      .select('draft, updated_at, jenis_sesi').eq('id_kbm', id_kbm).maybeSingle();
+    _check(error, 'getKbmDraftServer');
+    return { status: 'ok', data: data || null };
+  },
+
+  clearKbmDraftServer: async function(id_kbm) {
+    var { error } = await _sb.from('kbm_draft').delete().eq('id_kbm', id_kbm);
+    _check(error, 'clearKbmDraftServer');
+    return { status: 'ok' };
+  },
+
   getRiwayatMuridKoreksi: async function(id_murid, limit) {
     var { data, error } = await _sb.from('nilai_kbm')
       .select('koreksi_tahsin, tanggal, pertemuan_ke, jenis_sesi')
