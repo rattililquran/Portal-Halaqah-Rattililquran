@@ -5915,22 +5915,29 @@ function _clearKbmDraftLocal(id) {
 // memori. Cache memori (lebih segar — mis. input yang baru diketik) TIDAK ditimpa draft
 // localStorage lama. Ini cegah draft basi/ter-clobber di localStorage menimpa data segar
 // (penyebab "data hilang" di profil yang punya draft lama; incognito bersih → tak kena).
-function _mergeFill(mem, ls) {
+function _mergeFill(mem, ls, hasData) {
   mem = mem || {};
   if (!ls) return mem;
   Object.keys(ls).forEach(function(id) {
-    var m = mem[id];
-    var memHasData = m && Object.keys(m).some(function(k){ return m[k]; });
-    if (!memHasData) mem[id] = ls[id];
+    if (!hasData(mem[id])) mem[id] = ls[id];   // memori belum berisi → ambil dari localStorage
   });
   return mem;
 }
 function _hydrateKbmCacheFromDraft(id) {
   var d = _loadKbmDraftLocal(id);
   if (!d) return;
-  if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai);
-  if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan);
-  if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching);
+  // "Berisi" generik: ada field truthy (untuk nilai Reguler & MT, select-nya punya
+  // placeholder kosong → aman).
+  var anyData = function(o){ return !!(o && Object.keys(o).some(function(k){ return o[k]; })); };
+  // Hafalan KHUSUS: select jenis/kel/nil/kam TIDAK punya placeholder kosong → setelah
+  // rebuild bernilai default. Jadi "berisi" diukur dari KONTEN diketik guru (surat/ayat/
+  // catatan / jenis non-default), bukan dari select default. Dgn ini entri default di
+  // memori tetap diisi ulang dari localStorage (segar) — incognito tertolong; entri
+  // berisi konten dipertahankan — tahan localStorage basi.
+  var hafData = function(o){ return !!(o && (o.surat||o.suratD||o.dari||o.sampai||o.catatan||(o.jenis&&o.jenis!=='Ziyadah'))); };
+  if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData);
+  if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, hafData);
+  if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData);
 }
 
 // ── Fase 2: sinkron draft ke server (kbm_draft) — best-effort, fallback localStorage ──
