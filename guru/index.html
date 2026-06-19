@@ -5071,11 +5071,12 @@ function goToHafalanQiyam() {
   var studentIds = (typeof muridSesi !== 'undefined' && muridSesi) ? muridSesi.map(function(m){ return m.id_murid; }) : [];
   if (id_halaqah) {
     window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah, studentIds)
-      .then(function(res) { window._lastTargetDataKbm = res.data || []; renderHafalanKbm(); })
-      .catch(function()   { window._lastTargetDataKbm = [];             renderHafalanKbm(); });
+      .then(function(res) { window._lastTargetDataKbm = res.data || []; renderHafalanKbm(); setTimeout(_restoreHafalanKbmCache, 120); })
+      .catch(function()   { window._lastTargetDataKbm = [];             renderHafalanKbm(); setTimeout(_restoreHafalanKbmCache, 120); });
   } else {
     window._lastTargetDataKbm = [];
     renderHafalanKbm();
+    setTimeout(_restoreHafalanKbmCache, 120); // paksa restore tempel ke DOM setelah render (cache sudah penuh)
   }
 }
 
