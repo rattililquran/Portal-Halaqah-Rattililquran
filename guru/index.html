@@ -5911,12 +5911,26 @@ function _clearKbmDraftLocal(id) {
 }
 
 // Hidrasi cache memori dari draft localStorage (restore lebih awal saat resume).
+// Gap-fill: ambil entri dari localStorage HANYA untuk murid yang BELUM punya data di
+// memori. Cache memori (lebih segar — mis. input yang baru diketik) TIDAK ditimpa draft
+// localStorage lama. Ini cegah draft basi/ter-clobber di localStorage menimpa data segar
+// (penyebab "data hilang" di profil yang punya draft lama; incognito bersih → tak kena).
+function _mergeFill(mem, ls) {
+  mem = mem || {};
+  if (!ls) return mem;
+  Object.keys(ls).forEach(function(id) {
+    var m = mem[id];
+    var memHasData = m && Object.keys(m).some(function(k){ return m[k]; });
+    if (!memHasData) mem[id] = ls[id];
+  });
+  return mem;
+}
 function _hydrateKbmCacheFromDraft(id) {
   var d = _loadKbmDraftLocal(id);
   if (!d) return;
-  if (d.nilai)         window._nilaiCache            = _mergeCacheObj(window._nilaiCache, d.nilai);
-  if (d.hafalan)       window._hafalanKbmCache        = _mergeCacheObj(window._hafalanKbmCache, d.hafalan);
-  if (d.microteaching) window._microteachingKbmCache  = _mergeCacheObj(window._microteachingKbmCache, d.microteaching);
+  if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai);
+  if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan);
+  if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching);
 }
 
 // ── Fase 2: sinkron draft ke server (kbm_draft) — best-effort, fallback localStorage ──
