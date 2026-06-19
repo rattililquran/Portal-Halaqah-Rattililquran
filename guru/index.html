@@ -5076,8 +5076,12 @@ function goToHafalanQiyam() {
   } else {
     window._lastTargetDataKbm = [];
     renderHafalanKbm();
-    setTimeout(_restoreHafalanKbmCache, 120); // paksa restore tempel ke DOM setelah render (cache sudah penuh)
+    setTimeout(_restoreHafalanKbmCache, 120);
   }
+  // RESTORE (lapis 3/3): paksa _restoreHafalanKbmCache tempel cache→DOM ~120ms setelah
+  // render. Restore internal renderHafalanKbm sendiri tidak selalu mengecat form di alur
+  // nyata; cache sudah dijamin penuh oleh lapis 1 (guard) & 2 (hydrate). JANGAN dihapus
+  // tanpa menguji navigasi 3→2→3 pada KBM Qiyam.
 }
 
 function goToMicroteachingAssessment() {
@@ -5924,20 +5928,25 @@ function _mergeFill(mem, ls, hasData) {
   });
   return mem;
 }
+// Apakah cache hafalan SEORANG murid berisi data ASLI yang diketik guru?
+// PENTING: select jenis/kelancaran/makhraj/kamera TIDAK punya opsi placeholder kosong →
+// setelah renderHafalanKbm rebuild otomatis bernilai opsi pertama (Ziyadah/Lancar/Mumtaz/
+// kamera terbuka). Maka "berisi" diukur dari KONTEN — surat/ayat/catatan, atau jenis
+// non-default (Murajaah/Tahsin) — bukan dari select default.
+// Dipakai bersama oleh lapis 1 (guard anti-clobber saat simpan) & lapis 2 (gap-fill hydrate).
+function _hafKbmHasContent(o){
+  return !!(o && (o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah')));
+}
+// HYDRATE (lapis 2/3): isi cache memori dari localStorage. Gap-fill — entri yang SUDAH
+// berisi di memori (lebih segar) TIDAK ditimpa draft localStorage lama; entri default/kosong
+// di memori diisi ulang dari localStorage. Cegah draft basi menimpa input baru.
 function _hydrateKbmCacheFromDraft(id) {
   var d = _loadKbmDraftLocal(id);
   if (!d) return;
-  // "Berisi" generik: ada field truthy (untuk nilai Reguler & MT, select-nya punya
-  // placeholder kosong → aman).
+  // Nilai Reguler & MT: cukup cek field truthy (select-nya punya placeholder kosong → aman).
   var anyData = function(o){ return !!(o && Object.keys(o).some(function(k){ return o[k]; })); };
-  // Hafalan KHUSUS: select jenis/kel/nil/kam TIDAK punya placeholder kosong → setelah
-  // rebuild bernilai default. Jadi "berisi" diukur dari KONTEN diketik guru (surat/ayat/
-  // catatan / jenis non-default), bukan dari select default. Dgn ini entri default di
-  // memori tetap diisi ulang dari localStorage (segar) — incognito tertolong; entri
-  // berisi konten dipertahankan — tahan localStorage basi.
-  var hafData = function(o){ return !!(o && (o.surat||o.suratD||o.dari||o.sampai||o.catatan||(o.jenis&&o.jenis!=='Ziyadah'))); };
   if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData);
-  if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, hafData);
+  if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent);
   if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData);
 }
 
@@ -6120,15 +6129,11 @@ function _saveHafalanKbmCache() {
       tgtSrt : getV('hfkbm-tgt-surat-'+eid),
       tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
     };
-    // ANTI-CLOBBER: jangan timpa data lama dengan form yang BELUM DIISI — mis. dibaca
-    // tepat setelah renderHafalanKbm rebuild (sebelum restore mengisi) atau saat node
-    // dihancurkan. PENTING: select jenis/kelancaran/makhraj/kamera TIDAK punya opsi
-    // kosong → setelah rebuild otomatis bernilai opsi pertama (Ziyadah/Lancar/Mumtaz/
-    // kamera terbuka). Jadi indikator "terisi" hanya dari KONTEN yang diketik guru:
-    // surat/ayat/catatan, atau jenis non-default (Murajaah/Tahsin).
-    var _terisi = function(o){ return !!(o && (o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah'))); };
+    // ANTI-CLOBBER (lapis 1/3): jangan timpa data lama dengan form yang BELUM DIISI —
+    // mis. dibaca tepat setelah renderHafalanKbm rebuild (sebelum restore mengisi) atau
+    // saat node dihancurkan. "Berisi" diukur via _hafKbmHasContent (bukan select default).
     var prev = window._hafalanKbmCache[m.id_murid];
-    if (!_terisi(obj) && _terisi(prev)) return; // form belum diisi tapi sudah ada data → jangan timpa
+    if (!_hafKbmHasContent(obj) && _hafKbmHasContent(prev)) return;
     window._hafalanKbmCache[m.id_murid] = obj;
   });
 }
