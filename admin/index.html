@@ -894,6 +894,13 @@ html.theme-dark .tbl-wrap thead th {
   box-shadow: 0 1px 0 #475569 !important;
 }
 
+/* ── MOBILE: cegah auto-zoom iOS saat fokus input (font wajib ≥16px) ── */
+@media(max-width:768px){
+  .fc,
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select, textarea { font-size:16px }
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -939,11 +946,11 @@ html.theme-dark .tbl-wrap thead th {
   <div class="auth-box">
     <div class="auth-arabic">رتل القرآن</div>
     <div class="auth-sub">Portal Admin — Rattililqur'an</div>
-    <label class="auth-label" for="nisInput">NIS Admin</label>
+    <label class="auth-label" for="nisInput">ID Admin</label>
     <input class="auth-input" type="text" id="nisInput" placeholder="USR-ADMIN-001" autocomplete="username" style="text-transform:uppercase">
     <label class="auth-label" for="pwInput" style="margin-top:0">Password</label>
     <input class="auth-input" type="password" id="pwInput" placeholder="Password akun" autocomplete="current-password">
-    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:10px">Kosongkan jika belum diset password</div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:10px">Lupa atau belum punya password? Hubungi pengelola sistem.</div>
     <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk sebagai Admin</button>
     <div id="authErr"></div>
   </div>
@@ -2861,7 +2868,7 @@ async function doLogin() {
     localStorage.setItem('hq_token', token);
     localStorage.setItem('hq_user', JSON.stringify(currentUser));
     startApp();
-  } catch(e) { showErr(e.message || 'Login gagal'); }
+  } catch(e) { console.warn('Login admin gagal:', e && e.message); showErr(friendlyError(e)); }
   finally { hideLoad(); setBtn('loginBtn', false, 'Masuk sebagai Admin'); }
 }
 function doLogout() { window.HQ.Auth.logout(); }
@@ -2891,7 +2898,7 @@ async function openMyProfil() {
     }
   } catch (e) {
     hideLoad();
-    toast(e.message || 'Gagal memuat profil', 'err');
+    toast('Gagal memuat profil — coba lagi', 'err');
   }
 }
 
@@ -2919,7 +2926,7 @@ async function saveMyProfil() {
     closeModal('profilModal');
     toast('Profil berhasil disimpan ✅', 'ok');
   } catch (e) {
-    toast(e.message || 'Gagal menyimpan profil', 'err');
+    toast('Gagal menyimpan profil — coba lagi', 'err');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -2961,7 +2968,7 @@ async function doMyGantiPassword() {
       toast(res.message || 'Gagal mengubah password', 'err');
     }
   } catch (e) {
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   } finally {
     hideLoad();
     if (btn) {
@@ -3304,7 +3311,7 @@ async function aktivasiPeriode(id) {
     await window.HQ.AdminAPI.updatePeriode({ id_periode: id, status: 'aktif' });
     toast('Periode diaktifkan!','ok');
     await loadMasterData(); loadPeriode();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -3331,7 +3338,7 @@ async function savePeriode() {
     closeModal('modalPeriode');
     toast('Periode disimpan!','ok');
     await loadMasterData(); loadPeriode();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -3618,7 +3625,7 @@ async function saveUser() {
     closeModal('modalUser');
     toast(id ? 'User diperbarui!' : 'User baru dibuat!', 'ok');
     await loadMasterData(); loadUsers(currentUserTab);
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -3632,7 +3639,7 @@ async function deleteUser(id, nama) {
       await window.HQ.AdminAPI.deleteUser(id);
       toast(nama + ' dinonaktifkan','ok');
       await loadMasterData(); loadUsers(currentUserTab);
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -3683,7 +3690,7 @@ async function confirmHardDeleteMurid(id, nama) {
     await window.HQ.AdminAPI.hardDeleteMurid(id);
     toast(nama + ' dihapus permanen','ok');
     await loadMasterData(); loadUsers(currentUserTab);
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -4150,7 +4157,7 @@ function _kqRenderList() {
     return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
       + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
         + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kqRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
-        + `<button onclick="kqDeleteKelompok('${esc(k.id_kelompok)}')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
+        + `<button onclick="kqDeleteKelompok('${esc(k.id_kelompok)}')" style="width:32px;height:32px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
       + `</div>`
       + `<div style="padding:10px 12px">`
         + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
@@ -4207,7 +4214,7 @@ async function _kqLoadLiniMasa(id_kelompok) {
       window.HQ.AdminAPI.getMilestoneByKelompok(id_kelompok),
     ]);
     c.innerHTML = _kqRenderLiniMasa(res[0].data || [], res[1].data || []);
-  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(friendlyError(e))}</div>`; }
 }
 
 function kqToggleLiniMasa(id_kelompok) {
@@ -4298,7 +4305,7 @@ async function _kqLoadTarget(id_kelompok) {
     const total = k ? (k.anggota_kelompok_partner || []).length : 0;
     const res = await window.HQ.AdminAPI.getTargetByKelompok(id_kelompok);
     c.innerHTML = _kqRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
-  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(friendlyError(e))}</div>`; }
 }
 function kqToggleTarget(id_kelompok) {
   const c = document.getElementById('kqTarget_' + id_kelompok);
@@ -4566,7 +4573,7 @@ function _kbaRenderList() {
     return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
       + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
         + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kbaRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
-        + `<button onclick="kbaDeleteKelompok('${esc(k.id_kelompok)}')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
+        + `<button onclick="kbaDeleteKelompok('${esc(k.id_kelompok)}')" style="width:32px;height:32px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
       + `</div>`
       + `<div style="padding:10px 12px">`
         + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
@@ -4616,7 +4623,7 @@ async function _kbaLoadLiniMasa(id_kelompok) {
       window.HQ.AdminAPI.getMilestoneBelajarByKelompok(id_kelompok),
     ]);
     c.innerHTML = _kbaRenderLiniMasa(res[0].data || [], res[1].data || []);
-  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(friendlyError(e))}</div>`; }
 }
 
 function kbaToggleLiniMasa(id_kelompok) {
@@ -4703,7 +4710,7 @@ async function _kbaLoadTarget(id_kelompok) {
     const total = k ? (k.anggota_kelompok_belajar || []).length : 0;
     const res = await window.HQ.AdminAPI.getTargetBelajarByKelompok(id_kelompok);
     c.innerHTML = _kbaRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
-  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(e.message)}</div>`; }
+  } catch(e) { c.innerHTML = `<div style="font-size:11px;color:var(--red)">Gagal: ${esc(friendlyError(e))}</div>`; }
 }
 function kbaToggleTarget(id_kelompok) {
   const c = document.getElementById('kbaTarget_' + id_kelompok);
@@ -5068,7 +5075,7 @@ async function saveHalaqah() {
     closeModal('modalHalaqah');
     toast('Halaqah disimpan!','ok');
     await loadMasterData(); loadHalaqah();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5082,7 +5089,7 @@ async function hapusHalaqah(id, nama) {
       await window.HQ.AdminAPI.deleteHalaqah(id);
       toast('Halaqah dinonaktifkan','ok');
       await loadMasterData(); loadHalaqah();
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -5191,7 +5198,7 @@ async function saveEditAnggota(id) {
     await window.HQ.AdminAPI.updateAnggota({ id_anggota: id, level: newLevel, target_level: newTarget });
     toast('Level diperbarui!','ok');
     loadAnggota();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5249,7 +5256,7 @@ async function savePindahAnggota(id_anggota) {
     toast('Murid berhasil dipindahkan!','ok');
     await loadMasterData();   // segarkan jumlah murid per halaqah
     loadAnggota();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5267,7 +5274,7 @@ async function saveAnggota() {
     closeModal('modalAnggota');
     toast('Murid berhasil didaftarkan!','ok');
     loadAnggota();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5281,7 +5288,7 @@ async function hapusAnggota(id, nama) {
       await window.HQ.AdminAPI.removeAnggota(id);
       toast(nama + ' dikeluarkan','ok');
       loadAnggota();
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -5357,7 +5364,7 @@ async function saveKomponen() {
     await window.HQ.AdminAPI.saveKomponenRaport({ id_periode, komponen: komponenRows });
     toast('Komponen raport disimpan!','ok');
     await loadKomponen();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5493,7 +5500,7 @@ async function saveSemuaNilai() {
       }
     }
     toast(saved + ' nilai berhasil disimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5615,7 +5622,7 @@ async function doGenerateBulk() {
       }
       toast(r.message, 'ok');
       loadRaportList();
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -5681,7 +5688,7 @@ async function lihatRaport(id_raport) {
       <button class="btn btn-primary" onclick="kirimEmail('${esc(r.id_raport)}')">📧 Kirim Email</button>`;
 
     openModal('modalRaport');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5692,7 +5699,7 @@ async function publishRaport(id_raport) {
     toast('Raport dipublikasikan ke murid!','ok');
     closeModal('modalRaport');
     loadRaportList();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5702,7 +5709,7 @@ async function kirimEmail(id_raport) {
     const r = await window.HQ.AdminAPI.kirimRaportEmail(id_raport);
     toast(r.message,'ok');
     loadRaportList();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -5889,7 +5896,7 @@ async function loadMetodeBayarAdmin() {
         + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+escJs(m.nama)+'\')">Hapus</button>'
         + '</div></div>';
     }).join('');
-  } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(e.message)+'</div>'; }
+  } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(friendlyError(e))+'</div>'; }
 }
 
 var _allMetode = [];
@@ -5897,7 +5904,7 @@ var _allMetode = [];
 async function bukaFormMetode(data) {
   if (!_allMetode.length) {
     try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
-    catch(e) { toast(e.message,'err'); return; }
+    catch(e) { toast(friendlyError(e),'err'); return; }
   }
   var isEdit = !!data;
   document.getElementById('modalMetodeTitle').textContent = isEdit ? 'Edit Metode Bayar' : 'Tambah Metode Bayar';
@@ -5941,7 +5948,7 @@ async function editMetode(id) {
     var r = await window.HQ.AdminAPI.getMetodeBayar();
     var m = (r.data||[]).find(function(x){return x.id===id;});
     if (m) bukaFormMetode(m);
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 async function hapusMetode(id, nama) {
   toast('Hapus "'+nama+'"?', 'warn');
@@ -5950,7 +5957,7 @@ async function hapusMetode(id, nama) {
     closeNotif();
     showLoad('Bismillah, memproses...');
     try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); _allMetode=[]; loadMetodeBayarAdmin(); }
-    catch(e) { toast(e.message,'err'); }
+    catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -5969,7 +5976,7 @@ async function simpanMetode() {
   };
   if (!d.nama) { showAlertModal('Nama harus diisi', { title: 'Validasi' }); return; }
   try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan ✅','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
-  catch(e) { toast(e.message,'err'); }
+  catch(e) { toast(friendlyError(e),'err'); }
 }
 
 async function loadSPPAdmin() {
@@ -6402,7 +6409,7 @@ async function loadSPPRiwayat() {
         + '</div>';
     }).join('');
   } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#ef4444;font-size:13px">Gagal memuat riwayat: '+esc(e.message)+'</div>';
+    listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#ef4444;font-size:13px">Gagal memuat riwayat: '+esc(friendlyError(e))+'</div>';
   }
 }
 
@@ -6425,7 +6432,7 @@ async function batalkanKonfirmasi(id_spp, namaMurid, bulanTahun, statusSebelumny
     _sppRiwayatLoaded = false;
     loadSPPRiwayat();
     loadSPPAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -6439,7 +6446,7 @@ async function validasiSPP(id_spp, aksi) {
       toast(aksi==='lunas'?'Pembayaran dikonfirmasi ✅':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
     }
     loadSPPAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -6473,7 +6480,7 @@ async function doKirimPengumuman() {
     document.getElementById('pngIsi').value   = '';
     toast('Pengumuman terkirim! 📢','ok');
     loadPengumuman();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -6492,7 +6499,7 @@ async function toggleKetua(idAnggota, currentStatus, nama) {
     await window.HQ.SuperAdminAPI.assignKetuaKelas({ id_anggota: idAnggota, assign: !isKetua });
     toast(isKetua ? 'Status ketua dicabut' : 'Ketua kelas berhasil ditunjuk', 'ok');
     loadAnggota();
-  } catch(e) { toast(e.message, 'err'); }
+  } catch(e) { toast(friendlyError(e), 'err'); }
   finally { hideLoad(); }
 }
 
@@ -6846,6 +6853,24 @@ function pctBar(pct) {
 }
 function fmtDate(d) { if(!d) return '–'; return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
 function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// Ubah error teknis mentah menjadi pesan yang ramah & bisa dimengerti pengguna.
+function friendlyError(e) {
+  var m = (e && e.message) ? String(e.message) : (typeof e === 'string' ? e : '');
+  if (!m) return 'Terjadi kesalahan. Silakan coba lagi.';
+  var low = m.toLowerCase();
+  if (low.indexOf('failed to fetch') >= 0 || low.indexOf('networkerror') >= 0 ||
+      low.indexOf('network request failed') >= 0 || low.indexOf('load failed') >= 0)
+    return 'Koneksi bermasalah. Periksa internet Anda lalu coba lagi.';
+  if (low.indexOf('jwt') >= 0 || low.indexOf('unauthorized') >= 0 ||
+      low.indexOf('not authenticated') >= 0 || low.indexOf('401') >= 0)
+    return 'Sesi Anda telah berakhir. Silakan masuk kembali.';
+  if (low.indexOf('timeout') >= 0 || low.indexOf('timed out') >= 0)
+    return 'Permintaan terlalu lama. Coba lagi sebentar.';
+  if (low.indexOf('relation') >= 0 || low.indexOf('column') >= 0 || low.indexOf('syntax') >= 0 ||
+      low.indexOf('supabase') >= 0 || low.indexOf('pgrst') >= 0 || /[{}<>]/.test(m) || m.length > 120)
+    return 'Gagal memuat data. Coba lagi sebentar.';
+  return m;
+}
 // escJs: aman untuk teks yang ditaruh di dalam string ber-kutip-tunggal pada atribut onclick="...".
 // esc() TIDAK escape kutip tunggal, sehingga nama ber-apostrof (mis. "Mu'adz") memutus string JS
 // dan tombolnya mati. Urutan: entity HTML dulu, lalu escape backslash & kutip tunggal untuk JS.
@@ -6911,7 +6936,7 @@ async function saveOnboarding() {
   try {
     await window.HQ.AdminAPI.saveOnboarding(cfg);
     toast('💾 Pengumuman onboarding tersimpan' + (cfg.enabled ? ' & aktif' : ''), 'ok');
-  } catch(e) { toast(e.message, 'err'); }
+  } catch(e) { toast(friendlyError(e), 'err'); }
 }
 function previewOnboarding() {
   var cfg = _obReadForm();
@@ -7006,7 +7031,7 @@ async function togglePushConfig(key, enabled) {
     if (btn2)  btn2.style.background = !enabled ? 'var(--green)' : '#cbd5e1';
     if (dot2)  dot2.style.left       = !enabled ? '23px' : '3px';
     if (lbl2)  { lbl2.textContent = !enabled ? 'Aktif' : 'Nonaktif'; }
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   }
 }
 
@@ -7065,7 +7090,7 @@ async function loadPushSubscribers() {
     var r = await window.HQ.AdminAPI.getPushSubscribers();
     _pushSubsData = r.data || [];
     renderPushSubscribers(_pushSubsData);
-  } catch(e) { toast(e.message, 'err'); }
+  } catch(e) { toast(friendlyError(e), 'err'); }
 }
 
 function renderPushSubscribers(subs) {
@@ -7098,7 +7123,7 @@ async function hapusPushSubscriber(id) {
       toast('Subscription dihapus','ok');
       loadPushSubscribers();
       loadPushAdmin(); // refresh stats
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -7217,7 +7242,7 @@ async function kirimTestPush() {
     res.textContent = ok
       ? '✅ Berhasil dikirim ke ' + r.sent + ' device' + (r.failed ? ' · Gagal: '+r.failed : '')
       : (r.total===0 ? '⚠️ Tidak ada device yang subscribe' : '❌ Gagal: ' + (r.failed||0) + ' dari ' + r.total);
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { btn.disabled=false; btn.textContent='📤 Kirim Test'; }
 }
 
@@ -7480,7 +7505,6 @@ async function combStressTestCleanup() {
     toast('Cleanup selesai — semua tabel bersih','ok');
     ['combStResult','combStProgressWrap'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
     document.getElementById('combStProgressBar').style.width='0%';
-    console.log('[Combined Cleanup]',r);
   } catch(e){toast('Error: '+e.message,'error');}
   btn.disabled=false; btn.textContent='🗑️ Cleanup Semua';
 }
@@ -7679,7 +7703,7 @@ async function loadAtMateriAdmin() {
         + '</div></td></tr>';
     }).join('');
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(e.message)+'</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(friendlyError(e))+'</td></tr>';
   }
 }
 
@@ -7710,7 +7734,7 @@ async function hapusAtMateri(id, ke) {
       await window.HQ.AdminAPI.deleteAtTibyanMateri(id);
       toast('Pertemuan ke-'+ke+' dihapus','ok');
       loadAtMateriAdmin();
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -7734,7 +7758,7 @@ async function simpanAtMateri() {
     toast('Pertemuan ke-'+ke+' disimpan','ok');
     tutupModalAt();
     loadAtMateriAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 
 // ── Materi Level ──────────────────────────────
@@ -7750,7 +7774,7 @@ async function loadLvMateriAdmin() {
       + levels.map(function(lv){ return '<option>'+esc(lv)+'</option>'; }).join('');
     renderMateriLevelAdmin();
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(e.message)+'</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--red);padding:16px">'+esc(friendlyError(e))+'</td></tr>';
   }
 }
 
@@ -7807,7 +7831,7 @@ async function hapusMateriLevel(id, judul) {
       await window.HQ.AdminAPI.deleteMateriLevel(id);
       toast('Item dihapus','ok');
       loadLvMateriAdmin();
-    } catch(e) { toast(e.message,'err'); }
+    } catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -7832,7 +7856,7 @@ async function simpanMateriLevel() {
     toast('Materi "'+judul+'" disimpan','ok');
     tutupModalLevel();
     loadLvMateriAdmin();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 
 // ══════════════════════════════════════════
@@ -7856,7 +7880,7 @@ async function loadLevel() {
       + '</td>'
       + '</tr>'
     ).join('') || '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada level</td></tr>';
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7885,7 +7909,7 @@ function editLevel(id) {
     document.getElementById('lvlDesc').value = l.deskripsi||'';
     document.getElementById('lvlStatus').value = l.status||'aktif';
     openModal('modalLevel');
-  }).catch(e => toast(e.message,'err'));
+  }).catch(e => toast(friendlyError(e),'err'));
 }
 
 async function saveLevel() {
@@ -7904,7 +7928,7 @@ async function saveLevel() {
     closeModal('modalLevel');
     toast('Level disimpan!','ok');
     loadLevel();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7915,7 +7939,7 @@ async function hapusLevel(id, nama) {
     closeNotif();
     showLoad();
     try { await window.HQ.AdminAPI.deleteLevel(id); toast('Level dinonaktifkan','ok'); loadLevel(); }
-    catch(e) { toast(e.message,'err'); }
+    catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
 }
@@ -7940,7 +7964,7 @@ async function loadTemplate() {
       ];
     }
     renderTemplateRows();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7971,7 +7995,7 @@ async function saveTemplate() {
   try {
     await window.HQ.AdminAPI.saveTemplateKoreksi({ templates: valid });
     toast('Template koreksi disimpan! Guru akan lihat update berikutnya.','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -8094,7 +8118,7 @@ async function loadArsipList() {
         + '<td><a href="' + esc(a.url) + '" target="_blank" class="btn btn-ghost btn-sm">🔗 Buka</a></td>'
         + '</tr>';
     }).join('');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 
 async function doArsip() {

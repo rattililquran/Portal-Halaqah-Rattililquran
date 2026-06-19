@@ -792,7 +792,7 @@ html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;co
 .sb-close-btn{
   display:none;
   position:absolute;top:12px;right:12px;
-  width:32px;height:32px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;
   background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
   color:#fff;font-size:16px;cursor:pointer;
   align-items:center;justify-content:center;
@@ -2024,6 +2024,13 @@ html.theme-dark .rt-surat-tbl th {
   box-shadow: 0 1px 0 #475569 !important;
 }
 
+/* ── MOBILE: cegah auto-zoom iOS saat fokus input (font wajib ≥16px) ── */
+@media(max-width:768px){
+  .fc,
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select, textarea { font-size:16px }
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2070,11 +2077,12 @@ html.theme-dark .rt-surat-tbl th {
   <div class="auth-box">
     <div class="auth-arabic">رتل القرآن</div>
     <div class="auth-sub">Portal Guru — Halaqah Rattililqur'an</div>
-    <label class="auth-label" for="nisInput">NIS (Nomor Induk Murid)</label>
+    <label class="auth-label" for="nisInput">ID Guru</label>
     <input class="auth-input" type="text" id="nisInput" placeholder="Contoh: GRU-001" autocomplete="username" style="text-transform:uppercase">
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:12px">ID Guru diberikan oleh admin.</div>
     <label class="auth-label" for="pwInput" style="margin-top:0">Password</label>
     <input class="auth-input" type="password" id="pwInput" placeholder="Password akun" autocomplete="current-password">
-    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:12px">Kosongkan jika belum diset password</div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:12px">Lupa atau belum punya password? Hubungi admin.</div>
     <button class="auth-btn" id="loginBtn" onclick="doLogin()">Masuk</button>
     <div id="authErr"></div>
   </div>
@@ -4198,7 +4206,7 @@ async function doLogin() {
     localStorage.setItem('hq_token', token);
     localStorage.setItem('hq_user', JSON.stringify(currentUser));
     startApp();
-  } catch(e) { showErr(e.message || 'Login gagal'); }
+  } catch(e) { console.warn('Login guru gagal:', e && e.message); showErr(friendlyError(e)); }
   finally { hideLoad(); setBtn('loginBtn', false, 'Masuk'); }
 }
 
@@ -4464,7 +4472,7 @@ async function hapusSesiDraft() {
     loadDashboard();
     toast('Sesi KBM berhasil dihapus dan dibatalkan!','ok');
   } catch(e) { 
-    toast(e.message,'err');
+    toast(friendlyError(e),'err');
   } finally {
     hideLoad();
   }
@@ -4498,7 +4506,7 @@ async function batalkanDanTandaiLibur() {
     loadDashboard();
     toast('Sesi dibatalkan dan ditandai libur. Sisa kelas pengganti bertambah.','ok');
   } catch(e) {
-    toast(e.message,'err');
+    toast(friendlyError(e),'err');
   } finally {
     hideLoad();
   }
@@ -4545,7 +4553,7 @@ async function doTandaiLibur() {
     loadDashboard();
     goPage('dashboard');
   } catch(e) {
-    toast(e.message,'err');
+    toast(friendlyError(e),'err');
   } finally {
     hideLoad();
   }
@@ -4837,7 +4845,7 @@ async function doBukaKBM() {
       quickToast('Sesi dibuka! Silakan isi presensi.','ok');
     });
   } catch(e) {
-    toast(e.message,'err');
+    toast(friendlyError(e),'err');
     hideLoad();
     setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
   }
@@ -5002,7 +5010,7 @@ async function doSimpanPresensi() {
       goToPreviewNonReguler();
     }
     quickToast('Presensi tersimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -6746,7 +6754,7 @@ async function doSelesaiKBM() {
       }
     }, 1000);
 
-  } catch(e) { toast(e.message,'err'); hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
+  } catch(e) { toast(friendlyError(e),'err'); hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
 }
 
 async function konfirmasiTutup() {
@@ -6761,7 +6769,7 @@ async function konfirmasiTutup() {
     resetPersiapan();
     updateSesiBanner();
     loadDashboard();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7407,7 +7415,7 @@ async function simpanCatatan() {
     closeModal('catatanModal');
     muridCache = {};
     toast('Catatan tersimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7536,6 +7544,24 @@ function fmtDate(d) {
 function esc(s) {
   return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+// Ubah error teknis mentah menjadi pesan yang ramah & bisa dimengerti pengguna.
+function friendlyError(e) {
+  var m = (e && e.message) ? String(e.message) : (typeof e === 'string' ? e : '');
+  if (!m) return 'Terjadi kesalahan. Silakan coba lagi.';
+  var low = m.toLowerCase();
+  if (low.indexOf('failed to fetch') >= 0 || low.indexOf('networkerror') >= 0 ||
+      low.indexOf('network request failed') >= 0 || low.indexOf('load failed') >= 0)
+    return 'Koneksi bermasalah. Periksa internet Anda lalu coba lagi.';
+  if (low.indexOf('jwt') >= 0 || low.indexOf('unauthorized') >= 0 ||
+      low.indexOf('not authenticated') >= 0 || low.indexOf('401') >= 0)
+    return 'Sesi Anda telah berakhir. Silakan masuk kembali.';
+  if (low.indexOf('timeout') >= 0 || low.indexOf('timed out') >= 0)
+    return 'Permintaan terlalu lama. Coba lagi sebentar.';
+  if (low.indexOf('relation') >= 0 || low.indexOf('column') >= 0 || low.indexOf('syntax') >= 0 ||
+      low.indexOf('supabase') >= 0 || low.indexOf('pgrst') >= 0 || /[{}<>]/.test(m) || m.length > 120)
+    return 'Gagal memuat data. Coba lagi sebentar.';
+  return m;
+}
 
 function emptyHTML(ico, ttl, sub) {
   return `<div class="empty"><div class="empty-ico">${ico}</div>
@@ -7652,7 +7678,7 @@ async function simpanEditPresensi() {
     if (rSel) loadRiwayat();
     const mSel = document.getElementById('muridHalaqahSel').value;
     if (mSel) loadMurid();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7675,7 +7701,7 @@ async function konfirmasiHapusKBM() {
     const mSel = document.getElementById('muridHalaqahSel').value;
     if (mSel) loadMurid();
   } catch(e) {
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   } finally {
     hideLoad();
   }
@@ -7747,7 +7773,7 @@ async function doTambahMurid() {
     muridCache = {};
     toast(r.message || 'Murid berhasil ditambahkan!','ok');
     if (document.getElementById('muridHalaqahSel').value === id_halaqah) loadMurid();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7775,7 +7801,7 @@ async function doKirimPengumuman() {
     document.getElementById('pngJudul').value = '';
     document.getElementById('pngIsi').value   = '';
     toast('Pengumuman berhasil dikirim! 📢','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -7948,7 +7974,7 @@ async function loadJadwal() {
     console.error('loadJadwal error:', e);
     // Tampilkan error di UI agar bisa debug
     if (cont) cont.innerHTML = '<div style="font-size:12px;color:var(--red);padding:8px 0">'
-      + '⚠️ Gagal memuat jadwal: ' + esc(e.message)
+      + '⚠️ Gagal memuat jadwal: ' + esc(friendlyError(e))
       + '<br><span style="color:var(--text-3)">Periksa koneksi internet atau status database Supabase Anda.</span>'
       + '</div>';
   }
@@ -8188,7 +8214,7 @@ async function bukaRiwayatKoreksi(id_murid, nama_murid) {
         + '</div>';
     }).join('');
   } catch(e) {
-    if (bodyEl) bodyEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red)">' + esc(e.message) + '</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red)">' + esc(friendlyError(e)) + '</div>';
   }
 }
 
@@ -8567,7 +8593,7 @@ async function openMyProfil() {
     }
   } catch (e) {
     hideLoad();
-    toast(e.message || 'Gagal memuat profil', 'err');
+    toast('Gagal memuat profil — coba lagi', 'err');
   }
 }
 
@@ -8595,7 +8621,7 @@ async function saveMyProfil() {
     closeModal('profilModal');
     toast('Profil berhasil disimpan ✅', 'ok');
   } catch (e) {
-    toast(e.message || 'Gagal menyimpan profil', 'err');
+    toast('Gagal menyimpan profil — coba lagi', 'err');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -8633,7 +8659,7 @@ async function doGantiPassword() {
       toast(res.message || 'Gagal mengubah password', 'err');
     }
   } catch (e) {
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   } finally {
     hideLoad();
     setBtn('btnGantiPw', false, '💾 Simpan Password Baru');
@@ -8743,7 +8769,7 @@ async function saveSemuaNilai() {
       toast('Tidak ada nilai untuk disimpan.','warn');
     }
   } catch(e) { 
-    toast(e.message,'err'); 
+    toast(friendlyError(e),'err'); 
   } finally { 
     hideLoad(); 
   }
@@ -8850,7 +8876,7 @@ async function loadAssessmentRekap() {
     renderAssessmentRekap(r.data, r.total_items, r.level);
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
-      + '<div class="empty-ttl">' + esc(e.message) + '</div></div>';
+      + '<div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
   }
 }
 
@@ -9006,7 +9032,7 @@ async function loadKeaktifanPage() {
 
     renderKeaktifanPage();
   } catch(e) {
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   } finally {
     hideLoad();
   }
@@ -9307,7 +9333,7 @@ async function doMarkContacted(idMurid, idHalaqah, tipeAlert, value, btnEl) {
   } catch(e) {
     // Revert UI jika gagal
     if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Tabayyun/tindak Lanjuti'; btnEl.style.opacity = '1'; }
-    toast(e.message, 'err');
+    toast(friendlyError(e), 'err');
   }
 }
 
@@ -9483,7 +9509,7 @@ async function loadAtSesi() {
     var r = await window.HQ.GuruAPI.getAtTibyanSesi();
     _atSesiData = r.data || [];
     renderAtSesi();
-  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
 }
 
 function renderAtSesi() {
@@ -9521,7 +9547,7 @@ async function loadAtKeaktifan() {
     document.getElementById('atPeringatanCount').textContent= r.data.summary.peringatan;
     document.getElementById('atNormalCount').textContent    = r.data.summary.normal;
     filterAtKeaktifan();
-  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
 }
 
 function filterAtKeaktifan() {
@@ -9612,7 +9638,7 @@ async function loadAtRekap() {
           + '<div style="font-size:10.5px;color:var(--text-3);font-weight:600">'+m.hadir+'/'+totalSesi+' · alpa '+m.absen+'×</div></div>'
           + '</div>';
       }).join('') + '</div></div>';
-  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+  } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
 }
 
 async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
@@ -9657,7 +9683,7 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
     } else {
       toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir.','info');
     }
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 
 // ── WhatsApp At-Tibyan ──────────────────────────
@@ -9784,7 +9810,7 @@ async function _loadAtFormMurid(id_sesi_edit) {
     });
     window._atPresensiMap = existingMap;
     renderAtFormList(_atMuridAll);
-  } catch(e) { listEl.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(e.message)+'</div></div>'; }
+  } catch(e) { listEl.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
 }
 
 function renderAtFormList(murid) {
@@ -9887,7 +9913,7 @@ async function simpanAtTibyan() {
     _atKeaktifanData = null;
     _atTabLoaded['sesi'] = true;
     await loadAtSesi();
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally {
     if (btn) { btn.disabled = false; btn.classList.remove('btn-loading'); }
   }
@@ -10020,7 +10046,7 @@ async function raportSimpanNilai() {
     if (!nilaiList.length) return toast('Tidak ada nilai untuk disimpan','warn');
     await window.HQ.GuruAPI.saveNilaiManualBatch({ id_periode:_raportPeriode, id_halaqah:_raportHalaqah, nilai_list:nilaiList });
     toast(nilaiList.length+' nilai disimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -10031,7 +10057,7 @@ async function raportSimpanCatatan() {
   try {
     await window.HQ.GuruAPI.saveCatatanHalaqah({ id_halaqah:_raportHalaqah, catatan:catatan });
     toast('Catatan halaqah disimpan!','ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -10047,7 +10073,7 @@ async function raportGenerate() {
     }
     _renderRaportPreview(false);
     toast(r.message || 'Raport berhasil digenerate!', 'ok');
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -10144,7 +10170,7 @@ async function raportPublishSemua() {
     var listRes = await window.HQ.GuruAPI.getRaportListGuru(_raportHalaqah, _raportPeriode);
     _raportData = listRes.data || [];
     _renderRaportPreview(true);
-  } catch(e) { toast(e.message,'err'); }
+  } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
 
@@ -10658,7 +10684,7 @@ async function _kpLoadLiniMasa(id_kelompok) {
       window.HQ.GuruAPI.getMilestoneByKelompok(id_kelompok),
     ]);
     c.innerHTML = _kpRenderLiniMasa(res[0].data || [], res[1].data || []);
-  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
+  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
 }
 
 function kpToggleLiniMasa(id_kelompok) {
@@ -10756,7 +10782,7 @@ async function _kpLoadTarget(id_kelompok) {
     var total = k ? (k.anggota_kelompok_partner || []).length : 0;
     var res = await window.HQ.GuruAPI.getTargetByKelompok(id_kelompok);
     c.innerHTML = _kpRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
-  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
+  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
 }
 function kpToggleTarget(id_kelompok) {
   var c = document.getElementById('kpTarget_' + id_kelompok);
@@ -11128,7 +11154,7 @@ async function _kbLoadLiniMasa(id_kelompok) {
       window.HQ.GuruAPI.getMilestoneBelajarByKelompok(id_kelompok),
     ]);
     c.innerHTML = _kbRenderLiniMasa(res[0].data || [], res[1].data || []);
-  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
+  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
 }
 
 function kbToggleLiniMasa(id_kelompok) {
@@ -11225,7 +11251,7 @@ async function _kbLoadTarget(id_kelompok) {
     var total = k ? (k.anggota_kelompok_belajar || []).length : 0;
     var res = await window.HQ.GuruAPI.getTargetBelajarByKelompok(id_kelompok);
     c.innerHTML = _kbRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
-  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(e.message) + '</div>'; }
+  } catch(e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
 }
 function kbToggleTarget(id_kelompok) {
   var c = document.getElementById('kbTarget_' + id_kelompok);

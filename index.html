@@ -632,6 +632,12 @@ html.theme-dark .field-input { background: rgba(15,23,42,0.6) !important; border
 html.theme-dark .field-input::placeholder { color: rgba(255,255,255,0.2) !important; }
 html.theme-dark .form-title { color: #f0f0f0 !important; }
 
+/* ── MOBILE: cegah auto-zoom iOS saat fokus input (font wajib ≥16px) ── */
+@media(max-width:768px){
+  .field-input, .modal-lupa-field input,
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  select, textarea { font-size:16px }
+}
 
 </style>
 </head>
@@ -723,13 +729,13 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
 
       <!-- Role tabs -->
       <div class="tabs" id="tabs">
-        <button class="tab active" onclick="setRole('admin')"   id="tab-admin">🛡 Admin</button>
+        <button class="tab active" onclick="setRole('murid')"   id="tab-murid">🌙 Murid</button>
         <button class="tab"        onclick="setRole('guru')"    id="tab-guru">📚 Guru</button>
-        <button class="tab"        onclick="setRole('murid')"   id="tab-murid">🌙 Murid</button>
+        <button class="tab"        onclick="setRole('admin')"   id="tab-admin">🛡 Admin</button>
       </div>
 
-      <div class="form-title" id="formTitle">Masuk sebagai Admin</div>
-      <div class="form-sub"   id="formSub">Kelola halaqah dan data Murid</div>
+      <div class="form-title" id="formTitle">Masuk sebagai Murid</div>
+      <div class="form-sub"   id="formSub">Lihat progress dan riwayat belajar</div>
 
       <div class="toast-msg" id="toastMsg"></div>
 
@@ -739,9 +745,10 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
         <div class="field-wrap">
           <span class="field-ico">🪪</span>
           <input class="field-input" type="text" id="inputNis"
-            placeholder="Contoh: USR-ADMIN-001"
+            placeholder="Contoh: RTL2418000001"
             autocomplete="username" maxlength="30">
         </div>
+        <div class="field-hint" id="nisHint" style="text-align:left;color:#94a3b8;font-size:11px;margin-top:6px">NIS diberikan pengajar Anda.</div>
       </div>
 
       <!-- Password -->
@@ -793,7 +800,7 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
 </div>
 
 <!-- Footer -->
-<footer class="footer">BY RATTILILQUR'AN @2026</footer>
+<footer class="footer">© 2026 Rattililqur'an</footer>
 
 <!-- Tombol Install PWA -->
 <button id="pwa-install-btn" title="Pasang sebagai aplikasi" aria-label="Install aplikasi">
@@ -805,14 +812,14 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
 <script src="assets/js/supabase.min.js"></script>
 <script src="supabase/supabase-client.js"></script>
 <script>
-let currentRole = 'admin';
+let currentRole = 'murid';
 
 const ROLE_META = {
-  admin:      { title:'Masuk sebagai Admin',  sub:'Kelola halaqah dan data Murid',     placeholder:'Contoh: USR-ADMIN-001', redirect:'admin/index.html' },
-  superadmin: { title:'Masuk sebagai Admin',  sub:'Kelola halaqah dan data Murid',     placeholder:'Contoh: USR-ADMIN-001', redirect:'admin/index.html' },
-  guru:       { title:'Masuk sebagai Guru',   sub:'Kelola sesi KBM dan penilaian murid',placeholder:'Contoh: GRU-001',        redirect:'guru/index.html'  },
-  murid:      { title:'Masuk sebagai Murid',  sub:'Lihat progress dan riwayat belajar', placeholder:'Contoh: RTL2418000001',  redirect:'murid/index.html' },
-  ketua:      { title:'Masuk sebagai Murid',  sub:'Lihat progress dan riwayat belajar', placeholder:'Contoh: RTL2418000001',  redirect:'murid/index.html' },
+  admin:      { title:'Masuk sebagai Admin',  sub:'Kelola halaqah dan data Murid',     placeholder:'Contoh: USR-ADMIN-001', redirect:'admin/index.html', hint:'ID admin diberikan oleh pengelola sistem.' },
+  superadmin: { title:'Masuk sebagai Admin',  sub:'Kelola halaqah dan data Murid',     placeholder:'Contoh: USR-ADMIN-001', redirect:'admin/index.html', hint:'ID admin diberikan oleh pengelola sistem.' },
+  guru:       { title:'Masuk sebagai Guru',   sub:'Kelola sesi KBM dan penilaian murid',placeholder:'Contoh: GRU-001',        redirect:'guru/index.html',  hint:'ID Guru diberikan oleh admin.' },
+  murid:      { title:'Masuk sebagai Murid',  sub:'Lihat progress dan riwayat belajar', placeholder:'Contoh: RTL2418000001',  redirect:'murid/index.html', hint:'NIS diberikan pengajar Anda.' },
+  ketua:      { title:'Masuk sebagai Murid',  sub:'Lihat progress dan riwayat belajar', placeholder:'Contoh: RTL2418000001',  redirect:'murid/index.html', hint:'NIS diberikan pengajar Anda.' },
 };
 
 function setRole(role) {
@@ -823,11 +830,28 @@ function setRole(role) {
   document.getElementById('inputNis').placeholder  = m.placeholder;
   document.getElementById('inputNis').value        = '';
   document.getElementById('inputPw').value         = '';
+  var nisHintEl = document.getElementById('nisHint');
+  if (nisHintEl) nisHintEl.textContent = m.hint || '';
   document.getElementById('toastMsg').className    = 'toast-msg';
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + role).classList.add('active');
   document.getElementById('inputNis').style.textTransform = role === 'murid' ? 'none' : 'uppercase';
   setTimeout(() => document.getElementById('inputNis').focus(), 50);
+}
+
+// Ubah error teknis mentah menjadi pesan yang ramah & bisa dimengerti pengguna.
+function friendlyError(e) {
+  var m = (e && e.message) ? String(e.message) : (typeof e === 'string' ? e : '');
+  if (!m) return 'ID atau password salah';
+  var low = m.toLowerCase();
+  if (low.indexOf('failed to fetch') >= 0 || low.indexOf('networkerror') >= 0 ||
+      low.indexOf('network request failed') >= 0 || low.indexOf('load failed') >= 0)
+    return 'Koneksi bermasalah. Periksa internet Anda lalu coba lagi.';
+  if (low.indexOf('timeout') >= 0 || low.indexOf('timed out') >= 0)
+    return 'Permintaan terlalu lama. Coba lagi sebentar.';
+  if (/[{}<>]/.test(m) || m.length > 120 || low.indexOf('pgrst') >= 0 || low.indexOf('supabase') >= 0)
+    return 'Terjadi kesalahan. Silakan coba lagi.';
+  return m;
 }
 
 async function doLogin() {
@@ -882,8 +906,9 @@ async function doLogin() {
     setLoading(true, 'Alhamdulillah, mari kita mulai...', true);
     setTimeout(function() { window.location.href = redirect; }, 800);
   } catch(e) {
+    console.warn('Login gagal:', e && e.message);
     setLoading(false);
-    showErr(e.message || 'ID atau password salah');
+    showErr(friendlyError(e));
   }
 }
 
@@ -1076,16 +1101,17 @@ async function fetchStats() {
     el.dataset.val = val;
     _animateCount(el, val);
   };
-  var showDash = function() {
-    ['statMurid','statGuru','statHalaqah'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) { el.classList.remove('loading'); el.textContent = '--'; }
-    });
+  // Bila statistik tidak bisa diambil (RPC belum ada / RLS memblokir / offline),
+  // sembunyikan seluruh blok "Rattil Dalam Angka" — jangan tampilkan "--" yang
+  // membuat pengunjung baru mengira datanya kosong / aplikasinya rusak.
+  var hideStatsBlock = function() {
+    var blk = document.querySelector('.stats-infografis');
+    if (blk) blk.style.display = 'none';
   };
   try {
     var sb = window.HQ && window.HQ.supabase;
-    if (!sb) return;
-    
+    if (!sb) { hideStatsBlock(); return; }
+
     // Coba panggil RPC get_public_stats (aman dari RLS)
     var rpcRes = await sb.rpc('get_public_stats');
     if (rpcRes.data && !rpcRes.error) {
@@ -1094,7 +1120,7 @@ async function fetchStats() {
       setEl('statHalaqah', rpcRes.data.halaqah);
       return;
     }
-    
+
     // Fallback: hitung manual jika RPC belum dibuat
     var results = await Promise.all([
       sb.from('users').select('*', { count:'exact', head:true }).eq('role','murid').eq('status','aktif'),
@@ -1102,11 +1128,15 @@ async function fetchStats() {
       sb.from('halaqah').select('*', { count:'exact', head:true }).eq('status','aktif'),
     ]);
     var muridRes = results[0], guruRes = results[1], halaqahRes = results[2];
-    // count === null berarti RLS memblokir query → tampil '--' bukan '0'
-    setEl('statMurid',   muridRes.error   ? null : muridRes.count);
-    setEl('statGuru',    guruRes.error    ? null : guruRes.count);
-    setEl('statHalaqah', halaqahRes.error ? null : halaqahRes.count);
-  } catch(e) { showDash(); }
+    var mv = muridRes.error   ? null : muridRes.count;
+    var gv = guruRes.error    ? null : guruRes.count;
+    var hv = halaqahRes.error ? null : halaqahRes.count;
+    // Semua null = RLS memblokir / data tak terbaca → sembunyikan blok
+    if (mv === null && gv === null && hv === null) { hideStatsBlock(); return; }
+    setEl('statMurid',   mv);
+    setEl('statGuru',    gv);
+    setEl('statHalaqah', hv);
+  } catch(e) { console.warn('fetchStats:', e && e.message); hideStatsBlock(); }
 }
 
 function initStatsInteractive() {
