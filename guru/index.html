@@ -2138,6 +2138,7 @@ html.theme-dark .rt-surat-tbl th {
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni">📂</span>Berkas Pengajar</button>
       <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni">📖</span>Panduan</button>
       <button class="nav-btn" onclick="closeSB();openCalendarModal()" data-p="calendar"><span class="ni">📅</span>Pengingat Kalender</button>
+      <button class="nav-btn" onclick="closeSB();openPushPrefsPanel()" data-p="notif"><span class="ni">🔔</span>Preferensi Notifikasi</button>
       <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni">🔑</span>Ganti Password</button>
       <div style="height:1px;background:var(--border,#e2eaf5);margin:8px 4px"></div>
       <button class="nav-btn" onclick="doLogout()" style="color:#dc2626"><span class="ni" style="background:rgba(220,38,38,.06);color:#dc2626">→</span><span>Keluar dari Aplikasi</span></button>
@@ -3698,6 +3699,29 @@ html.theme-dark .rt-surat-tbl th {
   </div>
 </div>
 
+
+<!-- MODAL PREFERENSI NOTIFIKASI -->
+<div class="overlay" id="pushPrefsModal" onclick="if(event.target===this)closeModal('pushPrefsModal')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#0369a1);display:flex;align-items:center;justify-content:center;font-size:18px">🔔</div>
+        <div><div class="modal-title">Preferensi Notifikasi</div><div style="font-size:11px;color:var(--text-3);font-weight:500">Pilih jenis notifikasi yang ingin Anda terima</div></div>
+      </div>
+      <button class="modal-x" onclick="closeModal('pushPrefsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pushSubStatus" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;font-weight:600;color:#065f46;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">⏳</span> Memeriksa status notifikasi...
+      </div>
+      <div id="pushPrefsList" style="display:flex;flex-direction:column;gap:4px"></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="toggleAllPushPrefs(false)">⛔ Matikan Semua</button>
+        <button class="btn btn-green btn-sm" onclick="toggleAllPushPrefs(true)">✅ Aktifkan Semua</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL PENGINGAT KALENDER HP -->
 <div class="overlay" id="calendarModal" onclick="if(event.target===this)closeModal('calendarModal')">
@@ -8115,6 +8139,93 @@ async function loadTemplateKoreksi() {
   // Selalu return templateKoreksi agar .then() bisa mengakses
   return templateKoreksi;
 }
+
+// ── Preferensi Notifikasi (Push) ──────────────
+// Hanya key yang menyasar guru DAN ada di push_config (bisa dimatikan admin).
+var _pushPrefsData  = {};
+var _pushConfigData = [];
+var PUSH_LABELS_GURU = {
+  guru_kbm_today : { label:'Jadwal KBM Hari Ini', desc:'Pengingat di hari ada jadwal halaqah', icon:'📚' },
+  kbm_h1         : { label:'Reminder H-1 KBM',    desc:'Sehari sebelum jadwal halaqah',         icon:'⏰' },
+  pengumuman     : { label:'Pengumuman Baru',     desc:'Saat admin mengirim pengumuman',        icon:'📢' },
+};
+
+async function openPushPrefsPanel() {
+  openModal('pushPrefsModal');
+  var statusEl = document.getElementById('pushSubStatus');
+  var listEl   = document.getElementById('pushPrefsList');
+
+  var isSubscribed = window.HQ && window.HQ.PushAPI && window.HQ.PushAPI.getPermissionStatus() === 'granted';
+  var sub = isSubscribed ? await (window.HQ.PushAPI.getActiveSubscription().catch(function(){ return null; })) : null;
+
+  if (!sub) {
+    var pinfo = (function() {
+      var P = window.HQ && window.HQ.PushAPI;
+      var perm = P ? P.getPermissionStatus() : 'unsupported';
+      var iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+      var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      if (iOS && !standalone) return 'Belum aktif — di iPhone perlu dipasang ke Layar Utama dulu.';
+      if (perm === 'denied')  return 'Notifikasi diblokir — ketuk untuk panduan mengaktifkan ulang.';
+      return 'Notifikasi belum diaktifkan.';
+    })();
+    statusEl.style.background = '#fff5f5'; statusEl.style.borderColor = '#fecaca'; statusEl.style.color = '#991b1b';
+    statusEl.innerHTML = '<span style="font-size:16px">🔕</span> ' + pinfo + ' <button onclick="window.openPushDialog&&window.openPushDialog(\'Guru\')" style="margin-left:8px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Aktifkan</button>';
+  } else {
+    statusEl.style.background = '#f0fdf4'; statusEl.style.borderColor = '#bbf7d0'; statusEl.style.color = '#065f46';
+    statusEl.innerHTML = '<span style="font-size:16px">🔔</span> Notifikasi aktif di perangkat ini.';
+  }
+
+  try {
+    var [prefsRes, configRes] = await Promise.all([
+      window.HQ.PushPrefsAPI.getPrefs(),
+      window.HQ.AdminAPI.getPushConfig(),
+    ]);
+    _pushPrefsData  = prefsRes.data  || {};
+    _pushConfigData = configRes.data || [];
+  } catch(e) { _pushPrefsData = {}; _pushConfigData = []; }
+
+  var guruKeys = Object.keys(PUSH_LABELS_GURU);
+  var adminEnabled = new Set(_pushConfigData.filter(function(c){ return c.enabled; }).map(function(c){ return c.key; }));
+  var items = guruKeys.filter(function(k){ return adminEnabled.has(k); });
+
+  if (!items.length) {
+    listEl.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:12px 0">Semua notifikasi dinonaktifkan admin.</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(function(k) {
+    var info    = PUSH_LABELS_GURU[k];
+    var enabled = k in _pushPrefsData ? _pushPrefsData[k] !== false : true;
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      + '<div style="font-size:20px;width:26px;text-align:center">' + info.icon + '</div>'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">' + info.label + '</div>'
+      + '<div style="font-size:11.5px;color:var(--text-3)">' + info.desc + '</div></div>'
+      + '<label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">'
+      + '<input type="checkbox" data-pkey="' + k + '" ' + (enabled?'checked':'') + ' onchange="savePushPref(\''+k+'\',this.checked)" style="opacity:0;width:0;height:0">'
+      + '<span style="position:absolute;cursor:pointer;inset:0;background:' + (enabled?'#10b981':'#cbd5e1') + ';border-radius:24px;transition:.2s">'
+      + '<span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;transform:' + (enabled?'translateX(20px)':'translateX(0)') + '"></span></span></label>'
+      + '</div>';
+  }).join('');
+}
+
+async function savePushPref(key, val) {
+  try { await window.HQ.PushPrefsAPI.setOne(key, val); } catch(e) { toast(friendlyError(e),'err'); }
+}
+
+async function toggleAllPushPrefs(val) {
+  var prefs = Object.assign({}, _pushPrefsData);
+  Object.keys(PUSH_LABELS_GURU).forEach(function(k){ prefs[k] = val; });
+  try {
+    await window.HQ.PushPrefsAPI.savePrefs(prefs);
+    _pushPrefsData = prefs;
+    document.querySelectorAll('#pushPrefsList input[data-pkey]').forEach(function(inp) {
+      inp.checked = val;
+      var span = inp.nextElementSibling;
+      if (span) { span.style.background = val ? '#10b981' : '#cbd5e1'; span.children[0].style.transform = val ? 'translateX(20px)' : 'translateX(0)'; }
+    });
+    toast(val ? '✅ Semua notifikasi diaktifkan' : '⛔ Semua notifikasi dimatikan', 'ok');
+  } catch(e) { toast(friendlyError(e),'err'); }
+}
+
 function renderChipsKoreksi(id_murid) {
   var cont = document.getElementById('chips-' + id_murid);
   if (!cont || !Object.keys(templateKoreksi).length) return;
