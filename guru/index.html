@@ -8142,9 +8142,13 @@ async function loadTemplateKoreksi() {
 
 // ── Preferensi Notifikasi (Push) ──────────────
 // Hanya key yang menyasar guru DAN ada di push_config (bisa dimatikan admin).
+// Dzikir pagi/petang dikirim ke SEMUA user aktif (guru ikut). At-Tibyan hanya
+// menyasar murid (role='murid'), jadi sengaja tidak ditampilkan di panel guru.
 var _pushPrefsData  = {};
 var _pushConfigData = [];
 var PUSH_LABELS_GURU = {
+  dzikir_pagi    : { label:'Dzikir Pagi',         desc:'Pengingat setiap pagi (±05:15 WIB)',   icon:'☀️' },
+  dzikir_sore    : { label:'Dzikir Petang',       desc:'Pengingat setiap sore (±15:30 WIB)',   icon:'🌙' },
   guru_kbm_today : { label:'Jadwal KBM Hari Ini', desc:'Pengingat di hari ada jadwal halaqah', icon:'📚' },
   kbm_h1         : { label:'Reminder H-1 KBM',    desc:'Sehari sebelum jadwal halaqah',         icon:'⏰' },
   pengumuman     : { label:'Pengumuman Baru',     desc:'Saat admin mengirim pengumuman',        icon:'📢' },
