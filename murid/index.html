@@ -12659,6 +12659,9 @@ function getSppMetodeSelected() {
   var el = document.querySelector('input[name="sppMetodeTransfer"]:checked');
   return el ? el.value : '';
 }
+function updateSppMetode(el) {
+  if (typeof triggerHaptic === 'function') triggerHaptic('selection');
+}
 
 var _sppManualOpen = false;
 function toggleSppManual() {

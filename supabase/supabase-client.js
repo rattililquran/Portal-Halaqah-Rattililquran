@@ -2902,6 +2902,10 @@ var MuridAPI = {
         metode_transfer: d.metode_transfer || '',
         bukti_url: d.bukti_url || '',
         catatan: d.catatan || '',
+        metode_bayar: 'manual',
+        mayar_expired_at: null,
+        mayar_invoice_id: null,
+        mayar_payment_link: null,
       };
     });
     var { error } = await _sb.from('spp_pembayaran').upsert(rows, { onConflict: 'id_spp' });
