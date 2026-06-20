@@ -300,6 +300,10 @@ body{
   align-items:center;gap:8px;
 }
 .toast-msg.show{display:flex}
+.toast-msg.info{
+  background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
+  border:1px solid #bbf7d0;color:#16a34a;
+}
 
 /* Footer */
 .footer{
@@ -584,6 +588,11 @@ html.theme-dark .toast-msg {
   border-color: rgba(239, 68, 68, 0.3) !important;
   color: #f87171 !important;
 }
+html.theme-dark .toast-msg.info {
+  background: rgba(22, 197, 94, 0.12) !important;
+  border-color: rgba(22, 197, 94, 0.3) !important;
+  color: #34d399 !important;
+}
 
 /* Sinkron dot */
 html.theme-dark .refresh-dot { background: var(--green) !important; }
@@ -790,12 +799,37 @@ html.theme-dark .form-title { color: #f0f0f0 !important; }
       <label id="lupaIdLabel">NIS / ID Pengguna</label>
       <input type="text" id="lupaId" placeholder="Contoh: USR-ADMIN-001" style="text-transform:uppercase">
     </div>
-    <div class="modal-lupa-note" id="lupaNoteRole">Permintaan reset akan diteruskan ke admin melalui WhatsApp. Pastikan data yang diisi sesuai dengan akun Anda.</div>
+    <div class="modal-lupa-note" id="lupaNoteRole" style="line-height:1.5">Reset password dilakukan manual oleh Admin demi keamanan akun Anda. Permintaan reset akan diteruskan melalui WhatsApp untuk verifikasi identitas Anda.</div>
     <button class="btn-wa" onclick="kirimLupaPassword()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
       Kirim ke Admin via WhatsApp
     </button>
     <button class="btn-tutup-modal" onclick="closeLupaPassword()">Batal</button>
+  </div>
+</div>
+
+<!-- MODAL INSTALL iOS -->
+<div class="modal-lupa" id="modalIosInstall" onclick="if(event.target===this)closeIosInstall()">
+  <div class="modal-lupa-box" style="max-width:350px">
+    <div class="modal-lupa-title">📲 Pasang Aplikasi (PWA)</div>
+    <div class="modal-lupa-sub" style="margin-bottom:15px;line-height:1.5;font-size:12.5px">
+      Buka portal ini di browser <strong>Safari</strong> pada iPhone/iPad Anda, lalu ikuti langkah mudah berikut:
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:15px 0">
+      <div style="display:flex;gap:10px;font-size:12.5px;line-height:1.5">
+        <div style="background:#0ea5e9;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px">1</div>
+        <div>Ketuk tombol <strong>Bagikan (Share)</strong> di toolbar Safari (ikon kotak dengan panah atas <span style="font-size:14px">📤</span>).</div>
+      </div>
+      <div style="display:flex;gap:10px;font-size:12.5px;line-height:1.5">
+        <div style="background:#0ea5e9;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px">2</div>
+        <div>Gulir ke bawah, lalu pilih menu <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.</div>
+      </div>
+      <div style="display:flex;gap:10px;font-size:12.5px;line-height:1.5">
+        <div style="background:#0ea5e9;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px">3</div>
+        <div>Ketuk <strong>Tambah</strong> di pojok kanan atas. Aplikasi akan muncul di layar utama HP Anda!</div>
+      </div>
+    </div>
+    <button class="btn-login" onclick="closeIosInstall()" style="background:#0ea5e9;color:#fff;width:100%;margin-top:10px">Mengerti</button>
   </div>
 </div>
 
@@ -891,10 +925,13 @@ async function doLogin() {
       const displayLabel = roleLabel[serverRole] || serverRole;
       const targetLabel = roleLabel[correctTab] || correctTab;
       
-      showErr('Akun ini adalah ' + displayLabel + '. Silakan pilih tab "' + targetLabel + '" untuk masuk.');
+      showInfo('Akun Anda terdaftar sebagai ' + displayLabel + '. Mengalihkan ke tab "' + targetLabel + '"...');
       // Arahkan ke tab yang benar secara otomatis — hanya jika role dikenal
       if (ROLE_META[correctTab]) {
-        setTimeout(function() { setRole(correctTab); }, 1800);
+        setTimeout(function() { 
+          setRole(correctTab); 
+          document.getElementById('inputNis').value = nis;
+        }, 1200);
       }
       return;
     }
@@ -916,6 +953,14 @@ function showErr(msg) {
   const el = document.getElementById('toastMsg');
   el.textContent = '⚠ ' + msg;
   el.className = 'toast-msg show';
+  document.getElementById('btnLogin').disabled = false;
+  document.getElementById('btnLogin').textContent = 'Masuk';
+}
+
+function showInfo(msg) {
+  const el = document.getElementById('toastMsg');
+  el.textContent = 'ℹ ' + msg;
+  el.className = 'toast-msg info show';
   document.getElementById('btnLogin').disabled = false;
   document.getElementById('btnLogin').textContent = 'Masuk';
 }
@@ -1041,9 +1086,9 @@ function esc(s) {
 // ── LUPA PASSWORD ──────────────────────────────
 const LUPA_WA_ADMIN = '6282316993233';
 const LUPA_ROLE_INFO = {
-  admin: { label:'NIS / ID Admin', note:'Permintaan akan dikirim ke Koordinator Pusat Rattililqur\'an. Pastikan data sesuai akun admin Anda.' },
-  guru:  { label:'ID Guru (GRU-XXX)', note:'Permintaan akan dikirim ke Admin Rattililqur\'an. Pastikan data sesuai akun guru Anda.' },
-  murid: { label:'NIS Murid (RTL...)', note:'Permintaan akan dikirim ke Admin. Jika tidak tahu NIS, tanyakan ke guru halaqah Anda terlebih dahulu.' },
+  admin: { label:'NIS / ID Admin', note:'Reset password dilakukan manual oleh Admin demi keamanan akun Anda. Permintaan akan dikirim ke Koordinator Pusat Rattililqur\'an via WhatsApp.' },
+  guru:  { label:'ID Guru (GRU-XXX)', note:'Reset password dilakukan manual oleh Admin demi keamanan akun Anda. Permintaan akan dikirim ke Admin Rattililqur\'an via WhatsApp.' },
+  murid: { label:'NIS Murid (RTL...)', note:'Reset password dilakukan manual oleh Admin demi keamanan akun Anda. Permintaan akan dikirim ke Admin via WhatsApp. Jika tidak tahu NIS, tanyakan ke guru halaqah Anda.' },
 };
 
 function showLupaPassword() {
@@ -1059,6 +1104,14 @@ function showLupaPassword() {
 
 function closeLupaPassword() {
   document.getElementById('modalLupa').classList.remove('show');
+}
+
+function showIosInstall() {
+  document.getElementById('modalIosInstall').classList.add('show');
+}
+
+function closeIosInstall() {
+  document.getElementById('modalIosInstall').classList.remove('show');
 }
 
 function kirimLupaPassword() {
@@ -1195,6 +1248,10 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
   var installBtn = document.getElementById('pwa-install-btn');
   if (!installBtn) return;
 
+  // Cek apakah iOS dan bukan standalone
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
   // Tangkap event beforeinstallprompt
   window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
@@ -1202,16 +1259,24 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
     installBtn.classList.add('visible');
   });
 
-  // Klik tombol → tampilkan prompt install
+  // Tampilkan tombol pasang jika di iOS dan belum dipasang
+  if (isIOS && !isStandalone) {
+    installBtn.classList.add('visible');
+  }
+
+  // Klik tombol → tampilkan prompt install atau panduan iOS
   installBtn.addEventListener('click', function() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function(result) {
-      if (result.outcome === 'accepted') {
-        installBtn.classList.remove('visible');
-      }
-      deferredPrompt = null;
-    });
+    if (isIOS) {
+      showIosInstall();
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(result) {
+        if (result.outcome === 'accepted') {
+          installBtn.classList.remove('visible');
+        }
+        deferredPrompt = null;
+      });
+    }
   });
 
   // Sembunyikan tombol jika sudah terpasang sebagai PWA
@@ -1221,8 +1286,7 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
   });
 
   // Jika sudah berjalan sebagai PWA (standalone) → sembunyikan
-  if (window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true) {
+  if (isStandalone || window.matchMedia('(display-mode: standalone)').matches) {
     installBtn.classList.remove('visible');
   }
 })();
