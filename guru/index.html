@@ -258,6 +258,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .ks-bar{height:9px;border-radius:999px;background:rgba(0,0,0,.07);overflow:hidden}
 .ks-bar > i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.16,1,.3,1)}
 .ks-bar-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-weight:600}
+/* metrik sekunder (durasi tertunaikan) */
+.ks-sub{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 12px;border-radius:12px;
+  background:rgba(0,0,0,.025);border:1px solid var(--border)}
+.ks-sub .v{font-size:17px;font-weight:900;flex:0 0 auto}
+.ks-sub .t{font-size:11px;font-weight:600;color:var(--text-2);line-height:1.35}
+.ks-sub .minibar{flex:1;height:6px;border-radius:999px;background:rgba(0,0,0,.07);overflow:hidden;min-width:50px}
+.ks-sub .minibar > i{display:block;height:100%;border-radius:999px}
+html.theme-dark .ks-sub{background:rgba(255,255,255,.04)}
+html.theme-dark .ks-sub .minibar{background:rgba(255,255,255,.1)}
 /* stat chips */
 .ks-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
 .ks-stat{border-radius:12px;padding:10px 6px;text-align:center;border:1px solid transparent}
@@ -4878,25 +4887,38 @@ async function loadKehadiranSaya(opts) {
       return;
     }
 
-    var pctD = me.pct_durasi;
+    var pctD = me.pct_durasi;                 // kualitas: durasi ≥ ambang, di antara sesi yang terlaksana
+    var pctK = me.pct_kehadiran;              // kehadiran keseluruhan: hadir vs yang seharusnya diampu
     var hadirTot = me.H + me.HP;
+    var hadirNum = me.H + me.DS + me.HP;       // semua bentuk hadir
+    var seharusnya = hadirNum + me.I + me.A;   // penyebut kehadiran (termasuk Izin & Alpa)
 
-    // Status plain-language berdasarkan % durasi tertunaikan.
-    var st;
-    if (pctD == null)      st = { txt: 'Belum terukur', col: '#6b7280', bg: '#f3f4f6', bar: '#9ca3af', ico: 'ℹ️' };
-    else if (pctD >= 90)   st = { txt: 'Sangat baik',   col: '#15803d', bg: '#dcfce7', bar: '#16a34a', ico: '🌟' };
-    else if (pctD >= 75)   st = { txt: 'Cukup baik',    col: '#b45309', bg: '#fef3c7', bar: '#f59e0b', ico: '👍' };
-    else                   st = { txt: 'Perlu ditingkatkan', col: '#b91c1c', bg: '#fee2e2', bar: '#ef4444', ico: '💪' };
+    // Angka UTAMA = % kehadiran keseluruhan (mencerminkan Alpa). Status bahasa sederhana.
+    function _ksStatus(p) {
+      if (p == null)   return { txt: 'Belum ada data', col: '#6b7280', bg: '#f3f4f6', bar: '#9ca3af', ico: 'ℹ️' };
+      if (p >= 90)     return { txt: 'Sangat baik',    col: '#15803d', bg: '#dcfce7', bar: '#16a34a', ico: '🌟' };
+      if (p >= 75)     return { txt: 'Cukup baik',     col: '#b45309', bg: '#fef3c7', bar: '#f59e0b', ico: '👍' };
+      if (p >= 50)     return { txt: 'Perlu ditingkatkan', col: '#b45309', bg: '#fef3c7', bar: '#f59e0b', ico: '💪' };
+      return             { txt: 'Banyak sesi terlewat', col: '#b91c1c', bg: '#fee2e2', bar: '#ef4444', ico: '🚩' };
+    }
+    var st = _ksStatus(pctK);
+    var stD = _ksStatus(pctD);
 
     var hero =
       '<div class="ks-hero">' +
-        '<div class="big" style="color:' + st.bar + '">' + (pctD == null ? '–' : pctD + '%') + '</div>' +
+        '<div class="big" style="color:' + st.bar + '">' + (pctK == null ? '–' : pctK + '%') + '</div>' +
         '<div class="body">' +
           '<span class="ks-pill" style="color:' + st.col + ';background:' + st.bg + '">' + st.ico + ' ' + st.txt + '</span>' +
-          '<div class="cap">Durasi mengajar tertunaikan (target ≥ ' + d.ambang + ' menit per sesi)</div>' +
-          '<div class="ks-bar"><i style="width:' + (pctD == null ? 0 : pctD) + '%;background:' + st.bar + '"></i></div>' +
-          '<div class="ks-bar-meta"><span>0%</span><span>' + hadirTot + ' dari ' + (me.H + me.DS + me.HP) + ' sesi hadir penuh</span><span>100%</span></div>' +
+          '<div class="cap">Kehadiranmu bulan ini — hadir di sesi yang seharusnya kamu ampu</div>' +
+          '<div class="ks-bar"><i style="width:' + (pctK == null ? 0 : pctK) + '%;background:' + st.bar + '"></i></div>' +
+          '<div class="ks-bar-meta"><span>0%</span><span>hadir ' + hadirNum + ' dari ' + seharusnya + ' sesi</span><span>100%</span></div>' +
         '</div>' +
+      '</div>' +
+      // Metrik sekunder: kualitas durasi (hanya untuk sesi yang benar-benar dijalankan)
+      '<div class="ks-sub">' +
+        '<div class="v" style="color:' + stD.bar + '">' + (pctD == null ? '–' : pctD + '%') + '</div>' +
+        '<div class="minibar"><i style="width:' + (pctD == null ? 0 : pctD) + '%;background:' + stD.bar + '"></i></div>' +
+        '<div class="t">⏱️ <strong>Durasi tertunaikan</strong> — dari ' + hadirNum + ' sesi yang kamu jalankan, ' + hadirTot + ' berdurasi ≥ ' + d.ambang + ' mnt. <em>(Alpa tidak dihitung di sini.)</em></div>' +
       '</div>';
 
     // Kartu statistik
@@ -4996,7 +5018,8 @@ async function loadKehadiranSaya(opts) {
 
     var note =
       '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
-      'Angka utama adalah <strong>durasi mengajar tertunaikan</strong> — yakni sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
+      '<strong>Kehadiran</strong> = hadir dibanding seluruh sesi yang seharusnya kamu ampu (Alpa menurunkannya). ' +
+      '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
 
     document.getElementById('ksBody').innerHTML = hero + statsHtml + stripHtml + detailHtml + callouts + note;
     card.style.display = '';
