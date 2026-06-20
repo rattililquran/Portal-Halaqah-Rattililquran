@@ -237,7 +237,51 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .hq-stats{display:flex;gap:14px;padding-top:12px;border-top:1px solid var(--border)}
 .hq-stat .v{font-size:18px;font-weight:800;color:var(--blue)}
 .hq-stat .l{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
- 
+
+/* ── KEHADIRANKU ── */
+.ks-card{padding:18px}
+.ks-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.ks-title{font-size:14px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px}
+.ks-nav{display:flex;align-items:center;gap:2px;background:rgba(0,0,0,.035);border-radius:999px;padding:2px}
+.ks-nav button{border:0;background:transparent;width:26px;height:26px;border-radius:999px;cursor:pointer;
+  font-size:14px;color:var(--text-2);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.ks-nav button:hover:not(:disabled){background:rgba(0,0,0,.06)}
+.ks-nav button:disabled{opacity:.3;cursor:default}
+.ks-nav .lbl{font-size:12px;font-weight:700;color:var(--text-2);min-width:96px;text-align:center}
+/* hero */
+.ks-hero{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(16,185,129,.10),rgba(14,165,233,.06));border:1px solid rgba(16,185,129,.16)}
+.ks-hero .big{font-size:38px;font-weight:900;line-height:1;letter-spacing:-1px}
+.ks-hero .body{flex:1;min-width:0}
+.ks-hero .cap{font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:7px}
+.ks-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin-bottom:8px}
+.ks-bar{height:9px;border-radius:999px;background:rgba(0,0,0,.07);overflow:hidden}
+.ks-bar > i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.ks-bar-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-weight:600}
+/* stat chips */
+.ks-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.ks-stat{border-radius:12px;padding:10px 6px;text-align:center;border:1px solid transparent}
+.ks-stat .v{font-size:22px;font-weight:900;line-height:1}
+.ks-stat .l{font-size:10px;font-weight:700;margin-top:3px;display:flex;align-items:center;justify-content:center;gap:3px}
+.ks-stat .s{font-size:9px;color:var(--text-3);margin-top:1px}
+/* day strip */
+.ks-strip-wrap{margin-top:16px}
+.ks-strip-ttl{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.ks-strip{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.ks-sq{width:15px;height:15px;border-radius:4px;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.ks-sq.we{border-radius:4px;opacity:.92}
+.ks-sq.today{box-shadow:0 0 0 2px var(--blue),inset 0 0 0 1px rgba(0,0,0,.04)}
+.ks-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:10.5px;color:var(--text-2)}
+.ks-legend span{display:inline-flex;align-items:center;gap:4px}
+.ks-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* callouts */
+.ks-callout{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 11px;border-radius:11px;font-size:11.5px;line-height:1.45}
+.ks-callout .ic{font-size:14px;line-height:1.2}
+.ks-note{margin-top:12px;font-size:10.5px;color:var(--text-3);line-height:1.55;padding-top:10px;border-top:1px solid var(--border)}
+.ks-empty{text-align:center;color:var(--text-3);font-size:12.5px;padding:26px 10px}
+html.theme-dark .ks-nav,html.theme-dark .ks-bar{background:rgba(255,255,255,.08)}
+html.theme-dark .ks-hero{background:linear-gradient(135deg,rgba(52,211,153,.12),rgba(56,189,248,.07));border-color:rgba(52,211,153,.18)}
+
 /* ── TABLE ── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
@@ -2260,18 +2304,17 @@ html.theme-dark .rt-surat-tbl th {
           </div>
         </div>
 
-        <!-- Kehadiran Saya bulan ini (turunan dari sesi KBM) -->
-        <div class="card" id="kehadiranSayaCard" style="margin-bottom:18px;display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div style="font-size:13px;font-weight:700;color:var(--text-2)">🗓️ Kehadiran Saya <span id="ksBulanLbl" style="color:var(--text-3);font-weight:500"></span></div>
-            <div id="ksDurasiBadge" style="font-size:12px;font-weight:800"></div>
+        <!-- Kehadiranku bulan ini (turunan dari sesi KBM) -->
+        <div class="card ks-card" id="kehadiranSayaCard" style="margin-bottom:18px;display:none">
+          <div class="ks-head">
+            <div class="ks-title">🗓️ Kehadiranku</div>
+            <div class="ks-nav">
+              <button type="button" id="ksPrev" onclick="ksNavBulan(-1)" aria-label="Bulan sebelumnya">‹</button>
+              <span class="lbl" id="ksBulanLbl">—</span>
+              <button type="button" id="ksNext" onclick="ksNavBulan(1)" aria-label="Bulan berikutnya">›</button>
+            </div>
           </div>
-          <div id="ksStatGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
-          <div id="ksHutang" style="margin-top:10px;font-size:11.5px;color:var(--text-3)"></div>
-          <div id="ksPerluTutup" style="margin-top:6px;font-size:11.5px;color:#b45309;display:none"></div>
-          <div style="margin-top:8px;font-size:10.5px;color:var(--text-3);line-height:1.5">
-            Dihitung otomatis dari sesi KBM yang kamu tutup (kecuali Kajian At-Tibyan). Yang utama: durasi mengajar <strong id="ksAmbangLbl">90</strong> menit tertunaikan.
-          </div>
+          <div id="ksBody"></div>
         </div>
 
         <!-- Halaqah Saya — gabungan jadwal + halaqah diampu -->
@@ -4768,56 +4811,142 @@ async function loadDashboard(silent = false) {
   finally { if (!silent) hideLoad(); }
 }
 
-// Kartu "Kehadiran Saya bulan ini" — turunan dari sesi KBM (RANCANGAN_ABSENSI_GURU.md §7.2).
-async function loadKehadiranSaya() {
+// ── Kartu "Kehadiranku" — turunan dari sesi KBM (RANCANGAN_ABSENSI_GURU.md §7.2) ──
+var _ksBulan = null, _ksTahun = null, _ksBusy = false;
+var _KS_NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+var _KS_HARI_FULL = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+function _ksWeekday(t) { return new Date(Date.UTC(+t.slice(0,4), +t.slice(5,7)-1, +t.slice(8,10))).getUTCDay(); }
+
+// Warna kotak strip per hari (selaras dengan tab admin). Status paling perlu perhatian menang.
+var _KS_SQ_COLOR = { A:'#ef4444', _DRAFT:'#9ca3af', DS:'#f59e0b', I:'#3b82f6', HP:'#22c55e', H:'#22c55e', L:'#d1d5db' };
+var _KS_SEVERITY = ['A','_DRAFT','DS','I','HP','H','L'];
+function _ksDayColor(units) {
+  if (!units || !units.length) return '#eef0f3';
+  var best = null, rank = 99;
+  units.forEach(function(u){ var r = _KS_SEVERITY.indexOf(u.status); if (r >= 0 && r < rank) { rank = r; best = u.status; } });
+  return _KS_SQ_COLOR[best] || '#eef0f3';
+}
+
+function ksNavBulan(delta) {
+  if (_ksBusy || _ksBulan == null) return;
+  var m = _ksBulan + delta, y = _ksTahun;
+  if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
+  // Jangan melampaui bulan berjalan.
+  var now = new Date();
+  if (y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth() + 1)) return;
+  loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
+}
+
+async function loadKehadiranSaya(opts) {
+  opts = opts || {};
   var card = document.getElementById('kehadiranSayaCard');
   if (!card) return;
+  var fromNav = !!opts.fromNav;
+  _ksBusy = true;
   try {
-    var r = await window.HQ.GuruAPI.getAbsensiSaya({});
+    var r = await window.HQ.GuruAPI.getAbsensiSaya({ bulan: opts.bulan, tahun: opts.tahun });
     var d = r.data, me = d.rekap;
-    var total = me.H + me.DS + me.HP + me.I + me.A + (me.perlu_ditutup || 0);
-    if (total === 0) { card.style.display = 'none'; return; }
+    _ksBulan = d.bulan; _ksTahun = d.tahun;
 
-    var namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.bulan - 1];
-    document.getElementById('ksBulanLbl').textContent = '· ' + namaBulan + ' ' + d.tahun;
-    document.getElementById('ksAmbangLbl').textContent = d.ambang;
+    // Label bulan + status tombol navigasi
+    document.getElementById('ksBulanLbl').textContent = _KS_NAMA_BULAN[d.bulan - 1] + ' ' + d.tahun;
+    var now = new Date();
+    var atMaxMonth = (d.tahun === now.getFullYear() && d.bulan === now.getMonth() + 1);
+    var nextBtn = document.getElementById('ksNext'); if (nextBtn) nextBtn.disabled = atMaxMonth;
+
+    var total = me.H + me.DS + me.HP + me.I + me.A + (me.perlu_ditutup || 0);
+    if (total === 0) {
+      if (!fromNav) { card.style.display = 'none'; return; }
+      document.getElementById('ksBody').innerHTML =
+        '<div class="ks-empty">🍃 Belum ada sesi KBM yang tercatat pada bulan ini.</div>';
+      card.style.display = '';
+      return;
+    }
 
     var pctD = me.pct_durasi;
-    var badge = document.getElementById('ksDurasiBadge');
-    var bcol = pctD == null ? 'var(--text-3)' : pctD >= 90 ? '#16a34a' : pctD >= 75 ? '#b45309' : '#dc2626';
-    badge.style.color = bcol;
-    badge.textContent = (pctD == null ? '–' : pctD + '%') + ' durasi tertunaikan';
+    var hadirTot = me.H + me.HP;
 
-    var cells = [
-      { lbl: 'Hadir', val: me.H + me.HP, sub: me.HP ? me.HP + ' pengganti' : '', col: '#16a34a', bg: '#dcfce7' },
-      { lbl: 'Durasi Singkat', val: me.DS, sub: '', col: '#b45309', bg: '#fef3c7' },
-      { lbl: 'Izin', val: me.I, sub: '', col: '#1d4ed8', bg: '#dbeafe' },
-      { lbl: 'Alpa', val: me.A, sub: '', col: '#b91c1c', bg: '#fee2e2' },
+    // Status plain-language berdasarkan % durasi tertunaikan.
+    var st;
+    if (pctD == null)      st = { txt: 'Belum terukur', col: '#6b7280', bg: '#f3f4f6', bar: '#9ca3af', ico: 'ℹ️' };
+    else if (pctD >= 90)   st = { txt: 'Sangat baik',   col: '#15803d', bg: '#dcfce7', bar: '#16a34a', ico: '🌟' };
+    else if (pctD >= 75)   st = { txt: 'Cukup baik',    col: '#b45309', bg: '#fef3c7', bar: '#f59e0b', ico: '👍' };
+    else                   st = { txt: 'Perlu ditingkatkan', col: '#b91c1c', bg: '#fee2e2', bar: '#ef4444', ico: '💪' };
+
+    var hero =
+      '<div class="ks-hero">' +
+        '<div class="big" style="color:' + st.bar + '">' + (pctD == null ? '–' : pctD + '%') + '</div>' +
+        '<div class="body">' +
+          '<span class="ks-pill" style="color:' + st.col + ';background:' + st.bg + '">' + st.ico + ' ' + st.txt + '</span>' +
+          '<div class="cap">Durasi mengajar tertunaikan (target ≥ ' + d.ambang + ' menit per sesi)</div>' +
+          '<div class="ks-bar"><i style="width:' + (pctD == null ? 0 : pctD) + '%;background:' + st.bar + '"></i></div>' +
+          '<div class="ks-bar-meta"><span>0%</span><span>' + hadirTot + ' dari ' + (me.H + me.DS + me.HP) + ' sesi hadir penuh</span><span>100%</span></div>' +
+        '</div>' +
+      '</div>';
+
+    // Kartu statistik
+    var stats = [
+      { lbl: 'Hadir',   ico: '✅', val: hadirTot, sub: me.HP ? me.HP + ' pengganti' : '', col: '#15803d', bg: '#f0fdf4', bd: '#bbf7d0' },
+      { lbl: 'Singkat', ico: '⏱️', val: me.DS,    sub: '',                                col: '#b45309', bg: '#fffbeb', bd: '#fde68a' },
+      { lbl: 'Izin',    ico: '✉️', val: me.I,     sub: '',                                col: '#1d4ed8', bg: '#eff6ff', bd: '#bfdbfe' },
+      { lbl: 'Alpa',    ico: '⚠️', val: me.A,     sub: '',                                col: '#b91c1c', bg: '#fef2f2', bd: '#fecaca' },
     ];
-    document.getElementById('ksStatGrid').innerHTML = cells.map(function(c) {
-      return '<div style="background:' + c.bg + ';border-radius:10px;padding:8px 6px;text-align:center">' +
-        '<div style="font-size:20px;font-weight:800;color:' + c.col + ';line-height:1.1">' + c.val + '</div>' +
-        '<div style="font-size:10px;font-weight:600;color:' + c.col + '">' + c.lbl + '</div>' +
-        (c.sub ? '<div style="font-size:9px;color:var(--text-3)">' + esc(c.sub) + '</div>' : '') +
+    var statsHtml = '<div class="ks-stats">' + stats.map(function(c) {
+      return '<div class="ks-stat" style="background:' + c.bg + ';border-color:' + c.bd + '">' +
+        '<div class="v" style="color:' + c.col + '">' + c.val + '</div>' +
+        '<div class="l" style="color:' + c.col + '">' + c.ico + ' ' + c.lbl + '</div>' +
+        (c.sub ? '<div class="s">' + esc(c.sub) + '</div>' : '') +
         '</div>';
+    }).join('') + '</div>';
+
+    // Strip harian
+    var U = window.HQ.AbsensiGuruUtil;
+    var today = new Date(); var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    var sq = (d.tanggal_list || []).map(function(t) {
+      var units = (me.cells && me.cells[t]) || [];
+      if (t > todayStr) return '';                          // sembunyikan tanggal yang belum tiba
+      var wd = _ksWeekday(t), we = (wd === 0 || wd === 6) ? ' we' : '';
+      var isToday = (t === todayStr) ? ' today' : '';
+      var lbl = units.length
+        ? units.map(function(u){ return U.meta(u.status).label + (u.nama_halaqah ? ' · ' + u.nama_halaqah : ''); }).join(' | ')
+        : 'tak ada sesi';
+      return '<span class="ks-sq' + we + isToday + '" style="background:' + _ksDayColor(units) + '" title="' +
+        esc(_KS_HARI_FULL[wd] + ', ' + Number(t.slice(8,10)) + ' ' + _KS_NAMA_BULAN[d.bulan-1] + ': ' + lbl) + '"></span>';
     }).join('');
+    var legendItems = [
+      ['#22c55e','Hadir'], ['#f59e0b','Singkat'], ['#3b82f6','Izin'], ['#ef4444','Alpa'], ['#d1d5db','Libur'], ['#9ca3af','Perlu ditutup'],
+    ];
+    var stripHtml =
+      '<div class="ks-strip-wrap">' +
+        '<div class="ks-strip-ttl">Kehadiran harian bulan ini</div>' +
+        '<div class="ks-strip">' + sq + '</div>' +
+        '<div class="ks-legend">' + legendItems.map(function(l){ return '<span><i style="background:' + l[0] + '"></i>' + l[1] + '</span>'; }).join('') + '</div>' +
+      '</div>';
 
-    var h = me.hutang || { izin_alpa: 0, diganti: 0, sisa: 0 };
-    var hEl = document.getElementById('ksHutang');
-    if (h.izin_alpa > 0) {
-      hEl.style.display = '';
-      hEl.innerHTML = 'Izin/Alpa: <strong>' + h.izin_alpa + '</strong> · diganti: <strong>' + h.diganti +
-        '</strong> · sisa hutang: <strong style="color:' + (h.sisa > 0 ? '#b45309' : '#16a34a') + '">' + h.sisa + '</strong>';
-    } else { hEl.style.display = 'none'; }
-
-    var ptEl = document.getElementById('ksPerluTutup');
+    // Callout: sesi perlu ditutup & hutang pengganti
+    var callouts = '';
     if (me.perlu_ditutup > 0) {
-      ptEl.style.display = '';
-      ptEl.textContent = '⏳ ' + me.perlu_ditutup + ' sesi lampau perlu ditutup (tidak masuk hitungan sampai dituntaskan).';
-    } else { ptEl.style.display = 'none'; }
+      callouts += '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
+        '<span class="ic">⏳</span><div><strong>' + me.perlu_ditutup + ' sesi lampau belum ditutup.</strong> ' +
+        'Sesi ini belum dihitung sampai kamu tuntaskan penilaiannya.</div></div>';
+    }
+    var h = me.hutang || { izin_alpa: 0, diganti: 0, sisa: 0 };
+    if (h.izin_alpa > 0) {
+      var sisaCol = h.sisa > 0 ? '#b45309' : '#16a34a';
+      callouts += '<div class="ks-callout" style="background:#f8fafc;color:var(--text-2);border:1px solid var(--border)">' +
+        '<span class="ic">🔁</span><div>Izin/Alpa <strong>' + h.izin_alpa + '</strong> · sudah diganti <strong>' + h.diganti +
+        '</strong> · sisa perlu diganti <strong style="color:' + sisaCol + '">' + h.sisa + '</strong></div></div>';
+    }
 
+    var note =
+      '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
+      'Angka utama adalah <strong>durasi mengajar tertunaikan</strong> — yakni sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
+
+    document.getElementById('ksBody').innerHTML = hero + statsHtml + stripHtml + callouts + note;
     card.style.display = '';
-  } catch (e) { card.style.display = 'none'; /* senyap; kartu opsional */ }
+  } catch (e) {
+    if (!fromNav) card.style.display = 'none'; /* senyap saat auto-load; kartu opsional */
+  } finally { _ksBusy = false; }
 }
 
 function hqCard(h) {
