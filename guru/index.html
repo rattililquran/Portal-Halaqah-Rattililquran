@@ -302,6 +302,9 @@ html.theme-dark .ks-dr-date .d{color:#f0f2f8}
 .ks-susul-btn{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--blue);
   color:var(--blue);background:rgba(14,165,233,.06);cursor:pointer;transition:background .15s}
 .ks-susul-btn:hover{background:rgba(14,165,233,.14)}
+.ks-izin-btn{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid #d97706;
+  color:#b45309;background:rgba(217,119,6,.07);cursor:pointer;transition:background .15s}
+.ks-izin-btn:hover{background:rgba(217,119,6,.15)}
 /* nudge target */
 .ks-nudge{display:flex;align-items:center;gap:9px;margin-top:10px;padding:10px 13px;border-radius:12px;
   font-size:12px;font-weight:600;line-height:1.4;background:linear-gradient(135deg,rgba(14,165,233,.10),rgba(139,92,246,.07));
@@ -4908,6 +4911,39 @@ function ksBukaSusulan(id_halaqah, tanggal) {
   toast('Sesi susulan: halaqah & tanggal sudah terisi. Periksa lalu buka sesi. 🤲', 'ok');
 }
 
+// Tandai sebuah Alpa sebagai Izin (uzur). Pakai mekanisme kelas pengganti: A → libur(Izin),
+// menambah +1 sisa pengganti. % baru membaik setelah pengganti ditunaikan (anti gaming).
+async function ksTandaiIzin(id_halaqah, tanggal, jenis) {
+  if (typeof sesiAktif !== 'undefined' && sesiAktif) {
+    toast('Selesaikan dulu sesi yang sedang berjalan.', 'warn'); return;
+  }
+  jenis = jenis || 'KBM Reguler';
+  var h = (typeof halaqahList !== 'undefined' && halaqahList) ? halaqahList.find(function(x){ return x.id_halaqah === id_halaqah; }) : null;
+  var nama = (h && h.nama_halaqah) || id_halaqah;
+  var html = '<div style="background:var(--libur-bg);border:1px solid var(--libur-border);border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="font-size:14px;font-weight:800;color:var(--libur-title,#9a3412)">✉️ ' + esc(nama) + '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:var(--libur-sub,#b45309);margin-top:2px">' + esc(jenis) + ' · ' + fmtDate(tanggal) + '</div>' +
+    '</div>' +
+    '<label style="font-size:12.5px;font-weight:700;display:block;margin-bottom:6px">Alasan uzur <span style="color:var(--red)">*</span></label>' +
+    '<textarea id="ksIzinAlasan" class="fc" rows="3" placeholder="mis. sakit, ada keperluan mendesak, dsb." style="width:100%;resize:vertical"></textarea>' +
+    '<div style="font-size:11.5px;color:var(--text-3);margin-top:8px;line-height:1.5">Alpa ini akan tercatat sebagai <strong>Izin</strong> dan menambah <strong>+1 sisa kelas pengganti</strong>. ' +
+    'Persentase kehadiran <strong>baru membaik setelah kamu menunaikan kelas penggantinya</strong>.</div>';
+  var ok = await showConfirm('', { title: 'Tandai Alpa sebagai IZIN?', html: html, okText: 'Ya, Tandai Izin' });
+  if (!ok) return;
+  var alasan = (document.getElementById('ksIzinAlasan') ? document.getElementById('ksIzinAlasan').value : '').trim();
+  if (!alasan) { toast('Alasan uzur wajib diisi.', 'err'); return ksTandaiIzin(id_halaqah, tanggal, jenis); }
+  showLoad('Bismillah, menyimpan izin...');
+  try {
+    var r = await window.HQ.GuruAPI.tandaiLibur({
+      id_halaqah: id_halaqah, tanggal_pertemuan: tanggal, jenis_sesi: jenis, keterangan_libur: alasan,
+    });
+    if (r.status !== 'ok') throw new Error(r.message || 'Gagal menandai izin');
+    hideLoad();
+    toast('Tercatat sebagai Izin. Jangan lupa tunaikan kelas penggantinya. 🤲', 'ok');
+    await loadKehadiranSaya({ bulan: _ksBulan, tahun: _ksTahun, fromNav: true });
+  } catch (e) { hideLoad(); toast('Gagal: ' + e.message, 'err'); }
+}
+
 async function loadKehadiranSaya(opts) {
   opts = opts || {};
   var card = document.getElementById('kehadiranSayaCard');
@@ -5050,8 +5086,11 @@ async function loadKehadiranSaya(opts) {
         // Aksi: Alpa → buka sesi susulan (halaqah & tanggal terisi otomatis).
         var actions = '';
         if (u.status === 'A' && u.id_halaqah) {
-          actions = '<div class="ks-dr-actions"><button type="button" class="ks-susul-btn" ' +
-            'onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\')">▶ Buka sesi susulan</button></div>';
+          var jzn = (u.jenis_sesi || 'KBM Reguler').replace(/'/g, '');
+          actions = '<div class="ks-dr-actions">' +
+            '<button type="button" class="ks-susul-btn" onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\')">▶ Buka sesi susulan</button>' +
+            '<button type="button" class="ks-izin-btn" onclick="ksTandaiIzin(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\',\'' + esc(jzn) + '\')">✉️ Tandai Izin</button>' +
+          '</div>';
         }
         return '<div class="ks-detail-row" style="border-left-color:' + meta.color + '">' +
           '<div class="ks-dr-date"><div class="d">' + dd + '</div><div class="w">' + _KS_HARI_FULL[wd].slice(0,3) + '</div></div>' +
