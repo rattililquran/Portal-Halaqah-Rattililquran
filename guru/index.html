@@ -2881,52 +2881,199 @@ html.theme-dark .rt-surat-tbl th {
         html.theme-dark .jd-chip:active{background:rgba(255,255,255,.04)}
         html.theme-dark .jd-sesi{background:rgba(255,255,255,.03)}
         html.theme-dark .jd-tag{background:rgba(255,255,255,.07)}
+
+        /* Segmented tab panel displays */
+        .jd-panel { display: none; }
+        .jd-panel.active { display: block; }
+
+        /* CALENDAR STYLES FROM PORTAL MURID */
+        .dash-cal-title{text-align:center;margin-bottom:16px}
+        .dash-cal-title-text{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+          color:#1e3a5f;line-height:1.4}
+        .dash-cal-title-line{width:38px;height:2px;margin:7px auto 0;border-radius:1px;
+          background:linear-gradient(90deg,#0ea5e9,#fbbf24)}
+        html.theme-dark .dash-cal-title-text{color:#cbd5e1}
+        .dash-cal-wrap{margin-bottom:14px}
+        .dash-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .dash-cal-month{font-size:13.5px;font-weight:800;color:var(--text)}
+        .dash-cal-today{display:flex;justify-content:center;margin:-2px 0 14px}
+        .dash-cal-today-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
+          letter-spacing:.02em;color:#1d4ed8;background:rgba(37,99,235,.1);
+          border:1px solid rgba(37,99,235,.18);border-radius:999px;padding:4px 12px}
+        .dash-cal-today-chip::before{content:'';width:6px;height:6px;border-radius:50%;background:#2563eb;flex-shrink:0}
+        html.theme-dark .dash-cal-today-chip{color:#93c5fd;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.25)}
+        html.theme-dark .dash-cal-today-chip::before{background:#60a5fa}
+        .dash-cal-nav{background:#f1f5f9;border:none;border-radius:50%;width:36px;height:36px;
+          display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;
+          color:var(--text-2);transition:all .2s ease;outline:none}
+        .dash-cal-nav:hover{background:var(--border);color:var(--text)}
+        .dash-cal-body{display:flex;gap:12px;align-items:stretch}
+        .dash-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;
+          flex:1.15;min-width:0;align-content:start}
+        .dash-cal-dn{text-align:center;font-size:10px;font-weight:800;color:var(--text-3);padding:2px 0}
+        .dash-cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:1px;border-radius:6px;font-size:9.5px;font-weight:700;color:var(--text-2);
+          cursor:pointer;position:relative;min-width:0;transition:all .15s ease}
+        .dash-cal-day:hover{background:rgba(37,99,235,.08)}
+        .dash-cal-day.today{background:rgba(37,99,235,.1);color:#1d4ed8}
+        .dash-cal-day.sel{background:linear-gradient(135deg,var(--blue),var(--blue-d)) !important;color:#fff !important;
+          box-shadow:0 2px 8px rgba(0,122,255,.35)}
+        .dash-cal-day.empty{visibility:hidden;cursor:default;padding:0;text-align:center}
+        .dash-cal-dots{display:flex;gap:2px;height:4px}
+        .dash-cal-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+        .dash-cal-agenda{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;
+          border-radius:10px;transition:background .15s ease}
+        .dash-cal-agenda-head{font-size:9.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;
+          letter-spacing:.05em;margin-bottom:2px}
+        .dash-cal-agenda-empty{font-size:11.5px;color:var(--text-3);padding:14px 0;text-align:center}
+        .dash-cal-evt{display:flex;align-items:center;gap:8px;background:#f8fafc;border-radius:10px;padding:7px 9px}
+        html.theme-dark .dash-cal-evt{background:rgba(255,255,255,.06)}
+        .dash-cal-evt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+        .dash-cal-evt-name{font-size:11px;font-weight:800;color:var(--text)}
+        .dash-cal-evt-time{font-size:9.5px;color:var(--text-3);font-weight:600}
+        html.theme-dark .dash-cal-nav{background:#252830;color:var(--text-2)}
+        html.theme-dark .dash-cal-nav:hover{background:var(--border);color:var(--text)}
+
+        /* Quick Action Shortcut Button */
+        .jd-btn-sm {
+          margin-top: 6px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: var(--blue);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 5px 10px;
+          font-size: 10px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          outline: none;
+        }
+        .jd-btn-sm:active {
+          transform: scale(0.95);
+          background: var(--blue-d);
+        }
+
+        /* Dark mode overrides for monthly statistics */
+        html.theme-dark #panelJdBulanan .progress-card {
+          background: #162032 !important;
+          border-color: var(--border) !important;
+          box-shadow: 0 4px 20px rgba(0,0,0,.5) !important;
+        }
+        html.theme-dark #jdKalStats > div:nth-child(1) { background: rgba(16,185,129,0.08) !important; }
+        html.theme-dark #jdKalStats > div:nth-child(1) div { color: #4ade80 !important; }
+        html.theme-dark #jdKalStats > div:nth-child(2) { background: rgba(251,191,36,0.08) !important; }
+        html.theme-dark #jdKalStats > div:nth-child(2) div { color: #facc15 !important; }
+        html.theme-dark #jdKalStats > div:nth-child(3) { background: rgba(239,68,68,0.08) !important; }
+        html.theme-dark #jdKalStats > div:nth-child(3) div { color: #f87171 !important; }
+
+        /* Perfect responsiveness: stacks calendar grid and agenda side-by-side on desktop, vertical on mobile */
+        @media (max-width: 600px) {
+          .dash-cal-body {
+            flex-direction: column !important;
+          }
+          .dash-cal-grid {
+            flex: none !important;
+            width: 100% !important;
+          }
+          .dash-cal-agenda {
+            flex: none !important;
+            width: 100% !important;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+          }
+        }
       </style>
       <div class="page" id="page-jadwal">
-        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Jadwal KBM Pekanan</div>
-        <div class="jd-meta">Ketuk hari untuk membuka jadwalnya. <span id="jdMeta"></span></div>
-        <div class="jd-legend" id="jdLegend"></div>
-        <div class="jd-acc" id="jdAcc"></div>
+        <div class="page-title-row" style="margin-bottom:12px">
+          <span style="font-size:19px;font-weight:800">Jadwal KBM</span>
+        </div>
+
+        <!-- Segmented Tab bar -->
+        <div class="at-tab-bar" style="margin-bottom:16px">
+          <button class="at-tab-btn active" id="tabJdPekanan" onclick="switchJdTab('pekanan', this)">🗓️ Pekanan</button>
+          <button class="at-tab-btn" id="tabJdBulanan" onclick="switchJdTab('bulanan', this)">📅 Bulanan Saya</button>
+        </div>
+
+        <!-- Panel Pekanan -->
+        <div id="panelJdPekanan" class="jd-panel active">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px">
+            <div class="jd-meta" style="margin-bottom:0">Ketuk hari untuk membuka jadwalnya. <span id="jdMeta"></span></div>
+            <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--text-2); cursor:pointer">
+              <input type="checkbox" id="chkFilterJdMine" onchange="renderJdPekanan()" style="width:14px; height:14px"> Tampilkan Halaqah Saya Saja
+            </label>
+          </div>
+          <div class="jd-legend" id="jdLegend"></div>
+          <div class="jd-acc" id="jdAcc"></div>
+        </div>
+
+        <!-- Panel Bulanan -->
+        <div id="panelJdBulanan" class="jd-panel" style="display:none">
+          <div class="progress-card" style="padding:16px; border-radius:20px; border:1px solid var(--border); background:#fff; box-shadow:var(--shadow-card)">
+            <div class="dash-cal-title">
+              <div class="dash-cal-title-text" style="color:var(--text); font-size:11px; font-weight:800; text-align:center; margin-bottom:4px">Agenda Bulanan Saya</div>
+              <div class="dash-cal-title-line" style="width:38px; height:2px; margin:7px auto 0; border-radius:1px; background:linear-gradient(90deg,#0ea5e9,#fbbf24)"></div>
+            </div>
+            
+            <div class="dash-cal-wrap">
+              <div class="dash-cal-head" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+                <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();jdKalNav(-1)">‹</button>
+                <span class="dash-cal-month" id="jdKalMonth" style="font-size:13.5px; font-weight:800; color:var(--text)">–</span>
+                <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();jdKalNav(1)">›</button>
+              </div>
+              <div class="dash-cal-today" style="display:flex; justify-content:center; margin:-2px 0 14px">
+                <span class="dash-cal-today-chip" id="jdKalToday" style="display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:800; color:#1d4ed8; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.18); border-radius:999px; padding:4px 12px">–</span>
+              </div>
+              <div class="dash-cal-body">
+                <!-- Grid Kalender -->
+                <div class="dash-cal-grid" id="jdKalGrid"></div>
+                <!-- Agenda Detail -->
+                <div class="dash-cal-agenda" id="jdKalAgenda"></div>
+              </div>
+            </div>
+
+            <!-- Legenda Bulanan -->
+            <div style="display:flex; flex-wrap:wrap; gap:8px 16px; justify-content:center; margin-top:16px; font-size:11px; color:var(--text-3); border-top:1px solid var(--border); padding-top:12px">
+              <span style="display:inline-flex; align-items:center; gap:5px"><span style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block"></span>Selesai</span>
+              <span style="display:inline-flex; align-items:center; gap:5px"><span style="width:8px; height:8px; border-radius:50%; background:#fbbf24; display:inline-block"></span>Draft</span>
+              <span style="display:inline-flex; align-items:center; gap:5px"><span style="width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block"></span>Libur</span>
+              <span style="display:inline-flex; align-items:center; gap:5px"><span style="width:8px; height:8px; border-radius:50%; background:#94a3b8; display:inline-block"></span>Terjadwal</span>
+            </div>
+
+            <!-- Stats Panel -->
+            <div id="jdKalStats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px; border-top:1px solid var(--border); padding-top:16px">
+              <div style="background:#f0fdf4; border-radius:10px; padding:10px; text-align:center">
+                <div style="font-size:9.5px; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:0.05em">Selesai</div>
+                <div id="jdStatSelesai" style="font-size:18px; font-weight:800; color:#166534; margin-top:2px">0</div>
+              </div>
+              <div style="background:#fef9c3; border-radius:10px; padding:10px; text-align:center">
+                <div style="font-size:9.5px; font-weight:800; color:#a16207; text-transform:uppercase; letter-spacing:0.05em">Draft</div>
+                <div id="jdStatDraft" style="font-size:18px; font-weight:800; color:#854d0e; margin-top:2px">0</div>
+              </div>
+              <div style="background:#fef2f2; border-radius:10px; padding:10px; text-align:center">
+                <div style="font-size:9.5px; font-weight:800; color:#b91c1c; text-transform:uppercase; letter-spacing:0.05em">Libur</div>
+                <div id="jdStatLibur" style="font-size:18px; font-weight:800; color:#991b1b; margin-top:2px">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <script>
       (function(){
-        const JD_DATA = [
-          {nama:"Abu Bakar",guru:"Al-Ustadz Umar Abdul Aziz",level:"Level Qiyam",hari:"Selasa Rabu Jum'at",mulai:"03:00",selesai:"04:00",murid:6},
-          {nama:"Adh-Dhuha",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 2",hari:"Sabtu Ahad",mulai:"07:00",selesai:"08:30",murid:11},
-          {nama:"Al-Fatihah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 2",hari:"Selasa Kamis",mulai:"09:00",selesai:"10:30",murid:9},
-          {nama:"Al-Isra",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"05:30",selesai:"07:00",murid:12},
-          {nama:"Al-Kautsar",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 3",hari:"Sabtu Ahad",mulai:"05:30",selesai:"07:00",murid:14},
-          {nama:"Al-Lail",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 2",hari:"Senin Selasa",mulai:"19:30",selesai:"21:00",murid:11},
-          {nama:"Al-Maidah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 2",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:9},
-          {nama:"Al-Muddatstsir",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level Qiyam",hari:"Kamis Jum'at",mulai:"03:00",selesai:"04:30",murid:10},
-          {nama:"Al-Mukminun",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 3",hari:"Senin Selasa",mulai:"19:30",selesai:"21:00",murid:16},
-          {nama:"Al-Muzzammil",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level Qiyam",hari:"Selasa Rabu",mulai:"03:00",selesai:"04:30",murid:10},
-          {nama:"An-Najm",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 2",hari:"Kamis Jum'at",mulai:"15:40",selesai:"17:10",murid:9},
-          {nama:"An-Nisa",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 2",hari:"Senin Selasa",mulai:"18:30",selesai:"20:00",murid:8},
-          {nama:"An-Nuur",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 2",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:10},
-          {nama:"Ar-Rahman",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Sabtu Ahad",mulai:"08:30",selesai:"10:00",murid:7},
-          {nama:"Asma",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 1",hari:"Rabu Jum'at",mulai:"18:30",selesai:"20:00",murid:13},
-          {nama:"Az-Zumar",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:7},
-          {nama:"Fatimah",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Senin Rabu",mulai:"09:00",selesai:"10:30",murid:10},
-          {nama:"Hafshah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Senin Selasa",mulai:"05:30",selesai:"07:00",murid:13},
-          {nama:"Khadijah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 1",hari:"Senin Kamis",mulai:"15:30",selesai:"17:00",murid:11},
-          {nama:"Khaulah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:13},
-          {nama:"Maryam",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 1",hari:"Rabu Jum'at",mulai:"15:00",selesai:"16:30",murid:10},
-          {nama:"Rumaysho",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Rabu Jum'at",mulai:"19:30",selesai:"21:00",murid:12},
-          {nama:"Sahlah",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Selasa Kamis",mulai:"08:00",selesai:"09:30",murid:10},
-          {nama:"Shafiyyah",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 2",hari:"Selasa Rabu",mulai:"19:30",selesai:"21:00",murid:12},
-          {nama:"Sumayyah",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 3",hari:"Sabtu Ahad",mulai:"05:30",selesai:"07:00",murid:12},
-          {nama:"Umar Bin Khattab",guru:"Al-Ustadz Umar Abdul Aziz",level:"Level 1",hari:"Senin Jum'at",mulai:"19:30",selesai:"21:00",murid:10},
-          {nama:"Ummu Salamah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 3",hari:"Selasa Rabu",mulai:"19:30",selesai:"21:00",murid:13},
-          {nama:"Zainab",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 3",hari:"Selasa Rabu",mulai:"15:40",selesai:"17:10",murid:10},
-        ];
+        let liveHalaqahs = [];
+        let isFetchingJadwal = false;
+
         const JD_TIBYAN = {nama:"Kajian At-Tibyan",guru:"Seluruh halaqah · pemateri rotasi",level:"At-Tibyan",mulai:"19:30",selesai:"21:00",tibyan:true};
 
         const HARI=["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Ahad"];
         const ALIAS={"minggu":"Ahad","ahad":"Ahad","jumat":"Jumat","jum'at":"Jumat","jum’at":"Jumat"};
         const LV={"Level 1":"#0ea5e9","Level 2":"#8b5cf6","Level 3":"#f59e0b","Level 4":"#ef4444","Level Qiyam":"#10b981","At-Tibyan":"#6366f1"};
+        
         function lvColor(l){return LV[l]||"#0ea5e9";}
+        
         function parseHari(h){
           return String(h||"").split(/[\s,/&]+/).map(function(t){
             var k=t.trim().toLowerCase(); if(!k) return null;
@@ -2934,67 +3081,435 @@ html.theme-dark .rt-surat-tbl th {
             return HARI.find(function(d){return d.toLowerCase()===k;})||null;
           }).filter(Boolean);
         }
-        var _rendered=false;
 
-        window.initJadwalPage=function(){
-          if(_rendered) return; _rendered=true;
+        window.switchJdTab = function(type, btn) {
+          document.querySelectorAll('#page-jadwal .at-tab-btn').forEach(function(b) {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+          
+          if (type === 'pekanan') {
+            document.getElementById('panelJdPekanan').style.display = 'block';
+            document.getElementById('panelJdBulanan').style.display = 'none';
+          } else {
+            document.getElementById('panelJdPekanan').style.display = 'none';
+            document.getElementById('panelJdBulanan').style.display = 'block';
+            window.initJdBulanan();
+          }
+        };
 
-          // nama halaqah milik guru yang login (untuk ditandai)
-          var mine={};
-          try{ var _hl=(typeof halaqahList!=='undefined'&&halaqahList)||[]; _hl.forEach(function(h){ if(h&&h.nama_halaqah) mine[h.nama_halaqah.trim().toLowerCase()]=true; }); }catch(e){}
+        window.initJadwalPage = async function() {
+          if (liveHalaqahs.length > 0) {
+            renderJdPekanan();
+            return;
+          }
+          await loadLiveJadwal();
+        };
 
-          var byDay={}; HARI.forEach(function(h){byDay[h]=[];});
-          JD_DATA.forEach(function(k){ parseHari(k.hari).forEach(function(d){ if(byDay[d]) byDay[d].push(k); }); });
-          byDay["Ahad"].push(JD_TIBYAN);
-          Object.keys(byDay).forEach(function(d){ byDay[d].sort(function(a,b){return String(a.mulai).localeCompare(String(b.mulai));}); });
+        async function loadLiveJadwal() {
+          if (isFetchingJadwal) return;
+          isFetchingJadwal = true;
+          
+          const accEl = document.getElementById('jdAcc');
+          if (accEl) {
+            accEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-3)">Bismillah, memuat jadwal KBM...</div>';
+          }
+          
+          try {
+            const { data, error } = await window.HQ.supabase
+              .from('halaqah')
+              .select('id_halaqah, nama_halaqah, level, id_guru, nama_guru, jadwal_hari, jam_mulai, jam_selesai, anggota(count)')
+              .eq('status', 'aktif');
+            
+            if (error) throw error;
+            
+            liveHalaqahs = (data || []).map(function(h) {
+              return {
+                id_halaqah: h.id_halaqah,
+                nama: h.nama_halaqah,
+                guru: h.nama_guru || '—',
+                id_guru: h.id_guru,
+                level: h.level || 'Level 1',
+                hari: h.jadwal_hari || '',
+                mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : '—',
+                selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : '',
+                murid: h.anggota ? (h.anggota[0] ? h.anggota[0].count : 0) : 0
+              };
+            });
+            
+            renderJdPekanan();
+          } catch (e) {
+            console.error('[Jadwal] Gagal memuat jadwal live:', e);
+            if (accEl) {
+              accEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">Gagal memuat jadwal</div><div class="empty-sub">Silakan periksa koneksi internet Anda atau coba refresh.</div></div>';
+            }
+          } finally {
+            isFetchingJadwal = false;
+          }
+        }
 
-          var todayIdx=new Date().getDay();           // 0=Ahad..6=Sabtu
-          var todayName=["Ahad","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][todayIdx];
-
-          var chev='<svg class="jd-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
-
-          var html="";
-          HARI.forEach(function(h){
-            var items=byDay[h];
-            var isToday=(h===todayName);
-            var cntTxt=items.length?(items.length+" sesi"):"libur";
-            var body="";
-            if(items.length){
-              body=items.map(function(k){
-                var c=lvColor(k.level);
-                var jam=(k.mulai&&k.selesai)?(k.mulai+"–"+k.selesai):(k.mulai||"—");
-                var isMine=!k.tibyan && mine[String(k.nama).trim().toLowerCase()];
-                var tags="";
-                if(k.tibyan){ tags='<span class="jd-tag">Pekanan</span><span class="jd-tag">Gabungan</span>'; }
-                else{
-                  tags='<span class="jd-tag">'+k.level+'</span>';
-                  if(k.murid) tags+='<span class="jd-tag murid">'+k.murid+' murid</span>';
-                  if(isMine) tags+='<span class="jd-tag mine">★ Halaqah Anda</span>';
+        window.renderJdPekanan = function() {
+          const chkFilter = document.getElementById('chkFilterJdMine');
+          const filterMine = chkFilter && chkFilter.checked;
+          
+          const mineIds = (typeof halaqahList !== 'undefined' && halaqahList || []).map(function(h) { return h.id_halaqah; });
+          
+          const byDay = {};
+          HARI.forEach(function(h) { byDay[h] = []; });
+          
+          liveHalaqahs.forEach(function(k) {
+            if (filterMine && !mineIds.includes(k.id_halaqah)) return;
+            
+            parseHari(k.hari).forEach(function(d) {
+              if (byDay[d]) byDay[d].push(k);
+            });
+          });
+          
+          if (!filterMine) {
+            byDay["Ahad"].push(JD_TIBYAN);
+          }
+          
+          Object.keys(byDay).forEach(function(d) {
+            byDay[d].sort(function(a, b) {
+              return String(a.mulai).localeCompare(String(b.mulai));
+            });
+          });
+          
+          const todayIdx = new Date().getDay();
+          const todayName = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][todayIdx];
+          
+          const chev = '<svg class="jd-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+          
+          let html = "";
+          HARI.forEach(function(h) {
+            const items = byDay[h];
+            const isToday = (h === todayName);
+            const cntTxt = items.length ? (items.length + " sesi") : "libur";
+            let body = "";
+            
+            if (items.length) {
+              body = items.map(function(k) {
+                const c = lvColor(k.level);
+                const jam = (k.mulai && k.selesai) ? (k.mulai + "–" + k.selesai) : (k.mulai || "—");
+                const isMine = !k.tibyan && mineIds.includes(k.id_halaqah);
+                let tags = "";
+                let actionBtn = "";
+                
+                if (k.tibyan) {
+                  tags = '<span class="jd-tag">Pekanan</span><span class="jd-tag">Gabungan</span>';
+                } else {
+                  tags = '<span class="jd-tag">' + k.level + '</span>';
+                  if (k.murid) tags += '<span class="jd-tag murid">' + k.murid + ' murid</span>';
+                  if (isMine) {
+                    tags += '<span class="jd-tag mine">★ Halaqah Anda</span>';
+                    
+                    if (isToday) {
+                      if (typeof sesiAktif !== 'undefined' && sesiAktif && sesiAktif.id_halaqah === k.id_halaqah) {
+                        actionBtn = '<button class="jd-btn-sm" style="background:#fbbf24" onclick="event.stopPropagation(); goPage(\'kbm\')">⚡ Lanjutkan Jurnal</button>';
+                      } else if (typeof sesiAktif !== 'undefined' && sesiAktif) {
+                        actionBtn = '<button class="jd-btn-sm" style="background:#94a3b8; cursor:not-allowed" onclick="event.stopPropagation(); toast(\'Masih ada sesi draft berjalan di halaqah lain!\', \'warn\')">⚡ Mulai KBM</button>';
+                      } else {
+                        actionBtn = '<button class="jd-btn-sm" onclick="event.stopPropagation(); mulaiSesiHalaqah(\'' + k.id_halaqah + '\')">⚡ Mulai KBM</button>';
+                      }
+                    }
+                  }
                 }
-                return '<div class="jd-sesi'+(isMine?' mine':'')+'" style="--c:'+c+'">'
-                  +'<div class="jd-time">'+jam+'</div>'
-                  +'<div class="jd-info"><div class="jd-nm">'+k.nama+'</div>'
-                  +'<div class="jd-gr">'+k.guru+'</div>'
-                  +'<div class="jd-tags">'+tags+'</div></div></div>';
+                
+                return '<div class="jd-sesi' + (isMine ? ' mine' : '') + '" style="--c:' + c + '">'
+                  + '<div class="jd-time">' + jam + '</div>'
+                  + '<div class="jd-info"><div class="jd-nm">' + esc(k.nama) + '</div>'
+                  + '<div class="jd-gr">' + esc(k.guru) + '</div>'
+                  + '<div class="jd-tags">' + tags + '</div>'
+                  + (actionBtn ? '<div style="margin-top:6px">' + actionBtn + '</div>' : '')
+                  + '</div></div>';
               }).join("");
             } else {
-              body='<div class="jd-empty">— Tidak ada KBM —</div>';
+              body = '<div class="jd-empty">— Tidak ada KBM —</div>';
             }
-            html+='<div class="jd-day'+(isToday?' today open':'')+'">'
-              +'<button class="jd-chip" onclick="this.parentNode.classList.toggle(\'open\')">'
-              +'<span class="jd-name">'+h+'</span>'
-              +(isToday?'<span class="jd-today-tag">HARI INI</span>':'')
-              +'<span class="jd-count'+(items.length?'':' libur')+'">'+cntTxt+'</span>'
-              +chev+'</button>'
-              +'<div class="jd-body">'+body+'</div></div>';
+            
+            html += '<div class="jd-day' + (isToday ? ' today open' : '') + '">'
+              + '<button class="jd-chip" onclick="this.parentNode.classList.toggle(\'open\')">'
+              + '<span class="jd-name">' + h + '</span>'
+              + (isToday ? '<span class="jd-today-tag">HARI INI</span>' : '')
+              + '<span class="jd-count' + (items.length ? '' : ' libur') + '">' + cntTxt + '</span>'
+              + chev + '</button>'
+              + '<div class="jd-body">' + body + '</div></div>';
           });
-          document.getElementById('jdAcc').innerHTML=html;
-
-          var totalSesi=JD_DATA.reduce(function(s,k){return s+parseHari(k.hari).length;},0);
-          document.getElementById('jdMeta').textContent=JD_DATA.length+' halaqah · '+totalSesi+' sesi/pekan · +Kajian At-Tibyan tiap Ahad';
-          document.getElementById('jdLegend').innerHTML=Object.keys(LV).map(function(l){
-            return '<span class="lg"><span class="d" style="background:'+LV[l]+'"></span>'+l+'</span>';
+          
+          document.getElementById('jdAcc').innerHTML = html;
+          
+          const activeHalaqahsCount = liveHalaqahs.length;
+          const totalSesi = liveHalaqahs.reduce(function(s, k) {
+            return s + parseHari(k.hari).length;
+          }, 0);
+          
+          document.getElementById('jdMeta').textContent = activeHalaqahsCount + ' halaqah · ' + totalSesi + ' sesi/pekan · +Kajian At-Tibyan tiap Ahad';
+          document.getElementById('jdLegend').innerHTML = Object.keys(LV).map(function(l) {
+            return '<span class="lg"><span class="d" style="background:' + LV[l] + '"></span>' + l + '</span>';
           }).join("");
+        };
+
+        // ══════════════════════════════════════════
+        //  MONTHLY CALENDAR VIEW
+        // ══════════════════════════════════════════
+        let _jdKalDate = new Date();
+        let _jdKalSelected = null;
+        let _jdKalEvtMap = {};
+        let _jdKalKbmRows = [];
+        let _jdKalFetchedMonth = null;
+
+        window.initJdBulanan = async function() {
+          const user = window.HQ.Auth.getUser();
+          const uid = user ? user.id_user : null;
+          if (!uid) return;
+
+          const y = _jdKalDate.getFullYear();
+          const m = _jdKalDate.getMonth();
+          const currentMonthStr = y + '-' + String(m + 1).padStart(2, '0');
+
+          if (_jdKalFetchedMonth !== currentMonthStr) {
+            const gridEl = document.getElementById('jdKalGrid');
+            if (gridEl) {
+              gridEl.innerHTML = '<div style="grid-column: span 7; text-align:center; padding:20px; color:var(--text-3)">Bismillah, memuat agenda...</div>';
+            }
+
+            try {
+              const startStr = currentMonthStr + '-01';
+              const lastDay = new Date(y, m + 1, 0).getDate();
+              const endStr = currentMonthStr + '-' + String(lastDay).padStart(2, '0');
+
+              const { data, error } = await window.HQ.supabase
+                .from('kbm_log')
+                .select('id_kbm, id_halaqah, tanggal_pertemuan, status, materi_belajar, jenis_sesi, jam_mulai, jam_selesai, halaqah(nama_halaqah)')
+                .eq('id_guru', uid)
+                .gte('tanggal_pertemuan', startStr)
+                .lte('tanggal_pertemuan', endStr);
+
+              if (error) throw error;
+              
+              _jdKalKbmRows = data || [];
+              _jdKalFetchedMonth = currentMonthStr;
+            } catch(e) {
+              console.error('[Calendar] Gagal memuat data bulanan:', e);
+              toast('Gagal memuat agenda bulanan.', 'err');
+            }
+          }
+
+          renderJdBulanan();
+        };
+
+        function renderJdBulanan() {
+          const HARI_NAMES = ['M','S','S','R','K','J','S'];
+          const HARI_FULL = ['Minggu','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'];
+          const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+                             'Juli','Agustus','September','Oktober','November','Desember'];
+          const y = _jdKalDate.getFullYear();
+          const m = _jdKalDate.getMonth();
+
+          const monthEl = document.getElementById('jdKalMonth');
+          if (monthEl) monthEl.textContent = BULAN_NAMES[m] + ' ' + y;
+
+          const todayLbl = document.getElementById('jdKalToday');
+          if (todayLbl) {
+            const _now = new Date();
+            todayLbl.textContent = 'Hari ini · ' + HARI_FULL[_now.getDay()] + ', '
+              + _now.getDate() + ' ' + BULAN_NAMES[_now.getMonth()] + ' ' + _now.getFullYear();
+          }
+
+          const evtMap = {};
+          function ensure(d) { if (!evtMap[d]) evtMap[d] = { aktual: [], jadwal: [] }; return evtMap[d]; }
+
+          _jdKalKbmRows.forEach(function(row) {
+            if (!row.tanggal_pertemuan) return;
+            const d = String(row.tanggal_pertemuan).substring(0, 10);
+            ensure(d).aktual.push(row);
+          });
+
+          const mineHalaqahs = (typeof halaqahList !== 'undefined' && halaqahList || []);
+          const daysInMonth = new Date(y, m + 1, 0).getDate();
+          const firstDay = new Date(y, m, 1).getDay();
+          const today = new Date();
+          const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+          for (let dd = 1; dd <= daysInMonth; dd++) {
+            const dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+            const cellDate = new Date(y, m, dd);
+            const wd = cellDate.getDay();
+            const slot = ensure(dateStr);
+
+            mineHalaqahs.forEach(function(h) {
+              const hDays = parseHari(h.jadwal_hari);
+              const wdName = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][wd];
+              
+              if (hDays.includes(wdName)) {
+                const hasAktual = slot.aktual.some(function(ak) { return ak.id_halaqah === h.id_halaqah; });
+                if (!hasAktual) {
+                  slot.jadwal.push({
+                    id_halaqah: h.id_halaqah,
+                    nama: h.nama_halaqah,
+                    jam_mulai: h.jam_mulai || '—',
+                    jam_selesai: h.jam_selesai || '',
+                    isProjected: true
+                  });
+                }
+              }
+            });
+
+            if (wd === 0) {
+              const hasTibyan = slot.aktual.some(function(ak) { return ak.jenis_sesi === 'KBM At-Tibyan' || ak.jenis_sesi === 'At-Tibyan'; });
+              if (!hasTibyan) {
+                slot.jadwal.push({
+                  nama: 'Kajian At-Tibyan',
+                  jam_mulai: '19:30',
+                  jam_selesai: '21:00',
+                  isProjected: true,
+                  tibyan: true
+                });
+              }
+            }
+          }
+
+          _jdKalEvtMap = evtMap;
+          if (!_jdKalSelected) {
+            _jdKalSelected = (y === today.getFullYear() && m === today.getMonth())
+              ? todayStr
+              : (y + '-' + String(m + 1).padStart(2, '0') + '-01');
+          }
+
+          let html = HARI_NAMES.map(function(d) { return '<div class="dash-cal-dn">' + d + '</div>'; }).join('');
+          for (let i = 0; i < firstDay; i++) html += '<div class="dash-cal-day empty"></div>';
+          
+          for (let d = 1; d <= daysInMonth; d++) {
+            const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            const ev = evtMap[ds] || { aktual: [], jadwal: [] };
+            
+            let dots = '';
+            let hasSelesai = false, hasDraft = false, hasLibur = false, hasJadwal = false;
+
+            ev.aktual.forEach(function(x) {
+              if (x.status === 'selesai') hasSelesai = true;
+              else if (x.status === 'draft') hasDraft = true;
+              else if (x.status === 'libur') hasLibur = true;
+            });
+            if (ev.jadwal && ev.jadwal.length > 0) hasJadwal = true;
+
+            if (hasSelesai) dots += '<span class="dash-cal-dot" style="background:#10b981"></span>';
+            if (hasDraft) dots += '<span class="dash-cal-dot" style="background:#fbbf24"></span>';
+            if (hasLibur) dots += '<span class="dash-cal-dot" style="background:#ef4444"></span>';
+            if (hasJadwal && !hasSelesai && !hasDraft && !hasLibur) {
+              dots += '<span class="dash-cal-dot" style="background:#94a3b8"></span>';
+            }
+
+            const cls = 'dash-cal-day' + (ds === todayStr ? ' today' : '') + (ds === _jdKalSelected ? ' sel' : '');
+            html += '<div class="' + cls + '" onclick="event.stopPropagation();pilihJdTanggal(\'' + ds + '\')">' + d
+              + '<div class="dash-cal-dots">' + dots + '</div></div>';
+          }
+
+          const gridEl = document.getElementById('jdKalGrid');
+          if (gridEl) gridEl.innerHTML = html;
+
+          renderJdKalAgenda();
+          updateJdKalStats();
+        }
+
+        function renderJdKalAgenda() {
+          const el = document.getElementById('jdKalAgenda');
+          if (!el || !_jdKalSelected) return;
+
+          const ev = _jdKalEvtMap[_jdKalSelected] || { aktual: [], jadwal: [] };
+          const parts = _jdKalSelected.split('-');
+          const dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+          const BULAN_SINGKAT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+          
+          const isSelectedToday = (new Date().toDateString() === dt.toDateString());
+
+          const items = [];
+
+          ev.aktual.forEach(function(x) {
+            let statusText = '';
+            let color = '';
+            let actionBtn = '';
+
+            if (x.status === 'selesai') {
+              statusText = 'Selesai';
+              color = '#10b981';
+            } else if (x.status === 'draft') {
+              statusText = 'Draft (Belum ditutup)';
+              color = '#fbbf24';
+              actionBtn = '<button class="jd-btn-sm" style="background:#fbbf24; margin-top: 6px" onclick="event.stopPropagation(); goPage(\'kbm\')">⚡ Lanjutkan Jurnal</button>';
+            } else if (x.status === 'libur') {
+              statusText = 'Libur: ' + (x.keterangan_libur || 'Libur Resmi');
+              color = '#ef4444';
+            }
+
+            items.push({
+              nama: (x.halaqah && x.halaqah.nama_halaqah) || 'KBM',
+              sub: statusText + (x.materi_belajar ? ' · ' + x.materi_belajar : ''),
+              dot: color,
+              action: actionBtn
+            });
+          });
+
+          ev.jadwal.forEach(function(x) {
+            let actionBtn = '';
+            
+            if (isSelectedToday && !x.tibyan) {
+              if (typeof sesiAktif !== 'undefined' && sesiAktif) {
+                actionBtn = '<button class="jd-btn-sm" style="background:#94a3b8; cursor:not-allowed" onclick="event.stopPropagation(); toast(\'Masih ada sesi draft berjalan di halaqah lain!\', \'warn\')">⚡ Mulai KBM</button>';
+              } else {
+                actionBtn = '<button class="jd-btn-sm" onclick="event.stopPropagation(); mulaiSesiHalaqah(\'' + x.id_halaqah + '\')">⚡ Mulai KBM</button>';
+              }
+            }
+
+            items.push({
+              nama: x.nama,
+              sub: 'Terjadwal · ' + (x.jam_mulai || '—') + (x.jam_selesai ? '-' + x.jam_selesai : ''),
+              dot: '#94a3b8',
+              action: actionBtn
+            });
+          });
+
+          const head = '<div class="dash-cal-agenda-head">' + dt.getDate() + ' ' + BULAN_SINGKAT[dt.getMonth()] + ' ' + dt.getFullYear() + '</div>';
+          if (!items.length) {
+            el.innerHTML = head + '<div class="dash-cal-agenda-empty">Tidak ada kegiatan KBM</div>';
+            return;
+          }
+
+          el.innerHTML = head + items.map(function(it) {
+            return '<div class="dash-cal-evt"><span class="dash-cal-evt-dot" style="background:' + it.dot + '"></span>'
+              + '<div><div class="dash-cal-evt-name">' + esc(it.nama) + '</div>'
+              + '<div class="dash-cal-evt-time">' + esc(it.sub) + '</div>'
+              + (it.action ? '<div>' + it.action + '</div>' : '')
+              + '</div></div>';
+          }).join('');
+        }
+
+        function updateJdKalStats() {
+          let selesai = 0, draft = 0, libur = 0;
+          _jdKalKbmRows.forEach(function(x) {
+            if (x.status === 'selesai') selesai++;
+            else if (x.status === 'draft') draft++;
+            else if (x.status === 'libur') libur++;
+          });
+
+          const sEl = document.getElementById('jdStatSelesai');
+          const dEl = document.getElementById('jdStatDraft');
+          const lEl = document.getElementById('jdStatLibur');
+
+          if (sEl) sEl.textContent = selesai;
+          if (dEl) dEl.textContent = draft;
+          if (lEl) lEl.textContent = libur;
+        }
+
+        window.jdKalNav = function(dir) {
+          _jdKalDate.setMonth(_jdKalDate.getMonth() + dir);
+          _jdKalSelected = null;
+          window.initJdBulanan();
+        };
+
+        window.pilihJdTanggal = function(dateStr) {
+          _jdKalSelected = dateStr;
+          renderJdBulanan();
         };
       })();
       </script>
@@ -3666,23 +4181,27 @@ html.theme-dark .rt-surat-tbl th {
             <div class="pd-step-d">Sidebar → <strong>Ganti Password</strong> → isi password lama → baru (min. 6 karakter) → konfirmasi → Simpan.</div>
           </div></div>
 
-          <!-- 2. Jadwal KBM Pekanan -->
-          <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-a">📅</div><div style="flex:1"><div class="pd-acc-title">Jadwal KBM Pekanan & Statis</div><div class="pd-acc-sub">Cara melihat jadwal mingguan dan mengunduh versi statis</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+          <!-- 2. Jadwal KBM (Pekanan & Bulanan Saya) -->
+          <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-a">📅</div><div style="flex:1"><div class="pd-acc-title">Jadwal KBM (Pekanan & Bulanan Saya)</div><div class="pd-acc-sub">Cara melihat jadwal mingguan dan agenda kalender bulanan pengajar</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
           <div class="pd-acc-body"><div class="pd-sep"></div>
-            <div class="pd-step-d">Aplikasi menyediakan halaman khusus untuk melihat <strong>Jadwal KBM Pekanan</strong> yang diperbarui secara langsung (live) dari database. Tampilan ini didesain <em>mobile-first</em> agar nyaman dibuka melalui HP.</div>
+            <div class="pd-step-d">Aplikasi menyediakan fitur jadwal KBM terpadu yang diperbarui secara langsung (live) dari database. Halaman ini terbagi menjadi dua tab tampilan utama:</div>
+            
             <div class="pd-hr"></div>
-            <span class="pd-lbl">Fitur Utama</span>
+            <span class="pd-lbl">🗓️ Jadwal KBM Pekanan</span>
             <div class="pd-step-d">
-              • <strong>Accordion per Hari:</strong> Jadwal dikelompokkan Senin–Ahad. Cukup ketuk nama hari untuk membuka/menutup sesi.<br>
-              • <strong>Tandai Halaqah Anda:</strong> Halaqah Anda secara otomatis ditandai bintang (<span class="pd-badge pd-bg-b">★ Halaqah Anda</span>) dan latar biru.<br>
-              • <strong>Jadwal Gabungan At-Tibyan:</strong> Kajian mingguan At-Tibyan terjadwal setiap <strong>Ahad pukul 19:30–21:00</strong>.
+              • <strong>Accordion per Hari:</strong> Jadwal dikelompokkan Senin–Ahad. Ketuk nama hari untuk membuka/menutup sesi.<br>
+              • <strong>Filter Halaqah Saya:</strong> Centang kotak untuk menyembunyikan halaqah lain.<br>
+              • <strong>Tandai Halaqah Anda:</strong> Halaqah Anda ditandai bintang (<span class="pd-badge pd-bg-g">★ Halaqah Anda</span>) dan latar biru.<br>
+              • <strong>Pintasan Mulai KBM:</strong> Pada hari KBM berjalan, tombol <strong>⚡ Mulai KBM</strong> atau <strong>⚡ Lanjutkan Jurnal</strong> akan muncul langsung di dalam daftar jadwal.
             </div>
+
             <div class="pd-hr"></div>
-            <span class="pd-lbl">Mengunduh & Mengedit Versi Statis</span>
-            <div class="pd-steps">
-              <div class="pd-step"><div class="pd-step-n">1</div><div><div class="pd-step-t">Unduh dari Live Schedule</div><div class="pd-step-d">Buka halaman <code>jadwal-kbm.html</code> → ketuk <strong>⬇️ Unduh HTML statis (terisi)</strong>.</div></div></div>
-              <div class="pd-step"><div class="pd-step-n">2</div><div><div class="pd-step-t">Buka Berkas</div><div class="pd-step-d">Buka berkas <code>jadwal-kbm-statis.html</code> di browser secara offline (tanpa login).</div></div></div>
-              <div class="pd-step"><div class="pd-step-n">3</div><div><div class="pd-step-t">Edit & Cetak</div><div class="pd-step-d">Klik/ketuk teks jam atau detail sesi untuk mengedit langsung di browser, lalu ketuk <strong>🖨️ Cetak / PDF</strong>.</div></div></div>
+            <span class="pd-lbl">📅 Kalender Bulanan Saya</span>
+            <div class="pd-step-d">
+              • <strong>Kalender Interaktif:</strong> Menampilkan grid kalender satu bulan penuh khusus jadwal Anda.<br>
+              • <strong>Titik Warna Status KBM:</strong> <strong>Hijau</strong> (Selesai), <strong>Kuning</strong> (Draft), <strong>Merah</strong> (Libur), dan <strong>Abu-abu</strong> (Terjadwal/Rutin).<br>
+              • <strong>Detail Agenda & Pintasan:</strong> Ketuk tanggal untuk melihat agenda di bagian bawah. Jika hari ini, Anda bisa menekan tombol pintasan <strong>⚡ Mulai KBM</strong> langsung dari panel agenda.<br>
+              • <strong>Statistik Bulanan:</strong> Menampilkan total KBM Selesai, Draft, dan Libur di bagian bawah kalender.
             </div>
           </div></div>
 
