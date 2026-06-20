@@ -1,6 +1,6 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v8.2 — caching konservatif, percobaan terbatas
+//  Cache version: v8.3 — caching konservatif + offline HTML fallback
 // ============================================================
 //
 //  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze
@@ -16,12 +16,14 @@
 //      di window waktu yang sama (race condition utama versi lama).
 //   2. HANYA mencegat aset statis SAME-ORIGIN di /assets/ (font,
 //      gambar, css) dengan stale-while-revalidate.
-//   3. Halaman HTML (index/guru/murid/admin) & SEMUA request
-//      cross-origin (Supabase API, font CDN Google) TIDAK PERNAH
-//      dicegat — selalu langsung ke network seperti website biasa.
-//      (Auth/login harus selalu fresh dari network, tidak boleh
-//      tersangkut logika cache apapun.)
-//   4. Method selain GET tidak pernah disentuh.
+//   3. Halaman HTML (index/guru/murid/admin) di-cache dengan strategi
+//      Network-First. Saat online selalu mengambil versi fresh dari
+//      network dan memperbarui cache, saat offline/tidak ada jaringan
+//      maka akan fallback ke cache sehingga PWA tetap berfungsi dan
+//      tidak memunculkan game dino Chrome.
+//   4. Request cross-origin (Supabase API) TIDAK PERNAH dicegat —
+//      selalu langsung ke network seperti website biasa.
+//   5. Method selain GET tidak pernah disentuh.
 //
 //  STATUS: PERCOBAAN — pantau beberapa hari di berbagai browser
 //  (terutama Safari/WebKit) sebelum dianggap final. Jika muncul lagi
@@ -29,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.2';
+const CACHE_NAME = 'halaqah-v8.3';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {
@@ -58,15 +60,41 @@ self.addEventListener('fetch', function(e) {
   // Hanya GET yang boleh disentuh — POST/PUT/PATCH selalu lewat network.
   if (req.method !== 'GET') return;
 
-  // Hanya same-origin /assets/ (font lokal, gambar, css) yang di-cache.
-  // Halaman HTML, Supabase API, font CDN Google — semua dilewatkan
-  // begitu saja agar selalu fresh dari network (terutama untuk auth/login).
+  var pathname = new URL(url).pathname;
+  var cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  var isHtmlPage = url.indexOf(self.location.origin) === 0 && (
+    cleanPath === BASE ||
+    cleanPath === BASE + '/index.html' ||
+    cleanPath === BASE + '/guru' ||
+    cleanPath === BASE + '/guru/index.html' ||
+    cleanPath === BASE + '/murid' ||
+    cleanPath === BASE + '/murid/index.html' ||
+    cleanPath === BASE + '/install.html'
+  );
+
+  // 1. Strategi Network-First untuk halaman HTML utama agar bisa dibuka offline
+  if (isHtmlPage) {
+    e.respondWith(
+      fetch(req).then(function(res) {
+        if (res && res.ok) {
+          var resClone = res.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(req, resClone);
+          });
+        }
+        return res;
+      }).catch(function() {
+        return caches.match(req);
+      })
+    );
+    return;
+  }
+
+  // 2. Hanya same-origin /assets/ (font lokal, gambar, css) yang di-cache dengan Stale-While-Revalidate
   var isSameOriginAsset = url.indexOf(self.location.origin) === 0
     && url.indexOf(BASE + '/assets/') !== -1;
   if (!isSameOriginAsset) return;
 
-  // Stale-While-Revalidate: tampilkan dari cache jika ada (instan),
-  // sambil ambil versi terbaru di background untuk request berikutnya.
   e.respondWith(
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.match(req).then(function(cached) {
