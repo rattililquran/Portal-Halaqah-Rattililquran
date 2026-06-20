@@ -9632,28 +9632,50 @@ async function bukaRiwayatKoreksi(id_murid, nama_murid) {
   }
 }
 
-// ══ #10 AUTO-REFRESH (5 menit) ══════════
+// ══ #10 AUTO-REFRESH (2 menit, tampil 5 detik) ══════════
 var _rfInterval = null, _rfLast = null;
 function startAutoRefresh() {
   clearInterval(_rfInterval);
   _rfLast = new Date();
   var badge = document.getElementById('refreshBadge');
-  if (badge) badge.classList.add('show');
-  _rfInterval = setInterval(function() {
+  
+  // Tampilkan 5 detik saja saat awal login / load
+  if (badge) {
     var el = document.getElementById('refreshTxt');
-    var menit = Math.round((new Date() - _rfLast) / 60000);
-    if (menit >= 5) {
-      var dot = document.getElementById('refreshDot');
-      if (dot) dot.style.animation = 'dotWave 1s infinite';
-      loadJadwal().then(function() {
-        _rfLast = new Date();
-        if (el) el.textContent = 'Baru sinkron';
-        if (dot) dot.style.animation = '';
-      }).catch(function(){});
-    } else {
-      if (el) el.textContent = menit <= 0 ? 'Baru sinkron' : 'Sinkron ' + menit + ' menit lalu';
-    }
-  }, 30000);
+    if (el) el.textContent = 'Baru sinkron';
+    badge.classList.add('show');
+    setTimeout(function() {
+      badge.classList.remove('show');
+    }, 5000);
+  }
+  
+  _rfInterval = setInterval(function() {
+    var badge = document.getElementById('refreshBadge');
+    var el = document.getElementById('refreshTxt');
+    var dot = document.getElementById('refreshDot');
+    
+    // Tampilkan badge & animasi saat menyinkronkan
+    if (badge) badge.classList.add('show');
+    if (el) el.textContent = 'Menyinkronkan...';
+    if (dot) dot.style.animation = 'dotWave 1s infinite';
+    
+    loadJadwal().then(function() {
+      _rfLast = new Date();
+      if (el) el.textContent = 'Baru sinkron';
+      if (dot) dot.style.animation = '';
+      
+      // Sembunyikan setelah 5 detik
+      setTimeout(function() {
+        if (badge) badge.classList.remove('show');
+      }, 5000);
+    }).catch(function() {
+      if (dot) dot.style.animation = '';
+      if (el) el.textContent = 'Gagal sinkron';
+      setTimeout(function() {
+        if (badge) badge.classList.remove('show');
+      }, 5000);
+    });
+  }, 120000); // Setiap 2 menit (120000 ms)
 }
 
 // ══ #14 SESSION TIMEOUT (8 jam) ═════════
