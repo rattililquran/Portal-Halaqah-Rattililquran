@@ -2223,6 +2223,7 @@ html.theme-dark .rt-surat-tbl th {
       </div>
       <div class="sb-section">Utama</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni">🏠</span>Dashboard</button>
+      <button class="nav-btn" onclick="goPage('jadwal')" data-p="jadwal"><span class="ni">🗓️</span>Jadwal KBM</button>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni">👥</span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni">🚨</span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('assessment')" data-p="assessment"><span class="ni">✍️</span>Assessment</button>
@@ -2846,6 +2847,157 @@ html.theme-dark .rt-surat-tbl th {
           </div>
         </div>
       </div>
+
+      <!-- ════ JADWAL KBM PEKANAN ════ -->
+      <style>
+        .jd-meta{font-size:12.5px;color:var(--text-3);margin-bottom:12px}
+        .jd-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:14px;font-size:11px;color:var(--text-3)}
+        .jd-legend .lg{display:inline-flex;align-items:center;gap:5px}
+        .jd-legend .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+        .jd-acc{display:flex;flex-direction:column;gap:8px}
+        .jd-day{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+        .jd-day.today{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue) inset}
+        .jd-chip{width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;border:0;background:transparent;cursor:pointer;font-family:inherit;text-align:left}
+        .jd-chip:active{background:rgba(0,0,0,.03)}
+        .jd-name{font-weight:800;font-size:14.5px;color:var(--text)}
+        .jd-today-tag{font-size:9.5px;font-weight:800;color:#fff;background:var(--blue);padding:2px 7px;border-radius:999px}
+        .jd-count{margin-left:auto;font-size:11px;font-weight:700;color:var(--blue-d);background:var(--blue-l);padding:3px 9px;border-radius:999px;white-space:nowrap}
+        .jd-count.libur{color:var(--text-3);background:rgba(0,0,0,.05)}
+        .jd-chev{transition:transform .2s ease;color:var(--text-3);flex:0 0 auto;display:flex}
+        .jd-day.open .jd-chev{transform:rotate(90deg)}
+        .jd-body{display:none;padding:2px 11px 12px}
+        .jd-day.open .jd-body{display:block}
+        .jd-sesi{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.025);border-left:3px solid var(--c,var(--blue));margin-top:7px}
+        .jd-sesi.mine{background:var(--blue-l)}
+        .jd-time{font-weight:800;font-size:11.5px;color:var(--c,var(--blue));white-space:nowrap;line-height:1.5;padding-top:1px}
+        .jd-info{min-width:0;flex:1}
+        .jd-nm{font-weight:700;font-size:13.5px;color:var(--text);line-height:1.25}
+        .jd-gr{font-size:11.5px;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+        .jd-tags{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
+        .jd-tag{font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;background:rgba(0,0,0,.05);color:var(--text-2)}
+        .jd-tag.mine{background:var(--blue);color:#fff}
+        .jd-tag.murid{background:transparent;border:1px solid var(--border);color:var(--text-3)}
+        .jd-empty{padding:14px;text-align:center;color:var(--text-3);font-size:12.5px}
+        html.theme-dark .jd-chip:active{background:rgba(255,255,255,.04)}
+        html.theme-dark .jd-sesi{background:rgba(255,255,255,.03)}
+        html.theme-dark .jd-tag{background:rgba(255,255,255,.07)}
+      </style>
+      <div class="page" id="page-jadwal">
+        <div style="font-size:19px;font-weight:800;margin-bottom:4px">Jadwal KBM Pekanan</div>
+        <div class="jd-meta">Ketuk hari untuk membuka jadwalnya. <span id="jdMeta"></span></div>
+        <div class="jd-legend" id="jdLegend"></div>
+        <div class="jd-acc" id="jdAcc"></div>
+      </div>
+
+      <script>
+      (function(){
+        const JD_DATA = [
+          {nama:"Abu Bakar",guru:"Al-Ustadz Umar Abdul Aziz",level:"Level Qiyam",hari:"Selasa Rabu Jum'at",mulai:"03:00",selesai:"04:00",murid:6},
+          {nama:"Adh-Dhuha",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 2",hari:"Sabtu Ahad",mulai:"07:00",selesai:"08:30",murid:11},
+          {nama:"Al-Fatihah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 2",hari:"Selasa Kamis",mulai:"09:00",selesai:"10:30",murid:9},
+          {nama:"Al-Isra",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"05:30",selesai:"07:00",murid:12},
+          {nama:"Al-Kautsar",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 3",hari:"Sabtu Ahad",mulai:"05:30",selesai:"07:00",murid:14},
+          {nama:"Al-Lail",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 2",hari:"Senin Selasa",mulai:"19:30",selesai:"21:00",murid:11},
+          {nama:"Al-Maidah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 2",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:9},
+          {nama:"Al-Muddatstsir",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level Qiyam",hari:"Kamis Jum'at",mulai:"03:00",selesai:"04:30",murid:10},
+          {nama:"Al-Mukminun",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 3",hari:"Senin Selasa",mulai:"19:30",selesai:"21:00",murid:16},
+          {nama:"Al-Muzzammil",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level Qiyam",hari:"Selasa Rabu",mulai:"03:00",selesai:"04:30",murid:10},
+          {nama:"An-Najm",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 2",hari:"Kamis Jum'at",mulai:"15:40",selesai:"17:10",murid:9},
+          {nama:"An-Nisa",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 2",hari:"Senin Selasa",mulai:"18:30",selesai:"20:00",murid:8},
+          {nama:"An-Nuur",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 2",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:10},
+          {nama:"Ar-Rahman",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Sabtu Ahad",mulai:"08:30",selesai:"10:00",murid:7},
+          {nama:"Asma",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 1",hari:"Rabu Jum'at",mulai:"18:30",selesai:"20:00",murid:13},
+          {nama:"Az-Zumar",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:7},
+          {nama:"Fatimah",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Senin Rabu",mulai:"09:00",selesai:"10:30",murid:10},
+          {nama:"Hafshah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Senin Selasa",mulai:"05:30",selesai:"07:00",murid:13},
+          {nama:"Khadijah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 1",hari:"Senin Kamis",mulai:"15:30",selesai:"17:00",murid:11},
+          {nama:"Khaulah",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 4",hari:"Kamis Jum'at",mulai:"19:30",selesai:"21:00",murid:13},
+          {nama:"Maryam",guru:"Al-Ustadzah Annisa Rizkya Rahmawati",level:"Level 1",hari:"Rabu Jum'at",mulai:"15:00",selesai:"16:30",murid:10},
+          {nama:"Rumaysho",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Rabu Jum'at",mulai:"19:30",selesai:"21:00",murid:12},
+          {nama:"Sahlah",guru:"Al-Ustadzah Adissa Fitria Alkautsar",level:"Level 1",hari:"Selasa Kamis",mulai:"08:00",selesai:"09:30",murid:10},
+          {nama:"Shafiyyah",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 2",hari:"Selasa Rabu",mulai:"19:30",selesai:"21:00",murid:12},
+          {nama:"Sumayyah",guru:"Al-Ustadzah Aulia Rahmiza",level:"Level 3",hari:"Sabtu Ahad",mulai:"05:30",selesai:"07:00",murid:12},
+          {nama:"Umar Bin Khattab",guru:"Al-Ustadz Umar Abdul Aziz",level:"Level 1",hari:"Senin Jum'at",mulai:"19:30",selesai:"21:00",murid:10},
+          {nama:"Ummu Salamah",guru:"Al-Ustadzah Nurul Hidayatul Ulum",level:"Level 3",hari:"Selasa Rabu",mulai:"19:30",selesai:"21:00",murid:13},
+          {nama:"Zainab",guru:"Al-Ustadzah Ismi Fitrianingsih",level:"Level 3",hari:"Selasa Rabu",mulai:"15:40",selesai:"17:10",murid:10},
+        ];
+        const JD_TIBYAN = {nama:"Kajian At-Tibyan",guru:"Seluruh halaqah · pemateri rotasi",level:"At-Tibyan",mulai:"19:30",selesai:"21:00",tibyan:true};
+
+        const HARI=["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Ahad"];
+        const ALIAS={"minggu":"Ahad","ahad":"Ahad","jumat":"Jumat","jum'at":"Jumat","jum’at":"Jumat"};
+        const LV={"Level 1":"#0ea5e9","Level 2":"#8b5cf6","Level 3":"#f59e0b","Level 4":"#ef4444","Level Qiyam":"#10b981","At-Tibyan":"#6366f1"};
+        function lvColor(l){return LV[l]||"#0ea5e9";}
+        function parseHari(h){
+          return String(h||"").split(/[\s,/&]+/).map(function(t){
+            var k=t.trim().toLowerCase(); if(!k) return null;
+            if(ALIAS[k]) return ALIAS[k];
+            return HARI.find(function(d){return d.toLowerCase()===k;})||null;
+          }).filter(Boolean);
+        }
+        var _rendered=false;
+
+        window.initJadwalPage=function(){
+          if(_rendered) return; _rendered=true;
+
+          // nama halaqah milik guru yang login (untuk ditandai)
+          var mine={};
+          try{ var _hl=(typeof halaqahList!=='undefined'&&halaqahList)||[]; _hl.forEach(function(h){ if(h&&h.nama_halaqah) mine[h.nama_halaqah.trim().toLowerCase()]=true; }); }catch(e){}
+
+          var byDay={}; HARI.forEach(function(h){byDay[h]=[];});
+          JD_DATA.forEach(function(k){ parseHari(k.hari).forEach(function(d){ if(byDay[d]) byDay[d].push(k); }); });
+          byDay["Ahad"].push(JD_TIBYAN);
+          Object.keys(byDay).forEach(function(d){ byDay[d].sort(function(a,b){return String(a.mulai).localeCompare(String(b.mulai));}); });
+
+          var todayIdx=new Date().getDay();           // 0=Ahad..6=Sabtu
+          var todayName=["Ahad","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][todayIdx];
+
+          var chev='<svg class="jd-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+          var html="";
+          HARI.forEach(function(h){
+            var items=byDay[h];
+            var isToday=(h===todayName);
+            var cntTxt=items.length?(items.length+" sesi"):"libur";
+            var body="";
+            if(items.length){
+              body=items.map(function(k){
+                var c=lvColor(k.level);
+                var jam=(k.mulai&&k.selesai)?(k.mulai+"–"+k.selesai):(k.mulai||"—");
+                var isMine=!k.tibyan && mine[String(k.nama).trim().toLowerCase()];
+                var tags="";
+                if(k.tibyan){ tags='<span class="jd-tag">Pekanan</span><span class="jd-tag">Gabungan</span>'; }
+                else{
+                  tags='<span class="jd-tag">'+k.level+'</span>';
+                  if(k.murid) tags+='<span class="jd-tag murid">'+k.murid+' murid</span>';
+                  if(isMine) tags+='<span class="jd-tag mine">★ Halaqah Anda</span>';
+                }
+                return '<div class="jd-sesi'+(isMine?' mine':'')+'" style="--c:'+c+'">'
+                  +'<div class="jd-time">'+jam+'</div>'
+                  +'<div class="jd-info"><div class="jd-nm">'+k.nama+'</div>'
+                  +'<div class="jd-gr">'+k.guru+'</div>'
+                  +'<div class="jd-tags">'+tags+'</div></div></div>';
+              }).join("");
+            } else {
+              body='<div class="jd-empty">— Tidak ada KBM —</div>';
+            }
+            html+='<div class="jd-day'+(isToday?' today open':'')+'">'
+              +'<button class="jd-chip" onclick="this.parentNode.classList.toggle(\'open\')">'
+              +'<span class="jd-name">'+h+'</span>'
+              +(isToday?'<span class="jd-today-tag">HARI INI</span>':'')
+              +'<span class="jd-count'+(items.length?'':' libur')+'">'+cntTxt+'</span>'
+              +chev+'</button>'
+              +'<div class="jd-body">'+body+'</div></div>';
+          });
+          document.getElementById('jdAcc').innerHTML=html;
+
+          var totalSesi=JD_DATA.reduce(function(s,k){return s+parseHari(k.hari).length;},0);
+          document.getElementById('jdMeta').textContent=JD_DATA.length+' halaqah · '+totalSesi+' sesi/pekan · +Kajian At-Tibyan tiap Ahad';
+          document.getElementById('jdLegend').innerHTML=Object.keys(LV).map(function(l){
+            return '<span class="lg"><span class="d" style="background:'+LV[l]+'"></span>'+l+'</span>';
+          }).join("");
+        };
+      })();
+      </script>
 
       <!-- ════ ASSESSMENT ════ -->
       <div class="page" id="page-assessment">
@@ -4709,7 +4861,8 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'nilai-manual':'Input Nilai Manual','raport':'Raport Halaqah',password:'Ganti Password',panduan:'Panduan',
   'hafalan-guru':'Input Hafalan Qiyam',
   'raport-tahfidz':'Raport Tahfidz',
-  keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri'};
+  keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri',
+  jadwal:'Jadwal KBM Pekanan'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -4760,6 +4913,7 @@ function goPage(name) {
       });
     }
   }
+  if (name === 'jadwal') initJadwalPage();
   if (name === 'raport') initRaportPage();
   if (name === 'hafalan-guru')   initHafalanGuruPage();
   if (name === 'raport-tahfidz') initRaportTahfidz();
