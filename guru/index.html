@@ -3116,12 +3116,32 @@ html.theme-dark .rt-surat-tbl th {
           }
           
           try {
-            const { data, error } = await window.HQ.supabase
-              .from('halaqah')
-              .select('id_halaqah, nama_halaqah, level, id_guru, nama_guru, jadwal_hari, jam_mulai, jam_selesai, anggota(count)')
-              .eq('status', 'aktif');
+            // Coba panggil RPC get_active_schedules (bypas RLS untuk select kolom non-sensitif)
+            let { data, error } = await window.HQ.supabase.rpc('get_active_schedules');
             
-            if (error) throw error;
+            // Fallback jika RPC belum dideploy di database
+            if (error) {
+              console.warn('[Jadwal] RPC get_active_schedules tidak ditemukan, menggunakan fallback query direct (tergantung RLS):', error.message || error);
+              const fallbackRes = await window.HQ.supabase
+                .from('halaqah')
+                .select('id_halaqah, nama_halaqah, level, id_guru, nama_guru, jadwal_hari, jam_mulai, jam_selesai, anggota(count)')
+                .eq('status', 'aktif');
+              if (fallbackRes.error) throw fallbackRes.error;
+              
+              data = (fallbackRes.data || []).map(function(h) {
+                return {
+                  id_halaqah: h.id_halaqah,
+                  nama_halaqah: h.nama_halaqah,
+                  level: h.level,
+                  id_guru: h.id_guru,
+                  nama_guru: h.nama_guru,
+                  jadwal_hari: h.jadwal_hari,
+                  jam_mulai: h.jam_mulai,
+                  jam_selesai: h.jam_selesai,
+                  murid_count: h.anggota ? (h.anggota[0] ? h.anggota[0].count : 0) : 0
+                };
+              });
+            }
             
             liveHalaqahs = (data || []).map(function(h) {
               return {
@@ -3133,7 +3153,7 @@ html.theme-dark .rt-surat-tbl th {
                 hari: h.jadwal_hari || '',
                 mulai: h.jam_mulai ? h.jam_mulai.substring(0, 5) : '—',
                 selesai: h.jam_selesai ? h.jam_selesai.substring(0, 5) : '',
-                murid: h.anggota ? (h.anggota[0] ? h.anggota[0].count : 0) : 0
+                murid: h.murid_count || 0
               };
             });
             
@@ -5434,7 +5454,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'hafalan-guru':'Input Hafalan Qiyam',
   'raport-tahfidz':'Raport Tahfidz',
   keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri',
-  jadwal:'Jadwal KBM Pekanan'};
+  jadwal:'Jadwal KBM'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
