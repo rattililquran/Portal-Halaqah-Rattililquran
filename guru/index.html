@@ -4874,6 +4874,11 @@ var _ksBulan = null, _ksTahun = null, _ksBusy = false;
 var _KS_NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 var _KS_HARI_FULL = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 function _ksWeekday(t) { return new Date(Date.UTC(+t.slice(0,4), +t.slice(5,7)-1, +t.slice(8,10))).getUTCDay(); }
+// Tanggal "hari ini" dlm zona Asia/Jakarta (selaras mesin rekap _todayJakarta), bukan zona device.
+function _ksTodayJakarta() {
+  try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+  catch (e) { var n = new Date(); return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0'); }
+}
 
 // Warna kotak strip per hari (selaras dengan tab admin). Status paling perlu perhatian menang.
 var _KS_SQ_COLOR = { A:'#ef4444', _DRAFT:'#9ca3af', DS:'#f59e0b', I:'#3b82f6', HP:'#22c55e', H:'#22c55e', L:'#d1d5db' };
@@ -4895,13 +4900,22 @@ function ksNavBulan(delta) {
   loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
 }
 
+// Sisa slot kelas pengganti (kumulatif) untuk halaqah+jenis — selaras dgn gerbang form Buka KBM.
+function _ksSisaPengganti(id_halaqah, jenis) {
+  var h = (typeof jadwalData !== 'undefined' && jadwalData) ? jadwalData.find(function(x){ return x.id_halaqah === id_halaqah; }) : null;
+  if (!h || !h.sisa_pengganti) return 0;
+  return h.sisa_pengganti[jenis || 'KBM Reguler'] || 0;
+}
+
 // Buka/tutup daftar rincian sesi (tertutup default agar hemat ruang dashboard).
+var _ksDetailOpen = false;   // dipertahankan antar-reload kartu
 function ksToggleDetail() {
   var list  = document.getElementById('ksDetailList');
   var caret = document.getElementById('ksDetailCaret');
   var btn   = document.getElementById('ksDetailToggle');
   if (!list) return;
   var open = list.style.display !== 'none';
+  _ksDetailOpen = !open;
   list.style.display = open ? 'none' : '';
   if (caret) caret.style.transform = open ? '' : 'rotate(90deg)';
   if (btn) btn.setAttribute('aria-expanded', String(!open));
@@ -4930,8 +4944,7 @@ function ksBukaSusulan(id_halaqah, jenis) {
   }
   var tgl = document.getElementById('kbmTanggal');
   if (tgl && !tgl.value) {
-    var n = new Date();
-    tgl.value = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+    tgl.value = _ksTodayJakarta();
   }
   // Centang "Kelas Pengganti" bila slot pengganti tersedia (wrap tampil saat sisa_pengganti > 0).
   var cb = document.getElementById('kbmIsPengganti');
@@ -4940,7 +4953,8 @@ function ksBukaSusulan(id_halaqah, jenis) {
     cb.checked = true;
     toast('Kelas pengganti: halaqah terisi & ditandai pengganti. Pilih tanggal pelaksanaan lalu buka sesi. 🤲', 'ok');
   } else {
-    toast('Buka sesi pengganti untuk halaqah ini. Centang "Kelas Pengganti" bila tersedia.', 'ok');
+    // Tak ada slot pengganti → memperingatkan agar tidak terlanjur membuka sesi reguler biasa.
+    toast('Tidak ada slot kelas pengganti untuk halaqah ini. Jika tetap dibuka, akan tercatat sebagai sesi biasa (tidak menebus Izin).', 'warn');
   }
   var form = document.getElementById('formBukaKBM'); if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -5072,7 +5086,7 @@ async function loadKehadiranSaya(opts) {
 
     // Strip harian
     var U = window.HQ.AbsensiGuruUtil;
-    var today = new Date(); var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    var todayStr = _ksTodayJakarta();
     var sq = (d.tanggal_list || []).map(function(t) {
       var units = (me.cells && me.cells[t]) || [];
       if (t > todayStr) return '';                          // sembunyikan tanggal yang belum tiba
@@ -5126,7 +5140,9 @@ async function loadKehadiranSaya(opts) {
               '<button type="button" class="ks-izin-btn" onclick="ksTandaiIzin(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\',\'' + esc(jzn) + '\')">✉️ Tandai Izin (uzur)</button>' +
               '<button type="button" class="ks-susul-btn" disabled title="Tandai Izin dulu agar bisa dibuatkan kelas pengganti" style="opacity:.45;cursor:not-allowed">▶ Buka sesi susulan</button>' +
             '</div>';
-          } else if (u.status === 'I' && (me.hutang && me.hutang.sisa > 0)) {
+          } else if (u.status === 'I' && _ksSisaPengganti(u.id_halaqah, jzn) > 0) {
+            // Hanya tampil bila benar ada slot pengganti utk halaqah+jenis ini (selaras form),
+            // agar tidak "salah jalan" jadi sesi reguler biasa.
             actions = '<div class="ks-dr-actions">' +
               '<button type="button" class="ks-susul-btn" onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(jzn) + '\')">▶ Buka sesi susulan</button>' +
             '</div>';
@@ -5146,11 +5162,11 @@ async function loadKehadiranSaya(opts) {
       }).join('');
       detailHtml =
         '<div class="ks-detail">' +
-          '<button type="button" class="ks-detail-toggle" id="ksDetailToggle" aria-expanded="false" onclick="ksToggleDetail()">' +
+          '<button type="button" class="ks-detail-toggle" id="ksDetailToggle" aria-expanded="' + (_ksDetailOpen ? 'true' : 'false') + '" onclick="ksToggleDetail()">' +
             '<span class="ks-strip-ttl" style="margin:0">📋 Rincian sesi · ' + detUnits.length + ' sesi</span>' +
-            '<span class="ks-caret" id="ksDetailCaret">▸</span>' +
+            '<span class="ks-caret" id="ksDetailCaret"' + (_ksDetailOpen ? ' style="transform:rotate(90deg)"' : '') + '>▸</span>' +
           '</button>' +
-          '<div class="ks-detail-list" id="ksDetailList" style="display:none">' + rowsHtml + '</div>' +
+          '<div class="ks-detail-list" id="ksDetailList"' + (_ksDetailOpen ? '' : ' style="display:none"') + '>' + rowsHtml + '</div>' +
         '</div>';
     }
 
@@ -5161,16 +5177,15 @@ async function loadKehadiranSaya(opts) {
         '<span class="ic">⏳</span><div><strong>' + me.perlu_ditutup + ' sesi lampau belum ditutup.</strong> ' +
         'Sesi ini belum dihitung sampai kamu tuntaskan penilaiannya.</div></div>';
     }
+    // Konsisten dgn logika %: hanya Izin yang ditebus pengganti yang dikecualikan (izinDiganti = min(HP,I)).
+    var izinSisa = Math.max(0, me.I - me.HP);   // Izin yang belum ditebus pengganti
     if (izinDiganti > 0) {
       callouts += '<div class="ks-callout" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">' +
         '<span class="ic">✅</span><div><strong>' + izinDiganti + ' Izin sudah ditebus kelas pengganti</strong> — tidak menurunkan persentase kehadiranmu.</div></div>';
     }
-    var h = me.hutang || { izin_alpa: 0, diganti: 0, sisa: 0 };
-    if (h.izin_alpa > 0) {
-      var sisaCol = h.sisa > 0 ? '#b45309' : '#16a34a';
-      callouts += '<div class="ks-callout" style="background:#f8fafc;color:var(--text-2);border:1px solid var(--border)">' +
-        '<span class="ic">🔁</span><div>Izin/Alpa <strong>' + h.izin_alpa + '</strong> · sudah diganti <strong>' + h.diganti +
-        '</strong> · sisa perlu diganti <strong style="color:' + sisaCol + '">' + h.sisa + '</strong></div></div>';
+    if (izinSisa > 0) {
+      callouts += '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
+        '<span class="ic">🔁</span><div>Masih ada <strong>' + izinSisa + ' Izin</strong> yang perlu ditebus dengan kelas pengganti agar tidak menurunkan persentase.</div></div>';
     }
 
     // Ringkasan per halaqah — kehadiran tiap halaqah + deteksi jadwal basi (Alpa berulang, tanpa sesi).
@@ -5210,7 +5225,8 @@ async function loadKehadiranSaya(opts) {
       '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
       '<strong>Kehadiran</strong> = hadir dibanding seluruh sesi yang seharusnya kamu ampu (Alpa menurunkannya; ' +
       'Izin yang sudah ditebus kelas pengganti tidak dihitung). ' +
-      '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
+      '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit. ' +
+      '<span style="color:var(--text-3)">Catatan: kuota kelas pengganti bersifat akumulatif (lintas bulan), sehingga pengganti yang ditunaikan bulan ini bisa menebus libur bulan sebelumnya.</span></div>';
 
     document.getElementById('ksBody').innerHTML = hero + nudge + statsHtml + hqHtml + stripHtml + detailHtml + callouts + note;
     card.style.display = '';

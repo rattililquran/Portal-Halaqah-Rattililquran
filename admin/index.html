@@ -6061,14 +6061,21 @@ function _abgRenderKpi(data) {
   const issues = guru.filter(_abgIsIssue).length;
   const totA  = guru.reduce((s, g) => s + (g.A || 0), 0);
   const totPt = guru.reduce((s, g) => s + (g.perlu_ditutup || 0), 0);
-  const avg = (arr) => arr.length ? Math.round(arr.reduce((s, v) => s + v, 0) / arr.length) : null;
-  const avgDur = avg(guru.map(g => g.pct_durasi).filter(v => v != null));
-  const avgHad = avg(guru.map(g => g.pct_kehadiran).filter(v => v != null));
+  // I2 — persentase agregat (tertimbang jumlah sesi), bukan rata-rata-dari-rata-rata yang bisa menyesatkan.
+  let durNum = 0, durPen = 0, hadNum = 0, hadPen = 0;
+  guru.forEach(g => {
+    durNum += (g.H || 0) + (g.HP_penuh || 0);
+    durPen += (g.H || 0) + (g.DS || 0) + (g.HP || 0);
+    hadNum += (g.H || 0) + (g.DS || 0) + (g.HP || 0);
+    hadPen += (g.H || 0) + (g.DS || 0) + (g.HP || 0) + (g.I || 0) + (g.A || 0) - (g.izin_diganti || 0);
+  });
+  const avgDur = durPen > 0 ? Math.round(durNum / durPen * 100) : null;
+  const avgHad = hadPen > 0 ? Math.round(hadNum / hadPen * 100) : null;
   const col = (p) => p == null ? 'var(--text-3)' : p >= 90 ? '#16a34a' : p >= 75 ? '#b45309' : '#dc2626';
   const cards = [
     { v: guru.length, l: 'Guru', s: 'terpantau', c: 'var(--blue,#0ea5e9)' },
-    { v: avgDur == null ? '–' : avgDur + '%', l: 'Rata-rata %Durasi', s: 'angka inti', c: col(avgDur) },
-    { v: avgHad == null ? '–' : avgHad + '%', l: 'Rata-rata %Hadir', s: '', c: col(avgHad) },
+    { v: avgDur == null ? '–' : avgDur + '%', l: '%Durasi keseluruhan', s: 'angka inti', c: col(avgDur) },
+    { v: avgHad == null ? '–' : avgHad + '%', l: '%Hadir keseluruhan', s: 'tertimbang sesi', c: col(avgHad) },
     { v: issues, l: 'Guru bermasalah', s: issues ? 'perlu perhatian' : 'aman 🎉', c: issues ? '#dc2626' : '#16a34a' },
     { v: totA, l: 'Total Alpa', s: 'bulan ini', c: totA ? '#dc2626' : '#16a34a' },
     { v: totPt, l: 'Perlu ditutup', s: 'sesi lampau', c: totPt ? '#b45309' : '#16a34a' },
@@ -6078,40 +6085,44 @@ function _abgRenderKpi(data) {
     `<div class="l">${c.l}</div>${c.s ? `<div class="s">${c.s}</div>` : ''}</div>`).join('');
 }
 
-// Deteksi "jadwal basi" — halaqah terjadwal tanpa sesi sama sekali, hanya memproduksi Alpa.
+// Deteksi "jadwal basi" — halaqah terjadwal tanpa sesi & tanpa Izin, hanya memproduksi Alpa.
 function _abgRenderStale(data) {
   const el = document.getElementById('abgStale'); if (!el) return;
   const agg = {};
   (data.guru || []).forEach(g => {
     Object.keys(g.cells || {}).forEach(t => (g.cells[t] || []).forEach(u => {
       if (!u.id_halaqah) return;
-      const a = agg[u.id_halaqah] || (agg[u.id_halaqah] = { nama: u.nama_halaqah || u.id_halaqah, nama_guru: g.nama_guru, A: 0, sesi: 0 });
+      const a = agg[u.id_halaqah] || (agg[u.id_halaqah] = { nama: u.nama_halaqah || u.id_halaqah, nama_guru: g.nama_guru, A: 0, sesi: 0, I: 0 });
       if (u.status === 'A') a.A++;
+      else if (u.status === 'I') a.I++;
       else if (u.status === 'H' || u.status === 'DS' || u.status === 'HP') a.sesi++;
     }));
   });
+  // Hanya yang benar-benar mati: nol sesi, nol Izin/libur (S3 — hindari false-positive halaqah hiatus), ≥3 Alpa.
   const stale = Object.keys(agg).map(id => Object.assign({ id_halaqah: id }, agg[id]))
-    .filter(a => a.sesi === 0 && a.A >= 3).sort((x, y) => y.A - x.A);
+    .filter(a => a.sesi === 0 && a.I === 0 && a.A >= 3).sort((x, y) => y.A - x.A);
   if (!stale.length) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="abg-stale">' +
     `<div class="abg-stale-ttl">⚠️ Jadwal basi terdeteksi (${stale.length})</div>` +
-    '<div class="abg-stale-sub">Halaqah berikut terjadwal tapi <strong>belum pernah ada sesi</strong> bulan ini, sehingga terus memproduksi Alpa palsu yang menggerus kehadiran guru. Bila sudah tidak berjalan, nonaktifkan halaqahnya.</div>' +
+    '<div class="abg-stale-sub">Halaqah berikut terjadwal tapi <strong>belum pernah ada sesi maupun Izin</strong> bulan ini, sehingga terus memproduksi Alpa palsu yang menggerus kehadiran guru. <strong>Hapus jadwal</strong> hanya menghilangkan hari/jam terjadwal (menghentikan Alpa) — halaqah tetap aktif & riwayatnya utuh.</div>' +
     stale.map(a => '<div class="abg-stale-row">' +
       `<div class="nm">${esc(a.nama)} <span style="color:var(--text-3);font-weight:500">· ${esc(a.nama_guru || '-')}</span></div>` +
       `<div class="meta">${a.A} Alpa</div>` +
-      `<button class="btn btn-outline btn-sm" style="color:#b91c1c;border-color:#fca5a5" onclick="abgNonaktifkanJadwal('${esc(a.id_halaqah)}','${esc((a.nama || '').replace(/'/g, ''))}')">🚫 Nonaktifkan</button>` +
+      `<button class="btn btn-outline btn-sm" style="color:#b45309;border-color:#fdba74" onclick="abgHapusJadwal('${esc(a.id_halaqah)}','${esc((a.nama || '').replace(/'/g, ''))}')">🗓️ Hapus jadwal</button>` +
     '</div>').join('') + '</div>';
 }
 
-async function abgNonaktifkanJadwal(id_halaqah, nama) {
+// S2 — bedah: kosongkan jadwal_hari & jam_mulai (hentikan Alpa) tanpa menonaktifkan halaqah,
+// sehingga sesi nyata & data murid di bulan lain tetap utuh (tidak retroaktif).
+async function abgHapusJadwal(id_halaqah, nama) {
   const ok = await showConfirm(
-    'Halaqah "' + nama + '" akan dinonaktifkan dan tidak lagi memproduksi Alpa. Bisa diaktifkan kembali dari menu Halaqah.',
-    { title: 'Nonaktifkan halaqah?', okText: 'Ya, Nonaktifkan', danger: true });
+    'Jadwal (hari & jam) halaqah "' + nama + '" akan dikosongkan agar tidak lagi memproduksi Alpa. Halaqah TETAP aktif dan seluruh riwayat sesinya utuh. Jadwal bisa diisi kembali dari menu Halaqah.',
+    { title: 'Hapus jadwal halaqah?', okText: 'Ya, Hapus Jadwal', danger: true });
   if (!ok) return;
-  showLoad('Menonaktifkan halaqah...');
+  showLoad('Mengosongkan jadwal...');
   try {
-    await window.HQ.AdminAPI.updateHalaqah({ id_halaqah: id_halaqah, status: 'nonaktif' });
-    toast('Halaqah dinonaktifkan', 'ok');
+    await window.HQ.AdminAPI.updateHalaqah({ id_halaqah: id_halaqah, jadwal_hari: null, jam_mulai: null });
+    toast('Jadwal halaqah dikosongkan', 'ok');
     await loadAbsensiGuru();
   } catch (e) { toast('Gagal: ' + e.message, 'err'); }
   finally { hideLoad(); }

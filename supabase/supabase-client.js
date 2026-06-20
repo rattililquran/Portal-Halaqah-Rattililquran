@@ -235,6 +235,9 @@ async function _fetchAbsensiData(opts) {
   var results = await Promise.all([settingP, hqQ, liburQ, ovQ]);
   var settingR = results[0], hqR = results[1], liburR = results[2], ovR = results[3];
   _check(hqR.error, 'absensi:halaqah');
+  // T2 — jangan telan error override secara senyap. Bukan fatal (rekap tetap bisa tampil tanpa
+  // koreksi), tapi peringatkan agar inkonsistensi admin↔guru tidak luput dari perhatian.
+  if (ovR && ovR.error) console.warn('[absensi] gagal membaca override (koreksi admin mungkin tak diterapkan):', ovR.error.message || ovR.error);
 
   var halaqah = hqR.data || [];
   var hqIds = halaqah.map(function(h) { return h.id_halaqah; });
