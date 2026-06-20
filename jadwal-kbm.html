@@ -92,8 +92,9 @@
         <h1>Jadwal KBM Pekanan</h1>
         <div class="sub" id="sub">Memuat data dari Supabase…</div>
       </div>
-      <div class="noprint" style="display:flex;gap:8px">
+      <div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn ghost" onclick="location.reload()">↻ Refresh</button>
+        <button class="btn ghost" id="btnExport" style="display:none" onclick="downloadStatic()">⬇️ Unduh HTML statis (terisi)</button>
         <button class="btn" onclick="window.print()">🖨️ Cetak / PDF</button>
       </div>
     </div>
@@ -141,8 +142,12 @@ function loginPrompt(msg){
     <a class="btn" href="admin/index.html">Buka Portal Admin</a>`);
 }
 
+let LAST_DATA = [];   // halaqah aktif hasil fetch (untuk ekspor statis)
+
 function render(halaqah){
   const aktif = halaqah.filter(h=>h.status==='aktif');
+  LAST_DATA = aktif;
+  const be=document.getElementById('btnExport'); if(be) be.style.display='inline-block';
 
   // assign warna per guru
   const guruColor={}; let ci=0;
@@ -177,7 +182,7 @@ function render(halaqah){
     }
     if(isTibyan){
       body += `<div class="card tibyan-card" style="--c:var(--g-tibyan)">
-        <div class="time">⏰ <span class="editable" contenteditable="true">09:00–10:30</span></div>
+        <div class="time">⏰ <span class="editable" contenteditable="true">19:30–21:00</span></div>
         <div class="name">Kajian At-Tibyan</div>
         <div class="meta">${icoUsers}<span>Seluruh halaqah · pemateri rotasi</span></div>
         <div><span class="pill">Pekanan</span><span class="pill">Gabungan</span></div>
@@ -234,6 +239,34 @@ async function init(){
     showState(`<h2>Terjadi kesalahan</h2><p>${(e&&e.message)||e}</p><a class="btn" href="admin/index.html">Buka Portal Admin</a>`);
   }
 }
+/* ── Unduh versi STATIS sudah terisi 28 halaqah ──────────────────────
+   Ambil template jadwal-kbm-statis.html (same-origin), ganti blok DATA
+   dengan data live, lalu unduh. Hasilnya bisa dibuka tanpa login. */
+async function downloadStatic(){
+  if(!LAST_DATA.length){ alert('Data belum termuat.'); return; }
+  const jamTibyan = (document.querySelector('.tibyan-card .editable')||{}).textContent || '19:30–21:00';
+  const esc = s => String(s==null?'':s).replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  const lines = LAST_DATA
+    .slice()
+    .sort((a,b)=>String(a.nama_halaqah||'').localeCompare(String(b.nama_halaqah||'')))
+    .map(h=>`  {nama:"${esc(h.nama_halaqah)}", guru:"${esc(h.nama_guru)}", level:"${esc(h.level)}", hari:"${esc(h.jadwal_hari)}", mulai:"${esc(h.jam_mulai)}", selesai:"${esc(h.jam_selesai)}", murid:${Number(h.total_murid)||0}},`)
+    .join('\n');
+  try{
+    let tpl = await (await fetch('jadwal-kbm-statis.html', {cache:'no-store'})).text();
+    tpl = tpl.replace(/const DATA = \[[\s\S]*?\n\];/, 'const DATA = [\n'+lines+'\n];');
+    tpl = tpl.replace(/const TIBYAN_JAM = "[^"]*";/, 'const TIBYAN_JAM = "'+esc(jamTibyan.trim())+'";');
+    const blob = new Blob([tpl], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'jadwal-kbm-statis.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  }catch(e){
+    console.error(e);
+    alert('Gagal mengambil template statis. Pastikan jadwal-kbm-statis.html ada di folder yang sama dan diakses dari domain portal.');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
