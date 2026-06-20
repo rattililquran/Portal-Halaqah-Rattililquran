@@ -931,6 +931,27 @@ html.theme-dark .tbl-wrap thead th {
 .abg-detail-chip:hover{filter:brightness(.96)}
 .abg-detail-chip .d{opacity:.65;font-weight:600}
 html.theme-dark .abg-detail-td{background:rgba(255,255,255,.03)}
+/* KPI ringkasan */
+.abg-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin:12px 0 4px}
+.abg-kpi .k{background:var(--card,#fff);border:1px solid var(--border,rgba(0,0,0,.06));border-radius:14px;padding:12px 14px;border-top:3px solid var(--blue,#0ea5e9)}
+.abg-kpi .k .v{font-size:24px;font-weight:900;line-height:1}
+.abg-kpi .k .l{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-top:5px}
+.abg-kpi .k .s{font-size:10.5px;color:var(--text-3);margin-top:2px}
+/* panel jadwal basi */
+.abg-stale{margin-top:12px;border:1px solid #fdba74;background:#fff7ed;border-radius:14px;padding:13px 15px}
+.abg-stale-ttl{font-size:13px;font-weight:800;color:#9a3412;display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.abg-stale-sub{font-size:11.5px;color:#b45309;margin-bottom:9px;line-height:1.45}
+.abg-stale-row{display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:10px;background:rgba(255,255,255,.65);border:1px solid #fed7aa;margin-bottom:6px}
+.abg-stale-row:last-child{margin-bottom:0}
+.abg-stale-row .nm{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.abg-stale-row .meta{font-size:11px;color:#9a3412;flex:0 0 auto}
+.abg-izindiganti{font-size:9.5px;font-weight:800;color:#15803d;vertical-align:super;margin-left:2px}
+.abg-reminder-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding:8px 11px;border-radius:9px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25)}
+.abg-reminder-bar .txt{font-size:11.5px;color:#92400e;font-weight:600}
+.abg-wa-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#25D366;color:#fff;border:0;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none}
+.abg-wa-btn:hover{filter:brightness(.95)}
+html.theme-dark .abg-stale{background:rgba(154,52,18,.15);border-color:rgba(253,186,116,.3)}
+html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgba(253,186,116,.2)}
 
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1525,6 +1546,9 @@ html.theme-dark .abg-detail-td{background:rgba(255,255,255,.03)}
         </div>
         <div class="section-sub">Kehadiran guru dihitung otomatis dari sesi KBM (kecuali Kajian At-Tibyan). Angka inti: <strong>%Durasi tertunaikan</strong> (durasi ≥ ambang). Klik baris guru untuk rincian harian &amp; koreksi (override).</div>
 
+        <!-- Ringkasan KPI (diisi renderAbsensiGuru) -->
+        <div id="abgKpi" class="abg-kpi"></div>
+
         <!-- Kontrol tampilan -->
         <div style="display:flex;gap:10px;margin:12px 0 10px;flex-wrap:wrap;align-items:flex-end">
           <div class="fg" style="margin:0"><label style="font-size:11px">Bulan</label>
@@ -1554,6 +1578,9 @@ html.theme-dark .abg-detail-td{background:rgba(255,255,255,.03)}
           <div style="font-size:10.5px;color:var(--text-3);max-width:300px;line-height:1.4">"Berlaku mulai" mencegah tanggal lampau (sebelum guru rutin mencatat sesi) tertandai Alpa retroaktif.</div>
         </div></div>
 
+        <!-- Panel jadwal basi / Alpa hantu (diisi renderAbsensiGuru) -->
+        <div id="abgStale"></div>
+
         <div class="abg-legend">
           <span class="abg-chip abg-H">H</span> Hadir
           <span class="abg-chip abg-DS">DS</span> Durasi Singkat
@@ -1570,7 +1597,7 @@ html.theme-dark .abg-detail-td{background:rgba(255,255,255,.03)}
               <thead><tr>
                 <th class="abg-name">Guru</th>
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
-                <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A)">%Hadir</th>
+                <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
                 <th class="abg-stripcol">Kehadiran harian (klik baris → rincian)</th>
@@ -5961,8 +5988,17 @@ function _abgDetailHtml(g, data) {
   const units = [];
   Object.keys(g.cells || {}).forEach(t => (g.cells[t] || []).forEach(u => units.push(u)));
   units.sort((a, b) => a.tanggal.localeCompare(b.tanggal) || (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
-  if (!units.length) return '<div style="color:var(--text-3);font-size:12px">Tidak ada sesi/penanda pada bulan ini.</div>';
-  return '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Klik chip untuk koreksi manual (override).</div>' +
+  // Bar pengingat: muncul bila guru punya sesi perlu-ditutup atau Alpa.
+  let reminder = '';
+  if ((g.perlu_ditutup || 0) > 0 || g.A > 0) {
+    const bits = [];
+    if ((g.perlu_ditutup || 0) > 0) bits.push(`<strong>${g.perlu_ditutup}</strong> sesi perlu ditutup`);
+    if (g.A > 0) bits.push(`<strong>${g.A}</strong> Alpa`);
+    reminder = `<div class="abg-reminder-bar"><div class="txt">⚠️ ${esc(g.nama_guru || g.id_guru)}: ${bits.join(' · ')}</div>` +
+      `<button class="abg-wa-btn" onclick="abgKirimPengingat('${esc(g.id_guru)}')">💬 Kirim pengingat WA</button></div>`;
+  }
+  if (!units.length) return reminder + '<div style="color:var(--text-3);font-size:12px">Tidak ada sesi/penanda pada bulan ini.</div>';
+  return reminder + '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Klik chip untuk koreksi manual (override).</div>' +
     units.map(_abgDetailChip).join('');
 }
 
@@ -5973,6 +6009,8 @@ function _abgIsIssue(g) {
 function renderAbsensiGuru() {
   const data = _abgData;
   if (!data) return;
+  _abgRenderKpi(data);
+  _abgRenderStale(data);
   const sortBy = document.getElementById('abgSort').value;
   const onlyIssues = document.getElementById('abgOnlyIssues').checked;
   let guru = (data.guru || []).slice();
@@ -6003,7 +6041,7 @@ function renderAbsensiGuru() {
     html += `<tr class="abg-row" id="abg-row-${idx}" onclick="toggleAbgDetail(${idx})">
       <td class="abg-name"><span class="abg-caret">▸</span> ${esc(g.nama_guru || g.id_guru)}${ptBadge}</td>
       <td>${pctCol(g.pct_durasi)}</td>
-      <td>${pctCol(g.pct_kehadiran)}</td>
+      <td>${pctCol(g.pct_kehadiran)}${(g.izin_diganti||0)>0?`<span class="abg-izindiganti" title="${g.izin_diganti} Izin sudah ditebus kelas pengganti — tidak menggerus %Hadir">✓${g.izin_diganti}</span>`:''}</td>
       <td class="abg-sum">${g.H}</td><td class="abg-sum">${g.DS}</td>
       <td class="abg-sum">${g.I}</td>
       <td class="abg-sum" style="${g.A>0?'color:#dc2626':''}">${g.A}</td>
@@ -6014,6 +6052,93 @@ function renderAbsensiGuru() {
     <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="10">${_abgDetailHtml(g, data)}</td></tr>`;
   });
   body.innerHTML = html;
+}
+
+// Ringkasan KPI — agregat dari seluruh guru (sebelum filter "hanya bermasalah").
+function _abgRenderKpi(data) {
+  const el = document.getElementById('abgKpi'); if (!el) return;
+  const guru = data.guru || [];
+  const issues = guru.filter(_abgIsIssue).length;
+  const totA  = guru.reduce((s, g) => s + (g.A || 0), 0);
+  const totPt = guru.reduce((s, g) => s + (g.perlu_ditutup || 0), 0);
+  const avg = (arr) => arr.length ? Math.round(arr.reduce((s, v) => s + v, 0) / arr.length) : null;
+  const avgDur = avg(guru.map(g => g.pct_durasi).filter(v => v != null));
+  const avgHad = avg(guru.map(g => g.pct_kehadiran).filter(v => v != null));
+  const col = (p) => p == null ? 'var(--text-3)' : p >= 90 ? '#16a34a' : p >= 75 ? '#b45309' : '#dc2626';
+  const cards = [
+    { v: guru.length, l: 'Guru', s: 'terpantau', c: 'var(--blue,#0ea5e9)' },
+    { v: avgDur == null ? '–' : avgDur + '%', l: 'Rata-rata %Durasi', s: 'angka inti', c: col(avgDur) },
+    { v: avgHad == null ? '–' : avgHad + '%', l: 'Rata-rata %Hadir', s: '', c: col(avgHad) },
+    { v: issues, l: 'Guru bermasalah', s: issues ? 'perlu perhatian' : 'aman 🎉', c: issues ? '#dc2626' : '#16a34a' },
+    { v: totA, l: 'Total Alpa', s: 'bulan ini', c: totA ? '#dc2626' : '#16a34a' },
+    { v: totPt, l: 'Perlu ditutup', s: 'sesi lampau', c: totPt ? '#b45309' : '#16a34a' },
+  ];
+  el.innerHTML = cards.map(c =>
+    `<div class="k" style="border-top-color:${c.c}"><div class="v" style="color:${c.c}">${c.v}</div>` +
+    `<div class="l">${c.l}</div>${c.s ? `<div class="s">${c.s}</div>` : ''}</div>`).join('');
+}
+
+// Deteksi "jadwal basi" — halaqah terjadwal tanpa sesi sama sekali, hanya memproduksi Alpa.
+function _abgRenderStale(data) {
+  const el = document.getElementById('abgStale'); if (!el) return;
+  const agg = {};
+  (data.guru || []).forEach(g => {
+    Object.keys(g.cells || {}).forEach(t => (g.cells[t] || []).forEach(u => {
+      if (!u.id_halaqah) return;
+      const a = agg[u.id_halaqah] || (agg[u.id_halaqah] = { nama: u.nama_halaqah || u.id_halaqah, nama_guru: g.nama_guru, A: 0, sesi: 0 });
+      if (u.status === 'A') a.A++;
+      else if (u.status === 'H' || u.status === 'DS' || u.status === 'HP') a.sesi++;
+    }));
+  });
+  const stale = Object.keys(agg).map(id => Object.assign({ id_halaqah: id }, agg[id]))
+    .filter(a => a.sesi === 0 && a.A >= 3).sort((x, y) => y.A - x.A);
+  if (!stale.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="abg-stale">' +
+    `<div class="abg-stale-ttl">⚠️ Jadwal basi terdeteksi (${stale.length})</div>` +
+    '<div class="abg-stale-sub">Halaqah berikut terjadwal tapi <strong>belum pernah ada sesi</strong> bulan ini, sehingga terus memproduksi Alpa palsu yang menggerus kehadiran guru. Bila sudah tidak berjalan, nonaktifkan halaqahnya.</div>' +
+    stale.map(a => '<div class="abg-stale-row">' +
+      `<div class="nm">${esc(a.nama)} <span style="color:var(--text-3);font-weight:500">· ${esc(a.nama_guru || '-')}</span></div>` +
+      `<div class="meta">${a.A} Alpa</div>` +
+      `<button class="btn btn-outline btn-sm" style="color:#b91c1c;border-color:#fca5a5" onclick="abgNonaktifkanJadwal('${esc(a.id_halaqah)}','${esc((a.nama || '').replace(/'/g, ''))}')">🚫 Nonaktifkan</button>` +
+    '</div>').join('') + '</div>';
+}
+
+async function abgNonaktifkanJadwal(id_halaqah, nama) {
+  const ok = await showConfirm(
+    'Halaqah "' + nama + '" akan dinonaktifkan dan tidak lagi memproduksi Alpa. Bisa diaktifkan kembali dari menu Halaqah.',
+    { title: 'Nonaktifkan halaqah?', okText: 'Ya, Nonaktifkan', danger: true });
+  if (!ok) return;
+  showLoad('Menonaktifkan halaqah...');
+  try {
+    await window.HQ.AdminAPI.updateHalaqah({ id_halaqah: id_halaqah, status: 'nonaktif' });
+    toast('Halaqah dinonaktifkan', 'ok');
+    await loadAbsensiGuru();
+  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+// Kirim pengingat WhatsApp ke guru (perlu-ditutup / Alpa / hutang pengganti).
+function abgKirimPengingat(id_guru) {
+  const g = (_abgData && _abgData.guru || []).find(x => x.id_guru === id_guru);
+  if (!g) return;
+  const u = (allUsers || []).find(x => x.id_user === id_guru) || {};
+  let raw = String(u.no_hp || '').replace(/[^0-9]/g, '');
+  if (!raw || raw.length < 9) { toast('Nomor HP guru ini belum tersedia di data pengguna.', 'err'); return; }
+  if (raw.charAt(0) === '0') raw = '62' + raw.slice(1);
+  else if (raw.slice(0, 2) !== '62') raw = '62' + raw;
+  const namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const mb = namaBulan[_abgData.bulan - 1] + ' ' + _abgData.tahun;
+  const lines = [];
+  if ((g.perlu_ditutup || 0) > 0) lines.push('• ' + g.perlu_ditutup + ' sesi lampau *belum ditutup* — mohon dituntaskan agar nilai murid & kehadiran tercatat');
+  if (g.A > 0) lines.push('• ' + g.A + ' kali *Alpa* — bila ada uzur, mohon tandai Izin lalu tunaikan kelas pengganti');
+  if (g.hutang && g.hutang.sisa > 0) lines.push('• sisa *' + g.hutang.sisa + '* kelas pengganti yang perlu ditunaikan');
+  if (!lines.length) lines.push('• mohon tetap menjaga kehadiran & ketuntasan sesi');
+  const msg =
+    'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n' +
+    'Ustadz/Ustadzah *' + (g.nama_guru || '') + '*, berikut catatan kehadiran *' + mb + '*:\n' +
+    lines.join('\n') + '\n\n' +
+    'Mohon ditindaklanjuti ya. Jazaakumullahu khairan atas perjuangan mendidik para penghafal Al-Qur\'an. 🤲';
+  window.open('https://wa.me/' + raw + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function toggleAbgDetail(idx) {
