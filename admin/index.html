@@ -953,6 +953,39 @@ html.theme-dark .abg-detail-td{background:rgba(255,255,255,.03)}
 html.theme-dark .abg-stale{background:rgba(154,52,18,.15);border-color:rgba(253,186,116,.3)}
 html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgba(253,186,116,.2)}
 
+/* ── OFFLINE STATUS BANNER ── */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10010;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.offline-banner.show {
+  transform: translateY(0);
+}
+.offline-banner-icon {
+  font-size: 14px;
+  animation: flash-warn 1.5s infinite;
+}
+@keyframes flash-warn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -960,6 +993,12 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
 <meta name="theme-color" content="#169B6B">
 </head>
 <body>
+<!-- OFFLINE BANNER -->
+<div class="offline-banner" id="offlineBanner">
+  <span class="offline-banner-icon">⚠️</span>
+  <span class="offline-banner-text">Koneksi internet terputus. Anda sedang bekerja secara offline.</span>
+</div>
+
 <script>
   if (localStorage.getItem('hq_sidebar_collapsed') === 'true' && window.innerWidth > 768) {
     document.body.classList.add('sidebar-collapsed');
@@ -8726,6 +8765,26 @@ function initThemeToggle() {
 initThemeToggle();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(()=>{});
+
+// Offline indicator listeners
+window.addEventListener('online', function() {
+  var banner = document.getElementById('offlineBanner');
+  if (banner) banner.classList.remove('show');
+  if (typeof toast === 'function') toast('Koneksi terhubung kembali. Menyelaraskan data...', 'ok');
+});
+window.addEventListener('offline', function() {
+  var banner = document.getElementById('offlineBanner');
+  if (banner) banner.classList.add('show');
+  if (typeof toast === 'function') toast('Koneksi internet terputus. Anda bekerja secara offline.', 'warn');
+});
+// Check initial online status
+if (!navigator.onLine) {
+  window.addEventListener('DOMContentLoaded', function() {
+    var banner = document.getElementById('offlineBanner');
+    if (banner) banner.classList.add('show');
+  });
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() { if (typeof initPushPrompt === 'function') initPushPrompt('admin'); }, 5000);
 });
