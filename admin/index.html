@@ -5910,6 +5910,14 @@ async function loadAbsensiGuru() {
   finally { hideLoad(); }
 }
 
+// Nama hari (Asia/Jakarta aman: dibangun dari komponen tanggal murni via UTC).
+const _ABG_HARI_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const _ABG_HARI_FULL  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+function _abgWeekdayIdx(tanggal) {
+  return new Date(Date.UTC(+tanggal.slice(0, 4), +tanggal.slice(5, 7) - 1, +tanggal.slice(8, 10))).getUTCDay();
+}
+function _abgHari(tanggal, full) { return (full ? _ABG_HARI_FULL : _ABG_HARI_SHORT)[_abgWeekdayIdx(tanggal)]; }
+
 // Warna kotak strip per hari — ambil status paling "perlu perhatian" bila >1 sesi/hari.
 const _ABG_SQ_COLOR = { A:'#ef4444', _DRAFT:'#9ca3af', DS:'#f59e0b', I:'#3b82f6', HP:'#22c55e', H:'#22c55e', L:'#d1d5db' };
 const _ABG_SEVERITY = ['A','_DRAFT','DS','I','HP','H','L'];  // kiri = paling perlu perhatian
@@ -5922,15 +5930,16 @@ function _abgDayColor(units) {
 
 function _abgStrip(g, data) {
   let html = '<div class="abg-strip">';
-  (data.tanggal_list || []).forEach(t => {
+  (data.tanggal_list || []).forEach((t, i) => {
     const d = Number(t.slice(8, 10));
-    const wd = new Date(Date.UTC(data.tahun, data.bulan - 1, d)).getUTCDay();
+    const wd = _abgWeekdayIdx(t);
     const units = (g.cells && g.cells[t]) || [];
     const we = (wd === 0 || wd === 6) ? ' we' : '';
+    const sep = (wd === 1 && i > 0) ? 'margin-left:5px;' : '';   // jeda tipis tiap Senin (awal pekan)
     const lbl = units.length
       ? units.map(u => window.HQ.AbsensiGuruUtil.meta(u.status).label + (u.nama_halaqah ? ' · ' + u.nama_halaqah : '')).join(' | ')
       : 'tak ada sesi';
-    html += `<span class="abg-sq${we}" style="background:${_abgDayColor(units)}" title="Tgl ${d}: ${esc(lbl)}"></span>`;
+    html += `<span class="abg-sq${we}" style="${sep}background:${_abgDayColor(units)}" title="${_abgHari(t, true)}, ${d}: ${esc(lbl)}"></span>`;
   });
   return html + '</div>';
 }
@@ -5945,7 +5954,7 @@ function _abgDetailChip(unit) {
     (unit.override ? ' • OVERRIDE (manual)' : '') + (unit.keterangan ? ' • ' + esc(unit.keterangan) : '');
   return `<span class="abg-detail-chip" title="${title}" style="background:${meta.bg};color:${meta.color}${unit.override ? ';outline:1.5px solid #0ea5e9;outline-offset:1px' : ''}"
       onclick="openAbgOverride('${esc(unit.id_guru)}','${esc(unit.id_halaqah)}','${esc(unit.tanggal)}')">
-      <span class="d">${d}</span> ${meta.short}${flags ? '<span class="abg-flag">' + flags + '</span>' : ''}${unit.nama_halaqah ? ' · ' + esc(unit.nama_halaqah) : ''}</span>`;
+      <span class="d">${_abgHari(unit.tanggal)} ${d}</span> ${meta.short}${flags ? '<span class="abg-flag">' + flags + '</span>' : ''}${unit.nama_halaqah ? ' · ' + esc(unit.nama_halaqah) : ''}</span>`;
 }
 
 function _abgDetailHtml(g, data) {
@@ -6033,7 +6042,7 @@ function openAbgOverride(id_guru, id_halaqah, tanggal) {
   const durasi = unit.durasi_menit != null ? unit.durasi_menit + ' menit' : 'tak terukur';
   document.getElementById('abgOvInfo').innerHTML =
     `<strong>${esc(unit.nama_guru || id_guru)}</strong> · ${esc(unit.nama_halaqah)}<br>` +
-    `${fmtDate(tanggal)} · ${esc(unit.jenis_sesi || '')}<br>` +
+    `${_abgHari(tanggal, true)}, ${fmtDate(tanggal)} · ${esc(unit.jenis_sesi || '')}<br>` +
     `Status otomatis: <strong>${meta.label}</strong> · Durasi: ${durasi}` +
     (unit.override ? '<br><span style="color:#0ea5e9">● Saat ini di-override manual</span>' : '');
   // Default pilihan: status override saat ini, atau status otomatis (bila valid sbg override)
