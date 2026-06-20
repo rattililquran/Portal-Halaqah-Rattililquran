@@ -4238,9 +4238,14 @@ var AdminAPI = {
     // Guard: hanya boleh validasi pengajuan yang masih 'menunggu' — cegah validasi ganda
     // (mis. dua admin klik tombol bersamaan, atau klik berulang) yang bisa menimpa
     // validated_by/validated_at dan mengirim notifikasi duplikat ke murid.
-    var { data: updRows, error } = await _sb.from('spp_pembayaran').update({
+    var updateFields = {
       status: aksi, validated_by: _uid(), validated_at: new Date().toISOString(),
-    }).eq('id_spp', id_spp).eq('status','menunggu').select('id_spp');
+    };
+    if (aksi === 'lunas') {
+      updateFields.tanggal_bayar = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    }
+    var { data: updRows, error } = await _sb.from('spp_pembayaran').update(updateFields)
+      .eq('id_spp', id_spp).eq('status','menunggu').select('id_spp');
     _check(error,'validasiSPP');
     if (!updRows || !updRows.length) {
       return { status:'error', message:'Pengajuan ini sudah divalidasi sebelumnya.' };
@@ -4289,6 +4294,7 @@ var AdminAPI = {
     }
     var { data: updRows, error } = await _sb.from('spp_pembayaran').update({
       status: 'menunggu', validated_by: null, validated_at: null, tanggal_bayar: null,
+      mayar_expired_at: null, metode_bayar: 'manual',
     }).eq('id_spp', id_spp).in('status', ['lunas','ditolak']).select('id_spp');
     _check(error,'batalkanValidasiSPP');
     if (!updRows || !updRows.length) {
