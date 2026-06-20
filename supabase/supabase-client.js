@@ -275,6 +275,7 @@ async function _fetchAbsensiData(opts) {
 function _deriveRekapAbsensi(data) {
   var ambang  = data.setting.durasi_minimal_menit || 90;
   var outlier = data.setting.durasi_outlier_menit || 180;
+  var mulai   = data.setting.tanggal_mulai_berlaku || null;  // Alpa hanya utk tgl >= ini (NULL = tanpa batas)
   var today   = _todayJakarta();
   var mm      = String(data.bulan).padStart(2, '0');
 
@@ -345,6 +346,7 @@ function _deriveRekapAbsensi(data) {
     for (var d = 1; d <= data.lastDay; d++) {
       var tgl = data.tahun + '-' + mm + '-' + String(d).padStart(2, '0');
       if (tgl >= today) continue;                          // hanya tanggal yang sudah lewat
+      if (mulai && tgl < mulai) continue;                  // sebelum "berlaku mulai" → tak di-Alpa
       var wd = new Date(Date.UTC(data.tahun, data.bulan - 1, d)).getUTCDay();
       if (hariIdx.indexOf(wd) < 0) continue;               // bukan hari terjadwal
       if (slotOccupied[h.id_halaqah + '|' + tgl]) continue; // sudah ada sesi → bukan Alpa
@@ -426,7 +428,7 @@ function _deriveRekapAbsensi(data) {
 
   return {
     bulan: data.bulan, tahun: data.tahun,
-    ambang: ambang, ambang_wajar: outlier,
+    ambang: ambang, ambang_wajar: outlier, tanggal_mulai_berlaku: mulai,
     tanggal_list: tanggalList, guru: rows,
   };
 }
@@ -3759,12 +3761,16 @@ var AdminAPI = {
   },
   setPengaturanAbsensiGuru: async function(d) {
     d = d || {};
-    var { error } = await _sb.from('pengaturan_absensi_guru').upsert({
+    var row = {
       id: 1,
       durasi_minimal_menit: Number(d.durasi_minimal_menit) || 90,
       durasi_outlier_menit: Number(d.durasi_outlier_menit) || 180,
       updated_at: new Date().toISOString(), updated_by: _uid(),
-    }, { onConflict: 'id' });
+    };
+    // tanggal_mulai_berlaku (patch_050): hanya kirim bila field disertakan,
+    // agar tetap aman bila patch_050 belum dijalankan & field tak diutak-atik.
+    if ('tanggal_mulai_berlaku' in d) row.tanggal_mulai_berlaku = d.tanggal_mulai_berlaku || null;
+    var { error } = await _sb.from('pengaturan_absensi_guru').upsert(row, { onConflict: 'id' });
     _check(error, 'setPengaturanAbsensiGuru');
     return { status: 'ok' };
   },
