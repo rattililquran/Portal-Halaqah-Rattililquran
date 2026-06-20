@@ -2260,6 +2260,20 @@ html.theme-dark .rt-surat-tbl th {
           </div>
         </div>
 
+        <!-- Kehadiran Saya bulan ini (turunan dari sesi KBM) -->
+        <div class="card" id="kehadiranSayaCard" style="margin-bottom:18px;display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text-2)">🗓️ Kehadiran Saya <span id="ksBulanLbl" style="color:var(--text-3);font-weight:500"></span></div>
+            <div id="ksDurasiBadge" style="font-size:12px;font-weight:800"></div>
+          </div>
+          <div id="ksStatGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+          <div id="ksHutang" style="margin-top:10px;font-size:11.5px;color:var(--text-3)"></div>
+          <div id="ksPerluTutup" style="margin-top:6px;font-size:11.5px;color:#b45309;display:none"></div>
+          <div style="margin-top:8px;font-size:10.5px;color:var(--text-3);line-height:1.5">
+            Dihitung otomatis dari sesi KBM yang kamu tutup (kecuali Kajian At-Tibyan). Yang utama: durasi mengajar <strong id="ksAmbangLbl">90</strong> menit tertunaikan.
+          </div>
+        </div>
+
         <!-- Halaqah Saya — gabungan jadwal + halaqah diampu -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:13px;font-weight:700;color:var(--text-2)">📅 Halaqah Saya</div>
@@ -4728,6 +4742,9 @@ async function loadDashboard(silent = false) {
     // Pastikan jadwalList render ulang jika data sudah ada
     if (jadwalData.length) renderJadwal();
 
+    // Kartu "Kehadiran Saya" — background, non-blocking
+    loadKehadiranSaya();
+
     // Load summary keaktifan di background
     window.HQ.GuruAPI.getKeaktifanAlerts().then(function(kr) {
       if (kr.status !== 'ok') return;
@@ -4749,6 +4766,58 @@ async function loadDashboard(silent = false) {
     }).catch(function() {});
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { if (!silent) hideLoad(); }
+}
+
+// Kartu "Kehadiran Saya bulan ini" — turunan dari sesi KBM (RANCANGAN_ABSENSI_GURU.md §7.2).
+async function loadKehadiranSaya() {
+  var card = document.getElementById('kehadiranSayaCard');
+  if (!card) return;
+  try {
+    var r = await window.HQ.GuruAPI.getAbsensiSaya({});
+    var d = r.data, me = d.rekap;
+    var total = me.H + me.DS + me.HP + me.I + me.A + (me.perlu_ditutup || 0);
+    if (total === 0) { card.style.display = 'none'; return; }
+
+    var namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.bulan - 1];
+    document.getElementById('ksBulanLbl').textContent = '· ' + namaBulan + ' ' + d.tahun;
+    document.getElementById('ksAmbangLbl').textContent = d.ambang;
+
+    var pctD = me.pct_durasi;
+    var badge = document.getElementById('ksDurasiBadge');
+    var bcol = pctD == null ? 'var(--text-3)' : pctD >= 90 ? '#16a34a' : pctD >= 75 ? '#b45309' : '#dc2626';
+    badge.style.color = bcol;
+    badge.textContent = (pctD == null ? '–' : pctD + '%') + ' durasi tertunaikan';
+
+    var cells = [
+      { lbl: 'Hadir', val: me.H + me.HP, sub: me.HP ? me.HP + ' pengganti' : '', col: '#16a34a', bg: '#dcfce7' },
+      { lbl: 'Durasi Singkat', val: me.DS, sub: '', col: '#b45309', bg: '#fef3c7' },
+      { lbl: 'Izin', val: me.I, sub: '', col: '#1d4ed8', bg: '#dbeafe' },
+      { lbl: 'Alpa', val: me.A, sub: '', col: '#b91c1c', bg: '#fee2e2' },
+    ];
+    document.getElementById('ksStatGrid').innerHTML = cells.map(function(c) {
+      return '<div style="background:' + c.bg + ';border-radius:10px;padding:8px 6px;text-align:center">' +
+        '<div style="font-size:20px;font-weight:800;color:' + c.col + ';line-height:1.1">' + c.val + '</div>' +
+        '<div style="font-size:10px;font-weight:600;color:' + c.col + '">' + c.lbl + '</div>' +
+        (c.sub ? '<div style="font-size:9px;color:var(--text-3)">' + esc(c.sub) + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    var h = me.hutang || { izin_alpa: 0, diganti: 0, sisa: 0 };
+    var hEl = document.getElementById('ksHutang');
+    if (h.izin_alpa > 0) {
+      hEl.style.display = '';
+      hEl.innerHTML = 'Izin/Alpa: <strong>' + h.izin_alpa + '</strong> · diganti: <strong>' + h.diganti +
+        '</strong> · sisa hutang: <strong style="color:' + (h.sisa > 0 ? '#b45309' : '#16a34a') + '">' + h.sisa + '</strong>';
+    } else { hEl.style.display = 'none'; }
+
+    var ptEl = document.getElementById('ksPerluTutup');
+    if (me.perlu_ditutup > 0) {
+      ptEl.style.display = '';
+      ptEl.textContent = '⏳ ' + me.perlu_ditutup + ' sesi lampau perlu ditutup (tidak masuk hitungan sampai dituntaskan).';
+    } else { ptEl.style.display = 'none'; }
+
+    card.style.display = '';
+  } catch (e) { card.style.display = 'none'; /* senyap; kartu opsional */ }
 }
 
 function hqCard(h) {

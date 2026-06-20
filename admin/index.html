@@ -901,6 +901,24 @@ html.theme-dark .tbl-wrap thead th {
   select, textarea { font-size:16px }
 }
 
+/* ── ABSENSI GURU (matriks) ── */
+.abg-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
+.abg-chip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 5px;border-radius:6px;font-size:11px;font-weight:800;line-height:1}
+.abg-H{background:#dcfce7;color:#15803d}
+.abg-DS{background:#fef3c7;color:#b45309}
+.abg-HP{background:#dcfce7;color:#15803d}
+.abg-I{background:#dbeafe;color:#1d4ed8}
+.abg-A{background:#fee2e2;color:#b91c1c}
+.abg-L{background:#f3f4f6;color:#6b7280}
+.abg-DRAFT{background:#f3f4f6;color:#6b7280;border:1px dashed #cbd5e1}
+#abgTable th,#abgTable td{padding:5px 6px;text-align:center;white-space:nowrap}
+#abgTable td.abg-name,#abgTable th.abg-name{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;font-weight:600}
+#abgTable th.abg-day{font-weight:600;color:var(--text-3);min-width:26px}
+#abgTable th.abg-day.abg-weekend{color:#dc2626}
+.abg-cellbtn{display:inline-flex;flex-direction:column;gap:1px;align-items:center;cursor:pointer;border:none;background:transparent;padding:0}
+.abg-sum{font-weight:700}
+.abg-flag{font-size:9px;line-height:1}
+
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -997,6 +1015,7 @@ html.theme-dark .tbl-wrap thead th {
       <div class="sb-sec">Laporan</div>
       <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
       <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
+      <button class="nav-btn" onclick="goPage('absensi-guru')" data-p="absensi-guru"><span class="ni">🧑‍🏫</span>Absensi Guru</button>
       <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
@@ -1485,6 +1504,57 @@ html.theme-dark .tbl-wrap thead th {
         </div>
       </div>
 
+      <!-- ══ ABSENSI GURU ══ -->
+      <div class="page" id="page-absensi-guru">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+          <div class="section-title">🧑‍🏫 Absensi Guru</div>
+          <button class="btn btn-green btn-sm" onclick="exportAbsensiGuruCSV()">⬇️ Export CSV</button>
+        </div>
+        <div class="section-sub">Kehadiran guru dihitung otomatis dari sesi KBM (kecuali Kajian At-Tibyan). Inti penilaian: <strong>durasi ≥ ambang tertunaikan</strong>. Klik sel untuk koreksi manual (override).</div>
+
+        <div style="display:flex;gap:10px;margin:12px 0 14px;flex-wrap:wrap;align-items:flex-end">
+          <div class="fg" style="margin:0"><label style="font-size:11px">Bulan</label>
+            <input type="month" class="fc" id="abgBulan" onchange="loadAbsensiGuru()" style="max-width:170px">
+          </div>
+          <div class="fg" style="margin:0"><label style="font-size:11px">Guru</label>
+            <select class="fc" id="abgGuruSel" onchange="loadAbsensiGuru()" style="max-width:240px">
+              <option value="">Semua Guru</option>
+            </select>
+          </div>
+          <div class="fg" style="margin:0"><label style="font-size:11px">Ambang durasi (mnt)</label>
+            <input type="number" class="fc" id="abgAmbang" min="1" max="600" style="max-width:120px">
+          </div>
+          <div class="fg" style="margin:0"><label style="font-size:11px">Ambang outlier (mnt)</label>
+            <input type="number" class="fc" id="abgOutlier" min="1" max="1440" style="max-width:120px">
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="savePengaturanAbsensiGuru()">💾 Simpan Ambang</button>
+        </div>
+
+        <div class="abg-legend">
+          <span class="abg-chip abg-H">H</span> Hadir
+          <span class="abg-chip abg-DS">DS</span> Durasi Singkat
+          <span class="abg-chip abg-HP">Hᴾ</span> Hadir Pengganti
+          <span class="abg-chip abg-I">I</span> Izin
+          <span class="abg-chip abg-A">A</span> Alpa
+          <span class="abg-chip abg-L">L</span> Libur
+          <span style="color:var(--text-3)">· ᴾ pengganti · ⚠ singkat/lupa-tutup · ⏳ perlu ditutup</span>
+          <span style="color:var(--text-3)">· Kalender libur dikelola di tab <strong>Kelas Pengganti</strong>.</span>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="tbl-wrap">
+            <table class="premium-table" id="abgTable" style="font-size:12px">
+              <thead id="abgHead"></thead>
+              <tbody id="abgBody"><tr><td style="padding:32px;text-align:center;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="section-sub" style="margin-top:10px">
+          <strong>%Hadir</strong> = (H+DS+Hᴾ)/(H+DS+Hᴾ+I+A) · <strong>%Durasi</strong> = (H+Hᴾ penuh)/(H+DS+Hᴾ) ·
+          <strong>Hutang</strong> = sisa Izin/Alpa setelah ditebus sesi pengganti.
+        </div>
+      </div>
+
       <!-- ══ SPP & INFAQ ══ -->
       <div class="page" id="page-spp">
 
@@ -1814,6 +1884,35 @@ html.theme-dark .tbl-wrap thead th {
           <div class="modal-foot">
             <button class="btn btn-outline" onclick="tutupModalLevel()">Batal</button>
             <button class="btn btn-primary" onclick="simpanMateriLevel()">💾 Simpan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Override Absensi Guru -->
+      <div class="overlay" id="abgOverrideOverlay" onclick="if(event.target===this)closeAbgOverride()" style="display:none">
+        <div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
+          <div class="modal-head" id="abgOvHead">Koreksi Absensi</div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div id="abgOvInfo" style="font-size:13px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:10px 12px;line-height:1.5"></div>
+            <input type="hidden" id="abgOvGuru"><input type="hidden" id="abgOvHalaqah"><input type="hidden" id="abgOvTanggal">
+            <div class="fg"><label>Status (override)</label>
+              <select class="fc" id="abgOvStatus">
+                <option value="H">H — Hadir</option>
+                <option value="DS">DS — Durasi Singkat</option>
+                <option value="HP">Hᴾ — Hadir Pengganti</option>
+                <option value="I">I — Izin</option>
+                <option value="A">A — Alpa</option>
+                <option value="L">L — Libur (tak dihitung)</option>
+              </select>
+            </div>
+            <div class="fg"><label>Keterangan (opsional)</label><input type="text" class="fc" id="abgOvKet" placeholder="Alasan koreksi..."></div>
+          </div>
+          <div class="modal-foot" style="justify-content:space-between">
+            <button class="btn btn-outline btn-sm" id="abgOvHapusBtn" onclick="deleteAbgOverride()" style="display:none">🗑️ Hapus Override</button>
+            <div style="display:flex;gap:8px;margin-left:auto">
+              <button class="btn btn-outline" onclick="closeAbgOverride()">Batal</button>
+              <button class="btn btn-primary" onclick="saveAbgOverride()">💾 Simpan</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2835,7 +2934,7 @@ const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
   halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', 'kelompok-belajar':'Kelompok Partner Belajar', komponen:'Komponen Raport',
   nilai:'Input Nilai Manual', raport:'Generate Raport',
-  laporan:'Laporan Global', absensi:'Rekap Absensi',
+  laporan:'Laporan Global', absensi:'Rekap Absensi', 'absensi-guru':'Absensi Guru',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
   materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua'
@@ -3185,6 +3284,7 @@ function goPage(name) {
     raport    : () => { populatePeriodeSel('raportPeriodeSel'); },
     laporan   : loadLaporan,
     absensi   : () => { populateSel('absensiHalaqahSel', allHalaqah, true); loadAbsensi(); },
+    'absensi-guru' : loadAbsensiGuru,
     spp       : function(){ loadMetodeBayarAdmin(); loadSPPAdmin(); },
     pengumuman: loadPengumuman,
     observasi : loadObservasi,
@@ -5739,6 +5839,213 @@ async function loadLaporan() {
 // ══════════════════════════════════════════
 var _absensiRekapData = [];
 var _absensiRekapDataFiltered = [];
+
+// ══════════════════════════════════════════
+//  ABSENSI GURU (matriks + override + ambang)
+// ══════════════════════════════════════════
+let _abgData = null;   // hasil getRekapAbsensiGuru terakhir (untuk modal & export)
+
+function _abgBulanTahun() {
+  const inp = document.getElementById('abgBulan');
+  if (inp && !inp.value) {
+    const now = new Date();
+    inp.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  }
+  const [y, m] = (inp.value || '').split('-');
+  return { tahun: Number(y), bulan: Number(m) };
+}
+
+function _populateAbgGuruSel() {
+  const sel = document.getElementById('abgGuruSel');
+  if (!sel) return;
+  const prev = sel.value;
+  const guru = (allUsers || []).filter(u => u.role === 'guru' && u.status === 'aktif')
+    .sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || ''));
+  sel.innerHTML = '<option value="">Semua Guru</option>' +
+    guru.map(g => `<option value="${esc(g.id_user)}">${esc(g.nama_lengkap)}</option>`).join('');
+  sel.value = prev;
+}
+
+async function loadAbsensiGuru() {
+  _populateAbgGuruSel();
+  const { bulan, tahun } = _abgBulanTahun();
+  if (!bulan || !tahun) return;
+  const id_guru = document.getElementById('abgGuruSel').value || null;
+  showLoad('Bismillah, menghitung absensi guru...');
+  try {
+    const r = await window.HQ.AdminAPI.getRekapAbsensiGuru({ bulan, tahun, id_guru });
+    _abgData = r.data;
+    // Isi field ambang dari pengaturan (ikut hasil rekap)
+    document.getElementById('abgAmbang').value  = _abgData.ambang;
+    document.getElementById('abgOutlier').value = _abgData.ambang_wajar;
+    renderAbsensiGuru(_abgData);
+  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+function _abgChip(unit) {
+  const U = window.HQ.AbsensiGuruUtil;
+  const meta = U.meta(unit.status);
+  const cls = unit.status === '_DRAFT' ? 'abg-DRAFT' : 'abg-' + unit.status;
+  const flags = U.flags(unit);
+  const durasi = unit.durasi_menit != null ? unit.durasi_menit + ' mnt' : 'tak terukur';
+  const title = `${esc(unit.nama_halaqah)} — ${meta.label}` +
+    (unit.status === 'H' || unit.status === 'DS' || unit.status === 'HP' ? ` (${durasi})` : '') +
+    (unit.override ? ' • OVERRIDE' : '') + (unit.keterangan ? ' • ' + esc(unit.keterangan) : '');
+  return `<button class="abg-cellbtn" title="${title}" onclick="openAbgOverride('${esc(unit.id_guru)}','${esc(unit.id_halaqah)}','${esc(unit.tanggal)}')">
+    <span class="abg-chip ${cls}"${unit.override ? ' style="outline:1.5px solid #0ea5e9;outline-offset:1px"' : ''}>${meta.short}</span>
+    ${flags ? `<span class="abg-flag">${flags}</span>` : ''}
+  </button>`;
+}
+
+function renderAbsensiGuru(data) {
+  const days = data.tanggal_list || [];
+  // Header
+  let head = '<tr><th class="abg-name">Guru</th>';
+  days.forEach(t => {
+    const d = Number(t.slice(8, 10));
+    const wd = new Date(Date.UTC(data.tahun, data.bulan - 1, d)).getUTCDay();
+    const we = (wd === 0 || wd === 6) ? ' abg-weekend' : '';
+    head += `<th class="abg-day${we}">${d}</th>`;
+  });
+  head += '<th>H</th><th>DS</th><th title="perlu ditutup">⏳</th><th>I</th><th>A</th><th>Hᴾ</th><th>%Hadir</th><th>%Durasi</th><th>Hutang</th></tr>';
+  document.getElementById('abgHead').innerHTML = head;
+
+  const guru = data.guru || [];
+  if (!guru.length) {
+    document.getElementById('abgBody').innerHTML =
+      `<tr><td colspan="${days.length + 10}" style="padding:32px;text-align:center;color:var(--text-3)">Belum ada data guru.</td></tr>`;
+    return;
+  }
+  let body = '';
+  guru.forEach(g => {
+    let row = `<tr><td class="abg-name">${esc(g.nama_guru || g.id_guru)}</td>`;
+    days.forEach(t => {
+      const units = (g.cells && g.cells[t]) || [];
+      row += '<td>' + (units.length ? units.map(_abgChip).join(' ') : '') + '</td>';
+    });
+    const pctH = g.pct_kehadiran == null ? '–' : g.pct_kehadiran + '%';
+    const pctD = g.pct_durasi == null ? '–' : g.pct_durasi + '%';
+    const hutang = g.hutang || { sisa: 0, diganti: 0, izin_alpa: 0 };
+    const hutangTxt = `${hutang.sisa}` + (hutang.izin_alpa ? ` <span style="color:var(--text-3);font-size:10px">(${hutang.diganti}/${hutang.izin_alpa})</span>` : '');
+    row += `<td class="abg-sum">${g.H}</td><td class="abg-sum">${g.DS}</td>` +
+           `<td class="abg-sum" title="perlu ditutup">${g.perlu_ditutup || 0}</td>` +
+           `<td class="abg-sum">${g.I}</td><td class="abg-sum">${g.A}</td><td class="abg-sum">${g.HP}</td>` +
+           `<td class="abg-sum">${pctH}</td><td class="abg-sum">${pctD}</td><td>${hutangTxt}</td></tr>`;
+    body += row;
+  });
+  document.getElementById('abgBody').innerHTML = body;
+}
+
+function _abgFindUnit(id_guru, id_halaqah, tanggal) {
+  if (!_abgData) return null;
+  const g = (_abgData.guru || []).find(x => x.id_guru === id_guru);
+  if (!g || !g.cells || !g.cells[tanggal]) return null;
+  return g.cells[tanggal].find(u => u.id_halaqah === id_halaqah) || null;
+}
+
+function openAbgOverride(id_guru, id_halaqah, tanggal) {
+  const unit = _abgFindUnit(id_guru, id_halaqah, tanggal);
+  if (!unit) return;
+  document.getElementById('abgOvGuru').value    = id_guru;
+  document.getElementById('abgOvHalaqah').value = id_halaqah;
+  document.getElementById('abgOvTanggal').value = tanggal;
+  const meta = window.HQ.AbsensiGuruUtil.meta(unit.status);
+  const durasi = unit.durasi_menit != null ? unit.durasi_menit + ' menit' : 'tak terukur';
+  document.getElementById('abgOvInfo').innerHTML =
+    `<strong>${esc(unit.nama_guru || id_guru)}</strong> · ${esc(unit.nama_halaqah)}<br>` +
+    `${fmtDate(tanggal)} · ${esc(unit.jenis_sesi || '')}<br>` +
+    `Status otomatis: <strong>${meta.label}</strong> · Durasi: ${durasi}` +
+    (unit.override ? '<br><span style="color:#0ea5e9">● Saat ini di-override manual</span>' : '');
+  // Default pilihan: status override saat ini, atau status otomatis (bila valid sbg override)
+  const valid = ['H', 'DS', 'HP', 'I', 'A', 'L'];
+  document.getElementById('abgOvStatus').value = valid.indexOf(unit.status) >= 0 ? unit.status : 'H';
+  document.getElementById('abgOvKet').value = unit.override ? (unit.keterangan || '') : '';
+  document.getElementById('abgOvHapusBtn').style.display = unit.override ? '' : 'none';
+  document.getElementById('abgOvHead').textContent = unit.override ? 'Ubah Koreksi Absensi' : 'Koreksi Absensi (Override)';
+  document.getElementById('abgOverrideOverlay').style.display = 'flex';
+}
+function closeAbgOverride() { document.getElementById('abgOverrideOverlay').style.display = 'none'; }
+
+async function saveAbgOverride() {
+  const d = {
+    id_guru   : document.getElementById('abgOvGuru').value,
+    id_halaqah: document.getElementById('abgOvHalaqah').value,
+    tanggal   : document.getElementById('abgOvTanggal').value,
+    status    : document.getElementById('abgOvStatus').value,
+    keterangan: document.getElementById('abgOvKet').value.trim() || null,
+  };
+  showLoad('Menyimpan koreksi...');
+  try {
+    const r = await window.HQ.AdminAPI.setAbsensiGuruOverride(d);
+    if (r.status === 'error') { toast(r.message, 'err'); return; }
+    closeAbgOverride();
+    toast('Koreksi tersimpan', 'ok');
+    await loadAbsensiGuru();
+  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+async function deleteAbgOverride() {
+  const p = {
+    id_guru   : document.getElementById('abgOvGuru').value,
+    id_halaqah: document.getElementById('abgOvHalaqah').value,
+    tanggal   : document.getElementById('abgOvTanggal').value,
+  };
+  showLoad('Menghapus override...');
+  try {
+    await window.HQ.AdminAPI.hapusOverride(p);
+    closeAbgOverride();
+    toast('Override dihapus, status kembali otomatis', 'ok');
+    await loadAbsensiGuru();
+  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+async function savePengaturanAbsensiGuru() {
+  const d = {
+    durasi_minimal_menit: Number(document.getElementById('abgAmbang').value) || 90,
+    durasi_outlier_menit: Number(document.getElementById('abgOutlier').value) || 180,
+  };
+  if (d.durasi_outlier_menit < d.durasi_minimal_menit) {
+    toast('Ambang outlier harus ≥ ambang durasi', 'warn'); return;
+  }
+  showLoad('Menyimpan ambang...');
+  try {
+    await window.HQ.AdminAPI.setPengaturanAbsensiGuru(d);
+    toast('Ambang tersimpan', 'ok');
+    await loadAbsensiGuru();
+  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
+  finally { hideLoad(); }
+}
+
+function exportAbsensiGuruCSV() {
+  if (!_abgData || !(_abgData.guru || []).length) { toast('Belum ada data untuk diekspor', 'warn'); return; }
+  const rows = [['Guru', 'Halaqah', 'Tanggal', 'Jenis Sesi', 'Status', 'Durasi (mnt)', 'Pengganti', 'Outlier', 'Durasi Singkat', 'Perlu Ditutup', 'Override', 'Keterangan']];
+  (_abgData.guru || []).forEach(g => {
+    Object.keys(g.cells || {}).sort().forEach(t => {
+      g.cells[t].forEach(u => {
+        rows.push([
+          g.nama_guru || g.id_guru, u.nama_halaqah, u.tanggal, u.jenis_sesi,
+          u.status === '_DRAFT' ? 'PERLU_DITUTUP' : u.status,
+          u.durasi_menit != null ? u.durasi_menit : '',
+          u.pengganti ? 'Ya' : '', u.outlier ? 'Ya' : '', u.durasi_singkat ? 'Ya' : '',
+          u.perlu_ditutup ? 'Ya' : '', u.override ? 'Ya' : '', (u.keterangan || '').replace(/\n/g, ' '),
+        ]);
+      });
+    });
+  });
+  const csv = rows.map(r => r.map(c => {
+    const s = String(c == null ? '' : c);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `absensi_guru_${_abgData.tahun}-${String(_abgData.bulan).padStart(2, '0')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
 
 async function loadAbsensi() {
   const id_halaqah  = document.getElementById('absensiHalaqahSel').value;

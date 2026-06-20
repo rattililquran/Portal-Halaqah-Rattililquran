@@ -171,6 +171,293 @@ async function _belajarLevelNames() {
 }
 
 // ─────────────────────────────────────────────
+//  ABSENSI GURU — mesin rekap (agregasi JS, lihat RANCANGAN_ABSENSI_GURU.md §4)
+//  Keputusan §10.4: dihitung di klien, BUKAN RPC. Acuan pola: getJadwalHariIni.
+// ─────────────────────────────────────────────
+
+// Jenis sesi yang DIABAIKAN total dari absensi guru (guru tidak diabsen untuk kajian).
+var _ABSENSI_JENIS_DIABAIKAN = 'Kajian At-Tibyan';
+
+// Nama hari Indonesia -> indeks getDay()/getUTCDay() (Minggu=0). Mencakup variasi ejaan.
+var _HARI_INDEX = {
+  'minggu': 0, 'ahad': 0, 'senin': 1, 'selasa': 2, 'rabu': 3,
+  'kamis': 4, 'jumat': 5, "jum'at": 5, 'sabtu': 6,
+};
+
+// Durasi (menit) dari jam isian guru "HH:MM". Pelengkap bila selesai_pada NULL (baris lama).
+function _absensiMenitDariJam(jm, js) {
+  if (!jm || !js) return null;
+  var a = String(jm).split(':'), b = String(js).split(':');
+  if (a.length < 2 || b.length < 2) return null;
+  var m1 = (+a[0]) * 60 + (+a[1]);
+  var m2 = (+b[0]) * 60 + (+b[1]);
+  if (!isFinite(m1) || !isFinite(m2)) return null;
+  var d = m2 - m1;
+  if (d < 0) d += 1440;            // sesi melewati tengah malam (mis. Qiyam dini hari)
+  return d > 0 ? d : null;
+}
+
+// Durasi mengajar nyata. UTAMA: server (selesai_pada − created_at). CADANGAN: jam isian guru.
+// null = "tak terukur" (jangan dihukum; dianggap Hadir penuh — lihat §4.1).
+function _absensiDurasiMenit(k) {
+  if (k.selesai_pada && k.created_at) {
+    var ms = new Date(k.selesai_pada).getTime() - new Date(k.created_at).getTime();
+    if (isFinite(ms) && ms > 0) return Math.round(ms / 60000);
+  }
+  return _absensiMenitDariJam(
+    k.jam_mulai ? String(k.jam_mulai).substring(0, 5) : null,
+    k.jam_selesai ? String(k.jam_selesai).substring(0, 5) : null
+  );
+}
+
+// Ambil semua bahan rekap untuk satu bulan.
+// opts: { bulan(1-12), tahun, scope:'admin'|'guru', id_guru? }
+//   scope 'guru' membatasi query halaqah ke milik sendiri (sesuai RLS guru).
+async function _fetchAbsensiData(opts) {
+  var bulan = opts.bulan, tahun = opts.tahun;
+  var mm = String(bulan).padStart(2, '0');
+  var lastDay = new Date(Date.UTC(tahun, bulan, 0)).getUTCDate();
+  var start = tahun + '-' + mm + '-01';
+  var end   = tahun + '-' + mm + '-' + String(lastDay).padStart(2, '0');
+
+  var settingP = _sb.from('pengaturan_absensi_guru').select('*').eq('id', 1).maybeSingle();
+
+  var hqQ = _sb.from('halaqah')
+    .select('id_halaqah, nama_halaqah, level, id_guru, nama_guru, jadwal_hari, jam_mulai')
+    .eq('status', 'aktif');
+  if (opts.scope === 'guru') hqQ = hqQ.eq('id_guru', opts.id_guru);
+
+  var liburQ = _sb.from('hari_libur_resmi').select('tanggal').gte('tanggal', start).lte('tanggal', end);
+
+  var ovQ = _sb.from('absensi_guru_override').select('*').gte('tanggal', start).lte('tanggal', end);
+  if (opts.id_guru) ovQ = ovQ.eq('id_guru', opts.id_guru);
+
+  var results = await Promise.all([settingP, hqQ, liburQ, ovQ]);
+  var settingR = results[0], hqR = results[1], liburR = results[2], ovR = results[3];
+  _check(hqR.error, 'absensi:halaqah');
+
+  var halaqah = hqR.data || [];
+  var hqIds = halaqah.map(function(h) { return h.id_halaqah; });
+
+  var kbm = [];
+  if (hqIds.length > 0) {
+    // SEMUA jenis (At-Tibyan disaring saat derivasi, tapi tetap "menempati" slot → cegah Alpa palsu).
+    var kbmR = await _sb.from('kbm_log')
+      .select('id_kbm, id_halaqah, id_guru, nama_guru, jenis_sesi, status, is_pengganti, tanggal_pertemuan, jam_mulai, jam_selesai, created_at, selesai_pada, keterangan_libur')
+      .in('id_halaqah', hqIds)
+      .in('status', ['selesai', 'libur', 'draft'])
+      .gte('tanggal_pertemuan', start).lte('tanggal_pertemuan', end);
+    _check(kbmR.error, 'absensi:kbm_log');
+    kbm = kbmR.data || [];
+  }
+
+  // Daftar guru untuk baris rekap. Admin: semua guru aktif. Guru: diri sendiri saja
+  // (guru tak punya hak baca seluruh tabel users via RLS).
+  var guruList;
+  if (opts.scope === 'guru') {
+    guruList = [{ id_user: opts.id_guru, nama: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '' }];
+  } else {
+    var gR = await _sb.from('users').select('id_user, nama_lengkap').eq('role', 'guru').eq('status', 'aktif');
+    guruList = (gR.data || []).map(function(u) { return { id_user: u.id_user, nama: u.nama_lengkap }; });
+  }
+
+  var liburSet = {};
+  (liburR.data || []).forEach(function(r) { liburSet[r.tanggal] = true; });
+
+  return {
+    bulan: bulan, tahun: tahun, lastDay: lastDay,
+    setting: settingR.data || { durasi_minimal_menit: 90, durasi_outlier_menit: 180 },
+    halaqah: halaqah, kbm: kbm, override: (ovR.data || []), liburSet: liburSet, guruList: guruList,
+  };
+}
+
+// Derivasi murni (tanpa I/O) → matriks rekap. Lihat §4.1 (A)(B)(C).
+function _deriveRekapAbsensi(data) {
+  var ambang  = data.setting.durasi_minimal_menit || 90;
+  var outlier = data.setting.durasi_outlier_menit || 180;
+  var today   = _todayJakarta();
+  var mm      = String(data.bulan).padStart(2, '0');
+
+  var hqById = {};
+  data.halaqah.forEach(function(h) { hqById[h.id_halaqah] = h; });
+
+  // Slot terisi (id_halaqah|tanggal) dari SEMUA kbm (termasuk At-Tibyan & draft) → guard Alpa palsu.
+  var slotOccupied = {};
+  data.kbm.forEach(function(k) { slotOccupied[k.id_halaqah + '|' + k.tanggal_pertemuan] = true; });
+
+  // Satu unit per sel (id_guru|id_halaqah|tanggal).
+  var cellMap = {};
+  function putUnit(u) { cellMap[u.id_guru + '|' + u.id_halaqah + '|' + u.tanggal] = u; }
+  function newUnit(over) {
+    return Object.assign({
+      id_guru: '', nama_guru: '', id_halaqah: '', nama_halaqah: '', tanggal: '',
+      jenis_sesi: 'KBM Reguler', status: '', durasi_menit: null,
+      pengganti: false, outlier: false, durasi_singkat: false,
+      perlu_ditutup: false, override: false, keterangan: '',
+    }, over || {});
+  }
+
+  // (A) Unit dari sesi nyata
+  data.kbm.forEach(function(k) {
+    var jenis = k.jenis_sesi || 'KBM Reguler';
+    if (jenis === _ABSENSI_JENIS_DIABAIKAN) return;        // diabaikan total
+    var tgl = k.tanggal_pertemuan;
+    var hq  = hqById[k.id_halaqah] || {};
+    var u = newUnit({
+      id_guru: k.id_guru, nama_guru: k.nama_guru || hq.nama_guru || '',
+      id_halaqah: k.id_halaqah, nama_halaqah: hq.nama_halaqah || '',
+      tanggal: tgl, jenis_sesi: jenis,
+    });
+
+    if (k.status === 'libur') {
+      u.status = 'I'; u.keterangan = k.keterangan_libur || '';
+      putUnit(u); return;
+    }
+    if (k.status === 'draft') {
+      if (tgl < today) { u.status = '_DRAFT'; u.perlu_ditutup = true; putUnit(u); }
+      return;                                              // hari ini/akan datang: belum dinilai
+    }
+    if (k.status === 'selesai') {
+      var durasi = _absensiDurasiMenit(k);
+      u.durasi_menit = durasi;
+      if (durasi != null && durasi > outlier) u.outlier = true;
+      if (k.is_pengganti) {
+        u.status = 'HP'; u.pengganti = true;
+        if (durasi != null && durasi < ambang) u.durasi_singkat = true;
+      } else if (durasi != null && durasi < ambang) {
+        u.status = 'DS'; u.durasi_singkat = true;
+      } else {
+        u.status = 'H';                                    // ≥ ambang ATAU tak terukur
+      }
+      putUnit(u);
+    }
+  });
+
+  // (B) Alpa dari jadwal Reguler (hanya halaqah Reguler berjadwal yang punya jam_mulai)
+  data.halaqah.forEach(function(h) {
+    if (h.level === 'Level Qiyam') return;                 // Alpa hanya untuk Reguler
+    if (!h.jadwal_hari || !h.jam_mulai) return;
+    var hariIdx = [];
+    (h.jadwal_hari || '').toLowerCase().split(/[,\s]+/).forEach(function(t) {
+      if (t && _HARI_INDEX.hasOwnProperty(t)) hariIdx.push(_HARI_INDEX[t]);
+    });
+    if (hariIdx.length === 0) return;
+    for (var d = 1; d <= data.lastDay; d++) {
+      var tgl = data.tahun + '-' + mm + '-' + String(d).padStart(2, '0');
+      if (tgl >= today) continue;                          // hanya tanggal yang sudah lewat
+      var wd = new Date(Date.UTC(data.tahun, data.bulan - 1, d)).getUTCDay();
+      if (hariIdx.indexOf(wd) < 0) continue;               // bukan hari terjadwal
+      if (slotOccupied[h.id_halaqah + '|' + tgl]) continue; // sudah ada sesi → bukan Alpa
+      putUnit(newUnit({
+        id_guru: h.id_guru, nama_guru: h.nama_guru || '',
+        id_halaqah: h.id_halaqah, nama_halaqah: h.nama_halaqah || '',
+        tanggal: tgl, jenis_sesi: 'KBM Reguler',
+        status: data.liburSet[tgl] ? 'L' : 'A',
+      }));
+    }
+  });
+
+  // (C) Overlay override admin (atas menang)
+  data.override.forEach(function(ov) {
+    var key = ov.id_guru + '|' + ov.id_halaqah + '|' + ov.tanggal;
+    var hq  = hqById[ov.id_halaqah] || {};
+    var u = cellMap[key] || newUnit({
+      id_guru: ov.id_guru, nama_guru: hq.nama_guru || '',
+      id_halaqah: ov.id_halaqah, nama_halaqah: hq.nama_halaqah || '',
+      tanggal: ov.tanggal,
+    });
+    u.status = ov.status;
+    u.override = true;
+    u.pengganti = ov.status === 'HP';
+    u.perlu_ditutup = false;
+    if (ov.keterangan) u.keterangan = ov.keterangan;
+    cellMap[key] = u;
+  });
+
+  // Agregasi per guru
+  var guruRows = {};
+  function ensureRow(id_guru, nama) {
+    if (!guruRows[id_guru]) {
+      guruRows[id_guru] = {
+        id_guru: id_guru, nama_guru: nama || '',
+        H: 0, DS: 0, HP: 0, HP_penuh: 0, I: 0, A: 0, L: 0, perlu_ditutup: 0, cells: {},
+      };
+    } else if (!guruRows[id_guru].nama_guru && nama) {
+      guruRows[id_guru].nama_guru = nama;
+    }
+    return guruRows[id_guru];
+  }
+  data.guruList.forEach(function(g) { ensureRow(g.id_user, g.nama); });
+
+  Object.keys(cellMap).forEach(function(key) {
+    var u = cellMap[key];
+    var row = ensureRow(u.id_guru, u.nama_guru);
+    if (!row.cells[u.tanggal]) row.cells[u.tanggal] = [];
+    row.cells[u.tanggal].push(u);
+    switch (u.status) {
+      case 'H':  row.H++; break;
+      case 'DS': row.DS++; break;
+      case 'HP': row.HP++; if (u.durasi_menit == null || u.durasi_menit >= ambang) row.HP_penuh++; break;
+      case 'I':  row.I++; break;
+      case 'A':  row.A++; break;
+      case 'L':  row.L++; break;
+      case '_DRAFT': row.perlu_ditutup++; break;
+    }
+  });
+
+  var rows = Object.keys(guruRows).map(function(id) {
+    var r = guruRows[id];
+    var hadirNum  = r.H + r.DS + r.HP;
+    var penyebut  = hadirNum + r.I + r.A;
+    var durasiNum = r.H + r.HP_penuh;
+    var durasiPen = r.H + r.DS + r.HP;
+    r.pct_kehadiran = penyebut > 0 ? Math.round(hadirNum / penyebut * 100) : null;
+    r.pct_durasi    = durasiPen > 0 ? Math.round(durasiNum / durasiPen * 100) : null;
+    var izinAlpa = r.I + r.A;
+    r.hutang = { izin_alpa: izinAlpa, diganti: Math.min(r.HP, izinAlpa), sisa: Math.max(0, izinAlpa - r.HP) };
+    return r;
+  });
+  rows.sort(function(a, b) { return (a.nama_guru || '').localeCompare(b.nama_guru || ''); });
+
+  var tanggalList = [];
+  for (var d2 = 1; d2 <= data.lastDay; d2++) {
+    tanggalList.push(data.tahun + '-' + mm + '-' + String(d2).padStart(2, '0'));
+  }
+
+  return {
+    bulan: data.bulan, tahun: data.tahun,
+    ambang: ambang, ambang_wajar: outlier,
+    tanggal_list: tanggalList, guru: rows,
+  };
+}
+
+// Palet status absensi guru — util BERSAMA (dipakai admin & guru). Lihat RANCANGAN §3.
+// Ekstraksi palet inline lama (guru/index.html) ke sini agar warna matriks seragam.
+var AbsensiGuruUtil = {
+  STATUS_META: {
+    H:      { label: 'Hadir',             short: 'H',  color: '#15803d', bg: '#dcfce7' },
+    DS:     { label: 'Durasi Singkat',    short: 'DS', color: '#b45309', bg: '#fef3c7' },
+    HP:     { label: 'Hadir (Pengganti)', short: 'Hᴾ', color: '#15803d', bg: '#dcfce7' },
+    I:      { label: 'Izin',              short: 'I',  color: '#1d4ed8', bg: '#dbeafe' },
+    A:      { label: 'Alpa',              short: 'A',  color: '#b91c1c', bg: '#fee2e2' },
+    L:      { label: 'Libur',             short: 'L',  color: '#6b7280', bg: '#f3f4f6' },
+    _DRAFT: { label: 'Perlu Ditutup',     short: '⏳', color: '#6b7280', bg: '#f3f4f6' },
+  },
+  meta: function(code) {
+    return this.STATUS_META[code] || { label: code || '–', short: code || '–', color: '#6b7280', bg: '#f3f4f6' };
+  },
+  // Penanda tambahan pada sel (selain status): ᴾ pengganti · ⚠ singkat/outlier · ⏳ draft.
+  flags: function(unit) {
+    if (!unit) return '';
+    var f = '';
+    if (unit.pengganti) f += 'ᴾ';
+    if (unit.durasi_singkat || unit.outlier) f += '⚠';
+    if (unit.perlu_ditutup) f += '⏳';
+    return f;
+  },
+};
+
+// ─────────────────────────────────────────────
 //  AUTH
 // ─────────────────────────────────────────────
 var Auth = {
@@ -417,6 +704,29 @@ var GuruAPI = {
     });
 
     return { status: 'ok', data: result, hari_ini: hari, libur_resmi_hari_ini: liburResmi || null };
+  },
+
+  // ── Absensi Saya (transparansi kehadiran guru) ─────────────
+  // Rekap kehadiran + durasi milik sendiri untuk satu bulan. Lihat RANCANGAN §6, §7.2.
+  getAbsensiSaya: async function(p) {
+    p = p || {};
+    var now   = new Date();
+    var bulan = Number(p.bulan) || (now.getMonth() + 1);
+    var tahun = Number(p.tahun) || now.getFullYear();
+    var id_guru = _uid();
+    if (!id_guru) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
+
+    var data  = await _fetchAbsensiData({ bulan: bulan, tahun: tahun, scope: 'guru', id_guru: id_guru });
+    var rekap = _deriveRekapAbsensi(data);
+    var me = rekap.guru.filter(function(g) { return g.id_guru === id_guru; })[0] || {
+      id_guru: id_guru, nama_guru: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '',
+      H: 0, DS: 0, HP: 0, HP_penuh: 0, I: 0, A: 0, L: 0, perlu_ditutup: 0, cells: {},
+      pct_kehadiran: null, pct_durasi: null, hutang: { izin_alpa: 0, diganti: 0, sisa: 0 },
+    };
+    return { status: 'ok', data: {
+      bulan: bulan, tahun: tahun, ambang: rekap.ambang, ambang_wajar: rekap.ambang_wajar,
+      tanggal_list: rekap.tanggal_list, rekap: me,
+    } };
   },
 
   // ── Halaqah ────────────────────────────────
@@ -3395,6 +3705,70 @@ var AdminAPI = {
     return { status: 'ok' };
   },
 
+  // ── Absensi Guru (rekap + override + pengaturan) ─────────────
+  //  Mesin rekap = agregasi JS (_fetchAbsensiData/_deriveRekapAbsensi). Lihat RANCANGAN §4, §6.
+  //  p: { bulan(1-12), tahun, id_guru? }. Tanpa argumen → bulan & tahun berjalan.
+  getRekapAbsensiGuru: async function(p) {
+    p = p || {};
+    var now   = new Date();
+    var bulan = Number(p.bulan) || (now.getMonth() + 1);
+    var tahun = Number(p.tahun) || now.getFullYear();
+    var data  = await _fetchAbsensiData({ bulan: bulan, tahun: tahun, scope: 'admin', id_guru: p.id_guru || null });
+    var rekap = _deriveRekapAbsensi(data);
+    if (p.id_guru) rekap.guru = rekap.guru.filter(function(g) { return g.id_guru === p.id_guru; });
+    return { status: 'ok', data: rekap };
+  },
+
+  // Simpan/ubah koreksi manual (upsert 1 override per sel guru+halaqah+tanggal).
+  setAbsensiGuruOverride: async function(d) {
+    d = d || {};
+    if (!d.id_guru || !d.id_halaqah || !d.tanggal || !d.status) {
+      return { status: 'error', message: 'id_guru, id_halaqah, tanggal, dan status wajib diisi' };
+    }
+    if (['H', 'DS', 'HP', 'I', 'A', 'L'].indexOf(d.status) < 0) {
+      return { status: 'error', message: 'Status override tidak valid: ' + d.status };
+    }
+    var { data, error } = await _sb.from('absensi_guru_override').upsert({
+      id_guru: d.id_guru, id_halaqah: d.id_halaqah, tanggal: d.tanggal,
+      status: d.status, keterangan: d.keterangan || null, dicatat_oleh: _uid(),
+    }, { onConflict: 'id_guru,id_halaqah,tanggal' }).select().single();
+    _check(error, 'setAbsensiGuruOverride');
+    _logAudit('set_absensi_override', { id_guru: d.id_guru, id_halaqah: d.id_halaqah, tanggal: d.tanggal, status: d.status });
+    return { status: 'ok', data: data };
+  },
+
+  // Hapus override (kembali ke status otomatis). Terima id_override (string) atau {id_guru,id_halaqah,tanggal}.
+  hapusOverride: async function(p) {
+    var q = _sb.from('absensi_guru_override').delete();
+    if (typeof p === 'string') q = q.eq('id_override', p);
+    else if (p && p.id_override) q = q.eq('id_override', p.id_override);
+    else if (p && p.id_guru && p.id_halaqah && p.tanggal) {
+      q = q.eq('id_guru', p.id_guru).eq('id_halaqah', p.id_halaqah).eq('tanggal', p.tanggal);
+    } else {
+      return { status: 'error', message: 'id_override atau (id_guru, id_halaqah, tanggal) wajib' };
+    }
+    var { error } = await q;
+    _check(error, 'hapusOverride');
+    return { status: 'ok' };
+  },
+
+  getPengaturanAbsensiGuru: async function() {
+    var { data, error } = await _sb.from('pengaturan_absensi_guru').select('*').eq('id', 1).maybeSingle();
+    _check(error, 'getPengaturanAbsensiGuru');
+    return { status: 'ok', data: data || { id: 1, durasi_minimal_menit: 90, durasi_outlier_menit: 180 } };
+  },
+  setPengaturanAbsensiGuru: async function(d) {
+    d = d || {};
+    var { error } = await _sb.from('pengaturan_absensi_guru').upsert({
+      id: 1,
+      durasi_minimal_menit: Number(d.durasi_minimal_menit) || 90,
+      durasi_outlier_menit: Number(d.durasi_outlier_menit) || 180,
+      updated_at: new Date().toISOString(), updated_by: _uid(),
+    }, { onConflict: 'id' });
+    _check(error, 'setPengaturanAbsensiGuru');
+    return { status: 'ok' };
+  },
+
   // ── Kelas Pengganti: Flow 6 — toggle is_pengganti (admin) ─────
   toggleIsPengganti: async function(d) {
     var { data, error } = await _sb.from('kbm_log').update({ is_pengganti: !!d.is_pengganti })
@@ -5687,6 +6061,7 @@ window.HQ = {
   Auth, AdminAPI, GuruAPI, MuridAPI, KetuaAPI,
   SuperAdminAPI: AdminAPI,
   PushAPI, PushPrefsAPI,
+  AbsensiGuruUtil: AbsensiGuruUtil,
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },
   cache: { invalidate: window._clearHQCache, clear: window._clearHQCache },
