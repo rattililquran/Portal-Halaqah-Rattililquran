@@ -4938,7 +4938,8 @@ async function loadKehadiranSaya(opts) {
     var pctK = me.pct_kehadiran;              // kehadiran keseluruhan: hadir vs yang seharusnya diampu
     var hadirTot = me.H + me.HP;
     var hadirNum = me.H + me.DS + me.HP;       // semua bentuk hadir
-    var seharusnya = hadirNum + me.I + me.A;   // penyebut kehadiran (termasuk Izin & Alpa)
+    var izinDiganti = me.izin_diganti || 0;    // Izin yg sudah ditebus kelas pengganti → tak dihitung
+    var seharusnya = Math.max(0, hadirNum + me.I + me.A - izinDiganti);  // penyebut efektif
 
     // Angka UTAMA = % kehadiran keseluruhan (mencerminkan Alpa). Status bahasa sederhana.
     function _ksStatus(p) {
@@ -5078,6 +5079,10 @@ async function loadKehadiranSaya(opts) {
         '<span class="ic">⏳</span><div><strong>' + me.perlu_ditutup + ' sesi lampau belum ditutup.</strong> ' +
         'Sesi ini belum dihitung sampai kamu tuntaskan penilaiannya.</div></div>';
     }
+    if (izinDiganti > 0) {
+      callouts += '<div class="ks-callout" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">' +
+        '<span class="ic">✅</span><div><strong>' + izinDiganti + ' Izin sudah ditebus kelas pengganti</strong> — tidak menurunkan persentase kehadiranmu.</div></div>';
+    }
     var h = me.hutang || { izin_alpa: 0, diganti: 0, sisa: 0 };
     if (h.izin_alpa > 0) {
       var sisaCol = h.sisa > 0 ? '#b45309' : '#16a34a';
@@ -5121,7 +5126,8 @@ async function loadKehadiranSaya(opts) {
 
     var note =
       '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
-      '<strong>Kehadiran</strong> = hadir dibanding seluruh sesi yang seharusnya kamu ampu (Alpa menurunkannya). ' +
+      '<strong>Kehadiran</strong> = hadir dibanding seluruh sesi yang seharusnya kamu ampu (Alpa menurunkannya; ' +
+      'Izin yang sudah ditebus kelas pengganti tidak dihitung). ' +
       '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
 
     document.getElementById('ksBody').innerHTML = hero + nudge + statsHtml + hqHtml + stripHtml + detailHtml + callouts + note;

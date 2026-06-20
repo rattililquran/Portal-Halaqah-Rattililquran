@@ -413,7 +413,13 @@ function _deriveRekapAbsensi(data) {
     var penyebut  = hadirNum + r.I + r.A;
     var durasiNum = r.H + r.HP_penuh;
     var durasiPen = r.H + r.DS + r.HP;
-    r.pct_kehadiran = penyebut > 0 ? Math.round(hadirNum / penyebut * 100) : null;
+    // Izin/libur yang sudah ditebus kelas pengganti (HP) tidak menggerus % kehadiran.
+    // Mekanisme pengganti khusus untuk libur→Izin (lihat getHalaqahSaya: sisa_pengganti),
+    // jadi yang dikecualikan hanya Izin yang terganti, bukan Alpa.
+    var izinDiganti = Math.min(r.HP, r.I);
+    var penyebutEfektif = Math.max(0, penyebut - izinDiganti);
+    r.izin_diganti  = izinDiganti;
+    r.pct_kehadiran = penyebutEfektif > 0 ? Math.min(100, Math.round(hadirNum / penyebutEfektif * 100)) : null;
     r.pct_durasi    = durasiPen > 0 ? Math.round(durasiNum / durasiPen * 100) : null;
     var izinAlpa = r.I + r.A;
     r.hutang = { izin_alpa: izinAlpa, diganti: Math.min(r.HP, izinAlpa), sisa: Math.max(0, izinAlpa - r.HP) };
@@ -723,7 +729,7 @@ var GuruAPI = {
     var me = rekap.guru.filter(function(g) { return g.id_guru === id_guru; })[0] || {
       id_guru: id_guru, nama_guru: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || '',
       H: 0, DS: 0, HP: 0, HP_penuh: 0, I: 0, A: 0, L: 0, perlu_ditutup: 0, cells: {},
-      pct_kehadiran: null, pct_durasi: null, hutang: { izin_alpa: 0, diganti: 0, sisa: 0 },
+      pct_kehadiran: null, pct_durasi: null, izin_diganti: 0, hutang: { izin_alpa: 0, diganti: 0, sisa: 0 },
     };
     return { status: 'ok', data: {
       bulan: bulan, tahun: tahun, ambang: rekap.ambang, ambang_wajar: rekap.ambang_wajar,
