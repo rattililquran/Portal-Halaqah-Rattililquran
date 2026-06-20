@@ -274,6 +274,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .ks-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:10.5px;color:var(--text-2)}
 .ks-legend span{display:inline-flex;align-items:center;gap:4px}
 .ks-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* rincian sesi per hari */
+.ks-detail{margin-top:14px}
+.ks-detail-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.022);
+  border:1px solid var(--border);border-left-width:4px;margin-bottom:6px}
+.ks-detail-row:last-child{margin-bottom:0}
+.ks-dr-date{flex:0 0 auto;text-align:center;min-width:42px}
+.ks-dr-date .d{font-size:16px;font-weight:900;color:var(--text);line-height:1}
+.ks-dr-date .w{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.03em}
+.ks-dr-body{flex:1;min-width:0}
+.ks-dr-jenis{font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px}
+.ks-dr-meta{font-size:11px;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ks-dr-badge{flex:0 0 auto;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:999px;text-align:center}
+.ks-dr-badge .dur{display:block;font-size:9px;font-weight:600;opacity:.85;margin-top:1px}
+html.theme-dark .ks-detail-row{background:rgba(255,255,255,.03)}
+html.theme-dark .ks-dr-date .d{color:#f0f2f8}
 /* callouts */
 .ks-callout{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 11px;border-radius:11px;font-size:11.5px;line-height:1.45}
 .ks-callout .ic{font-size:14px;line-height:1.2}
@@ -4923,6 +4938,47 @@ async function loadKehadiranSaya(opts) {
         '<div class="ks-legend">' + legendItems.map(function(l){ return '<span><i style="background:' + l[0] + '"></i>' + l[1] + '</span>'; }).join('') + '</div>' +
       '</div>';
 
+    // Rincian sesi per hari — penjelasan tiap kotak (hari, tanggal, jenis KBM, halaqah, status)
+    var detUnits = [];
+    Object.keys(me.cells || {}).forEach(function(t){
+      if (t > todayStr) return;
+      (me.cells[t] || []).forEach(function(u){ detUnits.push(u); });
+    });
+    detUnits.sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal) || (a.nama_halaqah||'').localeCompare(b.nama_halaqah||''); });
+    var detailHtml = '';
+    if (detUnits.length) {
+      var rowsHtml = detUnits.map(function(u){
+        var meta = U.meta(u.status), flags = U.flags(u);
+        var wd = _ksWeekday(u.tanggal), dd = Number(u.tanggal.slice(8,10));
+        var jenis = u.status === '_DRAFT' ? 'Sesi belum ditutup'
+                  : u.status === 'A'      ? 'Tidak ada sesi (Alpa)'
+                  : u.status === 'I'      ? (u.keterangan || 'Izin / Libur')
+                  : u.status === 'L'      ? 'Libur'
+                  : (u.jenis_sesi || 'KBM Reguler');
+        var showDur = (u.status === 'H' || u.status === 'DS' || u.status === 'HP');
+        var dur = showDur ? (u.durasi_menit != null ? u.durasi_menit + ' mnt' : 'tak terukur') : '';
+        var metaLine = [];
+        if (u.nama_halaqah) metaLine.push('📍 ' + esc(u.nama_halaqah));
+        if (u.override) metaLine.push('✍️ koreksi admin');
+        else if (u.keterangan && u.status !== 'I') metaLine.push(esc(u.keterangan));
+        return '<div class="ks-detail-row" style="border-left-color:' + meta.color + '">' +
+          '<div class="ks-dr-date"><div class="d">' + dd + '</div><div class="w">' + _KS_HARI_FULL[wd].slice(0,3) + '</div></div>' +
+          '<div class="ks-dr-body">' +
+            '<div class="ks-dr-jenis">' + esc(jenis) + (flags ? ' <span style="font-size:11px">' + flags + '</span>' : '') + '</div>' +
+            (metaLine.length ? '<div class="ks-dr-meta">' + metaLine.join(' · ') + '</div>' : '') +
+          '</div>' +
+          '<div class="ks-dr-badge" style="color:' + meta.color + ';background:' + meta.bg + '">' + meta.label +
+            (dur ? '<span class="dur">' + dur + '</span>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+      detailHtml =
+        '<div class="ks-detail">' +
+          '<div class="ks-strip-ttl">Rincian sesi (terbaru di atas)</div>' +
+          rowsHtml +
+        '</div>';
+    }
+
     // Callout: sesi perlu ditutup & hutang pengganti
     var callouts = '';
     if (me.perlu_ditutup > 0) {
@@ -4942,7 +4998,7 @@ async function loadKehadiranSaya(opts) {
       '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
       'Angka utama adalah <strong>durasi mengajar tertunaikan</strong> — yakni sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
 
-    document.getElementById('ksBody').innerHTML = hero + statsHtml + stripHtml + callouts + note;
+    document.getElementById('ksBody').innerHTML = hero + statsHtml + stripHtml + detailHtml + callouts + note;
     card.style.display = '';
   } catch (e) {
     if (!fromNav) card.style.display = 'none'; /* senyap saat auto-load; kartu opsional */
