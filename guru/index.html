@@ -285,6 +285,13 @@ html.theme-dark .ks-sub .minibar{background:rgba(255,255,255,.1)}
 .ks-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 /* rincian sesi per hari */
 .ks-detail{margin-top:14px}
+.ks-detail-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+  background:rgba(0,0,0,.025);border:1px solid var(--border);border-radius:11px;padding:10px 13px;cursor:pointer;transition:background .15s}
+.ks-detail-toggle:hover{background:rgba(0,0,0,.05)}
+.ks-detail-toggle .ks-caret{font-size:12px;color:var(--text-3);transition:transform .2s;flex:0 0 auto}
+.ks-detail-list{margin-top:8px}
+html.theme-dark .ks-detail-toggle{background:rgba(255,255,255,.04)}
+html.theme-dark .ks-detail-toggle:hover{background:rgba(255,255,255,.08)}
 .ks-detail-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.022);
   border:1px solid var(--border);border-left-width:4px;margin-bottom:6px}
 .ks-detail-row:last-child{margin-bottom:0}
@@ -4888,6 +4895,18 @@ function ksNavBulan(delta) {
   loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
 }
 
+// Buka/tutup daftar rincian sesi (tertutup default agar hemat ruang dashboard).
+function ksToggleDetail() {
+  var list  = document.getElementById('ksDetailList');
+  var caret = document.getElementById('ksDetailCaret');
+  var btn   = document.getElementById('ksDetailToggle');
+  if (!list) return;
+  var open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  if (caret) caret.style.transform = open ? '' : 'rotate(90deg)';
+  if (btn) btn.setAttribute('aria-expanded', String(!open));
+}
+
 // Deep-link dari sebuah Izin → form Buka KBM sebagai KELAS PENGGANTI (menebus libur/Izin).
 // Tanggal dibiarkan = hari pelaksanaan (default hari ini), checkbox pengganti dicentang otomatis.
 function ksBukaSusulan(id_halaqah, jenis) {
@@ -5127,8 +5146,11 @@ async function loadKehadiranSaya(opts) {
       }).join('');
       detailHtml =
         '<div class="ks-detail">' +
-          '<div class="ks-strip-ttl">Rincian sesi (terbaru di atas)</div>' +
-          rowsHtml +
+          '<button type="button" class="ks-detail-toggle" id="ksDetailToggle" aria-expanded="false" onclick="ksToggleDetail()">' +
+            '<span class="ks-strip-ttl" style="margin:0">📋 Rincian sesi · ' + detUnits.length + ' sesi</span>' +
+            '<span class="ks-caret" id="ksDetailCaret">▸</span>' +
+          '</button>' +
+          '<div class="ks-detail-list" id="ksDetailList" style="display:none">' + rowsHtml + '</div>' +
         '</div>';
     }
 
