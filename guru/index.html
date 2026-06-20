@@ -4888,12 +4888,14 @@ function ksNavBulan(delta) {
   loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
 }
 
-// Deep-link dari sebuah Alpa → form Buka KBM dengan halaqah & tanggal terisi (sesi susulan).
-function ksBukaSusulan(id_halaqah, tanggal) {
+// Deep-link dari sebuah Izin → form Buka KBM sebagai KELAS PENGGANTI (menebus libur/Izin).
+// Tanggal dibiarkan = hari pelaksanaan (default hari ini), checkbox pengganti dicentang otomatis.
+function ksBukaSusulan(id_halaqah, jenis) {
   if (typeof sesiAktif !== 'undefined' && sesiAktif) {
-    toast('Tuntaskan dulu sesi yang sedang berjalan sebelum membuka sesi susulan.', 'warn');
+    toast('Tuntaskan dulu sesi yang sedang berjalan sebelum membuka kelas pengganti.', 'warn');
     goPage('kbm'); return;
   }
+  jenis = jenis || 'KBM Reguler';
   goPage('kbm');
   var lvl = document.getElementById('kbmLevel');
   if (lvl) { lvl.value = ''; filterKbmHalaqah(); }
@@ -4901,14 +4903,27 @@ function ksBukaSusulan(id_halaqah, tanggal) {
   if (selH) {
     selH.value = id_halaqah;
     if (selH.value !== id_halaqah) {        // halaqah tak lagi aktif → tak bisa dibuka
-      toast('Halaqah ini sudah tidak aktif. Minta admin menandai Izin/Libur atau menonaktifkan jadwalnya.', 'warn');
+      toast('Halaqah ini sudah tidak aktif. Minta admin menonaktifkan jadwalnya.', 'warn');
       return;
     }
-    selH.dispatchEvent(new Event('change'));
+    if (['KBM Reguler', 'Micro Teaching', 'Lainnya', 'KBM Qiyam'].indexOf(jenis) >= 0) selectKbmJenis(jenis);
+    selH.dispatchEvent(new Event('change'));   // → autoFillPertemuan + updatePenggantiCheckbox
   }
-  var tgl = document.getElementById('kbmTanggal'); if (tgl) tgl.value = tanggal;
+  var tgl = document.getElementById('kbmTanggal');
+  if (tgl && !tgl.value) {
+    var n = new Date();
+    tgl.value = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  }
+  // Centang "Kelas Pengganti" bila slot pengganti tersedia (wrap tampil saat sisa_pengganti > 0).
+  var cb = document.getElementById('kbmIsPengganti');
+  var wrap = document.getElementById('kbmPenggantiWrap');
+  if (cb && wrap && wrap.style.display !== 'none') {
+    cb.checked = true;
+    toast('Kelas pengganti: halaqah terisi & ditandai pengganti. Pilih tanggal pelaksanaan lalu buka sesi. 🤲', 'ok');
+  } else {
+    toast('Buka sesi pengganti untuk halaqah ini. Centang "Kelas Pengganti" bila tersedia.', 'ok');
+  }
   var form = document.getElementById('formBukaKBM'); if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  toast('Sesi susulan: halaqah & tanggal sudah terisi. Periksa lalu buka sesi. 🤲', 'ok');
 }
 
 // Tandai sebuah Alpa sebagai Izin (uzur). Pakai mekanisme kelas pengganti: A → libur(Izin),
@@ -5014,9 +5029,9 @@ async function loadKehadiranSaya(opts) {
         var tonggak = [50, 75, 90, 100].filter(function(t){ return t > pctK; })[0];
         var butuh = Math.max(1, Math.ceil(tonggak / 100 * seharusnya) - hadirNum);
         if (me.A > 0 && butuh <= me.A) {
-          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Tutup <strong>' + butuh + ' sesi susulan</strong> lagi (dari ' + me.A + ' Alpa) untuk naik ke <strong>' + tonggak + '%</strong>. Bismillah, masih bisa dikejar!</div></div>';
+          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Tunaikan <strong>' + butuh + ' kelas pengganti</strong> lagi (Tandai Izin dulu → buka sesi susulan) untuk naik ke <strong>' + tonggak + '%</strong>. Bismillah, masih bisa dikejar!</div></div>';
         } else if (me.A > 0) {
-          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Kamu masih punya <strong>' + me.A + ' Alpa</strong> bulan ini. Buka sesi susulan untuk menaikkan kehadiranmu.</div></div>';
+          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Kamu masih punya <strong>' + me.A + ' Alpa</strong> bulan ini. Tandai Izin (bila ada uzur) lalu tunaikan kelas penggantinya untuk menaikkan kehadiran.</div></div>';
         }
       }
     }
@@ -5083,14 +5098,20 @@ async function loadKehadiranSaya(opts) {
         if (u.nama_halaqah) metaLine.push('📍 ' + esc(u.nama_halaqah));
         if (u.override) metaLine.push('✍️ koreksi admin');
         else if (u.keterangan && u.status !== 'I') metaLine.push(esc(u.keterangan));
-        // Aksi: Alpa → buka sesi susulan (halaqah & tanggal terisi otomatis).
+        // Aksi (alur administratif rapi): Alpa → Tandai Izin dulu; sesi susulan baru aktif setelah Izin.
         var actions = '';
-        if (u.status === 'A' && u.id_halaqah) {
+        if (u.id_halaqah) {
           var jzn = (u.jenis_sesi || 'KBM Reguler').replace(/'/g, '');
-          actions = '<div class="ks-dr-actions">' +
-            '<button type="button" class="ks-susul-btn" onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\')">▶ Buka sesi susulan</button>' +
-            '<button type="button" class="ks-izin-btn" onclick="ksTandaiIzin(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\',\'' + esc(jzn) + '\')">✉️ Tandai Izin</button>' +
-          '</div>';
+          if (u.status === 'A') {
+            actions = '<div class="ks-dr-actions">' +
+              '<button type="button" class="ks-izin-btn" onclick="ksTandaiIzin(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\',\'' + esc(jzn) + '\')">✉️ Tandai Izin (uzur)</button>' +
+              '<button type="button" class="ks-susul-btn" disabled title="Tandai Izin dulu agar bisa dibuatkan kelas pengganti" style="opacity:.45;cursor:not-allowed">▶ Buka sesi susulan</button>' +
+            '</div>';
+          } else if (u.status === 'I' && (me.hutang && me.hutang.sisa > 0)) {
+            actions = '<div class="ks-dr-actions">' +
+              '<button type="button" class="ks-susul-btn" onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(jzn) + '\')">▶ Buka sesi susulan</button>' +
+            '</div>';
+          }
         }
         return '<div class="ks-detail-row" style="border-left-color:' + meta.color + '">' +
           '<div class="ks-dr-date"><div class="d">' + dd + '</div><div class="w">' + _KS_HARI_FULL[wd].slice(0,3) + '</div></div>' +
