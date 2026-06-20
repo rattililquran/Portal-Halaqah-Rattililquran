@@ -285,7 +285,7 @@ html.theme-dark .ks-sub .minibar{background:rgba(255,255,255,.1)}
 .ks-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 /* rincian sesi per hari */
 .ks-detail{margin-top:14px}
-.ks-detail-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.022);
+.ks-detail-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.022);
   border:1px solid var(--border);border-left-width:4px;margin-bottom:6px}
 .ks-detail-row:last-child{margin-bottom:0}
 .ks-dr-date{flex:0 0 auto;text-align:center;min-width:42px}
@@ -298,6 +298,30 @@ html.theme-dark .ks-sub .minibar{background:rgba(255,255,255,.1)}
 .ks-dr-badge .dur{display:block;font-size:9px;font-weight:600;opacity:.85;margin-top:1px}
 html.theme-dark .ks-detail-row{background:rgba(255,255,255,.03)}
 html.theme-dark .ks-dr-date .d{color:#f0f2f8}
+.ks-dr-actions{flex-basis:100%;display:flex;gap:7px;flex-wrap:wrap;margin-top:2px;padding-left:52px}
+.ks-susul-btn{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--blue);
+  color:var(--blue);background:rgba(14,165,233,.06);cursor:pointer;transition:background .15s}
+.ks-susul-btn:hover{background:rgba(14,165,233,.14)}
+/* nudge target */
+.ks-nudge{display:flex;align-items:center;gap:9px;margin-top:10px;padding:10px 13px;border-radius:12px;
+  font-size:12px;font-weight:600;line-height:1.4;background:linear-gradient(135deg,rgba(14,165,233,.10),rgba(139,92,246,.07));
+  border:1px solid rgba(14,165,233,.18);color:var(--text-2)}
+.ks-nudge .ic{font-size:16px;flex:0 0 auto}
+/* ringkasan per halaqah */
+.ks-hq-wrap{margin-top:16px}
+.ks-hq{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:11px;border:1px solid var(--border);
+  background:rgba(0,0,0,.018);margin-bottom:6px}
+.ks-hq:last-child{margin-bottom:0}
+.ks-hq .nm{flex:0 0 38%;min-width:0;font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ks-hq .bar{flex:1;height:7px;border-radius:999px;background:rgba(0,0,0,.07);overflow:hidden;min-width:40px}
+.ks-hq .bar > i{display:block;height:100%;border-radius:999px}
+.ks-hq .pc{flex:0 0 auto;font-size:12px;font-weight:900;min-width:38px;text-align:right}
+.ks-hq .ct{flex:0 0 auto;font-size:10.5px;color:var(--text-3);font-weight:600;min-width:88px;text-align:right}
+.ks-hq-warn{display:flex;align-items:flex-start;gap:7px;margin:-1px 0 7px;padding:7px 11px;border-radius:10px;
+  font-size:11px;line-height:1.4;background:#fff7ed;border:1px solid #fdba74;color:#9a3412}
+html.theme-dark .ks-hq{background:rgba(255,255,255,.03)}
+html.theme-dark .ks-hq .nm{color:#f0f2f8}
+html.theme-dark .ks-hq .bar,html.theme-dark .ks-hq-warn{background:rgba(255,255,255,.06)}
 /* callouts */
 .ks-callout{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 11px;border-radius:11px;font-size:11.5px;line-height:1.45}
 .ks-callout .ic{font-size:14px;line-height:1.2}
@@ -4861,6 +4885,29 @@ function ksNavBulan(delta) {
   loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
 }
 
+// Deep-link dari sebuah Alpa → form Buka KBM dengan halaqah & tanggal terisi (sesi susulan).
+function ksBukaSusulan(id_halaqah, tanggal) {
+  if (typeof sesiAktif !== 'undefined' && sesiAktif) {
+    toast('Tuntaskan dulu sesi yang sedang berjalan sebelum membuka sesi susulan.', 'warn');
+    goPage('kbm'); return;
+  }
+  goPage('kbm');
+  var lvl = document.getElementById('kbmLevel');
+  if (lvl) { lvl.value = ''; filterKbmHalaqah(); }
+  var selH = document.getElementById('kbmHalaqah');
+  if (selH) {
+    selH.value = id_halaqah;
+    if (selH.value !== id_halaqah) {        // halaqah tak lagi aktif → tak bisa dibuka
+      toast('Halaqah ini sudah tidak aktif. Minta admin menandai Izin/Libur atau menonaktifkan jadwalnya.', 'warn');
+      return;
+    }
+    selH.dispatchEvent(new Event('change'));
+  }
+  var tgl = document.getElementById('kbmTanggal'); if (tgl) tgl.value = tanggal;
+  var form = document.getElementById('formBukaKBM'); if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Sesi susulan: halaqah & tanggal sudah terisi. Periksa lalu buka sesi. 🤲', 'ok');
+}
+
 async function loadKehadiranSaya(opts) {
   opts = opts || {};
   var card = document.getElementById('kehadiranSayaCard');
@@ -4920,6 +4967,22 @@ async function loadKehadiranSaya(opts) {
         '<div class="minibar"><i style="width:' + (pctD == null ? 0 : pctD) + '%;background:' + stD.bar + '"></i></div>' +
         '<div class="t">⏱️ <strong>Durasi tertunaikan</strong> — dari ' + hadirNum + ' sesi yang kamu jalankan, ' + hadirTot + ' berdurasi ≥ ' + d.ambang + ' mnt. <em>(Alpa tidak dihitung di sini.)</em></div>' +
       '</div>';
+
+    // Nudge target — berapa sesi susulan lagi untuk naik ke tonggak berikutnya.
+    var nudge = '';
+    if (pctK != null && seharusnya > 0) {
+      if (pctK >= 100) {
+        nudge = '<div class="ks-nudge"><span class="ic">🎉</span><div>MasyaAllah, kehadiranmu penuh bulan ini. Pertahankan, ya!</div></div>';
+      } else {
+        var tonggak = [50, 75, 90, 100].filter(function(t){ return t > pctK; })[0];
+        var butuh = Math.max(1, Math.ceil(tonggak / 100 * seharusnya) - hadirNum);
+        if (me.A > 0 && butuh <= me.A) {
+          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Tutup <strong>' + butuh + ' sesi susulan</strong> lagi (dari ' + me.A + ' Alpa) untuk naik ke <strong>' + tonggak + '%</strong>. Bismillah, masih bisa dikejar!</div></div>';
+        } else if (me.A > 0) {
+          nudge = '<div class="ks-nudge"><span class="ic">🎯</span><div>Kamu masih punya <strong>' + me.A + ' Alpa</strong> bulan ini. Buka sesi susulan untuk menaikkan kehadiranmu.</div></div>';
+        }
+      }
+    }
 
     // Kartu statistik
     var stats = [
@@ -4983,6 +5046,12 @@ async function loadKehadiranSaya(opts) {
         if (u.nama_halaqah) metaLine.push('📍 ' + esc(u.nama_halaqah));
         if (u.override) metaLine.push('✍️ koreksi admin');
         else if (u.keterangan && u.status !== 'I') metaLine.push(esc(u.keterangan));
+        // Aksi: Alpa → buka sesi susulan (halaqah & tanggal terisi otomatis).
+        var actions = '';
+        if (u.status === 'A' && u.id_halaqah) {
+          actions = '<div class="ks-dr-actions"><button type="button" class="ks-susul-btn" ' +
+            'onclick="ksBukaSusulan(\'' + esc(u.id_halaqah) + '\',\'' + esc(u.tanggal) + '\')">▶ Buka sesi susulan</button></div>';
+        }
         return '<div class="ks-detail-row" style="border-left-color:' + meta.color + '">' +
           '<div class="ks-dr-date"><div class="d">' + dd + '</div><div class="w">' + _KS_HARI_FULL[wd].slice(0,3) + '</div></div>' +
           '<div class="ks-dr-body">' +
@@ -4992,6 +5061,7 @@ async function loadKehadiranSaya(opts) {
           '<div class="ks-dr-badge" style="color:' + meta.color + ';background:' + meta.bg + '">' + meta.label +
             (dur ? '<span class="dur">' + dur + '</span>' : '') +
           '</div>' +
+          actions +
         '</div>';
       }).join('');
       detailHtml =
@@ -5016,12 +5086,45 @@ async function loadKehadiranSaya(opts) {
         '</strong> · sisa perlu diganti <strong style="color:' + sisaCol + '">' + h.sisa + '</strong></div></div>';
     }
 
+    // Ringkasan per halaqah — kehadiran tiap halaqah + deteksi jadwal basi (Alpa berulang, tanpa sesi).
+    var hqAgg = {};
+    Object.keys(me.cells || {}).forEach(function(t){
+      if (t > todayStr) return;
+      (me.cells[t] || []).forEach(function(u){
+        if (!u.id_halaqah) return;
+        var a = hqAgg[u.id_halaqah] || (hqAgg[u.id_halaqah] = { nama: u.nama_halaqah || u.id_halaqah, H:0, DS:0, HP:0, I:0, A:0 });
+        if (u.status === 'H') a.H++; else if (u.status === 'DS') a.DS++;
+        else if (u.status === 'HP') a.HP++; else if (u.status === 'I') a.I++; else if (u.status === 'A') a.A++;
+      });
+    });
+    var hqRows = Object.keys(hqAgg).map(function(id){
+      var a = hqAgg[id]; var had = a.H + a.DS + a.HP; var den = had + a.I + a.A;
+      a.pct = den > 0 ? Math.round(had / den * 100) : null; a.had = had; a.den = den;
+      a.stale = (had === 0 && a.A >= 3);          // terjadwal, ≥3 Alpa, tak pernah ada sesi
+      return a;
+    }).sort(function(x,y){ return (y.A - x.A) || ((x.pct==null?101:x.pct) - (y.pct==null?101:y.pct)); });
+    var hqHtml = '';
+    if (hqRows.length > 1) {                        // hanya berguna bila guru ampu >1 halaqah
+      hqHtml = '<div class="ks-hq-wrap"><div class="ks-strip-ttl">Kehadiran per halaqah</div>' +
+        hqRows.map(function(a){
+          var s = _ksStatus(a.pct);
+          var row = '<div class="ks-hq">' +
+            '<div class="nm">' + esc(a.nama) + '</div>' +
+            '<div class="bar"><i style="width:' + (a.pct==null?0:a.pct) + '%;background:' + s.bar + '"></i></div>' +
+            '<div class="pc" style="color:' + s.bar + '">' + (a.pct==null?'–':a.pct+'%') + '</div>' +
+            '<div class="ct">' + a.had + '/' + a.den + (a.A?' · '+a.A+' alpa':'') + '</div>' +
+          '</div>';
+          if (a.stale) row += '<div class="ks-hq-warn"><span>⚠️</span><div><strong>' + esc(a.nama) + '</strong> terjadwal tapi belum pernah ada sesi bulan ini (' + a.A + ' Alpa). Bila halaqah ini sudah tidak berjalan, minta admin menonaktifkan jadwalnya agar tidak menggerus kehadiranmu.</div></div>';
+          return row;
+        }).join('') + '</div>';
+    }
+
     var note =
       '<div class="ks-note">Dihitung otomatis dari sesi KBM yang kamu tutup (Kajian At-Tibyan tidak dihitung). ' +
       '<strong>Kehadiran</strong> = hadir dibanding seluruh sesi yang seharusnya kamu ampu (Alpa menurunkannya). ' +
       '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit.</div>';
 
-    document.getElementById('ksBody').innerHTML = hero + statsHtml + stripHtml + detailHtml + callouts + note;
+    document.getElementById('ksBody').innerHTML = hero + nudge + statsHtml + hqHtml + stripHtml + detailHtml + callouts + note;
     card.style.display = '';
   } catch (e) {
     if (!fromNav) card.style.display = 'none'; /* senyap saat auto-load; kartu opsional */
