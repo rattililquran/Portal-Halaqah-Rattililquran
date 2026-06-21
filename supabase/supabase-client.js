@@ -4414,6 +4414,40 @@ var AdminAPI = {
     var totalInfaq = infaqData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var totalMasuk = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
 
+    // Hitung breakdown metode bayar (Gateway vs Manual)
+    var sppGatewayNominal = 0;
+    var sppGatewayCount = 0;
+    var sppManualNominal = 0;
+    var sppManualCount = 0;
+    sppPribadi.forEach(function(s) {
+      if (s.metode_bayar === 'gateway') {
+        sppGatewayNominal += Number(s.nominal || 0);
+        sppGatewayCount++;
+      } else {
+        sppManualNominal += Number(s.nominal || 0);
+        sppManualCount++;
+      }
+    });
+
+    var infaqGatewayNominal = 0;
+    var infaqGatewayCount = 0;
+    var infaqManualNominal = 0;
+    var infaqManualCount = 0;
+    infaqData.forEach(function(s) {
+      if (s.metode_bayar === 'gateway') {
+        infaqGatewayNominal += Number(s.nominal || 0);
+        infaqGatewayCount++;
+      } else {
+        infaqManualNominal += Number(s.nominal || 0);
+        infaqManualCount++;
+      }
+    });
+
+    var totalGatewayNominal = sppGatewayNominal + infaqGatewayNominal;
+    var totalGatewayCount = sppGatewayCount + infaqGatewayCount;
+    var totalManualNominal = sppManualNominal + infaqManualNominal;
+    var totalManualCount = sppManualCount + infaqManualCount;
+
     // Lunas = tunggakan===0 DAN window kewajibannya tidak kosong
     var lunas     = muridListRaw.filter(function(m){ return m.tunggakan===0 && m._winLen>0; }).length;
     var menunggak = muridListRaw.filter(function(m){ return m.tunggakan>0; }).length;
@@ -4422,6 +4456,12 @@ var AdminAPI = {
         level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum };
     });
     return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
+      spp_gateway_nominal: sppGatewayNominal, spp_gateway_count: sppGatewayCount,
+      spp_manual_nominal: sppManualNominal, spp_manual_count: sppManualCount,
+      infaq_gateway_nominal: infaqGatewayNominal, infaq_gateway_count: infaqGatewayCount,
+      infaq_manual_nominal: infaqManualNominal, infaq_manual_count: infaqManualCount,
+      total_gateway_nominal: totalGatewayNominal, total_gateway_count: totalGatewayCount,
+      total_manual_nominal: totalManualNominal, total_manual_count: totalManualCount,
       bulan_rekap: bulanRekapDefault, total_rekap: TOTAL_REKAP, window_size: WINDOW_SIZE } };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
