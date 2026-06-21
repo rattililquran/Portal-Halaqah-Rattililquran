@@ -12540,10 +12540,14 @@ async function loadTransparansi() {
     document.getElementById('transOperasional').textContent = fmt(d.operasional_total);
     var sisa = Number(d.sisa)||0;
     document.getElementById('transSisa').textContent = sisa < 0 ? '−' + fmt(Math.abs(sisa)) : fmt(sisa);
-    document.getElementById('transSisaNote').textContent =
-      sisa > 0 ? 'Disalurkan rata ke guru pengajar murid beasiswa'
-      : sisa < 0 ? 'Sisa nominal ditanggung Rattililqur\'an'
-      : 'Belum ada sisa bulan ini (kondisi normal)';
+    var beasiswa_count = d.beasiswa_count || 0;
+    var note = 'Alhamdulillaah, per hari ini ada <b>' + beasiswa_count + '</b> murid yang menerima beasiswa.';
+    if (sisa > 0) {
+      note += '<br><span style="font-size:9.5px;color:var(--text-3);margin-top:2px;display:block">(Sisa disalurkan rata ke guru pengajar beasiswa)</span>';
+    } else if (sisa < 0) {
+      note += '<br><span style="font-size:9.5px;color:var(--text-3);margin-top:2px;display:block">(Kekurangan nominal ditanggung Rattililqur\'an)</span>';
+    }
+    document.getElementById('transSisaNote').innerHTML = note;
     var items = d.operasional_items || [];
     document.getElementById('transOpList').innerHTML = !items.length
       ? '<div style="text-align:center;padding:8px;color:var(--text-3);font-size:11.5px">Belum ada rincian operasional bulan ini.</div>'
@@ -12859,7 +12863,8 @@ function tutupSppSummaryModal() {
 
 async function submitKonfirmasiSPP() {
   var jenis   = _sppFormJenis;
-  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : ['-'];
+  var currentMonthName = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][new Date().getMonth()];
+  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : [currentMonthName];
   var metode  = getSppMetodeSelected();
   var tahun   = document.getElementById('sppFormTahun').value;
   var nominal = document.getElementById('sppFormNominal').value;
@@ -12916,7 +12921,8 @@ async function submitKonfirmasiSPP() {
 
 async function bayarViaGateway() {
   var jenis   = _sppFormJenis;
-  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : ['-'];
+  var currentMonthName = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][new Date().getMonth()];
+  var bulan   = jenis === 'SPP Pribadi' ? getSppBulanSelected() : [currentMonthName];
   var tahun   = document.getElementById('sppFormTahun').value;
   var nominal = document.getElementById('sppFormNominal').value;
   var errEl   = document.getElementById('sppFormErr');

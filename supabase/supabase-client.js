@@ -2521,9 +2521,10 @@ var MuridAPI = {
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var bulan = (p && p.bulan) ? p.bulan : BULAN[now.getMonth()];
     var bulanIdx = BULAN.indexOf(bulan) + 1;
-    var [infaqRes, opRes] = await Promise.all([
+    var [infaqRes, opRes, beasiswaCountRes] = await Promise.all([
       _sb.rpc('get_infaq_bulanan', { p_bulan_idx: bulanIdx, p_tahun: tahun }),
       _sb.from('operasional').select('keterangan, nominal').eq('tahun', tahun).eq('bulan', bulan).order('created_at'),
+      _sb.rpc('get_beasiswa_count'),
     ]);
     // Jika RPC belum ada (patch_052 belum dijalankan) → lempar agar panel tetap tersembunyi
     if (infaqRes && infaqRes.error) throw infaqRes.error;
@@ -2536,6 +2537,7 @@ var MuridAPI = {
       operasional_items: items,
       operasional_total: operasional_total,
       sisa: infaq_bulanan - operasional_total,
+      beasiswa_count: Number((beasiswaCountRes && beasiswaCountRes.data) || 0),
     } };
   },
   getDashboard: async function() {
@@ -2897,9 +2899,16 @@ var MuridAPI = {
     // BUG-002 fix: cek baris yang sudah lunas agar tidak dioverride
     // BUG-K2 fix: sertakan jenis di id_spp agar tidak clash jika multi-jenis
     var jenisSuffix = (d.jenis || 'SPP Pribadi').replace(/\s+/g,'').substring(0,3).toUpperCase();
-    var idSppList = bulanList.map(function(bulan) {
-      return 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix;
+    var idSppMap = {};
+    bulanList.forEach(function(bulan) {
+      var id = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix;
+      if (d.jenis === 'Infaq/Operasional') {
+        id += '-' + Math.random().toString(36).substring(2,10).toUpperCase();
+      }
+      idSppMap[bulan] = id;
     });
+
+    var idSppList = Object.values(idSppMap);
     var { data: existingRows } = await _sb.from('spp_pembayaran')
       .select('id_spp, status').in('id_spp', idSppList);
     var sudahLunasSet = new Set(
@@ -2907,7 +2916,7 @@ var MuridAPI = {
     );
     // Filter: hanya proses bulan yang belum lunas
     var bulanProses = bulanList.filter(function(bulan) {
-      var id_spp = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix;
+      var id_spp = idSppMap[bulan];
       return !sudahLunasSet.has(id_spp);
     });
     if (!bulanProses.length) {
@@ -2916,7 +2925,7 @@ var MuridAPI = {
 
     var rows = bulanProses.map(function(bulan) {
       return {
-        id_spp    : 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + d.tahun + '-' + jenisSuffix,
+        id_spp    : idSppMap[bulan],
         id_murid, nama_murid: user.nama_lengkap || user.nama || '',
         id_halaqah,
         bulan, tahun: Number(d.tahun),
