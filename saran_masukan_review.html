@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Fitur: Saran &amp; Masukan Murid — Rattililqur'an</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --primary-color: #10b981;
+  --primary-hover: #059669;
+  --primary-light: #f0fdf4;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+.theme-dark {
+  --bg-primary: #0b1329;
+  --bg-card: #111c30;
+  --text-primary: #f0f4ff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #1f2d45;
+  --primary-light: #052e16;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  padding-bottom: 60px;
+}
+
+/* ── HEADER ── */
+.review-banner {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #fff;
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.review-banner span {
+  opacity: 0.8;
+  font-weight: 500;
+}
+.theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.pg-header {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  padding: 30px 20px;
+  color: #fff;
+}
+.pg-header-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.pg-header-title {
+  flex: 1;
+}
+.pg-header-title h1 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.pg-header-title p {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+  font-weight: 500;
+}
+.pg-header-ico {
+  font-size: 32px;
+  background: rgba(255, 255, 255, 0.15);
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+/* ── CONTAINER ── */
+.pg-container {
+  max-width: 600px;
+  margin: 24px auto;
+  padding: 0 20px;
+}
+
+/* ── TAB NAV ── */
+.tab-nav {
+  display: flex;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  padding: 4px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.tab-btn.active {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group:last-of-type {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.fc {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.fc:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+textarea.fc {
+  resize: vertical;
+  min-height: 110px;
+}
+
+/* ── AUTO-DETECT INFO BOX ── */
+.info-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.info-item {
+  flex: 1;
+}
+.info-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.info-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── STAR RATINGS ── */
+.stars-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--border-color);
+  transition: transform 0.15s, color 0.15s;
+}
+.star-btn:hover {
+  transform: scale(1.15);
+}
+.star-btn svg {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+  stroke: #d1d5db;
+  stroke-width: 1px;
+}
+.theme-dark .star-btn svg {
+  stroke: #4b5563;
+}
+.star-btn.active {
+  color: var(--warning-color);
+}
+.star-btn.active svg {
+  stroke: #d97706;
+}
+
+/* ── TOGGLE SWITCH ── */
+.switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 10px;
+}
+.switch-label-wrap {
+  flex: 1;
+  padding-right: 16px;
+}
+.switch-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.switch-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border-color);
+  transition: .3s;
+  border-radius: 34px;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+input:checked + .slider {
+  background-color: var(--primary-color);
+}
+input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+.btn:hover {
+  background: var(--primary-hover);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* ── HISTORY ITEMS ── */
+.hist-item {
+  border-bottom: 1.5px solid var(--border-color);
+  padding: 16px 0;
+}
+.hist-item:first-child {
+  padding-top: 0;
+}
+.hist-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.hist-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.hist-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.badge-pending { background: #f1f5f9; color: #64748b; }
+.theme-dark .badge-pending { background: #1e293b; color: #94a3b8; }
+.badge-read { background: #fffbeb; color: #d97706; }
+.theme-dark .badge-read { background: #451a03; color: #fbbf24; }
+.badge-solved { background: #f0fdf4; color: #16a34a; }
+.theme-dark .badge-solved { background: #052e16; color: #34d399; }
+
+.hist-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.hist-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.reply-box {
+  background: var(--bg-primary);
+  border-left: 3px solid var(--primary-color);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+.reply-title {
+  font-weight: 800;
+  color: var(--primary-color);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.reply-text {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ── DIALOG NOTIFICATION ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #0f172a;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  white-space: nowrap;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+.toast-success-ico {
+  background: var(--primary-color);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.review-info-section {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── NASIHAT CARD ── */
+.nasihat-card {
+  background: linear-gradient(160deg, var(--primary-light) 0%, var(--bg-card) 100%);
+  border: 1px solid var(--primary-color);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.nasihat-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--primary-hover);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nasihat-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.nasihat-arabic {
+  font-size: 20px;
+  color: var(--primary-hover);
+  text-align: center;
+  margin: 12px 0 6px;
+  direction: rtl;
+  font-weight: 700;
+  font-family: 'Times New Roman', serif;
+}
+.nasihat-trans {
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.nasihat-source {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--primary-hover);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="review-banner">
+  <div>📋 FILE REVIEW — Rencana Antarmuka Form Saran &amp; Masukan Murid</div>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">☀️ Mode Terang</button>
+</div>
+
+<!-- HEADER -->
+<div class="pg-header">
+  <div class="pg-header-inner">
+    <div class="pg-header-title">
+      <h1>Saran &amp; Masukan</h1>
+      <p>Wadah aspirasi murid untuk perbaikan sistem dan kualitas KBM</p>
+    </div>
+    <div class="pg-header-ico">💬</div>
+  </div>
+</div>
+
+<div class="pg-container">
+
+  <!-- NASIHAT CARD -->
+  <div class="nasihat-card">
+    <div class="nasihat-title">
+      <span>🌱</span>
+      <div style="font-weight:800">Amanah &amp; Amal Jariyah</div>
+    </div>
+    <div class="nasihat-text">
+      Saran dan masukan Anda sangat berarti bagi kami. Semoga setiap saran maupun masukan yang diberi menjadi amal jariyah yang terus mengalir kebaikannya.
+    </div>
+    <div class="nasihat-arabic" dir="rtl" lang="ar">
+      الدَّالُّ عَلَى الْخَيْرِ كَفَاعِلِهِ
+    </div>
+    <div class="nasihat-trans">
+      "Orang yang menunjukkan kepada kebaikan, baginya pahala seperti orang yang mengerjakannya."
+    </div>
+    <div class="nasihat-source">— HR. Muslim</div>
+  </div>
+
+  <!-- TAB MENU -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('portal', this)">
+      <span>🖥️</span> Tentang Portal
+    </button>
+    <button class="tab-btn" onclick="switchTab('kelas', this)">
+      <span>📖</span> Tentang Kelas
+    </button>
+    <button class="tab-btn" onclick="switchTab('riwayat', this)">
+      <span>⏳</span> Riwayat Saya
+    </button>
+  </div>
+
+  <!-- ── VIEW 1: PORTAL & TEKNIS ── -->
+  <div id="view-portal" class="tab-content card">
+    <form onsubmit="handleFormSubmit(event, 'Portal & Aplikasi')">
+      <div class="form-group">
+        <label for="subKategoriPortal">Sub-Kategori Masukan</label>
+        <select class="fc" id="subKategoriPortal" required>
+          <option value="" disabled selected>Pilih sub-kategori...</option>
+          <option value="Laporan Bug / Error">Laporan Bug / Error (Masalah sistem)</option>
+          <option value="Usulan Fitur Baru">Usulan Fitur Baru</option>
+          <option value="Tampilan &amp; Desain">Tampilan &amp; Desain</option>
+          <option value="Lainnya">Lain-lain</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="judulPortal">Judul Singkat</label>
+        <input type="text" class="fc" id="judulPortal" placeholder="Contoh: Menu Raport lemot dimuat" required maxlength="50">
+      </div>
+
+      <div class="form-group">
+        <label for="isiPortal">Isi Saran / Detail Kendala</label>
+        <textarea class="fc" id="isiPortal" placeholder="Jelaskan secara detail saran atau kendala teknis yang Anda alami..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="switch-container">
+          <div class="switch-label-wrap">
+            <div class="switch-title">Kirim Secara Anonim</div>
+            <div class="switch-desc">Identitas Anda ('iffah) akan dirahasiakan penuh di database admin.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="anonPortal">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">🚀 Kirim Masukan Portal</button>
+    </form>
+  </div>
+
+  <!-- ── VIEW 2: PROGRAM KELAS & PEMBELAJARAN ── -->
+  <div id="view-kelas" class="tab-content card" style="display:none">
+    <form onsubmit="handleFormSubmit(event, 'Program Kelas')">
+      <!-- Auto detect info -->
+      <div class="info-box">
+        <div class="info-item">
+          <div class="info-label">Halaqah Aktif</div>
+          <div class="info-val" id="mockHalaqah">Halaqah Al-Mulk (Level 3)</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Guru Pembimbing</div>
+          <div class="info-val" id="mockGuru">Ustadz Umar Abdul Aziz</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="subKategoriKelas">Sub-Kategori Evaluasi</label>
+        <select class="fc" id="subKategoriKelas" required onchange="handleSubKategoriKelasChange(this.value)">
+          <option value="" disabled selected>Pilih sub-kategori...</option>
+          <option value="Performa Guru">Performa Guru (Cara membimbing, ketepatan waktu)</option>
+          <option value="Kurikulum &amp; Materi">Kurikulum &amp; Materi Belajar (Buku modul, latihan)</option>
+          <option value="Jadwal &amp; Waktu">Jadwal &amp; Waktu Sesi Kelas</option>
+          <option value="Kajian At-Tibyan">Kajian Mingguan At-Tibyan</option>
+          <option value="Lainnya">Lain-lain</option>
+        </select>
+      </div>
+
+      <!-- STAR RATING GURU -->
+      <div class="form-group" id="ratingGuruGroup">
+        <label>Beri Bintang Performa Guru (1 - 5)</label>
+        <div class="stars-container" id="starsGuru">
+          <button type="button" class="star-btn" data-val="1" onclick="rateStar('Guru', 1)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="2" onclick="rateStar('Guru', 2)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="3" onclick="rateStar('Guru', 3)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="4" onclick="rateStar('Guru', 4)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="5" onclick="rateStar('Guru', 5)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+        </div>
+      </div>
+
+      <!-- STAR RATING MATERI -->
+      <div class="form-group" id="ratingMateriGroup">
+        <label>Beri Bintang Kurikulum &amp; Materi Belajar (1 - 5)</label>
+        <div class="stars-container" id="starsMateri">
+          <button type="button" class="star-btn" data-val="1" onclick="rateStar('Materi', 1)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="2" onclick="rateStar('Materi', 2)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="3" onclick="rateStar('Materi', 3)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="4" onclick="rateStar('Materi', 4)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+          <button type="button" class="star-btn" data-val="5" onclick="rateStar('Materi', 5)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="isiKelas">Isi Saran / Kritik Konstruktif</label>
+        <textarea class="fc" id="isiKelas" placeholder="Berikan saran membangun Anda tentang pengajaran, kurikulum, atau kelas ini..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="switch-container">
+          <div class="switch-label-wrap">
+            <div class="switch-title">Kirim Secara Anonim</div>
+            <div class="switch-desc">Guru yang bersangkutan tidak akan mengetahui pengirim kritik ini.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="anonKelas">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">🚀 Kirim Masukan Pembelajaran</button>
+    </form>
+  </div>
+
+  <!-- ── VIEW 3: RIWAYAT TANGGAPAN ── -->
+  <div id="view-riwayat" class="tab-content card" style="display:none">
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 15px; font-weight: 800;">Riwayat Saran &amp; Tanggapan</h3>
+      <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+        Hanya menampilkan masukan dengan identitas. Masukan anonim tidak ditampilkan untuk menjaga kerahasiaan.
+      </p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;" id="riwayatList">
+      
+      <!-- ITEM 1 -->
+      <div class="hist-item">
+        <div class="hist-head">
+          <div class="hist-title">Usulan metode setoran di partner belajar</div>
+          <span class="badge badge-solved">Selesai</span>
+        </div>
+        <div class="hist-meta">
+          <span>📅 12 Juni 2026</span>
+          <span>📁 Program Kelas (Kurikulum)</span>
+        </div>
+        <div class="hist-desc">
+          "Kalau bisa, rekaman setoran suara di partner belajar bisa didengar langsung di aplikasi tanpa harus dialihkan ke Google Drive."
+        </div>
+        <div class="reply-box">
+          <div class="reply-title">Tanggapan Staf Manajemen (Ustadzah Aisyah):</div>
+          <div class="reply-text">
+            "Jazakillah khairan masukannya ukh. Fitur pemutaran audio *in-app* sudah kami kembangkan dan rilis di pembaruan portal murid versi terbaru minggu ini. Silakan dicoba pada setoran berikutnya."
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 2 -->
+      <div class="hist-item">
+        <div class="hist-head">
+          <div class="hist-title">Pencatatan status SPP manual</div>
+          <span class="badge badge-read">Dibaca</span>
+        </div>
+        <div class="hist-meta">
+          <span>📅 18 Juni 2026</span>
+          <span>📁 Portal &amp; Aplikasi (Bug)</span>
+        </div>
+        <div class="hist-desc">
+          "Saya sudah upload bukti transfer SPP dari 2 hari yang lalu tapi statusnya masih kuning/menunggu konfirmasi admin. Mohon dicek."
+        </div>
+        <div class="reply-box">
+          <div class="reply-title">Tanggapan Staf Manajemen (Admin Keuangan):</div>
+          <div class="reply-text">
+            "Assalamu'alaikum, bukti transfer telah kami verifikasi manual dan status SPP Anda saat ini sudah hijau (lunas). Mohon maaf atas keterlambatan verifikasi dikarenakan antrean rekonsiliasi manual akhir pekan."
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="review-info-section">
+    Rattililqur'an Murid Portal — Rancangan UI Saran &amp; Masukan v1.0
+  </div>
+
+</div>
+
+<!-- TOAST MESSAGE SIMULATOR -->
+<div class="toast" id="toast">
+  <span class="toast-success-ico">✓</span>
+  <span id="toastMsg">Bismillah, masukan Anda telah terkirim!</span>
+</div>
+
+<script>
+// Tab Switching
+function switchTab(tabName, btn) {
+  // Hide all contents
+  document.querySelectorAll('.tab-content').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  
+  // Show target content
+  document.getElementById('view-' + tabName).style.display = 'block';
+  
+  // Deactivate all tab buttons
+  document.querySelectorAll('.tab-btn').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  
+  // Activate clicked button
+  btn.classList.add('active');
+}
+
+// Star Rating Logic
+var currentRatings = {
+  Guru: 0,
+  Materi: 0
+};
+
+function rateStar(type, val) {
+  currentRatings[type] = val;
+  var containerId = 'stars' + type;
+  var stars = document.getElementById(containerId).querySelectorAll('.star-btn');
+  
+  stars.forEach(function(btn, idx) {
+    if (idx < val) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+// Handle Form Submissions (Mock)
+function handleFormSubmit(event, category) {
+  event.preventDefault();
+  
+  var isAnon = false;
+  var details = '';
+  
+  if (category === 'Portal & Aplikasi') {
+    isAnon = document.getElementById('anonPortal').checked;
+    details = document.getElementById('isiPortal').value;
+  } else {
+    isAnon = document.getElementById('anonKelas').checked;
+    details = document.getElementById('isiKelas').value;
+  }
+  
+  // Show toast
+  var toast = document.getElementById('toast');
+  var toastMsg = document.getElementById('toastMsg');
+  
+  if (isAnon) {
+    toastMsg.textContent = "Bismillah, masukan Anonim berhasil terkirim!";
+  } else {
+    toastMsg.textContent = "Bismillah, masukan berhasil terkirim!";
+  }
+  
+  toast.classList.add('show');
+  
+  setTimeout(function() {
+    toast.classList.remove('show');
+    
+    // Clear forms
+    if (category === 'Portal & Aplikasi') {
+      document.getElementById('judulPortal').value = '';
+      document.getElementById('isiPortal').value = '';
+      document.getElementById('subKategoriPortal').selectedIndex = 0;
+      document.getElementById('anonPortal').checked = false;
+    } else {
+      document.getElementById('isiKelas').value = '';
+      document.getElementById('subKategoriKelas').selectedIndex = 0;
+      document.getElementById('anonKelas').checked = false;
+      rateStar('Guru', 0);
+      rateStar('Materi', 0);
+    }
+  }, 2500);
+}
+
+// Handle sub-category changes on class feedback
+function handleSubKategoriKelasChange(val) {
+  var ratingGuru = document.getElementById('ratingGuruGroup');
+  var ratingMateri = document.getElementById('ratingMateriGroup');
+  
+  if (val === 'Performa Guru') {
+    ratingGuru.style.display = 'block';
+    ratingMateri.style.display = 'none';
+  } else if (val === 'Kurikulum & Materi') {
+    ratingGuru.style.display = 'none';
+    ratingMateri.style.display = 'block';
+  } else {
+    ratingGuru.style.display = 'block';
+    ratingMateri.style.display = 'block';
+  }
+}
+
+// Toggle Theme (Dark/Light)
+function toggleTheme() {
+  var html = document.documentElement;
+  var bannerBtn = document.querySelector('.theme-toggle-btn');
+  
+  if (html.classList.contains('theme-dark')) {
+    html.classList.remove('theme-dark');
+    bannerBtn.textContent = '🌙 Mode Gelap';
+  } else {
+    html.classList.add('theme-dark');
+    bannerBtn.textContent = '☀️ Mode Terang';
+  }
+}
+
+// Respect OS preference initially
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('theme-dark');
+  document.querySelector('.theme-toggle-btn').textContent = '☀️ Mode Terang';
+} else {
+  document.querySelector('.theme-toggle-btn').textContent = '🌙 Mode Gelap';
+}
+</script>
+</body>
+</html>

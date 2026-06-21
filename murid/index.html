@@ -41,6 +41,7 @@
 </script>
 <meta name="theme-color" content="#0d5c42">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Portal Murid — Rattililqur'an</title>
 <link rel="manifest" href="../manifest.json">
 <link rel="stylesheet" href="../assets/fonts.css">
@@ -6504,7 +6505,7 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
      (logika yang memanggil window.HQ/_sb baru jalan saat DOMContentLoaded,
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
-<script src="../supabase/supabase-client.js?v=2.0.4" defer></script>
+<script src="../supabase/supabase-client.js?v=2.0.5" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -14406,7 +14407,7 @@ async function handleSaranSubmit(event, category) {
   try {
     var res = await window.HQ.MuridAPI.kirimSaranMasukan({
       is_anonymous: isAnon,
-      kategori_utama: category,
+      kategori_utama: category === 'kelas' ? 'program' : category,
       sub_kategori: subKategori,
       rating_guru: ratingGuru,
       rating_materi: ratingMateri,

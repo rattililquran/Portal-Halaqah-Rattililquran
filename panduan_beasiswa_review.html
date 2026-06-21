@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panduan Beasiswa &amp; Transparansi Infaq/Operasional — Rattililqur'an [REVIEW FILE]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#f8fafc;color:#0f172a;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── HEADER (hijau-teal khas Rattil) ── */
+.pg-header{
+  background:linear-gradient(135deg,#059669 0%,#10b981 100%);
+  padding:28px 20px 24px;
+  position:sticky;top:0;z-index:100;
+}
+.pg-header-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.pg-header-title{flex:1}
+.pg-header-title h1{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.pg-header-title p{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500}
+.pg-header-ico{font-size:28px}
+
+/* ── SEARCH ── */
+.pg-search-wrap{max-width:680px;margin:0 auto;padding:16px 20px 0}
+.pg-search{
+  width:100%;padding:12px 16px 12px 40px;border:1.5px solid #e2e8f0;border-radius:12px;
+  font-family:inherit;font-size:14px;color:#0f172a;background:#fff;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:14px center;
+}
+.pg-search:focus{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.1)}
+
+/* ── CONTENT ── */
+.pg-content{max-width:680px;margin:0 auto;padding:20px 20px 40px}
+
+/* ── SECTION ── */
+.pg-section{margin-bottom:10px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(14,116,199,.07)}
+
+.pg-section-head{
+  width:100%;display:flex;align-items:center;gap:14px;
+  padding:16px 18px;border:none;background:transparent;
+  cursor:pointer;text-align:left;font-family:inherit;
+  transition:background .15s;
+}
+.pg-section-head:hover{background:#f8fafc}
+.pg-section-head.open{background:#f0fdf4}
+
+.pg-sec-ico{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.ico-blue{background:#eff8ff}
+.ico-green{background:#f0fdf4}
+.ico-amber{background:#fffbeb}
+.ico-purple{background:#faf5ff}
+.ico-red{background:#fff5f5}
+.ico-teal{background:#f0fdfa}
+.ico-gold{background:#fefce8}
+
+.pg-sec-info{flex:1}
+.pg-sec-title{font-size:14.5px;font-weight:800;color:#0f172a;line-height:1.3}
+.pg-sec-sub{font-size:12px;color:#64748b;font-weight:500;margin-top:2px}
+
+.pg-chevron{
+  width:24px;height:24px;border-radius:50%;background:#f1f5f9;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),background .15s;
+}
+.pg-chevron svg{width:12px;height:12px;stroke:#64748b}
+.pg-section-head.open .pg-chevron{transform:rotate(180deg);background:#10b981}
+.pg-section-head.open .pg-chevron svg{stroke:#fff}
+
+.pg-section-body{display:none;padding:0 18px 18px}
+.pg-section-body.open{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.pg-sep{height:1px;background:#e2e8f0;margin-bottom:16px}
+
+/* ── CONTENT ELEMENTS ── */
+.pg-steps{display:flex;flex-direction:column;gap:0}
+.pg-step{display:flex;gap:12px;padding:10px 0;position:relative}
+.pg-step:not(:last-child)::after{content:'';position:absolute;left:15px;top:38px;bottom:0;width:2px;background:#e2e8f0}
+.pg-step-num{
+  width:30px;height:30px;border-radius:50%;background:#10b981;
+  color:#fff;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  position:relative;z-index:1;
+}
+.pg-step-body{padding-top:5px;flex:1}
+.pg-step-title{font-size:13.5px;font-weight:700;color:#0f172a;margin-bottom:3px}
+.pg-step-desc{font-size:12.5px;color:#475569;line-height:1.6}
+
+.pg-warn,.pg-info,.pg-tip,.pg-danger{
+  border-radius:10px;padding:11px 14px;margin:10px 0;
+  display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.6;
+}
+.pg-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.pg-info{background:#eff8ff;border:1px solid #bae6fd;color:#075985}
+.pg-tip{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.pg-danger{background:#fff5f5;border:1px solid #fecaca;color:#991b1b}
+.pg-warn-ico,.pg-info-ico,.pg-tip-ico,.pg-danger-ico{font-size:16px;flex-shrink:0;margin-top:1px}
+.pg-warn strong,.pg-info strong,.pg-tip strong,.pg-danger strong{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+
+.pg-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0}
+.pg-table th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #e2e8f0}
+.pg-table td{padding:9px 10px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+.pg-table tr:last-child td{border-bottom:none}
+.pg-table tr:hover td{background:#f8fafc}
+
+.pg-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:700}
+.bg-green{background:#dcfce7;color:#166534}
+.bg-red{background:#fee2e2;color:#991b1b}
+.bg-amber{background:#fef3c7;color:#92400e}
+.bg-blue{background:#dbeafe;color:#1e40af}
+.bg-purple{background:#ede9fe;color:#6b21a8}
+
+.pg-p{font-size:13px;color:#475569;line-height:1.7;margin:6px 0}
+.pg-ul{padding-left:18px;margin:8px 0}
+.pg-ul li{font-size:12.5px;color:#475569;line-height:1.7;margin-bottom:3px}
+.pg-ul li strong{color:#0f172a}
+
+.pg-quickref{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.pg-qr-item{background:#f8fafc;border-radius:10px;padding:10px 12px;border:1px solid #e2e8f0}
+.pg-qr-label{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.pg-qr-val{font-size:13px;font-weight:700;color:#0f172a}
+
+.pg-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.15em;margin:16px 0 8px;display:block}
+.pg-hr{height:1px;background:#f1f5f9;margin:14px 0}
+
+.pg-flow{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.pg-flow-item{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px}
+.pg-flow-num{width:24px;height:24px;border-radius:50%;background:#10b981;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pg-flow-arrow{text-align:center;color:#94a3b8;font-size:16px;line-height:1;margin:0 0 0 12px}
+.pg-flow-text{font-size:13px;font-weight:600;color:#0f172a;flex:1}
+.pg-flow-sub{font-size:11.5px;color:#64748b;margin-top:2px}
+
+/* ── NASIHAT CARD ── */
+.nasihat-card{
+  background:linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f0f9ff 100%);
+  border:1px solid #bbf7d0;border-radius:20px;
+  padding:24px 22px;margin-bottom:16px;
+  box-shadow:0 2px 12px rgba(16,185,129,.08);
+  position:relative;overflow:hidden;
+}
+.nasihat-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);
+  pointer-events:none;
+}
+.nasihat-card::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(14,165,233,.08),transparent 70%);
+  pointer-events:none;
+}
+.nasihat-title{
+  font-size:15px;font-weight:800;color:#065f46;
+  margin-bottom:6px;display:flex;align-items:center;gap:8px;
+}
+.nasihat-bismillah{
+  font-family:'Amiri','Traditional Arabic','Times New Roman',serif;
+  font-size:22px;color:#047857;text-align:center;
+  line-height:1.8;margin:12px 0;direction:rtl;
+  letter-spacing:.03em;
+}
+.nasihat-intro{font-size:13px;color:#065f46;line-height:1.75;margin-bottom:16px;font-weight:500}
+.nasihat-intro em{font-style:italic;color:#10b981}
+
+.nasihat-section{margin:16px 0 8px}
+.nasihat-section-title{
+  font-size:12px;font-weight:800;color:#047857;
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.nasihat-ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.nasihat-ul li{
+  position:relative;
+  padding-left:14px;
+  font-size:12.5px;color:#065f46;line-height:1.65;
+}
+.nasihat-ul li::before{
+  content:'·';
+  position:absolute;left:0;top:-2px;
+  font-size:20px;color:#10b981;line-height:1;
+}
+.nasihat-ul li strong{color:#047857;font-weight:700}
+
+.nasihat-divider{height:1px;background:linear-gradient(90deg,transparent,#a7f3d0,transparent);margin:18px 0}
+
+.nasihat-verse-box{
+  background:rgba(255,255,255,.7);border:1px solid #a7f3d0;
+  border-radius:12px;padding:16px 14px;margin:10px 0;
+  backdrop-filter:blur(4px);
+}
+.nasihat-arabic{
+  font-family:'Amiri','Traditional Arabic','Times New Roman',serif;
+  font-size:20px;color:#047857;text-align:center;
+  direction:rtl;line-height:2;margin-bottom:8px;
+}
+.nasihat-trans{font-size:12.5px;color:#475569;font-style:italic;text-align:center;line-height:1.7;margin-bottom:4px}
+.nasihat-source{font-size:11.5px;color:#10b981;font-weight:700;text-align:center}
+
+/* Toggle nasihat */
+.nasihat-toggle{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:10px;margin-top:12px;
+  background:rgba(255,255,255,.5);border:1px solid #a7f3d0;
+  border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;
+  color:#047857;cursor:pointer;transition:background .2s;
+}
+.nasihat-toggle:hover{background:rgba(255,255,255,.8)}
+.nasihat-body{transition:all .3s ease}
+
+/* REVIEW BANNER */
+.review-banner{background:linear-gradient(135deg,#059669,#047857);color:#fff;padding:14px 20px;text-align:center;font-size:13px;font-weight:700;letter-spacing:.02em}
+.review-banner span{opacity:.75;font-weight:500}
+
+@media (prefers-color-scheme: dark) {
+  body{background:#0b1329;color:#f0f4ff}
+  .pg-section{background:#111c30;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .pg-section-head.open{background:#052e16}
+  .pg-section-head:hover{background:#0d1f35}
+  .pg-sec-title,.pg-step-title,.pg-flow-text,.pg-qr-val{color:#f0f4ff}
+  .pg-sep{background:#1f2d45}
+  .pg-table th{background:#0d1f35;color:#64748b}
+  .pg-table td{color:#94a3b8;border-bottom-color:#1f2d45}
+  .pg-flow-item,.pg-qr-item{background:#0d1f35;border-color:#1f2d45}
+  .pg-search{background:#111c30;border-color:#1f2d45;color:#f0f4ff}
+  .nasihat-card{
+    background:linear-gradient(160deg,#0a1b15 0%,#052419 60%,#092336 100%);
+    border-color:#065f46;
+  }
+  .nasihat-title{color:#a7f3d0}
+  .nasihat-bismillah,.nasihat-arabic{color:#34d399}
+  .nasihat-intro{color:#a7f3d0}
+  .nasihat-ul li{color:#a7f3d0}
+  .nasihat-ul li strong{color:#34d399}
+  .nasihat-verse-box{background:rgba(17,28,48,0.7);border-color:#065f46}
+  .nasihat-trans{color:#94a3b8}
+  .nasihat-source{color:#34d399}
+  .nasihat-toggle{background:rgba(17,28,48,0.5);border-color:#065f46;color:#34d399}
+  .nasihat-toggle:hover{background:rgba(17,28,48,0.8)}
+}
+</style>
+</head>
+<body>
+
+<div class="review-banner">
+  📋 FILE REVIEW — Panduan Beasiswa &amp; Transparansi Infaq/Operasional &nbsp;<span>Buka di browser untuk preview desain sebelum diintegrasikan</span>
+</div>
+
+<!-- HEADER -->
+<div class="pg-header">
+  <div class="pg-header-inner">
+    <div class="pg-header-title">
+      <h1>Panduan &amp; Penjelasan</h1>
+      <p>Beasiswa Penuh &amp; Transparansi Infaq/Operasional Rattililqur'an</p>
+    </div>
+    <div class="pg-header-ico">🎓</div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="pg-search-wrap">
+  <input class="pg-search" type="search" id="pgSearch" placeholder="Cari penjelasan atau panduan..." oninput="filterPanduan(this.value)">
+</div>
+
+<!-- CONTENT -->
+<div class="pg-content">
+
+  <!-- NASIHAT / MOTIVASI CARD -->
+  <div class="nasihat-card">
+    <div class="nasihat-title">
+      <span>🌱</span>
+      <div style="flex:1;font-weight:800">Amanah &amp; Kesyukuran Belajar Al-Qur'an</div>
+    </div>
+    <div class="nasihat-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <div class="nasihat-intro">
+      Alhamdulillah, Program Beasiswa Penuh Rattililqur'an dirancang untuk membantu murid yang memiliki keterbatasan finansial agar tetap dapat mempelajari dan menyempurnakan bacaan Al-Qur'an tanpa terkendala biaya.
+    </div>
+    
+    <div class="nasihat-body" id="nasihatBody">
+      <div class="nasihat-verse-box">
+        <div class="nasihat-arabic" dir="rtl" lang="ar">ثُمَّ لَتُسْأَلُنَّ يَوْمَئِذٍ عَنِ ٱلنَّعِيمِ</div>
+        <div class="nasihat-trans">"Kemudian kamu benar-benar akan ditanya pada hari itu tentang kenikmatan (yang kamu nikmati di dunia)."</div>
+        <div class="nasihat-source">QS. At-Takāṡur: 8</div>
+      </div>
+      
+      <div class="nasihat-divider"></div>
+      
+      <div class="nasihat-section-title">Nasihat untuk Penerima Beasiswa</div>
+      <ul class="nasihat-ul">
+        <li>Setiap rupiah biaya belajar Anda adalah amanah dari infaq ikhlas para <strong>Muhsinin</strong> (rekan-rekan murid lain yang berinfaq).</li>
+        <li>Buktikan kesyukuran Anda dengan senantiasa <strong>hadir tepat waktu, menjaga adab, menyalakan kamera (open camera)</strong>, serta bersungguh-sungguh mengamalkan ilmu.</li>
+        <li>Luangkan waktu sejenak di setiap akhir sesi Halaqah untuk <strong>mendoakan kebaikan, kelancaran rezeki, dan keberkahan</strong> bagi para Muhsinin yang menopang program ini.</li>
+      </ul>
+    </div>
+    
+    <button class="nasihat-toggle" onclick="toggleNasihat(this)">
+      <span id="nasihatToggleLabel">Sembunyikan Nasihat</span>
+      <span id="nasihatChevron" style="transition:transform .2s">▲</span>
+    </button>
+  </div>
+
+  <!-- ════ 1. TENTANG PROGRAM BEASISWA ════ -->
+  <div class="pg-section" data-search="beasiswa penuh latar belakang apa itu sumber dana reguler kriteria kelayakan">
+    <button class="pg-section-head open" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-teal">🎓</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">1. Tentang Program Beasiswa Penuh</div>
+        <div class="pg-sec-sub">Latar belakang, tujuan, dan asal mula dana beasiswa</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body open">
+      <div class="pg-sep"></div>
+      
+      <span class="pg-label">Latar Belakang &amp; Tujuan</span>
+      <div class="pg-p">
+        Program Beasiswa Penuh Rattililqur'an bertujuan agar keterbatasan ekonomi tidak menjadi penghalang bagi siapa pun untuk mempelajari kitabullah. Program ini membebaskan biaya SPP Pribadi murid secara penuh (100%).
+      </div>
+
+      <div class="pg-info">
+        <div class="pg-info-ico">💡</div>
+        <div>
+          <strong>Konsep Ta'awun &amp; Muhsinin</strong>
+          Program ini tidak didanai oleh lembaga donatur eksternal atau pihak ketiga, melainkan murni dari <strong>Infaq/Operasional Sukarela</strong> yang diisi oleh rekan-rekan murid lain (Muhsinin) yang memiliki kelapangan rezeki. Ini adalah wujud persaudaraan Islam (ta'awun) di dalam halaqah Rattililqur'an.
+        </div>
+      </div>
+
+      <div class="pg-tip">
+        <div class="pg-tip-ico">🤝</div>
+        <div>
+          <strong>Akad Program: Wakalah</strong><br>
+          Sifat akad adalah <strong>wakalah</strong>, yakni dana yang diinfakkan akan dikelola dan digunakan untuk operasional umum program, termasuk diantaranya biaya maintenance portal, program beasiswa murid yang membutuhkan, dan lain sebagainya.
+        </div>
+      </div>
+
+      <div class="pg-hr"></div>
+
+      <span class="pg-label">Kriteria Penerima Beasiswa</span>
+      <ul class="pg-ul">
+        <li><strong>Kondisi Finansial:</strong> Diutamakan bagi murid yang benar-benar kesulitan membayar SPP bulanan.</li>
+        <li><strong>Komitmen Tinggi:</strong> Menunjukkan tekad kuat untuk memperbaiki bacaan Al-Qur'an dan rajin mengikuti kegiatan belajar mengajar (KBM).</li>
+        <li><strong>Rekomendasi &amp; Keputusan:</strong> Pengajuan beasiswa diusulkan secara mandiri/rekomendasi guru dan disetujui sepenuhnya oleh Manajemen Rattililqur'an setelah proses verifikasi.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════ 2. KOMITMEN & KEWAJIBAN MURID ════ -->
+  <div class="pg-section" data-search="komitmen kewajiban aturan absensi kehadiran open camera kamera adab sanksi evaluasi">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-amber">📝</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">2. Komitmen &amp; Kewajiban Penerima Beasiswa</div>
+        <div class="pg-sec-sub">Aturan kedisiplinan dan tanggung jawab moral penerima beasiswa</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <span class="pg-label">Butir Komitmen Belajar</span>
+      <div class="pg-steps">
+        <div class="pg-step">
+          <div class="pg-step-num">1</div>
+          <div class="pg-step-body">
+            <div class="pg-step-title">Tingkat Kehadiran Minimal 90%</div>
+            <div class="pg-step-desc">Murid wajib hadir minimal 90% dari total sesi kelas KBM setiap bulannya. Absen hanya diizinkan apabila ada alasan darurat/syar'i yang disampaikan ke guru sebelum kelas dimulai.</div>
+          </div>
+        </div>
+        
+        <div class="pg-step">
+          <div class="pg-step-num">2</div>
+          <div class="pg-step-body">
+            <div class="pg-step-title">Wajib Menyalakan Kamera (Open Camera)</div>
+            <div class="pg-step-desc">Selama proses KBM berlangsung di Zoom, murid wajib mengaktifkan kamera agar guru dapat memantau pergerakan makhraj dan adab belajar dengan baik.</div>
+          </div>
+        </div>
+
+        <div class="pg-step">
+          <div class="pg-step-num">3</div>
+          <div class="pg-step-body">
+            <div class="pg-step-title">Adab Mulia &amp; Keaktifan Kelas</div>
+            <div class="pg-step-desc">Menjaga adab terhadap guru dan rekan belajar, aktif menyimak penjelasan, serta bersemangat mempraktikkan koreksi bacaan.</div>
+          </div>
+        </div>
+
+        <div class="pg-step">
+          <div class="pg-step-num">4</div>
+          <div class="pg-step-body">
+            <div class="pg-step-title">Mengerjakan Latihan Mandiri (PR)</div>
+            <div class="pg-step-desc">Disiplin mengerjakan tugas mandiri dan mengikuti ujian kenaikan level sebagai bukti keseriusan belajar.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pg-warn">
+        <div class="pg-warn-ico">⚠️</div>
+        <div>
+          <strong>Konsekuensi Evaluasi Bulanan</strong><br>
+          Manajemen bersama guru akan melakukan evaluasi kehadiran dan kedisiplinan murid beasiswa di akhir bulan. Murid yang sering absen tanpa kabar atau melanggar komitmen belajar akan ditinjau ulang status beasiswanya dan dapat dicabut/dialihkan ke murid lain yang lebih membutuhkan.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 3. TRANSPARANSI INFAQ/OPERASIONAL ════ -->
+  <div class="pg-section" data-search="transparansi dana rumus sisa infaq operasional surplus defisit mukafah guru">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-blue">📊</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">3. Sistem Transparansi Infaq/Operasional</div>
+        <div class="pg-sec-sub">Kalkulasi, laporan operasional bulanan, dan pembagian insentif guru</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <span class="pg-label">Siklus &amp; Rumus Dana Bulanan</span>
+      <div class="pg-p">
+        Setiap bulan, seluruh dana infaq masuk dan pengeluaran operasional diakumulasikan secara terbuka. Formula dasar yang digunakan adalah:
+      </div>
+      
+      <div class="pg-template" style="text-align: center; padding: 18px; font-size: 13px;">
+        <span class="hl">Sisa Infaq/Operasional</span> = <span class="hlg">Total Infaq Bulanan</span> &minus; <span class="hlg">Total Operasional Riil</span>
+      </div>
+
+      <div class="pg-quickref">
+        <div class="pg-qr-item">
+          <div class="pg-qr-label">Total Infaq Bulanan</div>
+          <div class="pg-qr-val">Semua infaq sukarela dari murid lunas</div>
+        </div>
+        <div class="pg-qr-item">
+          <div class="pg-qr-label">Total Operasional Riil</div>
+          <div class="pg-qr-val">Sewa Zoom, server web, &amp; administrasi</div>
+        </div>
+      </div>
+
+      <div class="pg-hr"></div>
+
+      <span class="pg-label">Ketentuan Pembagian Sisa Infaq/Operasional (Surplus vs Defisit)</span>
+      
+      <table class="pg-table">
+        <thead>
+          <tr>
+            <th style="width: 35%;">Kondisi Sisa</th>
+            <th>Ketentuan &amp; Tindakan Sistem</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <span class="pg-badge bg-green">Sisa Infaq &gt; 0 (Surplus)</span>
+            </td>
+            <td>
+              Sisa dana ini akan <strong>dibagi rata</strong> kepada guru-guru yang mengajar kelas penerima beasiswa sebagai insentif tambahan (mukafah). Pembagian dihitung berdasarkan jumlah guru pengajar beasiswa (bukan jumlah murid).
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="pg-badge bg-amber">Sisa Infaq &le; 0 (Defisit)</span>
+            </td>
+            <td>
+              Ini adalah <strong>kondisi normal</strong>. Apabila terjadi minus atau dana infaq kurang, tidak ada pembagian insentif tambahan ke guru beasiswa. Kekurangan biaya operasional umum sepenuhnya ditanggung mandiri oleh Manajemen Rattililqur'an.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pg-info">
+        <div class="pg-info-ico">💡</div>
+        <div>
+          <strong>Kenapa Guru Beasiswa yang Mendapatkan?</strong><br>
+          Guru yang mengajar murid beasiswa meluangkan waktu dan tenaga yang sama berharganya dengan kelas reguler. Ketika ada sisa infaq/operasional dari para Muhsinin, kelebihan itu diperuntukkan untuk memuliakan dan menambah kesejahteraan para guru beasiswa tersebut.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 4. KEBIJAKAN PRIVASI (IFFAH) ════ -->
+  <div class="pg-section" data-search="kebijakan privasi iffah rahasia anonim nama penerima identitas guru">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-purple">🔒</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">4. Kebijakan Privasi &amp; Menjaga Kehormatan ('Iffah)</div>
+        <div class="pg-sec-sub">Kerahasiaan data murid penerima beasiswa dan guru pengajar</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <div class="pg-tip">
+        <div class="pg-tip-ico">🛡️</div>
+        <div>
+          <strong>Prinsip Kerahasiaan 100%</strong><br>
+          Untuk menjaga kehormatan (iffah) penerima manfaat, identitas nama murid penerima beasiswa, serta guru beasiswa yang berhak menerima insentif <strong>sama sekali tidak dipublikasikan</strong> di bagian dashboard murid mana pun.
+        </div>
+      </div>
+
+      <ul class="pg-ul">
+        <li><strong>Tampilan Dashboard Murid:</strong> Hanya menampilkan angka agregat global (Total Infaq, Total Operasional, dan Sisa Infaq/Operasional) tanpa menyebutkan nama murid penerima atau nama guru.</li>
+        <li><strong>Tampilan Dashboard Guru:</strong> Guru tidak dapat mengetahui siapa murid di halaqahnya yang berstatus reguler atau beasiswa di portal guru. Guru tetap fokus mengajar dengan kualitas terbaik untuk seluruh murid.</li>
+        <li><strong>Sistem Distribusi Insentif Otomatis:</strong> Pembagian insentif dilakukan langsung di belakang layar oleh database. Sistem mendeteksi relasi guru dengan halaqah beasiswa secara internal, lalu membagikan sisa infaq secara rata kepada guru yang berhak tanpa menampilkan rincian nama murid beasiswa kepada guru tersebut di portal guru.</li>
+        <li><strong>Keamanan Database:</strong> Perubahan status tipe SPP murid (`Reguler` atau `Beasiswa Penuh`) dikunci oleh sistem dan hanya dapat diatur secara sah oleh akun **Admin Utama**.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════ 5. ANTARMUKA PORTAL & ALUR PENGGUNAAN ════ -->
+  <div class="pg-section" data-search="antarmuka dashboard murid panel apresiasi admin input operasional bypass spp">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-gold">📱</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">5. Alur Penggunaan &amp; Antarmuka Portal</div>
+        <div class="pg-sec-sub">Bagaimana sistem bekerja di sisi Murid, Admin, dan database</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <span class="pg-label">A. Sisi Murid Penerima Beasiswa</span>
+      <div class="pg-p">
+        Saat admin mengubah tipe SPP murid menjadi <strong>Beasiswa Penuh</strong>, portal murid secara otomatis mendeteksi status ini dan melakukan penyesuaian:
+      </div>
+      <div class="pg-flow">
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">1</div>
+          <div class="pg-flow-text">
+            Sembunyikan Panel Tagihan SPP Pribadi
+            <div class="pg-flow-sub">Tab pembayaran SPP Pribadi bulanan akan dinonaktifkan sepenuhnya.</div>
+          </div>
+        </div>
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">2</div>
+          <div class="pg-flow-text">
+            Tampilkan Panel Apresiasi
+            <div class="pg-flow-sub">Mengganti form tagihan dengan pengingat hangat tentang amanah beasiswa, doa untuk para Muhsinin, serta ayat QS. At-Takasur: 8.</div>
+          </div>
+        </div>
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">3</div>
+          <div class="pg-flow-text">
+            Tab Infaq/Operasional Tetap Aktif
+            <div class="pg-flow-sub">Murid beasiswa masih dapat mengakses tab infaq sukarela jika ingin menyumbang nominal bebas tanpa paksaan.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pg-hr"></div>
+
+      <span class="pg-label">B. Sisi Admin (Pencatatan Operasional &amp; Status)</span>
+      <div class="pg-flow">
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">1</div>
+          <div class="pg-flow-text">
+            Input Pengeluaran Operasional Bulanan
+            <div class="pg-flow-sub">Admin menginput ledger pengeluaran per-item (keterangan &amp; nominal) melalui tombol "+ Tambah Operasional" di portal admin.</div>
+          </div>
+        </div>
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">2</div>
+          <div class="pg-flow-text">
+            Konfigurasi Tipe SPP Murid
+            <div class="pg-flow-sub">Melalui edit data anggota, admin memilih tipe SPP murid: <strong>Reguler</strong> atau <strong>Beasiswa Penuh</strong>.</div>
+          </div>
+        </div>
+        <div class="pg-flow-item">
+          <div class="pg-flow-num">3</div>
+          <div class="pg-flow-text">
+            Statistik Ember SPP
+            <div class="pg-flow-sub">Di dashboard rekap admin, statistik menampilkan data murid dalam 3 ember: <strong>Lunas</strong>, <strong>Menunggak</strong>, dan <strong>Beasiswa</strong> agar total data sinkron.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 6. TANYA JAWAB (FAQ) ════ -->
+  <div class="pg-section" data-search="faq tanya jawab bagaimana jika siapa yang berhak salah bayar">
+    <button class="pg-section-head" onclick="toggleSection(this)">
+      <div class="pg-sec-ico ico-blue">❓</div>
+      <div class="pg-sec-info">
+        <div class="pg-sec-title">6. Tanya &amp; Jawab (FAQ)</div>
+        <div class="pg-sec-sub">Pertanyaan yang sering diajukan terkait beasiswa dan transparansi</div>
+      </div>
+      <div class="pg-chevron"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </button>
+    <div class="pg-section-body">
+      <div class="pg-sep"></div>
+
+      <div class="pg-p"><strong>Q: Bagaimana cara murid reguler mengajukan beasiswa penuh?</strong></div>
+      <div class="pg-p" style="color: #475569; margin-left: 14px; margin-bottom: 12px;">
+        A: Murid dapat menghubungi Guru Halaqah masing-masing atau langsung menghubungi admin layanan Rattililqur'an dengan melampirkan keterangan kondisi ekonomi. Guru juga dapat merekomendasikan muridnya yang berprestasi dan dinilai kurang mampu secara finansial.
+      </div>
+      
+      <div class="pg-sep"></div>
+
+      <div class="pg-p"><strong>Q: Apakah data operasional diupdate setiap bulan?</strong></div>
+      <div class="pg-p" style="color: #475569; margin-left: 14px; margin-bottom: 12px;">
+        A: Ya, admin akan mengupdate rincian pengeluaran operasional setiap bulannya secara berkala agar sisa infaq/operasional terhitung secara akurat berdasarkan pengeluaran riil organisasi.
+      </div>
+
+      <div class="pg-sep"></div>
+
+      <div class="pg-p"><strong>Q: Apakah insentif beasiswa guru langsung ditransfer?</strong></div>
+      <div class="pg-p" style="color: #475569; margin-left: 14px; margin-bottom: 12px;">
+        A: Akumulasi insentif tambahan (jika ada sisa infaq positif) akan direkapitulasi oleh admin di akhir bulan dan dikirimkan bersamaan dengan mukafah reguler guru pada bulan tersebut.
+      </div>
+
+      <div class="pg-sep"></div>
+
+      <div class="pg-p"><strong>Q: Mengapa pembagian insentif guru menggunakan dasar jumlah guru, bukan jumlah murid beasiswa?</strong></div>
+      <div class="pg-p" style="color: #475569; margin-left: 14px; margin-bottom: 12px;">
+        A: Hal ini bertujuan untuk pemerataan yang adil. Mengajar satu murid beasiswa maupun beberapa murid beasiswa di kelas yang sama membutuhkan alokasi waktu sesi KBM yang setara bagi seorang guru. Oleh sebab itu, sisa infaq/operasional dibagi rata per kepala guru beasiswa yang aktif.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;margin-top:28px">
+    <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:.06em">RATTILILQUR'AN @2026</div>
+    <div style="font-size:11px;color:#cbd5e1;margin-top:4px">Koreksi dan evaluasi berkala dilakukan demi kenyamanan bersama. Barakallahu fiikum.</div>
+  </div>
+
+</div><!-- /pg-content -->
+
+<script>
+function toggleSection(btn) {
+  var body = btn.nextElementSibling;
+  var isOpen = btn.classList.contains('open');
+  btn.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+function toggleNasihat(btn) {
+  var body = document.getElementById('nasihatBody');
+  var label = document.getElementById('nasihatToggleLabel');
+  var chevron = document.getElementById('nasihatChevron');
+  var isVisible = body.style.display !== 'none';
+  
+  if (isVisible) {
+    body.style.display = 'none';
+    label.textContent = 'Tampilkan Nasihat';
+    chevron.textContent = '▼';
+    chevron.style.transform = 'rotate(0deg)';
+  } else {
+    body.style.display = 'block';
+    label.textContent = 'Sembunyikan Nasihat';
+    chevron.textContent = '▲';
+  }
+}
+
+function filterPanduan(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.pg-section').forEach(function(sec) {
+    var keywords = (sec.dataset.search || '') + ' ' +
+      (sec.querySelector('.pg-sec-title').textContent || '') + ' ' +
+      (sec.querySelector('.pg-sec-sub').textContent || '');
+    sec.style.display = (!q || keywords.toLowerCase().includes(q)) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
