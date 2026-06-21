@@ -194,14 +194,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
 .stat{
-  background:rgba(255,255,255,0.7);
+  background:linear-gradient(180deg, var(--stat-bg-tint, transparent), transparent), rgba(255,255,255,0.7);
   backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
   border-radius:var(--r);padding:20px;border:1px solid rgba(255,255,255,.9);
   box-shadow:0 8px 32px rgba(14,165,233,.08);
-  transition:transform .3s cubic-bezier(0.34,1.56,0.64,1),box-shadow .3s;
+  transition:transform .3s cubic-bezier(0.34,1.56,0.64,1),box-shadow .3s,border-color .3s;
   position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),#38bdf8)}
-.stat:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(14,165,233,.15)}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3.5px;background:var(--stat-grad, linear-gradient(90deg,var(--blue),#38bdf8))}
+.stat:hover{transform:translateY(-4px);box-shadow:0 16px 40px var(--stat-shadow, rgba(14,165,233,.15));border-color:var(--stat-border-hover, rgba(255,255,255,.9))}
 .stat-ico{font-size:24px;margin-bottom:8px}
 .stat-val{font-size:26px;font-weight:800;line-height:1;color:var(--text)}
 .stat-lbl{font-size:11.5px;color:var(--text-3);margin-top:3px;font-weight:500}
@@ -572,7 +572,7 @@ html.theme-dark body{background:#111318}
 html.theme-dark .bg-blobs-admin{display:none}
 /* Cards — solid, no blur */
 html.theme-dark .card,html.theme-dark .stat{
-  background:#1e2128 !important;
+  background:linear-gradient(180deg, var(--stat-bg-tint, transparent), transparent), #1e2128 !important;
   backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
   border:1px solid rgba(255,255,255,.07) !important;
   box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
@@ -651,8 +651,11 @@ html.theme-dark .card,html.theme-dark .stat{
   }
 }
 
-html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
-html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc) !important}
+html.theme-dark .card:hover,html.theme-dark .stat:hover{
+  box-shadow:0 16px 36px var(--stat-shadow, rgba(0,0,0,.45)) !important;
+  border-color:var(--stat-border-hover, rgba(255,255,255,.15)) !important;
+}
+html.theme-dark .stat::before{background:var(--stat-grad, linear-gradient(90deg,#38bdf8,#7dd3fc)) !important}
 /* Inputs */
 html.theme-dark .fc,html.theme-dark input:not([type=range]),html.theme-dark select,html.theme-dark textarea{
   background:#252830 !important;border-color:rgba(56,189,248,.2) !important;color:#f0f2f8 !important;
@@ -1664,30 +1667,60 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
 
         <!-- ── Stats ── -->
         <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px">
-          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #10b981">
-            <div style="font-size:24px;font-weight:900;color:var(--green-txt);line-height:1" id="sppStatLunas">—</div>
-            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">✅ Lunas</div>
-            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatLunasSub">—</div>
+          <!-- Lunas -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#10b981,#34d399); --stat-shadow:rgba(16,185,129,0.15); --stat-border-hover:rgba(16,185,129,0.3); --stat-bg-tint:rgba(16,185,129,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:110px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Lunas</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">✅</span>
+            </div>
+            <div>
+              <div style="font-size:24px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatLunas">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatLunasSub">—</div>
+            </div>
           </div>
-          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #ef4444">
-            <div style="font-size:24px;font-weight:900;color:var(--red-txt);line-height:1" id="sppStatTunggak">—</div>
-            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">⚠ Menunggak</div>
-            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatTunggakSub">—</div>
+          <!-- Menunggak -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#ef4444,#f87171); --stat-shadow:rgba(239,68,68,0.15); --stat-border-hover:rgba(239,68,68,0.3); --stat-bg-tint:rgba(239,68,68,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:110px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Menunggak</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">⚠️</span>
+            </div>
+            <div>
+              <div style="font-size:24px; font-weight:900; color:var(--red-txt); line-height:1.2; margin-bottom:4px" id="sppStatTunggak">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatTunggakSub">—</div>
+            </div>
           </div>
-          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #3b82f6">
-            <div style="font-size:17px;font-weight:900;color:var(--blue-txt);line-height:1.2" id="sppStatTotal">—</div>
-            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💸 Total SPP</div>
-            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatTotalSub">Terbayar tahun ini</div>
+          <!-- Total SPP -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#3b82f6,#60a5fa); --stat-shadow:rgba(59,130,246,0.15); --stat-border-hover:rgba(59,130,246,0.3); --stat-bg-tint:rgba(59,130,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:110px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total SPP</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💸</span>
+            </div>
+            <div>
+              <div style="font-size:20px; font-weight:900; color:var(--blue-txt); line-height:1.2; margin-bottom:4px" id="sppStatTotal">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatTotalSub">Terbayar tahun ini</div>
+            </div>
           </div>
-          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #f59e0b">
-            <div style="font-size:17px;font-weight:900;color:var(--amber-txt);line-height:1.2" id="sppStatInfaq">—</div>
-            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💛 Total Infaq</div>
-            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatInfaqSub">Terbayar tahun ini</div>
+          <!-- Total Infaq -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#f59e0b,#fbbf24); --stat-shadow:rgba(245,158,11,0.15); --stat-border-hover:rgba(245,158,11,0.3); --stat-bg-tint:rgba(245,158,11,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:110px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Infaq</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(245,158,11,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💛</span>
+            </div>
+            <div>
+              <div style="font-size:20px; font-weight:900; color:var(--amber-txt); line-height:1.2; margin-bottom:4px" id="sppStatInfaq">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatInfaqSub">Terbayar tahun ini</div>
+            </div>
           </div>
-          <div class="stat" style="text-align:center;padding:20px 12px;border-top:3px solid #8b5cf6">
-            <div style="font-size:17px;font-weight:900;color:var(--purple-txt);line-height:1.2" id="sppStatMasuk">—</div>
-            <div style="font-size:10px;font-weight:700;color:var(--text-2, #64748b);text-transform:uppercase;letter-spacing:.6px;margin-top:6px">💰 Total Masuk</div>
-            <div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px" id="sppStatMasukSub">Terbayar tahun ini</div>
+          <!-- Total Masuk -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#8b5cf6,#a78bfa); --stat-shadow:rgba(139,92,246,0.15); --stat-border-hover:rgba(139,92,246,0.3); --stat-bg-tint:rgba(139,92,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:110px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Masuk</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💰</span>
+            </div>
+            <div>
+              <div style="font-size:20px; font-weight:900; color:var(--purple-txt); line-height:1.2; margin-bottom:4px" id="sppStatMasuk">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatMasukSub">Terbayar tahun ini</div>
+            </div>
           </div>
         </div>
 
