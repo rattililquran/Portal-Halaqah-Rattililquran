@@ -5737,8 +5737,9 @@ var AdminAPI = {
 
   getAllSaran: async function() {
     var { data, error } = await _sb.from('saran_masukan')
-      .select('*, halaqah(nama_halaqah, nama_guru)')
-      .order('created_at', { ascending: false });
+      .select('*, halaqah(nama_halaqah, nama_guru), users:id_murid(nama_lengkap)')
+      .order('created_at', { ascending: false })
+      .limit(500);
     _check(error, 'getAllSaran');
     return { status: 'ok', data: data || [] };
   },

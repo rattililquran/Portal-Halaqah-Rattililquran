@@ -7859,9 +7859,10 @@ function renderSaranTable(list) {
     }
     
     // Sender Name
+    const trueName = (!s.is_anonymous && s.users && s.users.nama_lengkap) ? s.users.nama_lengkap : s.nama_pengirim;
     const senderHtml = s.is_anonymous 
       ? '<span class="badge b-red">🔒 Anonim</span>' 
-      : `<strong>${esc(s.nama_pengirim)}</strong>`;
+      : `<strong>${esc(trueName || 'Siswa')}</strong>`;
       
     // Category Badge
     const catBadge = s.kategori_utama === 'portal'
@@ -7885,11 +7886,12 @@ function renderSaranTable(list) {
     
     // Status Badge
     let statusClass = 'b-amber';
-    if (s.status === 'dibaca') statusClass = 'b-blue';
-    if (s.status === 'tindakan') statusClass = 'b-purple';
-    if (s.status === 'selesai') statusClass = 'b-green';
-    if (s.status === 'arsip') statusClass = 'b-teal';
-    const statusBadge = `<span class="badge ${statusClass}">${esc(s.status.toUpperCase())}</span>`;
+    const statusVal = s.status || 'pending';
+    if (statusVal === 'dibaca') statusClass = 'b-blue';
+    if (statusVal === 'tindakan') statusClass = 'b-purple';
+    if (statusVal === 'selesai') statusClass = 'b-green';
+    if (statusVal === 'arsip') statusClass = 'b-teal';
+    const statusBadge = `<span class="badge ${statusClass}">${esc(statusVal.toUpperCase())}</span>`;
     
     return `<tr>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${dateStr}</td>
@@ -7925,7 +7927,8 @@ function showSaranDetail(id) {
   if (s.is_anonymous) {
     document.getElementById('saranDetPengirim').innerHTML = '<span class="badge b-red">🔒 Anonim</span>';
   } else {
-    document.getElementById('saranDetPengirim').textContent = s.nama_pengirim;
+    const trueName = (s.users && s.users.nama_lengkap) ? s.users.nama_lengkap : s.nama_pengirim;
+    document.getElementById('saranDetPengirim').textContent = trueName || 'Siswa';
   }
   
   // Set Kategori & Sub
