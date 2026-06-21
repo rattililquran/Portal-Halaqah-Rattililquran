@@ -2513,6 +2513,31 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
 //  MURID API
 // ─────────────────────────────────────────────
 var MuridAPI = {
+  // Transparansi dana bulan berjalan untuk para Muhsinin (murid yang berinfaq).
+  // Total infaq via RPC (murid tak bisa baca infaq orang lain), operasional via tabel (all_read).
+  getTransparansiDana: async function(p) {
+    var now = new Date();
+    var tahun = p && p.tahun ? Number(p.tahun) : now.getFullYear();
+    var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    var bulan = (p && p.bulan) ? p.bulan : BULAN[now.getMonth()];
+    var bulanIdx = BULAN.indexOf(bulan) + 1;
+    var [infaqRes, opRes] = await Promise.all([
+      _sb.rpc('get_infaq_bulanan', { p_bulan_idx: bulanIdx, p_tahun: tahun }),
+      _sb.from('operasional').select('keterangan, nominal').eq('tahun', tahun).eq('bulan', bulan).order('created_at'),
+    ]);
+    // Jika RPC belum ada (patch_052 belum dijalankan) → lempar agar panel tetap tersembunyi
+    if (infaqRes && infaqRes.error) throw infaqRes.error;
+    var infaq_bulanan = Number((infaqRes && infaqRes.data) || 0);
+    var items = (opRes && opRes.data) || [];
+    var operasional_total = items.reduce(function(s,r){ return s+Number(r.nominal||0); }, 0);
+    return { status:'ok', data: {
+      bulan: bulan, tahun: tahun,
+      infaq_bulanan: infaq_bulanan,
+      operasional_items: items,
+      operasional_total: operasional_total,
+      sisa: infaq_bulanan - operasional_total,
+    } };
+  },
   getDashboard: async function() {
     var id_murid = _uid();
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
@@ -4318,7 +4343,7 @@ var AdminAPI = {
     var infaqData = (sppData||[]).filter(function(s){ return s.jenis === 'Infaq/Operasional'; });
 
     // Ambil semua anggota aktif untuk cross-check
-    var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, halaqah(nama_halaqah)').eq('status','aktif');
+    var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, tipe_spp, halaqah(nama_halaqah, id_guru)').eq('status','aktif');
     if (p && p.id_halaqah) anggotaQ = anggotaQ.eq('id_halaqah', p.id_halaqah);
     var { data: anggota } = await anggotaQ;
     // Ambil no_hp terpisah untuk hindari FK join error
@@ -4366,8 +4391,15 @@ var AdminAPI = {
     var muridListRaw = (anggota||[]).map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
       var firstIdx = firstBulanMap[a.id_murid];
+      var isBeasiswa = a.tipe_spp === 'beasiswa';
       var bulanBelum, tunggakan, winLen;
-      if (firstIdx === undefined) {
+      if (isBeasiswa) {
+        // Murid beasiswa: SPP Pribadi dibebaskan → tak pernah nunggak.
+        // Dikeluarkan dari hitungan lunas/menunggak (kategori terpisah, lihat bawah).
+        bulanBelum = [];
+        tunggakan  = 0;
+        winLen     = 0;
+      } else if (firstIdx === undefined) {
         // Belum pernah punya catatan SPP Pribadi sama sekali → anggap nunggak WINDOW_SIZE bulan
         bulanBelum = [];
         tunggakan  = WINDOW_SIZE;
@@ -4389,7 +4421,7 @@ var AdminAPI = {
         id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
         level: a.level, no_hp: hpMap[a.id_murid] || '',
         lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
-        _winLen: winLen,
+        _winLen: winLen, is_beasiswa: isBeasiswa,
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
 
@@ -4448,12 +4480,33 @@ var AdminAPI = {
     var totalManualNominal = sppManualNominal + infaqManualNominal;
     var totalManualCount = sppManualCount + infaqManualCount;
 
-    // Lunas = tunggakan===0 DAN window kewajibannya tidak kosong
-    var lunas     = muridListRaw.filter(function(m){ return m.tunggakan===0 && m._winLen>0; }).length;
-    var menunggak = muridListRaw.filter(function(m){ return m.tunggakan>0; }).length;
+    // ── Murid beasiswa = ember ketiga (dikeluarkan dari lunas & menunggak) ──
+    var beasiswa_count = muridListRaw.filter(function(m){ return m.is_beasiswa; }).length;
+    // Lunas = tunggakan===0 DAN window kewajibannya tidak kosong (non-beasiswa saja)
+    var lunas     = muridListRaw.filter(function(m){ return !m.is_beasiswa && m.tunggakan===0 && m._winLen>0; }).length;
+    var menunggak = muridListRaw.filter(function(m){ return !m.is_beasiswa && m.tunggakan>0; }).length;
+
+    // ── Distribusi sisa donasi ke guru pengajar murid beasiswa (basis per bulan) ──
+    var bulanTarget = (p && p.bulan) ? p.bulan : BULAN[new Date().getMonth()];
+    var bulanIdx    = BULAN.indexOf(bulanTarget) + 1;
+    // Infaq per bulan via tanggal_bayar (RPC; kolom bulan infaq selalu '-')
+    var infaqBulananRes = await _sb.rpc('get_infaq_bulanan', { p_bulan_idx: bulanIdx, p_tahun: tahun });
+    var infaq_bulanan = Number((infaqBulananRes && infaqBulananRes.data) || 0);
+    // Operasional bulan tersebut
+    var opQ = await _sb.from('operasional').select('nominal').eq('tahun', tahun).eq('bulan', bulanTarget);
+    var operasional_total = (opQ.data||[]).reduce(function(s,r){ return s+Number(r.nominal||0); }, 0);
+    var sisa_donasi = infaq_bulanan - operasional_total;
+    // Guru distinct (id_guru non-null) yang mengajar murid beasiswa
+    var beasiswaGuruSet = {};
+    (anggota||[]).forEach(function(a){
+      if (a.tipe_spp === 'beasiswa' && a.halaqah && a.halaqah.id_guru) beasiswaGuruSet[a.halaqah.id_guru] = true;
+    });
+    var guru_beasiswa_count = Object.keys(beasiswaGuruSet).length;
+    var bagian_per_guru = (sisa_donasi > 0 && guru_beasiswa_count > 0) ? Math.floor(sisa_donasi / guru_beasiswa_count) : 0;
+
     var muridList = muridListRaw.map(function(m){
       return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
-        level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum };
+        level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum, is_beasiswa:m.is_beasiswa };
     });
     return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
       spp_gateway_nominal: sppGatewayNominal, spp_gateway_count: sppGatewayCount,
@@ -4462,7 +4515,47 @@ var AdminAPI = {
       infaq_manual_nominal: infaqManualNominal, infaq_manual_count: infaqManualCount,
       total_gateway_nominal: totalGatewayNominal, total_gateway_count: totalGatewayCount,
       total_manual_nominal: totalManualNominal, total_manual_count: totalManualCount,
-      bulan_rekap: bulanRekapDefault, total_rekap: TOTAL_REKAP, window_size: WINDOW_SIZE } };
+      bulan_rekap: bulanRekapDefault, total_rekap: TOTAL_REKAP, window_size: WINDOW_SIZE,
+      // ── Beasiswa & distribusi sisa donasi ──
+      beasiswa_count: beasiswa_count,
+      beasiswa_bulan: bulanTarget,
+      beasiswa_infaq_bulanan: infaq_bulanan,
+      beasiswa_operasional: operasional_total,
+      beasiswa_sisa: sisa_donasi,
+      beasiswa_guru_count: guru_beasiswa_count,
+      beasiswa_bagian_per_guru: bagian_per_guru } };
+  },
+  // ── Operasional (ledger pengeluaran bulanan) ────────────────
+  getOperasional: async function(p) {
+    var tahun = p && p.tahun ? Number(p.tahun) : new Date().getFullYear();
+    var q = _sb.from('operasional').select('*').eq('tahun', tahun);
+    if (p && p.bulan) q = q.eq('bulan', p.bulan);
+    var { data, error } = await q.order('created_at', { ascending:false });
+    _check(error,'getOperasional');
+    var total = (data||[]).reduce(function(s,r){ return s+Number(r.nominal||0); }, 0);
+    return { status:'ok', data: data||[], total: total };
+  },
+  tambahOperasional: async function(d) {
+    var { error } = await _sb.from('operasional').insert({
+      bulan: d.bulan, tahun: Number(d.tahun), keterangan: d.keterangan,
+      nominal: Number(d.nominal), catatan: d.catatan || null, created_by: _uid(),
+    });
+    _check(error,'tambahOperasional');
+    return { status:'ok' };
+  },
+  updateOperasional: async function(d) {
+    var { id_operasional } = d, u = {};
+    ['bulan','tahun','keterangan','nominal','catatan'].forEach(function(k){ if (d[k] !== undefined) u[k] = d[k]; });
+    if (u.nominal != null) u.nominal = Number(u.nominal);
+    if (u.tahun   != null) u.tahun   = Number(u.tahun);
+    var { error } = await _sb.from('operasional').update(u).eq('id_operasional', id_operasional);
+    _check(error,'updateOperasional');
+    return { status:'ok' };
+  },
+  hapusOperasional: async function(id_operasional) {
+    var { error } = await _sb.from('operasional').delete().eq('id_operasional', id_operasional);
+    _check(error,'hapusOperasional');
+    return { status:'ok' };
   },
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { throw new Error('Fitur arsip data belum tersedia. Data BELUM dipindahkan — jangan jadikan ini sebagai pengganti backup.'); },

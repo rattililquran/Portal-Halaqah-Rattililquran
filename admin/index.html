@@ -1722,6 +1722,51 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
               <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatMasukSub">Terbayar tahun ini</div>
             </div>
           </div>
+          <!-- Beasiswa -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Beasiswa</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">🎓</span>
+            </div>
+            <div>
+              <div style="font-size:24px; font-weight:900; color:#0284c7; line-height:1.2; margin-bottom:4px" id="sppStatBeasiswa">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatBeasiswaSub">Penerima (SPP dibebaskan)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Kas Beasiswa & Operasional ── -->
+        <div class="card" style="padding:16px 20px;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)">🎓 Kas Beasiswa &amp; Operasional</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Sisa infaq (setelah operasional) dibagi rata ke guru pengajar murid beasiswa</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="kasBeasiswaBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadKasBeasiswa()"></select>
+              <button class="btn btn-primary btn-sm" onclick="bukaFormOperasional()" style="font-size:12px;padding:6px 12px">+ Tambah Operasional</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+            <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.18);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Infaq Bulan Ini</div>
+              <div style="font-size:15px;font-weight:900;color:var(--amber-txt);margin-top:3px" id="kasInfaq">—</div>
+            </div>
+            <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Operasional</div>
+              <div style="font-size:15px;font-weight:900;color:var(--red-txt);margin-top:3px" id="kasOperasional">—</div>
+            </div>
+            <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa Donasi</div>
+              <div style="font-size:15px;font-weight:900;margin-top:3px" id="kasSisa">—</div>
+            </div>
+            <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Bagian / Guru</div>
+              <div style="font-size:15px;font-weight:900;color:var(--green-txt);margin-top:3px" id="kasBagian">—</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px" id="kasBagianSub"></div>
+            </div>
+          </div>
+          <div id="kasOperasionalList" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
 
         <!-- ── Metode Pembayaran ── -->
@@ -1815,6 +1860,43 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
         </div><!-- /card rekap -->
 
         <!-- Modal Tambah/Edit Metode -->
+        <!-- ── Modal Operasional ── -->
+        <div class="overlay" id="modalOperasional" onclick="if(event.target===this)tutupFormOperasional()">
+          <div class="modal" style="max-width:420px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalOperasionalTitle">Tambah Operasional</div>
+              <button class="btn-icon" onclick="tutupFormOperasional()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+              <input type="hidden" id="opId">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Bulan</label>
+                  <select id="opBulan" class="fc" style="width:100%"></select>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun</label>
+                  <select id="opTahun" class="fc" style="width:100%"></select>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Keterangan</label>
+                <input id="opKeterangan" class="fc" placeholder="Cth: Sewa Zoom, Maintenance Website" style="width:100%">
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nominal (Rp)</label>
+                <input id="opNominal" type="number" min="1" class="fc" placeholder="300000" style="width:100%">
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
+                <input id="opCatatan" class="fc" placeholder="—" style="width:100%">
+              </div>
+              <div id="opErr" style="display:none;color:var(--red);font-size:12px"></div>
+              <button class="btn btn-primary" onclick="simpanOperasional()" style="width:100%">Simpan</button>
+            </div>
+          </div>
+        </div>
+
         <div class="overlay" id="modalMetode" onclick="if(event.target===this)tutupFormMetode()">
           <div class="modal" style="max-width:420px">
             <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
@@ -3038,7 +3120,7 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.0.1"></script>
+<script src="../supabase/supabase-client.js?v=2.0.2"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script>
@@ -5361,6 +5443,7 @@ function renderAnggotaTable() {
       <td>${a.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-amber">'+esc(a.status)+'</span>'}</td>
       <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="editAnggota('${esc(a.id_anggota)}','${esc(a.level)}','${esc(a.target_level)}')">✏️ Level</button>
+        <button class="btn btn-sm" style="font-size:10.5px;padding:3px 8px;${a.tipe_spp==='beasiswa'?'background:rgba(14,165,233,.12);color:#0284c7;border:1px solid rgba(14,165,233,.3)':'background:rgba(100,116,139,.08);color:var(--text-2);border:1px solid var(--border)'}" onclick="toggleTipeSpp('${esc(a.id_anggota)}','${esc(a.tipe_spp||'reguler')}','${escJs(a.nama_murid)}')">${a.tipe_spp==='beasiswa'?'🎓 Beasiswa':'🎓 Reguler'}</button>
         <button class="btn btn-ghost btn-sm" onclick="pindahAnggotaModal('${esc(a.id_anggota)}','${escJs(a.nama_murid)}','${esc(a.id_halaqah)}','${esc(a.level)}','${esc(a.target_level)}')">↪️ Pindah</button>
         ${currentUser && currentUser.role === 'superadmin'
           ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${escJs(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
@@ -6680,6 +6763,10 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
       document.getElementById('sppStatMasukSub').innerHTML = 'Gateway: Rp ' + (rekap.total_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.total_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_manual_count||0) + 'x)';
 
+      // Ember ketiga + kartu Kas Beasiswa
+      document.getElementById('sppStatBeasiswa').textContent = rekap.beasiswa_count || 0;
+      loadKasBeasiswa(rekap);
+
       filterSPPTable();
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
@@ -6688,6 +6775,145 @@ async function loadSPPAdmin() {
 
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
+}
+
+// ── Kas Beasiswa & Operasional ─────────────────────────────
+var BULAN_LIST = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+var _kasOpItems = [];
+
+function ensureKasBulanOptions() {
+  var sel = document.getElementById('kasBeasiswaBulan');
+  if (sel && !sel.options.length) {
+    sel.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+    sel.value = BULAN_LIST[new Date().getMonth()];
+  }
+}
+
+function renderKasRingkasan(rekap) {
+  var fmt = function(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); };
+  document.getElementById('kasInfaq').textContent = fmt(rekap.beasiswa_infaq_bulanan);
+  document.getElementById('kasOperasional').textContent = fmt(rekap.beasiswa_operasional);
+  var sisa = Number(rekap.beasiswa_sisa)||0;
+  var sisaEl = document.getElementById('kasSisa');
+  sisaEl.textContent = (sisa < 0 ? '−Rp ' + Math.abs(sisa).toLocaleString('id-ID') : fmt(sisa));
+  sisaEl.style.color = sisa > 0 ? 'var(--green-txt)' : 'var(--text-2)';
+  document.getElementById('kasBagian').textContent = fmt(rekap.beasiswa_bagian_per_guru);
+  var gc = rekap.beasiswa_guru_count || 0;
+  document.getElementById('kasBagianSub').textContent = gc ? ('dibagi rata ' + gc + ' guru') : 'belum ada guru beasiswa';
+}
+
+function renderKasOperasionalList(items) {
+  var wrap = document.getElementById('kasOperasionalList');
+  if (!items || !items.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:12px">Belum ada pengeluaran operasional untuk bulan ini.</div>';
+    return;
+  }
+  wrap.innerHTML = items.map(function(it){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:8px">'
+      + '<div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--text)">'+esc(it.keterangan)+'</div>'
+      + (it.catatan ? '<div style="font-size:10.5px;color:var(--text-3)">'+esc(it.catatan)+'</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+      + '<span style="font-size:12px;font-weight:800;color:var(--red-txt)">Rp '+(Number(it.nominal)||0).toLocaleString('id-ID')+'</span>'
+      + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editOperasional(\''+esc(it.id_operasional)+'\')">✏️</button>'
+      + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusOperasionalItem(\''+esc(it.id_operasional)+'\',\''+escJs(it.keterangan)+'\')">🗑</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function loadKasBeasiswa(rekapPrefetch) {
+  ensureKasBulanOptions();
+  var tahun = Number(document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value || new Date().getFullYear());
+  var idHalaqah = (document.getElementById('sppFilterHalaqah') && document.getElementById('sppFilterHalaqah').value) || '';
+  var bulan = document.getElementById('kasBeasiswaBulan').value;
+  try {
+    var rekap;
+    if (rekapPrefetch && rekapPrefetch.beasiswa_bulan === bulan) {
+      rekap = rekapPrefetch;
+    } else {
+      var rr = await window.HQ.AdminAPI.getSPPRekap({ tahun: tahun, bulan: bulan, id_halaqah: idHalaqah||undefined });
+      rekap = rr.data || {};
+    }
+    renderKasRingkasan(rekap);
+    var opRes = await window.HQ.AdminAPI.getOperasional({ tahun: tahun, bulan: bulan });
+    _kasOpItems = opRes.data || [];
+    renderKasOperasionalList(_kasOpItems);
+  } catch(e) { console.error('loadKasBeasiswa', e); }
+}
+
+function bukaFormOperasional(item) {
+  var selB = document.getElementById('opBulan');
+  if (!selB.options.length) selB.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+  var selT = document.getElementById('opTahun');
+  if (!selT.options.length) {
+    var yNow = new Date().getFullYear(); var ys = [];
+    for (var y=yNow-1; y<=yNow+1; y++) ys.push('<option value="'+y+'">'+y+'</option>');
+    selT.innerHTML = ys.join('');
+  }
+  document.getElementById('opErr').style.display = 'none';
+  if (item) {
+    document.getElementById('modalOperasionalTitle').textContent = 'Edit Operasional';
+    document.getElementById('opId').value = item.id_operasional;
+    selB.value = item.bulan; selT.value = item.tahun;
+    document.getElementById('opKeterangan').value = item.keterangan || '';
+    document.getElementById('opNominal').value = item.nominal || '';
+    document.getElementById('opCatatan').value = item.catatan || '';
+  } else {
+    document.getElementById('modalOperasionalTitle').textContent = 'Tambah Operasional';
+    document.getElementById('opId').value = '';
+    selB.value = (document.getElementById('kasBeasiswaBulan') && document.getElementById('kasBeasiswaBulan').value) || BULAN_LIST[new Date().getMonth()];
+    selT.value = (document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || new Date().getFullYear();
+    document.getElementById('opKeterangan').value = '';
+    document.getElementById('opNominal').value = '';
+    document.getElementById('opCatatan').value = '';
+  }
+  document.getElementById('modalOperasional').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function tutupFormOperasional() { document.getElementById('modalOperasional').classList.remove('open'); document.body.style.overflow=''; }
+
+function editOperasional(id) {
+  var it = (_kasOpItems||[]).find(function(x){ return x.id_operasional === id; });
+  if (it) bukaFormOperasional(it);
+}
+
+async function simpanOperasional() {
+  var id = document.getElementById('opId').value;
+  var bulan = document.getElementById('opBulan').value;
+  var tahun = document.getElementById('opTahun').value;
+  var keterangan = document.getElementById('opKeterangan').value.trim();
+  var nominal = document.getElementById('opNominal').value;
+  var catatan = document.getElementById('opCatatan').value.trim();
+  var err = document.getElementById('opErr');
+  if (!keterangan) { err.textContent='Keterangan wajib diisi.'; err.style.display=''; return; }
+  if (!nominal || Number(nominal) <= 0) { err.textContent='Nominal harus lebih dari 0.'; err.style.display=''; return; }
+  try {
+    if (id) await window.HQ.AdminAPI.updateOperasional({ id_operasional:id, bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan });
+    else    await window.HQ.AdminAPI.tambahOperasional({ bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan });
+    tutupFormOperasional();
+    toast('Operasional tersimpan','ok');
+    var kasSel = document.getElementById('kasBeasiswaBulan'); if (kasSel) kasSel.value = bulan;
+    loadKasBeasiswa();
+  } catch(e) { err.textContent='Gagal: '+(e.message||e); err.style.display=''; }
+}
+
+async function hapusOperasionalItem(id, nama) {
+  if (!confirm('Hapus operasional "'+nama+'"?')) return;
+  try { await window.HQ.AdminAPI.hapusOperasional(id); toast('Operasional dihapus','ok'); loadKasBeasiswa(); }
+  catch(e) { toast('Gagal: '+(e.message||e),'err'); }
+}
+
+async function toggleTipeSpp(id_anggota, current, nama) {
+  var next = current === 'beasiswa' ? 'reguler' : 'beasiswa';
+  var label = next === 'beasiswa' ? 'Beasiswa Penuh (SPP Pribadi dibebaskan)' : 'Reguler (SPP Pribadi berbayar)';
+  if (!confirm('Ubah tipe SPP ' + nama + ' menjadi:\n' + label + ' ?')) return;
+  try {
+    await window.HQ.AdminAPI.updateAnggota({ id_anggota: id_anggota, tipe_spp: next });
+    var row = (window._anggotaAllRows||[]).find(function(r){ return r.id_anggota === id_anggota; });
+    if (row) row.tipe_spp = next;
+    renderAnggotaTable();
+    toast(nama + ' → ' + label, 'ok');
+  } catch(e) { toast('Gagal: ' + (e.message||e), 'err'); }
 }
 
 function filterSPPTable() {

@@ -3569,6 +3569,33 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
         </div>
       </div>
 
+      <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
+      <div class="spp-card" id="transparansiCard" style="display:none;">
+        <div class="spp-head">
+          <div class="spp-title">💛 Transparansi Dana Infaq</div>
+          <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
+        </div>
+        <div class="spp-body">
+          <div style="font-size:11.5px;color:var(--text-3);line-height:1.6;margin-bottom:12px">Sebagai amanah kepada para Muhsinin, berikut ringkasan dana infaq/operasional bulan ini.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Infaq Terkumpul</div>
+              <div style="font-size:15px;font-weight:900;color:#b45309;margin-top:3px" id="transInfaq">—</div>
+            </div>
+            <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Operasional</div>
+              <div style="font-size:15px;font-weight:900;color:#b91c1c;margin-top:3px" id="transOperasional">—</div>
+            </div>
+          </div>
+          <div id="transOpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+          <div style="background:linear-gradient(180deg,#f0fdf4,#ecfdf5);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa untuk Guru Program Beasiswa</div>
+            <div style="font-size:18px;font-weight:900;color:#059669;margin-top:3px" id="transSisa">—</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px" id="transSisaNote"></div>
+          </div>
+        </div>
+      </div>
+
 
 
 
@@ -5582,7 +5609,7 @@ html.theme-dark .charging-icon-btn:hover{background:rgba(255,255,255,.1)}
      (logika yang memanggil window.HQ/_sb baru jalan saat DOMContentLoaded,
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
-<script src="../supabase/supabase-client.js" defer></script>
+<script src="../supabase/supabase-client.js?v=2.0.2" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -12487,10 +12514,40 @@ async function loadSPP() {
     }
     if (!r || !r.data) return; // SPP belum dikonfigurasi
     renderSPP(r.data);
+    loadTransparansi();
     _sppLoaded = true; // tandai sudah berhasil
   } catch(e) {
     console.error('SPP load exception:', e.message);
   }
+}
+
+// Panel transparansi dana untuk para Muhsinin (semua murid)
+async function loadTransparansi() {
+  var card = document.getElementById('transparansiCard');
+  if (!card) return;
+  try {
+    var r = await window.HQ.MuridAPI.getTransparansiDana({});
+    var d = r && r.data; if (!d) return;
+    var fmt = function(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); };
+    document.getElementById('transBulanLabel').textContent = d.bulan + ' ' + d.tahun;
+    document.getElementById('transInfaq').textContent = fmt(d.infaq_bulanan);
+    document.getElementById('transOperasional').textContent = fmt(d.operasional_total);
+    var sisa = Number(d.sisa)||0;
+    document.getElementById('transSisa').textContent = sisa < 0 ? '−' + fmt(Math.abs(sisa)) : fmt(sisa);
+    document.getElementById('transSisaNote').textContent = sisa > 0
+      ? 'Disalurkan rata ke guru pengajar murid beasiswa'
+      : 'Belum ada sisa bulan ini — dana terserap operasional (kondisi normal)';
+    var items = d.operasional_items || [];
+    document.getElementById('transOpList').innerHTML = !items.length
+      ? '<div style="text-align:center;padding:8px;color:var(--text-3);font-size:11.5px">Belum ada rincian operasional bulan ini.</div>'
+      : items.map(function(it){
+          return '<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:8px">'
+            + '<span style="font-size:11.5px;color:var(--text-2);font-weight:600">' + esc(it.keterangan) + '</span>'
+            + '<span style="font-size:11.5px;color:#b91c1c;font-weight:800;white-space:nowrap">Rp ' + (Number(it.nominal)||0).toLocaleString('id-ID') + '</span>'
+            + '</div>';
+        }).join('');
+    card.style.display = 'block';
+  } catch(e) { console.error('loadTransparansi', e); }
 }
 
 var _sppData = null;
@@ -12724,6 +12781,7 @@ async function bukaModalKonfirmasiSPP() {
   document.getElementById('sppBuktiLabel').style.borderColor = '';
   document.getElementById('sppFormErr').style.display = 'none';
   openModal('sppKonfirmasiModal');
+  applyBeasiswaModeModal();
   // Reset scroll ke atas agar header tidak terpotong
   var _sppSheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
   if (_sppSheet) _sppSheet.scrollTop = 0;
@@ -13005,6 +13063,48 @@ function renderSPP(data) {
             + '</div>';
         }).join('');
   }
+
+  applyBeasiswaMode();
+}
+
+// ── Beasiswa: bypass SPP Pribadi + panel apresiasi ──
+function isBeasiswaMurid() {
+  return !!(dashData && dashData.anggota && dashData.anggota.tipe_spp === 'beasiswa');
+}
+var BEASISWA_PANEL_HTML =
+  '<div style="padding:4px 2px">'
+  + '<div style="text-align:center;margin-bottom:12px">'
+  +   '<div style="font-size:30px">🤲</div>'
+  +   '<div style="font-size:15px;font-weight:800;color:#b45309;margin-top:2px">Beasiswa Penuh Rattililqur\'an</div>'
+  + '</div>'
+  + '<p style="font-size:12.5px;line-height:1.7;color:var(--text-2);text-align:center;margin:0 0 10px">Alhamdulillah, biaya belajar Anda telah ditanggung sepenuhnya oleh para <b>Muhsinin</b> — saudara-saudara yang berinfaq dengan ikhlas agar Anda terus belajar Al-Qur\'an.</p>'
+  + '<p style="font-size:12.5px;line-height:1.7;color:var(--text-2);text-align:center;margin:0 0 12px">Maka jadikanlah ini sebagai <b>amanah</b>: hadirlah dengan sungguh-sungguh, jagalah adab, dan teruslah berkembang. Setiap kemajuan Anda adalah buah dari kebaikan mereka.</p>'
+  + '<div style="background:linear-gradient(180deg,#fffbeb,#f0fdf4);border:1px solid rgba(180,83,9,.18);border-radius:14px;padding:14px 12px;text-align:center;margin-bottom:12px">'
+  +   '<div dir="rtl" lang="ar" style="font-family:\'Amiri\',\'Scheherazade New\',\'Traditional Arabic\',\'Geeza Pro\',serif;font-size:24px;line-height:2;color:#7c4a03">ثُمَّ لَتُسْأَلُنَّ يَوْمَئِذٍ عَنِ ٱلنَّعِيمِ</div>'
+  +   '<div style="font-size:11.5px;font-style:italic;color:var(--text-3);margin-top:8px;line-height:1.6">"Kemudian kamu benar-benar akan ditanya pada hari itu tentang kenikmatan (yang kamu nikmati di dunia)."</div>'
+  +   '<div style="font-size:11px;font-weight:700;color:#b45309;margin-top:4px">— QS. At-Takāṡur: 8</div>'
+  + '</div>'
+  + '<p style="font-size:12px;line-height:1.6;color:var(--text-2);text-align:center;margin:0 0 6px">Sisihkan doa terbaik untuk para Muhsinin — semoga Allah membalas kebaikan mereka berlipat ganda. 🌱</p>'
+  + '<div style="text-align:center;font-size:13px;font-weight:800;color:#059669">Baarakallahu fiikum 💛</div>'
+  + '</div>';
+
+function applyBeasiswaMode() {
+  var tabSpp   = document.getElementById('sppTabSpp');
+  var panelSpp = document.getElementById('sppPanelSpp');
+  var btn      = document.querySelector('.spp-konfirm-btn');
+  if (!isBeasiswaMurid()) { if (tabSpp) tabSpp.style.display = ''; return; }
+  if (tabSpp)   tabSpp.style.display = 'none';
+  if (panelSpp) panelSpp.innerHTML = BEASISWA_PANEL_HTML;
+  if (btn)      btn.innerHTML = '💛 Bayar Infaq';
+  switchSppTab('infaq');
+}
+
+// Di modal pembayaran: sembunyikan tab "SPP Pribadi", paksa ke Infaq
+function applyBeasiswaModeModal() {
+  var tabs = document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab');
+  if (!isBeasiswaMurid()) { if (tabs[0]) tabs[0].style.display = ''; return; }
+  if (tabs[0]) tabs[0].style.display = 'none';
+  if (tabs[1]) { tabs[1].style.display = ''; setSppFormJenis('Infaq/Operasional', tabs[1]); }
 }
 
 
