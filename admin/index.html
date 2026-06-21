@@ -6591,7 +6591,7 @@ async function loadSPPAdmin() {
                 ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
                 : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
           var actionBtns = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
-            + (isGateway ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>' : '')
+            + (isGateway ? '<span style="background:linear-gradient(135deg,#ffedd5,#fdba74);color:#9a3412;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>' : '')
             + '<div style="display:flex;gap:6px">'
               + (isGateway
                   ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">✅ Konfirmasi Manual</button>'
@@ -6811,7 +6811,7 @@ function filterInfaqTable() {
 
   tbody.innerHTML = data.map(function(r) {
     var metodeBadge = r.metode_bayar === 'gateway'
-      ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+      ? '<span style="background:linear-gradient(135deg,#ffedd5,#fdba74);color:#9a3412;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">⚡ Gateway</span>'
       : '<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">Manual</span>';
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
@@ -6969,7 +6969,7 @@ async function loadSPPRiwayat() {
         ? '<span style="background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Lunas</span>'
         : '<span style="background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Ditolak</span>';
       var sumberBadge = isGateway
-        ? '<span style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+        ? '<span style="background:linear-gradient(135deg,#ffedd5,#fdba74);color:#9a3412;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">⚡ Gateway</span>'
         : '<span style="background:var(--bg,#f1f5f9);color:var(--text-2,#64748b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Manual Admin</span>';
       var when = fmtDate(p.validated_at || p.tanggal_bayar);
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">'
