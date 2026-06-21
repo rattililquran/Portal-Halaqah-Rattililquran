@@ -1096,6 +1096,7 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
       <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni">📢</span>Pengumuman</button>
       <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
+      <button class="nav-btn" onclick="goPage('saran')" data-p="saran"><span class="ni">💬</span>Saran & Masukan</button>
       <!-- Hanya superadmin -->
       <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
       <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔍</span>Audit Log</button>
@@ -2766,6 +2767,92 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
         </div>
       </div>
 
+      <!-- ══ SARAN & MASUKAN ══ -->
+      <div class="page" id="page-saran">
+        <div class="section-title">Saran & Masukan Murid</div>
+        <div class="section-sub">Kelola kritik, saran, laporan bug, dan ulasan pembelajaran dari murid.</div>
+
+        <!-- Stats Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px">
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">💬</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Total Masukan</div>
+              <div style="font-size:28px;font-weight:900;color:var(--text)" id="saranStatTotal">0</div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">⏳</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Belum Ditanggapi</div>
+              <div style="font-size:28px;font-weight:900;color:var(--amber)" id="saranStatPending">0</div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">⭐</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Rating Avg Guru</div>
+              <div style="font-size:28px;font-weight:900;color:var(--blue)" id="saranStatAvgGuru">–</div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+            <div style="font-size:32px">📖</div>
+            <div>
+              <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Rating Avg Kurikulum</div>
+              <div style="font-size:28px;font-weight:900;color:var(--green)" id="saranStatAvgMateri">–</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card" style="padding:16px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <div style="flex:1;min-width:200px">
+            <input type="text" class="fc" id="saranSearchInput" placeholder="Cari isi masukan atau nama pengirim..." oninput="filterSaran()">
+          </div>
+          <div style="width:180px">
+            <select class="fc" id="saranFilterKategori" onchange="filterSaran()">
+              <option value="">Semua Kategori</option>
+              <option value="portal">🖥️ Portal & Aplikasi</option>
+              <option value="program">📖 Program & KBM</option>
+            </select>
+          </div>
+          <div style="width:180px">
+            <select class="fc" id="saranFilterStatus" onchange="filterSaran()">
+              <option value="">Semua Status</option>
+              <option value="pending">Pending</option>
+              <option value="dibaca">Dibaca</option>
+              <option value="tindakan">Tindakan</option>
+              <option value="selesai">Selesai</option>
+              <option value="arsip">Arsip</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="loadSaranPage()">🔄 Segarkan</button>
+          </div>
+        </div>
+
+        <!-- Table List -->
+        <div class="card">
+          <div class="tbl-wrap">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Pengirim</th>
+                  <th>Kategori</th>
+                  <th>Isi Masukan</th>
+                  <th class="align-center">Rating</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="saranTbl">
+                <tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
     </div>
   </div>
 </div>
@@ -3120,8 +3207,78 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
   </div>
 </div>
 
+<!-- MODAL DETAIL & TANGGAPAN SARAN -->
+<div class="overlay" id="modalSaranDetail">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">💬 Detail & Tanggapan Saran</div>
+      <button class="modal-x" onclick="closeModal('modalSaranDetail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
+        <div>
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Pengirim</div>
+          <div style="font-weight:700" id="saranDetPengirim">Anonim 🔒</div>
+        </div>
+        <div>
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Kategori</div>
+          <div style="font-weight:700" id="saranDetKategori">Portal (Teknis)</div>
+        </div>
+        <div>
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Tanggal Masuk</div>
+          <div id="saranDetTanggal">–</div>
+        </div>
+        <div>
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Halaqah / Kelas</div>
+          <div id="saranDetHalaqah">–</div>
+        </div>
+        <div id="saranDetRatingGuruWrap" style="display:none">
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Rating Guru</div>
+          <div id="saranDetRatingGuru" style="color:var(--amber);font-weight:700">⭐ –</div>
+        </div>
+        <div id="saranDetRatingMateriWrap" style="display:none">
+          <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Rating Materi</div>
+          <div id="saranDetRatingMateri" style="color:var(--amber);font-weight:700">⭐ –</div>
+        </div>
+      </div>
+      
+      <div class="fg">
+        <label>Isi Ulasan / Masukan</label>
+        <div id="saranDetIsi" style="background:var(--bg);border:1px solid var(--border);padding:12px;border-radius:var(--r-sm);font-size:13.5px;white-space:pre-wrap;color:var(--text)"></div>
+      </div>
+
+      <div class="fg">
+        <label>Status Tindak Lanjut</label>
+        <select class="fc" id="saranDetStatus">
+          <option value="pending">Pending</option>
+          <option value="dibaca">Dibaca</option>
+          <option value="tindakan">Tindakan</option>
+          <option value="selesai">Selesai</option>
+          <option value="arsip">Arsip</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Tanggapan Publik (Dilihat oleh Murid)</label>
+        <textarea class="fc" id="saranDetTanggapan" rows="3" placeholder="Tulis tanggapan resmi yang dapat dilihat oleh murid di riwayat portal mereka..."></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Catatan Internal Staf (Hanya untuk Admin)</label>
+        <textarea class="fc" id="saranDetCatatanInternal" rows="2" placeholder="Catatan diskusi internal manajemen (tidak terlihat oleh murid)..."></textarea>
+      </div>
+      
+      <input type="hidden" id="saranDetId">
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalSaranDetail')">Batal</button>
+      <button class="btn btn-primary" onclick="simpanTanggapanSaran()">💾 Simpan Tanggapan</button>
+    </div>
+  </div>
+</div>
+
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.0.3"></script>
+<script src="../supabase/supabase-client.js?v=2.0.6"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script>
@@ -3145,7 +3302,7 @@ const PAGE_TITLES = {
   laporan:'Laporan Global', absensi:'Rekap Absensi', 'absensi-guru':'Absensi Guru',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
-  materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua'
+  materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan'
 };
 
 // ══════════════════════════════════════════
@@ -3503,6 +3660,7 @@ function goPage(name) {
     arsip    : loadArsipPage,
     materi   : loadMateriAdmin,
     push     : loadPushAdmin,
+    saran    : loadSaranPage,
   };
   loaders[name]?.();
 }
@@ -7609,6 +7767,230 @@ async function loadKepatuhan() {
     }).join('');
   } catch(e) {
     toast('Gagal memuat rekap kepatuhan: ' + e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+// ══════════════════════════════════════════
+//  SARAN & MASUKAN ADMIN PAGE
+// ══════════════════════════════════════════
+let allSaranData = [];
+
+async function loadSaranPage() {
+  showLoad('Bismillah, memuat daftar saran & masukan...');
+  try {
+    const res = await window.HQ.AdminAPI.getAllSaran();
+    allSaranData = res.data || [];
+    calculateSaranStats();
+    filterSaran();
+  } catch (e) {
+    toast('Gagal memuat saran: ' + e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function calculateSaranStats() {
+  const total = allSaranData.length;
+  const pending = allSaranData.filter(s => s.status === 'pending' || s.status === 'dibaca').length;
+  
+  // Calculate average rating
+  let sumGuru = 0, countGuru = 0;
+  let sumMateri = 0, countMateri = 0;
+  
+  allSaranData.forEach(s => {
+    if (s.rating_guru !== null && s.rating_guru !== undefined) {
+      sumGuru += s.rating_guru;
+      countGuru++;
+    }
+    if (s.rating_materi !== null && s.rating_materi !== undefined) {
+      sumMateri += s.rating_materi;
+      countMateri++;
+    }
+  });
+  
+  const avgGuru = countGuru > 0 ? (sumGuru / countGuru).toFixed(1) : '–';
+  const avgMateri = countMateri > 0 ? (sumMateri / countMateri).toFixed(1) : '–';
+  
+  document.getElementById('saranStatTotal').textContent = total;
+  document.getElementById('saranStatPending').textContent = pending;
+  document.getElementById('saranStatAvgGuru').textContent = avgGuru === '–' ? '–' : '⭐ ' + avgGuru;
+  document.getElementById('saranStatAvgMateri').textContent = avgMateri === '–' ? '–' : '📖 ' + avgMateri;
+}
+
+function filterSaran() {
+  const searchVal = document.getElementById('saranSearchInput').value.toLowerCase().trim();
+  const catVal = document.getElementById('saranFilterKategori').value;
+  const statusVal = document.getElementById('saranFilterStatus').value;
+  
+  const filtered = allSaranData.filter(s => {
+    // Search filter
+    const sender = (s.nama_pengirim || 'anonim').toLowerCase();
+    const content = (s.isi_masukan || '').toLowerCase();
+    const matchSearch = !searchVal || sender.includes(searchVal) || content.includes(searchVal);
+    
+    // Category filter
+    const matchCat = !catVal || s.kategori_utama === catVal;
+    
+    // Status filter
+    const matchStatus = !statusVal || s.status === statusVal;
+    
+    return matchSearch && matchCat && matchStatus;
+  });
+  
+  renderSaranTable(filtered);
+}
+
+function renderSaranTable(list) {
+  const tbody = document.getElementById('saranTbl');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Tidak ada data saran yang cocok</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = list.map(s => {
+    // Format Date
+    let dateStr = '–';
+    if (s.created_at) {
+      const dt = new Date(s.created_at);
+      dateStr = dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Sender Name
+    const senderHtml = s.is_anonymous 
+      ? '<span class="badge b-red">🔒 Anonim</span>' 
+      : `<strong>${esc(s.nama_pengirim)}</strong>`;
+      
+    // Category Badge
+    const catBadge = s.kategori_utama === 'portal'
+      ? '<span class="badge b-purple">🖥️ Portal & Teknis</span>'
+      : '<span class="badge b-blue">📖 Program Kelas</span>';
+      
+    // Sub-category badge
+    const subCatLabel = `<br><small style="color:var(--text-3)">${esc(s.sub_kategori)}</small>`;
+    
+    // Text Snippet
+    const cleanText = esc(s.isi_masukan);
+    const shortText = cleanText.length > 70 ? cleanText.substring(0, 70) + '...' : cleanText;
+    
+    // Rating
+    let ratingHtml = '<span style="color:var(--text-3)">–</span>';
+    if (s.kategori_utama === 'program') {
+      const starGuru = s.rating_guru ? `⭐${s.rating_guru} (G)` : '';
+      const starMateri = s.rating_materi ? `⭐${s.rating_materi} (M)` : '';
+      ratingHtml = [starGuru, starMateri].filter(Boolean).join('<br>');
+    }
+    
+    // Status Badge
+    let statusClass = 'b-amber';
+    if (s.status === 'dibaca') statusClass = 'b-blue';
+    if (s.status === 'tindakan') statusClass = 'b-purple';
+    if (s.status === 'selesai') statusClass = 'b-green';
+    if (s.status === 'arsip') statusClass = 'b-teal';
+    const statusBadge = `<span class="badge ${statusClass}">${esc(s.status.toUpperCase())}</span>`;
+    
+    return `<tr>
+      <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${dateStr}</td>
+      <td>${senderHtml}</td>
+      <td>${catBadge}${subCatLabel}</td>
+      <td style="max-width:300px;word-break:break-word">${shortText}</td>
+      <td class="align-center" style="white-space:nowrap;font-size:11px">${ratingHtml}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="showSaranDetail('${s.id}')">👁️ Detail / Aksi</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showSaranDetail(id) {
+  const s = allSaranData.find(x => x.id === id);
+  if (!s) return;
+  
+  // Set hidden id
+  document.getElementById('saranDetId').value = s.id;
+  
+  // Set Date
+  let dateStr = '–';
+  if (s.created_at) {
+    const dt = new Date(s.created_at);
+    dateStr = dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + 
+              dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  }
+  document.getElementById('saranDetTanggal').textContent = dateStr;
+  
+  // Set Sender
+  if (s.is_anonymous) {
+    document.getElementById('saranDetPengirim').innerHTML = '<span class="badge b-red">🔒 Anonim</span>';
+  } else {
+    document.getElementById('saranDetPengirim').textContent = s.nama_pengirim;
+  }
+  
+  // Set Kategori & Sub
+  const categoryLabel = s.kategori_utama === 'portal' ? 'Portal & Aplikasi' : 'Program Kelas';
+  document.getElementById('saranDetKategori').textContent = categoryLabel + ' (' + s.sub_kategori + ')';
+  
+  // Set Halaqah
+  if (s.kategori_utama === 'program' && s.halaqah) {
+    document.getElementById('saranDetHalaqah').textContent = `${s.halaqah.nama_halaqah || '–'} (Guru: ${s.halaqah.nama_guru || '–'})`;
+  } else {
+    document.getElementById('saranDetHalaqah').textContent = '–';
+  }
+  
+  // Set Ratings
+  const wrapGuru = document.getElementById('saranDetRatingGuruWrap');
+  const wrapMateri = document.getElementById('saranDetRatingMateriWrap');
+  if (s.kategori_utama === 'program') {
+    wrapGuru.style.display = s.rating_guru ? 'block' : 'none';
+    if (s.rating_guru) document.getElementById('saranDetRatingGuru').textContent = '⭐ ' + s.rating_guru + ' / 5';
+    wrapMateri.style.display = s.rating_materi ? 'block' : 'none';
+    if (s.rating_materi) document.getElementById('saranDetRatingMateri').textContent = '⭐ ' + s.rating_materi + ' / 5';
+  } else {
+    wrapGuru.style.display = 'none';
+    wrapMateri.style.display = 'none';
+  }
+  
+  // Set Isi
+  document.getElementById('saranDetIsi').textContent = s.isi_masukan;
+  
+  // Set Status
+  document.getElementById('saranDetStatus').value = s.status || 'pending';
+  
+  // Set Tanggapan & Catatan
+  document.getElementById('saranDetTanggapan').value = s.tanggapan || '';
+  document.getElementById('saranDetCatatanInternal').value = s.catatan_internal || '';
+  
+  openModal('modalSaranDetail');
+}
+
+async function simpanTanggapanSaran() {
+  const id = document.getElementById('saranDetId').value;
+  const status = document.getElementById('saranDetStatus').value;
+  const tanggapan = document.getElementById('saranDetTanggapan').value.trim();
+  const catatan_internal = document.getElementById('saranDetCatatanInternal').value.trim();
+  
+  if (!id) return;
+  
+  showLoad('Bismillah, menyimpan tanggapan...');
+  try {
+    const updates = {
+      status: status,
+      tanggapan: tanggapan || null,
+      catatan_internal: catatan_internal || null,
+      ditanggapi_at: new Date().toISOString(),
+      ditanggapi_oleh: currentUser ? (currentUser.nama_lengkap || currentUser.nama || 'Admin') : 'Admin'
+    };
+    
+    await window.HQ.AdminAPI.updateSaran(id, updates);
+    closeModal('modalSaranDetail');
+    toast('Tanggapan berhasil disimpan!', 'ok');
+    
+    // Reload suggestions list
+    await loadSaranPage();
+  } catch (e) {
+    toast('Gagal menyimpan tanggapan: ' + e.message, 'err');
   } finally {
     hideLoad();
   }

@@ -5734,6 +5734,22 @@ var AdminAPI = {
       ? { status:'error', errors: errs.map(function(e){ return e.message; }) }
       : { status:'ok', deleted: { anggota: r1.count, users: r2.count } };
   },
+
+  getAllSaran: async function() {
+    var { data, error } = await _sb.from('saran_masukan')
+      .select('*, halaqah(nama_halaqah, nama_guru)')
+      .order('created_at', { ascending: false });
+    _check(error, 'getAllSaran');
+    return { status: 'ok', data: data || [] };
+  },
+
+  updateSaran: async function(id, updates) {
+    var { error } = await _sb.from('saran_masukan')
+      .update(updates)
+      .eq('id', id);
+    _check(error, 'updateSaran');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
