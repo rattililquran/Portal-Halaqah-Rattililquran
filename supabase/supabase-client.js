@@ -3602,6 +3602,40 @@ var MuridAPI = {
     _check(error, 'deleteChargingNote');
     return { status: 'ok' };
   },
+
+  kirimSaranMasukan: async function(d) {
+    var id_murid = _uid();
+    var user = _currentUser || {};
+    var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid',id_murid).eq('status','aktif').maybeSingle();
+    var id_halaqah = anggota && anggota.id_halaqah || null;
+    
+    var row = {
+      id_murid: d.is_anonymous ? null : id_murid,
+      nama_pengirim: d.is_anonymous ? null : (user.nama_lengkap || user.nama || ''),
+      kategori_utama: d.kategori_utama,
+      sub_kategori: d.sub_kategori,
+      id_halaqah: d.kategori_utama === 'program' ? id_halaqah : null,
+      rating_guru: d.rating_guru || null,
+      rating_materi: d.rating_materi || null,
+      isi_masukan: d.isi_masukan,
+      is_anonymous: !!d.is_anonymous,
+      status: 'pending'
+    };
+    
+    var { error } = await _sb.from('saran_masukan').insert([row]);
+    _check(error, 'kirimSaranMasukan');
+    return { status: 'ok', message: 'Bismillah, masukan Anda telah terkirim!' };
+  },
+
+  getRiwayatSaran: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('saran_masukan')
+      .select('*')
+      .eq('id_murid', id_murid)
+      .order('created_at', { ascending: false });
+    _check(error, 'getRiwayatSaran');
+    return { status: 'ok', data: data || [] };
+  },
 };
 
 // ─────────────────────────────────────────────

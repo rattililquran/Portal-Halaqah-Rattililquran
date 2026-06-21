@@ -3322,6 +3322,230 @@ html.theme-dark .nasihat-source{color:#34d399}
 html.theme-dark .nasihat-toggle{background:rgba(17,28,48,0.5);border-color:#065f46;color:#34d399}
 html.theme-dark .nasihat-toggle:hover{background:rgba(17,28,48,0.8)}
 
+/* ── SARAN & MASUKAN ── */
+.tab-nav {
+  display: flex;
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.tab-btn.active {
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.stars-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--border);
+  transition: transform 0.15s, color 0.15s;
+  padding: 4px;
+}
+.star-btn:hover {
+  transform: scale(1.15);
+}
+.star-btn svg {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+  stroke: #d1d5db;
+  stroke-width: 1px;
+}
+html.theme-dark .star-btn svg {
+  stroke: #4b5563;
+}
+.star-btn.active {
+  color: var(--amber);
+}
+.star-btn.active svg {
+  stroke: #d97706;
+}
+
+.switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-2);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 10px;
+}
+.switch-label-wrap {
+  flex: 1;
+  padding-right: 16px;
+}
+.switch-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.switch-desc {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border);
+  transition: .3s;
+  border-radius: 34px;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+input:checked + .slider {
+  background-color: var(--green);
+}
+input:checked + .slider::before {
+  transform: translateX(22px);
+}
+
+.hist-item {
+  border-bottom: 1.5px solid var(--border);
+  padding: 16px 0;
+}
+.hist-item:first-child {
+  padding-top: 0;
+}
+.hist-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.hist-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.hist-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.saran-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.saran-badge-pending { background: #f1f5f9; color: #64748b; }
+html.theme-dark .saran-badge-pending { background: #1e293b; color: #94a3b8; }
+.saran-badge-read { background: #fffbeb; color: #d97706; }
+html.theme-dark .saran-badge-read { background: #451a03; color: #fbbf24; }
+.saran-badge-solved { background: #f0fdf4; color: #16a34a; }
+html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
+
+.hist-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+.hist-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.reply-box {
+  background: var(--bg-2);
+  border-left: 3px solid var(--green);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+.reply-title {
+  font-weight: 800;
+  color: var(--green);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.reply-text {
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.info-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.info-item {
+  flex: 1;
+}
+.info-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.info-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
 </style>
 </head>
 <body>
@@ -5026,6 +5250,164 @@ html.theme-dark .nasihat-toggle:hover{background:rgba(17,28,48,0.8)}
       </div><!-- /pg-content -->
     </div><!-- /page-infaq-beasiswa -->
 
+    <!-- ════ SARAN & MASUKAN ════ -->
+    <div class="page" id="page-saran">
+      <div class="page-header">
+        <div class="page-header-ico">💬</div>
+        <div>
+          <div class="page-title">Saran &amp; Masukan</div>
+          <div class="page-sub">Wadah aspirasi murid untuk perbaikan sistem dan kualitas KBM</div>
+        </div>
+      </div>
+      
+      <div class="pg-content" style="max-width:680px;margin:0 auto;padding:0 16px 40px">
+        <!-- NASIHAT CARD -->
+        <div class="nasihat-card">
+          <div class="nasihat-title">
+            <span>🌱</span>
+            <div style="font-weight:800">Amanah &amp; Amal Jariyah</div>
+          </div>
+          <div class="nasihat-intro" style="font-size:13px;line-height:1.6">
+            Saran dan masukan Anda sangat berarti bagi kami. Semoga setiap saran maupun masukan yang diberi menjadi amal jariyah yang terus mengalir kebaikannya.
+          </div>
+          <div class="nasihat-arabic" style="font-size: 20px; margin: 12px 0 6px; font-weight: 700;">
+            الدَّالُّ عَلَى الْخَيْرِ كَفَاعِلِهِ
+          </div>
+          <div class="nasihat-trans" style="font-size: 12.5px; font-style: italic; text-align: center; line-height: 1.7; margin-bottom: 4px;">
+            "Orang yang menunjukkan kepada kebaikan, baginya pahala seperti orang yang mengerjakannya."
+          </div>
+          <div class="nasihat-source" style="font-size:11.5px; font-weight:700; text-align:center">— HR. Muslim</div>
+        </div>
+
+        <!-- TAB NAV -->
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchSaranTab('portal', this)">
+            <span>🖥️</span> Tentang Portal
+          </button>
+          <button class="tab-btn" onclick="switchSaranTab('kelas', this)">
+            <span>📖</span> Tentang Kelas
+          </button>
+          <button class="tab-btn" onclick="switchSaranTab('riwayat', this)">
+            <span>⏳</span> Riwayat Saya
+          </button>
+        </div>
+
+        <!-- VIEW 1: PORTAL & TEKNIS -->
+        <div id="saran-view-portal" class="tab-content card" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+          <form onsubmit="handleSaranSubmit(event, 'portal')">
+            <div class="fg" style="margin-bottom: 16px;">
+              <label for="saran-subKategoriPortal">Sub-Kategori Masukan</label>
+              <select class="fc" id="saran-subKategoriPortal" required>
+                <option value="" disabled selected>Pilih sub-kategori...</option>
+                <option value="Laporan Bug / Error">Laporan Bug / Error (Masalah sistem)</option>
+                <option value="Usulan Fitur Baru">Usulan Fitur Baru</option>
+                <option value="Tampilan &amp; Desain">Tampilan &amp; Desain</option>
+                <option value="Lainnya">Lain-lain</option>
+              </select>
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <label for="saran-judulPortal">Judul Singkat</label>
+              <input type="text" class="fc" id="saran-judulPortal" placeholder="Contoh: Menu Raport lemot dimuat" required maxlength="50">
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <label for="saran-isiPortal">Isi Saran / Detail Kendala</label>
+              <textarea class="fc" id="saran-isiPortal" placeholder="Jelaskan secara detail saran atau kendala teknis yang Anda alami..." required style="resize:vertical;min-height:110px"></textarea>
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <div class="switch-container">
+                <div class="switch-label-wrap">
+                  <div class="switch-title">Kirim Secara Anonim</div>
+                  <div class="switch-desc">Identitas Anda ('iffah) akan dirahasiakan penuh di database admin.</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="saran-anonPortal">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn" style="background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 4px 15px rgba(16,185,129,.4);width:100%;justify-content:center">🚀 Kirim Masukan Portal</button>
+          </form>
+        </div>
+
+        <!-- VIEW 2: KELAS & PEMBELAJARAN -->
+        <div id="saran-view-kelas" class="tab-content card" style="display:none;background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+          <form onsubmit="handleSaranSubmit(event, 'kelas')">
+            <div class="info-box">
+              <div class="info-item">
+                <div class="info-label">Halaqah Aktif</div>
+                <div class="info-val" id="saran-mockHalaqah">-</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Guru Pembimbing</div>
+                <div class="info-val" id="saran-mockGuru">-</div>
+              </div>
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <label for="saran-subKategoriKelas">Sub-Kategori Evaluasi</label>
+              <select class="fc" id="saran-subKategoriKelas" required onchange="handleSubKategoriSaranKelasChange(this.value)">
+                <option value="" disabled selected>Pilih sub-kategori...</option>
+                <option value="Performa Guru">Performa Guru (Cara membimbing, ketepatan waktu)</option>
+                <option value="Kurikulum &amp; Materi">Kurikulum &amp; Materi Belajar (Buku modul, latihan)</option>
+                <option value="Jadwal &amp; Waktu">Jadwal &amp; Waktu Sesi Kelas</option>
+                <option value="Kajian At-Tibyan">Kajian Mingguan At-Tibyan</option>
+                <option value="Lainnya">Lain-lain</option>
+              </select>
+            </div>
+            <div class="fg" id="saran-ratingGuruGroup" style="margin-bottom: 16px;">
+              <label>Beri Bintang Performa Guru (1 - 5)</label>
+              <div class="stars-container" id="saran-stars-Guru">
+                <button type="button" class="star-btn" data-val="1" onclick="rateSaranStar('Guru', 1)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="2" onclick="rateSaranStar('Guru', 2)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="3" onclick="rateSaranStar('Guru', 3)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="4" onclick="rateSaranStar('Guru', 4)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="5" onclick="rateSaranStar('Guru', 5)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+              </div>
+            </div>
+            <div class="fg" id="saran-ratingMateriGroup" style="margin-bottom: 16px;">
+              <label>Beri Bintang Kurikulum &amp; Materi Belajar (1 - 5)</label>
+              <div class="stars-container" id="saran-stars-Materi">
+                <button type="button" class="star-btn" data-val="1" onclick="rateSaranStar('Materi', 1)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="2" onclick="rateSaranStar('Materi', 2)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="3" onclick="rateSaranStar('Materi', 3)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="4" onclick="rateSaranStar('Materi', 4)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+                <button type="button" class="star-btn" data-val="5" onclick="rateSaranStar('Materi', 5)"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></button>
+              </div>
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <label for="saran-isiKelas">Isi Saran / Kritik Konstruktif</label>
+              <textarea class="fc" id="saran-isiKelas" placeholder="Berikan saran membangun Anda tentang pengajaran, kurikulum, atau kelas ini..." required style="resize:vertical;min-height:110px"></textarea>
+            </div>
+            <div class="fg" style="margin-bottom: 16px;">
+              <div class="switch-container">
+                <div class="switch-label-wrap">
+                  <div class="switch-title">Kirim Secara Anonim</div>
+                  <div class="switch-desc">Guru yang bersangkutan tidak akan mengetahui pengirim kritik ini.</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="saran-anonKelas">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn" style="background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 4px 15px rgba(16,185,129,.4);width:100%;justify-content:center">🚀 Kirim Masukan Pembelajaran</button>
+          </form>
+        </div>
+
+        <!-- VIEW 3: RIWAYAT TANGGAPAN -->
+        <div id="saran-view-riwayat" class="tab-content card" style="display:none;background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+          <div style="margin-bottom: 16px;">
+            <h3 style="font-size: 15px; font-weight: 800;">Riwayat Saran &amp; Tanggapan</h3>
+            <p style="font-size: 11px; color: var(--text-3); margin-top: 2px;">
+              Hanya menampilkan masukan dengan identitas. Masukan anonim tidak ditampilkan untuk menjaga kerahasiaan.
+            </p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 16px;" id="saran-riwayatList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════ GANTI PASSWORD ════ -->
     <div class="page" id="page-password">
       <div class="page-header"><div class="page-header-ico">🔐</div><div><div class="page-title">Ganti Password</div><div class="page-sub">Ubah password akun kamu secara mandiri.</div></div></div>
@@ -5284,6 +5666,11 @@ html.theme-dark .nasihat-toggle:hover{background:rgba(17,28,48,0.8)}
       <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('infaq-beasiswa')" data-p="infaq-beasiswa">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         Infaq&amp;Beasiswa
+      </button>
+
+      <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('saran')" data-p="saran">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        Saran &amp; Masukan
       </button>
 
       <!-- ── AKUN ── -->
@@ -6932,6 +7319,7 @@ function goPage(name, swipeDir) {
   }
   else if (name === 'password') { /* static page, no load needed */ }
   else if (name === 'panduan') { pdInitKetua(); }
+  else if (name === 'saran') { populateSaranInfo(); }
   // BUG-10 fix: reset _sppLoaded agar data SPP selalu segar saat balik ke beranda
   if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
 }
@@ -13888,6 +14276,248 @@ function filterPanduan(q) {
       (sec.querySelector('.pg-sec-sub').textContent || '');
     sec.style.display = (!q || keywords.toLowerCase().includes(q)) ? '' : 'none';
   });
+}
+
+// ── SARAN & MASUKAN FUNCTIONS ──
+function populateSaranInfo() {
+  var hq = (window.dashData && window.dashData.halaqah) || {};
+  var ang = (window.dashData && window.dashData.anggota) || {};
+  
+  var hqName = hq.nama || '';
+  var levelStr = ang.level ? ' (Level ' + ang.level.replace('Level ', '') + ')' : '';
+  var halaqahTxt = hqName ? hqName + levelStr : 'Tidak ada halaqah aktif';
+  var guruTxt = hq.guru || 'Tidak ada guru pembimbing';
+  
+  var elMockHalaqah = document.getElementById('saran-mockHalaqah');
+  var elMockGuru = document.getElementById('saran-mockGuru');
+  
+  if (elMockHalaqah) elMockHalaqah.textContent = halaqahTxt;
+  if (elMockGuru) elMockGuru.textContent = guruTxt;
+  
+  // Reset active tab to portal
+  switchSaranTab('portal', document.querySelector('#page-saran .tab-btn:nth-child(1)'));
+}
+
+function switchSaranTab(tabName, btn) {
+  // Hide all contents
+  document.querySelectorAll('#page-saran .tab-content').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  
+  // Show target content
+  var target = document.getElementById('saran-view-' + tabName);
+  if (target) target.style.display = 'block';
+  
+  // Deactivate all tab buttons
+  document.querySelectorAll('#page-saran .tab-btn').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  
+  // Activate clicked button
+  if (btn) btn.classList.add('active');
+
+  // If history tab, refresh history
+  if (tabName === 'riwayat') {
+    loadRiwayatSaran();
+  }
+}
+
+var saranRatings = {
+  Guru: 0,
+  Materi: 0
+};
+
+function rateSaranStar(type, val) {
+  saranRatings[type] = val;
+  var containerId = 'saran-stars-' + type;
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var stars = container.querySelectorAll('.star-btn');
+  
+  stars.forEach(function(btn, idx) {
+    if (idx < val) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+function handleSubKategoriSaranKelasChange(val) {
+  var ratingGuru = document.getElementById('saran-ratingGuruGroup');
+  var ratingMateri = document.getElementById('saran-ratingMateriGroup');
+  if (!ratingGuru || !ratingMateri) return;
+  
+  if (val === 'Performa Guru') {
+    ratingGuru.style.display = 'block';
+    ratingMateri.style.display = 'none';
+  } else if (val === 'Kurikulum & Materi') {
+    ratingGuru.style.display = 'none';
+    ratingMateri.style.display = 'block';
+  } else {
+    ratingGuru.style.display = 'block';
+    ratingMateri.style.display = 'block';
+  }
+}
+
+async function handleSaranSubmit(event, category) {
+  event.preventDefault();
+  
+  var isAnon = false;
+  var detail = '';
+  var subKategori = '';
+  var ratingGuru = null;
+  var ratingMateri = null;
+  
+  if (category === 'portal') {
+    isAnon = document.getElementById('saran-anonPortal').checked;
+    detail = document.getElementById('saran-isiPortal').value.trim();
+    subKategori = document.getElementById('saran-subKategoriPortal').value;
+  } else {
+    isAnon = document.getElementById('saran-anonKelas').checked;
+    detail = document.getElementById('saran-isiKelas').value.trim();
+    subKategori = document.getElementById('saran-subKategoriKelas').value;
+    
+    if (subKategori === 'Performa Guru') {
+      ratingGuru = saranRatings.Guru;
+    } else if (subKategori === 'Kurikulum & Materi') {
+      ratingMateri = saranRatings.Materi;
+    } else {
+      ratingGuru = saranRatings.Guru;
+      ratingMateri = saranRatings.Materi;
+    }
+
+    if (subKategori === 'Performa Guru' && !ratingGuru) {
+      toast('Mohon berikan rating bintang untuk performa guru', 'warn');
+      return;
+    }
+    if (subKategori === 'Kurikulum & Materi' && !ratingMateri) {
+      toast('Mohon berikan rating bintang untuk kurikulum & materi', 'warn');
+      return;
+    }
+  }
+
+  if (!detail) {
+    toast('Mohon isi saran/masukan Anda', 'warn');
+    return;
+  }
+
+  showLoad('Bismillah, mengirim masukan...');
+  try {
+    var res = await window.HQ.MuridAPI.kirimSaranMasukan({
+      is_anonymous: isAnon,
+      kategori_utama: category,
+      sub_kategori: subKategori,
+      rating_guru: ratingGuru,
+      rating_materi: ratingMateri,
+      isi_masukan: detail
+    });
+    
+    hideLoad();
+    if (res.status === 'ok') {
+      toast(isAnon ? 'Bismillah, masukan Anonim berhasil terkirim!' : 'Bismillah, masukan berhasil terkirim!', 'ok');
+      
+      // Clear forms
+      if (category === 'portal') {
+        document.getElementById('saran-judulPortal').value = '';
+        document.getElementById('saran-isiPortal').value = '';
+        document.getElementById('saran-subKategoriPortal').selectedIndex = 0;
+        document.getElementById('saran-anonPortal').checked = false;
+      } else {
+        document.getElementById('saran-isiKelas').value = '';
+        document.getElementById('saran-subKategoriKelas').selectedIndex = 0;
+        document.getElementById('saran-anonKelas').checked = false;
+        rateSaranStar('Guru', 0);
+        rateSaranStar('Materi', 0);
+      }
+      
+      // Switch to history page if non-anonymous to let them see it
+      if (!isAnon) {
+        switchSaranTab('riwayat', document.querySelector('#page-saran .tab-btn:nth-child(3)'));
+      } else {
+        switchSaranTab('portal', document.querySelector('#page-saran .tab-btn:nth-child(1)'));
+      }
+    } else {
+      toast('Gagal mengirim saran: ' + (res.message || 'Error tidak diketahui'), 'err');
+    }
+  } catch(e) {
+    hideLoad();
+    toast(friendlyError(e), 'err');
+  }
+}
+
+async function loadRiwayatSaran() {
+  var list = document.getElementById('saran-riwayatList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Memuat riwayat...</div>';
+  
+  try {
+    var res = await window.HQ.MuridAPI.getRiwayatSaran();
+    if (res.status === 'ok') {
+      var data = res.data || [];
+      if (data.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);font-weight:600">Belum ada riwayat masukan (non-anonim).</div>';
+        return;
+      }
+      
+      var html = '';
+      data.forEach(function(item) {
+        var statusBadge = '';
+        if (item.status === 'pending') {
+          statusBadge = '<span class="saran-badge saran-badge-pending">Pending</span>';
+        } else if (item.status === 'dibaca') {
+          statusBadge = '<span class="saran-badge saran-badge-read">Dibaca</span>';
+        } else if (item.status === 'tindakan') {
+          statusBadge = '<span class="saran-badge saran-badge-read">Tindakan</span>';
+        } else if (item.status === 'selesai') {
+          statusBadge = '<span class="saran-badge saran-badge-solved">Selesai</span>';
+        } else {
+          statusBadge = '<span class="saran-badge saran-badge-pending">' + esc(item.status) + '</span>';
+        }
+        
+        var categoryLabel = item.kategori_utama === 'portal' ? 'Portal &amp; Aplikasi' : 'Program Kelas';
+        categoryLabel += ' (' + esc(item.sub_kategori) + ')';
+        
+        var ratingsInfo = '';
+        if (item.rating_guru) {
+          ratingsInfo += '<div style="font-size:11px;color:var(--amber);margin-top:2px">⭐ Rating Guru: ' + item.rating_guru + '/5</div>';
+        }
+        if (item.rating_materi) {
+          ratingsInfo += '<div style="font-size:11px;color:var(--amber);margin-top:2px">⭐ Rating Materi: ' + item.rating_materi + '/5</div>';
+        }
+        
+        var dateFormatted = fmtDate(item.created_at);
+        
+        var replyHtml = '';
+        if (item.tanggapan) {
+          var responderName = item.ditanggapi_oleh || 'Staf Manajemen';
+          replyHtml = '<div class="reply-box">' +
+            '<div class="reply-title">Tanggapan Staf Manajemen (' + esc(responderName) + '):</div>' +
+            '<div class="reply-text">' + esc(item.tanggapan) + '</div>' +
+            '</div>';
+        }
+        
+        html += '<div class="hist-item">' +
+          '<div class="hist-head">' +
+            '<div class="hist-title">' + esc(item.isi_masukan.substring(0, 50) + (item.isi_masukan.length > 50 ? '...' : '')) + '</div>' +
+            statusBadge +
+          '</div>' +
+          '<div class="hist-meta">' +
+            '<span>📅 ' + esc(dateFormatted) + '</span>' +
+            '<span>📁 ' + categoryLabel + '</span>' +
+          '</div>' +
+          '<div class="hist-desc" style="white-space: pre-wrap;">' + esc(item.isi_masukan) + '</div>' +
+          ratingsInfo +
+          replyHtml +
+          '</div>';
+      });
+      list.innerHTML = html;
+    } else {
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">Gagal memuat riwayat.</div>';
+    }
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red)">Error: ' + esc(e.message) + '</div>';
+  }
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js').catch(function(){});
