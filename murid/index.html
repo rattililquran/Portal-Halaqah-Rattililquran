@@ -13090,13 +13090,31 @@ var BEASISWA_PANEL_HTML =
 
 function applyBeasiswaMode() {
   var tabSpp   = document.getElementById('sppTabSpp');
-  var panelSpp = document.getElementById('sppPanelSpp');
+  var tabsBar  = document.querySelector('#sppCard .spp-jenis-tabs');
+  var body     = document.querySelector('#sppCard .spp-body');
   var btn      = document.querySelector('.spp-konfirm-btn');
-  if (!isBeasiswaMurid()) { if (tabSpp) tabSpp.style.display = ''; return; }
-  if (tabSpp)   tabSpp.style.display = 'none';
-  if (panelSpp) panelSpp.innerHTML = BEASISWA_PANEL_HTML;
-  if (btn)      btn.innerHTML = '💛 Bayar Infaq';
+  var badge    = document.getElementById('sppBadge');
+  // Idempoten: buang panel apresiasi lama jika ada
+  var old = document.getElementById('sppBeasiswaPanel');
+  if (old) old.remove();
+  if (!isBeasiswaMurid()) {
+    if (tabsBar) tabsBar.style.display = '';
+    if (tabSpp)  tabSpp.style.display = '';
+    return;
+  }
+  // Murid beasiswa: sembunyikan bar tab (cuma Infaq tersisa) & badge tunggakan
+  if (tabsBar) tabsBar.style.display = 'none';
+  if (badge) { badge.className = 'badge b-green'; badge.textContent = '🎓 Beasiswa'; }
+  // Sisipkan panel apresiasi sebagai elemen sendiri di paling atas spp-body
+  if (body) {
+    var panel = document.createElement('div');
+    panel.id = 'sppBeasiswaPanel';
+    panel.style.marginBottom = '14px';
+    panel.innerHTML = BEASISWA_PANEL_HTML;
+    body.insertBefore(panel, body.firstChild);
+  }
   switchSppTab('infaq');
+  if (btn) btn.innerHTML = '💛 Bayar Infaq';
 }
 
 // Di modal pembayaran: sembunyikan tab "SPP Pribadi", paksa ke Infaq
