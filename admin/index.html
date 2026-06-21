@@ -7986,7 +7986,8 @@ async function simpanTanggapanSaran() {
       ditanggapi_oleh: currentUser ? (currentUser.nama_lengkap || currentUser.nama || 'Admin') : 'Admin'
     };
     
-    await window.HQ.AdminAPI.updateSaran(id, updates);
+    const s = allSaranData.find(x => x.id === id);
+    await window.HQ.AdminAPI.updateSaran(id, updates, s ? s.id_murid : null);
     closeModal('modalSaranDetail');
     toast('Tanggapan berhasil disimpan!', 'ok');
     

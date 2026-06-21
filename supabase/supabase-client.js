@@ -5744,11 +5744,23 @@ var AdminAPI = {
     return { status: 'ok', data: data || [] };
   },
 
-  updateSaran: async function(id, updates) {
+  updateSaran: async function(id, updates, studentId = null) {
     var { error } = await _sb.from('saran_masukan')
       .update(updates)
       .eq('id', id);
     _check(error, 'updateSaran');
+    
+    if (studentId && (updates.status || updates.tanggapan)) {
+      _sendPushBg({
+        user_ids: [studentId],
+        title: '💬 Tanggapan Saran & Masukan',
+        body : 'Aspirasi Anda telah ditanggapi atau diperbarui oleh Staf Manajemen. Silakan periksa di tab Riwayat.',
+        url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
+        tag  : 'saran-tanggapan-' + id,
+        data : { trigger: 'saran_responded' },
+      });
+    }
+    
     return { status: 'ok' };
   },
 };

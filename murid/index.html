@@ -5321,9 +5321,12 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
                   <div class="switch-desc">Identitas Anda ('iffah) akan dirahasiakan penuh di database admin.</div>
                 </div>
                 <label class="switch">
-                  <input type="checkbox" id="saran-anonPortal">
+                  <input type="checkbox" id="saran-anonPortal" onchange="document.getElementById('saran-anonPortalWarning').style.display = this.checked ? 'block' : 'none'">
                   <span class="slider"></span>
                 </label>
+              </div>
+              <div id="saran-anonPortalWarning" style="display:none;font-size:11px;color:var(--amber);margin-top:6px;font-weight:600">
+                ⚠️ Peringatan: Masukan anonim tidak akan masuk ke tab 'Riwayat Saya' dan tidak dapat dilacak balasannya demi keamanan privasi Anda.
               </div>
             </div>
             <button type="submit" class="btn" style="background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 4px 15px rgba(16,185,129,.4);width:100%;justify-content:center">🚀 Kirim Masukan Portal</button>
@@ -5385,9 +5388,12 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
                   <div class="switch-desc">Guru yang bersangkutan tidak akan mengetahui pengirim kritik ini.</div>
                 </div>
                 <label class="switch">
-                  <input type="checkbox" id="saran-anonKelas">
+                  <input type="checkbox" id="saran-anonKelas" onchange="document.getElementById('saran-anonKelasWarning').style.display = this.checked ? 'block' : 'none'">
                   <span class="slider"></span>
                 </label>
+              </div>
+              <div id="saran-anonKelasWarning" style="display:none;font-size:11px;color:var(--amber);margin-top:6px;font-weight:600">
+                ⚠️ Peringatan: Masukan anonim tidak akan masuk ke tab 'Riwayat Saya' dan tidak dapat dilacak balasannya demi keamanan privasi Anda.
               </div>
             </div>
             <button type="submit" class="btn" style="background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 4px 15px rgba(16,185,129,.4);width:100%;justify-content:center">🚀 Kirim Masukan Pembelajaran</button>
@@ -14352,12 +14358,19 @@ function handleSubKategoriSaranKelasChange(val) {
   if (val === 'Performa Guru') {
     ratingGuru.style.display = 'block';
     ratingMateri.style.display = 'none';
+    rateSaranStar('Materi', 0);
   } else if (val === 'Kurikulum & Materi') {
     ratingGuru.style.display = 'none';
     ratingMateri.style.display = 'block';
-  } else {
+    rateSaranStar('Guru', 0);
+  } else if (val === 'Lainnya') {
     ratingGuru.style.display = 'block';
     ratingMateri.style.display = 'block';
+  } else {
+    ratingGuru.style.display = 'none';
+    ratingMateri.style.display = 'none';
+    rateSaranStar('Guru', 0);
+    rateSaranStar('Materi', 0);
   }
 }
 
@@ -14383,9 +14396,12 @@ async function handleSaranSubmit(event, category) {
       ratingGuru = saranRatings.Guru;
     } else if (subKategori === 'Kurikulum & Materi') {
       ratingMateri = saranRatings.Materi;
-    } else {
+    } else if (subKategori === 'Lainnya') {
       ratingGuru = saranRatings.Guru;
       ratingMateri = saranRatings.Materi;
+    } else {
+      ratingGuru = null;
+      ratingMateri = null;
     }
 
     if (subKategori === 'Performa Guru' && !ratingGuru) {
@@ -14424,10 +14440,12 @@ async function handleSaranSubmit(event, category) {
         document.getElementById('saran-isiPortal').value = '';
         document.getElementById('saran-subKategoriPortal').selectedIndex = 0;
         document.getElementById('saran-anonPortal').checked = false;
+        document.getElementById('saran-anonPortalWarning').style.display = 'none';
       } else {
         document.getElementById('saran-isiKelas').value = '';
         document.getElementById('saran-subKategoriKelas').selectedIndex = 0;
         document.getElementById('saran-anonKelas').checked = false;
+        document.getElementById('saran-anonKelasWarning').style.display = 'none';
         rateSaranStar('Guru', 0);
         rateSaranStar('Materi', 0);
       }
