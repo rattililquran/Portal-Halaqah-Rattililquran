@@ -16,7 +16,7 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 var _currentUser = null;
 
 (function() {
-  var stored = localStorage.getItem('hq_user');
+  var stored = sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user');
   if (stored) { try { _currentUser = JSON.parse(stored); } catch(e) {} }
 })();
 
@@ -2950,7 +2950,7 @@ var MuridAPI = {
 
   // Buat invoice Mayar → kembalikan payment_link untuk redirect
   createPaymentGateway: async function(d) {
-    var tk = localStorage.getItem('hq_token');
+    var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
     if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
     var res = await fetch(SUPABASE_URL + '/functions/v1/mayar-create-payment', {
       method : 'POST',
@@ -4231,7 +4231,7 @@ var AdminAPI = {
     return { status:'ok', written: written };
   },
   resetPassword: async function(id_user, new_password) {
-    var token = localStorage.getItem('hq_token');
+    var token = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
     var res = await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
