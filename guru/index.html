@@ -8645,15 +8645,15 @@ function doExportMuridCSV() {
   if (!rows.length) { toast('Tidak ada data murid untuk diekspor.','err'); return; }
   var sel  = document.getElementById('muridHalaqahSel');
   var nama = sel && sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].text : 'semua';
-  var header = ['NIS/ID Murid','Nama Murid','Level','Total Hadir','Total Sesi','% Kehadiran','Skor/40 (%)','Raw Skor','Poin Adab','Poin Kamera'].join(',');
+  var header = ['NIS/ID Murid','Nama Murid','Level','Total Hadir','Total Sesi','% Kehadiran','Skor/40 (%)','Raw Skor','Poin Adab','Poin Kamera'].join(';');
   var body = rows.map(function(m){
     return [m.id_murid||'',m.nama_murid||'',m.level||'',
       m.total_hadir||0,m.total_sesi||0,(m.pct_hadir||0)+'%',(m.skor_dari_40||0)+'%',
       m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'',
       m.poin_adab||0,m.poin_kamera||0
-    ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
-  }).join('\n');
-  var blob = new Blob(['\uFEFF'+header+'\n'+body],{type:'text/csv;charset=utf-8;'});
+    ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(';');
+  }).join('\r\n');
+  var blob = new Blob(['\uFEFF'+header+'\r\n'+body],{type:'text/csv;charset=utf-8;'});
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
   a.href   = url;

@@ -4187,14 +4187,14 @@ function openBulkImport() {
 }
 
 function downloadTemplate() {
-  var header = 'NIS,password,nama_lengkap,role,no_hp,email,alamat,nama_halaqah,level,nama_guru,jadwal_hari,jam_mulai,jam_selesai';
+  var header = 'NIS;password;nama_lengkap;role;no_hp;email;alamat;nama_halaqah;level;nama_guru;jadwal_hari;jam_mulai;jam_selesai';
   var sample = [
-    ',guru123,Ustadzah Siti Aminah,guru,08120001,siti@email.com,,,,,,,',
-    ',guru123,Ustadz Ahmad Fauzi,guru,08120002,ahmad@email.com,,,,,,,',
-    ',murid123,Abdullah Azzam,murid,08130001,azzam@email.com,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,Senin Rabu,08:00,09:30',
-    ',murid123,Bilal Ibrahim,murid,08130002,,,Halaqah Al-Fatihah,Level 1,Ustadzah Siti Aminah,,,',
-    ',murid123,Chairul Amin,murid,08130003,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,Selasa Kamis,09:00,10:30',
-    ',murid123,Daud Salman,murid,08130004,,,Halaqah Al-Baqarah,Level 2,Ustadz Ahmad Fauzi,,,',
+    ';guru123;Ustadzah Siti Aminah;guru;08120001;siti@email.com;;;;;;;',
+    ';guru123;Ustadz Ahmad Fauzi;guru;08120002;ahmad@email.com;;;;;;;',
+    ';murid123;Abdullah Azzam;murid;08130001;azzam@email.com;;Halaqah Al-Fatihah;Level 1;Ustadzah Siti Aminah;Senin Rabu;08:00;09:30',
+    ';murid123;Bilal Ibrahim;murid;08130002;;;Halaqah Al-Fatihah;Level 1;Ustadzah Siti Aminah;;;',
+    ';murid123;Chairul Amin;murid;08130003;;;Halaqah Al-Baqarah;Level 2;Ustadz Ahmad Fauzi;Selasa Kamis;09:00;10:30',
+    ';murid123;Daud Salman;murid;08130004;;;Halaqah Al-Baqarah;Level 2;Ustadz Ahmad Fauzi;;;',
   ].join('\n');
   var blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
   var url  = URL.createObjectURL(blob);
@@ -4222,12 +4222,13 @@ function parseCSVFile(file) {
   reader.readAsText(file, 'UTF-8');
 }
 
-function _splitCSVRow(row) {
+function _splitCSVRow(row, delimiter) {
+  delimiter = delimiter || ',';
   var result = [], cur = '', inQ = false;
   for (var i = 0; i < row.length; i++) {
     var c = row[i];
     if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else if (c === delimiter && !inQ) { result.push(cur.trim()); cur = ''; }
     else { cur += c; }
   }
   result.push(cur.trim());
@@ -4237,11 +4238,17 @@ function _splitCSVRow(row) {
 function processCSV(text) {
   var rows    = text.split('\n').map(function(r){return r.trim();}).filter(function(r){return r;});
   if (rows.length < 2) return toast('File CSV kosong atau hanya berisi header','err');
-  var headers = _splitCSVRow(rows[0]).map(function(h){return h.toLowerCase();});
+  
+  // Deteksi delimiter secara dinamis
+  var commaCount = (rows[0].match(/,/g) || []).length;
+  var semiCount = (rows[0].match(/;/g) || []).length;
+  var delimiter = semiCount > commaCount ? ';' : ',';
+
+  var headers = _splitCSVRow(rows[0], delimiter).map(function(h){return h.toLowerCase();});
   var dataRows = rows.slice(1);
 
   importedUsers = dataRows.map(function(row) {
-    var cols = _splitCSVRow(row);
+    var cols = _splitCSVRow(row, delimiter);
     var obj  = {};
     headers.forEach(function(h,i){ obj[h] = cols[i] || ''; });
     return {
@@ -6582,9 +6589,9 @@ function exportAbsensiGuruCSV() {
   });
   const csv = rows.map(r => r.map(c => {
     const s = String(c == null ? '' : c);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  }).join(',')).join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `absensi_guru_${_abgData.tahun}-${String(_abgData.bulan).padStart(2, '0')}.csv`;
@@ -7265,13 +7272,13 @@ function eksporSPP() {
       showAlertModal('Tidak ada data Infaq untuk diekspor.', { title: 'Ekspor Infaq' });
       return;
     }
-    csv = 'ID Murid,Nama Murid,Halaqah,Level,Bulan,Tahun,Tanggal Bayar,Nominal,Metode\r\n';
+    csv = 'ID Murid;Nama Murid;Halaqah;Level;Bulan;Tahun;Tanggal Bayar;Nominal;Metode\r\n';
     infaqList.forEach(function(r) {
       var nama = _csvSafe(r.nama_murid || '');
       var hal = _csvSafe(r.nama_halaqah || r.id_halaqah || '—');
       var lvl = _csvSafe(r.level || '');
       var metode = _csvSafe(r.metode_bayar === 'gateway' ? 'Gateway' : 'Manual');
-      csv += '"' + _csvSafe(r.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '","' + _csvSafe(r.bulan) + '",' + r.tahun + ',"' + _csvSafe(r.tanggal_bayar||'') + '",' + Number(r.nominal||0) + ',"' + metode + '"\r\n';
+      csv += '"' + _csvSafe(r.id_murid) + '";"' + nama + '";"' + hal + '";"' + lvl + '";"' + _csvSafe(r.bulan) + '";' + r.tahun + ';"' + _csvSafe(r.tanggal_bayar||'') + '";' + Number(r.nominal||0) + ';"' + metode + '"\r\n';
     });
     namaFile = 'rekap_infaq_' + tahun + '_' + halaqahVal + '_' + bulanVal + '.csv';
   } else {
@@ -7281,14 +7288,14 @@ function eksporSPP() {
       return;
     }
     var statusVal = document.getElementById('sppFilterStatus').value || 'Semua-Status';
-    csv = 'ID Murid,Nama Murid,Halaqah,Level,Tunggakan Bulan,Bulan Belum Lunas,No HP\r\n';
+    csv = 'ID Murid;Nama Murid;Halaqah;Level;Tunggakan Bulan;Bulan Belum Lunas;No HP\r\n';
     list.forEach(function(m) {
       var nama = _csvSafe(m.nama_murid || '');
       var hal = _csvSafe(m.nama_halaqah || m.id_halaqah || '—');
       var lvl = _csvSafe(m.level || '');
-      var bln = _csvSafe(m.bulan_belum.length ? m.bulan_belum.join('; ') : 'Lunas');
+      var bln = _csvSafe(m.bulan_belum.length ? m.bulan_belum.join(', ') : 'Lunas');
       var hp  = _csvSafe(m.no_hp || '');
-      csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '","' + lvl + '",' + m.tunggakan + ',"' + bln + '","' + hp + '"\r\n';
+      csv += '"' + _csvSafe(m.id_murid) + '";"' + nama + '";"' + hal + '";"' + lvl + '";' + m.tunggakan + ';"' + bln + '";"' + hp + '"\r\n';
     });
     namaFile = 'rekap_spp_' + tahun + '_' + halaqahVal + '_' + bulanVal + '_' + statusVal + '.csv';
   }
@@ -9231,13 +9238,13 @@ function doExportAbsensi() {
     showAlertModal('Tidak ada data absensi untuk diekspor.', { title: 'Ekspor Absensi' });
     return;
   }
-  var csv = 'ID Murid,Nama Murid,Halaqah,Hadir (H),Terlambat (T),Izin (I),Alpa (A),Total Sesi,Persentase Hadir,Skor Kehadiran\r\n';
+  var csv = 'ID Murid;Nama Murid;Halaqah;Hadir (H);Terlambat (T);Izin (I);Alpa (A);Total Sesi;Persentase Hadir;Skor Kehadiran\r\n';
   list.forEach(function(m) {
     var nama = _csvSafe(m.nama_murid || '');
     var hal = _csvSafe(m.nama_halaqah || '—');
     var pctText = m.total === 0 ? '—' : m.pct_hadir + '%';
     var skorText = m.total === 0 ? '—' : m.skor_dari_40 + '%';
-    csv += '"' + _csvSafe(m.id_murid) + '","' + nama + '","' + hal + '",' + (m.H||0) + ',' + (m.T||0) + ',' + (m.I||0) + ',' + (m.A||0) + ',' + (m.total||0) + ',"' + pctText + '","' + skorText + '"\r\n';
+    csv += '"' + _csvSafe(m.id_murid) + '";"' + nama + '";"' + hal + '";' + (m.H||0) + ';' + (m.T||0) + ';' + (m.I||0) + ';' + (m.A||0) + ';' + (m.total||0) + ';"' + pctText + '";"' + skorText + '"\r\n';
   });
 
   // UTF-8 BOM agar terbaca dengan benar di Excel (Indonesian locale)
