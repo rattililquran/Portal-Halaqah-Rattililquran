@@ -13820,6 +13820,7 @@ async function submitKonfirmasiSPP() {
 
   if (jenis === 'SPP Pribadi' && !bulan.length) { errEl.textContent='Pilih minimal 1 bulan.'; errEl.style.display=''; return; }
   if (!metode) { errEl.textContent='Pilih metode pembayaran.'; errEl.style.display=''; return; }
+  if (metode !== 'Cash' && !_sppBuktiBlob) { errEl.textContent='Bukti transfer wajib diunggah.'; errEl.style.display=''; return; }
   if (!nominal || Number(nominal) <= 0) { errEl.textContent='Nominal pembayaran tidak valid.'; errEl.style.display=''; return; }
   errEl.style.display = 'none';
 
