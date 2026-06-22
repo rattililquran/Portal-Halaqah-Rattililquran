@@ -3850,10 +3850,13 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
             <div style="font-size:13px;font-weight:700;color:var(--text)" id="atFormMateriJudul"></div>
             <div style="font-size:11.5px;color:var(--text-2);margin-top:3px" id="atFormMateriNasihat"></div>
           </div>
-          <div style="padding:12px 16px 4px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+          <div style="padding:12px 16px 4px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0">
             <button class="btn btn-outline btn-sm" onclick="setAllAtPresensi('H')">✅ Semua Hadir</button>
             <button class="btn btn-outline btn-sm" onclick="setAllAtPresensi('A')">❌ Semua Alpa</button>
-            <input type="search" class="fc" id="atFormSearch" placeholder="🔍 Cari murid..." oninput="filterAtFormMurid(this.value)" style="max-width:200px;font-size:12.5px;padding:6px 10px">
+            <select class="fc" id="atFormHalaqahFilter" onchange="applyAtFormFilters()" style="max-width:180px;font-size:12.5px;padding:6px 10px;margin-bottom:0">
+              <option value="">— Semua Halaqah —</option>
+            </select>
+            <input type="search" class="fc" id="atFormSearch" placeholder="🔍 Cari murid..." oninput="applyAtFormFilters()" style="max-width:200px;font-size:12.5px;padding:6px 10px;margin-bottom:0">
             <div style="margin-left:auto;font-size:12px;font-weight:700;color:var(--text-3)" id="atFormCount"></div>
           </div>
           <div style="overflow-y:auto;flex:1;padding:8px 16px" id="atFormList"></div>
@@ -11570,6 +11573,8 @@ async function bukaFormAtTibyan() {
   _atEditId = null;
   document.getElementById('atFormTitle').textContent = 'Sesi At-Tibyan Baru';
   document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
+  var sf = document.getElementById('atFormSearch'); if (sf) sf.value = '';
+  var hf = document.getElementById('atFormHalaqahFilter'); if (hf) hf.value = '';
   // Pastikan _atSesiData sudah terisi sebelum hitung pertemuan_ke
   if (!_atTabLoaded['sesi']) {
     try { var r = await window.HQ.GuruAPI.getAtTibyanSesi(); _atSesiData = r.data || []; _atTabLoaded['sesi'] = true; } catch(e){}
@@ -11588,6 +11593,8 @@ async function editAtSesi(id_sesi, tanggal, pertemuan_ke) {
   document.getElementById('atFormTitle').textContent = 'Edit Sesi At-Tibyan ke-' + pertemuan_ke;
   document.getElementById('atFormTanggal').value = String(tanggal).substring(0,10);
   document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + pertemuan_ke;
+  var sf = document.getElementById('atFormSearch'); if (sf) sf.value = '';
+  var hf = document.getElementById('atFormHalaqahFilter'); if (hf) hf.value = '';
   _showAtMateriInfo(pertemuan_ke);
   await _loadAtFormMurid(id_sesi);
   document.getElementById('atFormOverlay').style.display = 'flex';
@@ -11614,8 +11621,28 @@ async function _loadAtFormMurid(id_sesi_edit) {
       if (!existingMap[m.id_murid]) existingMap[m.id_murid] = 'H';
     });
     window._atPresensiMap = existingMap;
+    _populateAtFormHalaqahFilter();
     renderAtFormList(_atMuridAll);
   } catch(e) { listEl.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
+}
+
+function _populateAtFormHalaqahFilter() {
+  var sel = document.getElementById('atFormHalaqahFilter');
+  if (!sel) return;
+  var halaqahs = {};
+  _atMuridAll.forEach(function(m) {
+    var id_h = m.id_halaqah;
+    var nama_h = (m.halaqah && m.halaqah.nama_halaqah) || m.nama_halaqah || '-';
+    if (id_h) {
+      halaqahs[id_h] = nama_h;
+    }
+  });
+  var options = '<option value="">— Semua Halaqah —</option>';
+  Object.keys(halaqahs).forEach(function(id_h) {
+    options += '<option value="' + esc(id_h) + '">' + esc(halaqahs[id_h]) + '</option>';
+  });
+  sel.innerHTML = options;
+  sel.value = '';
 }
 
 function renderAtFormList(murid) {
@@ -11630,16 +11657,21 @@ function renderAtFormList(murid) {
     groups[key].murid.push(m);
   });
   var STATUS = ['H','T','I','A'];
-  var LABEL  = {H:'H',T:'T',I:'I',A:'A'};
   listEl.innerHTML = Object.values(groups).map(function(g) {
-    return '<div class="at-halaqah-group"><div class="at-halaqah-head">'
-      + esc(g.level) + ' — ' + esc(g.halaqah) + '</div>'
+    return '<div class="at-halaqah-group">'
+      + '<div class="at-halaqah-head">'
+      + '<span>' + esc(g.level) + ' — ' + esc(g.halaqah) + '</span>'
+      + '<div style="margin-left:auto;display:flex;gap:4px">'
+      + '<button type="button" style="padding:3px 8px;font-size:10.5px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text-2);font-weight:700;cursor:pointer" onclick="setGroupPresensi(this,\'H\')">✔️ Hadir</button>'
+      + '<button type="button" style="padding:3px 8px;font-size:10.5px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text-2);font-weight:700;cursor:pointer" onclick="setGroupPresensi(this,\'A\')">❌ Alpa</button>'
+      + '</div>'
+      + '</div>'
       + g.murid.map(function(m) {
         var cur = (window._atPresensiMap && window._atPresensiMap[m.id_murid]) || 'H';
         var btns = STATUS.map(function(s) {
           return '<button class="at-pb'+(cur===s?' on-'+s:'')+'" data-id="'+esc(m.id_murid)+'" data-s="'+s+'" onclick="setAtStatus(this,\''+esc(m.id_murid)+'\',\''+s+'\')">'+s+'</button>';
         }).join('');
-        return '<div class="at-murid-row" data-name="'+esc((m.nama_murid||'').toLowerCase())+'">'
+        return '<div class="at-murid-row" data-name="'+esc((m.nama_murid||'').toLowerCase())+'" data-halaqah-id="'+esc(m.id_halaqah)+'">'
           +'<div><div class="at-murid-name">'+esc(m.nama_murid)+'</div>'
           +'<div class="at-murid-level">'+esc((m.halaqah&&m.halaqah.nama_halaqah)||m.nama_halaqah||'')+'</div></div>'
           +'<div style="display:flex;gap:4px">'+btns+'</div>'
@@ -11661,17 +11693,67 @@ function setAtStatus(btn, id_murid, status) {
 
 function setAllAtPresensi(status) {
   if (!window._atPresensiMap) window._atPresensiMap = {};
-  _atMuridAll.forEach(function(m) { window._atPresensiMap[m.id_murid] = status; });
-  document.querySelectorAll('.at-pb').forEach(function(b) {
-    b.className = 'at-pb' + (b.dataset.s === status ? ' on-'+status : '');
+  var visibleRows = Array.from(document.querySelectorAll('#atFormList .at-murid-row')).filter(function(row) {
+    return row.style.display !== 'none';
+  });
+  visibleRows.forEach(function(row) {
+    var pbBtn = row.querySelector('.at-pb');
+    if (pbBtn) {
+      var id_murid = pbBtn.dataset.id;
+      window._atPresensiMap[id_murid] = status;
+      document.querySelectorAll('[data-id="'+id_murid+'"]').forEach(function(b) {
+        b.className = 'at-pb' + (b.dataset.s === status ? ' on-'+status : '');
+      });
+    }
   });
   _updateAtFormCount();
 }
 
-function filterAtFormMurid(q) {
-  q = (q || '').toLowerCase();
-  document.querySelectorAll('#atFormList .at-murid-row').forEach(function(row) {
-    row.style.display = !q || (row.dataset.name || '').indexOf(q) !== -1 ? '' : 'none';
+function setGroupPresensi(btn, status) {
+  if (!window._atPresensiMap) window._atPresensiMap = {};
+  var groupEl = btn.closest('.at-halaqah-group');
+  if (!groupEl) return;
+  var visibleRows = Array.from(groupEl.querySelectorAll('.at-murid-row')).filter(function(row) {
+    return row.style.display !== 'none';
+  });
+  visibleRows.forEach(function(row) {
+    var pbBtn = row.querySelector('.at-pb');
+    if (pbBtn) {
+      var id_murid = pbBtn.dataset.id;
+      window._atPresensiMap[id_murid] = status;
+      document.querySelectorAll('[data-id="'+id_murid+'"]').forEach(function(b) {
+        b.className = 'at-pb' + (b.dataset.s === status ? ' on-'+status : '');
+      });
+    }
+  });
+  _updateAtFormCount();
+}
+
+function applyAtFormFilters() {
+  var searchVal = (document.getElementById('atFormSearch').value || '').toLowerCase().trim();
+  var halFilter = document.getElementById('atFormHalaqahFilter').value; // id_halaqah
+
+  document.querySelectorAll('#atFormList .at-halaqah-group').forEach(function(groupEl) {
+    var visibleCount = 0;
+    groupEl.querySelectorAll('.at-murid-row').forEach(function(row) {
+      var rowName = (row.dataset.name || '');
+      var rowHalaqahId = row.dataset.halaqahId;
+      var matchesSearch = !searchVal || rowName.indexOf(searchVal) !== -1;
+      var matchesHalaqah = !halFilter || rowHalaqahId === halFilter;
+
+      if (matchesSearch && matchesHalaqah) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (visibleCount > 0) {
+      groupEl.style.display = '';
+    } else {
+      groupEl.style.display = 'none';
+    }
   });
 }
 
@@ -11686,6 +11768,8 @@ function _updateAtFormCount() {
 function tutupFormAtTibyan() {
   document.getElementById('atFormOverlay').style.display = 'none';
   _atEditId = null;
+  var sf = document.getElementById('atFormSearch'); if (sf) sf.value = '';
+  var hf = document.getElementById('atFormHalaqahFilter'); if (hf) hf.value = '';
 }
 
 async function simpanAtTibyan() {
