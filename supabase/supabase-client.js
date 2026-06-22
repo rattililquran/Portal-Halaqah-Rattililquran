@@ -1463,14 +1463,25 @@ var GuruAPI = {
       else if (r.status_hadir === 'I') m.izin++;
       else if (r.status_hadir === 'A') m.absen++;
     });
-    // Ambil nama_lengkap & level dari users agar nama selalu akurat
+    // Ambil nama_lengkap dari users & level dari anggota agar selalu akurat
     var muridIds = Object.keys(muridMap);
     if (muridIds.length) {
-      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap, level').in('id_user', muridIds);
-      (users || []).forEach(function(u) {
+      var [usersRes, anggotaRes] = await Promise.all([
+        _sb.from('users').select('id_user, nama_lengkap').in('id_user', muridIds),
+        _sb.from('anggota').select('id_murid, level').in('id_murid', muridIds).eq('status', 'aktif'),
+      ]);
+      _check(usersRes.error, 'getAtTibyanRekap:users');
+      _check(anggotaRes.error, 'getAtTibyanRekap:anggota');
+      var users = usersRes.data || [];
+      var members = anggotaRes.data || [];
+      users.forEach(function(u) {
         if (muridMap[u.id_user]) {
           if (u.nama_lengkap) muridMap[u.id_user].nama_murid = u.nama_lengkap;
-          muridMap[u.id_user].level = u.level || '';
+        }
+      });
+      members.forEach(function(m) {
+        if (muridMap[m.id_murid]) {
+          muridMap[m.id_murid].level = m.level || '';
         }
       });
     }
@@ -1510,15 +1521,26 @@ var GuruAPI = {
       var warna = hadir ? 'hijau' : (r.status_hadir === 'I' ? 'abu' : 'merah');
       m.riwayat.push({ warna: warna, tanggal: r.tanggal });
     });
-    // Ambil nama_lengkap, no_hp, level dari users agar selalu akurat
+    // Ambil nama_lengkap, no_hp dari users, dan level dari anggota agar selalu akurat
     var muridIds = Object.keys(muridMap);
     if (muridIds.length) {
-      var { data: users } = await _sb.from('users').select('id_user, nama_lengkap, no_hp, level').in('id_user', muridIds);
-      (users || []).forEach(function(u) {
+      var [usersRes, anggotaRes] = await Promise.all([
+        _sb.from('users').select('id_user, nama_lengkap, no_hp').in('id_user', muridIds),
+        _sb.from('anggota').select('id_murid, level').in('id_murid', muridIds).eq('status', 'aktif'),
+      ]);
+      _check(usersRes.error, 'getAtTibyanKeaktifan:users');
+      _check(anggotaRes.error, 'getAtTibyanKeaktifan:anggota');
+      var users = usersRes.data || [];
+      var members = anggotaRes.data || [];
+      users.forEach(function(u) {
         if (muridMap[u.id_user]) {
           if (u.nama_lengkap) muridMap[u.id_user].nama_murid = u.nama_lengkap;
           muridMap[u.id_user].no_hp  = u.no_hp  || '';
-          muridMap[u.id_user].level  = u.level  || '';
+        }
+      });
+      members.forEach(function(m) {
+        if (muridMap[m.id_murid]) {
+          muridMap[m.id_murid].level  = m.level  || '';
         }
       });
     }
