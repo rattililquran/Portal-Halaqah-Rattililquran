@@ -3817,7 +3817,15 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
               <div style="font-size:28px;font-weight:900;color:var(--green)" id="atNormalCount">–</div>
             </div>
           </div>
-          <input type="search" class="fc" id="atKeaktifanSearch" placeholder="🔍 Cari murid..." oninput="filterAtKeaktifan()" style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+            <input type="search" class="fc" id="atKeaktifanSearch" placeholder="🔍 Cari murid..." oninput="filterAtKeaktifan()" style="margin-bottom:0;flex:1;min-width:140px">
+            <select class="fc" id="atKeaktifanStatusFilter" onchange="filterAtKeaktifan()" style="margin-bottom:0;max-width:180px">
+              <option value="">— Semua Status —</option>
+              <option value="kritis">🔴 Kritis</option>
+              <option value="peringatan">🟡 Peringatan</option>
+              <option value="normal">🟢 Normal</option>
+            </select>
+          </div>
           <div id="atKeaktifanGrid"></div>
         </div>
         <!-- Panel: Rekap -->
@@ -11358,16 +11366,24 @@ async function loadAtKeaktifan() {
   } catch(e) { el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">❌</div><div class="guru-empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
 }
 
+function getFilteredAtKeaktifanList() {
+  var list = (_atKeaktifanData && _atKeaktifanData.alerts) || [];
+  var q = (document.getElementById('atKeaktifanSearch') && document.getElementById('atKeaktifanSearch').value || '').toLowerCase().trim();
+  var statusFilter = (document.getElementById('atKeaktifanStatusFilter') && document.getElementById('atKeaktifanStatusFilter').value || '');
+  return list.filter(function(m) {
+    var matchesSearch = !q || (m.nama_murid || '').toLowerCase().indexOf(q) !== -1;
+    var matchesStatus = !statusFilter || m.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+}
+
 function filterAtKeaktifan() {
   var el = document.getElementById('atKeaktifanGrid');
   if (!_atKeaktifanData) return;
-  var q = (document.getElementById('atKeaktifanSearch').value || '').toLowerCase().trim();
-  var list = _atKeaktifanData.alerts.filter(function(m) {
-    return !q || (m.nama_murid || '').toLowerCase().indexOf(q) !== -1;
-  });
+  var list = getFilteredAtKeaktifanList();
   if (!list.length) {
     el.innerHTML = '<div class="guru-empty"><div class="guru-empty-ico">🌟</div>'
-      + '<div class="guru-empty-ttl">Alhamdulillah, semua murid aktif hadir!</div></div>';
+      + '<div class="guru-empty-ttl">Tidak ada data murid yang cocok</div></div>';
     return;
   }
   el.innerHTML = list.map(function(m, idx) {
@@ -11526,12 +11542,7 @@ function buildWAMessageAtTibyan(m) {
 }
 
 function openWAAtTibyan(idx) {
-  var list = (_atKeaktifanData && _atKeaktifanData.alerts) || [];
-  // Cari dari filtered list yang aktif di DOM — ambil dari semua alerts berdasarkan urutan tampil
-  var filtered = list.filter(function(m) {
-    var q = (document.getElementById('atKeaktifanSearch') && document.getElementById('atKeaktifanSearch').value || '').toLowerCase().trim();
-    return !q || (m.nama_murid || '').toLowerCase().indexOf(q) !== -1;
-  });
+  var filtered = getFilteredAtKeaktifanList();
   var m = filtered[idx];
   if (!m) return;
 
