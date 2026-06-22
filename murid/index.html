@@ -4136,7 +4136,7 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
           <input type="search" class="at-search-input" id="atSearchInput" placeholder="Cari materi atau nasihat..." oninput="onAtSearch(this.value)" autocomplete="off">
           <button class="at-search-clear" id="atSearchClear" onclick="clearAtSearch()">✕</button>
         </div>
-        <div class="attibyan-filter" id="attibyanFilter"></div>
+        <div class="attibyan-filter" id="attibyanFilter" style="display:none;"></div>
         <div id="attibyanList"></div>
       </div>
       <!-- Panel Kehadiranku -->
@@ -9042,12 +9042,12 @@ function _buildAtCard(row, idx, isPinned) {
   return '<div class="' + cardClass + '" id="atc-' + idx + '">'
     + pinBanner
     + '<div class="at-card-head" onclick="toggleAtCard(' + idx + ')">'
-    + '<span class="at-card-badge"' + (isPinned ? ' style="background:#ef4444"' : '') + '>Pertemuan ' + esc(ptm) + '</span>'
-    + '<span class="at-card-title">' + (materi ? esc(materi) : (tanggal ? esc(tanggal) : 'Kajian ' + esc(ptm))) + '</span>'
+    + '<span class="at-card-badge"' + (isPinned ? ' style="background:#ef4444"' : '') + '>Sesi ' + esc(ptm) + '</span>'
+    + '<span class="at-card-title">' + (materi ? esc(materi) : 'Kajian At-Tibyan') + '</span>'
     + '<span class="at-card-chevron">▼</span>'
     + '</div>'
     + '<div class="at-card-body">'
-    + (tanggal ? '<div class="at-field"><div class="at-field-label">Tanggal</div><div class="at-field-val">📅 ' + esc(tanggal) + '</div></div>' : '')
+    + (tanggal ? '<div class="at-field"><div class="at-field-label">Tanggal</div><div class="at-field-val">📅 ' + esc(fmtDate(tanggal)) + ' (Sesi ' + esc(ptm) + ')</div></div>' : '')
     + fieldsHtml
     + '<div class="at-actions">'
     + '<button class="at-btn at-btn-copy" onclick="copyAtTibyan(' + idx + ')">'
@@ -9136,8 +9136,8 @@ function _buildAtTibyanText(idx) {
   var row = _attibyanData[idx];
   if (!row) return '';
 
-  var lines = ['📖 *At-Tibyan — Pertemuan ' + (row['pertemuan_ke'] || '') + '*'];
-  if (row['tanggal'])             lines.push('📅 ' + row['tanggal']);
+  var lines = ['📖 *Kajian At-Tibyan — Sesi ' + (row['pertemuan_ke'] || '') + '*'];
+  if (row['tanggal'])             lines.push('📅 ' + fmtDate(row['tanggal']));
   if (row['pemateri'])            lines.push('👤 ' + row['pemateri']);
   if (row['materi_pembahasan'])   lines.push('\n📚 *Materi Pembahasan*\n' + row['materi_pembahasan']);
   if (row['nasihat_aplikatif'])   lines.push('\n💡 *Nasihat Aplikatif*\n' + row['nasihat_aplikatif']);
@@ -9271,13 +9271,13 @@ async function loadAtKehadiranMurid() {
       + '<div class="card"><div style="padding:8px 16px">'
       + rows.map(function(s) {
         if (!s.status_hadir) return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
-          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Pertemuan ke-'+esc(String(s.pertemuan_ke))+'</div>'
-          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">'+esc(String(s.tanggal||''))+'</div></div>'
+          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Kajian At-Tibyan</div>'
+          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">'+esc(fmtDate(s.tanggal))+' (Sesi '+esc(String(s.pertemuan_ke||''))+')</div></div>'
           + '<span class="badge b-gray" style="font-size:10.5px">–</span></div>';
         var sh = String(s.status_hadir).toUpperCase();
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
-          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Pertemuan ke-'+esc(String(s.pertemuan_ke))+'</div>'
-          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">📅 '+esc(String(s.tanggal||''))+'</div></div>'
+          + '<div><div style="font-size:13px;font-weight:700;color:var(--text)">Kajian At-Tibyan</div>'
+          + '<div style="font-size:11px;color:var(--text-3);font-weight:600">📅 '+esc(fmtDate(s.tanggal))+' (Sesi '+esc(String(s.pertemuan_ke||''))+')</div></div>'
           + '<span class="badge '+(BADGE[sh]||'b-gray')+'">'+(LABEL[sh]||sh)+'</span></div>';
       }).join('') + '</div></div>';
   } catch(e) {

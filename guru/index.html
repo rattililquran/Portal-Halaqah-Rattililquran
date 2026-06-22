@@ -3842,10 +3842,10 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
               <label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Tanggal</label>
               <input type="date" class="fc" id="atFormTanggal" style="margin-top:4px">
             </div>
-            <div style="font-size:13px;color:var(--text-3);font-weight:700" id="atFormPertemuanInfo"></div>
+            <div style="display:none;font-size:13px;color:var(--text-3);font-weight:700" id="atFormPertemuanInfo"></div>
           </div>
           <!-- Materi info box -->
-          <div id="atFormMateriBox" style="display:none;padding:10px 16px;background:linear-gradient(135deg,#eff8ff,#f0fdf4);border-bottom:1px solid var(--border);flex-shrink:0">
+          <div id="atFormMateriBox" style="display:none !important;padding:10px 16px;background:linear-gradient(135deg,#eff8ff,#f0fdf4);border-bottom:1px solid var(--border);flex-shrink:0">
             <div style="font-size:10px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">📖 Materi Kajian Pertemuan Ini</div>
             <div style="font-size:13px;font-weight:700;color:var(--text)" id="atFormMateriJudul"></div>
             <div style="font-size:11.5px;color:var(--text-2);margin-top:3px" id="atFormMateriNasihat"></div>
@@ -11331,10 +11331,10 @@ function renderAtSesi() {
       var pct = s.total_murid > 0 ? Math.round(s.total_hadir / s.total_murid * 100) : 0;
       var col = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
       return '<div class="at-sesi-row" onclick="lihatDetailAtSesi(\''+esc(s.id_sesi)+'\',\''+esc(s.pertemuan_ke)+'\')">'
-        + '<div class="at-sesi-badge">'+esc(s.pertemuan_ke)+'</div>'
+        + '<div class="at-sesi-badge">📅</div>'
         + '<div class="at-sesi-info">'
-        + '<div class="at-sesi-title">Pertemuan ke-'+esc(s.pertemuan_ke)+'</div>'
-        + '<div class="at-sesi-meta">📅 '+fmtDate(s.tanggal)+'</div>'
+        + '<div class="at-sesi-title">Kajian At-Tibyan</div>'
+        + '<div class="at-sesi-meta">📅 '+fmtDate(s.tanggal)+' (Sesi '+esc(s.pertemuan_ke)+')</div>'
         + '</div>'
         + '<div style="text-align:right">'
         + '<div class="at-sesi-stat" style="color:'+col+'">'+s.total_hadir+'/'+s.total_murid+'</div>'
@@ -11467,7 +11467,8 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
       if (!groups[key]) groups[key] = { halaqah: m.nama_halaqah, murid: [] };
       groups[key].murid.push(m);
     });
-    var html = '<div style="font-size:13px;font-weight:700;margin-bottom:10px">Pertemuan ke-'+pertemuan_ke+' — '+hadir+'/'+total+' hadir · alpa '+alpa+'×</div>'
+    var tgl = (r.data && r.data.sesi && r.data.sesi.tanggal) ? fmtDate(r.data.sesi.tanggal) : '';
+    var html = '<div style="font-size:13px;font-weight:700;margin-bottom:10px">' + (tgl ? tgl + ' (Sesi ' + pertemuan_ke + ') — ' : '') + hadir+'/'+total+' hadir · alpa '+alpa+'×</div>'
       + Object.values(groups).map(function(g) {
         return '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+esc(g.halaqah||'-')+'</div>'
           + g.murid.map(function(m) {
@@ -11485,11 +11486,11 @@ async function lihatDetailAtSesi(id_sesi, pertemuan_ke) {
     var notifOverlay = document.getElementById('notifOverlay');
     if (notifTitle && notifMsg && notifOverlay) {
       if (notifIcon) notifIcon.textContent = '📋';
-      notifTitle.textContent = 'Pertemuan ke-' + pertemuan_ke;
+      notifTitle.textContent = 'Kajian At-Tibyan';
       notifMsg.innerHTML = html;
       notifOverlay.classList.add('show');
     } else {
-      toast('Ke-'+pertemuan_ke+': '+hadir+'/'+total+' hadir.','info');
+      toast((tgl ? tgl + ' (Sesi ' + pertemuan_ke + '): ' : '') + hadir+'/'+total+' hadir.','info');
     }
   } catch(e) { toast(friendlyError(e),'err'); }
 }
@@ -11559,20 +11560,11 @@ async function _loadAtMateriFromDB() {
 
 function _showAtMateriInfo(pertemuan_ke) {
   var box = document.getElementById('atFormMateriBox');
-  var m = AT_TIBYAN_MATERI.find(function(x){ return x.pertemuan_ke === Number(pertemuan_ke); });
-  if (m && box) {
-    document.getElementById('atFormMateriJudul').textContent = m.materi_pembahasan;
-    document.getElementById('atFormMateriNasihat').textContent = m.nasihat_aplikatif;
-    box.style.display = 'block';
-  } else if (box) {
-    box.style.display = 'none';
-  }
+  if (box) box.style.display = 'none';
 }
 
 async function bukaFormAtTibyan() {
   _atEditId = null;
-  document.getElementById('atFormTitle').textContent = 'Sesi At-Tibyan Baru';
-  document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
   var sf = document.getElementById('atFormSearch'); if (sf) sf.value = '';
   var hf = document.getElementById('atFormHalaqahFilter'); if (hf) hf.value = '';
   // Pastikan _atSesiData sudah terisi sebelum hitung pertemuan_ke
@@ -11582,6 +11574,8 @@ async function bukaFormAtTibyan() {
   _atNextPertemuan = _atSesiData.length > 0
     ? Math.max.apply(null, _atSesiData.map(function(s){ return s.pertemuan_ke || 0; })) + 1
     : 1;
+  document.getElementById('atFormTitle').textContent = 'Presensi At-Tibyan Baru (Sesi ' + _atNextPertemuan + ')';
+  document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
   document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + _atNextPertemuan;
   _showAtMateriInfo(_atNextPertemuan);
   await _loadAtFormMurid();
@@ -11590,7 +11584,7 @@ async function bukaFormAtTibyan() {
 
 async function editAtSesi(id_sesi, tanggal, pertemuan_ke) {
   _atEditId = id_sesi;
-  document.getElementById('atFormTitle').textContent = 'Edit Sesi At-Tibyan ke-' + pertemuan_ke;
+  document.getElementById('atFormTitle').textContent = 'Edit Presensi At-Tibyan (Sesi ' + pertemuan_ke + ')';
   document.getElementById('atFormTanggal').value = String(tanggal).substring(0,10);
   document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + pertemuan_ke;
   var sf = document.getElementById('atFormSearch'); if (sf) sf.value = '';
