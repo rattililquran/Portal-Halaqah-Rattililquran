@@ -3714,7 +3714,7 @@ function goPage(name) {
     periode   : loadPeriode,
     users     : () => loadUsers(currentUserTab),
     halaqah   : loadHalaqah,
-    anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah); const sel = document.getElementById('anggotaHalaqahSel'); if (sel && !sel.value && allHalaqah.length) { sel.value = allHalaqah[0].id_halaqah; loadAnggota(); } },
+    anggota   : () => { populateSel('anggotaHalaqahSel', allHalaqah, true); loadAnggota(); },
     pengganti : loadKelasPengganti,
     'kelompok-qiyam' : loadKelompokQiyam,
     'kelompok-belajar' : loadKelompokBelajar,
@@ -5645,8 +5645,9 @@ async function hapusHalaqah(id, nama) {
 //  ANGGOTA
 // ══════════════════════════════════════════
 async function loadAnggota() {
-  const id_halaqah = document.getElementById('anggotaHalaqahSel').value;
-  if (!id_halaqah) return;
+  const sel = document.getElementById('anggotaHalaqahSel');
+  if (!sel) return;
+  const id_halaqah = sel.value;
   showLoad('Bismillah, memuat data anggota kelas...');
   try {
     const r = await window.HQ.AdminAPI.getAllAnggota(id_halaqah);
@@ -5658,9 +5659,11 @@ async function loadAnggota() {
 
 function renderAnggotaTable() {
   const q = (document.getElementById('anggotaSearchInput')?.value || '').trim().toLowerCase();
+  const isAllHalaqah = !document.getElementById('anggotaHalaqahSel')?.value;
   let rows = (window._anggotaAllRows || []).filter(a => {
     if (!q) return true;
-    const hay = [a.nama_murid||'', a.id_murid||'', a.level||'', a.target_level||''].join(' ').toLowerCase();
+    const halaqahName = (allHalaqah.find(h => h.id_halaqah === a.id_halaqah) || {}).nama_halaqah || '';
+    const hay = [a.nama_murid||'', a.id_murid||'', a.level||'', a.target_level||'', halaqahName].join(' ').toLowerCase();
     return hay.indexOf(q) !== -1;
   });
   rows = applySort('anggota', rows, {
@@ -5674,7 +5677,10 @@ function renderAnggotaTable() {
   });
   const tbody = document.getElementById('anggotaTbl');
   tbody.innerHTML = rows.map(a => `<tr>
-      <td><strong>${esc(a.nama_murid)}</strong></td>
+      <td>
+        <strong>${esc(a.nama_murid)}</strong>
+        ${isAllHalaqah ? `<div style="font-size:11px;margin-top:2px;color:var(--text-3)">${esc((allHalaqah.find(h => h.id_halaqah === a.id_halaqah) || {}).nama_halaqah || 'Tidak ada Halaqah')}</div>` : ''}
+      </td>
       <td><code style="font-size:11px">${esc(a.id_murid)}</code></td>
       <td><span class="badge b-blue">${esc(a.level||'–')}</span></td>
       <td><span class="badge b-teal">${esc(a.target_level||'–')}</span></td>
