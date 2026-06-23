@@ -2785,6 +2785,7 @@ var MuridAPI = {
     var mapped = (data||[]).map(function(n) { return Object.assign({}, n, {
       tanggal         : n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
       pertemuan_ke    : n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
+      materi          : (n.kbm_log && n.kbm_log.materi_belajar) || '',
       materi_belajar  : n.kbm_log && n.kbm_log.materi_belajar,
       latihan_mandiri : n.kbm_log && n.kbm_log.latihan_mandiri,
       jenis_latihan   : n.kbm_log && n.kbm_log.jenis_latihan,
