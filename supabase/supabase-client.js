@@ -4358,6 +4358,127 @@ var AdminAPI = {
     }
     return { status:'ok' };
   },
+
+  // ── Input SPP Manual oleh Admin ────────────────────────────
+  // Ambil status SPP per bulan untuk murid tertentu (dipakai modal input manual)
+  getSPPStatusMurid: async function(id_murid, tahun) {
+    var t = tahun || new Date().getFullYear();
+    var { data, error } = await _sb.from('spp_pembayaran').select('bulan, status, jenis')
+      .eq('id_murid', id_murid).eq('tahun', t);
+    _check(error, 'getSPPStatusMurid');
+    var lunas = []; var menunggu = [];
+    (data||[]).forEach(function(r) {
+      if (r.jenis && r.jenis !== 'SPP Pribadi') return;
+      if (r.status === 'lunas') lunas.push(r.bulan);
+      else if (r.status === 'menunggu') menunggu.push(r.bulan);
+    });
+    return { status:'ok', data: { lunas: lunas, menunggu: menunggu } };
+  },
+
+  // Input pembayaran SPP langsung oleh admin (tanpa murid konfirmasi)
+  // d: { id_murid, bulan (array), tahun, jenis, nominal, catatan }
+  inputSPPManual: async function(d) {
+    var id_murid = d.id_murid;
+    if (!id_murid) throw new Error('Murid belum dipilih.');
+    var bulanList = Array.isArray(d.bulan) ? d.bulan : [d.bulan];
+    if (!bulanList.length) throw new Error('Pilih minimal 1 bulan.');
+    var tahun = Number(d.tahun) || new Date().getFullYear();
+    var jenis = d.jenis || 'SPP Pribadi';
+
+    // Ambil data anggota untuk denormalisasi
+    var { data: anggota } = await _sb.from('anggota').select('nama_murid, id_halaqah')
+      .eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle();
+    var nama_murid = (anggota && anggota.nama_murid) || '';
+    var id_halaqah = (anggota && anggota.id_halaqah) || '';
+
+    // Jika nama_murid kosong, fallback ke tabel users
+    if (!nama_murid) {
+      var { data: usr } = await _sb.from('users').select('nama_lengkap').eq('id_user', id_murid).maybeSingle();
+      nama_murid = (usr && usr.nama_lengkap) || '';
+    }
+
+    // Generate id_spp IDENTIK dengan format MuridAPI.konfirmasiSPP
+    var jenisSuffix = jenis.replace(/\s+/g,'').substring(0,3).toUpperCase();
+    var idSppMap = {};
+    bulanList.forEach(function(bulan) {
+      var id = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + tahun + '-' + jenisSuffix;
+      if (jenis === 'Infaq/Operasional') {
+        id += '-' + Math.random().toString(36).substring(2,10).toUpperCase();
+      }
+      idSppMap[bulan] = id;
+    });
+
+    // Cek bulan yang sudah lunas — skip
+    var idSppList = Object.values(idSppMap);
+    var { data: existingRows } = await _sb.from('spp_pembayaran')
+      .select('id_spp, status').in('id_spp', idSppList);
+    var sudahLunasSet = new Set(
+      (existingRows || []).filter(function(r){ return r.status === 'lunas'; }).map(function(r){ return r.id_spp; })
+    );
+    var bulanProses = bulanList.filter(function(bulan) {
+      return !sudahLunasSet.has(idSppMap[bulan]);
+    });
+    if (!bulanProses.length) {
+      return { status: 'ok', message: 'Semua bulan yang dipilih sudah lunas sebelumnya.', count: 0 };
+    }
+
+    var now = new Date();
+    var todayWIB = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    var nominalPerBulan = bulanProses.length > 1
+      ? Math.round(Number(d.nominal || 0) / bulanProses.length)
+      : Number(d.nominal || 0);
+
+    var rows = bulanProses.map(function(bulan) {
+      return {
+        id_spp       : idSppMap[bulan],
+        id_murid     : id_murid,
+        nama_murid   : nama_murid,
+        id_halaqah   : id_halaqah,
+        bulan        : bulan,
+        tahun        : tahun,
+        jenis        : jenis,
+        status       : 'lunas',
+        nominal      : nominalPerBulan,
+        metode_bayar : 'admin_manual',
+        metode_transfer: null,
+        bukti_url    : null,
+        catatan      : d.catatan || 'Input manual oleh admin',
+        tanggal_bayar: todayWIB,
+        validated_by : _uid(),
+        validated_at : now.toISOString(),
+        mayar_expired_at  : null,
+        mayar_invoice_id  : null,
+        mayar_payment_link: null,
+      };
+    });
+
+    var { error } = await _sb.from('spp_pembayaran').upsert(rows, { onConflict: 'id_spp' });
+    _check(error, 'inputSPPManual');
+
+    _logAudit('input_spp_manual', {
+      id_murid: id_murid, nama_murid: nama_murid,
+      bulan: bulanProses, tahun: tahun, jenis: jenis,
+      nominal: d.nominal, count: bulanProses.length,
+    });
+
+    // Push notification ke murid
+    if (id_murid) {
+      var bulanLabel = bulanProses.length > 1
+        ? bulanProses.length + ' bulan'
+        : bulanProses[0] + ' ' + tahun;
+      _sendPushBg({
+        user_ids: [id_murid],
+        title: '✅ SPP Dicatat Lunas oleh Admin',
+        body : 'Pembayaran ' + (jenis === 'SPP Pribadi' ? 'SPP ' : 'Infaq ') + bulanLabel + ' sudah dicatat lunas. Jazakallahu khairan!',
+        url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
+        tag  : 'spp-admin-manual-' + id_murid + '-' + tahun,
+        data : { trigger: 'spp_lunas' },
+      });
+    }
+
+    return { status:'ok', message: bulanProses.length + ' bulan berhasil dicatat lunas.', count: bulanProses.length };
+  },
+
   // Riwayat konfirmasi terbaru (manual maupun otomatis via gateway) — untuk
   // menemukan & membatalkan salah konfirmasi tanpa perlu SQL manual.
   getSPPRecentValidasi: async function() {
