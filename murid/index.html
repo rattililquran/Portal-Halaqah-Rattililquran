@@ -5784,6 +5784,9 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
         Keluar dari Aplikasi
       </button>
 
+      <div style="font-size:10px;color:var(--text-3);text-align:center;margin-top:20px;padding:0 8px;opacity:0.6" id="appVersionInfo">
+        Versi Aplikasi: v8.15
+      </div>
     </div>
   </div>
 
@@ -7467,7 +7470,12 @@ function goPage(name, swipeDir) {
     loadAssessment();
     return;
   }
-  if (_muridTabLoaded[name]) return;
+  if (_muridTabLoaded[name]) {
+    if (prev === name) {
+      refreshTab(name);
+    }
+    return;
+  }
   _muridTabLoaded[name] = true;
   if (name === 'riwayat') { _riwayatOffset = 8; loadRiwayat(); }
   else if (name === 'pr') { loadPR(); }
@@ -8305,7 +8313,7 @@ async function loadRiwayat() {
   var el = document.getElementById('riwayatList');
   showLoad('Bismillah, memuat riwayat KBM...');
   try {
-    var r = await promiseWithTimeout(window.HQ.MuridAPI.getRiwayat(8, 0), 8000, 'Permintaan timeout'); // default 8 pertemuan terakhir
+    var r = await promiseWithTimeout(window.HQ.MuridAPI.getRiwayat(8, 0), 4000, 'Permintaan timeout'); // default 8 pertemuan terakhir
     riwayatData = r.data || [];
     renderRiwayat(riwayatData);
     var mBtn = document.getElementById('btnMuatLebihMurid');
@@ -8687,7 +8695,7 @@ async function loadPR() {
   el.innerHTML = skelCards(2, 3);
   showLoad('Bismillah, memuat latihan mandiri...');
   try {
-    var r = await promiseWithTimeout(window.HQ.MuridAPI.getLatihanMandiri(), 8000, 'Permintaan timeout');
+    var r = await promiseWithTimeout(window.HQ.MuridAPI.getLatihanMandiri(), 4000, 'Permintaan timeout');
     prData = r.data || [];
     renderPR(prData);
     checkPRBadge(prData);
