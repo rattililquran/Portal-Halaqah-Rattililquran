@@ -962,6 +962,7 @@ var GuruAPI = {
       halaman_modul: d.halaman_modul, metode: d.metode, catatan_umum: d.catatan_umum,
       jam_selesai: d.jam_selesai, latihan_mandiri: d.latihan_mandiri,
       jenis_latihan: d.jenis_latihan || null, deadline_latihan: d.deadline_latihan || null,
+      referensi_url: d.referensi_url || null,
     }).eq('id_kbm', d.id_kbm);
     _check(error, 'simpanJurnalKBM');
     return { status: 'ok', message: 'Jurnal KBM berhasil disimpan' };
@@ -2836,7 +2837,7 @@ var MuridAPI = {
     else if (ang && ang.level === 'Micro Teaching') targetJenis = 'Micro Teaching';
 
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
+      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi,referensi_url)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
@@ -2867,7 +2868,8 @@ var MuridAPI = {
           pr_status_nilai: n.pr_status_nilai,
           pr_catatan_guru: n.pr_catatan_guru || '',
           pr_lampiran_guru_url: n.pr_lampiran_guru_url || '',
-          pr_dinilai_at  : n.pr_dinilai_at
+          pr_dinilai_at  : n.pr_dinilai_at,
+          referensi_url  : (n.kbm_log && n.kbm_log.referensi_url) || ''
         };
       });
     return { status: 'ok', data: rows };

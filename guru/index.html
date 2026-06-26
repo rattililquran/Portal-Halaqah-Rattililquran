@@ -2886,24 +2886,29 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
           <div class="card-body">
             <div class="fg">
               <label>Jenis Latihan Mandiri (PR)</label>
-              <select class="fc" id="jurnalJenisLatihan">
+              <select class="fc" id="jurnalJenisLatihan" onchange="toggleReferensiJurnal()">
                 <option value="">— Tidak ada Latihan Mandiri (PR) —</option>
-                <option value="VN di WAG">🎙 VN di WAG (Voice Note di WhatsApp Group)</option>
-                <option value="Mendengar rekaman dan baca mandiri">🎧 Mendengar rekaman dan baca mandiri</option>
+                <option value="Rekaman Portal">🎙️ Rekaman Suara di Portal (Disarankan)</option>
+                <option value="VN di WAG">📱 Kirim Voice Note (VN) di WhatsApp Group</option>
+                <option value="Mendengar dan membaca mandiri">🎧 Mendengar Murattal & Membaca Mandiri (Tanpa Setor Suara)</option>
                 <option value="Lainnya">📌 Lainnya</option>
               </select>
             </div>
             <div class="fg">
               <label>Deskripsi Latihan Mandiri (PR)</label>
               <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
-                placeholder="Contoh: Baca halaman 12–15, kirim VN ke WAG sebelum pertemuan berikutnya..."
+                placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..."
                 style="resize:vertical"></textarea>
             </div>
             <div class="fg">
               <label>Deadline Pengerjaan</label>
               <input type="date" class="fc" id="jurnalDeadline">
             </div>
-            <div style="font-size:11.5px;color:var(--text-3);margin-top:-6px">
+            <div class="fg" id="wadahJurnalReferensi" style="display: none;">
+              <label>Tautan Referensi Rekaman / Murattal (Opsional)</label>
+              <input type="url" class="fc" id="jurnalReferensiUrl" placeholder="https://drive.google.com/file/d/.../view atau link audio lainnya">
+            </div>
+            <div style="font-size:11.5px;color:var(--text-3);margin-top:6px">
               💡 Latihan Mandiri (PR) akan tampil di dashboard murid
             </div>
           </div>
@@ -6599,9 +6604,12 @@ async function doBukaKBM() {
     window._presensiState = {};                       // sesi baru: presensi mulai bersih
     window._presensiStateKbm = sesiAktif.id_kbm;
     // Reset form jurnal
-    ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline'].forEach(function(id){
+    ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline','jurnalReferensiUrl'].forEach(function(id){
       var el = document.getElementById(id); if (el) el.value = '';
     });
+    var prSel = document.getElementById('jurnalJenisLatihan');
+    if (prSel) prSel.value = '';
+    toggleReferensiJurnal();
     // Reset nilai murid dari sesi sebelumnya (bersihkan DOM dari sesi lama)
     document.querySelectorAll('[id^="adab-"],[id^="kamera-"],[id^="koreksi-"],[id^="catatan-"],[id^="nilai-"]').forEach(function(el){
       el.value = '';
@@ -8342,6 +8350,7 @@ async function doSelesaiKBM() {
   const latihanMandiri  = isRegulerSesi ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
   const jenisLatihan    = isRegulerSesi ? document.getElementById('jurnalJenisLatihan').value : '';
   const deadlineLatihan = isRegulerSesi ? (document.getElementById('jurnalDeadline').value || null) : null;
+  const referensiUrl    = isRegulerSesi ? document.getElementById('jurnalReferensiUrl').value.trim() : '';
 
   if (isRegulerSesi) {
     if (jenisLatihan !== '') {
@@ -8353,9 +8362,13 @@ async function doSelesaiKBM() {
         toast("Harap isi Tanggal Batas Waktu (Deadline) Pengerjaan PR.", "warn");
         return;
       }
+      if (referensiUrl && !referensiUrl.startsWith("http://") && !referensiUrl.startsWith("https://")) {
+        toast("Tautan referensi harus diawali dengan http:// atau https://", "warn");
+        return;
+      }
     } else {
-      if (latihanMandiri || deadlineLatihan) {
-        toast("Harap pilih Jenis Latihan Mandiri (PR) jika deskripsi atau batas waktu diisi.", "warn");
+      if (latihanMandiri || deadlineLatihan || referensiUrl) {
+        toast("Harap pilih Jenis Latihan Mandiri (PR) jika deskripsi, batas waktu, atau tautan diisi.", "warn");
         return;
       }
     }
@@ -8379,6 +8392,7 @@ async function doSelesaiKBM() {
       latihan_mandiri  : latihanMandiri,
       jenis_latihan    : jenisLatihan,
       deadline_latihan : deadlineLatihan,
+      referensi_url    : referensiUrl,
     });
 
     // 2. Simpan nilai per murid (Batch)
@@ -9735,6 +9749,14 @@ async function simpanCatatan() {
 
 // ══════════════════════════════════════════
 //  HELPERS — UI
+function toggleReferensiJurnal() {
+  const val = document.getElementById('jurnalJenisLatihan') ? document.getElementById('jurnalJenisLatihan').value : '';
+  const wadah = document.getElementById('wadahJurnalReferensi');
+  if (wadah) {
+    wadah.style.display = val !== '' ? 'block' : 'none';
+  }
+}
+
 // ══════════════════════════════════════════
 function populateSel(selId, preserveValue) {
   const sel = document.getElementById(selId);
