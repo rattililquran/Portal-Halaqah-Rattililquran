@@ -8329,9 +8329,6 @@ async function doSelesaiKBM() {
     }
   }
 
-  // Tutup modal preview dulu
-  closeModal('previewModal');
-
   // Materi, catatan, jam selesai: berlaku untuk Reguler, Qiyam, dan Micro Teaching
   const saveJurnal  = isRegulerSesi || isQiyamSesi || isMicroteachingSesi;
   const materi     = saveJurnal ? document.getElementById('jurnalMateri').value.trim() : '';
@@ -8345,6 +8342,27 @@ async function doSelesaiKBM() {
   const latihanMandiri  = isRegulerSesi ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
   const jenisLatihan    = isRegulerSesi ? document.getElementById('jurnalJenisLatihan').value : '';
   const deadlineLatihan = isRegulerSesi ? (document.getElementById('jurnalDeadline').value || null) : null;
+
+  if (isRegulerSesi) {
+    if (jenisLatihan !== '') {
+      if (!latihanMandiri) {
+        toast("Harap isi Deskripsi Latihan Mandiri (PR) jika Jenis Latihan dipilih.", "warn");
+        return;
+      }
+      if (!deadlineLatihan) {
+        toast("Harap isi Tanggal Batas Waktu (Deadline) Pengerjaan PR.", "warn");
+        return;
+      }
+    } else {
+      if (latihanMandiri || deadlineLatihan) {
+        toast("Harap pilih Jenis Latihan Mandiri (PR) jika deskripsi atau batas waktu diisi.", "warn");
+        return;
+      }
+    }
+  }
+
+  // Tutup modal preview dulu
+  closeModal('previewModal');
 
   setBtn('btnSelesai', true, '⏳ Menyimpan...');
   showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
@@ -9012,8 +9030,8 @@ async function loadPRSubmissions() {
         mergedData = r.data || [];
       }
     } else {
-      if (window.halaqahList && window.halaqahList.length > 0) {
-        const promises = window.halaqahList.map(h => 
+      if (halaqahList && halaqahList.length > 0) {
+        const promises = halaqahList.map(h => 
           window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah)
             .then(res => {
               const data = res.data || [];
@@ -9489,7 +9507,7 @@ async function simpanPenilaianPR() {
 }
 
 async function checkHalaqahPRBadge() {
-  if (!window.halaqahList || halaqahList.length === 0) return;
+  if (!halaqahList || halaqahList.length === 0) return;
   let totalPending = 0;
   try {
     const promises = halaqahList.map(h => window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah));
