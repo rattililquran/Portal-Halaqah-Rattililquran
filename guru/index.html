@@ -9139,6 +9139,8 @@ function renderPRSubmissions() {
           ${item.pr_catatan_guru ? `<small style="font-size:10px;color:var(--text-3);max-width:120px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.pr_catatan_guru)}">💬 ${esc(item.pr_catatan_guru)}</small>` : ''}
         </div>
       `;
+    } else {
+      statusHTML = `<span class="badge" style="background:rgba(148,163,184,0.15);color:#64748b;font-weight:700">Belum Dikerjakan</span>`;
     }
     
     const actionText = item.pr_status === 'dinilai' ? '✏️ Ubah Nilai' : '✏️ Beri Nilai';

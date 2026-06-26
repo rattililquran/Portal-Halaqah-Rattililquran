@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.11';
+const CACHE_NAME = 'halaqah-v8.12';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {

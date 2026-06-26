@@ -2379,12 +2379,14 @@ var GuruAPI = {
 
   getHalaqahPRSubmissions: async function(id_halaqah) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, users(nama_lengkap), kbm_log(latihan_mandiri)')
+      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, users(nama_lengkap), kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri)')
       .eq('id_halaqah', id_halaqah)
-      .in('pr_status', ['selesai', 'dinilai'])
-      .order('pr_submitted_at', { ascending: false });
+      .not('kbm_log.latihan_mandiri', 'is', null)
+      .order('tanggal', { ascending: false });
     _check(error, 'getHalaqahPRSubmissions');
-    return { status: 'ok', data: (data || []).map(function(d) {
+    return { status: 'ok', data: (data || []).filter(function(d) {
+      return d.kbm_log && d.kbm_log.latihan_mandiri;
+    }).map(function(d) {
       return Object.assign({}, d, {
         nama_murid: d.users ? d.users.nama_lengkap : ''
       });
