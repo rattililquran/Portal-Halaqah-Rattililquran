@@ -1,6 +1,6 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v8.14 — caching konservatif + offline HTML fallback
+//  Cache version: v8.15 — caching konservatif + offline HTML fallback
 // ============================================================
 //
 //  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze
@@ -8,7 +8,7 @@
 //  dalam, akar masalah SEBENARNYA adalah infinite loop di kode lain
 //  (MutationObserver fitur nomor tabel — sudah diperbaiki terpisah),
 //  BUKAN di Cache Storage / SW ini. Namun karena WebKit Cache Storage
-//  tetap dikenal sebagai API yang historisnya rapuh, desain v8.0 ini
+//  tetap dikenal as API yang historisnya rapuh, desain v8.0 ini
 //  dibuat SANGAT KONSERVATIF untuk meminimalkan risiko:
 //
 //   1. TIDAK precache apapun saat install — meniadakan kemungkinan
@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.14';
+const CACHE_NAME = 'halaqah-v8.15';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {

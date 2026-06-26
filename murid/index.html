@@ -8305,7 +8305,7 @@ async function loadRiwayat() {
   var el = document.getElementById('riwayatList');
   showLoad('Bismillah, memuat riwayat KBM...');
   try {
-    var r = await window.HQ.MuridAPI.getRiwayat(8, 0); // default 8 pertemuan terakhir
+    var r = await promiseWithTimeout(window.HQ.MuridAPI.getRiwayat(8, 0), 8000, 'Permintaan timeout'); // default 8 pertemuan terakhir
     riwayatData = r.data || [];
     renderRiwayat(riwayatData);
     var mBtn = document.getElementById('btnMuatLebihMurid');
@@ -8313,7 +8313,11 @@ async function loadRiwayat() {
     buildKalSesiMap();
     renderKalender();
   } catch(e) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(friendlyError(e))+'</div></div>';
+    el.innerHTML = '<div class="empty">' +
+      '<div class="empty-ico">❌</div>' +
+      '<div class="empty-ttl">' + esc(friendlyError(e)) + '</div>' +
+      '<button class="btn btn-outline btn-sm" onclick="refreshTab(\'riwayat\')" style="margin-top:12px;max-width:140px;margin-left:auto;margin-right:auto;">🔄 Coba Lagi</button>' +
+      '</div>';
   }
   finally { hideLoad(); }
 }
@@ -8683,11 +8687,17 @@ async function loadPR() {
   el.innerHTML = skelCards(2, 3);
   showLoad('Bismillah, memuat latihan mandiri...');
   try {
-    var r = await window.HQ.MuridAPI.getLatihanMandiri();
+    var r = await promiseWithTimeout(window.HQ.MuridAPI.getLatihanMandiri(), 8000, 'Permintaan timeout');
     prData = r.data || [];
     renderPR(prData);
     checkPRBadge(prData);
-  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(friendlyError(e))+'</div></div>'; }
+  } catch(e) {
+    el.innerHTML = '<div class="empty">' +
+      '<div class="empty-ico">❌</div>' +
+      '<div class="empty-ttl">' + esc(friendlyError(e)) + '</div>' +
+      '<button class="btn btn-outline btn-sm" onclick="refreshTab(\'pr\')" style="margin-top:12px;max-width:140px;margin-left:auto;margin-right:auto;">🔄 Coba Lagi</button>' +
+      '</div>';
+  }
   finally { hideLoad(); }
 }
 
@@ -13837,6 +13847,15 @@ function resetMuridSession() {
 // ══════════════════════════════════════════
 //  UTILITIES
 // ══════════════════════════════════════════
+function promiseWithTimeout(promise, ms, errorMsg) {
+  var timeout = new Promise(function(_, reject) {
+    setTimeout(function() {
+      reject(new Error(errorMsg || 'Permintaan timeout'));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]);
+}
+
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
