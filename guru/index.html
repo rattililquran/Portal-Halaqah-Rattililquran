@@ -5262,25 +5262,7 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
       <!-- Audio Player preview in Modal -->
       <div class="form-group" id="prModalAudioGroup" style="margin-bottom:16px;display:none">
         <label style="font-weight:700;display:block;margin-bottom:6px">Rekaman Suara Murid</label>
-        <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.1);border-radius:12px">
-          <audio id="prModalAudioPlayer" controls style="width:100%" onerror="document.getElementById('prModalAudioError').style.display='block'"></audio>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:11.5px;color:var(--text-3)">Kecepatan Putar:</span>
-              <select id="prModalPlaybackSpeed" class="fc" style="width:auto;font-size:11.5px;padding:4px 8px;height:auto" onchange="document.getElementById('prModalAudioPlayer').playbackRate = parseFloat(this.value)">
-                <option value="1.0">1.0x (Normal)</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-                <option value="1.75">1.75x</option>
-                <option value="2.0">2.0x</option>
-              </select>
-            </div>
-            <a id="prModalBukaLink" href="#" target="_blank" class="btn btn-outline btn-sm" style="font-size:11px;padding:4px 8px;margin:0">🔗 Buka di Drive</a>
-          </div>
-          <div id="prModalAudioError" style="display:none;font-size:10px;color:var(--red);margin-top:2px;line-height:1.3">
-            ⚠️ Browser membatasi pemutaran langsung. Klik <strong>Buka di Drive</strong> untuk memutar di web Google Drive.
-          </div>
-        </div>
+        <div id="prModalIframeWadah" style="width:100%; height:80px; border-radius:12px; overflow:hidden; border:1px solid rgba(14,165,233,0.18)"></div>
       </div>
 
       <div class="form-group" style="margin-bottom:16px">
@@ -9066,28 +9048,11 @@ function renderPRSubmissions() {
     let lampiranHTML = '–';
     if (item.pr_lampiran_url) {
       const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
-      if (isAudio) {
-        let previewUrl = item.pr_lampiran_url;
-        if (item.pr_lampiran_url.includes('id=')) {
-          const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
-          previewUrl = `https://drive.google.com/file/d/${fileId}/view`;
-        }
+      if (isAudio && item.pr_lampiran_url.includes('id=')) {
+        const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
         lampiranHTML = `
-          <div style="display:flex;flex-direction:column;gap:4px;min-width:180px;padding:6px;background:rgba(14,165,233,0.05);border-radius:8px;border:1px solid rgba(14,165,233,0.1)">
-            <audio src="${esc(item.pr_lampiran_url)}" controls style="width:180px;height:28px" onerror="this.parentElement.querySelector('.audio-err-msg').style.display='block'"></audio>
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-              <span style="font-size:9.5px;color:var(--text-3)">Kecepatan:</span>
-              <select onchange="this.parentElement.previousElementSibling.playbackRate = parseFloat(this.value)" style="font-size:9.5px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--text-1)">
-                <option value="1.0">1.0x</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2.0">2.0x</option>
-              </select>
-              <a href="${esc(previewUrl)}" target="_blank" class="btn btn-outline btn-sm" style="font-size:9px;padding:2px 6px;height:auto;line-height:1;margin:0" title="Buka berkas di Google Drive">🔗 Buka</a>
-            </div>
-            <div style="font-size:9.5px;color:var(--red);margin-top:2px;line-height:1.2;display:none" class="audio-err-msg">
-              ⚠️ Browser membatasi putar langsung. Klik tombol <strong>Buka</strong> di atas.
-            </div>
+          <div style="width:100%; max-width:240px; height:80px; border-radius:10px; overflow:hidden; border:1px solid rgba(14,165,233,0.18)">
+            <iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="80" style="border:none; display:block" allow="autoplay"></iframe>
           </div>
         `;
       } else {
@@ -9154,31 +9119,20 @@ function bukaFormKoreksiPR(id_nilai) {
   document.getElementById('prModalCatatanGuru').value = item.pr_catatan_guru || '';
   
   const audioGroup = document.getElementById('prModalAudioGroup');
-  const audioPlayer = document.getElementById('prModalAudioPlayer');
-  const linkBuka = document.getElementById('prModalBukaLink');
-  const errorMsg = document.getElementById('prModalAudioError');
-  if (errorMsg) errorMsg.style.display = 'none';
+  const iframeWadah = document.getElementById('prModalIframeWadah');
   
   if (item.pr_lampiran_url) {
     const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
-    if (isAudio) {
-      audioPlayer.src = item.pr_lampiran_url;
-      audioPlayer.playbackRate = 1.0;
-      document.getElementById('prModalPlaybackSpeed').value = '1.0';
+    if (isAudio && item.pr_lampiran_url.includes('id=')) {
+      const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
+      iframeWadah.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="80" style="border:none; display:block" allow="autoplay"></iframe>`;
       audioGroup.style.display = 'block';
-      
-      let previewUrl = item.pr_lampiran_url;
-      if (item.pr_lampiran_url.includes('id=')) {
-        const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
-        previewUrl = `https://drive.google.com/file/d/${fileId}/view`;
-      }
-      if (linkBuka) linkBuka.href = previewUrl;
     } else {
-      audioPlayer.src = '';
+      iframeWadah.innerHTML = '';
       audioGroup.style.display = 'none';
     }
   } else {
-    audioPlayer.src = '';
+    iframeWadah.innerHTML = '';
     audioGroup.style.display = 'none';
   }
   
@@ -9186,11 +9140,8 @@ function bukaFormKoreksiPR(id_nilai) {
 }
 
 function closePRModal() {
-  const audioPlayer = document.getElementById('prModalAudioPlayer');
-  if (audioPlayer) {
-    audioPlayer.pause();
-    audioPlayer.src = '';
-  }
+  const iframeWadah = document.getElementById('prModalIframeWadah');
+  if (iframeWadah) iframeWadah.innerHTML = '';
   closeModal('peninjauanPrModal');
 }
 

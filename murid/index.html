@@ -8706,16 +8706,10 @@ function renderPR(rows) {
       actionBtn = '<button onclick="bukaFormPR(\'' + pr.id_nilai + '\', \'' + esc(pr.latihan_mandiri) + '\', \'' + esc(pr.jenis_latihan) + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
     } else if (pr.pr_status === 'selesai') {
       statusBadge = '<span class="badge b-amber">⏳ Menunggu Koreksi Guru</span>';
-      if (pr.pr_lampiran_url) {
-        let previewUrl = pr.pr_lampiran_url;
-        if (pr.pr_lampiran_url.includes('id=')) {
-          const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
-          previewUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
-        }
-        actionBtn = '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">'
-          + '<audio src="' + pr.pr_lampiran_url + '" controls style="width:100%;height:36px;border-radius:8px;" onerror="this.parentElement.querySelector(\'.audio-err-msg\').style.display=\'block\'"></audio>'
-          + '<div style="display:flex;justify-content:flex-end;"><a href="' + esc(previewUrl) + '" target="_blank" class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px;margin:0;">🔗 Buka Rekaman di Drive</a></div>'
-          + '<div style="display:none;font-size:10px;color:var(--red);margin-top:2px;line-height:1.3" class="audio-err-msg">⚠️ Browser membatasi putar langsung. Klik <strong>Buka Rekaman di Drive</strong>.</div>'
+      if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {
+        const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
+        actionBtn = '<div style="margin-top:6px;width:100%;height:80px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">'
+          + '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" width="100%" height="80" style="border:none;display:block" allow="autoplay"></iframe>'
           + '</div>';
       }
       if (pr.pr_catatan_murid) {
@@ -8732,16 +8726,10 @@ function renderPR(rows) {
           + '<div style="color:var(--text);margin-top:2px;">' + esc(pr.pr_catatan_guru) + '</div>'
           + '</div>';
       }
-      if (pr.pr_lampiran_url) {
-        let previewUrl = pr.pr_lampiran_url;
-        if (pr.pr_lampiran_url.includes('id=')) {
-          const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
-          previewUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
-        }
-        actionBtn = '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">'
-          + '<audio src="' + pr.pr_lampiran_url + '" controls style="width:100%;height:36px;border-radius:8px;" onerror="this.parentElement.querySelector(\'.audio-err-msg\').style.display=\'block\'"></audio>'
-          + '<div style="display:flex;justify-content:flex-end;"><a href="' + esc(previewUrl) + '" target="_blank" class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px;margin:0;">🔗 Buka Rekaman di Drive</a></div>'
-          + '<div style="display:none;font-size:10px;color:var(--red);margin-top:2px;line-height:1.3" class="audio-err-msg">⚠️ Browser membatasi putar langsung. Klik <strong>Buka Rekaman di Drive</strong>.</div>'
+      if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {
+        const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
+        actionBtn = '<div style="margin-top:6px;width:100%;height:80px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">'
+          + '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" width="100%" height="80" style="border:none;display:block" allow="autoplay"></iframe>'
           + '</div>';
       }
     }
