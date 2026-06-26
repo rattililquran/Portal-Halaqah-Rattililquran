@@ -8708,8 +8708,11 @@ function renderPR(rows) {
       statusBadge = '<span class="badge b-amber">⏳ Menunggu Koreksi Guru</span>';
       if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {
         const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
-        actionBtn = '<div style="margin-top:6px;width:100%;height:80px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">'
-          + '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" width="100%" height="80" style="border:none;display:block" allow="autoplay"></iframe>'
+        const containerId = 'audio-container-murid-' + fileId;
+        actionBtn = '<div id="' + containerId + '" style="margin-top:8px; min-height:40px; display:flex; align-items:center;">'
+          + '<button class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%; border:1px solid var(--border); color:var(--text); background:var(--card-solid); display:flex; align-items:center; justify-content:center; gap:6px" onclick="putarAudioInline(\'' + containerId + '\', \'' + fileId + '\')">'
+          + '▶️ Putar Rekaman'
+          + '</button>'
           + '</div>';
       }
       if (pr.pr_catatan_murid) {
@@ -8728,8 +8731,11 @@ function renderPR(rows) {
       }
       if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {
         const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
-        actionBtn = '<div style="margin-top:6px;width:100%;height:80px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">'
-          + '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" width="100%" height="80" style="border:none;display:block" allow="autoplay"></iframe>'
+        const containerId = 'audio-container-murid-' + fileId;
+        actionBtn = '<div id="' + containerId + '" style="margin-top:8px; min-height:40px; display:flex; align-items:center;">'
+          + '<button class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%; border:1px solid var(--border); color:var(--text); background:var(--card-solid); display:flex; align-items:center; justify-content:center; gap:6px" onclick="putarAudioInline(\'' + containerId + '\', \'' + fileId + '\')">'
+          + '▶️ Putar Rekaman'
+          + '</button>'
           + '</div>';
       }
     }
@@ -8893,7 +8899,7 @@ async function kirimLaporanPR() {
       var base64Data = await base64Promise;
       
       // 3. Kirim ke GAS Web App
-      var gasUrl = "https://script.google.com/macros/s/AKfycbxiYbPXkcCvyWQbLibO1xFW2_coblaaBGicm6kQIvRGHxdW-cFGu3zLQmL_dLS8Ea8i/exec";
+      var gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
       var uploadPayload = {
         token: uploadToken,
         base64Data: base64Data,
@@ -8930,6 +8936,101 @@ async function kirimLaporanPR() {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "📤 Kirim Laporan Tugas"; }
     hideLoad();
+  }
+}
+
+var _activeAudioPlayersMurid = {};
+
+async function putarAudioInline(containerId, fileId) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+
+  // Hentikan player lain yang aktif
+  for (var cId in _activeAudioPlayersMurid) {
+    if (cId !== containerId && _activeAudioPlayersMurid[cId]) {
+      try {
+        _activeAudioPlayersMurid[cId].pause();
+      } catch (e) {}
+      delete _activeAudioPlayersMurid[cId];
+    }
+  }
+
+  container.innerHTML = '<div style="font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px">' +
+    '<span class="spinner" style="border: 2px solid rgba(0,0,0,0.1); border-left-color: var(--blue); border-radius: 50%; width: 14px; height: 14px; display: inline-block; animation: spin 1s linear infinite;"></span>' +
+    '<span>Memuat rekaman...</span>' +
+    '</div>' +
+    '<style>' +
+    '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }' +
+    '</style>';
+
+  try {
+    // 1. Dapatkan token upload
+    var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+    if (!tokRes || !tokRes.token) {
+      throw new Error("Gagal mengambil token keamanan.");
+    }
+    var uploadToken = tokRes.token;
+
+    // 2. Hubungi GAS Web App
+    var gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
+    var fetchUrl = gasUrl + "?id=" + fileId + "&token=" + uploadToken;
+
+    var res = await fetch(fetchUrl);
+    if (!res.ok) {
+      throw new Error("Koneksi ke server penyimpanan gagal.");
+    }
+
+    var result = await res.json();
+    if (result.status !== "success" || !result.base64Data) {
+      throw new Error(result.message || "Gagal mengunduh file rekaman.");
+    }
+
+    // 3. Konversi Base64 ke Blob
+    var mimeType = result.mimeType || "audio/webm";
+    var binaryStr = atob(result.base64Data);
+    var len = binaryStr.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    var blob = new Blob([bytes], { type: mimeType });
+    var blobUrl = URL.createObjectURL(blob);
+
+    // 4. Buat pemutar audio
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
+        <audio controls style="width:100%; height:36px;" id="audio-el-${fileId}">
+          <source src="${blobUrl}" type="${mimeType}">
+          Peramban Anda tidak mendukung pemutar suara.
+        </audio>
+        <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-top:2px;">
+          <span style="color:var(--text-3)">Kecepatan:</span>
+          <select style="background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:11px; color:var(--text);" 
+                  onchange="document.getElementById('audio-el-${fileId}').playbackRate = parseFloat(this.value)">
+            <option value="1.0">1.0x (Normal)</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+        </div>
+      </div>
+    `;
+
+    var audioEl = document.getElementById("audio-el-" + fileId);
+    if (audioEl) {
+      _activeAudioPlayersMurid[containerId] = audioEl;
+      audioEl.play().catch(function(err) {
+        console.warn("Autoplay dicegah oleh peramban:", err);
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = `
+      <div style="color: var(--red); font-size: 11px; margin-bottom: 4px;">⚠️ Gagal memuat audio: ${err.message || 'Koneksi error'}</div>
+      <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${containerId}', '${fileId}')" style="color:var(--blue);border-color:var(--blue);font-size:11px;padding:4px 8px;width:100%">
+        🔄 Coba Lagi
+      </button>
+    `;
   }
 }
 
