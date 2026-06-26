@@ -3986,6 +3986,23 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
 
 
 
+      <!-- Log Latihan Harian Card -->
+      <div class="card" id="latihanHarianCard" style="margin-bottom:16px;">
+        <div class="card-head" style="display: flex; align-items: center; justify-content: space-between;">
+          <div class="card-title">🔥 Pelacak Latihan Mandiri</div>
+          <button class="card-more" onclick="openModal('latihanHarianModal')" style="background: var(--bg-3); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--text)">✍️ Log Latihan</button>
+        </div>
+        <div class="card-body" style="padding: 14px 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 15px; font-weight: 900; color: var(--text)" id="dashLhStreakText">0 Hari Konsisten</div>
+              <div style="font-size: 11px; color: var(--text-3); margin-top: 2px" id="dashLhStreakSubText">Belum berlatih hari ini</div>
+            </div>
+            <div style="font-size: 28px;" id="dashLhStreakIcon">💤</div>
+          </div>
+        </div>
+      </div>
+
       <!-- PR Aktif -->
       <div class="card" id="prCard" style="display:none">
         <div class="card-head">
@@ -6069,6 +6086,101 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
     </div>
   </div>
 
+  <!-- MODAL KERJAKAN PR -->
+  <div class="modal-overlay" id="latihanModal" onclick="if(event.target===this)closeModal('latihanModal')">
+    <div class="modal-sheet" style="border-radius:28px 28px 0 0" onclick="event.stopPropagation()">
+      <div class="modal-sheet-header" style="padding: 20px 20px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border)">
+        <div style="font-size: 16px; font-weight: 800; color: var(--text)">✍️ Kirim Laporan Tugas</div>
+        <button class="modal-x" onclick="closeModal('latihanModal')" style="background: none; border: none; font-size: 18px; color: var(--text-3); cursor: pointer">✕</button>
+      </div>
+      <div class="modal-sheet-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
+        <input type="hidden" id="ltIdNilai">
+        
+        <div style="margin-bottom: 16px">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Tugas Mandiri (PR)</div>
+          <div id="ltDeskripsiPR" style="font-size: 14.5px; color: var(--text); font-weight: 700; background: var(--bg-2); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border)"></div>
+        </div>
+
+        <!-- Opsi Perekam Suara -->
+        <div id="ltAreaPerekam" style="margin-bottom: 16px; display: none;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 6px">🎙️ Perekam Suara (Maks. 15MB)</div>
+          <div style="background: var(--bg-2); border: 1.5px dashed var(--border); border-radius: 16px; padding: 20px; text-align: center;">
+            <div id="ltDurasiRekam" style="font-size: 24px; font-weight: 800; font-family: monospace; color: var(--text); margin-bottom: 12px">00:00</div>
+            
+            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 16px">
+              <button id="btnMulaiRekam" onclick="mulaiPerekaman()" class="btn btn-primary" style="background: var(--red); border-color: var(--red); display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+                🔴 Mulai Rekam
+              </button>
+              <button id="btnHentikanRekam" onclick="hentikanPerekaman()" class="btn btn-primary" style="background: var(--text-2); border-color: var(--text-2); display: none; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+                ⏹️ Hentikan
+              </button>
+            </div>
+
+            <!-- Preview Player -->
+            <div id="ltPlayerWadah" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border)">
+              <audio id="ltAudioPreview" controls style="width: 100%; margin-bottom: 8px"></audio>
+              <button onclick="hapusRekamanLokal()" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; color: var(--red); border-color: var(--red);">🗑️ Hapus & Rekam Ulang</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-bottom: 16px">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 6px">📝 Catatan atau Laporan Teks</label>
+          <textarea class="fc" id="ltCatatanMurid" rows="3" placeholder="Tuliskan catatan Anda di sini (misal: 'Halaman 12-15 sudah dibaca 3x, makhraj Kha masih perlu latihan')..." style="resize: vertical; font-size: 13px;"></textarea>
+        </div>
+
+        <div style="margin-top: 24px">
+          <button id="btnKirimPR" onclick="kirimLaporanPR()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px;">📤 Kirim Laporan Tugas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PELACAK LATIHAN HARIAN -->
+  <div class="modal-overlay" id="latihanHarianModal" onclick="if(event.target===this)closeModal('latihanHarianModal')">
+    <div class="modal-sheet" style="border-radius:28px 28px 0 0" onclick="event.stopPropagation()">
+      <div class="modal-sheet-header" style="padding: 20px 20px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border)">
+        <div style="font-size: 16px; font-weight: 800; color: var(--text)">🔥 Log Latihan Mandiri Harian</div>
+        <button class="modal-x" onclick="closeModal('latihanHarianModal')" style="background: none; border: none; font-size: 18px; color: var(--text-3); cursor: pointer">✕</button>
+      </div>
+      <div class="modal-sheet-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
+        
+        <!-- Papan Streak info -->
+        <div style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.05)); border: 1.5px solid rgba(245,158,11,0.2); border-radius: 16px; padding: 14px; text-align: center; margin-bottom: 16px">
+          <div style="font-size: 32px; margin-bottom: 4px" id="lhStreakEmoji">🔥</div>
+          <div style="font-size: 18px; font-weight: 900; color: #d97706" id="lhStreakInfo">0 Hari Konsisten</div>
+          <div style="font-size: 11px; color: var(--text-3); margin-top: 2px">Berlatihlah minimal 5 menit setiap hari untuk menjaga rantai konsistensi Anda!</div>
+        </div>
+
+        <div class="fg" style="margin-bottom: 12px">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Kategori Fokus Latihan</label>
+          <select class="fc" id="lhKategori" style="font-size: 13px;">
+            <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
+            <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
+            <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+            <option value="Tajwid">📐 Tajwid</option>
+            <option value="Murajaah">🔄 Murajaah</option>
+            <option value="Lainnya">📌 Lainnya</option>
+          </select>
+        </div>
+
+        <div class="fg" style="margin-bottom: 12px">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Durasi Latihan (Menit)</label>
+          <input type="number" class="fc" id="lhDurasi" min="1" value="15" style="font-size: 13px;">
+        </div>
+
+        <div class="fg" style="margin-bottom: 16px">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Catatan Latihan (Opsional)</label>
+          <textarea class="fc" id="lhCatatan" rows="2" placeholder="Apa yang Anda latih hari ini? (misal: lancarin makhraj huruf Kho, latih dengung...)" style="resize: vertical; font-size: 13px;"></textarea>
+        </div>
+
+        <div style="margin-top: 24px">
+          <button id="btnKirimLatihanHarian" onclick="kirimLatihanHarian()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px;">✅ Simpan Log Latihan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL TENTANG -->
   <div class="modal-overlay" id="tentangModal" onclick="if(event.target===this)closeModal('tentangModal')">
     <div class="modal-sheet" style="border-radius:28px 28px 0 0" onclick="event.stopPropagation()">
@@ -7734,6 +7846,9 @@ async function loadDashboard() {
     document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
     document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
+    // Load Daily Streak (Latihan Harian)
+    loadDailyStreak();
+
     // PR preview
     var prAktif = d.pr_aktif || [];
     if (isQiyam) {
@@ -8581,20 +8696,54 @@ function renderPR(rows) {
     var s   = STATUS[pr.status_deadline] || STATUS.none;
     var ico = JENIS_ICO[pr.jenis_latihan] || '📝';
     var dlColor = pr.status_deadline==='lewat'?'var(--red)':pr.status_deadline==='aman'?'var(--green)':'var(--amber)';
-    return '<div class="pr-item '+(pr.status_deadline||'none')+'">'
-      + '<div class="pr-jenis">'+ico+' '+esc(pr.jenis_latihan||'Latihan Mandiri')+' &middot; Sesi ke-'+esc(pr.pertemuan_ke)+'</div>'
-      + '<div class="pr-isi">'+esc(pr.latihan_mandiri)+'</div>'
-      + '<div class="pr-footer">'
-      + (pr.deadline ? '<div class="pr-deadline" style="color:'+dlColor+'">📅 '+fmtDate(pr.deadline)+'</div>' : '<div></div>')
-      + (s.lbl ? '<span class="badge '+s.cls+'">'+s.emoji+' '+s.lbl+'</span>' : '')
+    
+    var statusBadge = '';
+    var actionBtn = '';
+    var correctionBox = '';
+    
+    if (pr.pr_status === 'belum') {
+      statusBadge = '<span class="badge b-gray">💤 Belum Dikerjakan</span>';
+      actionBtn = '<button onclick="bukaFormPR(\'' + pr.id_nilai + '\', \'' + esc(pr.latihan_mandiri) + '\', \'' + esc(pr.jenis_latihan) + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
+    } else if (pr.pr_status === 'selesai') {
+      statusBadge = '<span class="badge b-amber">⏳ Menunggu Koreksi Guru</span>';
+      if (pr.pr_lampiran_url) {
+        actionBtn = '<div style="margin-top:6px;"><audio src="' + pr.pr_lampiran_url + '" controls style="width:100%;height:36px;border-radius:8px;"></audio></div>';
+      }
+      if (pr.pr_catatan_murid) {
+        actionBtn += '<div style="font-size:12.5px;color:var(--text-2);margin-top:4px;font-style:italic;">Catatanku: ' + esc(pr.pr_catatan_murid) + '</div>';
+      }
+    } else if (pr.pr_status === 'dinilai') {
+      var colorClass = pr.pr_status_nilai === 'Sesuai' ? 'b-green' : 'b-red';
+      var emo = pr.pr_status_nilai === 'Sesuai' ? '✅' : '❌';
+      statusBadge = '<span class="badge ' + colorClass + '">' + emo + ' ' + pr.pr_status_nilai + '</span>';
+      
+      if (pr.pr_catatan_guru) {
+        correctionBox = '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:12px;">'
+          + '<strong style="color:var(--text-3);">💡 Koreksi Ustadz:</strong>'
+          + '<div style="color:var(--text);margin-top:2px;">' + esc(pr.pr_catatan_guru) + '</div>'
+          + '</div>';
+      }
+      if (pr.pr_lampiran_url) {
+        actionBtn = '<div style="margin-top:6px;"><audio src="' + pr.pr_lampiran_url + '" controls style="width:100%;height:36px;border-radius:8px;"></audio></div>';
+      }
+    }
+
+    return '<div class="pr-item '+(pr.status_deadline||'none')+'" style="margin-bottom:12px; background:var(--card-solid,#fff); border:1px solid var(--border); border-radius:16px; padding:14px; position:relative">'
+      + '<div class="pr-jenis" style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:6px;">'+ico+' '+esc(pr.jenis_latihan||'Latihan Mandiri')+' &middot; Sesi ke-'+esc(pr.pertemuan_ke)+'</div>'
+      + '<div class="pr-isi" style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:8px;">'+esc(pr.latihan_mandiri)+'</div>'
+      + '<div class="pr-footer" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--border)">'
+      + (pr.deadline ? '<div class="pr-deadline" style="font-size:11px;color:'+dlColor+';font-weight:700;">📅 '+fmtDate(pr.deadline)+'</div>' : '<div></div>')
+      + statusBadge
       + '</div>'
+      + actionBtn
+      + correctionBox
       + '</div>';
   }).join('');
 }
 
 function checkPRBadge(rows) {
   var urgent = (rows||[]).filter(function(pr){
-    return pr.status_deadline === 'lewat' || pr.status_deadline === 'hari_ini';
+    return pr.pr_status === 'belum' && (pr.status_deadline === 'lewat' || pr.status_deadline === 'hari_ini');
   }).length;
   // Bottom nav badge
   var nav = document.getElementById('navPr');
@@ -8611,6 +8760,235 @@ function checkPRBadge(rows) {
   // Sidebar badge
   var sb = document.getElementById('sidebarPrBadge');
   if (sb) { sb.textContent = urgent; sb.style.display = urgent > 0 ? '' : 'none'; }
+}
+
+// ─────────────────────────────────────────────
+//  PEREKAM SUARA & PENGIRIMAN PR
+// ─────────────────────────────────────────────
+var _mediaRecorder = null;
+var _recordedChunks = [];
+var _rekamanBlob = null;
+var _durasiInterval = null;
+var _detikRekam = 0;
+
+function bukaFormPR(idNilai, deskripsi, jenisLatihan) {
+  document.getElementById('ltIdNilai').value = idNilai;
+  document.getElementById('ltDeskripsiPR').textContent = deskripsi;
+  
+  var areaPerekam = document.getElementById('ltAreaPerekam');
+  if (jenisLatihan.toLowerCase().includes("vn") || jenisLatihan.toLowerCase().includes("rekaman")) {
+    areaPerekam.style.display = 'block';
+  } else {
+    areaPerekam.style.display = 'none';
+  }
+  
+  hapusRekamanLokal();
+  document.getElementById('ltCatatanMurid').value = '';
+  openModal('latihanModal');
+}
+
+function mulaiPerekaman() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      _recordedChunks = [];
+      var mime = "audio/webm";
+      if (typeof MediaRecorder !== "undefined" && !MediaRecorder.isTypeSupported(mime)) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) mime = "audio/mp4";
+        else if (MediaRecorder.isTypeSupported("audio/wav")) mime = "audio/wav";
+      }
+      
+      _mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+      _mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) _recordedChunks.push(e.data);
+      };
+      
+      _mediaRecorder.onstop = function() {
+        _rekamanBlob = new Blob(_recordedChunks, { type: mime });
+        var audioUrl = URL.createObjectURL(_rekamanBlob);
+        var player = document.getElementById('ltAudioPreview');
+        if (player) {
+          player.src = audioUrl;
+          document.getElementById('ltPlayerWadah').style.display = 'block';
+        }
+        stream.getTracks().forEach(function(track) { track.stop(); });
+      };
+
+      _mediaRecorder.start();
+      _detikRekam = 0;
+      document.getElementById('ltDurasiRekam').textContent = "00:00";
+      document.getElementById('btnMulaiRekam').style.display = 'none';
+      document.getElementById('btnHentikanRekam').style.display = 'flex';
+      
+      _durasiInterval = setInterval(function() {
+        _detikRekam++;
+        var m = String(Math.floor(_detikRekam / 60)).padStart(2, '0');
+        var s = String(_detikRekam % 60).padStart(2, '0');
+        document.getElementById('ltDurasiRekam').textContent = m + ":" + s;
+      }, 1000);
+    })
+    .catch(function(err) {
+      toast("Gagal mengakses mikrofon: " + err.message, "err");
+    });
+}
+
+function hentikanPerekaman() {
+  if (_mediaRecorder && _mediaRecorder.state !== "inactive") {
+    _mediaRecorder.stop();
+  }
+  if (_durasiInterval) {
+    clearInterval(_durasiInterval);
+    _durasiInterval = null;
+  }
+  document.getElementById('btnMulaiRekam').style.display = 'flex';
+  document.getElementById('btnMulaiRekam').textContent = "🔴 Rekam Ulang";
+  document.getElementById('btnHentikanRekam').style.display = 'none';
+}
+
+function hapusRekamanLokal() {
+  _rekamanBlob = null;
+  _recordedChunks = [];
+  document.getElementById('ltAudioPreview').src = '';
+  document.getElementById('ltPlayerWadah').style.display = 'none';
+  document.getElementById('ltDurasiRekam').textContent = "00:00";
+  document.getElementById('btnMulaiRekam').textContent = "🔴 Mulai Rekam";
+}
+
+async function kirimLaporanPR() {
+  var idNilai = document.getElementById('ltIdNilai').value;
+  var catatan = document.getElementById('ltCatatanMurid').value.trim();
+  
+  if (!catatan && !_rekamanBlob) {
+    toast("Harap isi catatan laporan atau unggah rekaman suara.", "warn");
+    return;
+  }
+
+  showLoad("Bismillah, mengirim laporan...");
+  var btn = document.getElementById('btnKirimPR');
+  if (btn) { btn.disabled = true; btn.textContent = "Mengirim..."; }
+
+  try {
+    var lampiranUrl = "";
+    
+    if (_rekamanBlob) {
+      // 1. Dapatkan token unggah dari Supabase
+      var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+      var uploadToken = tokRes.token;
+      
+      // 2. Baca file suara sebagai Base64
+      var reader = new FileReader();
+      var base64Promise = new Promise(function(resolve, reject) {
+        reader.onloadend = function() {
+          var base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(_rekamanBlob);
+      var base64Data = await base64Promise;
+      
+      // 3. Kirim ke GAS Web App
+      var gasUrl = "https://script.google.com/macros/s/AKfycbxiYbPXkcCvyWQbLibO1xFW2_coblaaBGicm6kQIvRGHxdW-cFGu3zLQmL_dLS8Ea8i/exec";
+      var uploadPayload = {
+        token: uploadToken,
+        base64Data: base64Data,
+        fileName: "PR-" + idNilai + "-" + Date.now() + "." + (_rekamanBlob.type.split('/')[1] || "webm"),
+        mimeType: _rekamanBlob.type
+      };
+      
+      var gasRes = await fetch(gasUrl, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(uploadPayload)
+      });
+      var uploadResult = await gasRes.json();
+      if (uploadResult.status !== "success") {
+        throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
+      }
+      
+      lampiranUrl = uploadResult.url;
+    }
+    
+    // 4. Simpan status selesai ke Supabase
+    await window.HQ.MuridAPI.submitPR(idNilai, catatan, lampiranUrl);
+    
+    toast("Tugas berhasil dikirim! ✅", "ok");
+    closeModal('latihanModal');
+    loadPR();
+    loadDashboard();
+    
+    hapusRekamanLokal();
+    document.getElementById('ltCatatanMurid').value = "";
+    
+  } catch (e) {
+    toast(friendlyError(e), "err");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📤 Kirim Laporan Tugas"; }
+    hideLoad();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  HABIT TRACKER / LATIHAN HARIAN
+// ─────────────────────────────────────────────
+async function loadDailyStreak() {
+  try {
+    var res = await window.HQ.MuridAPI.getStreakLatihan();
+    var streak = res.streak || 0;
+    
+    var card = document.getElementById('latihanHarianCard');
+    if (card) {
+      var streakText = document.getElementById('dashLhStreakText');
+      var streakSubText = document.getElementById('dashLhStreakSubText');
+      var streakIcon = document.getElementById('dashLhStreakIcon');
+      
+      streakText.textContent = streak + " Hari Konsisten";
+      if (streak > 0) {
+        streakSubText.textContent = "Masya Allah, tingkatkan terus! 🔥";
+        streakIcon.textContent = "🔥";
+      } else {
+        streakSubText.textContent = "Belum berlatih hari ini 💤";
+        streakIcon.textContent = "💤";
+      }
+    }
+    
+    var lhStreakInfo = document.getElementById('lhStreakInfo');
+    var lhStreakEmoji = document.getElementById('lhStreakEmoji');
+    if (lhStreakInfo) lhStreakInfo.textContent = streak + " Hari Konsisten";
+    if (lhStreakEmoji) lhStreakEmoji.textContent = streak > 0 ? "🔥" : "💤";
+  } catch(e) {
+    console.error("Gagal memuat streak latihan:", e);
+  }
+}
+
+async function kirimLatihanHarian() {
+  var durasi = document.getElementById('lhDurasi').value;
+  var kategori = document.getElementById('lhKategori').value;
+  var catatan = document.getElementById('lhCatatan').value.trim();
+  
+  if (!durasi || durasi <= 0) {
+    toast("Durasi latihan wajib lebih dari 0 menit.", "warn");
+    return;
+  }
+  
+  showLoad("Bismillah, menyimpan...");
+  var btn = document.getElementById('btnKirimLatihanHarian');
+  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
+  
+  try {
+    await window.HQ.MuridAPI.logLatihanHarian(durasi, kategori, catatan);
+    toast("Log latihan harian berhasil disimpan! 🎉", "ok");
+    closeModal('latihanHarianModal');
+    
+    await loadDailyStreak();
+    
+    document.getElementById('lhDurasi').value = 15;
+    document.getElementById('lhCatatan').value = "";
+  } catch(e) {
+    toast(friendlyError(e), "err");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "✅ Simpan Log Latihan"; }
+    hideLoad();
+  }
 }
 
 // ══════════════════════════════════════════

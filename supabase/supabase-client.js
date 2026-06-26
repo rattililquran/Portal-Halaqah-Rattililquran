@@ -2375,6 +2375,30 @@ var GuruAPI = {
     _check(error, 'deleteKelompokBelajar');
     return { status: 'ok' };
   },
+
+  getHalaqahPRSubmissions: async function(id_halaqah) {
+    var { data, error } = await _sb.from('nilai_kbm')
+      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, users(nama_lengkap), kbm_log(latihan_mandiri)')
+      .eq('id_halaqah', id_halaqah)
+      .in('pr_status', ['selesai', 'dinilai'])
+      .order('pr_submitted_at', { ascending: false });
+    _check(error, 'getHalaqahPRSubmissions');
+    return { status: 'ok', data: (data || []).map(function(d) {
+      return Object.assign({}, d, {
+        nama_murid: d.users ? d.users.nama_lengkap : ''
+      });
+    }) };
+  },
+
+  nilaiPR: async function(id_nilai, status_nilai, catatan_guru) {
+    var { data, error } = await _sb.rpc('nilai_latihan_mandiri', {
+      p_id_nilai: id_nilai,
+      p_pr_status_nilai: status_nilai,
+      p_pr_catatan_guru: catatan_guru
+    });
+    _check(error, 'nilaiPR');
+    return { status: 'ok', data: data };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -2612,7 +2636,7 @@ var MuridAPI = {
 
     // Fetch exercises (PR) and exclude MT exercises
     var prQuery = _sb.from('nilai_kbm')
-      .select('tanggal, pertemuan_ke, jenis_sesi, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
+      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_status_nilai, pr_catatan_guru, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri','is',null)
       .order('tanggal',{ascending:false}).limit(10);
@@ -2670,12 +2694,16 @@ var MuridAPI = {
       .map(function(n) {
         var dl = n.kbm_log.deadline_latihan;
         return Object.assign({}, n.kbm_log, {
+          id_nilai: n.id_nilai,
           tanggal: n.tanggal, pertemuan_ke: n.pertemuan_ke,
           deadline: dl,
           status_deadline: !dl ? 'aktif' : dl < today ? 'lewat' : dl === today ? 'hari_ini' : 'aktif',
+          pr_status: n.pr_status || 'belum',
+          pr_status_nilai: n.pr_status_nilai,
+          pr_catatan_guru: n.pr_catatan_guru
         });
       })
-      .filter(function(n){ return n.status_deadline !== 'lewat'; });
+      .filter(function(n){ return n.pr_status === 'belum'; }); // Hanya tampilkan PR yang belum selesai di dashboard
 
     var countH  = dashboardNilai.filter(function(n) { return n.status_hadir === 'H'; }).length;
     var countT  = dashboardNilai.filter(function(n) { return n.status_hadir === 'T'; }).length;
@@ -2807,7 +2835,7 @@ var MuridAPI = {
     else if (ang && ang.level === 'Micro Teaching') targetJenis = 'Micro Teaching';
 
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('tanggal, pertemuan_ke, jenis_sesi, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
+      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
@@ -2823,6 +2851,7 @@ var MuridAPI = {
         var daysLeft = dl ? Math.ceil((new Date(dl) - new Date(today)) / 86400000) : null;
         var status = !dl ? 'none' : dl < today ? 'lewat' : dl === today ? 'hari_ini' : daysLeft <= 3 ? 'mepet' : 'aman';
         return {
+          id_nilai       : n.id_nilai,
           tanggal        : n.tanggal,
           pertemuan_ke   : n.pertemuan_ke,
           latihan_mandiri: n.kbm_log.latihan_mandiri,
@@ -2830,9 +2859,52 @@ var MuridAPI = {
           deadline       : dl,
           materi_belajar : n.kbm_log.materi_belajar,
           status_deadline: status,
+          pr_status      : n.pr_status || 'belum',
+          pr_catatan_murid: n.pr_catatan_murid || '',
+          pr_lampiran_url: n.pr_lampiran_url || '',
+          pr_submitted_at: n.pr_submitted_at,
+          pr_status_nilai: n.pr_status_nilai,
+          pr_catatan_guru: n.pr_catatan_guru || '',
+          pr_dinilai_at  : n.pr_dinilai_at
         };
       });
     return { status: 'ok', data: rows };
+  },
+
+  getLatihanUploadToken: async function() {
+    var { data, error } = await _sb.rpc('get_latihan_upload_token');
+    _check(error, 'getLatihanUploadToken');
+    return { status: 'ok', token: data };
+  },
+
+  submitPR: async function(id_nilai, catatan, lampiran_url) {
+    var { data, error } = await _sb.rpc('submit_latihan_mandiri', {
+      p_id_nilai: id_nilai,
+      p_pr_catatan_murid: catatan,
+      p_pr_lampiran_url: lampiran_url
+    });
+    _check(error, 'submitPR');
+    return { status: 'ok', data: data };
+  },
+
+  logLatihanHarian: async function(durasi, kategori, catatan) {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('log_latihan_harian').upsert({
+      id_murid: id_murid,
+      tanggal: new Date().toISOString().slice(0, 10),
+      durasi_menit: parseInt(durasi),
+      kategori: kategori,
+      catatan: catatan
+    }, { onConflict: 'id_murid,tanggal' });
+    _check(error, 'logLatihanHarian');
+    return { status: 'ok', data: data };
+  },
+
+  getStreakLatihan: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.rpc('get_murid_streak', { p_id_murid: id_murid });
+    _check(error, 'getStreakLatihan');
+    return { status: 'ok', streak: data || 0 };
   },
 
   getRaport: async function() {

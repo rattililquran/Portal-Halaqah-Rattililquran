@@ -2394,6 +2394,7 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
       <button class="nav-btn" id="navRaportTahfidz" onclick="goPage('raport-tahfidz')" data-p="raport-tahfidz" style="display:none"><span class="ni">📊</span>Raport Tahfidz</button>
       <div class="sb-section">KBM</div>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni">📜</span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
+      <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni">🎧</span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni">📝</span>Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni">📄</span>Raport Halaqah</button>
       <div class="sb-section">Lainnya</div>
@@ -3941,6 +3942,51 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
         </div>
       </div>
 
+      <!-- ════ PENINJAUAN TUGAS & PR ════ -->
+      <div class="page" id="page-peninjauan-pr">
+        <div class="page-title-row">
+          <span>🎧 Peninjauan Tugas & PR</span>
+          <button class="guru-refresh-btn" id="btnRefreshPR" onclick="guruRefresh('peninjauan-pr')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+          </button>
+        </div>
+        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="fc" id="prHalaqahSel" onchange="loadPRSubmissions()" style="max-width:220px">
+            <option value="">— Semua Halaqah —</option>
+          </select>
+          <select class="fc" id="prStatusFilter" onchange="filterPRSubmissions()" style="max-width:180px">
+            <option value="semua">Semua Status</option>
+            <option value="belum_dinilai" selected>Menunggu Penilaian</option>
+            <option value="telah_dinilai">Telah Dinilai</option>
+          </select>
+          <input type="text" id="prSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari nama murid..." oninput="filterPRSubmissions()">
+        </div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
+          💡 Dengarkan rekaman suara latihan mandiri murid dan berikan umpan balik atau penilaian langsung.
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama Murid</th>
+                  <th>Tanggal KBM</th>
+                  <th>Sesi ke-</th>
+                  <th>Waktu Pengumpulan</th>
+                  <th>Catatan Murid</th>
+                  <th>Rekaman Suara / Berkas</th>
+                  <th>Status PR</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="prSubmissionsTbl">
+                <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Silakan pilih halaqah atau cari nama murid</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- ════ INPUT HAFALAN (LEVEL QIYAM) ════ -->
       <div class="page" id="page-hafalan-guru">
         <!-- ── Header row ── -->
@@ -5192,6 +5238,65 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   </div>
 </div>
 
+<!-- MODAL PENINJAUAN & PENILAIAN PR -->
+<div class="overlay" id="peninjauanPrModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title">✏️ Koreksi & Nilai PR</div>
+      <button class="modal-x" onclick="closePRModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Nama Murid</label>
+        <div id="prModalNamaMurid" style="font-size:14px;padding:8px 12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.1);border-radius:8px;font-weight:600"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Pertemuan & Tanggal</label>
+        <div id="prModalDetailSesi" style="font-size:13px;padding:8px 12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.1);border-radius:8px"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Catatan Murid</label>
+        <div id="prModalCatatanMurid" style="font-size:13px;padding:8px 12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.1);border-radius:8px;white-space:pre-wrap;font-style:italic"></div>
+      </div>
+      
+      <!-- Audio Player preview in Modal -->
+      <div class="form-group" id="prModalAudioGroup" style="margin-bottom:16px;display:none">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Rekaman Suara Murid</label>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.1);border-radius:12px">
+          <audio id="prModalAudioPlayer" controls style="width:100%"></audio>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11.5px;color:var(--text-3)">Kecepatan Putar:</span>
+            <select id="prModalPlaybackSpeed" class="fc" style="width:auto;font-size:11.5px;padding:4px 8px;height:auto" onchange="document.getElementById('prModalAudioPlayer').playbackRate = parseFloat(this.value)">
+              <option value="1.0">1.0x (Normal)</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="1.75">1.75x</option>
+              <option value="2.0">2.0x</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Status Penilaian</label>
+        <select class="fc" id="prModalStatusNilai" style="width:100%" required>
+          <option value="Sesuai">🟢 Sesuai (Lulus/Bagus)</option>
+          <option value="Perlu Perbaikan">🟡 Perlu Perbaikan (Ulangi/Perbaiki)</option>
+        </select>
+      </div>
+      
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Umpan Balik / Catatan Guru</label>
+        <textarea class="fc" id="prModalCatatanGuru" rows="4" style="width:100%;resize:vertical" placeholder="Tuliskan saran perbaikan makhraj, sifat, tajwid, atau apresiasi..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closePRModal()">Batal</button>
+      <button class="btn btn-green" id="prModalSimpanBtn" onclick="simpanPenilaianPR()">💾 Simpan Penilaian</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PREVIEW SEBELUM TUTUP SESI -->
 <div class="overlay" id="previewModal">
   <div class="modal">
@@ -5838,7 +5943,8 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'hafalan-guru':'Input Hafalan Qiyam',
   'raport-tahfidz':'Raport Tahfidz',
   keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri',
-  jadwal:'Jadwal KBM'};
+  jadwal:'Jadwal KBM',
+  'peninjauan-pr':'Peninjauan Tugas & PR'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -5865,6 +5971,14 @@ function goPage(name) {
     loadMurid();
   }
   if (name === 'riwayat')    populateSel('riwayatHalaqahSel');
+  if (name === 'peninjauan-pr') {
+    populateSel('prHalaqahSel');
+    var prSel = document.getElementById('prHalaqahSel');
+    if (prSel && prSel.options[0]) {
+      prSel.options[0].textContent = '— Semua Halaqah —';
+    }
+    loadPRSubmissions();
+  }
   if (name === 'pengumuman') initPengumumanPage();
   if (name === 'keaktifan')      loadKeaktifanPage();
   if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); _loadAtMateriFromDB(); }
@@ -5928,7 +6042,8 @@ async function loadDashboard(silent = false) {
     var selMurid = document.getElementById('muridHalaqahSel');
     var selRiwayat = document.getElementById('riwayatHalaqahSel');
     var selKbm = document.getElementById('kbmHalaqah');
-    [selMurid, selRiwayat, selKbm].forEach(function(sel) {
+    var selPR = document.getElementById('prHalaqahSel');
+    [selMurid, selRiwayat, selKbm, selPR].forEach(function(sel) {
       if (!sel) return;
       var val = sel.value;
       sel.innerHTML = '<option value="">— Pilih Halaqah —</option>';
@@ -5995,6 +6110,7 @@ async function loadDashboard(silent = false) {
           : 'Semua murid aktif';
       }
     }).catch(function() {});
+    checkHalaqahPRBadge().catch(function() {});
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { if (!silent) hideLoad(); }
 }
@@ -6411,12 +6527,13 @@ function validateFields(fields) {
 // ── REFRESH PER TAB ───────────────────────
 var _guruTabLoaded = {};
 function guruRefresh(tab) {
-  var btnMap = {murid:'btnRefreshMurid',riwayat:'btnRefreshRiwayat',keaktifan:'btnRefreshKeaktifan',assessment:'btnRefreshAsmt'};
+  var btnMap = {murid:'btnRefreshMurid',riwayat:'btnRefreshRiwayat',keaktifan:'btnRefreshKeaktifan',assessment:'btnRefreshAsmt', 'peninjauan-pr':'btnRefreshPR'};
   var btn = document.getElementById(btnMap[tab] || '');
   if (btn) { btn.classList.add('spinning'); setTimeout(function(){ btn.classList.remove('spinning'); }, 1200); }
   delete _guruTabLoaded[tab];
   if (tab === 'murid')      loadMurid();
   else if (tab === 'riwayat')   loadRiwayat();
+  else if (tab === 'peninjauan-pr') loadPRSubmissions();
   else if (tab === 'keaktifan') { _keaktifanData = null; loadKeaktifanPage(); }
   else if (tab === 'assessment') loadAssessmentRekap();
   else if (tab === 'attibyan-guru') {
@@ -8855,6 +8972,252 @@ function _updateDraftOrphanAlert(totalDraft, draftPerHalaqah) {
   }
 }
 
+// ══════════════════════════════════════════
+//  PENINJAUAN TUGAS & PR MURID
+// ══════════════════════════════════════════
+var _prData = [];
+var _prDataFiltered = [];
+var _selectedPrId = null;
+
+async function loadPRSubmissions() {
+  const halaqahId = document.getElementById('prHalaqahSel').value;
+  const tbody = document.getElementById('prSubmissionsTbl');
+  if (tbody) {
+    tbody.innerHTML = Array(5).fill(`<tr>${Array(8).fill('<td><div class="skel skel-row" style="height:12px;border-radius:6px"></div></td>').join('')}</tr>`).join('');
+  }
+  showLoad('Bismillah, memuat tugas & PR murid...');
+  try {
+    let mergedData = [];
+    if (halaqahId) {
+      const r = await window.HQ.GuruAPI.getHalaqahPRSubmissions(halaqahId);
+      if (r.status === 'ok') {
+        mergedData = r.data || [];
+      }
+    } else {
+      if (window.halaqahList && window.halaqahList.length > 0) {
+        const promises = window.halaqahList.map(h => 
+          window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah)
+            .then(res => {
+              const data = res.data || [];
+              return data.map(item => ({ ...item, nama_halaqah: h.nama_halaqah }));
+            })
+            .catch(err => {
+              console.error('Gagal memuat PR halaqah:', h.nama_halaqah, err);
+              return [];
+            })
+        );
+        const results = await Promise.all(promises);
+        results.forEach(res => {
+          mergedData = mergedData.concat(res);
+        });
+      }
+    }
+    mergedData.sort((a, b) => new Date(b.pr_submitted_at || 0) - new Date(a.pr_submitted_at || 0));
+    _prData = mergedData;
+    filterPRSubmissions();
+    checkHalaqahPRBadge().catch(function() {});
+  } catch (e) {
+    toast('Gagal memuat tugas PR: ' + e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function filterPRSubmissions() {
+  const status = document.getElementById('prStatusFilter').value;
+  const search = document.getElementById('prSearchInput').value.toLowerCase().trim();
+  
+  _prDataFiltered = _prData.filter(item => {
+    if (status === 'belum_dinilai' && item.pr_status !== 'selesai') return false;
+    if (status === 'telah_dinilai' && item.pr_status !== 'dinilai') return false;
+    
+    const nama = (item.users?.nama_lengkap || '').toLowerCase();
+    if (search && !nama.includes(search)) return false;
+    
+    return true;
+  });
+  
+  renderPRSubmissions();
+}
+
+function renderPRSubmissions() {
+  const tbody = document.getElementById('prSubmissionsTbl');
+  if (!tbody) return;
+  
+  if (_prDataFiltered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada tugas / PR yang cocok dengan kriteria filter.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = _prDataFiltered.map(item => {
+    const namaMurid = item.users?.nama_lengkap || '–';
+    const infoHalaqah = item.nama_halaqah ? `<br><small style="color:var(--text-3)">📚 ${esc(item.nama_halaqah)}</small>` : '';
+    const tglKbm = fmtDate(item.tanggal);
+    const sesiKe = `<span class="badge b-blue">Pertemuan ${item.pertemuan_ke}</span>`;
+    const waktuKirim = item.pr_submitted_at ? fmtDateTime(item.pr_submitted_at) : '–';
+    const catatanMurid = item.pr_catatan_murid ? `<div style="font-size:12px;font-style:italic;max-width:180px;white-space:pre-wrap;color:var(--text-2)">"${esc(item.pr_catatan_murid)}"</div>` : '–';
+    
+    let lampiranHTML = '–';
+    if (item.pr_lampiran_url) {
+      const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
+      if (isAudio) {
+        lampiranHTML = `
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:180px;padding:6px;background:rgba(14,165,233,0.05);border-radius:8px;border:1px solid rgba(14,165,233,0.1)">
+            <audio src="${esc(item.pr_lampiran_url)}" controls style="width:180px;height:28px"></audio>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+              <span style="font-size:9.5px;color:var(--text-3)">Kecepatan:</span>
+              <select onchange="this.parentElement.previousElementSibling.playbackRate = parseFloat(this.value)" style="font-size:9.5px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--text-1)">
+                <option value="1.0">1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2.0">2.0x</option>
+              </select>
+              <a href="${esc(item.pr_lampiran_url)}" target="_blank" class="btn btn-outline btn-sm" style="font-size:9px;padding:2px 6px;height:auto;line-height:1;margin:0" title="Buka berkas di Google Drive">🔗 Buka</a>
+            </div>
+          </div>
+        `;
+      } else {
+        lampiranHTML = `<a href="${esc(item.pr_lampiran_url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">📂 Buka Lampiran</a>`;
+      }
+    }
+    
+    let statusHTML = '';
+    if (item.pr_status === 'selesai') {
+      statusHTML = `<span class="badge" style="background:rgba(245,158,11,0.15);color:#d97706;font-weight:700">Menunggu Penilaian</span>`;
+    } else if (item.pr_status === 'dinilai') {
+      const isSesuai = item.pr_status_nilai === 'Sesuai';
+      const color = isSesuai ? 'var(--green)' : 'var(--red)';
+      const bg = isSesuai ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+      statusHTML = `
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span class="badge" style="background:${bg};color:${color};font-weight:700">${esc(item.pr_status_nilai)}</span>
+          ${item.pr_catatan_guru ? `<small style="font-size:10px;color:var(--text-3);max-width:120px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.pr_catatan_guru)}">💬 ${esc(item.pr_catatan_guru)}</small>` : ''}
+        </div>
+      `;
+    }
+    
+    const actionText = item.pr_status === 'dinilai' ? '✏️ Ubah Nilai' : '✏️ Beri Nilai';
+    const actionBtn = `<button class="btn btn-outline btn-sm" onclick="bukaFormKoreksiPR('${esc(item.id_nilai)}')" style="color:var(--blue);border-color:var(--blue)">${actionText}</button>`;
+    
+    return `
+      <tr>
+        <td><strong>${esc(namaMurid)}</strong>${infoHalaqah}</td>
+        <td>${tglKbm}</td>
+        <td>${sesiKe}</td>
+        <td>${waktuKirim}</td>
+        <td>${catatanMurid}</td>
+        <td>${lampiranHTML}</td>
+        <td>${statusHTML}</td>
+        <td>${actionBtn}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function fmtDateTime(d) {
+  if (!d) return '–';
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return String(d).substring(0, 16);
+    return dt.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) + ' ' + 
+           dt.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  } catch(e) {
+    return String(d).substring(0, 16);
+  }
+}
+
+function bukaFormKoreksiPR(id_nilai) {
+  const item = _prData.find(x => x.id_nilai === id_nilai);
+  if (!item) return;
+  
+  _selectedPrId = id_nilai;
+  
+  document.getElementById('prModalNamaMurid').textContent = item.users?.nama_lengkap || '–';
+  document.getElementById('prModalDetailSesi').textContent = `Pertemuan ke-${item.pertemuan_ke} (${fmtDate(item.tanggal)})`;
+  document.getElementById('prModalCatatanMurid').textContent = item.pr_catatan_murid || '(Tidak ada catatan dari murid)';
+  
+  document.getElementById('prModalStatusNilai').value = item.pr_status_nilai || 'Sesuai';
+  document.getElementById('prModalCatatanGuru').value = item.pr_catatan_guru || '';
+  
+  const audioGroup = document.getElementById('prModalAudioGroup');
+  const audioPlayer = document.getElementById('prModalAudioPlayer');
+  
+  if (item.pr_lampiran_url) {
+    const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
+    if (isAudio) {
+      audioPlayer.src = item.pr_lampiran_url;
+      audioPlayer.playbackRate = 1.0;
+      document.getElementById('prModalPlaybackSpeed').value = '1.0';
+      audioGroup.style.display = 'block';
+    } else {
+      audioPlayer.src = '';
+      audioGroup.style.display = 'none';
+    }
+  } else {
+    audioPlayer.src = '';
+    audioGroup.style.display = 'none';
+  }
+  
+  openModal('peninjauanPrModal');
+}
+
+function closePRModal() {
+  const audioPlayer = document.getElementById('prModalAudioPlayer');
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.src = '';
+  }
+  closeModal('peninjauanPrModal');
+}
+
+async function simpanPenilaianPR() {
+  if (!_selectedPrId) return;
+  
+  const statusNilai = document.getElementById('prModalStatusNilai').value;
+  const catatanGuru = document.getElementById('prModalCatatanGuru').value.trim();
+  
+  showLoad('Bismillah, menyimpan penilaian...');
+  try {
+    const res = await window.HQ.GuruAPI.nilaiPR(_selectedPrId, statusNilai, catatanGuru);
+    if (res.status === 'ok') {
+      toast('Penilaian PR berhasil disimpan!', 'ok');
+      closePRModal();
+      await loadPRSubmissions();
+    } else {
+      toast('Gagal menyimpan penilaian: ' + res.message, 'err');
+    }
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+async function checkHalaqahPRBadge() {
+  if (!window.halaqahList || halaqahList.length === 0) return;
+  let totalPending = 0;
+  try {
+    const promises = halaqahList.map(h => window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah));
+    const results = await Promise.all(promises);
+    results.forEach(r => {
+      if (r.status === 'ok' && r.data) {
+        totalPending += r.data.filter(item => item.pr_status === 'selesai').length;
+      }
+    });
+    const badge = document.getElementById('navPrSubmissionBadge');
+    if (badge) {
+      if (totalPending > 0) {
+        badge.textContent = totalPending;
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
+    }
+  } catch (err) {
+    console.error('Gagal mengecek badge PR:', err);
+  }
+}
+
 // Reminder: kelas pengganti yang belum diganti (Flow 7-lite untuk guru)
 var _penggantiPendingRows = []; // [{nama, jenis, tanggal, keterangan}]
 function _updatePenggantiReminder(jadwal) {
@@ -9362,6 +9725,7 @@ async function refreshPage() {
   if (active === 'dashboard') { await loadDashboard(); return; }
   else if (active === 'murid' && document.getElementById('muridHalaqahSel').value) await loadMurid();
   else if (active === 'riwayat' && document.getElementById('riwayatHalaqahSel').value) await loadRiwayat();
+  else if (active === 'peninjauan-pr') await loadPRSubmissions();
   else await loadDashboard();
   toast('Data diperbarui','ok');
 }
