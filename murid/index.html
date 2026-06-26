@@ -8723,10 +8723,24 @@ function renderPR(rows) {
       var emo = pr.pr_status_nilai === 'Sesuai' ? '✅' : '❌';
       statusBadge = '<span class="badge ' + colorClass + '">' + emo + ' ' + pr.pr_status_nilai + '</span>';
       
-      if (pr.pr_catatan_guru) {
+      if (pr.pr_catatan_guru || pr.pr_lampiran_guru_url) {
+        var guruAudioHTML = '';
+        if (pr.pr_lampiran_guru_url && pr.pr_lampiran_guru_url.includes('id=')) {
+          var gFileId = pr.pr_lampiran_guru_url.split('id=')[1].split('&')[0];
+          var gContainerId = 'audio-container-guru-feedback-' + gFileId;
+          guruAudioHTML = '<div id="' + gContainerId + '" style="margin-top:6px; min-height:40px; display:flex; align-items:center;">'
+            + '<button class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%; border:1px solid var(--border); color:var(--text); background:var(--card-solid); display:flex; align-items:center; justify-content:center; gap:6px" onclick="putarAudioInline(\'' + gContainerId + '\', \'' + gFileId + '\')">'
+            + '▶️ Putar Koreksi Suara Ustadz'
+            + '</button>'
+            + '</div>';
+        } else if (pr.pr_lampiran_guru_url) {
+          guruAudioHTML = '<div style="margin-top:6px;"><a href="' + esc(pr.pr_lampiran_guru_url) + '" target="_blank" class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%">📂 Buka Koreksi Suara Ustadz</a></div>';
+        }
+
         correctionBox = '<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:12px;">'
           + '<strong style="color:var(--text-3);">💡 Koreksi Ustadz:</strong>'
-          + '<div style="color:var(--text);margin-top:2px;">' + esc(pr.pr_catatan_guru) + '</div>'
+          + (pr.pr_catatan_guru ? '<div style="color:var(--text);margin-top:2px;">' + esc(pr.pr_catatan_guru) + '</div>' : '')
+          + guruAudioHTML
           + '</div>';
       }
       if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {

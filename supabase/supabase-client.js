@@ -2378,7 +2378,7 @@ var GuruAPI = {
 
   getHalaqahPRSubmissions: async function(id_halaqah) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, users(nama_lengkap), kbm_log(latihan_mandiri)')
+      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, users(nama_lengkap), kbm_log(latihan_mandiri)')
       .eq('id_halaqah', id_halaqah)
       .in('pr_status', ['selesai', 'dinilai'])
       .order('pr_submitted_at', { ascending: false });
@@ -2390,11 +2390,12 @@ var GuruAPI = {
     }) };
   },
 
-  nilaiPR: async function(id_nilai, status_nilai, catatan_guru) {
+  nilaiPR: async function(id_nilai, status_nilai, catatan_guru, lampiran_guru_url) {
     var { data, error } = await _sb.rpc('nilai_latihan_mandiri', {
       p_id_nilai: id_nilai,
       p_pr_status_nilai: status_nilai,
-      p_pr_catatan_guru: catatan_guru
+      p_pr_catatan_guru: catatan_guru,
+      p_pr_lampiran_guru_url: lampiran_guru_url || null
     });
     _check(error, 'nilaiPR');
     return { status: 'ok', data: data };
@@ -2835,7 +2836,7 @@ var MuridAPI = {
     else if (ang && ang.level === 'Micro Teaching') targetJenis = 'Micro Teaching';
 
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
+      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
@@ -2865,6 +2866,7 @@ var MuridAPI = {
           pr_submitted_at: n.pr_submitted_at,
           pr_status_nilai: n.pr_status_nilai,
           pr_catatan_guru: n.pr_catatan_guru || '',
+          pr_lampiran_guru_url: n.pr_lampiran_guru_url || '',
           pr_dinilai_at  : n.pr_dinilai_at
         };
       });

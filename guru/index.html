@@ -5277,6 +5277,36 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
         <label style="font-weight:700;display:block;margin-bottom:6px">Umpan Balik / Catatan Guru</label>
         <textarea class="fc" id="prModalCatatanGuru" rows="4" style="width:100%;resize:vertical" placeholder="Tuliskan saran perbaikan makhraj, sifat, tajwid, atau apresiasi..."></textarea>
       </div>
+
+      <!-- Rekam Suara Koreksi Guru -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Rekaman Koreksi / Umpan Balik Suara (Opsional)</label>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:4px">
+          <!-- Audio Tersimpan -->
+          <div id="existingGuruAudioWadah" style="display:none;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+            <span style="font-size:11px;color:var(--text-3);display:block;margin-bottom:4px">Rekaman koreksi yang tersimpan:</span>
+            <div id="existingGuruAudioContainer"></div>
+            <button onclick="tandaiHapusExistingGuruAudio()" class="btn btn-outline" style="font-size: 11px; padding: 4px 8px; color: var(--red); border-color: var(--red); margin-top: 6px; width: 100%">🗑️ Hapus Rekaman Tersimpan</button>
+          </div>
+
+          <!-- Tombol Perekaman -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <button id="btnMulaiRekamGuru" onclick="mulaiPerekamanGuru()" class="btn" style="background: var(--red); color:#fff; border-color: var(--red); display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; border-radius: 8px;">
+              🔴 Rekam Suara
+            </button>
+            <button id="btnHentikanRekamGuru" onclick="hentikanPerekamanGuru()" class="btn" style="background: var(--text-2); color:#fff; border-color: var(--text-2); display: none; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; border-radius: 8px;">
+              ⏹️ Hentikan (<span id="durasiRekamGuru">00:00</span>)
+            </button>
+            <span id="statusRekamGuru" style="font-size:12px;color:var(--text-3)"></span>
+          </div>
+          
+          <!-- Pemutar Audio Preview -->
+          <div id="playerWadahGuru" style="display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px">
+            <audio id="audioPreviewGuru" controls style="width:100%;margin-bottom:8px"></audio>
+            <button onclick="hapusRekamanLokalGuru()" class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red); border-color: var(--red); width: 100%">🗑️ Hapus & Rekam Ulang</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closePRModal()">Batal</button>
@@ -9070,9 +9100,10 @@ function renderPRSubmissions() {
       const isSesuai = item.pr_status_nilai === 'Sesuai';
       const color = isSesuai ? 'var(--green)' : 'var(--red)';
       const bg = isSesuai ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+      const hasGuruAudio = item.pr_lampiran_guru_url ? ' 🎙️' : '';
       statusHTML = `
         <div style="display:flex;flex-direction:column;gap:2px">
-          <span class="badge" style="background:${bg};color:${color};font-weight:700">${esc(item.pr_status_nilai)}</span>
+          <span class="badge" style="background:${bg};color:${color};font-weight:700">${esc(item.pr_status_nilai)}${hasGuruAudio}</span>
           ${item.pr_catatan_guru ? `<small style="font-size:10px;color:var(--text-3);max-width:120px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.pr_catatan_guru)}">💬 ${esc(item.pr_catatan_guru)}</small>` : ''}
         </div>
       `;
@@ -9108,11 +9139,14 @@ function fmtDateTime(d) {
   }
 }
 
+let _hapusExistingGuruAudio = false;
+
 function bukaFormKoreksiPR(id_nilai) {
   const item = _prData.find(x => x.id_nilai === id_nilai);
   if (!item) return;
   
   _selectedPrId = id_nilai;
+  _hapusExistingGuruAudio = false;
   
   document.getElementById('prModalNamaMurid').textContent = item.users?.nama_lengkap || '–';
   document.getElementById('prModalDetailSesi').textContent = `Pertemuan ke-${item.pertemuan_ke} (${fmtDate(item.tanggal)})`;
@@ -9145,6 +9179,32 @@ function bukaFormKoreksiPR(id_nilai) {
     iframeWadah.innerHTML = '';
     audioGroup.style.display = 'none';
   }
+
+  // Bersihkan perekam guru
+  hapusRekamanLokalGuru();
+  
+  // Periksa apakah ada rekaman guru lama
+  const existingWadah = document.getElementById('existingGuruAudioWadah');
+  const existingContainer = document.getElementById('existingGuruAudioContainer');
+  if (item.pr_lampiran_guru_url) {
+    existingWadah.style.display = 'block';
+    if (item.pr_lampiran_guru_url.includes('id=')) {
+      const gFileId = item.pr_lampiran_guru_url.split('id=')[1].split('&')[0];
+      const gContainerId = 'audio-container-guru-existing-' + gFileId;
+      existingContainer.innerHTML = `
+        <div id="${gContainerId}" style="margin-top:4px;">
+          <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${gContainerId}', '${gFileId}')" style="color:var(--blue);border-color:var(--blue);width:100%">
+            ▶️ Putar Rekaman Ustadz
+          </button>
+        </div>
+      `;
+    } else {
+      existingContainer.innerHTML = `<a href="${esc(item.pr_lampiran_guru_url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue);width:100%">📂 Buka Rekaman Ustadz</a>`;
+    }
+  } else {
+    existingWadah.style.display = 'none';
+    existingContainer.innerHTML = '';
+  }
   
   openModal('peninjauanPrModal');
 }
@@ -9158,7 +9218,101 @@ function closePRModal() {
     });
     iframeWadah.innerHTML = '';
   }
+  
+  // Pastikan recorder guru dihentikan jika sedang merekam
+  if (_mediaRecorderGuru && _mediaRecorderGuru.state !== "inactive") {
+    try { _mediaRecorderGuru.stop(); } catch(e){}
+  }
+  if (_durasiIntervalGuru) {
+    clearInterval(_durasiIntervalGuru);
+    _durasiIntervalGuru = null;
+  }
+  hapusRekamanLokalGuru();
+  
   closeModal('peninjauanPrModal');
+}
+
+// MediaRecorder untuk guru
+let _mediaRecorderGuru = null;
+let _recordedChunksGuru = [];
+let _rekamanBlobGuru = null;
+let _durasiIntervalGuru = null;
+let _detikRekamGuru = 0;
+
+function mulaiPerekamanGuru() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      _recordedChunksGuru = [];
+      let mime = "audio/webm";
+      if (typeof MediaRecorder !== "undefined" && !MediaRecorder.isTypeSupported(mime)) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) mime = "audio/mp4";
+        else if (MediaRecorder.isTypeSupported("audio/wav")) mime = "audio/wav";
+      }
+      
+      _mediaRecorderGuru = new MediaRecorder(stream, { mimeType: mime });
+      _mediaRecorderGuru.ondataavailable = function(e) {
+        if (e.data.size > 0) _recordedChunksGuru.push(e.data);
+      };
+      
+      _mediaRecorderGuru.onstop = function() {
+        _rekamanBlobGuru = new Blob(_recordedChunksGuru, { type: mime });
+        const audioUrl = URL.createObjectURL(_rekamanBlobGuru);
+        const player = document.getElementById('audioPreviewGuru');
+        if (player) {
+          player.src = audioUrl;
+          document.getElementById('playerWadahGuru').style.display = 'block';
+        }
+        stream.getTracks().forEach(function(track) { track.stop(); });
+      };
+
+      _mediaRecorderGuru.start();
+      _detikRekamGuru = 0;
+      document.getElementById('durasiRekamGuru').textContent = "00:00";
+      document.getElementById('btnMulaiRekamGuru').style.display = 'none';
+      document.getElementById('btnHentikanRekamGuru').style.display = 'flex';
+      document.getElementById('statusRekamGuru').textContent = "🔴 Perekaman berjalan...";
+      
+      _durasiIntervalGuru = setInterval(function() {
+        _detikRekamGuru++;
+        const m = String(Math.floor(_detikRekamGuru / 60)).padStart(2, '0');
+        const s = String(_detikRekamGuru % 60).padStart(2, '0');
+        document.getElementById('durasiRekamGuru').textContent = m + ":" + s;
+      }, 1000);
+    })
+    .catch(function(err) {
+      toast("Gagal mengakses mikrofon: " + err.message, "err");
+    });
+}
+
+function hentikanPerekamanGuru() {
+  if (_mediaRecorderGuru && _mediaRecorderGuru.state !== "inactive") {
+    _mediaRecorderGuru.stop();
+  }
+  if (_durasiIntervalGuru) {
+    clearInterval(_durasiIntervalGuru);
+    _durasiIntervalGuru = null;
+  }
+  document.getElementById('btnMulaiRekamGuru').style.display = 'flex';
+  document.getElementById('btnMulaiRekamGuru').textContent = "🔴 Rekam Ulang";
+  document.getElementById('btnHentikanRekamGuru').style.display = 'none';
+  document.getElementById('statusRekamGuru').textContent = "⏹️ Rekaman selesai";
+}
+
+function hapusRekamanLokalGuru() {
+  _rekamanBlobGuru = null;
+  _recordedChunksGuru = [];
+  const player = document.getElementById('audioPreviewGuru');
+  if (player) player.src = '';
+  document.getElementById('playerWadahGuru').style.display = 'none';
+  document.getElementById('statusRekamGuru').textContent = "";
+  document.getElementById('btnMulaiRekamGuru').textContent = "🔴 Rekam Suara";
+  document.getElementById('btnMulaiRekamGuru').style.display = 'flex';
+}
+
+function tandaiHapusExistingGuruAudio() {
+  _hapusExistingGuruAudio = true;
+  document.getElementById('existingGuruAudioWadah').style.display = 'none';
+  toast("Rekaman lama ditandai untuk dihapus saat disimpan.", "warn");
 }
 
 // Objek untuk melacak audio yang sedang diputar
@@ -9260,12 +9414,66 @@ async function putarAudioInline(containerId, fileId) {
 async function simpanPenilaianPR() {
   if (!_selectedPrId) return;
   
+  const item = _prData.find(x => x.id_nilai === _selectedPrId);
+  if (!item) return;
+
   const statusNilai = document.getElementById('prModalStatusNilai').value;
   const catatanGuru = document.getElementById('prModalCatatanGuru').value.trim();
   
+  let lampiranGuruUrl = item.pr_lampiran_guru_url || null;
+  if (_hapusExistingGuruAudio) {
+    lampiranGuruUrl = null;
+  }
+
   showLoad('Bismillah, menyimpan penilaian...');
   try {
-    const res = await window.HQ.GuruAPI.nilaiPR(_selectedPrId, statusNilai, catatanGuru);
+    // Unggah rekaman suara guru jika ada
+    if (_rekamanBlobGuru) {
+      showLoad('Bismillah, mengunggah rekaman guru...');
+      
+      // 1. Dapatkan token upload
+      const tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+      if (!tokRes || !tokRes.token) {
+        throw new Error("Gagal mengambil token keamanan.");
+      }
+      const uploadToken = tokRes.token;
+      
+      // 2. Baca file suara sebagai Base64
+      const reader = new FileReader();
+      const base64Promise = new Promise(function(resolve, reject) {
+        reader.onloadend = function() {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(_rekamanBlobGuru);
+      const base64Data = await base64Promise;
+      
+      // 3. Kirim ke GAS Web App
+      const gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
+      const uploadPayload = {
+        token: uploadToken,
+        base64Data: base64Data,
+        fileName: "KOREKSI-GURU-" + _selectedPrId + "-" + Date.now() + "." + (_rekamanBlobGuru.type.split('/')[1] || "webm"),
+        mimeType: _rekamanBlobGuru.type
+      };
+      
+      const gasRes = await fetch(gasUrl, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(uploadPayload)
+      });
+      const uploadResult = await gasRes.json();
+      if (uploadResult.status !== "success") {
+        throw new Error(uploadResult.message || "Gagal mengunggah berkas suara guru.");
+      }
+      
+      lampiranGuruUrl = uploadResult.url;
+    }
+
+    showLoad('Bismillah, menyimpan penilaian...');
+    const res = await window.HQ.GuruAPI.nilaiPR(_selectedPrId, statusNilai, catatanGuru, lampiranGuruUrl);
     if (res.status === 'ok') {
       toast('Penilaian PR berhasil disimpan!', 'ok');
       closePRModal();
