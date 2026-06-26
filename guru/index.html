@@ -3963,8 +3963,12 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
             <option value="semua">Semua Status</option>
             <option value="belum_dinilai" selected>Menunggu Penilaian</option>
             <option value="telah_dinilai">Telah Dinilai</option>
+            <option value="belum_mengerjakan">Belum Mengerjakan</option>
           </select>
           <input type="text" id="prSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari nama murid..." oninput="filterPRSubmissions()">
+          <button class="btn btn-outline btn-sm" onclick="salinRekapanPRGrup()" style="color:#16a34a;border-color:#16a34a;font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:6px">
+            📋 Salin Rekapan WA Grup
+          </button>
         </div>
         <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
           💡 Dengarkan rekaman suara latihan mandiri murid dan berikan umpan balik atau penilaian langsung.
@@ -9042,6 +9046,10 @@ async function loadPRSubmissions() {
       const r = await window.HQ.GuruAPI.getHalaqahPRSubmissions(halaqahId);
       if (r.status === 'ok') {
         mergedData = r.data || [];
+        const hObj = halaqahList.find(h => h.id_halaqah === halaqahId);
+        if (hObj) {
+          mergedData = mergedData.map(item => ({ ...item, nama_halaqah: hObj.nama_halaqah }));
+        }
       }
     } else {
       if (halaqahList && halaqahList.length > 0) {
@@ -9080,6 +9088,7 @@ function filterPRSubmissions() {
   _prDataFiltered = _prData.filter(item => {
     if (status === 'belum_dinilai' && item.pr_status !== 'selesai') return false;
     if (status === 'telah_dinilai' && item.pr_status !== 'dinilai') return false;
+    if (status === 'belum_mengerjakan' && item.pr_status !== 'belum') return false;
     
     const nama = (item.users?.nama_lengkap || '').toLowerCase();
     if (search && !nama.includes(search)) return false;
@@ -9088,6 +9097,89 @@ function filterPRSubmissions() {
   });
   
   renderPRSubmissions();
+}
+
+function salinRekapanPRGrup() {
+  const belumMengerjakan = _prData.filter(item => item.pr_status === 'belum');
+  
+  if (belumMengerjakan.length === 0) {
+    quickToast('Alhamdulillah, semua murid sudah mengerjakan PR!', 'ok');
+    return;
+  }
+  
+  const halaqahId = document.getElementById('prHalaqahSel').value;
+  let namaHalaqah = 'Semua Halaqah';
+  if (halaqahId) {
+    const hObj = halaqahList.find(h => h.id_halaqah === halaqahId);
+    if (hObj) {
+      namaHalaqah = hObj.nama_halaqah;
+    }
+  }
+  
+  const days = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const today = new Date();
+  const namaHari = days[today.getDay()];
+  const tanggalSkg = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const tglFull = `${namaHari}, ${tanggalSkg}`;
+  
+  let text = `📋 *REKAPAN PR BELUM DIKERJAKAN* 📋\n`;
+  text += `*Halaqah:* ${namaHalaqah}\n`;
+  text += `*Tanggal:* ${tglFull}\n\n`;
+  text += `Berikut daftar murid yang belum mengumpulkan laporan PR:\n`;
+  
+  belumMengerjakan.forEach((item, index) => {
+    const namaMurid = item.users?.nama_lengkap || '–';
+    const prText = (item.kbm_log && item.kbm_log.latihan_mandiri) || '';
+    const tglText = fmtDate(item.tanggal);
+    const detailHalaqah = halaqahId ? '' : ` [${item.nama_halaqah || '–'}]`;
+    text += `${index + 1}. *${namaMurid}*${detailHalaqah} (Pertemuan ${item.pertemuan_ke} - ${tglText})\n`;
+    text += `   👉 PR: ${prText}\n`;
+  });
+  
+  text += `\nMohon kerja samanya untuk segera menyelesaikan tugas dan mengirimkan laporannya via portal murid ya. Jazakumullahu khairan. 😊`;
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        quickToast('Rekapan berhasil disalin ke clipboard!', 'ok');
+      })
+      .catch(err => {
+        console.error('Gagal menyalin:', err);
+        fallbackCopyTextToClipboard(text);
+      });
+  } else {
+    fallbackCopyTextToClipboard(text);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.top = '0';
+  textArea.style.left = '0';
+  textArea.style.width = '2em';
+  textArea.style.height = '2em';
+  textArea.style.padding = '0';
+  textArea.style.border = 'none';
+  textArea.style.outline = 'none';
+  textArea.style.boxShadow = 'none';
+  textArea.style.background = 'transparent';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      quickToast('Rekapan berhasil disalin!', 'ok');
+    } else {
+      quickToast('Gagal menyalin rekapan.', 'err');
+    }
+  } catch (err) {
+    console.error('Fallback gagal:', err);
+    quickToast('Gagal menyalin rekapan.', 'err');
+  }
+  document.body.removeChild(textArea);
 }
 
 function renderPRSubmissions() {
@@ -9144,7 +9236,22 @@ function renderPRSubmissions() {
     }
     
     const actionText = item.pr_status === 'dinilai' ? '✏️ Ubah Nilai' : '✏️ Beri Nilai';
-    const actionBtn = `<button class="btn btn-outline btn-sm" onclick="bukaFormKoreksiPR('${esc(item.id_nilai)}')" style="color:var(--blue);border-color:var(--blue)">${actionText}</button>`;
+    let actionBtn = `<button class="btn btn-outline btn-sm" onclick="bukaFormKoreksiPR('${esc(item.id_nilai)}')" style="color:var(--blue);border-color:var(--blue);width:100%">${actionText}</button>`;
+    if (item.pr_status === 'belum' && item.no_wa) {
+      let formattedPhone = String(item.no_wa).replace(/\D/g, '');
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '62' + formattedPhone.slice(1);
+      }
+      const prText = (item.kbm_log && item.kbm_log.latihan_mandiri) || '';
+      const tglText = fmtDate(item.tanggal);
+      const waMsg = `Assalamu'alaikum ${namaMurid},\n\nMengingatkan untuk tugas Latihan Mandiri: *"${prText}"* (Pertemuan ${item.pertemuan_ke} - KBM Tanggal ${tglText}).\nMohon segera diselesaikan dan dikirimkan laporannya melalui portal murid ya.\n\nJazakallahu khairan.`;
+      const waLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(waMsg)}`;
+      actionBtn += `
+        <a href="${waLink}" target="_blank" class="btn btn-outline btn-sm" style="color:#16a34a;border-color:#16a34a;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px;width:100%">
+          💬 Hubungi WA
+        </a>
+      `;
+    }
     
     return `
       <tr>
