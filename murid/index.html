@@ -3580,44 +3580,6 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
   }
 }
 
-/* Card Pelacak Latihan Mandiri */
-#latihanHarianCard {
-  transition: all 0.3s ease;
-}
-/* State: Belum latihan hari ini */
-#latihanHarianCard.status-belum {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(148, 163, 184, 0.08) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-}
-/* State: Sudah latihan hari ini (Streak aktif) */
-#latihanHarianCard.status-aktif {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(234, 88, 12, 0.15) 100%);
-  border: 1px solid rgba(249, 115, 22, 0.35);
-  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-#latihanHarianCard.status-aktif .card-title {
-  color: #ea580c !important;
-}
-#latihanHarianCard.status-aktif #dashLhStreakText {
-  color: #ea580c !important;
-}
-
-/* Dark mode overrides */
-html.theme-dark #latihanHarianCard.status-belum {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-html.theme-dark #latihanHarianCard.status-aktif {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(234, 88, 12, 0.22) 100%);
-  border: 1px solid rgba(249, 115, 22, 0.45);
-  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.18), 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-html.theme-dark #latihanHarianCard.status-aktif .card-title {
-  color: #ff7a3b !important;
-}
-html.theme-dark #latihanHarianCard.status-aktif #dashLhStreakText {
-  color: #ff7a3b !important;
-}
 </style>
 </head>
 <body>
@@ -4026,18 +3988,59 @@ html.theme-dark #latihanHarianCard.status-aktif #dashLhStreakText {
 
 
       <!-- Log Latihan Harian Card -->
-      <div class="card" id="latihanHarianCard" style="margin-bottom:16px;">
-        <div class="card-head" style="display: flex; align-items: center; justify-content: space-between;">
-          <div class="card-title">🔥 Pelacak Latihan Mandiri</div>
-          <button class="card-more" onclick="openModal('latihanHarianModal')" style="background: var(--bg-3); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--text)">✍️ Log Latihan</button>
+      <!-- ── Kartu Lapor Aktivitas Belajar (Partner Belajar) ── -->
+      <div class="card" id="dashPbCard" style="margin-bottom:16px;overflow:visible">
+        <!-- State: Loading -->
+        <div id="dashPbLoading" style="padding:18px">
+          <div class="skel skel-text" style="height:13px;width:55%;border-radius:6px;margin-bottom:12px"></div>
+          <div class="skel" style="height:34px;border-radius:8px;margin-bottom:8px"></div>
+          <div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px"></div>
+          <div class="skel" style="height:38px;border-radius:10px"></div>
         </div>
-        <div class="card-body" style="padding: 14px 16px;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 15px; font-weight: 900; color: var(--text)" id="dashLhStreakText">0 Hari Konsisten</div>
-              <div style="font-size: 11px; color: var(--text-3); margin-top: 2px" id="dashLhStreakSubText">Belum berlatih hari ini</div>
+        <!-- State: Belum punya kelompok -->
+        <div id="dashPbNoKelompok" style="display:none">
+          <div class="card-head">
+            <div class="card-title">📚 Partner Belajar</div>
+            <button class="card-more" onclick="goPage('partner-belajar')">Buka →</button>
+          </div>
+          <div class="card-body">
+            <div style="text-align:center;padding:6px 0 10px;font-size:12px;color:var(--text-3);line-height:1.65">
+              Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung. 🤝
             </div>
-            <div style="font-size: 28px;" id="dashLhStreakIcon">💤</div>
+          </div>
+        </div>
+        <!-- State: Ada kelompok → tampilkan mini-form -->
+        <div id="dashPbForm" style="display:none">
+          <div class="card-head">
+            <div class="card-title">📝 Lapor Aktivitas Belajar</div>
+            <button class="card-more" onclick="goPage('partner-belajar')">Riwayat →</button>
+          </div>
+          <div class="card-body">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:10px">Catat aktivitas mandirimu — partner kelompokmu akan konfirmasi</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div>
+                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
+                <select class="fc" id="dashPbJenis" style="font-size:12px">
+                  <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
+                  <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
+                  <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+                  <option value="Tajwid">📐 Tajwid</option>
+                  <option value="Doa-Doa Pilihan">🤲 Doa-Doa Pilihan</option>
+                  <option value="Murajaah">🔄 Murajaah</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
+                <input type="date" class="fc" id="dashPbTanggal" style="font-size:12px">
+              </div>
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
+              <textarea class="fc" id="dashPbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1–20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+            <button id="dashPbSubmitBtn" onclick="submitDashLogBelajar()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:opacity .2s">
+              📚 Simpan &amp; Kirim ke Partner
+            </button>
           </div>
         </div>
       </div>
@@ -7908,8 +7911,8 @@ async function loadDashboard() {
     document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
     document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
-    // Load Daily Streak (Latihan Harian)
-    loadDailyStreak();
+    // Load kartu Lapor Aktivitas Belajar (Partner Belajar)
+    loadDashPbCard();
 
     // PR preview
     var prAktif = d.pr_aktif || [];
@@ -9225,6 +9228,67 @@ async function loadDailyStreak() {
     if (lhStreakEmoji) lhStreakEmoji.textContent = streak > 0 ? "🔥" : "💤";
   } catch(e) {
     console.error("Gagal memuat streak latihan:", e);
+  }
+}
+
+// ── DASHBOARD: Lapor Aktivitas Belajar (Partner Belajar mini-form) ──
+async function loadDashPbCard() {
+  var loading = document.getElementById('dashPbLoading');
+  var noKel   = document.getElementById('dashPbNoKelompok');
+  var form    = document.getElementById('dashPbForm');
+  if (!loading && !noKel && !form) return;
+
+  // Set today's date jika belum diisi
+  var tgl = document.getElementById('dashPbTanggal');
+  if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+
+  function showState(state) {
+    if (loading) loading.style.display = state === 'loading' ? '' : 'none';
+    if (noKel)   noKel.style.display   = state === 'empty'   ? '' : 'none';
+    if (form)    form.style.display    = state === 'form'    ? '' : 'none';
+  }
+
+  showState('loading');
+  try {
+    // Jika halaman Partner Belajar belum pernah dibuka, ambil data kelompok dulu
+    if (!_pbInitialized && _pbKelompok === null) {
+      var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
+      _pbKelompok = resKel.data;
+    }
+    showState(_pbKelompok ? 'form' : 'empty');
+  } catch(e) {
+    console.error('loadDashPbCard:', e);
+    showState('empty');
+  }
+}
+
+async function submitDashLogBelajar() {
+  var jenis     = (document.getElementById('dashPbJenis') || {}).value;
+  var tanggal   = (document.getElementById('dashPbTanggal') || {}).value;
+  var deskripsi = ((document.getElementById('dashPbDeskripsi') || {}).value || '').trim();
+
+  if (!_pbKelompok) { toast('Kamu belum tergabung di kelompok belajar', 'err'); return; }
+  if (!jenis)       { toast('Pilih jenis aktivitas', 'err'); return; }
+
+  var btn = document.getElementById('dashPbSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengirim...'; }
+  try {
+    await window.HQ.MuridAPI.addLogBelajar({
+      id_kelompok    : _pbKelompok.id_kelompok,
+      id_halaqah     : _pbKelompok.id_halaqah,
+      jenis_aktivitas: jenis,
+      deskripsi      : deskripsi,
+      tanggal        : tanggal,
+    });
+    toast('Aktivitas terkirim ke partner ✓ 📚', 'ok');
+    var desc = document.getElementById('dashPbDeskripsi');
+    if (desc) desc.value = '';
+    var tglEl = document.getElementById('dashPbTanggal');
+    if (tglEl) tglEl.value = new Date().toISOString().slice(0, 10);
+  } catch(e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '📚 Simpan &amp; Kirim ke Partner'; }
   }
 }
 
