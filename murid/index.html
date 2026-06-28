@@ -6182,6 +6182,7 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
         <div style="margin-bottom: 16px">
           <div style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Tugas Mandiri (PR)</div>
           <div id="ltDeskripsiPR" style="font-size: 14.5px; color: var(--text); font-weight: 700; background: var(--bg-2); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border)"></div>
+          <div id="ltLateWarningBox" style="display:none; margin-top:10px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.22); border-radius:12px; padding:10px 12px; font-size:12px; color:var(--red); font-weight:600; line-height:1.4"></div>
         </div>
 
         <!-- Opsi Perekam Suara -->
@@ -8803,11 +8804,16 @@ function renderPR(rows) {
     var actionBtn = '';
     var correctionBox = '';
     
+    var isLate = pr.pr_submitted_at && pr.deadline && (pr.pr_submitted_at.slice(0, 10) > pr.deadline);
+    
     if (pr.pr_status === 'belum') {
       statusBadge = '<span class="badge b-gray">💤 Belum Dikerjakan</span>';
-      actionBtn = '<button onclick="bukaFormPR(\'' + pr.id_nilai + '\', \'' + esc(pr.latihan_mandiri) + '\', \'' + esc(pr.jenis_latihan) + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
+      actionBtn = '<button onclick="bukaFormPR(\'' + pr.id_nilai + '\', \'' + esc(pr.latihan_mandiri) + '\', \'' + esc(pr.jenis_latihan) + '\', \'' + pr.status_deadline + '\', \'' + (pr.deadline || '') + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
     } else if (pr.pr_status === 'selesai') {
       statusBadge = '<span class="badge b-amber">⏳ Menunggu Koreksi Guru</span>';
+      if (isLate) {
+        statusBadge += ' <span class="badge b-red" style="margin-left:4px">Terlambat</span>';
+      }
       if (pr.pr_lampiran_url && pr.pr_lampiran_url.includes('id=')) {
         const fileId = pr.pr_lampiran_url.split('id=')[1].split('&')[0];
         const containerId = 'audio-container-murid-' + fileId;
@@ -8820,10 +8826,16 @@ function renderPR(rows) {
       if (pr.pr_catatan_murid) {
         actionBtn += '<div style="font-size:12.5px;color:var(--text-2);margin-top:4px;font-style:italic;">Catatanku: ' + esc(pr.pr_catatan_murid) + '</div>';
       }
+      if (isLate) {
+        actionBtn += '<div style="font-size:11px;color:var(--red);margin-top:6px;font-weight:600;">* Pengumpulan terlambat. Guru tidak berkewajiban mengoreksi tugas yang terlambat.</div>';
+      }
     } else if (pr.pr_status === 'dinilai') {
       var colorClass = pr.pr_status_nilai === 'Sesuai' ? 'b-green' : 'b-red';
       var emo = pr.pr_status_nilai === 'Sesuai' ? '✅' : '❌';
       statusBadge = '<span class="badge ' + colorClass + '">' + emo + ' ' + pr.pr_status_nilai + '</span>';
+      if (isLate) {
+        statusBadge += ' <span class="badge b-red" style="margin-left:4px">Terlambat</span>';
+      }
       
       if (pr.pr_catatan_guru || pr.pr_lampiran_guru_url) {
         var guruAudioHTML = '';
@@ -8853,6 +8865,9 @@ function renderPR(rows) {
           + '▶️ Putar Rekaman'
           + '</button>'
           + '</div>';
+      }
+      if (isLate) {
+        actionBtn += '<div style="font-size:11px;color:var(--red);margin-top:6px;font-weight:600;">* Pengumpulan terlambat. Guru tidak berkewajiban mengoreksi tugas yang terlambat.</div>';
       }
     }
 
@@ -8923,9 +8938,21 @@ var _rekamanBlob = null;
 var _durasiInterval = null;
 var _detikRekam = 0;
 
-function bukaFormPR(idNilai, deskripsi, jenisLatihan) {
+function bukaFormPR(idNilai, deskripsi, jenisLatihan, statusDeadline, deadline) {
   document.getElementById('ltIdNilai').value = idNilai;
   document.getElementById('ltDeskripsiPR').textContent = deskripsi;
+  
+  var warningBox = document.getElementById('ltLateWarningBox');
+  if (warningBox) {
+    if (statusDeadline === 'lewat') {
+      warningBox.innerHTML = '⚠️ Batas waktu tugas ini sudah terlewati (Tenggat: ' + fmtDate(deadline) + '). '
+        + 'Guru tidak ada kewajiban mengoreksi tugas yang terlambat dikumpulkan. '
+        + 'Namun dalam rangka menjaga amanah, tetap kerjakan tugas semampu yang bisa Anda kerjakan. Semoga Allah mudahkan';
+      warningBox.style.display = 'block';
+    } else {
+      warningBox.style.display = 'none';
+    }
+  }
   
   var areaPerekam = document.getElementById('ltAreaPerekam');
   if (jenisLatihan.toLowerCase().includes("vn") || jenisLatihan.toLowerCase().includes("rekaman")) {

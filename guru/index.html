@@ -9204,7 +9204,19 @@ function renderPRSubmissions() {
     const infoHalaqah = item.nama_halaqah ? `<br><small style="color:var(--text-3)">📚 ${esc(item.nama_halaqah)}</small>` : '';
     const tglKbm = fmtDate(item.tanggal);
     const sesiKe = `<span class="badge b-blue">Pertemuan ${item.pertemuan_ke}</span>`;
-    const waktuKirim = item.pr_submitted_at ? fmtDateTime(item.pr_submitted_at) : '–';
+    
+    // Deteksi keterlambatan
+    const deadline = item.kbm_log?.deadline_latihan;
+    const submittedAt = item.pr_submitted_at;
+    let lateTag = '';
+    if (submittedAt && deadline) {
+      const subDate = submittedAt.slice(0, 10); // YYYY-MM-DD
+      if (subDate > deadline) {
+        lateTag = `<br><span class="badge b-red" style="font-size:9px;padding:2px 6px;margin-top:4px" title="Guru tidak ada kewajiban mengoreksi tugas yang terlambat dikumpulkan.">🔴 Terlambat</span>`;
+      }
+    }
+    
+    const waktuKirim = item.pr_submitted_at ? (fmtDateTime(item.pr_submitted_at) + lateTag) : '–';
     const catatanMurid = item.pr_catatan_murid ? `<div style="font-size:12px;font-style:italic;max-width:180px;white-space:pre-wrap;color:var(--text-2)">"${esc(item.pr_catatan_murid)}"</div>` : '–';
     
     let lampiranHTML = '–';
