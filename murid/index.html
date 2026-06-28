@@ -9147,33 +9147,49 @@ async function kirimLaporanPR() {
         mimeType: _rekamanBlob.type
       };
       
-      var uploadResult = await new Promise(function(resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", gasUrl, true);
-        
-        xhr.upload.addEventListener("progress", function(e) {
-          if (e.lengthComputable) {
-            var pct = Math.round((e.loaded / e.total) * 100);
-            showLoad("Bismillah, mengunggah rekaman tugas (" + pct + "%)... Mohon jangan tutup aplikasi.");
-          }
+      var uploadResult;
+      try {
+        uploadResult = await new Promise(function(resolve, reject) {
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", gasUrl, true);
+          
+          xhr.upload.addEventListener("progress", function(e) {
+            if (e.lengthComputable) {
+              var pct = Math.round((e.loaded / e.total) * 100);
+              showLoad("Bismillah, mengunggah rekaman tugas (" + pct + "%)... Mohon jangan tutup aplikasi.");
+            }
+          });
+          
+          xhr.onload = function() {
+            try {
+              var res = JSON.parse(xhr.responseText);
+              resolve(res);
+            } catch(err) {
+              reject(new Error("Format respon server tidak valid."));
+            }
+          };
+          
+          xhr.onerror = function(e) {
+            console.error("XHR PR Upload Error, falling back to fetch:", e, xhr.status, xhr.statusText);
+            reject(new Error("XHR Error"));
+          };
+          
+          xhr.send(JSON.stringify(uploadPayload));
         });
+      } catch (xhrError) {
+        console.warn("XHR upload failed, falling back to fetch upload path...", xhrError);
+        showLoad("Bismillah, mengunggah rekaman tugas (jalur cadangan)... Mohon tunggu.");
         
-        xhr.onload = function() {
-          try {
-            var res = JSON.parse(xhr.responseText);
-            resolve(res);
-          } catch(err) {
-            reject(new Error("Format respon server tidak valid."));
-          }
-        };
-        
-        xhr.onerror = function(e) {
-          console.error("XHR Upload Error:", e, xhr.status, xhr.statusText);
-          reject(new Error("Gagal mengunggah berkas suara (status: " + xhr.status + "). Silakan coba kirim kembali."));
-        };
-        
-        xhr.send(JSON.stringify(uploadPayload));
-      });
+        var gasRes = await fetch(gasUrl, {
+          method: "POST",
+          mode: "cors",
+          body: JSON.stringify(uploadPayload)
+        });
+        if (!gasRes.ok) {
+          throw new Error("Koneksi ke server penyimpanan gagal.");
+        }
+        uploadResult = await gasRes.json();
+      }
       
       if (uploadResult.status !== "success") {
         throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
@@ -12189,33 +12205,49 @@ async function submitSetoranMandiri() {
         mimeType: _pqRekamanBlob.type
       };
       
-      var uploadResult = await new Promise(function(resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", gasUrl, true);
-        
-        xhr.upload.addEventListener("progress", function(e) {
-          if (e.lengthComputable) {
-            var pct = Math.round((e.loaded / e.total) * 100);
-            showLoad("Bismillah, mengunggah rekaman setoran (" + pct + "%)... Mohon jangan tutup aplikasi.");
-          }
+      var uploadResult;
+      try {
+        uploadResult = await new Promise(function(resolve, reject) {
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", gasUrl, true);
+          
+          xhr.upload.addEventListener("progress", function(e) {
+            if (e.lengthComputable) {
+              var pct = Math.round((e.loaded / e.total) * 100);
+              showLoad("Bismillah, mengunggah rekaman setoran (" + pct + "%)... Mohon jangan tutup aplikasi.");
+            }
+          });
+          
+          xhr.onload = function() {
+            try {
+              var res = JSON.parse(xhr.responseText);
+              resolve(res);
+            } catch(err) {
+              reject(new Error("Format respon server tidak valid."));
+            }
+          };
+          
+          xhr.onerror = function(e) {
+            console.error("XHR Qiyam Upload Error, falling back to fetch:", e, xhr.status, xhr.statusText);
+            reject(new Error("XHR Error"));
+          };
+          
+          xhr.send(JSON.stringify(uploadPayload));
         });
+      } catch (xhrError) {
+        console.warn("XHR upload failed, falling back to fetch upload path...", xhrError);
+        showLoad("Bismillah, mengunggah rekaman setoran (jalur cadangan)... Mohon tunggu.");
         
-        xhr.onload = function() {
-          try {
-            var res = JSON.parse(xhr.responseText);
-            resolve(res);
-          } catch(err) {
-            reject(new Error("Format respon server tidak valid."));
-          }
-        };
-        
-        xhr.onerror = function(e) {
-          console.error("XHR Upload Error:", e, xhr.status, xhr.statusText);
-          reject(new Error("Gagal mengunggah berkas suara (status: " + xhr.status + "). Silakan coba kirim kembali."));
-        };
-        
-        xhr.send(JSON.stringify(uploadPayload));
-      });
+        var gasRes = await fetch(gasUrl, {
+          method: "POST",
+          mode: "cors",
+          body: JSON.stringify(uploadPayload)
+        });
+        if (!gasRes.ok) {
+          throw new Error("Koneksi ke server penyimpanan gagal.");
+        }
+        uploadResult = await gasRes.json();
+      }
       
       if (uploadResult.status !== "success") {
         throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
