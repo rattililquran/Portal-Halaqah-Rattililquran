@@ -2288,6 +2288,121 @@ html.theme-dark .pwa-step-img{background:#252830 !important;border-color:rgba(25
 html.theme-dark .pwa-note{background:#2d1f00 !important;border-color:rgba(251,191,36,.2) !important}
 html.theme-dark .pwa-note-text{color:#fde68a !important}
 
+/* ── PR REVIEW DASHBOARD ENHANCEMENTS ── */
+.pr-sum-card {
+  flex: 0 0 auto;
+  width: 170px;
+  background: var(--card-solid, #fff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.pr-sum-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-color: var(--blue);
+}
+.pr-sum-card.active {
+  background: rgba(14,165,233,0.06);
+  border-color: var(--blue);
+  box-shadow: 0 4px 12px rgba(14,165,233,0.1);
+}
+.pr-sum-card-title {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pr-sum-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-right: 4px;
+}
+.pr-sum-card-badge.waiting {
+  background: rgba(245,158,11,0.12);
+  color: #d97706;
+}
+.pr-sum-card-badge.todo {
+  background: rgba(148,163,184,0.12);
+  color: #64748b;
+}
+html.theme-dark .pr-sum-card {
+  background: #1e2128;
+}
+html.theme-dark .pr-sum-card.active {
+  background: rgba(14,165,233,0.12);
+}
+
+.pr-group-header {
+  background: var(--bg) !important;
+  font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+  user-select: none;
+}
+.pr-group-header:hover {
+  background: var(--blue-l) !important;
+}
+.pr-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 10px 14px;
+}
+.pr-group-toggle-ico {
+  font-size: 10px;
+  color: var(--text-3);
+  transition: transform 0.2s ease;
+  display: inline-block;
+  margin-left: 6px;
+}
+.pr-group-toggle-ico.collapsed {
+  transform: rotate(-90deg);
+}
+
+.pr-tabs-container {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.pr-tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.pr-tab-btn:hover {
+  background: rgba(14,165,233,0.06);
+  color: var(--blue);
+}
+.pr-tab-btn.active {
+  background: rgba(14,165,233,0.1);
+  color: var(--blue);
+}
+html.theme-dark .pr-tab-btn.active {
+  background: rgba(14,165,233,0.15);
+  color: #bae6fd;
+}
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3975,18 +4090,20 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
           <select class="fc" id="prHalaqahSel" onchange="loadPRSubmissions()" style="max-width:220px">
             <option value="">— Semua Halaqah —</option>
           </select>
-          <select class="fc" id="prStatusFilter" onchange="filterPRSubmissions()" style="max-width:180px">
-            <option value="semua">Semua Status</option>
-            <option value="belum_dinilai" selected>Menunggu Penilaian</option>
-            <option value="telah_dinilai">Telah Dinilai</option>
-            <option value="belum_mengerjakan">Belum Mengerjakan</option>
-          </select>
+          <input type="hidden" id="prStatusFilter" value="belum_dinilai">
           <input type="text" id="prSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari nama murid..." oninput="filterPRSubmissions()">
           <button class="btn btn-outline btn-sm" onclick="salinRekapanPRGrup()" style="color:#16a34a;border-color:#16a34a;font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:6px">
             📋 Salin Rekapan WA Grup
           </button>
         </div>
-        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px">
+        <div class="pr-tabs-container">
+          <button class="pr-tab-btn active" data-pr-status="belum_dinilai" onclick="switchPrStatusTab('belum_dinilai', this)">⏳ Menunggu Penilaian</button>
+          <button class="pr-tab-btn" data-pr-status="belum_mengerjakan" onclick="switchPrStatusTab('belum_mengerjakan', this)">💤 Belum Mengerjakan</button>
+          <button class="pr-tab-btn" data-pr-status="telah_dinilai" onclick="switchPrStatusTab('telah_dinilai', this)">✅ Telah Dinilai</button>
+          <button class="pr-tab-btn" data-pr-status="semua" onclick="switchPrStatusTab('semua', this)">🔍 Semua Status</button>
+        </div>
+        <div id="prSummaryCards"></div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:12px;margin-top:4px">
           💡 Dengarkan rekaman suara latihan mandiri murid dan berikan umpan balik atau penilaian langsung.
         </div>
         <div class="card">
@@ -9077,6 +9194,8 @@ function _updateDraftOrphanAlert(totalDraft, draftPerHalaqah) {
 var _prData = [];
 var _prDataFiltered = [];
 var _selectedPrId = null;
+var _prDataAll = [];
+var _collapsedPrGroups = {};
 
 async function loadPRSubmissions() {
   const halaqahId = document.getElementById('prHalaqahSel').value;
@@ -9087,36 +9206,27 @@ async function loadPRSubmissions() {
   showLoad('Bismillah, memuat tugas & PR murid...');
   try {
     let mergedData = [];
-    if (halaqahId) {
-      const r = await window.HQ.GuruAPI.getHalaqahPRSubmissions(halaqahId);
-      if (r.status === 'ok') {
-        mergedData = r.data || [];
-        const hObj = halaqahList.find(h => h.id_halaqah === halaqahId);
-        if (hObj) {
-          mergedData = mergedData.map(item => ({ ...item, nama_halaqah: hObj.nama_halaqah }));
-        }
-      }
-    } else {
-      if (halaqahList && halaqahList.length > 0) {
-        const promises = halaqahList.map(h => 
-          window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah)
-            .then(res => {
-              const data = res.data || [];
-              return data.map(item => ({ ...item, nama_halaqah: h.nama_halaqah }));
-            })
-            .catch(err => {
-              console.error('Gagal memuat PR halaqah:', h.nama_halaqah, err);
-              return [];
-            })
-        );
-        const results = await Promise.all(promises);
-        results.forEach(res => {
-          mergedData = mergedData.concat(res);
-        });
-      }
+    if (halaqahList && halaqahList.length > 0) {
+      const promises = halaqahList.map(h => 
+        window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah)
+          .then(res => {
+            const data = res.data || [];
+            return data.map(item => ({ ...item, nama_halaqah: h.nama_halaqah }));
+          })
+          .catch(err => {
+            console.error('Gagal memuat PR halaqah:', h.nama_halaqah, err);
+            return [];
+          })
+      );
+      const results = await Promise.all(promises);
+      results.forEach(res => {
+        mergedData = mergedData.concat(res);
+      });
     }
     mergedData.sort((a, b) => new Date(b.pr_submitted_at || 0) - new Date(a.pr_submitted_at || 0));
-    _prData = mergedData;
+    _prDataAll = mergedData;
+    
+    renderPRSummaryCards();
     filterPRSubmissions();
     checkHalaqahPRBadge().catch(function() {});
   } catch (e) {
@@ -9127,8 +9237,12 @@ async function loadPRSubmissions() {
 }
 
 function filterPRSubmissions() {
+  const halaqahId = document.getElementById('prHalaqahSel').value;
   const status = document.getElementById('prStatusFilter').value;
   const search = document.getElementById('prSearchInput').value.toLowerCase().trim();
+  
+  // _prData is filtered by halaqah only (used by WA share)
+  _prData = halaqahId ? _prDataAll.filter(item => item.id_halaqah === halaqahId) : _prDataAll;
   
   _prDataFiltered = _prData.filter(item => {
     if (status === 'belum_dinilai' && item.pr_status !== 'selesai') return false;
@@ -9227,6 +9341,94 @@ function fallbackCopyTextToClipboard(text) {
   document.body.removeChild(textArea);
 }
 
+function switchPrStatusTab(status, btn) {
+  const input = document.getElementById('prStatusFilter');
+  if (input) input.value = status;
+  
+  document.querySelectorAll('.pr-tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  filterPRSubmissions();
+}
+
+function renderPRSummaryCards() {
+  const container = document.getElementById('prSummaryCards');
+  if (!container) return;
+  
+  let totalWaiting = 0;
+  let totalTodo = 0;
+  
+  const statsMap = {};
+  if (window.halaqahList) {
+    window.halaqahList.forEach(h => {
+      statsMap[h.id_halaqah] = { name: h.nama_halaqah, waiting: 0, todo: 0 };
+    });
+  }
+  
+  _prDataAll.forEach(item => {
+    if (item.pr_status === 'selesai') {
+      totalWaiting++;
+      if (statsMap[item.id_halaqah]) statsMap[item.id_halaqah].waiting++;
+    } else if (item.pr_status === 'belum') {
+      totalTodo++;
+      if (statsMap[item.id_halaqah]) statsMap[item.id_halaqah].todo++;
+    }
+  });
+  
+  const currentHalaqahId = document.getElementById('prHalaqahSel').value;
+  
+  let html = `
+    <div class="pr-sum-card ${currentHalaqahId === '' ? 'active' : ''}" onclick="selectHalaqahCard('')">
+      <div class="pr-sum-card-title">📚 Semua Halaqah</div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap">
+        <span class="pr-sum-card-badge waiting">⏳ ${totalWaiting}</span>
+        <span class="pr-sum-card-badge todo">💤 ${totalTodo}</span>
+      </div>
+    </div>
+  `;
+  
+  if (window.halaqahList) {
+    window.halaqahList.forEach(h => {
+      const stats = statsMap[h.id_halaqah] || { name: h.nama_halaqah, waiting: 0, todo: 0 };
+      html += `
+        <div class="pr-sum-card ${currentHalaqahId === h.id_halaqah ? 'active' : ''}" onclick="selectHalaqahCard('${esc(h.id_halaqah)}')">
+          <div class="pr-sum-card-title" title="${esc(h.nama_halaqah)}">📚 ${esc(h.nama_halaqah)}</div>
+          <div style="display:flex;align-items:center;flex-wrap:wrap">
+            <span class="pr-sum-card-badge waiting">⏳ ${stats.waiting}</span>
+            <span class="pr-sum-card-badge todo">💤 ${stats.todo}</span>
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  container.innerHTML = html;
+}
+
+function selectHalaqahCard(id_halaqah) {
+  document.getElementById('prHalaqahSel').value = id_halaqah;
+  filterPRSubmissions();
+  renderPRSummaryCards();
+}
+
+function togglePrGroupCollapse(safeId) {
+  _collapsedPrGroups[safeId] = !_collapsedPrGroups[safeId];
+  
+  const rows = document.querySelectorAll(`.pr-group-row-${safeId}`);
+  rows.forEach(r => {
+    r.style.display = _collapsedPrGroups[safeId] ? 'none' : '';
+  });
+  
+  const ico = document.getElementById(`pr-group-ico-${safeId}`);
+  if (ico) {
+    if (_collapsedPrGroups[safeId]) {
+      ico.classList.add('collapsed');
+    } else {
+      ico.classList.remove('collapsed');
+    }
+  }
+}
+
 function renderPRSubmissions() {
   const tbody = document.getElementById('prSubmissionsTbl');
   if (!tbody) return;
@@ -9236,93 +9438,123 @@ function renderPRSubmissions() {
     return;
   }
   
-  tbody.innerHTML = _prDataFiltered.map(item => {
-    const namaMurid = item.users?.nama_lengkap || '–';
-    const infoHalaqah = item.nama_halaqah ? `<br><small style="color:var(--text-3)">📚 ${esc(item.nama_halaqah)}</small>` : '';
-    const tglKbm = fmtDate(item.tanggal);
-    const sesiKe = `<span class="badge b-blue">Pertemuan ${item.pertemuan_ke}</span>`;
+  // Group filtered items by halaqah name
+  const groups = {};
+  _prDataFiltered.forEach(item => {
+    const hName = item.nama_halaqah || 'Lainnya';
+    if (!groups[hName]) groups[hName] = [];
+    groups[hName].push(item);
+  });
+  
+  let html = '';
+  
+  Object.keys(groups).forEach(hName => {
+    const items = groups[hName];
+    const safeId = hName.replace(/[^a-zA-Z0-9]/g, '_');
+    const isCollapsed = _collapsedPrGroups[safeId] || false;
     
-    // Deteksi keterlambatan
-    const deadline = item.kbm_log?.deadline_latihan;
-    const submittedAt = item.pr_submitted_at;
-    let lateTag = '';
-    if (submittedAt && deadline) {
-      const subDate = submittedAt.slice(0, 10); // YYYY-MM-DD
-      if (subDate > deadline) {
-        lateTag = `<br><span class="badge b-red" style="font-size:9px;padding:2px 6px;margin-top:4px" title="Guru tidak ada kewajiban mengoreksi tugas yang terlambat dikumpulkan.">🔴 Terlambat</span>`;
+    // Group Header Row
+    html += `
+      <tr class="pr-group-header" onclick="togglePrGroupCollapse('${safeId}')">
+        <td colspan="8">
+          <div class="pr-group-title">
+            <span>📚 <strong>${esc(hName)}</strong> <small style="color:var(--text-3);font-weight:600;margin-left:6px">(${items.length} murid)</small></span>
+            <span class="pr-group-toggle-ico ${isCollapsed ? 'collapsed' : ''}" id="pr-group-ico-${safeId}">▼</span>
+          </div>
+        </td>
+      </tr>
+    `;
+    
+    // Group Members Rows
+    items.forEach(item => {
+      const namaMurid = item.users?.nama_lengkap || '–';
+      const tglKbm = fmtDate(item.tanggal);
+      const sesiKe = `<span class="badge b-blue">Pertemuan ${item.pertemuan_ke}</span>`;
+      
+      // Deteksi keterlambatan
+      const deadline = item.kbm_log?.deadline_latihan;
+      const submittedAt = item.pr_submitted_at;
+      let lateTag = '';
+      if (submittedAt && deadline) {
+        const subDate = submittedAt.slice(0, 10); // YYYY-MM-DD
+        if (subDate > deadline) {
+          lateTag = `<br><span class="badge b-red" style="font-size:9px;padding:2px 6px;margin-top:4px" title="Guru tidak ada kewajiban mengoreksi tugas yang terlambat dikumpulkan.">🔴 Terlambat</span>`;
+        }
       }
-    }
-    
-    const waktuKirim = item.pr_submitted_at ? (fmtDateTime(item.pr_submitted_at) + lateTag) : '–';
-    const catatanMurid = item.pr_catatan_murid ? `<div style="font-size:12px;font-style:italic;max-width:180px;white-space:pre-wrap;color:var(--text-2)">"${esc(item.pr_catatan_murid)}"</div>` : '–';
-    
-    let lampiranHTML = '–';
-    if (item.pr_lampiran_url) {
-      const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
-      if (isAudio && item.pr_lampiran_url.includes('id=')) {
-        const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
-        const containerId = 'audio-container-guru-' + fileId;
-        lampiranHTML = `
-          <div id="${containerId}" style="width:100%; max-width:240px; min-height:40px; display:flex; align-items:center;">
-            <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${containerId}', '${fileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-              ▶️ Putar Rekaman
-            </button>
+      
+      const waktuKirim = item.pr_submitted_at ? (fmtDateTime(item.pr_submitted_at) + lateTag) : '–';
+      const catatanMurid = item.pr_catatan_murid ? `<div style="font-size:12px;font-style:italic;max-width:180px;white-space:pre-wrap;color:var(--text-2)">"${esc(item.pr_catatan_murid)}"</div>` : '–';
+      
+      let lampiranHTML = '–';
+      if (item.pr_lampiran_url) {
+        const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
+        if (isAudio && item.pr_lampiran_url.includes('id=')) {
+          const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
+          const containerId = 'audio-container-guru-' + fileId;
+          lampiranHTML = `
+            <div id="${containerId}" style="width:100%; max-width:240px; min-height:40px; display:flex; align-items:center;">
+              <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${containerId}', '${fileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+                ▶️ Putar Rekaman
+              </button>
+            </div>
+          `;
+        } else {
+          lampiranHTML = `<a href="${esc(item.pr_lampiran_url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">📂 Buka Lampiran</a>`;
+        }
+      }
+      
+      let statusHTML = '';
+      if (item.pr_status === 'selesai') {
+        statusHTML = `<span class="badge" style="background:rgba(245,158,11,0.15);color:#d97706;font-weight:700">Menunggu Penilaian</span>`;
+      } else if (item.pr_status === 'dinilai') {
+        const isSesuai = item.pr_status_nilai === 'Sesuai';
+        const color = isSesuai ? 'var(--green)' : 'var(--red)';
+        const bg = isSesuai ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+        const hasGuruAudio = item.pr_lampiran_guru_url ? ' 🎙️' : '';
+        statusHTML = `
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span class="badge" style="background:${bg};color:${color};font-weight:700">${esc(item.pr_status_nilai)}${hasGuruAudio}</span>
+            ${item.pr_catatan_guru ? `<small style="font-size:10px;color:var(--text-3);max-width:120px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.pr_catatan_guru)}">💬 ${esc(item.pr_catatan_guru)}</small>` : ''}
           </div>
         `;
       } else {
-        lampiranHTML = `<a href="${esc(item.pr_lampiran_url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">📂 Buka Lampiran</a>`;
+        statusHTML = `<span class="badge" style="background:rgba(148,163,184,0.15);color:#64748b;font-weight:700">Belum Dikerjakan</span>`;
       }
-    }
-    
-    let statusHTML = '';
-    if (item.pr_status === 'selesai') {
-      statusHTML = `<span class="badge" style="background:rgba(245,158,11,0.15);color:#d97706;font-weight:700">Menunggu Penilaian</span>`;
-    } else if (item.pr_status === 'dinilai') {
-      const isSesuai = item.pr_status_nilai === 'Sesuai';
-      const color = isSesuai ? 'var(--green)' : 'var(--red)';
-      const bg = isSesuai ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
-      const hasGuruAudio = item.pr_lampiran_guru_url ? ' 🎙️' : '';
-      statusHTML = `
-        <div style="display:flex;flex-direction:column;gap:2px">
-          <span class="badge" style="background:${bg};color:${color};font-weight:700">${esc(item.pr_status_nilai)}${hasGuruAudio}</span>
-          ${item.pr_catatan_guru ? `<small style="font-size:10px;color:var(--text-3);max-width:120px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(item.pr_catatan_guru)}">💬 ${esc(item.pr_catatan_guru)}</small>` : ''}
-        </div>
-      `;
-    } else {
-      statusHTML = `<span class="badge" style="background:rgba(148,163,184,0.15);color:#64748b;font-weight:700">Belum Dikerjakan</span>`;
-    }
-    
-    const actionText = item.pr_status === 'dinilai' ? '✏️ Ubah Nilai' : '✏️ Beri Nilai';
-    let actionBtn = `<button class="btn btn-outline btn-sm" onclick="bukaFormKoreksiPR('${esc(item.id_nilai)}')" style="color:var(--blue);border-color:var(--blue);width:100%">${actionText}</button>`;
-    if (item.pr_status === 'belum' && item.no_wa) {
-      let formattedPhone = String(item.no_wa).replace(/\D/g, '');
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = '62' + formattedPhone.slice(1);
+      
+      const actionText = item.pr_status === 'dinilai' ? '✏️ Ubah Nilai' : '✏️ Beri Nilai';
+      let actionBtn = `<button class="btn btn-outline btn-sm" onclick="bukaFormKoreksiPR('${esc(item.id_nilai)}')" style="color:var(--blue);border-color:var(--blue);width:100%">${actionText}</button>`;
+      if (item.pr_status === 'belum' && item.no_wa) {
+        let formattedPhone = String(item.no_wa).replace(/\D/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '62' + formattedPhone.slice(1);
+        }
+        const prText = (item.kbm_log && item.kbm_log.latihan_mandiri) || '';
+        const tglText = fmtDate(item.tanggal);
+        const waMsg = `Assalamu'alaikum ${namaMurid},\n\nMengingatkan untuk tugas Latihan Mandiri: *"${prText}"* (Pertemuan ${item.pertemuan_ke} - KBM Tanggal ${tglText}).\nMohon segera diselesaikan dan dikirimkan laporannya melalui portal murid ya.\n\nJazakallahu khairan.`;
+        const waLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(waMsg)}`;
+        actionBtn += `
+          <a href="${waLink}" target="_blank" class="btn btn-outline btn-sm" style="color:#16a34a;border-color:#16a34a;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px;width:100%">
+            💬 Hubungi WA
+          </a>
+        `;
       }
-      const prText = (item.kbm_log && item.kbm_log.latihan_mandiri) || '';
-      const tglText = fmtDate(item.tanggal);
-      const waMsg = `Assalamu'alaikum ${namaMurid},\n\nMengingatkan untuk tugas Latihan Mandiri: *"${prText}"* (Pertemuan ${item.pertemuan_ke} - KBM Tanggal ${tglText}).\nMohon segera diselesaikan dan dikirimkan laporannya melalui portal murid ya.\n\nJazakallahu khairan.`;
-      const waLink = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(waMsg)}`;
-      actionBtn += `
-        <a href="${waLink}" target="_blank" class="btn btn-outline btn-sm" style="color:#16a34a;border-color:#16a34a;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:4px;width:100%">
-          💬 Hubungi WA
-        </a>
+      
+      html += `
+        <tr class="pr-group-row-${safeId}" style="${isCollapsed ? 'display:none' : ''}">
+          <td><strong>${esc(namaMurid)}</strong></td>
+          <td>${tglKbm}</td>
+          <td>${sesiKe}</td>
+          <td>${waktuKirim}</td>
+          <td>${catatanMurid}</td>
+          <td>${lampiranHTML}</td>
+          <td>${statusHTML}</td>
+          <td>${actionBtn}</td>
+        </tr>
       `;
-    }
-    
-    return `
-      <tr>
-        <td><strong>${esc(namaMurid)}</strong>${infoHalaqah}</td>
-        <td>${tglKbm}</td>
-        <td>${sesiKe}</td>
-        <td>${waktuKirim}</td>
-        <td>${catatanMurid}</td>
-        <td>${lampiranHTML}</td>
-        <td>${statusHTML}</td>
-        <td>${actionBtn}</td>
-      </tr>
-    `;
-  }).join('');
+    });
+  });
+  
+  tbody.innerHTML = html;
 }
 
 function fmtDateTime(d) {
