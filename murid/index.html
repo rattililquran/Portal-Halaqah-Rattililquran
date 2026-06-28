@@ -7470,6 +7470,16 @@ function goPage(name, swipeDir) {
   var prev = _currentTabName;
   _currentTabName = name;
 
+  // Hentikan perekaman aktif jika berpindah halaman
+  if (prev === 'pr' && typeof _mediaRecorder !== 'undefined' && _mediaRecorder && _mediaRecorder.state !== 'inactive') {
+    _mediaRecorder.stop();
+    if (_durasiInterval) { clearInterval(_durasiInterval); _durasiInterval = null; }
+  }
+  if (prev === 'hafalan' && typeof _pqMediaRecorder !== 'undefined' && _pqMediaRecorder && _pqMediaRecorder.state !== 'inactive') {
+    _pqMediaRecorder.stop();
+    if (_pqDurasiInterval) { clearInterval(_pqDurasiInterval); _pqDurasiInterval = null; }
+  }
+
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active','slide-in-left','slide-in-right');
   });
@@ -8951,6 +8961,10 @@ function updateCatatanOtomatis() {
 }
 
 function mulaiPerekaman() {
+  if (typeof MediaRecorder === "undefined") {
+    toast("Browser Anda tidak mendukung perekaman suara. Pastikan koneksi menggunakan HTTPS dan gunakan browser modern.", "warn");
+    return;
+  }
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
       _recordedChunks = [];
@@ -11569,6 +11583,10 @@ function _pqShowMurajaahHint() {
 
 // ── LOGIKA REKAMAN SUARA QIYAM (ASINKRONUS) ──────────────────────────
 function mulaiPerekamanQiyam() {
+  if (typeof MediaRecorder === "undefined") {
+    toast("Browser Anda tidak mendukung perekaman suara. Pastikan koneksi menggunakan HTTPS dan gunakan browser modern.", "warn");
+    return;
+  }
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
       _pqRecordedChunks = [];
@@ -12428,6 +12446,12 @@ async function loadPartnerBelajarDashCard() {
 var _hfActiveTab = 'riwayat';
 
 function switchHafalanTab(tab) {
+  // Hentikan perekaman Qiyam aktif jika berpindah tab dari partner
+  if (tab !== 'partner' && typeof _pqMediaRecorder !== 'undefined' && _pqMediaRecorder && _pqMediaRecorder.state !== 'inactive') {
+    _pqMediaRecorder.stop();
+    if (_pqDurasiInterval) { clearInterval(_pqDurasiInterval); _pqDurasiInterval = null; }
+  }
+
   _hfActiveTab = tab;
   document.getElementById('hfPanelRiwayat').style.display = tab === 'riwayat' ? 'block' : 'none';
   document.getElementById('hfPanelRaport').style.display  = tab === 'raport'  ? 'block' : 'none';
@@ -13911,6 +13935,12 @@ function openModal(id) {
 function closeModal(id) {
   var el = document.getElementById(id);
   if (el) { el.classList.remove('open'); document.body.style.overflow=''; }
+  if (id === 'latihanModal') {
+    if (typeof _mediaRecorder !== 'undefined' && _mediaRecorder && _mediaRecorder.state !== 'inactive') {
+      _mediaRecorder.stop();
+      if (_durasiInterval) { clearInterval(_durasiInterval); _durasiInterval = null; }
+    }
+  }
 }
 
 // ══════════════════════════════════════════
