@@ -11913,33 +11913,58 @@ async function loadPartnerMenunggu() {
     list.innerHTML = data.map(function(r){
       var icon = jenisIcon[r.jenis] || '📖';
       var id   = _esc(r.id_setoran);
-      // Tombol WA — partner B siap menyimak setoran A (simakan terjadi di WA, luar app)
+      // Tombol WA
       var waMsg = 'Assalamualaikum ' + (r.nama_murid || '') + ', aku siap menyimak setoranmu ('
         + (r.jenis || '') + ' QS. ' + (r.surat || '') + ' ayat ' + (r.ayat_dari || '') + '-' + (r.ayat_sampai || '')
         + '). Kabari kalau sempat ya 🤝\n\nBarakallahu fiikum.';
       var waUrl = _waLink(r.no_hp, waMsg);
-      var waBtn = waUrl
-        ? '<a href="' + waUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:#25d366;color:#fff;text-decoration:none;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px">💬 Hubungi & siap simak</a>'
-        : '<span style="font-size:11px;color:var(--text-3)">Nomor WA partner belum tersedia</span>';
+
+      var audioArea = '';
+      var waArea = '';
+
+      if (r.lampiran_url) {
+        // Skenario A: Ada rekaman suara
+        var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
+        var audioPlayer = _renderAudioPlayerHtml(r.lampiran_url, id, 'Rekaman Suara Setoran', durText);
+        
+        audioArea = '<div style="margin-bottom:4px">'
+          + '<div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">🔊 Simak rekaman suara di aplikasi:</div>'
+          + audioPlayer
+          + '</div>';
+          
+        waArea = waUrl
+          ? '<div style="margin-top:2px;margin-bottom:12px;font-size:11px;color:var(--text-3)">'
+            + 'Kendala pemutaran? Atau ingin menyimak langsung? '
+            + '<a href="' + waUrl + '" target="_blank" rel="noopener" style="color:#16a34a;font-weight:700;text-decoration:none">💬 Chat WA Partner</a>'
+            + '</div>'
+          : '';
+      } else {
+        // Skenario B: Tidak ada rekaman suara, harus lewat WA live
+        audioArea = '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;color:var(--amber-d)">'
+          + 'ℹ️ <strong>Tanpa Rekaman Suara.</strong> Partner memilih menyetor secara langsung/live. Silakan hubungi partner untuk menyimak via WhatsApp.'
+          + '</div>';
+          
+        waArea = waUrl
+          ? '<div style="margin-bottom:12px">'
+            + '<a href="' + waUrl + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#25d366;color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:800;font-size:12px;width:100%">💬 Hubungi & Siap Simak via WA</a>'
+            + '</div>'
+          : '<div style="margin-bottom:12px;font-size:11px;color:var(--text-3)">Nomor WA partner belum tersedia</div>';
+      }
+
       var reaksiChips = ['🔥','🤲','💚','👏','⭐'].map(function(em){
         return '<button type="button" onclick="pqPickReaksi(\'' + id + '\',\'' + em + '\',this)" '
           + 'style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;line-height:1">' + em + '</button>';
       }).join('');
-
-      var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
-      var audioPlayer = r.lampiran_url
-        ? _renderAudioPlayerHtml(r.lampiran_url, id, 'Rekaman Suara Setoran', durText)
-        : '';
 
       return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
         + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px">'
           + '<span style="font-weight:800;font-size:13px;color:var(--text)">' + _esc(r.nama_murid) + ' ingin setor</span>'
           + '<span style="font-size:10px;color:var(--text-3);white-space:nowrap">diajukan ' + _esc(_fmtAgo(r.created_at)) + '</span>'
         + '</div>'
-        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px">' + icon + ' ' + _esc(r.jenis) + ' · Juz ' + _esc(r.juz || '-') + ' · ' + _esc(r.surat) + ' ayat ' + _esc(r.ayat_dari) + '-' + _esc(r.ayat_sampai) + '</div>'
+        + '<div style="font-size:12px;color:var(--text-2);margin-bottom:6px">' + icon + ' ' + _esc(r.jenis) + ' · Juz ' + _esc(r.juz || '-') + ' · ' + _esc(r.surat) + ' ayat ' + _esc(r.ayat_dari) + '-' + _esc(r.ayat_sampai) + '</div>'
         + (r.catatan ? '<div style="font-size:11px;color:var(--blue);margin-bottom:8px;font-weight:600">🎯 Titip fokus: ' + _esc(r.catatan) + '</div>' : '')
-        + '<div style="margin-bottom:10px">' + waBtn + '</div>'
-        + audioPlayer
+        + audioArea
+        + waArea
         + '<div style="border-top:1px dashed var(--border);padding-top:10px">'
           + '<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Setelah menyimak, beri hasilnya</div>'
           + '<select class="fc" id="pqKel_' + id + '" style="width:100%;margin-bottom:6px">' + kelOpts + '</select>'
