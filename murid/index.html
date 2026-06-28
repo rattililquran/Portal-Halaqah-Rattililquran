@@ -14534,14 +14534,14 @@ function showLoad(m) {
     document.getElementById('loaderTxt').textContent = m || 'Bismillah...';
     document.getElementById('loader').classList.add('show');
   } else {
-    // Stage 2: Inline Skeleton Loader for subpage / tab switches
-    var isAction = m && (
-      m.indexOf('Mengunggah') !== -1 ||
-      m.indexOf('Mengirim') !== -1 ||
-      m.indexOf('Menyimpan') !== -1 ||
-      m.indexOf('Mengubah') !== -1 ||
-      m.indexOf('Keluar') !== -1 ||
-      m.indexOf('Batal') !== -1
+    var lowerM = (m || '').toLowerCase();
+    var isAction = lowerM && (
+      lowerM.indexOf('mengunggah') !== -1 ||
+      lowerM.indexOf('mengirim') !== -1 ||
+      lowerM.indexOf('menyimpan') !== -1 ||
+      lowerM.indexOf('mengubah') !== -1 ||
+      lowerM.indexOf('keluar') !== -1 ||
+      lowerM.indexOf('batal') !== -1
     );
     if (isAction) {
       // Show action-blocking spinner
