@@ -9542,12 +9542,16 @@ function renderPRSubmissions() {
     const safeId = hName.replace(/[^a-zA-Z0-9]/g, '_');
     const isCollapsed = _collapsedPrGroups[safeId] || false;
     
+    // Hitung jumlah murid unik
+    const uniqueStudents = [...new Set(items.map(item => item.id_murid || item.users?.nama_lengkap))].filter(Boolean).length;
+    const taskCount = items.length;
+    
     // Group Header Row
     html += `
       <tr class="pr-group-header" onclick="togglePrGroupCollapse('${safeId}')">
         <td colspan="8">
           <div class="pr-group-title">
-            <span>📚 <strong>${esc(hName)}</strong> <small style="color:var(--text-3);font-weight:600;margin-left:6px">(${items.length} murid)</small></span>
+            <span>📚 <strong>${esc(hName)}</strong> <small style="color:var(--text-3);font-weight:600;margin-left:6px">(${uniqueStudents} murid · ${taskCount} tugas)</small></span>
             <span class="pr-group-toggle-ico ${isCollapsed ? 'collapsed' : ''}" id="pr-group-ico-${safeId}">▼</span>
           </div>
         </td>
@@ -16291,6 +16295,10 @@ function cetakRaportTahfidz() {
         // Skip rows that are empty states, loaders, or have colspan
         var firstCell = row.firstElementChild;
         if (firstCell && firstCell.getAttribute('colspan')) {
+          // Reset numbering index when encountering group headers
+          if (row.classList.contains('pr-group-header') || row.classList.contains('group-header')) {
+            validRowIndex = 1;
+          }
           var colSpan = parseInt(firstCell.getAttribute('colspan'), 10);
           if (!firstCell.dataset.colspanAdjusted) {
             firstCell.setAttribute('colspan', colSpan + 1);

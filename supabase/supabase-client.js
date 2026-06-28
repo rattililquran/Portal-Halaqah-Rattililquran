@@ -2433,9 +2433,22 @@ var GuruAPI = {
   },
 
   getHalaqahPRSubmissions: async function(id_halaqah) {
-    var { data, error } = await _sb.from('nilai_kbm')
-      .select('id_nilai, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, users(nama_lengkap, no_hp), kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,deadline_latihan)')
+    // 1. Ambil list murid yang statusnya aktif di halaqah ini
+    var { data: activeAnggota } = await _sb.from('anggota')
+      .select('id_murid')
       .eq('id_halaqah', id_halaqah)
+      .eq('status', 'aktif');
+    
+    var activeMuridIds = (activeAnggota || []).map(function(a) { return a.id_murid; });
+    if (activeMuridIds.length === 0) {
+      return { status: 'ok', data: [] };
+    }
+
+    // 2. Tarik log PR hanya untuk murid aktif di halaqah ini
+    var { data, error } = await _sb.from('nilai_kbm')
+      .select('id_nilai, id_murid, id_halaqah, tanggal, pertemuan_ke, status_hadir, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, users(nama_lengkap, no_hp), kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,deadline_latihan)')
+      .eq('id_halaqah', id_halaqah)
+      .in('id_murid', activeMuridIds)
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false });
     _check(error, 'getHalaqahPRSubmissions');

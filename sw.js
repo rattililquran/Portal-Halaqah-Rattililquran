@@ -1,6 +1,6 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v8.45 — caching konservatif + offline HTML fallback
+//  Cache version: v8.46 — caching konservatif + offline HTML fallback
 // ============================================================
 //
 //  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze
@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.45';
+const CACHE_NAME = 'halaqah-v8.46';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {
