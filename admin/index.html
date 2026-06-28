@@ -1666,6 +1666,9 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
             <button class="btn btn-primary btn-sm" onclick="bukaModalInputSPPManual()" style="display:flex;align-items:center;gap:6px">
               <span style="font-size:14px">＋</span> Input Pembayaran Manual
             </button>
+            <button class="btn btn-primary btn-sm" onclick="bukaModalInputSPPManual('Ihsan Guru')" style="display:flex;align-items:center;gap:6px;background:#e11d48;border-color:#e11d48">
+              <span style="font-size:14px">＋</span> Input Ihsan Guru
+            </button>
             <button class="btn btn-outline btn-sm" onclick="loadSPPAdmin()" style="display:flex;align-items:center;gap:6px">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               Refresh
@@ -7638,7 +7641,7 @@ var _sppManualBulanLunas = [];
 var _sppManualBulanMenunggu = [];
 var BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-async function bukaModalInputSPPManual() {
+async function bukaModalInputSPPManual(defaultJenis) {
   _sppManualSessionCount = 0;
   document.getElementById('sppManualCounter').textContent = '';
   document.getElementById('sppManualMuridSearch').value = '';
@@ -7647,12 +7650,13 @@ async function bukaModalInputSPPManual() {
   document.getElementById('sppManualErr').style.display = 'none';
   document.getElementById('sppManualNominal').value = '';
   document.getElementById('sppManualNominalHint').textContent = '';
-  document.getElementById('sppManualCatatan').value = 'Sinkronisasi data lama';
+  var jenis = defaultJenis || 'SPP Pribadi';
+  document.getElementById('sppManualCatatan').value = jenis === 'Ihsan Guru' ? 'Ihsan Guru' : 'Sinkronisasi data lama';
   // Default tahun dari filter SPP jika ada
   var filterTahun = document.getElementById('sppFilterTahun');
   if (filterTahun) document.getElementById('sppManualTahun').value = filterTahun.value;
-  // Reset jenis ke SPP Pribadi
-  setSPPManualJenis('SPP Pribadi', null);
+  // Reset jenis ke default
+  setSPPManualJenis(jenis, null);
   // Reset bulan grid
   renderSPPManualBulanGrid([], []);
   // Load murid list (cache)
