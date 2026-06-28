@@ -4545,6 +4545,15 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
             <div style="margin-bottom:12px">
               <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Rekaman Setoran (Opsional)</label>
               
+              <!-- Banner Pemulihan Cadangan Qiyam -->
+              <div id="pqRestoreBanner" style="display:none;background:var(--amber-bg);border:1.5px solid var(--amber-m);border-radius:12px;padding:8px 10px;margin-bottom:8px">
+                <div style="font-size:10.5px;color:var(--amber-txt);font-weight:700;margin-bottom:6px">⚠️ Ditemukan rekaman cadangan sebelumnya yang belum terkirim (<span id="pqRestoreDurasi">00:00</span>).</div>
+                <div style="display:flex;gap:6px">
+                  <button type="button" onclick="gunakanCadanganQiyam()" style="background:#f59e0b;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:9.5px;font-weight:800;cursor:pointer">Gunakan</button>
+                  <button type="button" onclick="abaikanCadanganQiyam()" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:9.5px;font-weight:800;cursor:pointer">Abaikan</button>
+                </div>
+              </div>
+
               <!-- Preview & Player -->
               <div id="pqPlayerWadah" style="display:none;background:var(--blue-bg);border:1px solid var(--blue-m);border-radius:12px;padding:8px 10px;margin-bottom:8px">
                 <audio id="pqAudioPreview" controls style="width:100%;height:32px"></audio>
@@ -4566,6 +4575,7 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
                   ⏹ Selesai
                 </button>
                 <span id="pqDurasiRekam" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text-2);padding:0 4px">00:00</span>
+                <canvas id="pqMicWave" width="50" height="16" style="display: none; border-radius: 3px"></canvas>
               </div>
             </div>
 
@@ -6178,7 +6188,10 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
         <div id="ltAreaPerekam" style="margin-bottom: 16px; display: none;">
           <div style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 6px">🎙️ Perekam Suara (Maks. 15MB)</div>
           <div style="background: var(--bg-2); border: 1.5px dashed var(--border); border-radius: 16px; padding: 20px; text-align: center;">
-            <div id="ltDurasiRekam" style="font-size: 24px; font-weight: 800; font-family: monospace; color: var(--text); margin-bottom: 12px">00:00</div>
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 12px">
+              <div id="ltDurasiRekam" style="font-size: 24px; font-weight: 800; font-family: monospace; color: var(--text)">00:00</div>
+              <canvas id="ltMicWave" width="80" height="20" style="display: none; margin-top: 6px; border-radius: 4px"></canvas>
+            </div>
             
             <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px">
               <button id="btnMulaiRekam" onclick="mulaiPerekaman()" class="btn btn-primary" style="background: var(--red); border-color: var(--red); display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
@@ -6190,6 +6203,15 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
               <button id="btnHentikanRekam" onclick="hentikanPerekaman()" class="btn btn-primary" style="background: var(--text-2); border-color: var(--text-2); display: none; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
                 ⏹️ Selesai
               </button>
+            </div>
+
+            <!-- Banner Pemulihan Cadangan PR -->
+            <div id="ltRestoreBanner" style="display:none;background:var(--amber-bg);border:1.5px solid var(--amber-m);border-radius:12px;padding:8px 10px;margin-bottom:12px;text-align:left">
+              <div style="font-size:11px;color:var(--amber-txt);font-weight:700;margin-bottom:6px">⚠️ Ditemukan rekaman cadangan tugas sebelumnya yang belum terkirim (<span id="ltRestoreDurasi">00:00</span>).</div>
+              <div style="display:flex;gap:6px">
+                <button type="button" onclick="gunakanCadanganPR()" style="background:#f59e0b;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:9.5px;font-weight:800;cursor:pointer">Gunakan</button>
+                <button type="button" onclick="abaikanCadanganPR()" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:9.5px;font-weight:800;cursor:pointer">Abaikan</button>
+              </div>
             </div>
 
             <!-- Preview Player -->
@@ -8937,6 +8959,7 @@ function bukaFormPR(idNilai, deskripsi, jenisLatihan) {
   }
   
   hapusRekamanLokal();
+  checkCadanganPR();
   document.getElementById('ltCatatanMurid').value = '';
   openModal('latihanModal');
 }
@@ -8991,10 +9014,17 @@ function mulaiPerekaman() {
           player.src = audioUrl;
           document.getElementById('ltPlayerWadah').style.display = 'block';
         }
+        stopMicVisualizer('ltMicWave', 'pr');
+        
+        // Simpan cadangan offline
+        if (typeof HQBackupDB !== 'undefined' && _rekamanBlob) {
+          HQBackupDB.simpan('draft_pr', _rekamanBlob, { detik: _detikRekam });
+        }
         stream.getTracks().forEach(function(track) { track.stop(); });
       };
 
       _mediaRecorder.start();
+      startMicVisualizer(stream, 'ltMicWave', 'pr');
       _detikRekam = 0;
       document.getElementById('ltDurasiRekam').textContent = "00:00";
       document.getElementById('btnMulaiRekam').style.display = 'none';
@@ -9042,6 +9072,7 @@ function jedaPerekaman() {
 }
 
 function hentikanPerekaman() {
+  stopMicVisualizer('ltMicWave', 'pr');
   if (_mediaRecorder && _mediaRecorder.state !== "inactive") {
     _mediaRecorder.stop();
   }
@@ -9063,6 +9094,12 @@ function hapusRekamanLokal() {
   document.getElementById('ltPlayerWadah').style.display = 'none';
   document.getElementById('ltDurasiRekam').textContent = "00:00";
   document.getElementById('btnMulaiRekam').textContent = "🔴 Mulai Rekam";
+  
+  if (typeof HQBackupDB !== 'undefined') {
+    HQBackupDB.hapus('draft_pr');
+  }
+  var banner = document.getElementById('ltRestoreBanner');
+  if (banner) banner.style.display = 'none';
 }
 
 async function kirimLaporanPR() {
@@ -11104,6 +11141,235 @@ var HQBackupDB = {
 };
 
 
+// ── SYSTEM LIVE MICROPHONE VOLUME VISUALIZER ───────────────────────
+var _pqAudioCtx = null, _pqAnalyser = null, _pqAnimFrame = null;
+var _ltAudioCtx = null, _ltAnalyser = null, _ltAnimFrame = null;
+
+function startMicVisualizer(stream, canvasId, type) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.style.display = 'block';
+  var ctx = canvas.getContext('2d');
+  
+  try {
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    
+    var audioCtx = new AudioContextClass();
+    var source = audioCtx.createMediaStreamSource(stream);
+    var analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 32;
+    source.connect(analyser);
+    
+    if (type === 'qiyam') {
+      _pqAudioCtx = audioCtx;
+      _pqAnalyser = analyser;
+    } else {
+      _ltAudioCtx = audioCtx;
+      _ltAnalyser = analyser;
+    }
+    
+    var bufferLength = analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(bufferLength);
+    
+    function draw() {
+      var isPaused = false;
+      if (type === 'qiyam') {
+        if (!_pqAudioCtx) return;
+        _pqAnimFrame = requestAnimationFrame(draw);
+        isPaused = (_pqMediaRecorder && _pqMediaRecorder.state === 'paused');
+      } else {
+        if (!_ltAudioCtx) return;
+        _ltAnimFrame = requestAnimationFrame(draw);
+        isPaused = (_mediaRecorder && _mediaRecorder.state === 'paused');
+      }
+      
+      analyser.getByteFrequencyData(dataArray);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw 6 small equalizers
+      var numBars = 6;
+      var barWidth = (canvas.width / numBars) - 2;
+      var x = 1;
+      
+      for (var i = 0; i < numBars; i++) {
+        var val = dataArray[i] || 0;
+        var hPct = val / 255;
+        var barHeight = canvas.height * hPct * 0.95;
+        if (barHeight < 3) barHeight = 3;
+        
+        var y = (canvas.height - barHeight) / 2;
+        
+        // Color depending on state
+        if (isPaused) {
+          ctx.fillStyle = 'var(--text-3)'; // Gray
+          barHeight = 3;
+          y = (canvas.height - 3) / 2;
+        } else {
+          ctx.fillStyle = '#2563eb'; // Blue
+        }
+        
+        // draw rounded rectangle
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, barWidth, barHeight, 2);
+        } else {
+          ctx.rect(x, y, barWidth, barHeight);
+        }
+        ctx.fill();
+        
+        x += barWidth + 2;
+      }
+    }
+    draw();
+  } catch(e) {
+    console.warn("Gagal mengaktifkan visualizer mikrofon:", e);
+  }
+}
+
+function stopMicVisualizer(canvasId, type) {
+  if (type === 'qiyam') {
+    if (_pqAnimFrame) { cancelAnimationFrame(_pqAnimFrame); _pqAnimFrame = null; }
+    if (_pqAudioCtx) { try { _pqAudioCtx.close(); } catch(e){} _pqAudioCtx = null; }
+    _pqAnalyser = null;
+  } else {
+    if (_ltAnimFrame) { cancelAnimationFrame(_ltAnimFrame); _ltAnimFrame = null; }
+    if (_ltAudioCtx) { try { _ltAudioCtx.close(); } catch(e){} _ltAudioCtx = null; }
+    _ltAnalyser = null;
+  }
+  var canvas = document.getElementById(canvasId);
+  if (canvas) {
+    canvas.style.display = 'none';
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+
+// ── OFFLINE DRAFT BACKUP & RESTORE LOGIC ─────────────────────────────
+async function checkCadanganQiyam() {
+  try {
+    if (typeof HQBackupDB === 'undefined') return;
+    var draft = await HQBackupDB.muat('draft_qiyam');
+    var banner = document.getElementById('pqRestoreBanner');
+    if (draft && draft.blob) {
+      if (banner) banner.style.display = 'block';
+      var dur = draft.metadata ? draft.metadata.detik : 0;
+      var m = String(Math.floor(dur / 60)).padStart(2, '0');
+      var s = String(dur % 60).padStart(2, '0');
+      var label = document.getElementById('pqRestoreDurasi');
+      if (label) label.textContent = m + ":" + s;
+    } else {
+      if (banner) banner.style.display = 'none';
+    }
+  } catch(e) {
+    console.warn("Gagal mengecek cadangan Qiyam: ", e);
+  }
+}
+
+async function gunakanCadanganQiyam() {
+  try {
+    var draft = await HQBackupDB.muat('draft_qiyam');
+    if (draft && draft.blob) {
+      _pqRekamanBlob = draft.blob;
+      _pqDetikRekam = draft.metadata ? draft.metadata.detik : 0;
+      
+      var mime = draft.blob.type || "audio/webm";
+      var audioUrl = URL.createObjectURL(_pqRekamanBlob);
+      var player = document.getElementById('pqAudioPreview');
+      if (player) {
+        player.src = audioUrl;
+        document.getElementById('pqPlayerWadah').style.display = 'block';
+      }
+      
+      var m = String(Math.floor(_pqDetikRekam / 60)).padStart(2, '0');
+      var s = String(_pqDetikRekam % 60).padStart(2, '0');
+      document.getElementById('pqDurasiRekam').textContent = m + ":" + s;
+      document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Ulang";
+      
+      toast("Berhasil memulihkan rekaman cadangan sebelumnya!", "success");
+    }
+    var banner = document.getElementById('pqRestoreBanner');
+    if (banner) banner.style.display = 'none';
+  } catch(e) {
+    toast("Gagal memulihkan cadangan: " + e.message, "err");
+  }
+}
+
+async function abaikanCadanganQiyam() {
+  try {
+    await HQBackupDB.hapus('draft_qiyam');
+    var banner = document.getElementById('pqRestoreBanner');
+    if (banner) banner.style.display = 'none';
+    toast("Cadangan diabaikan dan dihapus.", "info");
+  } catch(e) {
+    console.warn("Gagal menghapus cadangan Qiyam: ", e);
+  }
+}
+
+async function checkCadanganPR() {
+  try {
+    if (typeof HQBackupDB === 'undefined') return;
+    var draft = await HQBackupDB.muat('draft_pr');
+    var banner = document.getElementById('ltRestoreBanner');
+    var idNilai = document.getElementById('ltIdNilai').value;
+    
+    if (draft && draft.blob && draft.metadata && draft.metadata.idNilai === idNilai) {
+      if (banner) banner.style.display = 'block';
+      var dur = draft.metadata.detik;
+      var m = String(Math.floor(dur / 60)).padStart(2, '0');
+      var s = String(dur % 60).padStart(2, '0');
+      var label = document.getElementById('ltRestoreDurasi');
+      if (label) label.textContent = m + ":" + s;
+    } else {
+      if (banner) banner.style.display = 'none';
+    }
+  } catch(e) {
+    console.warn("Gagal mengecek cadangan PR: ", e);
+  }
+}
+
+async function gunakanCadanganPR() {
+  try {
+    var draft = await HQBackupDB.muat('draft_pr');
+    if (draft && draft.blob) {
+      _rekamanBlob = draft.blob;
+      _detikRekam = draft.metadata ? draft.metadata.detik : 0;
+      
+      var mime = draft.blob.type || "audio/webm";
+      var audioUrl = URL.createObjectURL(_rekamanBlob);
+      var player = document.getElementById('ltAudioPreview');
+      if (player) {
+        player.src = audioUrl;
+        document.getElementById('ltPlayerWadah').style.display = 'block';
+      }
+      
+      var m = String(Math.floor(_detikRekam / 60)).padStart(2, '0');
+      var s = String(_detikRekam % 60).padStart(2, '0');
+      document.getElementById('ltDurasiRekam').textContent = m + ":" + s;
+      document.getElementById('btnMulaiRekam').textContent = "🔴 Rekam Ulang";
+      
+      toast("Berhasil memulihkan rekaman cadangan tugas mandiri!", "success");
+    }
+    var banner = document.getElementById('ltRestoreBanner');
+    if (banner) banner.style.display = 'none';
+  } catch(e) {
+    toast("Gagal memulihkan cadangan PR: " + e.message, "err");
+  }
+}
+
+async function abaikanCadanganPR() {
+  try {
+    await HQBackupDB.hapus('draft_pr');
+    var banner = document.getElementById('ltRestoreBanner');
+    if (banner) banner.style.display = 'none';
+    toast("Cadangan tugas diabaikan dan dihapus.", "info");
+  } catch(e) {
+    console.warn("Gagal menghapus cadangan PR: ", e);
+  }
+}
+
+
 // ── Tab Partner Qiyam ────────────────────────────────────────────────
 var _pqInitialized = false;
 var _pqKelompok    = null;
@@ -11228,6 +11494,7 @@ async function _initPartnerPanel() {
   loadPartnerLiniMasa();
   loadMurajaahSuggest();
   loadTargetKelompok();
+  checkCadanganQiyam();
 }
 
 // #1 Saran Muraja'ah (spaced repetition): surat yang sudah dihafal tapi lama tak disentuh
@@ -11760,10 +12027,17 @@ function mulaiPerekamanQiyam() {
           player.src = audioUrl;
           document.getElementById('pqPlayerWadah').style.display = 'block';
         }
+        stopMicVisualizer('pqMicWave', 'qiyam');
+        
+        // Simpan cadangan offline
+        if (typeof HQBackupDB !== 'undefined' && _pqRekamanBlob) {
+          HQBackupDB.simpan('draft_qiyam', _pqRekamanBlob, { detik: _pqDetikRekam });
+        }
         stream.getTracks().forEach(function(track) { track.stop(); });
       };
 
       _pqMediaRecorder.start();
+      startMicVisualizer(stream, 'pqMicWave', 'qiyam');
       _pqDetikRekam = 0;
       document.getElementById('pqDurasiRekam').textContent = "00:00";
       document.getElementById('btnMulaiRekamQiyam').style.display = 'none';
@@ -11809,6 +12083,7 @@ function jedaPerekamanQiyam() {
 }
 
 function hentikanPerekamanQiyam() {
+  stopMicVisualizer('pqMicWave', 'qiyam');
   if (_pqMediaRecorder && _pqMediaRecorder.state !== "inactive") {
     _pqMediaRecorder.stop();
   }
@@ -11831,6 +12106,12 @@ function hapusRekamanQiyamLokal() {
   document.getElementById('pqPlayerWadah').style.display = 'none';
   document.getElementById('pqDurasiRekam').textContent = "00:00";
   document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Suara";
+  
+  if (typeof HQBackupDB !== 'undefined') {
+    HQBackupDB.hapus('draft_qiyam');
+  }
+  var banner = document.getElementById('pqRestoreBanner');
+  if (banner) banner.style.display = 'none';
 }
 
 async function submitSetoranMandiri() {
