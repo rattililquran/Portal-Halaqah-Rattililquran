@@ -8949,7 +8949,13 @@ function bukaFormPR(idNilai, deskripsi, jenisLatihan, statusDeadline, deadline) 
   }
   
   var areaPerekam = document.getElementById('ltAreaPerekam');
-  if (jenisLatihan.toLowerCase().includes("vn") || jenisLatihan.toLowerCase().includes("rekaman")) {
+  var txt = (jenisLatihan || '').toLowerCase();
+  var isPortalRecord = (txt.includes("vn") || txt.includes("rekaman")) 
+                       && !txt.includes("wag")
+                       && !txt.includes("wa ")
+                       && !txt.includes(" wa")
+                       && !txt.includes("whatsapp");
+  if (isPortalRecord) {
     areaPerekam.style.display = 'block';
   } else {
     areaPerekam.style.display = 'none';
