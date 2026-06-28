@@ -4559,8 +4559,11 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
                 <button type="button" id="btnMulaiRekamQiyam" onclick="mulaiPerekamanQiyam()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--red-bg);color:var(--red-txt);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer">
                   🔴 Rekam Suara
                 </button>
-                <button type="button" id="btnHentikanRekamQiyam" onclick="hentikanPerekamanQiyam()" style="flex:1;display:none;align-items:center;justify-content:center;gap:6px;background:var(--amber-bg);color:var(--amber-txt);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer;animation:pulse 1.5s infinite">
-                  ⏹ Hentikan Perekaman
+                <button type="button" id="btnJedaRekamQiyam" onclick="jedaPerekamanQiyam()" style="flex:1;display:none;align-items:center;justify-content:center;gap:6px;background:var(--amber-bg);color:var(--amber-txt);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer">
+                  ⏸ Jeda
+                </button>
+                <button type="button" id="btnHentikanRekamQiyam" onclick="hentikanPerekamanQiyam()" style="flex:1;display:none;align-items:center;justify-content:center;gap:6px;background:var(--red);color:#fff;border:none;border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer">
+                  ⏹ Selesai
                 </button>
                 <span id="pqDurasiRekam" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text-2);padding:0 4px">00:00</span>
               </div>
@@ -6177,12 +6180,15 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
           <div style="background: var(--bg-2); border: 1.5px dashed var(--border); border-radius: 16px; padding: 20px; text-align: center;">
             <div id="ltDurasiRekam" style="font-size: 24px; font-weight: 800; font-family: monospace; color: var(--text); margin-bottom: 12px">00:00</div>
             
-            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 16px">
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px">
               <button id="btnMulaiRekam" onclick="mulaiPerekaman()" class="btn btn-primary" style="background: var(--red); border-color: var(--red); display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
                 🔴 Mulai Rekam
               </button>
+              <button id="btnJedaRekam" onclick="jedaPerekaman()" class="btn btn-primary" style="background: var(--amber); border-color: var(--amber); display: none; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+                ⏸ Jeda
+              </button>
               <button id="btnHentikanRekam" onclick="hentikanPerekaman()" class="btn btn-primary" style="background: var(--text-2); border-color: var(--text-2); display: none; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-                ⏹️ Hentikan
+                ⏹️ Selesai
               </button>
             </div>
 
@@ -7471,13 +7477,11 @@ function goPage(name, swipeDir) {
   _currentTabName = name;
 
   // Hentikan perekaman aktif jika berpindah halaman
-  if (prev === 'pr' && typeof _mediaRecorder !== 'undefined' && _mediaRecorder && _mediaRecorder.state !== 'inactive') {
-    _mediaRecorder.stop();
-    if (_durasiInterval) { clearInterval(_durasiInterval); _durasiInterval = null; }
+  if (prev === 'pr' && typeof hentikanPerekaman === 'function') {
+    hentikanPerekaman();
   }
-  if (prev === 'hafalan' && typeof _pqMediaRecorder !== 'undefined' && _pqMediaRecorder && _pqMediaRecorder.state !== 'inactive') {
-    _pqMediaRecorder.stop();
-    if (_pqDurasiInterval) { clearInterval(_pqDurasiInterval); _pqDurasiInterval = null; }
+  if (prev === 'hafalan' && typeof hentikanPerekamanQiyam === 'function') {
+    hentikanPerekamanQiyam();
   }
 
   document.querySelectorAll('.page').forEach(function(p){
@@ -8995,8 +8999,16 @@ function mulaiPerekaman() {
       document.getElementById('ltDurasiRekam').textContent = "00:00";
       document.getElementById('btnMulaiRekam').style.display = 'none';
       document.getElementById('btnHentikanRekam').style.display = 'flex';
+      var btnJeda = document.getElementById('btnJedaRekam');
+      if (btnJeda) {
+        btnJeda.style.display = 'flex';
+        btnJeda.textContent = "⏸ Jeda";
+        btnJeda.style.background = "";
+        btnJeda.style.color = "";
+      }
       
       _durasiInterval = setInterval(function() {
+        if (_mediaRecorder && _mediaRecorder.state === "paused") return;
         _detikRekam++;
         var m = String(Math.floor(_detikRekam / 60)).padStart(2, '0');
         var s = String(_detikRekam % 60).padStart(2, '0');
@@ -9006,6 +9018,27 @@ function mulaiPerekaman() {
     .catch(function(err) {
       toast("Gagal mengakses mikrofon: " + err.message, "err");
     });
+}
+
+function jedaPerekaman() {
+  var btn = document.getElementById('btnJedaRekam');
+  if (_mediaRecorder && _mediaRecorder.state === "recording") {
+    _mediaRecorder.pause();
+    if (btn) {
+      btn.textContent = "▶ Lanjut";
+      btn.style.background = "var(--green)";
+      btn.style.borderColor = "var(--green)";
+      btn.style.color = "#fff";
+    }
+  } else if (_mediaRecorder && _mediaRecorder.state === "paused") {
+    _mediaRecorder.resume();
+    if (btn) {
+      btn.textContent = "⏸ Jeda";
+      btn.style.background = "";
+      btn.style.borderColor = "";
+      btn.style.color = "";
+    }
+  }
 }
 
 function hentikanPerekaman() {
@@ -9019,6 +9052,8 @@ function hentikanPerekaman() {
   document.getElementById('btnMulaiRekam').style.display = 'flex';
   document.getElementById('btnMulaiRekam').textContent = "🔴 Rekam Ulang";
   document.getElementById('btnHentikanRekam').style.display = 'none';
+  var btnJeda = document.getElementById('btnJedaRekam');
+  if (btnJeda) btnJeda.style.display = 'none';
 }
 
 function hapusRekamanLokal() {
@@ -10917,10 +10952,7 @@ function _renderHafalanList() {
 
     var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
     var audioPlayer = r.lampiran_url
-      ? '<div style="margin-top:6px;margin-bottom:6px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:6px 10px">'
-        + '<div style="font-size:10px;color:var(--blue);font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:4px">🎧 Rekaman Suara Setoran' + _esc(durText) + ':</div>'
-        + '<audio src="' + r.lampiran_url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
-        + '</div>'
+      ? _renderAudioPlayerHtml(r.lampiran_url, r.id_setoran, 'Rekaman Suara Setoran', durText)
       : '';
 
     return '<div class="hfal-card ' + (isPartner ? 'hfal-card-partner' : 'hfal-card-guru') + '">'
@@ -10979,6 +11011,98 @@ function _waLink(hp, msg) {
   if (!num) return '';
   return 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
 }
+
+function _renderAudioPlayerHtml(url, id, label, durText) {
+  var audId = 'aud_' + id;
+  return '<div style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+      + '<div style="font-size:10px;color:var(--blue);font-weight:800;display:flex;align-items:center;gap:4px">🎧 ' + _esc(label) + (durText || '') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--blue)">'
+        + '<span style="font-weight:600">Speed:</span>'
+        + '<select onchange="var a=document.getElementById(\'' + audId + '\');if(a)a.playbackRate=parseFloat(this.value)" style="background:var(--blue-bg);border:1px solid var(--blue-m);border-radius:6px;font-size:9.5px;font-weight:800;color:var(--blue);padding:1px 3px;cursor:pointer">'
+          + '<option value="1">1.0x</option>'
+          + '<option value="1.25">1.25x</option>'
+          + '<option value="1.5">1.5x</option>'
+          + '<option value="2">2.0x</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+    + '<audio id="' + audId + '" src="' + url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
+    + '</div>';
+}
+
+// ── SYSTEM CADANGAN REKAMAN OFFLINE (IndexedDB) ──────────────────────
+var HQBackupDB = {
+  dbName: 'RattilBackupDB',
+  storeName: 'rekaman_suara',
+  
+  _open: function() {
+    return new Promise(function(resolve, reject) {
+      var req = indexedDB.open(HQBackupDB.dbName, 1);
+      req.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(HQBackupDB.storeName)) {
+          db.createObjectStore(HQBackupDB.storeName);
+        }
+      };
+      req.onsuccess = function(e) { resolve(e.target.result); };
+      req.onerror = function(e) { reject(e.target.error); };
+    });
+  },
+  
+  simpan: async function(key, blob, metadata) {
+    try {
+      var db = await HQBackupDB._open();
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(HQBackupDB.storeName, 'readwrite');
+        var store = tx.objectStore(HQBackupDB.storeName);
+        var req = store.put({
+          blob: blob,
+          metadata: metadata || {},
+          timestamp: Date.now()
+        }, key);
+        req.onsuccess = function() { resolve(true); };
+        req.onerror = function(e) { reject(e.target.error); };
+      });
+    } catch(e) {
+      console.warn("Gagal menyimpan cadangan IndexedDB: ", e);
+      return false;
+    }
+  },
+  
+  muat: async function(key) {
+    try {
+      var db = await HQBackupDB._open();
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(HQBackupDB.storeName, 'readonly');
+        var store = tx.objectStore(HQBackupDB.storeName);
+        var req = store.get(key);
+        req.onsuccess = function(e) { resolve(e.target.result || null); };
+        req.onerror = function(e) { reject(e.target.error); };
+      });
+    } catch(e) {
+      console.warn("Gagal memuat cadangan IndexedDB: ", e);
+      return null;
+    }
+  },
+  
+  hapus: async function(key) {
+    try {
+      var db = await HQBackupDB._open();
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(HQBackupDB.storeName, 'readwrite');
+        var store = tx.objectStore(HQBackupDB.storeName);
+        var req = store.delete(key);
+        req.onsuccess = function() { resolve(true); };
+        req.onerror = function(e) { reject(e.target.error); };
+      });
+    } catch(e) {
+      console.warn("Gagal menghapus cadangan IndexedDB: ", e);
+      return false;
+    }
+  }
+};
+
 
 // ── Tab Partner Qiyam ────────────────────────────────────────────────
 var _pqInitialized = false;
@@ -11505,10 +11629,7 @@ async function loadPartnerMenunggu() {
 
       var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
       var audioPlayer = r.lampiran_url
-        ? '<div style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
-          + '<div style="font-size:10px;color:var(--blue);font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:4px">🎧 Rekaman Suara Setoran' + _esc(durText) + ':</div>'
-          + '<audio src="' + r.lampiran_url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
-          + '</div>'
+        ? _renderAudioPlayerHtml(r.lampiran_url, id, 'Rekaman Suara Setoran', durText)
         : '';
 
       return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
@@ -11647,8 +11768,16 @@ function mulaiPerekamanQiyam() {
       document.getElementById('pqDurasiRekam').textContent = "00:00";
       document.getElementById('btnMulaiRekamQiyam').style.display = 'none';
       document.getElementById('btnHentikanRekamQiyam').style.display = 'flex';
+      var btnJeda = document.getElementById('btnJedaRekamQiyam');
+      if (btnJeda) {
+        btnJeda.style.display = 'flex';
+        btnJeda.textContent = "⏸ Jeda";
+        btnJeda.style.background = "";
+        btnJeda.style.color = "";
+      }
       
       _pqDurasiInterval = setInterval(function() {
+        if (_pqMediaRecorder && _pqMediaRecorder.state === "paused") return;
         _pqDetikRekam++;
         var m = String(Math.floor(_pqDetikRekam / 60)).padStart(2, '0');
         var s = String(_pqDetikRekam % 60).padStart(2, '0');
@@ -11658,6 +11787,25 @@ function mulaiPerekamanQiyam() {
     .catch(function(err) {
       toast("Gagal mengakses mikrofon: " + err.message, "err");
     });
+}
+
+function jedaPerekamanQiyam() {
+  var btn = document.getElementById('btnJedaRekamQiyam');
+  if (_pqMediaRecorder && _pqMediaRecorder.state === "recording") {
+    _pqMediaRecorder.pause();
+    if (btn) {
+      btn.textContent = "▶ Lanjut";
+      btn.style.background = "#16a34a"; // Green
+      btn.style.color = "#fff";
+    }
+  } else if (_pqMediaRecorder && _pqMediaRecorder.state === "paused") {
+    _pqMediaRecorder.resume();
+    if (btn) {
+      btn.textContent = "⏸ Jeda";
+      btn.style.background = "";
+      btn.style.color = "";
+    }
+  }
 }
 
 function hentikanPerekamanQiyam() {
@@ -11671,6 +11819,8 @@ function hentikanPerekamanQiyam() {
   document.getElementById('btnMulaiRekamQiyam').style.display = 'flex';
   document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Ulang";
   document.getElementById('btnHentikanRekamQiyam').style.display = 'none';
+  var btnJeda = document.getElementById('btnJedaRekamQiyam');
+  if (btnJeda) btnJeda.style.display = 'none';
 }
 
 function hapusRekamanQiyamLokal() {
@@ -12466,9 +12616,8 @@ var _hfActiveTab = 'riwayat';
 
 function switchHafalanTab(tab) {
   // Hentikan perekaman Qiyam aktif jika berpindah tab dari partner
-  if (tab !== 'partner' && typeof _pqMediaRecorder !== 'undefined' && _pqMediaRecorder && _pqMediaRecorder.state !== 'inactive') {
-    _pqMediaRecorder.stop();
-    if (_pqDurasiInterval) { clearInterval(_pqDurasiInterval); _pqDurasiInterval = null; }
+  if (tab !== 'partner' && typeof hentikanPerekamanQiyam === 'function') {
+    hentikanPerekamanQiyam();
   }
 
   _hfActiveTab = tab;
@@ -13955,9 +14104,8 @@ function closeModal(id) {
   var el = document.getElementById(id);
   if (el) { el.classList.remove('open'); document.body.style.overflow=''; }
   if (id === 'latihanModal') {
-    if (typeof _mediaRecorder !== 'undefined' && _mediaRecorder && _mediaRecorder.state !== 'inactive') {
-      _mediaRecorder.stop();
-      if (_durasiInterval) { clearInterval(_durasiInterval); _durasiInterval = null; }
+    if (typeof hentikanPerekaman === 'function') {
+      hentikanPerekaman();
     }
   }
 }
