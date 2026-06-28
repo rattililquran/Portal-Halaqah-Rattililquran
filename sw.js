@@ -1,6 +1,6 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v8.26 — caching konservatif + offline HTML fallback
+//  Cache version: v8.27 — caching konservatif + offline HTML fallback
 // ============================================================
 //
 //  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze
@@ -19,7 +19,7 @@
 //   3. Halaman HTML (index/guru/murid/admin) di-cache dengan strategi
 //      Network-First. Saat online selalu mengambil versi fresh dari
 //      network dan memperbarui cache, saat offline/tidak ada jaringan
-//      maka akan fallback ke cache sehingga PWA tetap berfungsi dan
+//      maka akan fallback ke cache sehingga PWA tetap berfungsi and
 //      tidak memunculkan game dino Chrome.
 //   4. Request cross-origin (Supabase API) TIDAK PERNAH dicegat —
 //      selalu langsung ke network seperti website biasa.
@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.26';
+const CACHE_NAME = 'halaqah-v8.27';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {

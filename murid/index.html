@@ -9150,7 +9150,6 @@ async function kirimLaporanPR() {
       var uploadResult = await new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", gasUrl, true);
-        xhr.setRequestHeader("Content-Type", "text/plain");
         
         xhr.upload.addEventListener("progress", function(e) {
           if (e.lengthComputable) {
@@ -9168,8 +9167,9 @@ async function kirimLaporanPR() {
           }
         };
         
-        xhr.onerror = function() {
-          reject(new Error("Terjadi kesalahan jaringan saat mengunggah audio. Silakan coba kirim kembali."));
+        xhr.onerror = function(e) {
+          console.error("XHR Upload Error:", e, xhr.status, xhr.statusText);
+          reject(new Error("Gagal mengunggah berkas suara (status: " + xhr.status + "). Silakan coba kirim kembali."));
         };
         
         xhr.send(JSON.stringify(uploadPayload));
@@ -12192,7 +12192,6 @@ async function submitSetoranMandiri() {
       var uploadResult = await new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", gasUrl, true);
-        xhr.setRequestHeader("Content-Type", "text/plain");
         
         xhr.upload.addEventListener("progress", function(e) {
           if (e.lengthComputable) {
@@ -12210,8 +12209,9 @@ async function submitSetoranMandiri() {
           }
         };
         
-        xhr.onerror = function() {
-          reject(new Error("Terjadi kesalahan jaringan saat mengunggah audio. Silakan coba kirim kembali."));
+        xhr.onerror = function(e) {
+          console.error("XHR Upload Error:", e, xhr.status, xhr.statusText);
+          reject(new Error("Gagal mengunggah berkas suara (status: " + xhr.status + "). Silakan coba kirim kembali."));
         };
         
         xhr.send(JSON.stringify(uploadPayload));
