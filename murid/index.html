@@ -11007,7 +11007,7 @@ function _renderHafalanList() {
 
     var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
     var audioPlayer = r.lampiran_url
-      ? _renderAudioPlayerHtml(r.lampiran_url, r.id_setoran, 'Rekaman Suara Setoran', durText)
+      ? _renderAudioPlayerHtml(r.lampiran_url, 'aud_riwayat_' + r.id_setoran, 'Rekaman Suara Setoran', durText)
       : '';
 
     return '<div class="hfal-card ' + (isPartner ? 'hfal-card-partner' : 'hfal-card-guru') + '">'
@@ -11067,10 +11067,9 @@ function _waLink(hp, msg) {
   return 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
 }
 
-function _renderAudioPlayerHtml(url, id, label, durText) {
+function _renderAudioPlayerHtml(url, containerId, label, durText) {
   if (url && url.includes('id=')) {
     var fileId = url.split('id=')[1].split('&')[0];
-    var containerId = 'aud_container_' + id;
     return '<div id="' + containerId + '" style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
       + '<button class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%; border:1px solid var(--blue-m); color:var(--blue); background:var(--blue-bg); display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-weight:700" '
       + 'onclick="putarAudioInline(\'' + containerId + '\', \'' + fileId + '\')">'
@@ -11079,7 +11078,7 @@ function _renderAudioPlayerHtml(url, id, label, durText) {
       + '</div>';
   }
 
-  var audId = 'aud_' + id;
+  var audId = 'aud_' + containerId;
   return '<div style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
       + '<div style="font-size:10px;color:var(--blue);font-weight:800;display:flex;align-items:center;gap:4px">🎧 ' + _esc(label) + (durText || '') + '</div>'
@@ -11925,7 +11924,7 @@ async function loadPartnerMenunggu() {
       if (r.lampiran_url) {
         // Skenario A: Ada rekaman suara
         var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
-        var audioPlayer = _renderAudioPlayerHtml(r.lampiran_url, id, 'Rekaman Suara Setoran', durText);
+        var audioPlayer = _renderAudioPlayerHtml(r.lampiran_url, 'aud_partner_' + id, 'Rekaman Suara Setoran', durText);
         
         audioArea = '<div style="margin-bottom:4px">'
           + '<div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">🔊 Simak rekaman suara di aplikasi:</div>'
