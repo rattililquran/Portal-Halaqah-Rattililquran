@@ -11068,6 +11068,17 @@ function _waLink(hp, msg) {
 }
 
 function _renderAudioPlayerHtml(url, id, label, durText) {
+  if (url && url.includes('id=')) {
+    var fileId = url.split('id=')[1].split('&')[0];
+    var containerId = 'aud_container_' + id;
+    return '<div id="' + containerId + '" style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
+      + '<button class="btn btn-outline" style="font-size:12px; padding:6px 12px; border-radius:8px; width: 100%; border:1px solid var(--blue-m); color:var(--blue); background:var(--blue-bg); display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-weight:700" '
+      + 'onclick="putarAudioInline(\'' + containerId + '\', \'' + fileId + '\')">'
+      + '▶ Unduh & Putar Rekaman' + (durText || '')
+      + '</button>'
+      + '</div>';
+  }
+
   var audId = 'aud_' + id;
   return '<div style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
