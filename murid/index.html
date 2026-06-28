@@ -9063,7 +9063,8 @@ async function kirimLaporanPR() {
       reader.readAsDataURL(_rekamanBlob);
       var base64Data = await base64Promise;
       
-      // 3. Kirim ke GAS Web App
+      // 3. Kirim ke GAS Web App dengan XHR untuk melacak progres
+      showLoad("Bismillah, mengunggah rekaman tugas (0%)...");
       var gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
       var uploadPayload = {
         token: uploadToken,
@@ -9072,12 +9073,34 @@ async function kirimLaporanPR() {
         mimeType: _rekamanBlob.type
       };
       
-      var gasRes = await fetch(gasUrl, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify(uploadPayload)
+      var uploadResult = await new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", gasUrl, true);
+        xhr.setRequestHeader("Content-Type", "text/plain");
+        
+        xhr.upload.addEventListener("progress", function(e) {
+          if (e.lengthComputable) {
+            var pct = Math.round((e.loaded / e.total) * 100);
+            showLoad("Bismillah, mengunggah rekaman tugas (" + pct + "%)... Mohon jangan tutup aplikasi.");
+          }
+        });
+        
+        xhr.onload = function() {
+          try {
+            var res = JSON.parse(xhr.responseText);
+            resolve(res);
+          } catch(err) {
+            reject(new Error("Format respon server tidak valid."));
+          }
+        };
+        
+        xhr.onerror = function() {
+          reject(new Error("Terjadi kesalahan jaringan saat mengunggah audio. Silakan coba kirim kembali."));
+        };
+        
+        xhr.send(JSON.stringify(uploadPayload));
       });
-      var uploadResult = await gasRes.json();
+      
       if (uploadResult.status !== "success") {
         throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
       }
