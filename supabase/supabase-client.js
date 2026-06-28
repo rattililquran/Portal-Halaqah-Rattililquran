@@ -2116,7 +2116,7 @@ var GuruAPI = {
   // Daftar setoran partner yang masih menunggu di sebuah halaqah (untuk guru konfirmasi)
   getSetoranPartnerMenungguHalaqah: async function(id_halaqah) {
     var { data, error } = await _sb.from('setoran_hafalan')
-      .select('id_setoran, id_murid, nama_murid, jenis, surat, juz, ayat_dari, ayat_sampai, catatan, created_at')
+      .select('id_setoran, id_murid, nama_murid, jenis, surat, juz, ayat_dari, ayat_sampai, catatan, created_at, lampiran_url, audio_durasi_detik')
       .eq('id_halaqah', id_halaqah).eq('sumber', 'partner').eq('status_konfirmasi', 'menunggu')
       .order('created_at', { ascending: true });
     _check(error, 'getSetoranPartnerMenungguHalaqah');
@@ -3380,6 +3380,8 @@ var MuridAPI = {
       sumber      : 'partner',
       status_konfirmasi: 'menunggu',
       nilai       : null,
+      lampiran_url: d.lampiran_url || null,
+      audio_durasi_detik: d.audio_durasi_detik ? parseInt(d.audio_durasi_detik) : null,
     };
     if (d.tanggal) {
       payload.created_at = new Date(d.tanggal + 'T12:00:00').toISOString();
@@ -3520,6 +3522,8 @@ var MuridAPI = {
     if (d.ayat_dari  !== undefined) payload.ayat_dari  = parseInt(d.ayat_dari);
     if (d.ayat_sampai!== undefined) payload.ayat_sampai= parseInt(d.ayat_sampai);
     if (d.catatan    !== undefined) payload.catatan    = d.catatan || null;
+    if (d.lampiran_url !== undefined) payload.lampiran_url = d.lampiran_url || null;
+    if (d.audio_durasi_detik !== undefined) payload.audio_durasi_detik = d.audio_durasi_detik ? parseInt(d.audio_durasi_detik) : null;
     var { error } = await _sb.from('setoran_hafalan').update(payload)
       .eq('id_setoran', id_setoran).eq('id_murid', _uid())
       .eq('sumber', 'partner').eq('status_konfirmasi', 'menunggu');

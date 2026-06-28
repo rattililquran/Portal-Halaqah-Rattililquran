@@ -4541,6 +4541,31 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
               <textarea class="fc" id="pqCatatan" rows="2" placeholder="Mis: tolong perhatikan tajwid ayat 5-7, aku masih ragu..." style="resize:vertical"></textarea>
             </div>
 
+            <!-- Rekaman Suara Setoran Qiyam -->
+            <div style="margin-bottom:12px">
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Rekaman Setoran (Opsional)</label>
+              
+              <!-- Preview & Player -->
+              <div id="pqPlayerWadah" style="display:none;background:var(--blue-bg);border:1px solid var(--blue-m);border-radius:12px;padding:8px 10px;margin-bottom:8px">
+                <audio id="pqAudioPreview" controls style="width:100%;height:32px"></audio>
+                <div style="display:flex;justify-content:space-between;margin-top:4px">
+                  <span style="font-size:10px;color:var(--blue);font-weight:700">Pratinjau Rekaman Setoran</span>
+                  <button type="button" onclick="hapusRekamanQiyamLokal()" style="border:none;background:none;color:var(--red);font-size:10.5px;font-weight:800;cursor:pointer">✕ Hapus</button>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div style="display:flex;align-items:center;gap:8px">
+                <button type="button" id="btnMulaiRekamQiyam" onclick="mulaiPerekamanQiyam()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--red-bg);color:var(--red-txt);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer">
+                  🔴 Rekam Suara
+                </button>
+                <button type="button" id="btnHentikanRekamQiyam" onclick="hentikanPerekamanQiyam()" style="flex:1;display:none;align-items:center;justify-content:center;gap:6px;background:var(--amber-bg);color:var(--amber-txt);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:8px;font-size:12px;font-weight:800;cursor:pointer;animation:pulse 1.5s infinite">
+                  ⏹ Hentikan Perekaman
+                </button>
+                <span id="pqDurasiRekam" style="font-family:monospace;font-size:12px;font-weight:700;color:var(--text-2);padding:0 4px">00:00</span>
+              </div>
+            </div>
+
             <button id="pqSubmitBtn" onclick="submitSetoranMandiri()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%">
               🤝 Simpan & Kirim ke Partner
             </button>
@@ -10853,6 +10878,14 @@ function _renderHafalanList() {
       sumberInfo = _esc(r.nama_guru || '-');
     }
 
+    var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
+    var audioPlayer = r.lampiran_url
+      ? '<div style="margin-top:6px;margin-bottom:6px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:6px 10px">'
+        + '<div style="font-size:10px;color:var(--blue);font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:4px">🎧 Rekaman Suara Setoran' + _esc(durText) + ':</div>'
+        + '<audio src="' + r.lampiran_url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
+        + '</div>'
+      : '';
+
     return '<div class="hfal-card ' + (isPartner ? 'hfal-card-partner' : 'hfal-card-guru') + '">'
       + '<div class="hfal-icon hfal-icon-' + iconName + '">' + icon + '</div>'
       + '<div style="flex:1;min-width:0">'
@@ -10866,7 +10899,7 @@ function _renderHafalanList() {
         + '<div style="font-size:12px;color:var(--text-2);margin-bottom:2px">Ayat <strong>' + _esc(r.ayat_dari) + '</strong> – <strong>' + _esc(r.ayat_sampai) + '</strong>'
           + (r.kelancaran ? ' &nbsp;·&nbsp; ' + _esc(r.kelancaran) : '') + '</div>'
         + '<div style="font-size:11px;color:var(--text-3)">' + _fmtDateHafalan(r.updated_at || r.created_at) + ' &nbsp;·&nbsp; ' + sumberInfo + '</div>'
-        + catatan + target + responsPartner + pendingActions
+        + catatan + target + audioPlayer + responsPartner + pendingActions
       + '</div>'
     + '</div>';
   }).join('');
@@ -10914,6 +10947,11 @@ function _waLink(hp, msg) {
 var _pqInitialized = false;
 var _pqKelompok    = null;
 var _pqZiyadahMap  = null; // { suratLower: [{ayat_dari,ayat_sampai}, ...] (merged) }
+var _pqMediaRecorder = null;
+var _pqRecordedChunks = [];
+var _pqRekamanBlob = null;
+var _pqDetikRekam = 0;
+var _pqDurasiInterval = null;
 
 var _pqSuratData = [
   {no:1,latin:'Al-Fatihah',juz:[1],ayat:7},{no:2,latin:'Al-Baqarah',juz:[1,2,3],ayat:286},
@@ -11428,6 +11466,14 @@ async function loadPartnerMenunggu() {
           + 'style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;line-height:1">' + em + '</button>';
       }).join('');
 
+      var durText = r.audio_durasi_detik ? ' (' + Math.floor(r.audio_durasi_detik / 60) + ':' + String(r.audio_durasi_detik % 60).padStart(2, '0') + ')' : '';
+      var audioPlayer = r.lampiran_url
+        ? '<div style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
+          + '<div style="font-size:10px;color:var(--blue);font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:4px">🎧 Rekaman Suara Setoran' + _esc(durText) + ':</div>'
+          + '<audio src="' + r.lampiran_url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
+          + '</div>'
+        : '';
+
       return '<div style="background:var(--card-solid);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">'
         + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px">'
           + '<span style="font-weight:800;font-size:13px;color:var(--text)">' + _esc(r.nama_murid) + ' ingin setor</span>'
@@ -11436,6 +11482,7 @@ async function loadPartnerMenunggu() {
         + '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px">' + icon + ' ' + _esc(r.jenis) + ' · Juz ' + _esc(r.juz || '-') + ' · ' + _esc(r.surat) + ' ayat ' + _esc(r.ayat_dari) + '-' + _esc(r.ayat_sampai) + '</div>'
         + (r.catatan ? '<div style="font-size:11px;color:var(--blue);margin-bottom:8px;font-weight:600">🎯 Titip fokus: ' + _esc(r.catatan) + '</div>' : '')
         + '<div style="margin-bottom:10px">' + waBtn + '</div>'
+        + audioPlayer
         + '<div style="border-top:1px dashed var(--border);padding-top:10px">'
           + '<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Setelah menyimak, beri hasilnya</div>'
           + '<select class="fc" id="pqKel_' + id + '" style="width:100%;margin-bottom:6px">' + kelOpts + '</select>'
@@ -11520,6 +11567,81 @@ function _pqShowMurajaahHint() {
   }
 }
 
+// ── LOGIKA REKAMAN SUARA QIYAM (ASINKRONUS) ──────────────────────────
+function mulaiPerekamanQiyam() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      _pqRecordedChunks = [];
+      var mime = "audio/webm";
+      
+      // Batasi hanya webm dan mp4 (terkompresi) untuk rekaman qiyam panjang
+      if (typeof MediaRecorder !== "undefined" && !MediaRecorder.isTypeSupported(mime)) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mime = "audio/mp4";
+        } else {
+          toast("Browser Anda tidak mendukung rekaman audio terkompresi (webm/mp4). Silakan gunakan Chrome, Safari, atau Firefox versi terbaru.", "warn");
+          stream.getTracks().forEach(function(track) { track.stop(); });
+          return;
+        }
+      }
+      
+      _pqMediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+      _pqMediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) _pqRecordedChunks.push(e.data);
+      };
+      
+      _pqMediaRecorder.onstop = function() {
+        _pqRekamanBlob = new Blob(_pqRecordedChunks, { type: mime });
+        var audioUrl = URL.createObjectURL(_pqRekamanBlob);
+        var player = document.getElementById('pqAudioPreview');
+        if (player) {
+          player.src = audioUrl;
+          document.getElementById('pqPlayerWadah').style.display = 'block';
+        }
+        stream.getTracks().forEach(function(track) { track.stop(); });
+      };
+
+      _pqMediaRecorder.start();
+      _pqDetikRekam = 0;
+      document.getElementById('pqDurasiRekam').textContent = "00:00";
+      document.getElementById('btnMulaiRekamQiyam').style.display = 'none';
+      document.getElementById('btnHentikanRekamQiyam').style.display = 'flex';
+      
+      _pqDurasiInterval = setInterval(function() {
+        _pqDetikRekam++;
+        var m = String(Math.floor(_pqDetikRekam / 60)).padStart(2, '0');
+        var s = String(_pqDetikRekam % 60).padStart(2, '0');
+        document.getElementById('pqDurasiRekam').textContent = m + ":" + s;
+      }, 1000);
+    })
+    .catch(function(err) {
+      toast("Gagal mengakses mikrofon: " + err.message, "err");
+    });
+}
+
+function hentikanPerekamanQiyam() {
+  if (_pqMediaRecorder && _pqMediaRecorder.state !== "inactive") {
+    _pqMediaRecorder.stop();
+  }
+  if (_pqDurasiInterval) {
+    clearInterval(_pqDurasiInterval);
+    _pqDurasiInterval = null;
+  }
+  document.getElementById('btnMulaiRekamQiyam').style.display = 'flex';
+  document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Ulang";
+  document.getElementById('btnHentikanRekamQiyam').style.display = 'none';
+}
+
+function hapusRekamanQiyamLokal() {
+  _pqRekamanBlob = null;
+  _pqRecordedChunks = [];
+  var player = document.getElementById('pqAudioPreview');
+  if (player) player.src = '';
+  document.getElementById('pqPlayerWadah').style.display = 'none';
+  document.getElementById('pqDurasiRekam').textContent = "00:00";
+  document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Suara";
+}
+
 async function submitSetoranMandiri() {
   var jenis      = document.getElementById('pqJenisSel').value;
   var tanggal    = document.getElementById('pqTanggal').value;
@@ -11545,11 +11667,89 @@ async function submitSetoranMandiri() {
     }
   }
 
+  // [ENHANCEMENT] Validasi Rekaman Singkat
+  if (_pqRekamanBlob && _pqDetikRekam < 5) {
+    if (!confirm("Rekaman setoran sangat singkat (" + _pqDetikRekam + " detik). Tetap kirim?")) {
+      return;
+    }
+  }
+
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+
   try {
+    var lampiranUrl = "";
+    var audioDurasi = _pqRekamanBlob ? _pqDetikRekam : null;
+    
+    if (_pqRekamanBlob) {
+      showLoad("Bismillah, menyiapkan unggahan...");
+      
+      // 1. Dapatkan token unggah dari Supabase
+      var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+      var uploadToken = tokRes.token;
+      
+      // 2. Baca file suara sebagai Base64
+      var reader = new FileReader();
+      var base64Promise = new Promise(function(resolve, reject) {
+        reader.onloadend = function() {
+          var base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(_pqRekamanBlob);
+      var base64Data = await base64Promise;
+      
+      // 3. Kirim ke GAS Web App dengan XHR untuk melacak progres [ENHANCEMENT]
+      showLoad("Bismillah, mengunggah rekaman setoran (0%)...");
+      var gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
+      var uploadPayload = {
+        token: uploadToken,
+        base64Data: base64Data,
+        fileName: "Qiyam-" + _uid() + "-" + Date.now() + "." + (_pqRekamanBlob.type.split('/')[1] || "webm"),
+        mimeType: _pqRekamanBlob.type
+      };
+      
+      var uploadResult = await new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", gasUrl, true);
+        xhr.setRequestHeader("Content-Type", "text/plain");
+        
+        xhr.upload.addEventListener("progress", function(e) {
+          if (e.lengthComputable) {
+            var pct = Math.round((e.loaded / e.total) * 100);
+            showLoad("Bismillah, mengunggah rekaman setoran (" + pct + "%)... Mohon jangan tutup aplikasi.");
+          }
+        });
+        
+        xhr.onload = function() {
+          try {
+            var res = JSON.parse(xhr.responseText);
+            resolve(res);
+          } catch(err) {
+            reject(new Error("Format respon server tidak valid."));
+          }
+        };
+        
+        xhr.onerror = function() {
+          reject(new Error("Terjadi kesalahan jaringan saat mengunggah audio. Silakan coba kirim kembali."));
+        };
+        
+        xhr.send(JSON.stringify(uploadPayload));
+      });
+      
+      if (uploadResult.status !== "success") {
+        throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
+      }
+      lampiranUrl = uploadResult.url;
+    }
+
     if (_pqEditId) {
       await window.HQ.MuridAPI.updateSetoranMandiri(_pqEditId, {
         jenis: jenis, surat: suratData.latin, juz: juz,
         ayat_dari: ayatDari, ayat_sampai: ayatSampai, catatan: catatan,
+        lampiran_url: lampiranUrl || null,
+        audio_durasi_detik: audioDurasi
       });
       toast('Setoran diperbarui ✓', 'ok');
       pqCancelEdit();
@@ -11563,16 +11763,30 @@ async function submitSetoranMandiri() {
         ayat_sampai : ayatSampai,
         catatan     : catatan,
         tanggal     : tanggal,
+        lampiran_url: lampiranUrl || null,
+        audio_durasi_detik: audioDurasi
       });
       toast('Setoran berhasil dikirim ke partner ✓', 'ok');
     }
+    
+    // Reset form & file lokal
     document.getElementById('pqSuratInput').value  = '';
     document.getElementById('pqJuzInput').value    = '';
     document.getElementById('pqAyatDari').value    = '';
     document.getElementById('pqAyatSampai').value  = '';
     document.getElementById('pqCatatan').value     = '';
     document.getElementById('pqMurajaahHint').style.display = 'none';
+    
+    hapusRekamanQiyamLokal(); // [ENHANCEMENT] Reset rekaman lokal setelah sukses
     await loadSetoranHafalan(true);
+    
+  } catch (e) {
+    toast(friendlyError(e), "err"); // [ENHANCEMENT] Bila gagal, rekaman tidak dihapus agar murid bisa re-submit
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🤝 Simpan & Kirim ke Partner'; }
+    hideLoad();
+  }
+}
     await _pqLoadZiyadahMap();
     loadPartnerLiniMasa();
   } catch(e) {
