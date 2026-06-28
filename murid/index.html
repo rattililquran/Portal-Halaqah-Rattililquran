@@ -6973,16 +6973,25 @@ window.addEventListener('DOMContentLoaded', function() {
   var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
   var us = JSON.parse(sessionStorage.getItem('hq_user') || localStorage.getItem('hq_user') || 'null');
   if (tk && us && us.role === 'murid') {
-    // Deteksi return dari halaman pembayaran Mayar
     var urlParams = new URLSearchParams(window.location.search);
+    var targetPage = urlParams.get('page');
+    var targetTab = urlParams.get('tab');
     if (urlParams.get('payment') === 'success') {
-      // Bersihkan query string tanpa reload
       history.replaceState(null, '', window.location.pathname);
       startApp();
-      // Tunda toast & navigasi ke SPP hingga app siap
       setTimeout(function() {
         toast('Pembayaran sedang diproses — status akan diperbarui otomatis dalam beberapa saat ✅', 'ok');
         goPage('spp');
+      }, 1200);
+      return;
+    } else if (targetPage) {
+      history.replaceState(null, '', window.location.pathname);
+      startApp();
+      setTimeout(function() {
+        goPage(targetPage);
+        if (targetPage === 'hafalan' && targetTab) {
+          switchHafalanTab(targetTab);
+        }
       }, 1200);
       return;
     }

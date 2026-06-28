@@ -2086,10 +2086,31 @@ var GuruAPI = {
 
   // #3 Konfirmasi setoran partner oleh guru/admin (jalan keluar bila partner berhalangan)
   guruKonfirmasiSetoran: async function(id_setoran, kelancaran, catatan) {
+    var logData = null;
+    try {
+      var { data } = await _sb.from('setoran_hafalan')
+        .select('id_murid, jenis, surat, ayat_dari, ayat_sampai')
+        .eq('id_setoran', id_setoran)
+        .single();
+      logData = data;
+    } catch(e) {}
+
     var { error } = await _sb.rpc('guru_konfirmasi_setoran_partner', {
       p_id_setoran: id_setoran, p_kelancaran: kelancaran, p_catatan: catatan || null,
     });
     _check(error, 'guruKonfirmasiSetoran');
+
+    if (logData && logData.id_murid) {
+      _sendPushBg({
+        user_ids: [logData.id_murid],
+        title   : '✓ Setoran Dikonfirmasi (Guru)',
+        body    : 'Setoran "' + logData.jenis + ' ' + logData.surat + ' Ayat ' + logData.ayat_dari + '-' + logData.ayat_sampai + '" kamu telah dikonfirmasi oleh Guru Halaqah!',
+        url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=hafalan&tab=partner',
+        tag     : 'partner-qiyam-konf-' + id_setoran,
+        data    : { trigger: 'partner_qiyam_konf', id_setoran: id_setoran }
+      });
+    }
+
     return { status: 'ok' };
   },
   // Daftar setoran partner yang masih menunggu di sebuah halaqah (untuk guru konfirmasi)
@@ -3365,6 +3386,38 @@ var MuridAPI = {
     }
     var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
     _check(error, 'addSetoranMandiri');
+
+    // Kirim push notification ke partner sekelompok qiyam
+    if (data) {
+      (async function() {
+        try {
+          var { data: memberRow } = await _sb.from('anggota_kelompok_partner')
+            .select('id_kelompok')
+            .eq('id_murid', _uid())
+            .maybeSingle();
+          if (memberRow && memberRow.id_kelompok) {
+            var { data: partners } = await _sb.from('anggota_kelompok_partner')
+              .select('id_murid')
+              .eq('id_kelompok', memberRow.id_kelompok)
+              .neq('id_murid', _uid());
+            var partnerIds = (partners || []).map(function(p) { return p.id_murid; });
+            if (partnerIds.length) {
+              _sendPushBg({
+                user_ids: partnerIds,
+                title   : '🕌 Setoran Qiyam Baru',
+                body    : payload.nama_murid + ' menyetor hafalan baru: ' + payload.jenis + ' ' + payload.surat + ' Ayat ' + payload.ayat_dari + '-' + payload.ayat_sampai + '. Ketuk untuk menyimak!',
+                url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=hafalan&tab=partner',
+                tag     : 'partner-qiyam-baru-' + memberRow.id_kelompok,
+                data    : { trigger: 'partner_qiyam_baru', id_kelompok: memberRow.id_kelompok }
+              });
+            }
+          }
+        } catch(e) {
+          console.error('Gagal mengirim push Qiyam ke partner:', e);
+        }
+      })();
+    }
+
     return { status: 'ok', data };
   },
 
@@ -3377,6 +3430,15 @@ var MuridAPI = {
 
   // Konfirmasi setoran mandiri partner + isi kelancaran, catatan & reaksi
   konfirmasiSetoranPartner: async function(id_setoran, kelancaran, catatan_partner, reaksi_partner) {
+    var logData = null;
+    try {
+      var { data } = await _sb.from('setoran_hafalan')
+        .select('id_murid, jenis, surat, ayat_dari, ayat_sampai')
+        .eq('id_setoran', id_setoran)
+        .single();
+      logData = data;
+    } catch(e) {}
+
     var { error } = await _sb.rpc('konfirmasi_setoran_partner', {
       p_id_setoran      : id_setoran,
       p_kelancaran      : kelancaran,
@@ -3384,6 +3446,20 @@ var MuridAPI = {
       p_reaksi_partner  : reaksi_partner || null,
     });
     _check(error, 'konfirmasiSetoranPartner');
+
+    if (logData && logData.id_murid) {
+      var partnerUser = _currentUser || {};
+      var partnerNama = (partnerUser && (partnerUser.nama_lengkap || partnerUser.nama)) || 'Partner';
+      _sendPushBg({
+        user_ids: [logData.id_murid],
+        title   : '✓ Setoran Dikonfirmasi',
+        body    : 'Setoran "' + logData.jenis + ' ' + logData.surat + ' Ayat ' + logData.ayat_dari + '-' + logData.ayat_sampai + '" kamu telah dikonfirmasi oleh ' + partnerNama + '!',
+        url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=hafalan&tab=partner',
+        tag     : 'partner-qiyam-konf-' + id_setoran,
+        data    : { trigger: 'partner_qiyam_konf', id_setoran: id_setoran }
+      });
+    }
+
     return { status: 'ok' };
   },
 
