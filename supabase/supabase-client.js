@@ -2872,15 +2872,6 @@ var MuridAPI = {
 
   getLatihanMandiri: async function() {
     var id_murid = _uid();
-    var { data: ang } = await _sb.from('anggota')
-      .select('level')
-      .eq('id_murid', id_murid)
-      .eq('status', 'aktif')
-      .maybeSingle();
-    var targetJenis = 'KBM Reguler';
-    if (ang && ang.level === 'Level Qiyam') targetJenis = 'KBM Qiyam';
-    else if (ang && ang.level === 'Micro Teaching') targetJenis = 'Micro Teaching';
-
     var { data, error } = await _sb.from('nilai_kbm')
       .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi,referensi_url)')
       .eq('id_murid', id_murid).in('status_hadir',['H','T'])
@@ -2890,8 +2881,7 @@ var MuridAPI = {
     var today = new Date().toISOString().slice(0,10);
     var rows = (data||[])
       .filter(function(n){
-        var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
-        return n.kbm_log && n.kbm_log.latihan_mandiri && jenis === targetJenis;
+        return n.kbm_log && n.kbm_log.latihan_mandiri;
       })
       .map(function(n) {
         var dl = n.kbm_log.deadline_latihan;
