@@ -2277,10 +2277,31 @@ var GuruAPI = {
 
   // Konfirmasi aktivitas belajar oleh guru/admin (jalan keluar bila partner berhalangan)
   guruKonfirmasiLogBelajar: async function(id_log, kelancaran, catatan) {
+    var logData = null;
+    try {
+      var { data } = await _sb.from('log_belajar_mandiri')
+        .select('id_murid, jenis_aktivitas')
+        .eq('id_log', id_log)
+        .single();
+      logData = data;
+    } catch(e) {}
+
     var { error } = await _sb.rpc('guru_konfirmasi_log_belajar', {
       p_id_log: id_log, p_kelancaran: kelancaran, p_catatan: catatan || null,
     });
     _check(error, 'guruKonfirmasiLogBelajar');
+
+    if (logData && logData.id_murid) {
+      _sendPushBg({
+        user_ids: [logData.id_murid],
+        title   : '✓ Laporan Dikonfirmasi (Guru)',
+        body    : 'Aktivitas "' + logData.jenis_aktivitas + '" kamu telah dikonfirmasi oleh Guru Halaqah!',
+        url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=partner-belajar',
+        tag     : 'partner-belajar-konf-' + id_log,
+        data    : { trigger: 'partner_belajar_konf', id_log: id_log }
+      });
+    }
+
     return { status: 'ok' };
   },
   // Daftar aktivitas belajar yang masih menunggu di sebuah halaqah (untuk guru konfirmasi)
@@ -3516,6 +3537,32 @@ var MuridAPI = {
     if (d.tanggal) payload.tanggal = d.tanggal;
     var { data, error } = await _sb.from('log_belajar_mandiri').insert(payload).select().single();
     _check(error, 'addLogBelajar');
+
+    // Kirim push notification ke partner sekelompok
+    if (data && d.id_kelompok) {
+      (async function() {
+        try {
+          var { data: partners } = await _sb.from('anggota_kelompok_belajar')
+            .select('id_murid')
+            .eq('id_kelompok', d.id_kelompok)
+            .neq('id_murid', _uid());
+          var partnerIds = (partners || []).map(function(p) { return p.id_murid; });
+          if (partnerIds.length) {
+            _sendPushBg({
+              user_ids: partnerIds,
+              title   : '📝 Laporan Belajar Baru',
+              body    : payload.nama_murid + ' melaporkan aktivitas belajar baru: "' + payload.jenis_aktivitas + '". Ketuk untuk memberikan konfirmasi!',
+              url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=partner-belajar',
+              tag     : 'partner-belajar-baru-' + d.id_kelompok,
+              data    : { trigger: 'partner_belajar_baru', id_kelompok: d.id_kelompok }
+            });
+          }
+        } catch(e) {
+          console.error('Gagal mengirim push ke partner:', e);
+        }
+      })();
+    }
+
     return { status: 'ok', data: data };
   },
 
@@ -3528,6 +3575,15 @@ var MuridAPI = {
 
   // Konfirmasi aktivitas partner + isi kelancaran, catatan & reaksi
   konfirmasiLogBelajar: async function(id_log, kelancaran, catatan_partner, reaksi_partner) {
+    var logData = null;
+    try {
+      var { data } = await _sb.from('log_belajar_mandiri')
+        .select('id_murid, jenis_aktivitas')
+        .eq('id_log', id_log)
+        .single();
+      logData = data;
+    } catch(e) {}
+
     var { error } = await _sb.rpc('konfirmasi_log_belajar', {
       p_id_log          : id_log,
       p_kelancaran      : kelancaran,
@@ -3535,6 +3591,20 @@ var MuridAPI = {
       p_reaksi_partner  : reaksi_partner || null,
     });
     _check(error, 'konfirmasiLogBelajar');
+
+    if (logData && logData.id_murid) {
+      var partnerUser = _currentUser || {};
+      var partnerNama = (partnerUser && (partnerUser.nama_lengkap || partnerUser.nama)) || 'Partner';
+      _sendPushBg({
+        user_ids: [logData.id_murid],
+        title   : '✓ Laporan Dikonfirmasi',
+        body    : 'Aktivitas "' + logData.jenis_aktivitas + '" kamu telah dikonfirmasi oleh ' + partnerNama + '!',
+        url     : '/Portal-Halaqah-Rattililquran/murid/index.html?page=partner-belajar',
+        tag     : 'partner-belajar-konf-' + id_log,
+        data    : { trigger: 'partner_belajar_konf', id_log: id_log }
+      });
+    }
+
     return { status: 'ok' };
   },
 

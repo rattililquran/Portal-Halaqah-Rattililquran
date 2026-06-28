@@ -6196,50 +6196,7 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
     </div>
   </div>
 
-  <!-- MODAL PELACAK LATIHAN HARIAN -->
-  <div class="modal-overlay" id="latihanHarianModal" onclick="if(event.target===this)closeModal('latihanHarianModal')">
-    <div class="modal-sheet" style="border-radius:28px 28px 0 0" onclick="event.stopPropagation()">
-      <div class="modal-sheet-header" style="padding: 20px 20px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border)">
-        <div style="font-size: 16px; font-weight: 800; color: var(--text)">🔥 Log Latihan Mandiri Harian</div>
-        <button class="modal-x" onclick="closeModal('latihanHarianModal')" style="background: none; border: none; font-size: 18px; color: var(--text-3); cursor: pointer">✕</button>
-      </div>
-      <div class="modal-sheet-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
-        
-        <!-- Papan Streak info -->
-        <div style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.05)); border: 1.5px solid rgba(245,158,11,0.2); border-radius: 16px; padding: 14px; text-align: center; margin-bottom: 16px">
-          <div style="font-size: 32px; margin-bottom: 4px" id="lhStreakEmoji">🔥</div>
-          <div style="font-size: 18px; font-weight: 900; color: #d97706" id="lhStreakInfo">0 Hari Konsisten</div>
-          <div style="font-size: 11px; color: var(--text-3); margin-top: 2px">Berlatihlah minimal 5 menit setiap hari untuk menjaga rantai konsistensi Anda!</div>
-        </div>
 
-        <div class="fg" style="margin-bottom: 12px">
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Kategori Fokus Latihan</label>
-          <select class="fc" id="lhKategori" style="font-size: 13px;">
-            <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
-            <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
-            <option value="Hafalan Materi">🧠 Hafalan Materi</option>
-            <option value="Tajwid">📐 Tajwid</option>
-            <option value="Murajaah">🔄 Murajaah</option>
-            <option value="Lainnya">📌 Lainnya</option>
-          </select>
-        </div>
-
-        <div class="fg" style="margin-bottom: 12px">
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Durasi Latihan (Menit)</label>
-          <input type="number" class="fc" id="lhDurasi" min="1" value="15" style="font-size: 13px;">
-        </div>
-
-        <div class="fg" style="margin-bottom: 16px">
-          <label style="font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; margin-bottom: 4px">Catatan Latihan (Opsional)</label>
-          <textarea class="fc" id="lhCatatan" rows="2" placeholder="Apa yang Anda latih hari ini? (misal: lancarin makhraj huruf Kho, latih dengung...)" style="resize: vertical; font-size: 13px;"></textarea>
-        </div>
-
-        <div style="margin-top: 24px">
-          <button id="btnKirimLatihanHarian" onclick="kirimLatihanHarian()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px;">✅ Simpan Log Latihan</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL TENTANG -->
   <div class="modal-overlay" id="tentangModal" onclick="if(event.target===this)closeModal('tentangModal')">
@@ -9194,42 +9151,6 @@ async function putarAudioInline(containerId, fileId) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  HABIT TRACKER / LATIHAN HARIAN
-// ─────────────────────────────────────────────
-async function loadDailyStreak() {
-  try {
-    var res = await window.HQ.MuridAPI.getStreakLatihan();
-    var streak = res.streak || 0;
-    
-    var card = document.getElementById('latihanHarianCard');
-    if (card) {
-      var streakText = document.getElementById('dashLhStreakText');
-      var streakSubText = document.getElementById('dashLhStreakSubText');
-      var streakIcon = document.getElementById('dashLhStreakIcon');
-      
-      streakText.textContent = streak + " Hari Konsisten";
-      if (streak > 0) {
-        streakSubText.textContent = "Masya Allah, tingkatkan terus!";
-        streakIcon.textContent = "🔥";
-        card.classList.add('status-aktif');
-        card.classList.remove('status-belum');
-      } else {
-        streakSubText.textContent = "Belum berlatih hari ini";
-        streakIcon.textContent = "💤";
-        card.classList.add('status-belum');
-        card.classList.remove('status-aktif');
-      }
-    }
-    
-    var lhStreakInfo = document.getElementById('lhStreakInfo');
-    var lhStreakEmoji = document.getElementById('lhStreakEmoji');
-    if (lhStreakInfo) lhStreakInfo.textContent = streak + " Hari Konsisten";
-    if (lhStreakEmoji) lhStreakEmoji.textContent = streak > 0 ? "🔥" : "💤";
-  } catch(e) {
-    console.error("Gagal memuat streak latihan:", e);
-  }
-}
 
 // ── DASHBOARD: Lapor Aktivitas Belajar (Partner Belajar mini-form) ──
 async function loadDashPbCard() {
@@ -9292,36 +9213,7 @@ async function submitDashLogBelajar() {
   }
 }
 
-async function kirimLatihanHarian() {
-  var durasi = document.getElementById('lhDurasi').value;
-  var kategori = document.getElementById('lhKategori').value;
-  var catatan = document.getElementById('lhCatatan').value.trim();
-  
-  if (!durasi || durasi <= 0) {
-    toast("Durasi latihan wajib lebih dari 0 menit.", "warn");
-    return;
-  }
-  
-  showLoad("Bismillah, menyimpan...");
-  var btn = document.getElementById('btnKirimLatihanHarian');
-  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
-  
-  try {
-    await window.HQ.MuridAPI.logLatihanHarian(durasi, kategori, catatan);
-    toast("Log latihan harian berhasil disimpan! 🎉", "ok");
-    closeModal('latihanHarianModal');
-    
-    await loadDailyStreak();
-    
-    document.getElementById('lhDurasi').value = 15;
-    document.getElementById('lhCatatan').value = "";
-  } catch(e) {
-    toast(friendlyError(e), "err");
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "✅ Simpan Log Latihan"; }
-    hideLoad();
-  }
-}
+
 
 // ══════════════════════════════════════════
 //  PENGUMUMAN

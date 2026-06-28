@@ -13805,6 +13805,7 @@ function _kbRenderList() {
     return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;margin-bottom:10px">'
       + '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f9fafb;border-bottom:1px solid #f0f0f0">'
         + '<input type="text" class="fc" value="' + esc(k.nama_kelompok || '') + '" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kbRenameKelompok(\'' + esc(k.id_kelompok) + '\',this.value)">'
+        + '<button onclick="kbColekKelompok(\'' + esc(k.id_kelompok) + '\')" style="display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#e0f2fe;color:#0369a1;border:none;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0" title="Colek Kelompok">💬 Colek</button>'
         + '<button onclick="kbDeleteKelompok(\'' + esc(k.id_kelompok) + '\')" style="width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>'
       + '</div>'
       + '<div style="padding:10px 12px">'
@@ -14031,6 +14032,66 @@ function kbNudgeAnggota(nama, hp) {
     'Sudah beberapa waktu belum ada catatan baru — yuk semangat lanjutkan tilawah, tajwid & muraja\'ah bersama partner ya 📚\n\n' +
     'Barakallahu fiikum.';
   window.open('https://wa.me/' + raw + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function kbColekKelompok(id_kelompok) {
+  var k = _kbData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
+  if (!k) return;
+
+  var namaKelompok = k.nama_kelompok || 'Kelompok Belajar';
+  var anggota = k.anggota_kelompok_belajar || [];
+  if (!anggota.length) { showToast('Kelompok tidak memiliki anggota', 'warning'); return; }
+
+  var lines = [];
+  anggota.forEach(function(a) {
+    var p = (_kbData.pantau && _kbData.pantau[a.id_murid]) || null;
+    var last = p && p.tanggal_terakhir;
+    var hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+    var menunggu = p ? (p.jumlah_menunggu || 0) : 0;
+    
+    var statusTxt = (hari === null)
+      ? 'Belum pernah lapor ⏰'
+      : (hari === 0 ? 'Aktif hari ini 🔥' : (hari === 1 ? 'Aktif kemarin' : 'Terakhir lapor ' + hari + ' hari lalu'));
+    
+    if (menunggu > 0) statusTxt += ' (' + menunggu + ' menunggu konfirmasi)';
+    
+    lines.push('- *' + (a.nama_murid || a.id_murid) + '*: ' + statusTxt);
+  });
+
+  var msg = 
+    'Assalamu\'alaikum Warahmatullahi Wabarakaatuh Kelompok *' + namaKelompok + '* 👋\n\n' +
+    'Ustadz/Ustadzah menyapa dan menyemangati antum semua agar tetap konsisten melapor di Partner Belajar ya. 📚\n\n' +
+    '*Rekap Denyut Aktivitas Kelompok:* \n' +
+    lines.join('\n') + '\n\n' +
+    'Yuk saling ingatkan dan dukung partner belajar kita. Barakallahu fiikum. 😊';
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).then(function() {
+      showToast('Rekap colek disalin ke clipboard ✓', 'success');
+      window.open('https://web.whatsapp.com', '_blank');
+    }).catch(function() {
+      _fallbackCopyText(msg);
+    });
+  } else {
+    _fallbackCopyText(msg);
+  }
+}
+
+function _fallbackCopyText(text) {
+  var textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showToast('Rekap colek disalin ke clipboard ✓', 'success');
+    window.open('https://web.whatsapp.com', '_blank');
+  } catch (err) {
+    alert('Gagal menyalin. Silakan salin manual:\n\n' + text);
+  }
+  document.body.removeChild(textArea);
 }
 
 function _kbRenderNewForm() {
