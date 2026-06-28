@@ -9660,12 +9660,14 @@ async function simpanPenilaianPR() {
 async function checkHalaqahPRBadge() {
   if (!halaqahList || halaqahList.length === 0) return;
   let totalPending = 0;
+  let totalBelum = 0;
   try {
     const promises = halaqahList.map(h => window.HQ.GuruAPI.getHalaqahPRSubmissions(h.id_halaqah));
     const results = await Promise.all(promises);
     results.forEach(r => {
       if (r.status === 'ok' && r.data) {
         totalPending += r.data.filter(item => item.pr_status === 'selesai').length;
+        totalBelum += r.data.filter(item => (item.pr_status || 'belum') === 'belum').length;
       }
     });
     const badge = document.getElementById('navPrSubmissionBadge');
@@ -9686,9 +9688,13 @@ async function checkHalaqahPRBadge() {
       cardVal.style.color = totalPending > 0 ? 'var(--blue)' : 'var(--green)';
     }
     if (cardSub) {
-      cardSub.textContent = totalPending > 0
+      let subText = totalPending > 0
         ? totalPending + ' tugas perlu dinilai'
         : 'Semua PR diperiksa';
+      if (totalBelum > 0) {
+        subText += ' · ' + totalBelum + ' murid belum mengerjakan';
+      }
+      cardSub.textContent = subText;
     }
   } catch (err) {
     console.error('Gagal mengecek badge PR:', err);
