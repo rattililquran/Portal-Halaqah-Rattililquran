@@ -968,6 +968,19 @@ var GuruAPI = {
     return { status: 'ok', message: 'Jurnal KBM berhasil disimpan' };
   },
 
+  getLastKbmWithPr: async function(id_halaqah) {
+    var { data, error } = await _sb.from('kbm_log')
+      .select('tanggal_pertemuan, latihan_mandiri')
+      .eq('id_halaqah', id_halaqah)
+      .not('latihan_mandiri', 'is', null)
+      .neq('latihan_mandiri', '')
+      .eq('status', 'selesai')
+      .order('tanggal_pertemuan', { ascending: false })
+      .limit(1);
+    _check(error, 'getLastKbmWithPr');
+    return { status: 'ok', data: data ? data[0] : null };
+  },
+
   tutupKBM: async function(id_kbm) {
     var { count } = await _sb.from('nilai_kbm').select('*', { count: 'exact', head: true }).eq('id_kbm', id_kbm);
     if (count === null || count === 0) {

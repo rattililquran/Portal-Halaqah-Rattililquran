@@ -2902,8 +2902,16 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
                 <option value="Lainnya">📌 Lainnya</option>
               </select>
             </div>
-            <div class="fg">
-              <label>Deskripsi Latihan Mandiri (PR)</label>
+             <div class="fg">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="margin-bottom:0">Deskripsi Latihan Mandiri (PR)</label>
+                <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--bg-2); border:1px solid var(--border); border-radius:6px; padding:2px 6px; font-size:11px; color:var(--text); cursor:pointer;">
+                  <option value="">✨ Pilih Template PR...</option>
+                  <option value="vn">🎙️ VN Setoran Hafalan</option>
+                  <option value="murottal">🎧 Mendengar Murottal Referensi</option>
+                  <option value="baca">📖 Membaca Mandiri 3x</option>
+                </select>
+              </div>
               <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
                 placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..."
                 style="resize:vertical"></textarea>
@@ -8383,6 +8391,34 @@ async function doSelesaiKBM() {
         toast("Harap pilih Jenis Latihan Mandiri (PR) jika deskripsi, batas waktu, atau tautan diisi.", "warn");
         return;
       }
+      
+      // Check SOP PR minimal 1x sepekan (7 hari) untuk KBM Reguler
+      try {
+        const lastPrRes = await window.HQ.GuruAPI.getLastKbmWithPr(sesiAktif.id_halaqah);
+        if (lastPrRes.status === 'ok' && lastPrRes.data) {
+          const lastPrDate = new Date(lastPrRes.data.tanggal_pertemuan);
+          const currentDate = new Date(sesiAktif.tanggal_pertemuan);
+          const diffDays = Math.ceil((currentDate - lastPrDate) / (1000 * 60 * 60 * 24));
+          if (diffDays >= 7) {
+            const confirmPrMsg = `💡 Pengingat SOP: Halaqah Anda sudah ${diffDays} hari tidak menerima tugas PR.\n`
+              + `Untuk menjaga keaktifan latihan murid di luar kelas, disarankan memberikan Latihan Mandiri.\n\n`
+              + `Apakah Anda yakin tetap ingin menutup sesi tanpa PR?`;
+            if (!(await showConfirm(confirmPrMsg, { title: '💡 Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
+              return;
+            }
+          }
+        } else if (lastPrRes.status === 'ok' && !lastPrRes.data) {
+          // Tidak ditemukan PR sama sekali sebelumnya untuk halaqah ini
+          const confirmPrMsg = `💡 Pengingat SOP: Halaqah ini belum pernah diberikan tugas PR.\n`
+            + `Untuk menjaga keaktifan latihan murid di luar kelas, disarankan memberikan Latihan Mandiri.\n\n`
+            + `Apakah Anda yakin tetap ingin menutup sesi tanpa PR?`;
+          if (!(await showConfirm(confirmPrMsg, { title: '💡 Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memeriksa kepatuhan SOP PR:", err);
+      }
     }
   }
 
@@ -9922,6 +9958,40 @@ function toggleReferensiJurnal() {
   const wadah = document.getElementById('wadahJurnalReferensi');
   if (wadah) {
     wadah.style.display = val !== '' ? 'block' : 'none';
+  }
+}
+
+function applyJurnalPrTemplate(val) {
+  const selectJenis = document.getElementById('jurnalJenisLatihan');
+  const txtArea = document.getElementById('jurnalLatihanMandiri');
+  if (!txtArea || !val) return;
+  
+  if (val === 'vn') {
+    txtArea.value = 'Merekam dan mengirimkan setoran suara (VN) halaman/materi hari ini melalui portal untuk dikoreksi makhrajnya.';
+    if (selectJenis) {
+      selectJenis.value = 'Rekaman Portal';
+      toggleReferensiJurnal();
+    }
+  } else if (val === 'murottal') {
+    txtArea.value = 'Mendengarkan rekaman murottal/suara referensi ustadz sebanyak minimal 1 kali secara saksama.';
+    if (selectJenis) {
+      selectJenis.value = 'Mendengar dan membaca mandiri';
+      toggleReferensiJurnal();
+    }
+  } else if (val === 'baca') {
+    txtArea.value = 'Membaca mandiri (latihan berulang) materi/halaman tajwid hari ini sebanyak minimal 3 kali sebelum pertemuan berikutnya.';
+    if (selectJenis) {
+      selectJenis.value = 'Mendengar dan membaca mandiri';
+      toggleReferensiJurnal();
+    }
+  }
+  
+  // Set default deadline to H+3 (3 days from now)
+  const deadlineInput = document.getElementById('jurnalDeadline');
+  if (deadlineInput) {
+    const today = new Date();
+    const targetDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+    deadlineInput.value = targetDate.toISOString().slice(0, 10);
   }
 }
 
