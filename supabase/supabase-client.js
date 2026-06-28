@@ -4620,6 +4620,18 @@ var AdminAPI = {
     return { status:'ok', data: { lunas: lunas, menunggu: menunggu } };
   },
 
+  getIhsanStatusGuru: async function(id_guru, tahun) {
+    var t = tahun || new Date().getFullYear();
+    var { data, error } = await _sb.from('spp_pembayaran').select('bulan, status')
+      .eq('id_murid', id_guru).eq('tahun', t).eq('jenis', 'Ihsan Guru');
+    _check(error, 'getIhsanStatusGuru');
+    var lunas = [];
+    (data||[]).forEach(function(r) {
+      if (r.status === 'lunas') lunas.push(r.bulan);
+    });
+    return { status:'ok', data: { lunas: lunas } };
+  },
+
   // Input pembayaran SPP langsung oleh admin (tanpa murid konfirmasi)
   // d: { id_murid, bulan (array), tahun, jenis, nominal, catatan }
   inputSPPManual: async function(d) {
@@ -4647,22 +4659,26 @@ var AdminAPI = {
     var idSppMap = {};
     bulanList.forEach(function(bulan) {
       var id = 'SPP-' + id_murid + '-' + bulan.substring(0,3).toUpperCase() + '-' + tahun + '-' + jenisSuffix;
-      if (jenis === 'Infaq/Operasional') {
+      if (jenis === 'Infaq/Operasional' || jenis === 'Ihsan Guru') {
         id += '-' + Math.random().toString(36).substring(2,10).toUpperCase();
       }
       idSppMap[bulan] = id;
     });
 
-    // Cek bulan yang sudah lunas — skip
-    var idSppList = Object.values(idSppMap);
-    var { data: existingRows } = await _sb.from('spp_pembayaran')
-      .select('id_spp, status').in('id_spp', idSppList);
-    var sudahLunasSet = new Set(
-      (existingRows || []).filter(function(r){ return r.status === 'lunas'; }).map(function(r){ return r.id_spp; })
-    );
-    var bulanProses = bulanList.filter(function(bulan) {
-      return !sudahLunasSet.has(idSppMap[bulan]);
-    });
+    // Cek bulan yang sudah lunas — skip (untuk SPP Pribadi saja, untuk Infaq & Ihsan Guru tidak skip karena bisa multi-payment)
+    var bulanProses = bulanList;
+    if (jenis === 'SPP Pribadi') {
+      var idSppList = Object.values(idSppMap);
+      var { data: existingRows } = await _sb.from('spp_pembayaran')
+        .select('id_spp, status').in('id_spp', idSppList);
+      var sudahLunasSet = new Set(
+        (existingRows || []).filter(function(r){ return r.status === 'lunas'; }).map(function(r){ return r.id_spp; })
+      );
+      bulanProses = bulanList.filter(function(bulan) {
+        return !sudahLunasSet.has(idSppMap[bulan]);
+      });
+    }
+    
     if (!bulanProses.length) {
       return { status: 'ok', message: 'Semua bulan yang dipilih sudah lunas sebelumnya.', count: 0 };
     }
@@ -4706,8 +4722,8 @@ var AdminAPI = {
       nominal: d.nominal, count: bulanProses.length,
     });
 
-    // Push notification ke murid
-    if (id_murid) {
+    // Push notification ke murid (HANYA untuk SPP Pribadi / Infaq, Guru tidak mendapat notifikasi)
+    if (id_murid && jenis !== 'Ihsan Guru') {
       var bulanLabel = bulanProses.length > 1
         ? bulanProses.length + ' bulan'
         : bulanProses[0] + ' ' + tahun;
@@ -4763,16 +4779,24 @@ var AdminAPI = {
   getSPPRekap: async function(p) {
     // p: { tahun, id_halaqah, bulan }
     var tahun = p && p.tahun ? Number(p.tahun) : new Date().getFullYear();
-    // Ambil seluruh pembayaran lunas untuk tahun tersebut (baik SPP Pribadi maupun Infaq/Operasional)
+    // Ambil seluruh pembayaran lunas untuk tahun tersebut (baik SPP Pribadi, Infaq/Operasional, maupun Ihsan Guru)
     var q = _sb.from('spp_pembayaran').select('*').eq('tahun', tahun).eq('status','lunas');
-    if (p && p.id_halaqah) q = q.eq('id_halaqah', p.id_halaqah);
     if (p && p.bulan)      q = q.eq('bulan', p.bulan);
     var { data: sppData, error } = await q;
     _check(error,'getSPPRekap');
 
+    // Saring berdasarkan id_halaqah di memori agar Ihsan Guru tidak ikut tersaring keluar
+    var sppFiltered = sppData || [];
+    if (p && p.id_halaqah) {
+      sppFiltered = sppFiltered.filter(function(s) {
+        return s.id_halaqah === p.id_halaqah || s.jenis === 'Ihsan Guru';
+      });
+    }
+
     // Filter berdasarkan jenis pembayaran
-    var sppPribadi = (sppData||[]).filter(function(s){ return s.jenis === 'SPP Pribadi' || !s.jenis; });
-    var infaqData = (sppData||[]).filter(function(s){ return s.jenis === 'Infaq/Operasional'; });
+    var sppPribadi = sppFiltered.filter(function(s){ return s.jenis === 'SPP Pribadi' || !s.jenis; });
+    var infaqData = sppFiltered.filter(function(s){ return s.jenis === 'Infaq/Operasional'; });
+    var ihsanData = sppFiltered.filter(function(s){ return s.jenis === 'Ihsan Guru'; });
 
     // Ambil semua anggota aktif untuk cross-check
     var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, tipe_spp, halaqah(nama_halaqah, id_guru)').eq('status','aktif');
@@ -4876,7 +4900,11 @@ var AdminAPI = {
     // Hitung masing-masing total nominal
     var totalSPP = sppPribadi.reduce(function(s,r){return s+Number(r.nominal||0);},0);
     var totalInfaq = infaqData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    var totalMasuk = (sppData||[]).reduce(function(s,r){return s+Number(r.nominal||0);},0);
+    var totalIhsan = ihsanData.reduce(function(s,r){return s+Number(r.nominal||0);},0);
+
+    // Hitung total masuk (pemasukan SPP + Infaq) & saldo net
+    var totalMasuk = totalSPP + totalInfaq;
+    var totalNet = totalMasuk - totalIhsan;
 
     // Hitung breakdown metode bayar (Gateway vs Manual)
     var sppGatewayNominal = 0;
@@ -4940,7 +4968,20 @@ var AdminAPI = {
       return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
         level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum, is_beasiswa:m.is_beasiswa };
     });
-    return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, total_nominal: totalSPP, total_infaq: totalInfaq, total_masuk: totalMasuk, lunas, menunggak, tahun,
+    return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList,
+      ihsan_list: ihsanData.map(function(r) {
+        return {
+          id_spp: r.id_spp,
+          id_murid: r.id_murid,
+          nama_murid: r.nama_murid,
+          bulan: r.bulan,
+          tahun: r.tahun,
+          nominal: r.nominal,
+          tanggal_bayar: r.tanggal_bayar,
+          catatan: r.catatan
+        };
+      }).sort(function(a,b){ return (b.tanggal_bayar||'').localeCompare(a.tanggal_bayar||'') || a.nama_murid.localeCompare(b.nama_murid); }),
+      total_nominal: totalSPP, total_infaq: totalInfaq, total_ihsan: totalIhsan, total_masuk: totalMasuk, total_net: totalNet, lunas, menunggak, tahun,
       spp_gateway_nominal: sppGatewayNominal, spp_gateway_count: sppGatewayCount,
       spp_manual_nominal: sppManualNominal, spp_manual_count: sppManualCount,
       infaq_gateway_nominal: infaqGatewayNominal, infaq_gateway_count: infaqGatewayCount,

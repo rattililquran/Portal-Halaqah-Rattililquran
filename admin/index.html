@@ -1730,6 +1730,28 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
               <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatMasukSub">Terbayar tahun ini</div>
             </div>
           </div>
+          <!-- Total Ihsan Guru -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#f43f5e,#fb7185); --stat-shadow:rgba(244,63,94,0.15); --stat-border-hover:rgba(244,63,94,0.3); --stat-bg-tint:rgba(244,63,94,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Ihsan Guru</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(244,63,94,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">❤️</span>
+            </div>
+            <div>
+              <div style="font-size:20px; font-weight:900; color:#e11d48; line-height:1.2; margin-bottom:4px" id="sppStatIhsan">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatIhsanSub">Gaji terbayar tahun ini</div>
+            </div>
+          </div>
+          <!-- Sisa Kas (Net) -->
+          <div class="stat" style="--stat-grad:linear-gradient(90deg,#059669,#34d399); --stat-shadow:rgba(5,150,105,0.15); --stat-border-hover:rgba(5,150,105,0.3); --stat-bg-tint:rgba(5,150,105,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Sisa Kas (Net)</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(5,150,105,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">⚖️</span>
+            </div>
+            <div>
+              <div style="font-size:20px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatNet">—</div>
+              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatNetSub">Saldo setelah ihsan</div>
+            </div>
+          </div>
           <!-- Beasiswa -->
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
@@ -1821,6 +1843,7 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
               <select id="sppFilterJenis" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="filterSPPTable()">
                 <option value="spp">SPP Pribadi</option>
                 <option value="infaq">Infaq/Operasional</option>
+                <option value="ihsan">Ihsan Guru</option>
               </select>
               <input type="text" id="sppSearchInput" class="fc" style="width:140px;font-size:12px;padding:6px 10px" placeholder="Cari nama/NIS..." oninput="filterSPPTable()">
               <select id="sppFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
@@ -1987,9 +2010,10 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
               <!-- Jenis -->
               <div>
                 <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Jenis</label>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="sppManualJenisTabs">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="sppManualJenisTabs">
                   <div style="padding:10px;border-radius:10px;border:2px solid var(--green,#1a5c3a);background:var(--green-bg,#f0fdf4);color:var(--green-txt,#1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('SPP Pribadi',this)">💳 SPP Pribadi</div>
                   <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Infaq/Operasional',this)">💛 Infaq</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Ihsan Guru',this)">❤️ Ihsan Guru</div>
                 </div>
                 <input type="hidden" id="sppManualJenis" value="SPP Pribadi">
               </div>
@@ -6807,6 +6831,8 @@ var _sppRekapData = [];
 var _sppRekapDataFiltered = [];
 var _sppInfaqData = [];
 var _sppInfaqDataFiltered = [];
+var _sppIhsanData = [];
+var _sppIhsanDataFiltered = [];
 
 // ── Metode Bayar ──
 async function loadMetodeBayarAdmin() {
@@ -6988,6 +7014,7 @@ async function loadSPPAdmin() {
       var rekap = rekapRes.data || {};
       _sppRekapData = rekap.murid_list || [];
       _sppInfaqData = rekap.infaq_list || [];
+      _sppIhsanData = rekap.ihsan_list || [];
       
       // Update Dashboard Kinerja SPP Bulanan
       var totalMurid = (rekap.lunas || 0) + (rekap.menunggak || 0);
@@ -7005,9 +7032,21 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatTotal').textContent   = 'Rp ' + (rekap.total_nominal||0).toLocaleString('id-ID');
       document.getElementById('sppStatTotalSub').innerHTML = 'Gateway: Rp ' + (rekap.spp_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.spp_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_manual_count||0) + 'x)';
       document.getElementById('sppStatInfaq').textContent   = 'Rp ' + (rekap.total_infaq||0).toLocaleString('id-ID');
-      document.getElementById('sppStatInfaqSub').innerHTML = 'Gateway: Rp ' + (rekap.infaq_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.infaq_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.infaq_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.infaq_manual_count||0) + 'x)';
+      document.getElementById('sppStatInfaqSub').innerHTML = 'Gateway: Rp ' + (rekap.infaq_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.infaq_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.infaq_manual_nominal||0).toLocaleString('id-ID') + ' (' + (refaqManualCount = rekap.infaq_manual_count || 0) + 'x)';
       document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
       document.getElementById('sppStatMasukSub').innerHTML = 'Gateway: Rp ' + (rekap.total_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.total_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_manual_count||0) + 'x)';
+
+      // Ihsan Guru & Saldo Net
+      document.getElementById('sppStatIhsan').textContent = 'Rp ' + (rekap.total_ihsan||0).toLocaleString('id-ID');
+      var netVal = rekap.total_net || 0;
+      var netEl = document.getElementById('sppStatNet');
+      if (netVal < 0) {
+        netEl.style.color = 'var(--red-txt)';
+        netEl.textContent = '−Rp ' + Math.abs(netVal).toLocaleString('id-ID');
+      } else {
+        netEl.style.color = 'var(--green-txt)';
+        netEl.textContent = 'Rp ' + netVal.toLocaleString('id-ID');
+      }
 
       // Ember ketiga + kartu Kas Beasiswa
       document.getElementById('sppStatBeasiswa').textContent = rekap.beasiswa_count || 0;
@@ -7172,23 +7211,28 @@ function filterSPPTable() {
   var statusSel = document.getElementById('sppFilterStatus');
   var btnSalin  = document.getElementById('btnSalinTagihan');
   var subtitle  = document.getElementById('sppRekapSubtitle');
-  if (statusSel) statusSel.style.display = jenis === 'infaq' ? 'none' : '';
-  if (btnSalin)  btnSalin.style.display  = jenis === 'infaq' ? 'none' : '';
+  if (statusSel) statusSel.style.display = (jenis === 'infaq' || jenis === 'ihsan') ? 'none' : '';
+  if (btnSalin)  btnSalin.style.display  = (jenis === 'infaq' || jenis === 'ihsan') ? 'none' : '';
   if (subtitle)  subtitle.textContent    = jenis === 'infaq'
     ? 'Daftar pembayaran Infaq/Operasional yang sudah lunas'
-    : modeLunasBulan
-      ? 'Murid yang sudah membayar SPP Pribadi ' + bulanFilter
-      : 'Rekap tunggakan SPP Pribadi per bulan';
+    : jenis === 'ihsan'
+      ? 'Daftar pembayaran Ihsan Guru (Gaji)'
+      : modeLunasBulan
+        ? 'Murid yang sudah membayar SPP Pribadi ' + bulanFilter
+        : 'Rekap tunggakan SPP Pribadi per bulan';
 
   // Ganti header tabel sesuai jenis
   var thead = document.getElementById('sppRekapHead');
   thead.innerHTML = jenis === 'infaq'
     ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal</th></tr>'
-    : modeLunasBulan
-      ? '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Status ' + bulanFilter + '</th><th class="align-center">Reminder</th></tr>'
-      : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
+    : jenis === 'ihsan'
+      ? '<tr><th>Nama Guru</th><th>Status</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal / Keterangan</th></tr>'
+      : modeLunasBulan
+        ? '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Status ' + bulanFilter + '</th><th class="align-center">Reminder</th></tr>'
+        : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
 
   if (jenis === 'infaq') return filterInfaqTable();
+  if (jenis === 'ihsan') return filterIhsanTable();
 
   var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
   var tbody = document.getElementById('sppRekapBody');
@@ -7329,6 +7373,47 @@ function filterInfaqTable() {
   }).join('');
 }
 
+function filterIhsanTable() {
+  var searchVal = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
+  var bulanFilter = document.getElementById('sppFilterBulan').value;
+  var tbody = document.getElementById('sppRekapBody');
+
+  var data = _sppIhsanData;
+
+  // Filter bulan
+  if (bulanFilter) {
+    data = data.filter(function(r) { return r.bulan === bulanFilter; });
+  }
+
+  // Filter pencarian teks (Nama Guru, ID Guru, Catatan)
+  if (searchVal) {
+    data = data.filter(function(r) {
+      var namaMatch  = (r.nama_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var idMatch    = (r.id_murid || '').toLowerCase().indexOf(searchVal) !== -1;
+      var catatanMatch = (r.catatan || '').toLowerCase().indexOf(searchVal) !== -1;
+      return namaMatch || idMatch || catatanMatch;
+    });
+  }
+
+  _sppIhsanDataFiltered = data;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data pembayaran Ihsan Guru.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(function(r) {
+    return '<tr>'
+      + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+' · Guru</div></td>'
+      + '<td><span class="badge b-green" style="font-size:10.5px">Lunas</span></td>'
+      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'</td>'
+      + '<td>'+esc(r.tanggal_bayar||'—')+'</td>'
+      + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br><span style="font-size:10.5px;color:var(--text-3)">'+esc(r.catatan||'Gaji Guru')+'</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
 // Cegah CSV/Formula Injection: jika nilai diawali =,+,-,@ (atau tab/CR),
 // Excel/Sheets bisa menafsirkannya sebagai formula saat file dibuka.
 // Beri prefiks tanda kutip tunggal agar dibaca sebagai teks biasa.
@@ -7360,6 +7445,18 @@ function eksporSPP() {
       csv += '"' + _csvSafe(r.id_murid) + '";"' + nama + '";"' + hal + '";"' + lvl + '";"' + _csvSafe(r.bulan) + '";' + r.tahun + ';"' + _csvSafe(r.tanggal_bayar||'') + '";' + Number(r.nominal||0) + ';"' + metode + '"\r\n';
     });
     namaFile = 'rekap_infaq_' + tahun + '_' + halaqahVal + '_' + bulanVal + '.csv';
+  } else if (jenis === 'ihsan') {
+    var ihsanList = _sppIhsanDataFiltered || [];
+    if (!ihsanList.length) {
+      showAlertModal('Tidak ada data Ihsan Guru untuk diekspor.', { title: 'Ekspor Ihsan Guru' });
+      return;
+    }
+    csv = 'ID Guru;Nama Guru;Bulan;Tahun;Tanggal Bayar;Nominal;Catatan\r\n';
+    ihsanList.forEach(function(r) {
+      var nama = _csvSafe(r.nama_murid || '');
+      csv += '"' + _csvSafe(r.id_murid) + '";"' + nama + '";"' + _csvSafe(r.bulan) + '";' + r.tahun + ';"' + _csvSafe(r.tanggal_bayar||'') + '";' + Number(r.nominal||0) + ';"' + _csvSafe(r.catatan||'') + '"\r\n';
+    });
+    namaFile = 'rekap_ihsan_guru_' + tahun + '_' + bulanVal + '.csv';
   } else {
     var list = _sppRekapDataFiltered || [];
     if (!list.length) {
@@ -7535,6 +7632,7 @@ async function validasiSPP(id_spp, aksi) {
 //  INPUT SPP MANUAL OLEH ADMIN
 // ══════════════════════════════════════════
 var _sppManualMuridCache = [];
+var _sppManualGuruCache = [];
 var _sppManualSessionCount = 0;
 var _sppManualBulanLunas = [];
 var _sppManualBulanMenunggu = [];
@@ -7591,37 +7689,62 @@ function tutupModalInputSPPManual() {
 }
 
 function filterMuridSPPManual() {
+  var jenis = document.getElementById('sppManualJenis').value;
   var q = (document.getElementById('sppManualMuridSearch').value || '').toLowerCase().trim();
   var dd = document.getElementById('sppManualMuridDropdown');
-  var list = _sppManualMuridCache;
-  if (q) {
-    list = list.filter(function(a) {
-      return (a.nama_murid||'').toLowerCase().indexOf(q) !== -1
-        || (a.id_murid||'').toLowerCase().indexOf(q) !== -1;
-    });
-  }
-  if (!list.length) {
-    dd.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-3);font-size:12px">Tidak ditemukan</div>';
+  
+  if (jenis === 'Ihsan Guru') {
+    var list = _sppManualGuruCache;
+    if (q) {
+      list = list.filter(function(a) {
+        return (a.nama_lengkap||'').toLowerCase().indexOf(q) !== -1
+          || (a.id_user||'').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    if (!list.length) {
+      dd.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-3);font-size:12px">Tidak ditemukan</div>';
+      dd.style.display = '';
+      return;
+    }
+    dd.innerHTML = list.slice(0, 30).map(function(a) {
+      return '<div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;justify-content:space-between" '
+        + 'onmousedown="pilihMuridSPPManual(\''+esc(a.id_user)+'\',\''+escJs(a.nama_lengkap||'')+'\',\'Guru\')">'
+        + '<div><span style="font-weight:700;color:var(--text)">'+esc(a.nama_lengkap)+'</span>'
+        + '<span style="font-size:11px;color:var(--text-3);margin-left:6px">'+esc(a.id_user)+'</span></div>'
+        + '</div>';
+    }).join('');
     dd.style.display = '';
-    return;
+  } else {
+    var list = _sppManualMuridCache;
+    if (q) {
+      list = list.filter(function(a) {
+        return (a.nama_murid||'').toLowerCase().indexOf(q) !== -1
+          || (a.id_murid||'').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    if (!list.length) {
+      dd.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-3);font-size:12px">Tidak ditemukan</div>';
+      dd.style.display = '';
+      return;
+    }
+    // Get tunggakan info
+    var tunggakMap = {};
+    if (_sppRekapData && _sppRekapData.length) {
+      _sppRekapData.forEach(function(m){ tunggakMap[m.id_murid] = m.tunggakan || 0; });
+    }
+    dd.innerHTML = list.slice(0, 30).map(function(a) {
+      var t = tunggakMap[a.id_murid] || 0;
+      var badge = t > 0
+        ? '<span style="font-size:10px;padding:1px 6px;border-radius:6px;background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);font-weight:700;margin-left:6px">' + t + ' bln tunggak</span>'
+        : '<span style="font-size:10px;padding:1px 6px;border-radius:6px;background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);font-weight:700;margin-left:6px">Lunas</span>';
+      return '<div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;justify-content:space-between" '
+        + 'onmousedown="pilihMuridSPPManual(\''+esc(a.id_murid)+'\',\''+escJs(a.nama_murid||'')+'\',\''+escJs((a.halaqah&&a.halaqah.nama_halaqah)||a.id_halaqah||'')+'\')">'
+        + '<div><span style="font-weight:700;color:var(--text)">'+esc(a.nama_murid||a.id_murid)+'</span>'
+        + '<span style="font-size:11px;color:var(--text-3);margin-left:6px">'+esc(a.id_murid)+'</span></div>'
+        + badge + '</div>';
+    }).join('');
+    dd.style.display = '';
   }
-  // Get tunggakan info
-  var tunggakMap = {};
-  if (_sppRekapData && _sppRekapData.length) {
-    _sppRekapData.forEach(function(m){ tunggakMap[m.id_murid] = m.tunggakan || 0; });
-  }
-  dd.innerHTML = list.slice(0, 30).map(function(a) {
-    var t = tunggakMap[a.id_murid] || 0;
-    var badge = t > 0
-      ? '<span style="font-size:10px;padding:1px 6px;border-radius:6px;background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);font-weight:700;margin-left:6px">' + t + ' bln tunggak</span>'
-      : '<span style="font-size:10px;padding:1px 6px;border-radius:6px;background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);font-weight:700;margin-left:6px">Lunas</span>';
-    return '<div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;justify-content:space-between" '
-      + 'onmousedown="pilihMuridSPPManual(\''+esc(a.id_murid)+'\',\''+escJs(a.nama_murid||'')+'\',\''+escJs((a.halaqah&&a.halaqah.nama_halaqah)||a.id_halaqah||'')+'\')">'
-      + '<div><span style="font-weight:700;color:var(--text)">'+esc(a.nama_murid||a.id_murid)+'</span>'
-      + '<span style="font-size:11px;color:var(--text-3);margin-left:6px">'+esc(a.id_murid)+'</span></div>'
-      + badge + '</div>';
-  }).join('');
-  dd.style.display = '';
 }
 
 async function pilihMuridSPPManual(id_murid, nama, halaqah) {
@@ -7631,13 +7754,26 @@ async function pilihMuridSPPManual(id_murid, nama, halaqah) {
   var info = document.getElementById('sppManualMuridInfo');
   info.textContent = '✅ ' + nama + (halaqah ? ' · ' + halaqah : '');
   info.style.display = '';
-  // Load status SPP bulan
+  
+  // Load status SPP/Ihsan bulan
   var tahun = document.getElementById('sppManualTahun').value;
+  var jenis = document.getElementById('sppManualJenis').value;
+  
   try {
-    var r = await window.HQ.AdminAPI.getSPPStatusMurid(id_murid, Number(tahun));
-    _sppManualBulanLunas = r.data.lunas || [];
-    _sppManualBulanMenunggu = r.data.menunggu || [];
-  } catch(e) { _sppManualBulanLunas = []; _sppManualBulanMenunggu = []; }
+    if (jenis === 'Ihsan Guru') {
+      var r = await window.HQ.AdminAPI.getIhsanStatusGuru(id_murid, Number(tahun));
+      _sppManualBulanLunas = r.data.lunas || [];
+      _sppManualBulanMenunggu = [];
+    } else {
+      var r = await window.HQ.AdminAPI.getSPPStatusMurid(id_murid, Number(tahun));
+      _sppManualBulanLunas = r.data.lunas || [];
+      _sppManualBulanMenunggu = r.data.menunggu || [];
+    }
+  } catch(e) { 
+    _sppManualBulanLunas = []; 
+    _sppManualBulanMenunggu = []; 
+  }
+  
   renderSPPManualBulanGrid(_sppManualBulanLunas, _sppManualBulanMenunggu);
   hitungNominalSPPManual();
 }
@@ -7664,15 +7800,22 @@ function renderSPPManualBulanGrid(lunas, menunggu) {
 }
 
 function hitungNominalSPPManual() {
+  var jenis = document.getElementById('sppManualJenis')?.value || 'SPP Pribadi';
+  var hint = document.getElementById('sppManualNominalHint');
+  if (jenis !== 'SPP Pribadi') {
+    if (hint) hint.textContent = 'Masukkan nominal secara manual';
+    return;
+  }
   var checked = document.querySelectorAll('input[name=sppManualBulan]:checked:not(:disabled)');
   var count = checked.length;
   var nominal = count * SPP_NOMINAL_BULANAN;
   document.getElementById('sppManualNominal').value = nominal;
-  var hint = document.getElementById('sppManualNominalHint');
-  if (count > 0) {
-    hint.textContent = count + ' bulan × Rp ' + SPP_NOMINAL_BULANAN.toLocaleString('id-ID') + ' = Rp ' + nominal.toLocaleString('id-ID');
-  } else {
-    hint.textContent = 'Pilih bulan terlebih dahulu';
+  if (hint) {
+    if (count > 0) {
+      hint.textContent = count + ' bulan × Rp ' + SPP_NOMINAL_BULANAN.toLocaleString('id-ID') + ' = Rp ' + nominal.toLocaleString('id-ID');
+    } else {
+      hint.textContent = 'Pilih bulan terlebih dahulu';
+    }
   }
 }
 
@@ -7686,23 +7829,77 @@ function pilihSemuaBelumLunas() {
 function setSPPManualJenis(jenis, el) {
   document.getElementById('sppManualJenis').value = jenis;
   var tabs = document.querySelectorAll('#sppManualJenisTabs > div');
-  var isSpp = jenis === 'SPP Pribadi';
-  tabs[0].style.borderColor = isSpp ? 'var(--green,#1a5c3a)' : 'var(--border)';
-  tabs[0].style.background  = isSpp ? 'var(--green-bg,#f0fdf4)' : 'var(--bg-2,#fff)';
-  tabs[0].style.color       = isSpp ? 'var(--green-txt,#1a5c3a)' : 'var(--text-2)';
-  tabs[1].style.borderColor = !isSpp ? 'var(--amber,#f59e0b)' : 'var(--border)';
-  tabs[1].style.background  = !isSpp ? 'var(--amber-bg,#fffbeb)' : 'var(--bg-2,#fff)';
-  tabs[1].style.color       = !isSpp ? 'var(--amber-txt,#92400e)' : 'var(--text-2)';
-  // Re-render bulan grid (infaq: semua bisa dipilih, SPP: pakai lunas state)
-  if (jenis === 'Infaq/Operasional') {
+  if (tabs.length === 3) {
+    // Reset all tabs
+    tabs.forEach(function(t) {
+      t.style.borderColor = 'var(--border)';
+      t.style.background  = 'var(--bg-2,#fff)';
+      t.style.color       = 'var(--text-2)';
+    });
+    // Highlight selected tab
+    if (jenis === 'SPP Pribadi') {
+      tabs[0].style.borderColor = 'var(--green,#1a5c3a)';
+      tabs[0].style.background  = 'var(--green-bg,#f0fdf4)';
+      tabs[0].style.color       = 'var(--green-txt,#1a5c3a)';
+    } else if (jenis === 'Infaq/Operasional') {
+      tabs[1].style.borderColor = 'var(--amber,#f59e0b)';
+      tabs[1].style.background  = 'var(--amber-bg,#fffbeb)';
+      tabs[1].style.color       = 'var(--amber-txt,#92400e)';
+    } else if (jenis === 'Ihsan Guru') {
+      tabs[2].style.borderColor = 'var(--red,#ef4444)';
+      tabs[2].style.background  = 'var(--red-bg,#fee2e2)';
+      tabs[2].style.color       = 'var(--red-txt,#991b1b)';
+    }
+  }
+
+  // Update label & placeholder
+  var modalEl = document.getElementById('modalInputSPPManual');
+  var labelMurid = modalEl ? modalEl.querySelector('label') : null;
+  var searchInput = document.getElementById('sppManualMuridSearch');
+  
+  if (labelMurid && searchInput) {
+    if (jenis === 'Ihsan Guru') {
+      labelMurid.textContent = 'Penerima (Guru)';
+      searchInput.placeholder = 'Ketik nama guru...';
+    } else {
+      labelMurid.textContent = 'Murid';
+      searchInput.placeholder = 'Ketik nama murid...';
+    }
+  }
+
+  // Kosongkan selection jika berganti jenis
+  if (el) {
+    searchInput.value = '';
+    document.getElementById('sppManualMuridId').value = '';
+    document.getElementById('sppManualMuridInfo').style.display = 'none';
+    _sppManualBulanLunas = [];
+    _sppManualBulanMenunggu = [];
+  }
+
+  // Load daftar guru jika belum ada & memilih Ihsan Guru
+  if (jenis === 'Ihsan Guru' && !_sppManualGuruCache.length) {
+    showLoad('Memuat daftar guru...');
+    window.HQ.AdminAPI.getAllUsers('guru').then(function(r) {
+      _sppManualGuruCache = (r.data || []).filter(function(u) { return u.status === 'aktif'; });
+      _sppManualGuruCache.sort(function(a,b){ return (a.nama_lengkap||'').localeCompare(b.nama_lengkap||''); });
+      hideLoad();
+    }).catch(function(e) {
+      toast('Gagal memuat daftar guru: ' + e.message, 'err');
+      hideLoad();
+    });
+  }
+
+  // Re-render bulan grid (infaq & ihsan: semua bisa dipilih, SPP: pakai lunas state)
+  if (jenis === 'Infaq/Operasional' || jenis === 'Ihsan Guru') {
     renderSPPManualBulanGrid([], []);
   } else {
     renderSPPManualBulanGrid(_sppManualBulanLunas, _sppManualBulanMenunggu);
   }
   hitungNominalSPPManual();
+
   // Tombol pilih semua hanya untuk SPP
   var btnAll = document.getElementById('btnPilihSemuaBelum');
-  if (btnAll) btnAll.style.display = isSpp ? '' : 'none';
+  if (btnAll) btnAll.style.display = (jenis === 'SPP Pribadi') ? '' : 'none';
 }
 
 async function onSPPManualTahunChange() {
@@ -7722,7 +7919,12 @@ async function submitInputSPPManual() {
   var errEl = document.getElementById('sppManualErr');
   errEl.style.display = 'none';
   var id_murid = document.getElementById('sppManualMuridId').value;
-  if (!id_murid) { errEl.textContent = 'Pilih murid terlebih dahulu.'; errEl.style.display = ''; return; }
+  var jenis = document.getElementById('sppManualJenis').value;
+  if (!id_murid) {
+    errEl.textContent = jenis === 'Ihsan Guru' ? 'Pilih guru terlebih dahulu.' : 'Pilih murid terlebih dahulu.';
+    errEl.style.display = '';
+    return;
+  }
   var checkedBoxes = document.querySelectorAll('input[name=sppManualBulan]:checked:not(:disabled)');
   var bulanArr = Array.from(checkedBoxes).map(function(b){ return b.value; });
   if (!bulanArr.length) { errEl.textContent = 'Pilih minimal 1 bulan.'; errEl.style.display = ''; return; }
@@ -7735,7 +7937,7 @@ async function submitInputSPPManual() {
       id_murid: id_murid,
       bulan: bulanArr,
       tahun: document.getElementById('sppManualTahun').value,
-      jenis: document.getElementById('sppManualJenis').value,
+      jenis: jenis,
       nominal: nominal,
       catatan: document.getElementById('sppManualCatatan').value.trim(),
     });
@@ -7744,7 +7946,8 @@ async function submitInputSPPManual() {
     } else {
       _sppManualSessionCount += 1;
       toast('✅ ' + (r.message || 'Berhasil disimpan'), 'ok');
-      document.getElementById('sppManualCounter').textContent = '✅ ' + _sppManualSessionCount + ' murid sudah diinput sesi ini';
+      var entriLabel = jenis === 'Ihsan Guru' ? 'transaksi ihsan' : 'murid';
+      document.getElementById('sppManualCounter').textContent = '✅ ' + _sppManualSessionCount + ' ' + entriLabel + ' sudah diinput sesi ini';
     }
     // Stay open: reset form untuk murid berikutnya
     document.getElementById('sppManualMuridSearch').value = '';
