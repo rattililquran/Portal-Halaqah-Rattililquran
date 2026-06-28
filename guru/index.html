@@ -9460,18 +9460,18 @@ function tandaiHapusExistingGuruAudio() {
 let _activeAudioPlayers = {};
 const _audioBlobCache = {}; // Cache untuk menyimpan Blob URL audio agar tidak perlu mengunduh ulang berkas yang sama
 
-// Helper untuk merender pemutar audio ke DOM
+// Helper untuk merender pemutar audio ke DOM secara unik (Temuan 1)
 function renderAudioPlayerDOM(container, containerId, fileId, blobUrl, mimeType) {
   container.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
-      <audio controls style="width:100%; height:36px;" id="audio-el-${fileId}">
+      <audio controls style="width:100%; height:36px;" id="audio-el-${containerId}">
         <source src="${blobUrl}" type="${mimeType}">
         Peramban Anda tidak mendukung pemutar suara.
       </audio>
       <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-top:2px;">
         <span style="color:var(--text-3)">Kecepatan:</span>
         <select style="background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:11px; color:var(--text);" 
-                onchange="document.getElementById('audio-el-${fileId}').playbackRate = parseFloat(this.value)">
+                onchange="document.getElementById('audio-el-${containerId}').playbackRate = parseFloat(this.value)">
           <option value="1.0">1.0x (Normal)</option>
           <option value="1.25">1.25x</option>
           <option value="1.5">1.5x</option>
@@ -9481,7 +9481,7 @@ function renderAudioPlayerDOM(container, containerId, fileId, blobUrl, mimeType)
     </div>
   `;
 
-  const audioEl = document.getElementById(`audio-el-${fileId}`);
+  const audioEl = document.getElementById(`audio-el-${containerId}`);
   if (audioEl) {
     _activeAudioPlayers[containerId] = audioEl;
     audioEl.play().catch(function(err) {

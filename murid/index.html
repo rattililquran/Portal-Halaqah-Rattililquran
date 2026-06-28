@@ -9184,6 +9184,37 @@ async function kirimLaporanPR() {
 }
 
 var _activeAudioPlayersMurid = {};
+var _audioBlobCacheMurid = {}; // Cache untuk menyimpan Blob URL audio agar tidak perlu mengunduh ulang berkas yang sama
+
+// Helper untuk merender pemutar audio ke DOM secara unik (Temuan 1 & 2)
+function renderAudioPlayerDOMMurid(container, containerId, fileId, blobUrl, mimeType) {
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
+      <audio controls style="width:100%; height:36px;" id="audio-el-${containerId}">
+        <source src="${blobUrl}" type="${mimeType}">
+        Peramban Anda tidak mendukung pemutar suara.
+      </audio>
+      <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-top:2px;">
+        <span style="color:var(--text-3)">Kecepatan:</span>
+        <select style="background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:11px; color:var(--text);" 
+                onchange="document.getElementById('audio-el-${containerId}').playbackRate = parseFloat(this.value)">
+          <option value="1.0">1.0x (Normal)</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+      </div>
+    </div>
+  `;
+
+  var audioEl = document.getElementById("audio-el-" + containerId);
+  if (audioEl) {
+    _activeAudioPlayersMurid[containerId] = audioEl;
+    audioEl.play().catch(function(err) {
+      console.warn("Autoplay dicegah oleh peramban:", err);
+    });
+  }
+}
 
 async function putarAudioInline(containerId, fileId) {
   var container = document.getElementById(containerId);
@@ -9197,6 +9228,13 @@ async function putarAudioInline(containerId, fileId) {
       } catch (e) {}
       delete _activeAudioPlayersMurid[cId];
     }
+  }
+
+  // Jika file audio sudah pernah diunduh, gunakan dari cache (instan & hemat kuota)
+  if (_audioBlobCacheMurid[fileId]) {
+    var cached = _audioBlobCacheMurid[fileId];
+    renderAudioPlayerDOMMurid(container, containerId, fileId, cached.blobUrl, cached.mimeType);
+    return;
   }
 
   container.innerHTML = '<div style="font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px">' +
@@ -9240,33 +9278,11 @@ async function putarAudioInline(containerId, fileId) {
     var blob = new Blob([bytes], { type: mimeType });
     var blobUrl = URL.createObjectURL(blob);
 
-    // 4. Buat pemutar audio
-    container.innerHTML = `
-      <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
-        <audio controls style="width:100%; height:36px;" id="audio-el-${fileId}">
-          <source src="${blobUrl}" type="${mimeType}">
-          Peramban Anda tidak mendukung pemutar suara.
-        </audio>
-        <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-top:2px;">
-          <span style="color:var(--text-3)">Kecepatan:</span>
-          <select style="background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:11px; color:var(--text);" 
-                  onchange="document.getElementById('audio-el-${fileId}').playbackRate = parseFloat(this.value)">
-            <option value="1.0">1.0x (Normal)</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2.0">2.0x</option>
-          </select>
-        </div>
-      </div>
-    `;
+    // Simpan hasil ke cache
+    _audioBlobCacheMurid[fileId] = { blobUrl: blobUrl, mimeType: mimeType };
 
-    var audioEl = document.getElementById("audio-el-" + fileId);
-    if (audioEl) {
-      _activeAudioPlayersMurid[containerId] = audioEl;
-      audioEl.play().catch(function(err) {
-        console.warn("Autoplay dicegah oleh peramban:", err);
-      });
-    }
+    // 4. Buat pemutar audio
+    renderAudioPlayerDOMMurid(container, containerId, fileId, blobUrl, mimeType);
   } catch (err) {
     console.error(err);
     container.innerHTML = `
