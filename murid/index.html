@@ -11820,18 +11820,14 @@ async function submitSetoranMandiri() {
     
     hapusRekamanQiyamLokal(); // [ENHANCEMENT] Reset rekaman lokal setelah sukses
     await loadSetoranHafalan(true);
+    await _pqLoadZiyadahMap();
+    loadPartnerLiniMasa();
     
   } catch (e) {
     toast(friendlyError(e), "err"); // [ENHANCEMENT] Bila gagal, rekaman tidak dihapus agar murid bisa re-submit
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '🤝 Simpan & Kirim ke Partner'; }
     hideLoad();
-  }
-}
-    await _pqLoadZiyadahMap();
-    loadPartnerLiniMasa();
-  } catch(e) {
-    toast('Gagal menyimpan: ' + e.message, 'err');
   }
 }
 
