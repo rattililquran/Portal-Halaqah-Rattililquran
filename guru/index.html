@@ -4090,6 +4090,9 @@ html.theme-dark .pr-tab-btn.active {
           <select class="fc" id="prHalaqahSel" onchange="loadPRSubmissions()" style="max-width:220px">
             <option value="">— Semua Halaqah —</option>
           </select>
+          <select class="fc" id="prPertemuanFilter" onchange="filterPRSubmissions()" style="max-width:180px">
+            <option value="">— Semua Pertemuan —</option>
+          </select>
           <input type="hidden" id="prStatusFilter" value="belum_dinilai">
           <input type="text" id="prSearchInput" class="fc" style="width:180px;font-size:12px;padding:6px 10px" placeholder="Cari nama murid..." oninput="filterPRSubmissions()">
           <button class="btn btn-outline btn-sm" onclick="salinRekapanPRGrup()" style="color:#16a34a;border-color:#16a34a;font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:6px">
@@ -9226,6 +9229,14 @@ async function loadPRSubmissions() {
     mergedData.sort((a, b) => new Date(b.pr_submitted_at || 0) - new Date(a.pr_submitted_at || 0));
     _prDataAll = mergedData;
     
+    // Populate meeting number filter
+    const pertemuanSel = document.getElementById('prPertemuanFilter');
+    if (pertemuanSel) {
+      const uniquePertemuan = [...new Set(mergedData.map(i => i.pertemuan_ke).filter(Boolean))].sort((a, b) => a - b);
+      pertemuanSel.innerHTML = '<option value="">— Semua Pertemuan —</option>' +
+        uniquePertemuan.map(p => `<option value="${p}">Pertemuan ${p}</option>`).join('');
+    }
+    
     renderPRSummaryCards();
     filterPRSubmissions();
     checkHalaqahPRBadge().catch(function() {});
@@ -9239,6 +9250,7 @@ async function loadPRSubmissions() {
 function filterPRSubmissions() {
   const halaqahId = document.getElementById('prHalaqahSel').value;
   const status = document.getElementById('prStatusFilter').value;
+  const pertemuan = document.getElementById('prPertemuanFilter')?.value || '';
   const search = document.getElementById('prSearchInput').value.toLowerCase().trim();
   
   // _prData is filtered by halaqah only (used by WA share)
@@ -9248,6 +9260,8 @@ function filterPRSubmissions() {
     if (status === 'belum_dinilai' && item.pr_status !== 'selesai') return false;
     if (status === 'telah_dinilai' && item.pr_status !== 'dinilai') return false;
     if (status === 'belum_mengerjakan' && item.pr_status !== 'belum') return false;
+    
+    if (pertemuan && String(item.pertemuan_ke) !== pertemuan) return false;
     
     const nama = (item.users?.nama_lengkap || '').toLowerCase();
     if (search && !nama.includes(search)) return false;
