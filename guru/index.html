@@ -9586,7 +9586,7 @@ async function simpanPenilaianPR() {
   try {
     // Unggah rekaman suara guru jika ada
     if (_rekamanBlobGuru) {
-      showLoad('Bismillah, mengunggah rekaman guru (0%)...');
+      showLoad('Bismillah, mengunggah rekaman guru... Mohon jangan tutup aplikasi.');
       
       // 1. Dapatkan token upload
       const tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
@@ -9607,7 +9607,7 @@ async function simpanPenilaianPR() {
       reader.readAsDataURL(_rekamanBlobGuru);
       const base64Data = await base64Promise;
       
-      // 3. Kirim ke GAS Web App dengan XHR untuk melacak progres & menghindari CORS redirect issue
+      // 3. Kirim ke GAS Web App
       const gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
       const uploadPayload = {
         token: uploadToken,
@@ -9616,49 +9616,15 @@ async function simpanPenilaianPR() {
         mimeType: _rekamanBlobGuru.type
       };
       
-      let uploadResult;
-      try {
-        uploadResult = await new Promise(function(resolve, reject) {
-          const xhr = new XMLHttpRequest();
-          xhr.open("POST", gasUrl, true);
-          
-          xhr.upload.addEventListener("progress", function(e) {
-            if (e.lengthComputable) {
-              const pct = Math.round((e.loaded / e.total) * 100);
-              showLoad("Bismillah, mengunggah rekaman guru (" + pct + "%)... Mohon jangan tutup aplikasi.");
-            }
-          });
-          
-          xhr.onload = function() {
-            try {
-              const res = JSON.parse(xhr.responseText);
-              resolve(res);
-            } catch(err) {
-              reject(new Error("Format respon server tidak valid."));
-            }
-          };
-          
-          xhr.onerror = function(e) {
-            console.error("XHR Guru Upload Error, falling back to fetch:", e, xhr.status, xhr.statusText);
-            reject(new Error("XHR Error"));
-          };
-          
-          xhr.send(JSON.stringify(uploadPayload));
-        });
-      } catch (xhrError) {
-        console.warn("XHR upload failed, falling back to fetch upload path...", xhrError);
-        showLoad("Bismillah, mengunggah rekaman guru (jalur cadangan)... Mohon tunggu.");
-        
-        const gasRes = await fetch(gasUrl, {
-          method: "POST",
-          mode: "cors",
-          body: JSON.stringify(uploadPayload)
-        });
-        if (!gasRes.ok) {
-          throw new Error("Koneksi ke server penyimpanan gagal.");
-        }
-        uploadResult = await gasRes.json();
+      const gasRes = await fetch(gasUrl, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(uploadPayload)
+      });
+      if (!gasRes.ok) {
+        throw new Error("Koneksi ke server penyimpanan gagal.");
       }
+      const uploadResult = await gasRes.json();
       
       if (uploadResult.status !== "success") {
         throw new Error(uploadResult.message || "Gagal mengunggah berkas suara guru.");
