@@ -2125,13 +2125,7 @@ html.theme-dark .inline-loader-pulse {
   100% { transform: scale(0.8); opacity: 0.5; }
 }
 
-/* ── SPP CROPPER MODAL STYLES ── */
-#cropViewport {
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
+
 
 /* ── SINKRON BADGE ── */
 .refresh-badge-murid{display:none !important;position:fixed;bottom:84px;left:16px;
@@ -14929,9 +14923,47 @@ async function handleSppBuktiFile(input) {
     alert('Ukuran foto melebihi 5 MB. Pilih foto yang lebih kecil.');
     input.value = ''; return;
   }
+
+  // Langsung lakukan kompresi gambar tanpa cropper
+  showLoad('Memproses foto...');
   var reader = new FileReader();
   reader.onload = function(e) {
-    openCropperModal(e.target.result, file);
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var max_size = 1200; // batasi dimensi maksimal
+      var width = img.width;
+      var height = img.height;
+      
+      if (width > height) {
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
+      } else {
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      canvas.toBlob(function(blob) {
+        _sppBuktiBlob = blob;
+        var url = URL.createObjectURL(blob);
+        document.getElementById('sppBuktiImg').src = url;
+        document.getElementById('sppBuktiPreview').style.display = '';
+        document.getElementById('sppBuktiName').textContent = file.name;
+        document.getElementById('sppBuktiLabel').style.borderColor = '#1a5c3a';
+        document.getElementById('sppBuktiSize').textContent = 'Ukuran kompresi: ' + (blob.size/1024).toFixed(0) + ' KB';
+        hideLoad();
+      }, 'image/jpeg', 0.82);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -16700,220 +16732,7 @@ function getContainerForTab(tab) {
   return mapping[tab] || null;
 }
 
-// Canvas-based SPP Image Cropper state and functions
-var _cropImageSrc = '';
-var _cropInitialScale = 1;
-var _cropZoom = 1;
-var _cropRotation = 0; // degrees: 0, 90, 180, 270
-var _cropX = 0;
-var _cropY = 0;
-var _cropIsDragging = false;
-var _cropStartX = 0;
-var _cropStartY = 0;
-var _cropOriginalWidth = 0;
-var _cropOriginalHeight = 0;
-var _cropFileName = 'bukti.jpg';
 
-// Multi-touch & zoom state
-var _cropActivePointers = {};
-var _cropInitialDistance = 0;
-var _cropInitialZoom = 1;
-
-function openCropperModal(src, file) {
-  _cropImageSrc = src;
-  _cropFileName = file.name;
-  var img = document.getElementById('cropImage');
-  img.src = src;
-  
-  img.onload = function() {
-    _cropOriginalWidth = img.naturalWidth;
-    _cropOriginalHeight = img.naturalHeight;
-    
-    // Viewport: 300px x 380px
-    var vw = 300, vh = 380;
-    var scaleW = vw / _cropOriginalWidth;
-    var scaleH = vh / _cropOriginalHeight;
-    _cropInitialScale = Math.max(scaleW, scaleH);
-    
-    _cropZoom = 1;
-    _cropRotation = 0;
-    
-    // Center in viewport
-    var displayW = _cropOriginalWidth * _cropInitialScale;
-    var displayH = _cropOriginalHeight * _cropInitialScale;
-    _cropX = (vw - displayW) / 2;
-    _cropY = (vh - displayH) / 2;
-    
-    updateCropperTransform();
-    document.getElementById('cropZoomSlider').value = 1;
-    document.getElementById('zoomVal').textContent = '1.0x';
-    document.getElementById('cropperModal').style.display = 'flex';
-  };
-}
-
-function closeCropperModal() {
-  document.getElementById('cropperModal').style.display = 'none';
-  document.getElementById('sppFormBuktiFile').value = '';
-}
-
-function updateCropperTransform() {
-  var img = document.getElementById('cropImage');
-  if (!img) return;
-  var baseW = _cropOriginalWidth * _cropInitialScale;
-  var baseH = _cropOriginalHeight * _cropInitialScale;
-  img.style.width = baseW + 'px';
-  img.style.height = baseH + 'px';
-  img.style.transform = 'translate3d(' + _cropX + 'px, ' + _cropY + 'px, 0) rotate(' + _cropRotation + 'deg) scale(' + _cropZoom + ')';
-}
-
-function rotateCropper(angle) {
-  _cropRotation = (_cropRotation + angle) % 360;
-  updateCropperTransform();
-}
-
-function resetCropper() {
-  _cropZoom = 1;
-  _cropRotation = 0;
-  var vw = 300, vh = 380;
-  var displayW = _cropOriginalWidth * _cropInitialScale;
-  var displayH = _cropOriginalHeight * _cropInitialScale;
-  _cropX = (vw - displayW) / 2;
-  _cropY = (vh - displayH) / 2;
-  document.getElementById('cropZoomSlider').value = 1;
-  document.getElementById('zoomVal').textContent = '1.0x';
-  updateCropperTransform();
-}
-
-function applyCrop() {
-  var canvas = document.createElement('canvas');
-  var cw = 600, ch = 760; // 2x viewport dimensions for high resolution
-  canvas.width = cw;
-  canvas.height = ch;
-  var ctx = canvas.getContext('2d');
-  var img = document.getElementById('cropImage');
-  
-  ctx.save();
-  ctx.scale(2, 2); // Map to 300x380 viewport coordinates
-  
-  var baseW = _cropOriginalWidth * _cropInitialScale;
-  var baseH = _cropOriginalHeight * _cropInitialScale;
-  var imgCenterX = _cropX + baseW / 2;
-  var imgCenterY = _cropY + baseH / 2;
-  
-  ctx.translate(imgCenterX, imgCenterY);
-  ctx.rotate((_cropRotation * Math.PI) / 180);
-  ctx.scale(_cropZoom, _cropZoom);
-  ctx.drawImage(img, -baseW / 2, -baseH / 2, baseW, baseH);
-  ctx.restore();
-  
-  canvas.toBlob(function(blob) {
-    _sppBuktiBlob = blob;
-    var url = URL.createObjectURL(blob);
-    document.getElementById('sppBuktiImg').src = url;
-    document.getElementById('sppBuktiPreview').style.display = '';
-    document.getElementById('sppBuktiName').textContent = _cropFileName;
-    document.getElementById('sppBuktiLabel').style.borderColor = '#1a5c3a';
-    document.getElementById('sppBuktiSize').textContent = 'Ukuran cropped & kompresi: ' + (blob.size/1024).toFixed(0) + ' KB';
-    document.getElementById('cropperModal').style.display = 'none';
-  }, 'image/jpeg', 0.82);
-}
-
-// Drag & Pan event initialization for cropper modal
-document.addEventListener('DOMContentLoaded', function() {
-  var viewport = document.getElementById('cropViewport');
-  if (viewport) {
-    viewport.addEventListener('pointerdown', function(e) {
-      e.preventDefault();
-      _cropActivePointers[e.pointerId] = e;
-      var pointerKeys = Object.keys(_cropActivePointers);
-      
-      if (pointerKeys.length === 2) {
-        _cropIsDragging = false;
-        var p1 = _cropActivePointers[pointerKeys[0]];
-        var p2 = _cropActivePointers[pointerKeys[1]];
-        _cropInitialDistance = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
-        _cropInitialZoom = _cropZoom;
-      } else if (pointerKeys.length === 1) {
-        _cropIsDragging = true;
-        _cropStartX = e.clientX - _cropX;
-        _cropStartY = e.clientY - _cropY;
-        viewport.style.cursor = 'grabbing';
-      }
-      viewport.classList.add('interacting');
-    });
-    
-    window.addEventListener('pointermove', function(e) {
-      if (_cropActivePointers[e.pointerId]) {
-        _cropActivePointers[e.pointerId] = e;
-      }
-      
-      var pointerKeys = Object.keys(_cropActivePointers);
-      if (pointerKeys.length === 2) {
-        var p1 = _cropActivePointers[pointerKeys[0]];
-        var p2 = _cropActivePointers[pointerKeys[1]];
-        var dist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
-        if (_cropInitialDistance > 0) {
-          var factor = dist / _cropInitialDistance;
-          var newZoom = _cropInitialZoom * factor;
-          newZoom = Math.max(1, Math.min(4, newZoom));
-          _cropZoom = newZoom;
-          var slider = document.getElementById('cropZoomSlider');
-          if (slider) slider.value = newZoom;
-          document.getElementById('zoomVal').textContent = newZoom.toFixed(1) + 'x';
-          updateCropperTransform();
-        }
-      } else if (_cropIsDragging && pointerKeys.length === 1) {
-        _cropX = e.clientX - _cropStartX;
-        _cropY = e.clientY - _cropStartY;
-        updateCropperTransform();
-      }
-    });
-    
-    var cleanupPointer = function(e) {
-      delete _cropActivePointers[e.pointerId];
-      var pointerKeys = Object.keys(_cropActivePointers);
-      if (pointerKeys.length < 2) {
-        _cropInitialDistance = 0;
-      }
-      if (pointerKeys.length === 0) {
-        _cropIsDragging = false;
-        viewport.style.cursor = 'grab';
-        viewport.classList.remove('interacting');
-      }
-    };
-    
-    window.addEventListener('pointerup', cleanupPointer);
-    window.addEventListener('pointercancel', cleanupPointer);
-    
-    // Mouse Wheel Zoom
-    viewport.addEventListener('wheel', function(e) {
-      e.preventDefault();
-      var zoomStep = 0.05;
-      var newZoom = _cropZoom + (e.deltaY < 0 ? zoomStep : -zoomStep);
-      newZoom = Math.max(1, Math.min(4, newZoom));
-      _cropZoom = newZoom;
-      var slider = document.getElementById('cropZoomSlider');
-      if (slider) slider.value = newZoom;
-      document.getElementById('zoomVal').textContent = newZoom.toFixed(1) + 'x';
-      updateCropperTransform();
-      
-      viewport.classList.add('interacting');
-      clearTimeout(window._cropWheelTimer);
-      window._cropWheelTimer = setTimeout(function() {
-        viewport.classList.remove('interacting');
-      }, 500);
-    }, { passive: false });
-  }
-  
-  var slider = document.getElementById('cropZoomSlider');
-  if (slider) {
-    slider.addEventListener('input', function() {
-      _cropZoom = parseFloat(slider.value);
-      document.getElementById('zoomVal').textContent = _cropZoom.toFixed(1) + 'x';
-      updateCropperTransform();
-    });
-  }
-});
 </script>
 
 <!-- ════ MODAL KONFIRMASI SPP — di level body agar fixed mencakup full viewport ════ -->
@@ -17082,64 +16901,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<!-- ════ MODAL CROPPER SPP ════ -->
-<style>
-  .crop-guideline-h, .crop-guideline-v {
-    opacity: 0.15;
-    transition: opacity 0.25s ease;
-  }
-  #cropViewport.interacting .crop-guideline-h,
-  #cropViewport.interacting .crop-guideline-v {
-    opacity: 0.65;
-  }
-</style>
-<div class="modal-overlay" id="cropperModal" style="display:none; z-index:10001;" onclick="if(event.target===this)closeCropperModal()">
-  <div class="modal-sheet" style="max-width:400px;margin:0 auto;display:flex;flex-direction:column;max-height:95dvh">
-    <div class="modal-head" style="position:sticky;top:0;background:var(--bg,#fff);z-index:2;border-bottom:1px solid var(--border);padding-bottom:16px;flex-shrink:0">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✂️</div>
-        <div>
-          <div class="modal-title" style="font-size:15px">Sesuaikan Foto Bukti</div>
-          <div style="font-size:11px;color:var(--text-3);font-weight:500">Geser & Zoom untuk memotong</div>
-        </div>
-      </div>
-      <button class="modal-x" onclick="closeCropperModal()">✕</button>
-    </div>
-
-    <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;flex:1;padding:20px">
-      <!-- Crop Viewport Container -->
-      <div id="cropViewport" style="width:300px;height:380px;position:relative;overflow:hidden;background:#0f172a;border-radius:12px;border:2px solid var(--blue);cursor:grab">
-        <img id="cropImage" src="" style="position:absolute;transform-origin:center center;pointer-events:none;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden" alt="Crop Target">
-        <!-- Guidelines (Rule of thirds) -->
-        <div class="crop-guideline-h" style="position:absolute;top:33.33%;left:0;right:0;height:1px;border-top:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
-        <div class="crop-guideline-h" style="position:absolute;top:66.66%;left:0;right:0;height:1px;border-top:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
-        <div class="crop-guideline-v" style="position:absolute;left:33.33%;top:0;bottom:0;width:1px;border-left:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
-        <div class="crop-guideline-v" style="position:absolute;left:66.66%;top:0;bottom:0;width:1px;border-left:1px dashed rgba(255,255,255,0.3);pointer-events:none"></div>
-      </div>
-
-      <!-- Zoom Slider & Controls -->
-      <div style="width:100%;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);font-weight:700;margin-bottom:6px">
-          <span>Perbesar</span>
-          <span id="zoomVal" style="color:var(--blue)">1.0x</span>
-        </div>
-        <input type="range" id="cropZoomSlider" min="1" max="4" step="0.05" value="1" style="width:100%;accent-color:var(--blue);margin-bottom:14px">
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-ghost" onclick="rotateCropper(90)" style="padding:10px;font-size:12.5px">🔄 Putar 90°</button>
-          <button class="btn btn-ghost" onclick="resetCropper()" style="padding:10px;font-size:12.5px">🧹 Reset</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-foot" style="flex-shrink:0">
-      <button class="btn btn-ghost" onclick="closeCropperModal()" style="flex:0 0 auto;padding:12px 16px">Batal</button>
-      <button class="btn btn-primary" style="flex:1" onclick="applyCrop()">
-        ✂️ Potong & Simpan
-      </button>
-    </div>
-  </div>
-</div>
 
 <!-- ════ MODAL RINGKASAN KONFIRMASI SPP (SUMMARY PREVIEW) ════ -->
 <div class="modal-overlay" id="sppSummaryModal" style="display:none; z-index:10003;" onclick="if(event.target===this)tutupSppSummaryModal()">
