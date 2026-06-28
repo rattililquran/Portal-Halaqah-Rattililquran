@@ -8992,6 +8992,8 @@ function mulaiPerekaman() {
     toast("Browser Anda tidak mendukung perekaman suara. Pastikan koneksi menggunakan HTTPS dan gunakan browser modern.", "warn");
     return;
   }
+  var banner = document.getElementById('ltRestoreBanner');
+  if (banner) banner.style.display = 'none';
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
       _recordedChunks = [];
@@ -11156,6 +11158,9 @@ function startMicVisualizer(stream, canvasId, type) {
     if (!AudioContextClass) return;
     
     var audioCtx = new AudioContextClass();
+    if (audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') {
+      audioCtx.resume();
+    }
     var source = audioCtx.createMediaStreamSource(stream);
     var analyser = audioCtx.createAnalyser();
     analyser.fftSize = 32;
@@ -11998,6 +12003,8 @@ function mulaiPerekamanQiyam() {
     toast("Browser Anda tidak mendukung perekaman suara. Pastikan koneksi menggunakan HTTPS dan gunakan browser modern.", "warn");
     return;
   }
+  var banner = document.getElementById('pqRestoreBanner');
+  if (banner) banner.style.display = 'none';
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
       _pqRecordedChunks = [];
