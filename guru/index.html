@@ -1005,6 +1005,8 @@ html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;co
   gap:10px;margin-bottom:18px;
 }
 @media(max-width:600px){.stats-top{grid-template-columns:repeat(2,1fr)}}
+.stats-top-baris2{grid-template-columns:repeat(auto-fit,minmax(150px,1fr)) !important}
+@media(max-width:600px){.stats-top-baris2{grid-template-columns:repeat(2,1fr) !important}}
 .stats-top-2col{grid-template-columns:repeat(2,1fr) !important}
 .stats-top-2col.has-pengganti{grid-template-columns:repeat(3,1fr) !important}
 @media(max-width:600px){.stats-top-2col.has-pengganti{grid-template-columns:repeat(2,1fr) !important}}
@@ -2505,12 +2507,18 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
         </div>
 
         <!-- Kartu akses cepat baris 2 -->
-        <div class="stats-top stats-top-2col" id="statsTopBaris2" style="margin-bottom:18px">
+        <div class="stats-top stats-top-baris2" id="statsTopBaris2" style="margin-bottom:18px">
           <div class="stat-top clickable" onclick="goPage('keaktifan')" title="Lihat keaktifan murid">
             <div class="ico">🚨</div>
             <div class="val" id="st-keaktifan-kritis">–</div>
             <div class="lbl">Butuh Perhatian ↗</div>
             <div id="st-keaktifan-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
+          </div>
+          <div class="stat-top clickable" onclick="goPage('peninjauan-pr')" title="Lihat & nilai PR murid">
+            <div class="ico">🎧</div>
+            <div class="val" id="st-peninjauan-pr">–</div>
+            <div class="lbl">Peninjauan PR ↗</div>
+            <div id="st-peninjauan-pr-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500">Memuat...</div>
           </div>
           <div class="stat-top clickable" onclick="bukaTabBerkas()" title="Buka berkas pengajar">
             <div class="ico">📂</div>
@@ -9668,6 +9676,19 @@ async function checkHalaqahPRBadge() {
       } else {
         badge.classList.remove('show');
       }
+    }
+    
+    // Update dashboard quick card
+    const cardVal = document.getElementById('st-peninjauan-pr');
+    const cardSub = document.getElementById('st-peninjauan-pr-sub');
+    if (cardVal) {
+      cardVal.textContent = totalPending;
+      cardVal.style.color = totalPending > 0 ? 'var(--blue)' : 'var(--green)';
+    }
+    if (cardSub) {
+      cardSub.textContent = totalPending > 0
+        ? totalPending + ' tugas perlu dinilai'
+        : 'Semua PR diperiksa';
     }
   } catch (err) {
     console.error('Gagal mengecek badge PR:', err);
