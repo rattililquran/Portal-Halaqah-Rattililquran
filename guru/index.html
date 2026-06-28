@@ -8366,13 +8366,14 @@ async function doSelesaiKBM() {
   const jamSelesai = saveJurnal
     ? (document.getElementById('jurnalJamSelesai').value || new Date().toTimeString().slice(0,5))
     : new Date().toTimeString().slice(0,5);
-  // Latihan mandiri hanya berlaku untuk KBM Reguler
-  const latihanMandiri  = isRegulerSesi ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
-  const jenisLatihan    = isRegulerSesi ? document.getElementById('jurnalJenisLatihan').value : '';
-  const deadlineLatihan = isRegulerSesi ? (document.getElementById('jurnalDeadline').value || null) : null;
-  const referensiUrl    = isRegulerSesi ? document.getElementById('jurnalReferensiUrl').value.trim() : '';
+  // Latihan mandiri berlaku untuk KBM Reguler dan KBM Qiyam
+  const savePr = isRegulerSesi || isQiyamSesi;
+  const latihanMandiri  = savePr ? document.getElementById('jurnalLatihanMandiri').value.trim() : '';
+  const jenisLatihan    = savePr ? document.getElementById('jurnalJenisLatihan').value : '';
+  const deadlineLatihan = savePr ? (document.getElementById('jurnalDeadline').value || null) : null;
+  const referensiUrl    = savePr ? document.getElementById('jurnalReferensiUrl').value.trim() : '';
 
-  if (isRegulerSesi) {
+  if (savePr) {
     if (jenisLatihan !== '') {
       if (!latihanMandiri) {
         toast("Harap isi Deskripsi Latihan Mandiri (PR) jika Jenis Latihan dipilih.", "warn");
