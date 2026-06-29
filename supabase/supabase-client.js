@@ -598,6 +598,7 @@ var GuruAPI = {
         total_murid  : muridCount,
         pertemuan_ke : mainCount + 1,
         sisa_sesi    : isQiyam ? 0 : Math.max(0, targetSesi - regCount),
+        target_sesi  : isQiyam ? 0 : targetSesi,
         jam_mulai    : h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
         jam_selesai  : h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
       });
@@ -720,6 +721,7 @@ var GuruAPI = {
         pertemuan_ke_lainnya   : lainCount + 1,
         total_sesi             : regCount,           // hanya Reguler untuk progress 40
         sisa_sesi              : Math.max(0, targetSesi - regCount),
+        target_sesi            : targetSesi,
         sisa_pengganti         : sisaPengganti,
         pengganti_pending      : penggantiPending,
         is_hari_ini            : isHariIni,
