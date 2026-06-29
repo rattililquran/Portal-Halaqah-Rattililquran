@@ -3915,10 +3915,11 @@ var AdminAPI = {
     var bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var namaBulanIni = bulanIndo[new Date().getMonth()];
     var tahunIni = new Date().getFullYear();
+    var tujuhHariLalu = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
 
     var [
       usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes,
-      saranRes, sppPendingRes, kbmAllRes, sppBulanIniRes, anggotaTipeRes
+      saranRes, sppPendingRes, kbmAllRes, sppBulanIniRes, anggotaTipeRes, kbmPekanRes
     ] = await Promise.all([
       _sb.from('users').select('role').eq('status','aktif'),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, level').eq('status','aktif'),
@@ -3933,6 +3934,7 @@ var AdminAPI = {
       _sb.from('kbm_log').select('id_halaqah, jenis_sesi, status, is_pengganti').in('status', ['selesai', 'libur']),
       _sb.from('spp_pembayaran').select('jenis, nominal, metode_bayar').eq('tahun', tahunIni).eq('bulan', namaBulanIni).eq('status', 'lunas'),
       _sb.from('anggota').select('tipe_spp').eq('status', 'aktif'),
+      _sb.from('kbm_log').select('id_halaqah').eq('status','selesai').gte('tanggal_pertemuan', tujuhHariLalu),
     ]);
 
     var roles = {};
@@ -4026,10 +4028,22 @@ var AdminAPI = {
     var sppTargetMuridCount = (anggotaTipeRes.data || []).filter(function(a) { return a.tipe_spp !== 'beasiswa'; }).length;
     var sppTargetNominal = sppTargetMuridCount * 75000;
 
+    // Hitung Kepatuhan Input KBM Pekan Ini (7 hari terakhir)
+    var halaqahAktifIds = (hqRes.data || []).map(function(h) { return h.id_halaqah; });
+    var halaqahSetorSet = new Set();
+    (kbmPekanRes.data || []).forEach(function(k) {
+      if (halaqahAktifIds.includes(k.id_halaqah)) {
+        halaqahSetorSet.add(k.id_halaqah);
+      }
+    });
+    var totalActiveHq = halaqahAktifIds.length;
+    var hqInputtedCount = halaqahSetorSet.size;
+    var pctKepatuhanInput = totalActiveHq > 0 ? Math.round(hqInputtedCount / totalActiveHq * 100) : 0;
+
     return { status:'ok', data:{
       total_murid: roles.murid||0, total_guru: roles.guru||0,
       total_halaqah: (hqRes.data||[]).length, kbm_bulan_ini: kbmBulanRes.count||0,
-      pct_nilai_terisi: totalAnggota>0 ? Math.min(Math.round(totalNilaiIsi/totalAnggota*100),100) : 0,
+      pct_nilai_terisi: pctKepatuhanInput,
       periode_aktif: periodeRes.data||null,
       halaqah: halaqah,
       saran_pending_count: saranPendingCount,
