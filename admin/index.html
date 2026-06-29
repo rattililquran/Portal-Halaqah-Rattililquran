@@ -6007,31 +6007,40 @@ async function onToggleIsPengganti(id_kbm, checked) {
   } finally { hideLoad(); }
 }
 
-function openModalHalaqah() {
+async function openModalHalaqah() {
   document.getElementById('modalHalaqahTitle').textContent = '📚 Halaqah Baru';
   ['hqNama','hqJadwal','hqLokasi','hqKurikulum'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('hqJamMulai').value = '';
   document.getElementById('hqJamSelesai').value = '';
   document.getElementById('hqLevel').value = 'Level 1';
   document.getElementById('hqId').value = '';
-  // Populate guru dropdown
+  
+  // Populate guru dropdown secara dinamis langsung dari server untuk memastikan data fresh
   const guruSel = document.getElementById('hqGuru');
-  guruSel.innerHTML = '<option value="">— Pilih Guru —</option>' +
-    allUsers.filter(u=>u.role==='guru'&&u.status==='aktif')
-      .map(u=>`<option value="${esc(u.id_user)}">${esc(u.nama_lengkap)}</option>`).join('');
+  guruSel.innerHTML = '<option value="">— Memuat Guru... —</option>';
+  try {
+    const r = await window.HQ.AdminAPI.getAllUsers('guru');
+    const activeGurus = (r.data || []).filter(u => u.status === 'aktif');
+    guruSel.innerHTML = '<option value="">— Pilih Guru —</option>' +
+      activeGurus.map(u => `<option value="${esc(u.id_user)}">${esc(u.nama_lengkap)}</option>`).join('');
+  } catch(e) {
+    console.error('Gagal memuat guru:', e);
+    guruSel.innerHTML = '<option value="">— Gagal memuat guru —</option>';
+  }
+
   // Populate periode
   populatePeriodeSel('hqPeriode');
   openModal('modalHalaqah');
 }
 
-function editHalaqah(id) {
+async function editHalaqah(id) {
   const h = allHalaqah.find(x=>x.id_halaqah===id);
   if (!h) return;
-  openModalHalaqah();
+  await openModalHalaqah();
   document.getElementById('modalHalaqahTitle').textContent = '✏️ Edit Halaqah';
   document.getElementById('hqId').value       = h.id_halaqah;
   document.getElementById('hqNama').value     = h.nama_halaqah;
-  document.getElementById('hqGuru').value     = h.id_guru;
+  document.getElementById('hqGuru').value     = h.id_guru || '';
   document.getElementById('hqLevel').value    = h.level;
   document.getElementById('hqPeriode').value  = h.id_periode||'';
   document.getElementById('hqJadwal').value   = h.jadwal_hari||'';
