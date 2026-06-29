@@ -6056,12 +6056,12 @@ async function saveHalaqah() {
     nama_halaqah: document.getElementById('hqNama').value.trim(),
     id_guru     : document.getElementById('hqGuru').value,
     level       : document.getElementById('hqLevel').value,
-    id_periode  : document.getElementById('hqPeriode').value,
-    jadwal_hari : document.getElementById('hqJadwal').value,
-    jam_mulai   : document.getElementById('hqJamMulai').value,
-    jam_selesai : document.getElementById('hqJamSelesai').value,
-    lokasi      : document.getElementById('hqLokasi').value,
-    kurikulum   : document.getElementById('hqKurikulum').value,
+    id_periode  : document.getElementById('hqPeriode').value || null,
+    jadwal_hari : document.getElementById('hqJadwal').value || null,
+    jam_mulai   : document.getElementById('hqJamMulai').value || null,
+    jam_selesai : document.getElementById('hqJamSelesai').value || null,
+    lokasi      : document.getElementById('hqLokasi').value || null,
+    kurikulum   : document.getElementById('hqKurikulum').value || null,
   };
   if (!data.nama_halaqah || !data.id_guru) return toast('Nama dan guru wajib diisi','err');
   showLoad('Bismillah, menyimpan...');
