@@ -48,6 +48,32 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .blob-a3{bottom:-10%;left:20%;width:340px;height:340px;background:#a7f3d0;animation:blobA 19s ease-in-out infinite}
 @keyframes blobA{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-18px) scale(1.04)}}
 
+/* HARI CHIPS STYLE */
+.hari-chips-container { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.hari-chip { cursor: pointer; display: inline-flex; }
+.hari-chip input[type="checkbox"] { display: none; }
+.hari-chip input[type="checkbox"] + span {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.hari-chip input[type="checkbox"]:checked + span {
+  background: var(--blue-d, #2563eb);
+  border-color: var(--blue-d, #2563eb);
+  color: #fff;
+}
+.hari-chip input[type="checkbox"] + span:hover {
+  border-color: var(--blue);
+  background: var(--blue-l);
+}
+
 /* AUTH */
 #authScreen{min-height:100dvh;display:flex;align-items:center;justify-content:center;
   background:#f8fafc;padding:20px;position:relative}
@@ -3465,7 +3491,17 @@ html.theme-dark .fin-detail-card {
         </div>
       </div>
       <div class="f3">
-        <div class="fg"><label>Jadwal Hari</label><input type="text" class="fc" id="hqJadwal" placeholder="Senin, Rabu"></div>
+        <div class="fg" style="flex: 2;"><label>Jadwal Hari</label>
+          <div class="hari-chips-container">
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Senin"><span>Senin</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Selasa"><span>Selasa</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Rabu"><span>Rabu</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Kamis"><span>Kamis</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Jumat"><span>Jumat</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Sabtu"><span>Sabtu</span></label>
+            <label class="hari-chip"><input type="checkbox" name="hqHari" value="Ahad"><span>Ahad</span></label>
+          </div>
+        </div>
         <div class="fg"><label>Jam Mulai</label><input type="time" class="fc" id="hqJamMulai"></div>
         <div class="fg"><label>Jam Selesai</label><input type="time" class="fc" id="hqJamSelesai"></div>
       </div>
@@ -6009,11 +6045,17 @@ async function onToggleIsPengganti(id_kbm, checked) {
 
 async function openModalHalaqah() {
   document.getElementById('modalHalaqahTitle').textContent = '📚 Halaqah Baru';
-  ['hqNama','hqJadwal','hqLokasi','hqKurikulum'].forEach(id=>document.getElementById(id).value='');
+  ['hqNama','hqLokasi','hqKurikulum'].forEach(id => {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.getElementById('hqJamMulai').value = '';
   document.getElementById('hqJamSelesai').value = '';
   document.getElementById('hqLevel').value = 'Level 1';
   document.getElementById('hqId').value = '';
+  
+  // Uncheck semua hari
+  document.querySelectorAll('input[name="hqHari"]').forEach(el => el.checked = false);
   
   // Populate guru dropdown secara dinamis langsung dari server untuk memastikan data fresh
   const guruSel = document.getElementById('hqGuru');
@@ -6043,7 +6085,13 @@ async function editHalaqah(id) {
   document.getElementById('hqGuru').value     = h.id_guru || '';
   document.getElementById('hqLevel').value    = h.level;
   document.getElementById('hqPeriode').value  = h.id_periode||'';
-  document.getElementById('hqJadwal').value   = h.jadwal_hari||'';
+  
+  // Set checklist hari sesuai dengan jadwal_hari
+  const jadwal = h.jadwal_hari || '';
+  document.querySelectorAll('input[name="hqHari"]').forEach(el => {
+    el.checked = jadwal.toLowerCase().includes(el.value.toLowerCase());
+  });
+
   document.getElementById('hqJamMulai').value = h.jam_mulai||'';
   document.getElementById('hqJamSelesai').value = h.jam_selesai||'';
   document.getElementById('hqLokasi').value   = h.lokasi||'';
@@ -6052,12 +6100,17 @@ async function editHalaqah(id) {
 
 async function saveHalaqah() {
   const id   = document.getElementById('hqId').value;
+  
+  // Ambil hari yang tercentang
+  const checkedHari = Array.from(document.querySelectorAll('input[name="hqHari"]:checked'))
+    .map(el => el.value);
+
   const data = {
     nama_halaqah: document.getElementById('hqNama').value.trim(),
     id_guru     : document.getElementById('hqGuru').value,
     level       : document.getElementById('hqLevel').value,
     id_periode  : document.getElementById('hqPeriode').value || null,
-    jadwal_hari : document.getElementById('hqJadwal').value || null,
+    jadwal_hari : checkedHari.length > 0 ? checkedHari.join(', ') : null,
     jam_mulai   : document.getElementById('hqJamMulai').value || null,
     jam_selesai : document.getElementById('hqJamSelesai').value || null,
     lokasi      : document.getElementById('hqLokasi').value || null,
