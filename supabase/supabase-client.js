@@ -4135,6 +4135,9 @@ var AdminAPI = {
     return {status:'ok',data:hqData};
   },
   createHalaqah: async function(d) {
+    if (!d.id_halaqah) {
+      d.id_halaqah = 'HQ-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
     var {data,error}=await _sb.from('halaqah').insert(d).select().single();
     _check(error,'createHalaqah');
     if (data) {
