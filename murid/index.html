@@ -7647,7 +7647,7 @@ async function loadDashboard() {
     // Tampilkan tab Assessment hanya untuk Level 1 & 2
     // Assessment di sidebar — update visibility
     var sbAsmt2 = document.getElementById('sidebarAssessmentBtn');
-    if (sbAsmt2) sbAsmt2.style.display = ['Level 1','Level 2'].includes(_level) ? 'flex' : 'none';
+    if (sbAsmt2) sbAsmt2.style.display = ['Level 1','Level 2','Tahsin Al-Fatihah'].includes(_level) ? 'flex' : 'none';
     var tLevel = ang.target_level || '';
     if (!tLevel && _level !== '–') {
       var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
@@ -7752,10 +7752,10 @@ async function loadDashboard() {
         }
       }
     } else {
-      // Server kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir
-      var target  = 40;
+      // Server kirim: skor_hadir (float), skor_dari_40 (%), sisa_sesi, total_sesi, pct_hadir, target_sesi
+      var target  = Number(kh.target_sesi || 40);
       var hadir   = Number(kh.skor_hadir   || 0);  // jumlah skor hadir (float)
-      var skor40  = Number(kh.skor_dari_40 || 0);  // % dari 40 pertemuan
+      var skor40  = Number(kh.skor_dari_40 || 0);  // % dari target pertemuan
       pct     = skor40 > 0 ? Math.min(skor40, 100)
                   : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
 
@@ -7781,10 +7781,10 @@ async function loadDashboard() {
       sisa = Number(kh.sisa_sesi);
       var sisaTeks = !isNaN(sisa) && sisa >= 0
         ? (sisa > 0 ? sisa + ' sesi tersisa' : '🎉 Target tercapai!')
-        : 'dari 40 pertemuan';
+        : 'dari ' + target + ' pertemuan';
       var hadirCount = Number(kh.skor_hadir || 0);
       document.getElementById('dashProgressPct').textContent =
-        Math.round(hadirCount) + ' dari 40 sesi';
+        Math.round(hadirCount) + ' dari ' + target + ' sesi';
       document.getElementById('dashSisa').textContent = sisaTeks;
     }
 
@@ -13820,7 +13820,7 @@ async function downloadMyRtPDF() {
 
 var _assessmentLoading = false; // debounce flag cegah double-load
 
-var ASMT_VALID_LEVELS = ['Level 1', 'Level 2'];
+var ASMT_VALID_LEVELS = ['Level 1', 'Level 2', 'Tahsin Al-Fatihah'];
 
 async function loadAssessment() {
   var el = document.getElementById('assessmentContent');
@@ -13849,7 +13849,7 @@ async function loadAssessment() {
     el.innerHTML = '<div class="asmnt-locked">'
       + '<div style="font-size:48px;margin-bottom:12px">🎓</div>'
       + '<div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px">Assessment tidak tersedia</div>'
-      + '<div style="font-size:13px">Fitur ini hanya aktif untuk Level 1 dan Level 2.</div>'
+      + '<div style="font-size:13px">Fitur ini hanya aktif untuk Level 1, Level 2, dan Tahsin Al-Fatihah.</div>'
       + '</div>';
     return;
   }
@@ -14818,6 +14818,14 @@ function renderGrafikKehadiran(rows) {
 
 async function loadSPP() {
   if (_sppLoaded) return; // skip jika sudah dimuat (hindari CORS spam saat auto-refresh)
+  var user = window.HQ.getCurrentUser();
+  if (user && user.id_user && user.id_user.toUpperCase().startsWith('FTH')) {
+    var card = document.getElementById('sppCard');
+    if (card) card.style.display = 'none';
+    loadTransparansi();
+    _sppLoaded = true;
+    return;
+  }
   try {
     var r = await window.HQ.MuridAPI.getSPPStatus();
     if (r && r.status === 'error') {

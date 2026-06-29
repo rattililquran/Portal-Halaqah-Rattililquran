@@ -545,7 +545,7 @@ var GuruAPI = {
     var today   = _todayJakarta();   // L2: zona Asia/Jakarta, bukan UTC (hindari off-by-one < 07:00 WIB)
     var month   = today.slice(0, 7);
 
-    var [hqRes, anggotaRes, kbmHariRes, kbmBulanRes, draftRes] = await Promise.all([
+    var [hqRes, anggotaRes, kbmHariRes, kbmBulanRes, draftRes, levelsRes] = await Promise.all([
       _sb.from('halaqah').select('*').eq('id_guru', id_guru).eq('status', 'aktif'),
       _sb.from('anggota').select('id_murid, id_halaqah').eq('status', 'aktif'),
       _sb.from('kbm_log').select('id_kbm').eq('id_guru', id_guru)
@@ -556,6 +556,7 @@ var GuruAPI = {
       // walau terjadi anomali >1 draft (maybeSingle akan melempar error).
       _sb.from('kbm_log').select('*').eq('id_guru', id_guru).eq('status', 'draft')
          .order('tanggal_pertemuan', { ascending: false }).limit(1),
+      _sb.from('level').select('nama_level, id_level, jumlah_pertemuan'),
     ]);
 
     var halaqah   = hqRes.data || [];
@@ -577,6 +578,12 @@ var GuruAPI = {
       });
     }
 
+    var targetSesiMap = {};
+    (levelsRes.data || []).forEach(function(l) {
+      if (l.nama_level) targetSesiMap[l.nama_level] = l.jumlah_pertemuan;
+      if (l.id_level) targetSesiMap[l.id_level] = l.jumlah_pertemuan;
+    });
+
     halaqah = halaqah.map(function(h) {
       var muridCount = (anggotaRes.data || []).filter(function(a) {
         return a.id_halaqah === h.id_halaqah;
@@ -586,10 +593,11 @@ var GuruAPI = {
       var regCount = counts['KBM Reguler'] || 0;
       var qiyamCount = counts['KBM Qiyam'] || 0;
       var mainCount = isQiyam ? qiyamCount : regCount;
+      var targetSesi = targetSesiMap[h.level] || 40;
       return Object.assign({}, h, {
         total_murid  : muridCount,
         pertemuan_ke : mainCount + 1,
-        sisa_sesi    : isQiyam ? 0 : Math.max(0, 40 - regCount),
+        sisa_sesi    : isQiyam ? 0 : Math.max(0, targetSesi - regCount),
         jam_mulai    : h.jam_mulai ? h.jam_mulai.substring(0, 5) : null,
         jam_selesai  : h.jam_selesai ? h.jam_selesai.substring(0, 5) : null,
       });
@@ -620,10 +628,11 @@ var GuruAPI = {
     var hari    = _hariIni();
     var today   = _todayJakarta();
 
-    var [{ data: halaqah, error }, { data: liburResmi }] = await Promise.all([
+    var [{ data: halaqah, error }, { data: liburResmi }, levelsRes] = await Promise.all([
       _sb.from('halaqah').select('*, anggota(count)')
         .eq('id_guru', id_guru).eq('status', 'aktif'),
       _sb.from('hari_libur_resmi').select('tanggal, keterangan').eq('tanggal', today).maybeSingle(),
+      _sb.from('level').select('nama_level, id_level, jumlah_pertemuan'),
     ]);
     _check(error, 'getJadwalHariIni');
 
@@ -660,6 +669,14 @@ var GuruAPI = {
       });
     }
 
+    var targetSesiMap = {};
+    if (levelsRes && levelsRes.data) {
+      levelsRes.data.forEach(function(l) {
+        if (l.nama_level) targetSesiMap[l.nama_level] = l.jumlah_pertemuan;
+        if (l.id_level) targetSesiMap[l.id_level] = l.jumlah_pertemuan;
+      });
+    }
+
     var result = (halaqah || []).map(function(h) {
       var jadwalHari = (h.jadwal_hari || '').split(/[,\s]+/);
       var isHariIni  = jadwalHari.some(function(j) {
@@ -686,6 +703,7 @@ var GuruAPI = {
           penggantiPending[j] = entries.slice(0, sisa);
         }
       });
+      var targetSesi = targetSesiMap[h.level] || 40;
       return {
         id_halaqah             : h.id_halaqah,
         nama_halaqah           : h.nama_halaqah,
@@ -701,7 +719,7 @@ var GuruAPI = {
         pertemuan_ke_microteach: microCount + 1,
         pertemuan_ke_lainnya   : lainCount + 1,
         total_sesi             : regCount,           // hanya Reguler untuk progress 40
-        sisa_sesi              : Math.max(0, 40 - regCount),
+        sisa_sesi              : Math.max(0, targetSesi - regCount),
         sisa_pengganti         : sisaPengganti,
         pengganti_pending      : penggantiPending,
         is_hari_ini            : isHariIni,
@@ -758,13 +776,21 @@ var GuruAPI = {
 
   // ── Murid ──────────────────────────────────
   getMurid: async function(id_halaqah) {
-    var [anggotaRes, nilaiAll] = await Promise.all([
+    var [anggotaRes, nilaiAll, hqRes] = await Promise.all([
       _sb.from('anggota').select('*, users!anggota_id_murid_fkey(no_hp, email)')
         .eq('id_halaqah', id_halaqah).eq('status', 'aktif').order('nama_murid'),
       _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, status_hadir, adab, kamera_murid',
         function(q){ return q.eq('id_halaqah', id_halaqah).order('id_nilai'); }, 'getMurid:nilai_kbm'),
+      _sb.from('halaqah').select('level').eq('id_halaqah', id_halaqah).maybeSingle(),
     ]);
     _check(anggotaRes.error, 'getMurid');
+
+    var targetSesi = 40;
+    if (hqRes && hqRes.data && hqRes.data.level) {
+      var { data: lvl } = await _sb.from('level').select('jumlah_pertemuan').or('id_level.eq.' + hqRes.data.level + ',nama_level.eq.' + hqRes.data.level).maybeSingle();
+      if (lvl && lvl.jumlah_pertemuan) targetSesi = lvl.jumlah_pertemuan;
+    }
+
     return { status: 'ok', data: (anggotaRes.data || []).map(function(a) {
       var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
       var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
@@ -779,7 +805,7 @@ var GuruAPI = {
         total_sesi    : nm.length,
         pct_hadir     : nm.length > 0 ? Math.round(hadirCount / nm.length * 100) : 0,
         skor_hadir_raw: hadirCount,
-        skor_dari_40  : Math.min(Math.round(hadirCount / 40 * 100), 100),
+        skor_dari_40  : Math.min(Math.round(hadirCount / targetSesi * 100), 100),
         poin_adab     : adabData.length > 0 ? Math.round(adabData.filter(function(n){return n.adab==='Baik';}).length / adabData.length * 100) : 0,
         poin_kamera   : kameraData.length > 0 ? Math.round(kameraData.filter(function(n){return n.kamera_murid==='kamera terbuka';}).length / kameraData.length * 100) : 0,
       });
@@ -2729,8 +2755,9 @@ var MuridAPI = {
 
     // Apakah level halaqah murid mengaktifkan Partner Belajar (gating UI). Non-fatal:
     // kalau kolom/baris belum ada (migration 020 belum jalan), anggap false.
+    // Sekaligus ambil jumlah_pertemuan untuk kustomisasi target progres KBM murid.
     var levelBelajarQuery = (anggota && anggota.halaqah && anggota.halaqah.level)
-      ? _sb.from('level').select('partner_belajar_enabled').eq('nama_level', anggota.halaqah.level).maybeSingle()
+      ? _sb.from('level').select('partner_belajar_enabled, jumlah_pertemuan').eq('nama_level', anggota.halaqah.level).maybeSingle()
       : Promise.resolve({ data: null });
 
     var [
@@ -2817,11 +2844,12 @@ var MuridAPI = {
       },
       kehadiran: {
         skor_hadir  : regHadir,
-        skor_dari_40: Math.min(Math.round(regHadir / 40 * 100), 100),
+        skor_dari_40: Math.min(Math.round(regHadir / ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) * 100), 100),
         pct_hadir   : pctHadir,
         total_hadir : totalHadir,
         total_sesi  : totalSesi,
-        sisa_sesi   : Math.max(0, 40 - regTotalSesi),
+        sisa_sesi   : Math.max(0, ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) - regTotalSesi),
+        target_sesi : (levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40,
         count_h     : countH,
         count_t     : countT,
         count_i     : countI,
@@ -4460,13 +4488,21 @@ var AdminAPI = {
     return {status:'ok',data};
   },
   getRekapAbsensi: async function(p) {
-    var queryAnggota = _sb.from('anggota')
-      .select('id_murid, nama_murid, id_halaqah, halaqah(nama_halaqah)')
-      .eq('status', 'aktif');
-    if (p.id_halaqah) {
-      queryAnggota = queryAnggota.eq('id_halaqah', p.id_halaqah);
-    }
-    var { data: anggota, error: errAnggota } = await queryAnggota.order('nama_murid');
+    var [levelsRes, queryAnggotaData] = await Promise.all([
+      _sb.from('level').select('nama_level, id_level, jumlah_pertemuan'),
+      (function() {
+        var q = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, halaqah(nama_halaqah, level)').eq('status', 'aktif');
+        if (p.id_halaqah) q = q.eq('id_halaqah', p.id_halaqah);
+        return q.order('nama_murid');
+      })()
+    ]);
+    var targetSesiMap = {};
+    (levelsRes.data || []).forEach(function(l) {
+      if (l.nama_level) targetSesiMap[l.nama_level] = l.jumlah_pertemuan;
+      if (l.id_level) targetSesiMap[l.id_level] = l.jumlah_pertemuan;
+    });
+    var anggota = queryAnggotaData.data;
+    var errAnggota = queryAnggotaData.error;
     _check(errAnggota, 'getRekapAbsensi.anggota');
     
     var nilaiList = [];
@@ -4552,7 +4588,8 @@ var AdminAPI = {
       var total = studentLogs.length;
       var scoreSum = H + (T * 0.7) + (I * 0.5);
       var pct_hadir = total > 0 ? Math.round((scoreSum / total) * 100) : 0;
-      var skor_dari_40 = Math.min(Math.round(scoreSum / 40 * 100), 100);
+      var targetSesi = (a.halaqah && targetSesiMap[a.halaqah.level]) || 40;
+      var skor_dari_40 = Math.min(Math.round(scoreSum / targetSesi * 100), 100);
       return {
         id_murid: a.id_murid,
         nama_murid: a.nama_murid,

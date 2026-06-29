@@ -3155,6 +3155,7 @@ html.theme-dark .pr-chip.active {
             <option value="Level 3">Level 3</option>
             <option value="Level Qiyam">Level Qiyam</option>
             <option value="Micro Teaching">Micro Teaching</option>
+            <option value="Tahsin Al-Fatihah">Tahsin Al-Fatihah</option>
           </select>
           <select class="fc" id="muridSortSel" onchange="renderMuridTable()" style="max-width:170px">
             <option value="level_asc">⇕ Urut per Level</option>
@@ -3436,7 +3437,7 @@ html.theme-dark .pr-chip.active {
 
         const HARI=["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Ahad"];
         const ALIAS={"minggu":"Ahad","ahad":"Ahad","jumat":"Jumat","jum'at":"Jumat","jum’at":"Jumat"};
-        const LV={"Level 1":"#0ea5e9","Level 2":"#8b5cf6","Level 3":"#f59e0b","Level 4":"#ef4444","Level Qiyam":"#10b981","At-Tibyan":"#6366f1"};
+        const LV={"Level 1":"#0ea5e9","Level 2":"#8b5cf6","Level 3":"#f59e0b","Level 4":"#ef4444","Level Qiyam":"#10b981","At-Tibyan":"#6366f1","Tahsin Al-Fatihah":"#14b8a6"};
         
         function lvColor(l){return LV[l]||"#0ea5e9";}
         
@@ -5636,6 +5637,7 @@ html.theme-dark .pr-chip.active {
             <option value="Level 3">Level 3</option>
             <option value="Level 4">Level 4</option>
             <option value="Level Qiyam">Level Qiyam</option>
+            <option value="Tahsin Al-Fatihah">Tahsin Al-Fatihah</option>
           </select>
         </div>
         <div class="fg">
@@ -5645,6 +5647,7 @@ html.theme-dark .pr-chip.active {
             <option value="Level 3">Level 3</option>
             <option value="Level 4">Level 4</option>
             <option value="Level Qiyam">Level Qiyam</option>
+            <option value="Tahsin Al-Fatihah">Tahsin Al-Fatihah</option>
           </select>
         </div>
       </div>
@@ -8953,7 +8956,7 @@ function renderMuridTable() {
   updateMuridSortIndicators();
 
   // Urutan level: Level 1 < Level 2 < Level 3 < Level Qiyam < Micro Teaching < lainnya
-  var LEVEL_ORDER = {'Level 1':1,'Level 2':2,'Level 3':3,'Level Qiyam':4,'Micro Teaching':5};
+  var LEVEL_ORDER = {'Level 1':1,'Level 2':2,'Level 3':3,'Level Qiyam':4,'Micro Teaching':5,'Tahsin Al-Fatihah':6};
   function levelRank(l){ return LEVEL_ORDER[l] || 99; }
 
   if (!rows.length) {
