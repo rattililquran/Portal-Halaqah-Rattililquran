@@ -989,6 +989,230 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+/* ── NEW PREMIUM DASHBOARD STYLES ── */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--r);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s, border-color 0.25s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.action-card-icon {
+  font-size: 26px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.action-card:hover .action-card-icon {
+  transform: scale(1.1);
+}
+.action-card-content {
+  flex: 1;
+  min-width: 0;
+}
+.action-card-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.action-card-desc {
+  font-size: 11px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+.action-card-btn {
+  font-size: 10px;
+  font-weight: 800;
+  border: none;
+  background: transparent;
+  color: inherit;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: underline;
+}
+
+/* COLOR VARIATIONS FOR ACTIONS */
+.action-card.ac-amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(245, 158, 11, 0.02)), var(--card);
+  border-color: rgba(245, 158, 11, 0.12);
+}
+.action-card.ac-amber .action-card-icon {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--amber-txt);
+}
+.action-card.ac-amber .action-card-btn {
+  color: var(--amber-txt);
+}
+
+.action-card.ac-blue {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(14, 165, 233, 0.02)), var(--card);
+  border-color: rgba(14, 165, 233, 0.12);
+}
+.action-card.ac-blue .action-card-icon {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--blue-txt);
+}
+.action-card.ac-blue .action-card-btn {
+  color: var(--blue-txt);
+}
+
+.action-card.ac-purple {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06), rgba(139, 92, 246, 0.02)), var(--card);
+  border-color: rgba(139, 92, 246, 0.12);
+}
+.action-card.ac-purple .action-card-icon {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--purple-txt);
+}
+.action-card.ac-purple .action-card-btn {
+  color: var(--purple-txt);
+}
+
+.action-card.ac-green {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.02)), var(--card);
+  border-color: rgba(16, 185, 129, 0.12);
+}
+.action-card.ac-green .action-card-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green-txt);
+}
+.action-card.ac-green .action-card-btn {
+  color: var(--green-txt);
+}
+
+/* SPLIT GRID FOR KBM & FINANCE */
+.dashboard-split {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) {
+  .dashboard-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* COMPLIANCE & WARNINGS WIDGET */
+.warn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.warn-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+html.theme-dark .warn-item {
+  background: rgba(255, 255, 255, 0.02);
+}
+.warn-name {
+  font-weight: 750;
+  color: var(--text);
+}
+.warn-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.warn-badge {
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* FINANCIAL WIDGET */
+.fin-panel {
+  padding: 16px 18px;
+}
+.fin-target-bar {
+  height: 10px;
+  background: var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  margin: 8px 0 16px;
+  position: relative;
+}
+.fin-target-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  border-radius: var(--r-pill);
+  transition: width 0.6s ease;
+}
+.fin-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.fin-detail-card {
+  background: rgba(0, 0, 0, 0.01);
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+html.theme-dark .fin-detail-card {
+  background: rgba(255, 255, 255, 0.015);
+}
+.fin-detail-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+.fin-detail-lbl {
+  font-size: 11.5px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.dashboard-section-title {
+  font-size: 11.5px;
+  font-weight: 850;
+  color: var(--blue-d);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 24px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 </style>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1147,13 +1371,96 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
             <div class="progress-bar"><div class="progress-fill" id="st-nilai-bar" style="background:var(--green);width:0%"></div></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">📚 Ringkasan Per Halaqah</div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Halaqah</th><th>Guru</th><th>Level</th><th>Murid</th><th>Sesi</th><th>Rata Nilai</th><th>% Hadir</th></tr></thead>
-              <tbody id="dashHalaqahTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
-            </table>
+
+        <div class="dashboard-section-title">📥 Kotak Masuk Tindakan</div>
+        <div class="action-grid" id="dashActionGrid">
+          <div class="action-card ac-green" onclick="goPage('saran')" id="act-saran">
+            <div class="action-card-icon">💬</div>
+            <div class="action-card-content">
+              <div class="action-card-title">Saran & Masukan</div>
+              <div class="action-card-desc" id="act-saran-desc">Memuat data...</div>
+              <button class="action-card-btn">Lihat Saran ↗</button>
+            </div>
+          </div>
+          <div class="action-card ac-green" onclick="goPage('spp')" id="act-spp">
+            <div class="action-card-icon">💳</div>
+            <div class="action-card-content">
+              <div class="action-card-title">Pembayaran SPP</div>
+              <div class="action-card-desc" id="act-spp-desc">Memuat data...</div>
+              <button class="action-card-btn">Verifikasi SPP ↗</button>
+            </div>
+          </div>
+          <div class="action-card ac-green" onclick="goPage('pengganti')" id="act-pengganti">
+            <div class="action-card-icon">🔄</div>
+            <div class="action-card-content">
+              <div class="action-card-title">Hutang Kelas Pengganti</div>
+              <div class="action-card-desc" id="act-pengganti-desc">Memuat data...</div>
+              <button class="action-card-btn">Kelola Pengganti ↗</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-split">
+          <!-- COLUMN LEFT: Ringkasan Halaqah -->
+          <div>
+            <div class="dashboard-section-title">📚 Ringkasan Kehadiran Halaqah</div>
+            <div class="card" style="margin-bottom:0">
+              <div class="card-head"><div class="card-title">Ringkasan Per Halaqah</div></div>
+              <div class="tbl-wrap" style="border:none">
+                <table>
+                  <thead><tr><th>Halaqah</th><th>Guru</th><th>Level</th><th>Murid</th><th>Sesi</th><th>Rata Nilai</th><th>% Hadir</th></tr></thead>
+                  <tbody id="dashHalaqahTbl"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <!-- COLUMN RIGHT: Warnings & Financial -->
+          <div>
+            <div class="dashboard-section-title">⚠️ Kepatuhan & Murid Kritis</div>
+            <div class="card" style="padding:16px; margin-bottom: 20px;">
+              <div class="warn-list" id="dashWarnList">
+                <div style="text-align:center;padding:12px;color:var(--text-3)">Memuat data kepatuhan...</div>
+              </div>
+            </div>
+
+            <div class="dashboard-section-title">💵 Kinerja Keuangan SPP & Infaq</div>
+            <div class="card fin-panel">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:750;">
+                <span>Realisasi SPP Bulan Ini</span>
+                <span id="finSppPercent">0%</span>
+              </div>
+              <div class="fin-target-bar">
+                <div class="fin-target-fill" id="finSppBar" style="width:0%"></div>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-3); text-align:right; margin-top:-10px; margin-bottom:12px;" id="finSppRatio">
+                Rp 0 / Rp 0
+              </div>
+              
+              <div class="fin-detail-grid">
+                <div class="fin-detail-card">
+                  <span class="fin-detail-lbl">Infaq/Operasional</span>
+                  <span class="fin-detail-val" id="finInfaqNominal">Rp 0</span>
+                </div>
+                <div class="fin-detail-card">
+                  <span class="fin-detail-lbl">Ihsan Guru</span>
+                  <span class="fin-detail-val" id="finIhsanNominal">Rp 0</span>
+                </div>
+                <div class="fin-detail-card">
+                  <span class="fin-detail-lbl">Gateway (Auto)</span>
+                  <span class="fin-detail-val" id="finGatewayNominal">Rp 0</span>
+                </div>
+                <div class="fin-detail-card">
+                  <span class="fin-detail-lbl">Manual Transfer</span>
+                  <span class="fin-detail-val" id="finManualNominal">Rp 0</span>
+                </div>
+              </div>
+              
+              <div style="margin-top: 14px; text-align:center; padding-top:10px; border-top:1px solid var(--border)">
+                <span style="font-size:12px; font-weight:750; color:var(--text)">Total Masuk: </span>
+                <span style="font-size:15px; font-weight:850; color:var(--green-txt)" id="finTotalMasuk">Rp 0</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3796,7 +4103,11 @@ async function refreshPage() {
 async function loadDashboard() {
   showLoad('Bismillah, memulai perjuangan menjadi sahabat Al-Qur\'an...');
   try {
-    const r = await window.HQ.AdminAPI.getDashboard();
+    const [r, kepatuhanRes] = await Promise.all([
+      window.HQ.AdminAPI.getDashboard(),
+      window.HQ.AdminAPI.getKepatuhanRekap()
+    ]);
+    
     const d = r.data;
     const p = d.periode_aktif;
     document.getElementById('periodeInfo').textContent =
@@ -3808,8 +4119,44 @@ async function loadDashboard() {
     document.getElementById('st-nilai').textContent   = d.pct_nilai_terisi + '%';
     document.getElementById('st-nilai-bar').style.width = d.pct_nilai_terisi + '%';
 
+    // ── Populate Action Inbox (Opsi 1) ──
+    // Saran
+    const actSaran = document.getElementById('act-saran');
+    const actSaranDesc = document.getElementById('act-saran-desc');
+    if (d.saran_pending_count > 0) {
+      actSaran.className = 'action-card ac-amber';
+      actSaranDesc.textContent = `${d.saran_pending_count} saran masuk belum ditanggapi`;
+    } else {
+      actSaran.className = 'action-card ac-green';
+      actSaranDesc.textContent = 'Semua saran selesai ditindaklanjuti';
+    }
+
+    // SPP
+    const actSpp = document.getElementById('act-spp');
+    const actSppDesc = document.getElementById('act-spp-desc');
+    if (d.spp_pending_count > 0) {
+      actSpp.className = 'action-card ac-blue';
+      actSppDesc.textContent = `${d.spp_pending_count} transfer manual menunggu konfirmasi`;
+    } else {
+      actSpp.className = 'action-card ac-green';
+      actSppDesc.textContent = 'Tidak ada verifikasi pending';
+    }
+
+    // Kelas Pengganti
+    const actPengganti = document.getElementById('act-pengganti');
+    const actPenggantiDesc = document.getElementById('act-pengganti-desc');
+    if (d.total_hutang_pengganti > 0) {
+      actPengganti.className = 'action-card ac-purple';
+      actPenggantiDesc.textContent = `${d.total_hutang_pengganti} sesi libur belum diganti`;
+    } else {
+      actPengganti.className = 'action-card ac-green';
+      actPenggantiDesc.textContent = 'Semua sesi libur telah diganti';
+    }
+
+    // ── Populate Halaqah (Opsi 2 - Urut Kehadiran Terendah) ──
+    const sortedHalaqah = (d.halaqah || []).slice().sort((a, b) => (a.pct_hadir || 0) - (b.pct_hadir || 0));
     const tbody = document.getElementById('dashHalaqahTbl');
-    tbody.innerHTML = (d.halaqah||[]).map(h => `<tr>
+    tbody.innerHTML = sortedHalaqah.map(h => `<tr>
       <td><strong>${esc(h.nama_halaqah)}</strong></td>
       <td>${esc(h.nama_guru)}</td>
       <td><span class="badge b-blue">${esc(h.level)}</span></td>
@@ -3818,6 +4165,39 @@ async function loadDashboard() {
       <td>${nilaiLabel(h.avg_nilai)}</td>
       <td>${pctBar(h.pct_hadir||0)}</td>
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada data</td></tr>';
+
+    // ── Populate Compliance Warnings (Opsi 2) ──
+    const kList = kepatuhanRes.data || [];
+    const warnTbody = document.getElementById('dashWarnList');
+    const criticalHalaqahs = kList.filter(h => h.total_kritis > 0);
+    if (criticalHalaqahs.length) {
+      warnTbody.innerHTML = criticalHalaqahs.map(h => `
+        <div class="warn-item">
+          <div>
+            <span class="warn-name">${esc(h.nama_halaqah)}</span>
+            <div class="warn-meta">Guru: ${esc(h.nama_guru)} &middot; Ketua: ${esc(h.nama_ketua)}</div>
+          </div>
+          <span class="warn-badge" style="background:var(--red-bg);color:var(--red-txt)">${h.total_kritis} Murid Kritis</span>
+        </div>
+      `).join('');
+    } else {
+      warnTbody.innerHTML = `<div style="text-align:center;padding:12px;color:var(--green-txt);font-weight:700">✅ Semua halaqah kondusif (0 kritis)</div>`;
+    }
+
+    // ── Populate Financial (Opsi 3) ──
+    const fin = d.financial_overview || {};
+    const pctSppLunas = fin.spp_target_nominal > 0 ? Math.min(Math.round(fin.spp_lunas_nominal / fin.spp_target_nominal * 100), 100) : 0;
+    
+    document.getElementById('finSppPercent').textContent = pctSppLunas + '%';
+    document.getElementById('finSppBar').style.width = pctSppLunas + '%';
+    document.getElementById('finSppRatio').textContent = `Rp ${Number(fin.spp_lunas_nominal || 0).toLocaleString('id-ID')} / Rp ${Number(fin.spp_target_nominal || 0).toLocaleString('id-ID')}`;
+    
+    document.getElementById('finInfaqNominal').textContent = 'Rp ' + Number(fin.infaq_nominal || 0).toLocaleString('id-ID');
+    document.getElementById('finIhsanNominal').textContent = 'Rp ' + Number(fin.ihsan_nominal || 0).toLocaleString('id-ID');
+    document.getElementById('finGatewayNominal').textContent = 'Rp ' + Number(fin.gateway_nominal || 0).toLocaleString('id-ID');
+    document.getElementById('finManualNominal').textContent = 'Rp ' + Number(fin.manual_nominal || 0).toLocaleString('id-ID');
+    document.getElementById('finTotalMasuk').textContent = 'Rp ' + Number(fin.total_masuk || 0).toLocaleString('id-ID');
+
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
 }

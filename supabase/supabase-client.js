@@ -3912,7 +3912,14 @@ var MuridAPI = {
 var AdminAPI = {
   getDashboard: async function() {
     var bulanIni = new Date().toISOString().slice(0,7)+'-01';
-    var [usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes] = await Promise.all([
+    var bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    var namaBulanIni = bulanIndo[new Date().getMonth()];
+    var tahunIni = new Date().getFullYear();
+
+    var [
+      usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes,
+      saranRes, sppPendingRes, kbmAllRes, sppBulanIniRes, anggotaTipeRes
+    ] = await Promise.all([
       _sb.from('users').select('role').eq('status','aktif'),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, level').eq('status','aktif'),
       _sb.from('kbm_log').select('id_kbm',{count:'exact',head:true}).eq('status','selesai').gte('tanggal_pertemuan', bulanIni),
@@ -3921,7 +3928,13 @@ var AdminAPI = {
       _sb.from('anggota').select('id_halaqah').eq('status','aktif'),
       _sb.from('kbm_log').select('id_halaqah').eq('status','selesai'),
       _sb.from('raport').select('id_halaqah, nilai_akhir').not('nilai_akhir','is',null),
+      _sb.from('saran_masukan').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      _sb.from('spp_pembayaran').select('*').eq('status', 'menunggu'),
+      _sb.from('kbm_log').select('id_halaqah, jenis_sesi, status, is_pengganti').in('status', ['selesai', 'libur']),
+      _sb.from('spp_pembayaran').select('jenis, nominal, metode_bayar').eq('tahun', tahunIni).eq('bulan', namaBulanIni).eq('status', 'lunas'),
+      _sb.from('anggota').select('tipe_spp').eq('status', 'aktif'),
     ]);
+
     var roles = {};
     (usersRes.data||[]).forEach(function(u){roles[u.role]=(roles[u.role]||0)+1;});
     // Aggregate per halaqah
@@ -3951,12 +3964,89 @@ var AdminAPI = {
         pct_hadir  : nm.total>0 ? Math.round(nm.hadir/nm.total*100) : 0,
       };
     });
+
+    // 1. Saran Pending Count
+    var saranPendingCount = saranRes.count || 0;
+
+    // 2. SPP Pending Count (saring expired)
+    var sppPendingCount = (sppPendingRes.data || []).filter(function(r) { return !_sppGatewayExpired(r); }).length;
+
+    // 3. Hutang Kelas Pengganti Count
+    var liburByHalaqahAndJenis = {}, penggantiByHalaqahAndJenis = {};
+    (kbmAllRes.data || []).forEach(function(k) {
+      var jenis = k.jenis_sesi || 'KBM Reguler';
+      if (k.status === 'libur') {
+        if (!liburByHalaqahAndJenis[k.id_halaqah]) liburByHalaqahAndJenis[k.id_halaqah] = {};
+        liburByHalaqahAndJenis[k.id_halaqah][jenis] = (liburByHalaqahAndJenis[k.id_halaqah][jenis] || 0) + 1;
+      } else if (k.status === 'selesai' && k.is_pengganti) {
+        if (!penggantiByHalaqahAndJenis[k.id_halaqah]) penggantiByHalaqahAndJenis[k.id_halaqah] = {};
+        penggantiByHalaqahAndJenis[k.id_halaqah][jenis] = (penggantiByHalaqahAndJenis[k.id_halaqah][jenis] || 0) + 1;
+      }
+    });
+    var totalHutangPengganti = 0;
+    var allLiburHalaqah = Object.keys(liburByHalaqahAndJenis);
+    allLiburHalaqah.forEach(function(id_halaqah) {
+      var libur = liburByHalaqahAndJenis[id_halaqah] || {};
+      var pengganti = penggantiByHalaqahAndJenis[id_halaqah] || {};
+      Object.keys(libur).forEach(function(jenis) {
+        var sisa = (libur[jenis] || 0) - (pengganti[jenis] || 0);
+        if (sisa > 0) totalHutangPengganti += sisa;
+      });
+    });
+
+    // 4. Financial Overview Bulan Ini
+    var totalMasuk = 0;
+    var sppLunasCount = 0;
+    var sppLunasNominal = 0;
+    var infaqNominal = 0;
+    var ihsanNominal = 0;
+    var gatewayNominal = 0;
+    var manualNominal = 0;
+
+    (sppBulanIniRes.data || []).forEach(function(s) {
+      var nominal = Number(s.nominal || 0);
+      totalMasuk += nominal;
+      if (s.jenis === 'SPP Pribadi' || !s.jenis) {
+        sppLunasCount++;
+        sppLunasNominal += nominal;
+      } else if (s.jenis === 'Infaq/Operasional') {
+        infaqNominal += nominal;
+      } else if (s.jenis === 'Ihsan Guru') {
+        ihsanNominal += nominal;
+      }
+
+      if (s.metode_bayar === 'gateway') {
+        gatewayNominal += nominal;
+      } else {
+        manualNominal += nominal;
+      }
+    });
+
+    // SPP target nominal: hitung murid non-beasiswa
+    var sppTargetMuridCount = (anggotaTipeRes.data || []).filter(function(a) { return a.tipe_spp !== 'beasiswa'; }).length;
+    var sppTargetNominal = sppTargetMuridCount * 75000;
+
     return { status:'ok', data:{
       total_murid: roles.murid||0, total_guru: roles.guru||0,
       total_halaqah: (hqRes.data||[]).length, kbm_bulan_ini: kbmBulanRes.count||0,
       pct_nilai_terisi: totalAnggota>0 ? Math.min(Math.round(totalNilaiIsi/totalAnggota*100),100) : 0,
       periode_aktif: periodeRes.data||null,
       halaqah: halaqah,
+      saran_pending_count: saranPendingCount,
+      spp_pending_count: sppPendingCount,
+      total_hutang_pengganti: totalHutangPengganti,
+      financial_overview: {
+        bulan_ini: namaBulanIni,
+        total_masuk: totalMasuk,
+        spp_lunas_count: sppLunasCount,
+        spp_lunas_nominal: sppLunasNominal,
+        spp_target_murid_count: sppTargetMuridCount,
+        spp_target_nominal: sppTargetNominal,
+        infaq_nominal: infaqNominal,
+        ihsan_nominal: ihsanNominal,
+        gateway_nominal: gatewayNominal,
+        manual_nominal: manualNominal
+      }
     }};
   },
   getAllUsers: async function(p) {
