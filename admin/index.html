@@ -991,16 +991,17 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
 }
 /* ── NEW PREMIUM DASHBOARD STYLES ── */
 .action-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
 }
 .action-card {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
-  padding: 16px 18px;
+  padding: 16px 20px;
   border-radius: var(--r);
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow);
@@ -1012,8 +1013,18 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
   position: relative;
   overflow: hidden;
 }
+@media (max-width: 600px) {
+  .action-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .action-card-btn {
+    align-self: flex-end;
+  }
+}
 .action-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 .action-card-icon {
@@ -1035,27 +1046,34 @@ html.theme-dark .abg-stale-row{background:rgba(255,255,255,.04);border-color:rgb
   min-width: 0;
 }
 .action-card-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 2px;
 }
 .action-card-desc {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-2);
   font-weight: 500;
 }
 .action-card-btn {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  border: none;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid currentColor;
   background: transparent;
   color: inherit;
-  margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  text-decoration: underline;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.action-card:hover .action-card-btn {
+  background: currentColor;
+  color: #fff;
+}
+html.theme-dark .action-card:hover .action-card-btn {
+  color: #1e293b;
 }
 
 /* COLOR VARIATIONS FOR ACTIONS */
@@ -1396,24 +1414,24 @@ html.theme-dark .fin-detail-card {
             <div class="action-card-content">
               <div class="action-card-title">Saran & Masukan</div>
               <div class="action-card-desc" id="act-saran-desc">Memuat data...</div>
-              <button class="action-card-btn">Lihat Saran ↗</button>
             </div>
+            <button class="action-card-btn">Lihat Saran ↗</button>
           </div>
           <div class="action-card ac-green" onclick="goPage('spp')" id="act-spp">
             <div class="action-card-icon">💳</div>
             <div class="action-card-content">
               <div class="action-card-title">Pembayaran SPP</div>
               <div class="action-card-desc" id="act-spp-desc">Memuat data...</div>
-              <button class="action-card-btn">Verifikasi SPP ↗</button>
             </div>
+            <button class="action-card-btn">Verifikasi SPP ↗</button>
           </div>
           <div class="action-card ac-green" onclick="goPage('pengganti')" id="act-pengganti">
             <div class="action-card-icon">🔄</div>
             <div class="action-card-content">
               <div class="action-card-title">Hutang Kelas Pengganti</div>
               <div class="action-card-desc" id="act-pengganti-desc">Memuat data...</div>
-              <button class="action-card-btn">Kelola Pengganti ↗</button>
             </div>
+            <button class="action-card-btn">Kelola Pengganti ↗</button>
           </div>
         </div>
 
