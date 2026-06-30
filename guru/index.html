@@ -1625,6 +1625,32 @@ html.theme-dark .btn-asmt-opt.btn-belum.active {
   color: #f87171 !important;
 }
 
+.chip-koreksi.daurah-chip:hover {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border-color: #14b8a6 !important;
+  color: #0d9488 !important;
+}
+.chip-koreksi.daurah-chip.selected {
+  background: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  color: #ffffff !important;
+}
+html.theme-dark .chip-koreksi.daurah-chip {
+  background: rgba(20, 184, 166, 0.05) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+  color: #2dd4bf !important;
+}
+html.theme-dark .chip-koreksi.daurah-chip:hover {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border-color: #2dd4bf !important;
+  color: #2dd4bf !important;
+}
+html.theme-dark .chip-koreksi.daurah-chip.selected {
+  background: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+  color: #ffffff !important;
+}
+
 /* ── FORM VALIDATION ── */
 .fc.field-error{border-color:#ef4444!important;animation:shake .3s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -11178,24 +11204,56 @@ async function toggleAllPushPrefs(val) {
 
 function renderChipsKoreksi(id_murid) {
   var cont = document.getElementById('chips-' + id_murid);
-  if (!cont || !Object.keys(templateKoreksi).length) return;
+  if (!cont) return;
+  
+  var idHalaqah = document.getElementById('kbmHalaqah') ? document.getElementById('kbmHalaqah').value : '';
+  var hq = (halaqahList || []).find(function(h){ return h.id_halaqah === idHalaqah; });
+  var isDaurah = hq && hq.level === 'Tahsin Al-Fatihah';
+  
   var html = '';
-  var kats = Object.keys(templateKoreksi);
-  kats.forEach(function(kat, ki) {
-    var headId = 'kor-head-' + id_murid + '-' + ki;
-    var bodyId = 'kor-body-' + id_murid + '-' + ki;
-    html += '<div class="kor-accordion">';
-    html += '<div class="kor-acc-head" id="' + headId + '" data-hid="' + headId + '" data-bid="' + bodyId + '" onclick="toggleKorAcc(this.dataset.hid,this.dataset.bid)">';
-    html += esc(kat);
-    html += '<span class="kor-acc-arrow">▼</span>';
-    html += '</div>';
-    html += '<div class="kor-acc-body" id="' + bodyId + '">';
-    templateKoreksi[kat].forEach(function(item) {
-      html += '<button type="button" class="chip-koreksi" data-teks="' + esc(item.teks) + '" data-mid="' + esc(id_murid) + '" onclick="toggleChip(this)">' + esc(item.teks) + '</button>';
+  
+  // Render Daurah Quick Chips
+  if (isDaurah) {
+    html += '<div style="margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:10px">';
+    html += '  <div style="font-size:9.5px; font-weight:800; color:#14b8a6; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px">⚡ Koreksi Cepat Al-Fatihah</div>';
+    html += '  <div style="display:flex; gap:6px; flex-wrap:wrap">';
+    
+    var daurahTemplates = [
+      { label: 'أ / ع (Hamzah/A\'in)', teks: 'Koreksi Hamzah/A\'in: bedakan hamzah tipis di pangkal tenggorokan dengan \'ain di tengah tenggorokan.' },
+      { label: 'ح / ه (Ha/He)', teks: 'Koreksi Ha/He: ha (tenggorokan tengah) harus mengalir bersih dan tipis, bedakan dengan ha tebal.' },
+      { label: 'النبر (Nabr)', teks: 'Koreksi Nabr: berikan sedikit tekanan (nabr) pada huruf Ya tasydid di lafaz \'Iyyaka\'.' },
+      { label: 'ص / ط (Shad/Tha)', teks: 'Koreksi Shad/Tha: huruf shad harus tebal dan bersiul, tha harus tebal dan kuat.' },
+      { label: 'إظهار (Idzhar)', teks: 'Koreksi Idzhar: pastikan idzhar dibaca jelas, tidak samar atau mendengung.' },
+      { label: 'ض (Dhad)', teks: 'Koreksi Dhad: makhraj Dhad keluar dari sisi lidah menyentuh geraham atas, harus mengalir (istithalah).' },
+      { label: 'مد (Mad Lazim)', teks: 'Koreksi Mad Lazim: panjangkan lafaz \'Adh-Dhaallin\' selama 6 harakat secara konsisten.' }
+    ];
+    
+    daurahTemplates.forEach(function(item) {
+      html += '<button type="button" class="chip-koreksi daurah-chip" data-teks="' + esc(item.teks) + '" data-mid="' + esc(id_murid) + '" onclick="toggleChip(this)">' + esc(item.label) + '</button>';
     });
+    html += '  </div>';
     html += '</div>';
-    html += '</div>';
-  });
+  }
+  
+  if (Object.keys(templateKoreksi).length) {
+    var kats = Object.keys(templateKoreksi);
+    kats.forEach(function(kat, ki) {
+      var headId = 'kor-head-' + id_murid + '-' + ki;
+      var bodyId = 'kor-body-' + id_murid + '-' + ki;
+      html += '<div class="kor-accordion">';
+      html += '<div class="kor-acc-head" id="' + headId + '" data-hid="' + headId + '" data-bid="' + bodyId + '" onclick="toggleKorAcc(this.dataset.hid,this.dataset.bid)">';
+      html += esc(kat);
+      html += '<span class="kor-acc-arrow">▼</span>';
+      html += '</div>';
+      html += '<div class="kor-acc-body" id="' + bodyId + '">';
+      templateKoreksi[kat].forEach(function(item) {
+        html += '<button type="button" class="chip-koreksi" data-teks="' + esc(item.teks) + '" data-mid="' + esc(id_murid) + '" onclick="toggleChip(this)">' + esc(item.teks) + '</button>';
+      });
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+  
   cont.innerHTML = html;
 
   // Restore chip selected dari nilai textarea saat ini
