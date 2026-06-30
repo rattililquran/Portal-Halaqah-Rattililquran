@@ -1304,6 +1304,34 @@ html.theme-dark .hfal-card-partner{border-left:4px solid #2dd4bf !important}
   box-shadow:0 4px 16px rgba(217,119,6,.15);transition:transform .15s ease,box-shadow .15s ease}
 .attibyan-dash-card:hover{box-shadow:0 6px 20px rgba(217,119,6,.22)}
 .attibyan-dash-card:active{transform:scale(.98)}
+.attibyan-dash-card.attibyan-locked {
+  filter: grayscale(0.2) contrast(0.95);
+  border: 1px dashed rgba(148, 163, 184, 0.4) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%) !important;
+  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.08) !important;
+  cursor: not-allowed;
+}
+.attibyan-dash-card.attibyan-locked:active {
+  transform: none !important;
+}
+.attibyan-dash-card.attibyan-locked .prog-title {
+  color: #64748b !important;
+}
+.attibyan-dash-card.attibyan-locked .level-badge {
+  background: #64748b !important;
+  border-color: #475569 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+html.theme-dark .attibyan-dash-card.attibyan-locked {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 60%, #020617 100%) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  box-shadow: none !important;
+}
+html.theme-dark .attibyan-dash-card.attibyan-locked .prog-title {
+  color: #94a3b8 !important;
+}
+
 .attibyan-dash-card .prog-title {
   color: #78350f !important;
 }
@@ -7492,6 +7520,14 @@ var TAB_ORDER = ['dashboard','riwayat','pr','info','raport'];
 var _currentTabName = 'dashboard';
 
 function goPage(name, swipeDir) {
+  if (name === 'attibyan') {
+    var user = window.HQ.getCurrentUser();
+    var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
+    if (isFth) {
+      toast('Kajian At-Tibyan khusus untuk murid reguler', 'warn');
+      return;
+    }
+  }
   var prev = _currentTabName;
   _currentTabName = name;
 
@@ -7827,29 +7863,90 @@ async function loadDashboard() {
     }
 
     // At-Tibyan Card visibility and population
-    var atSum = (atRes && atRes.summary) || { hadir: 0, total: 0, pct: 0 };
-    var atHadir = atSum.hadir || 0;
-    var atPct = Math.min(100, Math.round((atHadir / 20) * 100));
-    var atSisa = Math.max(0, 20 - atHadir);
+    var user = window.HQ.getCurrentUser();
+    var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
+    var atCard = document.querySelector('.attibyan-dash-card');
     
-    var atDonutRing = document.getElementById('dashAtTibyanDonutRing');
-    var atPctNum = document.getElementById('dashAtTibyanProgressPctNum');
-    var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
-    
-    if (atDonutRing) {
-      atDonutRing.style.background = 'conic-gradient(#d97706 ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
+    if (atCard) {
+      if (isFth) {
+        atCard.classList.add('attibyan-locked');
+        atCard.removeAttribute('onclick');
+        
+        var quoteBox = atCard.querySelector('.attibyan-quote-box');
+        if (quoteBox) quoteBox.style.display = 'none';
+        
+        var innerWrap = atCard.querySelector('.prog-inner-wrap');
+        if (innerWrap) {
+          innerWrap.innerHTML = 
+            '<div style="padding:10px 0;display:flex;align-items:flex-start;gap:12px">'
+            + '<div style="font-size:32px;line-height:1;margin-top:2px">🔒</div>'
+            + '<div style="font-size:12.5px;line-height:1.65;color:var(--text-2);font-weight:600">'
+            +   'Kajian At-Tibyan merupakan pembinaan adab & kajian pekanan eksklusif bagi murid reguler Rattililqur\'an guna memperdalam ilmu adab & Al-Qur\'an secara intensif.<br><br>'
+            +   'Selesaikan Daurah Al-Fatihah Anda terlebih dahulu, lalu bergabunglah ke kelas reguler untuk membuka akses kajian penuh berkah ini! '
+            +   'Tertarik bergabung setelah daurah selesai? <a href="https://wa.me/6285184624062" target="_blank" style="color:var(--blue);font-weight:700;text-decoration:underline" onclick="event.stopPropagation()">Hubungi admin kami! ✨</a>'
+            + '</div>'
+            + '</div>';
+        }
+        
+        atCard.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toast('Kajian At-Tibyan khusus untuk murid reguler', 'warn');
+        };
+      } else {
+        atCard.classList.remove('attibyan-locked');
+        atCard.setAttribute('onclick', "goPage('attibyan')");
+        atCard.onclick = null;
+        var quoteBox = atCard.querySelector('.attibyan-quote-box');
+        if (quoteBox) quoteBox.style.display = '';
+        
+        var innerWrap = atCard.querySelector('.prog-inner-wrap');
+        if (innerWrap && !document.getElementById('dashAtTibyanDonutRing')) {
+          innerWrap.innerHTML = 
+            '<div class="prog-inner-card">'
+            + '<div class="prog-inner-row">'
+            +   '<div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">'
+            +     '<div class="prog-donut-inner">'
+            +       '<span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#d97706">0%</span>'
+            +       '<span class="prog-donut-lbl">hadir</span>'
+            +     '</div>'
+            +   '</div>'
+            +   '<div class="prog-info-right">'
+            +     '<div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>'
+            +     '<div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>'
+            +     '<div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">'
+            +       '<div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>'
+            +     '</div>'
+            +   '</div>'
+            + '</div>'
+            + '</div>';
+        }
+        
+        var atSum = (atRes && atRes.summary) || { hadir: 0, total: 0, pct: 0 };
+        var atHadir = atSum.hadir || 0;
+        var atPct = Math.min(100, Math.round((atHadir / 20) * 100));
+        var atSisa = Math.max(0, 20 - atHadir);
+        
+        var atDonutRing = document.getElementById('dashAtTibyanDonutRing');
+        var atPctNum = document.getElementById('dashAtTibyanProgressPctNum');
+        var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
+        
+        if (atDonutRing) {
+          atDonutRing.style.background = 'conic-gradient(#d97706 ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
+        }
+        if (atPctNum) {
+          atPctNum.textContent = atPct + '%';
+        }
+        if (atProgressBar) {
+          atProgressBar.style.width = atPct + '%';
+          atProgressBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+        }
+        
+        document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
+        var atSisaTeks = atSisa > 0 ? atSisa + ' sesi tersisa' : '🎉 Target tercapai!';
+        document.getElementById('dashAtTibyanSisa').textContent = atSisaTeks;
+      }
     }
-    if (atPctNum) {
-      atPctNum.textContent = atPct + '%';
-    }
-    if (atProgressBar) {
-      atProgressBar.style.width = atPct + '%';
-      atProgressBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
-    }
-    
-    document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
-    var atSisaTeks = atSisa > 0 ? atSisa + ' sesi tersisa' : '🎉 Target tercapai!';
-    document.getElementById('dashAtTibyanSisa').textContent = atSisaTeks;
 
     // Estimasi selesai — gunakan jadwal mingguan (hq.jadwal) sama seperti modal progress
     var estimasiEl = document.getElementById('dashEstimasi');
