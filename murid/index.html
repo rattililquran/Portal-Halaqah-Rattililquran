@@ -14819,13 +14819,6 @@ function renderGrafikKehadiran(rows) {
 async function loadSPP() {
   if (_sppLoaded) return; // skip jika sudah dimuat (hindari CORS spam saat auto-refresh)
   var user = window.HQ.getCurrentUser();
-  if (user && user.id_user && user.id_user.toUpperCase().startsWith('FTH')) {
-    var card = document.getElementById('sppCard');
-    if (card) card.style.display = 'none';
-    loadTransparansi();
-    _sppLoaded = true;
-    return;
-  }
   try {
     var r = await window.HQ.MuridAPI.getSPPStatus();
     if (r && r.status === 'error') {
@@ -15440,7 +15433,9 @@ function renderSPP(data) {
 
 // ── Beasiswa: bypass SPP Pribadi + panel apresiasi ──
 function isBeasiswaMurid() {
-  return !!(dashData && dashData.anggota && dashData.anggota.tipe_spp === 'beasiswa');
+  var user = window.HQ.getCurrentUser();
+  var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
+  return isFth || !!(dashData && dashData.anggota && dashData.anggota.tipe_spp === 'beasiswa');
 }
 var BEASISWA_PANEL_HTML =
   '<div style="padding:4px 2px">'
@@ -15459,6 +15454,21 @@ var BEASISWA_PANEL_HTML =
   + '<div style="text-align:center;font-size:13px;font-weight:800;color:#059669">Baarakallahu fiikum 💛</div>'
   + '</div>';
 
+var DAURAH_PANEL_HTML =
+  '<div style="padding:4px 2px">'
+  + '<div style="text-align:center;margin-bottom:12px">'
+  +   '<div style="font-size:30px">📖</div>'
+  +   '<div style="font-size:15px;font-weight:800;color:#0369a1;margin-top:2px">Daurah Al-Fatihah Rattililqur\'an</div>'
+  + '</div>'
+  + '<p style="font-size:12.5px;line-height:1.7;color:var(--text-2);text-align:center;margin:0 0 10px">Alhamdulillah, program akselerasi bacaan Surah Al-Fatihah ini diselenggarakan secara <b>gratis / tanpa biaya pendaftaran</b> bagi seluruh peserta.</p>'
+  + '<p style="font-size:12.5px;line-height:1.7;color:var(--text-2);text-align:center;margin:0 0 12px">Maka jadikanlah ini sebagai <b>amanah</b>: hadirlah dengan sungguh-sungguh pada 7 pertemuan ini, jagalah adab, dan teruslah berkembang demi menyempurnakan rukun shalat kita.</p>'
+  + '<div style="background:linear-gradient(180deg,#f0f9ff,#f0fdf4);border:1px solid rgba(3,105,161,.18);border-radius:14px;padding:14px 12px;text-align:center;margin-bottom:12px">'
+  +   '<div style="font-size:11.5px;color:var(--text-2);line-height:1.6">Bagi rekan-rekan peserta yang memiliki kelapangan rezeki dan ingin ikut mendukung biaya operasional penyelenggaraan daurah, manajemen menyediakan wadah <b>Infaq Sukarela / Operasional</b> di bawah ini.</div>'
+  + '</div>'
+  + '<p style="font-size:12px;line-height:1.6;color:var(--text-2);text-align:center;margin:0 0 6px">Setiap infaq yang terkumpul akan digunakan sepenuhnya untuk menunjang kegiatan belajar-mengajar dan memuliakan para pengajar.</p>'
+  + '<div style="text-align:center;font-size:13px;font-weight:800;color:#0284c7">Baarakallahu fiikum 💛</div>'
+  + '</div>';
+
 function applyBeasiswaMode() {
   var tabSpp   = document.getElementById('sppTabSpp');
   var tabsBar  = document.querySelector('#sppCard .spp-jenis-tabs');
@@ -15473,15 +15483,20 @@ function applyBeasiswaMode() {
     if (tabSpp)  tabSpp.style.display = '';
     return;
   }
-  // Murid beasiswa: sembunyikan bar tab (cuma Infaq tersisa) & badge tunggakan
+  // Murid beasiswa/daurah: sembunyikan bar tab (cuma Infaq tersisa) & badge
+  var user = window.HQ.getCurrentUser();
+  var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
   if (tabsBar) tabsBar.style.display = 'none';
-  if (badge) { badge.className = 'badge b-green'; badge.textContent = '🎓 Beasiswa'; }
+  if (badge) {
+    badge.className = 'badge b-green';
+    badge.textContent = isFth ? '🎓 Daurah' : '🎓 Beasiswa';
+  }
   // Sisipkan panel apresiasi sebagai elemen sendiri di paling atas spp-body
   if (body) {
     var panel = document.createElement('div');
     panel.id = 'sppBeasiswaPanel';
     panel.style.marginBottom = '14px';
-    panel.innerHTML = BEASISWA_PANEL_HTML;
+    panel.innerHTML = isFth ? DAURAH_PANEL_HTML : BEASISWA_PANEL_HTML;
     body.insertBefore(panel, body.firstChild);
   }
   switchSppTab('infaq');
