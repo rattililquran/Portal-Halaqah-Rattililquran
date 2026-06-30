@@ -6999,10 +6999,11 @@ function openProgressBreakdown(forceMicro) {
     } else {
       bodyEl.innerHTML = _defaultModalProgBodyHtml;
 
-      var target = 40;
+      var isDaurah = (ang && ang.level === 'Tahsin Al-Fatihah') || (id_murid && String(id_murid).startsWith('FTH'));
+      var target = kh.target_sesi || 40;
       var hadir = Number(kh.skor_hadir || 0);
-      var skor40 = Number(kh.skor_dari_40 || 0);
-      var pct = skor40 > 0 ? Math.min(skor40, 100) : (target > 0 ? Math.min(Math.round((hadir / target) * 100), 100) : 0);
+      var skorTarget = Number(kh.skor_dari_40 || 0);
+      var pct = skorTarget > 0 ? Math.min(skorTarget, 100) : (target > 0 ? Math.min(Math.round((hadir / target) * 100), 100) : 0);
       var tLevel = ang.target_level || '';
       if (!tLevel && _level !== '–') {
         var lvlNum = parseInt(String(_level).replace(/[^0-9]/g, ''));
@@ -7010,7 +7011,7 @@ function openProgressBreakdown(forceMicro) {
       }
 
       document.getElementById('modalProgPct').textContent = pct + '%';
-      document.getElementById('modalProgSkor').textContent = hadir + ' dari 40 target skor';
+      document.getElementById('modalProgSkor').textContent = hadir + ' dari ' + target + ' target skor';
       document.getElementById('modalProgLvl').textContent = _level;
       document.getElementById('modalProgTarget').textContent = tLevel || '–';
       document.getElementById('modalCountH').textContent = (kh.count_h || 0) + ' Sesi';
@@ -7036,7 +7037,7 @@ function openProgressBreakdown(forceMicro) {
         document.getElementById('modalEstWrap').style.display = 'block';
         document.getElementById('modalEstDate').textContent = '🎉 Barakallah, target level ini sudah tercapai!';
       }
-      loadGrafikKehadiran();
+      loadGrafikKehadiran(isDaurah);
     }
   }
   openModal('progressBreakdownModal');
@@ -14854,7 +14855,12 @@ var _sppLoaded = false; // hanya load sekali per sesi
 // ══════════════════════════════════════════
 //  GRAFIK KEHADIRAN BULANAN (Dashboard)
 // ══════════════════════════════════════════
-async function loadGrafikKehadiran() {
+async function loadGrafikKehadiran(isDaurah) {
+  var card = document.getElementById('grafikCard');
+  if (isDaurah) {
+    if (card) card.style.display = 'none';
+    return;
+  }
   try {
     // Muat cukup data untuk 6 bulan (±50 sesi)
     var r = await window.HQ.MuridAPI.getRiwayat(50, 0);
