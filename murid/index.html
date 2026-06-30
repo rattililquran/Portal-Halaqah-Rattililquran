@@ -8764,6 +8764,10 @@ function renderDashKalender(hq, atRows) {
 
   var tglMulai = hq.tanggal_mulai || '';
   var tglSelesai = hq.tanggal_selesai || '';
+  if (!tglMulai && hq.level === 'Tahsin Al-Fatihah') {
+    tglMulai = '2026-07-06';
+    tglSelesai = '2026-07-12';
+  }
 
   for (var dd = 1; dd <= daysInMonth; dd++) {
     var dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
