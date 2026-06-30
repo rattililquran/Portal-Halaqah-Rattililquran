@@ -8565,6 +8565,29 @@ function formatMicroTeachingRubric(koreksiTahsin) {
   return html;
 }
 
+function formatKameraText(kameraVal) {
+  if (!kameraVal) return '–';
+  var val = String(kameraVal).toLowerCase();
+  if (val.indexOf('terbuka') >= 0) return 'Terbuka';
+  if (val.indexOf('sering') >= 0) return 'Sering Tertutup';
+  if (val.indexOf('selalu') >= 0 || val.indexOf('tertutup') >= 0) return 'Selalu Tertutup';
+  return kameraVal;
+}
+function formatKameraBadge(kameraVal) {
+  var text = formatKameraText(kameraVal);
+  if (text === 'Terbuka') return 'b-green';
+  if (text === 'Sering Tertutup') return 'b-amber';
+  if (text === 'Selalu Tertutup') return 'b-red';
+  return 'b-gray';
+}
+function formatKameraColor(kameraVal) {
+  var text = formatKameraText(kameraVal);
+  if (text === 'Terbuka') return 'var(--green)';
+  if (text === 'Sering Tertutup') return 'var(--amber)';
+  if (text === 'Selalu Tertutup') return 'var(--red)';
+  return 'var(--text-3)';
+}
+
 function renderRiwayat(rows) {
   var el = document.getElementById('riwayatList');
   if (!rows.length) {
@@ -8583,21 +8606,8 @@ function renderRiwayat(rows) {
     var adabBadge = k.adab ? (k.adab==='Baik'?'b-green':'b-amber') : '';
     // Kamera hanya relevan jika murid HADIR (H atau T). Jika Alpa/Izin, tidak ada info kamera.
     var isAbsen = (k.status_hadir === 'A' || k.status_hadir === 'I');
-    var kamBadge = '';
-    if (!isAbsen && k.kamera_murid) {
-      if (k.kamera_murid === 'kamera terbuka') kamBadge = 'b-green';
-      else if (k.kamera_murid === 'kamera sering tertutup') kamBadge = 'b-amber';
-      else if (k.kamera_murid === 'kamera selalu tertutup') kamBadge = 'b-red';
-      else kamBadge = 'b-gray';
-    }
-    
-    // Status Kamera Readable (kosong jika tidak hadir)
-    var kamText = '–';
-    if (!isAbsen) {
-      if (k.kamera_murid === 'kamera terbuka') kamText = 'Terbuka';
-      else if (k.kamera_murid === 'kamera sering tertutup') kamText = 'Sering Tertutup';
-      else if (k.kamera_murid === 'kamera selalu tertutup') kamText = 'Selalu Tertutup';
-    }
+    var kamBadge = isAbsen ? '' : formatKameraBadge(k.kamera_murid);
+    var kamText  = isAbsen ? '–' : formatKameraText(k.kamera_murid);
 
     return '<div class="riwayat-item" id="riwayat-'+idx+'">'
       // Summary — tap untuk expand
@@ -8629,7 +8639,7 @@ function renderRiwayat(rows) {
       + '    <span style="font-size:18px">📷</span>'
       + '    <div>'
       + '      <div style="font-size:9px; color:var(--text-3); font-weight:700; text-transform:uppercase">Kamera Murid</div>'
-      + '      <div style="font-size:12.5px; font-weight:800; color:' + (isAbsen ? 'var(--text-3)' : k.kamera_murid==='kamera terbuka'?'var(--green)':k.kamera_murid==='kamera selalu tertutup'?'var(--red)':'var(--amber)') + '">' + (isAbsen ? '<em style="font-size:11px;font-weight:600">Tidak Hadir</em>' : esc(kamText)) + '</div>'
+      + '      <div style="font-size:12.5px; font-weight:800; color:' + (isAbsen ? 'var(--text-3)' : formatKameraColor(k.kamera_murid)) + '">' + (isAbsen ? '<em style="font-size:11px;font-weight:600">Tidak Hadir</em>' : esc(kamText)) + '</div>'
       + '    </div>'
       + '  </div>'
       + '</div>'
@@ -15729,7 +15739,7 @@ function bukaKalDetail(dateStr) {
         + (k.jenis_sesi === 'Micro Teaching' ? ' · <span style="color:#6d28d9;font-weight:700;">MT</span>' : '')
         + ' · Sesi ke-' + esc(k.pertemuan_ke)
         + (k.adab ? ' · Adab: <strong>'+esc(k.adab)+'</strong>' : '')
-        + (k.kamera_murid ? ' · Kamera: <strong>'+esc(k.kamera_murid)+'</strong>' : '')
+        + (k.kamera_murid ? ' · Kamera: <strong>'+esc(formatKameraText(k.kamera_murid))+'</strong>' : '')
         + '</div>'
         + (k.koreksi_tahsin ? '<div style="margin-top:6px">' + (k.jenis_sesi === 'Micro Teaching' ? formatMicroTeachingRubric(k.koreksi_tahsin) : '<div class="koreksi-box" style="border-radius:12px; padding:10px 14px; font-size:13px; font-weight:500; line-height:1.5">' + esc(k.koreksi_tahsin) + '</div>') + '</div>' : '')
         + '</div>';
@@ -16852,10 +16862,10 @@ async function downloadPDFResmi() {
         if (kam.indexOf('terbuka') !== -1) {
           kamTxt = 'Terbuka';
           kamClr = [16,185,129];
-        } else if (kam.indexOf('selalu') !== -1) {
+        } else if (kam.indexOf('selalu') !== -1 || kam.indexOf('tertutup') !== -1) {
           kamTxt = 'Selalu Tutup';
           kamClr = [239,68,68];
-        } else if (kam.indexOf('sering') !== -1) {
+        } else if (kam.indexOf('sering') !== -1 || kam.indexOf('buka tutup') !== -1) {
           kamTxt = 'Sering Tutup';
           kamClr = [245,158,11];
         }
