@@ -3570,6 +3570,41 @@ html.theme-dark .saran-badge-solved { background: #052e16; color: #34d399; }
   color: var(--text);
 }
 
+.materi-daurah-banner {
+  background: linear-gradient(135deg, rgba(3, 105, 161, 0.08), rgba(16, 185, 129, 0.05));
+  border: 1px solid rgba(3, 105, 161, 0.16);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+.materi-daurah-banner-ico {
+  font-size: 24px;
+  line-height: 1;
+  margin-top: 1px;
+}
+.materi-daurah-banner-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0369a1;
+  margin-bottom: 6px;
+}
+.materi-daurah-banner-text {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+html.theme-dark .materi-daurah-banner {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(52, 211, 153, 0.05)) !important;
+  border-color: rgba(56, 189, 248, 0.15) !important;
+}
+html.theme-dark .materi-daurah-banner-title {
+  color: #38bdf8 !important;
+}
+
 @media (max-width: 576px) {
   .tab-btn {
     padding: 8px 4px;
@@ -9579,6 +9614,36 @@ async function loadMateri() {
     var r = await window.HQ.MuridAPI.getMateriLevel();
     materiData = r.data || {};
     var levels = Object.keys(materiData).sort();
+
+    // Sembunyikan/tampilkan banner daurah
+    var user = window.HQ.getCurrentUser();
+    var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
+    var banner = document.getElementById('materiDaurahBanner');
+    if (isFth) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'materiDaurahBanner';
+        banner.className = 'materi-daurah-banner';
+        banner.innerHTML = 
+          '<div class="materi-daurah-banner-ico">💡</div>'
+          + '<div>'
+          +   '<div class="materi-daurah-banner-title">Informasi Materi Program Reguler</div>'
+          +   '<div class="materi-daurah-banner-text">'
+          +     'Materi yang Anda lihat di bawah ini merupakan kurikulum bertahap yang dipelajari pada program reguler Rattililqur\'an (Level 1 hingga kelas lanjutan). '
+          +     'Setelah menyelesaikan daurah ini, Anda berkesempatan untuk mempelajari materi-materi mendalam tersebut dengan mendaftar ke kelas reguler. '
+          +     'Semoga Allah mudahkan langkah Anda menjadi sahabat Al-Qur\'an!'
+          +   '</div>'
+          + '</div>';
+        var pageInfo = document.getElementById('page-info');
+        var filterEl = document.getElementById('materiLevelFilter');
+        if (pageInfo && filterEl) {
+          pageInfo.insertBefore(banner, filterEl);
+        }
+      }
+    } else {
+      if (banner) banner.remove();
+    }
+
     // Filter pills
     var filterEl = document.getElementById('materiLevelFilter');
     if (filterEl) {
