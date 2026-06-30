@@ -1584,6 +1584,47 @@ html.theme-dark .asmt-s-paham .asmt-s-lbl{color:#34d399!important}
 html.theme-dark .asmt-s-ragu .asmt-s-lbl{color:#fbbf24!important}
 html.theme-dark .asmt-s-belum .asmt-s-lbl{color:#f87171!important}
 
+.btn-asmt-opt {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+.btn-asmt-opt:hover {
+  background: var(--border);
+  color: var(--text);
+}
+.btn-asmt-opt.btn-paham.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #047857;
+}
+.btn-asmt-opt.btn-ragu.active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #b45309;
+}
+.btn-asmt-opt.btn-belum.active {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+html.theme-dark .btn-asmt-opt.btn-paham.active {
+  color: #34d399 !important;
+}
+html.theme-dark .btn-asmt-opt.btn-ragu.active {
+  color: #fbbf24 !important;
+}
+html.theme-dark .btn-asmt-opt.btn-belum.active {
+  color: #f87171 !important;
+}
+
 /* ── FORM VALIDATION ── */
 .fc.field-error{border-color:#ef4444!important;animation:shake .3s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -12000,7 +12041,7 @@ function renderAssessmentRekap(data, totalItems, level) {
       + '</div>'
       // Detail expand section
       + '<div id="asmtDetail-' + esc(m.id_murid) + '" style="display:none;padding:0 20px 16px">'
-      + renderAsmtDetailTable(m.detail)
+      + renderAsmtDetailTable(m.detail, m.id_murid)
       + '</div>'
       + '</div>';
   });
@@ -12008,7 +12049,7 @@ function renderAssessmentRekap(data, totalItems, level) {
   el.innerHTML = html;
 }
 
-function renderAsmtDetailTable(detail) {
+function renderAsmtDetailTable(detail, idMurid) {
   if (!detail || !detail.length) return '';
   var grouped = {};
   detail.forEach(function(d) {
@@ -12019,16 +12060,31 @@ function renderAsmtDetailTable(detail) {
   var html = '';
   Object.keys(grouped).forEach(function(kat) {
     html += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;'
-      + 'letter-spacing:.06em;margin:10px 0 6px">' + esc(kat) + '</div>';
+      + 'letter-spacing:.06em;margin:12px 0 6px">' + esc(kat) + '</div>';
     grouped[kat].forEach(function(item) {
       var j = item.jawaban;
-      var bg = j === 'paham' ? 'rgba(16,185,129,.08)' : j === 'ragu' ? 'rgba(245,158,11,.08)' : j === 'belum' ? 'rgba(239,68,68,.08)' : 'transparent';
-      var icon = j === 'paham' ? '✅' : j === 'ragu' ? '🟡' : j === 'belum' ? '❌' : '○';
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;background:' + bg + ';margin-bottom:4px">'
-        + '<span style="font-size:14px;flex-shrink:0">' + icon + '</span>'
-        + '<div style="flex:1;min-width:0">'
-        + (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:15px;direction:rtl;margin-right:6px">' + esc(item.teks_arab) + '</span>' : '')
-        + '<span style="font-size:12px;font-weight:700;color:var(--text)">' + esc(item.teks_latin) + '</span>'
+      var bg_murid = j === 'paham' ? 'rgba(16,185,129,.12)' : j === 'ragu' ? 'rgba(245,158,11,.12)' : j === 'belum' ? 'rgba(239,68,68,.12)' : 'var(--bg-2)';
+      var color_murid = j === 'paham' ? '#059669' : j === 'ragu' ? '#d97706' : j === 'belum' ? '#dc2626' : 'var(--text-3)';
+      var label_murid = j === 'paham' ? '✅ Paham' : j === 'ragu' ? '🟡 Ragu' : j === 'belum' ? '❌ Belum' : 'Belum isi';
+      
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap">'
+        + '<div style="flex:1;min-width:180px">'
+        +   '<div style="font-size:13px;font-weight:700;color:var(--text)">'
+        +     (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:16px;direction:rtl;margin-right:8px">' + esc(item.teks_arab) + '</span>' : '')
+        +     '<span style="font-size:12.5px">' + esc(item.teks_latin) + '</span>'
+        +   '</div>'
+        +   (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-top:2.5px">' + esc(item.keterangan) + '</div>' : '')
+        + '</div>'
+        
+        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+        +   '<div style="font-size:11px;padding:4px 8px;border-radius:6px;background:' + bg_murid + ';color:' + color_murid + ';font-weight:800;border:1px solid var(--border)">'
+        +     'Murid: ' + label_murid
+        +   '</div>'
+        +   '<div class="asmt-guru-options" style="display:flex;gap:4px">'
+        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)" class="btn-asmt-opt btn-paham ' + (item.jawaban_guru === 'paham' ? 'active' : '') + '">✅ Paham</button>'
+        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)" class="btn-asmt-opt btn-ragu ' + (item.jawaban_guru === 'ragu' ? 'active' : '') + '">🟡 Ragu</button>'
+        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)" class="btn-asmt-opt btn-belum ' + (item.jawaban_guru === 'belum' ? 'active' : '') + '">❌ Belum</button>'
+        +   '</div>'
         + '</div>'
         + '</div>';
     });
@@ -12040,6 +12096,40 @@ function toggleAsmtDetail(idMurid) {
   var el = document.getElementById('asmtDetail-' + idMurid);
   if (!el) return;
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function simpanVerifikasiGuru(idMurid, idItem, statusGuru, btn) {
+  var parent = btn.parentElement;
+  if (!parent) return;
+  
+  var siblingButtons = parent.querySelectorAll('.btn-asmt-opt');
+  var wasActive = btn.classList.contains('active');
+  var targetStatus = wasActive ? null : statusGuru;
+  
+  siblingButtons.forEach(function(b) {
+    b.classList.remove('active');
+  });
+  
+  if (!wasActive) {
+    btn.classList.add('active');
+  }
+  
+  try {
+    var r = await window.HQ.GuruAPI.simpanVerifikasiGuru({
+      id_murid: idMurid,
+      id_item: idItem,
+      status_guru: targetStatus
+    });
+    if (r.status !== 'ok') throw new Error(r.message);
+    quickToast('Verifikasi disimpan', 'ok');
+  } catch(e) {
+    siblingButtons.forEach(function(b) {
+      if (b.classList.contains('btn-paham') && !wasActive && statusGuru === 'paham') b.classList.add('active');
+      if (b.classList.contains('btn-ragu') && !wasActive && statusGuru === 'ragu') b.classList.add('active');
+      if (b.classList.contains('btn-belum') && !wasActive && statusGuru === 'belum') b.classList.add('active');
+    });
+    toast('Gagal memverifikasi: ' + e.message, 'err');
+  }
 }
 
 // ══════════════════════════════════════════

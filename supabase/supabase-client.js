@@ -1422,8 +1422,8 @@ var GuruAPI = {
     var level    = anggota[0].level || 'Level 1';
     var muridIds = anggota.map(function(a){ return a.id_murid; });
     var [itemsRes, jawabanRes] = await Promise.all([
-      _sb.from('assessment_items').select('id_item').eq('level', level).eq('status','aktif'),
-      _sb.from('assessment_murid').select('id_murid, id_item, status, updated_at').in('id_murid', muridIds),
+      _sb.from('assessment_items').select('id_item, kategori, teks_latin, teks_arab, keterangan, urutan').eq('level', level).eq('status','aktif').order('urutan'),
+      _sb.from('assessment_murid').select('id_murid, id_item, status, status_guru, updated_at').in('id_murid', muridIds),
     ]);
     var items      = itemsRes.data  || [];
     var totalItems = items.length;
@@ -1432,23 +1432,56 @@ var GuruAPI = {
     var jawabanMap = {};
     (jawabanRes.data || []).forEach(function(j) {
       if (!jawabanMap[j.id_murid]) jawabanMap[j.id_murid] = { items:{}, last_update: null };
-      jawabanMap[j.id_murid].items[j.id_item] = j.status;
+      jawabanMap[j.id_murid].items[j.id_item] = { status: j.status, status_guru: j.status_guru };
       if (!jawabanMap[j.id_murid].last_update || j.updated_at > jawabanMap[j.id_murid].last_update)
         jawabanMap[j.id_murid].last_update = j.updated_at;
     });
     var data = anggota.map(function(m) {
       var mj = jawabanMap[m.id_murid] || { items:{}, last_update: null };
       var paham=0, ragu=0, belum=0, kosong=0;
-      itemSet.forEach(function(id_item) {
-        var s = mj.items[id_item];
+      var detail = items.map(function(it) {
+        var ans = mj.items[it.id_item] || { status: null, status_guru: null };
+        var s = ans.status;
         if      (s === 'paham') paham++;
         else if (s === 'ragu' ) ragu++;
         else if (s === 'belum') belum++;
         else kosong++;
+        return {
+          id_item: it.id_item,
+          kategori: it.kategori,
+          teks_latin: it.teks_latin,
+          teks_arab: it.teks_arab,
+          keterangan: it.keterangan,
+          urutan: it.urutan,
+          jawaban: s,
+          jawaban_guru: ans.status_guru
+        };
       });
-      return { id_murid:m.id_murid, nama_murid:m.nama_murid, summary:{paham,ragu,belum,kosong}, pct_paham:totalItems>0?Math.round(paham/totalItems*100):0, last_update:mj.last_update };
+      return { 
+        id_murid: m.id_murid, 
+        nama_murid: m.nama_murid, 
+        level: m.level || level,
+        summary: { paham, ragu, belum, kosong }, 
+        pct_paham: totalItems > 0 ? Math.round(paham / totalItems * 100) : 0, 
+        last_update: mj.last_update,
+        detail: detail
+      };
     }).sort(function(a,b){ return a.pct_paham - b.pct_paham; });
     return { status:'ok', data, total_items: totalItems, level };
+  },
+
+  simpanVerifikasiGuru: async function(d) {
+    var id_murid = d.id_murid;
+    var id_item  = d.id_item;
+    var status_guru = d.status_guru;
+    var { error } = await _sb.from('assessment_murid').upsert({
+      id_murid: id_murid,
+      id_item: id_item,
+      status_guru: status_guru,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id_murid,id_item' });
+    _check(error, 'simpanVerifikasiGuru');
+    return { status: 'ok' };
   },
 
   // ── At-Tibyan ──────────────────────────────
