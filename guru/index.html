@@ -7010,16 +7010,21 @@ function goToNilai() {
 //  KBM QIYAM — STEP 3 HAFALAN
 // ══════════════════════════════════════════
 
-// Tampilkan opsi KBM Qiyam hanya jika halaqah yang dipilih adalah Level Qiyam
+
 function onKbmHalaqahChange() {
   var id_halaqah = document.getElementById('kbmHalaqah').value;
   var halaqah    = (halaqahList || []).find(function(h){ return h.id_halaqah === id_halaqah; });
   var isQiyam    = halaqah && halaqah.level === 'Level Qiyam';
   var btnQiyam   = document.getElementById('btnKbmJenis-KBM_Qiyam');
+  var btnReguler = document.getElementById('btnKbmJenis-KBM_Reguler');
   var jenisEl    = document.getElementById('kbmJenis');
   if (!jenisEl) return;
   if (btnQiyam) {
     btnQiyam.style.display = isQiyam ? 'flex' : 'none';
+  }
+  if (btnReguler) {
+    var isDaurah = halaqah && halaqah.level === 'Tahsin Al-Fatihah';
+    btnReguler.innerHTML = '<span>📖</span> ' + (isDaurah ? 'KBM Daurah' : 'KBM Reguler');
   }
   // Jika halaqah bukan Qiyam dan saat ini terpilih KBM Qiyam, reset ke Reguler
   if (!isQiyam && jenisEl.value === 'KBM Qiyam') {
