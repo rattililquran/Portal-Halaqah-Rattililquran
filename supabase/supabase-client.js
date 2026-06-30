@@ -2690,7 +2690,7 @@ var MuridAPI = {
   getDashboard: async function() {
     var id_murid = _uid();
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
-      _sb.from('anggota').select('*, halaqah(*)').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
+      _sb.from('anggota').select('*, halaqah(*, periode(*))').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
       _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
       _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(*)').eq('id_murid', id_murid),
     ]);
@@ -2843,6 +2843,8 @@ var MuridAPI = {
         jam_selesai: hq.jam_selesai ? String(hq.jam_selesai).substring(0, 5)  : '',
         id_halaqah: hq.id_halaqah   || '',
         partner_belajar_enabled: !!(levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.partner_belajar_enabled),
+        tanggal_mulai: hq.periode ? hq.periode.tanggal_mulai : null,
+        tanggal_selesai: hq.periode ? hq.periode.tanggal_selesai : null,
       },
       kehadiran: {
         skor_hadir  : regHadir,

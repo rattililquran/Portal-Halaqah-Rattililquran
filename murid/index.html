@@ -1148,8 +1148,8 @@ html.theme-dark .dash-cal-today-chip::before{background:#60a5fa}
 .dash-cal-day.sel{background:linear-gradient(135deg,var(--blue),var(--blue-d)) !important;color:#fff !important;
   box-shadow:0 2px 8px rgba(0,122,255,.35)}
 .dash-cal-day.empty{visibility:hidden;cursor:default;padding:0;text-align:center}
-.dash-cal-dots{display:flex;gap:2px;height:4px}
-.dash-cal-dot{width:4px;height:4px;border-radius:50%;display:inline-block}
+.dash-cal-dots{display:flex;gap:3px;height:6px;margin-top:2px}
+.dash-cal-dot{width:6px;height:6px;border-radius:50%;display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.15)}
 .dash-cal-agenda{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;
   cursor:pointer;border-radius:10px;transition:background .15s ease}
 .dash-cal-agenda:active{background:rgba(37,99,235,.06)}
@@ -8762,11 +8762,19 @@ function renderDashKalender(hq, atRows) {
   var today = new Date();
   var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
 
+  var tglMulai = hq.tanggal_mulai || '';
+  var tglSelesai = hq.tanggal_selesai || '';
+
   for (var dd = 1; dd <= daysInMonth; dd++) {
     var dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
     var wd = new Date(y, m, dd).getDay();
     var slot = ensure(dateStr);
-    if (!slot.kbm && kbmHari[wd]) {
+    
+    var withinDates = true;
+    if (tglMulai && dateStr < tglMulai) withinDates = false;
+    if (tglSelesai && dateStr > tglSelesai) withinDates = false;
+    
+    if (!slot.kbm && kbmHari[wd] && withinDates) {
       slot.kbm = { jadwal: true, jam: jamMulai, jamSelesai: jamSelesai };
     }
     if (!slot.attibyan && wd === 0) {
