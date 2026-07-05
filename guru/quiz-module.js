@@ -811,4 +811,50 @@
     if (typeof window.hideLoad === 'function') window.hideLoad();
   }
 
+  function showQuizAlert(opts) {
+    var type = opts.type || 'warning';
+    var icon = opts.icon || (type === 'warning' ? '⚠️' : type === 'danger' ? '🚨' : type === 'success' ? '🎉' : 'ℹ️');
+    var buttonText = opts.buttonText || 'Mengerti 👍';
+
+    var headerBg = type === 'warning' ? 'linear-gradient(135deg,#f59e0b,#d97706)' :
+                   type === 'danger'  ? 'linear-gradient(135deg,#ef4444,#dc2626)' :
+                   type === 'success' ? 'linear-gradient(135deg,#10b981,#059669)' :
+                                        'linear-gradient(135deg,#0ea5e9,#0284c7)';
+
+    var existing = document.getElementById('quizAlertModalOverlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'quizAlertModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.65);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;animation:quizFadeIn .25s ease;';
+
+    overlay.innerHTML = `
+      <div style="background:var(--card-solid,#fff);border-radius:24px;padding:28px 24px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.6);animation:quizPopIn .3s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;">
+        <div style="width:64px;height:64px;border-radius:50%;background:${headerBg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+          ${icon}
+        </div>
+        <h3 style="font-size:17px;font-weight:900;color:var(--text,#1e293b);margin-bottom:8px;line-height:1.3;">
+          ${escapeHtml(opts.title || 'Pemberitahuan')}
+        </h3>
+        <p style="font-size:13px;color:var(--text-2,#475569);line-height:1.5;margin-bottom:22px;">
+          ${escapeHtml(opts.message || '')}
+        </p>
+        <button id="btnQuizAlertClose" style="width:100%;padding:13px;background:${headerBg};color:#fff;border:none;border-radius:100px;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:transform .2s;">
+          ${escapeHtml(buttonText)}
+        </button>
+      </div>
+      <style>
+        @keyframes quizFadeIn { from{opacity:0;} to{opacity:1;} }
+        @keyframes quizPopIn { from{opacity:0;transform:scale(0.85) translateY(10px);} to{opacity:1;transform:scale(1) translateY(0);} }
+      </style>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('btnQuizAlertClose').onclick = function () {
+      overlay.remove();
+      if (typeof opts.callback === 'function') opts.callback();
+    };
+  }
+
 })();
