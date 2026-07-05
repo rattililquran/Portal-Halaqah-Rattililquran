@@ -1248,18 +1248,18 @@
       var osc = ctx.createOscillator();
       var gain = ctx.createGain();
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.035);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(650, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.08);
 
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+      gain.gain.setValueAtTime(0.7, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.035);
+      osc.stop(ctx.currentTime + 0.08);
     } catch(e) {}
   }
 
@@ -1272,37 +1272,37 @@
       // Lub
       var osc1 = ctx.createOscillator();
       var gain1 = ctx.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(85, ctx.currentTime);
-      osc1.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.07);
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(180, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.12);
 
-      gain1.gain.setValueAtTime(0.5, ctx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+      gain1.gain.setValueAtTime(0.6, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
 
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
 
       osc1.start(ctx.currentTime);
-      osc1.stop(ctx.currentTime + 0.07);
+      osc1.stop(ctx.currentTime + 0.12);
 
       // Dub
       setTimeout(function() {
         if (_isSoundMuted) return;
         var osc2 = ctx.createOscillator();
         var gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(70, ctx.currentTime);
-        osc2.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.06);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(150, ctx.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
 
-        gain2.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+        gain2.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
 
         osc2.connect(gain2);
         gain2.connect(ctx.destination);
 
         osc2.start(ctx.currentTime);
-        osc2.stop(ctx.currentTime + 0.06);
-      }, 90);
+        osc2.stop(ctx.currentTime + 0.1);
+      }, 100);
     } catch(e) {}
   }
 
