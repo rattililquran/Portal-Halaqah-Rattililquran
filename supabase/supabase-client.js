@@ -2902,6 +2902,38 @@ var GuruAPI = {
     var totalSkor = hasil.reduce(function(acc, h) { return acc + (h.skor_total || 0); }, 0);
     var avgSkor = totalMengerjakan > 0 ? Math.round(totalSkor / totalMengerjakan) : 0;
 
+    var muridSudah = new Set(hasil.map(function(h) { return h.id_murid; }));
+    var belumMengerjakan = [];
+
+    try {
+      var { data: qhData } = await _sb.from('quiz_halaqah').select('id_halaqah').eq('id_quiz', id_quiz);
+      if (qhData && qhData.length > 0) {
+        var halaqahIds = qhData.map(function(qh) { return qh.id_halaqah; });
+        var { data: angData } = await _sb.from('anggota')
+          .select('id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(nama_lengkap, no_hp)')
+          .in('id_halaqah', halaqahIds)
+          .eq('status', 'aktif');
+        
+        if (angData) {
+          var seenMurid = new Set();
+          angData.forEach(function(a) {
+            if (!seenMurid.has(a.id_murid)) {
+              seenMurid.add(a.id_murid);
+              if (!muridSudah.has(a.id_murid)) {
+                belumMengerjakan.push({
+                  id_murid: a.id_murid,
+                  nama_lengkap: a.nama_murid || (a.users && a.users.nama_lengkap) || 'Murid',
+                  no_hp: a.users ? a.users.no_hp : null
+                });
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[Quiz] Failed to fetch non-completers:', e);
+    }
+
     return {
       status: 'ok',
       quiz: quizRes.data,
@@ -2909,7 +2941,8 @@ var GuruAPI = {
         total_mengerjakan: totalMengerjakan,
         rata_rata_skor: avgSkor,
         hasil_murid: hasil,
-        jawaban_detail: jawabanRes.data || []
+        jawaban_detail: jawabanRes.data || [],
+        belum_mengerjakan: belumMengerjakan
       }
     };
   },

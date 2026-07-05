@@ -1298,6 +1298,8 @@
       var hasilMurid = summary.hasil_murid || [];
       var jawabanDetail = summary.jawaban_detail || [];
       var quizSoalList = quiz.quiz_soal || [];
+      var belumMengerjakan = summary.belum_mengerjakan || [];
+      window._currentBelumMengerjakan = belumMengerjakan;
 
       // 1. Calculate error rate per question (Soal Tersulit)
       var soalStats = quizSoalList.map(function(qs) {
@@ -1496,6 +1498,44 @@
 
             <!-- Hardest Question Warning Box -->
             ${wrongSoalHtml}
+
+            <!-- Belum Mengerjakan Section -->
+            <div style="margin-top:20px;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                <div style="font-size:12px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:0.02em;">
+                  ⚠️ Murid Belum Mengerjakan (${belumMengerjakan.length})
+                </div>
+                ${belumMengerjakan.length > 0 ? `
+                  <button onclick="shareRecapWa('${escapeJsStr(quiz.judul)}', window._currentBelumMengerjakan)" style="padding:6px 14px;background:#25d366;color:#fff;border:none;border-radius:100px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(37,211,102,0.3);font-family:inherit;">
+                    🟢 📢 Pengingat Grup WA
+                  </button>
+                ` : ''}
+              </div>
+              
+              <div style="border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:var(--bg-2);padding:4px;">
+                ${belumMengerjakan.length > 0 ? `
+                  <div style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;padding:6px;">
+                    ${belumMengerjakan.map(function(m, idx) {
+                      var waNum = formatWaNumber(m.no_hp);
+                      var waBtn = waNum 
+                        ? `<button onclick="sendPersonalWa('${escapeJsStr(m.nama_lengkap)}', '${waNum}', '${escapeJsStr(quiz.judul)}')" style="padding:4px 10px;background:#25d366;color:#fff;border:none;border-radius:100px;font-size:10.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;">💬 Chat WA</button>`
+                        : `<span style="font-size:10px;color:var(--text-3);background:var(--border);padding:3px 8px;border-radius:100px;">Tanpa No. HP</span>`;
+
+                      return `
+                        <div style="background:var(--card-solid);padding:10px 12px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);">
+                          <div style="font-size:12px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(m.nama_lengkap)}</div>
+                          <div>${waBtn}</div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : `
+                  <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;font-weight:700;background:var(--card-solid);border-radius:var(--r-sm);">
+                    🎉 Masya Allah, semua anggota halaqah sudah mengerjakan kuis ini!
+                  </div>
+                `}
+              </div>
+            </div>
 
             <!-- Score Table -->
             <div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.02em;">📝 Rincian Nilai Murid</div>
@@ -2018,5 +2058,52 @@
     closeGuruQuizModal();
     await loadGuruQuizTabContent();
   };
+
+  // WhatsApp reminder helpers for teachers
+  window.sendPersonalWa = function (nama, noHp, judulKuis) {
+    var text = "Assalamualaikum wr. wb. Saudara/i *" + nama + "*, semoga senantiasa dalam limpahan taufik dan kesehatan dari Allah SWT.\n\nSekadar mengingatkan untuk meluangkan sedikit waktu guna menyelesaikan tugas latihan kuis halaqah kita: *" + judulKuis + "*.\n\nSemoga Allah memudahkan langkah antum/antunna dalam menuntut ilmu dan menghafalkan kalam-Nya. Syukron jazakallahu khairan. 🙏✨";
+    var encoded = encodeURIComponent(text);
+    var url = "https://api.whatsapp.com/send?phone=" + noHp + "&text=" + encoded;
+    window.open(url, '_blank');
+  };
+
+  window.shareRecapWa = function (judulKuis, list) {
+    if (!list || list.length === 0) return;
+    
+    var text = "Assalamualaikum wr. wb. Bapak/Ibu/Saudara sekalian anggota halaqah, semoga Allah merahmati dan melimpahkan keberkahan kepada kita semua.\n\nBerikut kami informasikan rekan-rekan yang belum berkesempatan menyelesaikan kuis *" + judulKuis + "*:\n\n";
+    
+    list.forEach(function(m, idx) {
+      text += (idx + 1) + ". *" + m.nama_lengkap + "*\n";
+    });
+    
+    text += "\nMari bersama-sama kita luangkan waktu sejenak demi kelancaran dan keberkahan halaqah kita. Semoga Allah mudahkan setiap urusan kita semua. Jazakumullahu khairan katsiran. 🙏📖✨";
+    
+    try {
+      var tempInput = document.createElement("textarea");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      alert("Pesan rekap pengingat grup berhasil disalin ke clipboard! Silakan tempel (paste) di grup WhatsApp halaqah Anda.");
+    } catch (e) {
+      console.warn("Clipboard copy failed: ", e);
+    }
+    
+    var encoded = encodeURIComponent(text);
+    var url = "https://api.whatsapp.com/send?text=" + encoded;
+    window.open(url, '_blank');
+  };
+
+  function formatWaNumber(num) {
+    if (!num) return '';
+    var clean = num.replace(/\D/g, '');
+    if (clean.startsWith('0')) {
+      clean = '62' + clean.slice(1);
+    } else if (clean.startsWith('8')) {
+      clean = '62' + clean;
+    }
+    return clean;
+  }
 
 })();
