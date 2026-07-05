@@ -1218,6 +1218,11 @@
       .replace(/`/g, '&#96;');
   }
 
+  function escapeJsStr(str) {
+    if (!str) return '';
+    return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+  }
+
   function renderArabicHighlight(teks, highlightMarkup) {
     if (!teks) return '';
     var escaped = escapeHtml(teks);
