@@ -458,10 +458,17 @@
       var quizSoalHtml = existingQuizSoal.map(function(qs, idx) {
         var s = qs.soal;
         if (!s) return '';
+        var durasiVal = (qs.durasi_detik_override !== null && qs.durasi_detik_override !== undefined) ? qs.durasi_detik_override : '';
         return `
-          <div style="background:var(--bg-2);padding:10px 14px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
-            <button onclick="removeSoalFromKuisAction('${id_quiz}', '${s.id_soal}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Hapus</button>
+          <div style="background:var(--bg-2);padding:10px 14px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">
+            <div style="flex:1;font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:11px;font-weight:700;color:var(--text-3);">Durasi:</span>
+              <input type="number" min="0" value="${durasiVal}" placeholder="${quiz.durasi_per_soal_detik}s (def)" 
+                onchange="updateDurasiSoalKuisAction('${id_quiz}', '${s.id_soal}', this.value)" 
+                style="width:95px;padding:4px 6px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:#fff;text-align:center;">
+              <button onclick="removeSoalFromKuisAction('${id_quiz}', '${s.id_soal}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Hapus</button>
+            </div>
           </div>
         `;
       }).join('') || '<div style="font-size:12px;color:var(--text-3);padding:10px 0;">Belum ada soal dimasukkan ke kuis ini.</div>';
@@ -517,6 +524,15 @@
     } catch (err) {
       hideLoading();
       alert('Gagal menambahkan soal: ' + err.message);
+    }
+  };
+
+  window.updateDurasiSoalKuisAction = async function (id_quiz, id_soal, val) {
+    try {
+      var num = val ? parseInt(val) : null;
+      await window.HQ.QuizAPI.updateSoalKuisSetting(id_quiz, id_soal, num);
+    } catch (err) {
+      showQuizAlert({ title: 'Gagal Update Durasi', message: err.message, type: 'danger' });
     }
   };
 

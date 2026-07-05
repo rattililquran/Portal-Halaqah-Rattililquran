@@ -288,7 +288,7 @@
 
     // Setup timer jika ada durasi (Combined Ultimate Tension Theme)
     if (_timerInterval) clearInterval(_timerInterval);
-    var timeRemaining = _quizData.durasi_per_soal_detik || 0;
+    var timeRemaining = (soal && soal.durasi_detik) ? soal.durasi_detik : (_quizData.durasi_per_soal_detik || 0);
 
     var timerHtml = timeRemaining > 0 ? `
       <div id="quizTimerContainer" style="margin-top:10px;padding:10px 14px;background:var(--bg-2);border-radius:var(--r-md);border:1px solid var(--border);position:relative;transition:all .3s ease;">

@@ -2719,14 +2719,25 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
-  addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin) {
+  addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin, durasi_detik_override) {
     var { error } = await _sb.from('quiz_soal').insert([{
       id_quiz: id_quiz,
       id_soal: id_soal,
       urutan: urutan || 1,
-      bobot_poin: bobot_poin !== undefined ? bobot_poin : 10
+      bobot_poin: bobot_poin !== undefined ? bobot_poin : 10,
+      durasi_detik_override: durasi_detik_override || null
     }]);
     _check(error, 'addSoalToKuis');
+    return { status: 'ok' };
+  },
+
+  updateSoalKuisSetting: async function(id_quiz, id_soal, durasi_detik_override, bobot_poin) {
+    var payload = {};
+    if (durasi_detik_override !== undefined) payload.durasi_detik_override = durasi_detik_override ? parseInt(durasi_detik_override) : null;
+    if (bobot_poin !== undefined) payload.bobot_poin = parseInt(bobot_poin) || 10;
+
+    var { error } = await _sb.from('quiz_soal').update(payload).eq('id_quiz', id_quiz).eq('id_soal', id_soal);
+    _check(error, 'updateSoalKuisSetting');
     return { status: 'ok' };
   },
 
@@ -4286,7 +4297,7 @@ var MuridAPI = {
 
   getKuisDetail: async function(id_quiz) {
     var { data: quizData, error: qErr } = await _sb.from('quiz')
-      .select('*, quiz_soal(urutan, bobot_poin, soal(*, soal_pilihan(id_pilihan, teks_pilihan, urutan), soal_pasangan(id_pasangan, teks_kiri, teks_kanan, urutan)))')
+      .select('*, quiz_soal(urutan, bobot_poin, durasi_detik_override, soal(*, soal_pilihan(id_pilihan, teks_pilihan, urutan), soal_pasangan(id_pasangan, teks_kiri, teks_kanan, urutan)))')
       .eq('id_quiz', id_quiz).single();
     _check(qErr, 'getKuisDetail');
 
@@ -4313,6 +4324,7 @@ var MuridAPI = {
         audio_tipe: s.audio_tipe,
         urutan: qs.urutan,
         bobot_poin: qs.bobot_poin,
+        durasi_detik: (qs.durasi_detik_override !== null && qs.durasi_detik_override !== undefined && qs.durasi_detik_override > 0) ? qs.durasi_detik_override : (quizData.durasi_per_soal_detik || 0),
         pilihan: pilihan,
         pasangan: pasangan
       };
