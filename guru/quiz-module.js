@@ -738,10 +738,19 @@
         var s = qs.soal;
         if (!s) return '';
         return `
-          <div style="background:var(--card-solid);padding:10px 14px;border-radius:var(--r-sm);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">
-            <div style="flex:1;font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button onclick="removeSoalFromKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Hapus</button>
+          <div style="background:var(--card-solid);padding:12px;border-radius:var(--r-sm);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;margin-bottom:8px;gap:8px;">
+            <div style="font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:8px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);">
+                <span>⏱️ Durasi:</span>
+                <input type="number" value="${qs.durasi_detik_override !== null && qs.durasi_detik_override !== undefined ? qs.durasi_detik_override : ''}" placeholder="Default" onchange="updateSoalKuisSettingAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}', this.value, null)" style="width:70px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);font-size:11.5px;color:var(--text);background:var(--bg-2);outline:none;">
+                <span>dtk</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);">
+                <span>🎯 Poin:</span>
+                <input type="number" value="${qs.bobot_poin || 10}" onchange="updateSoalKuisSettingAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}', null, this.value)" style="width:50px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);font-size:11.5px;color:var(--text);background:var(--bg-2);outline:none;">
+              </div>
+              <button onclick="removeSoalFromKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto;">Hapus</button>
             </div>
           </div>
         `;
@@ -1582,6 +1591,21 @@
       return `<span style="background:rgba(239,68,68,0.15); border-bottom:2px solid #ef4444; border-radius:4px; padding:2px 4px; font-weight:800; color:var(--text);">${content}</span>`;
     });
     previewEl.innerHTML = html;
+  };
+
+  window.updateSoalKuisSettingAction = async function (id_quiz, id_soal, durasi, poin) {
+    try {
+      showLoading('Menyimpan pengaturan soal...');
+      // We pass undefined if value is null to avoid overwrite of the other parameter
+      var finalDurasi = durasi !== null ? (durasi ? parseInt(durasi) : null) : undefined;
+      var finalPoin = poin !== null ? (poin ? parseInt(poin) : 10) : undefined;
+      
+      await window.HQ.QuizAPI.updateSoalKuisSetting(id_quiz, id_soal, finalDurasi, finalPoin);
+      hideLoading();
+    } catch (err) {
+      hideLoading();
+      alert('Gagal memperbarui pengaturan soal: ' + err.message);
+    }
   };
 
 })();
