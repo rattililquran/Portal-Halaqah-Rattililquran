@@ -2740,7 +2740,7 @@ var GuruAPI = {
   getHasilKuis: async function(id_quiz) {
     var [quizRes, hasilRes, jawabanRes] = await Promise.all([
       _sb.from('quiz').select('*, quiz_soal(*, soal(*))').eq('id_quiz', id_quiz).single(),
-      _sb.from('hasil_quiz').select('*, users(nama_lengkap, no_hp)').eq('id_quiz', id_quiz).order('skor_total', { ascending: false }),
+      _sb.from('hasil_quiz').select('*, users!hasil_quiz_id_murid_fkey(nama_lengkap, no_hp)').eq('id_quiz', id_quiz).order('skor_total', { ascending: false }),
       _sb.from('jawaban_murid').select('*').eq('id_quiz', id_quiz)
     ]);
     _check(quizRes.error, 'getHasilKuis:quiz');
@@ -2766,7 +2766,7 @@ var GuruAPI = {
   getAntrianReviewIsian: async function(id_quiz) {
     var id_guru = _uid();
     var q = _sb.from('jawaban_murid')
-      .select('*, users(nama_lengkap), soal(*, soal_kunci_isian(*))')
+      .select('*, users!jawaban_murid_id_murid_fkey(nama_lengkap), soal(*, soal_kunci_isian(*))')
       .eq('status_review', 'menunggu_review')
       .order('created_at', { ascending: true });
 
