@@ -14,6 +14,7 @@
   var _bankFilterLevel = '';
   var _bankFilterPertemuan = '';
   var _allBankSoalRaw = [];
+  var _parsedImportSoal = [];
 
   // Filter & bulk select state for quiz question picker
   var _pickerFilterText = '';
@@ -193,9 +194,14 @@
           <h3 style="font-size:15px;font-weight:800;color:var(--text);">📦 Bank Soal Bersama</h3>
           <p style="font-size:11px;color:var(--text-3);">Semua pengajar dapat menggunakan soal-soal ini di kuis halaqah masing-masing.</p>
         </div>
-        <button onclick="openModalCreateSoal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;box-shadow:var(--shadow-blue);">
-          ➕ Buat Soal Baru
-        </button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="bukaModalImportSoalGuru()" style="padding:8px 16px;background:var(--blue-l);color:var(--blue-d);border:1px solid var(--blue);border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;">
+            📥 Import CSV
+          </button>
+          <button onclick="openModalCreateSoal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;box-shadow:var(--shadow-blue);">
+            ➕ Buat Soal Baru
+          </button>
+        </div>
       </div>
 
       <!-- Filter Panel -->
@@ -1606,6 +1612,364 @@
       hideLoading();
       alert('Gagal memperbarui pengaturan soal: ' + err.message);
     }
+  };
+
+  window.bukaModalImportSoalGuru = function () {
+    var modalEl = document.getElementById('guruQuizModalContainer');
+    if (!modalEl) return;
+
+    _parsedImportSoal = [];
+
+    modalEl.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
+        <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow-lg);overflow:hidden;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <h3 style="font-size:16px;font-weight:800;color:var(--text)">📥 Import Soal via CSV</h3>
+            <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          </div>
+
+          <div style="overflow-y:auto;flex:1;padding-right:4px;display:flex;flex-direction:column;gap:12px;">
+            <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;">
+              <div style="font-size:12px;font-weight:700;color:var(--blue-d);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Panduan Pengisian Template</div>
+              <ol style="font-size:12px;color:var(--blue-d);line-height:1.8;padding-left:16px;margin:0;">
+                <li>Unduh template dengan mengklik tombol di bawah ini.</li>
+                <li>Kolom <strong>tipe_soal</strong> wajib diisi: <code>pilihan_ganda</code>, <code>benar_salah</code>, <code>matching</code>, <code>audio</code>, <code>teks_arab</code>, atau <code>isian_singkat</code>.</li>
+                <li>Kolom <strong>pilihan</strong>: pisahkan opsi dengan <code>|</code> dan tandai yang benar dengan <code>*</code> di akhir (contoh: <code>A*|B|C|D</code>).</li>
+                <li>Kolom <strong>levels</strong>: masukkan level halaqah dipisah koma (contoh: <code>Level 1,Level 2</code>).</li>
+                <li>Simpan berkas dalam format <strong>CSV (UTF-8, pemisah titik koma / semicolon)</strong>.</li>
+              </ol>
+              <button onclick="downloadTemplateSoalGuru()" style="margin-top:10px;background:#fff;border:1.5px solid var(--blue);color:var(--blue-d);padding:6px 12px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">Unduh Template CSV Soal</button>
+            </div>
+
+            <!-- Dropzone -->
+            <div id="dropZoneSoalGuru" style="border:2px dashed var(--border);border-radius:var(--r-md);padding:30px 16px;text-align:center;cursor:pointer;background:var(--bg-2);transition:all .2s;" onclick="document.getElementById('csvFileInputSoalGuru').click()">
+              <div style="font-size:36px;margin-bottom:8px">☁️</div>
+              <div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Drag berkas CSV Soal ke sini atau klik untuk memilih</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:4px">Format berkas: .csv (UTF-8)</div>
+            </div>
+            <input type="file" id="csvFileInputSoalGuru" accept=".csv" style="display:none" onchange="handleFileSelectSoalGuru(event)">
+
+            <!-- Preview Box -->
+            <div id="importPreviewBoxSoalGuru" style="display:none;margin-top:8px;">
+              <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">👁️ Pratinjau Soal (<span id="previewCountSoalGuru">0</span> soal terdeteksi)</div>
+              <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);">
+                <table style="width:100%;border-collapse:collapse;font-size:11.5px;text-align:left;">
+                  <thead>
+                    <tr style="background:var(--bg-2);border-bottom:1px solid var(--border);">
+                      <th style="padding:8px 10px;">Tipe</th>
+                      <th style="padding:8px 10px;">Teks Soal</th>
+                      <th style="padding:8px 10px;">Level</th>
+                      <th style="padding:8px 10px;">Rekomendasi P.</th>
+                      <th style="padding:8px 10px;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="importPreviewTbodySoalGuru"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div id="importProgressSoalGuru" style="display:none;margin-top:8px;">
+              <div style="font-size:12px;color:var(--text-2);margin-bottom:4px;display:flex;justify-content:space-between;">
+                <span>Mengimpor data soal...</span>
+                <strong id="importProgressTextSoalGuru">0%</strong>
+              </div>
+              <div style="height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden;">
+                <div id="importProgressBarSoalGuru" style="width:0%;height:100%;background:var(--blue);transition:width .1s;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;border-top:1px solid var(--border);padding-top:12px;">
+            <button onclick="closeGuruQuizModal()" id="btnBatalImportSoalGuru" style="padding:8px 16px;background:var(--bg-2);color:var(--text);border:none;border-radius:100px;font-weight:700;cursor:pointer;">Batal</button>
+            <button id="btnImportSoalGuru" onclick="prosesImportSoalGuru()" disabled style="padding:8px 20px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:100px;font-weight:800;cursor:pointer;opacity:0.5;box-shadow:var(--shadow-blue);">🚀 Mulai Impor</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add drag and drop listeners
+    var dz = document.getElementById('dropZoneSoalGuru');
+    if (dz) {
+      dz.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dz.style.borderColor = 'var(--blue)';
+        dz.style.background = 'rgba(56,189,248,.05)';
+      });
+      dz.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dz.style.borderColor = 'var(--border)';
+        dz.style.background = '';
+      });
+      dz.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dz.style.borderColor = 'var(--border)';
+        dz.style.background = '';
+        var files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].name.endsWith('.csv')) {
+          parseCSVSoalGuru(files[0]);
+        }
+      });
+    }
+  };
+
+  window.downloadTemplateSoalGuru = function () {
+    var header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke';
+    var sample = [
+      'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23',
+      'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23',
+      'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23',
+      'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;'
+    ].join('\n');
+    
+    var blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url;
+    a.download = 'template_import_soal_rattil.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  window.handleFileSelectSoalGuru = function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    parseCSVSoalGuru(file);
+  };
+
+  window.parseCSVSoalGuru = function (file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var text = e.target.result;
+      var lines = text.split('\n').map(function(line) { return line.trim(); }).filter(Boolean);
+      if (lines.length <= 1) {
+        alert('File CSV kosong atau hanya berisi header!');
+        return;
+      }
+
+      var header = lines[0].toLowerCase().split(';');
+      var expected = ['tipe_soal','teks_soal','teks_arab','audio_url','pilihan','pasangan','kunci_isian','levels','rekomendasi_pertemuan_ke'];
+      var isHeaderValid = expected.every(function(col) { return header.indexOf(col) !== -1; });
+      
+      if (!isHeaderValid) {
+        alert('Header CSV tidak cocok dengan template! Gunakan separator titik koma (;)');
+        return;
+      }
+
+      var colIndex = {};
+      header.forEach(function(name, idx) { colIndex[name] = idx; });
+
+      _parsedImportSoal = [];
+      var validCount = 0;
+
+      var tbody = document.getElementById('importPreviewTbodySoalGuru');
+      tbody.innerHTML = '';
+
+      for (var i = 1; i < lines.length; i++) {
+        var row = lines[i].split(';');
+        if (row.length < expected.length) continue;
+
+        var getValue = function(colName) {
+          return (row[colIndex[colName]] || '').trim();
+        };
+
+        var tipe = getValue('tipe_soal').toLowerCase();
+        var teks_soal = getValue('teks_soal');
+        var teks_arab = getValue('teks_arab') || null;
+        var audio_url = getValue('audio_url') || null;
+        var pilihanRaw = getValue('pilihan');
+        var pasanganRaw = getValue('pasangan');
+        var kunciRaw = getValue('kunci_isian');
+        var levelsRaw = getValue('levels');
+        var rekRaw = getValue('rekomendasi_pertemuan_ke');
+
+        var item = {
+          tipe_soal: tipe,
+          teks_soal: teks_soal,
+          teks_arab: teks_arab,
+          audio_url: audio_url,
+          pilihan: [],
+          pasangan: [],
+          kunci_isian: [],
+          levels: [],
+          rekomendasi_pertemuan_ke: null,
+          error: ''
+        };
+
+        var tipeValid = ['pilihan_ganda', 'benar_salah', 'matching', 'audio', 'teks_arab', 'isian_singkat'].indexOf(tipe) !== -1;
+        if (!tipe) {
+          item.error = 'Tipe soal kosong';
+        } else if (!tipeValid) {
+          item.error = "Tipe '" + tipe + "' tidak valid";
+        }
+
+        if (!teks_soal && !item.error) {
+          item.error = 'Teks soal wajib diisi';
+        }
+
+        if (['pilihan_ganda', 'benar_salah', 'audio', 'teks_arab'].indexOf(tipe) !== -1 && !item.error) {
+          if (!pilihanRaw) {
+            item.error = 'Kolom pilihan wajib diisi untuk tipe ini';
+          } else {
+            var pils = pilihanRaw.split('|').map(function(p) { return p.trim(); }).filter(Boolean);
+            if (pils.length < 2) {
+              item.error = 'Minimal harus ada 2 pilihan jawaban';
+            } else {
+              var correctCount = 0;
+              pils.forEach(function(p, idx) {
+                var isCorrect = p.endsWith('*');
+                var cleanText = isCorrect ? p.slice(0, -1).trim() : p;
+                if (isCorrect) correctCount++;
+                item.pilihan.push({
+                  teks_pilihan: cleanText,
+                  is_benar: isCorrect,
+                  urutan: idx + 1
+                });
+              });
+              if (correctCount === 0) {
+                item.error = 'Tidak ada pilihan jawaban benar (akhiri dengan *)';
+              } else if (correctCount > 1) {
+                item.error = 'Ada lebih dari 1 pilihan jawaban benar';
+              }
+            }
+          }
+        }
+
+        if (tipe === 'matching' && !item.error) {
+          if (!pasanganRaw) {
+            item.error = 'Kolom pasangan wajib diisi untuk tipe matching';
+          } else {
+            var pairs = pasanganRaw.split('|').map(function(p) { return p.trim(); }).filter(Boolean);
+            if (pairs.length < 2) {
+              item.error = 'Minimal harus ada 2 pasangan menjodohkan';
+            } else {
+              pairs.forEach(function(p, idx) {
+                var parts = p.split(':');
+                if (parts.length !== 2) {
+                  item.error = 'Format pasangan salah (Gunakan Kiri:Kanan)';
+                } else {
+                  item.pasangan.push({
+                    teks_kiri: parts[0].trim(),
+                    teks_kanan: parts[1].trim(),
+                    urutan: idx + 1
+                  });
+                }
+              });
+            }
+          }
+        }
+
+        if (tipe === 'isian_singkat' && !item.error) {
+          if (!kunciRaw) {
+            item.error = 'Kunci isian wajib diisi untuk isian singkat';
+          } else {
+            var kuncis = kunciRaw.split('|').map(function(k) { return k.trim(); }).filter(Boolean);
+            if (kuncis.length === 0) {
+              item.error = 'Kunci isian kosong';
+            } else {
+              kuncis.forEach(function(k) {
+                item.kunci_isian.push({ teks_kunci: k });
+              });
+            }
+          }
+        }
+
+        if (levelsRaw) {
+          item.levels = levelsRaw.split(',').map(function(l) { return l.trim(); }).filter(Boolean);
+        }
+
+        if (rekRaw) {
+          var num = parseInt(rekRaw);
+          if (!isNaN(num) && num > 0) {
+            item.rekomendasi_pertemuan_ke = num;
+          }
+        }
+
+        if (!item.error) validCount++;
+
+        _parsedImportSoal.push(item);
+
+        var statusHtml = item.error 
+          ? '<span style="color:var(--red);font-weight:700">❌ ' + escapeHtml(item.error) + '</span>' 
+          : '<span style="color:var(--green);font-weight:700">✅ Valid</span>';
+        
+        var badgeTipe = getTipeSoalLabel(tipe);
+        
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 10px;"><span style="font-size:10px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 8px;border-radius:100px;">${escapeHtml(badgeTipe)}</span></td>
+            <td style="padding:8px 10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(teks_soal)}">${escapeHtml(teks_soal)}</td>
+            <td style="padding:8px 10px;">${(item.levels || []).map(function(l) { return '<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,0.1);color:#059669;padding:2px 8px;border-radius:100px;margin-right:2px;">' + escapeHtml(l) + '</span>'; }).join('') || '–'}</td>
+            <td style="padding:8px 10px;text-align:center;">${item.rekomendasi_pertemuan_ke || '–'}</td>
+            <td style="padding:8px 10px;">${statusHtml}</td>
+          </tr>
+        `);
+      }
+
+      document.getElementById('previewCountSoalGuru').textContent = _parsedImportSoal.length;
+      document.getElementById('importPreviewBoxSoalGuru').style.display = 'block';
+      
+      var dropZone = document.getElementById('dropZoneSoalGuru');
+      dropZone.style.borderColor = validCount === _parsedImportSoal.length ? 'var(--green)' : 'var(--amber)';
+      dropZone.innerHTML = `<div style="font-size:32px">📂</div>`
+        + `<div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Berkas: ${escapeHtml(file.name)}</div>`
+        + `<div style="font-size:11px;color:var(--text-3);margin-top:4px">${validCount} dari ${_parsedImportSoal.length} soal valid dan siap diimpor.</div>`;
+
+      var importBtn = document.getElementById('btnImportSoalGuru');
+      importBtn.disabled = validCount === 0;
+      importBtn.style.opacity = validCount === 0 ? '0.5' : '1';
+    };
+    reader.readAsText(file);
+  };
+
+  window.prosesImportSoalGuru = async function () {
+    var validSoalList = _parsedImportSoal.filter(function(s) { return !s.error; });
+    if (validSoalList.length === 0) return;
+
+    document.getElementById('btnImportSoalGuru').disabled = true;
+    document.getElementById('btnBatalImportSoalGuru').disabled = true;
+    
+    var progBox = document.getElementById('importProgressSoalGuru');
+    var progBar = document.getElementById('importProgressBarSoalGuru');
+    var progText = document.getElementById('importProgressTextSoalGuru');
+    
+    progBox.style.display = 'block';
+    progBar.style.width = '0%';
+    progText.textContent = '0%';
+
+    var importedCount = 0;
+
+    for (var i = 0; i < validSoalList.length; i++) {
+      var s = validSoalList[i];
+      try {
+        var payload = {
+          tipe_soal: s.tipe_soal,
+          teks_soal: s.teks_soal,
+          teks_arab: s.teks_arab,
+          audio_url: s.audio_url,
+          pilihan: s.pilihan,
+          pasangan: s.pasangan,
+          kunci_isian: s.kunci_isian,
+          levels: s.levels,
+          rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke
+        };
+        
+        await window.HQ.QuizAPI.createSoal(payload);
+        importedCount++;
+      } catch (err) {
+        console.error('prosesImportSoalGuru failed row:', i, err);
+      }
+      
+      var percent = Math.round(((i + 1) / validSoalList.length) * 100);
+      progBar.style.width = percent + '%';
+      progText.textContent = percent + '%';
+    }
+
+    alert('Impor Selesai! ' + importedCount + ' dari ' + validSoalList.length + ' soal berhasil masuk ke Bank Soal.');
+    closeGuruQuizModal();
+    await loadGuruQuizTabContent();
   };
 
 })();
