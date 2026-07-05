@@ -9287,12 +9287,12 @@ function bukaModalImportSoal() {
 }
 
 function downloadTemplateSoal() {
-  const header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke';
+  const header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke;durasi_detik_default;bobot_poin_default';
   const sample = [
-    'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23',
-    'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23',
-    'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23',
-    'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;'
+    'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23;15;10',
+    'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23;30;10',
+    'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23;20;15',
+    'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;;;10'
   ].join('\n');
   
   const blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
@@ -9371,6 +9371,8 @@ function parseCSVSoal(file) {
       const kunciRaw = getValue('kunci_isian');
       const levelsRaw = getValue('levels');
       const rekRaw = getValue('rekomendasi_pertemuan_ke');
+      const durRaw = header.includes('durasi_detik_default') ? getValue('durasi_detik_default') : '';
+      const poinRaw = header.includes('bobot_poin_default') ? getValue('bobot_poin_default') : '';
 
       const item = {
         tipe_soal: tipe,
@@ -9382,6 +9384,8 @@ function parseCSVSoal(file) {
         kunci_isian: [],
         levels: [],
         rekomendasi_pertemuan_ke: null,
+        durasi_detik_default: null,
+        bobot_poin_default: 10,
         error: ''
       };
 
@@ -9481,6 +9485,22 @@ function parseCSVSoal(file) {
         }
       }
 
+      // Parse Durasi Default
+      if (durRaw) {
+        const num = parseInt(durRaw);
+        if (!isNaN(num) && num >= 0) {
+          item.durasi_detik_default = num;
+        }
+      }
+
+      // Parse Poin Default
+      if (poinRaw) {
+        const num = parseInt(poinRaw);
+        if (!isNaN(num) && num >= 0) {
+          item.bobot_poin_default = num;
+        }
+      }
+
       if (!item.error) validCount++;
 
       _parsedImportSoal.push(item);
@@ -9546,7 +9566,9 @@ async function prosesImportSoal() {
         pasangan: s.pasangan,
         kunci_isian: s.kunci_isian,
         levels: s.levels,
-        rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke
+        rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke,
+        durasi_detik_default: s.durasi_detik_default,
+        bobot_poin_default: s.bobot_poin_default
       };
       
       await window.HQ.QuizAPI.createSoal(payload);

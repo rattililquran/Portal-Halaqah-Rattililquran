@@ -1028,6 +1028,18 @@
               <input type="number" id="csRekomendasiPertemuan" placeholder="Contoh: 23" min="1" value="${editingSoal && editingSoal.rekomendasi_pertemuan_ke ? editingSoal.rekomendasi_pertemuan_ke : ''}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
             </div>
 
+            <!-- Default Durasi & Poin -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DEFAULT DURASI (DETIK)</label>
+                <input type="number" id="csDurasiDefault" placeholder="Kosongkan jika default kuis" min="0" value="${editingSoal && editingSoal.durasi_detik_default !== null && editingSoal.durasi_detik_default !== undefined ? editingSoal.durasi_detik_default : ''}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DEFAULT POIN</label>
+                <input type="number" id="csPoinDefault" placeholder="Default: 10" min="0" value="${editingSoal && editingSoal.bobot_poin_default !== null && editingSoal.bobot_poin_default !== undefined ? editingSoal.bobot_poin_default : '10'}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+              </div>
+            </div>
+
             <div style="margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS PERTANYAAN (LATIN) *</label>
               <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;">${editingSoal ? escapeHtml(editingSoal.teks_soal) : ''}</textarea>
@@ -1171,6 +1183,8 @@
     }
 
     var rekomendasiPertemuan = document.getElementById('csRekomendasiPertemuan').value;
+    var durasiDefault = document.getElementById('csDurasiDefault').value;
+    var poinDefault = document.getElementById('csPoinDefault').value;
 
     var payload = {
       tipe_soal: tipe,
@@ -1179,6 +1193,8 @@
       audio_url: document.getElementById('csAudioUrl') ? document.getElementById('csAudioUrl').value.trim() : null,
       levels: selectedLevels,
       rekomendasi_pertemuan_ke: rekomendasiPertemuan || null,
+      durasi_detik_default: durasiDefault !== '' ? parseInt(durasiDefault) : null,
+      bobot_poin_default: poinDefault !== '' ? parseInt(poinDefault) : 10,
       pilihan: [],
       pasangan: [],
       kunci_isian: []
@@ -1714,12 +1730,12 @@
   };
 
   window.downloadTemplateSoalGuru = function () {
-    var header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke';
+    var header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke;durasi_detik_default;bobot_poin_default';
     var sample = [
-      'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23',
-      'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23',
-      'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23',
-      'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;'
+      'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23;15;10',
+      'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23;30;10',
+      'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23;20;15',
+      'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;;;10'
     ].join('\n');
     
     var blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
@@ -1784,6 +1800,8 @@
         var kunciRaw = getValue('kunci_isian');
         var levelsRaw = getValue('levels');
         var rekRaw = getValue('rekomendasi_pertemuan_ke');
+        var durRaw = header.indexOf('durasi_detik_default') !== -1 ? getValue('durasi_detik_default') : '';
+        var poinRaw = header.indexOf('bobot_poin_default') !== -1 ? getValue('bobot_poin_default') : '';
 
         var item = {
           tipe_soal: tipe,
@@ -1795,6 +1813,8 @@
           kunci_isian: [],
           levels: [],
           rekomendasi_pertemuan_ke: null,
+          durasi_detik_default: null,
+          bobot_poin_default: 10,
           error: ''
         };
 
@@ -1887,6 +1907,20 @@
           }
         }
 
+        if (durRaw) {
+          var dNum = parseInt(durRaw);
+          if (!isNaN(dNum) && dNum >= 0) {
+            item.durasi_detik_default = dNum;
+          }
+        }
+
+        if (poinRaw) {
+          var pNum = parseInt(poinRaw);
+          if (!isNaN(pNum) && pNum >= 0) {
+            item.bobot_poin_default = pNum;
+          }
+        }
+
         if (!item.error) validCount++;
 
         _parsedImportSoal.push(item);
@@ -1953,7 +1987,9 @@
           pasangan: s.pasangan,
           kunci_isian: s.kunci_isian,
           levels: s.levels,
-          rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke
+          rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke,
+          durasi_detik_default: s.durasi_detik_default,
+          bobot_poin_default: s.bobot_poin_default
         };
         
         await window.HQ.QuizAPI.createSoal(payload);

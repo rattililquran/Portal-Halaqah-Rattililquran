@@ -2663,7 +2663,9 @@ var GuruAPI = {
         isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
         penjelasan: payload.penjelasan || null,
         levels: payload.levels || [],
-        rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null
+        rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+        durasi_detik_default: (payload.durasi_detik_default !== undefined && payload.durasi_detik_default !== null && payload.durasi_detik_default !== '') ? parseInt(payload.durasi_detik_default) : null,
+        bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10
       };
 
       var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
@@ -2747,7 +2749,9 @@ var GuruAPI = {
       isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
       penjelasan: payload.penjelasan || null,
       levels: payload.levels || [],
-      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      durasi_detik_default: (payload.durasi_detik_default !== undefined && payload.durasi_detik_default !== null && payload.durasi_detik_default !== '') ? parseInt(payload.durasi_detik_default) : null,
+      bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10
     };
 
     var { error: updateErr } = await _sb.from('soal').update(soalRow).eq('id_soal', id_soal);
@@ -2830,12 +2834,32 @@ var GuruAPI = {
       var maxUrutan = (qsData && qsData.length > 0) ? qsData[0].urutan : 0;
       finalUrutan = maxUrutan + 1;
     }
+
+    var finalPoin = bobot_poin;
+    var finalDurasi = durasi_detik_override;
+
+    if (finalPoin === undefined || finalPoin === null || finalDurasi === undefined || finalDurasi === null) {
+      try {
+        var { data: soalData } = await _sb.from('soal').select('durasi_detik_default, bobot_poin_default').eq('id_soal', id_soal).single();
+        if (soalData) {
+          if (finalPoin === undefined || finalPoin === null) {
+            finalPoin = soalData.bobot_poin_default !== null && soalData.bobot_poin_default !== undefined ? soalData.bobot_poin_default : 10;
+          }
+          if (finalDurasi === undefined || finalDurasi === null) {
+            finalDurasi = soalData.durasi_detik_default !== null && soalData.durasi_detik_default !== undefined ? soalData.durasi_detik_default : null;
+          }
+        }
+      } catch (e) {
+        console.warn('[Quiz] Failed to fetch soal defaults:', e);
+      }
+    }
+
     var { error } = await _sb.from('quiz_soal').insert([{
       id_quiz: id_quiz,
       id_soal: id_soal,
       urutan: finalUrutan,
-      bobot_poin: bobot_poin !== undefined ? bobot_poin : 10,
-      durasi_detik_override: durasi_detik_override || null
+      bobot_poin: finalPoin !== undefined && finalPoin !== null ? finalPoin : 10,
+      durasi_detik_override: finalDurasi || null
     }]);
     _check(error, 'addSoalToKuis');
     return { status: 'ok' };
