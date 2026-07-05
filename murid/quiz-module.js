@@ -290,7 +290,10 @@
         var isDone = q.sudah_dikerjakan;
         var score = isDone && q.hasil_terbaik ? q.hasil_terbaik.skor_total : 0;
         var maxScore = isDone && q.hasil_terbaik ? q.hasil_terbaik.skor_maksimal : 100;
+        var pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
         var categoryBadge = q.kategori || 'Umum';
+
+        var canRetake = q.boleh_retake || (isDone && pct < 50);
 
         html += `
           <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;justify-content:space-between;transition:transform .2s;" class="quiz-card-item">
@@ -313,7 +316,7 @@
               <div style="display:flex;align-items:center;gap:12px;font-size:11px;color:var(--text-3);margin-bottom:14px;background:var(--bg-2);padding:8px 12px;border-radius:var(--r-sm);">
                 <span>⏱️ ${q.durasi_per_soal_detik ? q.durasi_per_soal_detik + ' dtk/soal' : 'Tanpa batas'}</span>
                 <span>•</span>
-                <span>🔄 ${q.boleh_retake ? 'Bisa Ulang' : '1x Kesempatan'}</span>
+                <span>🔄 ${q.boleh_retake ? 'Bisa Ulang' : 'Ulang jika < 50%'}</span>
               </div>
 
               ${isDone ? `
@@ -322,7 +325,7 @@
                   <span style="font-size:14px;font-weight:900;color:var(--green);">${score} / ${maxScore}</span>
                 </div>
                 <div style="display:flex;gap:8px;">
-                  ${q.boleh_retake ? `
+                  ${canRetake ? `
                     <button onclick="startQuizFlow('${q.id_quiz}')" style="flex:1;padding:10px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-size:12px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">
                       🔄 Kerjakan Lagi
                     </button>
@@ -360,19 +363,43 @@
       var id_murid = window.HQ.getCurrentUser().id_user;
       var { data: hasilData, error: hasilErr } = await window.HQ.supabase
         .from('hasil_quiz')
-        .select('attempt_ke')
+        .select('attempt_ke, skor_total, skor_maksimal')
         .eq('id_quiz', id_quiz)
         .eq('id_murid', id_murid)
-        .order('attempt_ke', { ascending: false })
-        .limit(1);
+        .order('attempt_ke', { ascending: false });
       
       if (hasilErr) console.warn('[Quiz] Gagal mengambil riwayat attempt:', hasilErr);
-      var maxAttempt = (hasilData && hasilData.length > 0) ? hasilData[0].attempt_ke : 0;
+      var maxAttempt = 0;
+      var bestPct = 0;
+      if (hasilData && hasilData.length > 0) {
+        maxAttempt = hasilData[0].attempt_ke;
+        hasilData.forEach(function(h) {
+          var max = h.skor_maksimal || 100;
+          var score = h.skor_total || 0;
+          var pct = max > 0 ? Math.round((score / max) * 100) : 0;
+          if (pct > bestPct) bestPct = pct;
+        });
+      }
       _attemptKe = maxAttempt + 1;
+
+      _quizData = res.data;
+
+      // Enforce lock if bestPct >= 50 and boleh_retake is false
+      var hasAnyPast = maxAttempt > 0;
+      var isRetakeAllowed = _quizData.boleh_retake || !hasAnyPast || (hasAnyPast && bestPct < 50);
+
+      if (!isRetakeAllowed) {
+        hideLoading();
+        showQuizAlert({ 
+          title: 'Akses Dibatasi 🔒', 
+          message: 'Anda sudah berhasil lulus kuis ini dengan nilai terbaik ' + bestPct + '% (Batas Kelulusan: 50%). Anda tidak dapat mengulang kuis ini lagi.', 
+          type: 'info' 
+        });
+        return;
+      }
 
       hideLoading();
 
-      _quizData = res.data;
       _currentQuiz = _quizData;
       _currentQuestionIdx = 0;
       _userAnswers = {};
