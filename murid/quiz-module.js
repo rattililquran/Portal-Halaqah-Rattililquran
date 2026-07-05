@@ -811,6 +811,10 @@
     if (typeof window.showLoad === 'function') window.showLoad(msg);
   }
 
+  function hideLoading() {
+    if (typeof window.hideLoad === 'function') window.hideLoad();
+  }
+
   // ─────────────────────────────────────────────
   // SHARIAH-COMPLIANT WEB AUDIO SYNTH (NO INSTRUMENTS)
   // ─────────────────────────────────────────────
