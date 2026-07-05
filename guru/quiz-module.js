@@ -287,6 +287,500 @@
     }
   };
 
+  // ─────────────────────────────────────────────
+  //  5. MODAL HANDLERS & ACTIONS
+  // ─────────────────────────────────────────────
+  window.closeGuruQuizModal = function () {
+    var el = document.getElementById('guruQuizModalContainer');
+    if (el) el.innerHTML = '';
+  };
+
+  window.openModalCreateKuis = async function () {
+    var modalEl = document.getElementById('guruQuizModalContainer');
+    if (!modalEl) return;
+
+    showLoading('Memuat daftar halaqah...');
+    var halaqahList = [];
+    try {
+      var id_guru = window.HQ.getCurrentUser().id_user;
+      var { data } = await window.HQ.supabase.from('halaqah').select('*').eq('id_guru', id_guru).eq('status', 'aktif');
+      halaqahList = data || [];
+    } catch(e) {}
+    hideLoading();
+
+    var halaqahOptionsHtml = halaqahList.map(function(h) {
+      return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" name="id_halaqah" value="${h.id_halaqah}"> ${escapeHtml(h.nama_halaqah)} (${escapeHtml(h.level)})</label>`;
+    }).join('') || '<div style="font-size:12px;color:var(--text-3);">Belum ada halaqah aktif.</div>';
+
+    modalEl.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
+        <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:800;color:var(--text)">➕ Buat Kuis Baru</h3>
+            <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          </div>
+
+          <form onsubmit="submitFormCreateKuis(event)">
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">JUDUL KUIS *</label>
+              <input type="text" id="cqJudul" required placeholder="mis. Kuis Hukum Nun Mati & Tanwin" style="width:100%;padding:10px 12px;border-radius:var(--r-sm,12px);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;">
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DESKRIPSI / INSTRUKSI</label>
+              <textarea id="cqDeskripsi" rows="2" placeholder="Petunjuk pengerjaan kuis untuk murid..." style="width:100%;padding:10px 12px;border-radius:var(--r-sm,12px);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;"></textarea>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">KATEGORI</label>
+                <select id="cqKategori" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                  <option value="Tajwid">Tajwid</option>
+                  <option value="Makharijul Huruf">Makharijul Huruf</option>
+                  <option value="Hafalan">Hafalan</option>
+                  <option value="Murajaah">Murajaah</option>
+                  <option value="Umum" selected>Umum</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">STATUS</label>
+                <select id="cqStatus" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                  <option value="draft">Draft (Disimpan saja)</option>
+                  <option value="aktif" selected>Aktif (Dapat Dikerjakan)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DURASI PER SOAL (DETIK)</label>
+                <input type="number" id="cqDurasi" value="30" placeholder="0 = tanpa batas" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">URUTAN SOAL</label>
+                <select id="cqUrutan" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                  <option value="berurutan">Berurutan</option>
+                  <option value="acak">Acak (Random)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">ASSIGN KE HALAQAH *</label>
+              <div style="background:var(--bg-2);padding:10px;border-radius:var(--r-sm);display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;">
+                ${halaqahOptionsHtml}
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+              <button type="button" onclick="closeGuruQuizModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Batal</button>
+              <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">Simpan Kuis</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+  };
+
+  window.submitFormCreateKuis = async function (e) {
+    e.preventDefault();
+    var idHalaqahList = Array.from(document.querySelectorAll('input[name="id_halaqah"]:checked')).map(function(c){ return c.value; });
+
+    var payload = {
+      judul: document.getElementById('cqJudul').value.trim(),
+      deskripsi: document.getElementById('cqDeskripsi').value.trim(),
+      kategori: document.getElementById('cqKategori').value,
+      status: document.getElementById('cqStatus').value,
+      durasi_per_soal_detik: parseInt(document.getElementById('cqDurasi').value) || null,
+      urutan_soal: document.getElementById('cqUrutan').value,
+      id_halaqah_list: idHalaqahList
+    };
+
+    try {
+      showLoading('Membuat kuis...');
+      await window.HQ.QuizAPI.createKuis(payload);
+      hideLoading();
+      closeGuruQuizModal();
+      await loadGuruQuizTabContent();
+    } catch (err) {
+      hideLoading();
+      alert('Gagal membuat kuis: ' + err.message);
+    }
+  };
+
+  window.openModalEditKuis = async function (id_quiz) {
+    alert('Feature edit kuis setting: ' + id_quiz);
+  };
+
+  window.deleteKuisConfirm = async function (id_quiz) {
+    if (!confirm('Apakah Anda yakin ingin menghapus kuis ini? Semua jawaban dan hasil murid pada kuis ini akan terhapus.')) return;
+
+    try {
+      showLoading('Menghapus kuis...');
+      await window.HQ.QuizAPI.deleteKuis(id_quiz);
+      hideLoading();
+      await loadGuruQuizTabContent();
+    } catch (err) {
+      hideLoading();
+      alert('Gagal menghapus kuis: ' + err.message);
+    }
+  };
+
+  window.manageSoalKuis = async function (id_quiz) {
+    var modalEl = document.getElementById('guruQuizModalContainer');
+    if (!modalEl) return;
+
+    try {
+      showLoading('Memuat soal kuis...');
+      var [quizRes, bankRes] = await Promise.all([
+        window.HQ.QuizAPI.getHasilKuis(id_quiz),
+        window.HQ.QuizAPI.getBankSoal()
+      ]);
+      hideLoading();
+
+      var quiz = quizRes.quiz;
+      var existingQuizSoal = quiz.quiz_soal || [];
+      var existingSoalIds = existingQuizSoal.map(function(qs){ return qs.id_soal; });
+      var bankSoalList = bankRes.data || [];
+
+      var quizSoalHtml = existingQuizSoal.map(function(qs, idx) {
+        var s = qs.soal;
+        if (!s) return '';
+        return `
+          <div style="background:var(--bg-2);padding:10px 14px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
+            <button onclick="removeSoalFromKuisAction('${id_quiz}', '${s.id_soal}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Hapus</button>
+          </div>
+        `;
+      }).join('') || '<div style="font-size:12px;color:var(--text-3);padding:10px 0;">Belum ada soal dimasukkan ke kuis ini.</div>';
+
+      var availableBankHtml = bankSoalList.filter(function(s){ return !existingSoalIds.includes(s.id_soal); }).map(function(s) {
+        return `
+          <div style="background:#fff;border:1px solid var(--border);padding:10px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">${escapeHtml(s.teks_soal)}</div>
+            <button onclick="addSoalToKuisAction('${id_quiz}', '${s.id_soal}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">+ Tambah</button>
+          </div>
+        `;
+      }).join('') || '<div style="font-size:12px;color:var(--text-3);">Semua soal di bank soal sudah dimasukkan atau bank soal kosong.</div>';
+
+      modalEl.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
+          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h3 style="font-size:16px;font-weight:800;color:var(--text)">⚙️ Kelola Soal: ${escapeHtml(quiz.judul)}</h3>
+              <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+            </div>
+
+            <div style="margin-bottom:20px;">
+              <h4 style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">Soal Terpasang di Kuis Ini (${existingQuizSoal.length})</h4>
+              ${quizSoalHtml}
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="font-size:13px;font-weight:800;color:var(--text);">Pilih Soal dari Bank Soal</h4>
+                <button onclick="openModalCreateSoal('${id_quiz}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">➕ Buat Soal Baru</button>
+              </div>
+              <div style="max-height:200px;overflow-y:auto;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);">
+                ${availableBankHtml}
+              </div>
+            </div>
+
+            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Selesai</button>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      hideLoading();
+      alert('Gagal mengelola soal kuis: ' + err.message);
+    }
+  };
+
+  window.addSoalToKuisAction = async function (id_quiz, id_soal) {
+    try {
+      showLoading('Menambahkan soal...');
+      await window.HQ.QuizAPI.addSoalToKuis(id_quiz, id_soal, 1, 10);
+      hideLoading();
+      manageSoalKuis(id_quiz);
+    } catch (err) {
+      hideLoading();
+      alert('Gagal menambahkan soal: ' + err.message);
+    }
+  };
+
+  window.removeSoalFromKuisAction = async function (id_quiz, id_soal) {
+    try {
+      showLoading('Menghapus soal...');
+      await window.HQ.QuizAPI.removeSoalFromKuis(id_quiz, id_soal);
+      hideLoading();
+      manageSoalKuis(id_quiz);
+    } catch (err) {
+      hideLoading();
+      alert('Gagal menghapus soal: ' + err.message);
+    }
+  };
+
+  window.openModalCreateSoal = function (prefilledQuizId) {
+    var modalEl = document.getElementById('guruQuizModalContainer');
+    if (!modalEl) return;
+
+    modalEl.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
+        <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:16px;font-weight:800;color:var(--text)">➕ Buat Soal Baru (Bank Soal)</h3>
+            <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          </div>
+
+          <form onsubmit="submitFormCreateSoal(event, '${prefilledQuizId || ''}')">
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TIPE SOAL *</label>
+              <select id="csTipe" onchange="onTipeSoalChange(this.value)" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                <option value="pilihan_ganda">Pilihan Ganda</option>
+                <option value="benar_salah">Benar / Salah</option>
+                <option value="matching">Matching (Menjodohkan)</option>
+                <option value="audio">Audio / Suara</option>
+                <option value="teks_arab">Teks Arab</option>
+                <option value="isian_singkat">Isian Singkat</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS PERTANYAAN (LATIN) *</label>
+              <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;"></textarea>
+            </div>
+
+            <div id="csTeksArabWrap" style="display:none;margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS ARAB</label>
+              <textarea id="csTeksArab" rows="2" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;"></textarea>
+            </div>
+
+            <div id="csAudioWrap" style="display:none;margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">URL AUDIO (GDrive / YouTube / MP3 Direct)</label>
+              <input type="url" id="csAudioUrl" placeholder="https://..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+            </div>
+
+            <!-- Options Container Dynamic -->
+            <div id="csDynamicOptions" style="margin-bottom:14px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">OPSI PILIHAN (Centang Kunci Jawaban Benar):</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="0" checked> <input type="text" class="csPil" required placeholder="Pilihan A" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="1"> <input type="text" class="csPil" required placeholder="Pilihan B" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="2"> <input type="text" class="csPil" placeholder="Pilihan C (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="3"> <input type="text" class="csPil" placeholder="Pilihan D (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+              <button type="button" onclick="closeGuruQuizModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Batal</button>
+              <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">Simpan Soal</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+  };
+
+  window.onTipeSoalChange = function (tipe) {
+    var arabWrap = document.getElementById('csTeksArabWrap');
+    var audioWrap = document.getElementById('csAudioWrap');
+    var optionsDiv = document.getElementById('csDynamicOptions');
+
+    if (arabWrap) arabWrap.style.display = (tipe === 'teks_arab') ? 'block' : 'none';
+    if (audioWrap) audioWrap.style.display = (tipe === 'audio') ? 'block' : 'none';
+
+    if (!optionsDiv) return;
+
+    if (tipe === 'pilihan_ganda' || tipe === 'audio' || tipe === 'teks_arab') {
+      optionsDiv.innerHTML = `
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">OPSI PILIHAN (Pilih Kunci Jawaban Benar):</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="0" checked> <input type="text" class="csPil" required placeholder="Pilihan A" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+          <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="1"> <input type="text" class="csPil" required placeholder="Pilihan B" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+          <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="2"> <input type="text" class="csPil" placeholder="Pilihan C (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+          <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="3"> <input type="text" class="csPil" placeholder="Pilihan D (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        </div>
+      `;
+    } else if (tipe === 'benar_salah') {
+      optionsDiv.innerHTML = `
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">KUNCI JAWABAN BENAR:</label>
+        <div style="display:flex;gap:16px;">
+          <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="benar" checked> ✅ Benar</label>
+          <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="salah"> ❌ Salah</label>
+        </div>
+      `;
+    } else if (tipe === 'matching') {
+      optionsDiv.innerHTML = `
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">PASANGAN (TEKS KIRI ↔ TEKS KANAN):</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" required placeholder="Teks Kiri 1" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" required placeholder="Teks Kanan 1" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+          <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" required placeholder="Teks Kiri 2" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" required placeholder="Teks Kanan 2" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+          <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" placeholder="Teks Kiri 3" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" placeholder="Teks Kanan 3" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        </div>
+      `;
+    } else if (tipe === 'isian_singkat') {
+      optionsDiv.innerHTML = `
+        <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">VARIAN KUNCI JAWABAN (Pisahkan dengan koma):</label>
+        <input type="text" id="csIsianKunci" required placeholder="mis. Idgham Bighunnah, idgham bighunnah" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+      `;
+    }
+  };
+
+  window.submitFormCreateSoal = async function (e, prefilledQuizId) {
+    e.preventDefault();
+    var tipe = document.getElementById('csTipe').value;
+    var teksSoal = document.getElementById('csTeksSoal').value.trim();
+
+    var payload = {
+      tipe_soal: tipe,
+      teks_soal: teksSoal,
+      teks_arab: document.getElementById('csTeksArab') ? document.getElementById('csTeksArab').value.trim() : null,
+      audio_url: document.getElementById('csAudioUrl') ? document.getElementById('csAudioUrl').value.trim() : null,
+      pilihan: [],
+      pasangan: [],
+      kunci_isian: []
+    };
+
+    if (tipe === 'pilihan_ganda' || tipe === 'audio' || tipe === 'teks_arab') {
+      var pilInputs = Array.from(document.querySelectorAll('.csPil'));
+      var selectedBenarIdx = parseInt(document.querySelector('input[name="csBenar"]:checked').value);
+      payload.pilihan = pilInputs.map(function(inp, idx) {
+        if (!inp.value.trim()) return null;
+        return { teks_pilihan: inp.value.trim(), is_benar: idx === selectedBenarIdx };
+      }).filter(Boolean);
+    } else if (tipe === 'benar_salah') {
+      var isBenarSelected = document.querySelector('input[name="csBsBenar"]:checked').value === 'benar';
+      payload.pilihan = [
+        { teks_pilihan: 'Benar', is_benar: isBenarSelected },
+        { teks_pilihan: 'Salah', is_benar: !isBenarSelected }
+      ];
+    } else if (tipe === 'matching') {
+      var kiriInputs = Array.from(document.querySelectorAll('.csMatchKiri'));
+      var kananInputs = Array.from(document.querySelectorAll('.csMatchKanan'));
+      payload.pasangan = kiriInputs.map(function(kInp, idx) {
+        var kiriText = kInp.value.trim();
+        var kananText = kananInputs[idx] ? kananInputs[idx].value.trim() : '';
+        if (!kiriText || !kananText) return null;
+        return { teks_kiri: kiriText, teks_kanan: kananText };
+      }).filter(Boolean);
+    } else if (tipe === 'isian_singkat') {
+      var rawKunci = document.getElementById('csIsianKunci').value;
+      payload.kunci_isian = rawKunci.split(',').map(function(k){ return k.trim(); }).filter(Boolean);
+    }
+
+    try {
+      showLoading('Membuat soal...');
+      var res = await window.HQ.QuizAPI.createSoal(payload);
+      var newSoal = res.data;
+
+      if (prefilledQuizId && newSoal) {
+        await window.HQ.QuizAPI.addSoalToKuis(prefilledQuizId, newSoal.id_soal, 1, 10);
+      }
+
+      hideLoading();
+      closeGuruQuizModal();
+
+      if (prefilledQuizId) {
+        manageSoalKuis(prefilledQuizId);
+      } else {
+        await loadGuruQuizTabContent();
+      }
+    } catch (err) {
+      hideLoading();
+      alert('Gagal membuat soal: ' + err.message);
+    }
+  };
+
+  window.deleteSoalConfirm = async function (id_soal) {
+    if (!confirm('Apakah Anda yakin ingin menghapus soal ini dari Bank Soal?')) return;
+
+    try {
+      showLoading('Menghapus soal...');
+      await window.HQ.QuizAPI.deleteSoal(id_soal);
+      hideLoading();
+      await loadGuruQuizTabContent();
+    } catch (err) {
+      hideLoading();
+      alert('Gagal menghapus soal: ' + err.message);
+    }
+  };
+
+  window.viewHasilKuisGuru = async function (id_quiz) {
+    var modalEl = document.getElementById('guruQuizModalContainer');
+    if (!modalEl) return;
+
+    try {
+      showLoading('Memuat laporan kuis...');
+      var res = await window.HQ.QuizAPI.getHasilKuis(id_quiz);
+      hideLoading();
+
+      var quiz = res.quiz;
+      var summary = res.summary;
+      var hasilMurid = summary.hasil_murid || [];
+
+      var rowsHtml = hasilMurid.map(function(h, idx) {
+        var name = h.users ? h.users.nama_lengkap : 'Murid';
+        var percent = h.skor_maksimal > 0 ? Math.round((h.skor_total / h.skor_maksimal) * 100) : 0;
+
+        return `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px;font-size:12px;font-weight:700;">#${idx + 1}</td>
+            <td style="padding:10px;font-size:12px;font-weight:800;color:var(--text);">${escapeHtml(name)}</td>
+            <td style="padding:10px;font-size:12px;font-weight:900;color:var(--green);">${h.skor_total} / ${h.skor_maksimal} (${percent}%)</td>
+            <td style="padding:10px;font-size:12px;">${h.durasi_pengerjaan_detik ? h.durasi_pengerjaan_detik + 's' : '-'}</td>
+            <td style="padding:10px;font-size:11px;">
+              ${h.flag_suspicious ? `<span style="background:var(--red-l);color:var(--red);padding:2px 8px;border-radius:100px;font-weight:800;">⚠️ ${h.jumlah_tab_switch}x Pindah Tab</span>` : '<span style="color:var(--text-3);">Normal</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3);">Belum ada murid yang mengerjakan kuis ini.</td></tr>';
+
+      modalEl.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
+          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h3 style="font-size:16px;font-weight:800;color:var(--text)">📊 Laporan & Hasil: ${escapeHtml(quiz.judul)}</h3>
+              <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+              <div style="background:var(--bg-2);padding:14px;border-radius:var(--r-sm);text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-3);">TOTAL MENGERJAKAN</div>
+                <div style="font-size:24px;font-weight:900;color:var(--blue-d);">${summary.total_mengerjakan} Murid</div>
+              </div>
+              <div style="background:var(--bg-2);padding:14px;border-radius:var(--r-sm);text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-3);">RATA-RATA SKOR</div>
+                <div style="font-size:24px;font-weight:900;color:var(--green);">${summary.rata_rata_skor} Poin</div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;text-align:left;">
+                <thead>
+                  <tr style="background:var(--bg-2);font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;">
+                    <th style="padding:10px;">No</th>
+                    <th style="padding:10px;">Nama Murid</th>
+                    <th style="padding:10px;">Skor</th>
+                    <th style="padding:10px;">Waktu</th>
+                    <th style="padding:10px;">Status / Log</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;margin-top:20px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Tutup</button>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      hideLoading();
+      alert('Gagal memuat laporan kuis: ' + err.message);
+    }
+  };
+
   // Helper Utilities
   function escapeHtml(str) {
     if (!str) return '';
