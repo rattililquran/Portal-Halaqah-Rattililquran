@@ -3496,6 +3496,7 @@ html.theme-dark .pr-chip.active {
         </div>
       </div>
 
+      <!--
       <script>
       (function(){
         let liveHalaqahs = [];
@@ -3968,6 +3969,7 @@ html.theme-dark .pr-chip.active {
         };
       })();
       </script>
+      -->
 
       <!-- ════ ASSESSMENT ════ -->
       <div class="page" id="page-assessment">
@@ -5739,9 +5741,13 @@ html.theme-dark .pr-chip.active {
 <div class="toast-inline" id="toastInline"></div>
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js?v=2.1.2"></script>
+<script src="../assets/js/shared-utils.js?v=1.0.0"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=1.0.8"></script>
+<script src="jadwal-module.js?v=1.0.0" defer></script>
+<script src="dashboard-module.js?v=1.0.0" defer></script>
+<script src="kelompok-module.js?v=1.0.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -5750,6 +5756,27 @@ let token = '', currentUser = null;
 let halaqahList = [], muridCache = {};
 let sesiAktif   = null;  // KBM yang sedang berjalan
 let muridSesi   = [];    // murid halaqah sesi aktif
+let _keaktifanData = null;
+let _guruTabLoaded = {};
+
+window.HQ.AppState = {
+  get token() { return token; },
+  set token(v) { token = v; },
+  get currentUser() { return currentUser; },
+  set currentUser(v) { currentUser = v; },
+  get halaqahList() { return halaqahList; },
+  set halaqahList(v) { halaqahList = v; },
+  get muridCache() { return muridCache; },
+  set muridCache(v) { muridCache = v; },
+  get sesiAktif() { return sesiAktif; },
+  set sesiAktif(v) { sesiAktif = v; },
+  get muridSesi() { return muridSesi; },
+  set muridSesi(v) { muridSesi = v; },
+  get _keaktifanData() { return _keaktifanData; },
+  set _keaktifanData(v) { _keaktifanData = v; },
+  get _guruTabLoaded() { return _guruTabLoaded; },
+  set _guruTabLoaded(v) { _guruTabLoaded = v; }
+};
 
 const KRITERIA_MT = [
   {
@@ -6327,6 +6354,7 @@ function toggleSidebarCollapse() {
 // ══════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════
+/*
 async function loadDashboard(silent = false) {
   if (!silent) showLoad('Bismillah, memuat dashboard...');
   // Load jadwal paralel
@@ -6416,7 +6444,9 @@ async function loadDashboard(silent = false) {
   } catch(e) { toast('Gagal memuat dashboard: ' + e.message, 'err'); }
   finally { if (!silent) hideLoad(); }
 }
+*/
 
+/*
 // ── Kartu "Kehadiranku" — turunan dari sesi KBM (RANCANGAN_ABSENSI_GURU.md §7.2) ──
 var _ksBulan = null, _ksTahun = null, _ksBusy = false;
 var _KS_NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -6779,10 +6809,12 @@ async function loadKehadiranSaya(opts) {
     document.getElementById('ksBody').innerHTML = hero + nudge + statsHtml + hqHtml + stripHtml + detailHtml + callouts + note;
     card.style.display = '';
   } catch (e) {
-    if (!fromNav) card.style.display = 'none'; /* senyap saat auto-load; kartu opsional */
+    if (!fromNav) card.style.display = 'none'; // senyap saat auto-load; kartu opsional
   } finally { _ksBusy = false; }
 }
+*/
 
+/*
 function hqCard(h) {
   return `<div class="hq-card" onclick="goPage('kbm')">
     <div class="hq-name">${esc(h.nama_halaqah)}</div>
@@ -6798,6 +6830,7 @@ function hqCard(h) {
     </div>
   </div>`;
 }
+*/
 
 // ══════════════════════════════════════════
 //  BUKA KBM
@@ -6827,7 +6860,8 @@ function validateFields(fields) {
 }
 
 // ── REFRESH PER TAB ───────────────────────
-var _guruTabLoaded = {};
+// var _guruTabLoaded = {}; // Moved to State at top
+/*
 function guruRefresh(tab) {
   var btnMap = {murid:'btnRefreshMurid',riwayat:'btnRefreshRiwayat',keaktifan:'btnRefreshKeaktifan',assessment:'btnRefreshAsmt', 'peninjauan-pr':'btnRefreshPR'};
   var btn = document.getElementById(btnMap[tab] || '');
@@ -6843,6 +6877,7 @@ function guruRefresh(tab) {
     loadAtTibyanGuru();
   }
 }
+*/
 
 async function doBukaKBM() {
   const id_halaqah = document.getElementById('kbmHalaqah').value;
@@ -12205,7 +12240,7 @@ async function simpanVerifikasiGuru(idMurid, idItem, statusGuru, btn) {
 // ══════════════════════════════════════════
 //  KEAKTIFAN MURID
 // ══════════════════════════════════════════
-var _keaktifanData = null;
+// var _keaktifanData = null; // Moved to State at top
 
 async function loadKeaktifanPage() {
   var grid = document.getElementById('keaktifanGrid');
@@ -13849,6 +13884,7 @@ async function hfDelKamera(i) {
   showToast('Opsi dihapus', 'success');
 }
 
+/*
 // ── Kelola Kelompok Partner Qiyam UI ─────────────────────────────────────
 var _kpData = { id_halaqah: null, kelompok: [], murid: [] };
 
@@ -14834,6 +14870,7 @@ async function kbAddAnggota(id_kelompok, selectEl) {
     showToast(e.message || 'Gagal menambah anggota', 'error');
   }
 }
+*/
 
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
 function _initNavHafalan() {
