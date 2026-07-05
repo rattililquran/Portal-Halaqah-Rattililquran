@@ -1,5 +1,5 @@
 // ============================================================
-//  murid/quiz-module.js  v1.0
+//  murid/quiz-module.js  v1.0.6
 //  Portal Murid — Rattil Quiz Interactive Engine
 // ============================================================
 
