@@ -9,6 +9,20 @@
   var _activeTab = 'kuis'; // 'kuis' | 'bank' | 'review' | 'laporan'
   var _selectedQuizId = null;
 
+  // Filter state for bank soal
+  var _bankFilterText = '';
+  var _bankFilterLevel = '';
+  var _bankFilterPertemuan = '';
+  var _allBankSoalRaw = [];
+
+  // Filter & bulk select state for quiz question picker
+  var _pickerFilterText = '';
+  var _pickerFilterLevel = '';
+  var _pickerFilterPertemuan = '';
+  var _pickerAvailableSoal = [];
+  var _pickerSelectedSoalIds = new Set();
+  var _currentQuizData = null;
+
   // ─────────────────────────────────────────────
   //  1. RENDER GURU QUIZ PAGE
   // ─────────────────────────────────────────────
@@ -160,61 +174,174 @@
   // ─────────────────────────────────────────────
   //  3. TAB 2: BANK SOAL GURU
   // ─────────────────────────────────────────────
-  async function renderBankSoal(container) {
-    try {
-      var res = await window.HQ.QuizAPI.getBankSoal();
-      var list = res.data || [];
-      var currentUserId = window.HQ.getCurrentUser().id_user;
+  function getTipeSoalLabel(tipe) {
+    switch (tipe) {
+      case 'pilihan_ganda': return 'Pilihan Ganda';
+      case 'benar_salah': return 'Benar / Salah';
+      case 'matching': return 'Menjodohkan';
+      case 'audio': return 'Audio / Suara';
+      case 'teks_arab': return 'Teks Arab';
+      case 'isian_singkat': return 'Isian Singkat';
+      default: return 'Soal';
+    }
+  }
 
-      var html = `
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+  async function renderBankSoal(container) {
+    var headerHtml = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h3 style="font-size:15px;font-weight:800;color:var(--text);">📦 Bank Soal Bersama</h3>
+          <p style="font-size:11px;color:var(--text-3);">Semua pengajar dapat menggunakan soal-soal ini di kuis halaqah masing-masing.</p>
+        </div>
+        <button onclick="openModalCreateSoal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;box-shadow:var(--shadow-blue);">
+          ➕ Buat Soal Baru
+        </button>
+      </div>
+
+      <!-- Filter Panel -->
+      <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);margin-bottom:16px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        <!-- Search input -->
+        <div style="flex:2;min-width:200px;position:relative;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-3);">🔍</span>
+          <input type="text" id="bankSearchInput" oninput="onBankSearchInput(this.value)" placeholder="Cari teks soal..." value="${escapeHtml(_bankFilterText)}" style="width:100%;padding:10px 10px 10px 34px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;background:#fff;color:var(--text);">
+        </div>
+        <!-- Level Select -->
+        <div style="flex:1;min-width:150px;">
+          <select id="bankLevelSelect" onchange="onBankLevelFilterChange(this.value)" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;background:#fff;color:var(--text);outline:none;">
+            <option value="">— Semua Level —</option>
+            <option value="Level 1" ${_bankFilterLevel === 'Level 1' ? 'selected' : ''}>Level 1</option>
+            <option value="Level 2" ${_bankFilterLevel === 'Level 2' ? 'selected' : ''}>Level 2</option>
+            <option value="Level 3" ${_bankFilterLevel === 'Level 3' ? 'selected' : ''}>Level 3</option>
+            <option value="Level Qiyam" ${_bankFilterLevel === 'Level Qiyam' ? 'selected' : ''}>Level Qiyam</option>
+            <option value="Micro Teaching" ${_bankFilterLevel === 'Micro Teaching' ? 'selected' : ''}>Micro Teaching</option>
+            <option value="Tahsin Al-Fatihah" ${_bankFilterLevel === 'Tahsin Al-Fatihah' ? 'selected' : ''}>Tahsin Al-Fatihah</option>
+          </select>
+        </div>
+        <!-- Pertemuan Ke- Input -->
+        <div style="flex:1;min-width:120px;">
+          <input type="number" id="bankPertemuanInput" oninput="onBankPertemuanFilterChange(this.value)" placeholder="Pertemuan ke-" value="${escapeHtml(_bankFilterPertemuan)}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;background:#fff;color:var(--text);">
+        </div>
+      </div>
+
+      <style>
+        .bank-soal-card:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--shadow-lg) !important;
+          border-color: var(--blue) !important;
+        }
+        .btn-delete-soal:hover {
+          background: var(--red) !important;
+          color: #fff !important;
+        }
+      </style>
+
+      <div id="bankSoalListContainer">
+        <div style="text-align:center;padding:30px;color:var(--text-3);">Memuat daftar bank soal...</div>
+      </div>
+    `;
+
+    container.innerHTML = headerHtml;
+
+    await reloadBankList();
+  }
+
+  window.onBankSearchInput = function (val) {
+    _bankFilterText = val;
+    filterAndRenderBankList();
+  };
+
+  window.onBankLevelFilterChange = async function (val) {
+    _bankFilterLevel = val;
+    await reloadBankList();
+  };
+
+  window.onBankPertemuanFilterChange = async function (val) {
+    _bankFilterPertemuan = val;
+    await reloadBankList();
+  };
+
+  async function reloadBankList() {
+    var listContainer = document.getElementById('bankSoalListContainer');
+    if (listContainer && listContainer.innerHTML === '') {
+      listContainer.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">Memuat daftar bank soal...</div>';
+    }
+    try {
+      var res = await window.HQ.QuizAPI.getBankSoal(null, null, _bankFilterLevel || null, _bankFilterPertemuan || null);
+      _allBankSoalRaw = res.data || [];
+      filterAndRenderBankList();
+    } catch (err) {
+      if (listContainer) {
+        listContainer.innerHTML = '<div style="color:var(--red);text-align:center;padding:20px;">Gagal memuat bank soal.</div>';
+      }
+    }
+  }
+
+  function filterAndRenderBankList() {
+    var container = document.getElementById('bankSoalListContainer');
+    if (!container) return;
+
+    var filtered = _allBankSoalRaw.filter(function (s) {
+      if (!_bankFilterText) return true;
+      var term = _bankFilterText.toLowerCase();
+      return (s.teks_soal || '').toLowerCase().includes(term) ||
+             (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
+      return;
+    }
+
+    var currentUserId = window.HQ.getCurrentUser().id_user;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">';
+    filtered.forEach(function (s, idx) {
+      var authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
+      var isOwner = s.id_guru === currentUserId;
+
+      html += `
+        <div class="bank-soal-card" style="background:var(--card-solid);border-radius:var(--r-lg);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all 0.25s ease;display:flex;flex-direction:column;justify-content:space-between;gap:12px;position:relative;">
           <div>
-            <h3 style="font-size:15px;font-weight:800;color:var(--text);">📦 Bank Soal Bersama (${list.length})</h3>
-            <p style="font-size:11px;color:var(--text-3);">Semua pengajar dapat menggunakan soal-soal ini di kuis halaqah masing-masing.</p>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+              <div style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;">
+                <!-- Badges -->
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <span style="font-size:10px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.02em;">
+                    ${getTipeSoalLabel(s.tipe_soal)}
+                  </span>
+                  ${(s.levels || []).map(function(lvl) {
+                    return `<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,0.1);color:#059669;padding:2px 8px;border-radius:100px;">${escapeHtml(lvl)}</span>`;
+                  }).join('')}
+                  ${s.rekomendasi_pertemuan_ke ? `
+                    <span style="font-size:10px;font-weight:800;background:rgba(245,158,11,0.1);color:var(--amber-txt);padding:2px 8px;border-radius:100px;">
+                      📍 Pertemuan ${s.rekomendasi_pertemuan_ke}
+                    </span>
+                  ` : ''}
+                </div>
+                <!-- Question text -->
+                <div style="font-size:13.5px;font-weight:700;color:var(--text);line-height:1.45;margin-top:4px;word-break:break-word;">
+                  ${idx + 1}. ${escapeHtml(s.teks_soal)}
+                </div>
+              </div>
+
+              <!-- Delete Button -->
+              ${isOwner ? `
+                <button onclick="deleteSoalConfirm('${escapeJsStr(s.id_soal)}')" class="btn-delete-soal" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
+                  🗑️
+                </button>
+              ` : ''}
+            </div>
           </div>
-          <button onclick="openModalCreateSoal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;">
-            ➕ Buat Soal Baru
-          </button>
+
+          <!-- Footer Meta Info -->
+          <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;font-size:10.5px;color:var(--text-3);">
+            <span>Oleh: <strong>${escapeHtml(authorName)}</strong> ${isOwner ? '(Saya)' : ''}</span>
+            <span>Dibuat: ${new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</span>
+          </div>
         </div>
       `;
-
-      if (list.length === 0) {
-        html += '<div style="background:var(--card-solid);padding:30px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);">Belum ada soal di bank soal bersama.</div>';
-        container.innerHTML = html;
-        return;
-      }
-
-      html += '<div style="display:flex;flex-direction:column;gap:10px;">';
-      list.forEach(function (s, idx) {
-        var authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
-        var isOwner = s.id_guru === currentUserId;
-
-        html += `
-          <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:14px 18px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="flex:1;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
-                <span style="font-size:10px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 8px;border-radius:100px;">
-                  ${s.tipe_soal}
-                </span>
-                <span style="font-size:10px;font-weight:700;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:100px;">
-                  👤 ${escapeHtml(authorName)} ${isOwner ? '(Saya)' : ''}
-                </span>
-              </div>
-              <div style="font-size:13.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
-            </div>
-            ${isOwner ? `
-              <button onclick="deleteSoalConfirm('${escapeJsStr(s.id_soal)}')" style="background:var(--red-l);color:var(--red);border:none;padding:6px 12px;border-radius:var(--r-sm);font-weight:700;font-size:11px;cursor:pointer;">
-                🗑️ Hapus
-              </button>
-            ` : ''}
-          </div>
-        `;
-      });
-      html += '</div>';
-      container.innerHTML = html;
-    } catch (err) {
-      container.innerHTML = '<div style="color:var(--red);text-align:center;">Gagal memuat bank soal.</div>';
-    }
+    });
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   // ─────────────────────────────────────────────
@@ -588,40 +715,65 @@
     var modalEl = document.getElementById('guruQuizModalContainer');
     if (!modalEl) return;
 
+    _selectedQuizId = id_quiz;
+    _pickerSelectedSoalIds.clear(); // Reset selection
+
     try {
       showLoading('Memuat soal kuis...');
-      var [quizRes, bankRes] = await Promise.all([
-        window.HQ.QuizAPI.getHasilKuis(id_quiz),
-        window.HQ.QuizAPI.getBankSoal()
-      ]);
+      var quizRes = await window.HQ.QuizAPI.getHasilKuis(id_quiz);
       hideLoading();
 
       var quiz = quizRes.quiz;
+      _currentQuizData = quiz;
       var existingQuizSoal = quiz.quiz_soal || [];
-      var addedIds = new Set(existingQuizSoal.map(function(qs){ return qs.id_soal; }));
 
-      var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;"><div style="flex:1;min-width:300px;">';
+      var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;height:65vh;"><div style="flex:1;min-width:300px;overflow-y:auto;background:var(--bg-2);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);">';
+      html += `<div style="font-size:12px;font-weight:800;color:var(--text-3);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.02em;">Soal di Kuis Saat Ini (${existingQuizSoal.length})</div>`;
       html += existingQuizSoal.map(function(qs, idx) {
         var s = qs.soal;
         if (!s) return '';
         return `
-          <div style="background:var(--bg-2);padding:10px 14px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">
+          <div style="background:var(--card-solid);padding:10px 14px;border-radius:var(--r-sm);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;">
             <div style="flex:1;font-size:12.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
             <div style="display:flex;align-items:center;gap:6px;">
               <button onclick="removeSoalFromKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--red-l);color:var(--red);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Hapus</button>
             </div>
           </div>
         `;
-      }).join('') || '<div style="font-size:12px;color:var(--text-3);padding:10px 0;">Belum ada soal dimasukkan ke kuis ini.</div>';
+      }).join('') || '<div style="font-size:12px;color:var(--text-3);padding:10px 0;text-align:center;">Belum ada soal dimasukkan ke kuis ini.</div>';
 
       html += `
           </div>
-          <div style="flex:1.2;min-width:280px;background:var(--bg-2);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border);max-height:80vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="flex:1.2;min-width:280px;background:var(--bg-2);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
               <h4 style="font-size:13px;font-weight:800;color:var(--text);">📦 Pilih dari Bank Soal</h4>
               <button onclick="openModalCreateSoal('${escapeJsStr(id_quiz)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">➕ Buat Soal Baru</button>
             </div>
-            <div id="soalPickerContainer" style="display:flex;flex-direction:column;gap:8px;">
+
+            <!-- Picker Filters -->
+            <div style="display:flex;flex-direction:column;gap:8px;background:var(--card-solid);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);">
+              <input type="text" id="pickerSearchInput" oninput="onPickerSearchInput(this.value)" placeholder="Cari teks soal..." value="${escapeHtml(_pickerFilterText)}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--text);outline:none;">
+              <div style="display:flex;gap:6px;">
+                <select id="pickerLevelSelect" onchange="onPickerLevelFilterChange(this.value)" style="flex:1.2;padding:8px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--text);outline:none;">
+                  <option value="">— Level —</option>
+                  <option value="Level 1" ${_pickerFilterLevel === 'Level 1' ? 'selected' : ''}>Level 1</option>
+                  <option value="Level 2" ${_pickerFilterLevel === 'Level 2' ? 'selected' : ''}>Level 2</option>
+                  <option value="Level 3" ${_pickerFilterLevel === 'Level 3' ? 'selected' : ''}>Level 3</option>
+                  <option value="Level Qiyam" ${_pickerFilterLevel === 'Level Qiyam' ? 'selected' : ''}>Level Qiyam</option>
+                  <option value="Micro Teaching" ${_pickerFilterLevel === 'Micro Teaching' ? 'selected' : ''}>Micro Teaching</option>
+                  <option value="Tahsin Al-Fatihah" ${_pickerFilterLevel === 'Tahsin Al-Fatihah' ? 'selected' : ''}>Tahsin Al-Fatihah</option>
+                </select>
+                <input type="number" id="pickerPertemuanInput" oninput="onPickerPertemuanFilterChange(this.value)" placeholder="Pertemuan ke-" value="${escapeHtml(_pickerFilterPertemuan)}" style="flex:0.8;padding:8px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--text);outline:none;width:100%;">
+              </div>
+            </div>
+
+            <!-- Floating / Top Action Bar for Bulk Add -->
+            <div id="pickerBulkActionBar" style="display:none;background:var(--blue-l);border:1px solid var(--blue);padding:8px 12px;border-radius:var(--r-sm);align-items:center;justify-content:space-between;transition:all 0.2s ease;">
+              <span style="font-size:11.5px;font-weight:800;color:var(--blue-d);" id="pickerSelectedCountText">0 soal terpilih</span>
+              <button onclick="bulkAddSelectedSoal('${escapeJsStr(id_quiz)}')" style="background:var(--blue-d);color:#fff;border:none;padding:5px 12px;border-radius:var(--r-pill,100px);font-size:11.5px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">➕ Tambah Terpilih</button>
+            </div>
+
+            <div id="soalPickerContainer" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;">
               <!-- Loaded dynamically -->
             </div>
           </div>
@@ -630,50 +782,147 @@
 
       modalEl.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
-          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:880px;box-shadow:var(--shadow-lg);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:880px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
               <h3 style="font-size:16px;font-weight:800;color:var(--text)">⚙️ Kelola Soal: ${escapeHtml(quiz.judul)}</h3>
               <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
             </div>
 
             ${html}
 
-            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;margin-top:20px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Selesai</button>
+            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;flex-shrink:0;">Selesai</button>
           </div>
         </div>
       `;
 
-      // Picker Soal list
-      var pickerEl = document.getElementById('soalPickerContainer');
-      if (pickerEl) {
-        var pickerHtml = '';
-        var bankSoal = bankRes.data || [];
-        // Filter out already added questions
-        var available = bankSoal.filter(function(b){
-          return !addedIds.has(b.id_soal);
-        });
-
-        if (available.length === 0) {
-          pickerHtml = '<div style="font-size:11px;color:var(--text-3);text-align:center;padding:20px;">Semua soal di bank sudah ditambahkan ke kuis ini.</div>';
-        } else {
-          available.forEach(function(s) {
-            var badgeText = s.tipe_soal.replace('_', ' ').toUpperCase();
-            pickerHtml += `
-              <div style="background:var(--card-solid);padding:10px;border-radius:6px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                <div style="flex:1;min-width:0;">
-                  <span style="font-size:8px;font-weight:800;background:var(--bg-2);color:var(--text-2);padding:2px 6px;border-radius:4px;text-transform:uppercase;">${badgeText}</span>
-                  <div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(s.teks_soal)}</div>
-                </div>
-                <button onclick="addSoalToKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">+ Tambah</button>
-              </div>
-            `;
-          });
-        }
-        pickerEl.innerHTML = pickerHtml;
-      }
+      await reloadPickerList(id_quiz);
     } catch (err) {
       hideLoading();
       alert('Gagal mengelola soal kuis: ' + err.message);
+    }
+  };
+
+  window.onPickerSearchInput = function (val) {
+    _pickerFilterText = val;
+    renderPickerList(_selectedQuizId);
+  };
+
+  window.onPickerLevelFilterChange = async function (val) {
+    _pickerFilterLevel = val;
+    await reloadPickerList(_selectedQuizId);
+  };
+
+  window.onPickerPertemuanFilterChange = async function (val) {
+    _pickerFilterPertemuan = val;
+    await reloadPickerList(_selectedQuizId);
+  };
+
+  async function reloadPickerList(id_quiz) {
+    var pickerEl = document.getElementById('soalPickerContainer');
+    if (pickerEl && pickerEl.innerHTML === '') {
+      pickerEl.innerHTML = '<div style="font-size:11px;color:var(--text-3);text-align:center;padding:20px;">Memuat soal...</div>';
+    }
+    try {
+      var res = await window.HQ.QuizAPI.getBankSoal(null, null, _pickerFilterLevel || null, _pickerFilterPertemuan || null);
+      _pickerAvailableSoal = res.data || [];
+      renderPickerList(id_quiz);
+    } catch (e) {
+      if (pickerEl) pickerEl.innerHTML = '<div style="font-size:11px;color:var(--red);text-align:center;padding:20px;">Gagal memuat soal.</div>';
+    }
+  }
+
+  function renderPickerList(id_quiz) {
+    var pickerEl = document.getElementById('soalPickerContainer');
+    if (!pickerEl) return;
+
+    var quiz = _currentQuizData;
+    var existingQuizSoal = quiz ? (quiz.quiz_soal || []) : [];
+    var addedIds = new Set(existingQuizSoal.map(function(qs){ return qs.id_soal; }));
+
+    var available = _pickerAvailableSoal.filter(function(b){
+      return !addedIds.has(b.id_soal);
+    });
+
+    if (_pickerFilterText) {
+      var term = _pickerFilterText.toLowerCase();
+      available = available.filter(function(s) {
+        return (s.teks_soal || '').toLowerCase().includes(term);
+      });
+    }
+
+    if (available.length === 0) {
+      pickerEl.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);text-align:center;padding:20px;">Tidak ada soal baru di bank soal yang sesuai filter.</div>';
+      updateBulkActionBarVisibility();
+      return;
+    }
+
+    var pickerHtml = '';
+    available.forEach(function(s) {
+      var badgeText = getTipeSoalLabel(s.tipe_soal);
+      var isChecked = _pickerSelectedSoalIds.has(s.id_soal);
+
+      pickerHtml += `
+        <div style="background:var(--card-solid);padding:10px;border-radius:8px;border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" class="picker-cb" value="${escapeHtml(s.id_soal)}" ${isChecked ? 'checked' : ''} onchange="onPickerCheckboxChange(this)" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;margin:0 4px 0 0;">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              <span style="font-size:8px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 6px;border-radius:4px;text-transform:uppercase;">${badgeText}</span>
+              ${(s.levels || []).map(function(lvl){
+                return `<span style="font-size:8px;font-weight:800;background:rgba(16,185,129,0.1);color:#059669;padding:2px 6px;border-radius:4px;">${escapeHtml(lvl)}</span>`;
+              }).join('')}
+              ${s.rekomendasi_pertemuan_ke ? `
+                <span style="font-size:8px;font-weight:800;background:rgba(245,158,11,0.1);color:var(--amber-txt);padding:2px 6px;border-radius:4px;">📍 P.${s.rekomendasi_pertemuan_ke}</span>
+              ` : ''}
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.teks_soal)}">${escapeHtml(s.teks_soal)}</div>
+          </div>
+          <button onclick="addSoalToKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">+ Tambah</button>
+        </div>
+      `;
+    });
+
+    pickerEl.innerHTML = pickerHtml;
+    updateBulkActionBarVisibility();
+  }
+
+  window.onPickerCheckboxChange = function(cb) {
+    var id_soal = cb.value;
+    if (cb.checked) {
+      _pickerSelectedSoalIds.add(id_soal);
+    } else {
+      _pickerSelectedSoalIds.delete(id_soal);
+    }
+    updateBulkActionBarVisibility();
+  };
+
+  function updateBulkActionBarVisibility() {
+    var bar = document.getElementById('pickerBulkActionBar');
+    var txt = document.getElementById('pickerSelectedCountText');
+    if (!bar || !txt) return;
+
+    if (_pickerSelectedSoalIds.size > 0) {
+      txt.textContent = _pickerSelectedSoalIds.size + ' soal terpilih';
+      bar.style.display = 'flex';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  window.bulkAddSelectedSoal = async function(id_quiz) {
+    var ids = Array.from(_pickerSelectedSoalIds);
+    if (ids.length === 0) return;
+
+    try {
+      showLoading(`Menambahkan ${ids.length} soal ke kuis...`);
+      for (var i = 0; i < ids.length; i++) {
+        await window.HQ.QuizAPI.addSoalToKuis(id_quiz, ids[i], null, 10);
+      }
+      _pickerSelectedSoalIds.clear();
+      hideLoading();
+      manageSoalKuis(id_quiz);
+    } catch (err) {
+      hideLoading();
+      alert('Gagal menambahkan soal massal: ' + err.message);
     }
   };
 
@@ -686,15 +935,6 @@
     } catch (err) {
       hideLoading();
       alert('Gagal menambahkan soal: ' + err.message);
-    }
-  };
-
-  window.updateDurasiSoalKuisAction = async function (id_quiz, id_soal, val) {
-    try {
-      var num = val ? parseInt(val) : null;
-      await window.HQ.QuizAPI.updateSoalKuisSetting(id_quiz, id_soal, num);
-    } catch (err) {
-      showQuizAlert({ title: 'Gagal Update Durasi', message: err.message, type: 'danger' });
     }
   };
 

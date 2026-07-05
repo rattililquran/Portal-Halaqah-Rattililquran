@@ -2629,13 +2629,17 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
-  getBankSoal: async function(kategori, tipe_soal) {
+  getBankSoal: async function(kategori, tipe_soal, level, pertemuan_ke) {
     var q = _sb.from('soal')
       .select('*, users!id_guru(nama_lengkap), soal_pilihan(*), soal_pasangan(*), soal_kunci_isian(*)')
       .order('created_at', { ascending: false });
 
     if (kategori) q = q.eq('kategori', kategori);
     if (tipe_soal) q = q.eq('tipe_soal', tipe_soal);
+    if (level) q = q.contains('levels', [level]);
+    if (pertemuan_ke !== undefined && pertemuan_ke !== null && pertemuan_ke !== '') {
+      q = q.eq('rekomendasi_pertemuan_ke', parseInt(pertemuan_ke));
+    }
 
     var { data, error } = await q;
     _check(error, 'getBankSoal');
@@ -2657,7 +2661,9 @@ var GuruAPI = {
         audio_tipe: payload.audio_tipe || null,
         isian_case_sensitive: payload.isian_case_sensitive || false,
         isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
-        penjelasan: payload.penjelasan || null
+        penjelasan: payload.penjelasan || null,
+        levels: payload.levels || [],
+        rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null
       };
 
       var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
