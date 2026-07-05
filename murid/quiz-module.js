@@ -38,17 +38,46 @@
     container.innerHTML = `
       <div class="quiz-container">
         <div id="quizListView">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div>
-              <h2 style="font-size:18px;font-weight:800;color:var(--text)">🎯 Rattil Quiz</h2>
-              <p style="font-size:12px;color:var(--text-3)">Latihan interaktif & kuis halaqah</p>
-            </div>
-            <button onclick="renderMuridQuizPage()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
-              🔄 Refresh
+          <!-- Tab Navigation -->
+          <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:20px;gap:8px;">
+            <button id="tabKuisTersedia" onclick="switchQuizTab('tersedia')" style="padding:10px 16px;font-weight:800;font-size:13.5px;color:var(--blue-d);border:none;border-bottom:3px solid var(--blue);background:none;cursor:pointer;transition:all 0.2s;">
+              🎯 Kuis Tersedia
+            </button>
+            <button id="tabKuisProgres" onclick="switchQuizTab('progres')" style="padding:10px 16px;font-weight:700;font-size:13.5px;color:var(--text-3);border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;transition:all 0.2s;">
+              📈 Progres Saya
             </button>
           </div>
-          <div id="quizListContainer">
-            <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat daftar kuis...</div>
+
+          <!-- Kuis Tersedia View -->
+          <div id="quizTersediaWrapper">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div>
+                <h2 style="font-size:17px;font-weight:800;color:var(--text)">🎯 Daftar Kuis</h2>
+                <p style="font-size:11.5px;color:var(--text-3)">Latihan interaktif & kuis halaqah untuk kelasmu</p>
+              </div>
+              <button onclick="loadKuisTersedia()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
+                🔄 Refresh
+              </button>
+            </div>
+            <div id="quizListContainer">
+              <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat daftar kuis...</div>
+            </div>
+          </div>
+
+          <!-- Progres Kuis View -->
+          <div id="quizProgresWrapper" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div>
+                <h2 style="font-size:17px;font-weight:800;color:var(--text)">📈 Progres Belajar</h2>
+                <p style="font-size:11.5px;color:var(--text-3)">Analisis hasil pengerjaan kuis kamu</p>
+              </div>
+              <button onclick="loadProgresKuis()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
+                🔄 Refresh
+              </button>
+            </div>
+            <div id="quizProgressContainer">
+              <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat data progres...</div>
+            </div>
           </div>
         </div>
 
@@ -59,6 +88,182 @@
     `;
 
     await loadKuisTersedia();
+  };
+
+  window.switchQuizTab = function (tab) {
+    var tabTersedia = document.getElementById('tabKuisTersedia');
+    var tabProgres = document.getElementById('tabKuisProgres');
+    var wrapperTersedia = document.getElementById('quizTersediaWrapper');
+    var wrapperProgres = document.getElementById('quizProgresWrapper');
+
+    if (!tabTersedia || !tabProgres || !wrapperTersedia || !wrapperProgres) return;
+
+    if (tab === 'tersedia') {
+      tabTersedia.style.color = 'var(--blue-d)';
+      tabTersedia.style.borderBottomColor = 'var(--blue)';
+      tabTersedia.style.fontWeight = '800';
+
+      tabProgres.style.color = 'var(--text-3)';
+      tabProgres.style.borderBottomColor = 'transparent';
+      tabProgres.style.fontWeight = '700';
+
+      wrapperTersedia.style.display = 'block';
+      wrapperProgres.style.display = 'none';
+      loadKuisTersedia();
+    } else {
+      tabProgres.style.color = 'var(--blue-d)';
+      tabProgres.style.borderBottomColor = 'var(--blue)';
+      tabProgres.style.fontWeight = '800';
+
+      tabTersedia.style.color = 'var(--text-3)';
+      tabTersedia.style.borderBottomColor = 'transparent';
+      tabTersedia.style.fontWeight = '700';
+
+      wrapperTersedia.style.display = 'none';
+      wrapperProgres.style.display = 'block';
+      loadProgresKuis();
+    }
+  };
+
+  window.loadProgresKuis = async function () {
+    var el = document.getElementById('quizProgressContainer');
+    if (!el) return;
+
+    try {
+      var res = await window.HQ.QuizAPI.getRiwayatKuisMurid();
+      var list = res.data || [];
+
+      if (list.length === 0) {
+        el.innerHTML = `
+          <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:36px 20px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow);">
+            <div style="font-size:42px;margin-bottom:12px;">📊</div>
+            <h3 style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;">Belum Ada Riwayat Kuis</h3>
+            <p style="font-size:12px;color:var(--text-3);max-width:300px;margin:0 auto;">Kerjakan kuis latihan pertamamu untuk melihat analisis progres di sini!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 1. Calculate Aggregate Metrics
+      var totalAttempts = list.length;
+      var totalPerfect = 0;
+      var totalMinSpent = 0;
+      var sumPercentage = 0;
+
+      list.forEach(function(item) {
+        var max = item.skor_maksimal || 100;
+        var score = item.skor_total || 0;
+        var pct = Math.round((score / max) * 100);
+        sumPercentage += pct;
+        if (pct === 100) totalPerfect++;
+        totalMinSpent += (item.durasi_pengerjaan_detik || 0);
+      });
+
+      var avgPercentage = totalAttempts > 0 ? Math.round(sumPercentage / totalAttempts) : 0;
+      var totalMinutes = Math.round(totalMinSpent / 60) || 1;
+
+      // 2. Render Metrics Row
+      var metricsHtml = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:12px;margin-bottom:20px;">
+          <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-sm);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:24px;margin-bottom:4px;">✏️</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;">Kuis Diikuti</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text);margin-top:2px;">${totalAttempts} Kali</div>
+          </div>
+          <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-sm);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:24px;margin-bottom:4px;">🎯</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;">Rata-rata</div>
+            <div style="font-size:16px;font-weight:900;color:var(--blue-d);margin-top:2px;">${avgPercentage}%</div>
+          </div>
+          <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-sm);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:24px;margin-bottom:4px;">🏆</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;">Sempurna</div>
+            <div style="font-size:16px;font-weight:900;color:var(--green);margin-top:2px;">${totalPerfect} Kuis</div>
+          </div>
+          <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-sm);border:1px solid var(--border);text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:24px;margin-bottom:4px;">⏱️</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;">Waktu Belajar</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text);margin-top:2px;">${totalMinutes} Menit</div>
+          </div>
+        </div>
+      `;
+
+      // 3. Render Trend CSS Bar Chart (chronological from left to right, up to latest 10 attempts)
+      var latest = list.slice(0, 10).reverse();
+      var barsHtml = latest.map(function(item, idx) {
+        var max = item.skor_maksimal || 100;
+        var score = item.skor_total || 0;
+        var pct = Math.round((score / max) * 100);
+        var quizTitle = (item.quiz && item.quiz.judul) || 'Kuis';
+
+        return `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;margin:0 4px;position:relative;" title="${escapeHtml(quizTitle)}: ${score}/${max} (${pct}%)">
+            <div style="width:70%;max-width:24px;height:${pct}%;background:linear-gradient(180deg, var(--blue), var(--blue-d));border-radius:4px 4px 0 0;position:relative;transition:all 0.3s ease;">
+              <span style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:var(--blue-d);">${pct}%</span>
+            </div>
+            <div style="font-size:8.5px;color:var(--text-3);margin-top:6px;width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              #${idx + 1}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      var chartHtml = `
+        <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;">
+          <h3 style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.02em;">📊 Tren Nilai Kuis Terbaru</h3>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;height:140px;padding:12px 0 6px;border-bottom:2px solid var(--border);position:relative;">
+            <div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed var(--border);font-size:8.5px;color:var(--text-3);padding-top:2px;">100%</div>
+            <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--border);font-size:8.5px;color:var(--text-3);padding-top:2px;">50%</div>
+            ${barsHtml}
+          </div>
+        </div>
+      `;
+
+      // 4. Render Historical Attempts List
+      var listHtml = '<div style="display:flex;flex-direction:column;gap:10px;">';
+      list.forEach(function(item) {
+        var max = item.skor_maksimal || 100;
+        var score = item.skor_total || 0;
+        var pct = Math.round((score / max) * 100);
+        var quizTitle = (item.quiz && item.quiz.judul) || 'Kuis';
+        var dateStr = new Date(item.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        var cat = (item.quiz && item.quiz.kategori) || 'Umum';
+        var timeMin = Math.round((item.durasi_pengerjaan_detik || 0) / 60) || 1;
+
+        var reviewSetting = (item.quiz && item.quiz.tampilkan_jawaban) || 'setelah_submit';
+        var showReviewBtn = reviewSetting === 'setelah_submit';
+
+        var reviewBtnHtml = showReviewBtn 
+          ? `<button onclick="viewQuizResult('${escapeJsStr(item.id_quiz)}', ${item.attempt_ke})" style="padding:6px 12px;background:var(--blue-l);color:var(--blue-d);border:none;border-radius:100px;font-size:11px;font-weight:800;cursor:pointer;transition:all 0.2s;">📊 Lihat Review</button>`
+          : `<span style="font-size:10px;color:var(--text-3);background:var(--bg-2);padding:4px 8px;border-radius:100px;">🔒 Terkunci</span>`;
+
+        listHtml += `
+          <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-sm);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="font-size:9px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:1.5px 6px;border-radius:100px;">${escapeHtml(cat)}</span>
+                <span style="font-size:11px;color:var(--text-3);">${dateStr}</span>
+              </div>
+              <h4 style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">${escapeHtml(quizTitle)} (Percobaan #${item.attempt_ke})</h4>
+              <div style="font-size:11.5px;color:var(--text-2);">
+                ⏱️ Durasi: <strong>${timeMin} Menit</strong> | 🎯 Skor: <strong>${score}/${max}</strong> (${pct}%)
+              </div>
+            </div>
+            <div style="flex-shrink:0;">
+              ${reviewBtnHtml}
+            </div>
+          </div>
+        `;
+      });
+      listHtml += '</div>';
+
+      el.innerHTML = metricsHtml + chartHtml + `
+        <h3 style="font-size:13.5px;font-weight:800;color:var(--text);margin:24px 0 10px;text-transform:uppercase;letter-spacing:0.02em;">📜 Riwayat Pengerjaan</h3>
+      ` + listHtml;
+    } catch(err) {
+      console.error('[QuizProgress] Load failed:', err);
+      el.innerHTML = '<div style="color:var(--red);text-align:center;padding:20px;">Gagal memuat riwayat progres. Silakan coba lagi.</div>';
+    }
   };
 
   async function loadKuisTersedia() {

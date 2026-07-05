@@ -4553,6 +4553,16 @@ var MuridAPI = {
     };
   },
 
+  getRiwayatKuisMurid: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('hasil_quiz')
+      .select('*, quiz(id_quiz, judul, deskripsi, kategori, durasi_per_soal_detik, tampilkan_jawaban)')
+      .eq('id_murid', id_murid)
+      .order('submitted_at', { ascending: false });
+    _check(error, 'getRiwayatKuisMurid');
+    return { status: 'ok', data: data || [] };
+  },
+
   getLeaderboardKuis: async function(id_quiz) {
     var { data, error } = await _sb.from('hasil_quiz')
       .select('id_hasil, skor_total, durasi_pengerjaan_detik, attempt_ke, submitted_at, users!hasil_quiz_id_murid_fkey(id_user, nama_lengkap, status)')
@@ -7544,6 +7554,7 @@ window.HQ = {
     jawabSoal: function() { return MuridAPI.jawabSoal.apply(MuridAPI, arguments); },
     submitKuis: function() { return MuridAPI.submitKuis.apply(MuridAPI, arguments); },
     getHasilKuisMurid: function() { return MuridAPI.getHasilKuisMurid.apply(MuridAPI, arguments); },
+    getRiwayatKuisMurid: function() { return MuridAPI.getRiwayatKuisMurid.apply(MuridAPI, arguments); },
     getLeaderboardKuis: function() { return MuridAPI.getLeaderboardKuis.apply(MuridAPI, arguments); },
     joinSesiLive: function() { return MuridAPI.joinSesiLive.apply(MuridAPI, arguments); }
   },
