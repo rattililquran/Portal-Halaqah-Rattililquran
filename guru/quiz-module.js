@@ -636,25 +636,41 @@
               <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
             </div>
 
-            <div style="margin-bottom:20px;">
-              <h4 style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">Soal Terpasang di Kuis Ini (${existingQuizSoal.length})</h4>
-              ${quizSoalHtml}
-            </div>
+            ${html}
 
-            <div style="margin-bottom:16px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <h4 style="font-size:13px;font-weight:800;color:var(--text);">Pilih Soal dari Bank Soal</h4>
-                <button onclick="openModalCreateSoal('${id_quiz}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">➕ Buat Soal Baru</button>
-              </div>
-              <div style="max-height:200px;overflow-y:auto;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);">
-                ${availableBankHtml}
-              </div>
-            </div>
-
-            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Selesai</button>
+            <button onclick="closeGuruQuizModal()" style="width:100%;padding:11px;margin-top:20px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Selesai</button>
           </div>
         </div>
       `;
+
+      // Picker Soal list
+      var pickerEl = document.getElementById('soalPickerContainer');
+      if (pickerEl) {
+        var pickerHtml = '';
+        var bankSoal = bankRes.data || [];
+        // Filter out already added questions
+        var available = bankSoal.filter(function(b){
+          return !addedIds.has(b.id_soal);
+        });
+
+        if (available.length === 0) {
+          pickerHtml = '<div style="font-size:11px;color:var(--text-3);text-align:center;padding:20px;">Semua soal di bank sudah ditambahkan ke kuis ini.</div>';
+        } else {
+          available.forEach(function(s) {
+            var badgeText = s.tipe_soal.replace('_', ' ').toUpperCase();
+            pickerHtml += `
+              <div style="background:var(--card-solid);padding:10px;border-radius:6px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <div style="flex:1;min-width:0;">
+                  <span style="font-size:8px;font-weight:800;background:var(--bg-2);color:var(--text-2);padding:2px 6px;border-radius:4px;text-transform:uppercase;">${badgeText}</span>
+                  <div style="font-size:12px;font-weight:700;color:var(--text);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(s.teks_soal)}</div>
+                </div>
+                <button onclick="addSoalToKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">+ Tambah</button>
+              </div>
+            `;
+          });
+        }
+        pickerEl.innerHTML = pickerHtml;
+      }
     } catch (err) {
       hideLoading();
       alert('Gagal mengelola soal kuis: ' + err.message);
