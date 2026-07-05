@@ -164,10 +164,14 @@
     try {
       var res = await window.HQ.QuizAPI.getBankSoal();
       var list = res.data || [];
+      var currentUserId = window.HQ.getCurrentUser().id_user;
 
       var html = `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <h3 style="font-size:15px;font-weight:800;color:var(--text);">Bank Soal Saya (${list.length})</h3>
+          <div>
+            <h3 style="font-size:15px;font-weight:800;color:var(--text);">📦 Bank Soal Bersama (${list.length})</h3>
+            <p style="font-size:11px;color:var(--text-3);">Semua pengajar dapat menggunakan soal-soal ini di kuis halaqah masing-masing.</p>
+          </div>
           <button onclick="openModalCreateSoal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:12px;cursor:pointer;">
             ➕ Buat Soal Baru
           </button>
@@ -175,26 +179,34 @@
       `;
 
       if (list.length === 0) {
-        html += '<div style="background:var(--card-solid);padding:30px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);">Belum ada soal di bank soal.</div>';
+        html += '<div style="background:var(--card-solid);padding:30px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);">Belum ada soal di bank soal bersama.</div>';
         container.innerHTML = html;
         return;
       }
 
       html += '<div style="display:flex;flex-direction:column;gap:10px;">';
       list.forEach(function (s, idx) {
+        var authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
+        var isOwner = s.id_guru === currentUserId;
+
         html += `
           <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:14px 18px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <div style="flex:1;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
                 <span style="font-size:10px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 8px;border-radius:100px;">
                   ${s.tipe_soal}
+                </span>
+                <span style="font-size:10px;font-weight:700;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:100px;">
+                  👤 ${escapeHtml(authorName)} ${isOwner ? '(Saya)' : ''}
                 </span>
               </div>
               <div style="font-size:13.5px;font-weight:700;color:var(--text);">${idx + 1}. ${escapeHtml(s.teks_soal)}</div>
             </div>
-            <button onclick="deleteSoalConfirm('${s.id_soal}')" style="background:var(--red-l);color:var(--red);border:none;padding:6px 12px;border-radius:var(--r-sm);font-weight:700;font-size:11px;cursor:pointer;">
-              Hapus
-            </button>
+            ${isOwner ? `
+              <button onclick="deleteSoalConfirm('${s.id_soal}')" style="background:var(--red-l);color:var(--red);border:none;padding:6px 12px;border-radius:var(--r-sm);font-weight:700;font-size:11px;cursor:pointer;">
+                Hapus
+              </button>
+            ` : ''}
           </div>
         `;
       });

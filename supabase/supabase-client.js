@@ -2630,12 +2630,11 @@ var GuruAPI = {
   },
 
   getBankSoal: async function(kategori, tipe_soal) {
-    var id_guru = _uid();
     var q = _sb.from('soal')
-      .select('*, soal_pilihan(*), soal_pasangan(*), soal_kunci_isian(*)')
-      .eq('id_guru', id_guru)
+      .select('*, users!id_guru(nama_lengkap), soal_pilihan(*), soal_pasangan(*), soal_kunci_isian(*)')
       .order('created_at', { ascending: false });
 
+    if (kategori) q = q.eq('kategori', kategori);
     if (tipe_soal) q = q.eq('tipe_soal', tipe_soal);
 
     var { data, error } = await q;
