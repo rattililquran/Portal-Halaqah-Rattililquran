@@ -305,14 +305,9 @@
             <span id="quizTimerIcon" style="font-size:16px;">⏱️</span>
             <span id="quizTimerText">${timeRemaining}s</span>
           </span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button id="btnToggleQuizSound" onclick="toggleQuizSound()" style="padding:2px 8px;border-radius:100px;border:none;background:var(--blue-l);color:var(--blue-d);font-size:10px;font-weight:800;cursor:pointer;">
-              ${_isSoundMuted ? '🔇 Bisu' : '🔊 Suara'}
-            </button>
-            <span id="quizTimerStatus" style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;transition:all .3s ease;">
-              Sisa Waktu
-            </span>
-          </div>
+          <span id="quizTimerStatus" style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;transition:all .3s ease;">
+            Sisa Waktu
+          </span>
         </div>
 
         <div style="width:100%;height:14px;background:rgba(0,0,0,0.06);border-radius:100px;position:relative;overflow:visible;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
