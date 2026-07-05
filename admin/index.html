@@ -1378,6 +1378,7 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('users')" data-p="users"><span class="ni">👥</span>Manajemen User</button>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
       <button class="nav-btn" onclick="goPage('materi')" data-p="materi"><span class="ni">📖</span>Materi Kajian</button>
+      <button class="nav-btn" onclick="goPage('soal')" data-p="soal"><span class="ni">📦</span>Bank Soal</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
@@ -3316,7 +3317,126 @@ html.theme-dark .fin-detail-card {
             </table>
           </div>
         </div>
+      </div>
 
+      <!-- ══ BANK SOAL ══ -->
+      <div class="page" id="page-soal">
+        <div class="section-title">📦 Bank Soal Bersama</div>
+        <div class="section-sub">Kelola bank soal untuk seluruh halaqah. Admin dapat memoderasi, menghapus, atau mengimpor soal secara massal.</div>
+
+        <!-- Filter & Action Panel -->
+        <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);margin-bottom:16px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+          <!-- Search input -->
+          <div style="flex:2;min-width:200px;position:relative;">
+            <input type="text" class="fc" id="adminBankSearchInput" oninput="onAdminBankSearchInput(this.value)" placeholder="🔍 Cari teks soal atau pembuat..." style="padding-left:34px;">
+          </div>
+          <!-- Level Select -->
+          <div style="flex:1;min-width:150px;">
+            <select class="fc" id="adminBankLevelSelect" onchange="onAdminBankLevelFilterChange(this.value)">
+              <option value="">— Semua Level —</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
+              <option value="Level Qiyam">Level Qiyam</option>
+              <option value="Micro Teaching">Micro Teaching</option>
+              <option value="Tahsin Al-Fatihah">Tahsin Al-Fatihah</option>
+            </select>
+          </div>
+          <!-- Pertemuan Ke- Input -->
+          <div style="flex:0.8;min-width:120px;">
+            <input type="number" class="fc" id="adminBankPertemuanInput" oninput="onAdminBankPertemuanFilterChange(this.value)" placeholder="Pertemuan ke-">
+          </div>
+          <!-- Action Buttons -->
+          <div style="display:flex;gap:8px;margin-left:auto;">
+            <button class="btn btn-primary btn-sm" onclick="bukaModalImportSoal()">📥 Import CSV</button>
+          </div>
+        </div>
+
+        <style>
+          .admin-soal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg) !important;
+            border-color: var(--blue) !important;
+          }
+          .btn-delete-soal-admin:hover {
+            background: var(--red) !important;
+            color: #fff !important;
+          }
+        </style>
+
+        <div id="adminBankSoalListContainer" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">
+          <div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1;">Memuat daftar bank soal...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORT SOAL -->
+<div class="overlay" id="modalImportSoal">
+  <div class="modal" style="max-width:680px; width:90%; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
+    <div class="modal-head">
+      <div class="modal-title">📥 Import Soal via CSV</div>
+      <button class="modal-x" onclick="closeModal('modalImportSoal')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto; flex:1; padding:20px;">
+      <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Panduan Pengisian Template</div>
+        <ol style="font-size:12px;color:var(--blue-d);line-height:1.8;padding-left:16px;margin:0;">
+          <li>Klik <strong>Unduh Template CSV Soal</strong> di bawah ini.</li>
+          <li>Isi data menggunakan Excel atau aplikasi spreadsheet lainnya.</li>
+          <li>Kolom <strong>tipe_soal</strong> wajib diisi: <code>pilihan_ganda</code>, <code>benar_salah</code>, <code>matching</code>, <code>audio</code>, <code>teks_arab</code>, atau <code>isian_singkat</code>.</li>
+          <li>Kolom <strong>pilihan</strong>: pisahkan dengan <code>|</code>, akhiri pilihan benar dengan tanda <code>*</code> (contoh: <code>A*|B|C|D</code>).</li>
+          <li>Kolom <strong>levels</strong>: pisahkan level halaqah dengan koma (contoh: <code>Level 1,Level 2</code>).</li>
+          <li>Simpan file dengan format <strong>.csv (UTF-8, pemisah titik koma / semicolon)</strong>.</li>
+        </ol>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTemplateSoal()" style="margin-top:10px;background:#fff;border:1px solid var(--blue);">Unduh Template CSV Soal</button>
+      </div>
+
+      <!-- Dropzone -->
+      <div id="dropZoneSoal" style="border:2px dashed var(--border);border-radius:var(--r-md);padding:30px 16px;text-align:center;cursor:pointer;background:var(--bg-2);transition:all .2s;" onclick="document.getElementById('csvFileInputSoal').click()">
+        <div style="font-size:36px;margin-bottom:8px">☁️</div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Drag berkas CSV Soal ke sini atau klik untuk memilih</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px">Format berkas: .csv (UTF-8) — Maksimal 200 soal per unggahan</div>
+      </div>
+      <input type="file" id="csvFileInputSoal" accept=".csv" style="display:none" onchange="handleFileSelectSoal(event)">
+
+      <!-- Preview Box -->
+      <div id="importPreviewBoxSoal" style="display:none;margin-top:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">👁️ Pratinjau Soal (<span id="previewCountSoal">0</span> soal terdeteksi)</div>
+        <div class="tbl-wrap" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);">
+          <table class="premium-table" style="font-size:11.5px;">
+            <thead>
+              <tr>
+                <th>Tipe</th>
+                <th>Teks Soal</th>
+                <th>Level</th>
+                <th>Rekomendasi P.</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="importPreviewTbodySoal">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div id="importProgressSoal" style="display:none;margin-top:16px;">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:4px;display:flex;justify-content:space-between;">
+          <span>Mengimpor data soal...</span>
+          <strong id="importProgressTextSoal">0%</strong>
+        </div>
+        <div style="height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden;">
+          <div id="importProgressBarSoal" style="width:0%;height:100%;background:var(--blue);transition:width .1s;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot" style="flex-shrink:0;">
+      <button class="btn btn-ghost" id="btnBatalImportSoal" onclick="closeModal('modalImportSoal')">Batal</button>
+      <button class="btn btn-primary" id="btnImportSoal" onclick="prosesImportSoal()" disabled>🚀 Mulai Impor</button>
     </div>
   </div>
 </div>
@@ -3779,7 +3899,8 @@ const PAGE_TITLES = {
   laporan:'Laporan Global', absensi:'Rekap Absensi', 'absensi-guru':'Absensi Guru',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
-  materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan'
+  materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan',
+  soal:'Bank Soal'
 };
 
 // ══════════════════════════════════════════
@@ -4138,6 +4259,7 @@ function goPage(name) {
     materi   : loadMateriAdmin,
     push     : loadPushAdmin,
     saran    : loadSaranPage,
+    soal     : loadBankSoalAdmin,
   };
   loaders[name]?.();
 }
@@ -9008,6 +9130,439 @@ async function simpanTanggapanSaran() {
   } finally {
     hideLoad();
   }
+}
+
+// ══════════════════════════════════════════
+//  BANK SOAL ADMIN & IMPORT SOAL CSV
+// ══════════════════════════════════════════
+let _adminBankFilterText = '';
+let _adminBankFilterLevel = '';
+let _adminBankFilterPertemuan = '';
+let _allAdminBankSoalRaw = [];
+let _parsedImportSoal = [];
+
+async function loadBankSoalAdmin() {
+  showLoad('Bismillah, memuat daftar bank soal...');
+  try {
+    const res = await window.HQ.QuizAPI.getBankSoal(
+      null, 
+      null, 
+      _adminBankFilterLevel || null, 
+      _adminBankFilterPertemuan || null
+    );
+    _allAdminBankSoalRaw = res.data || [];
+    filterAndRenderAdminBankList();
+  } catch (err) {
+    toast('Gagal memuat bank soal: ' + err.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function onAdminBankSearchInput(val) {
+  _adminBankFilterText = val;
+  filterAndRenderAdminBankList();
+}
+
+async function onAdminBankLevelFilterChange(val) {
+  _adminBankFilterLevel = val;
+  await loadBankSoalAdmin();
+}
+
+async function onAdminBankPertemuanFilterChange(val) {
+  _adminBankFilterPertemuan = val;
+  await loadBankSoalAdmin();
+}
+
+function getTipeSoalLabelAdmin(tipe) {
+  switch (tipe) {
+    case 'pilihan_ganda': return 'Pilihan Ganda';
+    case 'benar_salah': return 'Benar / Salah';
+    case 'matching': return 'Menjodohkan';
+    case 'audio': return 'Audio / Suara';
+    case 'teks_arab': return 'Teks Arab';
+    case 'isian_singkat': return 'Isian Singkat';
+    default: return 'Soal';
+  }
+}
+
+function filterAndRenderAdminBankList() {
+  const container = document.getElementById('adminBankSoalListContainer');
+  if (!container) return;
+
+  const filtered = _allAdminBankSoalRaw.filter(s => {
+    if (!_adminBankFilterText) return true;
+    const term = _adminBankFilterText.toLowerCase();
+    const matchText = (s.teks_soal || '').toLowerCase().includes(term);
+    const matchAuthor = (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
+    return matchText || matchAuthor;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map((s, idx) => {
+    const authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
+    const typeLabel = getTipeSoalLabelAdmin(s.tipe_soal);
+    const dateStr = s.created_at ? new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'}) : '–';
+    
+    // Levels badges
+    const levelsHtml = (s.levels || []).map(lvl => 
+      `<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,0.1);color:#059669;padding:2px 8px;border-radius:100px;">${esc(lvl)}</span>`
+    ).join(' ');
+
+    // Rekomendasi badge
+    const rekHtml = s.rekomendasi_pertemuan_ke 
+      ? `<span style="font-size:10px;font-weight:800;background:rgba(245,158,11,0.1);color:var(--amber);padding:2px 8px;border-radius:100px;">📍 Pertemuan ${s.rekomendasi_pertemuan_ke}</span>` 
+      : '';
+
+    return `
+      <div class="admin-soal-card" style="background:var(--card-solid);border-radius:var(--r-lg);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all 0.25s ease;display:flex;flex-direction:column;justify-content:space-between;gap:12px;position:relative;">
+        <div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;">
+              <!-- Badges -->
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:10px;font-weight:800;background:var(--blue-l);color:var(--blue-d);padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.02em;">
+                  ${typeLabel}
+                </span>
+                ${levelsHtml}
+                ${rekHtml}
+              </div>
+              <!-- Question text -->
+              <div style="font-size:13.5px;font-weight:700;color:var(--text);line-height:1.45;margin-top:4px;word-break:break-word;">
+                ${idx + 1}. ${esc(s.teks_soal)}
+              </div>
+            </div>
+
+            <!-- Delete Button -->
+            <button onclick="hapusSoalAdmin('${esc(s.id_soal)}')" class="btn-delete-soal-admin" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
+              🗑️
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer Meta Info -->
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;font-size:10.5px;color:var(--text-3);">
+          <span>Oleh: <strong>${esc(authorName)}</strong></span>
+          <span>Dibuat: ${dateStr}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function hapusSoalAdmin(id_soal) {
+  if (!confirm('Apakah Anda yakin ingin menghapus soal ini dari Bank Soal?')) return;
+  showLoad('Menghapus soal...');
+  try {
+    await window.HQ.QuizAPI.deleteSoal(id_soal);
+    toast('Soal berhasil dihapus!', 'ok');
+    await loadBankSoalAdmin();
+  } catch (err) {
+    toast('Gagal menghapus soal: ' + err.message, 'err');
+  } finally {
+    hideLoad();
+  }
+}
+
+function bukaModalImportSoal() {
+  _parsedImportSoal = [];
+  const dz = document.getElementById('dropZoneSoal');
+  if (dz) {
+    dz.style.background = '';
+    dz.style.borderColor = 'var(--border)';
+    dz.innerHTML = '<div style="font-size:36px;margin-bottom:8px">☁️</div>'
+      + '<div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Drag berkas CSV Soal ke sini atau klik untuk memilih</div>'
+      + '<div style="font-size:11px;color:var(--text-3);margin-top:4px">Format berkas: .csv (UTF-8) — Maksimal 200 soal per unggahan</div>';
+  }
+  document.getElementById('importPreviewBoxSoal').style.display = 'none';
+  document.getElementById('importProgressSoal').style.display = 'none';
+  document.getElementById('btnImportSoal').disabled = true;
+  document.getElementById('csvFileInputSoal').value = '';
+  document.getElementById('btnBatalImportSoal').disabled = false;
+  openModal('modalImportSoal');
+}
+
+function downloadTemplateSoal() {
+  const header = 'tipe_soal;teks_soal;teks_arab;audio_url;pilihan;pasangan;kunci_isian;levels;rekomendasi_pertemuan_ke';
+  const sample = [
+    'pilihan_ganda;Huruf manakah yang keluar dari Wasatul Halq?;Wakqul Halq;;ع*|غ|ء|ق;;;Level 1,Level 2;23',
+    'benar_salah;Huruf Ghain dan Kha keluar dari ujung tenggorokan (Adnal Halq).;;;Benar*|Salah;;;Level 1;23',
+    'isian_singkat;Berapakah total huruf hijaiyah makhraj Al-Halq?;;;;;6|enam;;Level 1;23',
+    'matching;Jodohkan bagian Al-Halq dengan hurufnya;;;;Aqshal:Hamzah|Wasatul:Ain|Adnal:Ghain;Level 1,Tahsin Al-Fatihah;'
+  ].join('\n');
+  
+  const blob = new Blob([header + '\n' + sample], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'template_import_soal_rattil.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function handleFileSelectSoal(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  parseCSVSoal(file);
+}
+
+// Drag & drop logic setup
+window.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('dropZoneSoal');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--blue)'; dz.style.background = 'rgba(56,189,248,.05)'; });
+  dz.addEventListener('dragleave', e => { e.preventDefault(); dz.style.borderColor = 'var(--border)'; dz.style.background = ''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.style.borderColor = 'var(--border)'; dz.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file) parseCSVSoal(file);
+  });
+});
+
+function parseCSVSoal(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    
+    if (lines.length < 2) {
+      toast('Berkas CSV kosong atau tidak memiliki baris data!', 'err');
+      return;
+    }
+    
+    // Parse header to check correctness
+    const header = lines[0].toLowerCase().split(';');
+    const expected = ['tipe_soal','teks_soal','teks_arab','audio_url','pilihan','pasangan','kunci_isian','levels','rekomendasi_pertemuan_ke'];
+    const isHeaderValid = expected.every(col => header.includes(col));
+    
+    if (!isHeaderValid) {
+      toast('Header CSV tidak cocok dengan template! Gunakan separator titik koma (;)', 'err');
+      return;
+    }
+
+    const colIndex = {};
+    header.forEach((name, idx) => { colIndex[name] = idx; });
+
+    _parsedImportSoal = [];
+    let validCount = 0;
+
+    const tbody = document.getElementById('importPreviewTbodySoal');
+    tbody.innerHTML = '';
+
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i].split(';');
+      if (row.length < expected.length) continue;
+
+      const getValue = (colName) => (row[colIndex[colName]] || '').trim();
+
+      const tipe = getValue('tipe_soal').toLowerCase();
+      const teks_soal = getValue('teks_soal');
+      const teks_arab = getValue('teks_arab') || null;
+      const audio_url = getValue('audio_url') || null;
+      const pilihanRaw = getValue('pilihan');
+      const pasanganRaw = getValue('pasangan');
+      const kunciRaw = getValue('kunci_isian');
+      const levelsRaw = getValue('levels');
+      const rekRaw = getValue('rekomendasi_pertemuan_ke');
+
+      const item = {
+        tipe_soal: tipe,
+        teks_soal: teks_soal,
+        teks_arab: teks_arab,
+        audio_url: audio_url,
+        pilihan: [],
+        pasangan: [],
+        kunci_isian: [],
+        levels: [],
+        rekomendasi_pertemuan_ke: null,
+        error: ''
+      };
+
+      // Validasi Tipe Soal
+      const tipeValid = ['pilihan_ganda', 'benar_salah', 'matching', 'audio', 'teks_arab', 'isian_singkat'].includes(tipe);
+      if (!tipe) {
+        item.error = 'Tipe soal kosong';
+      } else if (!tipeValid) {
+        item.error = `Tipe '${tipe}' tidak valid`;
+      }
+
+      // Validasi Teks Soal
+      if (!teks_soal && !item.error) {
+        item.error = 'Teks soal wajib diisi';
+      }
+
+      // Parse & Validasi Pilihan
+      if (['pilihan_ganda', 'benar_salah', 'audio', 'teks_arab'].includes(tipe) && !item.error) {
+        if (!pilihanRaw) {
+          item.error = 'Kolom pilihan wajib diisi untuk tipe ini';
+        } else {
+          const pils = pilihanRaw.split('|').map(p => p.trim()).filter(Boolean);
+          if (pils.length < 2) {
+            item.error = 'Minimal harus ada 2 pilihan jawaban';
+          } else {
+            let correctCount = 0;
+            pils.forEach((p, idx) => {
+              const isCorrect = p.endsWith('*');
+              const cleanText = isCorrect ? p.slice(0, -1).trim() : p;
+              if (isCorrect) correctCount++;
+              item.pilihan.push({
+                teks_pilihan: cleanText,
+                is_benar: isCorrect,
+                urutan: idx + 1
+              });
+            });
+            if (correctCount === 0) {
+              item.error = 'Tidak ada pilihan jawaban benar (akhiri dengan *)';
+            } else if (correctCount > 1) {
+              item.error = 'Ada lebih dari 1 pilihan jawaban benar';
+            }
+          }
+        }
+      }
+
+      // Parse & Validasi Pasangan (Matching)
+      if (tipe === 'matching' && !item.error) {
+        if (!pasanganRaw) {
+          item.error = 'Kolom pasangan wajib diisi untuk tipe matching';
+        } else {
+          const pairs = pasanganRaw.split('|').map(p => p.trim()).filter(Boolean);
+          if (pairs.length < 2) {
+            item.error = 'Minimal harus ada 2 pasangan menjodohkan';
+          } else {
+            pairs.forEach((p, idx) => {
+              const parts = p.split(':');
+              if (parts.length !== 2) {
+                item.error = 'Format pasangan salah (Gunakan Kiri:Kanan)';
+              } else {
+                item.pasangan.push({
+                  teks_kiri: parts[0].trim(),
+                  teks_kanan: parts[1].trim(),
+                  urutan: idx + 1
+                });
+              }
+            });
+          }
+        }
+      }
+
+      // Parse & Validasi Kunci Isian (Short Answer)
+      if (tipe === 'isian_singkat' && !item.error) {
+        if (!kunciRaw) {
+          item.error = 'Kunci isian wajib diisi untuk isian singkat';
+        } else {
+          const kuncis = kunciRaw.split('|').map(k => k.trim()).filter(Boolean);
+          if (kuncis.length === 0) {
+            item.error = 'Kunci isian kosong';
+          } else {
+            kuncis.forEach(k => {
+              item.kunci_isian.push({ teks_kunci: k });
+            });
+          }
+        }
+      }
+
+      // Parse Levels
+      if (levelsRaw) {
+        item.levels = levelsRaw.split(',').map(l => l.trim()).filter(Boolean);
+      }
+
+      // Parse Rekomendasi Pertemuan
+      if (rekRaw) {
+        const num = parseInt(rekRaw);
+        if (!isNaN(num) && num > 0) {
+          item.rekomendasi_pertemuan_ke = num;
+        }
+      }
+
+      if (!item.error) validCount++;
+
+      _parsedImportSoal.push(item);
+
+      // Render preview row
+      const statusHtml = item.error 
+        ? `<span style="color:var(--red);font-weight:700">❌ ${esc(item.error)}</span>` 
+        : '<span style="color:var(--green);font-weight:700">✅ Valid</span>';
+      
+      const badgeTipe = getTipeSoalLabelAdmin(tipe);
+      
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><span class="badge b-blue" style="font-size:9px">${esc(badgeTipe)}</span></td>
+          <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(teks_soal)}">${esc(teks_soal)}</td>
+          <td>${(item.levels || []).map(l => `<span class="badge b-green" style="font-size:9px">${esc(l)}</span>`).join(' ') || '–'}</td>
+          <td class="align-center">${item.rekomendasi_pertemuan_ke || '–'}</td>
+          <td>${statusHtml}</td>
+        </tr>
+      `);
+    }
+
+    document.getElementById('previewCountSoal').textContent = _parsedImportSoal.length;
+    document.getElementById('importPreviewBoxSoal').style.display = 'block';
+    
+    const dropZone = document.getElementById('dropZoneSoal');
+    dropZone.style.borderColor = validCount === _parsedImportSoal.length ? 'var(--green)' : 'var(--amber)';
+    dropZone.innerHTML = `<div style="font-size:32px">📂</div>`
+      + `<div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Berkas: ${esc(file.name)}</div>`
+      + `<div style="font-size:11px;color:var(--text-3);margin-top:4px">${validCount} dari ${_parsedImportSoal.length} soal valid dan siap diimpor.</div>`;
+
+    document.getElementById('btnImportSoal').disabled = validCount === 0;
+  };
+  reader.readAsText(file);
+}
+
+async function prosesImportSoal() {
+  const validSoalList = _parsedImportSoal.filter(s => !s.error);
+  if (validSoalList.length === 0) return;
+
+  document.getElementById('btnImportSoal').disabled = true;
+  document.getElementById('btnBatalImportSoal').disabled = true;
+  
+  const progBox = document.getElementById('importProgressSoal');
+  const progBar = document.getElementById('importProgressBarSoal');
+  const progText = document.getElementById('importProgressTextSoal');
+  
+  progBox.style.display = 'block';
+  progBar.style.width = '0%';
+  progText.textContent = '0%';
+
+  let importedCount = 0;
+
+  for (let i = 0; i < validSoalList.length; i++) {
+    const s = validSoalList[i];
+    try {
+      const payload = {
+        tipe_soal: s.tipe_soal,
+        teks_soal: s.teks_soal,
+        teks_arab: s.teks_arab,
+        audio_url: s.audio_url,
+        pilihan: s.pilihan,
+        pasangan: s.pasangan,
+        kunci_isian: s.kunci_isian,
+        levels: s.levels,
+        rekomendasi_pertemuan_ke: s.rekomendasi_pertemuan_ke
+      };
+      
+      await window.HQ.QuizAPI.createSoal(payload);
+      importedCount++;
+    } catch (err) {
+      console.error('prosesImportSoal failed row:', i, err);
+    }
+    
+    const percent = Math.round(((i + 1) / validSoalList.length) * 100);
+    progBar.style.width = percent + '%';
+    progText.textContent = percent + '%';
+  }
+
+  toast(`Impor Selesai! ${importedCount} dari ${validSoalList.length} soal berhasil masuk ke Bank Soal.`, 'ok');
+  closeModal('modalImportSoal');
+  await loadBankSoalAdmin();
 }
 
 // ══════════════════════════════════════════
