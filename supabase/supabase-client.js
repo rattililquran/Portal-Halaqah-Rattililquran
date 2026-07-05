@@ -2533,6 +2533,271 @@ var GuruAPI = {
     _check(error, 'nilaiPR');
     return { status: 'ok', data: data };
   },
+
+  // ── Quiz Management (Guru) ─────────────────
+  getKuisList: async function() {
+    var id_guru = _uid();
+    var { data: kuisData, error } = await _sb.from('quiz')
+      .select('*, quiz_halaqah(id_halaqah, halaqah(nama_halaqah)), quiz_soal(id_soal)')
+      .eq('id_guru', id_guru)
+      .order('created_at', { ascending: false });
+    _check(error, 'getKuisList');
+    
+    var list = (kuisData || []).map(function(q) {
+      return Object.assign({}, q, {
+        total_soal: (q.quiz_soal || []).length,
+        assigned_halaqah: (q.quiz_halaqah || []).map(function(qh) {
+          return { id_halaqah: qh.id_halaqah, nama_halaqah: qh.halaqah ? qh.halaqah.nama_halaqah : '' };
+        })
+      });
+    });
+    return { status: 'ok', data: list };
+  },
+
+  createKuis: async function(payload) {
+    var id_guru = _uid();
+    var id_quiz = 'QZ-' + _genId('');
+    var kuisRow = {
+      id_quiz: id_quiz,
+      id_guru: id_guru,
+      judul: payload.judul,
+      deskripsi: payload.deskripsi || null,
+      kategori: payload.kategori || 'Umum',
+      mode: payload.mode || 'mandiri',
+      status: payload.status || 'draft',
+      durasi_per_soal_detik: payload.durasi_per_soal_detik !== undefined ? payload.durasi_per_soal_detik : 30,
+      urutan_soal: payload.urutan_soal || 'berurutan',
+      tampilkan_jawaban: payload.tampilkan_jawaban || 'setelah_submit',
+      boleh_retake: payload.boleh_retake || false,
+      tgl_mulai: payload.tgl_mulai || null,
+      tgl_selesai: payload.tgl_selesai || null,
+      anti_tab_aktif: payload.anti_tab_aktif !== undefined ? payload.anti_tab_aktif : true,
+      maks_peringatan_tab: payload.maks_peringatan_tab || 2
+    };
+
+    var { data, error } = await _sb.from('quiz').insert([kuisRow]).select().single();
+    _check(error, 'createKuis');
+
+    if (payload.id_halaqah_list && payload.id_halaqah_list.length > 0) {
+      var halaqahRows = payload.id_halaqah_list.map(function(hid) {
+        return { id_quiz: id_quiz, id_halaqah: hid };
+      });
+      var { error: hqErr } = await _sb.from('quiz_halaqah').insert(halaqahRows);
+      _check(hqErr, 'createKuis:quiz_halaqah');
+    }
+
+    return { status: 'ok', data: data };
+  },
+
+  updateKuis: async function(id_quiz, payload) {
+    var kuisRow = {};
+    if (payload.judul !== undefined) kuisRow.judul = payload.judul;
+    if (payload.deskripsi !== undefined) kuisRow.deskripsi = payload.deskripsi;
+    if (payload.kategori !== undefined) kuisRow.kategori = payload.kategori;
+    if (payload.mode !== undefined) kuisRow.mode = payload.mode;
+    if (payload.status !== undefined) kuisRow.status = payload.status;
+    if (payload.durasi_per_soal_detik !== undefined) kuisRow.durasi_per_soal_detik = payload.durasi_per_soal_detik;
+    if (payload.urutan_soal !== undefined) kuisRow.urutan_soal = payload.urutan_soal;
+    if (payload.tampilkan_jawaban !== undefined) kuisRow.tampilkan_jawaban = payload.tampilkan_jawaban;
+    if (payload.boleh_retake !== undefined) kuisRow.boleh_retake = payload.boleh_retake;
+    if (payload.tgl_mulai !== undefined) kuisRow.tgl_mulai = payload.tgl_mulai;
+    if (payload.tgl_selesai !== undefined) kuisRow.tgl_selesai = payload.tgl_selesai;
+    if (payload.anti_tab_aktif !== undefined) kuisRow.anti_tab_aktif = payload.anti_tab_aktif;
+    if (payload.maks_peringatan_tab !== undefined) kuisRow.maks_peringatan_tab = payload.maks_peringatan_tab;
+    kuisRow.updated_at = new Date().toISOString();
+
+    var { data, error } = await _sb.from('quiz').update(kuisRow).eq('id_quiz', id_quiz).select().single();
+    _check(error, 'updateKuis');
+
+    if (payload.id_halaqah_list !== undefined) {
+      await _sb.from('quiz_halaqah').delete().eq('id_quiz', id_quiz);
+      if (payload.id_halaqah_list.length > 0) {
+        var halaqahRows = payload.id_halaqah_list.map(function(hid) {
+          return { id_quiz: id_quiz, id_halaqah: hid };
+        });
+        var { error: hqErr } = await _sb.from('quiz_halaqah').insert(halaqahRows);
+        _check(hqErr, 'updateKuis:quiz_halaqah');
+      }
+    }
+
+    return { status: 'ok', data: data };
+  },
+
+  deleteKuis: async function(id_quiz) {
+    var { error } = await _sb.from('quiz').delete().eq('id_quiz', id_quiz);
+    _check(error, 'deleteKuis');
+    return { status: 'ok' };
+  },
+
+  getBankSoal: async function(kategori, tipe_soal) {
+    var id_guru = _uid();
+    var q = _sb.from('soal')
+      .select('*, soal_pilihan(*), soal_pasangan(*), soal_kunci_isian(*)')
+      .eq('id_guru', id_guru)
+      .order('created_at', { ascending: false });
+
+    if (tipe_soal) q = q.eq('tipe_soal', tipe_soal);
+
+    var { data, error } = await q;
+    _check(error, 'getBankSoal');
+    return { status: 'ok', data: data || [] };
+  },
+
+  createSoal: async function(payload) {
+    var id_guru = _uid();
+    var id_soal = 'SL-' + _genId('');
+    var soalRow = {
+      id_soal: id_soal,
+      id_guru: id_guru,
+      tipe_soal: payload.tipe_soal,
+      teks_soal: payload.teks_soal,
+      teks_arab: payload.teks_arab || null,
+      highlight_markup: payload.highlight_markup || null,
+      audio_url: payload.audio_url || null,
+      audio_tipe: payload.audio_tipe || null,
+      isian_case_sensitive: payload.isian_case_sensitive || false,
+      isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
+      penjelasan: payload.penjelasan || null
+    };
+
+    var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
+    _check(error, 'createSoal');
+
+    if (payload.pilihan && payload.pilihan.length > 0) {
+      var pilihanRows = payload.pilihan.map(function(p, idx) {
+        return {
+          id_soal: id_soal,
+          teks_pilihan: p.teks_pilihan,
+          urutan: idx + 1,
+          is_benar: !!p.is_benar
+        };
+      });
+      var { error: pilErr } = await _sb.from('soal_pilihan').insert(pilihanRows);
+      _check(pilErr, 'createSoal:pilihan');
+    }
+
+    if (payload.pasangan && payload.pasangan.length > 0) {
+      var pasanganRows = payload.pasangan.map(function(p, idx) {
+        return {
+          id_soal: id_soal,
+          teks_kiri: p.teks_kiri,
+          teks_kanan: p.teks_kanan,
+          urutan: idx + 1
+        };
+      });
+      var { error: pasErr } = await _sb.from('soal_pasangan').insert(pasanganRows);
+      _check(pasErr, 'createSoal:pasangan');
+    }
+
+    if (payload.kunci_isian && payload.kunci_isian.length > 0) {
+      var kunciRows = payload.kunci_isian.map(function(k) {
+        return {
+          id_soal: id_soal,
+          teks_kunci: String(k).trim()
+        };
+      });
+      var { error: kunErr } = await _sb.from('soal_kunci_isian').insert(kunciRows);
+      _check(kunErr, 'createSoal:kunci_isian');
+    }
+
+    return { status: 'ok', data: soalData };
+  },
+
+  updateSoal: async function(id_soal, payload) {
+    var { error } = await _sb.rpc('update_soal', {
+      p_id_soal: id_soal,
+      p_teks_soal: payload.teks_soal || null,
+      p_penjelasan: payload.penjelasan || null,
+      p_highlight: payload.highlight_markup || null
+    });
+    _check(error, 'updateSoal');
+    return { status: 'ok' };
+  },
+
+  deleteSoal: async function(id_soal) {
+    var { error } = await _sb.from('soal').delete().eq('id_soal', id_soal);
+    _check(error, 'deleteSoal');
+    return { status: 'ok' };
+  },
+
+  addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin) {
+    var { error } = await _sb.from('quiz_soal').insert([{
+      id_quiz: id_quiz,
+      id_soal: id_soal,
+      urutan: urutan || 1,
+      bobot_poin: bobot_poin !== undefined ? bobot_poin : 10
+    }]);
+    _check(error, 'addSoalToKuis');
+    return { status: 'ok' };
+  },
+
+  removeSoalFromKuis: async function(id_quiz, id_soal) {
+    var { error } = await _sb.from('quiz_soal').delete().eq('id_quiz', id_quiz).eq('id_soal', id_soal);
+    _check(error, 'removeSoalFromKuis');
+    return { status: 'ok' };
+  },
+
+  getHasilKuis: async function(id_quiz) {
+    var [quizRes, hasilRes, jawabanRes] = await Promise.all([
+      _sb.from('quiz').select('*, quiz_soal(*, soal(*))').eq('id_quiz', id_quiz).single(),
+      _sb.from('hasil_quiz').select('*, users(nama_lengkap, no_hp)').eq('id_quiz', id_quiz).order('skor_total', { ascending: false }),
+      _sb.from('jawaban_murid').select('*').eq('id_quiz', id_quiz)
+    ]);
+    _check(quizRes.error, 'getHasilKuis:quiz');
+    _check(hasilRes.error, 'getHasilKuis:hasil');
+
+    var hasil = hasilRes.data || [];
+    var totalMengerjakan = hasil.length;
+    var totalSkor = hasil.reduce(function(acc, h) { return acc + (h.skor_total || 0); }, 0);
+    var avgSkor = totalMengerjakan > 0 ? Math.round(totalSkor / totalMengerjakan) : 0;
+
+    return {
+      status: 'ok',
+      quiz: quizRes.data,
+      summary: {
+        total_mengerjakan: totalMengerjakan,
+        rata_rata_skor: avgSkor,
+        hasil_murid: hasil,
+        jawaban_detail: jawabanRes.data || []
+      }
+    };
+  },
+
+  getAntrianReviewIsian: async function(id_quiz) {
+    var id_guru = _uid();
+    var q = _sb.from('jawaban_murid')
+      .select('*, users(nama_lengkap), soal(*, soal_kunci_isian(*))')
+      .eq('status_review', 'menunggu_review')
+      .order('created_at', { ascending: true });
+
+    if (id_quiz) q = q.eq('id_quiz', id_quiz);
+
+    var { data, error } = await q;
+    _check(error, 'getAntrianReviewIsian');
+    return { status: 'ok', data: data || [] };
+  },
+
+  reviewIsianSingkat: async function(id_jawaban, disetujui, simpan_sebagai_varian) {
+    var { error } = await _sb.rpc('review_isian_singkat', {
+      p_id_jawaban: id_jawaban,
+      p_disetujui: !!disetujui,
+      p_simpan_sebagai_varian: !!simpan_sebagai_varian
+    });
+    _check(error, 'reviewIsianSingkat');
+    return { status: 'ok' };
+  },
+
+  startSesiLive: async function(id_quiz, id_halaqah, kode_join) {
+    var kode = (kode_join || 'RATTIL-' + Math.random().toString(36).substring(2,6).toUpperCase()).toUpperCase();
+    var { data, error } = await _sb.from('sesi_quiz').insert([{
+      id_quiz: id_quiz,
+      id_halaqah: id_halaqah,
+      kode_join: kode,
+      status: 'menunggu'
+    }]).select().single();
+    _check(error, 'startSesiLive');
+    return { status: 'ok', data: data };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -3968,6 +4233,193 @@ var MuridAPI = {
       .order('created_at', { ascending: false });
     _check(error, 'getRiwayatSaran');
     return { status: 'ok', data: data || [] };
+  },
+
+  // ── Quiz Murid ─────────────────────────────
+  getKuisTersedia: async function() {
+    var id_murid = _uid();
+    var { data: anggotaData, error: aErr } = await _sb.from('anggota')
+      .select('id_halaqah').eq('id_murid', id_murid).eq('status', 'aktif');
+    _check(aErr, 'getKuisTersedia:anggota');
+
+    if (!anggotaData || anggotaData.length === 0) return { status: 'ok', data: [] };
+
+    var halaqahIds = anggotaData.map(function(a) { return a.id_halaqah; });
+
+    var { data: qhData, error: qhErr } = await _sb.from('quiz_halaqah')
+      .select('id_quiz, quiz(*)')
+      .in('id_halaqah', halaqahIds);
+    _check(qhErr, 'getKuisTersedia:quiz_halaqah');
+
+    var today = _todayJakarta();
+    var kuisList = (qhData || [])
+      .map(function(qh) { return qh.quiz; })
+      .filter(function(q) {
+        if (!q || q.status !== 'aktif') return false;
+        if (q.tgl_mulai && q.tgl_mulai > today) return false;
+        if (q.tgl_selesai && q.tgl_selesai < today) return false;
+        return true;
+      });
+
+    if (kuisList.length === 0) return { status: 'ok', data: [] };
+
+    var quizIds = kuisList.map(function(q) { return q.id_quiz; });
+    var { data: hasilData } = await _sb.from('hasil_quiz')
+      .select('*').eq('id_murid', id_murid).in('id_quiz', quizIds);
+
+    var hasilMap = {};
+    (hasilData || []).forEach(function(h) {
+      if (!hasilMap[h.id_quiz] || h.skor_total > hasilMap[h.id_quiz].skor_total) {
+        hasilMap[h.id_quiz] = h;
+      }
+    });
+
+    var result = kuisList.map(function(q) {
+      var h = hasilMap[q.id_quiz] || null;
+      return Object.assign({}, q, {
+        sudah_dikerjakan: !!h,
+        hasil_terbaik: h
+      });
+    });
+
+    return { status: 'ok', data: result };
+  },
+
+  getKuisDetail: async function(id_quiz) {
+    var { data: quizData, error: qErr } = await _sb.from('quiz')
+      .select('*, quiz_soal(urutan, bobot_poin, soal(*, soal_pilihan(id_pilihan, teks_pilihan, urutan), soal_pasangan(id_pasangan, teks_kiri, teks_kanan, urutan)))')
+      .eq('id_quiz', id_quiz).single();
+    _check(qErr, 'getKuisDetail');
+
+    var soalList = (quizData.quiz_soal || []).map(function(qs) {
+      var s = qs.soal;
+      if (!s) return null;
+      var pilihan = (s.soal_pilihan || []).map(function(p) {
+        return { id_pilihan: p.id_pilihan, teks_pilihan: p.teks_pilihan, urutan: p.urutan };
+      });
+      var pasangan = s.soal_pasangan || [];
+      if (s.tipe_soal === 'matching') {
+        var kananShuffled = pasangan.map(function(p) { return p.teks_kanan; }).sort(function() { return Math.random() - 0.5; });
+        pasangan = pasangan.map(function(p, idx) {
+          return { id_pasangan: p.id_pasangan, teks_kiri: p.teks_kiri, opsi_kanan: kananShuffled };
+        });
+      }
+      return {
+        id_soal: s.id_soal,
+        tipe_soal: s.tipe_soal,
+        teks_soal: s.teks_soal,
+        teks_arab: s.teks_arab,
+        highlight_markup: s.highlight_markup,
+        audio_url: s.audio_url,
+        audio_tipe: s.audio_tipe,
+        urutan: qs.urutan,
+        bobot_poin: qs.bobot_poin,
+        pilihan: pilihan,
+        pasangan: pasangan
+      };
+    }).filter(Boolean);
+
+    soalList.sort(function(a, b) { return a.urutan - b.urutan; });
+
+    if (quizData.urutan_soal === 'acak') {
+      soalList.sort(function() { return Math.random() - 0.5; });
+    }
+
+    return {
+      status: 'ok',
+      data: {
+        id_quiz: quizData.id_quiz,
+        judul: quizData.judul,
+        deskripsi: quizData.deskripsi,
+        mode: quizData.mode,
+        durasi_per_soal_detik: quizData.durasi_per_soal_detik,
+        tampilkan_jawaban: quizData.tampilkan_jawaban,
+        boleh_retake: quizData.boleh_retake,
+        anti_tab_aktif: quizData.anti_tab_aktif,
+        maks_peringatan_tab: quizData.maks_peringatan_tab,
+        soal: soalList
+      }
+    };
+  },
+
+  jawabSoal: async function(payload) {
+    var { data, error } = await _sb.rpc('jawab_soal', {
+      p_id_quiz: payload.id_quiz,
+      p_id_soal: payload.id_soal,
+      p_attempt_ke: payload.attempt_ke || 1,
+      p_id_pilihan: payload.id_pilihan || null,
+      p_matching_json: payload.matching_json || null,
+      p_teks_isian: payload.teks_isian || null,
+      p_waktu_detik: payload.waktu_detik || null
+    });
+    _check(error, 'jawabSoal');
+    return { status: 'ok', data: data };
+  },
+
+  submitKuis: async function(payload) {
+    var { error } = await _sb.rpc('submit_quiz', {
+      p_id_quiz: payload.id_quiz,
+      p_attempt_ke: payload.attempt_ke || 1,
+      p_durasi_pengerjaan_detik: payload.durasi_pengerjaan_detik || null,
+      p_jumlah_tab_switch: payload.jumlah_tab_switch || 0,
+      p_total_durasi_keluar_detik: payload.total_durasi_keluar_detik || 0
+    });
+    _check(error, 'submitKuis');
+    return { status: 'ok' };
+  },
+
+  getHasilKuisMurid: async function(id_quiz, attempt_ke) {
+    var id_murid = _uid();
+    var attempt = attempt_ke || 1;
+    var [hasilRes, jawabanRes, quizRes] = await Promise.all([
+      _sb.from('hasil_quiz').select('*').eq('id_quiz', id_quiz).eq('id_murid', id_murid).eq('attempt_ke', attempt).single(),
+      _sb.from('jawaban_murid').select('*, soal(*, soal_pilihan(*))').eq('id_quiz', id_quiz).eq('id_murid', id_murid).eq('attempt_ke', attempt),
+      _sb.from('quiz').select('tampilkan_jawaban').eq('id_quiz', id_quiz).single()
+    ]);
+    _check(hasilRes.error, 'getHasilKuisMurid:hasil');
+
+    var quizSetting = quizRes.data ? quizRes.data.tampilkan_jawaban : 'setelah_submit';
+
+    return {
+      status: 'ok',
+      hasil: hasilRes.data,
+      jawaban: jawabanRes.data || [],
+      tampilkan_jawaban_setting: quizSetting
+    };
+  },
+
+  getLeaderboardKuis: async function(id_quiz) {
+    var { data, error } = await _sb.from('hasil_quiz')
+      .select('id_hasil, skor_total, durasi_pengerjaan_detik, attempt_ke, submitted_at, users!hasil_quiz_id_murid_fkey(id_user, nama_lengkap, status)')
+      .eq('id_quiz', id_quiz)
+      .order('skor_total', { ascending: false })
+      .order('durasi_pengerjaan_detik', { ascending: true });
+
+    _check(error, 'getLeaderboardKuis');
+
+    var seenMurid = {};
+    var leaderboard = [];
+    (data || []).forEach(function(h) {
+      if (!h.users || h.users.status !== 'aktif') return;
+      if (!seenMurid[h.users.id_user]) {
+        seenMurid[h.users.id_user] = true;
+        leaderboard.push({
+          id_murid: h.users.id_user,
+          nama_lengkap: h.users.nama_lengkap,
+          skor_total: h.skor_total,
+          durasi_pengerjaan_detik: h.durasi_pengerjaan_detik,
+          attempt_ke: h.attempt_ke
+        });
+      }
+    });
+
+    return { status: 'ok', data: leaderboard };
+  },
+
+  joinSesiLive: async function(kode_join) {
+    var { data, error } = await _sb.rpc('join_sesi_live', { p_kode: kode_join });
+    _check(error, 'joinSesiLive');
+    return { status: 'ok', data: data };
   },
 };
 
@@ -6902,6 +7354,31 @@ window.HQ = {
   Auth, AdminAPI, GuruAPI, MuridAPI, KetuaAPI,
   SuperAdminAPI: AdminAPI,
   PushAPI, PushPrefsAPI,
+  QuizAPI: {
+    // Guru Methods
+    getKuisList: function() { return GuruAPI.getKuisList.apply(GuruAPI, arguments); },
+    createKuis: function() { return GuruAPI.createKuis.apply(GuruAPI, arguments); },
+    updateKuis: function() { return GuruAPI.updateKuis.apply(GuruAPI, arguments); },
+    deleteKuis: function() { return GuruAPI.deleteKuis.apply(GuruAPI, arguments); },
+    getBankSoal: function() { return GuruAPI.getBankSoal.apply(GuruAPI, arguments); },
+    createSoal: function() { return GuruAPI.createSoal.apply(GuruAPI, arguments); },
+    updateSoal: function() { return GuruAPI.updateSoal.apply(GuruAPI, arguments); },
+    deleteSoal: function() { return GuruAPI.deleteSoal.apply(GuruAPI, arguments); },
+    addSoalToKuis: function() { return GuruAPI.addSoalToKuis.apply(GuruAPI, arguments); },
+    removeSoalFromKuis: function() { return GuruAPI.removeSoalFromKuis.apply(GuruAPI, arguments); },
+    getHasilKuis: function() { return GuruAPI.getHasilKuis.apply(GuruAPI, arguments); },
+    getAntrianReviewIsian: function() { return GuruAPI.getAntrianReviewIsian.apply(GuruAPI, arguments); },
+    reviewIsianSingkat: function() { return GuruAPI.reviewIsianSingkat.apply(GuruAPI, arguments); },
+    startSesiLive: function() { return GuruAPI.startSesiLive.apply(GuruAPI, arguments); },
+    // Murid Methods
+    getKuisTersedia: function() { return MuridAPI.getKuisTersedia.apply(MuridAPI, arguments); },
+    getKuisDetail: function() { return MuridAPI.getKuisDetail.apply(MuridAPI, arguments); },
+    jawabSoal: function() { return MuridAPI.jawabSoal.apply(MuridAPI, arguments); },
+    submitKuis: function() { return MuridAPI.submitKuis.apply(MuridAPI, arguments); },
+    getHasilKuisMurid: function() { return MuridAPI.getHasilKuisMurid.apply(MuridAPI, arguments); },
+    getLeaderboardKuis: function() { return MuridAPI.getLeaderboardKuis.apply(MuridAPI, arguments); },
+    joinSesiLive: function() { return MuridAPI.joinSesiLive.apply(MuridAPI, arguments); }
+  },
   AbsensiGuruUtil: AbsensiGuruUtil,
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },

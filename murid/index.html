@@ -5601,6 +5601,11 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
     </div>
 
+    <!-- ════ RATTIL QUIZ ════ -->
+    <div class="page" id="page-kuis">
+      <!-- Content populated by renderMuridQuizPage() in quiz-module.js -->
+    </div>
+
     <!-- ════ GANTI PASSWORD ════ -->
     <div class="page" id="page-password">
       <div class="page-header"><div class="page-header-ico">🔐</div><div><div class="page-title">Ganti Password</div><div class="page-sub">Ubah password akun kamu secara mandiri.</div></div></div>
@@ -5806,6 +5811,11 @@ html.theme-dark .materi-daurah-banner-title {
 
       <!-- ── AKADEMIK & KBM ── -->
       <div class="sidebar-section">Akademik &amp; KBM</div>
+
+      <button class="sidebar-item ico-amber" id="sidebarNavKuis" onclick="closeSidebar();goPage('kuis')" data-p="kuis">
+        <div class="sidebar-item-ico">🎯</div>
+        Rattil Quiz
+      </button>
 
       <button class="sidebar-item ico-sky" id="sidebarNavRiwayat" onclick="closeSidebar();goPage('riwayat')" data-p="riwayat">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/></svg></div>
@@ -6787,6 +6797,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-client.js?v=2.1.0" defer></script>
 <script src="../assets/push-permission.js" defer></script>
+<script src="quiz-module.js" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -7600,6 +7611,11 @@ function goPage(name, swipeDir) {
   // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
   // karena dashData.anggota.level bisa belum tersedia saat pertama kali diklik,
   // dan level user bisa berubah antar sesi)
+  if (name === 'kuis') {
+    if (typeof window.renderMuridQuizPage === 'function') window.renderMuridQuizPage();
+    return;
+  }
+
   if (name === 'assessment') {
     // Debounce: cegah double-load dari rapid tap (e.g. swipe + tap)
     if (_assessmentLoading) return;
