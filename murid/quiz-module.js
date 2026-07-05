@@ -286,24 +286,55 @@
     var totalSoal = _quizData.soal.length;
     var playEl = document.getElementById('quizPlayView');
 
-    // Setup timer jika ada durasi
+    // Setup timer jika ada durasi (Combined Ultimate Tension Theme)
     if (_timerInterval) clearInterval(_timerInterval);
     var timeRemaining = _quizData.durasi_per_soal_detik || 0;
 
     var timerHtml = timeRemaining > 0 ? `
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;font-weight:800;color:var(--blue-d);" id="quizTimerText">⏱️ ${timeRemaining}s</span>
-        <div style="flex:1;height:6px;background:var(--bg-2);border-radius:100px;overflow:hidden;position:relative;">
-          <div id="quizTimerBar" style="width:100%;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-d));transition:width 1s linear;"></div>
+      <div id="quizTimerContainer" style="margin-top:10px;padding:10px 14px;background:var(--bg-2);border-radius:var(--r-md);border:1px solid var(--border);position:relative;transition:all .3s ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span id="quizTimerBadge" style="font-size:12px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px;transition:all .3s ease;">
+            <span id="quizTimerIcon" style="font-size:16px;">⏱️</span>
+            <span id="quizTimerText">${timeRemaining}s</span>
+          </span>
+          <span id="quizTimerStatus" style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;transition:all .3s ease;">
+            Sisa Waktu
+          </span>
+        </div>
+
+        <div style="width:100%;height:14px;background:rgba(0,0,0,0.06);border-radius:100px;position:relative;overflow:visible;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
+          <div id="quizTimerBar" style="width:100%;height:100%;background:linear-gradient(90deg,#10b981,#0ea5e9);border-radius:100px;transition:width 1s linear, background 0.5s ease;position:relative;">
+            <div id="quizTimerSprite" style="position:absolute;right:-12px;top:-10px;font-size:20px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+              👾
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>
+        @keyframes tensionHeartbeat {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.22); color: #ef4444; }
+        }
+        @keyframes tensionShake {
+          0%, 100% { transform: translate(0, 0); }
+          20% { transform: translate(-2px, 1px); }
+          40% { transform: translate(2px, -1px); }
+          60% { transform: translate(-1px, -1px); }
+          80% { transform: translate(1px, 2px); }
+        }
+        @keyframes tensionGlow {
+          0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.05); }
+          50% { box-shadow: 0 0 22px rgba(239,68,68,0.6); border-color: rgba(239,68,68,0.9); background: rgba(239,68,68,0.15); }
+        }
+      </style>
     ` : '';
 
     var html = `
       <div style="max-width:600px;margin:0 auto;">
         <!-- Header Progress -->
         <div style="background:var(--card-solid);border-radius:var(--r-lg);padding:14px 18px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <span style="font-size:12px;font-weight:800;color:var(--text-3);">Soal ${idx + 1} dari ${totalSoal}</span>
             <span style="font-size:11px;font-weight:700;color:var(--blue-d);background:var(--blue-l);padding:2px 8px;border-radius:100px;">
               ${getTipeSoalLabel(soal.tipe_soal)}
@@ -366,15 +397,52 @@
 
     playEl.innerHTML = html;
 
-    // Start Timer Interval
+    // Start Timer Interval with Combined Ultimate Tension Engine
     if (timeRemaining > 0) {
       var currentSec = timeRemaining;
       _timerInterval = setInterval(function () {
         currentSec--;
         var txtEl = document.getElementById('quizTimerText');
         var barEl = document.getElementById('quizTimerBar');
-        if (txtEl) txtEl.textContent = '⏱️ ' + currentSec + 's';
-        if (barEl) barEl.style.width = ((currentSec / timeRemaining) * 100) + '%';
+        var spriteEl = document.getElementById('quizTimerSprite');
+        var containerEl = document.getElementById('quizTimerContainer');
+        var statusEl = document.getElementById('quizTimerStatus');
+        var badgeEl = document.getElementById('quizTimerBadge');
+
+        var pct = Math.max(0, (currentSec / timeRemaining) * 100);
+
+        if (barEl) barEl.style.width = pct + '%';
+        if (txtEl) txtEl.textContent = currentSec + 's';
+
+        // TENSION ENGINE PHASES
+        if (currentSec > 10) {
+          // Phase 1: Safe Zone (Green/Sky Pacman)
+          if (barEl) barEl.style.background = 'linear-gradient(90deg, #10b981, #0ea5e9)';
+          if (spriteEl) spriteEl.textContent = '👾';
+          if (statusEl) { statusEl.textContent = 'Sisa Waktu'; statusEl.style.color = 'var(--text-3)'; }
+        } else if (currentSec > 5) {
+          // Phase 2: Warning Zone (Amber Flame Fuse)
+          if (barEl) barEl.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
+          if (spriteEl) spriteEl.textContent = '🔥';
+          if (statusEl) { statusEl.textContent = '⚠️ Waktu Menipis!'; statusEl.style.color = '#f59e0b'; }
+          if (txtEl) txtEl.style.color = '#f59e0b';
+        } else {
+          // Phase 3: CRITICAL TENSION ZONE (< 5s) - Heartbeat & Flashing Bomb
+          if (barEl) barEl.style.background = 'linear-gradient(90deg, #ef4444, #991b1b)';
+          if (spriteEl) spriteEl.textContent = (currentSec % 2 === 0) ? '💣' : '💥';
+          if (txtEl) {
+            txtEl.textContent = currentSec + 's';
+            txtEl.style.color = '#ef4444';
+            txtEl.style.fontSize = '16px';
+          }
+          if (badgeEl) badgeEl.style.animation = 'tensionHeartbeat 0.5s infinite';
+          if (containerEl) containerEl.style.animation = 'tensionShake 0.2s infinite, tensionGlow 0.5s infinite';
+          if (statusEl) {
+            statusEl.textContent = '🚨 KRITIS! CEPAT SUBMIT!';
+            statusEl.style.color = '#ef4444';
+            statusEl.style.fontWeight = '900';
+          }
+        }
 
         if (currentSec <= 0) {
           clearInterval(_timerInterval);
