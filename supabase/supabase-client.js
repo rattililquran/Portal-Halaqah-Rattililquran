@@ -2726,6 +2726,79 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  getSoalDetail: async function(id_soal) {
+    var { data, error } = await _sb.from('soal')
+      .select('*, soal_pilihan(*), soal_pasangan(*), soal_kunci_isian(*)')
+      .eq('id_soal', id_soal)
+      .single();
+    _check(error, 'getSoalDetail');
+    return { status: 'ok', data: data };
+  },
+
+  updateSoalFull: async function(id_soal, payload) {
+    var soalRow = {
+      tipe_soal: payload.tipe_soal,
+      teks_soal: payload.teks_soal,
+      teks_arab: payload.teks_arab || null,
+      highlight_markup: payload.highlight_markup || null,
+      audio_url: payload.audio_url || null,
+      audio_tipe: payload.audio_tipe || null,
+      isian_case_sensitive: payload.isian_case_sensitive || false,
+      isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
+      penjelasan: payload.penjelasan || null,
+      levels: payload.levels || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null
+    };
+
+    var { error: updateErr } = await _sb.from('soal').update(soalRow).eq('id_soal', id_soal);
+    _check(updateErr, 'updateSoalFull:soal');
+
+    await Promise.all([
+      _sb.from('soal_pilihan').delete().eq('id_soal', id_soal),
+      _sb.from('soal_pasangan').delete().eq('id_soal', id_soal),
+      _sb.from('soal_kunci_isian').delete().eq('id_soal', id_soal)
+    ]);
+
+    if (payload.pilihan && payload.pilihan.length > 0) {
+      var pilihanRows = payload.pilihan.map(function(p, idx) {
+        return {
+          id_soal: id_soal,
+          teks_pilihan: p.teks_pilihan,
+          urutan: idx + 1,
+          is_benar: !!p.is_benar
+        };
+      });
+      var { error: pilErr } = await _sb.from('soal_pilihan').insert(pilihanRows);
+      _check(pilErr, 'updateSoalFull:pilihan');
+    }
+
+    if (payload.pasangan && payload.pasangan.length > 0) {
+      var pasanganRows = payload.pasangan.map(function(p, idx) {
+        return {
+          id_soal: id_soal,
+          teks_kiri: p.teks_kiri,
+          teks_kanan: p.teks_kanan,
+          urutan: idx + 1
+        };
+      });
+      var { error: pasErr } = await _sb.from('soal_pasangan').insert(pasanganRows);
+      _check(pasErr, 'updateSoalFull:pasangan');
+    }
+
+    if (payload.kunci_isian && payload.kunci_isian.length > 0) {
+      var kunciRows = payload.kunci_isian.map(function(k) {
+        return {
+          id_soal: id_soal,
+          teks_kunci: String(k).trim()
+        };
+      });
+      var { error: kunErr } = await _sb.from('soal_kunci_isian').insert(kunciRows);
+      _check(kunErr, 'updateSoalFull:kunci_isian');
+    }
+
+    return { status: 'ok' };
+  },
+
   deleteSoal: async function(id_soal) {
     try {
       var { error } = await _sb.from('soal').delete().eq('id_soal', id_soal);
@@ -7431,6 +7504,8 @@ window.HQ = {
     getBankSoal: function() { return GuruAPI.getBankSoal.apply(GuruAPI, arguments); },
     createSoal: function() { return GuruAPI.createSoal.apply(GuruAPI, arguments); },
     updateSoal: function() { return GuruAPI.updateSoal.apply(GuruAPI, arguments); },
+    getSoalDetail: function() { return GuruAPI.getSoalDetail.apply(GuruAPI, arguments); },
+    updateSoalFull: function() { return GuruAPI.updateSoalFull.apply(GuruAPI, arguments); },
     deleteSoal: function() { return GuruAPI.deleteSoal.apply(GuruAPI, arguments); },
     addSoalToKuis: function() { return GuruAPI.addSoalToKuis.apply(GuruAPI, arguments); },
     removeSoalFromKuis: function() { return GuruAPI.removeSoalFromKuis.apply(GuruAPI, arguments); },

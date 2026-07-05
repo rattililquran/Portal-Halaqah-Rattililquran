@@ -323,11 +323,16 @@
                 </div>
               </div>
 
-              <!-- Delete Button -->
+              <!-- Actions -->
               ${isOwner ? `
-                <button onclick="deleteSoalConfirm('${escapeJsStr(s.id_soal)}')" class="btn-delete-soal" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
-                  🗑️
-                </button>
+                <div style="display:flex;gap:4px;">
+                  <button onclick="openModalCreateSoal('', '${escapeJsStr(s.id_soal)}')" class="btn-edit-soal" style="background:var(--blue-l);color:var(--blue-d);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Edit Soal">
+                    ✏️
+                  </button>
+                  <button onclick="deleteSoalConfirm('${escapeJsStr(s.id_soal)}')" class="btn-delete-soal" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
+                    🗑️
+                  </button>
+                </div>
               ` : ''}
             </div>
           </div>
@@ -950,34 +955,67 @@
     }
   };
 
-  window.openModalCreateSoal = function (prefilledQuizId) {
+  window.openModalCreateSoal = async function (prefilledQuizId, editSoalId) {
     var modalEl = document.getElementById('guruQuizModalContainer');
     if (!modalEl) return;
+
+    var editingSoal = null;
+    if (editSoalId) {
+      try {
+        showLoading('Memuat detail soal...');
+        var res = await window.HQ.QuizAPI.getSoalDetail(editSoalId);
+        editingSoal = res.data;
+        hideLoading();
+      } catch (err) {
+        hideLoading();
+        alert('Gagal memuat detail soal: ' + err.message);
+        return;
+      }
+    }
 
     modalEl.innerHTML = `
       <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
         <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <h3 style="font-size:16px;font-weight:800;color:var(--text)">➕ Buat Soal Baru (Bank Soal)</h3>
+            <h3 style="font-size:16px;font-weight:800;color:var(--text)">${editingSoal ? '📝 Edit Soal (Bank Soal)' : '➕ Buat Soal Baru (Bank Soal)'}</h3>
             <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
           </div>
 
-          <form onsubmit="submitFormCreateSoal(event, '${prefilledQuizId || ''}')">
+          <form onsubmit="submitFormCreateSoal(event, '${prefilledQuizId || ''}', ${editingSoal ? `'${editingSoal.id_soal}'` : 'null'})">
             <div style="margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TIPE SOAL *</label>
-              <select id="csTipe" onchange="onTipeSoalChange(this.value)" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
-                <option value="pilihan_ganda">Pilihan Ganda</option>
-                <option value="benar_salah">Benar / Salah</option>
-                <option value="matching">Matching (Menjodohkan)</option>
-                <option value="audio">Audio / Suara</option>
-                <option value="teks_arab">Teks Arab</option>
-                <option value="isian_singkat">Isian Singkat</option>
+              <select id="csTipe" onchange="onTipeSoalChange(this.value)" ${editingSoal ? 'disabled' : ''} style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                <option value="pilihan_ganda" ${editingSoal && editingSoal.tipe_soal === 'pilihan_ganda' ? 'selected' : ''}>Pilihan Ganda</option>
+                <option value="benar_salah" ${editingSoal && editingSoal.tipe_soal === 'benar_salah' ? 'selected' : ''}>Benar / Salah</option>
+                <option value="matching" ${editingSoal && editingSoal.tipe_soal === 'matching' ? 'selected' : ''}>Matching (Menjodohkan)</option>
+                <option value="audio" ${editingSoal && editingSoal.tipe_soal === 'audio' ? 'selected' : ''}>Audio / Suara</option>
+                <option value="teks_arab" ${editingSoal && editingSoal.tipe_soal === 'teks_arab' ? 'selected' : ''}>Teks Arab</option>
+                <option value="isian_singkat" ${editingSoal && editingSoal.tipe_soal === 'isian_singkat' ? 'selected' : ''}>Isian Singkat</option>
               </select>
+            </div>
+
+            <!-- Levels Checkboxes -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">LEVEL HALAQAH *</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);">
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 1"> Level 1</label>
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 2"> Level 2</label>
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 3"> Level 3</label>
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level Qiyam"> Level Qiyam</label>
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Micro Teaching"> Micro Teaching</label>
+                <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Tahsin Al-Fatihah"> Tahsin Al-Fatihah</label>
+              </div>
+            </div>
+
+            <!-- Rekomendasi Pertemuan Ke- -->
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">REKOMENDASI PERTEMUAN KE (OPSIONAL)</label>
+              <input type="number" id="csRekomendasiPertemuan" placeholder="Contoh: 23" min="1" value="${editingSoal && editingSoal.rekomendasi_pertemuan_ke ? editingSoal.rekomendasi_pertemuan_ke : ''}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
             </div>
 
             <div style="margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS PERTANYAAN (LATIN) *</label>
-              <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;"></textarea>
+              <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;">${editingSoal ? escapeHtml(editingSoal.teks_soal) : ''}</textarea>
             </div>
 
             <div id="csTeksArabWrap" style="display:none;margin-bottom:12px;">
@@ -985,7 +1023,7 @@
                 <label style="font-size:11px;font-weight:700;color:var(--text-2);">TEKS ARAB</label>
                 <button type="button" onclick="applyTajwidHighlight()" style="font-size:10.5px;font-weight:800;color:var(--blue-d);background:var(--blue-l);border:none;padding:3px 8px;border-radius:100px;cursor:pointer;">✨ Tandai Highlight Tajwid</button>
               </div>
-              <textarea id="csTeksArab" rows="2" oninput="updateTeksArabPreview(this.value)" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;"></textarea>
+              <textarea id="csTeksArab" rows="2" oninput="updateTeksArabPreview(this.value)" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;">${editingSoal && editingSoal.teks_arab ? escapeHtml(editingSoal.teks_arab) : ''}</textarea>
               <div style="margin-top:6px;">
                 <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:2px;">Pratinjau Teks Arab:</div>
                 <div id="csTeksArabPreview" style="font-family:'Amiri',serif;font-size:22px;direction:rtl;text-align:center;padding:12px;background:var(--bg-2);border-radius:var(--r-sm);border:1px solid var(--border);min-height:48px;word-break:break-word;">
@@ -996,28 +1034,66 @@
 
             <div id="csAudioWrap" style="display:none;margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">URL AUDIO (GDrive / YouTube / MP3 Direct)</label>
-              <input type="url" id="csAudioUrl" placeholder="https://..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+              <input type="url" id="csAudioUrl" value="${editingSoal && editingSoal.audio_url ? escapeHtml(editingSoal.audio_url) : ''}" placeholder="https://..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
             </div>
 
             <!-- Options Container Dynamic -->
-            <div id="csDynamicOptions" style="margin-bottom:14px;">
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">OPSI PILIHAN (Centang Kunci Jawaban Benar):</label>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="0" checked> <input type="text" class="csPil" required placeholder="Pilihan A" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
-                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="1"> <input type="text" class="csPil" required placeholder="Pilihan B" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
-                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="2"> <input type="text" class="csPil" placeholder="Pilihan C (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
-                <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="3"> <input type="text" class="csPil" placeholder="Pilihan D (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
-              </div>
-            </div>
+            <div id="csDynamicOptions" style="margin-bottom:14px;"></div>
 
             <div style="display:flex;gap:10px;margin-top:18px;">
               <button type="button" onclick="closeGuruQuizModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Batal</button>
-              <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">Simpan Soal</button>
+              <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">
+                ${editingSoal ? 'Simpan Perubahan' : 'Simpan Soal'}
+              </button>
             </div>
           </form>
         </div>
       </div>
     `;
+
+    if (editingSoal) {
+      var lvls = editingSoal.levels || [];
+      document.querySelectorAll('.csLevelCheck').forEach(function(cb) {
+        cb.checked = lvls.indexOf(cb.value) !== -1;
+      });
+
+      onTipeSoalChange(editingSoal.tipe_soal);
+
+      if (editingSoal.tipe_soal === 'pilihan_ganda' || editingSoal.tipe_soal === 'audio' || editingSoal.tipe_soal === 'teks_arab') {
+        var pils = editingSoal.soal_pilihan || [];
+        var pilInputs = document.querySelectorAll('.csPil');
+        var radioInputs = document.querySelectorAll('input[name="csBenar"]');
+        pils.forEach(function(p, i) {
+          if (pilInputs[i]) pilInputs[i].value = p.teks_pilihan || '';
+          if (radioInputs[i]) radioInputs[i].checked = !!p.is_benar;
+        });
+      } else if (editingSoal.tipe_soal === 'benar_salah') {
+        var pils = editingSoal.soal_pilihan || [];
+        var trueBenar = pils.some(function(p) { return p.teks_pilihan === 'Benar' && p.is_benar; });
+        var radioInputs = document.querySelectorAll('input[name="csBsBenar"]');
+        if (radioInputs[0]) radioInputs[0].checked = trueBenar;
+        if (radioInputs[1]) radioInputs[1].checked = !trueBenar;
+      } else if (editingSoal.tipe_soal === 'matching') {
+        var pas = editingSoal.soal_pasangan || [];
+        var kiriInputs = document.querySelectorAll('.csMatchKiri');
+        var kananInputs = document.querySelectorAll('.csMatchKanan');
+        pas.forEach(function(p, i) {
+          if (kiriInputs[i]) kiriInputs[i].value = p.teks_kiri || '';
+          if (kananInputs[i]) kananInputs[i].value = p.teks_kanan || '';
+        });
+      } else if (editingSoal.tipe_soal === 'isian_singkat') {
+        var kun = editingSoal.soal_kunci_isian || [];
+        var keys = kun.map(function(k) { return k.teks_kunci; }).join(', ');
+        var inputKunci = document.getElementById('csIsianKunci');
+        if (inputKunci) inputKunci.value = keys;
+      }
+
+      if (editingSoal.teks_arab) {
+        updateTeksArabPreview(editingSoal.teks_arab);
+      }
+    } else {
+      onTipeSoalChange('pilihan_ganda');
+    }
   };
 
   window.onTipeSoalChange = function (tipe) {
@@ -1065,16 +1141,29 @@
     }
   };
 
-  window.submitFormCreateSoal = async function (e, prefilledQuizId) {
+  window.submitFormCreateSoal = async function (e, prefilledQuizId, editSoalId) {
     e.preventDefault();
     var tipe = document.getElementById('csTipe').value;
     var teksSoal = document.getElementById('csTeksSoal').value.trim();
+
+    var selectedLevels = Array.from(document.querySelectorAll('.csLevelCheck:checked')).map(function(cb) {
+      return cb.value;
+    });
+
+    if (selectedLevels.length === 0) {
+      alert('Pilih minimal satu level halaqah!');
+      return;
+    }
+
+    var rekomendasiPertemuan = document.getElementById('csRekomendasiPertemuan').value;
 
     var payload = {
       tipe_soal: tipe,
       teks_soal: teksSoal,
       teks_arab: document.getElementById('csTeksArab') ? document.getElementById('csTeksArab').value.trim() : null,
       audio_url: document.getElementById('csAudioUrl') ? document.getElementById('csAudioUrl').value.trim() : null,
+      levels: selectedLevels,
+      rekomendasi_pertemuan_ke: rekomendasiPertemuan || null,
       pilihan: [],
       pasangan: [],
       kunci_isian: []
@@ -1108,25 +1197,34 @@
     }
 
     try {
-      showLoading('Membuat soal...');
-      var res = await window.HQ.QuizAPI.createSoal(payload);
-      var newSoal = res.data;
-
-      if (prefilledQuizId && newSoal) {
-        await window.HQ.QuizAPI.addSoalToKuis(prefilledQuizId, newSoal.id_soal, 1, 10);
-      }
-
-      hideLoading();
-      closeGuruQuizModal();
-
-      if (prefilledQuizId) {
-        manageSoalKuis(prefilledQuizId);
-      } else {
+      if (editSoalId) {
+        showLoading('Menyimpan perubahan soal...');
+        await window.HQ.QuizAPI.updateSoalFull(editSoalId, payload);
+        hideLoading();
+        closeGuruQuizModal();
+        alert('Soal berhasil diperbarui di Bank Soal!');
         await loadGuruQuizTabContent();
+      } else {
+        showLoading('Membuat soal...');
+        var res = await window.HQ.QuizAPI.createSoal(payload);
+        var newSoal = res.data;
+
+        if (prefilledQuizId && newSoal) {
+          await window.HQ.QuizAPI.addSoalToKuis(prefilledQuizId, newSoal.id_soal, 1, 10);
+        }
+
+        hideLoading();
+        closeGuruQuizModal();
+
+        if (prefilledQuizId) {
+          manageSoalKuis(prefilledQuizId);
+        } else {
+          await loadGuruQuizTabContent();
+        }
       }
     } catch (err) {
       hideLoading();
-      alert('Gagal membuat soal: ' + err.message);
+      alert('Gagal menyimpan soal: ' + err.message);
     }
   };
 
