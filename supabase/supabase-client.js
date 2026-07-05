@@ -2715,15 +2715,32 @@ var GuruAPI = {
 
   deleteSoal: async function(id_soal) {
     var { error } = await _sb.from('soal').delete().eq('id_soal', id_soal);
-    _check(error, 'deleteSoal');
+    if (error) {
+      if (error.code === '23503') {
+        throw new Error('Soal tidak bisa dihapus karena sedang digunakan dalam kuis.');
+      }
+      _check(error, 'deleteSoal');
+    }
     return { status: 'ok' };
   },
 
   addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin, durasi_detik_override) {
+    var finalUrutan = urutan;
+    if (finalUrutan === undefined || finalUrutan === null) {
+      var { data: qsData, error: qsErr } = await _sb
+        .from('quiz_soal')
+        .select('urutan')
+        .eq('id_quiz', id_quiz)
+        .order('urutan', { ascending: false })
+        .limit(1);
+      if (qsErr) console.warn('[Quiz] Failed to fetch max urutan:', qsErr);
+      var maxUrutan = (qsData && qsData.length > 0) ? qsData[0].urutan : 0;
+      finalUrutan = maxUrutan + 1;
+    }
     var { error } = await _sb.from('quiz_soal').insert([{
       id_quiz: id_quiz,
       id_soal: id_soal,
-      urutan: urutan || 1,
+      urutan: finalUrutan,
       bobot_poin: bobot_poin !== undefined ? bobot_poin : 10,
       durasi_detik_override: durasi_detik_override || null
     }]);
@@ -2775,10 +2792,23 @@ var GuruAPI = {
 
   getAntrianReviewIsian: async function(id_quiz) {
     var id_guru = _uid();
-    var q = _sb.from('jawaban_murid')
-      .select('*, users!jawaban_murid_id_murid_fkey(nama_lengkap), soal(*, soal_kunci_isian(*))')
-      .eq('status_review', 'menunggu_review')
-      .order('created_at', { ascending: true });
+    var selectStr = '*, users!jawaban_murid_id_murid_fkey(nama_lengkap), soal(*, soal_kunci_isian(*))';
+    var userRole = _currentUser && _currentUser.role;
+    var isAdmin = userRole === 'admin' || userRole === 'superadmin';
+
+    var q;
+    if (isAdmin) {
+      q = _sb.from('jawaban_murid')
+        .select(selectStr)
+        .eq('status_review', 'menunggu_review')
+        .order('created_at', { ascending: true });
+    } else {
+      q = _sb.from('jawaban_murid')
+        .select(selectStr + ', quiz!inner(id_guru)')
+        .eq('status_review', 'menunggu_review')
+        .eq('quiz.id_guru', id_guru)
+        .order('created_at', { ascending: true });
+    }
 
     if (id_quiz) q = q.eq('id_quiz', id_quiz);
 
@@ -7377,6 +7407,7 @@ window.HQ = {
     deleteSoal: function() { return GuruAPI.deleteSoal.apply(GuruAPI, arguments); },
     addSoalToKuis: function() { return GuruAPI.addSoalToKuis.apply(GuruAPI, arguments); },
     removeSoalFromKuis: function() { return GuruAPI.removeSoalFromKuis.apply(GuruAPI, arguments); },
+    updateSoalKuisSetting: function() { return GuruAPI.updateSoalKuisSetting.apply(GuruAPI, arguments); },
     getHasilKuis: function() { return GuruAPI.getHasilKuis.apply(GuruAPI, arguments); },
     getAntrianReviewIsian: function() { return GuruAPI.getAntrianReviewIsian.apply(GuruAPI, arguments); },
     reviewIsianSingkat: function() { return GuruAPI.reviewIsianSingkat.apply(GuruAPI, arguments); },

@@ -18,6 +18,7 @@
   var _tabAwayStartTime = 0;
   var _totalAwayDuration = 0;
   var _isQuizActive = false;
+  var _antiCheatHandler = null;
 
   function showLoading(msg) {
     if (typeof window.showLoad === 'function') window.showLoad(msg);
@@ -149,6 +150,21 @@
     try {
       showLoading('Menyiapkan soal kuis...');
       var res = await window.HQ.QuizAPI.getKuisDetail(id_quiz);
+      
+      // Calculate attempt_ke based on past hasil_quiz records in the database
+      var id_murid = window.HQ.getCurrentUser().id_user;
+      var { data: hasilData, error: hasilErr } = await window.HQ.supabase
+        .from('hasil_quiz')
+        .select('attempt_ke')
+        .eq('id_quiz', id_quiz)
+        .eq('id_murid', id_murid)
+        .order('attempt_ke', { ascending: false })
+        .limit(1);
+      
+      if (hasilErr) console.warn('[Quiz] Gagal mengambil riwayat attempt:', hasilErr);
+      var maxAttempt = (hasilData && hasilData.length > 0) ? hasilData[0].attempt_ke : 0;
+      _attemptKe = maxAttempt + 1;
+
       hideLoading();
 
       _quizData = res.data;
@@ -269,7 +285,11 @@
   function setupAntiCheatListener() {
     if (!_quizData.anti_tab_aktif) return;
 
-    var handleVisibility = function () {
+    if (_antiCheatHandler) {
+      document.removeEventListener('visibilitychange', _antiCheatHandler);
+    }
+
+    _antiCheatHandler = function () {
       if (!_isQuizActive) return;
 
       if (document.hidden) {
@@ -307,8 +327,7 @@
       }
     };
 
-    document.removeEventListener('visibilitychange', handleVisibility);
-    document.addEventListener('visibilitychange', handleVisibility);
+    document.addEventListener('visibilitychange', _antiCheatHandler);
   }
 
   function renderQuestion(idx) {
@@ -435,6 +454,7 @@
     // Start Timer Interval with Combined Ultimate Tension Engine
     if (timeRemaining > 0) {
       var currentSec = timeRemaining;
+      var totalDuration = timeRemaining;
       _timerInterval = setInterval(function () {
         currentSec--;
         var txtEl = document.getElementById('quizTimerText');
@@ -444,7 +464,7 @@
         var statusEl = document.getElementById('quizTimerStatus');
         var badgeEl = document.getElementById('quizTimerBadge');
 
-        var pct = Math.max(0, (currentSec / timeRemaining) * 100);
+        var pct = Math.max(0, (currentSec / totalDuration) * 100);
 
         if (barEl) barEl.style.width = pct + '%';
         if (txtEl) txtEl.textContent = currentSec + 's';
@@ -689,6 +709,11 @@
     if (_timerInterval) clearInterval(_timerInterval);
     _isQuizActive = false;
 
+    if (_antiCheatHandler) {
+      document.removeEventListener('visibilitychange', _antiCheatHandler);
+      _antiCheatHandler = null;
+    }
+
     saveCurrentQuestionAnswer();
 
     var btnSubmit = document.getElementById('btnSubmitQuiz');
@@ -749,10 +774,24 @@
       var top3Html = '';
       if (leaderboard.length > 0) {
         top3Html = '<div style="display:flex;justify-content:center;align-items:flex-end;gap:12px;margin:24px 0 16px;">';
-        var ranks = [leaderboard[1], leaderboard[0], leaderboard[2]]; // [Silver, Gold, Bronze]
-        var icons = ['🥈', '🥇', '🥉'];
-        var heights = ['90px', '110px', '80px'];
-        var colors = ['#e2e8f0', '#fef08a', '#ffedd5'];
+        
+        var ranks, icons, heights, colors;
+        if (leaderboard.length >= 3) {
+          ranks = [leaderboard[1], leaderboard[0], leaderboard[2]];
+          icons = ['🥈', '🥇', '🥉'];
+          heights = ['90px', '110px', '80px'];
+          colors = ['#e2e8f0', '#fef08a', '#ffedd5'];
+        } else if (leaderboard.length === 2) {
+          ranks = [leaderboard[1], leaderboard[0]];
+          icons = ['🥈', '🥇'];
+          heights = ['90px', '110px'];
+          colors = ['#e2e8f0', '#fef08a'];
+        } else {
+          ranks = [leaderboard[0]];
+          icons = ['🥇'];
+          heights = ['110px'];
+          colors = ['#fef08a'];
+        }
 
         ranks.forEach(function (r, i) {
           if (!r) return;
@@ -828,7 +867,9 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/`/g, '&#96;');
   }
 
   function renderArabicHighlight(teks, highlightMarkup) {
@@ -837,13 +878,7 @@
     return escaped.replace(/\{\[(.+?)\]\}/g, '<span style="background:rgba(245,158,11,0.25);color:var(--amber-txt);padding:2px 6px;border-radius:6px;border:1px solid rgba(245,158,11,0.4);">$1</span>');
   }
 
-  function showLoading(msg) {
-    if (typeof window.showLoad === 'function') window.showLoad(msg);
-  }
 
-  function hideLoading() {
-    if (typeof window.hideLoad === 'function') window.hideLoad();
-  }
 
   // ─────────────────────────────────────────────
   // SHARIAH-COMPLIANT WEB AUDIO SYNTH (NO INSTRUMENTS)
