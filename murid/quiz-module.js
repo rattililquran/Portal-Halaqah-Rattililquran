@@ -1244,22 +1244,29 @@
     try {
       var ctx = getAudioContext();
       if (!ctx) return;
+      var t = ctx.currentTime;
 
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
+      // Layer 1: Sharp attack snap (square wave — bright, cuts through tiny speakers)
+      var osc1 = ctx.createOscillator();
+      var g1 = ctx.createGain();
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(1200, t);
+      osc1.frequency.exponentialRampToValueAtTime(300, t + 0.06);
+      g1.gain.setValueAtTime(0.9, t);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      osc1.connect(g1); g1.connect(ctx.destination);
+      osc1.start(t); osc1.stop(t + 0.06);
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(650, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.08);
-
-      gain.gain.setValueAtTime(0.7, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.08);
+      // Layer 2: Body resonance (triangle — warmth)
+      var osc2 = ctx.createOscillator();
+      var g2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(800, t);
+      osc2.frequency.exponentialRampToValueAtTime(200, t + 0.1);
+      g2.gain.setValueAtTime(0.6, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc2.start(t); osc2.stop(t + 0.1);
     } catch(e) {}
   }
 
@@ -1268,41 +1275,53 @@
     try {
       var ctx = getAudioContext();
       if (!ctx) return;
+      var t = ctx.currentTime;
 
-      // Lub
-      var osc1 = ctx.createOscillator();
-      var gain1 = ctx.createGain();
-      osc1.type = 'triangle';
-      osc1.frequency.setValueAtTime(180, ctx.currentTime);
-      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.12);
+      // Lub — bright attack + body
+      var osc1a = ctx.createOscillator();
+      var g1a = ctx.createGain();
+      osc1a.type = 'square';
+      osc1a.frequency.setValueAtTime(400, t);
+      osc1a.frequency.exponentialRampToValueAtTime(120, t + 0.15);
+      g1a.gain.setValueAtTime(0.95, t);
+      g1a.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc1a.connect(g1a); g1a.connect(ctx.destination);
+      osc1a.start(t); osc1a.stop(t + 0.15);
 
-      gain1.gain.setValueAtTime(0.6, ctx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      var osc1b = ctx.createOscillator();
+      var g1b = ctx.createGain();
+      osc1b.type = 'triangle';
+      osc1b.frequency.setValueAtTime(250, t);
+      osc1b.frequency.exponentialRampToValueAtTime(80, t + 0.18);
+      g1b.gain.setValueAtTime(0.7, t);
+      g1b.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc1b.connect(g1b); g1b.connect(ctx.destination);
+      osc1b.start(t); osc1b.stop(t + 0.18);
 
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-
-      osc1.start(ctx.currentTime);
-      osc1.stop(ctx.currentTime + 0.12);
-
-      // Dub
+      // Dub — slightly softer echo
       setTimeout(function() {
         if (_isSoundMuted) return;
-        var osc2 = ctx.createOscillator();
-        var gain2 = ctx.createGain();
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(150, ctx.currentTime);
-        osc2.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
+        var t2 = ctx.currentTime;
+        var osc2a = ctx.createOscillator();
+        var g2a = ctx.createGain();
+        osc2a.type = 'square';
+        osc2a.frequency.setValueAtTime(350, t2);
+        osc2a.frequency.exponentialRampToValueAtTime(100, t2 + 0.12);
+        g2a.gain.setValueAtTime(0.8, t2);
+        g2a.gain.exponentialRampToValueAtTime(0.001, t2 + 0.12);
+        osc2a.connect(g2a); g2a.connect(ctx.destination);
+        osc2a.start(t2); osc2a.stop(t2 + 0.12);
 
-        gain2.gain.setValueAtTime(0.5, ctx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-
-        osc2.start(ctx.currentTime);
-        osc2.stop(ctx.currentTime + 0.1);
-      }, 100);
+        var osc2b = ctx.createOscillator();
+        var g2b = ctx.createGain();
+        osc2b.type = 'triangle';
+        osc2b.frequency.setValueAtTime(200, t2);
+        osc2b.frequency.exponentialRampToValueAtTime(70, t2 + 0.14);
+        g2b.gain.setValueAtTime(0.6, t2);
+        g2b.gain.exponentialRampToValueAtTime(0.001, t2 + 0.14);
+        osc2b.connect(g2b); g2b.connect(ctx.destination);
+        osc2b.start(t2); osc2b.stop(t2 + 0.14);
+      }, 120);
     } catch(e) {}
   }
 
