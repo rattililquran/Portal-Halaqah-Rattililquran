@@ -19,6 +19,14 @@
   var _totalAwayDuration = 0;
   var _isQuizActive = false;
 
+  function showLoading(msg) {
+    if (typeof window.showLoad === 'function') window.showLoad(msg);
+  }
+
+  function hideLoading() {
+    if (typeof window.hideLoad === 'function') window.hideLoad();
+  }
+
   // ─────────────────────────────────────────────
   //  1. RENDER KUIS PAGE IN PORTAL MURID
   // ─────────────────────────────────────────────
