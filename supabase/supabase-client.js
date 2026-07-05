@@ -2643,63 +2643,70 @@ var GuruAPI = {
   },
 
   createSoal: async function(payload) {
-    var id_guru = _uid();
-    var id_soal = 'SL-' + _genId('');
-    var soalRow = {
-      id_soal: id_soal,
-      id_guru: id_guru,
-      tipe_soal: payload.tipe_soal,
-      teks_soal: payload.teks_soal,
-      teks_arab: payload.teks_arab || null,
-      highlight_markup: payload.highlight_markup || null,
-      audio_url: payload.audio_url || null,
-      audio_tipe: payload.audio_tipe || null,
-      isian_case_sensitive: payload.isian_case_sensitive || false,
-      isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
-      penjelasan: payload.penjelasan || null
-    };
+    try {
+      var id_guru = _uid();
+      var id_soal = 'SL-' + _genId('');
+      var soalRow = {
+        id_soal: id_soal,
+        id_guru: id_guru,
+        tipe_soal: payload.tipe_soal,
+        teks_soal: payload.teks_soal,
+        teks_arab: payload.teks_arab || null,
+        highlight_markup: payload.highlight_markup || null,
+        audio_url: payload.audio_url || null,
+        audio_tipe: payload.audio_tipe || null,
+        isian_case_sensitive: payload.isian_case_sensitive || false,
+        isian_abaikan_tanda_baca: payload.isian_abaikan_tanda_baca || false,
+        penjelasan: payload.penjelasan || null
+      };
 
-    var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
-    _check(error, 'createSoal');
+      var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
+      _check(error, 'createSoal');
 
-    if (payload.pilihan && payload.pilihan.length > 0) {
-      var pilihanRows = payload.pilihan.map(function(p, idx) {
-        return {
-          id_soal: id_soal,
-          teks_pilihan: p.teks_pilihan,
-          urutan: idx + 1,
-          is_benar: !!p.is_benar
-        };
-      });
-      var { error: pilErr } = await _sb.from('soal_pilihan').insert(pilihanRows);
-      _check(pilErr, 'createSoal:pilihan');
+      if (payload.pilihan && payload.pilihan.length > 0) {
+        var pilihanRows = payload.pilihan.map(function(p, idx) {
+          return {
+            id_soal: id_soal,
+            teks_pilihan: p.teks_pilihan,
+            urutan: idx + 1,
+            is_benar: !!p.is_benar
+          };
+        });
+        var { error: pilErr } = await _sb.from('soal_pilihan').insert(pilihanRows);
+        _check(pilErr, 'createSoal:pilihan');
+      }
+
+      if (payload.pasangan && payload.pasangan.length > 0) {
+        var pasanganRows = payload.pasangan.map(function(p, idx) {
+          return {
+            id_soal: id_soal,
+            teks_kiri: p.teks_kiri,
+            teks_kanan: p.teks_kanan,
+            urutan: idx + 1
+          };
+        });
+        var { error: pasErr } = await _sb.from('soal_pasangan').insert(pasanganRows);
+        _check(pasErr, 'createSoal:pasangan');
+      }
+
+      if (payload.kunci_isian && payload.kunci_isian.length > 0) {
+        var kunciRows = payload.kunci_isian.map(function(k) {
+          return {
+            id_soal: id_soal,
+            teks_kunci: String(k).trim()
+          };
+        });
+        var { error: kunErr } = await _sb.from('soal_kunci_isian').insert(kunciRows);
+        _check(kunErr, 'createSoal:kunci_isian');
+      }
+
+      return { status: 'ok', data: soalData };
+    } catch (e) {
+      if (e.message && (e.message.indexOf('Load failed') !== -1 || e.message.indexOf('Failed to fetch') !== -1)) {
+        throw new Error('Gagal menyimpan soal. Pastikan database patch_062_quiz_bugfix.sql sudah dijalankan di Supabase SQL Editor.');
+      }
+      throw e;
     }
-
-    if (payload.pasangan && payload.pasangan.length > 0) {
-      var pasanganRows = payload.pasangan.map(function(p, idx) {
-        return {
-          id_soal: id_soal,
-          teks_kiri: p.teks_kiri,
-          teks_kanan: p.teks_kanan,
-          urutan: idx + 1
-        };
-      });
-      var { error: pasErr } = await _sb.from('soal_pasangan').insert(pasanganRows);
-      _check(pasErr, 'createSoal:pasangan');
-    }
-
-    if (payload.kunci_isian && payload.kunci_isian.length > 0) {
-      var kunciRows = payload.kunci_isian.map(function(k) {
-        return {
-          id_soal: id_soal,
-          teks_kunci: String(k).trim()
-        };
-      });
-      var { error: kunErr } = await _sb.from('soal_kunci_isian').insert(kunciRows);
-      _check(kunErr, 'createSoal:kunci_isian');
-    }
-
-    return { status: 'ok', data: soalData };
   },
 
   updateSoal: async function(id_soal, payload) {
@@ -2714,14 +2721,21 @@ var GuruAPI = {
   },
 
   deleteSoal: async function(id_soal) {
-    var { error } = await _sb.from('soal').delete().eq('id_soal', id_soal);
-    if (error) {
-      if (error.code === '23503') {
-        throw new Error('Soal tidak bisa dihapus karena sedang digunakan dalam kuis.');
+    try {
+      var { error } = await _sb.from('soal').delete().eq('id_soal', id_soal);
+      if (error) {
+        if (error.code === '23503') {
+          throw new Error('Soal tidak bisa dihapus karena sedang digunakan dalam kuis.');
+        }
+        _check(error, 'deleteSoal');
       }
-      _check(error, 'deleteSoal');
+      return { status: 'ok' };
+    } catch (e) {
+      if (e.message && (e.message.indexOf('Load failed') !== -1 || e.message.indexOf('Failed to fetch') !== -1)) {
+        throw new Error('Soal tidak bisa dihapus. Silakan pastikan kuis yang menggunakan soal ini sudah dihapus atau database patch_062_quiz_bugfix.sql sudah dijalankan.');
+      }
+      throw e;
     }
-    return { status: 'ok' };
   },
 
   addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin, durasi_detik_override) {
@@ -2759,9 +2773,16 @@ var GuruAPI = {
   },
 
   removeSoalFromKuis: async function(id_quiz, id_soal) {
-    var { error } = await _sb.from('quiz_soal').delete().eq('id_quiz', id_quiz).eq('id_soal', id_soal);
-    _check(error, 'removeSoalFromKuis');
-    return { status: 'ok' };
+    try {
+      var { error } = await _sb.from('quiz_soal').delete().eq('id_quiz', id_quiz).eq('id_soal', id_soal);
+      if (error) _check(error, 'removeSoalFromKuis');
+      return { status: 'ok' };
+    } catch (e) {
+      if (e.message && (e.message.indexOf('Load failed') !== -1 || e.message.indexOf('Failed to fetch') !== -1)) {
+        throw new Error('Gagal menghapus soal dari kuis. Pastikan database patch_062_quiz_bugfix.sql sudah dijalankan di Supabase SQL Editor.');
+      }
+      throw e;
+    }
   },
 
   getHasilKuis: async function(id_quiz) {
