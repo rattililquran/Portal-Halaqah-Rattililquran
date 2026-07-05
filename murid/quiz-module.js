@@ -297,9 +297,14 @@
             <span id="quizTimerIcon" style="font-size:16px;">⏱️</span>
             <span id="quizTimerText">${timeRemaining}s</span>
           </span>
-          <span id="quizTimerStatus" style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;transition:all .3s ease;">
-            Sisa Waktu
-          </span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="btnToggleQuizSound" onclick="toggleQuizSound()" style="padding:2px 8px;border-radius:100px;border:none;background:var(--blue-l);color:var(--blue-d);font-size:10px;font-weight:800;cursor:pointer;">
+              ${_isSoundMuted ? '🔇 Bisu' : '🔊 Suara'}
+            </button>
+            <span id="quizTimerStatus" style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;transition:all .3s ease;">
+              Sisa Waktu
+            </span>
+          </div>
         </div>
 
         <div style="width:100%;height:14px;background:rgba(0,0,0,0.06);border-radius:100px;position:relative;overflow:visible;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
@@ -414,20 +419,22 @@
         if (barEl) barEl.style.width = pct + '%';
         if (txtEl) txtEl.textContent = currentSec + 's';
 
-        // TENSION ENGINE PHASES
+        // TENSION ENGINE PHASES & SHARIAH-COMPLIANT SFX
         if (currentSec > 10) {
-          // Phase 1: Safe Zone (Green/Sky Pacman)
+          // Phase 1: Safe Zone (Green/Sky Pacman + Soft Wood Click)
           if (barEl) barEl.style.background = 'linear-gradient(90deg, #10b981, #0ea5e9)';
           if (spriteEl) spriteEl.textContent = '👾';
           if (statusEl) { statusEl.textContent = 'Sisa Waktu'; statusEl.style.color = 'var(--text-3)'; }
+          playWoodClick();
         } else if (currentSec > 5) {
-          // Phase 2: Warning Zone (Amber Flame Fuse)
+          // Phase 2: Warning Zone (Amber Flame Fuse + Wood Click)
           if (barEl) barEl.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
           if (spriteEl) spriteEl.textContent = '🔥';
           if (statusEl) { statusEl.textContent = '⚠️ Waktu Menipis!'; statusEl.style.color = '#f59e0b'; }
           if (txtEl) txtEl.style.color = '#f59e0b';
-        } else {
-          // Phase 3: CRITICAL TENSION ZONE (< 5s) - Heartbeat & Flashing Bomb
+          playWoodClick();
+        } else if (currentSec > 0) {
+          // Phase 3: CRITICAL TENSION ZONE (< 5s) - Heartbeat Pulse Sound
           if (barEl) barEl.style.background = 'linear-gradient(90deg, #ef4444, #991b1b)';
           if (spriteEl) spriteEl.textContent = (currentSec % 2 === 0) ? '💣' : '💥';
           if (txtEl) {
@@ -442,6 +449,7 @@
             statusEl.style.color = '#ef4444';
             statusEl.style.fontWeight = '900';
           }
+          playHeartbeat();
         }
 
         if (currentSec <= 0) {
@@ -803,9 +811,99 @@
     if (typeof window.showLoad === 'function') window.showLoad(msg);
   }
 
-  function hideLoading() {
-    if (typeof window.hideLoad === 'function') window.hideLoad();
+  // ─────────────────────────────────────────────
+  // SHARIAH-COMPLIANT WEB AUDIO SYNTH (NO INSTRUMENTS)
+  // ─────────────────────────────────────────────
+  var _audioCtx = null;
+  var _isSoundMuted = false;
+
+  function getAudioContext() {
+    if (!_audioCtx) {
+      var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxClass) _audioCtx = new AudioCtxClass();
+    }
+    if (_audioCtx && _audioCtx.state === 'suspended') {
+      _audioCtx.resume();
+    }
+    return _audioCtx;
   }
+
+  function playWoodClick() {
+    if (_isSoundMuted) return;
+    try {
+      var ctx = getAudioContext();
+      if (!ctx) return;
+
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.035);
+
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.035);
+    } catch(e) {}
+  }
+
+  function playHeartbeat() {
+    if (_isSoundMuted) return;
+    try {
+      var ctx = getAudioContext();
+      if (!ctx) return;
+
+      // Lub
+      var osc1 = ctx.createOscillator();
+      var gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(85, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.07);
+
+      gain1.gain.setValueAtTime(0.5, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.07);
+
+      // Dub
+      setTimeout(function() {
+        if (_isSoundMuted) return;
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(70, ctx.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.06);
+
+        gain2.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+
+        osc2.start(ctx.currentTime);
+        osc2.stop(ctx.currentTime + 0.06);
+      }, 90);
+    } catch(e) {}
+  }
+
+  window.toggleQuizSound = function () {
+    _isSoundMuted = !_isSoundMuted;
+    var btn = document.getElementById('btnToggleQuizSound');
+    if (btn) {
+      btn.textContent = _isSoundMuted ? '🔇 Bisu' : '🔊 Suara';
+      btn.style.background = _isSoundMuted ? 'var(--bg-2)' : 'var(--blue-l)';
+      btn.style.color = _isSoundMuted ? 'var(--text-3)' : 'var(--blue-d)';
+    }
+  };
 
   function showQuizAlert(opts) {
     var type = opts.type || 'warning';
