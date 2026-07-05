@@ -981,8 +981,17 @@
             </div>
 
             <div id="csTeksArabWrap" style="display:none;margin-bottom:12px;">
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS ARAB</label>
-              <textarea id="csTeksArab" rows="2" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label style="font-size:11px;font-weight:700;color:var(--text-2);">TEKS ARAB</label>
+                <button type="button" onclick="applyTajwidHighlight()" style="font-size:10.5px;font-weight:800;color:var(--blue-d);background:var(--blue-l);border:none;padding:3px 8px;border-radius:100px;cursor:pointer;">✨ Tandai Highlight Tajwid</button>
+              </div>
+              <textarea id="csTeksArab" rows="2" oninput="updateTeksArabPreview(this.value)" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;"></textarea>
+              <div style="margin-top:6px;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:2px;">Pratinjau Teks Arab:</div>
+                <div id="csTeksArabPreview" style="font-family:'Amiri',serif;font-size:22px;direction:rtl;text-align:center;padding:12px;background:var(--bg-2);border-radius:var(--r-sm);border:1px solid var(--border);min-height:48px;word-break:break-word;">
+                  <span style="color:var(--text-3);">–</span>
+                </div>
+              </div>
             </div>
 
             <div id="csAudioWrap" style="display:none;margin-bottom:12px;">
@@ -1147,6 +1156,123 @@
       var quiz = res.quiz;
       var summary = res.summary;
       var hasilMurid = summary.hasil_murid || [];
+      var jawabanDetail = summary.jawaban_detail || [];
+      var quizSoalList = quiz.quiz_soal || [];
+
+      // 1. Calculate error rate per question (Soal Tersulit)
+      var soalStats = quizSoalList.map(function(qs) {
+        var s = qs.soal;
+        if (!s) return null;
+
+        var answers = jawabanDetail.filter(function(jd) { return jd.id_soal === s.id_soal; });
+        var totalAnswers = answers.length;
+        var wrongAnswers = answers.filter(function(jd) { 
+          return jd.is_benar === false || (jd.is_benar !== true && jd.skor_diperoleh === 0);
+        }).length;
+
+        var errorRate = totalAnswers > 0 ? Math.round((wrongAnswers / totalAnswers) * 100) : 0;
+
+        return {
+          id_soal: s.id_soal,
+          teks_soal: s.teks_soal,
+          tipe_soal: s.tipe_soal,
+          total_answers: totalAnswers,
+          wrong_answers: wrongAnswers,
+          error_rate: errorRate
+        };
+      }).filter(Boolean);
+
+      // Sort by error rate descending
+      soalStats.sort(function(a, b) { return b.error_rate - a.error_rate; });
+      var topWrongSoal = soalStats.slice(0, 3).filter(function(s) { return s.error_rate > 0; });
+
+      // 2. Score Distribution Histogram (CSS murni)
+      var dist = { range1: 0, range2: 0, range3: 0, range4: 0 };
+      hasilMurid.forEach(function(h) {
+        var pct = h.skor_maksimal > 0 ? (h.skor_total / h.skor_maksimal) * 100 : 0;
+        if (pct <= 25) dist.range1++;
+        else if (pct <= 50) dist.range2++;
+        else if (pct <= 75) dist.range3++;
+        else dist.range4++;
+      });
+      
+      var maxDist = Math.max(dist.range1, dist.range2, dist.range3, dist.range4) || 1;
+      var pct1 = Math.round((dist.range1 / maxDist) * 100);
+      var pct2 = Math.round((dist.range2 / maxDist) * 100);
+      var pct3 = Math.round((dist.range3 / maxDist) * 100);
+      var pct4 = Math.round((dist.range4 / maxDist) * 100);
+
+      // 3. Leaderboard Podium (🥇🥈🥉)
+      var top3Html = '';
+      if (hasilMurid.length > 0) {
+        top3Html = '<div style="display:flex;justify-content:center;align-items:flex-end;gap:12px;margin:16px 0 10px;">';
+        var ranks = [];
+        var icons = [];
+        var heights = [];
+        var colors = [];
+
+        if (hasilMurid.length >= 3) {
+          ranks = [hasilMurid[1], hasilMurid[0], hasilMurid[2]];
+          icons = ['🥈', '🥇', '🥉'];
+          heights = ['65px', '85px', '55px'];
+          colors = ['#e2e8f0', '#fef08a', '#ffedd5'];
+        } else if (hasilMurid.length === 2) {
+          ranks = [hasilMurid[1], hasilMurid[0]];
+          icons = ['🥈', '🥇'];
+          heights = ['65px', '85px'];
+          colors = ['#e2e8f0', '#fef08a'];
+        } else {
+          ranks = [hasilMurid[0]];
+          icons = ['🥇'];
+          heights = ['85px'];
+          colors = ['#fef08a'];
+        }
+
+        ranks.forEach(function(r, i) {
+          if (!r) return;
+          var name = r.users ? r.users.nama_lengkap : 'Murid';
+          top3Html += `
+            <div style="flex:1;max-width:110px;text-align:center;">
+              <div style="font-size:10.5px;font-weight:700;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+              <div style="height:${heights[i]};background:${colors[i]};border-radius:12px 12px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:var(--shadow);border:1px solid var(--border);">
+                <span style="font-size:18px;">${icons[i]}</span>
+                <span style="font-weight:900;font-size:11px;color:var(--text);margin-top:2px;">${r.skor_total}</span>
+              </div>
+            </div>
+          `;
+        });
+        top3Html += '</div>';
+      }
+
+      // 4. Hardest Questions HTML
+      var wrongSoalHtml = '';
+      if (topWrongSoal.length > 0) {
+        wrongSoalHtml = `
+          <div style="background:var(--red-l);border:1px solid rgba(239,68,68,0.2);padding:14px;border-radius:var(--r-lg);margin-bottom:20px;">
+            <h4 style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.02em;">⚠️ Soal Tersulit (Butuh Review Kelas)</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+        `;
+        topWrongSoal.forEach(function(ws, idx) {
+          wrongSoalHtml += `
+            <div style="background:var(--card-solid);padding:10px;border-radius:var(--r-sm);border:1px solid rgba(239,68,68,0.15);font-size:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px;">
+                <span style="font-weight:800;color:var(--text);">#${idx + 1}. Tipe: <span style="text-transform:capitalize;">${ws.tipe_soal.replace('_', ' ')}</span></span>
+                <span style="font-weight:900;color:var(--red);font-size:11.5px;">${ws.error_rate}% Salah</span>
+              </div>
+              <div style="color:var(--text-2);font-weight:500;line-height:1.45;word-break:break-word;">
+                "${escapeHtml(ws.teks_soal)}"
+              </div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:4px;">
+                Dijawab salah oleh ${ws.wrong_answers} dari ${ws.total_answers} murid
+              </div>
+            </div>
+          `;
+        });
+        wrongSoalHtml += `
+            </div>
+          </div>
+        `;
+      }
 
       var rowsHtml = hasilMurid.map(function(h, idx) {
         var name = h.users ? h.users.nama_lengkap : 'Murid';
@@ -1184,10 +1310,59 @@
               </div>
             </div>
 
-            <div style="overflow-x:auto;">
+            <!-- Visual Leaderboard & Analytics Grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;margin-bottom:20px;">
+              <!-- Podium section -->
+              <div style="background:var(--bg-2);padding:16px;border-radius:var(--r-lg);display:flex;flex-direction:column;justify-content:center;">
+                <h4 style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.02em;text-align:center;">🏆 Peringkat Kelas (Podium)</h4>
+                ${top3Html || '<div style="text-align:center;color:var(--text-3);padding:20px;font-size:12px;">Belum ada peringkat kuis</div>'}
+              </div>
+
+              <!-- Value Distribution -->
+              <div style="background:var(--bg-2);padding:16px;border-radius:var(--r-lg);">
+                <h4 style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.02em;">📊 Distribusi Nilai Kelas</h4>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:10.5px;font-weight:700;color:var(--text-3);width:60px;">0 - 25%</span>
+                    <div style="flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;">
+                      <div style="width:${pct1}%;height:100%;background:var(--red);border-radius:5px;"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:800;color:var(--text);width:20px;text-align:right;">${dist.range1}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:10.5px;font-weight:700;color:var(--text-3);width:60px;">26 - 50%</span>
+                    <div style="flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;">
+                      <div style="width:${pct2}%;height:100%;background:var(--amber);border-radius:5px;"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:800;color:var(--text);width:20px;text-align:right;">${dist.range2}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:10.5px;font-weight:700;color:var(--text-3);width:60px;">51 - 75%</span>
+                    <div style="flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;">
+                      <div style="width:${pct3}%;height:100%;background:var(--blue);border-radius:5px;"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:800;color:var(--text);width:20px;text-align:right;">${dist.range3}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:10.5px;font-weight:700;color:var(--text-3);width:60px;">76 - 100%</span>
+                    <div style="flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden;">
+                      <div style="width:${pct4}%;height:100%;background:var(--green);border-radius:5px;"></div>
+                    </div>
+                    <span style="font-size:11px;font-weight:800;color:var(--text);width:20px;text-align:right;">${dist.range4}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hardest Question Warning Box -->
+            ${wrongSoalHtml}
+
+            <!-- Score Table -->
+            <div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.02em;">📝 Rincian Nilai Murid</div>
+            <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-sm);">
               <table style="width:100%;border-collapse:collapse;text-align:left;">
                 <thead>
-                  <tr style="background:var(--bg-2);font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;">
+                  <tr style="background:var(--bg-2);font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;border-bottom:1px solid var(--border);">
                     <th style="padding:10px;">No</th>
                     <th style="padding:10px;">Nama Murid</th>
                     <th style="padding:10px;">Skor</th>
@@ -1281,5 +1456,34 @@
       if (typeof opts.callback === 'function') opts.callback();
     };
   }
+
+  window.applyTajwidHighlight = function() {
+    var el = document.getElementById('csTeksArab');
+    if (!el) return;
+    var start = el.selectionStart;
+    var end = el.selectionEnd;
+    var val = el.value;
+    if (start === end) {
+      alert('Silakan blok/seleksi beberapa huruf atau kata Arab terlebih dahulu untuk ditandai!');
+      return;
+    }
+    var selected = val.substring(start, end);
+    el.value = val.substring(0, start) + '{[' + selected + ']}' + val.substring(end);
+    el.dispatchEvent(new Event('input'));
+    el.focus();
+  };
+
+  window.updateTeksArabPreview = function(val) {
+    var previewEl = document.getElementById('csTeksArabPreview');
+    if (!previewEl) return;
+    if (!val) {
+      previewEl.innerHTML = '<span style="color:var(--text-3); font-size:14px;">–</span>';
+      return;
+    }
+    var html = escapeHtml(val).replace(/\{\[(.*?)\]\}/g, function(match, content) {
+      return `<span style="background:rgba(239,68,68,0.15); border-bottom:2px solid #ef4444; border-radius:4px; padding:2px 4px; font-weight:800; color:var(--text);">${content}</span>`;
+    });
+    previewEl.innerHTML = html;
+  };
 
 })();
