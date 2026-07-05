@@ -170,42 +170,69 @@
       insEl.style.display = 'block';
 
       insEl.innerHTML = `
-        <div style="background:var(--card-solid);border-radius:var(--r-xl);padding:28px 22px;border:1px solid var(--border);box-shadow:var(--shadow-lg);max-width:520px;margin:0 auto;">
-          <div style="text-align:center;margin-bottom:20px;">
-            <div style="font-size:48px;margin-bottom:8px;">📝</div>
-            <h2 style="font-size:18px;font-weight:800;color:var(--text);">${escapeHtml(_quizData.judul)}</h2>
-            <p style="font-size:12px;color:var(--text-3);margin-top:4px;">${escapeHtml(_quizData.deskripsi || '')}</p>
+        <div style="background:var(--card-solid);border-radius:var(--r-xl);padding:30px 24px;border:1px solid var(--border);box-shadow:var(--shadow-lg);max-width:540px;margin:0 auto;text-align:center;">
+          
+          <!-- Basmalah & Header Icon -->
+          <div style="margin-bottom:18px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(14,165,233,0.15));border:1px solid rgba(16,185,129,0.3);font-size:32px;margin:0 auto 12px;box-shadow:0 8px 20px rgba(0,0,0,0.06);">
+              📖
+            </div>
+            
+            <div style="font-family:'Amiri',serif;font-size:26px;color:#059669;margin-bottom:8px;direction:rtl;line-height:1.4;font-weight:700;letter-spacing:0.02em;">
+              بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+            </div>
+
+            <h2 style="font-size:18px;font-weight:900;color:var(--text);line-height:1.3;margin-bottom:6px;">
+              ${escapeHtml(_quizData.judul)}
+            </h2>
+            <p style="font-size:12px;color:var(--text-3);line-height:1.5;">
+              ${escapeHtml(_quizData.deskripsi || '')}
+            </p>
           </div>
 
-          <div style="background:var(--bg-2);border-radius:var(--r-lg);padding:16px;margin-bottom:20px;font-size:12px;">
+          <!-- Nasihat Kejujuran & Doa Card -->
+          <div style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(16,185,129,0.08));border:1px solid rgba(245,158,11,0.25);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:18px;text-align:center;">
+            <div style="font-size:12px;font-weight:800;color:var(--amber-txt);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px;">
+              <span>✨ Nasihat & Adab Mengerjakan Kuis</span>
+            </div>
+            <p style="font-size:11.5px;color:var(--text-2);line-height:1.5;margin-bottom:10px;font-style:italic;">
+              "Sesungguhnya kejujuran akan membawa kepada kebaikan, dan kebaikan akan membawa ke dalam surga." (HR. Bukhari & Muslim)
+            </p>
+            <div style="background:rgba(255,255,255,0.7);padding:8px 12px;border-radius:var(--r-sm);border:1px dashed rgba(16,185,129,0.3);">
+              <div style="font-family:'Amiri',serif;font-size:18px;color:#047857;direction:rtl;margin-bottom:2px;">
+                رَبِّ زِدْنِي عِلْمًا وَارْزُقْنِي فَهْمًا
+              </div>
+              <div style="font-size:10.5px;color:var(--text-3);">
+                "Ya Rabb-ku, tambahkanlah kepadaku ilmu dan berilah aku kefahaman."
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Info List -->
+          <div style="background:var(--bg-2);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:18px;font-size:12px;text-align:left;">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-              <span style="color:var(--text-3);">Jumlah Soal</span>
-              <strong style="color:var(--text);">${_quizData.soal.length} Butir Soal</strong>
+              <span style="color:var(--text-3);font-weight:600;">Jumlah Soal</span>
+              <strong style="color:var(--text);font-weight:800;">${_quizData.soal.length} Butir Soal</strong>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-              <span style="color:var(--text-3);">Waktu per Soal</span>
-              <strong style="color:var(--text);">${_quizData.durasi_per_soal_detik ? _quizData.durasi_per_soal_detik + ' Detik' : 'Tanpa Batas'}</strong>
+              <span style="color:var(--text-3);font-weight:600;">Waktu per Soal</span>
+              <strong style="color:var(--text);font-weight:800;">${_quizData.durasi_per_soal_detik ? _quizData.durasi_per_soal_detik + ' Detik' : 'Tanpa Batas'}</strong>
             </div>
             <div style="display:flex;justify-content:space-between;">
-              <span style="color:var(--text-3);">Pengawasan Anti-Cheat</span>
-              <strong style="color:${_quizData.anti_tab_aktif ? 'var(--amber-txt)' : 'var(--text-3)'};">
-                ${_quizData.anti_tab_aktif ? '⚠️ Peringatan Pindah Tab Aktif' : 'Nonaktif'}
+              <span style="color:var(--text-3);font-weight:600;">Pengawasan Anti-Cheat</span>
+              <strong style="color:${_quizData.anti_tab_aktif ? 'var(--amber-txt)' : 'var(--text-3)'}; font-weight:800;">
+                ${_quizData.anti_tab_aktif ? '⚠️ Peringatan Pindah Tab' : 'Nonaktif'}
               </strong>
             </div>
           </div>
 
-          ${_quizData.anti_tab_aktif ? `
-            <div style="background:var(--amber-l);border:1px solid rgba(245,158,11,0.2);color:var(--amber-txt);padding:12px 14px;border-radius:var(--r-sm);font-size:11px;line-height:1.5;margin-bottom:20px;">
-              <strong>⚠️ Perhatian:</strong> Jangan berpindah tab atau meninggalkan aplikasi selama pengerjaan kuis. Sistem akan mencatat aktivitas keluar tab.
-            </div>
-          ` : ''}
-
+          <!-- Buttons -->
           <div style="display:flex;gap:10px;">
-            <button onclick="cancelQuizFlow()" style="flex:1;padding:12px;background:var(--bg-2);color:var(--text-2);border:none;border-radius:var(--r-pill,100px);font-weight:700;font-size:13px;cursor:pointer;">
+            <button onclick="cancelQuizFlow()" style="flex:1;padding:13px;background:var(--bg-2);color:var(--text-2);border:none;border-radius:var(--r-pill,100px);font-weight:700;font-size:13px;cursor:pointer;">
               Batal
             </button>
-            <button onclick="beginQuizPlay()" style="flex:2;padding:12px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue);">
-              Mulai Pengerjaan 🚀
+            <button onclick="beginQuizPlay()" style="flex:2;padding:13px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,0.35);">
+              بِسْمِ اللَّهِ — Mulai Kuis 🚀
             </button>
           </div>
         </div>
