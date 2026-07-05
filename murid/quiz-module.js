@@ -822,7 +822,7 @@
         html += `
           <div style="background:var(--bg-2);padding:12px 14px;border-radius:var(--r-sm);display:flex;flex-direction:column;gap:6px;">
             <div style="font-weight:700;font-size:13px;color:var(--text);">${idx + 1}. ${escapeHtml(pas.teks_kiri)}</div>
-            <select onchange="updateMatchingAnswer('${soal.id_soal}', '${escapeHtml(pas.teks_kiri)}', this.value)" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;background:#fff;">
+            <select onchange="updateMatchingAnswer('${soal.id_soal}', '${escapeHtml(pas.teks_kiri)}', this.value)" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;background:var(--card-solid);color:var(--text);">
               <option value="">-- Pilih Pasangan --</option>
               ${(pas.opsi_kanan || []).map(function(k){
                 return `<option value="${escapeHtml(k)}" ${k === selectedKanan ? 'selected' : ''}>${escapeHtml(k)}</option>`;
@@ -840,7 +840,7 @@
       return `
         <div>
           <label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;">Ketik Jawaban Singkat (Latin):</label>
-          <input type="text" maxlength="500" value="${escapeHtml(teksSaved)}" oninput="updateIsianAnswer('${soal.id_soal}', this.value)" placeholder="Ketik jawaban kamu di sini..." style="width:100%;padding:14px;border-radius:var(--r-sm);border:1.5px solid var(--blue);font-family:inherit;font-size:14px;font-weight:600;outline:none;background:#fff;">
+          <input type="text" maxlength="500" value="${escapeHtml(teksSaved)}" oninput="updateIsianAnswer('${soal.id_soal}', this.value)" placeholder="Ketik jawaban kamu di sini..." style="width:100%;padding:14px;border-radius:var(--r-sm);border:1.5px solid var(--blue);font-family:inherit;font-size:14px;font-weight:600;outline:none;background:var(--card-solid);color:var(--text);">
           <p style="font-size:11px;color:var(--text-3);margin-top:6px;">*Jawaban akan diperiksa otomatis atau ditinjau ustadz/ustadzah.</p>
         </div>
       `;
@@ -1100,7 +1100,7 @@
               var correctKanan = correctPair ? correctPair.teks_kanan : '?';
               var isPairRight = m.kanan_dipilih === correctKanan;
               answerDetailHtml += `
-                <div style="background:${isPairRight ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};padding:6px 10px;border-radius:6px;border-left:3px solid ${isPairRight ? '#10b981' : '#ef4444'};">
+                <div style="background:${isPairRight ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};color:var(--text);padding:6px 10px;border-radius:6px;border-left:3px solid ${isPairRight ? '#10b981' : '#ef4444'};">
                   <span style="font-weight:700;">${escapeHtml(m.kiri)}</span>
                   <span style="color:var(--text-3);margin:0 6px;">→</span>
                   <span>${escapeHtml(m.kanan_dipilih || '(tidak dipilih)')}</span>

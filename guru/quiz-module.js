@@ -749,7 +749,7 @@
       _currentQuizData = quiz;
       var existingQuizSoal = quiz.quiz_soal || [];
 
-      var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;height:65vh;"><div style="flex:1;min-width:300px;overflow-y:auto;background:var(--bg-2);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);">';
+      var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;"><div style="flex:1;min-width:300px;height:450px;overflow-y:auto;background:var(--bg-2);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);">';
       html += `<div style="font-size:12px;font-weight:800;color:var(--text-3);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.02em;">Soal di Kuis Saat Ini (${existingQuizSoal.length})</div>`;
       html += existingQuizSoal.map(function(qs, idx) {
         var s = qs.soal;
@@ -775,7 +775,7 @@
 
       html += `
           </div>
-          <div style="flex:1.2;min-width:280px;background:var(--bg-2);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+          <div style="flex:1.2;min-width:280px;height:450px;background:var(--bg-2);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;overflow:hidden;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <h4 style="font-size:13px;font-weight:800;color:var(--text);">📦 Pilih dari Bank Soal</h4>
               <button onclick="openModalCreateSoal('${escapeJsStr(id_quiz)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;">➕ Buat Soal Baru</button>
@@ -813,7 +813,7 @@
 
       modalEl.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeGuruQuizModal()">
-          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:880px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:14px;">
+          <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:880px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <h3 style="font-size:16px;font-weight:800;color:var(--text)">⚙️ Kelola Soal: ${escapeHtml(quiz.judul)}</h3>
               <button onclick="closeGuruQuizModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
