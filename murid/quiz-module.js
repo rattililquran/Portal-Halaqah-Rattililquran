@@ -766,6 +766,8 @@
       resEl.style.display = 'block';
 
       var hasil = hasilRes.hasil;
+      var jawaban = hasilRes.jawaban || [];
+      var reviewSetting = hasilRes.tampilkan_jawaban_setting || 'setelah_submit';
       var leaderboard = leaderboardRes.data || [];
 
       var percent = hasil.skor_maksimal > 0 ? Math.round((hasil.skor_total / hasil.skor_maksimal) * 100) : 0;
@@ -823,17 +825,123 @@
       });
       listOthersHtml += '</div>';
 
+      // ─── Build answer review section based on tampilkan_jawaban_setting ───
+      var reviewHtml = '';
+      if (reviewSetting === 'setelah_submit' && jawaban.length > 0) {
+        reviewHtml = `
+          <div style="background:var(--card-solid);border-radius:var(--r-xl);padding:22px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;">
+            <h3 style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:16px;">📋 Review Jawaban Kamu</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+        `;
+
+        jawaban.forEach(function(j, idx) {
+          var soal = j.soal || {};
+          var isBenar = j.is_benar === true;
+          var isNull = j.is_benar === null || j.is_benar === undefined;
+          var pilihan = soal.soal_pilihan || [];
+
+          var statusBadge = isNull
+            ? '<span style="font-size:10px;font-weight:800;background:rgba(245,158,11,0.15);color:#d97706;padding:2px 8px;border-radius:100px;">⏳ Menunggu Review</span>'
+            : isBenar
+              ? '<span style="font-size:10px;font-weight:800;background:rgba(16,185,129,0.15);color:#059669;padding:2px 8px;border-radius:100px;">✅ Benar</span>'
+              : '<span style="font-size:10px;font-weight:800;background:rgba(239,68,68,0.15);color:#dc2626;padding:2px 8px;border-radius:100px;">❌ Salah</span>';
+
+          var borderColor = isNull ? 'rgba(245,158,11,0.35)' : isBenar ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)';
+          var bgColor = isNull ? 'rgba(245,158,11,0.04)' : isBenar ? 'rgba(16,185,129,0.04)' : 'rgba(239,68,68,0.04)';
+
+          // Build answer detail block
+          var answerDetailHtml = '';
+
+          if (soal.tipe_soal === 'isian_singkat') {
+            answerDetailHtml = `
+              <div style="font-size:12px;color:var(--text-2);margin-top:8px;background:var(--bg-2);padding:8px 10px;border-radius:var(--r-sm);">
+                <div><strong>Jawaban kamu:</strong> ${escapeHtml(j.teks_isian || '(tidak dijawab)')}</div>
+                ${isBenar === false ? '<div style="color:#059669;margin-top:4px;"><strong>Catatan:</strong> Akan ditinjau oleh ustadz/ustadzah.</div>' : ''}
+              </div>
+            `;
+          } else if (soal.tipe_soal === 'matching') {
+            var matchingPairs = [];
+            try { matchingPairs = j.matching_json ? JSON.parse(j.matching_json) : []; } catch(e) {}
+            answerDetailHtml = '<div style="font-size:12px;color:var(--text-2);margin-top:8px;display:flex;flex-direction:column;gap:4px;">';
+            matchingPairs.forEach(function(m) {
+              var correctPair = (soal.soal_pasangan || []).find(function(p){ return p.teks_kiri === m.kiri; });
+              var correctKanan = correctPair ? correctPair.teks_kanan : '?';
+              var isPairRight = m.kanan_dipilih === correctKanan;
+              answerDetailHtml += `
+                <div style="background:${isPairRight ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};padding:6px 10px;border-radius:6px;border-left:3px solid ${isPairRight ? '#10b981' : '#ef4444'};">
+                  <span style="font-weight:700;">${escapeHtml(m.kiri)}</span>
+                  <span style="color:var(--text-3);margin:0 6px;">→</span>
+                  <span>${escapeHtml(m.kanan_dipilih || '(tidak dipilih)')}</span>
+                  ${!isPairRight ? '<span style="color:#059669;font-size:11px;margin-left:8px;">✓ ' + escapeHtml(correctKanan) + '</span>' : ''}
+                </div>
+              `;
+            });
+            answerDetailHtml += '</div>';
+          } else {
+            // Pilihan ganda, benar_salah, audio, teks_arab
+            var pilihanHtml = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">';
+            pilihan.forEach(function(p) {
+              var isMyAnswer = j.id_pilihan === p.id_pilihan;
+              var isCorrectAnswer = p.is_benar;
+              var rowBg = 'var(--bg-2)';
+              var rowBorder = '1px solid var(--border)';
+              var prefix = '';
+              if (isMyAnswer && isCorrectAnswer) { rowBg = 'rgba(16,185,129,0.12)'; rowBorder = '1.5px solid #10b981'; prefix = '✅ '; }
+              else if (isMyAnswer && !isCorrectAnswer) { rowBg = 'rgba(239,68,68,0.10)'; rowBorder = '1.5px solid #ef4444'; prefix = '❌ '; }
+              else if (isCorrectAnswer) { rowBg = 'rgba(16,185,129,0.06)'; rowBorder = '1.5px dashed #10b981'; prefix = '✓ '; }
+              pilihanHtml += `
+                <div style="padding:8px 12px;background:${rowBg};border:${rowBorder};border-radius:8px;font-size:12.5px;font-weight:${isMyAnswer ? '700' : '500'};color:var(--text);">
+                  ${prefix}${escapeHtml(p.teks_pilihan)}
+                </div>
+              `;
+            });
+            pilihanHtml += '</div>';
+            answerDetailHtml = pilihanHtml;
+          }
+
+          reviewHtml += `
+            <div style="border:1.5px solid ${borderColor};background:${bgColor};border-radius:var(--r-md);padding:14px;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.4;flex:1;">
+                  <span style="font-size:11px;font-weight:800;color:var(--text-3);margin-right:6px;">${idx + 1}.</span>
+                  ${escapeHtml(soal.teks_soal || '')}
+                </div>
+                <div style="flex-shrink:0;">${statusBadge}</div>
+              </div>
+              ${soal.teks_arab ? `<div style="font-family:'Amiri',serif;font-size:18px;direction:rtl;text-align:right;background:var(--bg-2);padding:8px 10px;border-radius:var(--r-sm);margin-bottom:8px;color:var(--text);">${renderArabicHighlight(soal.teks_arab, soal.highlight_markup)}</div>` : ''}
+              ${answerDetailHtml}
+              ${j.skor_diperoleh !== null && j.skor_diperoleh !== undefined ? `<div style="font-size:11px;color:var(--text-3);font-weight:700;margin-top:6px;text-align:right;">+${j.skor_diperoleh} Poin</div>` : ''}
+            </div>
+          `;
+        });
+
+        reviewHtml += '</div></div>';
+      } else if (reviewSetting === 'hanya_skor') {
+        reviewHtml = `
+          <div style="background:rgba(14,165,233,0.06);border:1.5px solid rgba(14,165,233,0.25);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--blue-d);">📊 Ustadz/ustadzah menyembunyikan detail jawaban untuk kuis ini.</div>
+          </div>
+        `;
+      }
+
       resEl.innerHTML = `
         <div style="max-width:540px;margin:0 auto;">
           <div style="background:var(--card-solid);border-radius:var(--r-xl);padding:28px 22px;border:1px solid var(--border);box-shadow:var(--shadow-lg);text-align:center;margin-bottom:20px;">
             <div style="font-size:52px;margin-bottom:6px;">${isPerfect ? '🎉' : '👏'}</div>
             <h2 style="font-size:20px;font-weight:900;color:var(--text);">Kuis Selesai!</h2>
             
+            ${reviewSetting !== 'sembunyikan' ? `
             <div style="margin:20px 0;background:var(--bg-2);padding:18px;border-radius:var(--r-lg);">
               <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;">Skor Kamu</div>
               <div style="font-size:38px;font-weight:900;color:var(--blue-d);line-height:1.2;margin:4px 0;">${hasil.skor_total} <span style="font-size:18px;color:var(--text-3);">/ ${hasil.skor_maksimal}</span></div>
               <div style="font-size:12px;font-weight:700;color:var(--green);">${hasil.jumlah_benar} Jawaban Benar</div>
             </div>
+            ` : `
+            <div style="margin:20px 0;background:var(--bg-2);padding:18px;border-radius:var(--r-lg);">
+              <div style="font-size:36px;margin-bottom:8px;">🔒</div>
+              <div style="font-size:13px;color:var(--text-2);font-weight:600;">Hasil kuis disembunyikan oleh ustadz/ustadzah. Jazakallahu khairan atas kesungguhan belajar Anda!</div>
+            </div>
+            `}
 
             ${hasil.flag_suspicious ? `
               <div style="background:var(--red-l);border:1px solid rgba(239,68,68,0.2);color:var(--red);padding:10px;border-radius:var(--r-sm);font-size:11px;margin-bottom:14px;">
@@ -845,6 +953,8 @@
               Kembali ke Daftar Kuis
             </button>
           </div>
+
+          ${reviewHtml}
 
           <!-- Leaderboard Section -->
           <div style="background:var(--card-solid);border-radius:var(--r-xl);padding:22px;border:1px solid var(--border);box-shadow:var(--shadow);">

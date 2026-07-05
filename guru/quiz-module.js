@@ -664,6 +664,16 @@
             </div>
 
             <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">📋 TAMPILKAN REVIEW JAWABAN KE MURID</label>
+              <select id="eqTampilkanJawaban" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+                <option value="setelah_submit" ${(kuisData.tampilkan_jawaban || 'setelah_submit') === 'setelah_submit' ? 'selected' : ''}>✅ Tampilkan setelah submit (Semua jawaban + kunci benar)</option>
+                <option value="hanya_skor" ${kuisData.tampilkan_jawaban === 'hanya_skor' ? 'selected' : ''}>📊 Hanya tampilkan skor total (Jawaban disembunyikan)</option>
+                <option value="sembunyikan" ${kuisData.tampilkan_jawaban === 'sembunyikan' ? 'selected' : ''}>🔒 Sembunyikan semua hasil (Hanya konfirmasi selesai)</option>
+              </select>
+              <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Pilih bagaimana murid dapat melihat hasil kuis setelah selesai mengerjakan.</div>
+            </div>
+
+            <div style="margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">ASSIGN KE HALAQAH *</label>
               <div style="background:var(--bg-2);padding:10px;border-radius:var(--r-sm);display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;">
                 ${halaqahOptionsHtml}
@@ -693,6 +703,7 @@
       urutan_soal: document.getElementById('eqUrutan').value,
       boleh_retake: document.getElementById('eqBolehRetake').value === 'true',
       anti_tab_aktif: document.getElementById('eqAntiTab').value === 'true',
+      tampilkan_jawaban: document.getElementById('eqTampilkanJawaban').value,
       id_halaqah_list: idHalaqahList
     };
 
