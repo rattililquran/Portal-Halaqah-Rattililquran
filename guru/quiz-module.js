@@ -45,14 +45,14 @@
             </button>
           </div>
 
-          <div style="display:flex;gap:8px;border-bottom:1px solid var(--border);padding-bottom:2px;overflow-x:auto;">
-            <button onclick="switchGuruQuizTab('kuis', this)" class="gquiz-tab active" style="padding:8px 16px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--blue-d);border-bottom:2.5px solid var(--blue-d);cursor:pointer;">
+          <div style="display:inline-flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:100px;border:1px solid rgba(0,0,0,0.03);overflow-x:auto;max-width:100%;">
+            <button onclick="switchGuruQuizTab('kuis', this)" class="gquiz-tab active" style="padding:8px 18px;border:none;border-radius:100px;background:#fff;font-family:inherit;font-size:13px;font-weight:800;color:var(--blue-d);box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;transition:all 0.2s ease;white-space:nowrap;display:flex;align-items:center;gap:6px;">
               📋 Daftar Kuis
             </button>
-            <button onclick="switchGuruQuizTab('bank', this)" class="gquiz-tab" style="padding:8px 16px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-3);cursor:pointer;">
+            <button onclick="switchGuruQuizTab('bank', this)" class="gquiz-tab" style="padding:8px 18px;border:none;border-radius:100px;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-3);cursor:pointer;transition:all 0.2s ease;white-space:nowrap;display:flex;align-items:center;gap:6px;">
               📦 Bank Soal
             </button>
-            <button onclick="switchGuruQuizTab('review', this)" class="gquiz-tab" style="padding:8px 16px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-3);cursor:pointer;">
+            <button onclick="switchGuruQuizTab('review', this)" class="gquiz-tab" style="padding:8px 18px;border:none;border-radius:100px;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-3);cursor:pointer;transition:all 0.2s ease;white-space:nowrap;display:flex;align-items:center;gap:6px;">
               ⏳ Antrian Review Isian <span id="badgeAntrianReview" style="background:var(--red);color:#fff;border-radius:100px;font-size:10px;padding:1px 6px;margin-left:4px;display:none;">0</span>
             </button>
           </div>
@@ -75,12 +75,16 @@
     _activeTab = tabName;
     document.querySelectorAll('.gquiz-tab').forEach(function (b) {
       b.style.color = 'var(--text-3)';
-      b.style.borderBottom = 'none';
+      b.style.background = 'transparent';
+      b.style.boxShadow = 'none';
+      b.style.fontWeight = '700';
       b.classList.remove('active');
     });
     if (btnEl) {
       btnEl.style.color = 'var(--blue-d)';
-      btnEl.style.borderBottom = '2.5px solid var(--blue-d)';
+      btnEl.style.background = '#fff';
+      btnEl.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
+      btnEl.style.fontWeight = '800';
       btnEl.classList.add('active');
     }
     loadGuruQuizTabContent();
@@ -147,17 +151,17 @@
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <button onclick="manageSoalKuis('${escapeJsStr(q.id_quiz)}')" style="padding:8px;background:var(--blue-l);color:var(--blue-d);border:none;border-radius:var(--r-sm);font-weight:700;font-size:11.5px;cursor:pointer;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button onclick="manageSoalKuis('${escapeJsStr(q.id_quiz)}')" style="padding:9px 8px;background:var(--blue-l);color:var(--blue-d);border:1.5px solid rgba(37,99,235,0.12);border-radius:10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.2s;">
                 ⚙️ Kelola Soal (${q.total_soal})
               </button>
-              <button onclick="viewHasilKuisGuru('${escapeJsStr(q.id_quiz)}')" style="padding:8px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-sm);font-weight:700;font-size:11.5px;cursor:pointer;">
+              <button onclick="viewHasilKuisGuru('${escapeJsStr(q.id_quiz)}')" style="padding:9px 8px;background:rgba(16,185,129,0.08);color:#059669;border:1.5px solid rgba(16,185,129,0.15);border-radius:10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.2s;">
                 📊 Laporan & Hasil
               </button>
-              <button onclick="openModalEditKuis('${escapeJsStr(q.id_quiz)}')" style="padding:8px;background:var(--bg-2);color:var(--text-2);border:none;border-radius:var(--r-sm);font-weight:700;font-size:11.5px;cursor:pointer;">
+              <button onclick="openModalEditKuis('${escapeJsStr(q.id_quiz)}')" style="padding:9px 8px;background:var(--bg-2);color:var(--text-2);border:1.5px solid var(--border);border-radius:10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.2s;">
                 ✏️ Edit Setting
               </button>
-              <button onclick="deleteKuisConfirm('${escapeJsStr(q.id_quiz)}')" style="padding:8px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--r-sm);font-weight:700;font-size:11.5px;cursor:pointer;">
+              <button onclick="deleteKuisConfirm('${escapeJsStr(q.id_quiz)}')" style="padding:9px 8px;background:var(--red-l);color:var(--red);border:1.5px solid rgba(239,68,68,0.12);border-radius:10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.2s;">
                 🗑️ Hapus
               </button>
             </div>

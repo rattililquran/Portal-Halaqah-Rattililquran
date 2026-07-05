@@ -39,52 +39,52 @@
       <div class="quiz-container">
         <div id="quizListView">
           <!-- Tab Navigation -->
-          <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:20px;gap:8px;">
-            <button id="tabKuisTersedia" onclick="switchQuizTab('tersedia')" style="padding:10px 16px;font-weight:800;font-size:13.5px;color:var(--blue-d);border:none;border-bottom:3px solid var(--blue);background:none;cursor:pointer;transition:all 0.2s;">
+          <div style="display:inline-flex;background:rgba(0,0,0,0.04);padding:4px;border-radius:100px;margin-bottom:24px;border:1px solid rgba(0,0,0,0.03);overflow-x:auto;max-width:100%;">
+            <button id="tabKuisTersedia" onclick="switchQuizTab('tersedia')" style="padding:8px 20px;font-weight:800;font-size:13px;color:var(--blue-d);border:none;border-radius:100px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.05);cursor:pointer;transition:all 0.25s ease;display:flex;align-items:center;gap:6px;white-space:nowrap;">
               🎯 Kuis Tersedia
             </button>
-            <button id="tabKuisProgres" onclick="switchQuizTab('progres')" style="padding:10px 16px;font-weight:700;font-size:13.5px;color:var(--text-3);border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;transition:all 0.2s;">
+            <button id="tabKuisProgres" onclick="switchQuizTab('progres')" style="padding:8px 20px;font-weight:700;font-size:13px;color:var(--text-3);border:none;border-radius:100px;background:transparent;cursor:pointer;transition:all 0.25s ease;display:flex;align-items:center;gap:6px;white-space:nowrap;">
               📈 Progres Saya
             </button>
           </div>
+        </div>
 
-          <!-- Kuis Tersedia View -->
-          <div id="quizTersediaWrapper">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <div>
-                <h2 style="font-size:17px;font-weight:800;color:var(--text)">🎯 Daftar Kuis</h2>
-                <p style="font-size:11.5px;color:var(--text-3)">Latihan interaktif & kuis halaqah untuk kelasmu</p>
-              </div>
-              <button onclick="loadKuisTersedia()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
-                🔄 Refresh
-              </button>
+        <!-- Kuis Tersedia View -->
+        <div id="quizTersediaWrapper">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <h2 style="font-size:17px;font-weight:800;color:var(--text)">🎯 Daftar Kuis</h2>
+              <p style="font-size:11.5px;color:var(--text-3)">Latihan interaktif & kuis halaqah untuk kelasmu</p>
             </div>
-            <div id="quizListContainer">
-              <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat daftar kuis...</div>
-            </div>
+            <button onclick="loadKuisTersedia()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
+              🔄 Refresh
+            </button>
           </div>
-
-          <!-- Progres Kuis View -->
-          <div id="quizProgresWrapper" style="display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <div>
-                <h2 style="font-size:17px;font-weight:800;color:var(--text)">📈 Progres Belajar</h2>
-                <p style="font-size:11.5px;color:var(--text-3)">Analisis hasil pengerjaan kuis kamu</p>
-              </div>
-              <button onclick="loadProgresKuis()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
-                🔄 Refresh
-              </button>
-            </div>
-            <div id="quizProgressContainer">
-              <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat data progres...</div>
-            </div>
+          <div id="quizListContainer">
+            <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat daftar kuis...</div>
           </div>
         </div>
 
-        <div id="quizInstructionView" style="display:none;"></div>
-        <div id="quizPlayView" style="display:none;"></div>
-        <div id="quizResultView" style="display:none;"></div>
+        <!-- Progres Kuis View -->
+        <div id="quizProgresWrapper" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <h2 style="font-size:17px;font-weight:800;color:var(--text)">📈 Progres Belajar</h2>
+              <p style="font-size:11.5px;color:var(--text-3)">Analisis hasil pengerjaan kuis kamu</p>
+            </div>
+            <button onclick="loadProgresKuis()" class="btn-refresh-quiz" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:8px 14px;border-radius:100px;font-weight:700;font-size:12px;cursor:pointer;">
+              🔄 Refresh
+            </button>
+          </div>
+          <div id="quizProgressContainer">
+            <div style="text-align:center;padding:40px;color:var(--text-3)">Memuat data progres...</div>
+          </div>
+        </div>
       </div>
+
+      <div id="quizInstructionView" style="display:none;"></div>
+      <div id="quizPlayView" style="display:none;"></div>
+      <div id="quizResultView" style="display:none;"></div>
     `;
 
     await loadKuisTersedia();
@@ -100,11 +100,13 @@
 
     if (tab === 'tersedia') {
       tabTersedia.style.color = 'var(--blue-d)';
-      tabTersedia.style.borderBottomColor = 'var(--blue)';
+      tabTersedia.style.background = '#fff';
+      tabTersedia.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
       tabTersedia.style.fontWeight = '800';
 
       tabProgres.style.color = 'var(--text-3)';
-      tabProgres.style.borderBottomColor = 'transparent';
+      tabProgres.style.background = 'transparent';
+      tabProgres.style.boxShadow = 'none';
       tabProgres.style.fontWeight = '700';
 
       wrapperTersedia.style.display = 'block';
@@ -112,11 +114,13 @@
       loadKuisTersedia();
     } else {
       tabProgres.style.color = 'var(--blue-d)';
-      tabProgres.style.borderBottomColor = 'var(--blue)';
+      tabProgres.style.background = '#fff';
+      tabProgres.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
       tabProgres.style.fontWeight = '800';
 
       tabTersedia.style.color = 'var(--text-3)';
-      tabTersedia.style.borderBottomColor = 'transparent';
+      tabTersedia.style.background = 'transparent';
+      tabTersedia.style.boxShadow = 'none';
       tabTersedia.style.fontWeight = '700';
 
       wrapperTersedia.style.display = 'none';
