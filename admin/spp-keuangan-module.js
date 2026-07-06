@@ -1187,16 +1187,47 @@ async function doKirimPengumuman() {
 //  AUDIT LOG
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadMetodeBayarAdmin, simpanMetodeBayar, loadPendingSPP, verifikasiSPP, tolakSPP,
-      loadKasBeasiswa, tambahMutasiKas, auditKasOperasional
-    ].forEach(fnName => {
-      try {
-        if (typeof eval(fnName) === "function") {
-          window[fnName] = eval(fnName);
-        }
-      } catch(e) {}
-    });
+  if (typeof window !== "undefined") {
+    window.loadMetodeBayarAdmin = loadMetodeBayarAdmin;
+    window.bukaFormMetode = bukaFormMetode;
+    window.tutupFormMetode = tutupFormMetode;
+    window.setMetodeJenis = setMetodeJenis;
+    window.editMetode = editMetode;
+    window.hapusMetode = hapusMetode;
+    window.simpanMetode = simpanMetode;
+    window.loadSPPAdmin = loadSPPAdmin;
+    window.ensureKasBulanOptions = ensureKasBulanOptions;
+    window.renderKasRingkasan = renderKasRingkasan;
+    window.renderKasOperasionalList = renderKasOperasionalList;
+    window.loadKasBeasiswa = loadKasBeasiswa;
+    window.bukaFormOperasional = bukaFormOperasional;
+    window.tutupFormOperasional = tutupFormOperasional;
+    window.editOperasional = editOperasional;
+    window.simpanOperasional = simpanOperasional;
+    window.hapusOperasionalItem = hapusOperasionalItem;
+    window.toggleTipeSpp = toggleTipeSpp;
+    window.filterSPPTable = filterSPPTable;
+    window.filterInfaqTable = filterInfaqTable;
+    window.filterIhsanTable = filterIhsanTable;
+    window._csvSafe = _csvSafe;
+    window.eksporSPP = eksporSPP;
+    window.salinTagihanMassal = salinTagihanMassal;
+    window.konfirmasiManualGateway = konfirmasiManualGateway;
+    window.toggleSPPRiwayat = toggleSPPRiwayat;
+    window.loadSPPRiwayat = loadSPPRiwayat;
+    window.batalkanKonfirmasi = batalkanKonfirmasi;
+    window.validasiSPP = validasiSPP;
+    window.bukaModalInputSPPManual = bukaModalInputSPPManual;
+    window.tutupModalInputSPPManual = tutupModalInputSPPManual;
+    window.filterMuridSPPManual = filterMuridSPPManual;
+    window.pilihMuridSPPManual = pilihMuridSPPManual;
+    window.renderSPPManualBulanGrid = renderSPPManualBulanGrid;
+    window.hitungNominalSPPManual = hitungNominalSPPManual;
+    window.pilihSemuaBelumLunas = pilihSemuaBelumLunas;
+    window.setSPPManualJenis = setSPPManualJenis;
+    window.onSPPManualTahunChange = onSPPManualTahunChange;
+    window.submitInputSPPManual = submitInputSPPManual;
+    window.loadPengumuman = loadPengumuman;
+    window.doKirimPengumuman = doKirimPengumuman;
   }
 })();

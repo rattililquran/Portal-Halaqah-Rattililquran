@@ -327,15 +327,29 @@ async function toggleKetua(idAnggota, currentStatus, nama) {
 
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadKelompokAdmin, renderKelompokAdminCard, assignKetuaKelas, simpanAssignKetua
-    ].forEach(fnName => {
-      try {
-        if (typeof eval(fnName) === "function") {
-          window[fnName] = eval(fnName);
-        }
-      } catch(e) {}
-    });
+  if (typeof window !== "undefined") {
+    window._kqRenderLiniMasa = _kqRenderLiniMasa;
+    window._kqFmtTgl = _kqFmtTgl;
+    window._kqLoadLiniMasa = _kqLoadLiniMasa;
+    window.kqToggleLiniMasa = kqToggleLiniMasa;
+    window.kqAddMilestone = kqAddMilestone;
+    window.kqDeleteMilestone = kqDeleteMilestone;
+    window._kqRenderMenunggu = _kqRenderMenunggu;
+    window.kqGuruKonfirmasi = kqGuruKonfirmasi;
+    window._kqRenderTargetHtml = _kqRenderTargetHtml;
+    window._kqLoadTarget = _kqLoadTarget;
+    window.kqToggleTarget = kqToggleTarget;
+    window.kqAddTarget = kqAddTarget;
+    window.kqMarkTarget = kqMarkTarget;
+    window.kqDeleteTarget = kqDeleteTarget;
+    window._kqDenyutRow = _kqDenyutRow;
+    window.kqNudgeAnggota = kqNudgeAnggota;
+    window._kqRenderNewForm = _kqRenderNewForm;
+    window.kqCreateKelompok = kqCreateKelompok;
+    window.kqRenameKelompok = kqRenameKelompok;
+    window.kqDeleteKelompok = kqDeleteKelompok;
+    window.kqRemoveAnggota = kqRemoveAnggota;
+    window.kqAddAnggota = kqAddAnggota;
+    window.toggleKetua = toggleKetua;
   }
 })();

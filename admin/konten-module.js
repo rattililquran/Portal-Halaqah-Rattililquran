@@ -1171,16 +1171,70 @@ function resetAdminSession() {
 
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadPengumumanAdmin, simpanPengumuman, loadSubscribersAdmin, kirimBroadcastPush,
-      loadTargetLevel, simpanTargetLevel, loadAtTibyanAdmin, loadMateriLevelAdmin
-    ].forEach(fnName => {
-      try {
-        if (typeof eval(fnName) === "function") {
-          window[fnName] = eval(fnName);
-        }
-      } catch(e) {}
-    });
+  if (typeof window !== "undefined") {
+    window.onObCtaChange = onObCtaChange;
+    window.loadOnboarding = loadOnboarding;
+    window._obReadForm = _obReadForm;
+    window.saveOnboarding = saveOnboarding;
+    window.previewOnboarding = previewOnboarding;
+    window.renderPushConfig = renderPushConfig;
+    window.togglePushConfig = togglePushConfig;
+    window._pushFailLabel = _pushFailLabel;
+    window._pushFailSummary = _pushFailSummary;
+    window.renderPushLog = renderPushLog;
+    window.loadPushSubscribers = loadPushSubscribers;
+    window.renderPushSubscribers = renderPushSubscribers;
+    window.hapusPushSubscriber = hapusPushSubscriber;
+    window.loadPushTargetOptions = loadPushTargetOptions;
+    window.onPushTargetChange = onPushTargetChange;
+    window.onPushUrlPresetChange = onPushUrlPresetChange;
+    window.getPushTestUrl = getPushTestUrl;
+    window.setAllPushConfig = setAllPushConfig;
+    window.kirimTestPush = kirimTestPush;
+    window.jalankanDiagnostik = jalankanDiagnostik;
+    window.testTrigger = testTrigger;
+    window._confirmStressCleanup = _confirmStressCleanup;
+    window.stressTestMulai = stressTestMulai;
+    window.stressTestCleanup = stressTestCleanup;
+    window.rsStressTestMulai = rsStressTestMulai;
+    window.rsStressTestCleanup = rsStressTestCleanup;
+    window.prefsStressTestMulai = prefsStressTestMulai;
+    window.prefsStressTestCleanup = prefsStressTestCleanup;
+    window.combStressTestMulai = combStressTestMulai;
+    window.combStressTestCleanup = combStressTestCleanup;
+    window.usrStressTestMulai = usrStressTestMulai;
+    window.usrStressTestCleanup = usrStressTestCleanup;
+    window.obsStressTestMulai = obsStressTestMulai;
+    window.obsStressTestCleanup = obsStressTestCleanup;
+    window.atStressTestMulai = atStressTestMulai;
+    window.atStressTestCleanup = atStressTestCleanup;
+    window.loadMateriAdmin = loadMateriAdmin;
+    window.switchMateriTab = switchMateriTab;
+    window.loadAtMateriAdmin = loadAtMateriAdmin;
+    window.bukaModalAt = bukaModalAt;
+    window.tutupModalAt = tutupModalAt;
+    window.editAtMateri = editAtMateri;
+    window.hapusAtMateri = hapusAtMateri;
+    window.simpanAtMateri = simpanAtMateri;
+    window.loadLvMateriAdmin = loadLvMateriAdmin;
+    window.renderMateriLevelAdmin = renderMateriLevelAdmin;
+    window.bukaModalLevel = bukaModalLevel;
+    window.tutupModalLevel = tutupModalLevel;
+    window.editMateriLevel = editMateriLevel;
+    window.hapusMateriLevel = hapusMateriLevel;
+    window.simpanMateriLevel = simpanMateriLevel;
+    window.loadLevel = loadLevel;
+    window.openModalLevel = openModalLevel;
+    window.editLevel = editLevel;
+    window.saveLevel = saveLevel;
+    window.hapusLevel = hapusLevel;
+    window.loadTemplate = loadTemplate;
+    window.renderTemplateRows = renderTemplateRows;
+    window.tambahTemplateRow = tambahTemplateRow;
+    window.hapusTemplateRow = hapusTemplateRow;
+    window.saveTemplate = saveTemplate;
+    window.doExportAbsensi = doExportAbsensi;
+    window.startAdminAutoRefresh = startAdminAutoRefresh;
+    window.resetAdminSession = resetAdminSession;
   }
 })();

@@ -930,16 +930,45 @@ function _kqRenderList() {
 
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadMuridAdmin, filterMuridAdmin, bukaModalMurid, simpanMuridAdmin, hapusMuridAdmin,
-      importData3Tahap, tahap1Halaqah, tahap2Users, tahap3Anggota, prosesImportExcel
-    ].forEach(fnName => {
-      try {
-        if (typeof eval(fnName) === "function") {
-          window[fnName] = eval(fnName);
-        }
-      } catch(e) {}
-    });
+  if (typeof window !== "undefined") {
+    window.loadPeriode = loadPeriode;
+    window.renderPeriodeTable = renderPeriodeTable;
+    window.openModalPeriode = openModalPeriode;
+    window.editPeriode = editPeriode;
+    window.aktivasiPeriode = aktivasiPeriode;
+    window.savePeriode = savePeriode;
+    window.switchUserTab = switchUserTab;
+    window.loadUsers = loadUsers;
+    window.toggleSort = toggleSort;
+    window.applySort = applySort;
+    window.updateSortIndicators = updateSortIndicators;
+    window.renderUsersTable = renderUsersTable;
+    window.salinNoHp = salinNoHp;
+    window.filterUsersTable = filterUsersTable;
+    window.toggleUsrBendahara = toggleUsrBendahara;
+    window.openModalUser = openModalUser;
+    window.suggestUsrIdUser = suggestUsrIdUser;
+    window.editUser = editUser;
+    window.saveUser = saveUser;
+    window.deleteUser = deleteUser;
+    window.hardDeleteMurid = hardDeleteMurid;
+    window.confirmHardDeleteMurid = confirmHardDeleteMurid;
+    window.openBulkImport = openBulkImport;
+    window.downloadTemplate = downloadTemplate;
+    window.handleFileDrop = handleFileDrop;
+    window.handleFileSelect = handleFileSelect;
+    window.parseCSVFile = parseCSVFile;
+    window._splitCSVRow = _splitCSVRow;
+    window.processCSV = processCSV;
+    window.doImportTerintegrasi = doImportTerintegrasi;
+    window.setProgress = setProgress;
+    window.loadHalaqah = loadHalaqah;
+    window.renderHalaqahTable = renderHalaqahTable;
+    window.filterHalaqahTable = filterHalaqahTable;
+    window.loadKelasPengganti = loadKelasPengganti;
+    window.loadKelompokQiyam = loadKelompokQiyam;
+    window.onKqHalaqahChange = onKqHalaqahChange;
+    window._kqAssignedMurid = _kqAssignedMurid;
+    window._kqRenderList = _kqRenderList;
   }
 })();

@@ -245,15 +245,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadArsipData, arsipkanPeriodeLama, loadExecutiveDashboard, renderRekapKeaktifanAdmin
-    ].forEach(fnName => {
-      try {
-        if (typeof eval(fnName) === "function") {
-          window[fnName] = eval(fnName);
-        }
-      } catch(e) {}
-    });
+  if (typeof window !== "undefined") {
+    window.loadArsipPage = loadArsipPage;
+    window.updateArsipMode = updateArsipMode;
+    window.loadArsipList = loadArsipList;
+    window.doArsip = doArsip;
+    window.initThemeToggle = initThemeToggle;
+    window.updateIcon = updateIcon;
+    window.openSppLightbox = openSppLightbox;
+    window.closeSppLightbox = closeSppLightbox;
+    window.updateLightboxTransform = updateLightboxTransform;
+    window.zoomSppLightbox = zoomSppLightbox;
+    window.rotateSppLightbox = rotateSppLightbox;
+    window.resetSppLightbox = resetSppLightbox;
   }
 })();

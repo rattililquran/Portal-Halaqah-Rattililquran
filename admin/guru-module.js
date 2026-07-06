@@ -1318,15 +1318,60 @@ async function loadPushAdmin() {
 }
 
   // Export functions to window
-  if (typeof window !== undefined) {
-    [
-      loadGuru, bukaModalGuru, simpanGuru, hapusGuru, filterGuru,
-      loadHalaqah, bukaModalHalaqah, simpanHalaqah, hapusHalaqah,
-      loadObservasiGuruAdmin, renderObservasiGuruList, simpanObservasiGuruAdmin, hapusObservasiGuruAdmin
-    ].forEach(fnName => {
-      if (typeof eval(fnName) === 'function') {
-        window[fnName] = eval(fnName);
-      }
-    });
+  if (typeof window !== "undefined") {
+    window.startApp = startApp;
+    window.loadMasterData = loadMasterData;
+    window.goPage = goPage;
+    window.openSB = openSB;
+    window.closeSB = closeSB;
+    window.toggleSidebarCollapse = toggleSidebarCollapse;
+    window.refreshPage = refreshPage;
+    window.loadDashboard = loadDashboard;
+    window.loadObservasi = loadObservasi;
+    window.renderObsStats = renderObsStats;
+    window.filterObsByGuru = filterObsByGuru;
+    window.filterObservasiTable = filterObservasiTable;
+    window.lihatObsDetail = lihatObsDetail;
+    window.loadAudit = loadAudit;
+    window.miniPctBar = miniPctBar;
+    window.loadKepatuhan = loadKepatuhan;
+    window.loadSaranPage = loadSaranPage;
+    window.calculateSaranStats = calculateSaranStats;
+    window.filterSaran = filterSaran;
+    window.renderSaranTable = renderSaranTable;
+    window.showSaranDetail = showSaranDetail;
+    window.simpanTanggapanSaran = simpanTanggapanSaran;
+    window.loadBankSoalAdmin = loadBankSoalAdmin;
+    window.onAdminBankSearchInput = onAdminBankSearchInput;
+    window.onAdminBankLevelFilterChange = onAdminBankLevelFilterChange;
+    window.onAdminBankPertemuanFilterChange = onAdminBankPertemuanFilterChange;
+    window.getTipeSoalLabelAdmin = getTipeSoalLabelAdmin;
+    window.filterAndRenderAdminBankList = filterAndRenderAdminBankList;
+    window.hapusSoalAdmin = hapusSoalAdmin;
+    window.bukaModalImportSoal = bukaModalImportSoal;
+    window.downloadTemplateSoal = downloadTemplateSoal;
+    window.handleFileSelectSoal = handleFileSelectSoal;
+    window.parseCSVSoal = parseCSVSoal;
+    window.prosesImportSoal = prosesImportSoal;
+    window.populateSel = populateSel;
+    window.populatePeriodeSel = populatePeriodeSel;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.toast = toast;
+    window.closeNotif = closeNotif;
+    window.showLoad = showLoad;
+    window.hideLoad = hideLoad;
+    window.setBtn = setBtn;
+    window.roleBadge = roleBadge;
+    window.predikatBadge = predikatBadge;
+    window.statusRaportBadge = statusRaportBadge;
+    window.nilaiLabel = nilaiLabel;
+    window.nilaiNumLabel = nilaiNumLabel;
+    window.pctBar = pctBar;
+    window.fmtDate = fmtDate;
+    window.esc = esc;
+    window.friendlyError = friendlyError;
+    window.escJs = escJs;
+    window.loadPushAdmin = loadPushAdmin;
   }
 })();
