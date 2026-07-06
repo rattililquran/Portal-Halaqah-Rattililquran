@@ -1069,26 +1069,10 @@ async function simpanAtTibyan() {
 
 
   // ── EXPOSE GLOBAL VARIABLES TO WINDOW (GETTERS/SETTERS) ──
-  Object.defineProperty(window, '_atMuridAll', {
-    get: function() { return _atMuridAll; },
-    set: function(v) { _atMuridAll = v; },
-    configurable: true
-  });
-  Object.defineProperty(window, '_atSesiData', {
-    get: function() { return _atSesiData; },
-    set: function(v) { _atSesiData = v; },
-    configurable: true
-  });
-  Object.defineProperty(window, '_atKeaktifanData', {
-    get: function() { return _atKeaktifanData; },
-    set: function(v) { _atKeaktifanData = v; },
-    configurable: true
-  });
-  Object.defineProperty(window, '_atTabLoaded', {
-    get: function() { return _atTabLoaded; },
-    set: function(v) { _atTabLoaded = v; },
-    configurable: true
-  });
+  try { delete window._atMuridAll; Object.defineProperty(window, '_atMuridAll', { get: function() { return _atMuridAll; }, set: function(v) { _atMuridAll = v; }, configurable: true }); } catch(e) { window._atMuridAll = _atMuridAll; }
+  try { delete window._atSesiData; Object.defineProperty(window, '_atSesiData', { get: function() { return _atSesiData; }, set: function(v) { _atSesiData = v; }, configurable: true }); } catch(e) { window._atSesiData = _atSesiData; }
+  try { delete window._atKeaktifanData; Object.defineProperty(window, '_atKeaktifanData', { get: function() { return _atKeaktifanData; }, set: function(v) { _atKeaktifanData = v; }, configurable: true }); } catch(e) { window._atKeaktifanData = _atKeaktifanData; }
+  try { delete window._atTabLoaded; Object.defineProperty(window, '_atTabLoaded', { get: function() { return _atTabLoaded; }, set: function(v) { _atTabLoaded = v; }, configurable: true }); } catch(e) { window._atTabLoaded = _atTabLoaded; }
 
   // ── EXPOSE PUBLIC INTERFACE TO WINDOW ──
   window.loadKeaktifanPage = loadKeaktifanPage;
@@ -1119,4 +1103,9 @@ async function simpanAtTibyan() {
   window.filterAtKeaktifan = filterAtKeaktifan;
   window.renderAtSesi = renderAtSesi;
   window.renderAtFormList = renderAtFormList;
+  window.loadAssessmentRekap = loadAssessmentRekap;
+  window.renderAssessmentRekap = renderAssessmentRekap;
+  window.renderAsmtDetailTable = renderAsmtDetailTable;
+  window.toggleAsmtDetail = toggleAsmtDetail;
+  window.simpanVerifikasiGuru = simpanVerifikasiGuru;
 })();

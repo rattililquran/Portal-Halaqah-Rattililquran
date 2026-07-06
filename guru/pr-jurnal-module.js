@@ -938,23 +938,31 @@
   window.toggleReferensiJurnal = toggleReferensiJurnal;
   window.applyJurnalPrTemplate = applyJurnalPrTemplate;
 
-  // Global property accessors for legacy code
-  Object.defineProperty(window, '_prData', {
-    get: function() { return _prData; },
-    set: function(val) { _prData = val; },
-    configurable: true
-  });
+  try {
+    delete window._prData;
+    Object.defineProperty(window, '_prData', {
+      get: function() { return _prData; },
+      set: function(val) { _prData = val; },
+      configurable: true
+    });
+  } catch(e) { window._prData = _prData; }
 
-  Object.defineProperty(window, '_prDataFiltered', {
-    get: function() { return _prDataFiltered; },
-    set: function(val) { _prDataFiltered = val; },
-    configurable: true
-  });
+  try {
+    delete window._prDataFiltered;
+    Object.defineProperty(window, '_prDataFiltered', {
+      get: function() { return _prDataFiltered; },
+      set: function(val) { _prDataFiltered = val; },
+      configurable: true
+    });
+  } catch(e) { window._prDataFiltered = _prDataFiltered; }
 
-  Object.defineProperty(window, '_prDataAll', {
-    get: function() { return _prDataAll; },
-    set: function(val) { _prDataAll = val; },
-    configurable: true
-  });
+  try {
+    delete window._prDataAll;
+    Object.defineProperty(window, '_prDataAll', {
+      get: function() { return _prDataAll; },
+      set: function(val) { _prDataAll = val; },
+      configurable: true
+    });
+  } catch(e) { window._prDataAll = _prDataAll; }
 
 })();

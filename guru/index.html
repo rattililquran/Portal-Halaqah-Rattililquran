@@ -5752,6 +5752,7 @@ html.theme-dark .pr-chip.active {
 <script src="raport-module.js?v=1.0.0" defer></script>
 <script src="kbm-module.js?v=1.0.0" defer></script>
 <script src="pr-jurnal-module.js?v=1.0.0" defer></script>
+<script src="hafalan-module.js?v=1.0.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -11874,7 +11875,7 @@ async function loadNilaiSetup() {
       allPeriode = r.data || [];
       pSel.innerHTML = '<option value="">— Pilih Periode —</option>' +
         allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' ✓':''}</option>`).join('');
-    } catch(e) {
+} catch(e) {
       toast('Gagal memuat periode: ' + e.message, 'err');
     } finally {
       hideLoad();
@@ -13596,7 +13597,6 @@ async function initRaportPage() {
 // ══════════════════════════════════════════
 
 */
-
 //  HAFALAN QIYAM — GURU
 // ══════════════════════════════════════════
 var _hafalanGuruQiyamList  = [];
@@ -14884,7 +14884,6 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   }
 }
 */
-
 // Dipanggil saat dashboard selesai load — tampilkan/sembunyikan nav Tahfidz
 function _initNavHafalan() {
   var qiyamHalaqah = (halaqahList || []).filter(function(h) { return h.level === 'Level Qiyam'; });
