@@ -251,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadArsipList = loadArsipList;
     window.doArsip = doArsip;
     window.initThemeToggle = initThemeToggle;
-    window.updateIcon = updateIcon;
     window.openSppLightbox = openSppLightbox;
     window.closeSppLightbox = closeSppLightbox;
     window.updateLightboxTransform = updateLightboxTransform;

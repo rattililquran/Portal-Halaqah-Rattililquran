@@ -961,7 +961,6 @@ function _kqRenderList() {
     window._splitCSVRow = _splitCSVRow;
     window.processCSV = processCSV;
     window.doImportTerintegrasi = doImportTerintegrasi;
-    window.setProgress = setProgress;
     window.loadHalaqah = loadHalaqah;
     window.renderHalaqahTable = renderHalaqahTable;
     window.filterHalaqahTable = filterHalaqahTable;
