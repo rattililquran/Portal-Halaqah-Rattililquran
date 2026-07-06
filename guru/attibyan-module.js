@@ -1103,9 +1103,4 @@ async function simpanAtTibyan() {
   window.filterAtKeaktifan = filterAtKeaktifan;
   window.renderAtSesi = renderAtSesi;
   window.renderAtFormList = renderAtFormList;
-  window.loadAssessmentRekap = loadAssessmentRekap;
-  window.renderAssessmentRekap = renderAssessmentRekap;
-  window.renderAsmtDetailTable = renderAsmtDetailTable;
-  window.toggleAsmtDetail = toggleAsmtDetail;
-  window.simpanVerifikasiGuru = simpanVerifikasiGuru;
 })();

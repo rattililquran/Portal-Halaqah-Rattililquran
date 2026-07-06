@@ -732,8 +732,6 @@ function cetakRaportTahfidz() {
   window.onRaportPeriodeChange = onRaportPeriodeChange;
   window.raportGenerate = raportGenerate;
   window.raportPublishSemua = raportPublishSemua;
-  window.raportSimpanCatatan = raportSimpanCatatan;
-  window.loadNilaiSetup = loadNilaiSetup;
-  window.loadNilaiMurid = loadNilaiMurid;
-  window.saveSemuaNilai = saveSemuaNilai;
+  window.raportSimpanNilai = raportSimpanNilai;
+  window.rtOnHalaqahChange = rtOnHalaqahChange;
 })();
