@@ -5748,6 +5748,10 @@ html.theme-dark .pr-chip.active {
 <script src="jadwal-module.js?v=1.0.0" defer></script>
 <script src="dashboard-module.js?v=1.0.0" defer></script>
 <script src="kelompok-module.js?v=1.0.0" defer></script>
+<script src="attibyan-module.js?v=1.0.0" defer></script>
+<script src="raport-module.js?v=1.0.0" defer></script>
+<script src="kbm-module.js?v=1.0.0" defer></script>
+<script src="pr-jurnal-module.js?v=1.0.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -6833,6 +6837,8 @@ function hqCard(h) {
 */
 
 // ══════════════════════════════════════════
+/*
+ * [FASE 4 MODULARIZATION] KBM, Presensi, Murid, Riwayat, PR & Jurnal functions moved to kbm-module.js & pr-jurnal-module.js
 //  BUKA KBM
 // ══════════════════════════════════════════
 // ── FORM VALIDATION ──────────────────────
@@ -6861,7 +6867,7 @@ function validateFields(fields) {
 
 // ── REFRESH PER TAB ───────────────────────
 // var _guruTabLoaded = {}; // Moved to State at top
-/*
+//
 function guruRefresh(tab) {
   var btnMap = {murid:'btnRefreshMurid',riwayat:'btnRefreshRiwayat',keaktifan:'btnRefreshKeaktifan',assessment:'btnRefreshAsmt', 'peninjauan-pr':'btnRefreshPR'};
   var btn = document.getElementById(btnMap[tab] || '');
@@ -6877,7 +6883,7 @@ function guruRefresh(tab) {
     loadAtTibyanGuru();
   }
 }
-*/
+//
 
 async function doBukaKBM() {
   const id_halaqah = document.getElementById('kbmHalaqah').value;
@@ -8000,7 +8006,7 @@ function _saveKbmDraftLocal() {
     microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
   };
   try { localStorage.setItem(_kbmDraftKey(sesiAktif.id_kbm), JSON.stringify(draft)); }
-  catch (e) { /* private mode / quota penuh: abaikan, cache memori tetap jalan */ }
+  catch (e) { // private mode / quota penuh: abaikan, cache memori tetap jalan // }
   _kbmServerSyncDebounced(); // Fase 2: jadwalkan sinkron ke server (best-effort)
 }
 
@@ -8088,7 +8094,7 @@ function _kbmServerSyncFlush() {
       jenis_sesi : sesiAktif.jenis_sesi,
       draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {} },
     }).then(function(){ _setKbmSyncStatus('synced'); })
-      .catch(function(){ _setKbmSyncStatus('offline'); /* retry saat 'online' */ });
+      .catch(function(){ _setKbmSyncStatus('offline'); // retry saat 'online' // });
   } catch (e) { _setKbmSyncStatus('offline'); }
 }
 function _kbmServerSyncDebounced() {
@@ -9347,7 +9353,7 @@ async function _checkDraftViaRiwayat(halaqahList) {
       }
     });
     _updateDraftOrphanAlert(totalDraft, draftPerHalaqah);
-  } catch(e) { /* silent */ }
+  } catch(e) { // silent // }
 }
 
 function _updateDraftOrphanAlert(totalDraft, draftPerHalaqah) {
@@ -10461,6 +10467,7 @@ function applyJurnalPrTemplate(val) {
     deadlineInput.value = targetDate.toISOString().slice(0, 10);
   }
 }
+*/
 
 // ══════════════════════════════════════════
 function populateSel(selId, preserveValue) {
@@ -12236,6 +12243,7 @@ async function simpanVerifikasiGuru(idMurid, idItem, statusGuru, btn) {
     toast('Gagal memverifikasi: ' + e.message, 'err');
   }
 }
+/* MODULARIZED TO guru/attibyan-module.js (Fase 3)
 
 // ══════════════════════════════════════════
 //  KEAKTIFAN MURID
@@ -13052,7 +13060,7 @@ async function _loadAtMateriFromDB() {
   try {
     var r = await window.HQ.GuruAPI.getAtTibyanMateriForForm();
     if (r && r.data && r.data.length) AT_TIBYAN_MATERI = r.data;
-  } catch(e) { /* gunakan data kosong */ }
+  } catch(e) { // gunakan data kosong }
 }
 
 function _showAtMateriInfo(pertemuan_ke) {
@@ -13298,8 +13306,10 @@ async function simpanAtTibyan() {
     if (btn) { btn.disabled = false; btn.classList.remove('btn-loading'); }
   }
 }
+*/
 
 // ══════════════════════════════════════════════════════════
+/* MODULARIZED TO guru/raport-module.js - Raport Halaqah (Fase 3)
 //  RAPORT HALAQAH
 // ══════════════════════════════════════════════════════════
 var _raportPeriode    = '';
@@ -13584,6 +13594,9 @@ async function initRaportPage() {
 }
 
 // ══════════════════════════════════════════
+
+*/
+
 //  HAFALAN QIYAM — GURU
 // ══════════════════════════════════════════
 var _hafalanGuruQiyamList  = [];
@@ -15821,6 +15834,7 @@ async function showRiwayatSetoranModal(id_murid, nama_murid) {
 }
 
 // ══════════════════════════════════════════════════════════════
+/* MODULARIZED TO guru/raport-module.js - Raport Tahfidz (Fase 3)
 //  RAPORT TAHFIDZ — GURU
 // ══════════════════════════════════════════════════════════════
 
@@ -16240,6 +16254,9 @@ function cetakRaportTahfidz() {
 
   window.print();
 }
+
+*/
+
 </script>
 
 <!-- ════ MODAL: KELOLA PENILAIAN HAFALAN ════ -->
