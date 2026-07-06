@@ -159,6 +159,86 @@
     if (sel) sel.value = jenis;
   }
 
+  // Kartu "Partner Belajar" di Dashboard — CTA state-aware (mirror loadPartnerDashCard)
+  async function loadPartnerBelajarDashCard() {
+    var card  = document.getElementById('dashPartnerBelajarCard');
+    var body  = document.getElementById('dashPartnerBelajarBody');
+    var badge = document.getElementById('dashPartnerBelajarBadge');
+    if (!card || !body) return;
+    try {
+      var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
+      var kel = resKel.data;
+      if (!kel) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+
+      var both = await Promise.all([
+        window.HQ.MuridAPI.getStatusKelompokBelajar(),
+        window.HQ.MuridAPI.getLogMenungguKonfirmasi(),
+        window.HQ.MuridAPI.getLogRingkasSaya(),
+      ]);
+      var statusList = both[0].data || [];
+      var jumlahMenunggu = (both[1].data || []).length;
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+      // Notif: aktivitas sendiri yang baru dikonfirmasi partner + ada pesan (3 hari terakhir)
+      var notifHtml = '';
+      var recent = (both[2].data || []).filter(function(r){
+        var when = r.updated_at || r.created_at;
+        return r.status_konfirmasi === 'dikonfirmasi' && (r.catatan_partner || r.reaksi_partner)
+          && when && (Date.now() - new Date(when).getTime()) < 3*86400000;
+      })[0];
+      if (recent) {
+        notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
+          + '<span style="font-weight:800">💚 Partnermu mengonfirmasi aktivitasmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+          + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
+        + '</div>';
+      }
+
+      var myRow = null;
+      for (var i = 0; i < statusList.length; i++) { if (statusList[i].id_murid === myId) { myRow = statusList[i]; break; } }
+      var myLast = myRow && myRow.tanggal_terakhir;
+      var hariSejak = myLast ? Math.floor((Date.now() - new Date(myLast).getTime()) / 86400000) : null;
+
+      var ctaHtml = '';
+      if (jumlahMenunggu > 0) {
+        ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+          + '🎧 Ada ' + jumlahMenunggu + ' teman lapor aktivitas — pantau lalu konfirmasi</div>';
+      } else if (myLast === null) {
+        ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+          + '📚 Belum ada aktivitas. Mulai catat belajar mandirimu</div>';
+      } else if (hariSejak >= 3) {
+        ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+          + '📚 Sudah ' + hariSejak + ' hari belum catat aktivitas. Partnermu menanti kabarmu</div>';
+      }
+
+      var rows = statusList.map(function(m){
+        var isMe = m.id_murid === myId;
+        var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada aktivitas';
+        var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+        var waBtn = isMe ? '' : _pbMemberWaBtn(m.nama_murid, m.no_hp);
+        return '<div class="partner-dash-row">'
+          + '<span class="partner-dash-name">' + nameLabel + '</span>'
+          + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
+          + '</div>';
+      }).join('');
+      body.innerHTML = notifHtml + ctaHtml
+        + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Belajar') + '</div>'
+        + rows;
+
+      var sbBadge = document.getElementById('sidebarBelajarBadge');
+      if (badge) {
+        if (jumlahMenunggu > 0) { badge.style.display = 'inline-flex'; badge.textContent = jumlahMenunggu + ' menunggu konfirmasi'; }
+        else { badge.style.display = 'none'; }
+      }
+      if (sbBadge) {
+        if (jumlahMenunggu > 0) { sbBadge.style.display = 'inline-flex'; sbBadge.textContent = jumlahMenunggu; }
+        else { sbBadge.style.display = 'none'; }
+      }
+    } catch(e) {
+      card.style.display = 'none';
+    }
+  }
+
   // Safe Property Accessors
   try { delete window._pqInitialized; Object.defineProperty(window, '_pqInitialized', { get: function() { return _pqInitialized; }, set: function(v) { _pqInitialized = v; }, configurable: true }); } catch(e) { window._pqInitialized = _pqInitialized; }
   try { delete window._pqKelompok; Object.defineProperty(window, '_pqKelompok', { get: function() { return _pqKelompok; }, set: function(v) { _pqKelompok = v; }, configurable: true }); } catch(e) { window._pqKelompok = _pqKelompok; }
@@ -174,4 +254,5 @@
   window.loadPartnerBelajarKelompok = loadPartnerBelajarKelompok;
   window.loadAktivitasTertunda = loadAktivitasTertunda;
   window.pbTertundaNow = pbTertundaNow;
+  window.loadPartnerBelajarDashCard = loadPartnerBelajarDashCard;
 })();
