@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.56';
+const CACHE_NAME = 'halaqah-v8.57';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {
@@ -92,9 +92,12 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // 2. Hanya same-origin /assets/ (font lokal, gambar, css) yang di-cache dengan Stale-While-Revalidate
-  var isSameOriginAsset = url.indexOf(self.location.origin) === 0
-    && url.indexOf(BASE + '/assets/') !== -1;
+  // 2. Same-origin assets (/assets/, /supabase/, dan modul JS guru/murid/admin) di-cache Stale-While-Revalidate
+  var isSameOriginAsset = url.indexOf(self.location.origin) === 0 && (
+    url.indexOf(BASE + '/assets/') !== -1 ||
+    url.indexOf(BASE + '/supabase/') !== -1 ||
+    /\/(guru|murid|admin)\/[^\/]+\.js$/.test(pathname)
+  );
   if (!isSameOriginAsset) return;
 
   e.respondWith(
