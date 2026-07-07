@@ -91,36 +91,34 @@
   async function handleSaranSubmit(e, category) {
     if (e) e.preventDefault();
     
-    var formId = category === 'portal' ? 'saranFormPortal' : 'saranFormKelas';
-    var form = document.getElementById(formId);
-    if (!form) return;
-
     var payload = {
-      kategori: category === 'portal' ? 'Portal & Manajemen' : 'Halaqah & Kelas'
+      kategori_utama: category === 'portal' ? 'portal' : 'program'
     };
 
     if (category === 'portal') {
-      var subcatPortal = form.querySelector('[name="subkategori_portal"]').value;
-      var pesanPortal = form.querySelector('[name="pesan_portal"]').value.trim();
-      var isAnonPortal = form.querySelector('[name="is_anon_portal"]').checked;
+      var subcatPortal = document.getElementById('saran-subKategoriPortal')?.value || '';
+      var judulPortal = document.getElementById('saran-judulPortal')?.value.trim() || '';
+      var pesanPortal = document.getElementById('saran-isiPortal')?.value.trim() || '';
+      var isAnonPortal = document.getElementById('saran-anonPortal')?.checked || false;
 
       if (!subcatPortal) return toast('Pilih kategori saran terlebih dahulu', 'warn');
       if (!pesanPortal) return toast('Isikan pesan saran Anda', 'warn');
 
-      payload.subkategori = subcatPortal;
-      payload.pesan = pesanPortal;
-      payload.is_anonim = isAnonPortal;
+      payload.sub_kategori = subcatPortal;
+      // Prepend title to message since database only has isi_masukan
+      payload.isi_masukan = judulPortal ? '[' + judulPortal + '] ' + pesanPortal : pesanPortal;
+      payload.is_anonymous = isAnonPortal;
     } else {
-      var subcatKelas = form.querySelector('[name="subkategori_kelas"]').value;
-      var pesanKelas = form.querySelector('[name="pesan_kelas"]').value.trim();
-      var isAnonKelas = form.querySelector('[name="is_anon_kelas"]').checked;
+      var subcatKelas = document.getElementById('saran-subKategoriKelas')?.value || '';
+      var pesanKelas = document.getElementById('saran-isiKelas')?.value.trim() || '';
+      var isAnonKelas = document.getElementById('saran-anonKelas')?.checked || false;
 
       if (!subcatKelas) return toast('Pilih topik ulasan terlebih dahulu', 'warn');
       if (!pesanKelas) return toast('Isikan pesan masukan Anda', 'warn');
 
-      payload.subkategori = subcatKelas;
-      payload.pesan = pesanKelas;
-      payload.is_anonim = isAnonKelas;
+      payload.sub_kategori = subcatKelas;
+      payload.isi_masukan = pesanKelas;
+      payload.is_anonymous = isAnonKelas;
 
       if (subcatKelas === 'Performa Guru' || subcatKelas === 'Lainnya') {
         payload.rating_guru = saranRatings.Guru || null;
@@ -136,10 +134,22 @@
       hideLoad();
       toast('Terima kasih! Masukan Anda berhasil terkirim ✨', 'ok');
 
-      form.reset();
-      rateSaranStar('Guru', 0);
-      rateSaranStar('Materi', 0);
-      handleSubKategoriSaranKelasChange('');
+      // Reset fields manually
+      if (category === 'portal') {
+        var elSub = document.getElementById('saran-subKategoriPortal'); if (elSub) elSub.value = '';
+        var elJud = document.getElementById('saran-judulPortal'); if (elJud) elJud.value = '';
+        var elIsi = document.getElementById('saran-isiPortal'); if (elIsi) elIsi.value = '';
+        var elAnon = document.getElementById('saran-anonPortal'); if (elAnon) elAnon.checked = false;
+        var pWarning = document.getElementById('saran-anonPortalWarning'); if (pWarning) pWarning.style.display = 'none';
+      } else {
+        var elSubK = document.getElementById('saran-subKategoriKelas'); if (elSubK) elSubK.value = '';
+        var elIsiK = document.getElementById('saran-isiKelas'); if (elIsiK) elIsiK.value = '';
+        var elAnonK = document.getElementById('saran-anonKelas'); if (elAnonK) elAnonK.checked = false;
+        var kWarning = document.getElementById('saran-anonKelasWarning'); if (kWarning) kWarning.style.display = 'none';
+        rateSaranStar('Guru', 0);
+        rateSaranStar('Materi', 0);
+        handleSubKategoriSaranKelasChange('');
+      }
       
       switchSaranTab('riwayat', document.querySelectorAll('#page-saran .tab-btn')[2]);
     } catch(err) {
