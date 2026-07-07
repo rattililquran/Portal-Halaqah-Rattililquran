@@ -63,15 +63,25 @@
     var cat   = row['catatan_guru'] ? esc(row['catatan_guru']) : '';
     var cardId= 'atCard_' + idx;
 
-    var badgeCls = prs.toLowerCase().indexOf('hadir') !== -1 ? 'b-green' : prs ? 'b-red' : 'b-amber';
+    var lowerPrs = prs.toLowerCase();
+    var badgeCls = lowerPrs.indexOf('hadir') !== -1 ? 'b-green' :
+                   (lowerPrs.indexOf('belum') !== -1 || !prs) ? 'b-amber' : 'b-red';
     var badgeTxt = prs || 'Presensi Belum Ada';
 
     var keyValRows = _attibyanColumns.map(function(c) {
-      var label = c.label || c.key;
-      var val   = row[c.key];
+      var key   = typeof c === 'object' && c !== null ? c.key : c;
+      var label = typeof c === 'object' && c !== null ? (c.label || c.key) : c;
+      var val   = row[key];
       if (val === undefined || val === null || val === '') return '';
+      if (['pertemuan_ke', 'presensi', 'bab', 'catatan_guru', 'materi'].indexOf(key) !== -1) return '';
+      
+      // Clean label (e.g., materi_pembahasan -> Materi Pembahasan)
+      var cleanLabel = label.split('_').map(function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }).join(' ');
+
       return '<div class="at-kv-row">'
-        + '<span class="at-kv-k">' + esc(label) + '</span>'
+        + '<span class="at-kv-k">' + esc(cleanLabel) + '</span>'
         + '<span class="at-kv-v">' + esc(String(val)) + '</span>'
         + '</div>';
     }).join('');

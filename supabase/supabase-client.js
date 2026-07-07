@@ -3702,14 +3702,58 @@ var MuridAPI = {
   },
 
   getAtTibyan: async function() {
-    var {data,error} = await _sb.from('at_tibyan_materi').select('*').order('pertemuan_ke');
-    if (!error && data && data.length) {
-      var rows = data.map(function(r) {
-        return { pertemuan_ke: String(r.pertemuan_ke), tanggal: r.tanggal||'', pemateri: r.pemateri||'', materi_pembahasan: r.materi_pembahasan||'', nasihat_aplikatif: r.nasihat_aplikatif||'' };
-      });
-      return { status: 'ok', data: rows, columns: ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'] };
-    }
-    return { status: 'ok', data: [], columns: ['pertemuan_ke','tanggal','pemateri','materi_pembahasan','nasihat_aplikatif'] };
+    var id_murid = _uid();
+    var [materiRes, logRes] = await Promise.all([
+      _sb.from('at_tibyan_materi').select('*').order('pertemuan_ke'),
+      _sb.from('at_tibyan_log').select('pertemuan_ke, status_hadir, tanggal, id_sesi').eq('id_murid', id_murid)
+    ]);
+
+    var materiData = materiRes.data || [];
+    var logData = logRes.data || [];
+
+    var logMapByPtm = {};
+    var logMapByDate = {};
+    logData.forEach(function(l) {
+      if (l.pertemuan_ke !== null && l.pertemuan_ke !== undefined) {
+        logMapByPtm[String(l.pertemuan_ke)] = l;
+      }
+      if (l.tanggal) {
+        logMapByDate[l.tanggal] = l;
+      }
+    });
+
+    var rows = materiData.map(function(r) {
+      var pStr = String(r.pertemuan_ke);
+      var log = logMapByPtm[pStr] || logMapByDate[r.tanggal];
+      var presenceTxt = 'Presensi Belum Ada';
+      if (log) {
+        var sh = log.status_hadir;
+        if (sh === 'H') presenceTxt = 'Hadir';
+        else if (sh === 'T') presenceTxt = 'Hadir (Terlambat)';
+        else if (sh === 'I') presenceTxt = 'Izin';
+        else if (sh === 'A') presenceTxt = 'Alpa';
+      }
+      return {
+        pertemuan_ke: pStr,
+        tanggal: r.tanggal || '',
+        pemateri: r.pemateri || '',
+        materi_pembahasan: r.materi_pembahasan || '',
+        nasihat_aplikatif: r.nasihat_aplikatif || '',
+        presensi: presenceTxt,
+        bab: '',
+        materi: r.materi_pembahasan || '',
+        catatan_guru: ''
+      };
+    });
+
+    var columns = [
+      { key: 'tanggal', label: 'Tanggal' },
+      { key: 'pemateri', label: 'Pemateri' },
+      { key: 'materi_pembahasan', label: 'Materi Pembahasan' },
+      { key: 'nasihat_aplikatif', label: 'Nasihat Aplikatif' }
+    ];
+
+    return { status: 'ok', data: rows, columns: columns };
   },
   getAtTibyanMurid: async function() {
     var id_murid = _uid();
