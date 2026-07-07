@@ -3932,12 +3932,12 @@ html.theme-dark .materi-daurah-banner-title {
         </div>
       </div>
       <!-- Rattil Quiz Card -->
-      <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="cursor:pointer; background:linear-gradient(135deg, rgba(255, 0, 0, 0.12), rgba(200, 0, 0, 0.05)); border:1.5px solid rgba(255, 0, 0, 0.25); margin-bottom:16px;">
-        <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="display:flex; align-items:center; gap:6px;">🎯 Rattil Quiz</span>
-          <span id="dashQuizBadge" class="badge b-amber" style="display:none; font-size:10px;">Baru</span>
+      <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="cursor:pointer; background:linear-gradient(135deg, #e52d27 0%, #b31217 100%); border:1px solid rgba(255, 255, 255, 0.15); margin-bottom:16px; box-shadow:0 8px 24px rgba(229, 45, 39, 0.25); color:#ffffff !important;">
+        <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center; color:#ffffff !important;">
+          <span style="display:flex; align-items:center; gap:6px; color:#ffffff !important;">🎯 Rattil Quiz</span>
+          <span id="dashQuizBadge" class="badge" style="display:none; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px;">Baru</span>
         </div>
-        <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:var(--text-2); margin-top:8px;">
+        <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:rgba(255, 255, 255, 0.9); margin-top:8px;">
           ⏳ Memuat kuis tersedia...
         </div>
       </div>
@@ -8117,32 +8117,34 @@ async function loadDashboard() {
       var dashQuizBadge = document.getElementById('dashQuizBadge');
       if (dashQuizCard && dashQuizBody) {
         if (quizList.length === 0) {
-          dashQuizBody.innerHTML = '<div style="color:var(--text-3); font-style:italic;">Tidak ada kuis aktif saat ini.</div>';
+          dashQuizBody.innerHTML = '<div style="color:rgba(255,255,255,0.7); font-style:italic;">Tidak ada kuis aktif saat ini.</div>';
           if (dashQuizBadge) dashQuizBadge.style.display = 'none';
         } else {
           var activeQuizzes = quizList.filter(function(q) { return !q.sudah_dikerjakan; });
           if (activeQuizzes.length > 0) {
             if (dashQuizBadge) {
-              dashQuizBadge.textContent = activeQuizzes.length + ' Kuis Baru';
-              dashQuizBadge.className = 'badge b-amber';
+              dashQuizBadge.textContent = activeQuizzes.length + ' Baru';
+              dashQuizBadge.style.background = '#ffffff';
+              dashQuizBadge.style.color = '#e52d27';
               dashQuizBadge.style.display = 'inline-block';
             }
             dashQuizBody.innerHTML = activeQuizzes.slice(0, 2).map(function(q) {
-              return '<div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:8px;">'
+              return '<div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(255,255,255,0.25); padding-bottom:8px;">'
                 + '  <div>'
-                + '    <strong>' + esc(q.judul) + '</strong>'
-                + '    <div style="font-size:11px; color:var(--text-3); margin-top:2px;">' + esc(q.kategori || 'Umum') + ' · ' + (q.durasi_per_soal_detik ? q.durasi_per_soal_detik + ' dtk/soal' : 'Tanpa batas') + '</div>'
+                + '    <strong style="color:#ffffff;">' + esc(q.judul) + '</strong>'
+                + '    <div style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px;">' + esc(q.kategori || 'Umum') + ' · ' + (q.durasi_per_soal_detik ? q.durasi_per_soal_detik + ' dtk/soal' : 'Tanpa batas') + '</div>'
                 + '  </div>'
-                + '  <span style="font-size:12px; color:#ff0000; font-weight:800; white-space:nowrap; margin-left:12px;">Mulai Kuis 🚀</span>'
+                + '  <span style="font-size:11px; background:#ffffff; color:#e52d27; font-weight:800; padding:4px 10px; border-radius:100px; white-space:nowrap; margin-left:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer;">Mulai Kuis 🚀</span>'
                 + '</div>';
             }).join('');
           } else {
             if (dashQuizBadge) {
               dashQuizBadge.textContent = 'Selesai';
-              dashQuizBadge.className = 'badge b-green';
+              dashQuizBadge.style.background = '#ffffff';
+              dashQuizBadge.style.color = '#059669';
               dashQuizBadge.style.display = 'inline-block';
             }
-            dashQuizBody.innerHTML = '<div style="color:var(--green); font-weight:600; display:flex; align-items:center; gap:6px;">🎉 Semua kuis telah selesai! Mantap!</div>';
+            dashQuizBody.innerHTML = '<div style="color:#ffffff; font-weight:600; display:flex; align-items:center; gap:6px;">🎉 Semua kuis telah selesai! Mantap!</div>';
           }
         }
       }
