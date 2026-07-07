@@ -900,9 +900,4 @@
   window.ksBukaSusulan = ksBukaSusulan;
   window.ksTandaiIzin = ksTandaiIzin;
   window.loadKehadiranSaya = loadKehadiranSaya;
-
-  // Let core app load this
-  window.loadJadwal = function() {
-    loadKehadiranSaya();
-  };
 })();
