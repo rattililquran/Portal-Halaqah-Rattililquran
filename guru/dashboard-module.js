@@ -116,6 +116,20 @@
       // Hapus skeleton stats
       document.querySelectorAll('.skel-stat').forEach(function(el) { el.remove(); });
 
+      // Load total kuis di background
+      if (window.HQ.QuizAPI && typeof window.HQ.QuizAPI.getKuisList === 'function') {
+        window.HQ.QuizAPI.getKuisList().then(function(qr) {
+          if (qr.status !== 'ok') return;
+          var list = qr.data || [];
+          var elVal = document.getElementById('st-kuis');
+          if (elVal) {
+            elVal.textContent = list.length + ' Kuis';
+          }
+        }).catch(function(e) {
+          console.error("Gagal memuat kuis guru:", e);
+        });
+      }
+
       // Cek sesi draft aktif (untuk banner lanjut/hapus)
       if (d.sesi_draft) {
         window.HQ.AppState.sesiAktif = d.sesi_draft;
