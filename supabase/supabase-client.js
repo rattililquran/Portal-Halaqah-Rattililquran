@@ -4422,6 +4422,10 @@ var MuridAPI = {
     return { status: 'ok', message: 'Bismillah, masukan Anda telah terkirim!' };
   },
 
+  kirimSaran: async function(d) {
+    return this.kirimSaranMasukan(d);
+  },
+
   getRiwayatSaran: async function() {
     var id_murid = _uid();
     var { data, error } = await _sb.from('saran_masukan')
