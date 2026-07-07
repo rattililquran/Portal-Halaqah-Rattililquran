@@ -16,6 +16,16 @@
   async function loadSPP() {
     if (_sppLoaded) return; // skip jika sudah dimuat (hindari CORS spam saat auto-refresh)
     var user = window.HQ.getCurrentUser();
+    if (user && user.id_user && user.id_user.startsWith('FTH')) {
+      var sppCard = document.getElementById('sppCard');
+      if (sppCard) sppCard.style.display = 'block';
+      var sppTabSpp = document.getElementById('sppTabSpp');
+      if (sppTabSpp) sppTabSpp.style.display = 'none';
+      switchSppTab('infaq');
+      loadTransparansi();
+      _sppLoaded = true;
+      return;
+    }
     try {
       var r = await window.HQ.MuridAPI.getSPPStatus();
       if (r && r.status === 'error') {
@@ -303,15 +313,27 @@
   }
 
   async function bukaModalKonfirmasiSPP() {
-    _sppFormJenis = 'SPP Pribadi';
     _sppBuktiBlob = null;
     
     // Reset tab metode ke QRIS
     var tabQris = document.querySelector('#sppFormMetodeTab .spp-jenis-tab:first-child');
     setSppFormMetode('qris', tabQris);
 
-    document.querySelectorAll('#sppFormJenisTab .spp-jenis-tab').forEach(function(t,i){ t.className='spp-jenis-tab'+(i===0?' active':''); });
-    document.getElementById('sppFormBulanWrap').style.display = '';
+    var user = window.HQ.getCurrentUser();
+    var isDaurah = user && user.id_user && user.id_user.startsWith('FTH');
+    var tabSpp = document.querySelector('#sppFormJenisTab .spp-jenis-tab:first-child');
+    var tabInfaq = document.querySelector('#sppFormJenisTab .spp-jenis-tab:last-child');
+
+    if (isDaurah) {
+      if (tabSpp) tabSpp.style.display = 'none';
+      _sppFormJenis = 'Infaq/Operasional';
+      setSppFormJenis('Infaq/Operasional', tabInfaq);
+    } else {
+      if (tabSpp) tabSpp.style.display = '';
+      _sppFormJenis = 'SPP Pribadi';
+      setSppFormJenis('SPP Pribadi', tabSpp);
+    }
+
     // Reset checkboxes & radio
     document.querySelectorAll('#sppBulanGrid input').forEach(function(c){ c.checked=false; });
     document.querySelectorAll('input[name="sppMetodeTransfer"]').forEach(function(r){ r.checked=false; });
