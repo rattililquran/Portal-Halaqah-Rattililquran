@@ -244,6 +244,759 @@
     }
   }
 
+  // ------------------------------------------------------------
+  //  DYNAMIC FEEDBACK DIALOG (REUSABLE)
+  // ------------------------------------------------------------
+  function showFeedbackModal(title, subtitle, onSubmit) {
+    var existing = document.getElementById('pbFeedbackModal');
+    if (existing) document.body.removeChild(existing);
+
+    var modal = document.createElement('div');
+    modal.id = 'pbFeedbackModal';
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '99999';
+
+    modal.innerHTML = 
+      '<div class="modal-content" style="max-width:400px; padding:20px; border-radius:16px; background:var(--card-solid); border:1px solid var(--border); box-shadow:0 10px 25px rgba(0,0,0,0.15); width:90%; position:relative;">'
+      + '  <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px;">' + _esc(title) + '</div>'
+      + '  <div style="font-size:12px; color:var(--text-3); margin-bottom:16px;">' + _esc(subtitle) + '</div>'
+      + '  <div style="margin-bottom:12px;">'
+      + '    <label style="display:block; font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:6px; text-transform:uppercase;">Pilih Reaksi</label>'
+      + '    <div style="display:flex; gap:10px; font-size:24px;" id="pbModalReaksi">'
+      + '      <span style="cursor:pointer; padding:6px; border-radius:8px; border:1.5px solid var(--border); transition:all 0.2s;" onclick="selectPbEmoji(this, \'👍\')">👍</span>'
+      + '      <span style="cursor:pointer; padding:6px; border-radius:8px; border:1.5px solid var(--border); transition:all 0.2s;" onclick="selectPbEmoji(this, \'❤️\')">❤️</span>'
+      + '      <span style="cursor:pointer; padding:6px; border-radius:8px; border:1.5px solid var(--border); transition:all 0.2s;" onclick="selectPbEmoji(this, \'👏\')">👏</span>'
+      + '      <span style="cursor:pointer; padding:6px; border-radius:8px; border:1.5px solid var(--border); transition:all 0.2s;" onclick="selectPbEmoji(this, \'💪\')">💪</span>'
+      + '      <span style="cursor:pointer; padding:6px; border-radius:8px; border:1.5px solid var(--border); transition:all 0.2s;" onclick="selectPbEmoji(this, \'⭐\')">⭐</span>'
+      + '    </div>'
+      + '  </div>'
+      + '  <div style="margin-bottom:16px;">'
+      + '    <label style="display:block; font-size:10px; font-weight:700; color:var(--text-3); margin-bottom:6px; text-transform:uppercase;">Catatan / Penyemangat (Opsional)</label>'
+      + '    <textarea class="fc" id="pbModalCatatan" rows="3" placeholder="Tulis pesan penyemangat untuk partnermu..." style="width:100%; border-radius:10px; padding:10px; font-size:12.5px;"></textarea>'
+      + '  </div>'
+      + '  <div style="display:flex; gap:10px; justify-content:flex-end;">'
+      + '    <button onclick="closePbFeedbackModal()" style="padding:10px 16px; border-radius:10px; border:none; background:var(--bg-2); color:var(--text-2); font-weight:700; font-size:12.5px; cursor:pointer;">Batal</button>'
+      + '    <button id="pbModalSubmitBtn" style="padding:10px 16px; border-radius:10px; border:none; background:var(--green); color:#fff; font-weight:700; font-size:12.5px; cursor:pointer;">Konfirmasi ✓</button>'
+      + '  </div>'
+      + '</div>';
+
+    document.body.appendChild(modal);
+
+    var selectedEmoji = '';
+    window.selectPbEmoji = function(el, emoji) {
+      document.querySelectorAll('#pbModalReaksi span').forEach(function(s) {
+        s.style.borderColor = 'var(--border)';
+        s.style.background = 'none';
+      });
+      el.style.borderColor = 'var(--green)';
+      el.style.background = 'rgba(34,197,94,0.1)';
+      selectedEmoji = emoji;
+    };
+
+    window.closePbFeedbackModal = function() {
+      if (document.body.contains(modal)) document.body.removeChild(modal);
+    };
+
+    document.getElementById('pbModalSubmitBtn').onclick = function() {
+      var catatan = document.getElementById('pbModalCatatan').value.trim();
+      closePbFeedbackModal();
+      onSubmit(selectedEmoji, catatan);
+    };
+  }
+
+  // ------------------------------------------------------------
+  //  PARTNER BELAJAR (Level 1-4) IMPLEMENTATIONS
+  // ------------------------------------------------------------
+
+  async function loadPbRiwayat() {
+    var listEl = document.getElementById('pbRiwayatList');
+    if (!listEl) return;
+    try {
+      var res = await window.HQ.MuridAPI.getLogRingkasSaya();
+      var list = res.data || [];
+      if (list.length === 0) {
+        listEl.innerHTML = '<div class="empty" style="padding:20px 0;"><div class="empty-ico">📖</div><div class="empty-ttl" style="font-size:12px;">Belum ada riwayat aktivitas belajar</div></div>';
+        return;
+      }
+      
+      listEl.innerHTML = list.map(function(r) {
+        var tgl = r.tanggal ? fmtDate(r.tanggal) : '-';
+        var isKonf = r.status_konfirmasi === 'dikonfirmasi';
+        var badgeCls = isKonf ? 'b-green' : 'b-amber';
+        var badgeTxt = isKonf ? 'Dikonfirmasi' : 'Menunggu';
+        
+        var reactionHtml = '';
+        if (isKonf && (r.catatan_partner || r.reaksi_partner)) {
+          reactionHtml = '<div style="margin-top:6px; padding:6px 10px; background:var(--bg-2); border-radius:6px; font-size:11px; border-left:2.5px solid var(--blue); color:var(--text-2);">'
+            + '<strong>Catatan Partner:</strong> ' 
+            + (r.reaksi_partner ? '<span style="font-size:13px; margin-right:4px;">' + _esc(r.reaksi_partner) + '</span>' : '')
+            + (r.catatan_partner ? _esc(r.catatan_partner) : '')
+            + '</div>';
+        }
+        
+        return '<div class="at-card" style="padding:12px 14px; margin-bottom:10px; border:1px solid var(--border); border-radius:12px; background:var(--card-solid);">'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">'
+          + '    <div>'
+          + '      <div style="font-weight:700; font-size:13px; color:var(--text);">' + _esc(r.jenis_aktivitas) + '</div>'
+          + (r.deskripsi ? ('<div style="font-size:11.5px; color:var(--text-2); margin-top:2px;">' + _esc(r.deskripsi) + '</div>') : '')
+          + '      <div style="font-size:10.5px; color:var(--text-3); margin-top:4px;">📅 ' + tgl + (r.durasi_menit ? (' · ⏱️ ' + r.durasi_menit + ' menit') : '') + '</div>'
+          + '    </div>'
+          + '    <span class="badge ' + badgeCls + '" style="font-size:9.5px; padding:2px 8px;">' + badgeTxt + '</span>'
+          + '  </div>'
+          + reactionHtml
+          + '</div>';
+      }).join('');
+    } catch (e) {
+      console.error('loadPbRiwayat error:', e);
+      listEl.innerHTML = '<div style="color:var(--red); padding:10px 0;">Gagal memuat riwayat.</div>';
+    }
+  }
+
+  async function loadPartnerBelajarMenunggu() {
+    var wrap = document.getElementById('pbMenungguWrap');
+    var listEl = document.getElementById('pbMenungguList');
+    if (!wrap || !listEl) return;
+    try {
+      var res = await window.HQ.MuridAPI.getLogMenungguKonfirmasi();
+      var list = res.data || [];
+      if (list.length === 0) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'block';
+      listEl.innerHTML = list.map(function(r) {
+        var tgl = r.tanggal ? fmtDate(r.tanggal) : '-';
+        var durasi = r.durasi_menit ? (r.durasi_menit + ' menit') : '';
+        var desc = r.deskripsi ? ('"' + _esc(r.deskripsi) + '"') : '';
+        var subtitle = _esc(r.jenis_aktivitas) + (durasi ? ' · ' + durasi : '') + (desc ? ' · ' + desc : '');
+        
+        return '<div class="at-card" style="padding:14px; margin-bottom:10px; border:1.5px solid rgba(245,158,11,.3); border-radius:14px; background:var(--card-solid);">'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">'
+          + '    <div>'
+          + '      <div style="font-weight:800; font-size:13.5px; color:var(--text);">' + _esc(r.nama_murid) + '</div>'
+          + '      <div style="font-size:12px; color:var(--text-2); margin-top:4px;">' + subtitle + '</div>'
+          + '      <div style="font-size:11px; color:var(--text-3); margin-top:4px;">📅 ' + tgl + '</div>'
+          + '    </div>'
+          + '    <button class="at-btn" onclick="pbKonfirmasiLog(\'' + r.id_log + '\', \'' + _esc(r.nama_murid) + '\', \'' + _esc(r.jenis_aktivitas) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
+          + '  </div>'
+          + '</div>';
+      }).join('');
+    } catch (e) {
+      console.error('loadPartnerBelajarMenunggu error:', e);
+      wrap.style.display = 'none';
+    }
+  }
+
+  window.pbKonfirmasiLog = function(id_log, nama_murid, jenis) {
+    showFeedbackModal('Konfirmasi Aktivitas', nama_murid + ' · ' + jenis, async function(emoji, catatan) {
+      showLoad();
+      try {
+        var r = await window.HQ.MuridAPI.konfirmasiLogBelajar(id_log, 'Lancar', catatan, emoji);
+        if (r.status === 'ok') {
+          toast('Aktivitas berhasil dikonfirmasi! ✓', 'ok');
+          await loadPagePartnerBelajar();
+          if (typeof loadPartnerBelajarDashCard === 'function') loadPartnerBelajarDashCard();
+        } else {
+          toast(r.message || 'Gagal mengonfirmasi', 'err');
+        }
+      } catch (e) {
+        toast(friendlyError(e), 'err');
+      } finally {
+        hideLoad();
+      }
+    });
+  };
+
+  async function loadPartnerBelajarLiniMasa() {
+    var card = document.getElementById('pbLiniMasaCard');
+    var body = document.getElementById('pbLiniMasaBody');
+    if (!card || !body) return;
+    if (!_pbKelompok) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    try {
+      var res = await window.HQ.MuridAPI.getLiniMasaBelajar();
+      var feed = res.data || [];
+      if (feed.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-3); text-align:center; padding:10px 0;">Belum ada aktivitas atau milestone di kelompok ini.</div>';
+        return;
+      }
+
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+      body.innerHTML = feed.map(function(item) {
+        var tgl = item.tanggal ? fmtDate(item.tanggal) : '-';
+        var isMilestone = item.tipe === 'milestone';
+        var icon = isMilestone ? '🎯' : '📝';
+        var content = '';
+
+        if (isMilestone) {
+          var canDel = item.dibuat_oleh === myId;
+          var delBtn = canDel ? ' <button onclick="pbDeleteMilestone(\'' + item.id_item + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
+          content = '<div style="background:rgba(13,148,136,0.08); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
+            + '  <strong>' + _esc(item.judul) + '</strong>' + delBtn
+            + '  <div style="font-size:10px; color:var(--text-3); margin-top:2px;">Ditandai oleh ' + _esc(item.nama_pembuat || 'Anggota') + '</div>'
+            + '</div>';
+        } else {
+          content = '<strong>' + _esc(item.nama_pembuat) + '</strong> melaporkan aktivitas belajar: "' + _esc(item.judul) + '"'
+            + (item.deskripsi ? ' <span style="font-style:italic; color:var(--text-3);">(' + _esc(item.deskripsi) + ')</span>' : '');
+        }
+
+        return '<div style="display:flex; gap:10px; margin-bottom:12px; font-size:12px; line-height:1.45;">'
+          + '  <div style="font-size:16px;">' + icon + '</div>'
+          + '  <div style="flex:1;">'
+          + '    <div>' + content + '</div>'
+          + '    <div style="font-size:10.5px; color:var(--text-3); margin-top:2px;">📅 ' + tgl + '</div>'
+          + '  </div>'
+          + '</div>';
+      }).join('');
+    } catch (e) {
+      console.error('loadPartnerBelajarLiniMasa error:', e);
+      body.innerHTML = '<div style="color:var(--red)">Gagal memuat lini masa.</div>';
+    }
+  }
+
+  window.pbToggleMilestoneForm = function() {
+    var form = document.getElementById('pbMilestoneForm');
+    if (form) {
+      var isNone = form.style.display === 'none';
+      form.style.display = isNone ? 'block' : 'none';
+      if (isNone) {
+        var tgl = document.getElementById('pbMilestoneTgl');
+        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        document.getElementById('pbMilestoneJudul').focus();
+      }
+    }
+  };
+
+  window.pbSaveMilestone = async function() {
+    var judul = (document.getElementById('pbMilestoneJudul') || {}).value || '';
+    var tgl = (document.getElementById('pbMilestoneTgl') || {}).value || '';
+
+    if (!judul.trim()) { toast('Masukkan judul milestone', 'err'); return; }
+    if (!tgl) { toast('Pilih tanggal milestone', 'err'); return; }
+    if (!_pbKelompok) return;
+
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.addMilestoneBelajar({
+        id_kelompok: _pbKelompok.id_kelompok,
+        id_halaqah: _pbKelompok.id_halaqah,
+        judul: judul.trim(),
+        tanggal: tgl
+      });
+      if (r.status === 'ok') {
+        toast('Milestone berhasil disimpan! 🎯', 'ok');
+        document.getElementById('pbMilestoneJudul').value = '';
+        document.getElementById('pbMilestoneForm').style.display = 'none';
+        await loadPartnerBelajarLiniMasa();
+      } else {
+        toast(r.message || 'Gagal menyimpan', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pbDeleteMilestone = async function(id_milestone) {
+    if (!confirm('Apakah Anda yakin ingin menghapus milestone ini?')) return;
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.deleteMilestoneBelajar(id_milestone);
+      if (r.status === 'ok') {
+        toast('Milestone berhasil dihapus! ✓', 'ok');
+        await loadPartnerBelajarLiniMasa();
+      } else {
+        toast(r.message || 'Gagal menghapus', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  async function loadTargetBelajar() {
+    var card = document.getElementById('pbTargetCard');
+    var body = document.getElementById('pbTargetBody');
+    if (!card || !body) return;
+    if (!_pbKelompok) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    try {
+      var res = await window.HQ.MuridAPI.getTargetKelompokBelajar();
+      var list = res.data || [];
+      if (list.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-3); text-align:center; padding:10px 0;">Belum ada target bersama kelompok.</div>';
+        return;
+      }
+
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+      body.innerHTML = list.map(function(t) {
+        var tgl = t.tanggal_target ? fmtDate(t.tanggal_target) : 'Tanpa deadline';
+        var progressList = t.target_belajar_progress || [];
+        var isMeSelesai = progressList.some(function(p) { return p.id_murid === myId && p.selesai_at; });
+        var numDone = progressList.filter(function(p) { return p.selesai_at; }).length;
+        var numTotal = _pbKelompok.anggota_kelompok_belajar ? _pbKelompok.anggota_kelompok_belajar.length : 3;
+
+        var progressCheckHtml = '<input type="checkbox" ' + (isMeSelesai ? 'checked' : '') 
+          + ' onclick="pbTandaiTarget(\'' + t.id_target + '\', this.checked)" '
+          + ' style="width:16px; height:16px; cursor:pointer;">';
+
+        var canDel = t.dibuat_oleh === myId;
+        var delBtn = canDel ? ' <button onclick="pbDeleteTarget(\'' + t.id_target + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
+
+        var partnersDoneHtml = progressList.map(function(p) {
+          var label = _esc(p.nama_murid) + (p.id_murid === myId ? ' (Kamu)' : '');
+          var statusIcon = p.selesai_at ? '✅' : '⏳';
+          return '<div style="font-size:11px; margin-top:2px; color:var(--text-2);">' + statusIcon + ' ' + label + '</div>';
+        }).join('');
+
+        return '<div style="background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px;">'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">'
+          + '    <div style="display:flex; gap:10px; align-items:flex-start;">'
+          + '      <div style="margin-top:2px;">' + progressCheckHtml + '</div>'
+          + '      <div>'
+          + '        <div style="font-weight:700; font-size:12.5px; color:var(--text);">' + _esc(t.judul) + '</div>'
+          + '        <div style="font-size:10.5px; color:var(--text-3); margin-top:2px;">📅 Batas: ' + tgl + '</div>'
+          + '      </div>'
+          + '    </div>'
+          + '    <div>' + delBtn + '</div>'
+          + '  </div>'
+          + '  <div style="height:5px; background:var(--border); border-radius:100px; margin-top:10px; overflow:hidden;">'
+          + '    <div style="height:100%; background:var(--green); width:' + Math.min(100, Math.round((numDone / numTotal) * 100)) + '%; border-radius:100px;"></div>'
+          + '  </div>'
+          + '  <div style="font-size:10.5px; color:var(--text-3); margin-top:6px; font-weight:600;">Selesai: ' + numDone + ' dari ' + numTotal + ' anggota</div>'
+          + '  <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:6px;">' + partnersDoneHtml + '</div>'
+          + '</div>';
+      }).join('');
+    } catch(e) {
+      console.error('loadTargetBelajar error:', e);
+      body.innerHTML = '<div style="color:var(--red)">Gagal memuat target kelompok.</div>';
+    }
+  }
+
+  window.pbToggleTargetForm = function() {
+    var form = document.getElementById('pbTargetForm');
+    if (form) {
+      var isNone = form.style.display === 'none';
+      form.style.display = isNone ? 'block' : 'none';
+      if (isNone) {
+        var tgl = document.getElementById('pbTargetTgl');
+        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        document.getElementById('pbTargetJudul').focus();
+      }
+    }
+  };
+
+  window.pbSaveTarget = async function() {
+    var judul = (document.getElementById('pbTargetJudul') || {}).value || '';
+    var tgl = (document.getElementById('pbTargetTgl') || {}).value || '';
+
+    if (!judul.trim()) { toast('Masukkan judul target', 'err'); return; }
+    if (!_pbKelompok) return;
+
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.addTargetKelompokBelajar({
+        id_kelompok: _pbKelompok.id_kelompok,
+        id_halaqah: _pbKelompok.id_halaqah,
+        judul: judul.trim(),
+        tanggal_target: tgl || null
+      });
+      if (r.status === 'ok') {
+        toast('Target bersama berhasil dibuat! 🎯', 'ok');
+        document.getElementById('pbTargetJudul').value = '';
+        document.getElementById('pbTargetForm').style.display = 'none';
+        await loadTargetBelajar();
+      } else {
+        toast(r.message || 'Gagal membuat target', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pbDeleteTarget = async function(id_target) {
+    if (!confirm('Apakah Anda yakin ingin menghapus target ini?')) return;
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.deleteTargetKelompokBelajar(id_target);
+      if (r.status === 'ok') {
+        toast('Target bersama berhasil dihapus! ✓', 'ok');
+        await loadTargetBelajar();
+      } else {
+        toast(r.message || 'Gagal menghapus', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pbTandaiTarget = async function(id_target, selesai) {
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.tandaiProgressTargetBelajar(id_target, selesai);
+      if (r.status === 'ok') {
+        toast(selesai ? 'Target berhasil ditandai selesai! 🎉' : 'Progress target dibatalkan', 'ok');
+        await loadTargetBelajar();
+      } else {
+        toast(r.message || 'Gagal memperbarui target', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+
+  // ------------------------------------------------------------
+  //  PARTNER QIYAN (Tahfidz) IMPLEMENTATIONS
+  // ------------------------------------------------------------
+
+  async function loadPartnerKelompok() {
+    var body = document.getElementById('pqKelompokBody');
+    if (!body) return;
+    try {
+      var resKel = await window.HQ.MuridAPI.getMyKelompokPartner();
+      _pqKelompok = resKel.data;
+      if (!_pqKelompok) {
+        body.innerHTML = '<div style="color:var(--text-3)">Kamu belum tergabung di kelompok partner Qiyam. Hubungi guru/admin untuk dimasukkan ke kelompok.</div>';
+        return;
+      }
+      var resStatus = await window.HQ.MuridAPI.getStatusKelompokPartner();
+      var statusList = resStatus.data || [];
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+      var rows = statusList.map(function(m) {
+        var isMe = m.id_murid === myId;
+        var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada setoran';
+        var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+        var waBtn = isMe ? '' : _pbMemberWaBtn(m.nama_murid, m.no_hp);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
+          + '<span style="font-weight:600;font-size:12px;color:var(--text);flex:1;min-width:0">' + nameLabel + '</span>'
+          + '<span style="font-size:11px;color:var(--text-3)">' + _esc(tgl) + '</span>'
+          + waBtn
+          + '</div>';
+      }).join('');
+      body.innerHTML = '<div style="font-weight:800;font-size:13px;color:var(--text);margin-bottom:6px">' + _esc(_pqKelompok.nama_kelompok || 'Kelompok Partner Qiyam') + '</div>' + rows;
+    } catch(e) {
+      body.innerHTML = '<div style="color:#ef4444">Gagal memuat: ' + _esc(friendlyError(e)) + '</div>';
+    }
+  }
+
+  async function loadPartnerMenunggu() {
+    var wrap = document.getElementById('pqMenungguWrap');
+    var listEl = document.getElementById('pqMenungguList');
+    if (!wrap || !listEl) return;
+    try {
+      var res = await window.HQ.MuridAPI.getSetoranMenungguKonfirmasi();
+      var list = res.data || [];
+      if (list.length === 0) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = 'block';
+      listEl.innerHTML = list.map(function(r) {
+        var tgl = r.created_at ? fmtDate(r.created_at) : '-';
+        var detail = 'QS. ' + _esc(r.surat) + ' · Ayat ' + r.ayat_dari + '-' + r.ayat_sampai + (r.juz ? ' · Juz ' + r.juz : '');
+        var subtitle = _esc(r.jenis) + ' · ' + detail;
+        
+        return '<div class="at-card" style="padding:14px; margin-bottom:10px; border:1.5px solid rgba(245,158,11,.3); border-radius:14px; background:var(--card-solid);">'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">'
+          + '    <div>'
+          + '      <div style="font-weight:800; font-size:13.5px; color:var(--text);">' + _esc(r.nama_murid) + '</div>'
+          + '      <div style="font-size:12px; color:var(--text-2); margin-top:4px;">' + subtitle + '</div>'
+          + '      <div style="font-size:11px; color:var(--text-3); margin-top:4px;">📅 ' + tgl + '</div>'
+          + '    </div>'
+          + '    <button class="at-btn" onclick="pqKonfirmasiSetoran(\'' + r.id_setoran + '\', \'' + _esc(r.nama_murid) + '\', \'' + _esc(r.jenis) + ' ' + _esc(r.surat) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
+          + '  </div>'
+          + '</div>';
+      }).join('');
+    } catch (e) {
+      console.error('loadPartnerMenunggu error:', e);
+      wrap.style.display = 'none';
+    }
+  }
+
+  window.pqKonfirmasiSetoran = function(id_setoran, nama_murid, detail) {
+    showFeedbackModal('Konfirmasi Setoran', nama_murid + ' · ' + detail, async function(emoji, catatan) {
+      showLoad();
+      try {
+        var r = await window.HQ.MuridAPI.konfirmasiSetoranPartner(id_setoran, 'Lancar', catatan, emoji);
+        if (r.status === 'ok') {
+          toast('Setoran berhasil dikonfirmasi! ✓', 'ok');
+          await _initPartnerPanel();
+          if (typeof loadPartnerDashCard === 'function') loadPartnerDashCard();
+        } else {
+          toast(r.message || 'Gagal mengonfirmasi', 'err');
+        }
+      } catch (e) {
+        toast(friendlyError(e), 'err');
+      } finally {
+        hideLoad();
+      }
+    });
+  };
+
+  async function loadPartnerLiniMasa() {
+    var card = document.getElementById('pqLiniMasaCard');
+    var body = document.getElementById('pqLiniMasaBody');
+    if (!card || !body) return;
+    if (!_pqKelompok) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    try {
+      var res = await window.HQ.MuridAPI.getLiniMasaSetoran();
+      var feed = res.data || [];
+      if (feed.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-3); text-align:center; padding:10px 0;">Belum ada aktivitas atau milestone di kelompok Qiyam ini.</div>';
+        return;
+      }
+
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+      body.innerHTML = feed.map(function(item) {
+        var tgl = item.tanggal ? fmtDate(item.tanggal) : '-';
+        var isMilestone = item.tipe === 'milestone';
+        var icon = isMilestone ? '🎯' : '🕌';
+        var content = '';
+
+        if (isMilestone) {
+          var canDel = item.dibuat_oleh === myId;
+          var delBtn = canDel ? ' <button onclick="pqDeleteMilestone(\'' + item.id_item + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
+          content = '<div style="background:rgba(13,148,136,0.08); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
+            + '  <strong>' + _esc(item.judul) + '</strong>' + delBtn
+            + '  <div style="font-size:10px; color:var(--text-3); margin-top:2px;">Ditandai oleh ' + _esc(item.nama_pembuat || 'Anggota') + '</div>'
+            + '</div>';
+        } else {
+          content = '<strong>' + _esc(item.nama_pembuat) + '</strong> menyetor hafalan: ' + _esc(item.judul)
+            + (item.deskripsi ? ' <span style="font-style:italic; color:var(--text-3);">(' + _esc(item.deskripsi) + ')</span>' : '');
+        }
+
+        return '<div style="display:flex; gap:10px; margin-bottom:12px; font-size:12px; line-height:1.45;">'
+          + '  <div style="font-size:16px;">' + icon + '</div>'
+          + '  <div style="flex:1;">'
+          + '    <div>' + content + '</div>'
+          + '    <div style="font-size:10.5px; color:var(--text-3); margin-top:2px;">📅 ' + tgl + '</div>'
+          + '  </div>'
+          + '</div>';
+      }).join('');
+    } catch (e) {
+      console.error('loadPartnerLiniMasa error:', e);
+      body.innerHTML = '<div style="color:var(--red)">Gagal memuat lini masa.</div>';
+    }
+  }
+
+  window.pqToggleMilestoneForm = function() {
+    var form = document.getElementById('pqMilestoneForm');
+    if (form) {
+      var isNone = form.style.display === 'none';
+      form.style.display = isNone ? 'block' : 'none';
+      if (isNone) {
+        var tgl = document.getElementById('pqMilestoneTgl');
+        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        document.getElementById('pqMilestoneJudul').focus();
+      }
+    }
+  };
+
+  window.pqSaveMilestone = async function() {
+    var judul = (document.getElementById('pqMilestoneJudul') || {}).value || '';
+    var tgl = (document.getElementById('pqMilestoneTgl') || {}).value || '';
+
+    if (!judul.trim()) { toast('Masukkan judul milestone', 'err'); return; }
+    if (!tgl) { toast('Pilih tanggal milestone', 'err'); return; }
+    if (!_pqKelompok) return;
+
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.addMilestone({
+        id_kelompok: _pqKelompok.id_kelompok,
+        judul: judul.trim(),
+        tanggal: tgl
+      });
+      if (r.status === 'ok') {
+        toast('Milestone berhasil disimpan! 🎯', 'ok');
+        document.getElementById('pqMilestoneJudul').value = '';
+        document.getElementById('pqMilestoneForm').style.display = 'none';
+        await loadPartnerLiniMasa();
+      } else {
+        toast(r.message || 'Gagal menyimpan', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pqDeleteMilestone = async function(id_milestone) {
+    if (!confirm('Apakah Anda yakin ingin menghapus milestone ini?')) return;
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.deleteMilestone(id_milestone);
+      if (r.status === 'ok') {
+        toast('Milestone berhasil dihapus! ✓', 'ok');
+        await loadPartnerLiniMasa();
+      } else {
+        toast(r.message || 'Gagal menghapus', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  async function loadTargetKelompok() {
+    var card = document.getElementById('pqTargetCard');
+    var body = document.getElementById('pqTargetBody');
+    if (!card || !body) return;
+    if (!_pqKelompok) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    try {
+      var res = await window.HQ.MuridAPI.getTargetKelompokPartner();
+      var list = res.data || [];
+      if (list.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-3); text-align:center; padding:10px 0;">Belum ada target bersama kelompok.</div>';
+        return;
+      }
+
+      var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+      body.innerHTML = list.map(function(t) {
+        var tgl = t.tanggal_target ? fmtDate(t.tanggal_target) : 'Tanpa deadline';
+        var progressList = t.target_partner_progress || [];
+        var isMeSelesai = progressList.some(function(p) { return p.id_murid === myId && p.selesai_at; });
+        var numDone = progressList.filter(function(p) { return p.selesai_at; }).length;
+        var numTotal = _pqKelompok.anggota_kelompok_partner ? _pqKelompok.anggota_kelompok_partner.length : 3;
+
+        var progressCheckHtml = '<input type="checkbox" ' + (isMeSelesai ? 'checked' : '') 
+          + ' onclick="pqTandaiTarget(\'' + t.id_target + '\', this.checked)" '
+          + ' style="width:16px; height:16px; cursor:pointer;">';
+
+        var canDel = t.dibuat_oleh === myId;
+        var delBtn = canDel ? ' <button onclick="pqDeleteTarget(\'' + t.id_target + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
+
+        var partnersDoneHtml = progressList.map(function(p) {
+          var label = _esc(p.nama_murid) + (p.id_murid === myId ? ' (Kamu)' : '');
+          var statusIcon = p.selesai_at ? '✅' : '⏳';
+          return '<div style="font-size:11px; margin-top:2px; color:var(--text-2);">' + statusIcon + ' ' + label + '</div>';
+        }).join('');
+
+        return '<div style="background:var(--bg-2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px;">'
+          + '  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">'
+          + '    <div style="display:flex; gap:10px; align-items:flex-start;">'
+          + '      <div style="margin-top:2px;">' + progressCheckHtml + '</div>'
+          + '      <div>'
+          + '        <div style="font-weight:700; font-size:12.5px; color:var(--text);">' + _esc(t.judul) + '</div>'
+          + '        <div style="font-size:10.5px; color:var(--text-3); margin-top:2px;">📅 Batas: ' + tgl + '</div>'
+          + '      </div>'
+          + '    </div>'
+          + '    <div>' + delBtn + '</div>'
+          + '  </div>'
+          + '  <div style="height:5px; background:var(--border); border-radius:100px; margin-top:10px; overflow:hidden;">'
+          + '    <div style="height:100%; background:var(--green); width:' + Math.min(100, Math.round((numDone / numTotal) * 100)) + '%; border-radius:100px;"></div>'
+          + '  </div>'
+          + '  <div style="font-size:10.5px; color:var(--text-3); margin-top:6px; font-weight:600;">Selesai: ' + numDone + ' dari ' + numTotal + ' anggota</div>'
+          + '  <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:6px;">' + partnersDoneHtml + '</div>'
+          + '</div>';
+      }).join('');
+    } catch(e) {
+      console.error('loadTargetKelompok error:', e);
+      body.innerHTML = '<div style="color:var(--red)">Gagal memuat target kelompok.</div>';
+    }
+  }
+
+  window.pqToggleTargetForm = function() {
+    var form = document.getElementById('pqTargetForm');
+    if (form) {
+      var isNone = form.style.display === 'none';
+      form.style.display = isNone ? 'block' : 'none';
+      if (isNone) {
+        var tgl = document.getElementById('pqTargetTgl');
+        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        document.getElementById('pqTargetJudul').focus();
+      }
+    }
+  };
+
+  window.pqSaveTarget = async function() {
+    var judul = (document.getElementById('pqTargetJudul') || {}).value || '';
+    var tgl = (document.getElementById('pqTargetTgl') || {}).value || '';
+
+    if (!judul.trim()) { toast('Masukkan judul target', 'err'); return; }
+    if (!_pqKelompok) return;
+
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.addTargetKelompokPartner({
+        id_kelompok: _pqKelompok.id_kelompok,
+        judul: judul.trim(),
+        tanggal_target: tgl || null
+      });
+      if (r.status === 'ok') {
+        toast('Target bersama berhasil dibuat! 🎯', 'ok');
+        document.getElementById('pqTargetJudul').value = '';
+        document.getElementById('pqTargetForm').style.display = 'none';
+        await loadTargetKelompok();
+      } else {
+        toast(r.message || 'Gagal membuat target', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pqDeleteTarget = async function(id_target) {
+    if (!confirm('Apakah Anda yakin ingin menghapus target ini?')) return;
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.deleteTargetKelompokPartner(id_target);
+      if (r.status === 'ok') {
+        toast('Target bersama berhasil dihapus! ✓', 'ok');
+        await loadTargetKelompok();
+      } else {
+        toast(r.message || 'Gagal menghapus', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
+  window.pqTandaiTarget = async function(id_target, selesai) {
+    showLoad();
+    try {
+      var r = await window.HQ.MuridAPI.tandaiProgressTargetPartner(id_target, selesai);
+      if (r.status === 'ok') {
+        toast(selesai ? 'Target berhasil ditandai selesai! 🎉' : 'Progress target dibatalkan', 'ok');
+        await loadTargetKelompok();
+      } else {
+        toast(r.message || 'Gagal memperbarui target', 'err');
+      }
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      hideLoad();
+    }
+  };
+
   // Safe Property Accessors
   try { delete window._pqInitialized; Object.defineProperty(window, '_pqInitialized', { get: function() { return _pqInitialized; }, set: function(v) { _pqInitialized = v; }, configurable: true }); } catch(e) { window._pqInitialized = _pqInitialized; }
   try { delete window._pqKelompok; Object.defineProperty(window, '_pqKelompok', { get: function() { return _pqKelompok; }, set: function(v) { _pqKelompok = v; }, configurable: true }); } catch(e) { window._pqKelompok = _pqKelompok; }
@@ -260,4 +1013,12 @@
   window.loadAktivitasTertunda = loadAktivitasTertunda;
   window.pbTertundaNow = pbTertundaNow;
   window.loadPartnerBelajarDashCard = loadPartnerBelajarDashCard;
+  window.loadPbRiwayat = loadPbRiwayat;
+  window.loadPartnerBelajarMenunggu = loadPartnerBelajarMenunggu;
+  window.loadPartnerBelajarLiniMasa = loadPartnerBelajarLiniMasa;
+  window.loadTargetBelajar = loadTargetBelajar;
+  window.loadPartnerKelompok = loadPartnerKelompok;
+  window.loadPartnerMenunggu = loadPartnerMenunggu;
+  window.loadPartnerLiniMasa = loadPartnerLiniMasa;
+  window.loadTargetKelompok = loadTargetKelompok;
 })();
