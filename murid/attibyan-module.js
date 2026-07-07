@@ -50,8 +50,10 @@
 
   function setAtTibyanFilter(val, btn) {
     _attibyanFilter = val;
-    document.querySelectorAll('.atf-btn').forEach(function(b){ b.className = 'atf-btn'; });
-    if (btn) btn.className = 'atf-btn active';
+    document.querySelectorAll('#attibyanFilter .atf-btn').forEach(function(b){
+      b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
     renderAtTibyan();
   }
 
@@ -80,31 +82,33 @@
         return word.charAt(0).toUpperCase() + word.slice(1);
       }).join(' ');
 
-      return '<div class="at-kv-row">'
-        + '<span class="at-kv-k">' + esc(cleanLabel) + '</span>'
-        + '<span class="at-kv-v">' + esc(String(val)) + '</span>'
+      return '<div class="at-field">'
+        + '  <div class="at-field-label">' + esc(cleanLabel) + '</div>'
+        + '  <div class="at-field-val">' + esc(String(val)) + '</div>'
         + '</div>';
     }).join('');
 
+    var catHtml = cat ? '<div class="at-field"><div class="at-field-label">Catatan Ustadz</div><div class="at-field-val" style="background:var(--bg-2); padding:10px 12px; border-radius:8px; border-left:3px solid var(--blue); font-style:italic;">' + cat + '</div></div>' : '';
+
     return '<div class="at-card" id="' + cardId + '">'
-      + '<div class="at-card-hdr" onclick="toggleAtCard(\'' + cardId + '\')">'
-      + '<div>'
-      + '<div class="at-card-ptm">' + ptm + (bab ? (' — ' + bab) : '') + '</div>'
-      + (mtr ? ('<div class="at-card-mtr">' + mtr + '</div>') : '')
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
-      + '<span class="badge ' + badgeCls + '">' + badgeTxt + '</span>'
-      + '<span class="at-card-chev">▼</span>'
-      + '</div>'
-      + '</div>'
-      + '<div class="at-card-bdy">'
-      + (cat ? ('<div class="at-catatan"><strong>Catatan Ust:</strong> ' + cat + '</div>') : '')
-      + (keyValRows ? ('<div class="at-kv-sec">' + keyValRows + '</div>') : '')
-      + '<div style="display:flex;gap:8px;margin-top:12px">'
-      + '<button class="at-act-btn" onclick="copyAtTibyan(' + idx + ')">📋 Salin Ringkasan</button>'
-      + '<button class="at-act-btn" onclick="shareAtTibyan(' + idx + ')">💬 Kirim ke WA</button>'
-      + '</div>'
-      + '</div>'
+      + '  <div class="at-card-head" onclick="toggleAtCard(\'' + cardId + '\')">'
+      + '    <div>'
+      + '      <div class="at-card-title">' + ptm + (bab ? (' — ' + bab) : '') + '</div>'
+      + (mtr ? ('      <div style="font-size:12px; color:var(--text-3); margin-top:2.5px; font-weight:500;">' + mtr + '</div>') : '')
+      + '    </div>'
+      + '    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+      + '      <span class="badge ' + badgeCls + '">' + badgeTxt + '</span>'
+      + '      <span class="at-card-chevron">▼</span>'
+      + '    </div>'
+      + '  </div>'
+      + '  <div class="at-card-body">'
+      + keyValRows
+      + catHtml
+      + '    <div class="at-actions">'
+      + '      <button class="at-btn at-btn-copy" onclick="copyAtTibyan(' + idx + ')">📋 Salin Ringkasan</button>'
+      + '      <button class="at-btn at-btn-share" onclick="shareAtTibyan(' + idx + ')">💬 Kirim ke WA</button>'
+      + '    </div>'
+      + '  </div>'
       + '</div>';
   }
 
@@ -128,7 +132,9 @@
 
   function toggleAtCard(id) {
     var el = document.getElementById(id);
-    if (el) el.classList.toggle('open');
+    if (el) {
+      el.classList.toggle('expanded');
+    }
   }
 
   function _buildAtTibyanText(idx) {
@@ -186,6 +192,96 @@
     window.open(url, '_blank');
   }
 
+  async function switchAtMuridTab(tabName, btn) {
+    document.querySelectorAll('#atTabBar .atf-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+
+    var panelKajian = document.getElementById('atPanelKajian');
+    var panelKehadiran = document.getElementById('atPanelKehadiran');
+    if (tabName === 'kajian') {
+      if (panelKajian) panelKajian.style.display = 'block';
+      if (panelKehadiran) panelKehadiran.style.display = 'none';
+    } else {
+      if (panelKajian) panelKajian.style.display = 'none';
+      if (panelKehadiran) panelKehadiran.style.display = 'block';
+      await loadAtTibyanKehadiran();
+    }
+  }
+
+  async function loadAtTibyanKehadiran() {
+    var contentEl = document.getElementById('atKehadiranContent');
+    if (!contentEl) return;
+    
+    contentEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);">Memuat data kehadiran At-Tibyan...</div>';
+    
+    try {
+      var r = await window.HQ.MuridAPI.getAtTibyanMurid();
+      if (r.status !== 'ok') {
+        throw new Error(r.message || 'Gagal memuat');
+      }
+      
+      var logs = r.data || [];
+      var summary = r.summary || { hadir: 0, total: 0, pct: 0 };
+      
+      var html = '';
+      
+      // 1. Stats Summary Card
+      html += '<div class="partner-dash-card" style="background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(21,128,61,.06)); border:1.5px solid rgba(74,222,128,.25); margin-bottom:20px; padding:16px; border-radius:12px;">'
+        + '  <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;">Ringkasan Kehadiran</div>'
+        + '  <div style="display:flex; justify-content:space-between; align-items:center;">'
+        + '    <div>'
+        + '      <div style="font-size:28px; font-weight:800; color:var(--green); line-height:1;">' + summary.pct + '%</div>'
+        + '      <div style="font-size:12px; color:var(--text-3); margin-top:4px;">Persentase Kehadiran</div>'
+        + '    </div>'
+        + '    <div style="text-align:right;">'
+        + '      <div style="font-size:18px; font-weight:700; color:var(--text);">' + summary.hadir + ' <span style="font-size:13px; font-weight:500; color:var(--text-3);">dari</span> ' + summary.total + ' <span style="font-size:13px; font-weight:500; color:var(--text-3);">sesi</span></div>'
+        + '      <div style="font-size:12px; color:var(--text-3); margin-top:4px;">Total Kehadiran</div>'
+        + '    </div>'
+        + '  </div>'
+        + '  <div style="height:6px; background:var(--border); border-radius:100px; margin-top:16px; overflow:hidden;">'
+        + '    <div style="height:100%; background:var(--green); width:' + summary.pct + '%; border-radius:100px; transition:width 0.5s ease;"></div>'
+        + '  </div>'
+        + '</div>';
+        
+      // 2. History List
+      html += '<div style="font-size:13px; font-weight:700; color:var(--text-2); margin-bottom:12px;">🗓️ Riwayat Sesi</div>';
+      
+      if (logs.length === 0) {
+        html += '<div class="empty" style="padding:30px;"><div class="empty-ico">📋</div><div class="empty-ttl">Belum ada riwayat presensi</div></div>';
+      } else {
+        html += '<div style="display:flex; flex-direction:column; gap:10px;">';
+        logs.forEach(function(l) {
+          var ptm = l.pertemuan_ke ? 'Pertemuan ' + l.pertemuan_ke : 'Pertemuan Tidak Diketahui';
+          var dateTxt = l.tanggal ? fmtDate(l.tanggal) : 'Tanggal -';
+          
+          var sh = l.status_hadir;
+          var badgeCls = 'b-amber';
+          var statusTxt = 'Presensi Belum Ada';
+          if (sh === 'H') { badgeCls = 'b-green'; statusTxt = 'Hadir'; }
+          else if (sh === 'T') { badgeCls = 'b-green'; statusTxt = 'Terlambat'; }
+          else if (sh === 'I') { badgeCls = 'b-amber'; statusTxt = 'Izin'; }
+          else if (sh === 'A') { badgeCls = 'b-red'; statusTxt = 'Alpa'; }
+          
+          html += '<div class="at-card" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border); border-radius:12px; background:var(--card-solid); margin-bottom: 0;">'
+            + '  <div>'
+            + '    <div style="font-weight:700; font-size:13.5px; color:var(--text);">' + ptm + '</div>'
+            + '    <div style="font-size:11.5px; color:var(--text-3); margin-top:2px;">📅 ' + dateTxt + '</div>'
+            + '  </div>'
+            + '  <span class="badge ' + badgeCls + '">' + statusTxt + '</span>'
+            + '</div>';
+        });
+        html += '</div>';
+      }
+      
+      contentEl.innerHTML = html;
+    } catch(e) {
+      console.error('loadAtTibyanKehadiran error:', e);
+      contentEl.innerHTML = '<div class="empty" style="padding:30px;"><div class="empty-ico">⚠️</div><div class="empty-ttl">Gagal memuat data</div><div class="empty-sub">' + esc(friendlyError(e)) + '</div></div>';
+    }
+  }
+
   // Safe Property Accessors
   try { delete window._attibyanData; Object.defineProperty(window, '_attibyanData', { get: function() { return _attibyanData; }, set: function(v) { _attibyanData = v; }, configurable: true }); } catch(e) { window._attibyanData = _attibyanData; }
   try { delete window._attibyanColumns; Object.defineProperty(window, '_attibyanColumns', { get: function() { return _attibyanColumns; }, set: function(v) { _attibyanColumns = v; }, configurable: true }); } catch(e) { window._attibyanColumns = _attibyanColumns; }
@@ -201,4 +297,6 @@
   window.copyAtTibyan = copyAtTibyan;
   window._copyFallback = _copyFallback;
   window.shareAtTibyan = shareAtTibyan;
+  window.switchAtMuridTab = switchAtMuridTab;
+  window.loadAtTibyanKehadiran = loadAtTibyanKehadiran;
 })();
