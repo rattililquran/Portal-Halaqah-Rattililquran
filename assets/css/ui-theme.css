@@ -112,3 +112,52 @@ button:hover, .btn:hover {
 html {
   scroll-behavior: smooth;
 }
+
+/* --- 7. Dark Mode Accessibility & High Contrast Adjustments --- */
+html.theme-dark {
+  /* Elevate tertiary text contrast globally */
+  --text-3: #94a3b8 !important;
+}
+
+/* Target and fix hardcoded light-mode text colors in inline styles */
+html.theme-dark [style*="color:#6b7280"],
+html.theme-dark [style*="color: #6b7280"],
+html.theme-dark [style*="color:rgb(107, 114, 128)"] {
+  color: var(--text-3) !important;
+}
+
+html.theme-dark [style*="color:#374151"],
+html.theme-dark [style*="color: #374151"],
+html.theme-dark [style*="color:#4b5563"],
+html.theme-dark [style*="color: #4b5563"],
+html.theme-dark [style*="color:#475569"],
+html.theme-dark [style*="color: #475569"],
+html.theme-dark [style*="color:rgb(55, 65, 81)"],
+html.theme-dark [style*="color:rgb(75, 85, 99)"] {
+  color: var(--text-2) !important;
+}
+
+html.theme-dark [style*="color:#111827"],
+html.theme-dark [style*="color: #111827"],
+html.theme-dark [style*="color:#0f172a"],
+html.theme-dark [style*="color: #0f172a"],
+html.theme-dark [style*="color:rgb(17, 24, 39)"] {
+  color: var(--text) !important;
+}
+
+/* Target and fix hardcoded light-mode background colors in inline styles */
+html.theme-dark [style*="background:#fff"],
+html.theme-dark [style*="background: #fff"],
+html.theme-dark [style*="background:#ffffff"],
+html.theme-dark [style*="background: #ffffff"],
+html.theme-dark [style*="background:#f9fafb"],
+html.theme-dark [style*="background: #f9fafb"],
+html.theme-dark [style*="background:#f3f4f6"],
+html.theme-dark [style*="background: #f3f4f6"],
+html.theme-dark [style*="background:rgb(255, 255, 255)"],
+html.theme-dark [style*="background:rgb(249, 250, 251)"],
+html.theme-dark [style*="background:rgb(243, 244, 246)"] {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
