@@ -154,9 +154,14 @@
   }
 
   function pbTertundaNow(jenis) {
-    switchHafalanTab('pbFormTab');
     var sel = document.getElementById('pbJenisSel');
-    if (sel) sel.value = jenis;
+    if (sel) {
+      sel.value = jenis;
+      sel.focus();
+      try {
+        sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch(e) {}
+    }
   }
 
   // Kartu "Partner Belajar" di Dashboard — CTA state-aware (mirror loadPartnerDashCard)
