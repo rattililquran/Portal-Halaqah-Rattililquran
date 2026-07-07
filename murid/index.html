@@ -3931,6 +3931,16 @@ html.theme-dark .materi-daurah-banner-title {
           <div class="lbl">Poin Kamera</div>
         </div>
       </div>
+      <!-- Rattil Quiz Card -->
+      <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="cursor:pointer; background:linear-gradient(135deg, rgba(14,165,233,.12), rgba(37,99,235,.06)); border:1.5px solid rgba(56,189,248,.25); margin-bottom:16px;">
+        <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="display:flex; align-items:center; gap:6px;">🎯 Rattil Quiz</span>
+          <span id="dashQuizBadge" class="badge b-amber" style="display:none; font-size:10px;">Baru</span>
+        </div>
+        <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:var(--text-2); margin-top:8px;">
+          ⏳ Memuat kuis tersedia...
+        </div>
+      </div>
       <!-- Micro Teaching Card -->
       <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
         <!-- Judul MT -->
@@ -7685,11 +7695,15 @@ async function loadDashboard() {
     el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
   });
   try {
-    var [r, atRes] = await Promise.all([
+    var [r, atRes, quizRes] = await Promise.all([
       window.HQ.MuridAPI.getDashboard(),
       window.HQ.MuridAPI.getAtTibyanMurid().catch(function(e) {
         console.error("Gagal memuat kehadiran At-Tibyan:", e);
         return { data: [], summary: { hadir: 0, total: 0, pct: 0 } };
+      }),
+      window.HQ.QuizAPI.getKuisTersedia().catch(function(e) {
+        console.error("Gagal memuat kuis dashboard:", e);
+        return { data: [] };
       })
     ]);
     dashData = r.data;
@@ -8094,6 +8108,47 @@ async function loadDashboard() {
 
     // Load kartu Lapor Aktivitas Belajar (Partner Belajar)
     loadDashPbCard();
+
+    // Render Rattil Quiz Card
+    try {
+      var quizList = (quizRes && quizRes.data) || [];
+      var dashQuizCard = document.getElementById('dashQuizCard');
+      var dashQuizBody = document.getElementById('dashQuizBody');
+      var dashQuizBadge = document.getElementById('dashQuizBadge');
+      if (dashQuizCard && dashQuizBody) {
+        if (quizList.length === 0) {
+          dashQuizBody.innerHTML = '<div style="color:var(--text-3); font-style:italic;">Tidak ada kuis aktif saat ini.</div>';
+          if (dashQuizBadge) dashQuizBadge.style.display = 'none';
+        } else {
+          var activeQuizzes = quizList.filter(function(q) { return !q.sudah_dikerjakan; });
+          if (activeQuizzes.length > 0) {
+            if (dashQuizBadge) {
+              dashQuizBadge.textContent = activeQuizzes.length + ' Kuis Baru';
+              dashQuizBadge.className = 'badge b-amber';
+              dashQuizBadge.style.display = 'inline-block';
+            }
+            dashQuizBody.innerHTML = activeQuizzes.slice(0, 2).map(function(q) {
+              return '<div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border); padding-bottom:8px;">'
+                + '  <div>'
+                + '    <strong>' + esc(q.judul) + '</strong>'
+                + '    <div style="font-size:11px; color:var(--text-3); margin-top:2px;">' + esc(q.kategori || 'Umum') + ' · ' + (q.durasi_per_soal_detik ? q.durasi_per_soal_detik + ' dtk/soal' : 'Tanpa batas') + '</div>'
+                + '  </div>'
+                + '  <span style="font-size:12px; color:var(--blue); font-weight:800; white-space:nowrap; margin-left:12px;">Mulai Kuis 🚀</span>'
+                + '</div>';
+            }).join('');
+          } else {
+            if (dashQuizBadge) {
+              dashQuizBadge.textContent = 'Selesai';
+              dashQuizBadge.className = 'badge b-green';
+              dashQuizBadge.style.display = 'inline-block';
+            }
+            dashQuizBody.innerHTML = '<div style="color:var(--green); font-weight:600; display:flex; align-items:center; gap:6px;">🎉 Semua kuis telah selesai! Mantap!</div>';
+          }
+        }
+      }
+    } catch (eQuiz) {
+      console.error("Gagal merender kuis di dashboard:", eQuiz);
+    }
 
     // PR preview
     var prAktif = d.pr_aktif || [];
