@@ -176,20 +176,36 @@
       }
 
       container.innerHTML = data.map(function(item) {
-        var statusClass = item.status === 'Ditinjau' ? 'b-green' : item.status === 'Ditolak' ? 'b-red' : 'b-amber';
-        var isAnonText = item.is_anonim ? ' • <i>Anonim</i>' : '';
+        var statusMeta = {
+          'pending':  { text: '⏳ Terkirim', class: 'b-amber' },
+          'dibaca':   { text: '👀 Dibaca', class: 'b-blue' },
+          'tindakan': { text: '⚙️ Diproses', class: 'b-blue' },
+          'selesai':  { text: '✅ Selesai', class: 'b-green' },
+          'arsip':    { text: '📦 Arsip', class: 'b-gray' }
+        };
+        var meta = statusMeta[item.status] || { text: item.status || 'Terkirim', class: 'b-amber' };
+        var isAnonText = item.is_anonymous ? ' • <i>Anonim</i>' : '';
         var ratings = [];
         if (item.rating_guru) ratings.push('Guru: ⭐' + item.rating_guru);
         if (item.rating_materi) ratings.push('Materi: ⭐' + item.rating_materi);
         var ratingStr = ratings.length ? ' • <span style="color:var(--amber-txt);font-weight:700">' + ratings.join(' | ') + '</span>' : '';
 
+        var katLabel = item.kategori_utama === 'portal' ? 'Portal & Manajemen' : 'Halaqah & Kelas';
+        var tanggapanHtml = '';
+        if (item.tanggapan) {
+          tanggapanHtml = '<div style="margin-top:10px;padding:10px;background:var(--bg-2,#f1f5f9);border-left:4px solid var(--green);border-radius:8px;font-size:12.5px;color:var(--text-2);line-height:1.5">'
+            + '<strong>Tanggapan Admin:</strong> ' + esc(item.tanggapan)
+            + '</div>';
+        }
+
         return '<div class="card" style="margin-bottom:12px;padding:14px;border:1px solid var(--border)">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-          + '  <span class="badge b-blue" style="font-size:10px">' + esc(item.kategori) + ' — ' + esc(item.subkategori) + '</span>'
-          + '  <span class="badge ' + statusClass + '" style="font-size:10px">' + esc(item.status || 'Terkirim') + '</span>'
+          + '  <span class="badge b-blue" style="font-size:10px">' + esc(katLabel) + ' — ' + esc(item.sub_kategori) + '</span>'
+          + '  <span class="badge ' + meta.class + '" style="font-size:10px">' + esc(meta.text) + '</span>'
           + '</div>'
-          + '<div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:10px;white-space:pre-wrap">' + esc(item.pesan) + '</div>'
-          + '<div style="font-size:11px;color:var(--text-3);display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--border);padding-top:8px">'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:10px;white-space:pre-wrap">' + esc(item.isi_masukan) + '</div>'
+          + tanggapanHtml
+          + '<div style="font-size:11px;color:var(--text-3);display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--border);padding-top:8px;margin-top:10px">'
           + '  <span>' + fmtDate(item.created_at) + isAnonText + ratingStr + '</span>'
           + '</div>'
           + '</div>';
