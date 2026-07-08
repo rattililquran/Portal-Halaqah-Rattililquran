@@ -376,9 +376,37 @@ html.theme-dark .premium-table tbody tr:nth-child(even) {
 .chip.inactive-chip{background:transparent;color:var(--text-3);border-color:var(--border)}
 
 /* KOMPONEN RAPORT */
-.komponen-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:#fafbfc}
+.komponen-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:#fafbfc;min-width:0}
 .komponen-row:last-child{margin-bottom:0}
+.komponen-row input, .komponen-row select { min-width: 0 !important; }
 .bobot-total{font-size:13px;font-weight:700;padding:8px 14px;border-radius:var(--r-sm);text-align:center;margin-top:10px}
+
+@media(max-width:600px){
+  #page-komponen .komponen-row {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  #page-komponen .komponen-row input[placeholder="Nama komponen"] {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+  #page-komponen .komponen-row input[type="number"] {
+    width: 60px !important;
+  }
+  #page-komponen .komponen-row select {
+    width: 110px !important;
+    flex-grow: 1 !important;
+  }
+  
+  #page-template .komponen-row {
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+  #page-template .komponen-row input[placeholder="Kategori"] {
+    width: 80px !important;
+  }
+}
 
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
