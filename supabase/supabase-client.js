@@ -6468,6 +6468,7 @@ var AdminAPI = {
   upsertAssessmentItem: async function(d) {
     var row = {
       level: d.level || 'Tahsin Al-Fatihah',
+      kategori: d.kategori || 'Tahsin',
       teks_latin: d.teks_latin || '',
       teks_arab: d.teks_arab || '',
       keterangan: d.keterangan || '',
