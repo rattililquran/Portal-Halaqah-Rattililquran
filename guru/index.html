@@ -8101,7 +8101,7 @@ function _kbmServerSyncFlush() {
       jenis_sesi : sesiAktif.jenis_sesi,
       draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {} },
     }).then(function(){ _setKbmSyncStatus('synced'); })
-      .catch(function(){ _setKbmSyncStatus('offline'); // retry saat 'online' // });
+      .catch(function(){ _setKbmSyncStatus('offline'); });
   } catch (e) { _setKbmSyncStatus('offline'); }
 }
 function _kbmServerSyncDebounced() {
