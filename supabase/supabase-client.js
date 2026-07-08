@@ -3025,7 +3025,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
     // 1. Ambil data jawaban murid untuk 7 indikator
     var myAnswers = (asmtMurid || []).filter(function(a) { return a.id_murid === idMurid; });
     
-    // 2. Petakan ke komponen detail_json
+    // 2. Petakan ke komponen detail_json (80% total / 7 indikator = ~11.4% per indikator)
     var listKomp = (asmtItems || []).map(function(item) {
       var ans = myAnswers.find(function(a) { return a.id_item === item.id_item; });
       var statusGuru = ans ? ans.status_guru : null;
@@ -3035,20 +3035,69 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         nama_komponen: item.teks_latin,
         teks_arab: item.teks_arab,
         keterangan: item.keterangan,
-        bobot: 14.3,
-        bobot_original: 14.3,
+        bobot: 11.4,
+        bobot_original: 11.4,
         nilai: score,
-        nilai_bobot: Math.round((score * 14.3) / 100 * 10) / 10,
+        nilai_bobot: Math.round((score * 11.4) / 100 * 10) / 10,
         tipe: 'daurah_indikator',
         status_guru: statusGuru
       };
     });
 
-    var nilaiAkhir = 0;
-    if (listKomp.length > 0) {
-      var rawSum = listKomp.reduce(function(sum, k) { return sum + k.nilai; }, 0);
-      nilaiAkhir = Math.round(rawSum / listKomp.length);
-    }
+    // 3. Tambahkan komponen KBM Daurah (Kehadiran & Kamera)
+    var myKBM = (nilaiKBM || []).filter(function(n) {
+      if (n.id_murid !== idMurid) return false;
+      if (n.kbm_log && n.kbm_log.status === 'draft') return false;
+      if (periodeRange) {
+        var tgl = n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan);
+        if (!tgl || tgl < periodeRange.mulai || tgl > periodeRange.selesai) return false;
+      }
+      return true;
+    });
+
+    // A. Kehadiran KBM (Bobot: 10%)
+    var skorHadir = myKBM.reduce(function(s,n) {
+      var kd = String(n.status_hadir||'').toUpperCase();
+      return s + (kd === 'H' ? 1 : kd === 'T' ? 0.7 : kd === 'I' ? 0.5 : 0);
+    }, 0);
+    var nilaiHadir = myKBM.length > 0 ? Math.round(skorHadir / myKBM.length * 100) : 100;
+
+    listKomp.push({
+      id_komponen: 'daurah-kehadiran-kbm',
+      nama_komponen: 'Kehadiran KBM',
+      bobot: 10,
+      bobot_original: 10,
+      nilai: nilaiHadir,
+      nilai_bobot: Math.round((nilaiHadir * 10) / 100 * 10) / 10,
+      tipe: 'daurah_kbm',
+      keterangan: 'Kedisiplinan kehadiran di ruang Zoom'
+    });
+
+    // B. Partisipasi & Kamera KBM (Bobot: 10%)
+    var hadir = myKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
+    var ts = 0;
+    hadir.forEach(function(n) {
+      var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
+      var a = n.adab === 'Baik' ? 100 : 50;
+      ts += Math.round((a * 70 + km * 30) / 100);
+    });
+    var nilaiKamera = hadir.length > 0 ? Math.round(ts / hadir.length) : 100;
+
+    listKomp.push({
+      id_komponen: 'daurah-partisipasi-kbm',
+      nama_komponen: 'Adab & Kamera KBM',
+      bobot: 10,
+      bobot_original: 10,
+      nilai: nilaiKamera,
+      nilai_bobot: Math.round((nilaiKamera * 10) / 100 * 10) / 10,
+      tipe: 'daurah_kbm',
+      keterangan: 'Kesesuaian adab dan kesiapan kamera selama KBM'
+    });
+
+    // 4. Hitung Nilai Akhir
+    var rawSum = listKomp.reduce(function(sum, k) { return sum + (k.nilai * k.bobot); }, 0);
+    var totalWeight = listKomp.reduce(function(sum, k) { return sum + k.bobot; }, 0);
+    var nilaiAkhir = totalWeight > 0 ? Math.round(rawSum / totalWeight) : 0;
 
     var predikat = listKomp.length === 0 ? 'Belum Ada Data'
       : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'

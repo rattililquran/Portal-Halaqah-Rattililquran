@@ -812,11 +812,14 @@
 
     var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator'; });
     if (isDaurah) {
-      h += '<div style="padding:0 14px 6px">'
-        + '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">Capaian Kompetensi Makhraj & Tajwid</div>'
-        + '<div style="display:flex;flex-direction:column;gap:10px">';
+      h += '<div style="padding:0 14px 6px">';
+      
+      // A. Cetak Indikator Tajwid
+      var tajwidKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_indikator'; });
+      h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Capaian Kompetensi Makhraj & Tajwid (Bobot 80%)</div>'
+        + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
         
-      (rp.komponen || []).forEach(function(k) {
+      tajwidKomp.forEach(function(k) {
         var status = k.status_guru || 'belum';
         var statusMeta = {
           'paham': { text: 'Paham', color: 'var(--green)', bg: 'rgba(16,185,129,.12)', icon: '✅' },
@@ -824,22 +827,42 @@
           'belum': { text: 'Belum Paham', color: 'var(--red)', bg: 'rgba(239,68,68,.12)', icon: '❌' }
         }[status] || { text: 'Belum Dinilai', color: 'var(--text-3)', bg: 'var(--border)', icon: '⚪' };
         
-        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;gap:12px">'
+        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;gap:12px">'
           + '<div style="flex:1">'
             + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
               + '<span style="font-size:13px;font-weight:700;color:var(--text)">' + esc(k.nama_komponen) + '</span>'
               + (k.teks_arab ? '<span style="font-family:Amiri,serif;font-size:16px;color:var(--green);direction:rtl;font-weight:bold">' + esc(k.teks_arab) + '</span>' : '')
             + '</div>'
-            + (k.keterangan ? '<div style="font-size:11px;color:var(--text-2);margin-top:4px;line-height:1.4">' + esc(k.keterangan) + '</div>' : '')
+            + (k.keterangan ? '<div style="font-size:11px;color:var(--text-2);margin-top:2px;line-height:1.4">' + esc(k.keterangan) + '</div>' : '')
           + '</div>'
-          + '<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:30px;background:' + statusMeta.bg + ';color:' + statusMeta.color + ';font-size:11px;font-weight:800;white-space:nowrap;border:1px solid ' + (dark ? 'transparent' : statusMeta.color) + '">'
+          + '<div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:30px;background:' + statusMeta.bg + ';color:' + statusMeta.color + ';font-size:11px;font-weight:800;white-space:nowrap;border:1px solid ' + (dark ? 'transparent' : statusMeta.color) + '">'
             + statusMeta.icon + ' ' + statusMeta.text
           + '</div>'
         + '</div>';
       });
+      h += '</div>';
+
+      // B. Cetak Partisipasi KBM
+      var kbmKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_kbm'; });
+      if (kbmKomp.length > 0) {
+        h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Partisipasi & Kedisiplinan KBM (Bobot 20%)</div>'
+          + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
+          
+        kbmKomp.forEach(function(k) {
+          h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;gap:12px">'
+            + '<div style="flex:1">'
+              + '<div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(k.nama_komponen) + '</div>'
+              + (k.keterangan ? '<div style="font-size:11px;color:var(--text-2);margin-top:2px;line-height:1.4">' + esc(k.keterangan) + '</div>' : '')
+            + '</div>'
+            + '<div style="font-size:15px;font-weight:800;color:var(--blue)">'
+              + k.nilai + ' / 100'
+            + '</div>'
+          + '</div>';
+        });
+        h += '</div>';
+      }
       
-      h += '</div>'
-        + '<div style="margin-top:16px;padding:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;text-align:center">'
+      h += '<div style="margin-top:16px;padding:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;text-align:center">'
           + '<div style="font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.05em">Status Kelulusan</div>'
           + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-top:4px">' 
             + (num >= 80 ? '🎉 Dinyatakan LULUS & LAYAK Membaca Al-Fatihah' : '📚 PERLU MENGULANG program daurah untuk pemantapan')
@@ -1203,24 +1226,51 @@
         y += 7;
 
         var items = rp.komponen || [];
-        items.forEach(function(k, idx) {
+        var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; });
+        var kbmItems = items.filter(function(x) { return x.tipe === 'daurah_kbm'; });
+
+        // Render Tajwid
+        tajwidItems.forEach(function(k, idx) {
           var isEven = idx % 2 === 0;
           doc.setFillColor(isEven ? 248 : 255, isEven ? 250 : 255, isEven ? 252 : 255);
-          doc.rect(mar, y, W - mar*2, 7.5, 'F');
+          doc.rect(mar, y, W - mar*2, 6.5, 'F');
           
-          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.2);
-          doc.text(String(idx + 1), mar + 3, y + 5);
+          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.0);
+          doc.text(String(idx + 1), mar + 3, y + 4.5);
           doc.setFont('helvetica', 'bold');
-          doc.text(k.nama_komponen, mar + 10, y + 5);
+          doc.text(k.nama_komponen, mar + 10, y + 4.5);
           
           var status = k.status_guru || 'belum';
           var statLabel = status === 'paham' ? 'PAHAM' : status === 'ragu' ? 'RAGU-RAGU' : 'BELUM PAHAM';
           var statColor = status === 'paham' ? [16,185,129] : status === 'ragu' ? [245,158,11] : [239,68,68];
           
           doc.setTextColor(...statColor); doc.setFont('helvetica', 'bold');
-          doc.text(statLabel, W - mar - 3, y + 5, {align: 'right'});
-          y += 7.5;
+          doc.text(statLabel, W - mar - 3, y + 4.5, {align: 'right'});
+          y += 6.5;
         });
+
+        // Render KBM Metrics
+        if (kbmItems.length > 0) {
+          y += 3;
+          doc.setFillColor(...G); doc.rect(mar, y, W - mar*2, 6, 'F');
+          doc.setTextColor(...Wh); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.0);
+          doc.text('PARTISIPASI & KEDISIPLINAN KEBERSAMAAN KBM', mar + 3, y + 4.2);
+          doc.text('NILAI KBM', W - mar - 3, y + 4.2, {align: 'right'});
+          y += 6;
+
+          kbmItems.forEach(function(k, idx) {
+            var isEven = idx % 2 === 0;
+            doc.setFillColor(isEven ? 248 : 255, isEven ? 250 : 255, isEven ? 252 : 255);
+            doc.rect(mar, y, W - mar*2, 6.5, 'F');
+
+            doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.0);
+            doc.text(k.nama_komponen + (k.keterangan ? ' (' + k.keterangan + ')' : ''), mar + 3, y + 4.5);
+
+            doc.setTextColor(...G); doc.setFont('helvetica', 'bold');
+            doc.text(String(k.nilai) + ' / 100', W - mar - 3, y + 4.5, {align: 'right'});
+            y += 6.5;
+          });
+        }
 
         y += 6;
         var finalScore = Number(rp.nilai_akhir || 0);
