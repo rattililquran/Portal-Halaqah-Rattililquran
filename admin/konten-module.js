@@ -1243,22 +1243,24 @@ function resetAdminSession() {
     async function loadIndikatorDaurah() {
       var tbody = document.getElementById('indikatorDaurahTbl');
       if (!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Bismillah, memuat data...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Bismillah, memuat data...</td></tr>';
       try {
         var r = await window.HQ.AdminAPI.getAssessmentItemsAdmin();
         _indikatorDaurahData = (r.data || []).filter(function(x) { return x.level === 'Tahsin Al-Fatihah'; });
         
         if (!_indikatorDaurahData.length) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada indikator daurah. Klik "+ Tambah Indikator" untuk menambahkan.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada indikator daurah. Klik "+ Tambah Indikator" untuk menambahkan.</td></tr>';
           return;
         }
         tbody.innerHTML = _indikatorDaurahData.map(function(m) {
           var statusLabel = m.status === 'aktif' ? 'Aktif' : 'Non-aktif';
           var statusClass = m.status === 'aktif' ? 'b-green' : 'b-red';
+          var hariLabel = m.kategori || 'Hari 1';
           return '<tr>'
             + '<td style="text-align:center;font-weight:800;color:var(--blue-d)">' + esc(m.urutan) + '</td>'
             + '<td style="font-weight:700">' + esc(m.teks_latin) + '</td>'
             + '<td style="font-family:Amiri,serif;font-size:16px;color:var(--green);font-weight:bold">' + esc(m.teks_arab || '-') + '</td>'
+            + '<td style="font-weight:700;color:var(--blue-d);font-size:12.5px">' + esc(hariLabel) + '</td>'
             + '<td style="font-size:12px;white-space:normal;line-height:1.4">' + esc(m.keterangan || '-') + '</td>'
             + '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>'
             + '<td><div style="display:flex;gap:6px">'
@@ -1267,7 +1269,7 @@ function resetAdminSession() {
             + '</div></td></tr>';
         }).join('');
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--red);padding:16px">' + esc(friendlyError(e)) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red);padding:16px">' + esc(friendlyError(e)) + '</td></tr>';
       }
     }
 
@@ -1277,6 +1279,7 @@ function resetAdminSession() {
       document.getElementById('indTeksArab').value = data ? (data.teks_arab || '') : '';
       document.getElementById('indUrutan').value = data ? data.urutan : (_indikatorDaurahData.length + 1);
       document.getElementById('indKeterangan').value = data ? (data.keterangan || '') : '';
+      document.getElementById('indKategori').value = data ? (data.kategori || 'Hari 1') : 'Hari 1';
       document.getElementById('indStatus').value = data ? (data.status || 'aktif') : 'aktif';
       
       document.getElementById('modalIndikatorTitle').textContent = data ? 'Edit Indikator Daurah' : 'Tambah Indikator Daurah';
@@ -1294,6 +1297,7 @@ function resetAdminSession() {
       var teks_arab = document.getElementById('indTeksArab').value.trim();
       var urutan = document.getElementById('indUrutan').value;
       var keterangan = document.getElementById('indKeterangan').value.trim();
+      var kategori = document.getElementById('indKategori').value;
       var status = document.getElementById('indStatus').value;
 
       if (!teks_latin) return toast('Nama indikator wajib diisi', 'err');
@@ -1304,6 +1308,7 @@ function resetAdminSession() {
         await window.HQ.AdminAPI.upsertAssessmentItem({
           id_item: id_item || undefined,
           level: 'Tahsin Al-Fatihah',
+          kategori: kategori,
           teks_latin: teks_latin,
           teks_arab: teks_arab,
           urutan: Number(urutan),

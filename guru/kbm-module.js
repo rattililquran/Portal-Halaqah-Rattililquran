@@ -304,9 +304,46 @@
   }
 
   // ── JURNAL & NILAI STEP ──────────────────────
-  function goToNilai() {
+  async function goToNilai() {
     const sesiAktif = getSesiAktif();
-    _hydrateKbmCacheFromDraft(sesiAktif && sesiAktif.id_kbm);
+    if (!sesiAktif) return;
+    _hydrateKbmCacheFromDraft(sesiAktif.id_kbm);
+    
+    // Memuat indikator daurah secara dinamis jika terdeteksi level daurah
+    const muridSesi = getMuridSesi();
+    const hasDaurah = muridSesi.some(m => m.level === 'Tahsin Al-Fatihah');
+    if (hasDaurah) {
+      showLoad('Bismillah, memuat indikator daurah...');
+      try {
+        var r = await window.HQ.GuruAPI.getAssessmentRekap(sesiAktif.id_halaqah);
+        if (r.status === 'ok') {
+          if (r.data && r.data.length > 0 && r.data[0].detail) {
+            window._daurahAssessmentItems = r.data[0].detail.map(d => ({
+              id_item: d.id_item,
+              kategori: d.kategori,
+              teks_latin: d.teks_latin,
+              teks_arab: d.teks_arab,
+              keterangan: d.keterangan,
+              urutan: d.urutan
+            }));
+            
+            window._daurahAssessmentMap = window._daurahAssessmentMap || {};
+            r.data.forEach(m => {
+              window._daurahAssessmentMap[m.id_murid] = window._daurahAssessmentMap[m.id_murid] || {};
+              m.detail.forEach(d => {
+                // Gunakan jawaban guru, jika belum ada gunakan jawaban murid, jika belum ada null
+                window._daurahAssessmentMap[m.id_murid][d.id_item] = d.jawaban_guru || d.jawaban || null;
+              });
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Gagal memuat assessment daurah:', e);
+      } finally {
+        hideLoad();
+      }
+    }
+    
     renderNilaiMuridStep();
     goPage('nilai-murid');
     renderSteps('nilai-murid');
@@ -1144,6 +1181,7 @@
       nilai         : _mergeCacheObj(prev.nilai,         window._nilaiCache),
       hafalan       : _mergeCacheObj(prev.hafalan,       window._hafalanKbmCache),
       microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
+      daurah_asmt   : window._daurahAssessmentMap || {}
     };
     try { localStorage.setItem(_kbmDraftKey(sesiAktif.id_kbm), JSON.stringify(draft)); }
     catch (e) {}
@@ -1188,6 +1226,7 @@
     if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData);
     if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent);
     if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData);
+    if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
   }
 
   var _kbmSyncTimer = null, _kbmSyncChipTimer = null;
@@ -1654,6 +1693,34 @@
         '</div>',
       ].join('\n');
 
+      var daurahHtml = '';
+      if (m.level === 'Tahsin Al-Fatihah' && window._daurahAssessmentItems && window._daurahAssessmentItems.length > 0) {
+        var meetingNo = (sesiAktif && sesiAktif.pertemuan_ke) || 1;
+        var meetingItems = getDaurahItemsForMeeting(meetingNo, window._daurahAssessmentItems);
+        if (meetingItems.length > 0) {
+          daurahHtml = '<div class="daurah-kbm-assessment" style="margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--border);margin-bottom:8px">'
+            + '<div class="nm-section-label" style="display:flex;align-items:center;gap:4px;color:var(--blue-d);font-weight:800;font-size:12px">'
+            + '🎯 Evaluasi Bacaan: ' + getDaurahDayTitle(meetingNo)
+            + '</div>'
+            + meetingItems.map(function(item) {
+              var ans = (window._daurahAssessmentMap && window._daurahAssessmentMap[m.id_murid] && window._daurahAssessmentMap[m.id_murid][item.id_item]) || null;
+              return '<div class="daurah-asmt-row" style="margin-top:8px">'
+                + '<div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px">'
+                + (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:15px;direction:rtl;margin-right:6px">' + esc(item.teks_arab) + '</span>' : '')
+                + '<span>' + esc(item.teks_latin) + '</span>'
+                + '</div>'
+                + (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">' + esc(item.keterangan) + '</div>' : '')
+                + '<div style="display:flex;gap:6px">'
+                + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">✅ Paham</button>'
+                + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">🟡 Ragu</button>'
+                + '<button type="button" class="btn-asmt-opt btn-belum ' + (ans === 'belum' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)">❌ Belum</button>'
+                + '</div>'
+                + '</div>';
+            }).join('')
+            + '</div>';
+        }
+      }
+
       var initials = m.nama_murid.split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
       var badgeCls = {'H':'nm-badge-H','T':'nm-badge-T','I':'nm-badge-I','A':'nm-badge-A'}[status] || 'nm-badge-H';
 
@@ -1676,7 +1743,7 @@
         + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
         + '</div>'
         + '<div class="nm-body">'
-        + (isSkip ? skipMsg : nilaiForm)
+        + (isSkip ? skipMsg : (nilaiForm + daurahHtml))
         + '</div>'
         + '</div>';
     }).join('');
@@ -1960,10 +2027,37 @@
         });
       }
 
+      // Simpan nilai indikator Daurah ke database jika ada
+      if (window._daurahAssessmentMap) {
+        var promises = [];
+        var presentMuridIds = muridSesi.filter(function(m) {
+          var status = presensiMapPv[m.id_murid] || 'H';
+          return status === 'H' || status === 'T';
+        }).map(function(m) { return m.id_murid; });
+
+        Object.keys(window._daurahAssessmentMap).forEach(function(mId) {
+          if (!presentMuridIds.includes(mId)) return;
+          var items = window._daurahAssessmentMap[mId];
+          Object.keys(items).forEach(function(iId) {
+            var val = items[iId];
+            promises.push(window.HQ.GuruAPI.simpanVerifikasiGuru({
+              id_murid: mId,
+              id_item: iId,
+              status_guru: val
+            }));
+          });
+        });
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+      }
+
       const idHalaqahSelesai = sesiAktif.id_halaqah;
       const idKbmSelesai = sesiAktif.id_kbm;
       await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
       _clearKbmDraftLocal(idKbmSelesai);
+      window._daurahAssessmentMap = {};
+      window._daurahAssessmentItems = [];
 
       hideLoad();
       setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi');
@@ -2686,5 +2780,60 @@
   window._restoreHafalanKbmCache = _restoreHafalanKbmCache;
   window._saveMicroteachingKbmCache = _saveMicroteachingKbmCache;
   window._restoreMicroteachingKbmCache = _restoreMicroteachingKbmCache;
+
+  window._daurahAssessmentItems = [];
+  window._daurahAssessmentMap = {};
+
+  function getDaurahDayTitle(meetingNo) {
+    const titles = {
+      1: "Hari 1 (Isti'adzah)",
+      2: "Hari 2 (Basmalah)",
+      3: "Hari 3 (Ayat 2)",
+      4: "Hari 4 (Ayat 3-4)",
+      5: "Hari 5 (Ayat 5)",
+      6: "Hari 6 (Ayat 6)",
+      7: "Hari 7 (Ayat 7)",
+      8: "Hari 8 (Evaluasi Akhir)"
+    };
+    return titles[meetingNo] || ("Pertemuan Ke-" + meetingNo);
+  }
+
+  function getDaurahItemsForMeeting(meetingNo, allItems) {
+    if (!allItems || allItems.length === 0) return [];
+    var sorted = allItems.slice().sort(function(a, b) {
+      return (a.urutan || 0) - (b.urutan || 0);
+    });
+    if (meetingNo >= 8) {
+      return sorted;
+    }
+    var filterKey = 'Hari ' + meetingNo;
+    return sorted.filter(function(item) {
+      return item.kategori === filterKey;
+    });
+  }
+
+  function setDaurahAsmtScore(idMurid, idItem, status, btn) {
+    window._daurahAssessmentMap = window._daurahAssessmentMap || {};
+    window._daurahAssessmentMap[idMurid] = window._daurahAssessmentMap[idMurid] || {};
+    if (window._daurahAssessmentMap[idMurid][idItem] === status) {
+      window._daurahAssessmentMap[idMurid][idItem] = null;
+    } else {
+      window._daurahAssessmentMap[idMurid][idItem] = status;
+    }
+    var parent = btn.parentNode;
+    if (parent) {
+      parent.querySelectorAll('.btn-asmt-opt').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      var curVal = window._daurahAssessmentMap[idMurid][idItem];
+      if (curVal) {
+        var activeBtn = parent.querySelector('.btn-' + curVal);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+    }
+    _saveKbmDraftLocal();
+  }
+
+  window.setDaurahAsmtScore = setDaurahAsmtScore;
 
 })();
