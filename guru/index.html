@@ -11271,6 +11271,11 @@ function renderChipsKoreksi(id_murid) {
   var hq = (halaqahList || []).find(function(h){ return h.id_halaqah === idHalaqah; });
   var isDaurah = hq && hq.level === 'Tahsin Al-Fatihah';
   
+  if (isDaurah) {
+    cont.innerHTML = '';
+    return;
+  }
+  
   var html = '';
   
   // Render Daurah Quick Chips
