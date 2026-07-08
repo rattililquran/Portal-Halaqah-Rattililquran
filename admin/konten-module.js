@@ -1078,7 +1078,7 @@ async function loadTemplate() {
 
 function renderTemplateRows() {
   document.getElementById('templateList').innerHTML = templateRows.map(function(t, i) {
-    return '<div style="display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:#fafbfc">'
+    return '<div class="komponen-row" style="padding:8px;gap:8px">'
       + '<input type="text" class="fc" value="' + esc(t.kategori||'Umum') + '" placeholder="Kategori" style="width:120px;flex-shrink:0" oninput="templateRows[' + i + '].kategori=this.value">'
       + '<input type="text" class="fc" value="' + esc(t.teks) + '" placeholder="Teks koreksi..." style="flex:1" oninput="templateRows[' + i + '].teks=this.value">'
       + '<button class="btn btn-red btn-sm" onclick="hapusTemplateRow(' + i + ')">🗑</button>'
