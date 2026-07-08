@@ -6128,7 +6128,89 @@ var AdminAPI = {
   },
   // Raport bulk — TODO: implementasi penuh
   generateRaportByHalaqah: async function(p) { return GuruAPI.generateRaportHalaqah ? GuruAPI.generateRaportHalaqah(p) : {status:'ok',data:[]}; },
-  generateRaportByLevel: async function(p) { throw new Error('Generate raport per level belum diimplementasi.'); },
+  generateRaportByLevel: async function(p) {
+    // p = { id_periode, level }
+    if (!p || !p.id_periode || !p.level) throw new Error('id_periode dan level wajib diisi.');
+    
+    // 1. Ambil semua anggota aktif dari level yang diminta (lintas halaqah)
+    var { data: anggota, error: errAnggota } = await _sb.from('anggota')
+      .select('id_murid, nama_murid, level, id_halaqah')
+      .eq('level', p.level).eq('status', 'aktif');
+    _check(errAnggota, 'generateRaportByLevel:anggota');
+    if (!anggota || !anggota.length) return { status: 'error', message: 'Tidak ada murid aktif dengan level ' + p.level + '.' };
+    var ids = anggota.map(function(a) { return a.id_murid; });
+
+    // 2. Ambil komponen raport (untuk non-daurah)
+    var { data: komponen } = await _sb.from('komponen_raport').select('*').eq('id_periode', p.id_periode).eq('status', 'aktif').order('urutan');
+    var isDaurahLevel = p.level === 'Tahsin Al-Fatihah';
+    if (!isDaurahLevel && (!komponen || !komponen.length)) {
+      return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
+    }
+
+    // 3. Grade config
+    var { data: cfgRows } = await _sb.from('konfigurasi_raport').select('key, value');
+    var cfgMap = {}; (cfgRows || []).forEach(function(r) { cfgMap[r.key] = r.value; });
+    var gradeConfig = {
+      mumtaz      : parseInt(cfgMap['grade_mumtaz']         || '90'),
+      jayyidJiddan: parseInt(cfgMap['grade_jayyid_jiddan']  || '80'),
+      jayyid      : parseInt(cfgMap['grade_jayyid']         || '70'),
+      bonusPerfect: parseInt(cfgMap['bonus_perfect_attendance'] || '5'),
+    };
+
+    // 4. Periode range
+    var { data: prData } = await _sb.from('periode').select('tanggal_mulai, tanggal_selesai').eq('id_periode', p.id_periode).maybeSingle();
+    var pr = prData || {};
+    var periodeRange = (pr.tanggal_mulai && pr.tanggal_selesai) ? { mulai: pr.tanggal_mulai, selesai: pr.tanggal_selesai } : null;
+
+    // 5. Assessment data untuk daurah
+    var asmtItems = [], asmtMurid = [];
+    if (isDaurahLevel) {
+      var [aiRes, amRes] = await Promise.all([
+        _sb.from('assessment_items').select('*').eq('level', 'Tahsin Al-Fatihah').eq('status', 'aktif').order('urutan'),
+        _sb.from('assessment_murid').select('*').in('id_murid', ids),
+      ]);
+      asmtItems = aiRes.data || [];
+      asmtMurid = amRes.data || [];
+    }
+
+    // 6. Nilai manual dan KBM per halaqah (dikelompokkan)
+    var nilaiManualAll = [], nilaiKBMAll = [], atLogAll = [];
+    if (!isDaurahLevel) {
+      var [nmRes, kbmRes, atRes] = await Promise.all([
+        _sb.from('nilai_manual').select('*').eq('id_periode', p.id_periode).in('id_murid', ids),
+        _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status, tanggal_pertemuan)').in('id_murid', ids),
+        _sb.from('at_tibyan_log').select('id_murid, id_halaqah, status_hadir').in('id_murid', ids),
+      ]);
+      nilaiManualAll = nmRes.data || [];
+      nilaiKBMAll    = kbmRes.data || [];
+      atLogAll       = atRes.data  || [];
+    }
+
+    // 7. Generate per murid
+    var berhasil = [], gagal = [];
+    for (var i = 0; i < anggota.length; i++) {
+      var m = anggota[i];
+      try {
+        var myNilaiKBM  = nilaiKBMAll.filter(function(n){ return n.id_halaqah === m.id_halaqah; });
+        var myAtLog     = atLogAll.filter(function(a){ return a.id_halaqah === m.id_halaqah; });
+        var raportData = _kalkulasiRaport(
+          m.id_murid, p.id_periode, m.id_halaqah,
+          komponen, nilaiManualAll, myNilaiKBM, myAtLog, 0,
+          gradeConfig, m.level, periodeRange, asmtItems, asmtMurid
+        );
+        var { error: upErr } = await _sb.from('raport').upsert({
+          id_murid: m.id_murid, id_periode: p.id_periode, id_halaqah: m.id_halaqah,
+          nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat,
+          detail_json: raportData.komponen,
+          tanggal_cetak: new Date().toISOString().slice(0, 10),
+          status: 'draft',
+        }, { onConflict: 'id_murid,id_periode' });
+        if (upErr) throw new Error(upErr.message);
+        berhasil.push({ nama_murid: m.nama_murid, nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat });
+      } catch(e) { gagal.push({ id_murid: m.id_murid, nama: m.nama_murid, alasan: e.message }); }
+    }
+    return { status: 'ok', message: berhasil.length + ' raport berhasil digenerate (level: ' + p.level + ')', data: { berhasil, gagal } };
+  },
   generateRaportBulk: async function(p) { throw new Error('Generate raport bulk belum diimplementasi.'); },
   kirimRaportEmail: async function(id) { throw new Error('Kirim raport via email belum diimplementasi.'); },
   getObservasiStats: async function(p) {
