@@ -8240,29 +8240,6 @@ async function loadDashboard() {
   finally {
     hideLoad();
     _isAppInitialized = true;
-    // ── Background Pre-fetch: muat data tab populer di latar belakang ──
-    // Hanya jika koneksi cukup cepat (bukan 2G) dan setelah dashboard siap
-    setTimeout(function() {
-      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      var slowConn = conn && (conn.effectiveType === '2g' || conn.saveData);
-      if (slowConn) return; // Hemat data di koneksi lambat
-      if (!_muridTabLoaded['riwayat']) {
-        _riwayatOffset = 8;
-        loadRiwayat()
-          .then(function() { _muridTabLoaded['riwayat'] = true; })
-          .catch(function() { _muridTabLoaded['riwayat'] = false; });
-      }
-      if (!_muridTabLoaded['pr']) {
-        loadPR()
-          .then(function() { _muridTabLoaded['pr'] = true; })
-          .catch(function() { _muridTabLoaded['pr'] = false; });
-      }
-      if (!_muridTabLoaded['info']) {
-        loadMateri()
-          .then(function() { _muridTabLoaded['info'] = true; })
-          .catch(function() { _muridTabLoaded['info'] = false; });
-      }
-    }, 2500);
   }
 }
 

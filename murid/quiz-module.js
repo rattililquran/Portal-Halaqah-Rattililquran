@@ -270,7 +270,7 @@
     }
   };
 
-  async function loadKuisTersedia() {
+  window.loadKuisTersedia = async function loadKuisTersedia() {
     var el = document.getElementById('quizListContainer');
     if (!el) return;
 

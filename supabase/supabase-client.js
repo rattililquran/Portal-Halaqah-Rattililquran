@@ -1770,19 +1770,27 @@ var GuruAPI = {
       bonusPerfect: parseInt(cfgMap['bonus_perfect_attendance'] || '5'),
     };
 
-    var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes, periodeRes] = await Promise.all([
+    var hasDaurah = (anggota || []).some(function(a) { return a.level === 'Tahsin Al-Fatihah'; });
+    var asmtItems = [], asmtMurid = [];
+
+    var [nilaiManualRes, nilaiKBMRes, atLogRes, atSesiRes, catatanRes, periodeRes, asmtItemsRes, asmtMuridRes] = await Promise.all([
       _sb.from('nilai_manual').select('*').eq('id_periode', d.id_periode),
       _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status, tanggal_pertemuan)').eq('id_halaqah', d.id_halaqah),
       _sb.from('at_tibyan_log').select('id_murid, status_hadir').eq('id_halaqah', d.id_halaqah).in('id_murid', ids),
       _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true }).eq('id_guru', d.id_guru || _uid()).eq('status', 'selesai'),
       _sb.from('catatan_raport').select('catatan').eq('id_halaqah', d.id_halaqah).maybeSingle(),
       _sb.from('periode').select('tanggal_mulai, tanggal_selesai').eq('id_periode', d.id_periode).maybeSingle(),
+      hasDaurah ? _sb.from('assessment_items').select('*').eq('level', 'Tahsin Al-Fatihah').eq('status', 'aktif').order('urutan') : Promise.resolve({ data: [] }),
+      hasDaurah ? _sb.from('assessment_murid').select('*').in('id_murid', ids) : Promise.resolve({ data: [] }),
     ]);
     var nilaiManual = nilaiManualRes.data;
     var nilaiKBM    = nilaiKBMRes.data;
     var atLog       = atLogRes.data;
     var totalAt     = atSesiRes.count || 0;
     var catatan     = catatanRes.data;
+    asmtItems       = asmtItemsRes.data || [];
+    asmtMurid       = asmtMuridRes.data || [];
+
     // Rentang periode untuk membatasi KBM yang dihitung (defensif: hanya bila
     // kedua tanggal terisi; periode lama tanpa tanggal → perilaku lama, tak difilter).
     var pr = periodeRes.data || {};
@@ -1794,7 +1802,7 @@ var GuruAPI = {
       var m = anggota[i];
       try {
         var raportData = _kalkulasiRaport(m.id_murid, d.id_periode, d.id_halaqah,
-          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level, periodeRange);
+          komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level, periodeRange, asmtItems, asmtMurid);
         var detailJson = raportData.komponen;
         var { error: upErr } = await _sb.from('raport')
           .upsert({
@@ -3001,7 +3009,53 @@ var GuruAPI = {
 //  KALKULASI RAPORT (helper internal)
 // ─────────────────────────────────────────────
 // BUG-021 fix: gradeConfig parameter opsional untuk backward compat
-function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel, periodeRange) {
+function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, studentLevel, periodeRange, asmtItems, asmtMurid) {
+  var lvl = (studentLevel || '').trim();
+  // BUG-021: threshold dari gradeConfig (dari DB), fallback ke default jika tidak ada
+  var G = gradeConfig || {};
+  var GRADE_MUMTAZ       = G.mumtaz       || 90;
+  var GRADE_JAYYID_JIDDAN= G.jayyidJiddan || 80;
+  var GRADE_JAYYID       = G.jayyid       || 70;
+  var BONUS_PERFECT      = G.bonusPerfect != null ? G.bonusPerfect : 5;
+
+  if (lvl === 'Tahsin Al-Fatihah') {
+    // 1. Ambil data jawaban murid untuk 7 indikator
+    var myAnswers = (asmtMurid || []).filter(function(a) { return a.id_murid === idMurid; });
+    
+    // 2. Petakan ke komponen detail_json
+    var listKomp = (asmtItems || []).map(function(item) {
+      var ans = myAnswers.find(function(a) { return a.id_item === item.id_item; });
+      var statusGuru = ans ? ans.status_guru : null;
+      var score = statusGuru === 'paham' ? 100 : statusGuru === 'ragu' ? 70 : 50;
+      return {
+        id_komponen: item.id_item,
+        nama_komponen: item.teks_latin,
+        teks_arab: item.teks_arab,
+        keterangan: item.keterangan,
+        bobot: 14.3,
+        bobot_original: 14.3,
+        nilai: score,
+        nilai_bobot: Math.round((score * 14.3) / 100 * 10) / 10,
+        tipe: 'daurah_indikator',
+        status_guru: statusGuru
+      };
+    });
+
+    var nilaiAkhir = 0;
+    if (listKomp.length > 0) {
+      var rawSum = listKomp.reduce(function(sum, k) { return sum + k.nilai; }, 0);
+      nilaiAkhir = Math.round(rawSum / listKomp.length);
+    }
+
+    var predikat = listKomp.length === 0 ? 'Belum Ada Data'
+      : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
+      : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
+      : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
+      : 'Maqbul';
+
+    return { nilai_akhir: nilaiAkhir, predikat, komponen: listKomp };
+  }
+
   // Fase 1.5: hanya hitung baris dari sesi yang BUKAN draft (predikat <> 'draft' agar
   // tahan data legacy ber-status NULL). Sesi draft yang belum diselesaikan tidak boleh
   // mencemari raport (lihat RENCANA_persistensi_nilai_kbm.md §6).
@@ -3016,7 +3070,6 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
   });
   var myManual = (nilaiManual || []).filter(function(n) { return n.id_murid === idMurid; });
   var myAt = (atLog || []).filter(function(n) { return n.id_murid === idMurid; });
-  var lvl = (studentLevel || '').trim();
 
   // Filter out Micro Teaching sessions from regular calculations
   var myRegulerKBM = myKBM.filter(function(n) {
