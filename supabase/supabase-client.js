@@ -6475,7 +6475,18 @@ var AdminAPI = {
       urutan: Number(d.urutan) || 1,
       status: d.status || 'aktif'
     };
-    if (d.id_item) row.id_item = d.id_item;
+    if (d.id_item) {
+      row.id_item = d.id_item;
+    } else {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        row.id_item = crypto.randomUUID();
+      } else {
+        row.id_item = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+    }
     var {data,error} = await _sb.from('assessment_items').upsert(row,{onConflict:'id_item'}).select().single();
     _check(error,'upsertAssessmentItem');
     return {status:'ok', data};
