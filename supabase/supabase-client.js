@@ -6459,6 +6459,32 @@ var AdminAPI = {
     return {status:'ok'};
   },
 
+  // ── Assessment Items (Daurah Indikator CRUD) ─────────────
+  getAssessmentItemsAdmin: async function() {
+    var {data,error} = await _sb.from('assessment_items').select('*').order('urutan');
+    _check(error,'getAssessmentItemsAdmin');
+    return {status:'ok', data: data||[]};
+  },
+  upsertAssessmentItem: async function(d) {
+    var row = {
+      level: d.level || 'Tahsin Al-Fatihah',
+      teks_latin: d.teks_latin || '',
+      teks_arab: d.teks_arab || '',
+      keterangan: d.keterangan || '',
+      urutan: Number(d.urutan) || 1,
+      status: d.status || 'aktif'
+    };
+    if (d.id_item) row.id_item = d.id_item;
+    var {data,error} = await _sb.from('assessment_items').upsert(row,{onConflict:'id_item'}).select().single();
+    _check(error,'upsertAssessmentItem');
+    return {status:'ok', data};
+  },
+  deleteAssessmentItem: async function(id_item) {
+    var {error} = await _sb.from('assessment_items').delete().eq('id_item', id_item);
+    _check(error,'deleteAssessmentItem');
+    return {status:'ok'};
+  },
+
   // ── Push Subscriber Management ────────────────
   getPushSubscribers: async function() {
     var {data,error} = await _sb.from('push_subscriptions')

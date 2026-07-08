@@ -103,6 +103,7 @@ function goPage(name) {
     push     : loadPushAdmin,
     saran    : loadSaranPage,
     soal     : loadBankSoalAdmin,
+    'indikator-daurah' : () => { if(window.loadIndikatorDaurah) window.loadIndikatorDaurah(); }
   };
   loaders[name]?.();
 }

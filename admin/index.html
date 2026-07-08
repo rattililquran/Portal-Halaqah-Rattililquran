@@ -1373,6 +1373,7 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
       <button class="nav-btn" onclick="goPage('nilai')" data-p="nilai"><span class="ni">✏️</span>Input Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni">📄</span>Generate Raport</button>
+      <button class="nav-btn" onclick="goPage('indikator-daurah')" data-p="indikator-daurah"><span class="ni">🎯</span>Indikator Daurah</button>
 
       <div class="sb-sec">Konfigurasi</div>
       <button class="nav-btn" onclick="goPage('periode')" data-p="periode"><span class="ni">📅</span>Periode / Semester</button>
@@ -3036,6 +3037,37 @@ html.theme-dark .fin-detail-card {
         </div>
       </div>
 
+      <!-- ══ INDIKATOR DAURAH ══ -->
+      <div class="page" id="page-indikator-daurah">
+        <div class="section-title">🎯 Indikator Kelayakan Daurah</div>
+        <div class="section-sub">Kelola 7 Indikator Tajwid & Makhraj untuk program Daurah Al-Fatihah.</div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📋 Daftar Indikator Evaluasi Al-Fatihah</div>
+            <button class="btn btn-primary btn-sm" onclick="bukaModalIndikator()">+ Tambah Indikator</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="tbl-wrap" style="border:none; border-radius:0">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:60px">Urutan</th>
+                    <th>Nama Indikator (Latin)</th>
+                    <th>Teks Arab</th>
+                    <th>Deskripsi Evaluasi</th>
+                    <th>Status</th>
+                    <th style="width:100px">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="indikatorDaurahTbl">
+                  <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Memuat data indikator...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ══ ARSIP DATA ══ -->
       <div class="page" id="page-arsip">
         <div class="section-title">🗄️ Arsip Data</div>
@@ -3796,6 +3828,52 @@ html.theme-dark .fin-detail-card {
   </div>
 </div>
 
+<!-- MODAL INDIKATOR DAURAH -->
+<div class="overlay" id="modalIndikator" onclick="if(event.target===this)closeModal('modalIndikator')">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalIndikatorTitle">🎯 Indikator Baru</div>
+      <button class="modal-x" onclick="closeModal('modalIndikator')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="indId">
+      
+      <div class="fg">
+        <label>Nama Indikator (Latin)</label>
+        <input type="text" class="fc" id="indTeksLatin" placeholder="Contoh: Makhraj Hamzah vs A'in">
+      </div>
+      
+      <div class="f2">
+        <div class="fg">
+          <label>Teks Arab (Opsional)</label>
+          <input type="text" class="fc" id="indTeksArab" placeholder="Contoh: أ vs ع">
+        </div>
+        <div class="fg">
+          <label>Urutan Tampil</label>
+          <input type="number" class="fc" id="indUrutan" min="1" placeholder="Misal: 1">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Keterangan Evaluasi / Petunjuk Guru</label>
+        <textarea class="fc" id="indKeterangan" rows="3" placeholder="Contoh: Pengucapan makhraj huruf Hamzah dan A'in di tenggorokan..." style="resize:vertical"></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Status</label>
+        <select class="fc" id="indStatus">
+          <option value="aktif">Aktif</option>
+          <option value="nonaktif">Non-aktif</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modalIndikator')">Batal</button>
+      <button class="btn btn-primary" onclick="simpanIndikator()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DETAIL RAPORT -->
 <div class="overlay" id="modalRaport">
   <div class="modal modal-lg">
@@ -3902,7 +3980,7 @@ const SPP_NOMINAL_BULANAN = 75000;
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
   halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', 'kelompok-belajar':'Kelompok Partner Belajar', komponen:'Komponen Raport',
-  nilai:'Input Nilai Manual', raport:'Generate Raport',
+  nilai:'Input Nilai Manual', raport:'Generate Raport', 'indikator-daurah':'Indikator Daurah',
   laporan:'Laporan Global', absensi:'Rekap Absensi', 'absensi-guru':'Absensi Guru',
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
