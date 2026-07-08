@@ -1758,7 +1758,10 @@ var GuruAPI = {
     var ids = (anggota || []).map(function(a) { return a.id_murid; });
     var { data: komponen, error: errKomp } = await _sb.from('komponen_raport').select('*').eq('id_periode', d.id_periode).eq('status', 'aktif').order('urutan');
     _check(errKomp, 'generateRaportHalaqah:komponen');
-    if (!komponen || !komponen.length) return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
+    var hasNonDaurah = (anggota || []).some(function(a) { return a.level !== 'Tahsin Al-Fatihah'; });
+    if (hasNonDaurah && (!komponen || !komponen.length)) {
+      return { status: 'error', message: 'Komponen raport belum dikonfigurasi untuk periode ini.' };
+    }
 
     // BUG-021 fix: baca threshold grade dari DB, bukan hardcode
     var { data: cfgRows } = await _sb.from('konfigurasi_raport').select('key, value');
