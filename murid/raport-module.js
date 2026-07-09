@@ -1302,7 +1302,7 @@
         
         doc.setTextColor(isLulus ? 21 : 153, isLulus ? 128 : 27, isLulus ? 61 : 27);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: PERLU MENGULANG PROGRAM DAURAH UNTUK PEMANTAPAN';
+        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: Disarankan untuk kembali belajar tahsin dengan sistem reguler yang lebih sistematis';
         doc.text(statusGrad, W/2, y + 7, {align: 'center'});
         
         y += 8;
