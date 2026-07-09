@@ -11268,13 +11268,9 @@ function renderChipsKoreksi(id_murid) {
   if (!cont) return;
   
   var idHalaqah = document.getElementById('kbmHalaqah') ? document.getElementById('kbmHalaqah').value : '';
-  var hq = (halaqahList || []).find(function(h){ return h.id_halaqah === idHalaqah; });
+  var list = (window.HQ && window.HQ.AppState && window.HQ.AppState.halaqahList) || window.halaqahList || [];
+  var hq = (list || []).find(function(h){ return h.id_halaqah === idHalaqah; });
   var isDaurah = hq && hq.level === 'Tahsin Al-Fatihah';
-  
-  if (isDaurah) {
-    cont.innerHTML = '';
-    return;
-  }
   
   var html = '';
   
@@ -11299,6 +11295,9 @@ function renderChipsKoreksi(id_murid) {
     });
     html += '  </div>';
     html += '</div>';
+    
+    cont.innerHTML = html;
+    return;
   }
   
   if (Object.keys(templateKoreksi).length) {
