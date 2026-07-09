@@ -369,6 +369,7 @@ html.theme-dark .premium-table tbody tr:nth-child(even) {
 .tab-btn{padding:9px 16px;background:none;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all .15s;white-space:nowrap}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-btn:hover{color:var(--text)}
+@keyframes mePulse{0%,100%{opacity:1}50%{opacity:.4}}
 .progress-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:4px}
 .progress-fill{height:100%;border-radius:100px;transition:width .3s}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--r-pill);font-size:11.5px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s}
@@ -1905,23 +1906,88 @@ html.theme-dark .fin-detail-card {
       <div class="page" id="page-laporan">
         <div class="section-title">Laporan Global</div>
         <div class="section-sub">Ringkasan performa semua halaqah.</div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table class="premium-table">
-              <thead><tr>
-                <th>Halaqah</th>
-                <th>Guru</th>
-                <th>Level</th>
-                <th class="align-center">Murid</th>
-                <th class="align-center">Sesi</th>
-                <th class="align-center">Avg Nilai</th>
-                <th class="align-center">% Hadir</th>
-              </tr></thead>
-              <tbody id="laporanTbl"><tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
-            </table>
+
+        <!-- Tab bar -->
+        <div class="tab-bar" id="laporanTabBar">
+          <button class="tab-btn active" id="laporanTabGlobal" onclick="switchLaporanTab('global')">📊 Semua Halaqah</button>
+          <button class="tab-btn" id="laporanTabDaurah" onclick="switchLaporanTab('daurah')">🦅 Daurah Al-Fatihah</button>
+        </div>
+
+        <!-- TAB: GLOBAL -->
+        <div id="laporanPanelGlobal">
+          <div class="card">
+            <div class="tbl-wrap">
+              <table class="premium-table">
+                <thead><tr>
+                  <th>Halaqah</th>
+                  <th>Guru</th>
+                  <th>Level</th>
+                  <th class="align-center">Murid</th>
+                  <th class="align-center">Sesi</th>
+                  <th class="align-center">Avg Nilai</th>
+                  <th class="align-center">% Hadir</th>
+                </tr></thead>
+                <tbody id="laporanTbl"><tr><td colspan="7" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: DAURAH AL-FATIHAH (MATA ELANG) -->
+        <div id="laporanPanelDaurah" style="display:none">
+          <!-- Header + progress bar -->
+          <div class="card" style="padding:18px 20px" id="meHeader"></div>
+
+          <!-- Summary cards -->
+          <div class="stats-grid" id="meSummaryCards" style="margin-top:14px"></div>
+
+          <!-- Tabel halaqah -->
+          <div class="card" style="margin-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Detail Per Halaqah</div>
+              <span style="font-size:11px;color:var(--text-3)">Klik baris untuk expand detail murid</span>
+            </div>
+            <div class="tbl-wrap">
+              <table class="premium-table">
+                <thead><tr>
+                  <th>Halaqah</th>
+                  <th>Guru</th>
+                  <th class="align-center">Peserta</th>
+                  <th class="align-center">Sesi</th>
+                  <th>% Hadir</th>
+                  <th>% Tajwid Paham</th>
+                </tr></thead>
+                <tbody id="meTblBody"><tr><td colspan="6" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Heatmap indikator tajwid -->
+          <div class="card" style="margin-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">🔥 Heatmap Penguasaan Tajwid</div>
+              <select class="fc" id="meHeatmapFilter" onchange="reloadMeHeatmap()" style="max-width:200px;font-size:12px"><option value="">— Semua Halaqah —</option></select>
+            </div>
+            <div id="meHeatmapWrap"></div>
+            <div style="margin-top:10px;font-size:11px;color:var(--text-3);display:flex;gap:14px;flex-wrap:wrap">
+              <span>✅ Paham</span><span>🟡 Ragu-ragu</span><span>❌ Belum paham</span><span>⚪ Belum dinilai</span>
+            </div>
+          </div>
+
+          <!-- Insight: ranking indikator + alert murid -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+            <div class="card">
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">📉 Indikator Paling Sulit</div>
+              <div id="meBarChart"></div>
+            </div>
+            <div class="card">
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">⚠️ Murid Perlu Perhatian</div>
+              <div id="meAlertList"></div>
+            </div>
           </div>
         </div>
       </div>
+
 
       <!-- ══ ABSENSI ══ -->
       <div class="page" id="page-absensi">
@@ -4007,6 +4073,7 @@ html.theme-dark .fin-detail-card {
 <script src="spp-keuangan-module.js?v=1.0.0" defer></script>
 <script src="konten-module.js?v=1.0.0" defer></script>
 <script src="laporan-module.js?v=1.0.0" defer></script>
+<script src="mata-elang-module.js?v=1.0.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -5638,6 +5705,17 @@ async function kirimEmail(id_raport) {
 // ══════════════════════════════════════════
 //  LAPORAN
 // ══════════════════════════════════════════
+var _laporanActiveTab = 'global';
+
+function switchLaporanTab(tab) {
+  _laporanActiveTab = tab;
+  document.getElementById('laporanPanelGlobal').style.display  = tab === 'global'  ? '' : 'none';
+  document.getElementById('laporanPanelDaurah').style.display   = tab === 'daurah'  ? '' : 'none';
+  document.getElementById('laporanTabGlobal').classList.toggle('active', tab === 'global');
+  document.getElementById('laporanTabDaurah').classList.toggle('active', tab === 'daurah');
+  if (tab === 'daurah' && window.loadMataElang) loadMataElang();
+}
+
 async function loadLaporan() {
   showLoad('Bismillah, memuat laporan global...');
   try {

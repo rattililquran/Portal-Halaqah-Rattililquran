@@ -5340,6 +5340,102 @@ var AdminAPI = {
     });
     return {status:'ok',data};
   },
+  getMataElangDaurah: async function(id_periode) {
+    id_periode = id_periode || 'P-DAURAH-JULI-2026';
+    var [periodeRes, halaqahRes, anggotaRes, kbmLogRes, nilaiRes, asmtItemRes, asmtMuridRes] = await Promise.all([
+      _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
+      _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
+      _sb.from('anggota').select('id_murid, nama_murid, id_halaqah').eq('status','aktif'),
+      _sb.from('kbm_log').select('id_kbm, id_halaqah, tanggal, pertemuan_ke, status').eq('status','selesai'),
+      _sb.from('nilai_kbm').select('id_murid, id_halaqah, id_kbm, status_hadir'),
+      _sb.from('assessment_items').select('id_item, nama_item, urutan, kategori').eq('level','Tahsin Al-Fatihah').order('urutan'),
+      _sb.from('assessment_murid').select('id_murid, id_item, id_halaqah, status_guru'),
+    ]);
+    _check(halaqahRes.error, 'getMataElangDaurah.halaqah');
+    _check(anggotaRes.error, 'getMataElangDaurah.anggota');
+
+    var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
+    var indikator = asmtItemRes.data || [];
+
+    var today = new Date(); today.setHours(0,0,0,0);
+    var tglMulai = new Date(periode.tanggal_mulai); tglMulai.setHours(0,0,0,0);
+    var tglSelesai = new Date(periode.tanggal_selesai); tglSelesai.setHours(0,0,0,0);
+    var hariKe = today < tglMulai ? 0 : today > tglSelesai ? 8 : Math.floor((today - tglMulai) / 86400000) + 1;
+    var statusDaurah = today < tglMulai ? 'belum' : today > tglSelesai ? 'selesai' : 'berlangsung';
+
+    var anggotaByHq={}, kbmByHq={}, nilaiByHqMurid={}, asmtByMuridItem={};
+    (anggotaRes.data||[]).forEach(function(a){ (anggotaByHq[a.id_halaqah]=anggotaByHq[a.id_halaqah]||[]).push(a); });
+    (kbmLogRes.data||[]).forEach(function(k){ (kbmByHq[k.id_halaqah]=kbmByHq[k.id_halaqah]||[]).push(k); });
+    (nilaiRes.data||[]).forEach(function(n){
+      var key=n.id_halaqah+'|'+n.id_murid;
+      (nilaiByHqMurid[key]=nilaiByHqMurid[key]||[]).push(n);
+    });
+    (asmtMuridRes.data||[]).forEach(function(s){ asmtByMuridItem[s.id_murid+'|'+s.id_item]=s.status_guru; });
+
+    // Filter anggota hanya dari halaqah daurah
+    var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
+
+    var halaqahList = (halaqahRes.data||[]).map(function(hq) {
+      var muridList = (anggotaByHq[hq.id_halaqah]||[]);
+      var sesiList  = (kbmByHq[hq.id_halaqah]||[]).sort(function(a,b){ return (a.pertemuan_ke||0)-(b.pertemuan_ke||0); });
+      var sumHadir=0, sumTotal=0;
+      var murid = muridList.map(function(m) {
+        var nm = (nilaiByHqMurid[hq.id_halaqah+'|'+m.id_murid]||[]);
+        var hadir = nm.filter(function(n){ return ['H','T'].includes(n.status_hadir); }).length;
+        sumHadir+=hadir; sumTotal+=nm.length;
+        var tajwid = indikator.map(function(item){
+          return { id_item:item.id_item, nama:item.nama_item, status:asmtByMuridItem[m.id_murid+'|'+item.id_item]||null };
+        });
+        var pahamCount=tajwid.filter(function(t){ return t.status==='paham'; }).length;
+        return Object.assign({},m,{ hadir, sesiTotal:nm.length, pctHadir:nm.length>0?Math.round(hadir/nm.length*100):0, tajwid, pahamCount });
+      });
+      var pctTajwidSum=0, pctTajwidCount=0;
+      murid.forEach(function(m){ if(indikator.length>0){ pctTajwidSum+=m.pahamCount; pctTajwidCount+=indikator.length; } });
+      return Object.assign({},hq,{
+        murid, sesiList,
+        sesiTerlaksana: sesiList.length,
+        pctHadir: sumTotal>0?Math.round(sumHadir/sumTotal*100):0,
+        pctTajwid: pctTajwidCount>0?Math.round(pctTajwidSum/pctTajwidCount*100):0,
+      });
+    });
+
+    var totalPeserta=0, gSumHadir=0, gSumTotal=0, gSumPaham=0, gSumTajwid=0, totalSesi=0;
+    halaqahList.forEach(function(h){
+      totalPeserta+=h.murid.length; totalSesi+=h.sesiTerlaksana;
+      h.murid.forEach(function(m){ gSumHadir+=m.hadir; gSumTotal+=m.sesiTotal; gSumPaham+=m.pahamCount; gSumTajwid+=indikator.length; });
+    });
+
+    var indikatorRanking = indikator.map(function(item){
+      var paham=0,ragu=0,belum=0,total=0;
+      halaqahList.forEach(function(h){ h.murid.forEach(function(m){
+        var s=asmtByMuridItem[m.id_murid+'|'+item.id_item];
+        if(s==='paham')paham++; else if(s==='ragu')ragu++; else if(s==='belum')belum++;
+        if(s)total++;
+      }); });
+      return { id_item:item.id_item, nama:item.nama_item, paham,ragu,belum,total,
+        pctPaham:total>0?Math.round(paham/total*100):null };
+    }).sort(function(a,b){ return (a.pctPaham===null?-1:a.pctPaham)-(b.pctPaham===null?-1:b.pctPaham); });
+
+    var muridAlert=[];
+    halaqahList.forEach(function(h){ h.murid.forEach(function(m){
+      var tajwidBelum=m.tajwid.filter(function(t){ return t.status==='belum'; }).length;
+      var tajwidRagu =m.tajwid.filter(function(t){ return t.status==='ragu';  }).length;
+      var lvl=(m.sesiTotal>0&&m.pctHadir<75)||tajwidBelum>=3?'kritis':(m.pctHadir<85||tajwidRagu>=3)?'perhatian':null;
+      if(lvl) muridAlert.push(Object.assign({},m,{
+        nama_halaqah:h.nama_halaqah, nama_guru:h.nama_guru,
+        tajwidBelum, tajwidRagu,
+        indikatorLemah:m.tajwid.filter(function(t){ return t.status==='belum'||t.status==='ragu'; }).map(function(t){ return t.nama; }),
+        level:lvl
+      }));
+    }); });
+    muridAlert.sort(function(a,b){ return (a.level==='kritis'?0:1)-(b.level==='kritis'?0:1); });
+
+    return { status:'ok', data:{
+      periode, hariKe, statusDaurah,
+      summary:{ totalPeserta, hariKe, totalSesi, avgHadir:gSumTotal>0?Math.round(gSumHadir/gSumTotal*100):0, avgTajwid:gSumTajwid>0?Math.round(gSumPaham/gSumTajwid*100):0 },
+      halaqahList, indikatorRanking, indikator, muridAlert
+    }};
+  },
   getRekapAbsensi: async function(p) {
     var [levelsRes, queryAnggotaData] = await Promise.all([
       _sb.from('level').select('nama_level, id_level, jumlah_pertemuan'),
