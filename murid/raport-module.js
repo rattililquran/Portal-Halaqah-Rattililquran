@@ -1162,10 +1162,21 @@
       var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator'; });
       if (isDaurah) {
         // ── CETAK PDF SERTIFIKAT/RAPORT DAURAH AL-FATIHAH ──
+        // ═══════════════════════════════════════════════════
+        // HALAMAN 1 — SERTIFIKAT FORMAL
+        // ═══════════════════════════════════════════════════
+
+        var items = rp.komponen || [];
+        var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; });
+        var kbmItems = items.filter(function(x) { return x.tipe === 'daurah_kbm'; });
+        var finalScore = Number(rp.nilai_akhir || 0);
+        var isLulus = finalScore >= 80;
+
+        // -- Page decorations --
         doc.setFillColor(...G); doc.rect(0, 0, W, 4, 'F');
         doc.setFillColor(...Au); doc.rect(0, 4, W, 2, 'F');
 
-        // Draw nice gold borders around the page
+        // Gold border
         doc.setDrawColor(...Au); doc.setLineWidth(0.8);
         doc.rect(mar - 4, mar - 4, W - (mar - 4) * 2, 297 - (mar - 4) * 2);
 
@@ -1193,171 +1204,215 @@
         doc.line(mar - 4, mar + 25, W - mar + 4, mar + 25);
 
         // Basmalah & Hamdalah
-        y = mar + 28;
+        y = mar + 32;
         try {
-          var dBas = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 28, false);
-          var dBasW = 50; var dBasH = (dBas.height * dBasW) / dBas.width;
+          var dBas = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 36, false);
+          var dBasW = 70; var dBasH = (dBas.height * dBasW) / dBas.width;
           doc.addImage(dBas.dataUrl, 'PNG', (W - dBasW) / 2, y, dBasW, dBasH);
-          y += dBasH + 1;
-          var dHam = renderArabicToImage("الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ", 22, false);
-          var dHamW = 45; var dHamH = (dHam.height * dHamW) / dHam.width;
+          y += dBasH + 2;
+          var dHam = renderArabicToImage("الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ", 28, false);
+          var dHamW = 60; var dHamH = (dHam.height * dHamW) / dHam.width;
           doc.addImage(dHam.dataUrl, 'PNG', (W - dHamW) / 2, y, dHamW, dHamH);
-          y += dHamH + 2;
+          y += dHamH + 4;
         } catch(e){}
 
+        // Intro text
         doc.setTextColor(71, 85, 105);
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
         var daurahIntroText = "Alhamdulillaah, atas taufiq dari Allah, kita bisa mencapai pencapaian ini. Jadikan ini sebagai bentuk syukur kita sekaligus motivasi kita untuk menjadi pribadi yang lebih baik lagi kedepannya. Berikut kami lampirkan hasil perjuangan kita selama daurah ini. Semoga Allah terima. Baarakallahu fiikum";
         var daurahIntroLines = doc.splitTextToSize(daurahIntroText, W - mar * 2 - 8);
         doc.text(daurahIntroLines, W / 2, y, { align: 'center' });
-        y += daurahIntroLines.length * 3.8 + 4;
+        y += daurahIntroLines.length * 4.2 + 8;
 
         // Title
-        doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+        doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
         doc.text('SERTIFIKAT DAURAH TAHSIN AL-FATIHAH', W/2, y, {align: 'center'});
         
-        y += 6;
-        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+        y += 8;
+        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
         doc.text('Diberikan kepada:', W/2, y, {align: 'center'});
 
-        y += 8;
-        doc.setTextColor(...Dk); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+        y += 10;
+        doc.setTextColor(...Dk); doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
         doc.text(rp.nama_murid || 'Sahabat Al-Qur\'an', W/2, y, {align: 'center'});
         
         // Underline student name with gold line
         doc.setDrawColor(...Au); doc.setLineWidth(0.5);
-        var nameW = doc.getTextWidth(rp.nama_murid || 'Sahabat Al-Qur\'an') + 10;
-        doc.line((W - nameW)/2, y + 1.5, (W + nameW)/2, y + 1.5);
+        var nameW = doc.getTextWidth(rp.nama_murid || 'Sahabat Al-Qur\'an') + 14;
+        doc.line((W - nameW)/2, y + 2, (W + nameW)/2, y + 2);
 
-        y += 8;
-        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+        y += 10;
+        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
         var descText = "Alhamdulillaah, dinyatakan TELAH MENYELESAIKAN Program Daurah Tahsin Al-Fatihah selama 8 sesi pertemuan intensif dengan hasil pencapaian sebagai berikut:";
-        var descLines = doc.splitTextToSize(descText, W - mar*2 - 8);
+        var descLines = doc.splitTextToSize(descText, W - mar*2 - 10);
         doc.text(descLines, W/2, y, {align: 'center'});
-        y += descLines.length * 4 + 4;
+        y += descLines.length * 4.5 + 10;
+
+        // Decision Box (big & prominent on page 1)
+        var decBoxH = 16;
+        doc.setFillColor(isLulus ? 240 : 254, isLulus ? 253 : 242, isLulus ? 244 : 242);
+        doc.roundedRect(mar + 5, y, W - mar*2 - 10, decBoxH, 3, 3, 'F');
+        doc.setDrawColor(isLulus ? 167 : 254, isLulus ? 243 : 202, isLulus ? 208 : 202); doc.setLineWidth(0.5);
+        doc.roundedRect(mar + 5, y, W - mar*2 - 10, decBoxH, 3, 3, 'S');
+        
+        doc.setTextColor(isLulus ? 21 : 153, isLulus ? 128 : 27, isLulus ? 61 : 27);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: Disarankan untuk kembali belajar tahsin dengan sistem reguler yang lebih sistematis';
+        var statusLines = doc.splitTextToSize(statusGrad, W - mar*2 - 20);
+        var statusTextY = y + (decBoxH / 2) - ((statusLines.length - 1) * 2);
+        doc.text(statusLines, W/2, statusTextY, {align: 'center'});
+        
+        y += decBoxH + 12;
+
+        // Motivasi Quote
+        var daurahPesan = '"Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti."';
+        doc.setDrawColor(...Lt); doc.setLineWidth(0.3);
+        doc.setLineDash([1,1]);
+        doc.line(mar + 10, y, W - mar - 10, y); y += 5;
+        doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(8.5);
+        var daurahPesanLines = doc.splitTextToSize(daurahPesan, W - mar*2 - 20);
+        doc.text(daurahPesanLines, W/2, y, {align:'center'});
+        y += daurahPesanLines.length * 4.5 + 4;
+        doc.line(mar + 10, y, W - mar - 10, y);
+        doc.setLineDash([]);
+        y += 15;
+
+        // Tanda Tangan (Page 1)
+        var ttdX = W - mar - 55;
+        doc.setDrawColor(226, 232, 240); doc.setFillColor(248, 250, 252);
+        doc.roundedRect(ttdX, y, 55, 36, 2, 2, 'FD');
+        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+        doc.text('Bondowoso, ' + tgl, ttdX + 27.5, y + 6, {align: 'center'});
+        doc.text('Mengetahui,', ttdX + 27.5, y + 10, {align: 'center'});
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...G);
+        doc.text('Koordinator Akademik', ttdX + 27.5, y + 14, {align: 'center'});
+        doc.setDrawColor(...G); doc.setLineWidth(0.4);
+        doc.line(ttdX + 5, y + 28, ttdX + 50, y + 28);
+        doc.setTextColor(...Dk); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+        doc.text('Tim Akademik', ttdX + 27.5, y + 33, {align: 'center'});
+
+        // Footer bar page 1
+        doc.setFillColor(248, 250, 252); doc.rect(0, 284, W, 13, 'F');
+        doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.3);
+        doc.line(0, 284, W, 284);
+        doc.setTextColor(...Lt); doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+        doc.text('Dicetak otomatis • ' + tgl + ' • Sertifikat Daurah Al-Fatihah', mar, 290);
+        doc.setTextColor(...G); doc.setFont('helvetica', 'bold');
+        doc.text("RATTILILQUR'AN", W - mar, 290, {align: 'right'});
+
+        // ═══════════════════════════════════════════════════
+        // HALAMAN 2 — DETAIL PENILAIAN
+        // ═══════════════════════════════════════════════════
+        doc.addPage();
+
+        // Page 2 decorations
+        doc.setFillColor(...G); doc.rect(0, 0, W, 3, 'F');
+        doc.setFillColor(...Au); doc.rect(0, 3, W, 1.5, 'F');
+
+        // Mini header page 2
+        var p2TextX = mar;
+        if (logoDataUrl) {
+          try { doc.addImage(logoDataUrl, 'PNG', mar, 8, 16, 16); } catch(e){}
+          p2TextX = mar + 19;
+        }
+        doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+        doc.text("RATTILILQUR'AN", p2TextX, 16);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...Md);
+        doc.text("Lembaga Belajar Al-Qur'an", p2TextX, 21);
+
+        doc.setDrawColor(...Au); doc.setLineWidth(0.6);
+        doc.line(W/2 + 10, 9, W/2 + 10, 23);
+
+        doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+        doc.text('RINCIAN PENILAIAN DAURAH', W - mar, 16, {align: 'right'});
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...Md);
+        doc.text((rp.nama_murid || '-') + ' • ' + (rp.periode || ''), W - mar, 22, {align: 'right'});
+
+        doc.setDrawColor(...G); doc.setLineWidth(0.3);
+        doc.line(0, 27, W, 27);
+
+        var y2 = 35;
 
         // Table header for indicators
-        doc.setFillColor(...G); doc.rect(mar, y, W - mar*2, 7, 'F');
+        doc.setFillColor(...G); doc.rect(mar, y2, W - mar*2, 7, 'F');
         doc.setTextColor(...Wh); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
-        doc.text('NO', mar + 3, y + 5);
-        doc.text('INDIKATOR EVALUASI TAJWID & MAKHRAJ', mar + 10, y + 5);
-        doc.text('STATUS CAPAIAN', W - mar - 3, y + 5, {align: 'right'});
-        y += 7;
-
-        var items = rp.komponen || [];
-        var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; });
-        var kbmItems = items.filter(function(x) { return x.tipe === 'daurah_kbm'; });
+        doc.text('NO', mar + 3, y2 + 5);
+        doc.text('INDIKATOR EVALUASI TAJWID & MAKHRAJ', mar + 10, y2 + 5);
+        doc.text('STATUS CAPAIAN', W - mar - 3, y2 + 5, {align: 'right'});
+        y2 += 7;
 
         // Render Tajwid
         tajwidItems.forEach(function(k, idx) {
           var isEven = idx % 2 === 0;
           doc.setFillColor(isEven ? 248 : 255, isEven ? 250 : 255, isEven ? 252 : 255);
-          doc.rect(mar, y, W - mar*2, 6.5, 'F');
+          doc.rect(mar, y2, W - mar*2, 7, 'F');
           
-          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.0);
-          doc.text(String(idx + 1), mar + 3, y + 4.5);
+          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+          doc.text(String(idx + 1), mar + 4, y2 + 5);
           doc.setFont('helvetica', 'bold');
-          doc.text(k.nama_komponen, mar + 10, y + 4.5);
+          doc.text(k.nama_komponen, mar + 12, y2 + 5);
           
           var status = k.status_guru || 'belum';
           var statLabel = status === 'paham' ? 'PAHAM' : status === 'ragu' ? 'RAGU-RAGU' : 'BELUM PAHAM';
           var statColor = status === 'paham' ? [16,185,129] : status === 'ragu' ? [245,158,11] : [239,68,68];
           
           doc.setTextColor(...statColor); doc.setFont('helvetica', 'bold');
-          doc.text(statLabel, W - mar - 3, y + 4.5, {align: 'right'});
-          y += 6.5;
+          doc.text(statLabel, W - mar - 3, y2 + 5, {align: 'right'});
+          y2 += 7;
         });
 
         // Render KBM Metrics
         if (kbmItems.length > 0) {
-          y += 3;
-          doc.setFillColor(...G); doc.rect(mar, y, W - mar*2, 6, 'F');
-          doc.setTextColor(...Wh); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.0);
-          doc.text('PARTISIPASI & KEDISIPLINAN KEBERSAMAAN KBM', mar + 3, y + 4.2);
-          doc.text('NILAI KBM', W - mar - 3, y + 4.2, {align: 'right'});
-          y += 6;
+          y2 += 6;
+          doc.setFillColor(...G); doc.rect(mar, y2, W - mar*2, 7, 'F');
+          doc.setTextColor(...Wh); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+          doc.text('PARTISIPASI & KEDISIPLINAN KEBERSAMAAN KBM', mar + 3, y2 + 5);
+          doc.text('NILAI KBM', W - mar - 3, y2 + 5, {align: 'right'});
+          y2 += 7;
 
           kbmItems.forEach(function(k, idx) {
             var isEven = idx % 2 === 0;
             doc.setFillColor(isEven ? 248 : 255, isEven ? 250 : 255, isEven ? 252 : 255);
-            doc.rect(mar, y, W - mar*2, 6.5, 'F');
+            doc.rect(mar, y2, W - mar*2, 7, 'F');
 
-            doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.0);
-            doc.text(k.nama_komponen + (k.keterangan ? ' (' + k.keterangan + ')' : ''), mar + 3, y + 4.5);
+            doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+            doc.text(k.nama_komponen + (k.keterangan ? ' (' + k.keterangan + ')' : ''), mar + 3, y2 + 5);
 
             doc.setTextColor(...G); doc.setFont('helvetica', 'bold');
-            doc.text(String(k.nilai) + ' / 100', W - mar - 3, y + 4.5, {align: 'right'});
-            y += 6.5;
+            doc.text(String(k.nilai) + ' / 100', W - mar - 3, y2 + 5, {align: 'right'});
+            y2 += 7;
           });
         }
 
-        y += 6;
-        var finalScore = Number(rp.nilai_akhir || 0);
-        var isLulus = finalScore >= 80;
-        
-        doc.setFillColor(isLulus ? 240 : 254, isLulus ? 253 : 242, isLulus ? 244 : 242);
-        doc.roundedRect(mar, y, W - mar*2, 11, 2, 2, 'F');
-        doc.setDrawColor(isLulus ? 167 : 254, isLulus ? 243 : 202, isLulus ? 208 : 202); doc.setLineWidth(0.4);
-        doc.roundedRect(mar, y, W - mar*2, 11, 2, 2, 'S');
-        
-        doc.setTextColor(isLulus ? 21 : 153, isLulus ? 128 : 27, isLulus ? 61 : 27);
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: Disarankan untuk kembali belajar tahsin dengan sistem reguler yang lebih sistematis';
-        doc.text(statusGrad, W/2, y + 7, {align: 'center'});
-        
-        y += 8;
-        
-        // Motivasi Quote
-        var daurahPesan = '"Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti."';
-        doc.setDrawColor(...Lt); doc.setLineWidth(0.3);
-        doc.setLineDash([1,1]);
-        doc.line(mar, y, W-mar, y); y += 4;
-        doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
-        var daurahPesanLines = doc.splitTextToSize(daurahPesan, W-mar*2-10);
-        doc.text(daurahPesanLines, W/2, y, {align:'center'});
-        y += daurahPesanLines.length*4 + 3;
-        doc.line(mar, y, W-mar, y);
-        doc.setLineDash([]);
-        y += 6;
+        // Nilai Akhir summary row
+        y2 += 4;
+        doc.setFillColor(...G); doc.rect(mar, y2, W - mar*2, 8, 'F');
+        doc.setTextColor(...Wh); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+        doc.text('NILAI AKHIR', mar + 3, y2 + 6);
+        doc.text(finalScore.toFixed(1) + ' / 100', W - mar - 3, y2 + 6, {align: 'right'});
+        y2 += 14;
 
-        // Footer: Catatan Guru & Tanda Tangan
+        // Catatan Guru on page 2
         var catatan = rp.catatan_guru || '';
         if (catatan) {
           doc.setFillColor(255, 251, 235);
-          var lines = doc.splitTextToSize(catatan, W - mar*2 - 8);
-          var boxH = lines.length * 4.8 + 12;
-          doc.roundedRect(mar, y, W - mar*2, boxH, 2, 2, 'F');
-          doc.setFillColor(...Au); doc.rect(mar, y, 2, boxH, 'F');
-          doc.setTextColor(146, 64, 14); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
-          doc.text('CATATAN WALI HALAQAH / PEMBIMBING', mar + 5, y + 6);
-          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-          doc.text(lines, mar + 5, y + 11);
-          y += boxH + 8;
+          var cLines = doc.splitTextToSize(catatan, W - mar*2 - 8);
+          var cBoxH = cLines.length * 4.8 + 14;
+          doc.roundedRect(mar, y2, W - mar*2, cBoxH, 2, 2, 'F');
+          doc.setFillColor(...Au); doc.rect(mar, y2, 2, cBoxH, 'F');
+          doc.setTextColor(146, 64, 14); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+          doc.text('CATATAN WALI HALAQAH / PEMBIMBING', mar + 6, y2 + 7);
+          doc.setTextColor(...Dk); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+          doc.text(cLines, mar + 6, y2 + 13);
+          y2 += cBoxH + 8;
         }
 
-        // Tanda Tangan
-        if (y > 250) {
-          y = 244;
-        }
-        var ttdX = W - mar - 55;
-        doc.setDrawColor(226, 232, 240); doc.setFillColor(248, 250, 252);
-        doc.roundedRect(ttdX, y, 55, 34, 2, 2, 'FD');
-        doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-        doc.text('Bondowoso, ' + tgl, ttdX + 27.5, y + 5, {align: 'center'});
-        doc.text('Mengetahui,', ttdX + 27.5, y + 9, {align: 'center'});
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...G);
-        doc.text('Koordinator Akademik', ttdX + 27.5, y + 13, {align: 'center'});
-        doc.setDrawColor(...G); doc.setLineWidth(0.4);
-        doc.line(ttdX + 5, y + 26, ttdX + 50, y + 26);
-        doc.setTextColor(...Dk); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-        doc.text('Tim Akademik', ttdX + 27.5, y + 30, {align: 'center'});
-
-        // Draw footer bar
+        // Footer bar page 2
         doc.setFillColor(248, 250, 252); doc.rect(0, 284, W, 13, 'F');
         doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.3);
         doc.line(0, 284, W, 284);
         doc.setTextColor(...Lt); doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
-        doc.text('Dicetak otomatis • ' + tgl + ' • Sertifikat Daurah Al-Fatihah', mar, 290);
+        doc.text('Dicetak otomatis • ' + tgl + ' • Rincian Penilaian Daurah Al-Fatihah', mar, 290);
         doc.setTextColor(...G); doc.setFont('helvetica', 'bold');
         doc.text("RATTILILQUR'AN", W - mar, 290, {align: 'right'});
 
