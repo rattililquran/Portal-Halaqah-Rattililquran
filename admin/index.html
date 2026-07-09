@@ -4907,9 +4907,13 @@ async function saveHalaqah() {
   const checkedHari = Array.from(document.querySelectorAll('input[name="hqHari"]:checked'))
     .map(el => el.value);
 
+  const guruSel = document.getElementById('hqGuru');
+  const namaGuru = guruSel.options[guruSel.selectedIndex] ? guruSel.options[guruSel.selectedIndex].text : '';
+
   const data = {
     nama_halaqah: document.getElementById('hqNama').value.trim(),
     id_guru     : document.getElementById('hqGuru').value,
+    nama_guru   : namaGuru,
     level       : document.getElementById('hqLevel').value,
     id_periode  : document.getElementById('hqPeriode').value || null,
     jadwal_hari : checkedHari.length > 0 ? checkedHari.join(', ') : null,
