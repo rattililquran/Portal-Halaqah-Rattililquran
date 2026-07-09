@@ -532,7 +532,7 @@
 
     var headerClass = cfg.logo_url ? 'has-logo' : 'no-logo';
     var namaLembaga    = cfg.nama_lembaga    || "Rattililqur'an";
-    var subNamaLembaga = cfg.sub_nama_lembaga || "Lembaga Tahsin & Tahfidz Al-Qur'an Online";
+    var subNamaLembaga = cfg.sub_nama_lembaga || "Lembaga Belajar Al-Qur'an";
     var kontakLembaga  = cfg.kontak_lembaga  || "rattililquran.com";
 
     var predikatDesc = nilaiNum >= 90 ? 'Sangat Memuaskan' : nilaiNum >= 75 ? 'Memuaskan' : nilaiNum >= 60 ? 'Baik' : 'Cukup';
@@ -1179,7 +1179,7 @@
         doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
         doc.text("RATTILILQUR'AN", textXHeader, mar + 10);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...Md);
-        doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textXHeader, mar + 16);
+        doc.text("Lembaga Belajar Al-Qur'an", textXHeader, mar + 16);
         
         doc.setDrawColor(...Au); doc.setLineWidth(0.8);
         doc.line(W/2 + 20, mar + 4, W/2 + 20, mar + 20);
@@ -1192,10 +1192,29 @@
         doc.setDrawColor(...G); doc.setLineWidth(0.3);
         doc.line(mar - 4, mar + 25, W - mar + 4, mar + 25);
 
+        // Basmalah & Hamdalah
+        y = mar + 28;
+        try {
+          var dBas = renderArabicToImage("بِسْــــــــــــــمِ اللهِ الرَّحْمَنِ الرَّحِيْـــــم", 28, false);
+          var dBasW = 50; var dBasH = (dBas.height * dBasW) / dBas.width;
+          doc.addImage(dBas.dataUrl, 'PNG', (W - dBasW) / 2, y, dBasW, dBasH);
+          y += dBasH + 1;
+          var dHam = renderArabicToImage("الحمدُ للَّهِ الذي بنعمتِهِ تَتِمُّ الصَّالحاتُ", 22, false);
+          var dHamW = 45; var dHamH = (dHam.height * dHamW) / dHam.width;
+          doc.addImage(dHam.dataUrl, 'PNG', (W - dHamW) / 2, y, dHamW, dHamH);
+          y += dHamH + 2;
+        } catch(e){}
+
+        doc.setTextColor(71, 85, 105);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+        var daurahIntroText = "Alhamdulillaah, atas taufiq dari Allah, kita bisa mencapai pencapaian ini. Jadikan ini sebagai bentuk syukur kita sekaligus motivasi kita untuk menjadi pribadi yang lebih baik lagi kedepannya. Berikut kami lampirkan hasil perjuangan kita selama daurah ini. Semoga Allah terima. Baarakallahu fiikum";
+        var daurahIntroLines = doc.splitTextToSize(daurahIntroText, W - mar * 2 - 8);
+        doc.text(daurahIntroLines, W / 2, y, { align: 'center' });
+        y += daurahIntroLines.length * 3.8 + 4;
+
         // Title
-        y = mar + 36;
         doc.setTextColor(...G); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
-        doc.text('SERTIFIKAT KELAYAKAN BACAAN AL-FATIHAH', W/2, y, {align: 'center'});
+        doc.text('SERTIFIKAT DAURAH TAHSIN AL-FATIHAH', W/2, y, {align: 'center'});
         
         y += 6;
         doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
@@ -1212,7 +1231,7 @@
 
         y += 8;
         doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-        var descText = "Alhamdulillaah, dinyatakan TELAH MENYELESAIKAN Program Akselerasi Daurah Al-Fatihah selama 8 sesi pertemuan intensif dengan hasil pencapaian sebagai berikut:";
+        var descText = "Alhamdulillaah, dinyatakan TELAH MENYELESAIKAN Program Daurah Tahsin Al-Fatihah selama 8 sesi pertemuan intensif dengan hasil pencapaian sebagai berikut:";
         var descLines = doc.splitTextToSize(descText, W - mar*2 - 8);
         doc.text(descLines, W/2, y, {align: 'center'});
         y += descLines.length * 4 + 4;
@@ -1283,11 +1302,24 @@
         
         doc.setTextColor(isLulus ? 21 : 153, isLulus ? 128 : 27, isLulus ? 61 : 27);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-        var statusGrad = isLulus ? 'KEPUTUSAN: LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: PERLU MENGULANG PROGRAM DAURAH UNTUK PEMANTAPAN';
+        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: PERLU MENGULANG PROGRAM DAURAH UNTUK PEMANTAPAN';
         doc.text(statusGrad, W/2, y + 7, {align: 'center'});
         
-        y += 18;
+        y += 8;
         
+        // Motivasi Quote
+        var daurahPesan = '"Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti."';
+        doc.setDrawColor(...Lt); doc.setLineWidth(0.3);
+        doc.setLineDash([1,1]);
+        doc.line(mar, y, W-mar, y); y += 4;
+        doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
+        var daurahPesanLines = doc.splitTextToSize(daurahPesan, W-mar*2-10);
+        doc.text(daurahPesanLines, W/2, y, {align:'center'});
+        y += daurahPesanLines.length*4 + 3;
+        doc.line(mar, y, W-mar, y);
+        doc.setLineDash([]);
+        y += 6;
+
         // Footer: Catatan Guru & Tanda Tangan
         var catatan = rp.catatan_guru || '';
         if (catatan) {
@@ -1304,14 +1336,14 @@
         }
 
         // Tanda Tangan
-        if (y > 235) {
-          y = 230;
+        if (y > 250) {
+          y = 244;
         }
         var ttdX = W - mar - 55;
         doc.setDrawColor(226, 232, 240); doc.setFillColor(248, 250, 252);
         doc.roundedRect(ttdX, y, 55, 34, 2, 2, 'FD');
         doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-        doc.text('Jakarta, ' + tgl, ttdX + 27.5, y + 5, {align: 'center'});
+        doc.text('Bondowoso, ' + tgl, ttdX + 27.5, y + 5, {align: 'center'});
         doc.text('Mengetahui,', ttdX + 27.5, y + 9, {align: 'center'});
         doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...G);
         doc.text('Koordinator Akademik', ttdX + 27.5, y + 13, {align: 'center'});
@@ -1344,7 +1376,7 @@
       doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(20);
       doc.text("RATTILILQUR'AN", textX, 17);
       doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...Md);
-      doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textX, 24);
+      doc.text("Lembaga Belajar Al-Qur'an", textX, 24);
       doc.setDrawColor(...Au); doc.setLineWidth(0.8);
       doc.line(W/2+10, 8, W/2+10, 31);
       doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(15);
@@ -1719,7 +1751,7 @@
       doc.setTextColor(...G); doc.setFont('helvetica','bold'); doc.setFontSize(18);
       doc.text("RATTILILQUR'AN", textX, 17);
       doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...Md);
-      doc.text("Lembaga Tahsin & Tahfidz Al-Qur'an Online", textX, 23);
+      doc.text("Lembaga Belajar Al-Qur'an", textX, 23);
 
       doc.setDrawColor(...Au); doc.setLineWidth(0.8);
       doc.line(W/2+10, 8, W/2+10, 30);
