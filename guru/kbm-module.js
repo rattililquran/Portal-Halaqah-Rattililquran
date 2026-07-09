@@ -1698,26 +1698,50 @@
         var meetingNo = (sesiAktif && sesiAktif.pertemuan_ke) || 1;
         var meetingItems = getDaurahItemsForMeeting(meetingNo, window._daurahAssessmentItems);
         if (meetingItems.length > 0) {
+          var catTitles = {
+            'Hari 1': "Hari 1 (Isti'adzah)",
+            'Hari 2': "Hari 2 (Basmalah)",
+            'Hari 3': "Hari 3 (Ayat 2)",
+            'Hari 4': "Hari 4 (Ayat 3-4)",
+            'Hari 5': "Hari 5 (Ayat 5)",
+            'Hari 6': "Hari 6 (Ayat 6)",
+            'Hari 7': "Hari 7 (Ayat 7)",
+            'Hari 8': "Hari 8 (Evaluasi Akhir)"
+          };
+
           daurahHtml = '<div class="daurah-kbm-assessment" style="margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--border);margin-bottom:8px">'
             + '<div class="nm-section-label" style="display:flex;align-items:center;gap:4px;color:var(--blue-d);font-weight:800;font-size:12px">'
             + '🎯 Evaluasi Bacaan: ' + getDaurahDayTitle(meetingNo)
-            + '</div>'
-            + meetingItems.map(function(item) {
-              var ans = (window._daurahAssessmentMap && window._daurahAssessmentMap[m.id_murid] && window._daurahAssessmentMap[m.id_murid][item.id_item]) || null;
-              return '<div class="daurah-asmt-row" style="margin-top:8px">'
-                + '<div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px">'
-                + (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:15px;direction:rtl;margin-right:6px">' + esc(item.teks_arab) + '</span>' : '')
-                + '<span>' + esc(item.teks_latin) + '</span>'
-                + '</div>'
-                + (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">' + esc(item.keterangan) + '</div>' : '')
-                + '<div style="display:flex;gap:6px">'
-                + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">✅ Paham</button>'
-                + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">🟡 Ragu</button>'
-                + '<button type="button" class="btn-asmt-opt btn-belum ' + (ans === 'belum' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)">❌ Belum</button>'
-                + '</div>'
-                + '</div>';
-            }).join('')
             + '</div>';
+
+          var currentCat = '';
+          meetingItems.forEach(function(item) {
+            var ans = (window._daurahAssessmentMap && window._daurahAssessmentMap[m.id_murid] && window._daurahAssessmentMap[m.id_murid][item.id_item]) || null;
+            
+            var itemCat = item.kategori || 'Lainnya';
+            if (itemCat !== currentCat) {
+              currentCat = itemCat;
+              var catDisp = catTitles[currentCat] || currentCat;
+              daurahHtml += '<div class="daurah-cat-divider" style="margin:16px 0 8px 0;padding:6px 12px;background:rgba(2,132,199,0.06);border:1px solid rgba(2,132,199,0.15);border-radius:8px;font-size:11.5px;font-weight:800;color:#0284c7;display:flex;align-items:center;gap:6px">'
+                + '<span>📖</span> ' + esc(catDisp)
+                + '</div>';
+            }
+
+            daurahHtml += '<div class="daurah-asmt-row" style="margin-top:6px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--bg-2)">'
+              + '<div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px">'
+              + (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:15px;direction:rtl;margin-right:6px;background:var(--border);padding:2px 6px;border-radius:4px">' + esc(item.teks_arab) + '</span>' : '')
+              + '<span>' + esc(item.teks_latin) + '</span>'
+              + '</div>'
+              + (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">' + esc(item.keterangan) + '</div>' : '')
+              + '<div style="display:flex;gap:6px">'
+              + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">✅ Paham</button>'
+              + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">🟡 Ragu</button>'
+              + '<button type="button" class="btn-asmt-opt btn-belum ' + (ans === 'belum' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)">❌ Belum</button>'
+              + '</div>'
+              + '</div>';
+          });
+
+          daurahHtml += '</div>';
         }
       }
 
