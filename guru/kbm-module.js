@@ -2374,7 +2374,9 @@
         + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
         + '<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
           + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button>'
-          + '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="'+(m.no_hp ? 'Hubungi via WhatsApp' : 'No HP tidak tersedia')+'">💬 WA</button>'
+          + (m.no_hp
+            ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="Hubungi via WhatsApp">💬 WA</button>'
+            : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6" title="No HP belum diisi di profil murid">💬 WA</button>')
           + '</div></td>'
         + '</tr>';
     }).join('');
@@ -2796,6 +2798,7 @@
   window.bukaCatatan = bukaCatatan;
   window.simpanCatatan = simpanCatatan;
   window._saveKbmDraftLocal = _saveKbmDraftLocal;
+  window._kbmServerSyncFlush = _kbmServerSyncFlush;
   window._loadKbmDraftLocal = _loadKbmDraftLocal;
   window._clearKbmDraftLocal = _clearKbmDraftLocal;
   window._hydrateKbmCacheFromDraft = _hydrateKbmCacheFromDraft;

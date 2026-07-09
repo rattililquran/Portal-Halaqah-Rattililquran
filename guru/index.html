@@ -5864,10 +5864,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Selamatkan draft nilai saat app di-background / ditutup (event andalan di iOS)
   document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') { _saveKbmDraftLocal(); _kbmServerSyncFlush(); }
+    if (document.visibilityState === 'hidden') { if(window._saveKbmDraftLocal) window._saveKbmDraftLocal(); if(window._kbmServerSyncFlush) window._kbmServerSyncFlush(); }
   });
-  window.addEventListener('pagehide', function() { _saveKbmDraftLocal(); _kbmServerSyncFlush(); });
-  window.addEventListener('online', function() { _kbmServerSyncFlush(); }); // Fase 2: retry sinkron saat koneksi balik
+  window.addEventListener('pagehide', function() { if(window._saveKbmDraftLocal) window._saveKbmDraftLocal(); if(window._kbmServerSyncFlush) window._kbmServerSyncFlush(); });
+  window.addEventListener('online', function() { if(window._kbmServerSyncFlush) window._kbmServerSyncFlush(); }); // Fase 2: retry sinkron saat koneksi balik
 
   // Chip status sinkron Fase 2
   if (!document.getElementById('kbmSyncChip')) {
@@ -9174,7 +9174,9 @@ function renderMuridTable() {
       + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
       + '<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
         + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button>'
-        + '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="'+(m.no_hp ? 'Hubungi via WhatsApp' : 'No HP tidak tersedia')+'">💬 WA</button>'
+        + (m.no_hp
+          ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="Hubungi via WhatsApp">💬 WA</button>'
+          : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6" title="No HP belum diisi di profil murid">💬 WA</button>')
         + '</div></td>'
       + '</tr>';
   }).join('');
@@ -12501,7 +12503,7 @@ function openWAMurid(nama, hp, level) {
   if (raw.startsWith('0')) raw = '62' + raw.slice(1);
   else if (!raw.startsWith('62')) raw = '62' + raw;
 
-  var levelText = level ? (String(level).toLowerCase().indexOf('level') !== -1 ? level : 'Level ' + level) : '';
+  var levelText = level ? level : '';
   var msg =
     'Assalamu\'alaikum warahmatullahi wabarakatuh 🌙\n\n' +
     'Ananda *' + (nama || 'Murid') + '*' + (levelText ? ' (' + levelText + ')' : '') + ',\n' +

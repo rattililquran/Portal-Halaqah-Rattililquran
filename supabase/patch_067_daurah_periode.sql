@@ -2,7 +2,7 @@
 --  PATCH 067 -- Membuat Periode Daurah Al-Fatihah Juli 2026
 --
 --  Konteks: User meminta agar tanggal aktif daurah diset dari
---  tanggal 10-17 Juli 2026.
+--  tanggal 11-18 Juli 2026.
 --
 --  Solusi:
 --  Membuat/memperbarui data periode khusus Daurah Juli 2026
@@ -15,9 +15,9 @@ insert into public.periode (id_periode, nama_periode, tanggal_mulai, tanggal_sel
 values (
   'P-DAURAH-JULI-2026', 
   'Daurah Al-Fatihah Juli 2026', 
-  '2026-07-10', 
-  '2026-07-17', 
-  'Periode Daurah Tahsin Al-Fatihah 10-17 Juli 2026', 
+  '2026-07-11', 
+  '2026-07-18', 
+  'Periode Daurah Tahsin Al-Fatihah 11-18 Juli 2026', 
   'aktif'
 )
 on conflict (id_periode) 
