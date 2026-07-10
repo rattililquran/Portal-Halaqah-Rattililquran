@@ -3847,6 +3847,40 @@ html.theme-dark .materi-daurah-banner-title {
         </div><!-- /prog-inner-wrap -->
       </div>
 
+      <!-- Daurah Al-Fatihah Progress Card -->
+      <div class="progress-card" id="dashDaurahCard" style="display:none; margin-top:14px;">
+        <div class="prog-title" style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="display:flex; align-items:center; gap:6px;">🦅 Daurah Al-Fatihah</span>
+          <span class="level-badge" id="dashDaurahStatus" style="font-size:11px; padding:2px 8px;">—</span>
+        </div>
+        
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin:12px 0 6px 0; display:flex; justify-content:space-between;">
+          <span id="dashDaurahDayLabel">Progress Daurah</span>
+          <span id="dashDaurahProgressPct">0%</span>
+        </div>
+        <div class="prog-bar-wrap" style="height:8px; margin-bottom:14px; background:rgba(0,0,0,.06);">
+          <div class="prog-bar-fill" id="dashDaurahProgressBar" style="width:0%; background:linear-gradient(90deg, #0ea5e9, #10b981);"></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+          <div style="background:var(--bg-card-inner, #f8fafc); border-radius:8px; padding:10px; border:1.5px solid var(--border,#e2e8f0); text-align:left;">
+            <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase;">Kehadiran</div>
+            <div style="font-size:18px; font-weight:900; color:var(--blue-txt); margin-top:2px;" id="dashDaurahHadirTxt">0/8 Sesi</div>
+          </div>
+          <div style="background:var(--bg-card-inner, #f8fafc); border-radius:8px; padding:10px; border:1.5px solid var(--border,#e2e8f0); text-align:left;">
+            <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase;">Penguasaan Tajwid</div>
+            <div style="font-size:18px; font-weight:900; color:var(--green-txt); margin-top:2px;" id="dashDaurahTajwidTxt">0% Paham</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Indikator Tajwid Al-Fatihah</div>
+        <div id="dashDaurahGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:6px; margin-bottom:10px;"></div>
+        
+        <div style="margin-top:8px; font-size:10px; color:var(--text-3); display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+          <span>✅ Paham</span><span>🟡 Ragu</span><span>❌ Belum</span><span>⚪ Belum dinilai</span>
+        </div>
+      </div>
+
       <!-- Partner Qiyam Card -->
       <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
         <div class="prog-title">
@@ -8228,6 +8262,82 @@ async function loadDashboard() {
       renderKalender();
     }
     renderDashKalender(hq, atRes.data || []);
+
+    // Daurah Al-Fatihah Card
+    var daurahCardEl = document.getElementById('dashDaurahCard');
+    if (daurahCardEl) {
+      if (d.daurah) {
+        daurahCardEl.style.display = 'block';
+        
+        var dInfo = d.daurah;
+        var pSum = dInfo.summary;
+        
+        // Status Badge
+        var statusBadgeEl = document.getElementById('dashDaurahStatus');
+        if (statusBadgeEl) {
+          statusBadgeEl.textContent = dInfo.statusDaurah === 'berlangsung' ? 'Sedang Berlangsung' : dInfo.statusDaurah === 'selesai' ? 'Selesai' : 'Belum Dimulai';
+          statusBadgeEl.className = 'level-badge ' + (dInfo.statusDaurah === 'berlangsung' ? 'b-green' : dInfo.statusDaurah === 'selesai' ? 'b-blue' : 'b-amber');
+        }
+
+        // Progress Bar & Day Label
+        var dayLabelEl = document.getElementById('dashDaurahDayLabel');
+        if (dayLabelEl) {
+          dayLabelEl.innerHTML = dInfo.statusDaurah === 'berlangsung' 
+            ? 'Progress Daurah (Hari ke-<strong>' + dInfo.hariKe + '</strong> dari 8)'
+            : dInfo.statusDaurah === 'selesai' ? 'Daurah Selesai' : 'Daurah Belum Dimulai';
+        }
+        
+        var pctProgress = Math.round((dInfo.hariKe / 8) * 100);
+        var pBarEl = document.getElementById('dashDaurahProgressBar');
+        if (pBarEl) pBarEl.style.width = pctProgress + '%';
+        
+        var pPctEl = document.getElementById('dashDaurahProgressPct');
+        if (pPctEl) pPctEl.textContent = pctProgress + '%';
+
+        // Stats boxes
+        document.getElementById('dashDaurahHadirTxt').textContent = d.kehadiran.total_hadir + '/8 Sesi';
+        document.getElementById('dashDaurahTajwidTxt').textContent = pSum.pct_paham + '% Paham';
+
+        // Grid indicators
+        var gridEl = document.getElementById('dashDaurahGrid');
+        if (gridEl) {
+          gridEl.innerHTML = dInfo.items.map(function(item) {
+            var bg = item.status === 'paham' ? 'rgba(16,185,129,.12)' 
+                   : item.status === 'ragu' ? 'rgba(245,158,11,.12)' 
+                   : item.status === 'belum' ? 'rgba(239,68,68,.12)' 
+                   : 'rgba(0,0,0,.04)';
+            var border = item.status === 'paham' ? 'rgba(16,185,129,.25)' 
+                      : item.status === 'ragu' ? 'rgba(245,158,11,.25)' 
+                      : item.status === 'belum' ? 'rgba(239,68,68,.25)' 
+                      : 'rgba(0,0,0,.08)';
+            var color = item.status === 'paham' ? '#047857' 
+                      : item.status === 'ragu' ? '#b45309' 
+                      : item.status === 'belum' ? '#b91c1c' 
+                      : 'var(--text-3)';
+            var short = _shortItemName(item.nama);
+            var statusIco = item.status === 'paham' ? '✓' 
+                          : item.status === 'ragu' ? '?' 
+                          : item.status === 'belum' ? '✗' 
+                          : '·';
+            
+            return '<div style="background:' + bg + '; border:1.5px solid ' + border + '; border-radius:8px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:50px; color:' + color + '" title="' + esc(item.nama) + '">'
+                 + '<span style="font-size:10px; font-weight:800; line-height:1.1; margin-bottom:2px; word-break:break-word">' + esc(short) + '</span>'
+                 + '<span style="font-size:11px; font-weight:900">' + statusIco + '</span>'
+                 + '</div>';
+          }).join('');
+        }
+      } else {
+        daurahCardEl.style.display = 'none';
+      }
+    }
+
+    function _shortItemName(nama) {
+      var map = { 'Hamzah':'Hamzah', "A'in":"A'in", 'Ha Tipis':'Ha\u2609', 'Ha Tebal':'Ha\u25CF',
+        'Nabr':'Nabr', 'Tasydid':'Nabr', 'Shad':'Shad', 'Tha':'Tha\u02BE',
+        'Idzhar':'Idzhar', 'Mim':'Mim\u25CF', 'Dhad':'Dhad', 'Mad':'Mad' };
+      for (var k in map) { if (nama.indexOf(k) !== -1) return map[k]; }
+      return nama.length > 8 ? nama.slice(0,7) + '\u2026' : nama;
+    }
 
     // Load async — tidak blokir dashboard
     loadSPP();

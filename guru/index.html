@@ -2632,6 +2632,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni">🎧</span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
       <button class="nav-btn" onclick="goPage('kuis-guru')" data-p="kuis-guru"><span class="ni">🎯</span>Rattil Quiz</button>
       <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni">📖</span>At-Tibyan</button>
+      <button class="nav-btn" id="navMataElangGuru" onclick="goPage('mata-elang-guru')" data-p="mata-elang-guru" style="display:none"><span class="ni">🦅</span>Mata Elang Daurah</button>
       <button class="nav-btn" id="navHafalanGuru" onclick="goPage('hafalan-guru')" data-p="hafalan-guru" style="display:none"><span class="ni">🕌</span>Input Hafalan<span id="navHafalanBadge" style="display:none;margin-left:auto;background:#10b981;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:1px 7px">Qiyam</span></button>
 
       <div class="sb-section">Penilaian & Raport</div>
@@ -4575,6 +4576,59 @@ html.theme-dark .pr-chip.active {
         </div>
       </div>
 
+      <!-- ════ MATA ELANG DAURAH (GURU) ════ -->
+      <div class="page" id="page-mata-elang-guru">
+        <!-- Header + progress bar -->
+        <div class="card" style="padding:18px 20px" id="meGuruHeader"></div>
+
+        <!-- Summary cards -->
+        <div class="stats-grid" id="meGuruSummaryCards" style="margin-top:14px"></div>
+
+        <!-- Tabel halaqah -->
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Halaqah Daurah Anda</div>
+            <span style="font-size:11px;color:var(--text-3)">Klik baris untuk expand detail murid</span>
+          </div>
+          <div class="tbl-wrap">
+            <table class="premium-table">
+              <thead><tr>
+                <th>Halaqah</th>
+                <th class="align-center">Peserta</th>
+                <th class="align-center">Sesi</th>
+                <th>% Hadir</th>
+                <th>% Tajwid Paham</th>
+              </tr></thead>
+              <tbody id="meGuruTblBody"><tr><td colspan="5" class="align-center" style="padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Heatmap indikator tajwid -->
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">🔥 Heatmap Penguasaan Tajwid</div>
+            <select class="fc" id="meGuruHeatmapFilter" onchange="reloadMeGuruHeatmap()" style="max-width:200px;font-size:12px"><option value="">— Semua Halaqah —</option></select>
+          </div>
+          <div id="meGuruHeatmapWrap"></div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-3);display:flex;gap:14px;flex-wrap:wrap">
+            <span>✅ Paham</span><span>🟡 Ragu-ragu</span><span>❌ Belum paham</span><span>⚪ Belum dinilai</span>
+          </div>
+        </div>
+
+        <!-- Insight: ranking indikator + alert murid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">📉 Indikator Paling Sulit (Semua Halaqah Anda)</div>
+            <div id="meGuruBarChart"></div>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">⚠️ Murid Perlu Perhatian</div>
+            <div id="meGuruAlertList"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ════ RAPORT HALAQAH ════ -->
       <div class="page" id="page-raport">
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Raport Halaqah</div>
@@ -5759,6 +5813,7 @@ html.theme-dark .pr-chip.active {
 <script src="kbm-module.js?v=1.0.0" defer></script>
 <script src="pr-jurnal-module.js?v=1.0.0" defer></script>
 <script src="hafalan-module.js?v=1.0.0" defer></script>
+<script src="mata-elang-guru-module.js?v=1.0.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -6280,6 +6335,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri',
   jadwal:'Jadwal KBM',
   'peninjauan-pr':'Peninjauan Tugas & PR',
+  'mata-elang-guru':'Mata Elang Daurah',
   'kuis-guru':'Manajemen Rattil Quiz'};
 
 function goPage(name) {
@@ -6321,6 +6377,9 @@ function goPage(name) {
   }
   if (name === 'pengumuman') initPengumumanPage();
   if (name === 'keaktifan')      loadKeaktifanPage();
+  if (name === 'mata-elang-guru') {
+    if (typeof window.loadMataElangGuru === 'function') window.loadMataElangGuru();
+  }
   if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); _loadAtMateriFromDB(); }
   if (name === 'assessment') {
     populateSel('asmtHalaqahSel');
@@ -6377,6 +6436,7 @@ async function loadDashboard(silent = false) {
     halaqahList = d.halaqah || [];
     // Tampilkan nav Tahfidz jika guru punya halaqah Level Qiyam
     _initNavHafalan();
+    _initNavMataElang();
     // Isi semua dropdown setelah data loaded
     fillLevelDropdowns();
     // Isi dropdown halaqah di semua page
@@ -14907,6 +14967,13 @@ function _initNavHafalan() {
   if (bdg)   bdg.style.display   = hasQiyam ? 'inline-block' : 'none';
   if (btnRp) btnRp.style.display = hasQiyam ? 'flex'  : 'none';
   _hafalanGuruQiyamList = qiyamHalaqah;
+}
+
+function _initNavMataElang() {
+  var daurahHalaqah = (halaqahList || []).filter(function(h) { return h.level === 'Tahsin Al-Fatihah'; });
+  var hasDaurah = daurahHalaqah.length > 0;
+  var btn = document.getElementById('navMataElangGuru');
+  if (btn) btn.style.display = hasDaurah ? 'flex' : 'none';
 }
 
 async function initHafalanGuruPage() {
