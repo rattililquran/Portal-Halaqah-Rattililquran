@@ -8314,13 +8314,14 @@ async function loadDashboard() {
                       : item.status === 'ragu' ? '#b45309' 
                       : item.status === 'belum' ? '#b91c1c' 
                       : 'var(--text-3)';
-            var short = _shortItemName(item.nama);
+            var itemNama = item && item.nama ? String(item.nama) : '';
+            var short = _shortItemName(itemNama);
             var statusIco = item.status === 'paham' ? '✓' 
                           : item.status === 'ragu' ? '?' 
                           : item.status === 'belum' ? '✗' 
                           : '·';
             
-            return '<div style="background:' + bg + '; border:1.5px solid ' + border + '; border-radius:8px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:50px; color:' + color + '" title="' + esc(item.nama) + '">'
+            return '<div style="background:' + bg + '; border:1.5px solid ' + border + '; border-radius:8px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:space-between; min-height:50px; color:' + color + '" title="' + esc(itemNama) + '">'
                  + '<span style="font-size:10px; font-weight:800; line-height:1.1; margin-bottom:2px; word-break:break-word">' + esc(short) + '</span>'
                  + '<span style="font-size:11px; font-weight:900">' + statusIco + '</span>'
                  + '</div>';
@@ -8332,6 +8333,8 @@ async function loadDashboard() {
     }
 
     function _shortItemName(nama) {
+      nama = nama ? String(nama) : '';
+      if (!nama) return '-';
       var map = { 'Hamzah':'Hamzah', "A'in":"A'in", 'Ha Tipis':'Ha\u2609', 'Ha Tebal':'Ha\u25CF',
         'Nabr':'Nabr', 'Tasydid':'Nabr', 'Shad':'Shad', 'Tha':'Tha\u02BE',
         'Idzhar':'Idzhar', 'Mim':'Mim\u25CF', 'Dhad':'Dhad', 'Mad':'Mad' };
