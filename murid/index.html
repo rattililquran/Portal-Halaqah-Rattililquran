@@ -11934,6 +11934,579 @@ function getContainerForTab(tab) {
 }
 
 
+
+// ═══════════════════════════════════════════════════════════
+// RESTORASI Juli 2026 — fungsi bertanda [MODULARIZED TO ...] yang
+// dikomentari saat modularisasi tapi TIDAK PERNAH dipindah ke modul,
+// lalu terhapus oleh purge 0503a78. Dipulihkan dari 0503a78^.
+// Fitur: pencarian At-Tibyan, setoran partner qiyam, log partner
+// belajar, kartu dashboard partner, observasi ketua kelas.
+// ═══════════════════════════════════════════════════════════
+
+var _obsSelected = {};
+
+var _pqEditId = null;
+
+function onAtSearch(val) {
+  _atSearchQuery = (val || '').trim().toLowerCase();
+  var clearBtn = document.getElementById('atSearchClear');
+  if (clearBtn) clearBtn.classList.toggle('visible', _atSearchQuery.length > 0);
+  renderAtTibyan();
+}
+
+function clearAtSearch() {
+  _atSearchQuery = '';
+  var si = document.getElementById('atSearchInput'); if(si) si.value='';
+  var sc = document.getElementById('atSearchClear'); if(sc) sc.classList.remove('visible');
+  renderAtTibyan();
+}
+
+function _haptic(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms||40); }catch(e){} }
+
+async function submitSetoranMandiri() {
+  var jenis      = document.getElementById('pqJenisSel').value;
+  var tanggal    = document.getElementById('pqTanggal').value;
+  var suratName  = document.getElementById('pqSuratInput').value.trim();
+  var juz        = document.getElementById('pqJuzInput').value;
+  var ayatDari   = parseInt(document.getElementById('pqAyatDari').value);
+  var ayatSampai = parseInt(document.getElementById('pqAyatSampai').value);
+  var catatan    = document.getElementById('pqCatatan').value.trim();
+
+  if (!_pqKelompok) { toast('Kamu belum tergabung di kelompok partner', 'err'); return; }
+  if (!suratName) { toast('Pilih surat terlebih dahulu', 'err'); return; }
+  var suratData = _pqFindSurat(suratName);
+  if (!suratData) { toast('Surat tidak dikenali, pilih dari daftar', 'err'); return; }
+  if (!ayatDari || !ayatSampai || ayatSampai < ayatDari) { toast('Rentang ayat tidak valid', 'err'); return; }
+  if (ayatSampai > suratData.ayat) { toast('Ayat sampai melebihi jumlah ayat surat ini (' + suratData.ayat + ')', 'err'); return; }
+
+  if (jenis === 'Murajaah') {
+    var ints = (_pqZiyadahMap && _pqZiyadahMap[suratName.toLowerCase()]) || [];
+    var covered = ints.some(function(i){ return ayatDari >= i.ayat_dari && ayatSampai <= i.ayat_sampai; });
+    if (!covered) {
+      toast('Rentang Murajaah harus berada dalam hafalan Ziyadah yang sudah disetor', 'err');
+      return;
+    }
+  }
+
+  // [ENHANCEMENT] Validasi Rekaman Singkat
+  if (_pqRekamanBlob && _pqDetikRekam < 5) {
+    if (!confirm("Rekaman setoran sangat singkat (" + _pqDetikRekam + " detik). Tetap kirim?")) {
+      return;
+    }
+  }
+
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+
+  try {
+    var lampiranUrl = "";
+    var audioDurasi = _pqRekamanBlob ? _pqDetikRekam : null;
+    
+    if (_pqRekamanBlob) {
+      showLoad("Bismillah, menyiapkan unggahan...");
+      
+      // 1. Dapatkan token unggah dari Supabase
+      var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+      var uploadToken = tokRes.token;
+      
+      // 2. Baca file suara sebagai Base64
+      var reader = new FileReader();
+      var base64Promise = new Promise(function(resolve, reject) {
+        reader.onloadend = function() {
+          var base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(_pqRekamanBlob);
+      var base64Data = await base64Promise;
+      
+      // 3. Kirim ke GAS Web App
+      showLoad("Bismillah, mengunggah rekaman setoran... Mohon jangan tutup aplikasi.");
+      var gasUrl = "https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec";
+      var uploadPayload = {
+        token: uploadToken,
+        base64Data: base64Data,
+        fileName: "Qiyam-" + _uid() + "-" + Date.now() + "." + (_pqRekamanBlob.type.split('/')[1] || "webm"),
+        mimeType: _pqRekamanBlob.type
+      };
+      
+      var gasRes = await fetch(gasUrl, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(uploadPayload)
+      });
+      if (!gasRes.ok) {
+        throw new Error("Koneksi ke server penyimpanan gagal.");
+      }
+      var uploadResult = await gasRes.json();
+      
+      if (uploadResult.status !== "success") {
+        throw new Error(uploadResult.message || "Gagal mengunggah berkas suara.");
+      }
+      lampiranUrl = uploadResult.url;
+    }
+
+    if (_pqEditId) {
+      await window.HQ.MuridAPI.updateSetoranMandiri(_pqEditId, {
+        jenis: jenis, surat: suratData.latin, juz: juz,
+        ayat_dari: ayatDari, ayat_sampai: ayatSampai, catatan: catatan,
+        lampiran_url: lampiranUrl || null,
+        audio_durasi_detik: audioDurasi
+      });
+      toast('Setoran diperbarui ✓', 'ok');
+      pqCancelEdit();
+    } else {
+      await window.HQ.MuridAPI.addSetoranMandiri({
+        id_halaqah  : dashData && dashData.halaqah && dashData.halaqah.id_halaqah,
+        jenis       : jenis,
+        surat       : suratData.latin,
+        juz         : juz,
+        ayat_dari   : ayatDari,
+        ayat_sampai : ayatSampai,
+        catatan     : catatan,
+        tanggal     : tanggal,
+        lampiran_url: lampiranUrl || null,
+        audio_durasi_detik: audioDurasi
+      });
+      toast('Setoran berhasil dikirim ke partner ✓', 'ok');
+    }
+    
+    // Reset form & file lokal
+    document.getElementById('pqSuratInput').value  = '';
+    document.getElementById('pqJuzInput').value    = '';
+    document.getElementById('pqAyatDari').value    = '';
+    document.getElementById('pqAyatSampai').value  = '';
+    document.getElementById('pqCatatan').value     = '';
+    document.getElementById('pqMurajaahHint').style.display = 'none';
+    
+    hapusRekamanQiyamLokal(); // [ENHANCEMENT] Reset rekaman lokal setelah sukses
+    await loadSetoranHafalan(true);
+    await _pqLoadZiyadahMap();
+    loadPartnerLiniMasa();
+    
+  } catch (e) {
+    toast(friendlyError(e), "err"); // [ENHANCEMENT] Bila gagal, rekaman tidak dihapus agar murid bisa re-submit
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🤝 Simpan & Kirim ke Partner'; }
+    hideLoad();
+  }
+}
+
+function pqCancelEdit() {
+  _pqEditId = null;
+  var btn = document.getElementById('pqSubmitBtn');
+  if (btn) btn.innerHTML = '🤝 Simpan &amp; Kirim ke Partner';
+  var cbtn = document.getElementById('pqCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'none';
+  ['pqSuratInput','pqJuzInput','pqAyatDari','pqAyatSampai','pqCatatan'].forEach(function(idf){
+    var el = document.getElementById(idf); if (el) el.value = '';
+  });
+}
+
+function _pqFindSurat(name) {
+  var n = String(name || '').trim().toLowerCase();
+  for (var i = 0; i < _pqSuratData.length; i++) {
+    if (_pqSuratData[i].latin.toLowerCase() === n) return _pqSuratData[i];
+  }
+  return null;
+}
+
+function _pqFillSuratDatalist() {
+  var dl = document.getElementById('pqSuratDatalist');
+  if (!dl) return;
+  dl.innerHTML = _pqSuratData.map(function(s){ return '<option value="' + _esc(s.latin) + '">'; }).join('');
+}
+
+async function _pqLoadZiyadahMap() {
+  try {
+    var res = await window.HQ.MuridAPI.getZiyadahSaya();
+    var map = {};
+    (res.data || []).forEach(function(r){
+      var key = String(r.surat || '').trim().toLowerCase();
+      if (!map[key]) map[key] = [];
+      map[key].push({ ayat_dari: parseInt(r.ayat_dari), ayat_sampai: parseInt(r.ayat_sampai) });
+    });
+    Object.keys(map).forEach(function(k){ map[k] = _pqMergeIntervals(map[k]); });
+    _pqZiyadahMap = map;
+  } catch(e) { _pqZiyadahMap = {}; }
+}
+
+function _pqMergeIntervals(intervals) {
+  if (!intervals.length) return [];
+  var sorted = intervals.slice().sort(function(a,b){ return a.ayat_dari - b.ayat_dari; });
+  var merged = [{ ayat_dari: sorted[0].ayat_dari, ayat_sampai: sorted[0].ayat_sampai }];
+  for (var i = 1; i < sorted.length; i++) {
+    var cur = merged[merged.length - 1], next = sorted[i];
+    if (next.ayat_dari <= cur.ayat_sampai + 1) cur.ayat_sampai = Math.max(cur.ayat_sampai, next.ayat_sampai);
+    else merged.push({ ayat_dari: next.ayat_dari, ayat_sampai: next.ayat_sampai });
+  }
+  return merged;
+}
+
+async function submitLogBelajar() {
+  var jenis    = document.getElementById('pbJenisSel').value;
+  var tanggal  = document.getElementById('pbTanggal').value;
+  var deskripsi= document.getElementById('pbDeskripsi').value.trim();
+  var durasi   = document.getElementById('pbDurasi').value;
+
+  if (!_pbKelompok) { toast('Kamu belum tergabung di kelompok belajar', 'err'); return; }
+  if (!jenis) { toast('Pilih jenis aktivitas', 'err'); return; }
+  if (durasi && parseInt(durasi) <= 0) { toast('Durasi tidak valid', 'err'); return; }
+
+  try {
+    if (_pbEditId) {
+      await window.HQ.MuridAPI.updateLogBelajar(_pbEditId, {
+        jenis_aktivitas: jenis, deskripsi: deskripsi, durasi_menit: durasi, tanggal: tanggal,
+      });
+      toast('Aktivitas diperbarui ✓', 'ok');
+      pbCancelEdit();
+    } else {
+      await window.HQ.MuridAPI.addLogBelajar({
+        id_kelompok : _pbKelompok.id_kelompok,
+        id_halaqah  : _pbKelompok.id_halaqah,
+        jenis_aktivitas: jenis,
+        deskripsi   : deskripsi,
+        durasi_menit: durasi,
+        tanggal     : tanggal,
+      });
+      toast('Aktivitas terkirim ke partner ✓', 'ok');
+    }
+    document.getElementById('pbDeskripsi').value = '';
+    document.getElementById('pbDurasi').value    = '';
+    loadPbRiwayat();
+    loadAktivitasTertunda();
+    loadPartnerBelajarLiniMasa();
+  } catch(e) {
+    toast('Gagal menyimpan: ' + e.message, 'err');
+  }
+}
+
+function pbCancelEdit() {
+  _pbEditId = null;
+  var btn = document.getElementById('pbSubmitBtn');
+  if (btn) btn.innerHTML = '📚 Simpan &amp; Kirim ke Partner';
+  var cbtn = document.getElementById('pbCancelEditBtn');
+  if (cbtn) cbtn.style.display = 'none';
+  document.getElementById('pbDeskripsi').value = '';
+  document.getElementById('pbDurasi').value    = '';
+}
+
+async function loadPartnerDashCard() {
+  var card  = document.getElementById('dashPartnerCard');
+  var body  = document.getElementById('dashPartnerBody');
+  var badge = document.getElementById('dashPartnerBadge');
+  if (!card || !body) return;
+  try {
+    var resKel = await window.HQ.MuridAPI.getMyKelompokPartner();
+    var kel = resKel.data;
+    if (!kel) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    var both = await Promise.all([
+      window.HQ.MuridAPI.getStatusKelompokPartner(),
+      window.HQ.MuridAPI.getSetoranMenungguKonfirmasi(),
+      window.HQ.MuridAPI.getSetoranHafalan(5, 0),
+    ]);
+    var statusList = both[0].data || [];
+    var jumlahMenunggu = (both[1].data || []).length;
+    var myId = (window.HQ.getCurrentUser() && window.HQ.getCurrentUser().id_user) || '';
+
+    // #5 Notifikasi: setoran sendiri yang baru saja dikonfirmasi partner + ada pesan (3 hari terakhir)
+    var notifHtml = '';
+    var recent = (both[2].data || []).filter(function(r){
+      return r.sumber === 'partner' && r.status_konfirmasi === 'dikonfirmasi' && (r.catatan_partner || r.reaksi_partner)
+        && r.updated_at && (Date.now() - new Date(r.updated_at).getTime()) < 3*86400000;
+    })[0];
+    if (recent) {
+      notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
+        + '<span style="font-weight:800">💚 Partnermu mengonfirmasi setoranmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+        + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
+      + '</div>';
+    }
+
+    var myRow = null;
+    for (var i = 0; i < statusList.length; i++) { if (statusList[i].id_murid === myId) { myRow = statusList[i]; break; } }
+    var myLast = myRow && myRow.tanggal_terakhir;
+    var hariSejak = myLast ? Math.floor((Date.now() - new Date(myLast).getTime()) / 86400000) : null;
+
+    // CTA prioritas: (1) ada ajakan partner menunggu disimak, (2) aku vakum
+    var ctaHtml = '';
+    if (jumlahMenunggu > 0) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🎧 Ada ' + jumlahMenunggu + ' teman ingin setor ke kamu — simak via WA lalu konfirmasi</div>';
+    } else if (myLast === null) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🌙 Belum ada setoran mandiri. Ajak partnermu menyimak hafalanmu</div>';
+    } else if (hariSejak >= 3) {
+      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        + '🌙 Sudah ' + hariSejak + ' hari belum setor. Partnermu menanti kabar hafalanmu</div>';
+    }
+
+    var rows = statusList.map(function(m){
+      var isMe = m.id_murid === myId;
+      var tgl = m.tanggal_terakhir ? _fmtDateHafalan(m.tanggal_terakhir) : 'Belum ada setoran mandiri';
+      var nameLabel = _esc(m.nama_murid) + (isMe ? ' (Kamu)' : '');
+      var waBtn = isMe ? '' : _pqMemberWaBtn(m.nama_murid, m.no_hp);
+      return '<div class="partner-dash-row">'
+        + '<span class="partner-dash-name">' + nameLabel + '</span>'
+        + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
+        + '</div>';
+    }).join('');
+    body.innerHTML = notifHtml + ctaHtml
+      + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>'
+      + rows;
+
+    if (badge) {
+      if (jumlahMenunggu > 0) {
+        badge.style.display = 'inline-flex';
+        badge.textContent = jumlahMenunggu + ' menunggu konfirmasi';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {
+    card.style.display = 'none';
+  }
+}
+
+function _pqMemberWaBtn(nama, no_hp) {
+  var msg = 'Assalamualaikum ' + (nama || '') + ', yuk kita saling simak hafalan qiyam ya 🌙\n\nBarakallahu fiikum.';
+  var url = _waLink(no_hp, msg);
+  if (!url) return '';
+  return '<a href="' + url + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" '
+    + 'style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#25d366;color:#fff;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
+}
+
+async function loadKetuaObservasi() {
+  var el = document.getElementById('ketuaObsList');
+  el.innerHTML = skelCards(3,2);
+  try {
+    var [rObs, rRekap] = await Promise.all([
+      window.HQ.KetuaAPI.getObservasiPending(),
+      window.HQ.KetuaAPI.getRekapStatus(),
+    ]);
+    _ketuaObsPending    = rObs.data || [];
+    _rekapSudahDikirim  = new Set(rRekap.data || []);
+    var pending = _ketuaObsPending.filter(function(s) { return s.window_status === 'terbuka'; });
+    _updateKetuaBadge(pending.length);
+    renderKetuaObsList();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(friendlyError(e))+'</div></div>';
+  }
+}
+
+function renderKetuaObsList() {
+  var el = document.getElementById('ketuaObsList');
+  if (!_ketuaObsPending || !_ketuaObsPending.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-ttl">Belum ada sesi KBM</div></div>';
+    return;
+  }
+
+  // Sort by pertemuan_ke descending (terbaru dulu)
+  var sorted = _ketuaObsPending.slice().sort(function(a, b) {
+    return (parseInt(b.pertemuan_ke, 10) || 0) - (parseInt(a.pertemuan_ke, 10) || 0);
+  });
+
+  // Klasifikasi: butuh tindakan vs selesai
+  function needsAction(s) {
+    var sudahRekap = _rekapSudahDikirim.has(String(s.id_kbm));
+    return s.window_status === 'terbuka' || (s.window_status === 'selesai' && !sudahRekap);
+  }
+  var actionItems = sorted.filter(needsAction);
+  var doneItems   = sorted.filter(function(s) { return !needsAction(s); });
+
+  var html = '';
+
+  // --- Seksi: Perlu Tindakan ---
+  if (actionItems.length) {
+    html += '<div class="card" style="margin-bottom:12px">'
+      + '<div style="padding:10px 16px 4px;font-size:11px;font-weight:800;color:var(--blue);letter-spacing:.5px;text-transform:uppercase">Perlu Tindakan ('+actionItems.length+')</div>'
+      + '<div style="padding:0 16px">'
+      + actionItems.map(_renderObsSesiItem).join('')
+      + '</div></div>';
+  } else {
+    html += '<div class="card" style="margin-bottom:12px;padding:14px 16px">'
+      + '<div style="font-size:13px;color:var(--text-3);text-align:center">Semua sesi sudah diobservasi dan direkap ✓</div>'
+      + '</div>';
+  }
+
+  // --- Seksi: Selesai (collapsible) ---
+  if (doneItems.length) {
+    html += '<div>';
+    html += '<button onclick="toggleKetuaObsDone()" style="width:100%;background:none;border:none;cursor:pointer;padding:8px 4px;display:flex;align-items:center;gap:6px;color:var(--text-3);font-size:12px;font-weight:700">'
+      + '<span id="ketuaObsDoneChevron">'+(  _ketuaObsShowDone ? '▾' : '▸')+'</span>'
+      + '<span>'+(_ketuaObsShowDone ? 'Sembunyikan' : 'Tampilkan')+' '+doneItems.length+' sesi selesai</span>'
+      + '</button>';
+    html += '<div id="ketuaObsDonePanel" style="display:'+(_ketuaObsShowDone ? '' : 'none')+'">'
+      + '<div class="card"><div style="padding:0 16px">'
+      + doneItems.map(_renderObsSesiItem).join('')
+      + '</div></div></div></div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function _renderObsSesiItem(s) {
+  var sudahRekap = _rekapSudahDikirim.has(String(s.id_kbm));
+  var numCls = s.window_status === 'selesai' ? 'selesai' : s.window_status === 'terkunci' ? 'terkunci' : '';
+  var obsChip = s.window_status === 'terbuka'
+    ? '<span class="obs-window-chip obs-window-terbuka">Terbuka</span>'
+    : s.window_status === 'terkunci'
+    ? '<span class="obs-window-chip obs-window-terkunci">Terkunci</span>'
+    : '<span class="obs-window-chip obs-window-selesai">Sudah diobservasi</span>';
+  var rekapChip = sudahRekap
+    ? '<span class="rekap-badge-done">Rekap terkirim</span>'
+    : s.window_status !== 'terkunci'
+    ? '<span class="rekap-badge-pending">Rekap belum dikirim</span>'
+    : '';
+  var btnObs = s.window_status === 'terbuka'
+    ? '<button class="btn btn-primary btn-sm" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="bukaFormObservasi(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Observasi</button>'
+    : '';
+  var btnRekap = !sudahRekap && s.window_status !== 'terkunci'
+    ? '<button class="btn btn-outline btn-sm" style="font-size:11px;padding:5px 10px;white-space:nowrap;color:var(--green);border-color:var(--green)" onclick="bukaModalRekap(\''+esc(s.id_kbm)+'\',\''+s.pertemuan_ke+'\',\''+esc(s.tanggal||'')+'\')">Rekap</button>'
+    : '';
+  return '<div class="obs-sesi-item">'
+    + '<div class="obs-sesi-num '+numCls+'">'+s.pertemuan_ke+'</div>'
+    + '<div style="flex:1">'
+    + '<div style="font-size:13px;font-weight:800;color:var(--text)">Sesi ke-'+s.pertemuan_ke+'</div>'
+    + '<div style="font-size:11.5px;color:var(--text-3);font-weight:600">'+fmtDate(s.tanggal)+'</div>'
+    + '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+obsChip+rekapChip+'</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">'+btnObs+btnRekap+'</div>'
+    + '</div>';
+}
+
+  function needsAction(s) {
+    var sudahRekap = _rekapSudahDikirim.has(String(s.id_kbm));
+    return s.window_status === 'terbuka' || (s.window_status === 'selesai' && !sudahRekap);
+  }
+
+function toggleKetuaObsDone() {
+  _ketuaObsShowDone = !_ketuaObsShowDone;
+  var panel   = document.getElementById('ketuaObsDonePanel');
+  var chevron = document.getElementById('ketuaObsDoneChevron');
+  var btn     = chevron && chevron.parentElement;
+  if (panel)   panel.style.display = _ketuaObsShowDone ? '' : 'none';
+  if (chevron) chevron.textContent = _ketuaObsShowDone ? '▾' : '▸';
+  if (btn) {
+    var spans = btn.querySelectorAll('span');
+    if (spans[1]) {
+      var n = panel ? panel.querySelectorAll('.obs-sesi-item').length : 0;
+      spans[1].textContent = (_ketuaObsShowDone ? 'Sembunyikan' : 'Tampilkan') + ' ' + n + ' sesi selesai';
+    }
+  }
+}
+
+function bukaFormObservasi(idKBM, pertemuanKe, tanggal) {
+  _ketuaObsIdKBM = idKBM;
+  document.getElementById('obsFormTitle').textContent = 'Observasi Sesi ke-' + pertemuanKe;
+  document.getElementById('obsFormSubtitle').textContent = fmtDate(tanggal);
+
+  // Reset semua pilihan
+  _obsSelected = {};
+  document.getElementById('obsSubmitBtn').disabled = false;
+
+  document.getElementById('obsFormBody').innerHTML =
+    _obsSection('kondisi_kelas', 'Kondisi Kelas saat KBM', [
+      { val:'Kondusif',          label:'Kondusif', desc:'Kelas aktif, murid fokus dan responsif' },
+      { val:'Kurang Kondusif',   label:'Kurang Kondusif', desc:'Ada beberapa gangguan, tapi masih berjalan' },
+      { val:'Tidak Kondusif',    label:'Tidak Kondusif', desc:'Kelas tidak berjalan dengan baik' },
+    ]) +
+    _obsSection('ada_latihan', 'Guru Memberikan Latihan Mandiri (PR)?', [
+      { val:'Ya',    label:'Ya — Ada latihan/PR diberikan' },
+      { val:'Tidak', label:'Tidak — Tidak ada latihan/PR' },
+    ]) +
+    _obsSection('ketepatan_waktu', 'Ketepatan Waktu Guru', [
+      { val:'Tepat Waktu',           label:'Tepat Waktu', desc:'Guru hadir dan mengakhiri sesuai jadwal' },
+      { val:'Guru Terlambat',        label:'Guru Terlambat Hadir' },
+      { val:'Diakhiri Lebih Awal',   label:'KBM Diakhiri Lebih Awal dari Jadwal' },
+      { val:'Keduanya',              label:'Keduanya (Terlambat + Lebih Awal)' },
+    ]) +
+    '<div class="obs-form-section" id="obsMenitWrap" style="display:none">'
+    + '<div class="obs-form-label">Perkiraan Berapa Menit?</div>'
+    + '<input type="number" class="fc" id="obsMenit" min="1" max="60" placeholder="Contoh: 10" style="max-width:140px">'
+    + '</div>'
+    + _obsSection('kamera_peserta', 'Keadaan Kamera Sebagian Besar Peserta', [
+      { val:'Sebagian Besar Terbuka',   label:'Sebagian Besar Terbuka', desc:'Lebih dari 50% peserta kamera terbuka' },
+      { val:'Campuran',                 label:'Campuran', desc:'Sekitar sama banyak yang terbuka dan tertutup' },
+      { val:'Sebagian Besar Tertutup',  label:'Sebagian Besar Tertutup', desc:'Lebih dari 50% peserta kamera tertutup' },
+    ]) +
+    '<div class="obs-form-section">'
+    + '<div class="obs-form-label">Catatan Lain (Opsional)</div>'
+    + '<textarea class="fc" id="obsCatatanLain" rows="3" placeholder="Hal lain yang perlu dilaporkan..." style="resize:vertical"></textarea>'
+    + '</div>';
+
+  openModal('obsFormModal');
+}
+
+function _obsSection(key, label, options) {
+  return '<div class="obs-form-section">'
+    + '<div class="obs-form-label">'+esc(label)+'</div>'
+    + '<div class="obs-options">'
+    + options.map(function(o) {
+      return '<div class="obs-radio" id="obs-'+key+'-'+esc(o.val)+'" onclick="selectObs(\''+key+'\',\''+esc(o.val)+'\')">'
+        + '<div class="obs-radio-dot"></div>'
+        + '<div><div class="obs-radio-label">'+esc(o.label)+'</div>'
+        + (o.desc ? '<div style="font-size:11px;color:var(--text-3);margin-top:2px">'+esc(o.desc)+'</div>' : '')
+        + '</div></div>';
+    }).join('')
+    + '</div></div>';
+}
+
+function selectObs(key, val) {
+  _obsSelected[key] = val;
+  // Clear semua pilihan di section ini lalu tandai yang dipilih
+  document.querySelectorAll('[id^="obs-'+key+'-"]').forEach(function(el) {
+    el.classList.remove('selected');
+  });
+  var sel = document.getElementById('obs-'+key+'-'+val);
+  if (sel) sel.classList.add('selected');
+  // Tampilkan input menit jika terlambat/keduanya
+  if (key === 'ketepatan_waktu') {
+    var wrap = document.getElementById('obsMenitWrap');
+    if (wrap) wrap.style.display = (val === 'Guru Terlambat' || val === 'Keduanya') ? '' : 'none';
+  }
+}
+
+async function doSubmitObservasi() {
+  var wajib = ['kondisi_kelas','ada_latihan','ketepatan_waktu','kamera_peserta'];
+  for (var i = 0; i < wajib.length; i++) {
+    if (!_obsSelected[wajib[i]]) {
+      toast('Lengkapi semua pilihan terlebih dahulu', 'warn');
+      return;
+    }
+  }
+  var btn = document.getElementById('obsSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mengirim...'; }
+  try {
+    var menit = 0;
+    var menitEl = document.getElementById('obsMenit');
+    if (menitEl && menitEl.value) menit = Number(menitEl.value);
+    var catatan = document.getElementById('obsCatatanLain');
+
+    await window.HQ.KetuaAPI.submitObservasi({
+      id_kbm          : _ketuaObsIdKBM,
+      kondisi_kelas   : _obsSelected['kondisi_kelas'],
+      ada_latihan     : _obsSelected['ada_latihan'],
+      ketepatan_waktu : _obsSelected['ketepatan_waktu'],
+      estimasi_menit  : menit,
+      kamera_peserta  : _obsSelected['kamera_peserta'],
+      catatan_lain    : catatan ? catatan.value.trim() : '',
+    });
+    closeModal('obsFormModal');
+    toast('Observasi berhasil dikirim. Jazakallahu khairan!', 'ok');
+    // Reload list
+    delete _ketuaTabLoaded['observasi'];
+    _ketuaObsPending = null;
+    _ketuaTabLoaded['observasi'] = true;
+    loadKetuaObservasi();
+  } catch(e) {
+    toast('Gagal: ' + e.message, 'err');
+    if (btn) { btn.disabled = false; btn.textContent = 'Kirim Observasi'; }
+  }
+}
+
 </script>
 
 <!-- ════ MODAL KONFIRMASI SPP — di level body agar fixed mencakup full viewport ════ -->

@@ -121,9 +121,24 @@
       return String(row['pertemuan_ke'] || '').trim() === _attibyanFilter;
     });
 
+    // Search filter — query global di-set onAtSearch()/clearAtSearch() (index.html).
+    // _attibyanColumns bisa berupa string key atau objek {key,label}.
+    var q = (typeof _atSearchQuery !== 'undefined' && _atSearchQuery) ? _atSearchQuery : '';
+    if (q) {
+      rows = rows.filter(function(r) {
+        return _attibyanColumns.some(function(c) {
+          var key = (c && typeof c === 'object') ? c.key : c;
+          return String(r[key] || '').toLowerCase().indexOf(q) !== -1;
+        });
+      });
+    }
+
     if (!rows.length) {
-      listEl.innerHTML = '<div class="empty"><div class="empty-ico">📖</div>'
-        + '<div class="empty-ttl">Tidak ada catatan untuk pertemuan ini</div></div>';
+      listEl.innerHTML = q
+        ? '<div class="empty"><div class="empty-ico">🔍</div><div class="empty-ttl">Tidak ditemukan</div>'
+          + '<div class="empty-sub">Coba kata kunci lain atau hapus pencarian</div></div>'
+        : '<div class="empty"><div class="empty-ico">📖</div>'
+          + '<div class="empty-ttl">Tidak ada catatan untuk pertemuan ini</div></div>';
       return;
     }
 

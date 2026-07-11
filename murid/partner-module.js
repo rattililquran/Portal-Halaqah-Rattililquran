@@ -867,7 +867,7 @@
     card.style.display = 'block';
 
     try {
-      var res = await window.HQ.MuridAPI.getTargetKelompokPartner();
+      var res = await window.HQ.MuridAPI.getTargetKelompok();
       var list = res.data || [];
       if (list.length === 0) {
         body.innerHTML = '<div style="color:var(--text-3); text-align:center; padding:10px 0;">Belum ada target bersama kelompok.</div>';
@@ -942,8 +942,9 @@
 
     showLoad();
     try {
-      var r = await window.HQ.MuridAPI.addTargetKelompokPartner({
+      var r = await window.HQ.MuridAPI.addTargetKelompok({
         id_kelompok: _pqKelompok.id_kelompok,
+        id_halaqah: _pqKelompok.id_halaqah,
         judul: judul.trim(),
         tanggal_target: tgl || null
       });
@@ -966,7 +967,7 @@
     if (!confirm('Apakah Anda yakin ingin menghapus target ini?')) return;
     showLoad();
     try {
-      var r = await window.HQ.MuridAPI.deleteTargetKelompokPartner(id_target);
+      var r = await window.HQ.MuridAPI.deleteTargetKelompok(id_target);
       if (r.status === 'ok') {
         toast('Target bersama berhasil dihapus! ✓', 'ok');
         await loadTargetKelompok();
