@@ -6280,8 +6280,12 @@ var _sppIhsanDataFiltered = [];
 (function() {
   function updateTableNumbers(table) {
     // Check if table already has a "No" or "#" header in the original HTML
+    // (di-scope ke table.tHead — properti native, hanya thead LANGSUNG milik
+    // tabel ini — bukan querySelectorAll('thead th') yang rekursif dan bisa
+    // salah menangkap header tabel bersarang di dalam baris expand/detail)
     var hasOriginalNo = false;
-    var ths = table.querySelectorAll('thead th');
+    var thead0 = table.tHead;
+    var ths = thead0 ? thead0.querySelectorAll('th') : [];
     for (var i = 0; i < ths.length; i++) {
       var text = ths[i].innerText.trim().toLowerCase();
       // Ignore our own added header
@@ -6293,11 +6297,11 @@ var _sppIhsanDataFiltered = [];
     }
     if (hasOriginalNo) return;
 
-    // 1. Handle headers (thead)
-    var thead = table.querySelector('thead');
+    // 1. Handle headers (thead) — table.tHead & .rows: properti native,
+    // hanya elemen anak LANGSUNG, tidak pernah menembus ke tabel bersarang
+    var thead = table.tHead;
     if (thead) {
-      var headerRows = thead.querySelectorAll('tr');
-      headerRows.forEach(function(row) {
+      Array.prototype.forEach.call(thead.rows, function(row) {
         if (!row.querySelector('.row-no-header')) {
           var th = document.createElement('th');
           th.className = 'row-no-header';
@@ -6312,12 +6316,19 @@ var _sppIhsanDataFiltered = [];
       });
     }
 
-    // 2. Handle body rows (tbody)
-    var tbodies = table.querySelectorAll('tbody');
-    tbodies.forEach(function(tbody) {
-      var rows = tbody.querySelectorAll('tr');
+    // 2. Handle body rows (tbody) — table.tBodies & tbody.rows: properti
+    // native yang HANYA mengembalikan <tbody>/<tr> anak langsung tabel ini.
+    // PENTING: sebelumnya pakai querySelectorAll('tbody')/('tr') yang
+    // rekursif — pada tabel dengan sub-tabel bersarang di baris expand
+    // (mis. detail murid per halaqah), itu ikut menghitung & menomori
+    // ulang baris-baris tabel bersarang tsb ke dalam urutan tabel luar,
+    // termasuk yang berada di baris leluhur ber-display:none (karena
+    // pengecekan display:none hanya melihat gaya baris itu sendiri, bukan
+    // leluhurnya) — menyebabkan nomor melompat jauh (1, 12, 23, ...).
+    Array.prototype.forEach.call(table.tBodies, function(tbody) {
+      var rows = tbody.rows;
       var validRowIndex = 1;
-      rows.forEach(function(row) {
+      Array.prototype.forEach.call(rows, function(row) {
         // Skip rows that are empty states, loaders, or have colspan
         var firstCell = row.firstElementChild;
         if (firstCell && firstCell.getAttribute('colspan')) {
