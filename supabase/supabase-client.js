@@ -4847,7 +4847,7 @@ var MuridAPI = {
     var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
       _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('id_guru', id_guru).eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
-      _sb.from('assessment_items').select('id_item, nama_item, urutan, kategori').eq('level','Tahsin Al-Fatihah').order('urutan'),
+      _sb.from('assessment_items').select('id_item, nama_item:teks_latin, urutan, kategori').eq('level','Tahsin Al-Fatihah').eq('status','aktif').order('urutan'),
     ]);
     _check(periodeRes.error, 'getMataElangDaurahGuru.periode');
     _check(halaqahRes.error, 'getMataElangDaurahGuru.halaqah');
@@ -5534,7 +5534,7 @@ var AdminAPI = {
     var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
       _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
-      _sb.from('assessment_items').select('id_item, nama_item, urutan, kategori').eq('level','Tahsin Al-Fatihah').order('urutan'),
+      _sb.from('assessment_items').select('id_item, nama_item:teks_latin, urutan, kategori').eq('level','Tahsin Al-Fatihah').eq('status','aktif').order('urutan'),
     ]);
     _check(periodeRes.error, 'getMataElangDaurah.periode');
     _check(halaqahRes.error, 'getMataElangDaurah.halaqah');
