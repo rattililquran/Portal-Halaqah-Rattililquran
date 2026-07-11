@@ -1247,7 +1247,13 @@ function resetAdminSession() {
       try {
         var r = await window.HQ.AdminAPI.getAssessmentItemsAdmin();
         _indikatorDaurahData = (r.data || []).filter(function(x) { return x.level === 'Tahsin Al-Fatihah'; });
-        
+        _indikatorDaurahData.sort(function(a, b) {
+          var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+          var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+          if (hariA !== hariB) return hariA - hariB;
+          return (a.urutan || 0) - (b.urutan || 0);
+        });
+
         if (!_indikatorDaurahData.length) {
           tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada indikator daurah. Klik "+ Tambah Indikator" untuk menambahkan.</td></tr>';
           return;
