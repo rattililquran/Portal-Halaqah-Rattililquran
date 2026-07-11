@@ -78,8 +78,8 @@
       
       // Tampilkan nav Tahfidz jika guru punya halaqah Level Qiyam
       if (typeof window._initNavHafalan === 'function') window._initNavHafalan();
-      // Tampilkan nav Mata Elang jika guru punya halaqah Tahsin Al-Fatihah
-      if (typeof window._initNavMataElang === 'function') window._initNavMataElang();
+      // Tampilkan nav Mutaba'ah jika guru punya halaqah Tahsin Al-Fatihah
+      if (typeof window._initNavMutabaah === 'function') window._initNavMutabaah();
       
       // Isi semua dropdown setelah data loaded
       if (typeof window.fillLevelDropdowns === 'function') window.fillLevelDropdowns();

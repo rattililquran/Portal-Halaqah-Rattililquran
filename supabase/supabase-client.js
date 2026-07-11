@@ -3015,7 +3015,7 @@ var GuruAPI = {
     _check(error, 'startSesiLive');
     return { status: 'ok', data: data };
   },
-  getMataElangDaurahGuru: async function(id_periode) {
+  getMutabaahDaurahGuru: async function(id_periode) {
     id_periode = id_periode || 'P-DAURAH-JULI-2026';
     var id_guru = _uid();
     var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
@@ -3023,9 +3023,9 @@ var GuruAPI = {
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('id_guru', id_guru).eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
       _sb.from('assessment_items').select('id_item, nama_item:teks_latin, urutan, kategori').eq('level','Tahsin Al-Fatihah').eq('status','aktif').order('urutan'),
     ]);
-    _check(periodeRes.error, 'getMataElangDaurahGuru.periode');
-    _check(halaqahRes.error, 'getMataElangDaurahGuru.halaqah');
-    _check(asmtItemRes.error, 'getMataElangDaurahGuru.items');
+    _check(periodeRes.error, 'getMutabaahDaurahGuru.periode');
+    _check(halaqahRes.error, 'getMutabaahDaurahGuru.halaqah');
+    _check(asmtItemRes.error, 'getMutabaahDaurahGuru.items');
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
@@ -3045,19 +3045,19 @@ var GuruAPI = {
       var big = await Promise.all([
         _selectAllPaged('anggota', 'id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)',
           function(q){ return q.in('id_halaqah', hqIds).eq('status','aktif').order('id_murid').order('id_halaqah'); },
-          'getMataElangDaurahGuru.anggota'),
+          'getMutabaahDaurahGuru.anggota'),
         _selectAllPaged('kbm_log', 'id_kbm, id_halaqah, tanggal_pertemuan, pertemuan_ke, status',
           function(q){ return q.in('id_halaqah', hqIds).eq('status','selesai')
             .gte('tanggal_pertemuan', periode.tanggal_mulai).lte('tanggal_pertemuan', periode.tanggal_selesai)
             .order('id_kbm'); },
-          'getMataElangDaurahGuru.kbm'),
+          'getMutabaahDaurahGuru.kbm'),
         _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, id_halaqah, id_kbm, status_hadir',
           function(q){ return q.in('id_halaqah', hqIds).order('id_nilai'); },
-          'getMataElangDaurahGuru.nilai'),
+          'getMutabaahDaurahGuru.nilai'),
         itemIds.length
           ? _selectAllPaged('assessment_murid', 'id_murid, id_item, status_guru',
               function(q){ return q.in('id_item', itemIds).order('id_murid').order('id_item'); },
-              'getMataElangDaurahGuru.asmt')
+              'getMutabaahDaurahGuru.asmt')
           : Promise.resolve([]),
       ]);
       anggotaRows = big[0]; kbmRows = big[1]; nilaiRows = big[2]; asmtRows = big[3];
@@ -5473,7 +5473,7 @@ var AdminAPI = {
     _check(error,'saveKomponenRaport'); return {status:'ok',data};
   },
   getNilaiManual: async function(id) { return GuruAPI.getNilaiManual(id); },
-  getMataElangDaurahGuru: async function(id_periode) { return GuruAPI.getMataElangDaurahGuru(id_periode); },
+  getMutabaahDaurahGuru: async function(id_periode) { return GuruAPI.getMutabaahDaurahGuru(id_periode); },
   saveNilaiManual: async function(d) { return GuruAPI.saveNilaiManual(d); },
   saveNilaiManualBatch: async function(d) { return GuruAPI.saveNilaiManualBatch(d); },
   getRaportList: async function(p) {
@@ -5529,16 +5529,16 @@ var AdminAPI = {
     });
     return {status:'ok',data};
   },
-  getMataElangDaurah: async function(id_periode) {
+  getMutabaahDaurah: async function(id_periode) {
     id_periode = id_periode || 'P-DAURAH-JULI-2026';
     var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
       _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
       _sb.from('assessment_items').select('id_item, nama_item:teks_latin, urutan, kategori').eq('level','Tahsin Al-Fatihah').eq('status','aktif').order('urutan'),
     ]);
-    _check(periodeRes.error, 'getMataElangDaurah.periode');
-    _check(halaqahRes.error, 'getMataElangDaurah.halaqah');
-    _check(asmtItemRes.error, 'getMataElangDaurah.items');
+    _check(periodeRes.error, 'getMutabaahDaurah.periode');
+    _check(halaqahRes.error, 'getMutabaahDaurah.halaqah');
+    _check(asmtItemRes.error, 'getMutabaahDaurah.items');
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
@@ -5558,19 +5558,19 @@ var AdminAPI = {
       var big = await Promise.all([
         _selectAllPaged('anggota', 'id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)',
           function(q){ return q.in('id_halaqah', hqIds).eq('status','aktif').order('id_murid').order('id_halaqah'); },
-          'getMataElangDaurah.anggota'),
+          'getMutabaahDaurah.anggota'),
         _selectAllPaged('kbm_log', 'id_kbm, id_halaqah, tanggal_pertemuan, pertemuan_ke, status',
           function(q){ return q.in('id_halaqah', hqIds).eq('status','selesai')
             .gte('tanggal_pertemuan', periode.tanggal_mulai).lte('tanggal_pertemuan', periode.tanggal_selesai)
             .order('id_kbm'); },
-          'getMataElangDaurah.kbm'),
+          'getMutabaahDaurah.kbm'),
         _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, id_halaqah, id_kbm, status_hadir',
           function(q){ return q.in('id_halaqah', hqIds).order('id_nilai'); },
-          'getMataElangDaurah.nilai'),
+          'getMutabaahDaurah.nilai'),
         itemIds.length
           ? _selectAllPaged('assessment_murid', 'id_murid, id_item, status_guru',
               function(q){ return q.in('id_item', itemIds).order('id_murid').order('id_item'); },
-              'getMataElangDaurah.asmt')
+              'getMutabaahDaurah.asmt')
           : Promise.resolve([]),
       ]);
       anggotaRows = big[0]; kbmRows = big[1]; nilaiRows = big[2]; asmtRows = big[3];
