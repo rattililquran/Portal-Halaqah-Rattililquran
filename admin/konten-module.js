@@ -1265,7 +1265,7 @@ function resetAdminSession() {
             + '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>'
             + '<td><div style="display:flex;gap:6px">'
             + '<button class="btn btn-outline btn-sm" onclick="editIndikator(\'' + m.id_item + '\')">✏️</button>'
-            + '<button class="btn btn-red btn-sm" onclick="hapusIndikator(\'' + m.id_item + '\',\'' + esc(m.teks_latin) + '\')">🗑️</button>'
+            + '<button class="btn btn-red btn-sm" onclick="hapusIndikator(\'' + m.id_item + '\',\'' + escJs(m.teks_latin) + '\')">🗑️</button>'
             + '</div></td></tr>';
         }).join('');
       } catch(e) {

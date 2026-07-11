@@ -493,6 +493,29 @@ navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', f
   }
 });
 
+// ── Sync-on-load: pastikan subscription aktif browser tersimpan di DB ──
+// Menangani endpoint yang dirotasi browser saat TIDAK ada tab terbuka:
+// pushsubscriptionchange di SW tidak bisa menulis DB (RLS butuh sesi login),
+// jadi sinkronkan ulang setiap kali portal dibuka. Best-effort & idempotent
+// (upsert onConflict endpoint + dedup endpoint lama di _saveSubscription).
+(function() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  var attempts = 0;
+  var trySync = function() {
+    if (getPushState() !== 'granted') return;
+    if (window.HQ && window.HQ.PushAPI && window.HQ.getCurrentUser && window.HQ.getCurrentUser()) {
+      window.HQ.PushAPI.getActiveSubscription().then(function(sub) {
+        if (sub) return window.HQ.PushAPI._saveSubscription(sub);
+      }).catch(function(err) { console.warn('Push sync-on-load gagal:', err); });
+    } else if (attempts < 10) {
+      attempts++;
+      setTimeout(trySync, 1000);
+    }
+  };
+  // Tunda agar tidak bersaing dengan proses load awal portal
+  setTimeout(trySync, 4000);
+})();
+
 // ============================================================
 //  Pengumuman Onboarding — popup admin-editable saat login
 // ============================================================

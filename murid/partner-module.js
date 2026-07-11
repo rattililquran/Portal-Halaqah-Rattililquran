@@ -15,7 +15,7 @@
       _pqInitialized = true;
       _pqFillSuratDatalist();
       var tgl = document.getElementById('pqTanggal');
-      if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0,10);
+      if (tgl && !tgl.value) tgl.value = localDateStr();
       await _pqLoadZiyadahMap();
     }
     await Promise.all([loadPartnerKelompok(), loadPartnerMenunggu()]);
@@ -52,7 +52,7 @@
         var hari = Math.floor((now - m.last)/86400000);
         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
           + '<div><span style="font-weight:700;color:var(--text)">QS. ' + _esc(m.surat) + '</span> <span style="color:var(--text-3);font-size:11px">· terakhir ' + hari + ' hari lalu</span></div>'
-          + '<button onclick="pqMurajaahNow(\'' + _esc(m.surat) + '\',\'' + (m.juz||'') + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Muraja\'ah</button>'
+          + '<button onclick="pqMurajaahNow(\'' + escJs(m.surat) + '\',\'' + (m.juz||'') + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Muraja\'ah</button>'
         + '</div>';
       }).join('');
     } catch(e) { card.style.display = 'none'; }
@@ -69,7 +69,7 @@
     if (!_pbInitialized) {
       _pbInitialized = true;
       var tgl = document.getElementById('pbTanggal');
-      if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0,10);
+      if (tgl && !tgl.value) tgl.value = localDateStr();
     }
     await Promise.all([loadPartnerBelajarKelompok(), loadPartnerBelajarMenunggu()]);
     loadPartnerBelajarLiniMasa();
@@ -147,7 +147,7 @@
         var ket = m.last === 0 ? 'belum pernah' : Math.floor((now - m.last)/86400000) + ' hari lalu';
         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
           + '<div><span style="font-weight:700;color:var(--text)">' + _esc(m.jenis) + '</span> <span style="color:var(--text-3);font-size:11px">· ' + ket + '</span></div>'
-          + '<button onclick="pbTertundaNow(\'' + _esc(m.jenis) + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Isi Log</button>'
+          + '<button onclick="pbTertundaNow(\'' + escJs(m.jenis) + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Isi Log</button>'
         + '</div>';
       }).join('');
     } catch(e) { card.style.display = 'none'; }
@@ -380,7 +380,7 @@
           + '      <div style="font-size:12px; color:var(--text-2); margin-top:4px;">' + subtitle + '</div>'
           + '      <div style="font-size:11px; color:var(--text-3); margin-top:4px;">📅 ' + tgl + '</div>'
           + '    </div>'
-          + '    <button class="at-btn" onclick="pbKonfirmasiLog(\'' + r.id_log + '\', \'' + _esc(r.nama_murid) + '\', \'' + _esc(r.jenis_aktivitas) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
+          + '    <button class="at-btn" onclick="pbKonfirmasiLog(\'' + r.id_log + '\', \'' + escJs(r.nama_murid) + '\', \'' + escJs(r.jenis_aktivitas) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
           + '  </div>'
           + '</div>';
       }).join('');
@@ -466,7 +466,7 @@
       form.style.display = isNone ? 'block' : 'none';
       if (isNone) {
         var tgl = document.getElementById('pbMilestoneTgl');
-        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        if (tgl && !tgl.value) tgl.value = localDateStr();
         document.getElementById('pbMilestoneJudul').focus();
       }
     }
@@ -589,7 +589,7 @@
       form.style.display = isNone ? 'block' : 'none';
       if (isNone) {
         var tgl = document.getElementById('pbTargetTgl');
-        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        if (tgl && !tgl.value) tgl.value = localDateStr();
         document.getElementById('pbTargetJudul').focus();
       }
     }
@@ -719,7 +719,7 @@
           + '      <div style="font-size:12px; color:var(--text-2); margin-top:4px;">' + subtitle + '</div>'
           + '      <div style="font-size:11px; color:var(--text-3); margin-top:4px;">📅 ' + tgl + '</div>'
           + '    </div>'
-          + '    <button class="at-btn" onclick="pqKonfirmasiSetoran(\'' + r.id_setoran + '\', \'' + _esc(r.nama_murid) + '\', \'' + _esc(r.jenis) + ' ' + _esc(r.surat) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
+          + '    <button class="at-btn" onclick="pqKonfirmasiSetoran(\'' + r.id_setoran + '\', \'' + escJs(r.nama_murid) + '\', \'' + escJs(r.jenis) + ' ' + escJs(r.surat) + '\')" style="background:var(--green); color:#fff; border:none; border-radius:9px; padding:6px 12px; font-size:11.5px; font-weight:800; cursor:pointer;">Konfirmasi</button>'
           + '  </div>'
           + '</div>';
       }).join('');
@@ -805,7 +805,7 @@
       form.style.display = isNone ? 'block' : 'none';
       if (isNone) {
         var tgl = document.getElementById('pqMilestoneTgl');
-        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        if (tgl && !tgl.value) tgl.value = localDateStr();
         document.getElementById('pqMilestoneJudul').focus();
       }
     }
@@ -927,7 +927,7 @@
       form.style.display = isNone ? 'block' : 'none';
       if (isNone) {
         var tgl = document.getElementById('pqTargetTgl');
-        if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+        if (tgl && !tgl.value) tgl.value = localDateStr();
         document.getElementById('pqTargetJudul').focus();
       }
     }

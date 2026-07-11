@@ -839,7 +839,7 @@ async function bukaFormAtTibyan() {
     ? Math.max.apply(null, _atSesiData.map(function(s){ return s.pertemuan_ke || 0; })) + 1
     : 1;
   document.getElementById('atFormTitle').textContent = 'Presensi At-Tibyan Baru (Sesi ' + _atNextPertemuan + ')';
-  document.getElementById('atFormTanggal').value = new Date().toISOString().substring(0,10);
+  document.getElementById('atFormTanggal').value = localDateStr();
   document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + _atNextPertemuan;
   _showAtMateriInfo(_atNextPertemuan);
   await _loadAtFormMurid();

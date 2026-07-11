@@ -31,7 +31,7 @@
 //  unregister SW ini dan kembali ke versi pass-through (v7.0).
 // ============================================================
 
-const CACHE_NAME = 'halaqah-v8.80';
+const CACHE_NAME = 'halaqah-v8.81';
 const BASE       = '/Portal-Halaqah-Rattililquran';
 
 self.addEventListener('install', function(e) {
@@ -196,37 +196,16 @@ self.addEventListener('pushsubscriptionchange', function(e) {
   e.waitUntil(
     self.registration.pushManager.subscribe(e.oldSubscription.options)
       .then(function(newSub) {
-        // 1. Coba kirim ke tab portal yang terbuka
+        // Kirim ke tab portal yang terbuka agar disimpan lewat sesi login user.
+        // Jika tidak ada tab terbuka, subscription baru akan tersinkron otomatis
+        // saat portal dibuka berikutnya (lihat sync-on-load di push-permission.js) —
+        // SW tidak bisa menulis langsung ke DB karena RLS push_subscriptions
+        // mensyaratkan JWT user, dan endpoint update-subscription tidak ada.
         return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
           .then(function(windowClients) {
-            if (windowClients.length > 0) {
-              windowClients.forEach(function(c) {
-                c.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: newSub });
-              });
-            } else {
-              // 2. Tidak ada tab terbuka → simpan langsung ke Supabase via fetch
-              // SUPABASE_URL dan SUPABASE_ANON di-cache dari saat SW aktif
-              var key = newSub.getKey && newSub.getKey('p256dh');
-              var auth = newSub.getKey && newSub.getKey('auth');
-              if (!key || !auth) return;
-              var toB64url = function(buf) {
-                return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
-                  .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-              };
-              // Gunakan URL dan key yang disimpan di SW cache saat install
-              var swUrl = self.registration.active && self.registration.active.scriptURL || '';
-              var baseUrl = swUrl.replace('/Portal-Halaqah-Rattililquran/sw.js','');
-              // Kirim ke send-push dengan flag re-subscribe (best effort)
-              fetch(baseUrl + '/functions/v1/update-subscription', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  endpoint : newSub.endpoint,
-                  p256dh   : toB64url(key),
-                  auth_key : toB64url(auth),
-                }),
-              }).catch(function() {});
-            }
+            windowClients.forEach(function(c) {
+              c.postMessage({ type: 'PUSH_SUBSCRIPTION_CHANGED', subscription: newSub });
+            });
           });
       })
       .catch(function() { /* Re-subscribe gagal — diabaikan, user perlu subscribe ulang manual */ })

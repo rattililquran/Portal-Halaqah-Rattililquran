@@ -6806,11 +6806,11 @@ html.theme-dark .materi-daurah-banner-title {
      (logika yang memanggil window.HQ/_sb baru jalan saat DOMContentLoaded,
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
-<script src="../supabase/supabase-client.js?v=2.1.2" defer></script>
+<script src="../supabase/supabase-client.js?v=2.1.3" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="quiz-module.js?v=1.0.8" defer></script>
-<script src="spp-module.js?v=1.0.0" defer></script>
-<script src="partner-module.js?v=1.0.0" defer></script>
+<script src="spp-module.js?v=1.0.1" defer></script>
+<script src="partner-module.js?v=1.0.1" defer></script>
 <script src="charging-module.js?v=1.0.0" defer></script>
 <script src="hafalan-module.js?v=1.0.0" defer></script>
 <script src="attibyan-module.js?v=1.0.0" defer></script>
@@ -9546,7 +9546,7 @@ async function loadDashPbCard() {
 
   // Set today's date jika belum diisi
   var tgl = document.getElementById('dashPbTanggal');
-  if (tgl && !tgl.value) tgl.value = new Date().toISOString().slice(0, 10);
+  if (tgl && !tgl.value) tgl.value = localDateStr();
 
   function showState(state) {
     if (loading) loading.style.display = state === 'loading' ? '' : 'none';
@@ -9590,7 +9590,7 @@ async function submitDashLogBelajar() {
     var desc = document.getElementById('dashPbDeskripsi');
     if (desc) desc.value = '';
     var tglEl = document.getElementById('dashPbTanggal');
-    if (tglEl) tglEl.value = new Date().toISOString().slice(0, 10);
+    if (tglEl) tglEl.value = localDateStr();
   } catch(e) {
     toast('Gagal: ' + e.message, 'err');
   } finally {
@@ -11513,6 +11513,11 @@ function promiseWithTimeout(promise, ms, errorMsg) {
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Escape untuk argumen string JS di atribut inline (onclick="fn('...')") —
+// esc() saja tidak meng-escape apostrof sehingga nama seperti Sa'ad mematahkan string JS.
+function escJs(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 }
 // Ubah error teknis mentah menjadi pesan yang ramah & bisa dimengerti pengguna.
 // Detail teknis tetap tampil di konsol (lihat console.warn di catch masing-masing).

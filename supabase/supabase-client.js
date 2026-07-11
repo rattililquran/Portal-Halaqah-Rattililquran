@@ -69,6 +69,15 @@ async function _selectAllPaged(table, columns, applyFn, ctx) {
   return all;
 }
 
+// Tanggal lokal (YYYY-MM-DD) — JANGAN pakai toISOString() yang berbasis UTC:
+// di WIB sebelum jam 07:00 hasilnya mundur 1 hari (bug sesi Subuh/Qiyam pagi).
+function _localDate(d) {
+  d = d || new Date();
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+window.localDateStr = _localDate;
+
 // Normalisasi jam dari CSV: "15.00" / "15.30" (pakai titik) -> "15:00" / "15:30"
 // agar valid untuk kolom time di Postgres. Mengembalikan null jika kosong.
 function _normJam(v) {
@@ -1211,7 +1220,7 @@ var GuruAPI = {
       judul: d.judul, isi: d.isi,
       target: d.target || 'semua', id_halaqah: d.id_halaqah || null,
       dibuat_oleh: _uid(), nama_pembuat: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || 'Guru',
-      tanggal: new Date().toISOString().slice(0, 10), status: 'aktif',
+      tanggal: _localDate(), status: 'aktif',
     }).select().single();
     _check(error, 'kirimPengumuman');
     // Push: jika target = 'semua' → role_filter null (semua role)
@@ -1811,7 +1820,7 @@ var GuruAPI = {
           .upsert({
             id_murid: m.id_murid, id_periode: d.id_periode, id_halaqah: d.id_halaqah,
             nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat,
-            detail_json: detailJson, tanggal_cetak: new Date().toISOString().slice(0,10),
+            detail_json: detailJson, tanggal_cetak: _localDate(),
             status: 'draft',
           }, { onConflict: 'id_murid,id_periode' });
         if (upErr) throw new Error(upErr.message);
@@ -1833,7 +1842,7 @@ var GuruAPI = {
       isi: 'Assalamualaikum, raport halaqah Anda sudah dipublikasikan. Silakan cek di menu Raport.',
       target: d.id_halaqah, id_halaqah: d.id_halaqah,
       dibuat_oleh: _uid(), nama_pembuat: (_currentUser && (_currentUser.nama || _currentUser.nama_lengkap)) || 'Admin',
-      tanggal: new Date().toISOString().slice(0,10), status: 'aktif',
+      tanggal: _localDate(), status: 'aktif',
     });
     // Push ke murid halaqah ini
     if (ids.length) {
@@ -2155,7 +2164,7 @@ var GuruAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      tanggal      : d.tanggal || _localDate(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
     };
@@ -2367,7 +2376,7 @@ var GuruAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      tanggal      : d.tanggal || _localDate(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
     };
@@ -3387,7 +3396,7 @@ var MuridAPI = {
     });
     var mtLatest = sortedMt.length > 0 ? sortedMt[0] : null;
 
-    var today = new Date().toISOString().slice(0,10);
+    var today = _localDate();
     var prAktif = (prRaw||[])
       .filter(function(n){
         var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
@@ -3586,7 +3595,7 @@ var MuridAPI = {
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
     _check(error, 'getLatihanMandiri');
-    var today = new Date().toISOString().slice(0,10);
+    var today = _localDate();
     var rows = (data||[])
       .filter(function(n){
         return n.kbm_log && n.kbm_log.latihan_mandiri;
@@ -3638,7 +3647,7 @@ var MuridAPI = {
     var id_murid = _uid();
     var { data, error } = await _sb.from('log_latihan_harian').upsert({
       id_murid: id_murid,
-      tanggal: new Date().toISOString().slice(0, 10),
+      tanggal: _localDate(),
       durasi_menit: parseInt(durasi),
       kategori: kategori,
       catatan: catatan
@@ -3817,7 +3826,7 @@ var MuridAPI = {
     if (!id_murid) return { status: 'ok', data: [] };
     var since = new Date();
     since.setMonth(since.getMonth() - 6);
-    var sinceStr = since.toISOString().slice(0, 10);
+    var sinceStr = _localDate(since);
     var { data: rows, error } = await _sb.from('nilai_kbm')
       .select('tanggal, status_hadir')
       .eq('id_murid', id_murid)
@@ -4234,7 +4243,7 @@ var MuridAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      tanggal      : d.tanggal || _localDate(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
     };
@@ -4456,7 +4465,7 @@ var MuridAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || new Date().toISOString().slice(0,10),
+      tanggal      : d.tanggal || _localDate(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
     };
@@ -4835,20 +4844,19 @@ var MuridAPI = {
   getMataElangDaurahGuru: async function(id_periode) {
     id_periode = id_periode || 'P-DAURAH-JULI-2026';
     var id_guru = _uid();
-    var [periodeRes, halaqahRes, anggotaRes, kbmLogRes, nilaiRes, asmtItemRes, asmtMuridRes] = await Promise.all([
+    var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
       _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('id_guru', id_guru).eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
-      _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)').eq('status','aktif'),
-      _sb.from('kbm_log').select('id_kbm, id_halaqah, tanggal, pertemuan_ke, status').eq('status','selesai'),
-      _sb.from('nilai_kbm').select('id_murid, id_halaqah, id_kbm, status_hadir'),
       _sb.from('assessment_items').select('id_item, nama_item, urutan, kategori').eq('level','Tahsin Al-Fatihah').order('urutan'),
-      _sb.from('assessment_murid').select('id_murid, id_item, id_halaqah, status_guru'),
     ]);
+    _check(periodeRes.error, 'getMataElangDaurahGuru.periode');
     _check(halaqahRes.error, 'getMataElangDaurahGuru.halaqah');
-    _check(anggotaRes.error, 'getMataElangDaurahGuru.anggota');
+    _check(asmtItemRes.error, 'getMataElangDaurahGuru.items');
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
+    var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
+    var itemIds = indikator.map(function(i){ return i.id_item; });
 
     var today = new Date(); today.setHours(0,0,0,0);
     var tglMulai = new Date(periode.tanggal_mulai); tglMulai.setHours(0,0,0,0);
@@ -4856,32 +4864,48 @@ var MuridAPI = {
     var hariKe = today < tglMulai ? 0 : today > tglSelesai ? 8 : Math.floor((today - tglMulai) / 86400000) + 1;
     var statusDaurah = today < tglMulai ? 'belum' : today > tglSelesai ? 'selesai' : 'berlangsung';
 
-    var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
+    // Data besar diambil TERFILTER (halaqah milik guru + rentang tanggal periode)
+    // dan berpaginasi via _selectAllPaged agar tidak terpotong batas 1000 baris PostgREST.
+    var anggotaRows=[], kbmRows=[], nilaiRows=[], asmtRows=[];
+    if (hqIds.length) {
+      var big = await Promise.all([
+        _selectAllPaged('anggota', 'id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)',
+          function(q){ return q.in('id_halaqah', hqIds).eq('status','aktif').order('id_murid').order('id_halaqah'); },
+          'getMataElangDaurahGuru.anggota'),
+        _selectAllPaged('kbm_log', 'id_kbm, id_halaqah, tanggal_pertemuan, pertemuan_ke, status',
+          function(q){ return q.in('id_halaqah', hqIds).eq('status','selesai')
+            .gte('tanggal_pertemuan', periode.tanggal_mulai).lte('tanggal_pertemuan', periode.tanggal_selesai)
+            .order('id_kbm'); },
+          'getMataElangDaurahGuru.kbm'),
+        _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, id_halaqah, id_kbm, status_hadir',
+          function(q){ return q.in('id_halaqah', hqIds).order('id_nilai'); },
+          'getMataElangDaurahGuru.nilai'),
+        itemIds.length
+          ? _selectAllPaged('assessment_murid', 'id_murid, id_item, status_guru',
+              function(q){ return q.in('id_item', itemIds).order('id_murid').order('id_item'); },
+              'getMataElangDaurahGuru.asmt')
+          : Promise.resolve([]),
+      ]);
+      anggotaRows = big[0]; kbmRows = big[1]; nilaiRows = big[2]; asmtRows = big[3];
+    }
+
+    // Hanya nilai dari sesi KBM daurah (status selesai & dalam rentang periode)
+    var kbmKeById = {};
+    kbmRows.forEach(function(k){ kbmKeById[k.id_kbm] = k.pertemuan_ke || 0; });
+    nilaiRows = nilaiRows.filter(function(n){ return Object.prototype.hasOwnProperty.call(kbmKeById, n.id_kbm); });
 
     var anggotaByHq={}, kbmByHq={}, nilaiByHqMurid={}, asmtByMuridItem={};
-    (anggotaRes.data||[]).forEach(function(a){
-      if (hqIds.includes(a.id_halaqah)) {
-        var aCopy = Object.assign({}, a, { no_hp: a.users && a.users.no_hp });
-        delete aCopy.users;
-        (anggotaByHq[a.id_halaqah]=anggotaByHq[a.id_halaqah]||[]).push(aCopy);
-      }
+    anggotaRows.forEach(function(a){
+      var aCopy = Object.assign({}, a, { no_hp: a.users && a.users.no_hp });
+      delete aCopy.users;
+      (anggotaByHq[a.id_halaqah]=anggotaByHq[a.id_halaqah]||[]).push(aCopy);
     });
-    (kbmLogRes.data||[]).forEach(function(k){
-      if (hqIds.includes(k.id_halaqah)) {
-        (kbmByHq[k.id_halaqah]=kbmByHq[k.id_halaqah]||[]).push(k);
-      }
+    kbmRows.forEach(function(k){ (kbmByHq[k.id_halaqah]=kbmByHq[k.id_halaqah]||[]).push(k); });
+    nilaiRows.forEach(function(n){
+      var key=n.id_halaqah+'|'+n.id_murid;
+      (nilaiByHqMurid[key]=nilaiByHqMurid[key]||[]).push(n);
     });
-    (nilaiRes.data||[]).forEach(function(n){
-      if (hqIds.includes(n.id_halaqah)) {
-        var key=n.id_halaqah+'|'+n.id_murid;
-        (nilaiByHqMurid[key]=nilaiByHqMurid[key]||[]).push(n);
-      }
-    });
-    (asmtMuridRes.data||[]).forEach(function(s){
-      if (hqIds.includes(s.id_halaqah)) {
-        asmtByMuridItem[s.id_murid+'|'+s.id_item]=s.status_guru;
-      }
-    });
+    asmtRows.forEach(function(s){ asmtByMuridItem[s.id_murid+'|'+s.id_item]=s.status_guru; });
 
     var halaqahList = (halaqahRes.data||[]).map(function(hq) {
       var muridList = (anggotaByHq[hq.id_halaqah]||[]);
@@ -4891,11 +4915,13 @@ var MuridAPI = {
         var nm = (nilaiByHqMurid[hq.id_halaqah+'|'+m.id_murid]||[]);
         var hadir = nm.filter(function(n){ return ['H','T'].includes(n.status_hadir); }).length;
         sumHadir+=hadir; sumTotal+=nm.length;
+        var sesiStatus = {};
+        nm.forEach(function(n){ var ke = kbmKeById[n.id_kbm]; if (ke) sesiStatus[ke] = n.status_hadir; });
         var tajwid = indikator.map(function(item){
           return { id_item:item.id_item, nama:item.nama_item, status:asmtByMuridItem[m.id_murid+'|'+item.id_item]||null };
         });
         var pahamCount=tajwid.filter(function(t){ return t.status==='paham'; }).length;
-        return Object.assign({},m,{ hadir, sesiTotal:nm.length, pctHadir:nm.length>0?Math.round(hadir/nm.length*100):0, tajwid, pahamCount });
+        return Object.assign({},m,{ hadir, sesiTotal:nm.length, pctHadir:nm.length>0?Math.round(hadir/nm.length*100):0, tajwid, pahamCount, sesiStatus });
       });
       var pctTajwidSum=0, pctTajwidCount=0;
       murid.forEach(function(m){ if(indikator.length>0){ pctTajwidSum+=m.pahamCount; pctTajwidCount+=indikator.length; } });
@@ -4928,9 +4954,9 @@ var MuridAPI = {
     halaqahList.forEach(function(h){ h.murid.forEach(function(m){
       var tajwidBelum=m.tajwid.filter(function(t){ return t.status==='belum'; }).length;
       var tajwidRagu =m.tajwid.filter(function(t){ return t.status==='ragu';  }).length;
-      var lvl=(m.sesiTotal>0&&m.pctHadir<75)||tajwidBelum>=3?'kritis':(m.pctHadir<85||tajwidRagu>=3)?'perhatian':null;
+      var lvl=(m.sesiTotal>0&&m.pctHadir<75)||tajwidBelum>=3?'kritis':((m.sesiTotal>0&&m.pctHadir<85)||tajwidRagu>=3)?'perhatian':null;
       if(lvl) muridAlert.push(Object.assign({},m,{
-        nama_halaqah:h.nama_halaqah, nama_guru:hq.nama_guru,
+        nama_halaqah:h.nama_halaqah, nama_guru:h.nama_guru,
         tajwidBelum, tajwidRagu,
         indikatorLemah:m.tajwid.filter(function(t){ return t.status==='belum'||t.status==='ragu'; }).map(function(t){ return t.nama; }),
         level:lvl
@@ -4951,11 +4977,11 @@ var MuridAPI = {
 // ─────────────────────────────────────────────
 var AdminAPI = {
   getDashboard: async function() {
-    var bulanIni = new Date().toISOString().slice(0,7)+'-01';
+    var bulanIni = _localDate().slice(0,7)+'-01';
     var bulanIndo = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var namaBulanIni = bulanIndo[new Date().getMonth()];
     var tahunIni = new Date().getFullYear();
-    var tujuhHariLalu = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
+    var tujuhHariLalu = _localDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 
     var [
       usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes,
@@ -5505,20 +5531,19 @@ var AdminAPI = {
   },
   getMataElangDaurah: async function(id_periode) {
     id_periode = id_periode || 'P-DAURAH-JULI-2026';
-    var [periodeRes, halaqahRes, anggotaRes, kbmLogRes, nilaiRes, asmtItemRes, asmtMuridRes] = await Promise.all([
+    var [periodeRes, halaqahRes, asmtItemRes] = await Promise.all([
       _sb.from('periode').select('id_periode, nama_periode, tanggal_mulai, tanggal_selesai').eq('id_periode', id_periode).maybeSingle(),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, id_guru, level, status').eq('level','Tahsin Al-Fatihah').eq('status','aktif'),
-      _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)').eq('status','aktif'),
-      _sb.from('kbm_log').select('id_kbm, id_halaqah, tanggal, pertemuan_ke, status').eq('status','selesai'),
-      _sb.from('nilai_kbm').select('id_murid, id_halaqah, id_kbm, status_hadir'),
       _sb.from('assessment_items').select('id_item, nama_item, urutan, kategori').eq('level','Tahsin Al-Fatihah').order('urutan'),
-      _sb.from('assessment_murid').select('id_murid, id_item, id_halaqah, status_guru'),
     ]);
+    _check(periodeRes.error, 'getMataElangDaurah.periode');
     _check(halaqahRes.error, 'getMataElangDaurah.halaqah');
-    _check(anggotaRes.error, 'getMataElangDaurah.anggota');
+    _check(asmtItemRes.error, 'getMataElangDaurah.items');
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
+    var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
+    var itemIds = indikator.map(function(i){ return i.id_item; });
 
     var today = new Date(); today.setHours(0,0,0,0);
     var tglMulai = new Date(periode.tanggal_mulai); tglMulai.setHours(0,0,0,0);
@@ -5526,21 +5551,48 @@ var AdminAPI = {
     var hariKe = today < tglMulai ? 0 : today > tglSelesai ? 8 : Math.floor((today - tglMulai) / 86400000) + 1;
     var statusDaurah = today < tglMulai ? 'belum' : today > tglSelesai ? 'selesai' : 'berlangsung';
 
+    // Data besar diambil TERFILTER (halaqah daurah + rentang tanggal periode)
+    // dan berpaginasi via _selectAllPaged agar tidak terpotong batas 1000 baris PostgREST.
+    var anggotaRows=[], kbmRows=[], nilaiRows=[], asmtRows=[];
+    if (hqIds.length) {
+      var big = await Promise.all([
+        _selectAllPaged('anggota', 'id_murid, nama_murid, id_halaqah, users!anggota_id_murid_fkey(no_hp)',
+          function(q){ return q.in('id_halaqah', hqIds).eq('status','aktif').order('id_murid').order('id_halaqah'); },
+          'getMataElangDaurah.anggota'),
+        _selectAllPaged('kbm_log', 'id_kbm, id_halaqah, tanggal_pertemuan, pertemuan_ke, status',
+          function(q){ return q.in('id_halaqah', hqIds).eq('status','selesai')
+            .gte('tanggal_pertemuan', periode.tanggal_mulai).lte('tanggal_pertemuan', periode.tanggal_selesai)
+            .order('id_kbm'); },
+          'getMataElangDaurah.kbm'),
+        _selectAllPaged('nilai_kbm', 'id_nilai, id_murid, id_halaqah, id_kbm, status_hadir',
+          function(q){ return q.in('id_halaqah', hqIds).order('id_nilai'); },
+          'getMataElangDaurah.nilai'),
+        itemIds.length
+          ? _selectAllPaged('assessment_murid', 'id_murid, id_item, status_guru',
+              function(q){ return q.in('id_item', itemIds).order('id_murid').order('id_item'); },
+              'getMataElangDaurah.asmt')
+          : Promise.resolve([]),
+      ]);
+      anggotaRows = big[0]; kbmRows = big[1]; nilaiRows = big[2]; asmtRows = big[3];
+    }
+
+    // Hanya nilai dari sesi KBM daurah (status selesai & dalam rentang periode)
+    var kbmKeById = {};
+    kbmRows.forEach(function(k){ kbmKeById[k.id_kbm] = k.pertemuan_ke || 0; });
+    nilaiRows = nilaiRows.filter(function(n){ return Object.prototype.hasOwnProperty.call(kbmKeById, n.id_kbm); });
+
     var anggotaByHq={}, kbmByHq={}, nilaiByHqMurid={}, asmtByMuridItem={};
-    (anggotaRes.data||[]).forEach(function(a){
+    anggotaRows.forEach(function(a){
       var aCopy = Object.assign({}, a, { no_hp: a.users && a.users.no_hp });
       delete aCopy.users;
       (anggotaByHq[a.id_halaqah]=anggotaByHq[a.id_halaqah]||[]).push(aCopy);
     });
-    (kbmLogRes.data||[]).forEach(function(k){ (kbmByHq[k.id_halaqah]=kbmByHq[k.id_halaqah]||[]).push(k); });
-    (nilaiRes.data||[]).forEach(function(n){
+    kbmRows.forEach(function(k){ (kbmByHq[k.id_halaqah]=kbmByHq[k.id_halaqah]||[]).push(k); });
+    nilaiRows.forEach(function(n){
       var key=n.id_halaqah+'|'+n.id_murid;
       (nilaiByHqMurid[key]=nilaiByHqMurid[key]||[]).push(n);
     });
-    (asmtMuridRes.data||[]).forEach(function(s){ asmtByMuridItem[s.id_murid+'|'+s.id_item]=s.status_guru; });
-
-    // Filter anggota hanya dari halaqah daurah
-    var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
+    asmtRows.forEach(function(s){ asmtByMuridItem[s.id_murid+'|'+s.id_item]=s.status_guru; });
 
     var halaqahList = (halaqahRes.data||[]).map(function(hq) {
       var muridList = (anggotaByHq[hq.id_halaqah]||[]);
@@ -5550,11 +5602,13 @@ var AdminAPI = {
         var nm = (nilaiByHqMurid[hq.id_halaqah+'|'+m.id_murid]||[]);
         var hadir = nm.filter(function(n){ return ['H','T'].includes(n.status_hadir); }).length;
         sumHadir+=hadir; sumTotal+=nm.length;
+        var sesiStatus = {};
+        nm.forEach(function(n){ var ke = kbmKeById[n.id_kbm]; if (ke) sesiStatus[ke] = n.status_hadir; });
         var tajwid = indikator.map(function(item){
           return { id_item:item.id_item, nama:item.nama_item, status:asmtByMuridItem[m.id_murid+'|'+item.id_item]||null };
         });
         var pahamCount=tajwid.filter(function(t){ return t.status==='paham'; }).length;
-        return Object.assign({},m,{ hadir, sesiTotal:nm.length, pctHadir:nm.length>0?Math.round(hadir/nm.length*100):0, tajwid, pahamCount });
+        return Object.assign({},m,{ hadir, sesiTotal:nm.length, pctHadir:nm.length>0?Math.round(hadir/nm.length*100):0, tajwid, pahamCount, sesiStatus });
       });
       var pctTajwidSum=0, pctTajwidCount=0;
       murid.forEach(function(m){ if(indikator.length>0){ pctTajwidSum+=m.pahamCount; pctTajwidCount+=indikator.length; } });
@@ -5587,7 +5641,7 @@ var AdminAPI = {
     halaqahList.forEach(function(h){ h.murid.forEach(function(m){
       var tajwidBelum=m.tajwid.filter(function(t){ return t.status==='belum'; }).length;
       var tajwidRagu =m.tajwid.filter(function(t){ return t.status==='ragu';  }).length;
-      var lvl=(m.sesiTotal>0&&m.pctHadir<75)||tajwidBelum>=3?'kritis':(m.pctHadir<85||tajwidRagu>=3)?'perhatian':null;
+      var lvl=(m.sesiTotal>0&&m.pctHadir<75)||tajwidBelum>=3?'kritis':((m.sesiTotal>0&&m.pctHadir<85)||tajwidRagu>=3)?'perhatian':null;
       if(lvl) muridAlert.push(Object.assign({},m,{
         nama_halaqah:h.nama_halaqah, nama_guru:h.nama_guru,
         tajwidBelum, tajwidRagu,
@@ -6514,7 +6568,7 @@ var AdminAPI = {
           id_murid: m.id_murid, id_periode: p.id_periode, id_halaqah: m.id_halaqah,
           nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat,
           detail_json: raportData.komponen,
-          tanggal_cetak: new Date().toISOString().slice(0, 10),
+          tanggal_cetak: _localDate(),
           status: 'draft',
         }, { onConflict: 'id_murid,id_periode' });
         if (upErr) throw new Error(upErr.message);
@@ -6926,7 +6980,7 @@ var AdminAPI = {
 
       for (var si = 0; si < sesiCount; si++) {
         var daysAgo = (sesiCount - si) * 7;
-        var tgl     = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var tgl     = _localDate(new Date(Date.now() - daysAgo * 86400000));
         var id_kbm  = stId('KBM');
         var materi  = pick(MATERI);
 
@@ -7065,7 +7119,7 @@ var AdminAPI = {
     for (var si = 0; si < sesiCount; si++) {
       var pertemuanKe = 9000 + Math.floor(Math.random() * 9000);
       var daysAgo = (sesiCount - si) * 7;
-      var tgl     = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+      var tgl     = _localDate(new Date(Date.now() - daysAgo * 86400000));
       var id_sesi = stId('ATS');
 
       if (onProgress) onProgress(
@@ -7179,7 +7233,7 @@ var AdminAPI = {
 
       for (var si = 0; si < sesiCount; si++) {
         var daysAgo     = (sesiCount - si) * 7;
-        var tgl         = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var tgl         = _localDate(new Date(Date.now() - daysAgo * 86400000));
         var id_kbm      = stId('KBM');
         var pertemuanKe = 9000 + Math.floor(Math.random() * 9000);
 
@@ -7375,7 +7429,7 @@ var AdminAPI = {
 
       for (var si = 0; si < sesiCount; si++) {
         var daysAgo      = (sesiCount - si) * 7;
-        var tgl          = new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10);
+        var tgl          = _localDate(new Date(Date.now() - daysAgo * 86400000));
         var id_kbm       = stId('KBM');
         var pertemuanKe  = 9000 + Math.floor(Math.random() * 9000);
 

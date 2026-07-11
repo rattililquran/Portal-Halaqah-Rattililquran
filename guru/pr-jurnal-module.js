@@ -907,7 +907,7 @@
     if (deadlineInput) {
       const today = new Date();
       const targetDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
-      deadlineInput.value = targetDate.toISOString().slice(0, 10);
+      deadlineInput.value = localDateStr(targetDate);
     }
   }
 

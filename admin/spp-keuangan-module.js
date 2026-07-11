@@ -149,7 +149,7 @@ async function loadSPPAdmin() {
           var buktiLink = isGateway
             ? ''
             : (p.bukti_url
-                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+esc(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
                 : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
           var actionBtns = '<div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;flex-shrink:0">'
             + (isGateway ? '<span style="display:block;text-align:center;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>' : '')

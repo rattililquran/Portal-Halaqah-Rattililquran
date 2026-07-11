@@ -117,8 +117,12 @@
     var body = hq.murid.map(function(m) {
       var pctC = m.pctHadir >= 85 ? '#10b981' : m.pctHadir >= 70 ? '#f59e0b' : '#ef4444';
       var sesiCells = sesiNums.map(function(ke){
+        var st = m.sesiStatus && m.sesiStatus[ke];
+        if (st === 'H' || st === 'T') return '<td style="text-align:center" title="H' + ke + ': ' + (st === 'T' ? 'Terlambat' : 'Hadir') + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (st === 'T' ? '#f59e0b' : '#10b981') + '"></span></td>';
+        if (st === 'A') return '<td style="text-align:center;color:#ef4444;font-size:11px;font-weight:800" title="H' + ke + ': Alpa">\u2717</td>';
+        if (st) return '<td style="text-align:center" title="H' + ke + ': ' + esc(st) + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8"></span></td>';
         return sesiDone[ke]
-          ? '<td style="text-align:center"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0ea5e9"></span></td>'
+          ? '<td style="text-align:center;color:var(--text-3);font-size:10px" title="H' + ke + ': sesi terlaksana, tanpa catatan presensi">\u00b7</td>'
           : '<td style="text-align:center;color:var(--border);font-size:10px">\u2014</td>';
       }).join('');
       var tajwidCells = m.tajwid.map(function(t){
@@ -127,7 +131,7 @@
       }).join('');
       
       var waBtn = m.no_hp
-        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAGuruAlert(\'' + esc(m.nama_murid) + '\', \'' + esc(m.no_hp) + '\', \'' + esc(hq.nama_halaqah) + '\', \'' + esc(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">💬 WA</button>'
+        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAGuruAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(hq.nama_halaqah) + '\', \'' + escJs(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">💬 WA</button>'
         : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;padding:2px 8px;font-size:11px" title="No HP belum diisi">💬 WA</button>';
 
       return '<tr>'
@@ -188,7 +192,7 @@
     if (!sel) return;
     var prev = sel.value;
     sel.innerHTML = '<option value="">— Semua Halaqah —</option>'
-      + halaquahList.map(function(hq){ return '<option value="' + esc(hq.id_halaqah) + '">' + esc(hq.nama_halaqah) + '</option>'; }).join('');
+      + halaqahList.map(function(hq){ return '<option value="' + esc(hq.id_halaqah) + '">' + esc(hq.nama_halaqah) + '</option>'; }).join('');
     sel.value = prev;
   }
 
@@ -223,7 +227,7 @@
         var lemah = m.indikatorLemah.slice(0,3).join(', ') + (m.indikatorLemah.length>3?' +'+(m.indikatorLemah.length-3)+' lainnya':'');
         
         var waBtn = m.no_hp
-          ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;margin-top:6px;font-size:11px;padding:2px 8px" onclick="openWAGuruAlert(\'' + esc(m.nama_murid) + '\', \'' + esc(m.no_hp) + '\', \'' + esc(m.nama_halaqah) + '\', \'' + esc(m.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwidBelum + ')" title="Hubungi via WhatsApp">💬 WA Guru</button>'
+          ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;margin-top:6px;font-size:11px;padding:2px 8px" onclick="openWAGuruAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(m.nama_halaqah) + '\', \'' + escJs(m.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwidBelum + ')" title="Hubungi via WhatsApp">💬 WA Guru</button>'
           : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;margin-top:6px;font-size:11px;padding:2px 8px" title="No HP belum diisi">💬 WA Guru</button>';
 
         return '<div style="border-left:3px solid '+border+';background:'+bg+';border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px">'
@@ -271,7 +275,7 @@
     });
     var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'mata-elang-guru-daurah-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'mata-elang-guru-daurah-' + localDateStr() + '.csv';
     a.click(); URL.revokeObjectURL(a.href);
     toast('Export CSV berhasil', 'ok');
   }

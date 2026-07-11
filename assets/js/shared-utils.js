@@ -107,6 +107,13 @@
       return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     },
 
+    // Escape untuk argumen string JS di dalam atribut inline (onclick="fn('...')").
+    // esc() saja TIDAK cukup: apostrof lolos dan mematahkan string JS
+    // (nama seperti Sa'ad / A'isyah) — sekaligus celah injeksi kode.
+    escJs: function(s) {
+      return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    },
+
     friendlyError: function(e) {
       var m = (e && e.message) ? String(e.message) : (typeof e === 'string' ? e : '');
       if (!m) return 'Terjadi kesalahan. Silakan coba lagi.';
@@ -156,6 +163,7 @@
   window.fmtDate = Utils.fmtDate;
   window.fmtDateTime = Utils.fmtDateTime;
   window.esc = Utils.esc;
+  window.escJs = Utils.escJs;
   window.friendlyError = Utils.friendlyError;
   window.validateFields = Utils.validateFields;
 })();

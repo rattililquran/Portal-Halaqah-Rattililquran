@@ -319,7 +319,7 @@
 
     var tglInput = document.getElementById('hafalanTanggal');
     if (tglInput && !tglInput.value) {
-      tglInput.value = new Date().toISOString().slice(0, 10);
+      tglInput.value = localDateStr();
     }
 
     _hfConfigCache = null;

@@ -335,7 +335,7 @@ function _kpDenyutRow(a) {
 
   var nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = '<button onclick="kpNudgeAnggota(\'' + esc(a.nama_murid || '') + '\',\'' + esc(p.no_hp) + '\')" '
+    nudgeBtn = '<button onclick="kpNudgeAnggota(\'' + escJs(a.nama_murid || '') + '\',\'' + escJs(p.no_hp) + '\')" '
       + 'style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>';
   }
 
@@ -805,7 +805,7 @@ function _kbDenyutRow(a) {
 
   var nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = '<button onclick="kbNudgeAnggota(\'' + esc(a.nama_murid || '') + '\',\'' + esc(p.no_hp) + '\')" '
+    nudgeBtn = '<button onclick="kbNudgeAnggota(\'' + escJs(a.nama_murid || '') + '\',\'' + escJs(p.no_hp) + '\')" '
       + 'style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>';
   }
 
