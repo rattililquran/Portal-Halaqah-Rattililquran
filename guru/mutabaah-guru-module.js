@@ -104,17 +104,21 @@
     }).join('');
   }
 
+  // Kehadiran (H1-H8 + %Hadir) dan Indikator Tajwid dipisah jadi DUA tabel
+  // bertumpuk (bukan satu tabel lebar) — tiap tabel jadi ringkas & tak perlu
+  // saling geser horizontal untuk membaca salah satunya. Kolom Nama Murid
+  // sengaja diulang di kedua tabel supaya masing-masing berdiri sendiri.
   function _renderMuridDetail(hq, indikator) {
     if (!hq.murid.length) return '<div style="padding:12px;color:var(--text-3);font-size:12px">Belum ada murid</div>';
     var sesiNums = [1,2,3,4,5,6,7,8];
     var sesiDone = {};
     hq.sesiList.forEach(function(s){ sesiDone[s.pertemuan_ke || 0] = true; });
-    var hdrCols = '<th style="font-size:10px;min-width:120px">Nama Murid</th>'
+
+    // ── Tabel 1: Kehadiran ──
+    var hadirHdr = '<th style="font-size:10px;min-width:120px;text-align:left">Nama Murid</th>'
       + sesiNums.map(function(i){ return '<th style="font-size:10px;text-align:center;min-width:28px">H' + i + '</th>'; }).join('')
-      + '<th style="font-size:10px;text-align:center">%Hadir</th>'
-      + indikator.map(function(item){ return '<th style="font-size:9px;text-align:center;min-width:44px;max-width:56px;white-space:normal;line-height:1.2;padding:6px 2px" title="' + esc(item.nama_item) + '">' + _shortItem(item.nama_item) + '</th>'; }).join('')
-      + '<th style="font-size:10px;text-align:center">Aksi</th>';
-    var body = hq.murid.map(function(m) {
+      + '<th style="font-size:10px;text-align:center">%Hadir</th>';
+    var hadirBody = hq.murid.map(function(m) {
       var pctC = m.pctHadir >= 85 ? '#10b981' : m.pctHadir >= 70 ? '#f59e0b' : '#ef4444';
       var sesiCells = sesiNums.map(function(ke){
         var st = m.sesiStatus && m.sesiStatus[ke];
@@ -125,24 +129,39 @@
           ? '<td style="text-align:center;color:var(--text-3);font-size:10px" title="H' + ke + ': sesi terlaksana, tanpa catatan presensi">\u00b7</td>'
           : '<td style="text-align:center;color:var(--border);font-size:10px">\u2014</td>';
       }).join('');
-      var tajwidCells = m.tajwid.map(function(t){
-        var ico = t.status==='paham'?'\u2705':t.status==='ragu'?'\uD83D\uDFE1':t.status==='belum'?'\u274C':'\u26AA';
-        return '<td style="text-align:center;font-size:13px" title="' + esc(t.nama) + ': ' + (t.status || 'belum dinilai') + '">' + ico + '</td>';
-      }).join('');
-      
-      var waBtn = m.no_hp
-        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAGuruAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(hq.nama_halaqah) + '\', \'' + escJs(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">💬 WA</button>'
-        : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;padding:2px 8px;font-size:11px" title="No HP belum diisi">💬 WA</button>';
-
       return '<tr>'
         + '<td><strong style="font-size:12px">' + esc(m.nama_murid) + '</strong></td>'
         + sesiCells
         + '<td style="text-align:center"><strong style="color:' + pctC + '">' + m.pctHadir + '%</strong></td>'
+        + '</tr>';
+    }).join('');
+    var tableHadir = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">📅 Kehadiran</div>'
+      + '<div style="overflow-x:auto;margin-bottom:18px"><table style="min-width:340px;font-size:11.5px"><thead><tr>' + hadirHdr + '</tr></thead><tbody>' + hadirBody + '</tbody></table></div>';
+
+    if (!indikator.length) return tableHadir;
+
+    // ── Tabel 2: Indikator Tajwid ──
+    var tajwidHdr = '<th style="font-size:10px;min-width:120px;text-align:left">Nama Murid</th>'
+      + indikator.map(_indikatorTh).join('')
+      + '<th style="font-size:10px;text-align:center">Aksi</th>';
+    var tajwidBody = hq.murid.map(function(m) {
+      var tajwidCells = m.tajwid.map(function(t){
+        var ico = t.status==='paham'?'\u2705':t.status==='ragu'?'\uD83D\uDFE1':t.status==='belum'?'\u274C':'\u26AA';
+        return '<td style="text-align:center;font-size:13px" title="' + esc(t.nama) + ': ' + (t.status || 'belum dinilai') + '">' + ico + '</td>';
+      }).join('');
+      var waBtn = m.no_hp
+        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAGuruAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(hq.nama_halaqah) + '\', \'' + escJs(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">💬 WA</button>'
+        : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;padding:2px 8px;font-size:11px" title="No HP belum diisi">💬 WA</button>';
+      return '<tr>'
+        + '<td><strong style="font-size:12px">' + esc(m.nama_murid) + '</strong></td>'
         + tajwidCells
         + '<td style="text-align:center">' + waBtn + '</td>'
         + '</tr>';
     }).join('');
-    return '<div style="overflow-x:auto"><table style="min-width:650px;font-size:11.5px"><thead><tr>' + hdrCols + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+    var tableTajwid = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">📊 Indikator Tajwid</div>'
+      + '<div style="overflow-x:auto"><table style="min-width:340px;font-size:11.5px"><thead><tr>' + tajwidHdr + '</tr></thead><tbody>' + tajwidBody + '</tbody></table></div>';
+
+    return tableHadir + tableTajwid;
   }
 
   function mtbGuruTglDetail(id_halaqah) {
@@ -165,7 +184,7 @@
     });
     if (!muridFlat.length) { wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-3)">Belum ada murid</div>'; return; }
     var hdr = '<tr><th style="font-size:10px;white-space:nowrap;min-width:120px">Murid</th><th style="font-size:10px;min-width:80px">Halaqah</th>'
-      + indikator.map(function(item){ return '<th style="font-size:9px;text-align:center;min-width:44px;max-width:56px;white-space:normal;line-height:1.2;padding:8px 4px" title="' + esc(item.nama_item) + '">' + _shortItem(item.nama_item) + '</th>'; }).join('')
+      + indikator.map(_indikatorTh).join('')
       + '</tr>';
     var rows = muridFlat.map(function(m){
       var cells = m.tajwid.map(function(t){
@@ -290,12 +309,16 @@
       + '<span style="font-size:12px;font-weight:700;color:'+color+'">'+pct+'%</span>'
       + '</div>';
   }
-  function _shortItem(nama) {
-    var map = { 'Hamzah':'Hamzah', "A'in":"A'in", 'Ha Tipis':'Ha\u2609', 'Ha Tebal':'Ha\u25CF',
-      'Nabr':'Nabr', 'Tasydid':'Nabr', 'Shad':'Shad', 'Tha':'Tha\u02BE',
-      'Idzhar':'Idzhar', 'Mim':'Mim\u25CF', 'Dhad':'Dhad', 'Mad':'Mad' };
-    for (var k in map) { if (nama.indexOf(k) !== -1) return map[k]; }
-    return nama.length > 8 ? nama.slice(0,7) + '\u2026' : nama;
+  // Header kolom indikator ditulis VERTIKAL (bukan disingkat) \u2014 nama
+  // indikator adalah teks bebas yang admin bisa tambah/ubah kapan saja
+  // (lihat admin/konten-module.js), jadi kamus singkatan hardcoded selalu
+  // basi & memotong kata sembarang begitu ada nama baru. Vertikal aman
+  // untuk panjang teks berapa pun, tanpa perlu tahu isinya lebih dulu.
+  function _indikatorTh(item) {
+    var nama = esc(item.nama_item);
+    return '<th style="min-width:28px;max-width:32px;height:140px;vertical-align:bottom;padding:4px 2px 8px;text-align:center" title="' + nama + '">'
+      + '<div style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);white-space:nowrap;font-size:10px;font-weight:700;line-height:1;max-height:130px;overflow:hidden;margin:0 auto;display:inline-block">' + nama + '</div>'
+      + '</th>';
   }
 
   window.loadMutabaahGuru   = loadMutabaahGuru;
