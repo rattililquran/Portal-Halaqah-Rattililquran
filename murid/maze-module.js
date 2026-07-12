@@ -198,11 +198,18 @@
 
   // ---------- Input ----------
   function setDir(dx, dy) { _lastDir = dx + "," + dy; if (state !== "play") return; player.ndx = dx; player.ndy = dy; _inputs++; }
+  // Berhenti TEPAT di petak (snap ke pusat terdekat) agar bisa mangkal di kotak jawaban.
+  function stopPlayer() {
+    if (state !== "play" || !player) return;
+    player.fx = Math.round(player.fx); player.fy = Math.round(player.fy);
+    player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
+  }
   function dpadRect() { var size = Math.min(BANNER_H * 1.15, W * 0.32); return { cx: W - size / 2 - 14, cy: H - BANNER_H / 2, s: size }; }
   function handleDpadTap(x, y) {
     _taps++;
     var d = dpadRect(), rx = x - d.cx, ry = y - d.cy, half = d.s / 2;
     if (Math.abs(rx) > half || Math.abs(ry) > half) return;
+    if (Math.hypot(rx, ry) < d.s * 0.16) { stopPlayer(); return; }   // ketuk tengah = berhenti
     if (Math.abs(rx) > Math.abs(ry)) setDir(rx > 0 ? 1 : -1, 0); else setDir(0, ry > 0 ? 1 : -1);
   }
 
@@ -492,7 +499,7 @@
     var qd = QUESTIONS[qIndex];
     ctx.fillStyle = "#c9a84a"; ctx.font = "800 11px sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("PERTANYAAN", 16, by + 12);
     ctx.fillStyle = "#fff"; ctx.font = "700 15px sans-serif"; wrapText(qd.q, 16, by + 30, W * 0.62, 19);
-    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.fillText("Berhenti sejenak di kotak jawaban untuk memilih", 16, by + BANNER_H - 18);
+    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.fillText("Berhenti (■) di kotak jawaban yang benar untuk memilih", 16, by + BANNER_H - 18);
   }
   function drawDpad() {
     var d = dpadRect(), arms = [[0, -1], [0, 1], [-1, 0], [1, 0]];
@@ -503,6 +510,11 @@
       ctx.fillStyle = active ? "#1a1200" : "rgba(255,255,255,0.65)"; ctx.font = "900 " + Math.round(bs * 0.6) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText(i === 0 ? "▲" : i === 1 ? "▼" : i === 2 ? "◀" : "▶", bx, by);
     }
+    // tombol tengah = BERHENTI
+    var bs2 = d.s * 0.24, stopped = player && player.dx === 0 && player.dy === 0;
+    ctx.fillStyle = stopped ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.14)"; roundRect(d.cx - bs2 / 2, d.cy - bs2 / 2, bs2, bs2, 6); ctx.fill();
+    ctx.fillStyle = stopped ? "#fff" : "rgba(255,255,255,0.7)"; ctx.font = "900 " + Math.round(bs2 * 0.5) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("■", d.cx, d.cy);
   }
   function drawFloatMsg() {
     ctx.save(); ctx.globalAlpha = Math.min(1, msgTimer); ctx.fillStyle = msgColor; ctx.font = "900 22px sans-serif";
@@ -540,7 +552,7 @@
         '<div class="mz-title">Rattil Maze<br>Adventure</div>' +
         '<div class="mz-sub" id="mzStartSub">Memuat…</div>' +
         '<button class="mz-btn" id="mzStartBtn">Mulai Bermain</button>' +
-        '<div class="mz-hint">Geser layar untuk bergerak · atau tombol panah<br>Berhenti sejenak di kotak jawaban untuk memilih</div>' +
+        '<div class="mz-hint">Geser / tombol panah untuk bergerak · ■ (tengah) untuk berhenti<br>Berhenti di kotak jawaban yang benar untuk memilih</div>' +
       '</div>' +
       '<div class="mz-screen" id="mzOver" style="display:none;">' +
         '<div class="mz-emoji">💫</div><div class="mz-title" style="font-size:24px;">Nyawa Habis</div>' +
@@ -567,6 +579,7 @@
       var k = e.key, d = null;
       if (k === "ArrowUp" || k === "w") d = [0, -1]; else if (k === "ArrowDown" || k === "s") d = [0, 1];
       else if (k === "ArrowLeft" || k === "a") d = [-1, 0]; else if (k === "ArrowRight" || k === "d") d = [1, 0];
+      else if (k === " ") { stopPlayer(); e.preventDefault(); return; }
       else if (k === "Escape") { close(); return; } else return;
       setDir(d[0], d[1]); e.preventDefault();
     };
