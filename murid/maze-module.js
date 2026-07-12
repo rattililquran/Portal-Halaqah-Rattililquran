@@ -44,6 +44,7 @@
   var frightenTimer = 0, invuln = 0, flash = 0, msg = "", msgColor = "#fff", msgTimer = 0;
   var lastT = 0, dotsLeft = 0, startTime = 0;
   var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45;
+  var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", DEBUG = true; // overlay diagnosa
   var _keyHandler = null, _touchStart = null, _resizeHandler = null;
 
   // ---------- Util peta ----------
@@ -194,9 +195,10 @@
   }
 
   // ---------- Input ----------
-  function setDir(dx, dy) { if (state !== "play") return; player.ndx = dx; player.ndy = dy; }
+  function setDir(dx, dy) { _lastDir = dx + "," + dy; if (state !== "play") return; player.ndx = dx; player.ndy = dy; _inputs++; }
   function dpadRect() { var size = Math.min(BANNER_H * 1.15, W * 0.32); return { cx: W - size / 2 - 14, cy: H - BANNER_H / 2, s: size }; }
   function handleDpadTap(x, y) {
+    _taps++;
     var d = dpadRect(), rx = x - d.cx, ry = y - d.cy, half = d.s / 2;
     if (Math.abs(rx) > half || Math.abs(ry) > half) return;
     if (Math.abs(rx) > Math.abs(ry)) setDir(rx > 0 ? 1 : -1, 0); else setDir(0, ry > 0 ? 1 : -1);
@@ -297,6 +299,8 @@
   function loop(t) {
     if (!mounted) return;
     if (state !== "play") return;
+    _frames++;
+    try {
     if (!lastT) lastT = t;
     // Gerak BERBASIS WAKTU: pakai elapsed nyata (dibatasi 0.25s utk hindari lompatan
     // besar setelah tab tak aktif), lalu dibagi sub-langkah kecil agar tetap akurat &
@@ -331,6 +335,7 @@
       }
     }
     render();
+    } catch (e) { console.error("[maze] loop error:", e); }
     requestAnimationFrame(loop);
   }
 
@@ -356,6 +361,14 @@
     drawBanner(); drawDpad();
     if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + (flash * 0.4) + ")"; ctx.fillRect(OX, OY, TILE * COLS, TILE * ROWS); }
     if (msgTimer > 0) drawFloatMsg();
+    if (DEBUG) drawDebug();
+  }
+  function drawDebug() {
+    var y = HUD_H + 2;
+    ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(4, y, 210, 15);
+    ctx.fillStyle = "#5f5"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    var pd = player ? (player.dx + "," + player.dy) : "-";
+    ctx.fillText("F" + _frames + " tap" + _taps + " in" + _inputs + " want" + _lastDir + " mv" + pd + " " + state, 8, y + 2);
   }
   function drawHUD() {
     ctx.textBaseline = "middle";
