@@ -3029,6 +3029,15 @@ var GuruAPI = {
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
+    // .order('urutan') di query hanya urut GLOBAL — indikator hari berbeda bisa
+    // bercampur (Hari 2 urutan 1 muncul sebelum Hari 1 urutan 7). Urutkan ulang
+    // per Hari (angka di kategori) lalu urutan, sama seperti fix di konten-module.js.
+    indikator.sort(function(a, b) {
+      var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      if (hariA !== hariB) return hariA - hariB;
+      return (a.urutan || 0) - (b.urutan || 0);
+    });
     var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
     var itemIds = indikator.map(function(i){ return i.id_item; });
 
@@ -5542,6 +5551,15 @@ var AdminAPI = {
 
     var periode = periodeRes.data || { id_periode: id_periode, nama_periode: 'Daurah Al-Fatihah', tanggal_mulai: '2026-07-11', tanggal_selesai: '2026-07-18' };
     var indikator = asmtItemRes.data || [];
+    // .order('urutan') di query hanya urut GLOBAL — indikator hari berbeda bisa
+    // bercampur (Hari 2 urutan 1 muncul sebelum Hari 1 urutan 7). Urutkan ulang
+    // per Hari (angka di kategori) lalu urutan, sama seperti fix di konten-module.js.
+    indikator.sort(function(a, b) {
+      var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      if (hariA !== hariB) return hariA - hariB;
+      return (a.urutan || 0) - (b.urutan || 0);
+    });
     var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
     var itemIds = indikator.map(function(i){ return i.id_item; });
 

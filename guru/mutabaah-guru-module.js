@@ -3,6 +3,7 @@
 
   var _mtbData = null;
   var _expandedHq = {};
+  var _mtbActiveHari = {};   // id_halaqah -> kategori ("Hari 1", dst) yang sedang dibuka
 
   async function loadMutabaahGuru() {
     var sel = document.getElementById('mtbGuruPeriodeSel');
@@ -99,11 +100,15 @@
         + '<td>' + _pctBar(hq.pctHadir, pHadir) + '</td>'
         + '<td>' + _pctBar(hq.pctTajwid, pTajwid) + '</td>'
         + '</tr>';
-      var detail = '<tr id="mtbGuruDetail_' + esc(hq.id_halaqah) + '" style="display:none"><td colspan="5" style="padding:0;background:rgba(14,165,233,.02)"><div style="padding:12px 16px">' + _renderMuridDetail(hq, indikator) + '</div></td></tr>';
+      var detail = '<tr id="mtbGuruDetail_' + esc(hq.id_halaqah) + '" style="display:none"><td colspan="5" style="padding:0;background:rgba(14,165,233,.02)"><div id="mtbGuruDetailInner_' + esc(hq.id_halaqah) + '" style="padding:12px 16px">' + _renderMuridDetail(hq, indikator) + '</div></td></tr>';
       return row + detail;
     }).join('');
   }
 
+  // Kehadiran (H1-H8 + %Hadir) dan Indikator Tajwid dipisah jadi DUA tabel
+  // bertumpuk (bukan satu tabel lebar) — tiap tabel jadi ringkas & tak perlu
+  // saling geser horizontal untuk membaca salah satunya. Kolom Nama Murid
+  // sengaja diulang di kedua tabel supaya masing-masing berdiri sendiri.
   // Kehadiran (H1-H8 + %Hadir) dan Indikator Tajwid dipisah jadi DUA tabel
   // bertumpuk (bukan satu tabel lebar) — tiap tabel jadi ringkas & tak perlu
   // saling geser horizontal untuk membaca salah satunya. Kolom Nama Murid
@@ -140,12 +145,52 @@
 
     if (!indikator.length) return tableHadir;
 
-    // ── Tabel 2: Indikator Tajwid ──
-    var tajwidHdr = '<th style="font-size:10px;min-width:120px;text-align:left">Nama Murid</th>'
-      + indikator.map(_indikatorTh).join('')
+    // ── Tabel 2: Indikator Tajwid — dikelompokkan per Hari, chip buka/tutup ──
+    // Total indikator bisa puluhan (8 hari × beberapa item/hari), jadi hanya
+    // satu grup Hari yang ditampilkan tabelnya sekaligus; sisanya jadi chip.
+    var groups = _groupIndikatorByHari(indikator);
+    var activeKey = _mtbActiveHari[hq.id_halaqah] || groups[0].hari;
+    var activeGroup = groups.find(function(g){ return g.hari === activeKey; }) || groups[0];
+
+    var chipsHtml = groups.map(function(g) {
+      var active = g.hari === activeGroup.hari;
+      return '<button type="button" onclick="mtbGuruToggleHari(\'' + escJs(hq.id_halaqah) + '\',\'' + escJs(g.hari) + '\')" '
+        + 'style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:100px;cursor:pointer;white-space:nowrap;border:1px solid ' + (active ? 'var(--blue)' : 'var(--border)') + ';background:' + (active ? 'var(--blue)' : 'transparent') + ';color:' + (active ? '#fff' : 'var(--text-2)') + '">'
+        + esc(g.hari) + ' <span style="opacity:.75">(' + g.items.length + ')</span></button>';
+    }).join('');
+
+    var tableTajwid = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">📊 Indikator Tajwid</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">' + chipsHtml + '</div>'
+      + '<div id="mtbGuruTajwidTblWrap_' + esc(hq.id_halaqah) + '" style="overflow-x:auto">' + _renderTajwidTable(hq, activeGroup.items) + '</div>';
+
+    return tableHadir + tableTajwid;
+  }
+
+  // Kelompokkan indikator berdasarkan kolom kategori ("Hari 1", "Hari 2", ...).
+  // Urutan grup mengikuti urutan array `indikator` — sudah diurutkan Hari lalu
+  // urutan di supabase-client.js (getMutabaahDaurah/getMutabaahDaurahGuru).
+  function _groupIndikatorByHari(indikator) {
+    var map = {}, order = [];
+    indikator.forEach(function(item) {
+      var key = item.kategori || 'Lainnya';
+      if (!map[key]) { map[key] = []; order.push(key); }
+      map[key].push(item);
+    });
+    return order.map(function(key) { return { hari: key, items: map[key] }; });
+  }
+
+  // Render tabel Indikator Tajwid HANYA untuk himpunan `items` (satu hari).
+  // m.tajwid dicocokkan via id_item (bukan asumsi urutan index) agar tetap
+  // benar meski indikator ditambah/dihapus admin di tengah jalan.
+  function _renderTajwidTable(hq, items) {
+    var hdr = '<th style="font-size:10px;min-width:120px;text-align:left">Nama Murid</th>'
+      + items.map(_indikatorTh).join('')
       + '<th style="font-size:10px;text-align:center">Aksi</th>';
-    var tajwidBody = hq.murid.map(function(m) {
-      var tajwidCells = m.tajwid.map(function(t){
+    var body = hq.murid.map(function(m) {
+      var tByItem = {};
+      m.tajwid.forEach(function(t){ tByItem[t.id_item] = t; });
+      var tajwidCells = items.map(function(item){
+        var t = tByItem[item.id_item] || { nama: item.nama_item, status: null };
         var ico = t.status==='paham'?'\u2705':t.status==='ragu'?'\uD83D\uDFE1':t.status==='belum'?'\u274C':'\u26AA';
         return '<td style="text-align:center;font-size:13px" title="' + esc(t.nama) + ': ' + (t.status || 'belum dinilai') + '">' + ico + '</td>';
       }).join('');
@@ -158,10 +203,18 @@
         + '<td style="text-align:center">' + waBtn + '</td>'
         + '</tr>';
     }).join('');
-    var tableTajwid = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">📊 Indikator Tajwid</div>'
-      + '<div style="overflow-x:auto"><table style="min-width:340px;font-size:11.5px"><thead><tr>' + tajwidHdr + '</tr></thead><tbody>' + tajwidBody + '</tbody></table></div>';
+    return '<table style="min-width:340px;font-size:11.5px"><thead><tr>' + hdr + '</tr></thead><tbody>' + body + '</tbody></table>';
+  }
 
-    return tableHadir + tableTajwid;
+  // Klik chip "Hari N" -> ganti grup aktif & render ulang HANYA panel detail
+  // halaqah tsb (bukan reload data / seluruh tabel).
+  function mtbGuruToggleHari(id_halaqah, hariKey) {
+    _mtbActiveHari[id_halaqah] = hariKey;
+    if (!_mtbData) return;
+    var hq = _mtbData.halaqahList.find(function(h){ return h.id_halaqah === id_halaqah; });
+    var wrap = document.getElementById('mtbGuruDetailInner_' + id_halaqah);
+    if (!hq || !wrap) return;
+    wrap.innerHTML = _renderMuridDetail(hq, _mtbData.indikator);
   }
 
   function mtbGuruTglDetail(id_halaqah) {
@@ -323,6 +376,7 @@
 
   window.loadMutabaahGuru   = loadMutabaahGuru;
   window.mtbGuruTglDetail     = mtbGuruTglDetail;
+  window.mtbGuruToggleHari    = mtbGuruToggleHari;
   window.mtbGuruCsvExport     = mtbGuruCsvExport;
   window.reloadMtbGuruHeatmap = reloadMtbGuruHeatmap;
   window.openWAGuruAlert     = openWAGuruAlert;
