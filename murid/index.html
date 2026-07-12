@@ -4404,9 +4404,14 @@ html.theme-dark .materi-daurah-banner-title {
           <div class="page-sub">Ukur pemahamanmu sebelum sesi berikutnya.</div>
         </div>
       </div>
+      <div class="spp-jenis-tabs" id="asmtTabs" style="display:none">
+        <div class="spp-jenis-tab active" id="asmtTabSelf" onclick="switchAsmtTab('self')">📝 Isi Sendiri</div>
+        <div class="spp-jenis-tab" id="asmtTabGuru" onclick="switchAsmtTab('guru')">👨‍🏫 Verifikasi Guru</div>
+      </div>
       <div id="assessmentContent">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
+      <div id="assessmentGuruContent" style="display:none"></div>
     </div>
 
     <!-- ════ SETORAN HAFALAN (TAHFIDZ) ════ -->
@@ -10961,6 +10966,12 @@ var _assessmentLoading = false; // debounce flag cegah double-load
 
 var ASMT_VALID_LEVELS = ['Level 1', 'Level 2', 'Tahsin Al-Fatihah'];
 
+// ── Tab "Verifikasi Guru" — read-only, tampilkan status_guru per indikator
+// (info yang sebelumnya cuma bisa dilihat murid lewat Raport yang di-publish
+// admin, biasanya cuma sekali di akhir daurah — bukan live harian).
+var _asmtGuruData      = {};   // id_item -> status_guru
+var _asmtActiveHariGuru = null; // kategori ("Hari 1", dst) yang sedang dibuka
+
 async function loadAssessment() {
 var el = document.getElementById('assessmentContent');
 if (!el) return;
@@ -10984,7 +10995,10 @@ loadAssessment._retry = 0; // reset counter setelah berhasil
   var level = (dashData.anggota && dashData.anggota.level) || '';
   _assessmentLevel = level;
 
+  var tabsEl = document.getElementById('asmtTabs');
+
   if (!ASMT_VALID_LEVELS.includes(level)) {
+    if (tabsEl) tabsEl.style.display = 'none';
     el.innerHTML = '<div class="asmnt-locked">'
       + '<div style="font-size:48px;margin-bottom:12px">🎓</div>'
       + '<div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px">Assessment tidak tersedia</div>'
@@ -10995,22 +11009,133 @@ loadAssessment._retry = 0; // reset counter setelah berhasil
 
   showLoad('Bismillah, memuat assessment...');
   try {
-    var [rItems, rJawaban] = await Promise.allSettled([
+    var [rItems, rJawaban, rGuru] = await Promise.allSettled([
       window.HQ.MuridAPI.getAssessmentItems(level),
-      window.HQ.MuridAPI.getAssessmentMurid()
+      window.HQ.MuridAPI.getAssessmentMurid(),
+      window.HQ.MuridAPI.getVerifikasiGuru()
     ]);
 
     _assessmentItems   = (rItems.status === 'fulfilled' && rItems.value.data) ? rItems.value.data : {};
     _assessmentJawaban = (rJawaban.status === 'fulfilled' && rJawaban.value.data) ? rJawaban.value.data : {};
+    _asmtGuruData       = (rGuru.status === 'fulfilled' && rGuru.value.data) ? rGuru.value.data : {};
     _assessmentDirty   = false;
 
+    if (tabsEl) tabsEl.style.display = 'flex';
     renderAssessment();
+    renderVerifikasiGuru();
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
       + '<div class="empty-ttl">Gagal memuat assessment</div></div>';
   } finally {
     hideLoad();
   }
+}
+
+// Ganti tab "Isi Sendiri" <-> "Verifikasi Guru" di halaman Assessment Mandiri.
+function switchAsmtTab(tab) {
+  var self = document.getElementById('assessmentContent');
+  var guru = document.getElementById('assessmentGuruContent');
+  var tabSelf = document.getElementById('asmtTabSelf');
+  var tabGuru = document.getElementById('asmtTabGuru');
+  if (!self || !guru) return;
+  self.style.display = tab === 'self' ? 'block' : 'none';
+  guru.style.display = tab === 'guru' ? 'block' : 'none';
+  if (tabSelf) tabSelf.classList.toggle('active', tab === 'self');
+  if (tabGuru) tabGuru.classList.toggle('active', tab === 'guru');
+}
+
+// Tab read-only: status_guru per indikator, dikelompokkan per Hari dengan
+// chip buka/tutup — konsep sama dengan Mutaba'ah Daurah admin/guru, tapi
+// hanya utk indikator milik murid sendiri. TIDAK menampilkan kehadiran/sesi
+// (sudah ada di donat progress dashboard) — murni status verifikasi guru.
+function renderVerifikasiGuru() {
+  var el = document.getElementById('assessmentGuruContent');
+  if (!el || !_assessmentItems) return;
+
+  var levelData = _assessmentItems[_assessmentLevel] || {};
+  var kategoriList = Object.keys(levelData); // sudah terurut Hari->urutan dari getAssessmentItems
+  if (!kategoriList.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div>'
+      + '<div class="empty-ttl">Belum ada poin assessment untuk level ini</div></div>';
+    return;
+  }
+
+  var allItems = kategoriList.reduce(function(acc, k) { return acc.concat(levelData[k]); }, []);
+  var totalItems = allItems.length;
+  var terverifikasi = allItems.filter(function(item) { return !!_asmtGuruData[item.id_item]; }).length;
+
+  if (!terverifikasi) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
+      + '<div class="empty-ttl">Belum ada verifikasi dari guru</div>'
+      + '<div class="empty-sub">Guru akan menandai pemahamanmu per poin setelah menyimak setoranmu.</div></div>';
+    return;
+  }
+
+  if (!_asmtActiveHariGuru || kategoriList.indexOf(_asmtActiveHariGuru) === -1) {
+    _asmtActiveHariGuru = kategoriList[0];
+  }
+
+  var html = '';
+  html += '<div class="asmnt-legend">'
+    + '<div class="asmnt-legend-item"><span>✅</span> Paham</div>'
+    + '<div class="asmnt-legend-item"><span>🟡</span> Ragu</div>'
+    + '<div class="asmnt-legend-item"><span>❌</span> Belum</div>'
+    + '<div class="asmnt-legend-item"><span>⚪</span> Belum dinilai</div>'
+    + '</div>';
+
+  html += '<div class="asmnt-progress">'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">'
+    + '<span>Terverifikasi Guru</span><span>' + terverifikasi + ' / ' + totalItems + '</span>'
+    + '</div>'
+    + '<div class="asmnt-prog-bar"><div class="asmnt-prog-fill" style="width:' + Math.round(terverifikasi / totalItems * 100) + '%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div>'
+    + '</div>';
+
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">'
+    + kategoriList.map(function(kat) {
+        var items = levelData[kat];
+        var doneKat = items.filter(function(it) { return !!_asmtGuruData[it.id_item]; }).length;
+        var active = kat === _asmtActiveHariGuru;
+        return '<button type="button" onclick="asmtToggleHariGuru(\'' + escJs(kat) + '\')" '
+          + 'style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:100px;cursor:pointer;white-space:nowrap;border:1px solid ' + (active ? 'var(--blue)' : 'var(--border)') + ';background:' + (active ? 'var(--blue)' : 'transparent') + ';color:' + (active ? '#fff' : 'var(--text-2)') + '">'
+          + esc(kat) + ' <span style="opacity:.75">(' + doneKat + '/' + items.length + ')</span></button>';
+      }).join('')
+    + '</div>';
+
+  html += '<div id="asmtGuruListWrap">' + _renderVerifikasiGuruItems(levelData[_asmtActiveHariGuru] || []) + '</div>';
+
+  el.innerHTML = html;
+}
+
+function _renderVerifikasiGuruItems(items) {
+  var statusMeta = {
+    paham: { text: 'Paham', color: 'var(--green)', bg: 'rgba(16,185,129,.12)', icon: '✅' },
+    ragu:  { text: 'Ragu-ragu', color: 'var(--amber)', bg: 'rgba(245,158,11,.12)', icon: '🟡' },
+    belum: { text: 'Belum Paham', color: 'var(--red)', bg: 'rgba(239,68,68,.12)', icon: '❌' }
+  };
+  return items.map(function(item) {
+    var sg = _asmtGuruData[item.id_item] || null;
+    var meta = statusMeta[sg] || { text: 'Belum Dinilai', color: 'var(--text-3)', bg: 'var(--border)', icon: '⚪' };
+    var selfAns = _assessmentJawaban[item.id_item];
+    var selfIco = selfAns === 'paham' ? '✅' : selfAns === 'ragu' ? '🟡' : selfAns === 'belum' ? '❌' : '—';
+    return '<div class="asmt-item" style="flex-direction:column;align-items:stretch;gap:8px">'
+      + '<div class="asmnt-item-text">'
+      + (item.teks_arab ? '<div class="asmnt-arab">' + esc(item.teks_arab) + '</div>' : '')
+      + '<div class="asmnt-latin">' + esc(item.teks_latin) + '</div>'
+      + (item.keterangan ? '<div class="asmnt-ket">' + esc(item.keterangan) + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<span style="font-size:10.5px;color:var(--text-3)">Penilaianmu: ' + selfIco + '</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:30px;background:' + meta.bg + ';color:' + meta.color + ';font-size:11px;font-weight:800;white-space:nowrap">'
+      + meta.icon + ' ' + meta.text
+      + '</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function asmtToggleHariGuru(kat) {
+  _asmtActiveHariGuru = kat;
+  renderVerifikasiGuru();
 }
 
 function renderAssessment() {

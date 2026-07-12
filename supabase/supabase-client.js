@@ -4140,8 +4140,18 @@ var MuridAPI = {
     if (level) q = q.eq('level', level);
     var { data, error } = await q;
     if (error || !data || !data.length) return { status: 'ok', data: {} };
+    // .order('urutan') saja GLOBAL — urutan di-reset per kategori/Hari (mis.
+    // Hari 2 urutan 1 bisa muncul sebelum Hari 1 urutan 7), jadi kategori bisa
+    // tercampur. Urutkan ulang per Hari (angka di kategori) lalu urutan —
+    // sama seperti fix di konten-module.js & getMutabaahDaurah(Guru).
+    data.sort(function(a, b) {
+      var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+      if (hariA !== hariB) return hariA - hariB;
+      return (a.urutan || 0) - (b.urutan || 0);
+    });
     var grouped = {};
-    (data || []).forEach(function(item) {
+    data.forEach(function(item) {
       if (!grouped[item.level]) grouped[item.level] = {};
       if (!grouped[item.level][item.kategori]) grouped[item.level][item.kategori] = [];
       grouped[item.level][item.kategori].push(item);
@@ -4156,6 +4166,20 @@ var MuridAPI = {
     var jawaban = {};
     (data || []).forEach(function(r) { jawaban[r.id_item] = r.status; });
     return { status: 'ok', data: jawaban };
+  },
+
+  // Verifikasi guru per indikator (status_guru) untuk indikator milik murid
+  // sendiri — dipakai tab "Verifikasi Guru" di halaman Assessment Mandiri.
+  // RLS "murid_rw_asmt_murid" (FOR ALL, id_murid = current_user_id()) sudah
+  // mengizinkan murid membaca kolom ini di barisnya sendiri, tanpa perlu
+  // policy baru.
+  getVerifikasiGuru: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('assessment_murid').select('id_item, status_guru').eq('id_murid', id_murid);
+    if (error) return { status: 'ok', data: {} };
+    var out = {};
+    (data || []).forEach(function(r) { if (r.status_guru) out[r.id_item] = r.status_guru; });
+    return { status: 'ok', data: out };
   },
 
   saveAssessment: async function(d) {
