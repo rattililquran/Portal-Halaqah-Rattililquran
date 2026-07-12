@@ -45,7 +45,7 @@
   var score = 0, lives = 3, qIndex = 0, podMap = [], mapIdx = 0;
   var frightenTimer = 0, invuln = 0, flash = 0, msg = "", msgColor = "#fff", msgTimer = 0;
   var lastT = 0, dotsLeft = 0, startTime = 0;
-  var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45;
+  var graceTimer = 0, monsterHome = { c: 6, r: 1 };   // jeda "Bersiap" + spawn monster jauh dari pemain
   var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", _dbgNS = 0, DEBUG = false; // overlay diagnosa
   var _keyHandler = null, _touchStart = null, _resizeHandler = null;
 
@@ -65,19 +65,36 @@
     }
   }
 
+  // Petak jalur TERJAUH dari (c0,r0) via BFS — untuk menempatkan monster di sisi berlawanan.
+  function farthestOpenFrom(c0, r0) {
+    var dist = [], i;
+    for (i = 0; i < ROWS; i++) dist[i] = [];
+    var q = [[c0, r0]], head = 0, best = { c: c0, r: r0 }, bestD = -1;
+    dist[r0][c0] = 0;
+    while (head < q.length) {
+      var cur = q[head++], c = cur[0], r = cur[1], d = dist[r][c];
+      if (d > bestD) { bestD = d; best = { c: c, r: r }; }
+      var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (i = 0; i < 4; i++) {
+        var nc = c + dirs[i][0], nr = r + dirs[i][1];
+        if (!isWall(nc, nr) && dist[nr][nc] === undefined) { dist[nr][nc] = d + 1; q.push([nc, nr]); }
+      }
+    }
+    return best;
+  }
+
   // ---------- Entitas ----------
   function mkEntity(c, r, speed) { return { fx: c, fy: r, dx: 0, dy: 0, ndx: 0, ndy: 0, speed: speed, spawn: { c: c, r: r } }; }
   function makeMonster(idx) {
-    var base = GHOST_SPAWN.length ? GHOST_SPAWN : [{ c: 6, r: 7 }];
-    var s = base[idx % base.length];
+    var s = monsterHome;                          // spawn jauh dari pemain (sisi berlawanan)
     var m = mkEntity(s.c, s.r, MON_SPEED + (idx % 3) * 0.2);
     m.type = (idx % 2 === 0) ? "chase" : "ambush";
     m.hue = (m.type === "chase") ? 205 : 330;
     return m;
   }
   function resetPositions() {
-    dwellIdx = -1; dwellT = 0;
     player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, PLAYER_SPEED);
+    monsterHome = farthestOpenFrom(PLAYER_SPAWN.c, PLAYER_SPAWN.r);
     monsters = [];
     for (var i = 0; i < MON_START; i++) monsters.push(makeMonster(i));
   }
@@ -87,10 +104,10 @@
     mapIdx = idx % MAZES.length; MAZE = MAZES[mapIdx];
     scanMap(); dotsLeft = 0;
     for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) if (dots[r][c]) dotsLeft++;
-    dwellIdx = -1; dwellT = 0;
-    player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0;
-    var gs = GHOST_SPAWN.length ? GHOST_SPAWN[0] : { c: 6, r: 7 };
-    for (var i = 0; i < monsters.length; i++) { monsters[i].fx = gs.c; monsters[i].fy = gs.r; monsters[i].spawn = { c: gs.c, r: gs.r }; monsters[i].dx = 0; monsters[i].dy = 0; }
+    player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
+    monsterHome = farthestOpenFrom(PLAYER_SPAWN.c, PLAYER_SPAWN.r);
+    for (var i = 0; i < monsters.length; i++) { monsters[i].fx = monsterHome.c; monsters[i].fy = monsterHome.r; monsters[i].spawn = { c: monsterHome.c, r: monsterHome.r }; monsters[i].dx = 0; monsters[i].dy = 0; }
+    graceTimer = 1.5;                              // jeda singkat tiap ganti peta
   }
 
   function loadQuestion() {
@@ -209,7 +226,7 @@
     _taps++;
     var d = dpadRect(), rx = x - d.cx, ry = y - d.cy, half = d.s / 2;
     if (Math.abs(rx) > half || Math.abs(ry) > half) return;
-    if (Math.hypot(rx, ry) < d.s * 0.16) { stopPlayer(); return; }   // ketuk tengah = berhenti
+    if (Math.hypot(rx, ry) < d.s * 0.16) { centerButton(); return; }  // tengah = berhenti / konfirmasi
     if (Math.abs(rx) > Math.abs(ry)) setDir(rx > 0 ? 1 : -1, 0); else setDir(0, ry > 0 ? 1 : -1);
   }
 
@@ -283,12 +300,18 @@
   function loseLife(text, fromWrong) {
     lives--; setMsg(text || "Terkena monster!", "#ff5c6c"); flash = 0.4;
     if (lives <= 0) { over(); return; }
-    invuln = 1.6;
-    player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0;
-    for (var i = 0; i < monsters.length; i++) { monsters[i].fx = monsters[i].spawn.c; monsters[i].fy = monsters[i].spawn.r; }
+    invuln = 1.6; graceTimer = 1.2;                // reposisi + jeda singkat
+    player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
+    for (var i = 0; i < monsters.length; i++) { monsters[i].fx = monsterHome.c; monsters[i].fy = monsterHome.r; monsters[i].dx = 0; monsters[i].dy = 0; }
     if (fromWrong) { frightenTimer = 0; if (addMonster()) setMsg("Salah! Muncul monster baru (" + monsters.length + ")", "#ff8a4c"); }
   }
   function setMsg(t, col) { msg = t; msgColor = col || "#fff"; msgTimer = 1.6; }
+  // Tombol tengah: bila DIAM di kotak jawaban -> konfirmasi (nilai); selain itu -> berhenti.
+  function centerButton() {
+    if (state !== "play" || !player) return;
+    if (player.dx === 0 && player.dy === 0) { var p = podUnderPlayer(); if (p >= 0) { answer(p); return; } }
+    stopPlayer();
+  }
 
   function over() { state = "over"; saveProgress(false).then(paintEndScreens); paintEndScreens(); }
   function win() { state = "win"; saveProgress(true).then(paintEndScreens); paintEndScreens(); }
@@ -315,6 +338,7 @@
     dotsLeft = 0;
     for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) if (dots[r][c]) dotsLeft++;
     resetPositions(); loadQuestion();
+    graceTimer = 2.0;                              // jeda "Bersiap" di awal (monster diam)
     startTime = performance.now();
     state = "play";
     show("mzStart", false); show("mzOver", false); show("mzWin", false);
@@ -334,6 +358,7 @@
     var frameDt = Math.min((t - lastT) / 1000, 0.25); lastT = t;
     if (frightenTimer > 0) frightenTimer -= frameDt;
     if (invuln > 0) invuln -= frameDt;
+    if (graceTimer > 0) graceTimer -= frameDt;     // jeda "Bersiap": monster diam dulu
     if (flash > 0) flash -= frameDt;
     if (msgTimer > 0) msgTimer -= frameDt;
 
@@ -344,14 +369,12 @@
       moveEntity(player, sub, true);
       var pcNew = Math.round(player.fx), prNew = Math.round(player.fy);
       if ((pcNew !== pcOld || prNew !== prOld) && aligned(player.fx) && aligned(player.fy)) onReachTile(pcNew, prNew);
-      for (var i = 0; i < monsters.length; i++) moveEntity(monsters[i], sub, false);
+      if (graceTimer <= 0) for (var i = 0; i < monsters.length; i++) moveEntity(monsters[i], sub, false);
     }
 
-    var onPod = podUnderPlayer();
-    if (onPod >= 0 && onPod === dwellIdx) { dwellT += frameDt; if (dwellT >= DWELL_NEED) { dwellT = 0; dwellIdx = -1; answer(onPod); } }
-    else { dwellIdx = onPod; dwellT = 0; }
+    // (menjawab TIDAK otomatis — hanya lewat tombol tengah ✓, lihat centerButton)
 
-    if (invuln <= 0) {
+    if (invuln <= 0 && graceTimer <= 0) {
       for (var j = 0; j < monsters.length; j++) {
         var m = monsters[j];
         if (Math.hypot(m.fx - player.fx, m.fy - player.fy) < 0.55) {
@@ -382,13 +405,20 @@
   function render() {
     ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#060819"; ctx.fillRect(0, 0, W, H);
     drawHUD(); drawMaze(); drawDots(); drawPods();
-    if (dwellIdx >= 0 && dwellT > 0.02) drawDwellRing();
     drawPlayer();
     for (var i = 0; i < monsters.length; i++) drawMonster(monsters[i]);
     drawBanner(); drawDpad();
     if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + (flash * 0.4) + ")"; ctx.fillRect(OX, OY, TILE * COLS, TILE * ROWS); }
+    if (graceTimer > 0) drawGrace();
     if (msgTimer > 0) drawFloatMsg();
     if (DEBUG) drawDebug();
+  }
+  function drawGrace() {
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = "#f2cf5b"; ctx.font = "900 26px sans-serif";
+    ctx.shadowColor = "rgba(0,0,0,0.7)"; ctx.shadowBlur = 10;
+    ctx.fillText("Bersiap… " + Math.ceil(graceTimer), OX + TILE * COLS / 2, OY + TILE * ROWS / 2);
+    ctx.restore();
   }
   function drawDebug() {
     var y = HUD_H + 2;
@@ -448,11 +478,12 @@
     for (var p = 0; p < PODS.length; p++) {
       if (!PODS[p] || podMap[p] < 0) continue;      // kotak nonaktif (opsi < 4)
       var pod = PODS[p], cx = tx(pod.c), cy = ty(pod.r), label = qd.opsi[podMap[p]];
+      var here = player && player.dx === 0 && player.dy === 0 && Math.round(player.fx) === pod.c && Math.round(player.fy) === pod.r;
       var w = TILE * 2.5, h = TILE * 1.35;
       var x = Math.max(OX + 3, Math.min(cx - w / 2, OX + TILE * COLS - w - 3));
       var y = Math.max(OY + 3, Math.min(cy - h / 2, OY + TILE * ROWS - h - 3));
-      ctx.fillStyle = "#04060e"; roundRect(x, y, w, h, 8); ctx.fill();
-      ctx.strokeStyle = "rgba(230,187,62,0.55)"; ctx.lineWidth = 1.5; roundRect(x, y, w, h, 8); ctx.stroke();
+      ctx.fillStyle = here ? "#0d2a16" : "#04060e"; roundRect(x, y, w, h, 8); ctx.fill();
+      ctx.strokeStyle = here ? "#3ddc84" : "rgba(230,187,62,0.55)"; ctx.lineWidth = here ? 2.5 : 1.5; roundRect(x, y, w, h, 8); ctx.stroke();
       ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       var words = label.split(" ");
       if (words.length > 1 && label.length > 8) {
@@ -461,13 +492,6 @@
         ctx.fillText(words.slice(1).join(" "), x + w / 2, y + h / 2 + 8);
       } else { ctx.font = "800 " + (label.length > 11 ? 12 : 14) + "px sans-serif"; ctx.fillText(label, x + w / 2, y + h / 2); }
     }
-  }
-  function drawDwellRing() {
-    var x = tx(player.fx), y = ty(player.fy), rad = TILE * 0.52, frac = Math.min(1, dwellT / DWELL_NEED);
-    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = Math.max(3, TILE * 0.13);
-    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = "#f6e7b2"; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.arc(x, y, rad, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); ctx.stroke();
   }
   function drawPlayer() {
     var x = tx(player.fx), y = ty(player.fy), rad = TILE * 0.36;
@@ -499,7 +523,7 @@
     var qd = QUESTIONS[qIndex];
     ctx.fillStyle = "#c9a84a"; ctx.font = "800 11px sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("PERTANYAAN", 16, by + 12);
     ctx.fillStyle = "#fff"; ctx.font = "700 15px sans-serif"; wrapText(qd.q, 16, by + 30, W * 0.62, 19);
-    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.fillText("Berhenti (■) di kotak jawaban yang benar untuk memilih", 16, by + BANNER_H - 18);
+    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.fillText("Diam di kotak jawaban, lalu tekan ✓ (tengah) untuk memilih", 16, by + BANNER_H - 18);
   }
   function drawDpad() {
     var d = dpadRect(), arms = [[0, -1], [0, 1], [-1, 0], [1, 0]];
@@ -510,11 +534,14 @@
       ctx.fillStyle = active ? "#1a1200" : "rgba(255,255,255,0.65)"; ctx.font = "900 " + Math.round(bs * 0.6) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText(i === 0 ? "▲" : i === 1 ? "▼" : i === 2 ? "◀" : "▶", bx, by);
     }
-    // tombol tengah = BERHENTI
+    // tombol tengah = BERHENTI, atau ✓ KONFIRMASI bila diam di kotak jawaban
     var bs2 = d.s * 0.24, stopped = player && player.dx === 0 && player.dy === 0;
-    ctx.fillStyle = stopped ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.14)"; roundRect(d.cx - bs2 / 2, d.cy - bs2 / 2, bs2, bs2, 6); ctx.fill();
-    ctx.fillStyle = stopped ? "#fff" : "rgba(255,255,255,0.7)"; ctx.font = "900 " + Math.round(bs2 * 0.5) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("■", d.cx, d.cy);
+    var canConfirm = stopped && podUnderPlayer() >= 0;
+    ctx.fillStyle = canConfirm ? "rgba(61,220,132,0.95)" : (stopped ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.14)");
+    roundRect(d.cx - bs2 / 2, d.cy - bs2 / 2, bs2, bs2, 6); ctx.fill();
+    ctx.fillStyle = canConfirm ? "#06210f" : (stopped ? "#fff" : "rgba(255,255,255,0.7)");
+    ctx.font = "900 " + Math.round(bs2 * 0.55) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(canConfirm ? "✓" : "■", d.cx, d.cy);
   }
   function drawFloatMsg() {
     ctx.save(); ctx.globalAlpha = Math.min(1, msgTimer); ctx.fillStyle = msgColor; ctx.font = "900 22px sans-serif";
@@ -552,7 +579,7 @@
         '<div class="mz-title">Rattil Maze<br>Adventure</div>' +
         '<div class="mz-sub" id="mzStartSub">Memuat…</div>' +
         '<button class="mz-btn" id="mzStartBtn">Mulai Bermain</button>' +
-        '<div class="mz-hint">Geser / tombol panah untuk bergerak · ■ (tengah) untuk berhenti<br>Berhenti di kotak jawaban yang benar untuk memilih</div>' +
+        '<div class="mz-hint">Geser / tombol panah untuk bergerak · ■ (tengah) untuk berhenti<br>Diam di kotak jawaban lalu tekan ✓ untuk memilih (berhenti ≠ menjawab)</div>' +
       '</div>' +
       '<div class="mz-screen" id="mzOver" style="display:none;">' +
         '<div class="mz-emoji">💫</div><div class="mz-title" style="font-size:24px;">Nyawa Habis</div>' +
@@ -579,7 +606,7 @@
       var k = e.key, d = null;
       if (k === "ArrowUp" || k === "w") d = [0, -1]; else if (k === "ArrowDown" || k === "s") d = [0, 1];
       else if (k === "ArrowLeft" || k === "a") d = [-1, 0]; else if (k === "ArrowRight" || k === "d") d = [1, 0];
-      else if (k === " ") { stopPlayer(); e.preventDefault(); return; }
+      else if (k === " " || k === "Enter") { centerButton(); e.preventDefault(); return; }
       else if (k === "Escape") { close(); return; } else return;
       setDir(d[0], d[1]); e.preventDefault();
     };
