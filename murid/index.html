@@ -9004,6 +9004,10 @@ function renderPR(rows) {
     aman    :{lbl:'',                    cls:'b-green', emoji:'🟢'},
     none    :{lbl:'',                    cls:'b-gray',  emoji:''},
   };
+  // Simpan rows utk bukaFormPRById — teks bebas (latihan_mandiri) TIDAK BOLEH
+  // disisipkan ke string JS onclick: apostrof/baris baru dari tulisan guru
+  // memecah atribut (SyntaxError "missing ) after argument list") dan tombol mati.
+  window._prRowsCache = rows;
   el.innerHTML = rows.map(function(pr) {
     var s   = STATUS[pr.status_deadline] || STATUS.none;
     var ico = JENIS_ICO[pr.jenis_latihan] || '📝';
@@ -9017,7 +9021,7 @@ function renderPR(rows) {
     
     if (pr.pr_status === 'belum') {
       statusBadge = '<span class="badge b-gray">💤 Belum Dikerjakan</span>';
-      actionBtn = '<button onclick="bukaFormPR(\'' + pr.id_nilai + '\', \'' + esc(pr.latihan_mandiri) + '\', \'' + esc(pr.jenis_latihan) + '\', \'' + pr.status_deadline + '\', \'' + (pr.deadline || '') + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
+      actionBtn = '<button onclick="bukaFormPRById(\'' + escJs(pr.id_nilai) + '\')" class="btn btn-primary" style="font-size:12px; padding:6px 12px; margin-top:8px; border-radius:8px; width: 100%;">✍️ Kerjakan Tugas</button>';
     } else if (pr.pr_status === 'selesai') {
       statusBadge = '<span class="badge b-amber">⏳ Menunggu Koreksi Guru</span>';
       if (isLate) {
@@ -9146,6 +9150,18 @@ var _recordedChunks = [];
 var _rekamanBlob = null;
 var _durasiInterval = null;
 var _detikRekam = 0;
+
+// Lookup by id dari _prRowsCache — data diteruskan sebagai nilai JS, bukan
+// disisipkan ke atribut onclick (kebal apostrof/baris baru pada teks guru).
+function bukaFormPRById(idNilai) {
+  var rows = window._prRowsCache || [];
+  var pr = null;
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].id_nilai) === String(idNilai)) { pr = rows[i]; break; }
+  }
+  if (!pr) { toast('Data latihan tidak ditemukan. Muat ulang halaman.', 'err'); return; }
+  bukaFormPR(pr.id_nilai, pr.latihan_mandiri, pr.jenis_latihan, pr.status_deadline, pr.deadline || '');
+}
 
 function bukaFormPR(idNilai, deskripsi, jenisLatihan, statusDeadline, deadline) {
   document.getElementById('ltIdNilai').value = idNilai;
