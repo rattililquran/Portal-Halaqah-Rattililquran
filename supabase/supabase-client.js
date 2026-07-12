@@ -104,6 +104,36 @@ function _genId(prefix) {
   return prefix + '-' + uuid;
 }
 
+// PATCH 066/067 (Snapshot Bank Soal): timpa konten `soal` dengan SNAPSHOT beku dari
+// quiz_soal (bila ada), agar tampilan hasil & review menampilkan soal SEBAGAIMANA
+// dikerjakan murid — bukan konten Bank Soal yang mungkin sudah diedit. Bila snapshot
+// belum ada (data lama / kuis belum submit), biarkan konten live (fallback aman).
+function _overrideSoalFromSnap(s, snap) {
+  if (!s || !snap || !snap.snap_at) return;
+  if (snap.snap_tipe_soal) s.tipe_soal = snap.snap_tipe_soal;
+  if (snap.snap_teks_soal != null) s.teks_soal = snap.snap_teks_soal;
+  s.teks_arab = snap.snap_teks_arab;
+  s.audio_url = snap.snap_audio_url;
+  if (Array.isArray(snap.snap_pilihan)) {
+    s.soal_pilihan = snap.snap_pilihan.map(function (p, i) {
+      return { id_pilihan: 'snap-' + i, teks_pilihan: p.teks, is_benar: !!p.is_benar, urutan: p.urutan };
+    });
+  }
+  if (Array.isArray(snap.snap_pasangan)) {
+    s.soal_pasangan = snap.snap_pasangan.map(function (p, i) {
+      return { id_pasangan: 'snap-' + i, teks_kiri: p.kiri, teks_kanan: p.kanan, urutan: p.urutan };
+    });
+  }
+  if (Array.isArray(snap.snap_kunci)) {
+    s.soal_kunci_isian = snap.snap_kunci.map(function (k, i) {
+      return { id_kunci: 'snap-' + i, teks_kunci: k };
+    });
+  }
+}
+
+// Kolom snapshot yang perlu diambil dari quiz_soal untuk substitusi tampilan.
+var _SNAP_COLS = 'id_quiz, id_soal, snap_tipe_soal, snap_teks_soal, snap_teks_arab, snap_audio_url, snap_pilihan, snap_pasangan, snap_kunci, snap_at';
+
 // M1: baris SPP gateway 'menunggu' yang invoice Mayar-nya sudah kedaluwarsa
 // (ditinggalkan, tak jadi dibayar). Diperlakukan sebagai 'belum' di tampilan
 // supaya tidak terlihat "sedang diproses" selamanya. Backend (claim_spp_gateway)
@@ -3006,6 +3036,12 @@ var GuruAPI = {
     _check(quizRes.error, 'getHasilKuis:quiz');
     _check(hasilRes.error, 'getHasilKuis:hasil');
 
+    // PATCH 066/067: tampilkan konten soal beku (snapshot). quiz_soal(*) sudah
+    // membawa kolom snap_*, jadi timpa embed soal-nya langsung.
+    if (quizRes.data && Array.isArray(quizRes.data.quiz_soal)) {
+      quizRes.data.quiz_soal.forEach(function (qs) { _overrideSoalFromSnap(qs.soal, qs); });
+    }
+
     var hasil = hasilRes.data || [];
     var totalMengerjakan = hasil.length;
     var totalSkor = hasil.reduce(function(acc, h) { return acc + (h.skor_total || 0); }, 0);
@@ -3080,7 +3116,17 @@ var GuruAPI = {
 
     var { data, error } = await q;
     _check(error, 'getAntrianReviewIsian');
-    return { status: 'ok', data: data || [] };
+
+    // PATCH 066/067: tampilkan teks soal beku (snapshot) di antrian review.
+    var rows = data || [];
+    if (rows.length) {
+      var quizIds = Array.from(new Set(rows.map(function (r) { return r.id_quiz; })));
+      var snapRes = await _sb.from('quiz_soal').select(_SNAP_COLS).in('id_quiz', quizIds);
+      var snapMap = {};
+      (snapRes.data || []).forEach(function (r) { snapMap[r.id_quiz + '|' + r.id_soal] = r; });
+      rows.forEach(function (r) { _overrideSoalFromSnap(r.soal, snapMap[r.id_quiz + '|' + r.id_soal]); });
+    }
+    return { status: 'ok', data: rows };
   },
 
   reviewIsianSingkat: async function(id_jawaban, disetujui, simpan_sebagai_varian) {
@@ -5035,19 +5081,26 @@ var MuridAPI = {
   getHasilKuisMurid: async function(id_quiz, attempt_ke) {
     var id_murid = _uid();
     var attempt = attempt_ke || 1;
-    var [hasilRes, jawabanRes, quizRes] = await Promise.all([
+    var [hasilRes, jawabanRes, quizRes, snapRes] = await Promise.all([
       _sb.from('hasil_quiz').select('*').eq('id_quiz', id_quiz).eq('id_murid', id_murid).eq('attempt_ke', attempt).single(),
-      _sb.from('jawaban_murid').select('*, soal(*, soal_pilihan(*))').eq('id_quiz', id_quiz).eq('id_murid', id_murid).eq('attempt_ke', attempt),
-      _sb.from('quiz').select('tampilkan_jawaban').eq('id_quiz', id_quiz).single()
+      _sb.from('jawaban_murid').select('*, soal(*, soal_pilihan(*), soal_pasangan(*))').eq('id_quiz', id_quiz).eq('id_murid', id_murid).eq('attempt_ke', attempt),
+      _sb.from('quiz').select('tampilkan_jawaban').eq('id_quiz', id_quiz).single(),
+      _sb.from('quiz_soal').select(_SNAP_COLS).eq('id_quiz', id_quiz)
     ]);
     _check(hasilRes.error, 'getHasilKuisMurid:hasil');
 
     var quizSetting = quizRes.data ? quizRes.data.tampilkan_jawaban : 'setelah_submit';
 
+    // PATCH 066/067: tampilkan konten soal beku (snapshot) alih-alih Bank Soal live.
+    var _snapMap = {};
+    (snapRes.data || []).forEach(function (r) { _snapMap[r.id_soal] = r; });
+    var jawaban = jawabanRes.data || [];
+    jawaban.forEach(function (j) { _overrideSoalFromSnap(j.soal, _snapMap[j.id_soal]); });
+
     return {
       status: 'ok',
       hasil: hasilRes.data,
-      jawaban: jawabanRes.data || [],
+      jawaban: jawaban,
       tampilkan_jawaban_setting: quizSetting
     };
   },
