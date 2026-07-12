@@ -66,7 +66,7 @@ async function kqAddMilestone(id_kelompok) {
   const judul = prompt('Tandai milestone kelompok (mis: Dedy khatam Juz 30):');
   if (!judul || !judul.trim()) return;
   try {
-    await window.HQ.AdminAPI.addMilestoneKelompok({ id_kelompok, id_halaqah: _kqData.id_halaqah, judul: judul.trim() });
+    await window.HQ.AdminAPI.addMilestoneKelompok({ id_kelompok, id_halaqah: window._kqData.id_halaqah, judul: judul.trim() });
     toast('Milestone ditandai', 'ok');
     _kqLoadLiniMasa(id_kelompok);
   } catch(e) { toast('Gagal: '+e.message, 'err'); }
@@ -85,7 +85,7 @@ async function _kqRenderMenunggu() {
   const wrap = document.getElementById('kqMenungguWrap');
   if (!wrap) return;
   try {
-    const res = await window.HQ.AdminAPI.getSetoranPartnerMenungguHalaqah(_kqData.id_halaqah);
+    const res = await window.HQ.AdminAPI.getSetoranPartnerMenungguHalaqah(window._kqData.id_halaqah);
     const data = res.data || [];
     if (!data.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
     const cfgRes = await window.HQ.GuruAPI.getPenilaianHafalan();
@@ -139,7 +139,7 @@ async function _kqLoadTarget(id_kelompok) {
   c.style.display = 'block';
   c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
   try {
-    const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+    const k = window._kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
     const total = k ? (k.anggota_kelompok_partner || []).length : 0;
     const res = await window.HQ.AdminAPI.getTargetByKelompok(id_kelompok);
     c.innerHTML = _kqRenderTargetHtml(res.data || [], total).replace(/__K__/g, id_kelompok);
@@ -156,7 +156,7 @@ async function kqAddTarget(id_kelompok) {
   const judul = inp ? (inp.value || '').trim() : '';
   if (!judul) { toast('Tulis dulu targetnya', 'err'); return; }
   try {
-    await window.HQ.AdminAPI.addTargetByKelompok({ id_kelompok, id_halaqah: _kqData.id_halaqah, judul });
+    await window.HQ.AdminAPI.addTargetByKelompok({ id_kelompok, id_halaqah: window._kqData.id_halaqah, judul });
     toast('Target ditetapkan', 'ok');
     _kqLoadTarget(id_kelompok);
   } catch(e) { toast('Gagal: '+e.message, 'err'); }
@@ -179,7 +179,7 @@ async function kqDeleteTarget(id_target, id_kelompok) {
 
 // Satu baris denyut anggota (admin): tanggal terakhir + status aktif/mandek + ingatkan WA
 function _kqDenyutRow(a) {
-  const p = (_kqData.pantau && _kqData.pantau[a.id_murid]) || null;
+  const p = (window._kqData.pantau && window._kqData.pantau[a.id_murid]) || null;
   const last = p && p.tanggal_terakhir;
   const hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
   const menunggu = p ? (p.jumlah_menunggu || 0) : 0;
@@ -220,7 +220,7 @@ function kqNudgeAnggota(nama, hp) {
 
 function _kqRenderNewForm() {
   const assigned  = _kqAssignedMurid(null);
-  const available = _kqData.murid.filter(m => !assigned[m.id_murid]);
+  const available = window._kqData.murid.filter(m => !assigned[m.id_murid]);
   const wrap = document.getElementById('kqNewAnggotaList');
   if (!available.length) {
     wrap.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Semua murid sudah tergabung di kelompok partner</div>';
@@ -243,7 +243,7 @@ async function kqCreateKelompok() {
   const anggota = checks.map(c => ({ id_murid: c.value, nama_murid: c.getAttribute('data-nama') }));
   const nama = (document.getElementById('kqNewNama').value || '').trim() || null;
   try {
-    await window.HQ.AdminAPI.createKelompokPartner(_kqData.id_halaqah, nama, anggota);
+    await window.HQ.AdminAPI.createKelompokPartner(window._kqData.id_halaqah, nama, anggota);
     toast('Kelompok partner dibuat', 'ok');
     document.getElementById('kqNewNama').value = '';
     onKqHalaqahChange();
@@ -254,7 +254,7 @@ async function kqRenameKelompok(id_kelompok, nama) {
   try {
     await window.HQ.AdminAPI.updateKelompokPartner(id_kelompok, { nama_kelompok: nama.trim() || null });
     toast('Nama kelompok disimpan', 'ok');
-    const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+    const k = window._kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
     if (k) k.nama_kelompok = nama.trim() || null;
   } catch(e) { toast('Gagal: '+e.message,'err'); }
 }
@@ -270,7 +270,7 @@ async function kqDeleteKelompok(id_kelompok) {
 }
 
 async function kqRemoveAnggota(id_kelompok, id_murid) {
-  const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  const k = window._kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
   if (!k) return;
   const anggotaBaru = (k.anggota_kelompok_partner||[])
     .filter(a => a.id_murid !== id_murid)
@@ -290,7 +290,7 @@ async function kqAddAnggota(id_kelompok, selectEl) {
   const id_murid = selectEl.value;
   if (!id_murid) return;
   const nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
-  const k = _kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
+  const k = window._kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
   if (!k) return;
   const anggotaBaru = (k.anggota_kelompok_partner||[])
     .map(a => ({ id_murid: a.id_murid, nama_murid: a.nama_murid }))

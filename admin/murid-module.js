@@ -817,7 +817,8 @@ async function loadKelasPengganti() {
 // ══════════════════════════════════════════
 //  KELOMPOK PARTNER QIYAM
 // ══════════════════════════════════════════
-var _kqData = { id_halaqah: null, kelompok: [], murid: [] };
+// State bersama dgn kelompok-module.js (IIFE terpisah) → wajib global, bukan var lokal.
+window._kqData = window._kqData || { id_halaqah: null, kelompok: [], murid: [] };
 
 async function loadKelompokQiyam() {
   const qiyamHalaqah = allHalaqah.filter(h => h.level === 'Level Qiyam');
@@ -849,7 +850,7 @@ async function onKqHalaqahChange() {
       const resP = await window.HQ.AdminAPI.getPantauKelompokPartner(id_halaqah);
       (resP.data || []).forEach(p => { pantauMap[p.id_murid] = p; });
     } catch(e) { pantauMap = {}; }
-    _kqData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[], pantau: pantauMap };
+    window._kqData = { id_halaqah, kelompok: (resK.data||[]).filter(k => k.status === 'aktif'), murid: resM.data||[], pantau: pantauMap };
     _kqRenderList();
     _kqRenderNewForm();
     _kqRenderMenunggu();
@@ -863,7 +864,7 @@ async function onKqHalaqahChange() {
 // id_murid yang sudah jadi anggota kelompok aktif lain (selain id_kelompok yang dikecualikan)
 function _kqAssignedMurid(excludeKelompok) {
   const ids = {};
-  _kqData.kelompok.forEach(k => {
+  window._kqData.kelompok.forEach(k => {
     if (k.id_kelompok === excludeKelompok) return;
     (k.anggota_kelompok_partner||[]).forEach(a => { ids[a.id_murid] = true; });
   });
@@ -872,11 +873,11 @@ function _kqAssignedMurid(excludeKelompok) {
 
 function _kqRenderList() {
   const listWrap = document.getElementById('kqListWrap');
-  if (!_kqData.kelompok.length) {
+  if (!window._kqData.kelompok.length) {
     listWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3)">Belum ada kelompok partner di halaqah ini</div>';
     return;
   }
-  listWrap.innerHTML = _kqData.kelompok.map(k => {
+  listWrap.innerHTML = window._kqData.kelompok.map(k => {
     const anggota = k.anggota_kelompok_partner || [];
     const chips = anggota.map(a =>
       `<span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 4px 4px 0">`
@@ -886,7 +887,7 @@ function _kqRenderList() {
     ).join('');
 
     const assigned  = _kqAssignedMurid(k.id_kelompok);
-    const available = _kqData.murid.filter(m =>
+    const available = window._kqData.murid.filter(m =>
       !anggota.some(a => a.id_murid === m.id_murid) && !assigned[m.id_murid]
     );
     const addOpts = '<option value="">+ Tambah anggota...</option>' + available.map(m =>
