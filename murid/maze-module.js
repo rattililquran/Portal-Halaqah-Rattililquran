@@ -298,20 +298,26 @@
     if (!mounted) return;
     if (state !== "play") return;
     if (!lastT) lastT = t;
-    var dt = Math.min((t - lastT) / 1000, 0.05); lastT = t;
-    if (frightenTimer > 0) frightenTimer -= dt;
-    if (invuln > 0) invuln -= dt;
-    if (flash > 0) flash -= dt;
-    if (msgTimer > 0) msgTimer -= dt;
+    // Gerak BERBASIS WAKTU: pakai elapsed nyata (dibatasi 0.25s utk hindari lompatan
+    // besar setelah tab tak aktif), lalu dibagi sub-langkah kecil agar tetap akurat &
+    // tak tembus dinding meski FPS rendah. Ini menghilangkan "gerak lambat/telat".
+    var frameDt = Math.min((t - lastT) / 1000, 0.25); lastT = t;
+    if (frightenTimer > 0) frightenTimer -= frameDt;
+    if (invuln > 0) invuln -= frameDt;
+    if (flash > 0) flash -= frameDt;
+    if (msgTimer > 0) msgTimer -= frameDt;
 
-    var pcOld = Math.round(player.fx), prOld = Math.round(player.fy);
-    moveEntity(player, dt, true);
-    var pcNew = Math.round(player.fx), prNew = Math.round(player.fy);
-    if ((pcNew !== pcOld || prNew !== prOld) && aligned(player.fx) && aligned(player.fy)) onReachTile(pcNew, prNew);
-    for (var i = 0; i < monsters.length; i++) moveEntity(monsters[i], dt, false);
+    var STEP = 0.02, nSteps = Math.max(1, Math.min(16, Math.ceil(frameDt / STEP))), sub = frameDt / nSteps;
+    for (var s = 0; s < nSteps && state === "play"; s++) {
+      var pcOld = Math.round(player.fx), prOld = Math.round(player.fy);
+      moveEntity(player, sub, true);
+      var pcNew = Math.round(player.fx), prNew = Math.round(player.fy);
+      if ((pcNew !== pcOld || prNew !== prOld) && aligned(player.fx) && aligned(player.fy)) onReachTile(pcNew, prNew);
+      for (var i = 0; i < monsters.length; i++) moveEntity(monsters[i], sub, false);
+    }
 
     var onPod = podUnderPlayer();
-    if (onPod >= 0 && onPod === dwellIdx) { dwellT += dt; if (dwellT >= DWELL_NEED) { dwellT = 0; dwellIdx = -1; answer(onPod); } }
+    if (onPod >= 0 && onPod === dwellIdx) { dwellT += frameDt; if (dwellT >= DWELL_NEED) { dwellT = 0; dwellIdx = -1; answer(onPod); } }
     else { dwellIdx = onPod; dwellT = 0; }
 
     if (invuln <= 0) {
@@ -527,13 +533,15 @@
     };
     window.addEventListener("keydown", _keyHandler, { passive: false });
 
-    canvas.addEventListener("touchstart", function (e) { var t = e.changedTouches[0]; _touchStart = { x: t.clientX, y: t.clientY }; }, { passive: true });
+    canvas.addEventListener("touchstart", function (e) { e.preventDefault(); var t = e.changedTouches[0]; _touchStart = { x: t.clientX, y: t.clientY }; }, { passive: false });
+    canvas.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
     canvas.addEventListener("touchend", function (e) {
+      e.preventDefault();
       if (!_touchStart) return; var t = e.changedTouches[0], dx = t.clientX - _touchStart.x, dy = t.clientY - _touchStart.y;
       if (Math.abs(dx) < 18 && Math.abs(dy) < 18) { handleDpadTap(t.clientX, t.clientY); _touchStart = null; return; }
       if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0); else setDir(0, dy > 0 ? 1 : -1);
       _touchStart = null;
-    }, { passive: true });
+    }, { passive: false });
     canvas.addEventListener("mousedown", function (e) { handleDpadTap(e.clientX, e.clientY); });
 
     _resizeHandler = function () { if (mounted) { layout(); if (state !== "play") render(); } };
