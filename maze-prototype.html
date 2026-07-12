@@ -91,23 +91,24 @@
 
   // ---------- Peta labirin (13 x 15) — koridor tak beraturan ala Pac-Man ----------
   // # dinding · . jalur+dot · 1-4 kotak jawaban · P pemain · G monster
-  // Labirin penuh loop (nol jalan buntu) — diverifikasi: setiap sel jalur punya >=2 jalan,
-  // tersambung penuh, simetris. Kotak jawaban (1234) di koridor tembus atas/bawah/kiri/kanan;
-  // salah-pilih saat sekadar lewat dicegah oleh mekanik "dwell" (harus berhenti sejenak).
+  // Labirin pola TAK BERATURAN (blok dinding beragam ukuran, tikungan acak) — namun tetap
+  // penuh loop: diverifikasi setiap sel jalur punya >=2 jalan, nol jalan buntu, tersambung
+  // penuh (104/104). Dibuat via generator "pulau acak + braiding + repair" (seed 40).
+  // Kotak jawaban (1234) di koridor tembus; salah-pilih saat lewat dicegah oleh "dwell".
   var MAZE = [
     "#############",
     "#.....1.....#",
-    "#.##.###.##.#",
-    "#.##.###.##.#",
-    "#.....G.....#",
-    "#.##.###.##.#",
-    "#.##.###.##.#",
-    "#4....P....2#",
-    "#.##.###.##.#",
-    "#.##.###.##.#",
-    "#...........#",
-    "#.##.###.##.#",
-    "#.##.###.##.#",
+    "#.#.##.#.##.#",
+    "#.#....#....#",
+    "#.#..#.#.##.#",
+    "#....#G.....#",
+    "#.##...##.#.#",
+    "#4....P...#2#",
+    "#.#.##.##...#",
+    "#.#.##......#",
+    "#...##.##.#.#",
+    "#.#.......#.#",
+    "#.#.##.#....#",
     "#.....3.....#",
     "#############"
   ];
