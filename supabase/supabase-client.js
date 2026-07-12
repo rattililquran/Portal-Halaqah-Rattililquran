@@ -4168,12 +4168,15 @@ var MuridAPI = {
     return { status: 'ok', data: jawaban };
   },
 
-  // Verifikasi guru per indikator (status_guru) untuk indikator milik murid
-  // sendiri — dipakai tab "Verifikasi Guru" di halaman Assessment Mandiri.
+  // Penilaian guru per indikator tajwid (status_guru) — BUKAN hasil "verifikasi"
+  // atas jawaban self-assessment murid, tapi nilai yang diinput guru langsung
+  // saat menutup sesi KBM Daurah (lihat guru/kbm-module.js: _daurahAssessmentMap
+  // -> simpanVerifikasiGuru saat "Selesaikan KBM"), persis seperti input
+  // nilai/adab/kamera. Dipakai halaman "Mutaba'ah Daurah" murid.
   // RLS "murid_rw_asmt_murid" (FOR ALL, id_murid = current_user_id()) sudah
   // mengizinkan murid membaca kolom ini di barisnya sendiri, tanpa perlu
   // policy baru.
-  getVerifikasiGuru: async function() {
+  getPenilaianGuru: async function() {
     var id_murid = _uid();
     var { data, error } = await _sb.from('assessment_murid').select('id_item, status_guru').eq('id_murid', id_murid);
     if (error) return { status: 'ok', data: {} };

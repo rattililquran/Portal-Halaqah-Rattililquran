@@ -4404,14 +4404,23 @@ html.theme-dark .materi-daurah-banner-title {
           <div class="page-sub">Ukur pemahamanmu sebelum sesi berikutnya.</div>
         </div>
       </div>
-      <div class="spp-jenis-tabs" id="asmtTabs" style="display:none">
-        <div class="spp-jenis-tab active" id="asmtTabSelf" onclick="switchAsmtTab('self')">📝 Isi Sendiri</div>
-        <div class="spp-jenis-tab" id="asmtTabGuru" onclick="switchAsmtTab('guru')">👨‍🏫 Verifikasi Guru</div>
-      </div>
       <div id="assessmentContent">
         <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
       </div>
-      <div id="assessmentGuruContent" style="display:none"></div>
+    </div>
+
+    <!-- ════ MUTABA'AH DAURAH ════ -->
+    <div class="page" id="page-mutabaah">
+      <div class="page-header">
+        <div class="page-header-ico">📋</div>
+        <div>
+          <div class="page-title">Mutaba'ah Daurah</div>
+          <div class="page-sub">Nilai tajwid dari Ustadz/Ustadzah selama KBM Daurah.</div>
+        </div>
+      </div>
+      <div id="mtbMuridContent">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
     </div>
 
     <!-- ════ SETORAN HAFALAN (TAHFIDZ) ════ -->
@@ -5879,6 +5888,11 @@ html.theme-dark .materi-daurah-banner-title {
       <button class="sidebar-item ico-purple" id="sidebarAssessmentBtn" onclick="closeSidebar();goPage('assessment')" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         Assessment Mandiri
+      </button>
+
+      <button class="sidebar-item ico-blue" id="sidebarMutabaahBtn" onclick="closeSidebar();goPage('mutabaah')" style="display:none">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
+        Mutaba'ah Daurah
       </button>
 
       <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('raport')" data-p="raport">
@@ -7671,6 +7685,7 @@ function goPage(name, swipeDir) {
   else if (name === 'password') { /* static page, no load needed */ }
   else if (name === 'panduan') { pdInitKetua(); }
   else if (name === 'saran') { populateSaranInfo(); }
+  else if (name === 'mutabaah') { loadMutabaahMurid(); }
   // BUG-10 fix: reset _sppLoaded agar data SPP selalu segar saat balik ke beranda
   if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
 }
@@ -7763,6 +7778,9 @@ async function loadDashboard() {
     // Assessment di sidebar — update visibility
     var sbAsmt2 = document.getElementById('sidebarAssessmentBtn');
     if (sbAsmt2) sbAsmt2.style.display = ['Level 1','Level 2','Tahsin Al-Fatihah'].includes(_level) ? 'flex' : 'none';
+    // Mutaba'ah Daurah — khusus murid daurah (level Tahsin Al-Fatihah)
+    var sbMtb = document.getElementById('sidebarMutabaahBtn');
+    if (sbMtb) sbMtb.style.display = (_level === 'Tahsin Al-Fatihah') ? 'flex' : 'none';
     var tLevel = ang.target_level || '';
     if (!tLevel && _level !== '–') {
       var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
@@ -10966,12 +10984,6 @@ var _assessmentLoading = false; // debounce flag cegah double-load
 
 var ASMT_VALID_LEVELS = ['Level 1', 'Level 2', 'Tahsin Al-Fatihah'];
 
-// ── Tab "Verifikasi Guru" — read-only, tampilkan status_guru per indikator
-// (info yang sebelumnya cuma bisa dilihat murid lewat Raport yang di-publish
-// admin, biasanya cuma sekali di akhir daurah — bukan live harian).
-var _asmtGuruData      = {};   // id_item -> status_guru
-var _asmtActiveHariGuru = null; // kategori ("Hari 1", dst) yang sedang dibuka
-
 async function loadAssessment() {
 var el = document.getElementById('assessmentContent');
 if (!el) return;
@@ -10980,11 +10992,11 @@ if (!el) return;
 if (!dashData) {
 if ((loadAssessment._retry = (loadAssessment._retry || 0) + 1) > 5) {
 loadAssessment._retry = 0;
-el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
-+ '<div class="empty-ttl">Gagal memuat — coba lagi</div></div>';
+el.innerHTML = '<div class="empty"><div class="empty-ico">\u274C</div>'
++ '<div class="empty-ttl">Gagal memuat \u2014 coba lagi</div></div>';
 return;
 }
-el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
+el.innerHTML = '<div class="empty"><div class="empty-ico">\u23f3</div>'
 + '<div class="empty-ttl">Memuat data...</div></div>';
 setTimeout(loadAssessment, 800);
 return;
@@ -10995,12 +11007,9 @@ loadAssessment._retry = 0; // reset counter setelah berhasil
   var level = (dashData.anggota && dashData.anggota.level) || '';
   _assessmentLevel = level;
 
-  var tabsEl = document.getElementById('asmtTabs');
-
   if (!ASMT_VALID_LEVELS.includes(level)) {
-    if (tabsEl) tabsEl.style.display = 'none';
     el.innerHTML = '<div class="asmnt-locked">'
-      + '<div style="font-size:48px;margin-bottom:12px">🎓</div>'
+      + '<div style="font-size:48px;margin-bottom:12px">\ud83c\udf93</div>'
       + '<div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px">Assessment tidak tersedia</div>'
       + '<div style="font-size:13px">Fitur ini hanya aktif untuk Level 1, Level 2, dan Tahsin Al-Fatihah.</div>'
       + '</div>';
@@ -11009,135 +11018,23 @@ loadAssessment._retry = 0; // reset counter setelah berhasil
 
   showLoad('Bismillah, memuat assessment...');
   try {
-    var [rItems, rJawaban, rGuru] = await Promise.allSettled([
+    var [rItems, rJawaban] = await Promise.allSettled([
       window.HQ.MuridAPI.getAssessmentItems(level),
-      window.HQ.MuridAPI.getAssessmentMurid(),
-      window.HQ.MuridAPI.getVerifikasiGuru()
+      window.HQ.MuridAPI.getAssessmentMurid()
     ]);
 
     _assessmentItems   = (rItems.status === 'fulfilled' && rItems.value.data) ? rItems.value.data : {};
     _assessmentJawaban = (rJawaban.status === 'fulfilled' && rJawaban.value.data) ? rJawaban.value.data : {};
-    _asmtGuruData       = (rGuru.status === 'fulfilled' && rGuru.value.data) ? rGuru.value.data : {};
     _assessmentDirty   = false;
 
-    if (tabsEl) tabsEl.style.display = 'flex';
     renderAssessment();
-    renderVerifikasiGuru();
   } catch(e) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div>'
+    el.innerHTML = '<div class="empty"><div class="empty-ico">\u274C</div>'
       + '<div class="empty-ttl">Gagal memuat assessment</div></div>';
   } finally {
     hideLoad();
   }
 }
-
-// Ganti tab "Isi Sendiri" <-> "Verifikasi Guru" di halaman Assessment Mandiri.
-function switchAsmtTab(tab) {
-  var self = document.getElementById('assessmentContent');
-  var guru = document.getElementById('assessmentGuruContent');
-  var tabSelf = document.getElementById('asmtTabSelf');
-  var tabGuru = document.getElementById('asmtTabGuru');
-  if (!self || !guru) return;
-  self.style.display = tab === 'self' ? 'block' : 'none';
-  guru.style.display = tab === 'guru' ? 'block' : 'none';
-  if (tabSelf) tabSelf.classList.toggle('active', tab === 'self');
-  if (tabGuru) tabGuru.classList.toggle('active', tab === 'guru');
-}
-
-// Tab read-only: status_guru per indikator, dikelompokkan per Hari dengan
-// chip buka/tutup — konsep sama dengan Mutaba'ah Daurah admin/guru, tapi
-// hanya utk indikator milik murid sendiri. TIDAK menampilkan kehadiran/sesi
-// (sudah ada di donat progress dashboard) — murni status verifikasi guru.
-function renderVerifikasiGuru() {
-  var el = document.getElementById('assessmentGuruContent');
-  if (!el || !_assessmentItems) return;
-
-  var levelData = _assessmentItems[_assessmentLevel] || {};
-  var kategoriList = Object.keys(levelData); // sudah terurut Hari->urutan dari getAssessmentItems
-  if (!kategoriList.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div>'
-      + '<div class="empty-ttl">Belum ada poin assessment untuk level ini</div></div>';
-    return;
-  }
-
-  var allItems = kategoriList.reduce(function(acc, k) { return acc.concat(levelData[k]); }, []);
-  var totalItems = allItems.length;
-  var terverifikasi = allItems.filter(function(item) { return !!_asmtGuruData[item.id_item]; }).length;
-
-  if (!terverifikasi) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
-      + '<div class="empty-ttl">Belum ada verifikasi dari guru</div>'
-      + '<div class="empty-sub">Guru akan menandai pemahamanmu per poin setelah menyimak setoranmu.</div></div>';
-    return;
-  }
-
-  if (!_asmtActiveHariGuru || kategoriList.indexOf(_asmtActiveHariGuru) === -1) {
-    _asmtActiveHariGuru = kategoriList[0];
-  }
-
-  var html = '';
-  html += '<div class="asmnt-legend">'
-    + '<div class="asmnt-legend-item"><span>✅</span> Paham</div>'
-    + '<div class="asmnt-legend-item"><span>🟡</span> Ragu</div>'
-    + '<div class="asmnt-legend-item"><span>❌</span> Belum</div>'
-    + '<div class="asmnt-legend-item"><span>⚪</span> Belum dinilai</div>'
-    + '</div>';
-
-  html += '<div class="asmnt-progress">'
-    + '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">'
-    + '<span>Terverifikasi Guru</span><span>' + terverifikasi + ' / ' + totalItems + '</span>'
-    + '</div>'
-    + '<div class="asmnt-prog-bar"><div class="asmnt-prog-fill" style="width:' + Math.round(terverifikasi / totalItems * 100) + '%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div>'
-    + '</div>';
-
-  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">'
-    + kategoriList.map(function(kat) {
-        var items = levelData[kat];
-        var doneKat = items.filter(function(it) { return !!_asmtGuruData[it.id_item]; }).length;
-        var active = kat === _asmtActiveHariGuru;
-        return '<button type="button" onclick="asmtToggleHariGuru(\'' + escJs(kat) + '\')" '
-          + 'style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:100px;cursor:pointer;white-space:nowrap;border:1px solid ' + (active ? 'var(--blue)' : 'var(--border)') + ';background:' + (active ? 'var(--blue)' : 'transparent') + ';color:' + (active ? '#fff' : 'var(--text-2)') + '">'
-          + esc(kat) + ' <span style="opacity:.75">(' + doneKat + '/' + items.length + ')</span></button>';
-      }).join('')
-    + '</div>';
-
-  html += '<div id="asmtGuruListWrap">' + _renderVerifikasiGuruItems(levelData[_asmtActiveHariGuru] || []) + '</div>';
-
-  el.innerHTML = html;
-}
-
-function _renderVerifikasiGuruItems(items) {
-  var statusMeta = {
-    paham: { text: 'Paham', color: 'var(--green)', bg: 'rgba(16,185,129,.12)', icon: '✅' },
-    ragu:  { text: 'Ragu-ragu', color: 'var(--amber)', bg: 'rgba(245,158,11,.12)', icon: '🟡' },
-    belum: { text: 'Belum Paham', color: 'var(--red)', bg: 'rgba(239,68,68,.12)', icon: '❌' }
-  };
-  return items.map(function(item) {
-    var sg = _asmtGuruData[item.id_item] || null;
-    var meta = statusMeta[sg] || { text: 'Belum Dinilai', color: 'var(--text-3)', bg: 'var(--border)', icon: '⚪' };
-    var selfAns = _assessmentJawaban[item.id_item];
-    var selfIco = selfAns === 'paham' ? '✅' : selfAns === 'ragu' ? '🟡' : selfAns === 'belum' ? '❌' : '—';
-    return '<div class="asmt-item" style="flex-direction:column;align-items:stretch;gap:8px">'
-      + '<div class="asmnt-item-text">'
-      + (item.teks_arab ? '<div class="asmnt-arab">' + esc(item.teks_arab) + '</div>' : '')
-      + '<div class="asmnt-latin">' + esc(item.teks_latin) + '</div>'
-      + (item.keterangan ? '<div class="asmnt-ket">' + esc(item.keterangan) + '</div>' : '')
-      + '</div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-      + '<span style="font-size:10.5px;color:var(--text-3)">Penilaianmu: ' + selfIco + '</span>'
-      + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:30px;background:' + meta.bg + ';color:' + meta.color + ';font-size:11px;font-weight:800;white-space:nowrap">'
-      + meta.icon + ' ' + meta.text
-      + '</span>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-function asmtToggleHariGuru(kat) {
-  _asmtActiveHariGuru = kat;
-  renderVerifikasiGuru();
-}
-
 function renderAssessment() {
   var el = document.getElementById('assessmentContent');
   if (!el || !_assessmentItems) return;
@@ -11242,6 +11139,151 @@ async function saveAssessment() {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan Assessment'; }
   }
+}
+
+// ══════════════════════════════════════════
+//  MUTABA'AH DAURAH (murid) — read-only
+// ══════════════════════════════════════════
+// Nilai tajwid per indikator yang diinput Ustadz/Ustadzah saat menutup KBM
+// Daurah (guru/kbm-module.js: _daurahAssessmentMap -> simpanVerifikasiGuru),
+// dikelompokkan per Hari dengan chip buka/tutup — konsep sama seperti
+// Mutaba'ah Daurah di portal admin/guru, tapi hanya indikator murid sendiri.
+// TIDAK menampilkan kehadiran/sesi (sudah ada di donat progress dashboard).
+var _mtbMuridItems      = null;  // { "Hari 1": [items], ... } — sudah terurut
+var _mtbMuridSelf       = {};    // id_item -> status (penilaian sendiri, dari Assessment Mandiri)
+var _mtbMuridGuru       = {};    // id_item -> status_guru (nilai dari KBM)
+var _mtbMuridActiveHari = null;
+
+async function loadMutabaahMurid() {
+  var el = document.getElementById('mtbMuridContent');
+  if (!el) return;
+
+  if (!dashData) {
+    if ((loadMutabaahMurid._retry = (loadMutabaahMurid._retry || 0) + 1) > 5) {
+      loadMutabaahMurid._retry = 0;
+      el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">Gagal memuat — coba lagi</div></div>';
+      return;
+    }
+    setTimeout(loadMutabaahMurid, 800);
+    return;
+  }
+  loadMutabaahMurid._retry = 0;
+
+  var level = (dashData.anggota && dashData.anggota.level) || '';
+  if (level !== 'Tahsin Al-Fatihah') {
+    el.innerHTML = '<div class="asmnt-locked">'
+      + '<div style="font-size:48px;margin-bottom:12px">🕌</div>'
+      + '<div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px">Mutaba\'ah Daurah tidak tersedia</div>'
+      + '<div style="font-size:13px">Fitur ini khusus murid program Daurah Al-Fatihah.</div>'
+      + '</div>';
+    return;
+  }
+
+  showLoad('Bismillah, memuat Mutaba\'ah Daurah...');
+  try {
+    var [rItems, rSelf, rGuru] = await Promise.allSettled([
+      window.HQ.MuridAPI.getAssessmentItems(level),
+      window.HQ.MuridAPI.getAssessmentMurid(),
+      window.HQ.MuridAPI.getPenilaianGuru()
+    ]);
+    var grouped = (rItems.status === 'fulfilled' && rItems.value.data) ? rItems.value.data : {};
+    _mtbMuridItems = grouped[level] || {};
+    _mtbMuridSelf  = (rSelf.status === 'fulfilled' && rSelf.value.data) ? rSelf.value.data : {};
+    _mtbMuridGuru  = (rGuru.status === 'fulfilled' && rGuru.value.data) ? rGuru.value.data : {};
+    renderMutabaahMurid();
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">Gagal memuat Mutaba\'ah Daurah</div></div>';
+  } finally {
+    hideLoad();
+  }
+}
+
+function renderMutabaahMurid() {
+  var el = document.getElementById('mtbMuridContent');
+  if (!el || !_mtbMuridItems) return;
+
+  var kategoriList = Object.keys(_mtbMuridItems); // sudah terurut Hari->urutan dari getAssessmentItems
+  if (!kategoriList.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada indikator Daurah</div></div>';
+    return;
+  }
+
+  var allItems = kategoriList.reduce(function(acc, k) { return acc.concat(_mtbMuridItems[k]); }, []);
+  var totalItems = allItems.length;
+  var dinilai = allItems.filter(function(item) { return !!_mtbMuridGuru[item.id_item]; }).length;
+
+  if (!dinilai) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div>'
+      + '<div class="empty-ttl">Belum ada nilai dari Ustadz/Ustadzah</div>'
+      + '<div class="empty-sub">Nilai akan muncul di sini setiap kali KBM Daurah selesai ditutup.</div></div>';
+    return;
+  }
+
+  if (!_mtbMuridActiveHari || kategoriList.indexOf(_mtbMuridActiveHari) === -1) {
+    _mtbMuridActiveHari = kategoriList[0];
+  }
+
+  var html = '';
+  html += '<div class="asmnt-legend">'
+    + '<div class="asmnt-legend-item"><span>✅</span> Paham</div>'
+    + '<div class="asmnt-legend-item"><span>🟡</span> Ragu</div>'
+    + '<div class="asmnt-legend-item"><span>❌</span> Belum</div>'
+    + '<div class="asmnt-legend-item"><span>⚪</span> Belum dinilai</div>'
+    + '</div>';
+
+  html += '<div class="asmnt-progress">'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">'
+    + '<span>Sudah Dinilai</span><span>' + dinilai + ' / ' + totalItems + '</span>'
+    + '</div>'
+    + '<div class="asmnt-prog-bar"><div class="asmnt-prog-fill" style="width:' + Math.round(dinilai / totalItems * 100) + '%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div>'
+    + '</div>';
+
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">'
+    + kategoriList.map(function(kat) {
+        var items = _mtbMuridItems[kat];
+        var doneKat = items.filter(function(it) { return !!_mtbMuridGuru[it.id_item]; }).length;
+        var active = kat === _mtbMuridActiveHari;
+        return '<button type="button" onclick="mtbMuridToggleHari(\'' + escJs(kat) + '\')" '
+          + 'style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:100px;cursor:pointer;white-space:nowrap;border:1px solid ' + (active ? 'var(--blue)' : 'var(--border)') + ';background:' + (active ? 'var(--blue)' : 'transparent') + ';color:' + (active ? '#fff' : 'var(--text-2)') + '">'
+          + esc(kat) + ' <span style="opacity:.75">(' + doneKat + '/' + items.length + ')</span></button>';
+      }).join('')
+    + '</div>';
+
+  html += '<div id="mtbMuridListWrap">' + _renderMtbMuridItems(_mtbMuridItems[_mtbMuridActiveHari] || []) + '</div>';
+
+  el.innerHTML = html;
+}
+
+function _renderMtbMuridItems(items) {
+  var statusMeta = {
+    paham: { text: 'Paham', color: 'var(--green)', bg: 'rgba(16,185,129,.12)', icon: '✅' },
+    ragu:  { text: 'Ragu-ragu', color: 'var(--amber)', bg: 'rgba(245,158,11,.12)', icon: '🟡' },
+    belum: { text: 'Belum Paham', color: 'var(--red)', bg: 'rgba(239,68,68,.12)', icon: '❌' }
+  };
+  return items.map(function(item) {
+    var sg = _mtbMuridGuru[item.id_item] || null;
+    var meta = statusMeta[sg] || { text: 'Belum Dinilai', color: 'var(--text-3)', bg: 'var(--border)', icon: '⚪' };
+    var selfAns = _mtbMuridSelf[item.id_item];
+    var selfIco = selfAns === 'paham' ? '✅' : selfAns === 'ragu' ? '🟡' : selfAns === 'belum' ? '❌' : '—';
+    return '<div class="asmt-item" style="flex-direction:column;align-items:stretch;gap:8px">'
+      + '<div class="asmnt-item-text">'
+      + (item.teks_arab ? '<div class="asmnt-arab">' + esc(item.teks_arab) + '</div>' : '')
+      + '<div class="asmnt-latin">' + esc(item.teks_latin) + '</div>'
+      + (item.keterangan ? '<div class="asmnt-ket">' + esc(item.keterangan) + '</div>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<span style="font-size:10.5px;color:var(--text-3)">Penilaianmu sendiri: ' + selfIco + '</span>'
+      + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:30px;background:' + meta.bg + ';color:' + meta.color + ';font-size:11px;font-weight:800;white-space:nowrap">'
+      + meta.icon + ' ' + meta.text
+      + '</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function mtbMuridToggleHari(kat) {
+  _mtbMuridActiveHari = kat;
+  renderMutabaahMurid();
 }
 
 // ══════════════════════════════════════════
