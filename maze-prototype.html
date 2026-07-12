@@ -91,28 +91,118 @@
 
   // ---------- Peta labirin (13 x 15) — koridor tak beraturan ala Pac-Man ----------
   // # dinding · . jalur+dot · 1-4 kotak jawaban · P pemain · G monster
-  // Labirin pola TAK BERATURAN (blok dinding beragam ukuran, tikungan acak) — namun tetap
-  // penuh loop: diverifikasi setiap sel jalur punya >=2 jalan, nol jalan buntu, tersambung
-  // penuh (104/104). Dibuat via generator "pulau acak + braiding + repair" (seed 40).
-  // Kotak jawaban (1234) di koridor tembus; salah-pilih saat lewat dicegah oleh "dwell".
-  var MAZE = [
-    "#############",
-    "#.....1.....#",
-    "#.#.##.#.##.#",
-    "#.#....#....#",
-    "#.#..#.#.##.#",
-    "#....#G.....#",
-    "#.##...##.#.#",
-    "#4....P...#2#",
-    "#.#.##.##...#",
-    "#.#.##......#",
-    "#...##.##.#.#",
-    "#.#.......#.#",
-    "#.#.##.#....#",
-    "#.....3.....#",
-    "#############"
+  // BANYAK PETA — labirin pola TAK BERATURAN (blok dinding beragam ukuran, tikungan acak),
+  // namun tiap peta tetap penuh loop: diverifikasi nol jalan buntu, tersambung penuh, semua
+  // kotak jawaban derajat >=2. Dibuat via generator "pulau acak + braiding + repair" (seed
+  // 40,57,82,110,112,7). Prototipe berganti peta tiap soal; di portal, tiap maze_level bisa
+  // punya map_data unik / diacak. Semua peta wajib berukuran sama (13x15).
+  var MAZES = [
+    [
+      "#############",
+      "#.....1.....#",
+      "#.#.##.#.##.#",
+      "#.#....#....#",
+      "#.#..#.#.##.#",
+      "#....#G.....#",
+      "#.##...##.#.#",
+      "#4....P...#2#",
+      "#.#.##.##...#",
+      "#.#.##......#",
+      "#...##.##.#.#",
+      "#.#.......#.#",
+      "#.#.##.#....#",
+      "#.....3.....#",
+      "#############"
+    ],
+    [
+      "#############",
+      "#.....1.....#",
+      "#..#.#......#",
+      "#......##.#.#",
+      "#.##.#.##.#.#",
+      "#.##..G.....#",
+      "#.##..P.###.#",
+      "#4...##....2#",
+      "#.#..##.##..#",
+      "#.#..##.....#",
+      "#.#.....##..#",
+      "#....#..##..#",
+      "#....#..##..#",
+      "#.....3.....#",
+      "#############"
+    ],
+    [
+      "#############",
+      "#.....1.....#",
+      "#.#..###.##.#",
+      "#.#.........#",
+      "#....##.###.#",
+      "#....##G###.#",
+      "#.#..##.....#",
+      "#4#...P..#.2#",
+      "#...##......#",
+      "#.......##..#",
+      "#...##..##..#",
+      "#.#.##......#",
+      "#.#.##.##.#.#",
+      "#.....3.....#",
+      "#############"
+    ],
+    [
+      "#############",
+      "#.....1.....#",
+      "#.#...##.##.#",
+      "#........##.#",
+      "#....#.#.##.#",
+      "#..#.#G.....#",
+      "#......##...#",
+      "#4.##.P##..2#",
+      "#......##...#",
+      "#.........#.#",
+      "#.##.#.##...#",
+      "#.##.#....#.#",
+      "#.##.#.##.#.#",
+      "#.....3.....#",
+      "#############"
+    ],
+    [
+      "#############",
+      "#.....1.....#",
+      "#.....##.##.#",
+      "#..##.##.##.#",
+      "#..##.##....#",
+      "#.....G.....#",
+      "#......##.#.#",
+      "#4.###P##..2#",
+      "#......##.#.#",
+      "#.###.....#.#",
+      "#.......#...#",
+      "#.....#.....#",
+      "#.###.#..##.#",
+      "#.....3.....#",
+      "#############"
+    ],
+    [
+      "#############",
+      "#.....1.....#",
+      "#..#........#",
+      "#.....#.#.#.#",
+      "#.#...G...#.#",
+      "#....##.#.#.#",
+      "#.##.##.#...#",
+      "#4...##P...2#",
+      "#.......#...#",
+      "#.#.#.#.....#",
+      "#.......#.#.#",
+      "#.........#.#",
+      "#..##.##....#",
+      "#.....3.....#",
+      "#############"
+    ]
   ];
+  var MAZE = MAZES[0];
   var COLS = MAZE[0].length, ROWS = MAZE.length;
+  var mapIdx = 0;
 
   // ---------- Canvas / layout ----------
   var canvas = document.getElementById("game");
@@ -204,6 +294,23 @@
     return true;
   }
 
+  // Ganti ke peta berikutnya (semua peta berukuran sama). Reposisi pemain & monster,
+  // hitung ulang dot. Jumlah/tipe monster dipertahankan (tidak dibuat ulang).
+  function switchMaze(idx) {
+    mapIdx = idx % MAZES.length;
+    MAZE = MAZES[mapIdx];
+    scanMap();                         // perbarui PODS, PLAYER_SPAWN, GHOST_SPAWN, dots
+    dotsLeft = 0;
+    for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) if (dots[r][c]) dotsLeft++;
+    dwellIdx = -1; dwellT = 0;
+    player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0;
+    var gs = GHOST_SPAWN.length ? GHOST_SPAWN[0] : { c: 6, r: 7 };
+    for (var i = 0; i < monsters.length; i++) {
+      monsters[i].fx = gs.c; monsters[i].fy = gs.r; monsters[i].spawn = { c: gs.c, r: gs.r };
+      monsters[i].dx = 0; monsters[i].dy = 0;
+    }
+  }
+
   function loadQuestion() {
     var qd = QUESTIONS[qIndex];
     // acak penempatan opsi ke pod 0..3 (rotasi berdasarkan indeks — tanpa Math.random agar deterministik)
@@ -215,6 +322,7 @@
   }
 
   function startGame() {
+    mapIdx = 0; MAZE = MAZES[0];
     scanMap();
     score = 0; lives = 3; qIndex = 0; frightenTimer = 0; invuln = 0;
     // hitung total dot
@@ -347,8 +455,7 @@
       qIndex++;
       if (qIndex >= QUESTIONS.length) { win(); return; }
       loadQuestion();
-      // dorong pemain kembali ke tengah agar tak langsung sentuh pod lagi
-      player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0;
+      switchMaze(qIndex);   // benar -> pindah ke peta berikutnya (banyak peta)
     } else {
       loseLife("Kurang tepat!", true);
     }
@@ -474,7 +581,9 @@
     }
     // progres soal
     ctx.fillStyle = "#9fb0e0"; ctx.font = "800 12px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("Soal " + (qIndex + 1) + " / " + QUESTIONS.length, W / 2, HUD_H / 2);
+    ctx.fillText("Soal " + (qIndex + 1) + " / " + QUESTIONS.length, W / 2, HUD_H / 2 - 8);
+    ctx.fillStyle = "#c9a84a"; ctx.font = "700 10px sans-serif";
+    ctx.fillText("Peta " + (mapIdx + 1) + " / " + MAZES.length, W / 2, HUD_H / 2 + 8);
   }
   function drawHeart(x, y, s, col) {
     ctx.save(); ctx.translate(x, y); ctx.fillStyle = col; ctx.beginPath();
