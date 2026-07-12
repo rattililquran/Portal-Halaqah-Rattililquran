@@ -89,22 +89,24 @@
       opsi: ["Tenggorokan", "Lidah", "Dua bibir", "Rongga"], benar: 0 }
   ];
 
-  // ---------- Peta labirin (11 x 13) ----------
+  // ---------- Peta labirin (13 x 15) — koridor tak beraturan ala Pac-Man ----------
   // # dinding · . jalur+dot · 1-4 kotak jawaban · P pemain · G monster
   var MAZE = [
-    "###########",
-    "#1.......2#",
-    "#.#.#.#.#.#",
-    "#....G....#",
-    "#.#.#.#.#.#",
-    "#.........#",
-    "#.#.#.#.#.#",
-    "#.........#",
-    "#.#.#.#.#.#",
-    "#....P....#",
-    "#.#.#.#.#.#",
-    "#3.......4#",
-    "###########"
+    "#############",
+    "#1....#....2#",
+    "#.###.#.###.#",
+    "#.#.......#.#",
+    "#.#.##.##.#.#",
+    "#...#...#...#",
+    "###.#.#.#.###",
+    "#.....G.....#",
+    "#.###.#.###.#",
+    "#...#P..#...#",
+    "#.#.##.##.#.#",
+    "#.#.......#.#",
+    "#.###.#.###.#",
+    "#3....#....4#",
+    "#############"
   ];
   var COLS = MAZE[0].length, ROWS = MAZE.length;
 
@@ -448,27 +450,45 @@
   }
 
   function drawMaze() {
-    for (var r = 0; r < ROWS; r++) {
-      for (var c = 0; c < COLS; c++) {
-        if (MAZE[r][c] === "#") {
-          var x = OX + c * TILE, y = OY + r * TILE;
-          // isi gelap
-          ctx.fillStyle = "#0c1330";
-          roundRect(x + 1, y + 1, TILE - 2, TILE - 2, 4); ctx.fill();
-          // garis emas tepi (hanya sisi menghadap jalur)
-          ctx.strokeStyle = "rgba(201,168,74,0.55)"; ctx.lineWidth = 2;
-          ctx.strokeRect(x + 2, y + 2, TILE - 4, TILE - 4);
-        }
+    var mw = TILE * COLS, mh = TILE * ROWS;
+    // 1) latar jalur biru (dengan gradasi lembut)
+    var g = ctx.createLinearGradient(OX, OY, OX, OY + mh);
+    g.addColorStop(0, "#123f86"); g.addColorStop(1, "#0b2350");
+    ctx.fillStyle = g;
+    ctx.fillRect(OX, OY, mw, mh);
+
+    // 2) blok dinding hitam (menyatu, tanpa celah)
+    ctx.fillStyle = "#04060e";
+    for (var r = 0; r < ROWS; r++)
+      for (var c = 0; c < COLS; c++)
+        if (MAZE[r][c] === "#")
+          ctx.fillRect(OX + c * TILE, OY + r * TILE, TILE + 0.6, TILE + 0.6);
+
+    // 3) garis emas membingkai koridor (di batas dinding↔jalur, sudut membulat)
+    var lw = Math.max(2, TILE * 0.11);
+    ctx.strokeStyle = "#e6bb3e"; ctx.lineWidth = lw;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    var ins = lw * 0.55 + 1;
+    ctx.beginPath();
+    for (var r2 = 0; r2 < ROWS; r2++) {
+      for (var c2 = 0; c2 < COLS; c2++) {
+        if (MAZE[r2][c2] !== "#") continue;
+        var x = OX + c2 * TILE, y = OY + r2 * TILE, x2 = x + TILE, y2 = y + TILE;
+        if (!isWall(c2, r2 - 1)) { ctx.moveTo(x + ins, y + ins); ctx.lineTo(x2 - ins, y + ins); }
+        if (!isWall(c2, r2 + 1)) { ctx.moveTo(x + ins, y2 - ins); ctx.lineTo(x2 - ins, y2 - ins); }
+        if (!isWall(c2 - 1, r2)) { ctx.moveTo(x + ins, y + ins); ctx.lineTo(x + ins, y2 - ins); }
+        if (!isWall(c2 + 1, r2)) { ctx.moveTo(x2 - ins, y + ins); ctx.lineTo(x2 - ins, y2 - ins); }
       }
     }
+    ctx.stroke();
   }
 
   function drawDots() {
-    ctx.fillStyle = "rgba(201,168,74,0.7)";
+    ctx.fillStyle = "#f6e7b2";
     for (var r = 0; r < ROWS; r++) {
       for (var c = 0; c < COLS; c++) {
         if (dots[r] && dots[r][c]) {
-          ctx.beginPath(); ctx.arc(tx(c), ty(r), Math.max(2, TILE * 0.09), 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.arc(tx(c), ty(r), Math.max(1.8, TILE * 0.08), 0, 7); ctx.fill();
         }
       }
     }
@@ -479,20 +499,24 @@
     for (var p = 0; p < PODS.length; p++) {
       var pod = PODS[p]; var cx = tx(pod.c), cy = ty(pod.r);
       var optIdx = podMap[p]; var label = qd.opsi[optIdx];
-      var w = TILE * 2.6, h = TILE * 1.15;
+      var w = TILE * 3.0, h = TILE * 1.5;
       var x = Math.max(OX + 3, Math.min(cx - w / 2, OX + TILE * COLS - w - 3));
-      var y = cy - h / 2;
-      // kotak
-      ctx.fillStyle = "rgba(10,16,45,0.92)";
-      roundRect(x, y, w, h, 9); ctx.fill();
-      ctx.strokeStyle = "#c9a84a"; ctx.lineWidth = 2; roundRect(x, y, w, h, 9); ctx.stroke();
-      // nomor
-      ctx.fillStyle = "#c9a84a"; ctx.font = "900 11px sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top";
-      ctx.fillText("●", x + 8, y + 7);
-      // teks jawaban (wrap sederhana)
+      var y = Math.max(OY + 3, Math.min(cy - h / 2, OY + TILE * ROWS - h - 3));
+      // kotak hitam (gaya referensi)
+      ctx.fillStyle = "#04060e";
+      roundRect(x, y, w, h, 8); ctx.fill();
+      ctx.strokeStyle = "rgba(230,187,62,0.55)"; ctx.lineWidth = 1.5; roundRect(x, y, w, h, 8); ctx.stroke();
+      // teks jawaban (wrap ke 2 baris bila panjang)
       ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      var fs = label.length > 11 ? 11 : 13; ctx.font = "800 " + fs + "px sans-serif";
-      ctx.fillText(label, x + w / 2, y + h / 2);
+      var words = label.split(" ");
+      if (words.length > 1 && label.length > 8) {
+        var fs = 13; ctx.font = "800 " + fs + "px sans-serif";
+        ctx.fillText(words[0], x + w / 2, y + h / 2 - fs * 0.62);
+        ctx.fillText(words.slice(1).join(" "), x + w / 2, y + h / 2 + fs * 0.62);
+      } else {
+        var fs1 = label.length > 11 ? 12 : 14; ctx.font = "800 " + fs1 + "px sans-serif";
+        ctx.fillText(label, x + w / 2, y + h / 2);
+      }
     }
   }
 
