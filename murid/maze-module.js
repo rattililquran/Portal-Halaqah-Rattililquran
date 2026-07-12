@@ -242,14 +242,26 @@
   function escapeHtml(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
   // ---------- Popup baca soal ----------
+  var _introTimer = null;
+  function clearIntroTimer() { if (_introTimer) { clearInterval(_introTimer); _introTimer = null; } }
   function showIntro() {
     state = "intro";
     var qd = QUESTIONS[qIndex];
     root.querySelector("#mzIntroNum").textContent = "Soal " + (qIndex + 1) + " / " + QUESTIONS.length;
     root.querySelector("#mzIntroQ").textContent = qd.q;
     show("mzStart", false); show("mzOver", false); show("mzWin", false); show("mzIntro", true);
+    // Mulai otomatis setelah 5 detik (bisa dipercepat dengan mengetuk tombol)
+    var btn = root.querySelector("#mzIntroBtn"), left = 5;
+    clearIntroTimer();
+    btn.textContent = "Mulai! ▶ (" + left + ")";
+    _introTimer = setInterval(function () {
+      left--;
+      if (left <= 0) { beginPlay(); return; }
+      btn.textContent = "Mulai! ▶ (" + left + ")";
+    }, 1000);
   }
   function beginPlay() {
+    clearIntroTimer();
     ensureAudio();
     show("mzIntro", false);
     graceTimer = (qIndex === 0 ? 1.6 : 1.2);
@@ -694,6 +706,7 @@
   }
   function close() {
     if (!mounted) return; mounted = false; state = "closed";
+    clearIntroTimer();
     if (_keyHandler) window.removeEventListener("keydown", _keyHandler);
     if (_resizeHandler) window.removeEventListener("resize", _resizeHandler);
     if (root && root.parentNode) root.parentNode.removeChild(root);
