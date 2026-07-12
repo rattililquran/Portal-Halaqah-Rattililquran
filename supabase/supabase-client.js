@@ -1190,6 +1190,34 @@ var GuruAPI = {
     return { status: 'ok', data: kbm, pr_submitted_count: prRes.count || 0 };
   },
 
+  // Guard raport: raport adalah SNAPSHOT beku di tabel `raport` (bukan live),
+  // jadi mengedit presensi/nilai setelah raport digenerate TIDAK otomatis
+  // memperbarui raport. Fungsi ini mendeteksi apakah sesi (id_kbm) jatuh dalam
+  // periode yang raportnya SUDAH dibuat untuk halaqah tsb — dipakai klien untuk
+  // memperingatkan guru agar men-generate ulang. Baca-saja, tak mengubah apa pun.
+  cekRaportTerdampak: async function(id_kbm) {
+    var { data: kbm } = await _sb.from('kbm_log')
+      .select('tanggal_pertemuan, id_halaqah').eq('id_kbm', id_kbm).maybeSingle();
+    if (!kbm || !kbm.tanggal_pertemuan || !kbm.id_halaqah) return { status: 'ok', ada: false };
+    var tgl = kbm.tanggal_pertemuan;
+    // Periode yang rentang tanggalnya memuat tanggal sesi (abaikan periode tanpa rentang)
+    var { data: periodes } = await _sb.from('periode')
+      .select('id_periode, nama_periode')
+      .not('tanggal_mulai', 'is', null).not('tanggal_selesai', 'is', null)
+      .lte('tanggal_mulai', tgl).gte('tanggal_selesai', tgl);
+    if (!periodes || !periodes.length) return { status: 'ok', ada: false };
+    var periodeIds = periodes.map(function(p) { return p.id_periode; });
+    // Raport halaqah ini di periode2 tsb (RLS guru_all_raport membatasi ke halaqah miliknya)
+    var { data: raports } = await _sb.from('raport')
+      .select('id_periode, status').eq('id_halaqah', kbm.id_halaqah).in('id_periode', periodeIds);
+    if (!raports || !raports.length) return { status: 'ok', ada: false };
+    var published = raports.some(function(r) { return r.status === 'published'; });
+    var terdampak = {}; raports.forEach(function(r) { terdampak[r.id_periode] = 1; });
+    var nama = periodes.filter(function(p) { return terdampak[p.id_periode]; })
+      .map(function(p) { return p.nama_periode; }).join(', ');
+    return { status: 'ok', ada: true, published: published, nama_periode: nama, jumlah: raports.length };
+  },
+
   // ── Fase 2: server staging draft nilai KBM (kbm_draft) ──
   // JSON inert; TIDAK menggantikan commit final. Melempar error bila gagal
   // (mis. tabel belum dibuat) → pemanggil di klien menangkap & no-op (fallback

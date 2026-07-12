@@ -6743,6 +6743,8 @@ async function simpanEditPresensi() {
   });
   if (!presensi.length) return toast('Tidak ada data presensi','err');
 
+  const _kbmId = editPresensiKBMId;
+  let _ok = false;
   showLoad('Bismillah, menyimpan perubahan presensi...');
   try {
     const tanggal_pertemuan = document.getElementById('editPresensiTanggal').value;
@@ -6763,8 +6765,29 @@ async function simpanEditPresensi() {
     if (rSel) loadRiwayat();
     const mSel = document.getElementById('muridHalaqahSel').value;
     if (mSel) loadMurid();
+    _ok = true;
   } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
+  // Presensi memengaruhi raport → ingatkan bila raport periode terkait sudah dibuat
+  if (_ok) await _warnRaportTerdampak(_kbmId);
+}
+
+// Guard raport: peringatkan guru bila edit yang baru disimpan berada di periode
+// yang raportnya sudah dibuat (snapshot beku → perlu generate ulang). Dipakai
+// oleh edit presensi (dan nanti edit nilai). Sengaja "silent-fail": kegagalan
+// cek tidak boleh mengganggu alur simpan yang sudah sukses.
+async function _warnRaportTerdampak(id_kbm) {
+  try {
+    if (!id_kbm) return;
+    const r = await window.HQ.GuruAPI.cekRaportTerdampak(id_kbm);
+    if (!r || !r.ada) return;
+    const html = r.published
+      ? 'Raport periode <b>' + esc(r.nama_periode) + '</b> sudah <b>DITERBITKAN</b>.<br><br>'
+        + 'Perubahan ini <b>belum masuk</b> ke raport murid sampai Anda <b>generate &amp; terbitkan ulang</b> raport periode tersebut.'
+      : 'Raport periode <b>' + esc(r.nama_periode) + '</b> sudah dibuat (draft).<br><br>'
+        + 'Klik <b>Generate ulang</b> pada halaman Raport agar perubahan ini ikut terhitung.';
+    await window.showAlertModal('', { title: '⚠️ Perhatikan Raport', html: html, okText: 'Saya Mengerti', danger: !!r.published });
+  } catch(e) { /* diamkan — jangan ganggu alur simpan */ }
 }
 
 // ── Tab Edit KBM: Presensi ⇄ Jurnal & Latihan ──
