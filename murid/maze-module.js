@@ -213,6 +213,48 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
+  // ---------- Audio SFX ringan (prosedural, tanpa file) ----------
+  var _audio = null, _muted = false, _lastDot = 0;
+  function ensureAudio() {
+    try { if (!_audio) _audio = new (window.AudioContext || window.webkitAudioContext)(); if (_audio && _audio.state === "suspended") _audio.resume(); } catch (e) { }
+  }
+  function beep(freq, dur, type, vol, slideTo) {
+    if (_muted || !_audio) return;
+    try {
+      var o = _audio.createOscillator(), g = _audio.createGain(), t0 = _audio.currentTime;
+      o.type = type || "sine"; o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.linearRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol || 0.15, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      o.connect(g); g.connect(_audio.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) { }
+  }
+  function sfx(name) {
+    if (_muted || !_audio) return;
+    if (name === "correct") { beep(523, 0.12, "sine", 0.2); setTimeout(function () { beep(784, 0.2, "sine", 0.2); }, 110); }
+    else if (name === "wrong") { beep(210, 0.28, "sawtooth", 0.16, 90); }
+    else if (name === "hit") { beep(150, 0.32, "square", 0.18, 60); }
+    else if (name === "scare") { beep(680, 0.1, "triangle", 0.14, 440); }
+    else if (name === "start") { beep(440, 0.1, "sine", 0.14); }
+    else if (name === "dot") { var n = (performance.now ? performance.now() : 0); if (n - _lastDot > 70) { _lastDot = n; beep(900, 0.03, "square", 0.05); } }
+  }
+  function escapeHtml(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // ---------- Popup baca soal ----------
+  function showIntro() {
+    state = "intro";
+    var qd = QUESTIONS[qIndex];
+    root.querySelector("#mzIntroNum").textContent = "Soal " + (qIndex + 1) + " / " + QUESTIONS.length;
+    root.querySelector("#mzIntroQ").textContent = qd.q;
+    root.querySelector("#mzIntroOpts").innerHTML = qd.opsi.map(function (o) { return '<div class="mz-opt">' + escapeHtml(o) + "</div>"; }).join("");
+    show("mzStart", false); show("mzOver", false); show("mzWin", false); show("mzIntro", true);
+  }
+  function beginPlay() {
+    ensureAudio();
+    show("mzIntro", false);
+    graceTimer = (qIndex === 0 ? 1.6 : 1.2);
+    state = "play"; lastT = 0; requestAnimationFrame(loop); sfx("start");
+  }
+
   // ---------- Input ----------
   function setDir(dx, dy) { _lastDir = dx + "," + dy; if (state !== "play") return; player.ndx = dx; player.ndy = dy; _inputs++; }
   // Berhenti TEPAT di petak (snap ke pusat terdekat) agar bisa mangkal di kotak jawaban.
@@ -221,12 +263,13 @@
     player.fx = Math.round(player.fx); player.fy = Math.round(player.fy);
     player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
   }
-  function dpadRect() { var size = Math.min(BANNER_H * 1.15, W * 0.32); return { cx: W - size / 2 - 14, cy: H - BANNER_H / 2, s: size }; }
+  function dpadRect() { var size = Math.min(BANNER_H * 1.4, W * 0.44); return { cx: W - size / 2 - 12, cy: H - BANNER_H / 2, s: size }; }
   function handleDpadTap(x, y) {
     _taps++;
     var d = dpadRect(), rx = x - d.cx, ry = y - d.cy, half = d.s / 2;
-    if (Math.abs(rx) > half || Math.abs(ry) > half) return;
-    if (Math.hypot(rx, ry) < d.s * 0.16) { centerButton(); return; }  // tengah = berhenti / konfirmasi
+    if (Math.abs(rx) > half || Math.abs(ry) > half) return;              // di luar d-pad
+    var cz = d.s * 0.22;                                                 // zona tengah lebih lebar
+    if (Math.abs(rx) <= cz && Math.abs(ry) <= cz) { centerButton(); return; }  // tengah = berhenti / konfirmasi
     if (Math.abs(rx) > Math.abs(ry)) setDir(rx > 0 ? 1 : -1, 0); else setDir(0, ry > 0 ? 1 : -1);
   }
 
@@ -278,7 +321,7 @@
   }
 
   // ---------- Logika ----------
-  function onReachTile(cc, cr) { if (dots[cr] && dots[cr][cc]) { dots[cr][cc] = false; score += 10; dotsLeft--; } }
+  function onReachTile(cc, cr) { if (dots[cr] && dots[cr][cc]) { dots[cr][cc] = false; score += 10; dotsLeft--; sfx("dot"); } }
   function podUnderPlayer() {
     var pc = Math.round(player.fx), pr = Math.round(player.fy);
     for (var p = 0; p < PODS.length; p++) if (PODS[p] && PODS[p].c === pc && PODS[p].r === pr && podMap[p] >= 0) return p;
@@ -289,16 +332,16 @@
     if (optIdx < 0) return;
     var qd = QUESTIONS[qIndex];
     if (optIdx === qd.benar) {
-      score += 100; frightenTimer = 4.5;
+      score += 100; frightenTimer = 4.5; sfx("correct");
       if (monsters.length > MON_START) monsters.pop();
       flash = 0.35; setMsg("✔ Benar! +100", "#3ddc84");
       qIndex++;
       if (qIndex >= QUESTIONS.length) { win(); return; }
-      loadQuestion(); switchMaze(qIndex);
+      loadQuestion(); switchMaze(qIndex); showIntro();   // popup soal berikutnya
     } else { loseLife("Kurang tepat!", true); }
   }
   function loseLife(text, fromWrong) {
-    lives--; setMsg(text || "Terkena monster!", "#ff5c6c"); flash = 0.4;
+    lives--; setMsg(text || "Terkena monster!", "#ff5c6c"); flash = 0.4; sfx(fromWrong ? "wrong" : "hit");
     if (lives <= 0) { over(); return; }
     invuln = 1.6; graceTimer = 1.2;                // reposisi + jeda singkat
     player.fx = PLAYER_SPAWN.c; player.fy = PLAYER_SPAWN.r; player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
@@ -338,11 +381,8 @@
     dotsLeft = 0;
     for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) if (dots[r][c]) dotsLeft++;
     resetPositions(); loadQuestion();
-    graceTimer = 2.0;                              // jeda "Bersiap" di awal (monster diam)
     startTime = performance.now();
-    state = "play";
-    show("mzStart", false); show("mzOver", false); show("mzWin", false);
-    lastT = 0; requestAnimationFrame(loop);
+    showIntro();                                   // popup baca soal dulu, baru main
   }
 
   // ---------- Loop ----------
@@ -378,7 +418,7 @@
       for (var j = 0; j < monsters.length; j++) {
         var m = monsters[j];
         if (Math.hypot(m.fx - player.fx, m.fy - player.fy) < 0.55) {
-          if (frightenTimer > 0) { score += 50; m.fx = m.spawn.c; m.fy = m.spawn.r; setMsg("Monster kabur! +50", "#8ad"); }
+          if (frightenTimer > 0) { score += 50; m.fx = m.spawn.c; m.fy = m.spawn.r; setMsg("Monster kabur! +50", "#8ad"); sfx("scare"); }
           else { loseLife("Terkena monster!", false); }
           break;
         }
@@ -528,14 +568,14 @@
   function drawDpad() {
     var d = dpadRect(), arms = [[0, -1], [0, 1], [-1, 0], [1, 0]];
     for (var i = 0; i < arms.length; i++) {
-      var a = arms[i], bx = d.cx + a[0] * d.s * 0.3, by = d.cy + a[1] * d.s * 0.3, bs = d.s * 0.24;
+      var a = arms[i], bx = d.cx + a[0] * d.s * 0.37, by = d.cy + a[1] * d.s * 0.37, bs = d.s * 0.28;
       var active = player && player.dx === a[0] && player.dy === a[1];
-      ctx.fillStyle = active ? "rgba(201,168,74,0.9)" : "rgba(255,255,255,0.12)"; roundRect(bx - bs / 2, by - bs / 2, bs, bs, 6); ctx.fill();
-      ctx.fillStyle = active ? "#1a1200" : "rgba(255,255,255,0.65)"; ctx.font = "900 " + Math.round(bs * 0.6) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = active ? "rgba(201,168,74,0.95)" : "rgba(255,255,255,0.14)"; roundRect(bx - bs / 2, by - bs / 2, bs, bs, 7); ctx.fill();
+      ctx.fillStyle = active ? "#1a1200" : "rgba(255,255,255,0.7)"; ctx.font = "900 " + Math.round(bs * 0.6) + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText(i === 0 ? "▲" : i === 1 ? "▼" : i === 2 ? "◀" : "▶", bx, by);
     }
     // tombol tengah = BERHENTI, atau ✓ KONFIRMASI bila diam di kotak jawaban
-    var bs2 = d.s * 0.24, stopped = player && player.dx === 0 && player.dy === 0;
+    var bs2 = d.s * 0.26, stopped = player && player.dx === 0 && player.dy === 0;
     var canConfirm = stopped && podUnderPlayer() >= 0;
     ctx.fillStyle = canConfirm ? "rgba(61,220,132,0.95)" : (stopped ? "rgba(239,68,68,0.9)" : "rgba(255,255,255,0.14)");
     roundRect(d.cx - bs2 / 2, d.cy - bs2 / 2, bs2, bs2, 6); ctx.fill();
@@ -566,13 +606,16 @@
       "#mzRoot .mz-emoji{font-size:60px;}" +
       "#mzRoot .mz-badge{font-size:22px;font-weight:900;color:#f2cf5b;}" +
       "#mzRoot .mz-stat{font-size:14px;color:#c8d4f5;}" +
-      "#mzRoot .mz-hint{font-size:11.5px;color:#6b7aa8;line-height:1.7;}";
+      "#mzRoot .mz-hint{font-size:11.5px;color:#6b7aa8;line-height:1.7;}" +
+      "#mzRoot .mz-opt{background:rgba(255,255,255,.07);border:1.5px solid #2a3860;border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:#dbe4ff;}" +
+      "#mzRoot .mz-mute{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:62px;z-index:5;width:40px;height:40px;border-radius:12px;border:1.5px solid #33406e;background:rgba(10,14,42,.7);color:#9fb0e0;font-size:18px;cursor:pointer;}";
     var st = document.createElement("style"); st.id = "mzStyle"; st.textContent = css; document.head.appendChild(st);
   }
   function buildDOM() {
     root = document.createElement("div"); root.id = "mzRoot";
     root.innerHTML =
       '<canvas id="mzCanvas"></canvas>' +
+      '<button class="mz-mute" id="mzMuteBtn" aria-label="Suara">🔊</button>' +
       '<button class="mz-x" id="mzCloseBtn" aria-label="Tutup">✕</button>' +
       '<div class="mz-screen" id="mzStart">' +
         '<div class="mz-brand">Rattīlil Qur\'an</div>' +
@@ -580,6 +623,13 @@
         '<div class="mz-sub" id="mzStartSub">Memuat…</div>' +
         '<button class="mz-btn" id="mzStartBtn">Mulai Bermain</button>' +
         '<div class="mz-hint">Geser / tombol panah untuk bergerak · ■ (tengah) untuk berhenti<br>Diam di kotak jawaban lalu tekan ✓ untuk memilih (berhenti ≠ menjawab)</div>' +
+      '</div>' +
+      '<div class="mz-screen" id="mzIntro" style="display:none;">' +
+        '<div class="mz-brand" id="mzIntroNum">Soal 1 / 5</div>' +
+        '<div class="mz-title" id="mzIntroQ" style="font-size:19px;max-width:340px;">?</div>' +
+        '<div id="mzIntroOpts" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;"></div>' +
+        '<div class="mz-hint">Jawaban tersebar di labirin. Temukan yang benar, berhenti di kotaknya, lalu tekan ✓.</div>' +
+        '<button class="mz-btn" id="mzIntroBtn">Mulai! ▶</button>' +
       '</div>' +
       '<div class="mz-screen" id="mzOver" style="display:none;">' +
         '<div class="mz-emoji">💫</div><div class="mz-title" style="font-size:24px;">Nyawa Habis</div>' +
@@ -597,10 +647,14 @@
     document.body.appendChild(root);
     canvas = root.querySelector("#mzCanvas"); ctx = canvas.getContext("2d");
 
-    root.querySelector("#mzStartBtn").onclick = startGame;
+    root.querySelector("#mzStartBtn").onclick = function () { ensureAudio(); startGame(); };
     root.querySelector("#mzRetryBtn").onclick = startGame;
     root.querySelector("#mzAgainBtn").onclick = startGame;
+    root.querySelector("#mzIntroBtn").onclick = beginPlay;
     root.querySelector("#mzCloseBtn").onclick = close;
+    root.querySelector("#mzMuteBtn").onclick = function () {
+      _muted = !_muted; this.textContent = _muted ? "🔇" : "🔊"; if (!_muted) ensureAudio();
+    };
 
     _keyHandler = function (e) {
       var k = e.key, d = null;
