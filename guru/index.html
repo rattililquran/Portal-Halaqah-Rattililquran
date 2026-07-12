@@ -6859,13 +6859,51 @@ function simpanEditModal() {
   return simpanEditPresensi();
 }
 
-// ── Tab Nilai (Paket 3a: KBM Reguler) ──
-// Opsi harus persis sama dengan form capture live (adab/kamera) agar konsisten.
+// ── Tab Nilai (Paket 3a: KBM Reguler, 3b: Micro Teaching) ──
+// Opsi harus persis sama dengan form capture live agar konsisten.
 const _EN_ADAB   = [['','— Pilih —'],['Baik','😊 Baik'],['Butuh Perhatian','⚠️ Butuh Perhatian']];
 const _EN_KAMERA = [['','— Pilih —'],['kamera terbuka','📷 kamera terbuka'],['kamera sering buka tutup','🟡 kamera sering buka tutup'],['kamera tertutup','❌ kamera tertutup']];
+// Micro Teaching: kriteria + bobot & rumus skor HARUS sama dengan KRITERIA_MT di
+// kbm-module.js (skor = Σ(val×bobot)×25, hanya jika kelima kriteria terisi).
+const _EN_MT_KRITERIA = [
+  { id:'penguasaan',  label:'Penguasaan Materi', bobot:0.25 },
+  { id:'penyampaian', label:'Cara Penyampaian',  bobot:0.25 },
+  { id:'tajwid',      label:'Kualitas Tajwid',   bobot:0.20 },
+  { id:'interaksi',   label:'Interaksi Kelas',   bobot:0.15 },
+  { id:'waktu',       label:'Manajemen Waktu',   bobot:0.15 },
+];
+const _EN_MT_OPT = [['','— Pilih —'],['4','Sangat Baik (SB)'],['3','Baik (B)'],['2','Cukup (C)'],['1','Perlu Perbaikan (PP)']];
 
 function _enOpts(list, cur) {
   return list.map(function(o){ return '<option value="'+esc(o[0])+'"'+(o[0]===(cur||'')?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('');
+}
+
+// Parse rubrik Micro Teaching dari koreksi_tahsin. null jika bukan pembicara/tak dinilai.
+function _enParseRubrik(koreksi) {
+  if (!koreksi) return null;
+  let o; try { o = JSON.parse(koreksi); } catch(e) { return null; }
+  if (!o || typeof o !== 'object') return null;
+  if (o.absent) return { absent: true };
+  const has = _EN_MT_KRITERIA.some(function(k){ return k.id in o; });
+  return has ? o : null;
+}
+
+function _enMtScore(vals) {
+  let total = 0, filled = 0;
+  _EN_MT_KRITERIA.forEach(function(k){ const v = vals[k.id]; if (v) { total += parseInt(v) * k.bobot; filled++; } });
+  return filled === _EN_MT_KRITERIA.length ? Math.round(total * 25) : null;
+}
+
+function _enMtRecalc(mid) {
+  const vals = {};
+  _EN_MT_KRITERIA.forEach(function(k){ const el = document.getElementById('enMt-'+mid+'-'+k.id); vals[k.id] = el ? el.value : ''; });
+  const sc = _enMtScore(vals);
+  const span = document.getElementById('enMtScore-'+mid);
+  if (span) span.textContent = sc === null ? 'Belum lengkap' : (sc + ' / 100');
+}
+
+function _enHalaqahId() {
+  return editPresensiHalaqah || (_editNilaiData && _editNilaiData[0] && _editNilaiData[0].id_halaqah) || '';
 }
 
 async function loadEditNilai() {
@@ -6886,16 +6924,17 @@ async function loadEditNilai() {
 function renderEditNilai() {
   const body = document.getElementById('editNilaiBody');
   const data = _editNilaiData || [];
-  // Paket 3a hanya menangani KBM Reguler. Jenis lain (Qiyam/Micro Teaching/Daurah)
-  // punya struktur nilai berbeda → belum didukung (menyusul Paket 3b/3c/3d).
-  if (_editNilaiJenis !== 'KBM Reguler') {
-    body.innerHTML = '<div style="background:var(--bg-2);border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;font-size:12.5px;color:var(--text-2);text-align:center">'
-      + 'ℹ️ Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.<br>Saat ini baru <b>KBM Reguler</b> yang bisa diedit nilainya.'
-      + '</div>';
-    return;
-  }
-  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+  if (_editNilaiJenis === 'Micro Teaching') { renderEditNilaiMT(body, data); return; }
+  if (_editNilaiJenis === 'KBM Reguler')    { renderEditNilaiReguler(body, data); return; }
+  // Qiyam & jenis lain: belum didukung (menyusul Paket 3c). Daurah memakai jalur
+  // 'KBM Reguler' untuk adab/kamera; 7 indikatornya diedit di halaman Assessment Rekap.
+  body.innerHTML = '<div style="background:var(--bg-2);border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;font-size:12.5px;color:var(--text-2);text-align:center">'
+    + 'ℹ️ Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.'
+    + '</div>';
+}
 
+function renderEditNilaiReguler(body, data) {
+  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
   body.innerHTML = data.map(function(n){
     const status = String(n.status_hadir||'H').toUpperCase();
     const nama = esc(n.nama_murid || n.id_murid);
@@ -6925,10 +6964,51 @@ function renderEditNilai() {
   }).join('');
 }
 
-async function simpanEditNilai() {
-  if (!_editNilaiLoaded) { toast('Data nilai belum termuat','err'); return; }
-  if (_editNilaiJenis !== 'KBM Reguler') { toast('Edit nilai jenis sesi ini belum didukung','err'); return; }
+function renderEditNilaiMT(body, data) {
+  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+  body.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">Hanya murid yang dinilai sebagai <b>pembicara</b> pada sesi ini yang dapat diedit.</div>'
+    + data.map(function(n){
+    const status = String(n.status_hadir||'H').toUpperCase();
+    const nama = esc(n.nama_murid || n.id_murid);
+    const badge = (typeof hadirBadge === 'function') ? hadirBadge(status) : status;
+    const rubrik = _enParseRubrik(n.koreksi_tahsin);
+    // Hanya pembicara yang dinilai (punya rubrik valid) yang editable — jaga
+    // semantik "pembicara" agar tak sengaja menilai murid yang bukan pembicara.
+    if (status === 'I' || status === 'A' || !rubrik || rubrik.absent) {
+      const ket = (status === 'I') ? '🟡 Izin — tidak dinilai'
+        : (status === 'A') ? '🔴 Alpa — tidak dinilai'
+        : 'Bukan pembicara pada sesi ini';
+      return '<div class="prow" style="align-items:center;margin-bottom:8px">'
+        + '<div><div class="prow-name">'+nama+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+ket+'</div></div>'
+        + '<div>'+badge+'</div></div>';
+    }
+    const mid = esc(n.id_murid);
+    const sels = _EN_MT_KRITERIA.map(function(k){
+      const cur = (rubrik[k.id] != null && rubrik[k.id] !== '') ? String(rubrik[k.id]) : '';
+      return '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">'+esc(k.label)+'</label>'
+        + '<select class="fc" id="enMt-'+mid+'-'+k.id+'" onchange="_enMtRecalc(\''+mid+'\')" style="font-size:13px">'+_enOpts(_EN_MT_OPT, cur)+'</select></div>';
+    }).join('');
+    const curScore = _enMtScore(rubrik);
+    return '<div class="card" data-en-mt-mid="'+mid+'" style="margin-bottom:10px;padding:12px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
+      + sels
+      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+      + '<textarea class="fc" id="enMtCat-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.catatan_murid||'')+'</textarea></div>'
+      + '<div style="font-size:12px;font-weight:700;color:var(--blue-d)">Skor: <span id="enMtScore-'+mid+'">'+(curScore===null?'Belum lengkap':(curScore+' / 100'))+'</span></div>'
+      + '</div>';
+  }).join('');
+}
 
+function simpanEditNilai() {
+  if (!_editNilaiLoaded) { toast('Data nilai belum termuat','err'); return; }
+  if (_editNilaiJenis === 'Micro Teaching') return _simpanEditNilaiMT();
+  if (_editNilaiJenis === 'KBM Reguler')    return _simpanEditNilaiReguler();
+  toast('Edit nilai jenis sesi ini belum didukung','err');
+}
+
+function _simpanEditNilaiReguler() {
   // Kumpulkan hanya murid yang punya kartu (H/T). Pertahankan `nilai` lama (Reguler tak pakai).
   const byId = {};
   (_editNilaiData || []).forEach(function(n){ byId[n.id_murid] = n; });
@@ -6945,12 +7025,44 @@ async function simpanEditNilai() {
       catatan_murid : document.getElementById('enCatatan-'+mid).value.trim(),
     });
   });
-  if (!nilai_list.length) { toast('Tidak ada murid untuk dinilai','err'); return; }
+  return _commitEditNilai(nilai_list);
+}
 
-  // id_halaqah ikut ditulis pada upsert nilai — pastikan valid (jangan sampai
-  // menimpa dengan string kosong). Sumber autoritatif: baris nilai yang dimuat.
-  const idHalaqah = editPresensiHalaqah
-    || (_editNilaiData && _editNilaiData[0] && _editNilaiData[0].id_halaqah) || '';
+async function _simpanEditNilaiMT() {
+  const byId = {};
+  (_editNilaiData || []).forEach(function(n){ byId[n.id_murid] = n; });
+  const nilai_list = [];
+  let incomplete = 0;
+  document.querySelectorAll('#editNilaiBody [data-en-mt-mid]').forEach(function(card){
+    const mid = card.getAttribute('data-en-mt-mid');
+    const vals = {};
+    _EN_MT_KRITERIA.forEach(function(k){ const el = document.getElementById('enMt-'+mid+'-'+k.id); vals[k.id] = el ? el.value : ''; });
+    const score = _enMtScore(vals);
+    if (score === null) incomplete++;
+    const cat = document.getElementById('enMtCat-'+mid);
+    nilai_list.push({
+      id_murid      : mid,
+      nilai         : score,                    // Σ(val×bobot)×25, null bila belum lengkap
+      adab          : '',                        // MT tak pakai adab/kamera (konsisten capture)
+      kamera_murid  : '',
+      koreksi_tahsin: JSON.stringify(vals),      // rubrik 5 kriteria
+      catatan_murid : cat ? cat.value.trim() : '',
+    });
+  });
+  if (!nilai_list.length) { toast('Tidak ada pembicara untuk dinilai','err'); return; }
+  if (incomplete > 0) {
+    const ok = await showConfirm(incomplete + ' murid belum lengkap kelima kriterianya sehingga skornya kosong. Tetap simpan?',
+      { title: 'Sebagian Belum Lengkap', okText: 'Ya, Simpan' });
+    if (!ok) return;
+  }
+  return _commitEditNilai(nilai_list);
+}
+
+// Commit bersama untuk edit nilai Reguler & Micro Teaching (batch upsert nilai_kbm).
+async function _commitEditNilai(nilai_list) {
+  if (!nilai_list.length) { toast('Tidak ada murid untuk dinilai','err'); return; }
+  // id_halaqah ikut ditulis pada upsert — pastikan valid (jangan menimpa dgn kosong).
+  const idHalaqah = _enHalaqahId();
   if (!idHalaqah) { toast('Data halaqah tidak lengkap, silakan muat ulang','err'); return; }
 
   const _kbmId = editPresensiKBMId;
