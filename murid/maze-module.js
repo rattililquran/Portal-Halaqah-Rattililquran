@@ -37,14 +37,16 @@
   var MAZES = FALLBACK_MAZES, MAZE = MAZES[0], QUESTIONS = FALLBACK_QUESTIONS.slice();
   var COLS = 13, ROWS = 15, activeLevel = null, savedMsg = "";
   var TILE = 32, OX = 0, OY = 0, HUD_H = 0, BANNER_H = 0, W = 0, H = 0, DPR = 1;
-  var MON_START = 2, MON_MAX = 4, MON_SPEED = 3.6;
+  // Kecepatan (petak/detik) — mudah disetel. Pemain harus > monster agar bisa kabur.
+  var PLAYER_SPEED = 3.8;
+  var MON_START = 2, MON_MAX = 4, MON_SPEED = 2.6;
   var state = "start"; // start | play | over | win
   var player, monsters = [], PODS = [], PLAYER_SPAWN = { c: 6, r: 7 }, GHOST_SPAWN = [], dots = null;
   var score = 0, lives = 3, qIndex = 0, podMap = [], mapIdx = 0;
   var frightenTimer = 0, invuln = 0, flash = 0, msg = "", msgColor = "#fff", msgTimer = 0;
   var lastT = 0, dotsLeft = 0, startTime = 0;
   var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45;
-  var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", _dbgNS = 0, DEBUG = true; // overlay diagnosa
+  var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", _dbgNS = 0, DEBUG = false; // overlay diagnosa
   var _keyHandler = null, _touchStart = null, _resizeHandler = null;
 
   // ---------- Util peta ----------
@@ -75,7 +77,7 @@
   }
   function resetPositions() {
     dwellIdx = -1; dwellT = 0;
-    player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, 5.2);
+    player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, PLAYER_SPEED);
     monsters = [];
     for (var i = 0; i < MON_START; i++) monsters.push(makeMonster(i));
   }
@@ -144,7 +146,7 @@
     MAZES = buildMazes(levels);
     if (activeLevel) {
       MON_START = Math.max(1, Math.min(MON_MAX, activeLevel.jumlah_monster || 2));
-      MON_SPEED = 3.6 * (activeLevel.kecepatan_monster || 1.0);
+      MON_SPEED = 2.6 * (activeLevel.kecepatan_monster || 1.0);
     }
     var sub = root.querySelector("#mzStartSub");
     if (sub) {
@@ -588,7 +590,7 @@
   function open() {
     if (mounted) return; mounted = true;
     injectStyles(); buildDOM(); layout(); scanMap();
-    try { player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, 5); loadQuestion(); render(); } catch (e) { }
+    try { player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, PLAYER_SPEED); loadQuestion(); render(); } catch (e) { }
     state = "start"; show("mzStart", true);
     boot();
   }
