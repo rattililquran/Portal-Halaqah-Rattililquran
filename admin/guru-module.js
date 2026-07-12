@@ -796,24 +796,62 @@ function getTipeSoalLabelAdmin(tipe) {
   }
 }
 
-function filterAndRenderAdminBankList() {
-  const container = document.getElementById('adminBankSoalListContainer');
-  if (!container) return;
+// ── Helper: kelompokkan & urutkan soal per level lalu per pertemuan ──
+const ADMIN_LEVEL_ORDER = ['Level 1', 'Level 2', 'Level 3', 'Level Qiyam', 'Micro Teaching', 'Tahsin Al-Fatihah'];
 
-  const filtered = _allAdminBankSoalRaw.filter(s => {
-    if (!_adminBankFilterText) return true;
-    const term = _adminBankFilterText.toLowerCase();
-    const matchText = (s.teks_soal || '').toLowerCase().includes(term);
-    const matchAuthor = (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
-    return matchText || matchAuthor;
+function _adminLevelRank(lvl) {
+  const i = ADMIN_LEVEL_ORDER.indexOf(lvl);
+  return i === -1 ? ADMIN_LEVEL_ORDER.length : i;
+}
+
+// Level utama sebuah soal = level tercentang yang paling awal di urutan kurikulum.
+function _adminPrimaryLevel(s) {
+  const lvls = (s.levels || []).slice();
+  if (!lvls.length) return null;
+  lvls.sort((a, b) => _adminLevelRank(a) - _adminLevelRank(b));
+  return lvls[0];
+}
+
+// Bagi daftar soal menjadi seksi per-level (urut kurikulum, "Tanpa Level" di akhir),
+// isi tiap seksi diurutkan naik berdasarkan rekomendasi pertemuan (null di bawah).
+function groupAdminSoalByLevel(list) {
+  const groups = {};
+  list.forEach(s => {
+    const key = _adminPrimaryLevel(s) || '__none__';
+    (groups[key] = groups[key] || []).push(s);
   });
+  return Object.keys(groups).sort((a, b) => {
+    if (a === '__none__') return 1;
+    if (b === '__none__') return -1;
+    const ra = _adminLevelRank(a), rb = _adminLevelRank(b);
+    return ra !== rb ? ra - rb : a.localeCompare(b);
+  }).map(k => {
+    const items = groups[k].slice().sort((x, y) => {
+      const px = x.rekomendasi_pertemuan_ke, py = y.rekomendasi_pertemuan_ke;
+      const nx = (px === null || px === undefined), ny = (py === null || py === undefined);
+      if (nx && ny) return 0;
+      if (nx) return 1;
+      if (ny) return -1;
+      return px - py;
+    });
+    return { level: k === '__none__' ? null : k, items };
+  });
+}
 
-  if (filtered.length === 0) {
-    container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
-    return;
-  }
+function adminLevelSectionHeader(level, count) {
+  const label = level || 'Tanpa Level';
+  const chip = level
+    ? 'background:rgba(16,185,129,0.12);color:#059669;'
+    : 'background:var(--bg-2);color:var(--text-3);';
+  return `
+    <div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px;grid-column:1/-1;">
+      <span style="font-size:12px;font-weight:800;${chip}padding:4px 12px;border-radius:100px;white-space:nowrap;">📗 ${esc(label)}</span>
+      <span style="font-size:10.5px;font-weight:700;color:var(--text-3);white-space:nowrap;">${count} soal</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>`;
+}
 
-  container.innerHTML = filtered.map((s, idx) => {
+function adminBankCardHtml(s, num) {
     const authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
     const typeLabel = getTipeSoalLabelAdmin(s.tipe_soal);
     const dateStr = s.created_at ? new Date(s.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'}) : '–';
@@ -843,14 +881,19 @@ function filterAndRenderAdminBankList() {
               </div>
               <!-- Question text -->
               <div style="font-size:13.5px;font-weight:700;color:var(--text);line-height:1.45;margin-top:4px;word-break:break-word;">
-                ${idx + 1}. ${esc(s.teks_soal)}
+                ${num}. ${esc(s.teks_soal)}
               </div>
             </div>
 
-            <!-- Delete Button -->
-            <button onclick="hapusSoalAdmin('${esc(s.id_soal)}')" class="btn-delete-soal-admin" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
-              🗑️
-            </button>
+            <!-- Actions -->
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+              <button onclick="openModalEditSoalAdmin('${escJs(s.id_soal)}')" class="btn-edit-soal-admin" style="background:var(--blue-l);color:var(--blue-d);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Edit Soal">
+                ✏️
+              </button>
+              <button onclick="hapusSoalAdmin('${escJs(s.id_soal)}')" class="btn-delete-soal-admin" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
+                🗑️
+              </button>
+            </div>
           </div>
         </div>
 
@@ -861,7 +904,339 @@ function filterAndRenderAdminBankList() {
         </div>
       </div>
     `;
-  }).join('');
+}
+
+function filterAndRenderAdminBankList() {
+  const container = document.getElementById('adminBankSoalListContainer');
+  if (!container) return;
+
+  const filtered = _allAdminBankSoalRaw.filter(s => {
+    if (!_adminBankFilterText) return true;
+    const term = _adminBankFilterText.toLowerCase();
+    const matchText = (s.teks_soal || '').toLowerCase().includes(term);
+    const matchAuthor = (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
+    return matchText || matchAuthor;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
+    return;
+  }
+
+  let html = '';
+  groupAdminSoalByLevel(filtered).forEach(g => {
+    html += adminLevelSectionHeader(g.level, g.items.length);
+    g.items.forEach((s, idx) => {
+      html += adminBankCardHtml(s, idx + 1);
+    });
+  });
+  container.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  EDITOR BANK SOAL (ADMIN) — parity penuh editor guru, memakai updateSoalFull
+// ══════════════════════════════════════════
+function closeAdminSoalModal() {
+  var modalEl = document.getElementById('adminSoalEditModalContainer');
+  if (modalEl) modalEl.innerHTML = '';
+}
+
+async function openModalEditSoalAdmin(id_soal) {
+  var modalEl = document.getElementById('adminSoalEditModalContainer');
+  if (!modalEl) return;
+
+  var editingSoal = null;
+  try {
+    showLoad('Memuat detail soal...');
+    var res = await window.HQ.QuizAPI.getSoalDetail(id_soal);
+    editingSoal = res.data;
+  } catch (err) {
+    hideLoad();
+    toast('Gagal memuat detail soal: ' + friendlyError(err), 'err');
+    return;
+  }
+  hideLoad();
+  if (!editingSoal) { toast('Soal tidak ditemukan', 'err'); return; }
+
+  var t = editingSoal.tipe_soal;
+  var sel = function(v) { return t === v ? 'selected' : ''; };
+
+  modalEl.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeAdminSoalModal()">
+      <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-size:16px;font-weight:800;color:var(--text)">📝 Edit Soal (Bank Soal)</h3>
+          <button onclick="closeAdminSoalModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+        </div>
+
+        <form onsubmit="submitFormEditSoalAdmin(event, '${escJs(editingSoal.id_soal)}')">
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TIPE SOAL *</label>
+            <select id="csTipe" disabled style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+              <option value="pilihan_ganda" ${sel('pilihan_ganda')}>Pilihan Ganda</option>
+              <option value="benar_salah" ${sel('benar_salah')}>Benar / Salah</option>
+              <option value="matching" ${sel('matching')}>Matching (Menjodohkan)</option>
+              <option value="audio" ${sel('audio')}>Audio / Suara</option>
+              <option value="teks_arab" ${sel('teks_arab')}>Teks Arab</option>
+              <option value="isian_singkat" ${sel('isian_singkat')}>Isian Singkat</option>
+            </select>
+          </div>
+
+          <!-- Levels Checkboxes -->
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">LEVEL HALAQAH *</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);">
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 1"> Level 1</label>
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 2"> Level 2</label>
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level 3"> Level 3</label>
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Level Qiyam"> Level Qiyam</label>
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Micro Teaching"> Micro Teaching</label>
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="csLevelCheck" value="Tahsin Al-Fatihah"> Tahsin Al-Fatihah</label>
+            </div>
+          </div>
+
+          <!-- Rekomendasi Pertemuan Ke- -->
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">REKOMENDASI PERTEMUAN KE (OPSIONAL)</label>
+            <input type="number" id="csRekomendasiPertemuan" placeholder="Contoh: 23" min="1" value="${editingSoal.rekomendasi_pertemuan_ke ? editingSoal.rekomendasi_pertemuan_ke : ''}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+          </div>
+
+          <!-- Default Durasi & Poin -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DEFAULT DURASI (DETIK)</label>
+              <input type="number" id="csDurasiDefault" placeholder="Kosongkan jika default kuis" min="0" value="${editingSoal.durasi_detik_default !== null && editingSoal.durasi_detik_default !== undefined ? editingSoal.durasi_detik_default : ''}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">DEFAULT POIN</label>
+              <input type="number" id="csPoinDefault" placeholder="Default: 10" min="0" value="${editingSoal.bobot_poin_default !== null && editingSoal.bobot_poin_default !== undefined ? editingSoal.bobot_poin_default : '10'}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS PERTANYAAN (LATIN) *</label>
+            <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;">${esc(editingSoal.teks_soal)}</textarea>
+          </div>
+
+          <div id="csTeksArabWrap" style="display:none;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <label style="font-size:11px;font-weight:700;color:var(--text-2);">TEKS ARAB</label>
+              <button type="button" onclick="adminApplyTajwidHighlight()" style="font-size:10.5px;font-weight:800;color:var(--blue-d);background:var(--blue-l);border:none;padding:3px 8px;border-radius:100px;cursor:pointer;">✨ Tandai Highlight Tajwid</button>
+            </div>
+            <textarea id="csTeksArab" rows="2" oninput="adminUpdateTeksArabPreview(this.value)" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;">${editingSoal.teks_arab ? esc(editingSoal.teks_arab) : ''}</textarea>
+            <div style="margin-top:6px;">
+              <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;margin-bottom:2px;">Pratinjau Teks Arab:</div>
+              <div id="csTeksArabPreview" style="font-family:'Amiri',serif;font-size:22px;direction:rtl;text-align:center;padding:12px;background:var(--bg-2);border-radius:var(--r-sm);border:1px solid var(--border);min-height:48px;word-break:break-word;">
+                <span style="color:var(--text-3);">–</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="csAudioWrap" style="display:none;margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">URL AUDIO (GDrive / YouTube / MP3 Direct)</label>
+            <input type="url" id="csAudioUrl" value="${editingSoal.audio_url ? esc(editingSoal.audio_url) : ''}" placeholder="https://..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+          </div>
+
+          <!-- Options Container Dynamic -->
+          <div id="csDynamicOptions" style="margin-bottom:14px;"></div>
+
+          <div style="display:flex;gap:10px;margin-top:18px;">
+            <button type="button" onclick="closeAdminSoalModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer;">Batal</button>
+            <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer;box-shadow:var(--shadow-blue);">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // Prefill level checkboxes
+  var lvls = editingSoal.levels || [];
+  document.querySelectorAll('.csLevelCheck').forEach(function(cb) {
+    cb.checked = lvls.indexOf(cb.value) !== -1;
+  });
+
+  // Render dynamic options for this type
+  adminOnTipeSoalChange(t);
+
+  // Prefill answers
+  if (t === 'pilihan_ganda' || t === 'audio' || t === 'teks_arab') {
+    var pils = editingSoal.soal_pilihan || [];
+    var pilInputs = document.querySelectorAll('.csPil');
+    var radioInputs = document.querySelectorAll('input[name="csBenar"]');
+    pils.forEach(function(p, i) {
+      if (pilInputs[i]) pilInputs[i].value = p.teks_pilihan || '';
+      if (radioInputs[i]) radioInputs[i].checked = !!p.is_benar;
+    });
+  } else if (t === 'benar_salah') {
+    var pilsBs = editingSoal.soal_pilihan || [];
+    var trueBenar = pilsBs.some(function(p) { return p.teks_pilihan === 'Benar' && p.is_benar; });
+    var bsInputs = document.querySelectorAll('input[name="csBsBenar"]');
+    if (bsInputs[0]) bsInputs[0].checked = trueBenar;
+    if (bsInputs[1]) bsInputs[1].checked = !trueBenar;
+  } else if (t === 'matching') {
+    var pas = editingSoal.soal_pasangan || [];
+    var kiriInputs = document.querySelectorAll('.csMatchKiri');
+    var kananInputs = document.querySelectorAll('.csMatchKanan');
+    pas.forEach(function(p, i) {
+      if (kiriInputs[i]) kiriInputs[i].value = p.teks_kiri || '';
+      if (kananInputs[i]) kananInputs[i].value = p.teks_kanan || '';
+    });
+  } else if (t === 'isian_singkat') {
+    var kun = editingSoal.soal_kunci_isian || [];
+    var keys = kun.map(function(k) { return k.teks_kunci; }).join(', ');
+    var inputKunci = document.getElementById('csIsianKunci');
+    if (inputKunci) inputKunci.value = keys;
+  }
+
+  if (editingSoal.teks_arab) {
+    adminUpdateTeksArabPreview(editingSoal.teks_arab);
+  }
+}
+
+function adminOnTipeSoalChange(tipe) {
+  var arabWrap = document.getElementById('csTeksArabWrap');
+  var audioWrap = document.getElementById('csAudioWrap');
+  var optionsDiv = document.getElementById('csDynamicOptions');
+
+  if (arabWrap) arabWrap.style.display = (tipe === 'teks_arab') ? 'block' : 'none';
+  if (audioWrap) audioWrap.style.display = (tipe === 'audio') ? 'block' : 'none';
+
+  if (!optionsDiv) return;
+
+  if (tipe === 'pilihan_ganda' || tipe === 'audio' || tipe === 'teks_arab') {
+    optionsDiv.innerHTML = `
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">OPSI PILIHAN (Pilih Kunci Jawaban Benar):</label>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="0" checked> <input type="text" class="csPil" required placeholder="Pilihan A" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="1"> <input type="text" class="csPil" required placeholder="Pilihan B" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="2"> <input type="text" class="csPil" placeholder="Pilihan C (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        <div style="display:flex;align-items:center;gap:8px;"><input type="radio" name="csBenar" value="3"> <input type="text" class="csPil" placeholder="Pilihan D (Opsional)" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+      </div>
+    `;
+  } else if (tipe === 'benar_salah') {
+    optionsDiv.innerHTML = `
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">KUNCI JAWABAN BENAR:</label>
+      <div style="display:flex;gap:16px;">
+        <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="benar" checked> ✅ Benar</label>
+        <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="salah"> ❌ Salah</label>
+      </div>
+    `;
+  } else if (tipe === 'matching') {
+    optionsDiv.innerHTML = `
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">PASANGAN (TEKS KIRI ↔ TEKS KANAN):</label>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" required placeholder="Teks Kiri 1" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" required placeholder="Teks Kanan 1" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" required placeholder="Teks Kiri 2" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" required placeholder="Teks Kanan 2" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+        <div style="display:flex;gap:8px;"><input type="text" class="csMatchKiri" placeholder="Teks Kiri 3" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"> <input type="text" class="csMatchKanan" placeholder="Teks Kanan 3" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);"></div>
+      </div>
+    `;
+  } else if (tipe === 'isian_singkat') {
+    optionsDiv.innerHTML = `
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">VARIAN KUNCI JAWABAN (Pisahkan dengan koma):</label>
+      <input type="text" id="csIsianKunci" required placeholder="mis. Idgham Bighunnah, idgham bighunnah" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;">
+    `;
+  }
+}
+
+function adminApplyTajwidHighlight() {
+  var el = document.getElementById('csTeksArab');
+  if (!el) return;
+  var start = el.selectionStart;
+  var end = el.selectionEnd;
+  var val = el.value;
+  if (start === end) {
+    alert('Silakan blok/seleksi beberapa huruf atau kata Arab terlebih dahulu untuk ditandai!');
+    return;
+  }
+  var selected = val.substring(start, end);
+  el.value = val.substring(0, start) + '{[' + selected + ']}' + val.substring(end);
+  el.dispatchEvent(new Event('input'));
+  el.focus();
+}
+
+function adminUpdateTeksArabPreview(val) {
+  var previewEl = document.getElementById('csTeksArabPreview');
+  if (!previewEl) return;
+  if (!val) {
+    previewEl.innerHTML = '<span style="color:var(--text-3); font-size:14px;">–</span>';
+    return;
+  }
+  var html = esc(val).replace(/\{\[(.*?)\]\}/g, function(match, content) {
+    return `<span style="background:rgba(239,68,68,0.15); border-bottom:2px solid #ef4444; border-radius:4px; padding:2px 4px; font-weight:800; color:var(--text);">${content}</span>`;
+  });
+  previewEl.innerHTML = html;
+}
+
+async function submitFormEditSoalAdmin(e, id_soal) {
+  e.preventDefault();
+  var tipe = document.getElementById('csTipe').value;
+  var teksSoal = document.getElementById('csTeksSoal').value.trim();
+
+  var selectedLevels = Array.from(document.querySelectorAll('.csLevelCheck:checked')).map(function(cb) {
+    return cb.value;
+  });
+
+  if (selectedLevels.length === 0) {
+    alert('Pilih minimal satu level halaqah!');
+    return;
+  }
+
+  var rekomendasiPertemuan = document.getElementById('csRekomendasiPertemuan').value;
+  var durasiDefault = document.getElementById('csDurasiDefault').value;
+  var poinDefault = document.getElementById('csPoinDefault').value;
+
+  var payload = {
+    tipe_soal: tipe,
+    teks_soal: teksSoal,
+    teks_arab: document.getElementById('csTeksArab') ? document.getElementById('csTeksArab').value.trim() : null,
+    audio_url: document.getElementById('csAudioUrl') ? document.getElementById('csAudioUrl').value.trim() : null,
+    levels: selectedLevels,
+    rekomendasi_pertemuan_ke: rekomendasiPertemuan || null,
+    durasi_detik_default: durasiDefault !== '' ? parseInt(durasiDefault) : null,
+    bobot_poin_default: poinDefault !== '' ? parseInt(poinDefault) : 10,
+    pilihan: [],
+    pasangan: [],
+    kunci_isian: []
+  };
+
+  if (tipe === 'pilihan_ganda' || tipe === 'audio' || tipe === 'teks_arab') {
+    var pilInputs = Array.from(document.querySelectorAll('.csPil'));
+    var selectedBenarIdx = parseInt(document.querySelector('input[name="csBenar"]:checked').value);
+    payload.pilihan = pilInputs.map(function(inp, idx) {
+      if (!inp.value.trim()) return null;
+      return { teks_pilihan: inp.value.trim(), is_benar: idx === selectedBenarIdx };
+    }).filter(Boolean);
+  } else if (tipe === 'benar_salah') {
+    var isBenarSelected = document.querySelector('input[name="csBsBenar"]:checked').value === 'benar';
+    payload.pilihan = [
+      { teks_pilihan: 'Benar', is_benar: isBenarSelected },
+      { teks_pilihan: 'Salah', is_benar: !isBenarSelected }
+    ];
+  } else if (tipe === 'matching') {
+    var kiriInputs = Array.from(document.querySelectorAll('.csMatchKiri'));
+    var kananInputs = Array.from(document.querySelectorAll('.csMatchKanan'));
+    payload.pasangan = kiriInputs.map(function(kInp, idx) {
+      var kiriText = kInp.value.trim();
+      var kananText = kananInputs[idx] ? kananInputs[idx].value.trim() : '';
+      if (!kiriText || !kananText) return null;
+      return { teks_kiri: kiriText, teks_kanan: kananText };
+    }).filter(Boolean);
+  } else if (tipe === 'isian_singkat') {
+    var rawKunci = document.getElementById('csIsianKunci').value;
+    payload.kunci_isian = rawKunci.split(',').map(function(k){ return k.trim(); }).filter(Boolean);
+  }
+
+  try {
+    showLoad('Menyimpan perubahan soal...');
+    await window.HQ.QuizAPI.updateSoalFull(id_soal, payload);
+    hideLoad();
+    closeAdminSoalModal();
+    toast('Soal berhasil diperbarui di Bank Soal!', 'ok');
+    await loadBankSoalAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal menyimpan soal: ' + friendlyError(err), 'err');
+  }
 }
 
 async function hapusSoalAdmin(id_soal) {
@@ -1349,6 +1724,12 @@ async function loadPushAdmin() {
     window.getTipeSoalLabelAdmin = getTipeSoalLabelAdmin;
     window.filterAndRenderAdminBankList = filterAndRenderAdminBankList;
     window.hapusSoalAdmin = hapusSoalAdmin;
+    window.openModalEditSoalAdmin = openModalEditSoalAdmin;
+    window.closeAdminSoalModal = closeAdminSoalModal;
+    window.adminOnTipeSoalChange = adminOnTipeSoalChange;
+    window.adminApplyTajwidHighlight = adminApplyTajwidHighlight;
+    window.adminUpdateTeksArabPreview = adminUpdateTeksArabPreview;
+    window.submitFormEditSoalAdmin = submitFormEditSoalAdmin;
     window.bukaModalImportSoal = bukaModalImportSoal;
     window.downloadTemplateSoal = downloadTemplateSoal;
     window.handleFileSelectSoal = handleFileSelectSoal;

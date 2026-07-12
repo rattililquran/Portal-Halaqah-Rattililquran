@@ -286,29 +286,68 @@
     }
   }
 
-  function filterAndRenderBankList() {
-    var container = document.getElementById('bankSoalListContainer');
-    if (!container) return;
+  // ── Helper bersama: kelompokkan & urutkan soal per level lalu per pertemuan ──
+  var LEVEL_ORDER = ['Level 1', 'Level 2', 'Level 3', 'Level Qiyam', 'Micro Teaching', 'Tahsin Al-Fatihah'];
 
-    var filtered = _allBankSoalRaw.filter(function (s) {
-      if (!_bankFilterText) return true;
-      var term = _bankFilterText.toLowerCase();
-      return (s.teks_soal || '').toLowerCase().includes(term) ||
-             (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
+  function _levelRank(lvl) {
+    var i = LEVEL_ORDER.indexOf(lvl);
+    return i === -1 ? LEVEL_ORDER.length : i;
+  }
+
+  // Level utama sebuah soal = level tercentang yang paling awal di urutan kurikulum.
+  function _primaryLevel(s) {
+    var lvls = (s.levels || []).slice();
+    if (!lvls.length) return null;
+    lvls.sort(function (a, b) { return _levelRank(a) - _levelRank(b); });
+    return lvls[0];
+  }
+
+  // Bagi daftar soal menjadi seksi per-level (urut kurikulum, "Tanpa Level" di akhir),
+  // isi tiap seksi diurutkan naik berdasarkan rekomendasi pertemuan (null di bawah).
+  function groupSoalByLevel(list) {
+    var groups = {};
+    list.forEach(function (s) {
+      var key = _primaryLevel(s) || '__none__';
+      (groups[key] = groups[key] || []).push(s);
     });
+    return Object.keys(groups).sort(function (a, b) {
+      if (a === '__none__') return 1;
+      if (b === '__none__') return -1;
+      var ra = _levelRank(a), rb = _levelRank(b);
+      return ra !== rb ? ra - rb : a.localeCompare(b);
+    }).map(function (k) {
+      var items = groups[k].slice().sort(function (x, y) {
+        var px = x.rekomendasi_pertemuan_ke, py = y.rekomendasi_pertemuan_ke;
+        var nx = (px === null || px === undefined), ny = (py === null || py === undefined);
+        if (nx && ny) return 0;
+        if (nx) return 1;
+        if (ny) return -1;
+        return px - py;
+      });
+      return { level: k === '__none__' ? null : k, items: items };
+    });
+  }
 
-    if (filtered.length === 0) {
-      container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
-      return;
-    }
+  function levelSectionHeader(level, count, compact) {
+    var label = level || 'Tanpa Level';
+    var chip = level
+      ? 'background:rgba(16,185,129,0.12);color:#059669;'
+      : 'background:var(--bg-2);color:var(--text-3);';
+    var mtop = compact ? '8px' : '18px';
+    var fs = compact ? '11px' : '12px';
+    return `
+      <div style="display:flex;align-items:center;gap:8px;margin:${mtop} 0 8px;grid-column:1/-1;">
+        <span style="font-size:${fs};font-weight:800;${chip}padding:4px 12px;border-radius:100px;white-space:nowrap;">📗 ${escapeHtml(label)}</span>
+        <span style="font-size:10.5px;font-weight:700;color:var(--text-3);white-space:nowrap;">${count} soal</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>`;
+  }
 
-    var currentUserId = window.HQ.getCurrentUser().id_user;
-    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">';
-    filtered.forEach(function (s, idx) {
-      var authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
-      var isOwner = s.id_guru === currentUserId;
+  function bankSoalCardHtml(s, num, currentUserId) {
+    var authorName = s.users ? s.users.nama_lengkap : 'Pengajar';
+    var isOwner = s.id_guru === currentUserId;
 
-      html += `
+    return `
         <div class="bank-soal-card" style="background:var(--card-solid);border-radius:var(--r-lg);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all 0.25s ease;display:flex;flex-direction:column;justify-content:space-between;gap:12px;position:relative;">
           <div>
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
@@ -329,7 +368,7 @@
                 </div>
                 <!-- Question text -->
                 <div style="font-size:13.5px;font-weight:700;color:var(--text);line-height:1.45;margin-top:4px;word-break:break-word;">
-                  ${idx + 1}. ${escapeHtml(s.teks_soal)}
+                  ${num}. ${escapeHtml(s.teks_soal)}
                 </div>
               </div>
 
@@ -354,6 +393,31 @@
           </div>
         </div>
       `;
+  }
+
+  function filterAndRenderBankList() {
+    var container = document.getElementById('bankSoalListContainer');
+    if (!container) return;
+
+    var filtered = _allBankSoalRaw.filter(function (s) {
+      if (!_bankFilterText) return true;
+      var term = _bankFilterText.toLowerCase();
+      return (s.teks_soal || '').toLowerCase().includes(term) ||
+             (s.users && s.users.nama_lengkap || '').toLowerCase().includes(term);
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="background:var(--card-solid);padding:40px;border-radius:var(--r-lg);text-align:center;color:var(--text-3);border:1px dashed var(--border);grid-column: 1 / -1;">Tidak ada soal yang cocok dengan filter pencarian.</div>';
+      return;
+    }
+
+    var currentUserId = window.HQ.getCurrentUser().id_user;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">';
+    groupSoalByLevel(filtered).forEach(function (g) {
+      html += levelSectionHeader(g.level, g.items.length, false);
+      g.items.forEach(function (s, idx) {
+        html += bankSoalCardHtml(s, idx + 1, currentUserId);
+      });
     });
     html += '</div>';
     container.innerHTML = html;
@@ -892,7 +956,9 @@
     }
 
     var pickerHtml = '';
-    available.forEach(function(s) {
+    groupSoalByLevel(available).forEach(function (g) {
+      pickerHtml += levelSectionHeader(g.level, g.items.length, true);
+      g.items.forEach(function(s) {
       var badgeText = getTipeSoalLabel(s.tipe_soal);
       var isChecked = _pickerSelectedSoalIds.has(s.id_soal);
 
@@ -914,6 +980,7 @@
           <button onclick="addSoalToKuisAction('${escapeJsStr(id_quiz)}', '${escapeJsStr(s.id_soal)}')" style="background:var(--blue-l);color:var(--blue-d);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">+ Tambah</button>
         </div>
       `;
+      });
     });
 
     pickerEl.innerHTML = pickerHtml;
