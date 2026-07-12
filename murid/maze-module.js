@@ -44,7 +44,7 @@
   var frightenTimer = 0, invuln = 0, flash = 0, msg = "", msgColor = "#fff", msgTimer = 0;
   var lastT = 0, dotsLeft = 0, startTime = 0;
   var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45;
-  var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", DEBUG = true; // overlay diagnosa
+  var _frames = 0, _taps = 0, _inputs = 0, _lastDir = "-", _dbgNS = 0, DEBUG = true; // overlay diagnosa
   var _keyHandler = null, _touchStart = null, _resizeHandler = null;
 
   // ---------- Util peta ----------
@@ -312,6 +312,7 @@
     if (msgTimer > 0) msgTimer -= frameDt;
 
     var STEP = 0.02, nSteps = Math.max(1, Math.min(16, Math.ceil(frameDt / STEP))), sub = frameDt / nSteps;
+    _dbgNS = nSteps;
     for (var s = 0; s < nSteps && state === "play"; s++) {
       var pcOld = Math.round(player.fx), prOld = Math.round(player.fy);
       moveEntity(player, sub, true);
@@ -365,10 +366,16 @@
   }
   function drawDebug() {
     var y = HUD_H + 2;
-    ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(4, y, 210, 15);
+    ctx.fillStyle = "rgba(0,0,0,0.65)"; ctx.fillRect(4, y, 280, 30);
     ctx.fillStyle = "#5f5"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top";
     var pd = player ? (player.dx + "," + player.dy) : "-";
     ctx.fillText("F" + _frames + " tap" + _taps + " in" + _inputs + " want" + _lastDir + " mv" + pd + " " + state, 8, y + 2);
+    if (player) {
+      var cc = Math.round(player.fx), cr = Math.round(player.fy);
+      var w = (isWall(cc, cr - 1) ? "U" : "-") + (isWall(cc, cr + 1) ? "D" : "-") + (isWall(cc - 1, cr) ? "L" : "-") + (isWall(cc + 1, cr) ? "R" : "-");
+      var al = (aligned(player.fx) && aligned(player.fy)) ? 1 : 0;
+      ctx.fillText("fx" + player.fx.toFixed(1) + " fy" + player.fy.toFixed(1) + " al" + al + " nd" + player.ndx + "," + player.ndy + " wall:" + w + " nS" + _dbgNS, 8, y + 16);
+    }
   }
   function drawHUD() {
     ctx.textBaseline = "middle";
