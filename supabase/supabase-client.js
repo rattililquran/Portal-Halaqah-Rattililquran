@@ -1142,10 +1142,12 @@ var GuruAPI = {
     }
 
     var setoranMap = {};
+    var setoranCount = {};
     if (jenisSesi === 'KBM Qiyam') {
       var { data: setoranData } = await _sb.from('setoran_hafalan').select('*').eq('id_kbm', id_kbm);
       (setoranData || []).forEach(function(s) {
-        setoranMap[s.id_murid] = s;
+        setoranMap[s.id_murid] = s;               // last-wins (dipertahankan untuk kompat pemanggil lama)
+        setoranCount[s.id_murid] = (setoranCount[s.id_murid] || 0) + 1;
       });
     }
 
@@ -1153,7 +1155,8 @@ var GuruAPI = {
       return Object.assign({}, r, {
         nama_murid: namaMap[r.id_murid] || r.id_murid,
         jenis_sesi: jenisSesi,
-        hafalan: setoranMap[r.id_murid] || null
+        hafalan: setoranMap[r.id_murid] || null,
+        hafalan_count: setoranCount[r.id_murid] || 0   // >1 → ada >1 setoran/murid di sesi ini (editor menahan diri)
       });
     })};
   },
@@ -2125,10 +2128,14 @@ var GuruAPI = {
       .eq('id_setoran', d.id_setoran)
       .eq('id_guru', _uid());
     _check(error, 'updateSetoranHafalan');
-    // Sync kamera ke nilai_kbm untuk sesi Qiyam (sama seperti addSetoranHafalan)
-    if (d.id_kbm && d.id_murid && d.kamera) {
+    // Sync kamera ke nilai_kbm untuk sesi Qiyam (kamera_murid inilah yang dibaca
+    // raport). Sinkronkan nilai APA ADANYA — termasuk saat dikosongkan (null) —
+    // agar setoran_hafalan.kamera & nilai_kbm.kamera_murid tak desync. Hanya
+    // dijalankan bila pemanggil memang menyertakan field kamera (key ada),
+    // sehingga pemanggil yang tak menyentuh kamera tak ikut ternol.
+    if (d.id_kbm && d.id_murid && d.kamera !== undefined) {
       var { error: syncErr } = await _sb.from('nilai_kbm')
-        .update({ kamera_murid: d.kamera })
+        .update({ kamera_murid: d.kamera || null })
         .eq('id_kbm', d.id_kbm)
         .eq('id_murid', d.id_murid);
       if (syncErr) console.warn('Gagal sync kamera ke nilai_kbm:', syncErr.message);

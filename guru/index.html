@@ -6894,6 +6894,17 @@ function _enOpts(list, cur) {
   return list.map(function(o){ return '<option value="'+esc(o[0])+'"'+(o[0]===(cur||'')?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('');
 }
 
+// Jaga agar nilai tersimpan (cur) tidak hilang bila tak ada di daftar opsi
+// (mis. konfigurasi penilaian diubah admin setelah setoran dibuat). Tanpa ini,
+// <select> otomatis memilih opsi pertama → nilai lama tertimpa diam-diam saat simpan.
+// Nilai asing ditambahkan sebagai opsi (ditandai) agar tetap terpilih & terlihat.
+function _enEnsure(list, cur) {
+  cur = (cur == null) ? '' : String(cur);
+  if (!cur) return list;
+  var found = list.some(function(o){ return String(o[0]) === cur; });
+  return found ? list : list.concat([[cur, cur + ' (nilai tersimpan)']]);
+}
+
 // Parse rubrik Micro Teaching dari koreksi_tahsin. null jika bukan pembicara/tak dinilai.
 function _enParseRubrik(koreksi) {
   if (!koreksi) return null;
@@ -6969,6 +6980,16 @@ function renderEditNilaiQiyam(body, data) {
         + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+ket+'</div></div>'
         + '<div>'+badge+'</div></div>';
     }
+    // Guard: bila satu murid punya >1 setoran pada sesi ini, editor per-murid
+    // ini tidak bisa menentukan setoran mana yang dimaksud → jangan edit diam-diam.
+    // Arahkan ke Riwayat Setoran (edit/hapus per setoran). Kasus ini sangat jarang
+    // (capture Qiyam normal = 1 setoran/murid), tapi tetap disurface agar aman.
+    if ((n.hafalan_count || 1) > 1) {
+      return '<div class="prow" style="align-items:center;margin-bottom:8px">'
+        + '<div><div class="prow-name">'+nama+'</div>'
+        + '<div style="font-size:11.5px;color:var(--amber-txt);font-style:italic">⚠️ '+(n.hafalan_count)+' setoran pada sesi ini — edit lewat menu Riwayat Setoran</div></div>'
+        + '<div>'+badge+'</div></div>';
+    }
     const mid = esc(n.id_murid);
     const info = 'Juz '+esc(h.juz != null ? h.juz : '-')+' · '+esc(h.surat||'-')+' · Ayat '+esc(h.ayat_dari != null ? h.ayat_dari : '-')+'–'+esc(h.ayat_sampai != null ? h.ayat_sampai : '-');
     return '<div class="card" data-en-q-mid="'+mid+'" data-en-q-setoran="'+esc(h.id_setoran)+'" style="margin-bottom:10px;padding:12px">'
@@ -6977,15 +6998,15 @@ function renderEditNilaiQiyam(body, data) {
       + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">📖 '+info+'</div>'
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
       + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Jenis</label>'
-      + '<select class="fc" id="enQJenis-'+mid+'" style="font-size:13px">'+_enOpts(_EN_QIYAM_JENIS, h.jenis)+'</select></div>'
+      + '<select class="fc" id="enQJenis-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(_EN_QIYAM_JENIS, h.jenis), h.jenis)+'</select></div>'
       + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Makhraj &amp; Tajwid</label>'
-      + '<select class="fc" id="enQNilai-'+mid+'" style="font-size:13px">'+_enOpts(cfg.nilai, h.nilai)+'</select></div>'
+      + '<select class="fc" id="enQNilai-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.nilai, h.nilai), h.nilai)+'</select></div>'
       + '</div>'
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
       + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kelancaran</label>'
-      + '<select class="fc" id="enQKel-'+mid+'" style="font-size:13px">'+_enOpts(cfg.kelancaran, h.kelancaran)+'</select></div>'
+      + '<select class="fc" id="enQKel-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kelancaran, h.kelancaran), h.kelancaran)+'</select></div>'
       + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
-      + '<select class="fc" id="enQKam-'+mid+'" style="font-size:13px">'+_enOpts(cfg.kamera, h.kamera)+'</select></div>'
+      + '<select class="fc" id="enQKam-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kamera, h.kamera), h.kamera)+'</select></div>'
       + '</div>'
       + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
       + '<textarea class="fc" id="enQCat-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(h.catatan||'')+'</textarea></div>'
@@ -7211,12 +7232,17 @@ async function simpanEditJurnal() {
     if (!ok) return;
   }
 
+  // `pencapaian_modul` adalah cermin `materi_belajar` (capture menulis keduanya
+  // sama; tabel Riwayat KBM menampilkan pencapaian_modul). Wajib di-mirror agar
+  // hasil edit topik ikut tampil & kedua field tidak desync.
+  const materi = document.getElementById('ejMateri').value.trim();
+
   showLoad('Bismillah, menyimpan jurnal & latihan...');
   try {
     await window.HQ.GuruAPI.simpanJurnalKBM({
       id_kbm          : editPresensiKBMId,
-      materi_belajar  : document.getElementById('ejMateri').value.trim(),
-      pencapaian_modul: _editJurnalData.pencapaian_modul,   // pertahankan nilai lama (tak ada input-nya)
+      materi_belajar  : materi,
+      pencapaian_modul: materi,                             // cermin materi_belajar (lihat komentar di atas)
       halaman_modul   : document.getElementById('ejHalaman').value.trim(),
       metode          : _editJurnalData.metode,             // pertahankan nilai lama
       catatan_umum    : document.getElementById('ejCatatan').value.trim(),
