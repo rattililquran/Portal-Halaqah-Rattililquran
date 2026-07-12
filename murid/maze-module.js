@@ -245,7 +245,6 @@
     var qd = QUESTIONS[qIndex];
     root.querySelector("#mzIntroNum").textContent = "Soal " + (qIndex + 1) + " / " + QUESTIONS.length;
     root.querySelector("#mzIntroQ").textContent = qd.q;
-    root.querySelector("#mzIntroOpts").innerHTML = qd.opsi.map(function (o) { return '<div class="mz-opt">' + escapeHtml(o) + "</div>"; }).join("");
     show("mzStart", false); show("mzOver", false); show("mzWin", false); show("mzIntro", true);
   }
   function beginPlay() {
@@ -626,8 +625,7 @@
       '</div>' +
       '<div class="mz-screen" id="mzIntro" style="display:none;">' +
         '<div class="mz-brand" id="mzIntroNum">Soal 1 / 5</div>' +
-        '<div class="mz-title" id="mzIntroQ" style="font-size:19px;max-width:340px;">?</div>' +
-        '<div id="mzIntroOpts" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;"></div>' +
+        '<div class="mz-title" id="mzIntroQ" style="font-size:20px;max-width:340px;">?</div>' +
         '<div class="mz-hint">Jawaban tersebar di labirin. Temukan yang benar, berhenti di kotaknya, lalu tekan ✓.</div>' +
         '<button class="mz-btn" id="mzIntroBtn">Mulai! ▶</button>' +
       '</div>' +
