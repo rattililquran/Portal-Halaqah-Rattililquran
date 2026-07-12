@@ -5547,9 +5547,10 @@ html.theme-dark .pr-chip.active {
       <button class="modal-x" onclick="closeModal('editPresensiModal')">✕</button>
     </div>
     <div class="modal-body">
-      <!-- Tab bar Edit KBM (urutan mengikuti wizard sesi: Presensi → Jurnal) -->
+      <!-- Tab bar Edit KBM (urutan mengikuti wizard sesi: Presensi → Nilai → Jurnal) -->
       <div class="at-tab-bar" style="margin-bottom:16px">
         <button class="at-tab-btn active" id="editTabBtnPresensi" onclick="switchEditTab('presensi')">🧑‍🎓 Presensi</button>
+        <button class="at-tab-btn" id="editTabBtnNilai" onclick="switchEditTab('nilai')">⭐ Nilai</button>
         <button class="at-tab-btn" id="editTabBtnJurnal" onclick="switchEditTab('jurnal')">📓 Jurnal &amp; Latihan</button>
       </div>
 
@@ -5573,6 +5574,15 @@ html.theme-dark .pr-chip.active {
         </div>
 
         <div id="editPresensiList" class="presensi-list"></div>
+      </div>
+
+      <!-- ══ TAB NILAI ══ -->
+      <div id="editTabNilai" style="display:none">
+        <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
+          padding:10px 14px;font-size:12.5px;color:var(--amber-txt);margin-bottom:14px">
+          ⚠️ Nilai (adab, kamera, koreksi) memengaruhi raport. Jika raport periode ini sudah dibuat, Anda perlu generate ulang setelah menyimpan.
+        </div>
+        <div id="editNilaiBody"></div>
       </div>
 
       <!-- ══ TAB JURNAL & LATIHAN ══ -->
@@ -6655,13 +6665,19 @@ let editPresensiKBMId   = '';
 let editPresensiHalaqah = '';
 let _editJurnalData     = null;   // snapshot field jurnal saat dimuat (untuk merge aman saat simpan)
 let _editJurnalLoaded   = false;  // apakah tab Jurnal sudah dimuat untuk sesi ini
+let _editNilaiData      = null;   // baris nilai per murid saat dimuat
+let _editNilaiLoaded    = false;  // apakah tab Nilai sudah dimuat untuk sesi ini
+let _editNilaiJenis     = '';     // jenis_sesi (Nilai hanya editable untuk KBM Reguler pada Paket 3a)
 let _editActiveTab      = 'presensi';
 
 async function bukaEditPresensi(id_kbm, tanggal) {
   editPresensiKBMId = id_kbm;
-  // Reset state tab Jurnal setiap kali modal dibuka untuk sesi baru
+  // Reset state tab Jurnal & Nilai setiap kali modal dibuka untuk sesi baru
   _editJurnalData   = null;
   _editJurnalLoaded = false;
+  _editNilaiData    = null;
+  _editNilaiLoaded  = false;
+  _editNilaiJenis   = '';
   switchEditTab('presensi');
   document.getElementById('editPresensiTitle').textContent =
     'Edit KBM — ' + fmtDate(tanggal);
@@ -6790,16 +6806,19 @@ async function _warnRaportTerdampak(id_kbm) {
   } catch(e) { /* diamkan — jangan ganggu alur simpan */ }
 }
 
-// ── Tab Edit KBM: Presensi ⇄ Jurnal & Latihan ──
+// ── Tab Edit KBM: Presensi ⇄ Nilai ⇄ Jurnal & Latihan ──
 function switchEditTab(tab) {
-  const isPresensi = tab !== 'jurnal';
-  _editActiveTab = isPresensi ? 'presensi' : 'jurnal';
-  document.getElementById('editTabPresensi').style.display = isPresensi ? '' : 'none';
-  document.getElementById('editTabJurnal').style.display   = isPresensi ? 'none' : '';
-  document.getElementById('editTabBtnPresensi').classList.toggle('active', isPresensi);
-  document.getElementById('editTabBtnJurnal').classList.toggle('active', !isPresensi);
-  // Muat data jurnal saat pertama kali tab dibuka (lazy — hemat request bila guru hanya edit presensi)
-  if (!isPresensi && !_editJurnalLoaded) loadEditJurnal();
+  if (tab !== 'nilai' && tab !== 'jurnal') tab = 'presensi';
+  _editActiveTab = tab;
+  document.getElementById('editTabPresensi').style.display = tab === 'presensi' ? '' : 'none';
+  document.getElementById('editTabNilai').style.display    = tab === 'nilai'    ? '' : 'none';
+  document.getElementById('editTabJurnal').style.display   = tab === 'jurnal'   ? '' : 'none';
+  document.getElementById('editTabBtnPresensi').classList.toggle('active', tab === 'presensi');
+  document.getElementById('editTabBtnNilai').classList.toggle('active', tab === 'nilai');
+  document.getElementById('editTabBtnJurnal').classList.toggle('active', tab === 'jurnal');
+  // Lazy-load per tab (hemat request bila guru hanya buka satu tab)
+  if (tab === 'nilai'  && !_editNilaiLoaded)  loadEditNilai();
+  if (tab === 'jurnal' && !_editJurnalLoaded) loadEditJurnal();
 }
 
 async function loadEditJurnal() {
@@ -6836,7 +6855,125 @@ async function loadEditJurnal() {
 // Dispatcher tombol "Simpan Perubahan" — arahkan ke penyimpan sesuai tab aktif
 function simpanEditModal() {
   if (_editActiveTab === 'jurnal') return simpanEditJurnal();
+  if (_editActiveTab === 'nilai')  return simpanEditNilai();
   return simpanEditPresensi();
+}
+
+// ── Tab Nilai (Paket 3a: KBM Reguler) ──
+// Opsi harus persis sama dengan form capture live (adab/kamera) agar konsisten.
+const _EN_ADAB   = [['','— Pilih —'],['Baik','😊 Baik'],['Butuh Perhatian','⚠️ Butuh Perhatian']];
+const _EN_KAMERA = [['','— Pilih —'],['kamera terbuka','📷 kamera terbuka'],['kamera sering buka tutup','🟡 kamera sering buka tutup'],['kamera tertutup','❌ kamera tertutup']];
+
+function _enOpts(list, cur) {
+  return list.map(function(o){ return '<option value="'+esc(o[0])+'"'+(o[0]===(cur||'')?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('');
+}
+
+async function loadEditNilai() {
+  showLoad('Bismillah, memuat nilai murid...');
+  try {
+    const r = await window.HQ.GuruAPI.getNilaiByKBM(editPresensiKBMId);
+    const data = r.data || [];
+    _editNilaiData   = data;
+    _editNilaiJenis  = data.length ? (data[0].jenis_sesi || 'KBM Reguler') : 'KBM Reguler';
+    _editNilaiLoaded = true;
+    renderEditNilai();
+  } catch(e) {
+    _editNilaiLoaded = false;
+    document.getElementById('editNilaiBody').innerHTML = emptyHTML('❌','Gagal memuat nilai: '+esc(friendlyError(e)),'');
+  } finally { hideLoad(); }
+}
+
+function renderEditNilai() {
+  const body = document.getElementById('editNilaiBody');
+  const data = _editNilaiData || [];
+  // Paket 3a hanya menangani KBM Reguler. Jenis lain (Qiyam/Micro Teaching/Daurah)
+  // punya struktur nilai berbeda → belum didukung (menyusul Paket 3b/3c/3d).
+  if (_editNilaiJenis !== 'KBM Reguler') {
+    body.innerHTML = '<div style="background:var(--bg-2);border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;font-size:12.5px;color:var(--text-2);text-align:center">'
+      + 'ℹ️ Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.<br>Saat ini baru <b>KBM Reguler</b> yang bisa diedit nilainya.'
+      + '</div>';
+    return;
+  }
+  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+
+  body.innerHTML = data.map(function(n){
+    const status = String(n.status_hadir||'H').toUpperCase();
+    const nama = esc(n.nama_murid || n.id_murid);
+    const badge = (typeof hadirBadge === 'function') ? hadirBadge(status) : status;
+    // Murid Izin/Alpa: nilai tidak perlu diisi (konsisten dgn capture)
+    if (status === 'I' || status === 'A') {
+      return '<div class="prow" style="align-items:center;margin-bottom:8px">'
+        + '<div><div class="prow-name">'+nama+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+(status==='A'?'🔴 Alpa':'🟡 Izin')+' — nilai tidak perlu diisi</div></div>'
+        + '<div>'+badge+'</div></div>';
+    }
+    const mid = esc(n.id_murid);
+    return '<div class="card" data-en-mid="'+mid+'" style="margin-bottom:10px;padding:12px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+      + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">😊 Adab</label>'
+      + '<select class="fc" id="enAdab-'+mid+'" style="font-size:13px">'+_enOpts(_EN_ADAB, n.adab)+'</select></div>'
+      + '<div class="fg" style="flex:1;min-width:150px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📷 Kamera</label>'
+      + '<select class="fc" id="enKamera-'+mid+'" style="font-size:13px">'+_enOpts(_EN_KAMERA, n.kamera_murid)+'</select></div>'
+      + '</div>'
+      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">✏️ Koreksi Tahsin</label>'
+      + '<textarea class="fc" id="enKoreksi-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.koreksi_tahsin||'')+'</textarea></div>'
+      + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+      + '<textarea class="fc" id="enCatatan-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.catatan_murid||'')+'</textarea></div>'
+      + '</div>';
+  }).join('');
+}
+
+async function simpanEditNilai() {
+  if (!_editNilaiLoaded) { toast('Data nilai belum termuat','err'); return; }
+  if (_editNilaiJenis !== 'KBM Reguler') { toast('Edit nilai jenis sesi ini belum didukung','err'); return; }
+
+  // Kumpulkan hanya murid yang punya kartu (H/T). Pertahankan `nilai` lama (Reguler tak pakai).
+  const byId = {};
+  (_editNilaiData || []).forEach(function(n){ byId[n.id_murid] = n; });
+  const nilai_list = [];
+  document.querySelectorAll('#editNilaiBody [data-en-mid]').forEach(function(card){
+    const mid = card.getAttribute('data-en-mid');
+    const orig = byId[mid] || {};
+    nilai_list.push({
+      id_murid      : mid,
+      nilai         : orig.nilai || null,   // pertahankan nilai lama (Reguler = null)
+      adab          : document.getElementById('enAdab-'+mid).value,
+      kamera_murid  : document.getElementById('enKamera-'+mid).value,
+      koreksi_tahsin: document.getElementById('enKoreksi-'+mid).value.trim(),
+      catatan_murid : document.getElementById('enCatatan-'+mid).value.trim(),
+    });
+  });
+  if (!nilai_list.length) { toast('Tidak ada murid untuk dinilai','err'); return; }
+
+  // id_halaqah ikut ditulis pada upsert nilai — pastikan valid (jangan sampai
+  // menimpa dengan string kosong). Sumber autoritatif: baris nilai yang dimuat.
+  const idHalaqah = editPresensiHalaqah
+    || (_editNilaiData && _editNilaiData[0] && _editNilaiData[0].id_halaqah) || '';
+  if (!idHalaqah) { toast('Data halaqah tidak lengkap, silakan muat ulang','err'); return; }
+
+  const _kbmId = editPresensiKBMId;
+  let _ok = false;
+  showLoad('Bismillah, menyimpan nilai murid...');
+  try {
+    await window.HQ.GuruAPI.simpanNilaiMuridBatch({
+      id_kbm    : editPresensiKBMId,
+      id_halaqah: idHalaqah,
+      nilai_list: nilai_list,
+    });
+    closeModal('editPresensiModal');
+    toast('Nilai murid berhasil diperbarui!','ok');
+    muridCache = {};
+    const rSel = document.getElementById('riwayatHalaqahSel').value;
+    if (rSel) loadRiwayat();
+    const mSel = document.getElementById('muridHalaqahSel').value;
+    if (mSel) loadMurid();
+    _ok = true;
+  } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+  // Nilai memengaruhi raport → ingatkan bila raport periode terkait sudah dibuat
+  if (_ok) await _warnRaportTerdampak(_kbmId);
 }
 
 async function simpanEditJurnal() {
