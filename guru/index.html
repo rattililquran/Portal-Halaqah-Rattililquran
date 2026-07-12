@@ -6873,6 +6873,22 @@ const _EN_MT_KRITERIA = [
   { id:'waktu',       label:'Manajemen Waktu',   bobot:0.15 },
 ];
 const _EN_MT_OPT = [['','— Pilih —'],['4','Sangat Baik (SB)'],['3','Baik (B)'],['2','Cukup (C)'],['1','Perlu Perbaikan (PP)']];
+// Qiyam (Paket 3c): opsi mengikuti konfigurasi penilaian (via _hfLoadConfig) agar
+// sama dgn capture; fallback ke standar bila config kosong. `jenis` tetap 3 nilai.
+const _EN_QIYAM_JENIS = [['Ziyadah','📖 Ziyadah'],['Murajaah','🔄 Murajaah'],['Tahsin','✨ Tahsin']];
+function _enQiyamCfg() {
+  var cfg = (typeof window._hfLoadConfig === 'function') ? (window._hfLoadConfig() || {}) : {};
+  var nilai = (cfg.nilai && cfg.nilai.length)
+    ? cfg.nilai.map(function(n){ return [n.kode, ((n.icon||'')+' '+n.kode).trim()]; })
+    : [['Mumtaz','⭐ Mumtaz'],['Baik','✅ Baik'],['Cukup','📌 Cukup']];
+  var kel = (cfg.kelancaran && cfg.kelancaran.length)
+    ? cfg.kelancaran.map(function(k){ return [k.nama, ((k.icon||'')+' '+k.nama).trim()]; })
+    : [['Lancar','🟢 Lancar'],['Cukup','🟡 Cukup'],['Perlu Perbaikan','🔴 Perlu Perbaikan']];
+  var kam = (cfg.kamera && cfg.kamera.length)
+    ? cfg.kamera.map(function(k){ return [k.nama, ((k.icon||'')+' '+k.nama).trim()]; })
+    : [['kamera terbuka','📷 kamera terbuka'],['kamera sering buka tutup','🟡 kamera sering buka tutup'],['kamera tertutup','❌ kamera tertutup']];
+  return { nilai: nilai, kelancaran: [['','— Pilih —']].concat(kel), kamera: [['','— Pilih —']].concat(kam) };
+}
 
 function _enOpts(list, cur) {
   return list.map(function(o){ return '<option value="'+esc(o[0])+'"'+(o[0]===(cur||'')?' selected':'')+'>'+esc(o[1])+'</option>'; }).join('');
@@ -6925,12 +6941,56 @@ function renderEditNilai() {
   const body = document.getElementById('editNilaiBody');
   const data = _editNilaiData || [];
   if (_editNilaiJenis === 'Micro Teaching') { renderEditNilaiMT(body, data); return; }
+  if (_editNilaiJenis === 'KBM Qiyam')      { renderEditNilaiQiyam(body, data); return; }
   if (_editNilaiJenis === 'KBM Reguler')    { renderEditNilaiReguler(body, data); return; }
-  // Qiyam & jenis lain: belum didukung (menyusul Paket 3c). Daurah memakai jalur
-  // 'KBM Reguler' untuk adab/kamera; 7 indikatornya diedit di halaman Assessment Rekap.
+  // Jenis lain: belum didukung. Daurah memakai jalur 'KBM Reguler' untuk adab/
+  // kamera; 7 indikatornya diedit di halaman Assessment Rekap.
   body.innerHTML = '<div style="background:var(--bg-2);border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;font-size:12.5px;color:var(--text-2);text-align:center">'
     + 'ℹ️ Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.'
     + '</div>';
+}
+
+function renderEditNilaiQiyam(body, data) {
+  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data setoran',''); return; }
+  const cfg = _enQiyamCfg();
+  body.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">Surat & ayat bersifat tampilan (read-only). Yang dapat diedit: jenis, nilai, kelancaran, kamera, catatan.</div>'
+    + data.map(function(n){
+    const status = String(n.status_hadir||'H').toUpperCase();
+    const nama = esc(n.nama_murid || n.id_murid);
+    const badge = (typeof hadirBadge === 'function') ? hadirBadge(status) : status;
+    const h = n.hafalan;
+    // Hanya murid H/T yang punya baris setoran yang bisa diedit
+    if (status === 'I' || status === 'A' || !h || !h.id_setoran) {
+      const ket = (status === 'I') ? '🟡 Izin — tidak ada setoran'
+        : (status === 'A') ? '🔴 Alpa — tidak ada setoran'
+        : 'Belum ada setoran pada sesi ini';
+      return '<div class="prow" style="align-items:center;margin-bottom:8px">'
+        + '<div><div class="prow-name">'+nama+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+ket+'</div></div>'
+        + '<div>'+badge+'</div></div>';
+    }
+    const mid = esc(n.id_murid);
+    const info = 'Juz '+esc(h.juz != null ? h.juz : '-')+' · '+esc(h.surat||'-')+' · Ayat '+esc(h.ayat_dari != null ? h.ayat_dari : '-')+'–'+esc(h.ayat_sampai != null ? h.ayat_sampai : '-');
+    return '<div class="card" data-en-q-mid="'+mid+'" data-en-q-setoran="'+esc(h.id_setoran)+'" style="margin-bottom:10px;padding:12px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
+      + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">📖 '+info+'</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Jenis</label>'
+      + '<select class="fc" id="enQJenis-'+mid+'" style="font-size:13px">'+_enOpts(_EN_QIYAM_JENIS, h.jenis)+'</select></div>'
+      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Makhraj &amp; Tajwid</label>'
+      + '<select class="fc" id="enQNilai-'+mid+'" style="font-size:13px">'+_enOpts(cfg.nilai, h.nilai)+'</select></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kelancaran</label>'
+      + '<select class="fc" id="enQKel-'+mid+'" style="font-size:13px">'+_enOpts(cfg.kelancaran, h.kelancaran)+'</select></div>'
+      + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
+      + '<select class="fc" id="enQKam-'+mid+'" style="font-size:13px">'+_enOpts(cfg.kamera, h.kamera)+'</select></div>'
+      + '</div>'
+      + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+      + '<textarea class="fc" id="enQCat-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(h.catatan||'')+'</textarea></div>'
+      + '</div>';
+  }).join('');
 }
 
 function renderEditNilaiReguler(body, data) {
@@ -7004,8 +7064,53 @@ function renderEditNilaiMT(body, data) {
 function simpanEditNilai() {
   if (!_editNilaiLoaded) { toast('Data nilai belum termuat','err'); return; }
   if (_editNilaiJenis === 'Micro Teaching') return _simpanEditNilaiMT();
+  if (_editNilaiJenis === 'KBM Qiyam')      return _simpanEditNilaiQiyam();
   if (_editNilaiJenis === 'KBM Reguler')    return _simpanEditNilaiReguler();
   toast('Edit nilai jenis sesi ini belum didukung','err');
+}
+
+async function _simpanEditNilaiQiyam() {
+  const cards = document.querySelectorAll('#editNilaiBody [data-en-q-setoran]');
+  if (!cards.length) { toast('Tidak ada setoran untuk diedit','err'); return; }
+
+  // Validasi dulu: nilai (Makhraj & Tajwid) wajib untuk setiap setoran.
+  const jobs = [];
+  for (const card of cards) {
+    const mid = card.getAttribute('data-en-q-mid');
+    const idSetoran = card.getAttribute('data-en-q-setoran');
+    const nilai = document.getElementById('enQNilai-'+mid).value;
+    if (!nilai) { toast('Nilai Makhraj & Tajwid wajib diisi untuk semua setoran','err'); return; }
+    jobs.push({
+      id_setoran: idSetoran,
+      id_kbm    : editPresensiKBMId,
+      id_murid  : mid,
+      jenis     : document.getElementById('enQJenis-'+mid).value,
+      nilai     : nilai,
+      kelancaran: document.getElementById('enQKel-'+mid).value || null,
+      kamera    : document.getElementById('enQKam-'+mid).value || null,
+      catatan   : document.getElementById('enQCat-'+mid).value.trim() || null,
+    });
+  }
+
+  const _kbmId = editPresensiKBMId;
+  let _ok = false;
+  showLoad('Bismillah, menyimpan setoran hafalan...');
+  try {
+    for (const job of jobs) {
+      await window.HQ.GuruAPI.updateSetoranHafalan(job);
+    }
+    closeModal('editPresensiModal');
+    toast('Setoran hafalan berhasil diperbarui!','ok');
+    muridCache = {};
+    const rSel = document.getElementById('riwayatHalaqahSel').value;
+    if (rSel) loadRiwayat();
+    const mSel = document.getElementById('muridHalaqahSel').value;
+    if (mSel) loadMurid();
+    _ok = true;
+  } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+  // Nilai & kamera Qiyam memengaruhi raport → ingatkan bila raport sudah dibuat
+  if (_ok) await _warnRaportTerdampak(_kbmId);
 }
 
 function _simpanEditNilaiReguler() {

@@ -2106,6 +2106,36 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // Edit setoran (Paket 3c: Edit Nilai KBM Qiyam). Hanya field penilaian yang
+  // diubah (nilai/kelancaran/kamera/catatan/jenis) — surat/ayat/juz/target tidak
+  // disentuh. Guard id_guru = pemilik (selaras RLS guru_update_own_setoran).
+  // `nilai` NOT NULL → pemanggil wajib mengirimnya. Efek samping kamera→nilai_kbm
+  // direplikasi dari addSetoranHafalan agar konsisten.
+  updateSetoranHafalan: async function(d) {
+    var fields = {
+      nilai      : d.nilai,
+      kelancaran : d.kelancaran || null,
+      kamera     : d.kamera     || null,
+      catatan    : d.catatan    || null,
+      updated_at : new Date().toISOString(),
+    };
+    if (d.jenis) fields.jenis = d.jenis;
+    var { error } = await _sb.from('setoran_hafalan')
+      .update(fields)
+      .eq('id_setoran', d.id_setoran)
+      .eq('id_guru', _uid());
+    _check(error, 'updateSetoranHafalan');
+    // Sync kamera ke nilai_kbm untuk sesi Qiyam (sama seperti addSetoranHafalan)
+    if (d.id_kbm && d.id_murid && d.kamera) {
+      var { error: syncErr } = await _sb.from('nilai_kbm')
+        .update({ kamera_murid: d.kamera })
+        .eq('id_kbm', d.id_kbm)
+        .eq('id_murid', d.id_murid);
+      if (syncErr) console.warn('Gagal sync kamera ke nilai_kbm:', syncErr.message);
+    }
+    return { status: 'ok' };
+  },
+
   // ── Raport Tahfidz ─────────────────────────────────────────────────────
   // Ambil semua setoran hafalan dalam rentang tanggal (untuk raport)
   getRaportTahfidzData: async function(id_halaqah, id_murid, tgl_mulai, tgl_selesai) {
