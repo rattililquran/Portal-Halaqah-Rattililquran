@@ -36,7 +36,7 @@
   var root = null, canvas = null, ctx = null, mounted = false;
   var MAZES = FALLBACK_MAZES, MAZE = MAZES[0], QUESTIONS = FALLBACK_QUESTIONS.slice();
   var COLS = 13, ROWS = 15, activeLevel = null, savedMsg = "";
-  var TILE = 32, OX = 0, OY = 0, HUD_H = 0, BANNER_H = 0, W = 0, H = 0, DPR = 1;
+  var TILE = 32, OX = 0, OY = 0, HUD_H = 0, QBAR_H = 0, BANNER_H = 0, W = 0, H = 0, DPR = 1;
   // Kecepatan (petak/detik) — mudah disetel. Pemain harus > monster agar bisa kabur.
   var PLAYER_SPEED = 3.8;
   var MON_START = 2, MON_MAX = 4, MON_SPEED = 2.6;
@@ -201,12 +201,14 @@
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     var vw = window.innerWidth, vh = window.innerHeight;
-    HUD_H = Math.round(Math.min(64, vh * 0.09));
-    BANNER_H = Math.round(Math.min(120, vh * 0.17));
-    var availH = vh - HUD_H - BANNER_H;
+    HUD_H = Math.round(Math.min(56, vh * 0.08));
+    QBAR_H = Math.round(Math.min(96, vh * 0.14));     // banner soal di ATAS
+    BANNER_H = Math.round(Math.min(190, vh * 0.24));  // area tombol navigasi di BAWAH (lebih lega)
+    var topH = HUD_H + QBAR_H;
+    var availH = vh - topH - BANNER_H;
     TILE = Math.floor(Math.min(vw / COLS, availH / ROWS));
     var mazeW = TILE * COLS, mazeH = TILE * ROWS;
-    OX = Math.round((vw - mazeW) / 2); OY = HUD_H + Math.round((availH - mazeH) / 2);
+    OX = Math.round((vw - mazeW) / 2); OY = topH + Math.round((availH - mazeH) / 2);
     W = vw; H = vh;
     canvas.style.width = vw + "px"; canvas.style.height = vh + "px";
     canvas.width = Math.round(vw * DPR); canvas.height = Math.round(vh * DPR);
@@ -262,7 +264,7 @@
     player.fx = Math.round(player.fx); player.fy = Math.round(player.fy);
     player.dx = 0; player.dy = 0; player.ndx = 0; player.ndy = 0;
   }
-  function dpadRect() { var size = Math.min(BANNER_H * 1.4, W * 0.44); return { cx: W - size / 2 - 12, cy: H - BANNER_H / 2, s: size }; }
+  function dpadRect() { var size = Math.min(BANNER_H * 0.98, W * 0.72, 250); return { cx: W / 2, cy: H - BANNER_H / 2, s: size }; }
   function handleDpadTap(x, y) {
     _taps++;
     var d = dpadRect(), rx = x - d.cx, ry = y - d.cy, half = d.s / 2;
@@ -460,7 +462,7 @@
     ctx.restore();
   }
   function drawDebug() {
-    var y = HUD_H + 2;
+    var y = HUD_H + QBAR_H + 2;
     ctx.fillStyle = "rgba(0,0,0,0.65)"; ctx.fillRect(4, y, 280, 30);
     ctx.fillStyle = "#5f5"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.textBaseline = "top";
     var pd = player ? (player.dx + "," + player.dy) : "-";
@@ -556,13 +558,17 @@
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x - rad * 0.35, y - rad * 0.1, rad * 0.24, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(x + rad * 0.35, y - rad * 0.1, rad * 0.24, 0, 7); ctx.fill();
     ctx.fillStyle = scared ? "#3a4bb0" : "#0a1030"; ctx.beginPath(); ctx.arc(x - rad * 0.35 + ex, y - rad * 0.1 + ey, rad * 0.12, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(x + rad * 0.35 + ex, y - rad * 0.1 + ey, rad * 0.12, 0, 7); ctx.fill();
   }
+  // Banner soal di ATAS (di bawah HUD, lebar penuh) — sisakan bawah untuk tombol navigasi
   function drawBanner() {
-    var by = H - BANNER_H; ctx.fillStyle = "#0a0e2a"; ctx.fillRect(0, by, W, BANNER_H);
-    ctx.fillStyle = "rgba(201,168,74,0.25)"; ctx.fillRect(0, by, W, 2);
+    var by = HUD_H; ctx.fillStyle = "#0a0e2a"; ctx.fillRect(0, by, W, QBAR_H);
+    ctx.fillStyle = "rgba(201,168,74,0.25)"; ctx.fillRect(0, by + QBAR_H - 2, W, 2);
     var qd = QUESTIONS[qIndex];
-    ctx.fillStyle = "#c9a84a"; ctx.font = "800 11px sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("PERTANYAAN", 16, by + 12);
-    ctx.fillStyle = "#fff"; ctx.font = "700 15px sans-serif"; wrapText(qd.q, 16, by + 30, W * 0.62, 19);
-    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.fillText("Diam di kotak jawaban, lalu tekan ✓ (tengah) untuk memilih", 16, by + BANNER_H - 18);
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillStyle = "#c9a84a"; ctx.font = "800 11px sans-serif"; ctx.fillText("PERTANYAAN", 16, by + 10);
+    ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif"; ctx.textAlign = "right";
+    ctx.fillText("berhenti di kotak jawaban → tekan ✓", W - 16, by + 11);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fff"; ctx.font = "700 15px sans-serif"; wrapText(qd.q, 16, by + 28, W - 32, 19);
   }
   function drawDpad() {
     var d = dpadRect(), arms = [[0, -1], [0, 1], [-1, 0], [1, 0]];
