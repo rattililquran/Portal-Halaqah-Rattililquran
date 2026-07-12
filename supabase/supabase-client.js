@@ -5148,6 +5148,41 @@ var MuridAPI = {
     _check(error, 'joinSesiLive');
     return { status: 'ok', data: data };
   },
+
+  // ── Maze Adventure (gamifikasi; patch_069) ─────────────
+  getMazeLevels: async function() {
+    var { data, error } = await _sb.from('maze_level')
+      .select('id_maze_level, nama_level, urutan, map_data, jumlah_monster, kecepatan_monster, tingkat_kesulitan')
+      .eq('aktif', true)
+      .order('urutan', { ascending: true });
+    _check(error, 'getMazeLevels');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Soal maze via RPC TERPISAH (termasuk is_benar utk feedback instan; aman karena
+  // maze nol bobot akademik). JANGAN pakai getKuisDetail (sengaja sembunyikan is_benar).
+  getMazeSoal: async function(id_maze_level) {
+    var { data, error } = await _sb.rpc('get_maze_soal', { p_id_maze_level: id_maze_level });
+    _check(error, 'getMazeSoal');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Simpan progress (RPC upsert skor-terbaik). Mengembalikan baris tersimpan sebagai
+  // KONFIRMASI (hindari "RLS 0-row silent"): pemanggil wajib cek data != null.
+  simpanMazeProgress: async function(payload) {
+    var { data, error } = await _sb.rpc('simpan_maze_progress', {
+      p_id_maze_level: payload.id_maze_level,
+      p_score:         payload.score || 0,
+      p_best_time_ms:  (payload.best_time_ms != null ? payload.best_time_ms : null),
+      p_nyawa_sisa:    (payload.nyawa_sisa != null ? payload.nyawa_sisa : null),
+      p_completed:     !!payload.completed,
+      p_badges:        payload.badges || [],
+      p_soal_snapshot: payload.soal_snapshot || null
+    });
+    _check(error, 'simpanMazeProgress');
+    if (!data) throw new Error('simpanMazeProgress: baris tidak tersimpan (progress kosong)');
+    return { status: 'ok', data: data };
+  },
 };
 
 // ─────────────────────────────────────────────
