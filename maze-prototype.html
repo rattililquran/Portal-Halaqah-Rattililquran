@@ -176,21 +176,31 @@
   var lastT = 0, dotsLeft = 0;
   var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45; // harus berhenti sejenak di kotak untuk memilih
 
+  // Konfigurasi monster
+  var MON_START = 2;   // mulai dengan 2 monster
+  var MON_MAX = 4;     // batas atas (clone tiap salah jawab)
+
+  function makeMonster(idx) {
+    var base = GHOST_SPAWN.length ? GHOST_SPAWN : [{ c: 6, r: 7 }];
+    var s = base[idx % base.length];
+    var m = mkEntity(s.c, s.r, 3.5 + (idx % 3) * 0.2);
+    m.type = (idx % 2 === 0) ? "chase" : "ambush";       // pengejar / pencegat
+    m.hue = (m.type === "chase") ? 205 : 330;            // biru / merah muda
+    return m;
+  }
+
   function resetPositions() {
     dwellIdx = -1; dwellT = 0;
     player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, 5.2);
     monsters = [];
-    var baseC = GHOST_SPAWN.length ? GHOST_SPAWN : [{ c: 5, r: 3 }];
-    var n = Math.min(3, Math.max(1, 1 + Math.floor(qIndex / 2))); // makin sulit: monster nambah
-    for (var i = 0; i < n; i++) {
-      var s = baseC[i % baseC.length];
-      var m = mkEntity(s.c, s.r, 3.6 + i * 0.15);
-      m.hue = [200, 320, 150][i % 3];
-      m.decideDir = pickCornerDir(i);
-      monsters.push(m);
-    }
+    for (var i = 0; i < MON_START; i++) monsters.push(makeMonster(i));
   }
-  function pickCornerDir(i) { var d = [[1,0],[-1,0],[0,1]][i%3]; return d; }
+
+  function addMonster() {   // clone saat salah jawab (kesalahan -> monster)
+    if (monsters.length >= MON_MAX) return false;
+    monsters.push(makeMonster(monsters.length));
+    return true;
+  }
 
   function loadQuestion() {
     var qd = QUESTIONS[qIndex];
@@ -296,8 +306,11 @@
     // hindari balik arah kecuali buntu
     var noReverse = options.filter(function (d) { return !(d[0] === -m.dx && d[1] === -m.dy); });
     if (noReverse.length) options = noReverse;
-    var target = { x: player.fx, y: player.fy };
     var flee = frightenTimer > 0;
+    // pengejar mengincar posisi pemain; pencegat mengincar 4 petak di depan arah lari pemain
+    var tx_ = player.fx, ty_ = player.fy;
+    if (!flee && m.type === "ambush") { tx_ = player.fx + player.dx * 4; ty_ = player.fy + player.dy * 4; }
+    var target = { x: tx_, y: ty_ };
     var best = null, bestScore = flee ? -1 : 1e9;
     for (var i = 0; i < options.length; i++) {
       var d = options[i];
@@ -327,6 +340,7 @@
     if (optIdx === qd.benar) {
       score += 100;
       frightenTimer = 4.5;                 // monster mundur/takut
+      if (monsters.length > MON_START) monsters.pop();   // benar -> monster menyusut
       flash = 0.35; setMsg("✔ Benar! +100", "#3ddc84");
       qIndex++;
       if (qIndex >= QUESTIONS.length) { win(); return; }
@@ -349,7 +363,10 @@
     for (var i = 0; i < monsters.length; i++) {
       monsters[i].fx = monsters[i].spawn.c; monsters[i].fy = monsters[i].spawn.r;
     }
-    if (fromWrong) frightenTimer = 0;
+    if (fromWrong) {
+      frightenTimer = 0;
+      if (addMonster()) setMsg("Salah! Muncul monster baru (" + monsters.length + ")", "#ff8a4c");
+    }
   }
 
   function setMsg(t, col) { msg = t; msgColor = col || "#fff"; msgTimer = 1.6; }
