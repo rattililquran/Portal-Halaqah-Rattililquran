@@ -2854,8 +2854,17 @@ var GuruAPI = {
       bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10
     };
 
-    var { error: updateErr } = await _sb.from('soal').update(soalRow).eq('id_soal', id_soal);
+    // .select() agar bisa mendeteksi jumlah baris terupdate. Di bawah RLS, update yang
+    // diblok (mis. soal terkunci karena kuisnya sudah dikerjakan murid, atau bukan
+    // pemilik/bukan admin) mengembalikan 0 baris TANPA error — kalau tidak dicek, kita
+    // salah melapor "berhasil". Guard ini juga WAJIB sebelum delete opsi di bawah, agar
+    // pilihan/pasangan/kunci tidak ikut terhapus saat soal-nya sendiri gagal diperbarui.
+    var { data: updatedRows, error: updateErr } = await _sb.from('soal')
+      .update(soalRow).eq('id_soal', id_soal).select('id_soal');
     _check(updateErr, 'updateSoalFull:soal');
+    if (!updatedRows || updatedRows.length === 0) {
+      throw new Error('Soal tidak bisa diedit: kemungkinan sudah dipakai di kuis yang telah dikerjakan murid (terkunci), atau akses ditolak. Duplikasi soal terlebih dahulu jika ingin mengubahnya.');
+    }
 
     await Promise.all([
       _sb.from('soal_pilihan').delete().eq('id_soal', id_soal),
