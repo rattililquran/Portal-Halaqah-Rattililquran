@@ -207,18 +207,35 @@
   // ---------- Gerak ----------
   var ALIGN = 0.12;
   function aligned(v) { return Math.abs(v - Math.round(v)) < ALIGN; }
+  // Gerak grid KOKOH: entitas selalu melangkah menuju pusat petak berikutnya dan
+  // berhenti/belok TEPAT di pusat (deteksi lintas-pusat). Tidak ada "snap balik",
+  // jadi tak tergantung ambang/FPS. Gerak selalu satu sumbu (dx XOR dy).
+  var EPS = 1e-6;
   function moveEntity(m, dt, isPlayer) {
-    if (aligned(m.fx) && aligned(m.fy)) {
-      var cc = Math.round(m.fx), cr = Math.round(m.fy); m.fx = cc; m.fy = cr;
-      if (isPlayer) {
-        if ((m.ndx || m.ndy) && !isWall(cc + m.ndx, cr + m.ndy)) { m.dx = m.ndx; m.dy = m.ndy; }
+    if (Math.abs(m.fx - Math.round(m.fx)) < EPS) m.fx = Math.round(m.fx);
+    if (Math.abs(m.fy - Math.round(m.fy)) < EPS) m.fy = Math.round(m.fy);
+    var remaining = m.speed * dt, guard = 0;
+    while (remaining > EPS && guard++ < 128) {
+      var atCenter = (m.fx === Math.round(m.fx)) && (m.fy === Math.round(m.fy));
+      if (atCenter) {
+        var cc = m.fx, cr = m.fy;
+        if (isPlayer) {
+          if ((m.ndx || m.ndy) && !isWall(cc + m.ndx, cr + m.ndy)) { m.dx = m.ndx; m.dy = m.ndy; }
+        } else { chooseMonsterDir(m, cc, cr); }
         if (isWall(cc + m.dx, cr + m.dy)) { m.dx = 0; m.dy = 0; }
-      } else { chooseMonsterDir(m, cc, cr); }
+        if (m.dx === 0 && m.dy === 0) break;            // buntu / tak ada arah -> diam
+      }
+      var distToNext;                                    // jarak ke pusat petak berikutnya
+      if (m.dx > 0) distToNext = (Math.floor(m.fx) + 1) - m.fx;
+      else if (m.dx < 0) distToNext = m.fx - (Math.ceil(m.fx) - 1);
+      else if (m.dy > 0) distToNext = (Math.floor(m.fy) + 1) - m.fy;
+      else distToNext = m.fy - (Math.ceil(m.fy) - 1);
+      if (distToNext < EPS) distToNext = 1;              // tepat di pusat -> satu petak penuh
+      var stepd = Math.min(remaining, distToNext);
+      m.fx += m.dx * stepd; m.fy += m.dy * stepd;
+      remaining -= stepd;
+      if (stepd >= distToNext - EPS) { m.fx = Math.round(m.fx); m.fy = Math.round(m.fy); } // mendarat di pusat
     }
-    var nx = m.fx + m.dx * m.speed * dt, ny = m.fy + m.dy * m.speed * dt;
-    var tc = Math.round(nx + m.dx * 0.5), tr = Math.round(ny + m.dy * 0.5);
-    if (!isWall(tc, tr) || (Math.round(nx) === Math.round(m.fx) && Math.round(ny) === Math.round(m.fy))) { m.fx = nx; m.fy = ny; }
-    else { m.fx = Math.round(m.fx); m.fy = Math.round(m.fy); if (isPlayer) { m.dx = 0; m.dy = 0; } }
   }
   function chooseMonsterDir(m, cc, cr) {
     var options = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(function (d) { return !isWall(cc + d[0], cr + d[1]); });
