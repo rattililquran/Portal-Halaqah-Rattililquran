@@ -5183,6 +5183,15 @@ var MuridAPI = {
     if (!data) throw new Error('simpanMazeProgress: baris tidak tersimpan (progress kosong)');
     return { status: 'ok', data: data };
   },
+
+  // Baca progress maze milik murid ini (RLS: hanya baris sendiri).
+  getMazeProgress: async function() {
+    var { data, error } = await _sb.from('maze_progress')
+      .select('id_maze_level, score, best_time_ms, nyawa_sisa, completed, badges, updated_at, maze_level(nama_level)')
+      .order('updated_at', { ascending: false });
+    _check(error, 'getMazeProgress');
+    return { status: 'ok', data: data || [] };
+  },
 };
 
 // ─────────────────────────────────────────────

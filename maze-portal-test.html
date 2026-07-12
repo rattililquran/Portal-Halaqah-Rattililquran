@@ -26,12 +26,14 @@
   <p>Halaman uji <b>round-trip DB nyata</b> (baca level & soal, simpan skor) tanpa menyentuh portal murid produksi.</p>
   <div class="status" id="status">Memuat modul…</div>
   <button class="btn" id="playBtn" disabled>Buka Game</button>
+  <button class="btn" id="scoreBtn" style="background:linear-gradient(135deg,#7ee0a8,#3ddc84);">Cek Skor Tersimpan</button>
+  <div class="status" id="scoreBox" style="display:none;"></div>
   <p style="font-size:12px;color:#6b7aa8;">Agar skor tersimpan: login dulu di <b>portal murid</b> (tab lain, origin sama). Jika belum, game tetap bisa dimainkan mode contoh.</p>
 </div>
 
 <script src="assets/js/supabase.min.js" defer></script>
-<script src="supabase/supabase-client.js?v=maze8" defer></script>
-<script src="murid/maze-module.js?v=maze8" defer></script>
+<script src="supabase/supabase-client.js?v=maze9" defer></script>
+<script src="murid/maze-module.js?v=maze9" defer></script>
 <script>
   window.addEventListener('load', function () {
     var st = document.getElementById('status');
@@ -60,6 +62,30 @@
     }
 
     if (window.MazeGame) { btn.disabled = false; btn.onclick = function () { window.MazeGame.open(); }; }
+
+    var scoreBtn = document.getElementById('scoreBtn');
+    var scoreBox = document.getElementById('scoreBox');
+    scoreBtn.onclick = function () {
+      scoreBox.style.display = 'block';
+      if (!(window.HQ && window.HQ.MuridAPI && window.HQ.MuridAPI.getMazeProgress)) {
+        scoreBox.innerHTML = '<div class="err">✗ API getMazeProgress tak ada — muat ulang penuh</div>'; return;
+      }
+      scoreBox.innerHTML = 'Mengambil skor…';
+      window.HQ.MuridAPI.getMazeProgress().then(function (r) {
+        var rows = (r && r.data) || [];
+        if (!rows.length) { scoreBox.innerHTML = '<div class="warn">⚠ Belum ada skor tersimpan. Login sebagai murid + mainkan sampai selesai/kalah pada level DB.</div>'; return; }
+        var html = '<div class="ok">✓ ' + rows.length + ' skor tersimpan (baris DB):</div>';
+        rows.forEach(function (x) {
+          var nama = (x.maze_level && x.maze_level.nama_level) || x.id_maze_level;
+          html += '<div>• <b>' + nama + '</b> — skor <b>' + x.score + '</b>'
+            + (x.best_time_ms ? (' · ' + (x.best_time_ms / 1000).toFixed(1) + 's') : '')
+            + ' · nyawa ' + (x.nyawa_sisa != null ? x.nyawa_sisa : '-')
+            + (x.completed ? ' · <span class="ok">tamat</span>' : '')
+            + ' · badge ' + (JSON.stringify(x.badges) || '[]') + '</div>';
+        });
+        scoreBox.innerHTML = html;
+      }).catch(function (e) { scoreBox.innerHTML = '<div class="err">✗ ' + (e.message || e) + '</div>'; });
+    };
   });
 </script>
 </body>
