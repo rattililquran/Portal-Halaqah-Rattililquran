@@ -1175,6 +1175,21 @@ var GuruAPI = {
     })};
   },
 
+  // Ambil field Jurnal & Latihan Mandiri sebuah sesi untuk fitur Edit KBM.
+  // Field-field ini TIDAK memengaruhi kalkulasi raport (deskriptif), jadi aman
+  // diedit kapan pun. pr_submitted_count dipakai guard: peringatkan guru bila
+  // sudah ada murid yang mengumpulkan PR sebelum ia mengubah teks/jenis latihan.
+  getJurnalByKBM: async function(id_kbm) {
+    var [kbmRes, prRes] = await Promise.all([
+      _sb.from('kbm_log').select('id_kbm, jenis_sesi, materi_belajar, pencapaian_modul, halaman_modul, metode, catatan_umum, jam_selesai, latihan_mandiri, jenis_latihan, deadline_latihan, referensi_url').eq('id_kbm', id_kbm).maybeSingle(),
+      _sb.from('nilai_kbm').select('id_nilai', { count: 'exact', head: true }).eq('id_kbm', id_kbm).not('pr_submitted_at', 'is', null),
+    ]);
+    _check(kbmRes.error, 'getJurnalByKBM');
+    var kbm = kbmRes.data || null;
+    if (kbm && kbm.jam_selesai) kbm.jam_selesai = String(kbm.jam_selesai).substring(0, 5);
+    return { status: 'ok', data: kbm, pr_submitted_count: prRes.count || 0 };
+  },
+
   // ── Fase 2: server staging draft nilai KBM (kbm_draft) ──
   // JSON inert; TIDAK menggantikan commit final. Melempar error bila gagal
   // (mis. tabel belum dibuat) → pemanggil di klien menangkap & no-op (fallback

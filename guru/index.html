@@ -5547,30 +5547,91 @@ html.theme-dark .pr-chip.active {
       <button class="modal-x" onclick="closeModal('editPresensiModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
-        padding:10px 14px;font-size:12.5px;color:var(--amber-txt);margin-bottom:16px">
-        ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
-      </div>
-      
-      <!-- Date & Sesi Ke- Edit Inputs -->
-      <div style="display:flex;gap:12px;margin-bottom:16px">
-        <div class="fg" style="flex:1;margin:0">
-          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Tanggal Pertemuan</label>
-          <input type="date" class="fc" id="editPresensiTanggal" style="font-size:13px;padding:8px 12px">
-        </div>
-        <div class="fg" style="width:120px;margin:0">
-          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Pertemuan Ke-</label>
-          <input type="number" class="fc" id="editPresensiPertemuanKe" min="1" style="font-size:13px;padding:8px 12px">
-        </div>
+      <!-- Tab bar Edit KBM (urutan mengikuti wizard sesi: Presensi → Jurnal) -->
+      <div class="at-tab-bar" style="margin-bottom:16px">
+        <button class="at-tab-btn active" id="editTabBtnPresensi" onclick="switchEditTab('presensi')">🧑‍🎓 Presensi</button>
+        <button class="at-tab-btn" id="editTabBtnJurnal" onclick="switchEditTab('jurnal')">📓 Jurnal &amp; Latihan</button>
       </div>
 
-      <div id="editPresensiList" class="presensi-list"></div>
+      <!-- ══ TAB PRESENSI ══ -->
+      <div id="editTabPresensi">
+        <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
+          padding:10px 14px;font-size:12.5px;color:var(--amber-txt);margin-bottom:16px">
+          ⚠️ Perubahan presensi akan mempengaruhi akumulasi kehadiran murid.
+        </div>
+
+        <!-- Date & Sesi Ke- Edit Inputs -->
+        <div style="display:flex;gap:12px;margin-bottom:16px">
+          <div class="fg" style="flex:1;margin:0">
+            <label style="font-size:12px;font-weight:700;color:var(--text-2)">Tanggal Pertemuan</label>
+            <input type="date" class="fc" id="editPresensiTanggal" style="font-size:13px;padding:8px 12px">
+          </div>
+          <div class="fg" style="width:120px;margin:0">
+            <label style="font-size:12px;font-weight:700;color:var(--text-2)">Pertemuan Ke-</label>
+            <input type="number" class="fc" id="editPresensiPertemuanKe" min="1" style="font-size:13px;padding:8px 12px">
+          </div>
+        </div>
+
+        <div id="editPresensiList" class="presensi-list"></div>
+      </div>
+
+      <!-- ══ TAB JURNAL & LATIHAN ══ -->
+      <div id="editTabJurnal" style="display:none">
+        <div style="background:var(--blue-l,#eff6ff);border:1px solid var(--blue,#3b82f6);border-radius:var(--r-sm);
+          padding:10px 14px;font-size:12.5px;color:var(--blue-d,#1e40af);margin-bottom:14px">
+          📓 Jurnal &amp; Latihan Mandiri bersifat catatan — <strong>tidak memengaruhi nilai raport</strong>, aman diperbarui kapan saja.
+        </div>
+        <div id="ejPrWarn" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r-sm);
+          padding:10px 14px;font-size:12.5px;color:var(--amber-txt);margin-bottom:14px"></div>
+
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Topik / Materi yang Dipelajari</label>
+          <input type="text" class="fc" id="ejMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Halaman / Modul</label>
+          <input type="text" class="fc" id="ejHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Jam Selesai</label>
+          <input type="time" class="fc" id="ejJamSelesai" style="max-width:180px">
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Catatan Umum Sesi</label>
+          <textarea class="fc" id="ejCatatan" rows="3" placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Jenis Latihan Mandiri (PR)</label>
+          <select class="fc" id="ejJenisLatihan">
+            <option value="">— Tidak ada Latihan Mandiri (PR) —</option>
+            <option value="Rekaman Portal">🎙️ Rekaman Suara di Portal (Disarankan)</option>
+            <option value="VN di WAG">📱 Kirim Voice Note (VN) di WhatsApp Group</option>
+            <option value="Mendengar dan membaca mandiri">🎧 Mendengar Murattal &amp; Membaca Mandiri (Tanpa Setor Suara)</option>
+            <option value="Lainnya">📌 Lainnya</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Deskripsi Latihan Mandiri (PR)</label>
+          <textarea class="fc" id="ejLatihan" rows="2" placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..." style="resize:vertical"></textarea>
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Deadline Pengerjaan</label>
+          <input type="date" class="fc" id="ejDeadline">
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;font-weight:700;color:var(--text-2)">Tautan Referensi Rekaman / Murattal (Opsional)</label>
+          <input type="url" class="fc" id="ejReferensiUrl" placeholder="https://drive.google.com/file/d/.../view atau link audio lainnya">
+        </div>
+      </div>
     </div>
     <div class="modal-foot" style="justify-content:space-between">
       <button class="btn btn-danger" onclick="konfirmasiHapusKBM()" style="background:#dc2626;color:#fff;border:none;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;font-weight:600">🗑️ Hapus Sesi</button>
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" onclick="closeModal('editPresensiModal')">Batal</button>
-        <button class="btn btn-primary" onclick="simpanEditPresensi()">💾 Simpan Perubahan</button>
+        <button class="btn btn-primary" onclick="simpanEditModal()">💾 Simpan Perubahan</button>
       </div>
     </div>
   </div>
@@ -6592,11 +6653,18 @@ function emptyHTML(ico, ttl, sub) {
 // ══════════════════════════════════════════
 let editPresensiKBMId   = '';
 let editPresensiHalaqah = '';
+let _editJurnalData     = null;   // snapshot field jurnal saat dimuat (untuk merge aman saat simpan)
+let _editJurnalLoaded   = false;  // apakah tab Jurnal sudah dimuat untuk sesi ini
+let _editActiveTab      = 'presensi';
 
 async function bukaEditPresensi(id_kbm, tanggal) {
   editPresensiKBMId = id_kbm;
+  // Reset state tab Jurnal setiap kali modal dibuka untuk sesi baru
+  _editJurnalData   = null;
+  _editJurnalLoaded = false;
+  switchEditTab('presensi');
   document.getElementById('editPresensiTitle').textContent =
-    'Edit Presensi — ' + fmtDate(tanggal);
+    'Edit KBM — ' + fmtDate(tanggal);
   document.getElementById('editPresensiList').innerHTML =
     emptyHTML('⏳','Memuat data...','');
   openModal('editPresensiModal');
@@ -6695,6 +6763,96 @@ async function simpanEditPresensi() {
     if (rSel) loadRiwayat();
     const mSel = document.getElementById('muridHalaqahSel').value;
     if (mSel) loadMurid();
+  } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+}
+
+// ── Tab Edit KBM: Presensi ⇄ Jurnal & Latihan ──
+function switchEditTab(tab) {
+  const isPresensi = tab !== 'jurnal';
+  _editActiveTab = isPresensi ? 'presensi' : 'jurnal';
+  document.getElementById('editTabPresensi').style.display = isPresensi ? '' : 'none';
+  document.getElementById('editTabJurnal').style.display   = isPresensi ? 'none' : '';
+  document.getElementById('editTabBtnPresensi').classList.toggle('active', isPresensi);
+  document.getElementById('editTabBtnJurnal').classList.toggle('active', !isPresensi);
+  // Muat data jurnal saat pertama kali tab dibuka (lazy — hemat request bila guru hanya edit presensi)
+  if (!isPresensi && !_editJurnalLoaded) loadEditJurnal();
+}
+
+async function loadEditJurnal() {
+  showLoad('Bismillah, memuat jurnal & latihan...');
+  try {
+    const r = await window.HQ.GuruAPI.getJurnalByKBM(editPresensiKBMId);
+    const d = r.data || {};
+    _editJurnalData   = d;
+    _editJurnalData._pr_count = r.pr_submitted_count || 0;
+    _editJurnalLoaded = true;
+    document.getElementById('ejMateri').value       = d.materi_belajar   || '';
+    document.getElementById('ejHalaman').value      = d.halaman_modul    || '';
+    document.getElementById('ejJamSelesai').value   = d.jam_selesai      || '';
+    document.getElementById('ejCatatan').value      = d.catatan_umum     || '';
+    document.getElementById('ejJenisLatihan').value = d.jenis_latihan    || '';
+    document.getElementById('ejLatihan').value      = d.latihan_mandiri  || '';
+    document.getElementById('ejDeadline').value     = d.deadline_latihan ? String(d.deadline_latihan).substring(0, 10) : '';
+    document.getElementById('ejReferensiUrl').value = d.referensi_url     || '';
+    // Guard visual: peringatkan bila sudah ada murid mengumpulkan PR
+    const warn = document.getElementById('ejPrWarn');
+    const n = _editJurnalData._pr_count;
+    if (n > 0) {
+      warn.style.display = '';
+      warn.textContent = '⚠️ ' + n + ' murid sudah mengumpulkan Latihan Mandiri (PR) ini. Mengubah teks atau jenis PR bisa membuat jawaban mereka tidak sesuai soal.';
+    } else {
+      warn.style.display = 'none';
+    }
+  } catch(e) {
+    _editJurnalLoaded = false;
+    toast(friendlyError(e), 'err');
+  } finally { hideLoad(); }
+}
+
+// Dispatcher tombol "Simpan Perubahan" — arahkan ke penyimpan sesuai tab aktif
+function simpanEditModal() {
+  if (_editActiveTab === 'jurnal') return simpanEditJurnal();
+  return simpanEditPresensi();
+}
+
+async function simpanEditJurnal() {
+  if (!_editJurnalLoaded || !_editJurnalData) { toast('Data jurnal belum termuat','err'); return; }
+
+  const jenis   = document.getElementById('ejJenisLatihan').value;
+  const latihan = document.getElementById('ejLatihan').value.trim();
+
+  // Guard: konfirmasi bila teks/jenis PR diubah padahal sudah ada yang mengumpulkan
+  const origLatihan = (_editJurnalData.latihan_mandiri || '').trim();
+  const origJenis   = (_editJurnalData.jenis_latihan   || '');
+  const prCount     = _editJurnalData._pr_count || 0;
+  if (prCount > 0 && (latihan !== origLatihan || jenis !== origJenis)) {
+    const ok = await showConfirm(
+      'Latihan Mandiri (PR) ini sudah dikerjakan ' + prCount + ' murid. Mengubah soal atau jenis PR dapat membuat jawaban mereka tidak sesuai. Lanjutkan?',
+      { title: 'Ubah PR yang Sudah Dikerjakan?', okText: 'Ya, Ubah', danger: true }
+    );
+    if (!ok) return;
+  }
+
+  showLoad('Bismillah, menyimpan jurnal & latihan...');
+  try {
+    await window.HQ.GuruAPI.simpanJurnalKBM({
+      id_kbm          : editPresensiKBMId,
+      materi_belajar  : document.getElementById('ejMateri').value.trim(),
+      pencapaian_modul: _editJurnalData.pencapaian_modul,   // pertahankan nilai lama (tak ada input-nya)
+      halaman_modul   : document.getElementById('ejHalaman').value.trim(),
+      metode          : _editJurnalData.metode,             // pertahankan nilai lama
+      catatan_umum    : document.getElementById('ejCatatan').value.trim(),
+      jam_selesai     : document.getElementById('ejJamSelesai').value || null,
+      latihan_mandiri : latihan,
+      jenis_latihan   : jenis,
+      deadline_latihan: document.getElementById('ejDeadline').value || null,
+      referensi_url   : document.getElementById('ejReferensiUrl').value.trim(),
+    });
+    closeModal('editPresensiModal');
+    toast('Jurnal & Latihan berhasil diperbarui!','ok');
+    const rSel = document.getElementById('riwayatHalaqahSel').value;
+    if (rSel) loadRiwayat();
   } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
