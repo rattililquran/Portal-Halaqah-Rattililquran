@@ -91,21 +91,23 @@
 
   // ---------- Peta labirin (13 x 15) — koridor tak beraturan ala Pac-Man ----------
   // # dinding · . jalur+dot · 1-4 kotak jawaban · P pemain · G monster
+  // Kotak jawaban = kantong buntu (dead-end) di atas/bawah/kiri/kanan (mirip referensi).
+  // Hanya 1 jalan masuk → tak bisa "sekadar lewat"; harus sengaja masuk untuk memilih.
   var MAZE = [
     "#############",
-    "#1....#....2#",
-    "#.###.#.###.#",
+    "######1######",
+    "#....#.#....#",
+    "#.##.#.#.##.#",
     "#.#.......#.#",
     "#.#.##.##.#.#",
-    "#...#...#...#",
-    "###.#.#.#.###",
-    "#.....G.....#",
-    "#.###.#.###.#",
-    "#...#P..#...#",
-    "#.#.##.##.#.#",
+    "##.#.....#.##",
+    "#4....G....2#",
+    "##.#.....#.##",
+    "#.#.##P##.#.#",
     "#.#.......#.#",
-    "#.###.#.###.#",
-    "#3....#....4#",
+    "#.##.#.#.##.#",
+    "#....#.#....#",
+    "######3######",
     "#############"
   ];
   var COLS = MAZE[0].length, ROWS = MAZE.length;
@@ -172,8 +174,10 @@
   var score = 0, lives = 3, qIndex = 0, podMap = [];
   var frightenTimer = 0, invuln = 0, flash = 0, msg = "", msgTimer = 0;
   var lastT = 0, dotsLeft = 0;
+  var dwellIdx = -1, dwellT = 0, DWELL_NEED = 0.45; // harus berhenti sejenak di kotak untuk memilih
 
   function resetPositions() {
+    dwellIdx = -1; dwellT = 0;
     player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, 5.2);
     monsters = [];
     var baseC = GHOST_SPAWN.length ? GHOST_SPAWN : [{ c: 5, r: 3 }];
@@ -305,12 +309,16 @@
 
   // ---------- Logika permainan ----------
   function onReachTile(cc, cr) {
-    // ambil dot
+    // ambil dot (jawaban TIDAK dipicu di sini — lihat logika dwell di loop)
     if (dots[cr] && dots[cr][cc]) { dots[cr][cc] = false; score += 10; dotsLeft--; }
-    // sampai pod jawaban?
-    for (var p = 0; p < PODS.length; p++) {
-      if (PODS[p].c === cc && PODS[p].r === cr) { answer(p); break; }
-    }
+  }
+
+  // pod mana yang sedang ditempati pemain (berdasarkan petak pusat), -1 bila tak ada
+  function podUnderPlayer() {
+    var pc = Math.round(player.fx), pr = Math.round(player.fy);
+    for (var p = 0; p < PODS.length; p++)
+      if (PODS[p].c === pc && PODS[p].r === pr) return p;
+    return -1;
   }
 
   function answer(podIdx) {
@@ -381,6 +389,13 @@
 
     for (var i = 0; i < monsters.length; i++) moveEntity(monsters[i], dt, false);
 
+    // dwell: jawaban terkunci hanya bila pemain BERHENTI sejenak di kotak (bukan sekadar lewat)
+    var onPod = podUnderPlayer();
+    if (onPod >= 0 && onPod === dwellIdx) {
+      dwellT += dt;
+      if (dwellT >= DWELL_NEED) { dwellT = 0; dwellIdx = -1; answer(onPod); }
+    } else { dwellIdx = onPod; dwellT = 0; }
+
     // tumbukan
     if (invuln <= 0) {
       for (var j = 0; j < monsters.length; j++) {
@@ -413,6 +428,7 @@
     drawMaze();
     drawDots();
     drawPods();
+    if (dwellIdx >= 0 && dwellT > 0.02) drawDwellRing();
     drawPlayer();
     for (var i = 0; i < monsters.length; i++) drawMonster(monsters[i]);
     drawBanner();
@@ -499,7 +515,7 @@
     for (var p = 0; p < PODS.length; p++) {
       var pod = PODS[p]; var cx = tx(pod.c), cy = ty(pod.r);
       var optIdx = podMap[p]; var label = qd.opsi[optIdx];
-      var w = TILE * 3.0, h = TILE * 1.5;
+      var w = TILE * 2.5, h = TILE * 1.35;
       var x = Math.max(OX + 3, Math.min(cx - w / 2, OX + TILE * COLS - w - 3));
       var y = Math.max(OY + 3, Math.min(cy - h / 2, OY + TILE * ROWS - h - 3));
       // kotak hitam (gaya referensi)
@@ -518,6 +534,15 @@
         ctx.fillText(label, x + w / 2, y + h / 2);
       }
     }
+  }
+
+  function drawDwellRing() {
+    var x = tx(player.fx), y = ty(player.fy), rad = TILE * 0.52;
+    var frac = Math.min(1, dwellT / DWELL_NEED);
+    ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = Math.max(3, TILE * 0.13);
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = "#f6e7b2"; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.arc(x, y, rad, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac); ctx.stroke();
   }
 
   function drawPlayer() {
@@ -575,7 +600,7 @@
     ctx.fillStyle = "#fff"; ctx.font = "700 15px sans-serif";
     wrapText(qd.q, 16, by + 30, W * 0.62, 19);
     ctx.fillStyle = "#6b7aa8"; ctx.font = "600 10px sans-serif";
-    ctx.fillText("Jalan ke kotak jawaban yang benar", 16, by + BANNER_H - 18);
+    ctx.fillText("Berhenti sejenak di kotak jawaban untuk memilih", 16, by + BANNER_H - 18);
   }
 
   function drawDpad() {
