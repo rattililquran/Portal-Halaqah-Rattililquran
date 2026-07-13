@@ -54,6 +54,11 @@
           return window.HQ.MuridAPI.getRunSoal(r.data[0].id_run_level).then(function (s) {
             var m = (s && s.data) ? s.data.length : 0;
             add(m ? 'ok' : 'warn', (m ? '✓ ' + m + ' soal eligible (boleh_run)' : '⚠ 0 soal boleh_run — set <code>UPDATE soal SET boleh_run=true …</code> (pakai contoh bawaan)'));
+          }).catch(function (e) {
+            var msg = (e && (e.message || e)) + '';
+            if (/permission denied/i.test(msg))
+              add('warn', '⚠ get_run_soal butuh LOGIN (normal untuk anon) — game jalan mode contoh. Login murid utk soal DB.');
+            else add('err', '✗ getRunSoal gagal: ' + msg);
           });
         }
       }).catch(function (e) { add('err', '✗ query gagal: ' + (e.message || e)); });
