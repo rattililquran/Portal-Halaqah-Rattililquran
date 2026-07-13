@@ -155,6 +155,7 @@
   var SPEED_MIN = 270 * S, SPEED_MAX = 460 * S;
   var QUIZ_SPEED_FACTOR = 0.78; // melambat sedikit saat soal (biar sempat baca)
   var TARGET_SOAL = 8;          // jawab benar sebanyak ini -> MENANG (model target, bukan endless)
+  var READ_DELAY = 5;           // detik waktu baca soal sebelum awan jawaban muncul
 
   // ---------- Kanguru ----------
   var roo, world, speed, mode, quiz, obstacles, coins, clouds;
@@ -209,14 +210,18 @@
     pendingQuestion = null;
     var opts = Q.opsi.map(function (t, i) { return { t: t, correct: i === Q.benar }; });
     shuffle(opts);
-    var n = opts.length;
-    var gap = 330 * S;
-    var startX = W + 200 * S;
-    var cy = groundY - 185 * S; // pusat awan (dalam jangkauan puncak lompatan)
-    clouds = opts.map(function (o, i) {
+    // Awan JAWABAN belum muncul — beri waktu baca READ_DELAY dtk dulu (hitung mundur di banner).
+    clouds = [];
+    quiz = { q: Q.q, Q: Q, opts: opts, total: opts.length, resolved: false, result: null,
+             readTimer: READ_DELAY, spawned: false };
+  }
+  // Munculkan awan jawaban dari kanan setelah waktu baca habis
+  function spawnClouds() {
+    var gap = 330 * S, startX = W + 200 * S, cy = groundY - 185 * S; // cy = jangkauan puncak lompat
+    clouds = quiz.opts.map(function (o, i) {
       return { t: o.t, correct: o.correct, x: startX + i * gap, y: cy, state: 'idle' };
     });
-    quiz = { q: Q.q, Q: Q, resolved: false, result: null, total: n };
+    quiz.spawned = true;
   }
 
   function cloudBox(c) {
@@ -327,6 +332,12 @@
   }
 
   function updateQuiz(dt, v) {
+    // Waktu baca: soal sudah tampil, awan JAWABAN belum. Kanguru lari di jalur bersih.
+    if (quiz.readTimer > 0) {
+      quiz.readTimer -= dt;
+      if (quiz.readTimer <= 0 && !quiz.spawned) spawnClouds();
+      return;
+    }
     var kb = kangarooBox();
     var maxX = -Infinity;
     for (var i = 0; i < clouds.length; i++) {
@@ -432,22 +443,22 @@
   function drawKangaroo() {
     var bounce = roo.grounded ? Math.abs(Math.sin(roo.run)) * 3 * S : 0;
     var y = roo.y - bounce;
+    // Kedip saat "kebal sesaat" (sesudah kena rintangan). Alpha 0.6 → tetap jelas, tak seperti hilang.
+    var blink = (invuln > 0 && (Math.floor(invuln * 9) % 2 === 0));
     ctx.save();
-    if (invuln > 0 && (Math.floor(invuln * 12) % 2 === 0)) ctx.globalAlpha = 0.4;
-    var size = (roo.duck && roo.grounded ? 52 : 74) * S;
-    // bayangan
-    ctx.globalAlpha *= 0.9;
+    // bayangan (selalu sedikit transparan)
+    ctx.globalAlpha = 0.9;
     ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.beginPath(); ctx.ellipse(roo.x, groundY + 4 * S, 30 * S, 7 * S, 0, 0, 7); ctx.fill();
-    ctx.globalAlpha = (invuln > 0 && (Math.floor(invuln * 12) % 2 === 0)) ? 0.4 : 1;
-    // cermin horizontal supaya kanguru menghadap KANAN (arah lari)
+    // kanguru — SOLID (alpha 1) kecuali sedang kedip kebal
+    ctx.globalAlpha = blink ? 0.6 : 1;
+    var size = (roo.duck && roo.grounded ? 52 : 74) * S;
     var ey = y + (roo.duck && roo.grounded ? 6 * S : 0);
-    ctx.save();
+    // cermin horizontal supaya kanguru menghadap KANAN (arah lari)
     ctx.translate(roo.x, ey); ctx.scale(-1, 1);
     ctx.font = size + 'px -apple-system,"Segoe UI Emoji","Noto Color Emoji",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     ctx.fillText('🦘', 0, 0);
-    ctx.restore();
     ctx.restore();
   }
 
@@ -519,7 +530,10 @@
     roundRect((W - maxW) / 2, y, maxW, bh, 16 * S); ctx.fill();
     ctx.fillStyle = '#ffd25b'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.font = '700 ' + (11 * S) + 'px -apple-system,sans-serif';
-    ctx.fillText('SOAL — lompat ke awan yang benar', W / 2, y + 8 * S);
+    var sub = (quiz.readTimer > 0)
+      ? ('BACA DULU — jawaban muncul dalam ' + Math.ceil(quiz.readTimer) + '…')
+      : 'SOAL — lompat ke awan yang benar';
+    ctx.fillText(sub, W / 2, y + 8 * S);
     ctx.fillStyle = '#fff'; ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
     for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], W / 2, y + pad + 16 * S + i * 24 * S);
   }
