@@ -5159,39 +5159,56 @@ var MuridAPI = {
   // guru menugaskan quiz-nya — sama seperti quiz biasa.
   getMazeLevels: async function() {
     var id_murid = _uid();
+    // select('*') agar AMAN sebelum/sesudah patch_070 (kolom target_levels/
+    // rekomendasi_pertemuan_ke belum ada → undefined → levelOk() = tak menyaring).
     var { data: levels, error } = await _sb.from('maze_level')
-      .select('id_maze_level, nama_level, urutan, map_data, jumlah_monster, kecepatan_monster, tingkat_kesulitan, id_kuis')
+      .select('*')
       .eq('aktif', true)
       .order('urutan', { ascending: true });
     _check(error, 'getMazeLevels');
     levels = levels || [];
     if (!levels.length) return { status: 'ok', data: [] };
 
-    // Kumpulkan quiz yang tersedia untuk murid ini (aturan sama persis dgn quiz)
+    // Halaqah + level murid ini (dipakai gerbang quiz DAN filter target_levels)
+    var halaqahIds = [], muridLevels = {};
+    if (id_murid) {
+      var { data: anggotaData } = await _sb.from('anggota')
+        .select('id_halaqah, halaqah:id_halaqah(level)')
+        .eq('id_murid', id_murid).eq('status', 'aktif');
+      (anggotaData || []).forEach(function(a){
+        halaqahIds.push(a.id_halaqah);
+        if (a.halaqah && a.halaqah.level) muridLevels[a.halaqah.level] = true;
+      });
+    }
+
+    // Quiz yang tersedia untuk murid ini (aturan sama persis dgn quiz)
     var kuisIds = Array.from(new Set(levels.map(function(l){ return l.id_kuis; }).filter(Boolean)));
     var available = {};
-    if (kuisIds.length && id_murid) {
-      var { data: anggotaData } = await _sb.from('anggota')
-        .select('id_halaqah').eq('id_murid', id_murid).eq('status', 'aktif');
-      var halaqahIds = (anggotaData || []).map(function(a){ return a.id_halaqah; });
-      if (halaqahIds.length) {
-        var { data: qhData } = await _sb.from('quiz_halaqah')
-          .select('id_quiz, quiz(id_quiz, status, tgl_mulai, tgl_selesai)')
-          .in('id_halaqah', halaqahIds)
-          .in('id_quiz', kuisIds);
-        var today = _todayJakarta();
-        (qhData || []).forEach(function(qh){
-          var q = qh.quiz;
-          if (!q || q.status !== 'aktif') return;
-          if (q.tgl_mulai && q.tgl_mulai > today) return;
-          if (q.tgl_selesai && q.tgl_selesai < today) return;
-          available[q.id_quiz] = true;
-        });
-      }
+    if (kuisIds.length && halaqahIds.length) {
+      var { data: qhData } = await _sb.from('quiz_halaqah')
+        .select('id_quiz, quiz(id_quiz, status, tgl_mulai, tgl_selesai)')
+        .in('id_halaqah', halaqahIds)
+        .in('id_quiz', kuisIds);
+      var today = _todayJakarta();
+      (qhData || []).forEach(function(qh){
+        var q = qh.quiz;
+        if (!q || q.status !== 'aktif') return;
+        if (q.tgl_mulai && q.tgl_mulai > today) return;
+        if (q.tgl_selesai && q.tgl_selesai < today) return;
+        available[q.id_quiz] = true;
+      });
+    }
+
+    // Filter audiens Level Halaqah: kosong = semua; diisi = murid harus punya level itu
+    function levelOk(l){
+      var tl = l.target_levels;
+      if (!tl || !tl.length) return true;
+      for (var i = 0; i < tl.length; i++) if (muridLevels[tl[i]]) return true;
+      return false;
     }
 
     var data = levels
-      .filter(function(l){ return !l.id_kuis || available[l.id_kuis]; })
+      .filter(function(l){ return (!l.id_kuis || available[l.id_kuis]) && levelOk(l); })
       .map(function(l){ return Object.assign({}, l, { ditugaskan: !!l.id_kuis }); });
     return { status: 'ok', data: data };
   },
@@ -7917,6 +7934,8 @@ var AdminAPI = {
       kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
       id_kuis:           payload.id_kuis || null,
       tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      target_levels:     payload.target_levels || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
       aktif:             payload.aktif !== false
     };
     var { data, error } = await _sb.from('maze_level').insert([row]).select().single();
@@ -7932,6 +7951,8 @@ var AdminAPI = {
       kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
       id_kuis:           payload.id_kuis || null,
       tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      target_levels:     payload.target_levels || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
       aktif:             payload.aktif !== false
     };
     if (payload.map_data) row.map_data = payload.map_data;

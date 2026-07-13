@@ -1606,6 +1606,8 @@ function populatePeriodeSel(selId) {
 // ══════════════════════════════════════════
 // Peta bawaan terverifikasi (nol jalan buntu) — sama dgn level demo patch_069.
 const DEFAULT_MAZE_GRID = ['#############','#.....1.....#','#.#.##.#.##.#','#.#....#....#','#.#..#.#.##.#','#....#G.....#','#.##...##.#.#','#4....P...#2#','#.#.##.##...#','#.#.##......#','#...##.##.#.#','#.#.......#.#','#.#.##.#....#','#.....3.....#','#############'];
+// Nilai level = string yg sama dgn Bank Soal & halaqah.level (biar filter cocok)
+const MAZE_LEVEL_OPTS = ['Level 1','Level 2','Level 3','Level Qiyam','Micro Teaching','Tahsin Al-Fatihah'];
 let _mazeQuizCache = [];
 
 function _mazeBadge(text, color) {
@@ -1644,7 +1646,8 @@ async function loadMazeAdmin() {
             </div>
             ${_mazeBadge(lv.aktif?'Aktif':'Nonaktif', lv.aktif?'#16a34a':'#6b7280')}
           </div>
-          <div style="font-size:11.5px;color:var(--text-2);margin-bottom:12px">Sumber soal: ${sumber}</div>
+          <div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">Sumber soal: ${sumber}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Audiens: ${(lv.target_levels && lv.target_levels.length) ? esc(lv.target_levels.join(', ')) : 'Semua level'}${lv.rekomendasi_pertemuan_ke ? ' · rekom. pertemuan ke-'+esc(lv.rekomendasi_pertemuan_ke) : ''}</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button onclick="openMazeLevelModal('${escJs(lv.id_maze_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>
             <button onclick="toggleMazeAktifAdmin('${escJs(lv.id_maze_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'⏸ Nonaktifkan':'▶ Aktifkan'}</button>
@@ -1721,6 +1724,18 @@ async function openMazeLevelModal(id_maze_level) {
             <select id="mzKuis" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">${quizOpts}</select>
             <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Pilih quiz → level hanya muncul untuk murid di halaqah yang quiz-nya <b>ditugaskan + aktif</b> (seperti quiz), soal diambil dari quiz itu (yang dicentang "boleh maze"). Kosongkan = latihan bebas untuk semua murid.</div>
           </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">LEVEL HALAQAH (AUDIENS)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border)">
+              ${MAZE_LEVEL_OPTS.map(function(lv){ return `<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" class="mzLevelCheck" value="${esc(lv)}" ${(g.target_levels||[]).indexOf(lv)>=0?'checked':''}> ${esc(lv)}</label>`; }).join('')}
+            </div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Kosongkan = semua murid. Diisi = hanya murid di level itu yang melihat game ini (berlaku bersama gerbang quiz). Untuk latihan bebas, soal ikut disaring ke level ini.</div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">REKOMENDASI PERTEMUAN KE- (OPSIONAL)</label>
+            <input id="mzPertemuan" type="number" min="1" value="${g.rekomendasi_pertemuan_ke!=null?esc(g.rekomendasi_pertemuan_ke):''}" placeholder="mis. 10" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">Label rekomendasi saja (tidak memblokir), selaras Bank Soal.</div>
+          </div>
           <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:8px">
             <input type="checkbox" id="mzAktif" ${(!editing || g.aktif)?'checked':''}>
             <span>Aktif (tampilkan ke murid)</span>
@@ -1749,6 +1764,8 @@ async function submitMazeLevel(e, id_maze_level) {
   if (monster > 4) monster = 4;
   let kecepatan = parseFloat(document.getElementById('mzKecepatan').value);
   if (isNaN(kecepatan) || kecepatan <= 0) kecepatan = 1.0;
+  const target_levels = Array.from(document.querySelectorAll('.mzLevelCheck:checked')).map(function(cb){ return cb.value; });
+  const pertemuanRaw = document.getElementById('mzPertemuan').value;
   const payload = {
     nama_level: nama,
     urutan: parseInt(document.getElementById('mzUrutan').value) || 0,
@@ -1756,6 +1773,8 @@ async function submitMazeLevel(e, id_maze_level) {
     jumlah_monster: monster,
     kecepatan_monster: kecepatan,
     id_kuis: document.getElementById('mzKuis').value || null,
+    target_levels: target_levels,
+    rekomendasi_pertemuan_ke: pertemuanRaw !== '' ? parseInt(pertemuanRaw) : null,
     aktif: document.getElementById('mzAktif').checked
   };
   try {
