@@ -157,7 +157,6 @@
     src.start(t); src.stop(t + D + 0.03);
   }
   function sfxJump()      { noise(0.18, 0.06, 'bandpass', 900, 0.5, 0.010); }
-  function sfxStep()      { noise(0.09, 0.045, 'lowpass', 360, 0, 0.004); noise(0.03, 0.012, 'highpass', 3200); }
   function sfxCoin()      { noise(0.06, 0.08, 'highpass', 3800, 0, 0.004); }
   function sfxGood()      { noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); setTimeout(function(){ noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); }, 85); }
   function sfxBad()       { noise(0.24, 0.10, 'lowpass', 260, 0, 0.006); }
@@ -243,7 +242,7 @@
 
   // ---------- Spawner rintangan (mode run) ----------
   var spawnGap = 0, coinGap = 0;
-  var _stepAcc = 0, _heartAcc = 0;   // kadens langkah lari & detak jantung (audio non-melodi)
+  var _heartAcc = 0;   // kadens detak jantung (audio non-melodi)
   function spawnObstacle() {
     var r = Math.random();
     if (r < 0.45) obstacles.push({ type: 'cactus', x: W + 40, wob: 34 * S });
@@ -327,10 +326,7 @@
     roo.y += roo.vy * dt;
     if (roo.y >= groundY) { roo.y = groundY; roo.vy = 0; roo.grounded = true; }
 
-    // Kadens audio non-melodi: langkah lari (tempo ikut kecepatan) + detak jantung saat nyawa kritis (≤1)
-    _stepAcc += dt;
-    var _si = 0.30 * (SPEED_MIN / Math.max(1, speed));
-    if (_stepAcc >= _si) { _stepAcc = 0; if (roo.grounded) sfxStep(); }
+    // Audio non-melodi: detak jantung saat nyawa kritis (≤1) + angin ambient
     if (lives <= 1) { _heartAcc += dt; if (_heartAcc >= 0.85) { _heartAcc = 0; sfxHeartbeat(); } }
     else _heartAcc = 0;
     windTick(dt);

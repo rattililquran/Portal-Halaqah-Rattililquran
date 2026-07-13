@@ -78,7 +78,6 @@
     src.start(t); src.stop(t + D + 0.03);
   }
   function sfxJump()      { noise(0.18, 0.06, 'bandpass', 900, 0.5, 0.010); }                                   // "wus" lompat
-  function sfxStep()      { noise(0.09, 0.045, 'lowpass', 360, 0, 0.004); noise(0.03, 0.012, 'highpass', 3200); } // hentakan kaki di pasir
   function sfxCoin()      { noise(0.06, 0.08, 'highpass', 3800, 0, 0.004); }                                     // "tik" bonus
   function sfxGood()      { noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); setTimeout(function(){ noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); }, 85); } // ketuk-ketuk benar
   function sfxBad()       { noise(0.24, 0.10, 'lowpass', 260, 0, 0.006); }                                       // "duk" tumpul salah
@@ -123,7 +122,7 @@
   var lives, score, dist, tState, tScheduled, invuln, running, shake;
   var missedQueue, pendingQuestion, toast, correctCount, streak, deck;
   var spawnGap = 0, coinGap = 0;
-  var _stepAcc = 0, _heartAcc = 0;   // kadens langkah lari & detak jantung (audio non-melodi)
+  var _heartAcc = 0;   // kadens detak jantung (audio non-melodi)
 
   function kangarooBox() {
     var kw = 54 * S;
@@ -270,10 +269,7 @@
     roo.y += roo.vy * dt;
     if (roo.y >= groundY) { roo.y = groundY; roo.vy = 0; roo.grounded = true; }
 
-    // Kadens audio non-melodi: langkah lari (tempo ikut kecepatan) + detak jantung saat nyawa kritis (≤1)
-    _stepAcc += dt;
-    var _si = 0.30 * (SPEED_MIN / Math.max(1, speed));
-    if (_stepAcc >= _si) { _stepAcc = 0; if (roo.grounded) sfxStep(); }
+    // Audio non-melodi: detak jantung saat nyawa kritis (≤1) + angin ambient
     if (lives <= 1) { _heartAcc += dt; if (_heartAcc >= 0.85) { _heartAcc = 0; sfxHeartbeat(); } }
     else _heartAcc = 0;
     windTick(dt);
