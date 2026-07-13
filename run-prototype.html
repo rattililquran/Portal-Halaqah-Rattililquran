@@ -127,6 +127,7 @@
   // ---------- Kanguru ----------
   var roo, world, speed, mode, quiz, obstacles, coins, clouds;
   var lives, score, dist, tState, tScheduled, invuln, running, shake;
+  var missedQueue, pendingQuestion, toast;
 
   function kangarooBox() {
     var kw = 54 * S;
@@ -144,6 +145,7 @@
     tState = 0;              // waktu berjalan di mode saat ini
     tScheduled = rand(4.5, 6.5); // detik lari sebelum soal muncul
     invuln = 0; shake = 0;
+    missedQueue = []; pendingQuestion = null; toast = null;
     world = 0;
     running = true;
   }
@@ -167,7 +169,8 @@
   // ---------- Mulai segmen SOAL ----------
   function startQuiz() {
     mode = 'quiz'; tState = 0;
-    var Q = pick(QUESTIONS);
+    var Q = pendingQuestion || pick(QUESTIONS);
+    pendingQuestion = null;
     var opts = Q.opsi.map(function (t, i) { return { t: t, correct: i === Q.benar }; });
     shuffle(opts);
     var n = opts.length;
@@ -177,7 +180,7 @@
     clouds = opts.map(function (o, i) {
       return { t: o.t, correct: o.correct, x: startX + i * gap, y: cy, state: 'idle' };
     });
-    quiz = { q: Q.q, resolved: false, result: null, total: n };
+    quiz = { q: Q.q, Q: Q, resolved: false, result: null, total: n };
   }
 
   function cloudBox(c) {
@@ -218,6 +221,7 @@
     dist += speed * dt * 0.05;
     if (invuln > 0) invuln -= dt;
     if (shake > 0) shake -= dt;
+    if (toast && toast.t > 0) toast.t -= dt;
     roo.run += dt * 12;
 
     // percepatan bertahap
@@ -260,7 +264,15 @@
     for (var j = coins.length - 1; j >= 0; j--) {
       var c = coins[j]; c.x -= v * dt;
       var cbx = { x: c.x - 16 * S, y: c.y - 16 * S, w: 32 * S, h: 32 * S };
-      if (!c.got && intersect(kb, cbx)) { c.got = true; score += 25; sfxCoin(); coins.splice(j, 1); continue; }
+      if (!c.got && intersect(kb, cbx)) {
+        c.got = true; score += 25; sfxCoin(); coins.splice(j, 1);
+        if (missedQueue.length && !pendingQuestion) {
+          pendingQuestion = missedQueue.shift();
+          tScheduled = Math.min(tScheduled, tState + 1.6); // soal terlewat datang lagi
+          toast = { text: 'Soal terlewat kembali!', t: 1.8 };
+        }
+        continue;
+      }
       if (c.x < -40) coins.splice(j, 1);
     }
     // jadwalkan soal
@@ -297,7 +309,7 @@
     }
     // semua awan lewat -> selesai segmen
     if (maxX < -180 * S) {
-      if (!quiz.resolved) { quiz.result = 'skip'; } // lewat tanpa jawab = tak dapat poin (tanpa penalti)
+      if (!quiz.resolved) { quiz.result = 'skip'; missedQueue.push(quiz.Q); } // terlewat -> antre, bisa muncul lagi via bonus
       endQuiz();
     }
   }
@@ -324,6 +336,17 @@
 
     drawHUD();
     if (mode === 'quiz' && quiz) drawQuestionBanner();
+    if (toast && toast.t > 0) drawToast();
+  }
+
+  function drawToast() {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, toast.t / 0.4);
+    ctx.fillStyle = '#b9711a';
+    ctx.font = '800 ' + (16 * S) + 'px -apple-system,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('🪙 ' + toast.text, W / 2, 16 * S);
+    ctx.restore();
   }
 
   var bgHills = [];
@@ -371,7 +394,14 @@
     ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.beginPath(); ctx.ellipse(roo.x, groundY + 4 * S, 30 * S, 7 * S, 0, 0, 7); ctx.fill();
     ctx.globalAlpha = (invuln > 0 && (Math.floor(invuln * 12) % 2 === 0)) ? 0.4 : 1;
-    emoji('🦘', roo.x, y + (roo.duck && roo.grounded ? 6 * S : 0), size, 'alphabetic');
+    // cermin horizontal supaya kanguru menghadap KANAN (arah lari)
+    var ey = y + (roo.duck && roo.grounded ? 6 * S : 0);
+    ctx.save();
+    ctx.translate(roo.x, ey); ctx.scale(-1, 1);
+    ctx.font = size + 'px -apple-system,"Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('🦘', 0, 0);
+    ctx.restore();
     ctx.restore();
   }
 
