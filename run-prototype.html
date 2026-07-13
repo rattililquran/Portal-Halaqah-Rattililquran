@@ -507,7 +507,10 @@
   }
 
   function drawQuestionBanner() {
-    var pad = 14 * S, y = 66 * S;
+    // posisi agak ke tengah (di ruang kosong antara HUD atas & awan jawaban),
+    // tapi tetap di atas awan agar tak menutupi opsi.
+    var pad = 14 * S, y = Math.min(H * 0.30, groundY - 240 * S);
+    if (y < 70 * S) y = 70 * S;
     var maxW = Math.min(W - 32 * S, 560 * S);
     ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
     var lines = wrap(quiz.q, maxW - pad * 2);
