@@ -156,7 +156,7 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + D);
     src.start(t); src.stop(t + D + 0.03);
   }
-  function sfxJump()      { noise(0.18, 0.06, 'bandpass', 900, 0.5, 0.010); }
+  function sfxJump()      { noise(0.18, 0.035, 'bandpass', 900, 0.5, 0.010); }
   function sfxCoin()      { noise(0.06, 0.08, 'highpass', 3800, 0, 0.004); }
   function sfxGood()      { noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); setTimeout(function(){ noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); }, 85); }
   function sfxBad()       { noise(0.24, 0.10, 'lowpass', 260, 0, 0.006); }
@@ -191,7 +191,7 @@
     _windPhase += dt; _windAge += dt;
     var fade = Math.min(1, _windAge / 1.5);
     try {
-      _wind.gain.gain.value = fade * (0.010 + 0.008 * (0.5 + 0.5 * Math.sin(_windPhase * 0.5)));
+      _wind.gain.gain.value = fade * (0.020 + 0.016 * (0.5 + 0.5 * Math.sin(_windPhase * 0.5)));
       _wind.filter.frequency.value = 340 + 200 * (0.5 + 0.5 * Math.sin(_windPhase * 0.33));
     } catch (e) {}
   }
