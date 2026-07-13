@@ -26,7 +26,7 @@
   // ---------- State DOM/lifecycle ----------
   var root = null, cv = null, ctx = null, mounted = false, dataReady = false;
   var activeLevel = null;         // level dari getRunLevels (punya id_run_level); null = mode contoh
-  var QUESTIONS = SAMPLE.slice();  // diganti soal server saat loadData sukses
+  var QUESTIONS = SAMPLE.slice();  // diganti soal server saat selectLevel sukses
   var saved = false;               // cegah simpan ganda per satu sesi main
   var _onKey = null, _onKeyUp = null, _onResize = null;
   var _levels = [];                // semua level Run aktif (untuk pemilih multi-level)
