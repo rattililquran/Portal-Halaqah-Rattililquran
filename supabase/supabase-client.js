@@ -2795,7 +2795,8 @@ var GuruAPI = {
         levels: payload.levels || [],
         rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
         durasi_detik_default: (payload.durasi_detik_default !== undefined && payload.durasi_detik_default !== null && payload.durasi_detik_default !== '') ? parseInt(payload.durasi_detik_default) : null,
-        bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10
+        bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10,
+        boleh_maze: !!payload.boleh_maze
       };
 
       var { data: soalData, error } = await _sb.from('soal').insert([soalRow]).select().single();
@@ -2881,7 +2882,8 @@ var GuruAPI = {
       levels: payload.levels || [],
       rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke !== undefined && payload.rekomendasi_pertemuan_ke !== null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
       durasi_detik_default: (payload.durasi_detik_default !== undefined && payload.durasi_detik_default !== null && payload.durasi_detik_default !== '') ? parseInt(payload.durasi_detik_default) : null,
-      bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10
+      bobot_poin_default: (payload.bobot_poin_default !== undefined && payload.bobot_poin_default !== null && payload.bobot_poin_default !== '') ? parseInt(payload.bobot_poin_default) : 10,
+      boleh_maze: !!payload.boleh_maze
     };
 
     // .select() agar bisa mendeteksi jumlah baris terupdate. Di bawah RLS, update yang

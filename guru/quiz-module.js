@@ -1122,6 +1122,15 @@
               </div>
             </div>
 
+            <!-- Boleh dimainkan di Rattil Maze (Petualangan) -->
+            <div style="margin-bottom:12px;">
+              <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);">
+                <input type="checkbox" id="csBolehMaze" ${editingSoal && editingSoal.boleh_maze ? 'checked' : ''}>
+                <span style="flex:1">🎮 Boleh dimainkan di <b>Rattil Maze</b> (Petualangan)</span>
+              </label>
+              <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5;">Efektif untuk tipe <b>Pilihan Ganda</b>, <b>Benar/Salah</b>, atau <b>Audio</b> dengan opsi pendek (≤4 opsi, tiap opsi ≤14 karakter). Tipe lain diabaikan di maze.</div>
+            </div>
+
             <div style="margin-bottom:12px;">
               <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px;">TEKS PERTANYAAN (LATIN) *</label>
               <textarea id="csTeksSoal" required rows="2" placeholder="Ketik pertanyaan di sini..." style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px;outline:none;resize:vertical;">${editingSoal ? escapeHtml(editingSoal.teks_soal) : ''}</textarea>
@@ -1277,6 +1286,7 @@
       rekomendasi_pertemuan_ke: rekomendasiPertemuan || null,
       durasi_detik_default: durasiDefault !== '' ? parseInt(durasiDefault) : null,
       bobot_poin_default: poinDefault !== '' ? parseInt(poinDefault) : 10,
+      boleh_maze: document.getElementById('csBolehMaze') ? document.getElementById('csBolehMaze').checked : false,
       pilihan: [],
       pasangan: [],
       kunci_isian: []
