@@ -104,6 +104,7 @@ function goPage(name) {
     saran    : loadSaranPage,
     soal     : loadBankSoalAdmin,
     maze     : loadMazeAdmin,
+    run      : loadRunAdmin,
     'indikator-daurah' : () => { if(window.loadIndikatorDaurah) window.loadIndikatorDaurah(); }
   };
   loaders[name]?.();
@@ -1619,6 +1620,7 @@ const DEFAULT_MAZE_GRID = ['#############','#.....1.....#','#.#.##.#.##.#','#.#.
 // Nilai level = string yg sama dgn Bank Soal & halaqah.level (biar filter cocok)
 const MAZE_LEVEL_OPTS = ['Level 1','Level 2','Level 3','Level Qiyam','Micro Teaching','Tahsin Al-Fatihah'];
 let _mazeQuizCache = [];
+let _runQuizCache = [];
 
 function _mazeBadge(text, color) {
   return `<span style="display:inline-block;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;background:${color}1a;color:${color}">${esc(text)}</span>`;
@@ -1831,6 +1833,221 @@ async function deleteMazeLevelConfirm(id_maze_level, nama) {
   }
 }
 
+// ═══════════════════════ RATTIL RUN (admin) ═══════════════════════
+//  Mirror Kelola Maze; field khas Run (target_soal/kecepatan_awal/kepadatan_rintangan),
+//  tanpa monster/peta. Reuse _mazeBadge & MAZE_LEVEL_OPTS.
+async function loadRunAdmin() {
+  const box = document.getElementById('runLevelListContainer');
+  if (box) box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat level lari...</div>';
+  try {
+    const [lvRes, qzRes] = await Promise.all([
+      window.HQ.AdminAPI.getRunLevelsAdmin(),
+      window.HQ.AdminAPI.getQuizListForRun()
+    ]);
+    const levels = lvRes.data || [];
+    _runQuizCache = qzRes.data || [];
+    const quizMap = {};
+    _runQuizCache.forEach(q => { quizMap[q.id_quiz] = q; });
+    if (!box) return;
+    if (!levels.length) {
+      box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Belum ada level lari. Klik "Tambah Level" untuk membuat.</div>';
+      return;
+    }
+    box.innerHTML = levels.map(lv => {
+      const q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
+      const sumber = lv.id_kuis
+        ? (q ? `🔗 ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
+             : _mazeBadge('quiz tak ditemukan', '#dc2626'))
+        : _mazeBadge('Latihan bebas (tanpa quiz)', '#2563eb');
+      return `
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div>
+              <div style="font-weight:800;color:var(--text);font-size:14.5px">🦘 ${esc(lv.nama_level)}</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · 🎯 ${esc(lv.target_soal)} soal · ⚡ ${esc(lv.kecepatan_awal)}× · 🌵 ${esc(lv.kepadatan_rintangan)}×</div>
+            </div>
+            ${_mazeBadge(lv.aktif?'Aktif':'Nonaktif', lv.aktif?'#16a34a':'#6b7280')}
+          </div>
+          <div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">Sumber soal: ${sumber}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Audiens: ${(lv.target_levels && lv.target_levels.length) ? esc(lv.target_levels.join(', ')) : 'Semua level'}${lv.rekomendasi_pertemuan_ke ? ' · rekom. pertemuan ke-'+esc(lv.rekomendasi_pertemuan_ke) : ''}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="openRunLevelModal('${escJs(lv.id_run_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>
+            <button onclick="toggleRunAktifAdmin('${escJs(lv.id_run_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'⏸ Nonaktifkan':'▶ Aktifkan'}</button>
+            <button onclick="deleteRunLevelConfirm('${escJs(lv.id_run_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    if (box) box.innerHTML = `<div style="text-align:center;padding:40px;color:#dc2626;grid-column:1/-1">Gagal memuat: ${esc(friendlyError(e))}</div>`;
+  }
+}
+
+async function openRunLevelModal(id_run_level) {
+  const cont = document.getElementById('adminRunModalContainer');
+  if (!cont) return;
+  let editing = null;
+  try {
+    if (id_run_level) {
+      showLoad('Memuat level lari...');
+      const lv = (await window.HQ.AdminAPI.getRunLevelsAdmin()).data || [];
+      editing = lv.find(x => x.id_run_level === id_run_level) || null;
+    }
+    if (!_runQuizCache.length) {
+      _runQuizCache = (await window.HQ.AdminAPI.getQuizListForRun()).data || [];
+    }
+    hideLoad();
+  } catch (e) { hideLoad(); toast('Gagal memuat: ' + friendlyError(e), 'err'); return; }
+  if (id_run_level && !editing) { toast('Level tidak ditemukan', 'err'); return; }
+
+  const g = editing || {};
+  const kesulitan = g.tingkat_kesulitan || 'mudah';
+  const quizOpts = ['<option value="">— Latihan bebas (tanpa quiz) —</option>']
+    .concat(_runQuizCache.map(q => `<option value="${esc(q.id_quiz)}" ${g.id_kuis===q.id_quiz?'selected':''}>${esc(q.judul)} (${esc(q.status)})</option>`))
+    .join('');
+
+  cont.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeRunModal()">
+      <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🦘 ${editing?'Edit':'Tambah'} Level Lari</h3>
+          <button onclick="closeRunModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+        </div>
+        <form onsubmit="submitRunLevel(event, ${editing?`'${escJs(editing.id_run_level)}'`:'null'})">
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">NAMA LEVEL *</label>
+            <input id="rnNama" required value="${esc(g.nama_level||'')}" placeholder="Contoh: Petualangan Lari 1 — Dasar" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">URUTAN</label>
+              <input id="rnUrutan" type="number" min="0" value="${g.urutan!=null?esc(g.urutan):0}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">KESULITAN</label>
+              <select id="rnKesulitan" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+                <option value="mudah" ${kesulitan==='mudah'?'selected':''}>Mudah</option>
+                <option value="sedang" ${kesulitan==='sedang'?'selected':''}>Sedang</option>
+                <option value="sulit" ${kesulitan==='sulit'?'selected':''}>Sulit</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">TARGET SOAL (1–20)</label>
+              <input id="rnTargetSoal" type="number" min="1" max="20" value="${g.target_soal!=null?esc(g.target_soal):8}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">KECEPATAN (×)</label>
+              <input id="rnKecepatan" type="number" min="0.5" max="2" step="0.1" value="${g.kecepatan_awal!=null?esc(g.kecepatan_awal):'1.0'}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">RINTANGAN (×)</label>
+              <input id="rnKepadatan" type="number" min="0.5" max="2" step="0.1" value="${g.kepadatan_rintangan!=null?esc(g.kepadatan_rintangan):'1.0'}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">SUMBER SOAL (QUIZ)</label>
+            <select id="rnKuis" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">${quizOpts}</select>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Quiz = <b>sumber soal</b> game. Jika <b>Audiens (bawah) diisi</b> → quiz hanya sumber soal, audiens yang menentukan siapa melihat. Jika <b>Audiens kosong</b> → level ikut penugasan quiz. Kosong quiz + kosong audiens = latihan bebas semua murid. (Hanya soal ber-flag <b>Boleh Rattil Run</b> yang tampil.)</div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">LEVEL HALAQAH (AUDIENS)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border)">
+              ${MAZE_LEVEL_OPTS.map(function(lv){ return `<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" class="rnLevelCheck" value="${esc(lv)}" ${(g.target_levels||[]).indexOf(lv)>=0?'checked':''}> ${esc(lv)}</label>`; }).join('')}
+            </div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5"><b>Diisi</b> → semua halaqah level itu <b>langsung melihat</b> game; quiz cuma sumber soal. <b>Kosong</b> → ikut penugasan quiz. Untuk latihan bebas, soal ikut disaring ke level ini.</div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">REKOMENDASI PERTEMUAN KE- (OPSIONAL)</label>
+            <input id="rnPertemuan" type="number" min="1" value="${g.rekomendasi_pertemuan_ke!=null?esc(g.rekomendasi_pertemuan_ke):''}" placeholder="mis. 10" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">Label rekomendasi saja (tidak memblokir), selaras Bank Soal.</div>
+          </div>
+          <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:16px">
+            <input type="checkbox" id="rnAktif" ${(!editing || g.aktif)?'checked':''}>
+            <span>Aktif (tampilkan ke murid)</span>
+          </label>
+          <div style="display:flex;gap:10px">
+            <button type="button" onclick="closeRunModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer">Batal</button>
+            <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer">${editing?'Simpan Perubahan':'Simpan Level'}</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function closeRunModal() {
+  const c = document.getElementById('adminRunModalContainer');
+  if (c) c.innerHTML = '';
+}
+
+async function submitRunLevel(e, id_run_level) {
+  e.preventDefault();
+  const nama = document.getElementById('rnNama').value.trim();
+  if (!nama) { toast('Nama level wajib diisi', 'err'); return; }
+  let target = parseInt(document.getElementById('rnTargetSoal').value);
+  if (isNaN(target) || target < 1) target = 1;
+  if (target > 20) target = 20;
+  let kecepatan = parseFloat(document.getElementById('rnKecepatan').value);
+  if (isNaN(kecepatan) || kecepatan <= 0) kecepatan = 1.0;
+  let kepadatan = parseFloat(document.getElementById('rnKepadatan').value);
+  if (isNaN(kepadatan) || kepadatan <= 0) kepadatan = 1.0;
+  const target_levels = Array.from(document.querySelectorAll('.rnLevelCheck:checked')).map(function(cb){ return cb.value; });
+  const pertemuanRaw = document.getElementById('rnPertemuan').value;
+  const payload = {
+    nama_level: nama,
+    urutan: parseInt(document.getElementById('rnUrutan').value) || 0,
+    tingkat_kesulitan: document.getElementById('rnKesulitan').value,
+    target_soal: target,
+    kecepatan_awal: kecepatan,
+    kepadatan_rintangan: kepadatan,
+    id_kuis: document.getElementById('rnKuis').value || null,
+    target_levels: target_levels,
+    rekomendasi_pertemuan_ke: pertemuanRaw !== '' ? parseInt(pertemuanRaw) : null,
+    aktif: document.getElementById('rnAktif').checked
+  };
+  try {
+    showLoad('Menyimpan level lari...');
+    if (id_run_level) {
+      await window.HQ.AdminAPI.updateRunLevel(id_run_level, payload);
+    } else {
+      await window.HQ.AdminAPI.createRunLevel(payload);
+    }
+    hideLoad();
+    closeRunModal();
+    toast('Level lari tersimpan!', 'ok');
+    await loadRunAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal menyimpan: ' + friendlyError(err), 'err');
+  }
+}
+
+async function toggleRunAktifAdmin(id_run_level, aktif) {
+  try {
+    showLoad('Mengubah status...');
+    await window.HQ.AdminAPI.setRunLevelAktif(id_run_level, aktif === 'true' || aktif === true);
+    hideLoad();
+    await loadRunAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal: ' + friendlyError(err), 'err');
+  }
+}
+
+async function deleteRunLevelConfirm(id_run_level, nama) {
+  if (!confirm('Hapus level lari "' + nama + '"?\n\nSemua progress/skor murid pada level ini ikut terhapus dan tidak bisa dibatalkan.')) return;
+  try {
+    showLoad('Menghapus level lari...');
+    await window.HQ.AdminAPI.deleteRunLevel(id_run_level);
+    hideLoad();
+    toast('Level lari dihapus', 'ok');
+    await loadRunAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal menghapus: ' + friendlyError(err), 'err');
+  }
+}
+
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -1965,6 +2182,12 @@ async function loadPushAdmin() {
     window.submitMazeLevel = submitMazeLevel;
     window.toggleMazeAktifAdmin = toggleMazeAktifAdmin;
     window.deleteMazeLevelConfirm = deleteMazeLevelConfirm;
+    window.loadRunAdmin = loadRunAdmin;
+    window.openRunLevelModal = openRunLevelModal;
+    window.closeRunModal = closeRunModal;
+    window.submitRunLevel = submitRunLevel;
+    window.toggleRunAktifAdmin = toggleRunAktifAdmin;
+    window.deleteRunLevelConfirm = deleteRunLevelConfirm;
     window.onAdminBankSearchInput = onAdminBankSearchInput;
     window.onAdminBankLevelFilterChange = onAdminBankLevelFilterChange;
     window.onAdminBankPertemuanFilterChange = onAdminBankPertemuanFilterChange;
