@@ -29,6 +29,8 @@
   var QUESTIONS = SAMPLE.slice();  // diganti soal server saat loadData sukses
   var saved = false;               // cegah simpan ganda per satu sesi main
   var _onKey = null, _onKeyUp = null, _onResize = null;
+  var _levels = [];                // semua level Run aktif (untuk pemilih multi-level)
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
   // ---------- Kanvas / skala / fisika ----------
   var W, H, DPR, groundY, S;
@@ -170,24 +172,33 @@
     return out;
   }
 
-  async function loadData() {
-    activeLevel = null;
+  // Ambil daftar SEMUA level Run aktif (untuk pemilih). Tak melempar; kosong bila gagal/anon.
+  async function loadLevels() {
+    _levels = [];
+    try {
+      var M = window.HQ && window.HQ.MuridAPI;
+      if (M && M.getRunLevels) {
+        var lv = await M.getRunLevels();
+        _levels = (lv && lv.data) || [];
+      }
+    } catch (e) { console.warn('RunGame loadLevels:', e && (e.message || e)); }
+  }
+
+  // Muat soal untuk level terpilih. Fallback ke contoh bila kosong (activeLevel=null → skor tak disimpan).
+  async function selectLevel(level) {
+    activeLevel = level || null;
     var questions = null;
     try {
       var M = window.HQ && window.HQ.MuridAPI;
-      if (M && M.getRunLevels && M.getRunSoal) {
-        var lv = await M.getRunLevels();
-        var levels = (lv && lv.data) || [];
-        if (levels.length) {
-          activeLevel = levels[0];
-          var sq = await M.getRunSoal(activeLevel.id_run_level);
-          questions = normalizeSoal((sq && sq.data) || []);
-        }
+      if (level && M && M.getRunSoal) {
+        var sq = await M.getRunSoal(level.id_run_level);
+        questions = normalizeSoal((sq && sq.data) || []);
       }
-    } catch (e) { console.warn('RunGame loadData:', e && (e.message || e)); }
-    // Fallback: tanpa level nyata ATAU 0 soal eligible → mode contoh (activeLevel=null → skor tak disimpan).
+    } catch (e) { console.warn('RunGame selectLevel:', e && (e.message || e)); }
     if (!questions || !questions.length) { activeLevel = null; QUESTIONS = SAMPLE.slice(); }
     else QUESTIONS = questions;
+    // Hormati target_soal level (kondisi menang); fallback 8 utk mode contoh.
+    TARGET_SOAL = (activeLevel && activeLevel.target_soal) ? activeLevel.target_soal : 8;
     dataReady = true;
   }
 
@@ -590,6 +601,15 @@
       "#rnRoot .rn-pad{position:absolute;inset:auto 0 0 0;z-index:8;display:flex;justify-content:space-between;padding:0 20px calc(env(safe-area-inset-bottom,0px) + 22px);pointer-events:none;}" +
       "#rnRoot .rn-padbtn{pointer-events:auto;width:88px;height:88px;border-radius:50%;border:none;font-size:34px;font-weight:900;color:#123;cursor:pointer;user-select:none;background:rgba(255,255,255,.62);box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;touch-action:none;}" +
       "#rnRoot .rn-padbtn:active{transform:scale(.92);background:rgba(255,255,255,.85);}" +
+      "#rnRoot .rn-picklist{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;margin-top:6px;max-height:54vh;overflow-y:auto;}" +
+      "#rnRoot .rn-pickcard{width:100%;text-align:left;border:1px solid #bcd8ee;background:rgba(255,255,255,.72);border-radius:14px;padding:13px 15px;cursor:pointer;font-family:inherit;}" +
+      "#rnRoot .rn-pickcard:active{transform:scale(.98);background:rgba(255,255,255,.9);}" +
+      "#rnRoot .rn-pickname{font-size:15px;font-weight:800;color:#123;}" +
+      "#rnRoot .rn-pickmeta{font-size:11.5px;color:#3a5a66;margin:3px 0 7px;}" +
+      "#rnRoot .rn-pill{display:inline-block;font-size:9px;font-weight:800;padding:2px 8px;border-radius:100px;}" +
+      "#rnRoot .rn-pill-blue{background:#dbeafe;color:#1e40af;}" +
+      "#rnRoot .rn-pill-green{background:#dcfce7;color:#166534;}" +
+      "#rnRoot .rn-back{margin-top:6px;background:none;border:none;color:#3a5a66;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:underline;}" +
       "@media (min-width:900px){#rnRoot .rn-pad{opacity:.55;}}";
     var st = document.createElement('style'); st.id = 'rnStyle'; st.textContent = css;
     document.head.appendChild(st);
@@ -609,6 +629,13 @@
         '<div class="rn-legend">🌵🥚 <b>rintangan darat</b> — LOMPAT<br>🐦 <b>burung</b> — MERUNDUK (tahan ↓)<br>☁️ <b>awan jawaban</b> — LOMPAT ke yang benar<br>🪙 <b>bonus</b> — lompat untuk ambil<br>❤️ <b>hati</b> — lompat untuk tambah nyawa</div>' +
         '<button class="rn-btn" id="rnStartBtn" disabled>Memuat…</button>' +
         '<div class="rn-hint" id="rnStartHint">Tombol ⬆️ / ⬇️ di layar &nbsp;·&nbsp; Spasi/↑ = lompat, ↓ = merunduk<br>Taklukkan 8 soal untuk menang! Salah jawab tak mengurangi nyawa.</div>' +
+        '<button class="rn-back" id="rnBackPick" style="display:none">← Pilih level lain</button>' +
+      '</div>' +
+      '<div class="rn-screen rn-hidden" id="rnPick">' +
+        '<div class="rn-brand">Rattīlil Qur\'an</div>' +
+        '<div class="rn-title" style="font-size:26px;">Pilih Level 🦘</div>' +
+        '<div class="rn-sub">Pilih petualangan lari untukmu.</div>' +
+        '<div id="rnPickList" class="rn-picklist"></div>' +
       '</div>' +
       '<div class="rn-screen rn-hidden" id="rnOver">' +
         '<div class="rn-emoji">💫</div>' +
@@ -622,7 +649,7 @@
         '<div class="rn-brand">Kamu Mendapat Badge</div>' +
         '<div class="rn-title" style="font-size:24px;">Pelari Al-Qur\'an</div>' +
         '<div class="rn-stat" id="rnWinStat">Skor: 0</div>' +
-        '<div class="rn-sub">8 soal ditaklukkan sambil berlari. Barakallahu fiik!</div>' +
+        '<div class="rn-sub">Semua soal target ditaklukkan sambil berlari. Barakallahu fiik!</div>' +
         '<button class="rn-btn" id="rnAgainBtn">Main Lagi</button>' +
       '</div>' +
       '<div class="rn-pad rn-hidden" id="rnPad">' +
@@ -639,6 +666,7 @@
     $('#rnStartBtn').onclick = startGame;
     $('#rnRetryBtn').onclick = startGame;
     $('#rnAgainBtn').onclick = startGame;
+    $('#rnBackPick').onclick = renderPicker;
     $('#rnClose').onclick = close;
     bindPad($('#rnJump'), doJump);
     bindPad($('#rnDuck'), function () { setDuck(true); }, function () { setDuck(false); });
@@ -670,19 +698,56 @@
     requestAnimationFrame(frame);
   }
 
+  // Pemilih multi-level: 0 level → mode contoh; 1 → langsung; >1 → layar pilih.
+  function updateStartHint() {
+    var h = $('#rnStartHint'); if (!h) return;
+    if (!activeLevel) {
+      h.innerHTML = 'Mode contoh (belum ada level Run / belum login) — skor tak tersimpan.<br>Tombol ⬆️/⬇️ atau Spasi/↑ = lompat, ↓ = merunduk.';
+    } else {
+      h.innerHTML = 'Level: <b>' + esc(activeLevel.nama_level) + '</b> · target ' + esc(TARGET_SOAL) + ' soal<br>Tombol ⬆️/⬇️ atau Spasi/↑ = lompat, ↓ = merunduk.';
+    }
+  }
+  function readyStart() {
+    hide($('#rnPick')); show($('#rnStart'));
+    var b = $('#rnStartBtn'); if (b) { b.disabled = false; b.textContent = 'Mulai Berlari'; }
+    var back = $('#rnBackPick'); if (back) back.style.display = (_levels.length > 1) ? 'block' : 'none';
+    updateStartHint();
+  }
+  function renderPicker() {
+    var list = $('#rnPickList'); if (!list) return;
+    list.innerHTML = _levels.map(function (l, i) {
+      var badge = l.id_kuis ? '<span class="rn-pill rn-pill-blue">Ditugaskan</span>' : '<span class="rn-pill rn-pill-green">Latihan</span>';
+      return '<button class="rn-pickcard" data-idx="' + i + '">'
+        + '<div class="rn-pickname">🦘 ' + esc(l.nama_level) + '</div>'
+        + '<div class="rn-pickmeta">' + esc(l.tingkat_kesulitan || 'mudah') + ' · 🎯 ' + esc(l.target_soal != null ? l.target_soal : 8) + ' soal</div>'
+        + badge + '</button>';
+    }).join('');
+    list.onclick = function (e) {
+      var b = (e.target && e.target.closest) ? e.target.closest('.rn-pickcard') : null;
+      if (!b) return;
+      var i = parseInt(b.getAttribute('data-idx'), 10);
+      if (isNaN(i) || !_levels[i]) return;
+      chooseLevel(i);
+    };
+    hide($('#rnStart')); show($('#rnPick'));
+  }
+  function chooseLevel(i) {
+    var list = $('#rnPickList'); if (list) list.innerHTML = '<div style="padding:20px;color:#3a5a66;text-align:center">Memuat soal…</div>';
+    dataReady = false;
+    selectLevel(_levels[i]).then(function () { if (mounted) readyStart(); });
+  }
+
   // ---------- API publik ----------
   function open() {
     mount();
     dataReady = false;
     var btn = $('#rnStartBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Memuat…'; }
-    loadData().then(function () {
+    loadLevels().then(function () {
       if (!mounted) return;
-      var b = $('#rnStartBtn'); if (b) { b.disabled = false; b.textContent = 'Mulai Berlari'; }
-      if (!activeLevel) {
-        var h = $('#rnStartHint');
-        if (h) h.innerHTML = 'Mode contoh (belum ada level Run / belum login) — skor tak tersimpan.<br>Tombol ⬆️/⬇️ atau Spasi/↑ = lompat, ↓ = merunduk.';
-      }
+      if (_levels.length > 1) { renderPicker(); return; }
+      // 0 atau 1 level → langsung siapkan (selectLevel(null) = mode contoh)
+      return selectLevel(_levels[0] || null).then(function () { if (mounted) readyStart(); });
     });
   }
 
