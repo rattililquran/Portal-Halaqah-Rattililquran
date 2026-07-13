@@ -7889,7 +7889,68 @@ var AdminAPI = {
         data : { trigger: 'saran_responded' },
       });
     }
-    
+
+    return { status: 'ok' };
+  },
+
+  // ── Rattil Maze (admin) — kelola level; RLS maze_level_admin_write (is_admin) ──
+  getMazeLevelsAdmin: async function() {
+    var { data, error } = await _sb.from('maze_level')
+      .select('*')
+      .order('urutan', { ascending: true });
+    _check(error, 'getMazeLevelsAdmin');
+    return { status: 'ok', data: data || [] };
+  },
+  getQuizListForMaze: async function() {
+    var { data, error } = await _sb.from('quiz')
+      .select('id_quiz, judul, status')
+      .order('created_at', { ascending: false });
+    _check(error, 'getQuizListForMaze');
+    return { status: 'ok', data: data || [] };
+  },
+  createMazeLevel: async function(payload) {
+    var row = {
+      nama_level:        payload.nama_level,
+      urutan:            payload.urutan != null ? payload.urutan : 0,
+      map_data:          payload.map_data,
+      jumlah_monster:    payload.jumlah_monster != null ? payload.jumlah_monster : 2,
+      kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
+      id_kuis:           payload.id_kuis || null,
+      tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      aktif:             payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('maze_level').insert([row]).select().single();
+    _check(error, 'createMazeLevel');
+    if (!data) throw new Error('createMazeLevel: 0 baris tersimpan (akses admin ditolak?).');
+    return { status: 'ok', data: data };
+  },
+  updateMazeLevel: async function(id_maze_level, payload) {
+    var row = {
+      nama_level:        payload.nama_level,
+      urutan:            payload.urutan != null ? payload.urutan : 0,
+      jumlah_monster:    payload.jumlah_monster != null ? payload.jumlah_monster : 2,
+      kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
+      id_kuis:           payload.id_kuis || null,
+      tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      aktif:             payload.aktif !== false
+    };
+    if (payload.map_data) row.map_data = payload.map_data;
+    var { data, error } = await _sb.from('maze_level')
+      .update(row).eq('id_maze_level', id_maze_level).select('id_maze_level');
+    _check(error, 'updateMazeLevel');
+    if (!data || data.length === 0) throw new Error('Perubahan tidak tersimpan (0 baris — akses ditolak?).');
+    return { status: 'ok' };
+  },
+  setMazeLevelAktif: async function(id_maze_level, aktif) {
+    var { data, error } = await _sb.from('maze_level')
+      .update({ aktif: !!aktif }).eq('id_maze_level', id_maze_level).select('id_maze_level');
+    _check(error, 'setMazeLevelAktif');
+    if (!data || data.length === 0) throw new Error('Gagal mengubah status (0 baris).');
+    return { status: 'ok' };
+  },
+  deleteMazeLevel: async function(id_maze_level) {
+    var { error } = await _sb.from('maze_level').delete().eq('id_maze_level', id_maze_level);
+    _check(error, 'deleteMazeLevel');
     return { status: 'ok' };
   },
 };

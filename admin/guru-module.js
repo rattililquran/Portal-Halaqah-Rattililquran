@@ -103,6 +103,7 @@ function goPage(name) {
     push     : loadPushAdmin,
     saran    : loadSaranPage,
     soal     : loadBankSoalAdmin,
+    maze     : loadMazeAdmin,
     'indikator-daurah' : () => { if(window.loadIndikatorDaurah) window.loadIndikatorDaurah(); }
   };
   loaders[name]?.();
@@ -1600,6 +1601,207 @@ function populatePeriodeSel(selId) {
     allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' ✓':''}</option>`).join('');
 }
 
+// ══════════════════════════════════════════
+//  KELOLA MAZE (Rattil Maze Adventure) — admin
+// ══════════════════════════════════════════
+// Peta bawaan terverifikasi (nol jalan buntu) — sama dgn level demo patch_069.
+const DEFAULT_MAZE_GRID = ['#############','#.....1.....#','#.#.##.#.##.#','#.#....#....#','#.#..#.#.##.#','#....#G.....#','#.##...##.#.#','#4....P...#2#','#.#.##.##...#','#.#.##......#','#...##.##.#.#','#.#.......#.#','#.#.##.#....#','#.....3.....#','#############'];
+let _mazeQuizCache = [];
+
+function _mazeBadge(text, color) {
+  return `<span style="display:inline-block;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;background:${color}1a;color:${color}">${esc(text)}</span>`;
+}
+
+async function loadMazeAdmin() {
+  const box = document.getElementById('mazeLevelListContainer');
+  if (box) box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat level maze...</div>';
+  try {
+    const [lvRes, qzRes] = await Promise.all([
+      window.HQ.AdminAPI.getMazeLevelsAdmin(),
+      window.HQ.AdminAPI.getQuizListForMaze()
+    ]);
+    const levels = lvRes.data || [];
+    _mazeQuizCache = qzRes.data || [];
+    const quizMap = {};
+    _mazeQuizCache.forEach(q => { quizMap[q.id_quiz] = q; });
+    if (!box) return;
+    if (!levels.length) {
+      box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Belum ada level maze. Klik "Tambah Level" untuk membuat.</div>';
+      return;
+    }
+    box.innerHTML = levels.map(lv => {
+      const q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
+      const sumber = lv.id_kuis
+        ? (q ? `🔗 ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
+             : _mazeBadge('quiz tak ditemukan', '#dc2626'))
+        : _mazeBadge('Latihan bebas (tanpa quiz)', '#2563eb');
+      return `
+        <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div>
+              <div style="font-weight:800;color:var(--text);font-size:14.5px">${esc(lv.nama_level)}</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · 👾 ${esc(lv.jumlah_monster)} · ⚡ ${esc(lv.kecepatan_monster)}×</div>
+            </div>
+            ${_mazeBadge(lv.aktif?'Aktif':'Nonaktif', lv.aktif?'#16a34a':'#6b7280')}
+          </div>
+          <div style="font-size:11.5px;color:var(--text-2);margin-bottom:12px">Sumber soal: ${sumber}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="openMazeLevelModal('${escJs(lv.id_maze_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>
+            <button onclick="toggleMazeAktifAdmin('${escJs(lv.id_maze_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'⏸ Nonaktifkan':'▶ Aktifkan'}</button>
+            <button onclick="deleteMazeLevelConfirm('${escJs(lv.id_maze_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    if (box) box.innerHTML = `<div style="text-align:center;padding:40px;color:#dc2626;grid-column:1/-1">Gagal memuat: ${esc(friendlyError(e))}</div>`;
+  }
+}
+
+async function openMazeLevelModal(id_maze_level) {
+  const cont = document.getElementById('adminMazeModalContainer');
+  if (!cont) return;
+  let editing = null;
+  try {
+    if (id_maze_level) {
+      showLoad('Memuat level...');
+      const lv = (await window.HQ.AdminAPI.getMazeLevelsAdmin()).data || [];
+      editing = lv.find(x => x.id_maze_level === id_maze_level) || null;
+    }
+    if (!_mazeQuizCache.length) {
+      _mazeQuizCache = (await window.HQ.AdminAPI.getQuizListForMaze()).data || [];
+    }
+    hideLoad();
+  } catch (e) { hideLoad(); toast('Gagal memuat: ' + friendlyError(e), 'err'); return; }
+  if (id_maze_level && !editing) { toast('Level tidak ditemukan', 'err'); return; }
+
+  const g = editing || {};
+  const kesulitan = g.tingkat_kesulitan || 'mudah';
+  const quizOpts = ['<option value="">— Latihan bebas (tanpa quiz) —</option>']
+    .concat(_mazeQuizCache.map(q => `<option value="${esc(q.id_quiz)}" ${g.id_kuis===q.id_quiz?'selected':''}>${esc(q.judul)} (${esc(q.status)})</option>`))
+    .join('');
+
+  cont.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeMazeModal()">
+      <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🎮 ${editing?'Edit':'Tambah'} Level Maze</h3>
+          <button onclick="closeMazeModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+        </div>
+        <form onsubmit="submitMazeLevel(event, ${editing?`'${escJs(editing.id_maze_level)}'`:'null'})">
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">NAMA LEVEL *</label>
+            <input id="mzNama" required value="${esc(g.nama_level||'')}" placeholder="Contoh: Petualangan 1 — Dasar" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">URUTAN</label>
+              <input id="mzUrutan" type="number" min="0" value="${g.urutan!=null?esc(g.urutan):0}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">KESULITAN</label>
+              <select id="mzKesulitan" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+                <option value="mudah" ${kesulitan==='mudah'?'selected':''}>Mudah</option>
+                <option value="sedang" ${kesulitan==='sedang'?'selected':''}>Sedang</option>
+                <option value="sulit" ${kesulitan==='sulit'?'selected':''}>Sulit</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">JUMLAH MONSTER (1–4)</label>
+              <input id="mzMonster" type="number" min="1" max="4" value="${g.jumlah_monster!=null?esc(g.jumlah_monster):2}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">KECEPATAN (×)</label>
+              <input id="mzKecepatan" type="number" min="0.5" max="2" step="0.1" value="${g.kecepatan_monster!=null?esc(g.kecepatan_monster):'1.0'}" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">SUMBER SOAL (QUIZ)</label>
+            <select id="mzKuis" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">${quizOpts}</select>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Pilih quiz → level hanya muncul untuk murid di halaqah yang quiz-nya <b>ditugaskan + aktif</b> (seperti quiz), soal diambil dari quiz itu (yang dicentang "boleh maze"). Kosongkan = latihan bebas untuk semua murid.</div>
+          </div>
+          <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:8px">
+            <input type="checkbox" id="mzAktif" ${(!editing || g.aktif)?'checked':''}>
+            <span>Aktif (tampilkan ke murid)</span>
+          </label>
+          <div style="font-size:10.5px;color:var(--text-3);margin-bottom:16px">Peta: <b>bawaan terverifikasi</b> (bebas jalan buntu). Game memutar beberapa peta bawaan otomatis.</div>
+          <div style="display:flex;gap:10px">
+            <button type="button" onclick="closeMazeModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer">Batal</button>
+            <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer">${editing?'Simpan Perubahan':'Simpan Level'}</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function closeMazeModal() {
+  const c = document.getElementById('adminMazeModalContainer');
+  if (c) c.innerHTML = '';
+}
+
+async function submitMazeLevel(e, id_maze_level) {
+  e.preventDefault();
+  const nama = document.getElementById('mzNama').value.trim();
+  if (!nama) { toast('Nama level wajib diisi', 'err'); return; }
+  let monster = parseInt(document.getElementById('mzMonster').value);
+  if (isNaN(monster) || monster < 1) monster = 1;
+  if (monster > 4) monster = 4;
+  let kecepatan = parseFloat(document.getElementById('mzKecepatan').value);
+  if (isNaN(kecepatan) || kecepatan <= 0) kecepatan = 1.0;
+  const payload = {
+    nama_level: nama,
+    urutan: parseInt(document.getElementById('mzUrutan').value) || 0,
+    tingkat_kesulitan: document.getElementById('mzKesulitan').value,
+    jumlah_monster: monster,
+    kecepatan_monster: kecepatan,
+    id_kuis: document.getElementById('mzKuis').value || null,
+    aktif: document.getElementById('mzAktif').checked
+  };
+  try {
+    showLoad('Menyimpan level maze...');
+    if (id_maze_level) {
+      await window.HQ.AdminAPI.updateMazeLevel(id_maze_level, payload);
+    } else {
+      payload.map_data = { grid: DEFAULT_MAZE_GRID, seed: 40 };
+      await window.HQ.AdminAPI.createMazeLevel(payload);
+    }
+    hideLoad();
+    closeMazeModal();
+    toast('Level maze tersimpan!', 'ok');
+    await loadMazeAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal menyimpan: ' + friendlyError(err), 'err');
+  }
+}
+
+async function toggleMazeAktifAdmin(id_maze_level, aktif) {
+  try {
+    showLoad('Mengubah status...');
+    await window.HQ.AdminAPI.setMazeLevelAktif(id_maze_level, aktif === 'true' || aktif === true);
+    hideLoad();
+    await loadMazeAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal: ' + friendlyError(err), 'err');
+  }
+}
+
+async function deleteMazeLevelConfirm(id_maze_level, nama) {
+  if (!confirm('Hapus level "' + nama + '"?\n\nSemua progress/skor murid pada level ini ikut terhapus dan tidak bisa dibatalkan.')) return;
+  try {
+    showLoad('Menghapus level...');
+    await window.HQ.AdminAPI.deleteMazeLevel(id_maze_level);
+    hideLoad();
+    toast('Level dihapus', 'ok');
+    await loadMazeAdmin();
+  } catch (err) {
+    hideLoad();
+    toast('Gagal menghapus: ' + friendlyError(err), 'err');
+  }
+}
+
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -1728,6 +1930,12 @@ async function loadPushAdmin() {
     window.showSaranDetail = showSaranDetail;
     window.simpanTanggapanSaran = simpanTanggapanSaran;
     window.loadBankSoalAdmin = loadBankSoalAdmin;
+    window.loadMazeAdmin = loadMazeAdmin;
+    window.openMazeLevelModal = openMazeLevelModal;
+    window.closeMazeModal = closeMazeModal;
+    window.submitMazeLevel = submitMazeLevel;
+    window.toggleMazeAktifAdmin = toggleMazeAktifAdmin;
+    window.deleteMazeLevelConfirm = deleteMazeLevelConfirm;
     window.onAdminBankSearchInput = onAdminBankSearchInput;
     window.onAdminBankLevelFilterChange = onAdminBankLevelFilterChange;
     window.onAdminBankPertemuanFilterChange = onAdminBankPertemuanFilterChange;

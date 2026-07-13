@@ -1410,6 +1410,7 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
       <button class="nav-btn" onclick="goPage('materi')" data-p="materi"><span class="ni">📖</span>Materi Kajian</button>
       <button class="nav-btn" onclick="goPage('soal')" data-p="soal"><span class="ni">📦</span>Bank Soal</button>
+      <button class="nav-btn" onclick="goPage('maze')" data-p="maze"><span class="ni">🎮</span>Rattil Maze</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
     </div>
@@ -3447,6 +3448,18 @@ html.theme-dark .fin-detail-card {
         </div>
       </div>
 
+      <!-- ══ KELOLA MAZE ══ -->
+      <div class="page" id="page-maze">
+        <div class="section-title">🎮 Rattil Maze (Petualangan)</div>
+        <div class="section-sub">Kelola level game labirin. Tautkan ke quiz agar level hanya muncul untuk halaqah yang ditugaskan (seperti quiz), atau biarkan tanpa quiz untuk latihan bebas.</div>
+        <div style="margin-bottom:16px">
+          <button onclick="openMazeLevelModal(null)" style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue,none)">➕ Tambah Level</button>
+        </div>
+        <div id="mazeLevelListContainer" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
+          <div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat level maze...</div>
+        </div>
+      </div>
+
       <!-- ══ BANK SOAL ══ -->
       <div class="page" id="page-soal">
         <div class="section-title">📦 Bank Soal Bersama</div>
@@ -3503,6 +3516,9 @@ html.theme-dark .fin-detail-card {
 
 <!-- MODAL EDIT BANK SOAL (ADMIN) -->
 <div id="adminSoalEditModalContainer"></div>
+
+<!-- MODAL KELOLA MAZE (ADMIN) -->
+<div id="adminMazeModalContainer"></div>
 
 <!-- MODAL IMPORT SOAL -->
 <div class="overlay" id="modalImportSoal">
@@ -4067,10 +4083,10 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.1.9"></script>
+<script src="../supabase/supabase-client.js?v=2.1.10"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=1.0.2" defer></script>
+<script src="guru-module.js?v=1.0.3" defer></script>
 <script src="murid-module.js?v=1.0.1" defer></script>
 <script src="kelompok-module.js?v=1.0.2" defer></script>
 <script src="spp-keuangan-module.js?v=1.0.1" defer></script>
@@ -4099,7 +4115,7 @@ const PAGE_TITLES = {
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
   materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan',
-  soal:'Bank Soal'
+  soal:'Bank Soal', maze:'Rattil Maze'
 };
 
 // ══════════════════════════════════════════
