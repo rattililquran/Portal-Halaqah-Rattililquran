@@ -1743,7 +1743,7 @@ async function openMazeLevelModal(id_maze_level) {
           <div style="font-size:10.5px;color:var(--text-3);margin-bottom:16px">Peta: <b>bawaan terverifikasi</b> (bebas jalan buntu). Game memutar beberapa peta bawaan otomatis.</div>
           <div style="display:flex;gap:10px">
             <button type="button" onclick="closeMazeModal()" style="flex:1;padding:11px;background:var(--bg-2);color:var(--text);border:none;border-radius:var(--r-pill,100px);font-weight:700;cursor:pointer">Batal</button>
-            <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer">${editing?'Simpan Perubahan':'Simpan Level'}</button>
+            <button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;border-radius:var(--r-pill,100px);font-weight:800;cursor:pointer">${editing?'Simpan Perubahan':'Simpan Petualangan'}</button>
           </div>
         </form>
       </div>
