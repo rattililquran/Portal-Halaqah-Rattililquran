@@ -661,15 +661,13 @@
       "#mzRoot .mz-badge{font-size:22px;font-weight:900;color:#f2cf5b;}" +
       "#mzRoot .mz-stat{font-size:14px;color:#c8d4f5;}" +
       "#mzRoot .mz-hint{font-size:11.5px;color:#6b7aa8;line-height:1.7;}" +
-      "#mzRoot .mz-opt{background:rgba(255,255,255,.07);border:1.5px solid #2a3860;border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:#dbe4ff;}" +
-      "#mzRoot .mz-mute{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:62px;z-index:5;width:40px;height:40px;border-radius:12px;border:1.5px solid #33406e;background:rgba(10,14,42,.7);color:#9fb0e0;font-size:18px;cursor:pointer;}";
+      "#mzRoot .mz-opt{background:rgba(255,255,255,.07);border:1.5px solid #2a3860;border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:#dbe4ff;}";
     var st = document.createElement("style"); st.id = "mzStyle"; st.textContent = css; document.head.appendChild(st);
   }
   function buildDOM() {
     root = document.createElement("div"); root.id = "mzRoot";
     root.innerHTML =
       '<canvas id="mzCanvas"></canvas>' +
-      '<button class="mz-mute" id="mzMuteBtn" aria-label="Suara">🔊</button>' +
       '<button class="mz-x" id="mzCloseBtn" aria-label="Tutup">✕</button>' +
       '<div class="mz-screen" id="mzStart">' +
         '<div class="mz-brand">Rattīlil Qur\'an</div>' +
@@ -705,9 +703,6 @@
     root.querySelector("#mzAgainBtn").onclick = startGame;
     root.querySelector("#mzIntroBtn").onclick = beginPlay;
     root.querySelector("#mzCloseBtn").onclick = close;
-    root.querySelector("#mzMuteBtn").onclick = function () {
-      _muted = !_muted; this.textContent = _muted ? "🔇" : "🔊"; if (!_muted) ensureAudio();
-    };
 
     _keyHandler = function (e) {
       var k = e.key, d = null;
