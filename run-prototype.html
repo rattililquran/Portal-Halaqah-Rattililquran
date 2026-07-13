@@ -131,37 +131,71 @@
   resize();
 
   // ---------- Audio (WebAudio) — HANYA bunyi NON-MELODI (kehati-hatian syar'i) ----------
-  //  Semua berbasis DERAU (noise) tersaring: langkah, benturan, detak. TANPA nada/melodi/alat musik.
+  //  Berbasis DERAU (noise) tersaring + amplop lembut → terdengar ALAMI (langkah, angin, benturan,
+  //  detak). TANPA nada/melodi/alat musik; tak ada oscillator yang BERBUNYI (angin dimodulasi via JS).
   var AC = null, _noiseBuf = null;
   function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return AC; }
   function noiseBuf() {
     if (_noiseBuf) return _noiseBuf;
     var a = ac(); if (!a) return null;
-    var n = Math.floor(a.sampleRate * 0.5);
+    var n = Math.floor(a.sampleRate * 1.0);
     var b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
     for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     _noiseBuf = b; return b;
   }
-  function noise(dur, vol, type, freq, q) {
+  function noise(dur, vol, type, freq, q, atk) {
     var a = ac(); if (!a) return;
     var b = noiseBuf(); if (!b) return;
     var src = a.createBufferSource(); src.buffer = b;
     var f = a.createBiquadFilter(); f.type = type || 'lowpass'; f.frequency.value = freq || 1000; if (q) f.Q.value = q;
     var g = a.createGain();
     src.connect(f); f.connect(g); g.connect(a.destination);
-    var t = a.currentTime;
-    g.gain.setValueAtTime(vol || 0.12, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
-    src.start(t); src.stop(t + (dur || 0.12) + 0.03);
+    var t = a.currentTime, A = atk || 0.006, D = dur || 0.12;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.12, t + A);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + D);
+    src.start(t); src.stop(t + D + 0.03);
   }
-  function sfxJump()      { noise(0.16, 0.06, 'bandpass', 1200, 0.6); }
-  function sfxStep()      { noise(0.05, 0.035, 'lowpass', 700); }
-  function sfxCoin()      { noise(0.05, 0.09, 'highpass', 4000); }
-  function sfxGood()      { noise(0.05, 0.11, 'highpass', 3400); setTimeout(function(){ noise(0.05, 0.11, 'highpass', 3400); }, 80); }
-  function sfxBad()       { noise(0.22, 0.11, 'lowpass', 320); }
-  function sfxHit()       { noise(0.20, 0.17, 'lowpass', 450); }
-  function sfxHeart()     { noise(0.10, 0.10, 'lowpass', 460); setTimeout(function(){ noise(0.12, 0.10, 'lowpass', 460); }, 120); }
-  function sfxHeartbeat() { noise(0.09, 0.10, 'lowpass', 240); setTimeout(function(){ noise(0.11, 0.08, 'lowpass', 210); }, 165); }
+  function sfxJump()      { noise(0.18, 0.06, 'bandpass', 900, 0.5, 0.010); }
+  function sfxStep()      { noise(0.09, 0.045, 'lowpass', 360, 0, 0.004); noise(0.03, 0.012, 'highpass', 3200); }
+  function sfxCoin()      { noise(0.06, 0.08, 'highpass', 3800, 0, 0.004); }
+  function sfxGood()      { noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); setTimeout(function(){ noise(0.06, 0.09, 'highpass', 3200, 0, 0.004); }, 85); }
+  function sfxBad()       { noise(0.24, 0.10, 'lowpass', 260, 0, 0.006); }
+  function sfxHit()       { noise(0.22, 0.16, 'lowpass', 360, 0, 0.003); }
+  function sfxHeart()     { noise(0.14, 0.11, 'lowpass', 420, 0, 0.006); setTimeout(function(){ noise(0.16, 0.11, 'lowpass', 420, 0, 0.006); }, 150); }
+  function sfxHeartbeat() { noise(0.15, 0.13, 'lowpass', 140, 0, 0.008); setTimeout(function(){ noise(0.17, 0.10, 'lowpass', 120, 0, 0.008); }, 175); }
+  // Angin gurun ambient: derau tersaring loop + embusan halus (gust) dimodulasi lewat JS (bukan oscillator).
+  var _wind = null, _windPhase = 0, _windAge = 0;
+  function windStart() {
+    var a = ac(); if (!a || _wind) return;
+    var b = noiseBuf(); if (!b) return;
+    var src = a.createBufferSource(); src.buffer = b; src.loop = true;
+    var f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420;
+    var g = a.createGain(); g.gain.value = 0.0001;
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    try { src.start(); } catch (e) {}
+    _wind = { src: src, filter: f, gain: g }; _windPhase = 0; _windAge = 0;
+  }
+  function windStop() {
+    if (!_wind) return;
+    var w = _wind; _wind = null;
+    try {
+      var a = ac(), t = a.currentTime;
+      w.gain.gain.cancelScheduledValues(t);
+      w.gain.gain.setValueAtTime(Math.max(0.0001, w.gain.gain.value), t);
+      w.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      w.src.stop(t + 0.45);
+    } catch (e) { try { w.src.stop(); } catch (e2) {} }
+  }
+  function windTick(dt) {
+    if (!_wind) return;
+    _windPhase += dt; _windAge += dt;
+    var fade = Math.min(1, _windAge / 1.5);
+    try {
+      _wind.gain.gain.value = fade * (0.010 + 0.008 * (0.5 + 0.5 * Math.sin(_windPhase * 0.5)));
+      _wind.filter.frequency.value = 340 + 200 * (0.5 + 0.5 * Math.sin(_windPhase * 0.33));
+    } catch (e) {}
+  }
 
   // ---------- Fisika ----------
   var GRAV = 2600 * S;
@@ -299,6 +333,7 @@
     if (_stepAcc >= _si) { _stepAcc = 0; if (roo.grounded) sfxStep(); }
     if (lives <= 1) { _heartAcc += dt; if (_heartAcc >= 0.85) { _heartAcc = 0; sfxHeartbeat(); } }
     else _heartAcc = 0;
+    windTick(dt);
 
     if (mode === 'run') updateRun(dt, v);
     else updateQuiz(dt, v);
@@ -600,14 +635,14 @@
   function show(el) { el.classList.remove('hidden'); }
   function hide(el) { el.classList.add('hidden'); }
 
-  function startGame() { ac(); reset(); hide(startScreen); hide(overScreen); hide(winScreen); show(pad); last = 0; }
+  function startGame() { ac(); reset(); hide(startScreen); hide(overScreen); hide(winScreen); show(pad); windStart(); last = 0; }
   function gameOver() {
-    running = false; hide(pad);
+    running = false; hide(pad); windStop();
     document.getElementById('overStat').textContent = 'Skor: ' + (score + Math.floor(dist)) + ' · Soal benar: ' + correctCount + '/' + TARGET_SOAL;
     show(overScreen);
   }
   function winGame() {
-    running = false; hide(pad);
+    running = false; hide(pad); windStop();
     document.getElementById('winStat').textContent = 'Skor: ' + (score + Math.floor(dist)) + ' · Nyawa tersisa: ' + lives;
     show(winScreen);
   }
