@@ -246,11 +246,40 @@
   }
   function escapeHtml(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
+  // ---------- Detak jantung (ambient tegangan, prosedural — makin cepat saat monster dekat) ----------
+  var _heartTimer = null;
+  function nearestMonsterDist() {
+    if (!player || !monsters.length) return 99;
+    var best = 99;
+    for (var i = 0; i < monsters.length; i++) {
+      var d = Math.abs(monsters[i].fx - player.fx) + Math.abs(monsters[i].fy - player.fy);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+  function heartThump(vol) {
+    if (_muted || !_audio) return;
+    beep(58, 0.13, "sine", vol, 42);                                          // "lub"
+    setTimeout(function () { beep(46, 0.16, "sine", vol * 0.85, 34); }, 145); // "dub"
+  }
+  function scheduleHeart() {
+    if (_heartTimer) { clearTimeout(_heartTimer); _heartTimer = null; }
+    if (state !== "play") return;                        // berhenti saat popup/menang/kalah
+    var d = nearestMonsterDist(), bpm, vol;
+    if (d <= 3)      { bpm = 115; vol = 0.22; }          // monster dekat → panik
+    else if (d <= 6) { bpm = 85;  vol = 0.16; }
+    else             { bpm = 62;  vol = 0.11; }          // aman → tenang
+    if (graceTimer <= 0) heartThump(vol);                // diam saat "Bersiap…"
+    _heartTimer = setTimeout(scheduleHeart, Math.round(60000 / bpm));
+  }
+  function stopHeart() { if (_heartTimer) { clearTimeout(_heartTimer); _heartTimer = null; } }
+
   // ---------- Popup baca soal ----------
   var _introTimer = null;
   function clearIntroTimer() { if (_introTimer) { clearInterval(_introTimer); _introTimer = null; } }
   function showIntro() {
     state = "intro";
+    stopHeart();
     var qd = QUESTIONS[qIndex];
     root.querySelector("#mzIntroNum").textContent = "Soal " + (qIndex + 1) + " / " + QUESTIONS.length;
     root.querySelector("#mzIntroQ").textContent = qd.q;
@@ -271,6 +300,7 @@
     show("mzIntro", false);
     graceTimer = (qIndex === 0 ? 1.6 : 1.2);
     state = "play"; lastT = 0; requestAnimationFrame(loop); sfx("start");
+    scheduleHeart();                                     // mulai detak jantung
   }
 
   // ---------- Input ----------
@@ -374,8 +404,8 @@
     stopPlayer();
   }
 
-  function over() { state = "over"; saveProgress(false).then(paintEndScreens); paintEndScreens(); }
-  function win() { state = "win"; saveProgress(true).then(paintEndScreens); paintEndScreens(); }
+  function over() { stopHeart(); state = "over"; saveProgress(false).then(paintEndScreens); paintEndScreens(); }
+  function win() { stopHeart(); state = "win"; saveProgress(true).then(paintEndScreens); paintEndScreens(); }
   function paintEndScreens() {
     var badge, emoji;
     if (lives >= 3) { badge = "Sahabat Al-Qur'an"; emoji = "🏆"; }
@@ -714,7 +744,7 @@
   }
   function close() {
     if (!mounted) return; mounted = false; state = "closed";
-    clearIntroTimer();
+    clearIntroTimer(); stopHeart();
     if (_keyHandler) window.removeEventListener("keydown", _keyHandler);
     if (_resizeHandler) window.removeEventListener("resize", _resizeHandler);
     if (root && root.parentNode) root.parentNode.removeChild(root);
