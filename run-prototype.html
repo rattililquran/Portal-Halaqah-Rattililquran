@@ -440,25 +440,57 @@
     ctx.fillText(ch, x, y);
   }
 
+  // Kanguru PROSEDURAL (bukan emoji) — solid di semua perangkat, menghadap kanan.
+  // Sistem koordinat lokal: (0,0) di kaki, y negatif = ke atas. Diskalakan S.
   function drawKangaroo() {
-    var bounce = roo.grounded ? Math.abs(Math.sin(roo.run)) * 3 * S : 0;
-    var y = roo.y - bounce;
-    // Kedip saat "kebal sesaat" (sesudah kena rintangan). Alpha 0.6 → tetap jelas, tak seperti hilang.
     var blink = (invuln > 0 && (Math.floor(invuln * 9) % 2 === 0));
+    var duckF = (roo.duck && roo.grounded) ? 0.60 : 1;   // squash vertikal saat merunduk
+    var bob = roo.grounded ? Math.sin(roo.run) * 1.5 : 0; // ayun lari
+    var swing = roo.grounded ? Math.sin(roo.run) * 4 : 6; // ayun kaki depan / posisi lompat
+
     ctx.save();
-    // bayangan (selalu sedikit transparan)
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    // bayangan di TANAH (absolut, sebelum transform)
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = 'rgba(0,0,0,0.13)';
     ctx.beginPath(); ctx.ellipse(roo.x, groundY + 4 * S, 30 * S, 7 * S, 0, 0, 7); ctx.fill();
-    // kanguru — SOLID (alpha 1) kecuali sedang kedip kebal
+
     ctx.globalAlpha = blink ? 0.6 : 1;
-    var size = (roo.duck && roo.grounded ? 52 : 74) * S;
-    var ey = y + (roo.duck && roo.grounded ? 6 * S : 0);
-    // cermin horizontal supaya kanguru menghadap KANAN (arah lari)
-    ctx.translate(roo.x, ey); ctx.scale(-1, 1);
-    ctx.font = size + 'px -apple-system,"Segoe UI Emoji","Noto Color Emoji",sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('🦘', 0, 0);
+    ctx.translate(roo.x, roo.y);
+    ctx.scale(S, S * duckF);
+    ctx.translate(0, bob);
+
+    var BROWN = '#b06a34', BELLY = '#e6b07a', DARK = '#8a5222', INK = '#2a1a0c';
+    // EKOR (di belakang)
+    ctx.fillStyle = BROWN;
+    ctx.beginPath();
+    ctx.moveTo(-8, -20); ctx.quadraticCurveTo(-34, -16, -42, 1);
+    ctx.quadraticCurveTo(-30, -3, -6, -9); ctx.closePath(); ctx.fill();
+    // KAKI belakang + telapak (menjejak ke kanan)
+    ctx.beginPath(); ctx.ellipse(6 + swing * 0.3, -6, 21, 8, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-3, -24, 12, 17, -0.15, 0, 7); ctx.fill();
+    // BADAN
+    ctx.beginPath(); ctx.ellipse(-1, -44, 16, 23, -0.10, 0, 7); ctx.fill();
+    // PERUT terang
+    ctx.fillStyle = BELLY;
+    ctx.beginPath(); ctx.ellipse(4, -42, 8, 15, -0.10, 0, 7); ctx.fill();
+    // LENGAN depan (ayun saat lari)
+    ctx.fillStyle = DARK;
+    ctx.beginPath(); ctx.ellipse(9, -46 + swing * 0.4, 3.5, 9, 0.5, 0, 7); ctx.fill();
+    // KEPALA
+    ctx.fillStyle = BROWN;
+    ctx.beginPath(); ctx.ellipse(7, -66, 11, 11, 0, 0, 7); ctx.fill();
+    // MONCONG
+    ctx.beginPath(); ctx.ellipse(16, -64, 7, 5, 0.12, 0, 7); ctx.fill();
+    // TELINGA
+    ctx.beginPath(); ctx.ellipse(3, -80, 3.5, 9, -0.25, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(10, -80, 3.5, 9, 0.10, 0, 7); ctx.fill();
+    ctx.fillStyle = BELLY;
+    ctx.beginPath(); ctx.ellipse(3, -79, 1.6, 5, -0.25, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(10, -79, 1.6, 5, 0.10, 0, 7); ctx.fill();
+    // HIDUNG + MATA
+    ctx.fillStyle = INK;
+    ctx.beginPath(); ctx.arc(22, -64, 1.8, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, -68, 1.9, 0, 7); ctx.fill();
     ctx.restore();
   }
 
