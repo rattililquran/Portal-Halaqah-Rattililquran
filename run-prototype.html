@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#eaf4ff">
+<title>Rattil Run — Prototipe</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; overflow:hidden; background:#bfe3ff; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#173a2f; }
+  #wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; touch-action:none; }
+  canvas { display:block; touch-action:none; }
+  .screen {
+    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:28px;
+    background:radial-gradient(ellipse at 50% 30%, #eaf4ff 0%, #bfe3ff 60%, #a7d3f2 100%);
+    gap:14px;
+  }
+  .screen.hidden { display:none; }
+  .brand { font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c08a1e; font-weight:800; }
+  .title { font-size:32px; font-weight:900; line-height:1.12; color:#123; text-shadow:0 2px 14px rgba(255,255,255,.6); }
+  .sub { font-size:14px; color:#3a5a66; max-width:340px; line-height:1.6; }
+  .btn {
+    margin-top:8px; padding:15px 34px; border:none; border-radius:16px; cursor:pointer;
+    font-size:16px; font-weight:800; font-family:inherit; color:#3a2600;
+    background:linear-gradient(135deg,#ffd25b,#e8a72f); box-shadow:0 8px 22px rgba(200,140,30,.4);
+    transition:transform .12s;
+  }
+  .btn:active { transform:scale(.95); }
+  .emoji { font-size:60px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
+  .stat { font-size:16px; color:#123; font-weight:700; }
+  .hint { font-size:12px; color:#5b7480; margin-top:4px; line-height:1.7; }
+  .legend { font-size:12.5px; color:#3a5a66; line-height:1.9; background:rgba(255,255,255,.55); border-radius:14px; padding:12px 18px; max-width:340px; }
+  .legend b { color:#123; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game"></canvas></div>
+
+<!-- START -->
+<div id="startScreen" class="screen">
+  <div class="brand">Rattīlil Qur'an</div>
+  <div class="title">Rattil Run 🦘</div>
+  <div class="sub">Lari, lompat, dan taklukkan soal! Bantu si kanguru melewati rintangan — lalu <b>lompat menyambar awan jawaban yang benar</b>.</div>
+  <div class="legend">
+    🌵🥚 <b>rintangan darat</b> — LOMPAT<br>
+    🐦 <b>burung</b> — MERUNDUK (tahan ↓)<br>
+    ☁️ <b>awan jawaban</b> — LOMPAT ke yang benar<br>
+    🪙 <b>bonus</b> — lompat untuk ambil
+  </div>
+  <button class="btn" id="startBtn">Mulai Berlari</button>
+  <div class="hint">Ketuk / Spasi / ↑ = lompat &nbsp;·&nbsp; Tahan bawah layar / ↓ = merunduk<br>Prototipe standalone — belum terhubung ke portal</div>
+</div>
+
+<!-- GAME OVER -->
+<div id="overScreen" class="screen hidden">
+  <div class="emoji">💫</div>
+  <div class="title" style="font-size:26px;">Nyawa Habis</div>
+  <div class="stat" id="overStat">Skor: 0</div>
+  <div class="sub">Ayo ulangi — makin jauh berlari, makin banyak soal ditaklukkan!</div>
+  <button class="btn" id="retryBtn">Coba Lagi</button>
+</div>
+
+<script>
+"use strict";
+(function () {
+  // ============================================================
+  //  RATTIL RUN — Prototipe standalone (Vanilla Canvas 2D)
+  //  Kanguru pelari tak henti. Nol dependensi, nol aset eksternal.
+  //  Ritme dua-detak: [LARI: rintangan] -> [SOAL: awan jawaban] -> ulang.
+  // ============================================================
+
+  // ---------- Data soal (contoh; nanti dari bank soal via flag boleh_run) ----------
+  // Reuse batasan Maze: opsi teks pendek (<=14 char). 2 opsi = benar/salah, 3-4 = pilihan ganda.
+  var QUESTIONS = [
+    { q: "Membaca Al-Qur'an wajib dengan tajwid.", opsi:["Benar","Salah"], benar:0 },
+    { q: "Nun mati bertemu Ba (ب), hukumnya?", opsi:["Izhar","Iqlab","Ikhfa"], benar:1 },
+    { q: "Panjang bacaan Mad Thabi'i?", opsi:["1 harakat","2 harakat","4 harakat"], benar:1 },
+    { q: "Mad Thabi'i termasuk mad far'i.", opsi:["Benar","Salah"], benar:1 },
+    { q: "Makhraj huruf Kha (خ) berada di?", opsi:["Tenggorokan","Lidah","Bibir"], benar:0 },
+    { q: "Idgham bighunnah dibaca berdengung.", opsi:["Benar","Salah"], benar:0 },
+    { q: "Qalqalah punya berapa huruf?", opsi:["3","5","7"], benar:1 }
+  ];
+
+  // ---------- Kanvas ----------
+  var cv = document.getElementById('game');
+  var ctx = cv.getContext('2d');
+  var W, H, DPR, groundY, S; // S = faktor skala terhadap tinggi basis
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    groundY = Math.round(H * 0.80);
+    S = H / 720; if (S > 1.5) S = 1.5; if (S < 0.65) S = 0.65;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- Audio (WebAudio, prosedural) ----------
+  var AC = null;
+  function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return AC; }
+  function beep(freq, dur, type, vol) {
+    var a = ac(); if (!a) return;
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.value = vol || 0.06;
+    o.connect(g); g.connect(a.destination);
+    var t = a.currentTime; o.start(t);
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.stop(t + dur + 0.02);
+  }
+  function sfxJump(){ beep(520,0.12,'square',0.05); }
+  function sfxCoin(){ beep(880,0.08,'sine',0.06); beep(1320,0.09,'sine',0.05); }
+  function sfxGood(){ beep(660,0.10,'sine',0.07); setTimeout(function(){beep(990,0.14,'sine',0.07);},90); }
+  function sfxBad(){ beep(180,0.22,'sawtooth',0.08); }
+  function sfxHit(){ beep(120,0.18,'sawtooth',0.09); }
+
+  // ---------- Fisika ----------
+  var GRAV = 2600 * S;
+  var JUMP_V = 1120 * S;
+  var SPEED_MIN = 270 * S, SPEED_MAX = 460 * S;
+  var QUIZ_SPEED_FACTOR = 0.78; // melambat sedikit saat soal (biar sempat baca)
+
+  // ---------- Kanguru ----------
+  var roo, world, speed, mode, quiz, obstacles, coins, clouds;
+  var lives, score, dist, tState, tScheduled, invuln, running, shake;
+
+  function kangarooBox() {
+    var kw = 54 * S;
+    var kh = (roo.duck && roo.grounded ? 32 : 66) * S;
+    return { x: roo.x - kw / 2, y: roo.y - kh, w: kw, h: kh };
+  }
+
+  function reset() {
+    roo = { x: W * 0.20, y: groundY, vy: 0, grounded: true, duck: false, run: 0 };
+    speed = SPEED_MIN;
+    mode = 'run';            // 'run' (rintangan) | 'quiz' (awan jawaban)
+    quiz = null;
+    obstacles = []; coins = []; clouds = [];
+    lives = 3; score = 0; dist = 0;
+    tState = 0;              // waktu berjalan di mode saat ini
+    tScheduled = rand(4.5, 6.5); // detik lari sebelum soal muncul
+    invuln = 0; shake = 0;
+    world = 0;
+    running = true;
+  }
+
+  // ---------- Util ----------
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function intersect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+  // ---------- Spawner rintangan (mode run) ----------
+  var spawnGap = 0, coinGap = 0;
+  function spawnObstacle() {
+    var r = Math.random();
+    if (r < 0.45) obstacles.push({ type: 'cactus', x: W + 40, wob: 34 * S });
+    else if (r < 0.72) obstacles.push({ type: 'egg', x: W + 40, wob: 26 * S });
+    else obstacles.push({ type: 'bird', x: W + 40, wob: 32 * S, flap: 0 });
+  }
+  function spawnCoin() { coins.push({ x: W + 40, y: groundY - rand(120, 200) * S, got: false }); }
+
+  // ---------- Mulai segmen SOAL ----------
+  function startQuiz() {
+    mode = 'quiz'; tState = 0;
+    var Q = pick(QUESTIONS);
+    var opts = Q.opsi.map(function (t, i) { return { t: t, correct: i === Q.benar }; });
+    shuffle(opts);
+    var n = opts.length;
+    var gap = 330 * S;
+    var startX = W + 200 * S;
+    var cy = groundY - 185 * S; // pusat awan (dalam jangkauan puncak lompatan)
+    clouds = opts.map(function (o, i) {
+      return { t: o.t, correct: o.correct, x: startX + i * gap, y: cy, state: 'idle' };
+    });
+    quiz = { q: Q.q, resolved: false, result: null, total: n };
+  }
+
+  function cloudBox(c) {
+    var w = Math.max(150 * S, (c.t.length * 12 + 44) * S);
+    var h = 78 * S;
+    return { x: c.x - w / 2, y: c.y - h / 2, w: w, h: h };
+  }
+
+  // ---------- Input ----------
+  function doJump() {
+    if (!running) return;
+    if (roo.grounded) { roo.vy = -JUMP_V; roo.grounded = false; sfxJump(); }
+  }
+  function setDuck(v) { roo.duck = v; }
+
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); doJump(); }
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); setDuck(true); }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') setDuck(false);
+  });
+  // Sentuh: ketuk paruh atas = lompat; tahan paruh bawah = merunduk
+  cv.addEventListener('touchstart', function (e) {
+    e.preventDefault(); ac();
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].clientY > H * 0.62) setDuck(true); else doJump();
+    }
+  }, { passive: false });
+  cv.addEventListener('touchend', function (e) { e.preventDefault(); setDuck(false); }, { passive: false });
+  cv.addEventListener('mousedown', function (e) { ac(); if (e.clientY > H * 0.62) setDuck(true); else doJump(); });
+  cv.addEventListener('mouseup', function () { setDuck(false); });
+
+  // ---------- Update ----------
+  function update(dt) {
+    if (!running) return;
+    tState += dt;
+    dist += speed * dt * 0.05;
+    if (invuln > 0) invuln -= dt;
+    if (shake > 0) shake -= dt;
+    roo.run += dt * 12;
+
+    // percepatan bertahap
+    speed = Math.min(SPEED_MAX, speed + dt * 5 * S);
+    var v = speed * (mode === 'quiz' ? QUIZ_SPEED_FACTOR : 1);
+    world += v * dt;
+
+    // fisika kanguru
+    roo.vy += GRAV * dt;
+    roo.y += roo.vy * dt;
+    if (roo.y >= groundY) { roo.y = groundY; roo.vy = 0; roo.grounded = true; }
+
+    if (mode === 'run') updateRun(dt, v);
+    else updateQuiz(dt, v);
+  }
+
+  function updateRun(dt, v) {
+    // spawn rintangan
+    spawnGap -= dt;
+    if (spawnGap <= 0) { spawnObstacle(); spawnGap = rand(1.0, 1.7) - Math.min(0.5, dist / 4000); }
+    coinGap -= dt;
+    if (coinGap <= 0) { if (Math.random() < 0.6) spawnCoin(); coinGap = rand(1.8, 3.2); }
+
+    var kb = kangarooBox();
+    // gerak & tabrakan rintangan
+    for (var i = obstacles.length - 1; i >= 0; i--) {
+      var o = obstacles[i];
+      o.x -= v * dt;
+      if (o.type === 'bird') o.flap += dt * 10;
+      var ob = obstacleBox(o);
+      if (invuln <= 0 && intersect(kb, ob)) {
+        lives--; invuln = 1.1; shake = 0.3; sfxHit();
+        obstacles.splice(i, 1);
+        if (lives <= 0) return gameOver();
+        continue;
+      }
+      if (o.x < -60) obstacles.splice(i, 1);
+    }
+    // koin
+    for (var j = coins.length - 1; j >= 0; j--) {
+      var c = coins[j]; c.x -= v * dt;
+      var cbx = { x: c.x - 16 * S, y: c.y - 16 * S, w: 32 * S, h: 32 * S };
+      if (!c.got && intersect(kb, cbx)) { c.got = true; score += 25; sfxCoin(); coins.splice(j, 1); continue; }
+      if (c.x < -40) coins.splice(j, 1);
+    }
+    // jadwalkan soal
+    if (tState >= tScheduled && obstacles.length === 0) startQuiz();
+    else if (tState >= tScheduled) {
+      // berhenti spawn, biarkan jalur bersih dulu sebelum soal
+      spawnGap = 99; coinGap = 99;
+    }
+  }
+
+  function obstacleBox(o) {
+    if (o.type === 'cactus') return { x: o.x - 17 * S, y: groundY - 56 * S, w: 34 * S, h: 56 * S };
+    if (o.type === 'egg') return { x: o.x - 15 * S, y: groundY - 34 * S, w: 30 * S, h: 34 * S };
+    // bird: setinggi kepala kanguru berdiri (bisa dihindari dgn merunduk atau lompat)
+    return { x: o.x - 20 * S, y: groundY - 66 * S, w: 40 * S, h: 26 * S };
+  }
+
+  function updateQuiz(dt, v) {
+    var kb = kangarooBox();
+    var maxX = -Infinity;
+    for (var i = 0; i < clouds.length; i++) {
+      var c = clouds[i]; c.x -= v * dt;
+      if (c.x > maxX) maxX = c.x;
+      if (!quiz.resolved && roo.y < groundY - 6 && c.state === 'idle') {
+        if (intersect(kb, cloudBox(c))) {
+          if (c.correct) { c.state = 'right'; score += 100; quiz.result = 'right'; sfxGood(); }
+          else { c.state = 'wrong'; lives--; quiz.result = 'wrong'; shake = 0.3; sfxBad(); }
+          quiz.resolved = true;
+          // tandai awan benar biar edukatif
+          for (var k = 0; k < clouds.length; k++) if (clouds[k].correct && clouds[k].state === 'idle') clouds[k].state = 'reveal';
+          if (lives <= 0) { setTimeout(gameOver, 400); }
+        }
+      }
+    }
+    // semua awan lewat -> selesai segmen
+    if (maxX < -180 * S) {
+      if (!quiz.resolved) { quiz.result = 'skip'; } // lewat tanpa jawab = tak dapat poin (tanpa penalti)
+      endQuiz();
+    }
+  }
+
+  function endQuiz() {
+    mode = 'run'; tState = 0; clouds = [];
+    tScheduled = rand(4.5, 6.5);
+    spawnGap = rand(0.6, 1.0); coinGap = rand(1.0, 2.0);
+    quiz = null;
+  }
+
+  // ---------- Render ----------
+  function draw() {
+    ctx.save();
+    if (shake > 0) ctx.translate(rand(-4, 4) * S, rand(-3, 3) * S);
+
+    drawSky();
+    drawGround();
+    drawClouds();       // awan jawaban (mode quiz)
+    for (var i = 0; i < coins.length; i++) drawCoin(coins[i]);
+    for (var j = 0; j < obstacles.length; j++) drawObstacle(obstacles[j]);
+    drawKangaroo();
+    ctx.restore();
+
+    drawHUD();
+    if (mode === 'quiz' && quiz) drawQuestionBanner();
+  }
+
+  var bgHills = [];
+  function drawSky() {
+    var g = ctx.createLinearGradient(0, 0, 0, groundY);
+    g.addColorStop(0, '#eaf4ff'); g.addColorStop(1, '#bfe3ff');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, groundY);
+    // bukit dekoratif parallax
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    var off = (world * 0.15) % (260 * S);
+    for (var i = -1; i < W / (260 * S) + 1; i++) {
+      var x = i * 260 * S - off;
+      ctx.beginPath();
+      ctx.arc(x + 130 * S, groundY, 130 * S, Math.PI, 0);
+      ctx.fill();
+    }
+  }
+  function drawGround() {
+    ctx.fillStyle = '#e6c98f'; ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.strokeStyle = '#c9a24a'; ctx.lineWidth = 3 * S;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+    // guratan tanah bergerak
+    ctx.strokeStyle = 'rgba(160,120,50,0.35)'; ctx.lineWidth = 2 * S;
+    var off = (world) % (70 * S);
+    for (var i = -1; i < W / (70 * S) + 1; i++) {
+      var x = i * 70 * S - off;
+      ctx.beginPath(); ctx.moveTo(x, groundY + 22 * S); ctx.lineTo(x + 16 * S, groundY + 22 * S); ctx.stroke();
+    }
+  }
+
+  function emoji(ch, x, y, size, baseline) {
+    ctx.font = size + 'px -apple-system,"Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = baseline || 'alphabetic';
+    ctx.fillText(ch, x, y);
+  }
+
+  function drawKangaroo() {
+    var bounce = roo.grounded ? Math.abs(Math.sin(roo.run)) * 3 * S : 0;
+    var y = roo.y - bounce;
+    ctx.save();
+    if (invuln > 0 && (Math.floor(invuln * 12) % 2 === 0)) ctx.globalAlpha = 0.4;
+    var size = (roo.duck && roo.grounded ? 52 : 74) * S;
+    // bayangan
+    ctx.globalAlpha *= 0.9;
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath(); ctx.ellipse(roo.x, groundY + 4 * S, 30 * S, 7 * S, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = (invuln > 0 && (Math.floor(invuln * 12) % 2 === 0)) ? 0.4 : 1;
+    emoji('🦘', roo.x, y + (roo.duck && roo.grounded ? 6 * S : 0), size, 'alphabetic');
+    ctx.restore();
+  }
+
+  function drawObstacle(o) {
+    if (o.type === 'cactus') emoji('🌵', o.x, groundY + 4 * S, 58 * S, 'alphabetic');
+    else if (o.type === 'egg') emoji('🥚', o.x, groundY + 2 * S, 40 * S, 'alphabetic');
+    else { var fy = groundY - 52 * S + Math.sin(o.flap) * 5 * S; emoji('🐦', o.x, fy, 42 * S, 'middle'); }
+  }
+  function drawCoin(c) {
+    emoji('🪙', c.x, c.y, 34 * S, 'middle');
+  }
+
+  function drawClouds() {
+    for (var i = 0; i < clouds.length; i++) {
+      var c = clouds[i]; var b = cloudBox(c);
+      var fill = '#ffffff', stroke = '#9ec7e8', txt = '#123';
+      if (c.state === 'right') { fill = '#c9f5d0'; stroke = '#3bbf5b'; }
+      else if (c.state === 'wrong') { fill = '#ffd2d2'; stroke = '#e05555'; }
+      else if (c.state === 'reveal') { fill = '#dff3ff'; stroke = '#3bbf5b'; }
+      // badan awan
+      ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 3 * S;
+      roundRect(b.x, b.y, b.w, b.h, 26 * S); ctx.fill(); ctx.stroke();
+      // gumpalan awan kecil di atas
+      ctx.beginPath();
+      ctx.arc(b.x + b.w * 0.30, b.y + 6 * S, 20 * S, 0, 7);
+      ctx.arc(b.x + b.w * 0.62, b.y + 2 * S, 26 * S, 0, 7);
+      ctx.fill();
+      // label opsi
+      ctx.fillStyle = txt; ctx.font = '800 ' + (20 * S) + 'px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(c.t, c.x, c.y + 4 * S);
+      if (c.state === 'right') emoji('✅', c.x + b.w / 2 - 4 * S, b.y - 2 * S, 26 * S, 'middle');
+      if (c.state === 'wrong') emoji('❌', c.x + b.w / 2 - 4 * S, b.y - 2 * S, 26 * S, 'middle');
+    }
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function drawHUD() {
+    ctx.fillStyle = '#123'; ctx.font = '800 ' + (20 * S) + 'px -apple-system,sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('Skor ' + (score + Math.floor(dist)), 16 * S, 16 * S);
+    // nyawa
+    ctx.textAlign = 'right';
+    var hearts = ''; for (var i = 0; i < lives; i++) hearts += '❤️';
+    ctx.font = (22 * S) + 'px -apple-system,"Segoe UI Emoji",sans-serif';
+    ctx.fillText(hearts || '—', W - 14 * S, 14 * S);
+  }
+
+  function drawQuestionBanner() {
+    var pad = 14 * S, y = 54 * S;
+    var maxW = Math.min(W - 32 * S, 560 * S);
+    ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
+    var lines = wrap(quiz.q, maxW - pad * 2);
+    var bh = lines.length * 24 * S + pad * 2;
+    ctx.fillStyle = 'rgba(18,30,40,0.88)';
+    roundRect((W - maxW) / 2, y, maxW, bh, 16 * S); ctx.fill();
+    ctx.fillStyle = '#ffd25b'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = '700 ' + (11 * S) + 'px -apple-system,sans-serif';
+    ctx.fillText('SOAL — lompat ke awan yang benar', W / 2, y + 8 * S);
+    ctx.fillStyle = '#fff'; ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
+    for (var i = 0; i < lines.length; i++) ctx.fillText(lines[i], W / 2, y + pad + 16 * S + i * 24 * S);
+  }
+  function wrap(text, maxW) {
+    ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
+    var words = text.split(' '), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var test = cur ? cur + ' ' + words[i] : words[i];
+      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = test;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  // ---------- Loop ----------
+  var last = 0;
+  function frame(ts) {
+    if (!last) last = ts;
+    var dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+    if (running) update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---------- Layar ----------
+  var startScreen = document.getElementById('startScreen');
+  var overScreen = document.getElementById('overScreen');
+  function show(el) { el.classList.remove('hidden'); }
+  function hide(el) { el.classList.add('hidden'); }
+
+  function startGame() { ac(); reset(); hide(startScreen); hide(overScreen); last = 0; }
+  function gameOver() {
+    running = false;
+    document.getElementById('overStat').textContent = 'Skor: ' + (score + Math.floor(dist));
+    show(overScreen);
+  }
+
+  document.getElementById('startBtn').onclick = startGame;
+  document.getElementById('retryBtn').onclick = startGame;
+
+})();
+</script>
+</body>
+</html>
