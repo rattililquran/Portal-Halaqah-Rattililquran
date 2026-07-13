@@ -119,7 +119,12 @@
     cv.style.width = W + 'px'; cv.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     groundY = Math.round(H * 0.80);
-    S = H / 720; if (S > 1.5) S = 1.5; if (S < 0.65) S = 0.65;
+    // Skala ambil yang TERKECIL dari tinggi & lebar → di HP potret (sempit) otomatis mengecil,
+    // tidak lagi "kebesaran/kedekatan". 900 = lebar desain acuan pada S=1.
+    S = Math.min(H / 720, W / 900); if (S > 1.4) S = 1.4; if (S < 0.6) S = 0.6;
+    // fisika ikut skala (recompute agar konsisten saat ganti orientasi/ukuran)
+    GRAV = 2600 * S; JUMP_V = 1120 * S; SPEED_MIN = 270 * S; SPEED_MAX = 460 * S;
+    if (roo) roo.x = W * 0.20;
   }
   window.addEventListener('resize', resize);
   resize();
@@ -502,7 +507,7 @@
   }
 
   function drawQuestionBanner() {
-    var pad = 14 * S, y = 54 * S;
+    var pad = 14 * S, y = 66 * S;
     var maxW = Math.min(W - 32 * S, 560 * S);
     ctx.font = '800 ' + (18 * S) + 'px -apple-system,sans-serif';
     var lines = wrap(quiz.q, maxW - pad * 2);
