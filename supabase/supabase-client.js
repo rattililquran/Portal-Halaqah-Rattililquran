@@ -2742,6 +2742,64 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // ── Rattil Run (guru) — kelola level MILIK guru; RLS run_level_write (id_guru=self) ──
+  getRunLevelsGuru: async function() {
+    var { data, error } = await _sb.from('run_level')
+      .select('*').eq('id_guru', _uid()).order('urutan', { ascending: true });
+    _check(error, 'getRunLevelsGuru');
+    return { status: 'ok', data: data || [] };
+  },
+  createRunLevelGuru: async function(payload) {
+    var row = {
+      id_guru:             _uid(),
+      nama_level:          payload.nama_level,
+      urutan:              payload.urutan != null ? payload.urutan : 0,
+      target_soal:         payload.target_soal != null ? payload.target_soal : 8,
+      kecepatan_awal:      payload.kecepatan_awal != null ? payload.kecepatan_awal : 1.0,
+      kepadatan_rintangan: payload.kepadatan_rintangan != null ? payload.kepadatan_rintangan : 1.0,
+      id_kuis:             payload.id_kuis || null,
+      tingkat_kesulitan:   payload.tingkat_kesulitan || 'mudah',
+      target_halaqah:      payload.target_halaqah || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:               payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('run_level').insert([row]).select().single();
+    _check(error, 'createRunLevelGuru');
+    if (!data) throw new Error('createRunLevelGuru: 0 baris tersimpan (akses ditolak?).');
+    return { status: 'ok', data: data };
+  },
+  updateRunLevelGuru: async function(id_run_level, payload) {
+    var row = {
+      nama_level:          payload.nama_level,
+      urutan:              payload.urutan != null ? payload.urutan : 0,
+      target_soal:         payload.target_soal != null ? payload.target_soal : 8,
+      kecepatan_awal:      payload.kecepatan_awal != null ? payload.kecepatan_awal : 1.0,
+      kepadatan_rintangan: payload.kepadatan_rintangan != null ? payload.kepadatan_rintangan : 1.0,
+      id_kuis:             payload.id_kuis || null,
+      tingkat_kesulitan:   payload.tingkat_kesulitan || 'mudah',
+      target_halaqah:      payload.target_halaqah || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:               payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('run_level')
+      .update(row).eq('id_run_level', id_run_level).select('id_run_level');
+    _check(error, 'updateRunLevelGuru');
+    if (!data || data.length === 0) throw new Error('Perubahan tidak tersimpan (0 baris — bukan level Anda / akses ditolak).');
+    return { status: 'ok' };
+  },
+  setRunLevelAktifGuru: async function(id_run_level, aktif) {
+    var { data, error } = await _sb.from('run_level')
+      .update({ aktif: !!aktif }).eq('id_run_level', id_run_level).select('id_run_level');
+    _check(error, 'setRunLevelAktifGuru');
+    if (!data || data.length === 0) throw new Error('Gagal mengubah status (0 baris).');
+    return { status: 'ok' };
+  },
+  deleteRunLevelGuru: async function(id_run_level) {
+    var { error } = await _sb.from('run_level').delete().eq('id_run_level', id_run_level);
+    _check(error, 'deleteRunLevelGuru');
+    return { status: 'ok' };
+  },
+
   createKuis: async function(payload) {
     var id_guru = _uid();
     var id_quiz = 'QZ-' + _genId('');
@@ -5305,6 +5363,95 @@ var MuridAPI = {
       .select('id_maze_level, score, best_time_ms, nyawa_sisa, completed, badges, updated_at, maze_level(nama_level)')
       .order('updated_at', { ascending: false });
     _check(error, 'getMazeProgress');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // ── Rattil Run (murid) — gerbang akses IDENTIK Maze: target_halaqah > target_levels > quiz ──
+  getRunLevels: async function() {
+    var id_murid = _uid();
+    // select('*') agar aman terhadap perubahan kolom (kolom baru → undefined → tak menyaring).
+    var { data: levels, error } = await _sb.from('run_level')
+      .select('*')
+      .eq('aktif', true)
+      .order('urutan', { ascending: true });
+    _check(error, 'getRunLevels');
+    levels = levels || [];
+    if (!levels.length) return { status: 'ok', data: [] };
+
+    // Halaqah + level murid ini (dipakai gerbang quiz DAN filter target_levels)
+    var halaqahIds = [], muridLevels = {};
+    if (id_murid) {
+      var { data: anggotaData } = await _sb.from('anggota')
+        .select('id_halaqah, halaqah(level)')
+        .eq('id_murid', id_murid).eq('status', 'aktif');
+      (anggotaData || []).forEach(function(a){
+        halaqahIds.push(a.id_halaqah);
+        if (a.halaqah && a.halaqah.level) muridLevels[a.halaqah.level] = true;
+      });
+    }
+
+    // Quiz yang tersedia untuk murid ini (aturan sama persis dgn quiz)
+    var kuisIds = Array.from(new Set(levels.map(function(l){ return l.id_kuis; }).filter(Boolean)));
+    var available = {};
+    if (kuisIds.length && halaqahIds.length) {
+      var { data: qhData } = await _sb.from('quiz_halaqah')
+        .select('id_quiz, quiz(id_quiz, status, tgl_mulai, tgl_selesai)')
+        .in('id_halaqah', halaqahIds)
+        .in('id_quiz', kuisIds);
+      var today = _todayJakarta();
+      (qhData || []).forEach(function(qh){
+        var q = qh.quiz;
+        if (!q || q.status !== 'aktif') return;
+        if (q.tgl_mulai && q.tgl_mulai > today) return;
+        if (q.tgl_selesai && q.tgl_selesai < today) return;
+        available[q.id_quiz] = true;
+      });
+    }
+
+    var halaqahSet = {}; halaqahIds.forEach(function(h){ halaqahSet[h] = true; });
+    function anyIn(arr, set){ for (var i = 0; i < (arr ? arr.length : 0); i++) if (set[arr[i]]) return true; return false; }
+    function visible(l){
+      if (l.target_halaqah && l.target_halaqah.length) return anyIn(l.target_halaqah, halaqahSet);
+      if (l.target_levels && l.target_levels.length)   return anyIn(l.target_levels, muridLevels);
+      return !l.id_kuis || available[l.id_kuis];
+    }
+
+    var data = levels
+      .filter(visible)
+      .map(function(l){ return Object.assign({}, l, { ditugaskan: !!l.id_kuis }); });
+    return { status: 'ok', data: data };
+  },
+
+  // Soal Run via RPC TERPISAH (termasuk is_benar utk feedback instan; aman krn Run nol bobot akademik).
+  getRunSoal: async function(id_run_level) {
+    var { data, error } = await _sb.rpc('get_run_soal', { p_id_run_level: id_run_level });
+    _check(error, 'getRunSoal');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Simpan progress Run (RPC upsert nilai-terbaik). Kembalikan baris tersimpan sbg KONFIRMASI.
+  simpanRunProgress: async function(payload) {
+    var { data, error } = await _sb.rpc('simpan_run_progress', {
+      p_id_run_level:  payload.id_run_level,
+      p_score:         payload.score || 0,
+      p_best_distance: (payload.best_distance != null ? payload.best_distance : null),
+      p_jml_benar:     (payload.jml_benar != null ? payload.jml_benar : null),
+      p_nyawa_sisa:    (payload.nyawa_sisa != null ? payload.nyawa_sisa : null),
+      p_completed:     !!payload.completed,
+      p_badges:        payload.badges || [],
+      p_soal_snapshot: payload.soal_snapshot || null
+    });
+    _check(error, 'simpanRunProgress');
+    if (!data) throw new Error('simpanRunProgress: baris tidak tersimpan (progress kosong)');
+    return { status: 'ok', data: data };
+  },
+
+  // Baca progress Run milik murid ini (RLS: hanya baris sendiri).
+  getRunProgress: async function() {
+    var { data, error } = await _sb.from('run_progress')
+      .select('id_run_level, score, best_distance, jml_benar, nyawa_sisa, completed, badges, updated_at, run_level(nama_level)')
+      .order('updated_at', { ascending: false });
+    _check(error, 'getRunProgress');
     return { status: 'ok', data: data || [] };
   },
 };
@@ -8035,6 +8182,71 @@ var AdminAPI = {
     _check(error, 'deleteMazeLevel');
     return { status: 'ok' };
   },
+
+  // ── Rattil Run (admin) — kelola level; RLS run_level_write (is_admin) ──
+  getRunLevelsAdmin: async function() {
+    var { data, error } = await _sb.from('run_level')
+      .select('*')
+      .order('urutan', { ascending: true });
+    _check(error, 'getRunLevelsAdmin');
+    return { status: 'ok', data: data || [] };
+  },
+  getQuizListForRun: async function() {
+    var { data, error } = await _sb.from('quiz')
+      .select('id_quiz, judul, status')
+      .order('created_at', { ascending: false });
+    _check(error, 'getQuizListForRun');
+    return { status: 'ok', data: data || [] };
+  },
+  createRunLevel: async function(payload) {
+    var row = {
+      nama_level:          payload.nama_level,
+      urutan:              payload.urutan != null ? payload.urutan : 0,
+      target_soal:         payload.target_soal != null ? payload.target_soal : 8,
+      kecepatan_awal:      payload.kecepatan_awal != null ? payload.kecepatan_awal : 1.0,
+      kepadatan_rintangan: payload.kepadatan_rintangan != null ? payload.kepadatan_rintangan : 1.0,
+      id_kuis:             payload.id_kuis || null,
+      tingkat_kesulitan:   payload.tingkat_kesulitan || 'mudah',
+      target_levels:       payload.target_levels || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:               payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('run_level').insert([row]).select().single();
+    _check(error, 'createRunLevel');
+    if (!data) throw new Error('createRunLevel: 0 baris tersimpan (akses admin ditolak?).');
+    return { status: 'ok', data: data };
+  },
+  updateRunLevel: async function(id_run_level, payload) {
+    var row = {
+      nama_level:          payload.nama_level,
+      urutan:              payload.urutan != null ? payload.urutan : 0,
+      target_soal:         payload.target_soal != null ? payload.target_soal : 8,
+      kecepatan_awal:      payload.kecepatan_awal != null ? payload.kecepatan_awal : 1.0,
+      kepadatan_rintangan: payload.kepadatan_rintangan != null ? payload.kepadatan_rintangan : 1.0,
+      id_kuis:             payload.id_kuis || null,
+      tingkat_kesulitan:   payload.tingkat_kesulitan || 'mudah',
+      target_levels:       payload.target_levels || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:               payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('run_level')
+      .update(row).eq('id_run_level', id_run_level).select('id_run_level');
+    _check(error, 'updateRunLevel');
+    if (!data || data.length === 0) throw new Error('Perubahan tidak tersimpan (0 baris — akses ditolak?).');
+    return { status: 'ok' };
+  },
+  setRunLevelAktif: async function(id_run_level, aktif) {
+    var { data, error } = await _sb.from('run_level')
+      .update({ aktif: !!aktif }).eq('id_run_level', id_run_level).select('id_run_level');
+    _check(error, 'setRunLevelAktif');
+    if (!data || data.length === 0) throw new Error('Gagal mengubah status (0 baris).');
+    return { status: 'ok' };
+  },
+  deleteRunLevel: async function(id_run_level) {
+    var { error } = await _sb.from('run_level').delete().eq('id_run_level', id_run_level);
+    _check(error, 'deleteRunLevel');
+    return { status: 'ok' };
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -8571,6 +8783,11 @@ window.HQ = {
     updateMazeLevelGuru: function() { return GuruAPI.updateMazeLevelGuru.apply(GuruAPI, arguments); },
     setMazeLevelAktifGuru: function() { return GuruAPI.setMazeLevelAktifGuru.apply(GuruAPI, arguments); },
     deleteMazeLevelGuru: function() { return GuruAPI.deleteMazeLevelGuru.apply(GuruAPI, arguments); },
+    getRunLevelsGuru: function() { return GuruAPI.getRunLevelsGuru.apply(GuruAPI, arguments); },
+    createRunLevelGuru: function() { return GuruAPI.createRunLevelGuru.apply(GuruAPI, arguments); },
+    updateRunLevelGuru: function() { return GuruAPI.updateRunLevelGuru.apply(GuruAPI, arguments); },
+    setRunLevelAktifGuru: function() { return GuruAPI.setRunLevelAktifGuru.apply(GuruAPI, arguments); },
+    deleteRunLevelGuru: function() { return GuruAPI.deleteRunLevelGuru.apply(GuruAPI, arguments); },
     createKuis: function() { return GuruAPI.createKuis.apply(GuruAPI, arguments); },
     updateKuis: function() { return GuruAPI.updateKuis.apply(GuruAPI, arguments); },
     deleteKuis: function() { return GuruAPI.deleteKuis.apply(GuruAPI, arguments); },
