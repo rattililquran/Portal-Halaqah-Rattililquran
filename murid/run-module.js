@@ -50,32 +50,46 @@
     if (roo) roo.x = W * 0.20;
   }
 
-  // ---------- Audio ----------
-  var AC = null;
+  // ---------- Audio (WebAudio) — HANYA bunyi NON-MELODI (kehati-hatian syar'i) ----------
+  //  Semua berbasis DERAU (noise) tersaring: langkah, benturan, detak. TANPA nada/melodi/alat musik.
+  var AC = null, _noiseBuf = null;
   function ac() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return AC; }
-  function beep(freq, dur, type, vol) {
-    var a = ac(); if (!a) return;
-    var o = a.createOscillator(), g = a.createGain();
-    o.type = type || 'square'; o.frequency.value = freq;
-    g.gain.value = vol || 0.06;
-    o.connect(g); g.connect(a.destination);
-    var t = a.currentTime; o.start(t);
-    g.gain.setValueAtTime(g.gain.value, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.stop(t + dur + 0.02);
+  function noiseBuf() {
+    if (_noiseBuf) return _noiseBuf;
+    var a = ac(); if (!a) return null;
+    var n = Math.floor(a.sampleRate * 0.5);
+    var b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    _noiseBuf = b; return b;
   }
-  function sfxJump(){ beep(520,0.12,'square',0.05); }
-  function sfxCoin(){ beep(880,0.08,'sine',0.06); beep(1320,0.09,'sine',0.05); }
-  function sfxGood(){ beep(660,0.10,'sine',0.07); setTimeout(function(){beep(990,0.14,'sine',0.07);},90); }
-  function sfxBad(){ beep(180,0.22,'sawtooth',0.08); }
-  function sfxHit(){ beep(120,0.18,'sawtooth',0.09); }
-  function sfxHeart(){ beep(784,0.10,'sine',0.07); setTimeout(function(){beep(1175,0.14,'sine',0.06);},80); }
+  // Satu ketukan derau tersaring (perkusif, non-melodi).
+  function noise(dur, vol, type, freq, q) {
+    var a = ac(); if (!a) return;
+    var b = noiseBuf(); if (!b) return;
+    var src = a.createBufferSource(); src.buffer = b;
+    var f = a.createBiquadFilter(); f.type = type || 'lowpass'; f.frequency.value = freq || 1000; if (q) f.Q.value = q;
+    var g = a.createGain();
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    var t = a.currentTime;
+    g.gain.setValueAtTime(vol || 0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+    src.start(t); src.stop(t + (dur || 0.12) + 0.03);
+  }
+  function sfxJump()      { noise(0.16, 0.06, 'bandpass', 1200, 0.6); }                                   // "wus" lompat
+  function sfxStep()      { noise(0.05, 0.035, 'lowpass', 700); }                                          // hentakan kaki
+  function sfxCoin()      { noise(0.05, 0.09, 'highpass', 4000); }                                         // "tik" bonus
+  function sfxGood()      { noise(0.05, 0.11, 'highpass', 3400); setTimeout(function(){ noise(0.05, 0.11, 'highpass', 3400); }, 80); } // ketuk-ketuk benar
+  function sfxBad()       { noise(0.22, 0.11, 'lowpass', 320); }                                           // "duk" tumpul salah
+  function sfxHit()       { noise(0.20, 0.17, 'lowpass', 450); }                                           // benturan rintangan
+  function sfxHeart()     { noise(0.10, 0.10, 'lowpass', 460); setTimeout(function(){ noise(0.12, 0.10, 'lowpass', 460); }, 120); }   // "dug-dug" tambah nyawa
+  function sfxHeartbeat() { noise(0.09, 0.10, 'lowpass', 240); setTimeout(function(){ noise(0.11, 0.08, 'lowpass', 210); }, 165); }   // detak jantung nyawa kritis
 
   // ---------- State game ----------
   var roo, world, speed, mode, quiz, obstacles, coins, clouds;
   var lives, score, dist, tState, tScheduled, invuln, running, shake;
   var missedQueue, pendingQuestion, toast, correctCount, streak, deck;
   var spawnGap = 0, coinGap = 0;
+  var _stepAcc = 0, _heartAcc = 0;   // kadens langkah lari & detak jantung (audio non-melodi)
 
   function kangarooBox() {
     var kw = 54 * S;
@@ -221,6 +235,13 @@
     roo.vy += GRAV * dt;
     roo.y += roo.vy * dt;
     if (roo.y >= groundY) { roo.y = groundY; roo.vy = 0; roo.grounded = true; }
+
+    // Kadens audio non-melodi: langkah lari (tempo ikut kecepatan) + detak jantung saat nyawa kritis (≤1)
+    _stepAcc += dt;
+    var _si = 0.30 * (SPEED_MIN / Math.max(1, speed));
+    if (_stepAcc >= _si) { _stepAcc = 0; if (roo.grounded) sfxStep(); }
+    if (lives <= 1) { _heartAcc += dt; if (_heartAcc >= 0.85) { _heartAcc = 0; sfxHeartbeat(); } }
+    else _heartAcc = 0;
 
     if (mode === 'run') updateRun(dt, v);
     else updateQuiz(dt, v);
