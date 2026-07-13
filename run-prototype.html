@@ -456,8 +456,8 @@
   function frame(ts) {
     if (!last) last = ts;
     var dt = Math.min(0.05, (ts - last) / 1000); last = ts;
-    if (running) update(dt);
-    draw();
+    try { if (running) update(dt); draw(); }
+    catch (err) { console.error('Rattil Run frame error:', err); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -477,6 +477,11 @@
 
   document.getElementById('startBtn').onclick = startGame;
   document.getElementById('retryBtn').onclick = startGame;
+
+  // Inisialisasi state agar draw() aman SEBELUM mulai (cegah crash frame pertama
+  // yang membunuh loop requestAnimationFrame). running=false → dunia diam di balik layar start.
+  reset();
+  running = false;
 
 })();
 </script>
