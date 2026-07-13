@@ -2684,6 +2684,64 @@ var GuruAPI = {
     return { status: 'ok', data: list };
   },
 
+  // ── Rattil Maze (guru) — kelola level MILIK guru; RLS maze_level_write (id_guru=self) ──
+  getMazeLevelsGuru: async function() {
+    var { data, error } = await _sb.from('maze_level')
+      .select('*').eq('id_guru', _uid()).order('urutan', { ascending: true });
+    _check(error, 'getMazeLevelsGuru');
+    return { status: 'ok', data: data || [] };
+  },
+  createMazeLevelGuru: async function(payload) {
+    var row = {
+      id_guru:           _uid(),
+      nama_level:        payload.nama_level,
+      urutan:            payload.urutan != null ? payload.urutan : 0,
+      map_data:          payload.map_data,
+      jumlah_monster:    payload.jumlah_monster != null ? payload.jumlah_monster : 2,
+      kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
+      id_kuis:           payload.id_kuis || null,
+      tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      target_halaqah:    payload.target_halaqah || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:             payload.aktif !== false
+    };
+    var { data, error } = await _sb.from('maze_level').insert([row]).select().single();
+    _check(error, 'createMazeLevelGuru');
+    if (!data) throw new Error('createMazeLevelGuru: 0 baris tersimpan (akses ditolak?).');
+    return { status: 'ok', data: data };
+  },
+  updateMazeLevelGuru: async function(id_maze_level, payload) {
+    var row = {
+      nama_level:        payload.nama_level,
+      urutan:            payload.urutan != null ? payload.urutan : 0,
+      jumlah_monster:    payload.jumlah_monster != null ? payload.jumlah_monster : 2,
+      kecepatan_monster: payload.kecepatan_monster != null ? payload.kecepatan_monster : 1.0,
+      id_kuis:           payload.id_kuis || null,
+      tingkat_kesulitan: payload.tingkat_kesulitan || 'mudah',
+      target_halaqah:    payload.target_halaqah || [],
+      rekomendasi_pertemuan_ke: (payload.rekomendasi_pertemuan_ke != null && payload.rekomendasi_pertemuan_ke !== '') ? parseInt(payload.rekomendasi_pertemuan_ke) : null,
+      aktif:             payload.aktif !== false
+    };
+    if (payload.map_data) row.map_data = payload.map_data;
+    var { data, error } = await _sb.from('maze_level')
+      .update(row).eq('id_maze_level', id_maze_level).select('id_maze_level');
+    _check(error, 'updateMazeLevelGuru');
+    if (!data || data.length === 0) throw new Error('Perubahan tidak tersimpan (0 baris — bukan level Anda / akses ditolak).');
+    return { status: 'ok' };
+  },
+  setMazeLevelAktifGuru: async function(id_maze_level, aktif) {
+    var { data, error } = await _sb.from('maze_level')
+      .update({ aktif: !!aktif }).eq('id_maze_level', id_maze_level).select('id_maze_level');
+    _check(error, 'setMazeLevelAktifGuru');
+    if (!data || data.length === 0) throw new Error('Gagal mengubah status (0 baris).');
+    return { status: 'ok' };
+  },
+  deleteMazeLevelGuru: async function(id_maze_level) {
+    var { error } = await _sb.from('maze_level').delete().eq('id_maze_level', id_maze_level);
+    _check(error, 'deleteMazeLevelGuru');
+    return { status: 'ok' };
+  },
+
   createKuis: async function(payload) {
     var id_guru = _uid();
     var id_quiz = 'QZ-' + _genId('');
@@ -5199,16 +5257,15 @@ var MuridAPI = {
       });
     }
 
-    // Audiens (target_levels) = KENDALI ADMIN: bila DIISI, itu penentu akses (tanpa perlu
-    // quiz di-assign; quiz hanya sumber soal). Bila KOSONG → ikut gerbang quiz (nebeng quiz).
-    function muridInTarget(l){
-      var tl = l.target_levels || [];
-      for (var i = 0; i < tl.length; i++) if (muridLevels[tl[i]]) return true;
-      return false;
-    }
+    var halaqahSet = {}; halaqahIds.forEach(function(h){ halaqahSet[h] = true; });
+
+    // Audiens (prioritas paling spesifik): target_halaqah (guru, per-halaqah) >
+    // target_levels (admin, per-level) > penugasan quiz (nebeng quiz) > semua.
+    function anyIn(arr, set){ for (var i = 0; i < (arr ? arr.length : 0); i++) if (set[arr[i]]) return true; return false; }
     function visible(l){
-      if (l.target_levels && l.target_levels.length) return muridInTarget(l);   // admin kendali
-      return !l.id_kuis || available[l.id_kuis];                                // ikut quiz / bebas
+      if (l.target_halaqah && l.target_halaqah.length) return anyIn(l.target_halaqah, halaqahSet);
+      if (l.target_levels && l.target_levels.length)   return anyIn(l.target_levels, muridLevels);
+      return !l.id_kuis || available[l.id_kuis];
     }
 
     var data = levels
@@ -8509,6 +8566,11 @@ window.HQ = {
   QuizAPI: {
     // Guru Methods
     getKuisList: function() { return GuruAPI.getKuisList.apply(GuruAPI, arguments); },
+    getMazeLevelsGuru: function() { return GuruAPI.getMazeLevelsGuru.apply(GuruAPI, arguments); },
+    createMazeLevelGuru: function() { return GuruAPI.createMazeLevelGuru.apply(GuruAPI, arguments); },
+    updateMazeLevelGuru: function() { return GuruAPI.updateMazeLevelGuru.apply(GuruAPI, arguments); },
+    setMazeLevelAktifGuru: function() { return GuruAPI.setMazeLevelAktifGuru.apply(GuruAPI, arguments); },
+    deleteMazeLevelGuru: function() { return GuruAPI.deleteMazeLevelGuru.apply(GuruAPI, arguments); },
     createKuis: function() { return GuruAPI.createKuis.apply(GuruAPI, arguments); },
     updateKuis: function() { return GuruAPI.updateKuis.apply(GuruAPI, arguments); },
     deleteKuis: function() { return GuruAPI.deleteKuis.apply(GuruAPI, arguments); },
