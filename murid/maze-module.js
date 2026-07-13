@@ -295,16 +295,17 @@
   }
   function heartThump(vol) {
     if (_muted || !_audio) return;
-    beep(58, 0.13, "sine", vol, 42);                                          // "lub"
-    setTimeout(function () { beep(46, 0.16, "sine", vol * 0.85, 34); }, 145); // "dub"
+    // freq dinaikkan (~90/72Hz) + 2 lapis agar terdengar di speaker HP (nada <60Hz nyaris senyap)
+    beep(92, 0.15, "sine", vol, 55); beep(150, 0.09, "triangle", vol * 0.5, 90);            // "lub"
+    setTimeout(function () { beep(74, 0.18, "sine", vol * 0.9, 44); beep(120, 0.1, "triangle", vol * 0.45, 72); }, 150); // "dub"
   }
   function scheduleHeart() {
     if (_heartTimer) { clearTimeout(_heartTimer); _heartTimer = null; }
     if (state !== "play") return;                        // berhenti saat popup/menang/kalah
     var d = nearestMonsterDist(), bpm, vol;
-    if (d <= 3)      { bpm = 115; vol = 0.22; }          // monster dekat → panik
-    else if (d <= 6) { bpm = 85;  vol = 0.16; }
-    else             { bpm = 62;  vol = 0.11; }          // aman → tenang
+    if (d <= 3)      { bpm = 115; vol = 0.5;  }          // monster dekat → panik
+    else if (d <= 6) { bpm = 85;  vol = 0.38; }
+    else             { bpm = 62;  vol = 0.28; }          // aman → tenang
     if (graceTimer <= 0) heartThump(vol);                // diam saat "Bersiap…"
     _heartTimer = setTimeout(scheduleHeart, Math.round(60000 / bpm));
   }
@@ -459,8 +460,13 @@
     }
   }
 
+  function shuffleArr(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
   function startGame() {
     if (!activeLevel) return;                      // tak ada level aktif → jangan main (anti soal contoh)
+    shuffleArr(QUESTIONS);                          // acak urutan soal tiap mulai main
     mapIdx = 0; MAZE = MAZES[0]; scanMap();
     score = 0; lives = 3; qIndex = 0; frightenTimer = 0; invuln = 0; savedMsg = "";
     dotsLeft = 0;
