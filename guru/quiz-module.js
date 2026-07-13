@@ -2203,7 +2203,7 @@
     page.innerHTML =
       '<div style="font-size:18px;font-weight:800;margin-bottom:4px">🎮 Rattil Maze (Petualangan)</div>' +
       '<div style="font-size:13px;color:#64748b;margin-bottom:16px">Buat game labirin untuk halaqah Anda. Pilih halaqah tujuan — hanya murid di halaqah itu yang melihatnya. Quiz opsional sebagai sumber soal.</div>' +
-      '<div style="margin-bottom:16px"><button onclick="openGuruMazeModal(null)" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;padding:10px 18px;border-radius:100px;font-weight:800;font-size:13px;cursor:pointer">➕ Tambah Level</button></div>' +
+      '<div style="margin-bottom:16px"><button onclick="openGuruMazeModal(null)" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;padding:10px 18px;border-radius:100px;font-weight:800;font-size:13px;cursor:pointer">➕ Tambah Petualangan</button></div>' +
       '<div id="guruMazeList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"><div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Memuat…</div></div>';
     await loadGuruMazeList();
   };
@@ -2216,7 +2216,7 @@
       if (!_guruMazeQuizCache.length) { try { _guruMazeQuizCache = (((await window.HQ.QuizAPI.getKuisList()) || {}).data) || []; } catch (e) {} }
       var quizMap = {}; _guruMazeQuizCache.forEach(function (q) { quizMap[q.id_quiz] = q; });
       var halMap = {}; (halaqahList || []).forEach(function (h) { halMap[h.id_halaqah] = h.nama_halaqah; });
-      if (!levels.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Belum ada level. Klik "Tambah Level".</div>'; return; }
+      if (!levels.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Belum ada petualangan. Klik "Tambah Petualangan".</div>'; return; }
       box.innerHTML = levels.map(function (lv) {
         var q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
         var sumber = lv.id_kuis ? (q ? '🔗 ' + esc(q.judul) + ' ' + _gmzBadge(q.status, q.status === 'aktif' ? '#16a34a' : '#d97706') : _gmzBadge('quiz tak ditemukan', '#dc2626')) : _gmzBadge('Latihan bebas', '#2563eb');
@@ -2239,20 +2239,20 @@
     if (!cont) return;
     var editing = null;
     try {
-      if (id_maze_level) { showLoad('Memuat level…'); var lv = (((await window.HQ.QuizAPI.getMazeLevelsGuru()) || {}).data) || []; editing = lv.filter(function (x) { return x.id_maze_level === id_maze_level; })[0] || null; }
+      if (id_maze_level) { showLoad('Memuat petualangan…'); var lv = (((await window.HQ.QuizAPI.getMazeLevelsGuru()) || {}).data) || []; editing = lv.filter(function (x) { return x.id_maze_level === id_maze_level; })[0] || null; }
       if (!_guruMazeQuizCache.length) { _guruMazeQuizCache = (((await window.HQ.QuizAPI.getKuisList()) || {}).data) || []; }
       hideLoad();
     } catch (e) { hideLoad(); toast('Gagal memuat: ' + _gmzErr(e), 'err'); return; }
-    if (id_maze_level && !editing) { toast('Level tidak ditemukan', 'err'); return; }
+    if (id_maze_level && !editing) { toast('Petualangan tidak ditemukan', 'err'); return; }
     var g = editing || {}, kes = g.tingkat_kesulitan || 'mudah', tHal = g.target_halaqah || [];
     var quizOpts = ['<option value="">— Latihan bebas (tanpa quiz) —</option>'].concat(_guruMazeQuizCache.map(function (q) { return '<option value="' + esc(q.id_quiz) + '"' + (g.id_kuis === q.id_quiz ? ' selected' : '') + '>' + esc(q.judul) + ' (' + esc(q.status) + ')</option>'; })).join('');
     var halChecks = (halaqahList || []).map(function (h) { return '<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" class="gmzHalCheck" value="' + esc(h.id_halaqah) + '"' + (tHal.indexOf(h.id_halaqah) >= 0 ? ' checked' : '') + '> ' + esc(h.nama_halaqah) + (h.level ? ' <span style="color:#94a3b8">(' + esc(h.level) + ')</span>' : '') + '</label>'; }).join('') || '<div style="font-size:12px;color:#94a3b8">Anda belum punya halaqah.</div>';
     cont.innerHTML =
       '<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeGuruMazeModal()">' +
         '<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:16px;font-weight:800">🎮 ' + (editing ? 'Edit' : 'Tambah') + ' Level Maze</h3><button onclick="closeGuruMazeModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8">✕</button></div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:16px;font-weight:800">🎮 ' + (editing ? 'Edit' : 'Tambah') + ' Petualangan</h3><button onclick="closeGuruMazeModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8">✕</button></div>' +
           '<form onsubmit="submitGuruMazeLevel(event,' + (editing ? '\'' + escJs(editing.id_maze_level) + '\'' : 'null') + ')">' +
-            '<div style="margin-bottom:12px">' + _gmzLabel('NAMA LEVEL *') + '<input id="gmzNama" required value="' + esc(g.nama_level || '') + '" placeholder="Contoh: Tahsin Pekan 3" style="' + _GMZ_INP + '"></div>' +
+            '<div style="margin-bottom:12px">' + _gmzLabel('NAMA PETUALANGAN *') + '<input id="gmzNama" required value="' + esc(g.nama_level || '') + '" placeholder="Contoh: Tahsin Pekan 3" style="' + _GMZ_INP + '"></div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div>' + _gmzLabel('URUTAN') + '<input id="gmzUrutan" type="number" min="0" value="' + (g.urutan != null ? esc(g.urutan) : 0) + '" style="' + _GMZ_INP + '"></div><div>' + _gmzLabel('KESULITAN') + '<select id="gmzKesulitan" style="' + _GMZ_INP + '"><option value="mudah"' + (kes === 'mudah' ? ' selected' : '') + '>Mudah</option><option value="sedang"' + (kes === 'sedang' ? ' selected' : '') + '>Sedang</option><option value="sulit"' + (kes === 'sulit' ? ' selected' : '') + '>Sulit</option></select></div></div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div>' + _gmzLabel('JUMLAH MONSTER (1–4)') + '<input id="gmzMonster" type="number" min="1" max="4" value="' + (g.jumlah_monster != null ? esc(g.jumlah_monster) : 2) + '" style="' + _GMZ_INP + '"></div><div>' + _gmzLabel('KECEPATAN (×)') + '<input id="gmzKecepatan" type="number" min="0.5" max="2" step="0.1" value="' + (g.kecepatan_monster != null ? esc(g.kecepatan_monster) : '1.0') + '" style="' + _GMZ_INP + '"></div></div>' +
             '<div style="margin-bottom:12px">' + _gmzLabel('HALAQAH TUJUAN (AUDIENS) *') + '<div style="display:grid;grid-template-columns:1fr;gap:6px;background:#f8fafc;padding:10px;border-radius:8px;border:1px solid #e2e8f0;max-height:150px;overflow-y:auto">' + halChecks + '</div><div style="font-size:10.5px;color:#94a3b8;margin-top:4px">Hanya murid di halaqah terpilih yang melihat game ini.</div></div>' +
@@ -2279,7 +2279,7 @@
       showLoad('Menyimpan…');
       if (id_maze_level) { await window.HQ.QuizAPI.updateMazeLevelGuru(id_maze_level, payload); }
       else { payload.map_data = { grid: GURU_MAZE_GRID, seed: 40 }; await window.HQ.QuizAPI.createMazeLevelGuru(payload); }
-      hideLoad(); closeGuruMazeModal(); toast('Level maze tersimpan!', 'ok'); await loadGuruMazeList();
+      hideLoad(); closeGuruMazeModal(); toast('Petualangan tersimpan!', 'ok'); await loadGuruMazeList();
     } catch (err) { hideLoad(); toast('Gagal menyimpan: ' + _gmzErr(err), 'err'); }
   };
 
@@ -2289,8 +2289,8 @@
   };
 
   window.deleteGuruMazeConfirm = async function (id_maze_level, nama) {
-    if (!confirm('Hapus level "' + nama + '"?\n\nProgress/skor murid pada level ini ikut terhapus.')) return;
-    try { showLoad('Menghapus…'); await window.HQ.QuizAPI.deleteMazeLevelGuru(id_maze_level); hideLoad(); toast('Level dihapus', 'ok'); await loadGuruMazeList(); }
+    if (!confirm('Hapus petualangan "' + nama + '"?\n\nProgress/skor murid pada level ini ikut terhapus.')) return;
+    try { showLoad('Menghapus…'); await window.HQ.QuizAPI.deleteMazeLevelGuru(id_maze_level); hideLoad(); toast('Petualangan dihapus', 'ok'); await loadGuruMazeList(); }
     catch (err) { hideLoad(); toast('Gagal menghapus: ' + _gmzErr(err), 'err'); }
   };
 

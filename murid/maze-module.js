@@ -179,7 +179,7 @@
   function showStartFor(level) {
     var sub = root.querySelector("#mzStartSub");
     var sbtn = root.querySelector("#mzStartBtn");
-    if (sub) sub.textContent = "Level: " + level.nama_level + " · " + QUESTIONS.length + " soal";
+    if (sub) sub.textContent = "Petualangan: " + level.nama_level + " · " + QUESTIONS.length + " soal";
     if (sbtn) { sbtn.disabled = false; sbtn.textContent = "Mulai Bermain"; }
     var back = root.querySelector("#mzStartBack");
     if (back) back.style.display = (LEVELS.length > 1) ? "block" : "none";

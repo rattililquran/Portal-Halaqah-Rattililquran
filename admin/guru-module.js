@@ -1616,7 +1616,7 @@ function _mazeBadge(text, color) {
 
 async function loadMazeAdmin() {
   const box = document.getElementById('mazeLevelListContainer');
-  if (box) box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat level maze...</div>';
+  if (box) box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat petualangan...</div>';
   try {
     const [lvRes, qzRes] = await Promise.all([
       window.HQ.AdminAPI.getMazeLevelsAdmin(),
@@ -1628,7 +1628,7 @@ async function loadMazeAdmin() {
     _mazeQuizCache.forEach(q => { quizMap[q.id_quiz] = q; });
     if (!box) return;
     if (!levels.length) {
-      box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Belum ada level maze. Klik "Tambah Level" untuk membuat.</div>';
+      box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Belum ada petualangan. Klik "Tambah Petualangan" untuk membuat.</div>';
       return;
     }
     box.innerHTML = levels.map(lv => {
@@ -1666,7 +1666,7 @@ async function openMazeLevelModal(id_maze_level) {
   let editing = null;
   try {
     if (id_maze_level) {
-      showLoad('Memuat level...');
+      showLoad('Memuat petualangan...');
       const lv = (await window.HQ.AdminAPI.getMazeLevelsAdmin()).data || [];
       editing = lv.find(x => x.id_maze_level === id_maze_level) || null;
     }
@@ -1675,7 +1675,7 @@ async function openMazeLevelModal(id_maze_level) {
     }
     hideLoad();
   } catch (e) { hideLoad(); toast('Gagal memuat: ' + friendlyError(e), 'err'); return; }
-  if (id_maze_level && !editing) { toast('Level tidak ditemukan', 'err'); return; }
+  if (id_maze_level && !editing) { toast('Petualangan tidak ditemukan', 'err'); return; }
 
   const g = editing || {};
   const kesulitan = g.tingkat_kesulitan || 'mudah';
@@ -1687,12 +1687,12 @@ async function openMazeLevelModal(id_maze_level) {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeMazeModal()">
       <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🎮 ${editing?'Edit':'Tambah'} Level Maze</h3>
+          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🎮 ${editing?'Edit':'Tambah'} Petualangan</h3>
           <button onclick="closeMazeModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
         </div>
         <form onsubmit="submitMazeLevel(event, ${editing?`'${escJs(editing.id_maze_level)}'`:'null'})">
           <div style="margin-bottom:12px">
-            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">NAMA LEVEL *</label>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">NAMA PETUALANGAN *</label>
             <input id="mzNama" required value="${esc(g.nama_level||'')}" placeholder="Contoh: Petualangan 1 — Dasar" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -1778,7 +1778,7 @@ async function submitMazeLevel(e, id_maze_level) {
     aktif: document.getElementById('mzAktif').checked
   };
   try {
-    showLoad('Menyimpan level maze...');
+    showLoad('Menyimpan petualangan...');
     if (id_maze_level) {
       await window.HQ.AdminAPI.updateMazeLevel(id_maze_level, payload);
     } else {
@@ -1787,7 +1787,7 @@ async function submitMazeLevel(e, id_maze_level) {
     }
     hideLoad();
     closeMazeModal();
-    toast('Level maze tersimpan!', 'ok');
+    toast('Petualangan tersimpan!', 'ok');
     await loadMazeAdmin();
   } catch (err) {
     hideLoad();
@@ -1808,12 +1808,12 @@ async function toggleMazeAktifAdmin(id_maze_level, aktif) {
 }
 
 async function deleteMazeLevelConfirm(id_maze_level, nama) {
-  if (!confirm('Hapus level "' + nama + '"?\n\nSemua progress/skor murid pada level ini ikut terhapus dan tidak bisa dibatalkan.')) return;
+  if (!confirm('Hapus petualangan "' + nama + '"?\n\nSemua progress/skor murid pada level ini ikut terhapus dan tidak bisa dibatalkan.')) return;
   try {
-    showLoad('Menghapus level...');
+    showLoad('Menghapus petualangan...');
     await window.HQ.AdminAPI.deleteMazeLevel(id_maze_level);
     hideLoad();
-    toast('Level dihapus', 'ok');
+    toast('Petualangan dihapus', 'ok');
     await loadMazeAdmin();
   } catch (err) {
     hideLoad();
