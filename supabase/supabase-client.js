@@ -5150,13 +5150,48 @@ var MuridAPI = {
   },
 
   // ── Maze Adventure (gamifikasi; patch_069) ─────────────
+  // GERBANG "nebeng quiz" (mirror getKuisTersedia): level yang ditautkan ke quiz
+  // (id_kuis) hanya muncul kalau quiz itu DITUGASKAN ke halaqah murid + status
+  // 'aktif' + hari ini di rentang tgl_mulai..tgl_selesai. Level tanpa id_kuis =
+  // latihan bebas (selalu tampil). Jadi murid main soal-terhubung hanya setelah
+  // guru menugaskan quiz-nya — sama seperti quiz biasa.
   getMazeLevels: async function() {
-    var { data, error } = await _sb.from('maze_level')
-      .select('id_maze_level, nama_level, urutan, map_data, jumlah_monster, kecepatan_monster, tingkat_kesulitan')
+    var id_murid = _uid();
+    var { data: levels, error } = await _sb.from('maze_level')
+      .select('id_maze_level, nama_level, urutan, map_data, jumlah_monster, kecepatan_monster, tingkat_kesulitan, id_kuis')
       .eq('aktif', true)
       .order('urutan', { ascending: true });
     _check(error, 'getMazeLevels');
-    return { status: 'ok', data: data || [] };
+    levels = levels || [];
+    if (!levels.length) return { status: 'ok', data: [] };
+
+    // Kumpulkan quiz yang tersedia untuk murid ini (aturan sama persis dgn quiz)
+    var kuisIds = Array.from(new Set(levels.map(function(l){ return l.id_kuis; }).filter(Boolean)));
+    var available = {};
+    if (kuisIds.length && id_murid) {
+      var { data: anggotaData } = await _sb.from('anggota')
+        .select('id_halaqah').eq('id_murid', id_murid).eq('status', 'aktif');
+      var halaqahIds = (anggotaData || []).map(function(a){ return a.id_halaqah; });
+      if (halaqahIds.length) {
+        var { data: qhData } = await _sb.from('quiz_halaqah')
+          .select('id_quiz, quiz(id_quiz, status, tgl_mulai, tgl_selesai)')
+          .in('id_halaqah', halaqahIds)
+          .in('id_quiz', kuisIds);
+        var today = _todayJakarta();
+        (qhData || []).forEach(function(qh){
+          var q = qh.quiz;
+          if (!q || q.status !== 'aktif') return;
+          if (q.tgl_mulai && q.tgl_mulai > today) return;
+          if (q.tgl_selesai && q.tgl_selesai < today) return;
+          available[q.id_quiz] = true;
+        });
+      }
+    }
+
+    var data = levels
+      .filter(function(l){ return !l.id_kuis || available[l.id_kuis]; })
+      .map(function(l){ return Object.assign({}, l, { ditugaskan: !!l.id_kuis }); });
+    return { status: 'ok', data: data };
   },
 
   // Soal maze via RPC TERPISAH (termasuk is_benar utk feedback instan; aman karena
