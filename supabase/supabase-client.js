@@ -5173,7 +5173,7 @@ var MuridAPI = {
     var halaqahIds = [], muridLevels = {};
     if (id_murid) {
       var { data: anggotaData } = await _sb.from('anggota')
-        .select('id_halaqah, halaqah:id_halaqah(level)')
+        .select('id_halaqah, halaqah(level)')
         .eq('id_murid', id_murid).eq('status', 'aktif');
       (anggotaData || []).forEach(function(a){
         halaqahIds.push(a.id_halaqah);
