@@ -5199,16 +5199,20 @@ var MuridAPI = {
       });
     }
 
-    // Filter audiens Level Halaqah: kosong = semua; diisi = murid harus punya level itu
-    function levelOk(l){
-      var tl = l.target_levels;
-      if (!tl || !tl.length) return true;
+    // Audiens (target_levels) = KENDALI ADMIN: bila DIISI, itu penentu akses (tanpa perlu
+    // quiz di-assign; quiz hanya sumber soal). Bila KOSONG → ikut gerbang quiz (nebeng quiz).
+    function muridInTarget(l){
+      var tl = l.target_levels || [];
       for (var i = 0; i < tl.length; i++) if (muridLevels[tl[i]]) return true;
       return false;
     }
+    function visible(l){
+      if (l.target_levels && l.target_levels.length) return muridInTarget(l);   // admin kendali
+      return !l.id_kuis || available[l.id_kuis];                                // ikut quiz / bebas
+    }
 
     var data = levels
-      .filter(function(l){ return (!l.id_kuis || available[l.id_kuis]) && levelOk(l); })
+      .filter(visible)
       .map(function(l){ return Object.assign({}, l, { ditugaskan: !!l.id_kuis }); });
     return { status: 'ok', data: data };
   },

@@ -1722,14 +1722,14 @@ async function openMazeLevelModal(id_maze_level) {
           <div style="margin-bottom:12px">
             <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">SUMBER SOAL (QUIZ)</label>
             <select id="mzKuis" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:inherit;font-size:13px">${quizOpts}</select>
-            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Pilih quiz → level hanya muncul untuk murid di halaqah yang quiz-nya <b>ditugaskan + aktif</b> (seperti quiz), soal diambil dari quiz itu (yang dicentang "boleh maze"). Kosongkan = latihan bebas untuk semua murid.</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Quiz = <b>sumber soal</b> game. Jika <b>Audiens (bawah) diisi</b> → quiz hanya sumber soal, audiens yang menentukan siapa melihat. Jika <b>Audiens kosong</b> → level ikut penugasan quiz (muncul setelah guru menugaskan + aktif). Kosong quiz + kosong audiens = latihan bebas semua murid.</div>
           </div>
           <div style="margin-bottom:12px">
             <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">LEVEL HALAQAH (AUDIENS)</label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-2);padding:10px;border-radius:var(--r-sm);border:1px solid var(--border)">
               ${MAZE_LEVEL_OPTS.map(function(lv){ return `<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" class="mzLevelCheck" value="${esc(lv)}" ${(g.target_levels||[]).indexOf(lv)>=0?'checked':''}> ${esc(lv)}</label>`; }).join('')}
             </div>
-            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5">Kosongkan = semua murid. Diisi = hanya murid di level itu yang melihat game ini (berlaku bersama gerbang quiz). Untuk latihan bebas, soal ikut disaring ke level ini.</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5"><b>Diisi</b> → semua halaqah level itu <b>langsung melihat</b> game (tanpa perlu guru menugaskan quiz); quiz cuma sumber soal. <b>Kosong</b> → ikut penugasan quiz (guru). Untuk latihan bebas, soal ikut disaring ke level ini.</div>
           </div>
           <div style="margin-bottom:12px">
             <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:4px">REKOMENDASI PERTEMUAN KE- (OPSIONAL)</label>
