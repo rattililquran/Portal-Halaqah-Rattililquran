@@ -2304,4 +2304,108 @@
     catch (err) { hideLoad(); toast('Gagal menghapus: ' + _gmzErr(err), 'err'); }
   };
 
+  // ══════════════════════════════════════════
+  //  RATTIL RUN — guru, level miliknya + audiens per-halaqah (reuse helper _gmz*)
+  //  Field khas Run (target_soal/kecepatan_awal/kepadatan_rintangan), tanpa monster/peta.
+  // ══════════════════════════════════════════
+  var _guruRunQuizCache = [];
+
+  window.renderGuruRunPage = async function () {
+    var page = document.getElementById('page-run-guru');
+    if (!page) return;
+    page.innerHTML =
+      '<div style="font-size:18px;font-weight:800;margin-bottom:4px">🦘 Rattil Run (Lari)</div>' +
+      '<div style="font-size:13px;color:#64748b;margin-bottom:16px">Buat game pelari kuis untuk halaqah Anda. Pilih halaqah tujuan — hanya murid di halaqah itu yang melihatnya. Quiz opsional sebagai sumber soal. Hanya soal ber-flag "Boleh Rattil Run" yang tampil.</div>' +
+      '<div style="margin-bottom:16px"><button onclick="openGuruRunModal(null)" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;padding:10px 18px;border-radius:100px;font-weight:800;font-size:13px;cursor:pointer">➕ Tambah Level</button></div>' +
+      '<div id="guruRunList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"><div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Memuat…</div></div>';
+    await loadGuruRunList();
+  };
+
+  async function loadGuruRunList() {
+    var box = document.getElementById('guruRunList');
+    if (!box) return;
+    try {
+      var levels = (((await window.HQ.QuizAPI.getRunLevelsGuru()) || {}).data) || [];
+      if (!_guruRunQuizCache.length) { try { _guruRunQuizCache = (((await window.HQ.QuizAPI.getKuisList()) || {}).data) || []; } catch (e) {} }
+      var quizMap = {}; _guruRunQuizCache.forEach(function (q) { quizMap[q.id_quiz] = q; });
+      var halMap = {}; (halaqahList || []).forEach(function (h) { halMap[h.id_halaqah] = h.nama_halaqah; });
+      if (!levels.length) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8">Belum ada level lari. Klik "Tambah Level".</div>'; return; }
+      box.innerHTML = levels.map(function (lv) {
+        var q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
+        var sumber = lv.id_kuis ? (q ? '🔗 ' + esc(q.judul) + ' ' + _gmzBadge(q.status, q.status === 'aktif' ? '#16a34a' : '#d97706') : _gmzBadge('quiz tak ditemukan', '#dc2626')) : _gmzBadge('Latihan bebas', '#2563eb');
+        var aud = (lv.target_halaqah && lv.target_halaqah.length) ? lv.target_halaqah.map(function (id) { return esc(halMap[id] || id); }).join(', ') : '(belum ada halaqah tujuan)';
+        return '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px"><div><div style="font-weight:800;font-size:14.5px">🦘 ' + esc(lv.nama_level) + '</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">Urutan ' + esc(lv.urutan) + ' · ' + esc(lv.tingkat_kesulitan) + ' · 🎯 ' + esc(lv.target_soal) + ' soal · ⚡ ' + esc(lv.kecepatan_awal) + '× · 🌵 ' + esc(lv.kepadatan_rintangan) + '×</div></div>' + _gmzBadge(lv.aktif ? 'Aktif' : 'Nonaktif', lv.aktif ? '#16a34a' : '#6b7280') + '</div>' +
+            '<div style="font-size:11.5px;color:#475569;margin-bottom:4px">Sumber soal: ' + sumber + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Audiens: ' + aud + (lv.rekomendasi_pertemuan_ke ? ' · rekom. pertemuan ke-' + esc(lv.rekomendasi_pertemuan_ke) : '') + '</div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+              '<button onclick="openGuruRunModal(\'' + escJs(lv.id_run_level) + '\')" style="flex:1;background:#e0f2fe;color:#0369a1;border:none;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>' +
+              '<button onclick="toggleGuruRunAktif(\'' + escJs(lv.id_run_level) + '\',' + (lv.aktif ? 'false' : 'true') + ')" style="flex:1;background:#f1f5f9;color:#334155;border:none;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">' + (lv.aktif ? '⏸ Nonaktifkan' : '▶ Aktifkan') + '</button>' +
+              '<button onclick="deleteGuruRunConfirm(\'' + escJs(lv.id_run_level) + '\',\'' + escJs(lv.nama_level) + '\')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">🗑</button>' +
+            '</div></div>';
+      }).join('');
+    } catch (e) { box.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#dc2626">Gagal memuat: ' + _gmzErr(e) + '</div>'; }
+  }
+
+  window.openGuruRunModal = async function (id_run_level) {
+    var cont = document.getElementById('guruRunModalContainer');
+    if (!cont) return;
+    var editing = null;
+    try {
+      if (id_run_level) { showLoad('Memuat level lari…'); var lv = (((await window.HQ.QuizAPI.getRunLevelsGuru()) || {}).data) || []; editing = lv.filter(function (x) { return x.id_run_level === id_run_level; })[0] || null; }
+      if (!_guruRunQuizCache.length) { _guruRunQuizCache = (((await window.HQ.QuizAPI.getKuisList()) || {}).data) || []; }
+      hideLoad();
+    } catch (e) { hideLoad(); toast('Gagal memuat: ' + _gmzErr(e), 'err'); return; }
+    if (id_run_level && !editing) { toast('Level tidak ditemukan', 'err'); return; }
+    var g = editing || {}, kes = g.tingkat_kesulitan || 'mudah', tHal = g.target_halaqah || [];
+    var quizOpts = ['<option value="">— Latihan bebas (tanpa quiz) —</option>'].concat(_guruRunQuizCache.map(function (q) { return '<option value="' + esc(q.id_quiz) + '"' + (g.id_kuis === q.id_quiz ? ' selected' : '') + '>' + esc(q.judul) + ' (' + esc(q.status) + ')</option>'; })).join('');
+    var halChecks = (halaqahList || []).map(function (h) { return '<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" class="gruHalCheck" value="' + esc(h.id_halaqah) + '"' + (tHal.indexOf(h.id_halaqah) >= 0 ? ' checked' : '') + '> ' + esc(h.nama_halaqah) + (h.level ? ' <span style="color:#94a3b8">(' + esc(h.level) + ')</span>' : '') + '</label>'; }).join('') || '<div style="font-size:12px;color:#94a3b8">Anda belum punya halaqah.</div>';
+    cont.innerHTML =
+      '<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeGuruRunModal()">' +
+        '<div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:16px;font-weight:800">🦘 ' + (editing ? 'Edit' : 'Tambah') + ' Level Lari</h3><button onclick="closeGuruRunModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8">✕</button></div>' +
+          '<form onsubmit="submitGuruRunLevel(event,' + (editing ? '\'' + escJs(editing.id_run_level) + '\'' : 'null') + ')">' +
+            '<div style="margin-bottom:12px">' + _gmzLabel('NAMA LEVEL *') + '<input id="gruNama" required value="' + esc(g.nama_level || '') + '" placeholder="Contoh: Lari Tahsin Pekan 3" style="' + _GMZ_INP + '"></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div>' + _gmzLabel('URUTAN') + '<input id="gruUrutan" type="number" min="0" value="' + (g.urutan != null ? esc(g.urutan) : 0) + '" style="' + _GMZ_INP + '"></div><div>' + _gmzLabel('KESULITAN') + '<select id="gruKesulitan" style="' + _GMZ_INP + '"><option value="mudah"' + (kes === 'mudah' ? ' selected' : '') + '>Mudah</option><option value="sedang"' + (kes === 'sedang' ? ' selected' : '') + '>Sedang</option><option value="sulit"' + (kes === 'sulit' ? ' selected' : '') + '>Sulit</option></select></div></div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px"><div>' + _gmzLabel('TARGET SOAL') + '<input id="gruTargetSoal" type="number" min="1" max="20" value="' + (g.target_soal != null ? esc(g.target_soal) : 8) + '" style="' + _GMZ_INP + '"></div><div>' + _gmzLabel('KECEPATAN (×)') + '<input id="gruKecepatan" type="number" min="0.5" max="2" step="0.1" value="' + (g.kecepatan_awal != null ? esc(g.kecepatan_awal) : '1.0') + '" style="' + _GMZ_INP + '"></div><div>' + _gmzLabel('RINTANGAN (×)') + '<input id="gruKepadatan" type="number" min="0.5" max="2" step="0.1" value="' + (g.kepadatan_rintangan != null ? esc(g.kepadatan_rintangan) : '1.0') + '" style="' + _GMZ_INP + '"></div></div>' +
+            '<div style="margin-bottom:12px">' + _gmzLabel('HALAQAH TUJUAN (AUDIENS) *') + '<div style="display:grid;grid-template-columns:1fr;gap:6px;background:#f8fafc;padding:10px;border-radius:8px;border:1px solid #e2e8f0;max-height:150px;overflow-y:auto">' + halChecks + '</div><div style="font-size:10.5px;color:#94a3b8;margin-top:4px">Hanya murid di halaqah terpilih yang melihat game ini.</div></div>' +
+            '<div style="margin-bottom:12px">' + _gmzLabel('SUMBER SOAL (QUIZ, opsional)') + '<select id="gruKuis" style="' + _GMZ_INP + '">' + quizOpts + '</select><div style="font-size:10.5px;color:#94a3b8;margin-top:4px">Pilih quiz → soal dari quiz itu (yang dicentang "Boleh Rattil Run"). Kosong → dari semua soal "Boleh Rattil Run".</div></div>' +
+            '<div style="margin-bottom:12px">' + _gmzLabel('REKOMENDASI PERTEMUAN KE- (opsional)') + '<input id="gruPertemuan" type="number" min="1" value="' + (g.rekomendasi_pertemuan_ke != null ? esc(g.rekomendasi_pertemuan_ke) : '') + '" placeholder="mis. 10" style="' + _GMZ_INP + '"></div>' +
+            '<label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:#f8fafc;padding:11px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px"><input type="checkbox" id="gruAktif"' + ((!editing || g.aktif) ? ' checked' : '') + '> <span>Aktif (tampilkan ke murid)</span></label>' +
+            '<div style="display:flex;gap:10px"><button type="button" onclick="closeGuruRunModal()" style="flex:1;padding:11px;background:#f1f5f9;color:#334155;border:none;border-radius:100px;font-weight:700;cursor:pointer">Batal</button><button type="submit" style="flex:1.5;padding:11px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;border-radius:100px;font-weight:800;cursor:pointer">' + (editing ? 'Simpan Perubahan' : 'Simpan Level') + '</button></div>' +
+          '</form></div></div>';
+  };
+
+  window.closeGuruRunModal = function () { var c = document.getElementById('guruRunModalContainer'); if (c) c.innerHTML = ''; };
+
+  window.submitGuruRunLevel = async function (e, id_run_level) {
+    e.preventDefault();
+    var nama = document.getElementById('gruNama').value.trim();
+    if (!nama) { toast('Nama level wajib diisi', 'err'); return; }
+    var target_halaqah = Array.prototype.slice.call(document.querySelectorAll('.gruHalCheck:checked')).map(function (cb) { return cb.value; });
+    if (!target_halaqah.length) { toast('Pilih minimal satu halaqah tujuan', 'err'); return; }
+    var target = parseInt(document.getElementById('gruTargetSoal').value); if (isNaN(target) || target < 1) target = 1; if (target > 20) target = 20;
+    var kecepatan = parseFloat(document.getElementById('gruKecepatan').value); if (isNaN(kecepatan) || kecepatan <= 0) kecepatan = 1.0;
+    var kepadatan = parseFloat(document.getElementById('gruKepadatan').value); if (isNaN(kepadatan) || kepadatan <= 0) kepadatan = 1.0;
+    var pert = document.getElementById('gruPertemuan').value;
+    var payload = { nama_level: nama, urutan: parseInt(document.getElementById('gruUrutan').value) || 0, tingkat_kesulitan: document.getElementById('gruKesulitan').value, target_soal: target, kecepatan_awal: kecepatan, kepadatan_rintangan: kepadatan, id_kuis: document.getElementById('gruKuis').value || null, target_halaqah: target_halaqah, rekomendasi_pertemuan_ke: pert !== '' ? parseInt(pert) : null, aktif: document.getElementById('gruAktif').checked };
+    try {
+      showLoad('Menyimpan…');
+      if (id_run_level) { await window.HQ.QuizAPI.updateRunLevelGuru(id_run_level, payload); }
+      else { await window.HQ.QuizAPI.createRunLevelGuru(payload); }
+      hideLoad(); closeGuruRunModal(); toast('Level lari tersimpan!', 'ok'); await loadGuruRunList();
+    } catch (err) { hideLoad(); toast('Gagal menyimpan: ' + _gmzErr(err), 'err'); }
+  };
+
+  window.toggleGuruRunAktif = async function (id_run_level, aktif) {
+    try { showLoad('Mengubah status…'); await window.HQ.QuizAPI.setRunLevelAktifGuru(id_run_level, aktif === true || aktif === 'true'); hideLoad(); await loadGuruRunList(); }
+    catch (err) { hideLoad(); toast('Gagal: ' + _gmzErr(err), 'err'); }
+  };
+
+  window.deleteGuruRunConfirm = async function (id_run_level, nama) {
+    if (!confirm('Hapus level lari "' + nama + '"?\n\nProgress/skor murid pada level ini ikut terhapus.')) return;
+    try { showLoad('Menghapus…'); await window.HQ.QuizAPI.deleteRunLevelGuru(id_run_level); hideLoad(); toast('Level lari dihapus', 'ok'); await loadGuruRunList(); }
+    catch (err) { hideLoad(); toast('Gagal menghapus: ' + _gmzErr(err), 'err'); }
+  };
+
 })();

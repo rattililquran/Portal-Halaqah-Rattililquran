@@ -2632,6 +2632,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni">🎧</span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
       <button class="nav-btn" onclick="goPage('kuis-guru')" data-p="kuis-guru"><span class="ni">🎯</span>Rattil Quiz</button>
       <button class="nav-btn" onclick="goPage('maze-guru')" data-p="maze-guru"><span class="ni">🎮</span>Rattil Maze</button>
+      <button class="nav-btn" onclick="goPage('run-guru')" data-p="run-guru"><span class="ni">🦘</span>Rattil Run</button>
       <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni">📖</span>At-Tibyan</button>
       <button class="nav-btn" id="navMutabaahGuru" onclick="goPage('mutabaah-guru')" data-p="mutabaah-guru" style="display:none"><span class="ni">📋</span>Mutaba'ah Daurah</button>
       <button class="nav-btn" id="navHafalanGuru" onclick="goPage('hafalan-guru')" data-p="hafalan-guru" style="display:none"><span class="ni">🕌</span>Input Hafalan<span id="navHafalanBadge" style="display:none;margin-left:auto;background:#10b981;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:1px 7px">Qiyam</span></button>
@@ -4221,6 +4222,10 @@ html.theme-dark .pr-chip.active {
       <!-- ════ RATTIL MAZE GURU ════ -->
       <div class="page" id="page-maze-guru">
         <!-- Populated by renderGuruMazePage() in quiz-module.js -->
+      </div>
+
+      <div class="page" id="page-run-guru">
+        <!-- Populated by renderGuruRunPage() in quiz-module.js -->
       </div>
 
       <!-- ════ PENINJAUAN TUGAS & PR ════ -->
@@ -5878,13 +5883,14 @@ html.theme-dark .pr-chip.active {
 <div class="toast-inline" id="toastInline"></div>
 <!-- MODAL KELOLA MAZE (GURU) -->
 <div id="guruMazeModalContainer"></div>
+<div id="guruRunModalContainer"></div>
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-client.js?v=2.1.15"></script>
 <script src="../assets/js/shared-utils.js?v=1.1.0"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="quiz-module.js?v=1.2.3"></script>
+<script src="quiz-module.js?v=1.2.4"></script>
 <script src="jadwal-module.js?v=1.0.0" defer></script>
 <script src="dashboard-module.js?v=1.0.2" defer></script>
 <script src="kelompok-module.js?v=1.0.1" defer></script>
@@ -6417,7 +6423,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'peninjauan-pr':'Peninjauan Tugas & PR',
   'mutabaah-guru':"Mutaba'ah Daurah",
   'kuis-guru':'Manajemen Rattil Quiz',
-  'maze-guru':'Rattil Maze'};
+  'maze-guru':'Rattil Maze', 'run-guru':'Rattil Run'};
 
 function goPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -6432,6 +6438,10 @@ function goPage(name) {
   }
   if (name === 'maze-guru') {
     if (typeof window.renderGuruMazePage === 'function') window.renderGuruMazePage();
+    return;
+  }
+  if (name === 'run-guru') {
+    if (typeof window.renderGuruRunPage === 'function') window.renderGuruRunPage();
     return;
   }
   if (name === 'kbm') {
