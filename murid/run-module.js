@@ -69,6 +69,7 @@
   function sfxGood(){ beep(660,0.10,'sine',0.07); setTimeout(function(){beep(990,0.14,'sine',0.07);},90); }
   function sfxBad(){ beep(180,0.22,'sawtooth',0.08); }
   function sfxHit(){ beep(120,0.18,'sawtooth',0.09); }
+  function sfxHeart(){ beep(784,0.10,'sine',0.07); setTimeout(function(){beep(1175,0.14,'sine',0.06);},80); }
 
   // ---------- State game ----------
   var roo, world, speed, mode, quiz, obstacles, coins, clouds;
@@ -170,7 +171,10 @@
     else if (r < 0.72) obstacles.push({ type: 'egg', x: W + 40 });
     else obstacles.push({ type: 'bird', x: W + 40, flap: 0 });
   }
-  function spawnCoin() { coins.push({ x: W + 40, y: groundY - rand(120, 200) * S, got: false }); }
+  function spawnCoin() {
+    var heart = (lives < 5 && Math.random() < 0.22);  // sesekali hati (nambah nyawa), lebih jarang dari koin
+    coins.push({ x: W + 40, y: groundY - rand(120, 200) * S, got: false, kind: heart ? 'heart' : 'coin' });
+  }
 
   // ---------- Segmen SOAL ----------
   function startQuiz() {
@@ -246,11 +250,17 @@
       var c = coins[j]; c.x -= v * dt;
       var cbx = { x: c.x - 16 * S, y: c.y - 16 * S, w: 32 * S, h: 32 * S };
       if (!c.got && intersect(kb, cbx)) {
-        c.got = true; score += 25; sfxCoin(); coins.splice(j, 1);
-        if (missedQueue.length && !pendingQuestion) {
-          pendingQuestion = missedQueue.shift();
-          tScheduled = Math.min(tScheduled, tState + 1.6);
-          toast = { text: '🪙 Soal terlewat kembali!', t: 1.8 };
+        c.got = true; coins.splice(j, 1);
+        if (c.kind === 'heart') {
+          lives = Math.min(5, lives + 1); sfxHeart();
+          toast = { text: '❤️ +1 Nyawa!', t: 1.8 };
+        } else {
+          score += 25; sfxCoin();
+          if (missedQueue.length && !pendingQuestion) {
+            pendingQuestion = missedQueue.shift();
+            tScheduled = Math.min(tScheduled, tState + 1.6);
+            toast = { text: '🪙 Soal terlewat kembali!', t: 1.8 };
+          }
         }
         continue;
       }
@@ -387,7 +397,7 @@
     else if (o.type === 'egg') emoji('🥚', o.x, groundY + 2 * S, 40 * S, 'alphabetic');
     else { var fy = groundY - 52 * S + Math.sin(o.flap) * 5 * S; emoji('🐦', o.x, fy, 42 * S, 'middle'); }
   }
-  function drawCoin(c) { emoji('🪙', c.x, c.y, 34 * S, 'middle'); }
+  function drawCoin(c) { emoji(c.kind === 'heart' ? '❤️' : '🪙', c.x, c.y, 34 * S, 'middle'); }
 
   function drawClouds() {
     for (var i = 0; i < clouds.length; i++) {
@@ -543,7 +553,7 @@
         '<div class="rn-brand">Rattīlil Qur\'an</div>' +
         '<div class="rn-title">Rattil Run 🦘</div>' +
         '<div class="rn-sub">Lari, lompat, dan taklukkan soal! Bantu si kanguru melewati rintangan — lalu <b>lompat menyambar awan jawaban yang benar</b>.</div>' +
-        '<div class="rn-legend">🌵🥚 <b>rintangan darat</b> — LOMPAT<br>🐦 <b>burung</b> — MERUNDUK (tahan ↓)<br>☁️ <b>awan jawaban</b> — LOMPAT ke yang benar<br>🪙 <b>bonus</b> — lompat untuk ambil</div>' +
+        '<div class="rn-legend">🌵🥚 <b>rintangan darat</b> — LOMPAT<br>🐦 <b>burung</b> — MERUNDUK (tahan ↓)<br>☁️ <b>awan jawaban</b> — LOMPAT ke yang benar<br>🪙 <b>bonus</b> — lompat untuk ambil<br>❤️ <b>hati</b> — lompat untuk tambah nyawa</div>' +
         '<button class="rn-btn" id="rnStartBtn" disabled>Memuat…</button>' +
         '<div class="rn-hint" id="rnStartHint">Tombol ⬆️ / ⬇️ di layar &nbsp;·&nbsp; Spasi/↑ = lompat, ↓ = merunduk<br>Taklukkan 8 soal untuk menang! Salah jawab tak mengurangi nyawa.</div>' +
       '</div>' +
@@ -551,7 +561,7 @@
         '<div class="rn-emoji">💫</div>' +
         '<div class="rn-title" style="font-size:26px;">Nyawa Habis</div>' +
         '<div class="rn-stat" id="rnOverStat">Skor: 0</div>' +
-        '<div class="rn-sub">Nyawa habis karena rintangan. Ayo coba lagi — soal salah tak apa, yang penting hindari rintangan!</div>' +
+        '<div class="rn-sub">Nyawa habis karena menabrak rintangan. Terus asah jawaban benarmu sambil lincah menghindari rintangan — ayo coba lagi!</div>' +
         '<button class="rn-btn" id="rnRetryBtn">Coba Lagi</button>' +
       '</div>' +
       '<div class="rn-screen rn-hidden" id="rnWin">' +
