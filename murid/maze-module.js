@@ -35,7 +35,7 @@
   // ---------- State ----------
   var root = null, canvas = null, ctx = null, mounted = false;
   var MAZES = FALLBACK_MAZES, MAZE = MAZES[0], QUESTIONS = FALLBACK_QUESTIONS.slice();
-  var COLS = 13, ROWS = 15, activeLevel = null, savedMsg = "";
+  var COLS = 13, ROWS = 15, activeLevel = null, savedMsg = "", LEVELS = [];
   var TILE = 32, OX = 0, OY = 0, HUD_H = 0, QBAR_H = 0, BANNER_H = 0, W = 0, H = 0, DPR = 1;
   // Kecepatan (petak/detik) — mudah disetel. Pemain harus > monster agar bisa kabur.
   var PLAYER_SPEED = 3.8;
@@ -146,36 +146,72 @@
   }
 
   async function boot() {
-    var levels = [], soalDB = [];
+    var levels = [];
     try {
       if (window.HQ && window.HQ.MuridAPI && window.HQ.MuridAPI.getMazeLevels) {
         var lv = await window.HQ.MuridAPI.getMazeLevels();
         levels = (lv && lv.data) || [];
-        if (levels.length) {
-          var sq = await window.HQ.MuridAPI.getMazeSoal(levels[0].id_maze_level);
-          soalDB = (sq && sq.data) || [];
-        }
       }
-    } catch (e) { console.warn("[maze] gagal memuat dari server, pakai contoh bawaan:", e); }
+    } catch (e) { console.warn("[maze] gagal memuat level:", e); }
+    LEVELS = levels;
+    if (!LEVELS.length) { activeLevel = null; showUnavailable(); return; }   // tak ada level → blokir
+    if (LEVELS.length === 1) { await selectLevel(LEVELS[0]); return; }       // satu level → langsung
+    renderPicker();                                                          // banyak level → pilih dulu
+  }
 
-    activeLevel = levels[0] || null;
+  // Muat soal + siapkan 1 level tertentu, lalu tampilkan layar mulai untuknya
+  async function selectLevel(level) {
+    activeLevel = level;
+    var soalDB = [];
+    try {
+      if (window.HQ && window.HQ.MuridAPI && window.HQ.MuridAPI.getMazeSoal) {
+        var sq = await window.HQ.MuridAPI.getMazeSoal(level.id_maze_level);
+        soalDB = (sq && sq.data) || [];
+      }
+    } catch (e) { console.warn("[maze] gagal memuat soal:", e); }
     QUESTIONS = buildQuestions(soalDB);
-    MAZES = buildMazes(levels);
-    if (activeLevel) {
-      MON_START = Math.max(1, Math.min(MON_MAX, activeLevel.jumlah_monster || 2));
-      MON_SPEED = 2.3 * (activeLevel.kecepatan_monster || 1.0);
-    }
+    MAZES = buildMazes([level]);
+    MON_START = Math.max(1, Math.min(MON_MAX, level.jumlah_monster || 2));
+    MON_SPEED = 2.3 * (level.kecepatan_monster || 1.0);
+    showStartFor(level);
+  }
+
+  function showStartFor(level) {
     var sub = root.querySelector("#mzStartSub");
     var sbtn = root.querySelector("#mzStartBtn");
-    if (activeLevel) {
-      if (sub) sub.textContent = "Level: " + activeLevel.nama_level + " · " + QUESTIONS.length + " soal";
-      if (sbtn) { sbtn.disabled = false; sbtn.textContent = "Mulai Bermain"; }
-    } else {
-      // Tidak ada level aktif untuk murid ini (semua nonaktif / belum ditugaskan) →
-      // JANGAN mainkan soal contoh. Blokir main agar "nonaktif = tidak muncul".
-      if (sub) sub.textContent = "Petualangan belum dibuka. Hubungi ustadz/ustadzah-mu.";
-      if (sbtn) { sbtn.disabled = true; sbtn.textContent = "Belum Tersedia"; }
-    }
+    if (sub) sub.textContent = "Level: " + level.nama_level + " · " + QUESTIONS.length + " soal";
+    if (sbtn) { sbtn.disabled = false; sbtn.textContent = "Mulai Bermain"; }
+    var back = root.querySelector("#mzStartBack");
+    if (back) back.style.display = (LEVELS.length > 1) ? "block" : "none";
+    show("mzPick", false); show("mzStart", true);
+  }
+
+  function showUnavailable() {
+    var sub = root.querySelector("#mzStartSub");
+    var sbtn = root.querySelector("#mzStartBtn");
+    if (sub) sub.textContent = "Petualangan belum dibuka. Hubungi ustadz/ustadzah-mu.";
+    if (sbtn) { sbtn.disabled = true; sbtn.textContent = "Belum Tersedia"; }
+    var back = root.querySelector("#mzStartBack"); if (back) back.style.display = "none";
+    show("mzPick", false); show("mzStart", true);
+  }
+
+  function renderPicker() {
+    var list = root.querySelector("#mzPickList");
+    if (!list) return;
+    list.innerHTML = LEVELS.map(function (lv, i) {
+      var badge = lv.ditugaskan ? "Ditugaskan" : "Latihan", col = lv.ditugaskan ? "#3ddc84" : "#7aa8ff";
+      return '<button class="mz-pick-item" data-i="' + i + '">' +
+        '<div style="flex:1;text-align:left">' +
+          '<div style="font-weight:800;font-size:15px">' + escapeHtml(lv.nama_level) + '</div>' +
+          '<div style="font-size:11px;color:#9fb0e0;margin-top:2px">' + escapeHtml(lv.tingkat_kesulitan || "mudah") + ' · 👾 ' + (lv.jumlah_monster || 2) + '</div>' +
+        '</div>' +
+        '<span style="font-size:9px;font-weight:800;padding:3px 9px;border-radius:100px;background:' + col + '22;color:' + col + '">' + badge + '</span>' +
+      '</button>';
+    }).join('');
+    Array.prototype.forEach.call(list.querySelectorAll(".mz-pick-item"), function (btn) {
+      btn.onclick = function () { ensureAudio(); selectLevel(LEVELS[parseInt(btn.getAttribute("data-i"), 10)]); };
+    });
+    show("mzStart", false); show("mzPick", true);
   }
 
   // ---------- Simpan progress ----------
@@ -661,7 +697,10 @@
       "#mzRoot .mz-badge{font-size:22px;font-weight:900;color:#f2cf5b;}" +
       "#mzRoot .mz-stat{font-size:14px;color:#c8d4f5;}" +
       "#mzRoot .mz-hint{font-size:11.5px;color:#6b7aa8;line-height:1.7;}" +
-      "#mzRoot .mz-opt{background:rgba(255,255,255,.07);border:1.5px solid #2a3860;border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:#dbe4ff;}";
+      "#mzRoot .mz-opt{background:rgba(255,255,255,.07);border:1.5px solid #2a3860;border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:#dbe4ff;}" +
+      "#mzRoot .mz-pick-item{display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;border:1.5px solid #2a3860;border-radius:14px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;cursor:pointer;}" +
+      "#mzRoot .mz-pick-item:active{transform:scale(.98);}" +
+      "#mzRoot .mz-startback{margin-top:2px;font-size:12.5px;color:#9fb0e0;cursor:pointer;text-decoration:underline;}";
     var st = document.createElement("style"); st.id = "mzStyle"; st.textContent = css; document.head.appendChild(st);
   }
   function buildDOM() {
@@ -669,11 +708,17 @@
     root.innerHTML =
       '<canvas id="mzCanvas"></canvas>' +
       '<button class="mz-x" id="mzCloseBtn" aria-label="Tutup">✕</button>' +
+      '<div class="mz-screen" id="mzPick" style="display:none;">' +
+        '<div class="mz-brand">Rattīlil Qur\'an</div>' +
+        '<div class="mz-title" style="font-size:24px;">Pilih Petualangan</div>' +
+        '<div id="mzPickList" style="width:100%;max-width:360px;max-height:54vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-top:6px;"></div>' +
+      '</div>' +
       '<div class="mz-screen" id="mzStart">' +
         '<div class="mz-brand">Rattīlil Qur\'an</div>' +
         '<div class="mz-title">Rattil Maze<br>Adventure</div>' +
         '<div class="mz-sub" id="mzStartSub">Memuat…</div>' +
         '<button class="mz-btn" id="mzStartBtn">Mulai Bermain</button>' +
+        '<div class="mz-startback" id="mzStartBack" style="display:none;">← Pilih level lain</div>' +
         '<div class="mz-hint">Geser / tombol panah untuk bergerak · ■ (tengah) untuk berhenti<br>Diam di kotak jawaban lalu tekan ✓ untuk memilih (berhenti ≠ menjawab)</div>' +
       '</div>' +
       '<div class="mz-screen" id="mzIntro" style="display:none;">' +
@@ -702,6 +747,7 @@
     root.querySelector("#mzRetryBtn").onclick = startGame;
     root.querySelector("#mzAgainBtn").onclick = startGame;
     root.querySelector("#mzIntroBtn").onclick = beginPlay;
+    root.querySelector("#mzStartBack").onclick = renderPicker;
     root.querySelector("#mzCloseBtn").onclick = close;
 
     _keyHandler = function (e) {
