@@ -166,10 +166,15 @@
       MON_SPEED = 2.3 * (activeLevel.kecepatan_monster || 1.0);
     }
     var sub = root.querySelector("#mzStartSub");
-    if (sub) {
-      sub.textContent = activeLevel
-        ? ("Level: " + activeLevel.nama_level + " · " + QUESTIONS.length + " soal")
-        : "Mode contoh (server maze belum diaktifkan) — skor tak disimpan";
+    var sbtn = root.querySelector("#mzStartBtn");
+    if (activeLevel) {
+      if (sub) sub.textContent = "Level: " + activeLevel.nama_level + " · " + QUESTIONS.length + " soal";
+      if (sbtn) { sbtn.disabled = false; sbtn.textContent = "Mulai Bermain"; }
+    } else {
+      // Tidak ada level aktif untuk murid ini (semua nonaktif / belum ditugaskan) →
+      // JANGAN mainkan soal contoh. Blokir main agar "nonaktif = tidak muncul".
+      if (sub) sub.textContent = "Petualangan belum dibuka. Hubungi ustadz/ustadzah-mu.";
+      if (sbtn) { sbtn.disabled = true; sbtn.textContent = "Belum Tersedia"; }
     }
   }
 
@@ -389,6 +394,7 @@
   }
 
   function startGame() {
+    if (!activeLevel) return;                      // tak ada level aktif → jangan main (anti soal contoh)
     mapIdx = 0; MAZE = MAZES[0]; scanMap();
     score = 0; lives = 3; qIndex = 0; frightenTimer = 0; invuln = 0; savedMsg = "";
     dotsLeft = 0;
@@ -619,6 +625,7 @@
       "#mzRoot .mz-sub{font-size:13.5px;color:#9fb0e0;max-width:320px;line-height:1.6;}" +
       "#mzRoot .mz-btn{margin-top:6px;padding:15px 34px;border:none;border-radius:16px;cursor:pointer;font-size:16px;font-weight:800;font-family:inherit;color:#1a1200;background:linear-gradient(135deg,#f2cf5b,#d3a12f);box-shadow:0 8px 24px rgba(211,161,47,.4);}" +
       "#mzRoot .mz-btn:active{transform:scale(.95);}" +
+      "#mzRoot .mz-btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none;}" +
       "#mzRoot .mz-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:14px;z-index:5;width:40px;height:40px;border-radius:12px;border:1.5px solid #33406e;background:rgba(10,14,42,.7);color:#9fb0e0;font-size:20px;cursor:pointer;}" +
       "#mzRoot .mz-emoji{font-size:60px;}" +
       "#mzRoot .mz-badge{font-size:22px;font-weight:900;color:#f2cf5b;}" +
@@ -702,6 +709,7 @@
     injectStyles(); buildDOM(); layout(); scanMap();
     try { player = mkEntity(PLAYER_SPAWN.c, PLAYER_SPAWN.r, PLAYER_SPEED); loadQuestion(); render(); } catch (e) { }
     state = "start"; show("mzStart", true);
+    var _sb0 = root.querySelector("#mzStartBtn"); if (_sb0) _sb0.disabled = true;   // aktif lagi di boot() bila ada level
     boot();
   }
   function close() {
