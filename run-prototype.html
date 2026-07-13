@@ -32,6 +32,16 @@
   .hint { font-size:12px; color:#5b7480; margin-top:4px; line-height:1.7; }
   .legend { font-size:12.5px; color:#3a5a66; line-height:1.9; background:rgba(255,255,255,.55); border-radius:14px; padding:12px 18px; max-width:340px; }
   .legend b { color:#123; }
+  /* Tombol kontrol on-screen (HP) */
+  #pad { position:fixed; inset:auto 0 0 0; z-index:8; display:flex; justify-content:space-between;
+    padding:0 20px 26px; pointer-events:none; }
+  #pad.hidden { display:none; }
+  .padbtn { pointer-events:auto; width:88px; height:88px; border-radius:50%; border:none;
+    font-size:34px; font-weight:900; color:#123; cursor:pointer; user-select:none;
+    background:rgba(255,255,255,.62); box-shadow:0 6px 18px rgba(0,0,0,.18); backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center; touch-action:none; }
+  .padbtn:active { transform:scale(.92); background:rgba(255,255,255,.85); }
+  @media (min-width:900px){ #pad{ opacity:.55; } }
 </style>
 </head>
 <body>
@@ -49,7 +59,7 @@
     🪙 <b>bonus</b> — lompat untuk ambil
   </div>
   <button class="btn" id="startBtn">Mulai Berlari</button>
-  <div class="hint">Ketuk / Spasi / ↑ = lompat &nbsp;·&nbsp; Tahan bawah layar / ↓ = merunduk<br>Prototipe standalone — belum terhubung ke portal</div>
+  <div class="hint">Tombol ⬆️ / ⬇️ di layar &nbsp;·&nbsp; atau Spasi/↑ = lompat, ↓ = merunduk<br>Taklukkan 8 soal untuk menang! Salah jawab tak mengurangi nyawa.</div>
 </div>
 
 <!-- GAME OVER -->
@@ -57,8 +67,24 @@
   <div class="emoji">💫</div>
   <div class="title" style="font-size:26px;">Nyawa Habis</div>
   <div class="stat" id="overStat">Skor: 0</div>
-  <div class="sub">Ayo ulangi — makin jauh berlari, makin banyak soal ditaklukkan!</div>
+  <div class="sub">Nyawa habis karena rintangan. Ayo coba lagi — soal salah tak apa, yang penting hindari rintangan!</div>
   <button class="btn" id="retryBtn">Coba Lagi</button>
+</div>
+
+<!-- MENANG -->
+<div id="winScreen" class="screen hidden">
+  <div class="emoji">🏆</div>
+  <div class="brand">Kamu Mendapat Badge</div>
+  <div class="title" style="font-size:24px;" id="winBadge">Pelari Al-Qur'an</div>
+  <div class="stat" id="winStat">Skor: 0</div>
+  <div class="sub">8 soal ditaklukkan sambil berlari. Barakallahu fiik!</div>
+  <button class="btn" id="againBtn">Main Lagi</button>
+</div>
+
+<!-- KONTROL ON-SCREEN -->
+<div id="pad" class="hidden">
+  <button class="padbtn" id="btnDuck">⬇️</button>
+  <button class="padbtn" id="btnJump">⬆️</button>
 </div>
 
 <script>
@@ -123,11 +149,12 @@
   var JUMP_V = 1120 * S;
   var SPEED_MIN = 270 * S, SPEED_MAX = 460 * S;
   var QUIZ_SPEED_FACTOR = 0.78; // melambat sedikit saat soal (biar sempat baca)
+  var TARGET_SOAL = 8;          // jawab benar sebanyak ini -> MENANG (model target, bukan endless)
 
   // ---------- Kanguru ----------
   var roo, world, speed, mode, quiz, obstacles, coins, clouds;
   var lives, score, dist, tState, tScheduled, invuln, running, shake;
-  var missedQueue, pendingQuestion, toast;
+  var missedQueue, pendingQuestion, toast, correctCount, streak, deck;
 
   function kangarooBox() {
     var kw = 54 * S;
@@ -146,6 +173,8 @@
     tScheduled = rand(4.5, 6.5); // detik lari sebelum soal muncul
     invuln = 0; shake = 0;
     missedQueue = []; pendingQuestion = null; toast = null;
+    correctCount = 0; streak = 0;
+    deck = shuffle(QUESTIONS.slice());
     world = 0;
     running = true;
   }
@@ -154,6 +183,8 @@
   function rand(a, b) { return a + Math.random() * (b - a); }
   function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  // Ambil soal dari dek acak; kocok ulang bila habis (agar tak berulang beruntun)
+  function drawCard() { if (!deck.length) deck = shuffle(QUESTIONS.slice()); return deck.pop(); }
   function intersect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
   // ---------- Spawner rintangan (mode run) ----------
@@ -169,7 +200,7 @@
   // ---------- Mulai segmen SOAL ----------
   function startQuiz() {
     mode = 'quiz'; tState = 0;
-    var Q = pendingQuestion || pick(QUESTIONS);
+    var Q = pendingQuestion || drawCard();
     pendingQuestion = null;
     var opts = Q.opsi.map(function (t, i) { return { t: t, correct: i === Q.benar }; });
     shuffle(opts);
@@ -269,7 +300,7 @@
         if (missedQueue.length && !pendingQuestion) {
           pendingQuestion = missedQueue.shift();
           tScheduled = Math.min(tScheduled, tState + 1.6); // soal terlewat datang lagi
-          toast = { text: 'Soal terlewat kembali!', t: 1.8 };
+          toast = { text: '🪙 Soal terlewat kembali!', t: 1.8 };
         }
         continue;
       }
@@ -298,12 +329,22 @@
       if (c.x > maxX) maxX = c.x;
       if (!quiz.resolved && roo.y < groundY - 6 && c.state === 'idle') {
         if (intersect(kb, cloudBox(c))) {
-          if (c.correct) { c.state = 'right'; score += 100; quiz.result = 'right'; sfxGood(); }
-          else { c.state = 'wrong'; lives--; quiz.result = 'wrong'; shake = 0.3; sfxBad(); }
+          if (c.correct) {
+            c.state = 'right'; quiz.result = 'right'; sfxGood();
+            streak++;
+            var bonus = 100 + (streak - 1) * 50;   // combo: makin panjang streak, makin besar poin
+            score += bonus;
+            correctCount++;
+            toast = { text: streak >= 2 ? ('🔥 ' + streak + 'x beruntun  +' + bonus) : ('Benar!  +' + bonus), t: 1.6 };
+            if (correctCount >= TARGET_SOAL) { quiz.resolved = true; setTimeout(winGame, 600); return; }
+          } else {
+            // Salah TIDAK mengurangi nyawa — hanya refleks/rintangan yang mematikan.
+            c.state = 'wrong'; quiz.result = 'wrong'; streak = 0; shake = 0.25; sfxBad();
+            toast = { text: 'Belum tepat — lihat jawaban benar', t: 1.6 };
+          }
           quiz.resolved = true;
           // tandai awan benar biar edukatif
           for (var k = 0; k < clouds.length; k++) if (clouds[k].correct && clouds[k].state === 'idle') clouds[k].state = 'reveal';
-          if (lives <= 0) { setTimeout(gameOver, 400); }
         }
       }
     }
@@ -345,7 +386,7 @@
     ctx.fillStyle = '#b9711a';
     ctx.font = '800 ' + (16 * S) + 'px -apple-system,sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('🪙 ' + toast.text, W / 2, 16 * S);
+    ctx.fillText(toast.text, W / 2, 46 * S);
     ctx.restore();
   }
 
@@ -448,10 +489,15 @@
     ctx.fillStyle = '#123'; ctx.font = '800 ' + (20 * S) + 'px -apple-system,sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     ctx.fillText('Skor ' + (score + Math.floor(dist)), 16 * S, 16 * S);
+    // progres soal (tengah-atas) — motivasi menuju MENANG
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#b9711a'; ctx.font = '800 ' + (17 * S) + 'px -apple-system,sans-serif';
+    ctx.fillText('⭐ ' + correctCount + '/' + TARGET_SOAL, W / 2, 18 * S);
     // nyawa
     ctx.textAlign = 'right';
     var hearts = ''; for (var i = 0; i < lives; i++) hearts += '❤️';
     ctx.font = (22 * S) + 'px -apple-system,"Segoe UI Emoji",sans-serif';
+    ctx.fillStyle = '#123';
     ctx.fillText(hearts || '—', W - 14 * S, 14 * S);
   }
 
@@ -495,18 +541,38 @@
   // ---------- Layar ----------
   var startScreen = document.getElementById('startScreen');
   var overScreen = document.getElementById('overScreen');
+  var winScreen = document.getElementById('winScreen');
+  var pad = document.getElementById('pad');
   function show(el) { el.classList.remove('hidden'); }
   function hide(el) { el.classList.add('hidden'); }
 
-  function startGame() { ac(); reset(); hide(startScreen); hide(overScreen); last = 0; }
+  function startGame() { ac(); reset(); hide(startScreen); hide(overScreen); hide(winScreen); show(pad); last = 0; }
   function gameOver() {
-    running = false;
-    document.getElementById('overStat').textContent = 'Skor: ' + (score + Math.floor(dist));
+    running = false; hide(pad);
+    document.getElementById('overStat').textContent = 'Skor: ' + (score + Math.floor(dist)) + ' · Soal benar: ' + correctCount + '/' + TARGET_SOAL;
     show(overScreen);
+  }
+  function winGame() {
+    running = false; hide(pad);
+    document.getElementById('winStat').textContent = 'Skor: ' + (score + Math.floor(dist)) + ' · Nyawa tersisa: ' + lives;
+    show(winScreen);
   }
 
   document.getElementById('startBtn').onclick = startGame;
   document.getElementById('retryBtn').onclick = startGame;
+  document.getElementById('againBtn').onclick = startGame;
+
+  // Tombol kontrol on-screen (HP): tekan-tahan ⬇️ = merunduk, ⬆️ = lompat
+  var btnJump = document.getElementById('btnJump'), btnDuck = document.getElementById('btnDuck');
+  function bindPad(el, onDown, onUp) {
+    el.addEventListener('touchstart', function (e) { e.preventDefault(); ac(); onDown(); }, { passive: false });
+    el.addEventListener('touchend', function (e) { e.preventDefault(); if (onUp) onUp(); }, { passive: false });
+    el.addEventListener('mousedown', function (e) { e.preventDefault(); ac(); onDown(); });
+    el.addEventListener('mouseup', function (e) { e.preventDefault(); if (onUp) onUp(); });
+    el.addEventListener('mouseleave', function () { if (onUp) onUp(); });
+  }
+  bindPad(btnJump, doJump);
+  bindPad(btnDuck, function () { setDuck(true); }, function () { setDuck(false); });
 
   // Inisialisasi state agar draw() aman SEBELUM mulai (cegah crash frame pertama
   // yang membunuh loop requestAnimationFrame). running=false → dunia diam di balik layar start.
