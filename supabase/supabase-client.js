@@ -3740,7 +3740,7 @@ var MuridAPI = {
     // Fetch exercises (PR) and exclude MT exercises
     var prQuery = _sb.from('nilai_kbm')
       .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_status_nilai, pr_catatan_guru, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi)')
-      .eq('id_murid', id_murid).in('status_hadir',['H','T'])
+      .eq('id_murid', id_murid) /* semua status kehadiran (H/T/I/A): murid absen/izin tetap dapat latihan mandiri */
       .not('kbm_log.latihan_mandiri','is',null)
       .order('tanggal',{ascending:false}).limit(10);
 
@@ -3984,7 +3984,7 @@ var MuridAPI = {
     var id_murid = _uid();
     var { data, error } = await _sb.from('nilai_kbm')
       .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, pr_status, pr_catatan_murid, pr_lampiran_url, pr_submitted_at, pr_status_nilai, pr_catatan_guru, pr_lampiran_guru_url, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(latihan_mandiri,jenis_latihan,deadline_latihan,materi_belajar,jenis_sesi,referensi_url)')
-      .eq('id_murid', id_murid).in('status_hadir',['H','T'])
+      .eq('id_murid', id_murid) /* semua status kehadiran (H/T/I/A): murid absen/izin tetap dapat latihan mandiri */
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
     _check(error, 'getLatihanMandiri');
