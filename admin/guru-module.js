@@ -429,16 +429,39 @@ function lihatObsDetail(idx) {
   openModal('modalObsDetail');
 }
 
+function fmtAuditWaktu(v) {
+  if (!v) return '–';
+  const dt = new Date(v);
+  if (isNaN(dt)) return esc(String(v));
+  return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+         dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtAuditDetail(d) {
+  if (d === null || d === undefined || d === '') return '<span style="color:var(--text-3)">–</span>';
+  let obj = d;
+  if (typeof d === 'string') {
+    try { obj = JSON.parse(d); } catch(_) { return esc(d); }
+  }
+  if (typeof obj !== 'object') return esc(String(obj));
+  const parts = Object.keys(obj).map(function(k){
+    let val = obj[k];
+    if (val !== null && typeof val === 'object') val = JSON.stringify(val);
+    return '<b style="color:var(--text-2)">' + esc(k) + ':</b> ' + esc(String(val));
+  });
+  return parts.length ? parts.join('<span style="opacity:.4"> &bull; </span>') : '<span style="color:var(--text-3)">–</span>';
+}
+
 async function loadAudit() {
   showLoad('Bismillah, memproses...');
   try {
     const r = await window.HQ.SuperAdminAPI.getAuditLog();
     const tbody = document.getElementById('auditTbl');
     tbody.innerHTML = (r.data||[]).map(l=>`<tr>
-      <td style="font-size:12px;white-space:nowrap">${esc(l.timestamp)}</td>
-      <td><code style="font-size:11px">${esc(l.user_id)}</code></td>
+      <td style="font-size:12px;white-space:nowrap">${fmtAuditWaktu(l.created_at)}</td>
+      <td><code style="font-size:11px">${l.user_id ? esc(l.user_id) : '<span style="color:var(--text-3)">sistem</span>'}</code></td>
       <td><span class="badge b-blue">${esc(l.action)}</span></td>
-      <td style="font-size:12px;color:var(--text-3)">${esc(l.detail)}</td>
+      <td style="font-size:12px;color:var(--text-3)">${fmtAuditDetail(l.detail)}</td>
     </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada log</td></tr>';
   } catch(e) {}
   finally { hideLoad(); }
