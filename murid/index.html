@@ -10207,8 +10207,17 @@ async function bukaModalRekap(idKBM, pertemuanKe, tanggal) {
 }
 
 function _renderRekapForm(d) {
-  var hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date(d.tanggal+'T00:00:00').getDay()];
-  var tglFmt = hari + ', ' + fmtDate(d.tanggal);
+  var tanggalVal = d.tanggal || d.tanggal_pertemuan || '';
+  var tglFmt = '-';
+  if (tanggalVal) {
+    try {
+      var hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date(tanggalVal+'T00:00:00').getDay()];
+      tglFmt = hari + ', ' + fmtDate(tanggalVal);
+    } catch (e) {
+      tglFmt = fmtDate(tanggalVal);
+    }
+  }
+  
   document.getElementById('rekapBody').innerHTML =
     '<div style="background:#f0fdf4;border:1.5px solid rgba(16,185,129,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:#065f46;font-weight:600;line-height:1.7">' +
     'Data diambil otomatis dari jurnal guru. Tambahkan Catatan Ustadz jika ada, lalu salin teks rekap.' +
@@ -10278,12 +10287,17 @@ function _updateRekapPreview(d, tglFmt) {
     kehadiranStr = "4. KEHADIRAN MURID:\n   (Tidak ada data presensi)";
   }
 
+  // Fallbacks using global _ketuaData
+  var halaqahName = d.nama_halaqah || (_ketuaData && _ketuaData.halaqah && _ketuaData.halaqah.nama) || '-';
+  var guruName = d.nama_guru || (_ketuaData && _ketuaData.halaqah && _ketuaData.halaqah.nama_guru) || '-';
+  var levelName = d.level || (_ketuaData && _ketuaData.halaqah && _ketuaData.halaqah.level) || '';
+
   _rekapText =
     "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n" +
     "Teman-teman baarakallahu fiikum,\n\n" +
-    "Berikut Rekapitulasi Halaqah Tahsin " + esc(d.level) + "\n\n" +
-    "Halaqah       : " + esc(d.nama_halaqah || '-') + "\n" +
-    "Ustadz/ah     : " + esc(d.nama_guru || '-') + "\n" +
+    "Berikut Rekapitulasi Halaqah Tahsin " + esc(levelName) + "\n\n" +
+    "Halaqah       : " + esc(halaqahName) + "\n" +
+    "Ustadz/ah     : " + esc(guruName) + "\n" +
     "Hari/Tanggal  : " + tglFmt + "\n" +
     "Pertemuan Ke  : " + d.pertemuan_ke + "\n\n" +
     "1. CAPAIAN MATERI TEORI:\n   " + (d.pencapaian_modul || '-') + "\n" +

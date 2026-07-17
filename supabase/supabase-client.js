@@ -8385,27 +8385,56 @@ var KetuaAPI = {
 
   getKBMJurnal: async function(id_kbm) {
     var { data, error } = await _sb.from('kbm_log')
-      .select('*, halaqah(nama_halaqah)')
+      .select('*, halaqah(nama_halaqah, level)')
       .eq('id_kbm', id_kbm)
       .single();
-    if (error) return { status: 'ok', data: null };
+    if (error) {
+      console.warn('getKBMJurnal error:', error.message);
+      return { status: 'ok', data: null };
+    }
     if (data) {
       data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
       data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
-      data.nama_halaqah = data.halaqah ? data.halaqah.nama_halaqah : '';
+      
+      data.tanggal = data.tanggal_pertemuan;
+
+      // Handle halaqah join result (could be object or array)
+      var hqObj = null;
+      if (data.halaqah) {
+        if (Array.isArray(data.halaqah)) {
+          hqObj = data.halaqah[0] || null;
+        } else {
+          hqObj = data.halaqah;
+        }
+      }
+      data.nama_halaqah = hqObj ? (hqObj.nama_halaqah || '') : '';
+      data.level = hqObj ? (hqObj.level || '') : '';
 
       // Fetch student attendance for this session
-      var { data: nilaiRes } = await _sb.from('nilai_kbm')
+      var { data: nilaiRes, error: nilaiErr } = await _sb.from('nilai_kbm')
         .select('id_murid, status_hadir')
         .eq('id_kbm', id_kbm);
+
+      if (nilaiErr) {
+        console.warn('getKBMJurnal: nilai_kbm fetch error:', nilaiErr.message);
+      }
 
       var presensi = [];
       if (nilaiRes && nilaiRes.length > 0) {
         var ids = nilaiRes.map(function(r) { return r.id_murid; });
-        var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
+        // Bypassing RLS users by reading from anggota (allowed for ketua class)
+        var { data: anggotaList, error: anggotaErr } = await _sb.from('anggota')
+          .select('id_murid, nama_murid')
+          .eq('id_halaqah', data.id_halaqah)
+          .in('id_murid', ids);
+
+        if (anggotaErr) {
+          console.warn('getKBMJurnal: anggota fetch error:', anggotaErr.message);
+        }
+
         var namaMap = {};
-        if (users) {
-          users.forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
+        if (anggotaList) {
+          anggotaList.forEach(function(a) { namaMap[a.id_murid] = a.nama_murid; });
         }
         presensi = nilaiRes.map(function(r) {
           return {
