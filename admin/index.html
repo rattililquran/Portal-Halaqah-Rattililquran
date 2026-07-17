@@ -4102,7 +4102,7 @@ html.theme-dark .fin-detail-card {
 <script src="../supabase/supabase-client.js?v=2.1.16"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=1.0.9" defer></script>
+<script src="guru-module.js?v=1.1.0" defer></script>
 <script src="murid-module.js?v=1.0.1" defer></script>
 <script src="kelompok-module.js?v=1.0.2" defer></script>
 <script src="spp-keuangan-module.js?v=1.0.1" defer></script>
@@ -4119,9 +4119,10 @@ let currentUserTab = 'guru';
 let komponenRows = [];
 let nilaiKomponenList = [], nilaiMuridList = [];
 
-// Nominal SPP per bulan — satu sumber kebenaran agar tidak terduplikasi
-// (jika nominal SPP berubah di masa depan, cukup ubah di satu tempat ini).
-const SPP_NOMINAL_BULANAN = 75000;
+// Nominal SPP per bulan — sumber kebenaran ada di supabase-client.js
+// (const global SPP_NOMINAL_BULANAN, dimuat sebelum skrip ini). Jangan
+// deklarasikan ulang di sini: dua `const` bernama sama di scope global
+// classic-script = SyntaxError yang mematikan seluruh blok skrip ini.
 
 const PAGE_TITLES = {
   dashboard:'Dashboard', periode:'Periode', users:'Manajemen User',
