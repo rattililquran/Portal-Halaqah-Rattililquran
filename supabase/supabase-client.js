@@ -10,6 +10,13 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const { createClient } = window.supabase;
 const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Tarif SPP Pribadi per bulan (Rupiah). SATU-SATUNYA sumber untuk frontend —
+// dipakai di rekap admin (AdminAPI) & tampilan konfirmasi murid (spp-module.js
+// via window.HQ.SPP_NOMINAL_BULANAN). CATATAN: nilai otoritatif untuk transaksi
+// gateway TETAP dihardcode server-side di edge function mayar-create-payment
+// (anti-tampering) — jika tarif berubah, ubah DI SANA JUGA agar sinkron.
+const SPP_NOMINAL_BULANAN = 75000;
+
 // ─────────────────────────────────────────────
 //  SESSION
 // ─────────────────────────────────────────────
@@ -5583,7 +5590,7 @@ var AdminAPI = {
 
     // SPP target nominal: hitung murid non-beasiswa
     var sppTargetMuridCount = (anggotaTipeRes.data || []).filter(function(a) { return a.tipe_spp !== 'beasiswa'; }).length;
-    var sppTargetNominal = sppTargetMuridCount * 75000;
+    var sppTargetNominal = sppTargetMuridCount * SPP_NOMINAL_BULANAN;
 
     // Hitung Kepatuhan Input KBM Pekan Ini (7 hari terakhir)
     var halaqahAktifIds = (hqRes.data || []).map(function(h) { return h.id_halaqah; });
@@ -8879,4 +8886,5 @@ window.HQ = {
   supabase: _sb,
   getCurrentUser: function() { return _currentUser; },
   cache: { invalidate: window._clearHQCache, clear: window._clearHQCache },
+  SPP_NOMINAL_BULANAN: SPP_NOMINAL_BULANAN,
 };

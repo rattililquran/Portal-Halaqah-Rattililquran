@@ -251,7 +251,8 @@
     if (_sppFormJenis === 'SPP Pribadi') {
       var nominalInput = document.getElementById('sppFormNominal');
       if (nominalInput) {
-        nominalInput.value = n > 0 ? n * 75000 : '';
+        var tarifSpp = (window.HQ && window.HQ.SPP_NOMINAL_BULANAN) || 75000; // sumber: supabase-client.js
+        nominalInput.value = n > 0 ? n * tarifSpp : '';
         nominalInput.readOnly = true;
         nominalInput.style.backgroundColor = 'var(--border)';
       }
