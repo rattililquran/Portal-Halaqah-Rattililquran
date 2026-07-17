@@ -17,6 +17,7 @@
   var _rekapIdKBM       = null;
   var _rekapText        = '';
   var _rekapSudahDikirim= new Set(); // id_kbm yang sudah rekap
+  var _obsSelected      = {};   // jawaban form observasi yang sedang diisi
 
   function initKetua(isKetua, halaqahKetua) {
     if (!isKetua) return;

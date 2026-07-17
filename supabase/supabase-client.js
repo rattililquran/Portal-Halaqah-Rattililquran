@@ -8433,7 +8433,7 @@ var KetuaAPI = {
     if (info.status !== 'ok') return { status: 'ok', data: [] };
     var { data, error } = await _sb.from('rekap_status').select('*')
       .eq('id_halaqah', info.halaqah.id_halaqah)
-      .order('created_at', { ascending: false }).limit(10);
+      .order('created_at', { ascending: false }).limit(20);
     if (error) return { status: 'ok', data: [] };
     // Return array id_kbm agar Set.has(id_kbm) bekerja di frontend
     return { status: 'ok', data: (data || []).map(function(r) { return r.id_kbm; }) };
