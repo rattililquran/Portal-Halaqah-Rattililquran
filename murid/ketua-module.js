@@ -43,6 +43,7 @@
     if (btn) btn.classList.add('active');
     document.getElementById('ketuaPanelPantau').style.display    = tab === 'pantau'   ? '' : 'none';
     document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi'? '' : 'none';
+    document.getElementById('ketuaPanelRiwayat').style.display   = tab === 'riwayat'  ? '' : 'none';
     document.getElementById('ketuaPanelReminder').style.display  = tab === 'reminder' ? '' : 'none';
 
     // Observasi selalu refresh agar badge dan status tidak stale
@@ -52,11 +53,16 @@
       _ketuaObsIdKBM     = null;
       _ketuaTabLoaded['observasi'] = false;
     }
+    // Riwayat selalu refresh agar observasi yang baru dikirim langsung tampil
+    if (tab === 'riwayat') {
+      _ketuaTabLoaded['riwayat'] = false;
+    }
 
     if (!_ketuaTabLoaded[tab]) {
       _ketuaTabLoaded[tab] = true;
       if (tab === 'pantau')    loadKetuaPantau();
       if (tab === 'observasi') loadKetuaObservasi();
+      if (tab === 'riwayat')   loadKetuaRiwayat();
       if (tab === 'reminder')  initReminderTab();
     }
   }
@@ -74,6 +80,7 @@
   async function loadKetuaPantau() {
     document.getElementById('ketuaMemberListKBM').innerHTML = skelCards(3,3);
     document.getElementById('ketuaMemberListAT').innerHTML  = skelCards(2,3);
+    loadKetuaTren();
     try {
       var [rKBM, rAT] = await Promise.all([
         window.HQ.KetuaAPI.getKeaktifanAnggota(),
@@ -90,6 +97,73 @@
     } catch(e) {
       document.getElementById('ketuaMemberListKBM').innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(friendlyError(e))+'</div></div>';
     }
+  }
+
+  // ── GRAFIK TREN KEHADIRAN HALAQAH ─────────────────────
+  async function loadKetuaTren() {
+    var el = document.getElementById('ketuaTrenCard');
+    if (!el) return;
+    el.innerHTML = '<div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:8px">Tren Kehadiran Halaqah</div>' + skelCards(1,1);
+    try {
+      var r = await window.HQ.KetuaAPI.getTrenKehadiran();
+      renderKetuaTren(r.data || []);
+    } catch(e) {
+      el.innerHTML = '<div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:4px">Tren Kehadiran Halaqah</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3)">Gagal memuat tren: '+esc(friendlyError(e))+'</div>';
+    }
+  }
+
+  function renderKetuaTren(rows) {
+    var el = document.getElementById('ketuaTrenCard');
+    if (!el) return;
+    var valid = rows.filter(function(r) { return r.pct_hadir !== null; });
+    if (valid.length < 2) {
+      el.innerHTML = '<div style="font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:4px">Tren Kehadiran Halaqah</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3)">Butuh minimal 2 sesi selesai untuk menampilkan tren.</div>';
+      return;
+    }
+
+    var W = 300, H = 84, PAD_X = 8, PAD_Y = 12;
+    var n = valid.length;
+    var stepX = (W - PAD_X * 2) / (n - 1);
+    var accent = '#0284c7'; // var(--blue) portal — sesuai brand, dipakai konsisten utk satu-seri magnitude-over-time
+
+    function yFor(pct) { return H - PAD_Y - (pct / 100) * (H - PAD_Y * 2); }
+    var pts = valid.map(function(r, i) { return { x: PAD_X + i * stepX, y: yFor(r.pct_hadir), pct: r.pct_hadir, r: r }; });
+
+    var linePath = pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    var areaPath = linePath + ' L' + pts[n-1].x.toFixed(1) + ',' + (H - PAD_Y) + ' L' + pts[0].x.toFixed(1) + ',' + (H - PAD_Y) + ' Z';
+
+    var baseline = H - PAD_Y;
+    var dots = pts.map(function(p) {
+      return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3.5" fill="'+accent+'" stroke="var(--card-bg,#fff)" stroke-width="1.5">'
+        + '<title>Sesi ke-'+esc(p.r.pertemuan_ke||'')+' ('+fmtDate(p.r.tanggal)+'): '+p.pct+'% hadir</title>'
+        + '</circle>';
+    }).join('');
+
+    var first = pts[0], last = pts[n-1];
+    var svg = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+H+'" preserveAspectRatio="none" role="img" aria-label="Grafik tren persentase kehadiran halaqah per sesi">'
+      + '<line x1="'+PAD_X+'" y1="'+baseline+'" x2="'+(W-PAD_X)+'" y2="'+baseline+'" stroke="var(--border)" stroke-width="1"/>'
+      + '<path d="'+areaPath+'" fill="'+accent+'" fill-opacity="0.08" stroke="none"/>'
+      + '<path d="'+linePath+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+      + dots
+      + '</svg>';
+
+    var tableRows = valid.map(function(r) {
+      return '<span style="display:inline-flex;align-items:center;gap:3px;margin-right:10px;font-size:10.5px;color:var(--text-3);font-weight:600">Sesi '+esc(r.pertemuan_ke||'')+': <b style="color:var(--text-2)">'+r.pct_hadir+'%</b></span>';
+    }).join('');
+
+    el.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
+      + '<div style="font-size:12.5px;font-weight:700;color:var(--text-2)">Tren Kehadiran Halaqah</div>'
+      + '<div style="font-size:10.5px;color:var(--text-3);font-weight:600">'+n+' sesi terakhir</div>'
+      + '</div>'
+      + svg
+      + '<div style="margin-top:6px;line-height:1.9">'+tableRows+'</div>'
+      + (last.pct - first.pct !== 0
+          ? '<div style="margin-top:4px;font-size:11px;font-weight:700;color:'+(last.pct >= first.pct ? 'var(--green)' : 'var(--red)')+'">'
+            + (last.pct >= first.pct ? '▲ Naik ' : '▼ Turun ') + Math.abs(last.pct - first.pct) + ' poin dari sesi pertama ke terakhir</div>'
+          : '');
   }
 
   function renderKetuaMemberList(elId, list, type) {
@@ -548,6 +622,47 @@
     el.innerHTML = html;
   }
 
+  // ── RIWAYAT OBSERVASI ─────────────────────
+  async function loadKetuaRiwayat() {
+    var el = document.getElementById('ketuaRiwayatList');
+    if (!el) return;
+    el.innerHTML = skelCards(3,2);
+    try {
+      var r = await window.HQ.KetuaAPI.getObservasiHistory();
+      renderKetuaRiwayatList(r.data || []);
+    } catch(e) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">'+esc(friendlyError(e))+'</div></div>';
+    }
+  }
+
+  function renderKetuaRiwayatList(list) {
+    var el = document.getElementById('ketuaRiwayatList');
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">📝</div><div class="empty-ttl">Belum ada observasi yang dikirim</div></div>';
+      return;
+    }
+    var kondisiCls = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
+    el.innerHTML = '<div class="card"><div style="padding:0 16px">' + list.map(function(o) {
+      var kbmInfo = Array.isArray(o.kbm_log) ? o.kbm_log[0] : o.kbm_log;
+      var pertemuanKe = o.pertemuan_ke || (kbmInfo && kbmInfo.pertemuan_ke) || '-';
+      var tanggal      = o.tanggal      || (kbmInfo && kbmInfo.tanggal_pertemuan) || '';
+      var badgeCls = kondisiCls[o.kondisi_kelas] || 'b-green';
+      return '<div class="obs-sesi-item">'
+        + '<div class="obs-sesi-num">'+esc(String(pertemuanKe))+'</div>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:13px;font-weight:800;color:var(--text)">Sesi ke-'+esc(String(pertemuanKe))+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-weight:600">'+fmtDate(tanggal)+'</div>'
+        + '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'
+        + '<span class="badge '+badgeCls+'" style="font-size:10px">'+esc(o.kondisi_kelas||'-')+'</span>'
+        + '<span class="badge b-blue" style="font-size:10px">'+esc(o.ketepatan_waktu||'-')+'</span>'
+        + '<span class="badge b-gray" style="font-size:10px">Kamera: '+esc(o.kamera_peserta||'-')+'</span>'
+        + '</div>'
+        + (o.catatan_tambahan ? '<div style="margin-top:6px;font-size:11.5px;color:var(--text-2);font-style:italic">"'+esc(o.catatan_tambahan)+'"</div>' : '')
+        + '</div></div>';
+    }).join('') + '</div></div>';
+  }
+
   function _renderObsSesiItem(s) {
     var sudahRekap = _rekapSudahDikirim.has(String(s.id_kbm));
     var numCls = s.window_status === 'selesai' ? 'selesai' : s.window_status === 'terkunci' ? 'terkunci' : '';
@@ -749,5 +864,8 @@
   window.bukaFormObservasi = bukaFormObservasi;
   window.selectObs = selectObs;
   window.doSubmitObservasi = doSubmitObservasi;
+  window.loadKetuaTren = loadKetuaTren;
+  window.loadKetuaRiwayat = loadKetuaRiwayat;
+  window.renderKetuaRiwayatList = renderKetuaRiwayatList;
 
 })();

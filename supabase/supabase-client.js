@@ -1066,19 +1066,24 @@ var GuruAPI = {
     (async function() {
       try {
         var { data: kbmData } = await _sb.from('kbm_log')
-          .select('id_halaqah, pertemuan_ke, nama_guru, tanggal_pertemuan')
+          .select('id_halaqah, pertemuan_ke, nama_guru, tanggal_pertemuan, materi_belajar, pencapaian_modul')
           .eq('id_kbm', id_kbm).single();
         if (!kbmData) return;
 
-        // 1. Push ke ketua kelas — window observasi terbuka
+        // 1. Push ke ketua kelas — window observasi terbuka (+ rekap jika jurnal sudah diisi)
         var { data: anggota } = await _sb.from('anggota')
           .select('id_murid, is_ketua').eq('id_halaqah', kbmData.id_halaqah).eq('status','aktif');
         var ketuaIds = (anggota || []).filter(function(a){ return a.is_ketua; }).map(function(a){ return a.id_murid; });
         if (ketuaIds.length) {
+          // Jurnal (materi_belajar/pencapaian_modul) baru terisi jika guru mengisi sebelum tutup sesi —
+          // guru juga bisa "Tutup tanpa jurnal", jadi rekap hanya disebut kalau datanya sudah ada.
+          var jurnalSudahAda = !!(kbmData.materi_belajar || kbmData.pencapaian_modul);
+          var bodyMsg = 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.';
+          if (jurnalSudahAda) bodyMsg += ' Jangan lupa kirim Rekap Sesi ke grup WA juga ya.';
           _sendPushBg({
             user_ids: ketuaIds,
             title: '📋 Isi Observasi KBM Sekarang!',
-            body : 'Sesi pertemuan ke-' + (kbmData.pertemuan_ke || '') + ' selesai. Window observasi terbuka — isi sebelum guru mulai sesi berikutnya.',
+            body : bodyMsg,
             url  : '/Portal-Halaqah-Rattililquran/murid/index.html',
             tag  : 'observasi-window-' + id_kbm,
             data : { trigger: 'observasi_terbuka', id_kbm: id_kbm },
@@ -8350,6 +8355,25 @@ var KetuaAPI = {
       };
     }).filter(function(m) { return m.status !== 'normal'; });
     return { status: 'ok', data: { alerts: alerts } };
+  },
+
+  getTrenKehadiran: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var { data, error } = await _sb.from('kbm_log')
+      .select('pertemuan_ke, tanggal_pertemuan, jumlah_hadir, jumlah_alpa')
+      .eq('id_halaqah', info.halaqah.id_halaqah).eq('status', 'selesai')
+      .order('tanggal_pertemuan', { ascending: false }).limit(10);
+    if (error) return { status: 'ok', data: [] };
+    var rows = (data || []).map(function(k) {
+      var total = (k.jumlah_hadir || 0) + (k.jumlah_alpa || 0);
+      return {
+        pertemuan_ke: k.pertemuan_ke,
+        tanggal     : k.tanggal_pertemuan,
+        pct_hadir   : total > 0 ? Math.round((k.jumlah_hadir || 0) / total * 100) : null,
+      };
+    }).reverse(); // urut kronologis (lama -> baru) untuk grafik
+    return { status: 'ok', data: rows };
   },
 
   getObservasiPending: async function() {

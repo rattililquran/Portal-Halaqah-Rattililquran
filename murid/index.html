@@ -4286,7 +4286,7 @@ html.theme-dark .materi-daurah-banner-title {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
         </button>
       </div>
-      <!-- Tab bar — 3 tab -->
+      <!-- Tab bar — 4 tab -->
       <div class="ketua-tab-bar">
         <button class="ketua-tab-btn active" id="ketuaTabPantau" onclick="switchKetuaTab('pantau',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -4297,6 +4297,10 @@ html.theme-dark .materi-daurah-banner-title {
           Observasi
           <span class="ketua-badge" id="obsBadge" style="display:none">0</span>
         </button>
+        <button class="ketua-tab-btn" id="ketuaTabRiwayat" onclick="switchKetuaTab('riwayat',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Riwayat
+        </button>
         <button class="ketua-tab-btn" id="ketuaTabReminder" onclick="switchKetuaTab('reminder',this)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.34 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.27 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           Reminder
@@ -4305,6 +4309,7 @@ html.theme-dark .materi-daurah-banner-title {
 
       <!-- Panel Pantau — BERSIH tanpa reminder -->
       <div id="ketuaPanelPantau">
+        <div id="ketuaTrenCard" class="card" style="padding:14px 16px;margin-bottom:14px"></div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
           <div class="card" style="padding:12px;text-align:center;border-left:3px solid var(--red)">
             <div style="font-size:10px;color:var(--red);font-weight:700;text-transform:uppercase">Kritis</div>
@@ -4379,6 +4384,10 @@ html.theme-dark .materi-daurah-banner-title {
           </div>
         </div>
         <div id="ketuaObsList"></div>
+      </div>
+      <!-- Panel Riwayat — riwayat observasi yang sudah dikirim -->
+      <div id="ketuaPanelRiwayat" style="display:none">
+        <div id="ketuaRiwayatList"></div>
       </div>
     </div>
 
@@ -6837,7 +6846,7 @@ html.theme-dark .materi-daurah-banner-title {
      (logika yang memanggil window.HQ/_sb baru jalan saat DOMContentLoaded,
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
-<script src="../supabase/supabase-client.js?v=2.1.17" defer></script>
+<script src="../supabase/supabase-client.js?v=2.1.18" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="quiz-module.js?v=1.0.8" defer></script>
 <script src="spp-module.js?v=1.0.1" defer></script>
@@ -6847,7 +6856,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="attibyan-module.js?v=1.0.0" defer></script>
 <script src="saran-observasi-module.js?v=1.0.0" defer></script>
 <script src="raport-module.js?v=1.0.0" defer></script>
-<script src="ketua-module.js?v=1.0.1" defer></script>
+<script src="ketua-module.js?v=1.1.0" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
