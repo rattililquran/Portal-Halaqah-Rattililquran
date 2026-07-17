@@ -8410,41 +8410,20 @@ var KetuaAPI = {
       data.nama_halaqah = hqObj ? (hqObj.nama_halaqah || '') : '';
       data.level = hqObj ? (hqObj.level || '') : '';
 
-      // Fetch student attendance for this session
-      var { data: nilaiRes, error: nilaiErr } = await _sb.from('nilai_kbm')
-        .select('id_murid, status_hadir')
-        .eq('id_kbm', id_kbm);
+      // Fetch student attendance via SECURITY DEFINER RPC (returns nama_lengkap from users)
+      var { data: presensiRes, error: presensiErr } = await _sb.rpc('ketua_get_kbm_presensi', { p_id_kbm: id_kbm });
 
-      if (nilaiErr) {
-        console.warn('getKBMJurnal: nilai_kbm fetch error:', nilaiErr.message);
+      if (presensiErr) {
+        console.warn('getKBMJurnal: presensi RPC error:', presensiErr.message);
       }
 
-      var presensi = [];
-      if (nilaiRes && nilaiRes.length > 0) {
-        var ids = nilaiRes.map(function(r) { return r.id_murid; });
-        // Bypassing RLS users by reading from anggota (allowed for ketua class)
-        var { data: anggotaList, error: anggotaErr } = await _sb.from('anggota')
-          .select('id_murid, nama_murid')
-          .eq('id_halaqah', data.id_halaqah)
-          .in('id_murid', ids);
-
-        if (anggotaErr) {
-          console.warn('getKBMJurnal: anggota fetch error:', anggotaErr.message);
-        }
-
-        var namaMap = {};
-        if (anggotaList) {
-          anggotaList.forEach(function(a) { namaMap[a.id_murid] = a.nama_murid; });
-        }
-        presensi = nilaiRes.map(function(r) {
-          return {
-            id_murid: r.id_murid,
-            status_hadir: r.status_hadir,
-            nama_murid: namaMap[r.id_murid] || r.id_murid
-          };
-        });
-      }
-      data.presensi = presensi;
+      data.presensi = (presensiRes || []).map(function(r) {
+        return {
+          id_murid: r.id_murid,
+          status_hadir: r.status_hadir,
+          nama_murid: r.nama_murid || r.id_murid
+        };
+      });
     }
     return { status: 'ok', data };
   },

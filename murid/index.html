@@ -10252,11 +10252,11 @@ function _updateRekapPreview(d, tglFmt) {
     var jenisFriendly = jenisMap[d.jenis_latihan] || d.jenis_latihan;
     var deadlineStr = d.deadline_latihan ? fmtDate(d.deadline_latihan) : '-';
     tugasStr = 
-      "   - Jenis: " + jenisFriendly + "\n" +
-      "   - Tugas: " + (d.latihan_mandiri || '-') + "\n" +
-      "   - Deadline: " + deadlineStr;
+      "   • Jenis: " + jenisFriendly + "\n" +
+      "   • Tugas: " + (d.latihan_mandiri || '-') + "\n" +
+      "   • Deadline: *" + deadlineStr + "*";
   } else {
-    tugasStr = "   Tidak ada";
+    tugasStr = "   _Tidak ada tugas_";
   }
 
   // Format Point 4 (Kehadiran Murid)
@@ -10278,13 +10278,13 @@ function _updateRekapPreview(d, tglFmt) {
   var kehadiranStr = "";
   if (d.presensi && d.presensi.length > 0) {
     kehadiranStr = 
-      "4. KEHADIRAN MURID:\n" +
-      "   - Hadir (" + hadirList.length + "): " + (hadirList.join(', ') || '-') + "\n" +
-      "   - Terlambat (" + terlambatList.length + "): " + (terlambatList.join(', ') || '-') + "\n" +
-      "   - Alpha (" + alphaList.length + "): " + (alphaList.join(', ') || '-') + "\n" +
-      "   - Izin (" + izinList.length + "): " + (izinList.join(', ') || '-');
+      "*4. KEHADIRAN MURID:*\n" +
+      "   ✅ Hadir (" + hadirList.length + "): " + (hadirList.join(', ') || '-') + "\n" +
+      "   ⏰ Terlambat (" + terlambatList.length + "): " + (terlambatList.join(', ') || '-') + "\n" +
+      "   ❌ Alpha (" + alphaList.length + "): " + (alphaList.join(', ') || '-') + "\n" +
+      "   📋 Izin (" + izinList.length + "): " + (izinList.join(', ') || '-');
   } else {
-    kehadiranStr = "4. KEHADIRAN MURID:\n   (Tidak ada data presensi)";
+    kehadiranStr = "*4. KEHADIRAN MURID:*\n   _(Tidak ada data presensi)_";
   }
 
   // Fallbacks using global _ketuaData
@@ -10294,21 +10294,23 @@ function _updateRekapPreview(d, tglFmt) {
 
   _rekapText =
     "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n" +
-    "Teman-teman baarakallahu fiikum,\n\n" +
-    "Berikut Rekapitulasi Halaqah Tahsin " + esc(levelName) + "\n\n" +
-    "Halaqah       : " + esc(halaqahName) + "\n" +
-    "Ustadz/ah     : " + esc(guruName) + "\n" +
-    "Hari/Tanggal  : " + tglFmt + "\n" +
-    "Pertemuan Ke  : " + d.pertemuan_ke + "\n\n" +
-    "1. CAPAIAN MATERI TEORI:\n   " + (d.pencapaian_modul || '-') + "\n" +
+    "_Teman-teman baarakallahu fiikum,_\n\n" +
+    "Berikut *Rekapitulasi Halaqah Tahsin " + esc(levelName) + "*\n\n" +
+    "📌 *Halaqah*       : " + esc(halaqahName) + "\n" +
+    "👤 *Ustadz/ah*     : " + esc(guruName) + "\n" +
+    "📅 *Hari/Tanggal*  : " + tglFmt + "\n" +
+    "🔢 *Pertemuan Ke*  : " + d.pertemuan_ke + "\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "*1. CAPAIAN MATERI TEORI:*\n   " + (d.pencapaian_modul || '-') + "\n" +
     (d.halaman_modul ? "   Halaman/Modul: " + d.halaman_modul + "\n" : '') + "\n" +
-    "2. CATATAN PENTING USTADZ/USTADZAH:\n   " + catatan + "\n\n" +
-    "3. TUGAS LATIHAN MANDIRI:\n" + tugasStr + "\n\n" +
+    "*2. CATATAN PENTING USTADZ/USTADZAH:*\n   _" + catatan + "_\n\n" +
+    "*3. TUGAS LATIHAN MANDIRI:*\n" + tugasStr + "\n\n" +
     kehadiranStr + "\n\n" +
-    "Mari kita istiqomah berlatih.\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "_Mari kita istiqomah berlatih._\n" +
     "Sampai jumpa di pertemuan berikutnya.\n" +
-    "Jazakumullah khairan.\n" +
-    "semoga Allah mudahkan";
+    "_Jazakumullah khairan._\n" +
+    "_Semoga Allah mudahkan_ 🤲";
 
   var prev = document.getElementById('rekapPreview');
   if (prev) prev.textContent = _rekapText;
