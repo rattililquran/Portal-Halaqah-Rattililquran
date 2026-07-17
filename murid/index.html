@@ -10230,21 +10230,71 @@ function _renderRekapForm(d) {
 
 function _updateRekapPreview(d, tglFmt) {
   var catatan = (document.getElementById('rekapCatatanUstadz') || {}).value || '-';
-  var latihan = d.latihan_mandiri || '-';
-  var deadline = d.deadline_latihan ? (' (deadline: ' + fmtDate(d.deadline_latihan) + ')') : '';
+  
+  // Format Point 3 (Tugas Latihan Mandiri)
+  var tugasStr = '';
+  if (d.jenis_latihan) {
+    var jenisMap = {
+      'Rekaman Portal': '🎙️ Rekaman Suara di Portal',
+      'VN di WAG': '📱 Voice Note di WA Group',
+      'Mendengar dan membaca mandiri': '🎧 Mendengar & Membaca Mandiri',
+      'Lainnya': '📌 Lainnya'
+    };
+    var jenisFriendly = jenisMap[d.jenis_latihan] || d.jenis_latihan;
+    var deadlineStr = d.deadline_latihan ? fmtDate(d.deadline_latihan) : '-';
+    tugasStr = 
+      "   - Jenis: " + jenisFriendly + "\n" +
+      "   - Tugas: " + (d.latihan_mandiri || '-') + "\n" +
+      "   - Deadline: " + deadlineStr;
+  } else {
+    tugasStr = "   Tidak ada";
+  }
+
+  // Format Point 4 (Kehadiran Murid)
+  var hadirList = [];
+  var terlambatList = [];
+  var alphaList = [];
+  var izinList = [];
+
+  if (d.presensi && d.presensi.length > 0) {
+    d.presensi.forEach(function(p) {
+      var name = p.nama_murid || p.id_murid;
+      if (p.status_hadir === 'H') hadirList.push(name);
+      else if (p.status_hadir === 'T') terlambatList.push(name);
+      else if (p.status_hadir === 'A') alphaList.push(name);
+      else if (p.status_hadir === 'I') izinList.push(name);
+    });
+  }
+
+  var kehadiranStr = "";
+  if (d.presensi && d.presensi.length > 0) {
+    kehadiranStr = 
+      "4. KEHADIRAN MURID:\n" +
+      "   - Hadir (" + hadirList.length + "): " + (hadirList.join(', ') || '-') + "\n" +
+      "   - Terlambat (" + terlambatList.length + "): " + (terlambatList.join(', ') || '-') + "\n" +
+      "   - Alpha (" + alphaList.length + "): " + (alphaList.join(', ') || '-') + "\n" +
+      "   - Izin (" + izinList.length + "): " + (izinList.join(', ') || '-');
+  } else {
+    kehadiranStr = "4. KEHADIRAN MURID:\n   (Tidak ada data presensi)";
+  }
 
   _rekapText =
-    "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\n" +
+    "Assalamu'alaikum Warahmatullahi Wabarakatuh.\n" +
+    "Teman-teman baarakallahu fiikum,\n\n" +
     "Berikut Rekapitulasi Halaqah Tahsin " + esc(d.level) + "\n\n" +
+    "Halaqah       : " + esc(d.nama_halaqah || '-') + "\n" +
+    "Ustadz/ah     : " + esc(d.nama_guru || '-') + "\n" +
     "Hari/Tanggal  : " + tglFmt + "\n" +
     "Pertemuan Ke  : " + d.pertemuan_ke + "\n\n" +
     "1. CAPAIAN MATERI TEORI:\n   " + (d.pencapaian_modul || '-') + "\n" +
     (d.halaman_modul ? "   Halaman/Modul: " + d.halaman_modul + "\n" : '') + "\n" +
     "2. CATATAN PENTING USTADZ/USTADZAH:\n   " + catatan + "\n\n" +
-    "3. TUGAS LATIHAN MANDIRI:\n   " + latihan + deadline + "\n\n" +
+    "3. TUGAS LATIHAN MANDIRI:\n" + tugasStr + "\n\n" +
+    kehadiranStr + "\n\n" +
     "Mari kita istiqomah berlatih.\n" +
     "Sampai jumpa di pertemuan berikutnya.\n" +
-    "Jazakumullah khairan.";
+    "Jazakumullah khairan.\n" +
+    "semoga Allah mudahkan";
 
   var prev = document.getElementById('rekapPreview');
   if (prev) prev.textContent = _rekapText;

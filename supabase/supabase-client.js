@@ -8384,11 +8384,38 @@ var KetuaAPI = {
   },
 
   getKBMJurnal: async function(id_kbm) {
-    var { data, error } = await _sb.from('kbm_log').select('*').eq('id_kbm', id_kbm).single();
+    var { data, error } = await _sb.from('kbm_log')
+      .select('*, halaqah(nama_halaqah)')
+      .eq('id_kbm', id_kbm)
+      .single();
     if (error) return { status: 'ok', data: null };
     if (data) {
       data.jam_mulai = data.jam_mulai ? data.jam_mulai.substring(0, 5) : null;
       data.jam_selesai = data.jam_selesai ? data.jam_selesai.substring(0, 5) : null;
+      data.nama_halaqah = data.halaqah ? data.halaqah.nama_halaqah : '';
+
+      // Fetch student attendance for this session
+      var { data: nilaiRes } = await _sb.from('nilai_kbm')
+        .select('id_murid, status_hadir')
+        .eq('id_kbm', id_kbm);
+
+      var presensi = [];
+      if (nilaiRes && nilaiRes.length > 0) {
+        var ids = nilaiRes.map(function(r) { return r.id_murid; });
+        var { data: users } = await _sb.from('users').select('id_user, nama_lengkap').in('id_user', ids);
+        var namaMap = {};
+        if (users) {
+          users.forEach(function(u) { namaMap[u.id_user] = u.nama_lengkap; });
+        }
+        presensi = nilaiRes.map(function(r) {
+          return {
+            id_murid: r.id_murid,
+            status_hadir: r.status_hadir,
+            nama_murid: namaMap[r.id_murid] || r.id_murid
+          };
+        });
+      }
+      data.presensi = presensi;
     }
     return { status: 'ok', data };
   },
