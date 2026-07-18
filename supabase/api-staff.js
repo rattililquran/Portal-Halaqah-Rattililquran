@@ -2841,26 +2841,30 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       keterangan: 'Kedisiplinan kehadiran di ruang Zoom'
     });
 
-    // B. Partisipasi & Kamera KBM (Bobot: 10%)
+    // B. Partisipasi & Kamera KBM (Bobot: 10%) — hanya dihitung bila ada sesi hadir (H/T).
+    // Murid absen total tidak dinilai adab/kamera: komponen di-exclude (tak menyumbang bobot),
+    // selaras perilaku cabang Reguler. Sebelumnya default 100 → menaikkan nilai murid absen.
     var hadir = myKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
-    var ts = 0;
-    hadir.forEach(function(n) {
-      var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
-      var a = n.adab === 'Baik' ? 100 : 50;
-      ts += Math.round((a * 70 + km * 30) / 100);
-    });
-    var nilaiKamera = hadir.length > 0 ? Math.round(ts / hadir.length) : 100;
+    if (hadir.length > 0) {
+      var ts = 0;
+      hadir.forEach(function(n) {
+        var km = n.kamera_murid === 'kamera terbuka' ? 100 : n.kamera_murid === 'kamera tertutup' || n.kamera_murid === 'kamera selalu tertutup' ? 0 : 50;
+        var a = n.adab === 'Baik' ? 100 : 50;
+        ts += Math.round((a * 70 + km * 30) / 100);
+      });
+      var nilaiKamera = Math.round(ts / hadir.length);
 
-    listKomp.push({
-      id_komponen: 'daurah-partisipasi-kbm',
-      nama_komponen: 'Adab & Kamera KBM',
-      bobot: 10,
-      bobot_original: 10,
-      nilai: nilaiKamera,
-      nilai_bobot: Math.round((nilaiKamera * 10) / 100 * 10) / 10,
-      tipe: 'daurah_kbm',
-      keterangan: 'Kesesuaian adab dan kesiapan kamera selama KBM'
-    });
+      listKomp.push({
+        id_komponen: 'daurah-partisipasi-kbm',
+        nama_komponen: 'Adab & Kamera KBM',
+        bobot: 10,
+        bobot_original: 10,
+        nilai: nilaiKamera,
+        nilai_bobot: Math.round((nilaiKamera * 10) / 100 * 10) / 10,
+        tipe: 'daurah_kbm',
+        keterangan: 'Kesesuaian adab dan kesiapan kamera selama KBM'
+      });
+    }
 
     // 4. Hitung Nilai Akhir
     var rawSum = listKomp.reduce(function(sum, k) { return sum + (k.nilai * k.bobot); }, 0);
