@@ -1414,6 +1414,7 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('run')" data-p="run"><span class="ni">🦘</span>Rattil Run</button>
       <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
+      <button class="nav-btn" onclick="goPage('stress-test')" data-p="stress-test"><span class="ni">⚡</span>Stress Test</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">
@@ -3011,6 +3012,43 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
 
+        </div>
+
+        <!-- Log -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <div class="card-title">📋 Log Pengiriman</div>
+            <div style="font-size:12px;color:var(--text-3)">10 pengiriman terakhir</div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th style="text-align:center">Terkirim</th><th style="text-align:center">Gagal</th></tr></thead>
+              <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Daftar Subscriber -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📱 Daftar Subscriber</div>
+            <button class="btn btn-outline btn-sm" onclick="loadPushSubscribers()">↻ Refresh</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Nama</th><th>ID User</th><th>Role</th><th>Device</th><th>Terdaftar</th><th style="width:60px">Hapus</th></tr></thead>
+              <tbody id="pushSubsTbl"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3)">Klik Refresh untuk memuat</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ STRESS TEST (DEV) ══ -->
+      <div class="page" id="page-stress-test">
+        <div class="section-title">Stress Test</div>
+        <div class="section-sub">Alat DEV pembangkit data uji beban. Semua data ditandai [STRESS_TEST]; bersihkan lewat tombol “Hapus Data Test” di tiap kartu.</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:14px">
           <!-- Stress Test KBM -->
           <div class="card">
             <div class="card-head">
@@ -3215,35 +3253,6 @@ html.theme-dark .fin-detail-card {
               </div>
               <div id="atStResult" style="display:none"></div>
             </div>
-          </div>
-
-        </div>
-
-        <!-- Log -->
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-head">
-            <div class="card-title">📋 Log Pengiriman</div>
-            <div style="font-size:12px;color:var(--text-3)">10 pengiriman terakhir</div>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Waktu</th><th>Trigger</th><th>Target</th><th style="text-align:center">Terkirim</th><th style="text-align:center">Gagal</th></tr></thead>
-              <tbody id="pushLogTbl"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Memuat...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Daftar Subscriber -->
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📱 Daftar Subscriber</div>
-            <button class="btn btn-outline btn-sm" onclick="loadPushSubscribers()">↻ Refresh</button>
-          </div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Nama</th><th>ID User</th><th>Role</th><th>Device</th><th>Terdaftar</th><th style="width:60px">Hapus</th></tr></thead>
-              <tbody id="pushSubsTbl"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3)">Klik Refresh untuk memuat</td></tr></tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -4272,7 +4281,7 @@ const PAGE_TITLES = {
   pengumuman:'Pengumuman', audit:'Audit Log',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
   materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan',
-  soal:'Bank Soal', maze:'Rattil Maze', run:'Rattil Run'
+  soal:'Bank Soal', maze:'Rattil Maze', run:'Rattil Run', 'stress-test':'Stress Test'
 };
 
 // ══════════════════════════════════════════
