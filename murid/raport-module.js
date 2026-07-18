@@ -862,10 +862,19 @@
         h += '</div>';
       }
       
-      h += '<div style="margin-top:16px;padding:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;text-align:center">'
-          + '<div style="font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.05em">Status Kelulusan</div>'
-          + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-top:4px">' 
-            + (num >= 80 ? '🎉 Dinyatakan LULUS & LAYAK Membaca Al-Fatihah' : '📚 PERLU MENGULANG program daurah untuk pemantapan')
+      // Kelulusan hanya berlaku bila indikator tajwid sudah lengkap dinilai guru.
+      // predikat 'Belum Lengkap' (dari server) menandai indikator belum tuntas → ditangguhkan.
+      var _daurahLengkap = pred !== 'Belum Lengkap' && pred !== 'Belum Ada Data';
+      var _kelulusanText = !_daurahLengkap
+        ? '⏳ Ditangguhkan — indikator tajwid belum lengkap dinilai guru'
+        : (num >= 80 ? '🎉 Dinyatakan LULUS & LAYAK Membaca Al-Fatihah' : '📚 PERLU MENGULANG program daurah untuk pemantapan');
+      var _kelBg  = !_daurahLengkap ? 'rgba(245,158,11,.08)' : 'rgba(16,185,129,.08)';
+      var _kelBd  = !_daurahLengkap ? 'rgba(245,158,11,.2)'  : 'rgba(16,185,129,.2)';
+      var _kelCol = !_daurahLengkap ? 'var(--amber)' : 'var(--green)';
+      h += '<div style="margin-top:16px;padding:12px;background:'+_kelBg+';border:1px solid '+_kelBd+';border-radius:12px;text-align:center">'
+          + '<div style="font-size:11px;font-weight:800;color:'+_kelCol+';text-transform:uppercase;letter-spacing:.05em">Status Kelulusan</div>'
+          + '<div style="font-size:14px;font-weight:800;color:var(--text);margin-top:4px">'
+            + _kelulusanText
           + '</div>'
         + '</div>'
         + '</div>';
@@ -1170,7 +1179,10 @@
         var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; });
         var kbmItems = items.filter(function(x) { return x.tipe === 'daurah_kbm'; });
         var finalScore = Number(rp.nilai_akhir || 0);
-        var isLulus = finalScore >= 80;
+        // Kelulusan ditangguhkan bila indikator tajwid belum lengkap dinilai guru
+        // (predikat server 'Belum Lengkap'/'Belum Ada Data') — sertifikat tak boleh nyatakan LULUS.
+        var indikatorLengkap = rp.predikat !== 'Belum Lengkap' && rp.predikat !== 'Belum Ada Data';
+        var isLulus = finalScore >= 80 && indikatorLengkap;
 
         // -- Page decorations --
         doc.setFillColor(...G); doc.rect(0, 0, W, 4, 'F');
@@ -1243,7 +1255,9 @@
 
         y += 10;
         doc.setTextColor(...Md); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-        var descText = "Alhamdulillaah, dinyatakan TELAH MENYELESAIKAN Program Daurah Tahsin Al-Fatihah selama 8 sesi pertemuan intensif dengan hasil pencapaian sebagai berikut:";
+        var descText = indikatorLengkap
+          ? "Alhamdulillaah, dinyatakan TELAH MENYELESAIKAN Program Daurah Tahsin Al-Fatihah selama 8 sesi pertemuan intensif dengan hasil pencapaian sebagai berikut:"
+          : "Berikut ringkasan perkembangan Program Daurah Tahsin Al-Fatihah. Catatan: penilaian indikator tajwid belum lengkap sehingga status kelulusan masih ditangguhkan.";
         var descLines = doc.splitTextToSize(descText, W - mar*2 - 10);
         doc.text(descLines, W/2, y, {align: 'center'});
         y += descLines.length * 4.5 + 10;
@@ -1257,7 +1271,9 @@
         
         doc.setTextColor(isLulus ? 21 : 153, isLulus ? 128 : 27, isLulus ? 61 : 27);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-        var statusGrad = isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH' : 'KEPUTUSAN: Disarankan untuk kembali belajar tahsin dengan sistem reguler yang lebih sistematis';
+        var statusGrad = !indikatorLengkap ? 'KEPUTUSAN: DITANGGUHKAN - indikator tajwid belum lengkap dinilai guru. Sertifikat kelulusan terbit setelah seluruh indikator diverifikasi.'
+          : isLulus ? 'KEPUTUSAN: BAARAKALLAHU FIIKUM, LAYAK & LULUS MEMBACA SURAH AL-FATIHAH'
+          : 'KEPUTUSAN: Disarankan untuk kembali belajar tahsin dengan sistem reguler yang lebih sistematis';
         var statusLines = doc.splitTextToSize(statusGrad, W - mar*2 - 20);
         var statusTextY = y + (decBoxH / 2) - ((statusLines.length - 1) * 2);
         doc.text(statusLines, W/2, statusTextY, {align: 'center'});

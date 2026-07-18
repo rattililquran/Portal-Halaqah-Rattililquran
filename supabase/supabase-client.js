@@ -3527,7 +3527,15 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
     var totalWeight = listKomp.reduce(function(sum, k) { return sum + k.bobot; }, 0);
     var nilaiAkhir = totalWeight > 0 ? Math.round(rawSum / totalWeight) : 0;
 
+    // Kelulusan daurah menuntut SEMUA indikator tajwid terkonfigurasi (asmtItems aktif)
+    // sudah diverifikasi guru. Bila belum lengkap → predikat 'Belum Lengkap' (bukan grade
+    // final) agar sertifikat LULUS tak terbit tanpa bukti penilaian tajwid.
+    var totalIndikator   = (asmtItems || []).length;
+    var indikatorDinilai = listKomp.filter(function(k){ return k.tipe === 'daurah_indikator'; }).length;
+    var indikatorLengkap = totalIndikator > 0 && indikatorDinilai >= totalIndikator;
+
     var predikat = listKomp.length === 0 ? 'Belum Ada Data'
+      : !indikatorLengkap                 ? 'Belum Lengkap'
       : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
       : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
       : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
