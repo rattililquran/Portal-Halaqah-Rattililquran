@@ -2264,6 +2264,46 @@ html.theme-dark .fin-detail-card {
           <div id="kasOperasionalList" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
 
+        <!-- ── Buku Kas (Arus Kas) ── -->
+        <div class="card" style="padding:16px 20px;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)">📒 Buku Kas (Arus Kas)</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Pemasukan &amp; pengeluaran kas. Ihsan Guru dihitung sebagai pengeluaran (honor), bukan pemasukan.</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="arusKasBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
+              <button class="btn btn-primary btn-sm" onclick="bukaFormKas()" style="font-size:12px;padding:6px 12px">+ Catat Transaksi</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+            <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total Masuk</div>
+              <div style="font-size:16px;font-weight:900;color:var(--green-txt);margin-top:3px;font-variant-numeric:tabular-nums" id="arusKasMasuk">—</div>
+            </div>
+            <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total Keluar</div>
+              <div style="font-size:16px;font-weight:900;color:var(--red-txt);margin-top:3px;font-variant-numeric:tabular-nums" id="arusKasKeluar">—</div>
+            </div>
+            <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Saldo</div>
+              <div style="font-size:16px;font-weight:900;margin-top:3px;font-variant-numeric:tabular-nums" id="arusKasSaldo">—</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;font-weight:800;color:var(--green-txt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">▲ Pemasukan per Kategori</div>
+              <div id="arusKasBdMasuk" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:800;color:var(--red-txt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">▼ Pengeluaran per Kategori</div>
+              <div id="arusKasBdKeluar" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+          <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🧾 Riwayat Transaksi Bulan Ini</div>
+          <div id="arusKasRiwayat" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
+        </div>
+
         <!-- ── Metode Pembayaran ── -->
         <div class="card" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -2389,6 +2429,67 @@ html.theme-dark .fin-detail-card {
               </div>
               <div id="opErr" style="display:none;color:var(--red);font-size:12px"></div>
               <button class="btn btn-primary" onclick="simpanOperasional()" style="width:100%">Simpan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Modal Kas (Buku Kas / Arus Kas) ── -->
+        <div class="overlay" id="modalKas" onclick="if(event.target===this)tutupFormKas()">
+          <div class="modal" style="max-width:440px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalKasTitle">Catat Transaksi Kas</div>
+              <button class="btn-icon" onclick="tutupFormKas()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+              <input type="hidden" id="kasId">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Arah</label>
+                  <select id="kasArah" class="fc" style="width:100%" onchange="onKasArahChange()">
+                    <option value="keluar">Keluar (Pengeluaran)</option>
+                    <option value="masuk">Masuk (Pemasukan)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Kategori</label>
+                  <select id="kasKategori" class="fc" style="width:100%" onchange="onKasKategoriChange()"></select>
+                </div>
+              </div>
+              <div id="kasOpHint" style="display:none;font-size:11px;color:var(--amber-txt);background:var(--amber-bg);border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:8px 10px">ℹ️ Kategori <strong>Operasional</strong> dicatat ke ledger Operasional (dipakai perhitungan beasiswa &amp; transparansi murid).</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tanggal</label>
+                  <input id="kasTanggal" type="date" class="fc" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nominal (Rp)</label>
+                  <input id="kasNominal" type="number" min="1" class="fc" placeholder="500000" style="width:100%">
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Keterangan</label>
+                <input id="kasKeterangan" class="fc" placeholder="Cth: Donasi Bpk Ahmad / Gaji Ust. Fulan" style="width:100%">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Penerima / Sumber (opsional)</label>
+                  <input id="kasPenerima" class="fc" placeholder="—" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Metode (opsional)</label>
+                  <select id="kasMetode" class="fc" style="width:100%">
+                    <option value="">—</option>
+                    <option value="tunai">Tunai</option>
+                    <option value="transfer">Transfer</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
+                <input id="kasCatatan" class="fc" placeholder="—" style="width:100%">
+              </div>
+              <div id="kasErr" style="display:none;color:var(--red);font-size:12px"></div>
+              <button class="btn btn-primary" onclick="simpanKas()" style="width:100%">Simpan</button>
             </div>
           </div>
         </div>
@@ -4099,13 +4200,13 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.1.16"></script>
+<script src="../supabase/supabase-client.js?v=2.1.17"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=1.1.0" defer></script>
 <script src="murid-module.js?v=1.0.1" defer></script>
 <script src="kelompok-module.js?v=1.0.2" defer></script>
-<script src="spp-keuangan-module.js?v=1.0.1" defer></script>
+<script src="spp-keuangan-module.js?v=1.0.2" defer></script>
 <script src="konten-module.js?v=1.0.1" defer></script>
 <script src="laporan-module.js?v=1.0.0" defer></script>
 <script src="mutabaah-module.js?v=1.0.2" defer></script>

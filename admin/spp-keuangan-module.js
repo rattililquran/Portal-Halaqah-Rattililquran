@@ -224,6 +224,7 @@ async function loadSPPAdmin() {
       // Ember ketiga + kartu Kas Beasiswa
       document.getElementById('sppStatBeasiswa').textContent = rekap.beasiswa_count || 0;
       loadKasBeasiswa(rekap);
+      loadArusKas();
 
       filterSPPTable();
     } catch(eRekap) {
@@ -359,6 +360,190 @@ async function hapusOperasionalItem(id, nama) {
   if (!confirm('Hapus operasional "'+nama+'"?')) return;
   try { await window.HQ.AdminAPI.hapusOperasional(id); toast('Operasional dihapus','ok'); loadKasBeasiswa(); }
   catch(e) { toast('Gagal: '+(e.message||e),'err'); }
+}
+
+// ── Buku Kas / Arus Kas (pemasukan & pengeluaran umum) ─────
+// Additive: kas umum di tabel `kas`; kategori 'Operasional' (keluar) dirutekan
+// ke tabel operasional lama agar perhitungan beasiswa & transparansi murid
+// tetap konsisten. getArusKas menggabungkan SPP/Infaq/Ihsan + kas + operasional.
+var KAS_KATEGORI = {
+  masuk:  ['Donasi', 'Hibah', 'Saldo Awal', 'Lainnya'],
+  keluar: ['Honor Guru', 'Langganan', 'ATK', 'Operasional', 'Lainnya'],
+};
+var _arusKasRows = [];
+
+function ensureArusKasBulanOptions() {
+  var sel = document.getElementById('arusKasBulan');
+  if (sel && !sel.options.length) {
+    sel.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+    sel.value = BULAN_LIST[new Date().getMonth()];
+  }
+}
+
+function renderArusKasBreakdown(containerId, items, arah) {
+  var wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  if (!items || !items.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-3);font-size:11.5px">Belum ada '+(arah==='masuk'?'pemasukan':'pengeluaran')+'.</div>';
+    return;
+  }
+  var max = items.reduce(function(m,it){ return Math.max(m, Number(it.nominal)||0); }, 0) || 1;
+  var barColor = arah==='masuk' ? 'var(--green, #1a5c3a)' : 'var(--red-txt, #b91c1c)';
+  var trackBg  = arah==='masuk' ? 'rgba(16,185,129,0.10)' : 'rgba(239,68,68,0.10)';
+  wrap.innerHTML = items.map(function(it){
+    var n = Number(it.nominal)||0;
+    var pct = Math.max(4, Math.round(n / max * 100));
+    return '<div style="display:flex;flex-direction:column;gap:3px">'
+      + '<div style="display:flex;justify-content:space-between;gap:8px;font-size:11.5px">'
+      +   '<span style="color:var(--text-2);font-weight:600">'+esc(it.kategori)+'</span>'
+      +   '<span style="color:var(--text);font-weight:800;font-variant-numeric:tabular-nums">Rp '+n.toLocaleString('id-ID')+'</span>'
+      + '</div>'
+      + '<div style="height:8px;border-radius:5px;background:'+trackBg+';overflow:hidden">'
+      +   '<div style="height:100%;width:'+pct+'%;border-radius:5px;background:'+barColor+'"></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function renderArusKasRiwayat(rows) {
+  var wrap = document.getElementById('arusKasRiwayat');
+  if (!wrap) return;
+  if (!rows || !rows.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text-3);font-size:12px">Belum ada transaksi bulan ini.</div>';
+    return;
+  }
+  var srcLabel = { kas:'Kas', operasional:'Operasional', ihsan:'Honor Guru', spp:'SPP', infaq:'Infaq' };
+  wrap.innerHTML = rows.map(function(r){
+    var masuk = r.arah === 'masuk';
+    var sign = masuk ? '+' : '−';
+    var col  = masuk ? 'var(--green-txt)' : 'var(--red-txt)';
+    var editable = r.source === 'kas';
+    var tgl = r.tanggal ? esc(r.tanggal) : '—';
+    var badge = '<span style="font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--bg,#f1f5f9);color:var(--text-2)">'+esc(srcLabel[r.source]||r.source)+'</span>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:9px">'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div style="font-size:12.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.keterangan||r.kategori)+'</div>'
+      +   '<div style="font-size:10.5px;color:var(--text-3);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+badge+'<span>'+esc(r.kategori)+'</span><span>· '+tgl+'</span>'+(r.penerima?'<span>· '+esc(r.penerima)+'</span>':'')+'</div>'
+      + '</div>'
+      + '<div style="font-size:12.5px;font-weight:900;color:'+col+';font-variant-numeric:tabular-nums;white-space:nowrap">'+sign+'Rp '+(Number(r.nominal)||0).toLocaleString('id-ID')+'</div>'
+      + (editable
+          ? '<div style="display:flex;gap:4px;flex-shrink:0">'
+            + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editKasItem(\''+esc(r.id)+'\')">✏️</button>'
+            + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKasItem(\''+esc(r.id)+'\',\''+escJs(r.keterangan||r.kategori)+'\')">🗑</button>'
+            + '</div>'
+          : '')
+      + '</div>';
+  }).join('');
+}
+
+async function loadArusKas() {
+  ensureArusKasBulanOptions();
+  if (!document.getElementById('arusKasBulan')) return;
+  var tahun = Number((document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || new Date().getFullYear());
+  var bulan = document.getElementById('arusKasBulan').value;
+  try {
+    var res = await window.HQ.AdminAPI.getArusKas({ tahun: tahun, bulan: bulan });
+    var d = res.data || {};
+    _arusKasRows = d.riwayat || [];
+    var fmt = function(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); };
+    document.getElementById('arusKasMasuk').textContent  = fmt(d.total_masuk);
+    document.getElementById('arusKasKeluar').textContent = fmt(d.total_keluar);
+    var saldo = Number(d.saldo)||0;
+    var sEl = document.getElementById('arusKasSaldo');
+    sEl.textContent = (saldo < 0 ? '−Rp ' + Math.abs(saldo).toLocaleString('id-ID') : fmt(saldo));
+    sEl.style.color = saldo < 0 ? 'var(--red-txt)' : 'var(--green-txt)';
+    renderArusKasBreakdown('arusKasBdMasuk',  d.breakdown_masuk,  'masuk');
+    renderArusKasBreakdown('arusKasBdKeluar', d.breakdown_keluar, 'keluar');
+    renderArusKasRiwayat(_arusKasRows);
+  } catch(e) {
+    console.error('loadArusKas', e);
+    var w = document.getElementById('arusKasRiwayat');
+    if (w) w.innerHTML = '<div style="color:var(--red);padding:12px;font-size:12px">Gagal memuat arus kas: '+esc(friendlyError(e))+'</div>';
+  }
+}
+
+function fillKasKategoriOptions(arah, selected) {
+  var sel = document.getElementById('kasKategori');
+  var opts = KAS_KATEGORI[arah] || KAS_KATEGORI.keluar;
+  sel.innerHTML = opts.map(function(k){ return '<option value="'+k+'"'+(k===selected?' selected':'')+'>'+k+'</option>'; }).join('');
+}
+function updateKasOperasionalHint() {
+  var arah = document.getElementById('kasArah').value;
+  var kat  = document.getElementById('kasKategori').value;
+  var hint = document.getElementById('kasOpHint');
+  if (hint) hint.style.display = (arah==='keluar' && kat==='Operasional') ? '' : 'none';
+}
+function onKasArahChange() {
+  var arah = document.getElementById('kasArah').value;
+  fillKasKategoriOptions(arah);
+  updateKasOperasionalHint();
+}
+function onKasKategoriChange() { updateKasOperasionalHint(); }
+
+function bukaFormKas(item) {
+  document.getElementById('kasErr').style.display = 'none';
+  var arah = (item && item.arah) || 'keluar';
+  document.getElementById('modalKasTitle').textContent = item ? 'Edit Transaksi Kas' : 'Catat Transaksi Kas';
+  document.getElementById('kasId').value        = (item && item.id) || '';
+  document.getElementById('kasArah').value       = arah;
+  fillKasKategoriOptions(arah, item && item.kategori);
+  document.getElementById('kasTanggal').value    = (item && item.tanggal) || new Date().toISOString().slice(0,10);
+  document.getElementById('kasNominal').value     = (item && item.nominal) || '';
+  document.getElementById('kasKeterangan').value = (item && item.keterangan) || '';
+  document.getElementById('kasPenerima').value   = (item && item.penerima) || '';
+  document.getElementById('kasMetode').value      = (item && item.metode) || '';
+  document.getElementById('kasCatatan').value    = (item && item.catatan) || '';
+  updateKasOperasionalHint();
+  document.getElementById('modalKas').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function tutupFormKas() { document.getElementById('modalKas').classList.remove('open'); document.body.style.overflow=''; }
+
+function editKasItem(id) {
+  var it = (_arusKasRows||[]).find(function(x){ return x.source==='kas' && x.id === id; });
+  if (it) bukaFormKas(it);
+}
+async function hapusKasItem(id, nama) {
+  if (!confirm('Hapus transaksi kas "'+nama+'"?')) return;
+  try { await window.HQ.AdminAPI.hapusKas(id); toast('Transaksi kas dihapus','ok'); loadArusKas(); }
+  catch(e) { toast('Gagal: '+(e.message||e),'err'); }
+}
+
+async function simpanKas() {
+  var id         = document.getElementById('kasId').value;
+  var arah       = document.getElementById('kasArah').value;
+  var kategori   = document.getElementById('kasKategori').value;
+  var tanggal    = document.getElementById('kasTanggal').value;
+  var nominal    = document.getElementById('kasNominal').value;
+  var keterangan = document.getElementById('kasKeterangan').value.trim();
+  var penerima   = document.getElementById('kasPenerima').value.trim();
+  var metode     = document.getElementById('kasMetode').value;
+  var catatan    = document.getElementById('kasCatatan').value.trim();
+  var err = document.getElementById('kasErr');
+  var fail = function(m){ err.textContent = m; err.style.display = ''; };
+  if (!tanggal)                       return fail('Tanggal wajib diisi.');
+  if (!keterangan)                    return fail('Keterangan wajib diisi.');
+  if (!nominal || Number(nominal)<=0) return fail('Nominal harus lebih dari 0.');
+  // Edit entri kas TIDAK boleh dipindah ke kategori Operasional (dikelola tabel terpisah)
+  if (id && arah==='keluar' && kategori==='Operasional')
+    return fail('Kategori Operasional dikelola di kartu "Kas Beasiswa & Operasional". Batalkan, lalu catat di sana.');
+  try {
+    if (arah==='keluar' && kategori==='Operasional') {
+      // Routing: pengeluaran Operasional → tabel operasional lama (baris baru)
+      var parts = tanggal.split('-');
+      var bulanName = BULAN_LIST[(Number(parts[1])||1) - 1];
+      var tahunVal  = Number(parts[0]) || new Date().getFullYear();
+      await window.HQ.AdminAPI.tambahOperasional({ bulan: bulanName, tahun: tahunVal, keterangan: keterangan, nominal: nominal, catatan: catatan });
+      if (typeof loadKasBeasiswa === 'function') loadKasBeasiswa();
+    } else {
+      var payload = { arah: arah, kategori: kategori, tanggal: tanggal, nominal: nominal,
+        keterangan: keterangan, penerima: penerima||null, metode: metode||null, catatan: catatan||null };
+      if (id) { payload.id_kas = id; await window.HQ.AdminAPI.updateKas(payload); }
+      else    { await window.HQ.AdminAPI.tambahKas(payload); }
+    }
+    tutupFormKas();
+    toast('Transaksi kas tersimpan','ok');
+    loadArusKas();
+  } catch(e) { fail('Gagal: '+(e.message||e)); }
 }
 
 async function toggleTipeSpp(id_anggota, current, nama) {
@@ -1205,6 +1390,15 @@ async function doKirimPengumuman() {
     window.editOperasional = editOperasional;
     window.simpanOperasional = simpanOperasional;
     window.hapusOperasionalItem = hapusOperasionalItem;
+    window.ensureArusKasBulanOptions = ensureArusKasBulanOptions;
+    window.loadArusKas = loadArusKas;
+    window.bukaFormKas = bukaFormKas;
+    window.tutupFormKas = tutupFormKas;
+    window.onKasArahChange = onKasArahChange;
+    window.onKasKategoriChange = onKasKategoriChange;
+    window.editKasItem = editKasItem;
+    window.hapusKasItem = hapusKasItem;
+    window.simpanKas = simpanKas;
     window.toggleTipeSpp = toggleTipeSpp;
     window.filterSPPTable = filterSPPTable;
     window.filterInfaqTable = filterInfaqTable;
