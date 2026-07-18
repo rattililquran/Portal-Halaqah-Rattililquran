@@ -83,8 +83,10 @@ if (r.ok) {
   check(isFn(HQ,'MuridAPI.getRincianRaport'), 'HQ.MuridAPI.getRincianRaport');
   check(isFn(HQ,'MuridAPI.getLatihanUploadToken'), 'HQ.MuridAPI.getLatihanUploadToken');
   check(isObj(HQ,'KetuaAPI'), 'HQ.KetuaAPI (real)');
-  check(isFn(HQ,'GuruAPI.getPenilaianHafalan'), 'HQ.GuruAPI.getPenilaianHafalan (boundary stub)');
-  check(isFn(HQ,'AdminAPI.getPushConfig'), 'HQ.AdminAPI.getPushConfig (boundary stub)');
+  check(isFn(HQ,'GuruAPI.getPenilaianHafalan'), 'HQ.GuruAPI.getPenilaianHafalan (boundary fill)');
+  check(isFn(HQ,'AdminAPI.getPushConfig'), 'HQ.AdminAPI.getPushConfig (boundary fill)');
+  check(!isFn(HQ,'GuruAPI.getRincianRaport'), 'HQ.GuruAPI.getRincianRaport TIDAK di-fill (dedup #1/#4)');
+  check(!isFn(HQ,'GuruAPI.generateRaportPDF'), 'HQ.GuruAPI.generateRaportPDF TIDAK di-fill (dedup)');
   check(!isFn(HQ,'GuruAPI.getKuisList'), 'HQ.GuruAPI.getKuisList TIDAK ada (guru-only, benar absen)');
   check(!isObj(HQ,'GuruAPI.getDashboard') && !isFn(HQ,'AdminAPI.getDashboard'), 'AdminAPI.getDashboard absen di murid');
   check(isFn(HQ,'QuizAPI.getKuisTersedia'), 'HQ.QuizAPI.getKuisTersedia (murid facade)');
@@ -102,10 +104,11 @@ if (r.ok) {
   const HQ = r.ctx.HQ;
   check(isObj(HQ,'GuruAPI'), 'HQ.GuruAPI (real)');
   check(isFn(HQ,'GuruAPI.getKuisList'), 'HQ.GuruAPI.getKuisList (real)');
-  check(isFn(HQ,'GuruAPI.getPenilaianHafalan'), 'HQ.GuruAPI.getPenilaianHafalan (real, dipertahankan)');
+  check(isFn(HQ,'GuruAPI.getPenilaianHafalan'), 'HQ.GuruAPI.getPenilaianHafalan (via fill, dedup)');
+  check(!isFn(HQ,'MuridAPI.getRincianRaport'), 'staff: HQ.MuridAPI.getRincianRaport absen (murid-only)');
   check(isObj(HQ,'AdminAPI'), 'HQ.AdminAPI (real)');
   check(isFn(HQ,'AdminAPI.getDashboard'), 'HQ.AdminAPI.getDashboard (real)');
-  check(isFn(HQ,'AdminAPI.getPushConfig'), 'HQ.AdminAPI.getPushConfig (real)');
+  check(isFn(HQ,'AdminAPI.getPushConfig'), 'HQ.AdminAPI.getPushConfig (via fill, dedup)');
   check(HQ.SuperAdminAPI === HQ.AdminAPI, 'HQ.SuperAdminAPI === AdminAPI');
   check(isFn(HQ,'MuridAPI.getLatihanUploadToken'), 'HQ.MuridAPI.getLatihanUploadToken (boundary stub utk guru)');
   check(!isFn(HQ,'MuridAPI.getRincianRaport'), 'HQ.MuridAPI.getRincianRaport TIDAK ada di staff (murid-only)');

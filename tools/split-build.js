@@ -5,9 +5,21 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = process.argv[2];
-if (!ROOT) { console.error('usage: split-build.js <projectRoot>'); process.exit(1); }
+if (!ROOT) { console.error('usage: split-build.js <projectRoot> [--force]'); process.exit(1); }
+const FORCE = process.argv.includes('--force');
 const SRC = path.join(ROOT, 'supabase', 'supabase-client.js');
 const OUT = path.join(ROOT, 'supabase');
+
+// GUARD (#2): file split kini KANONIK. Menimpanya dari monolit lama akan menghapus
+// edit manual apa pun. Tolak kecuali --force eksplisit.
+const TARGETS = ['supabase-core.js', 'api-staff.js', 'api-murid.js', 'hq-assemble.js'];
+const existing = TARGETS.filter(t => fs.existsSync(path.join(OUT, t)));
+if (existing.length && !FORCE) {
+  console.error('REFUSED: file split sudah ada & KANONIK (' + existing.join(', ') + ').');
+  console.error('Menjalankan ini menimpanya dari supabase-client.js lama — edit manual akan HILANG.');
+  console.error('Jika benar-benar sengaja regenerasi, ulangi dengan  --force');
+  process.exit(3);
+}
 const raw = fs.readFileSync(SRC, 'utf8');
 const L = raw.split('\n');            // L[0] = line 1
 const N = L.length;                   // note: trailing newline => last elem ''
@@ -85,18 +97,41 @@ facadeInner = facadeInner
   .replace(/\bGuruAPI\b/g, 'HQ.GuruAPI')
   .replace(/\bMuridAPI\b/g, 'HQ.MuridAPI');
 
+// ---- DEDUP (#1/#3/#4): hapus 5 method boundary ASLI dari slice asal.
+//      _core_* (di core) jadi satu-satunya sumur; akses via HQ.<Obj> (fill di assemble). ----
+const DEL = new Set();
+function markDel(a, b) { for (let i = a; i <= b; i++) DEL.add(i); }
+markDel(1961, 2019);   // GuruAPI.getRincianRaport
+markDel(2021, 2024);   // GuruAPI.generateRaportPDF
+markDel(2206, 2213);   // GuruAPI.getPenilaianHafalan
+markDel(4035, f4035);  // MuridAPI.getLatihanUploadToken
+markDel(7583, f7583);  // AdminAPI.getPushConfig
+// carve a..b (1-indexed inclusive) MENGECUALIKAN baris di DEL
+function sliceDel(a, b) {
+  const out = [];
+  for (let i = a; i <= b; i++) if (!DEL.has(i)) out.push(line(i));
+  return out.join('\n');
+}
+
 // ---- big object carves ----
 const HEAD  = slice(1, 582);
-const GURU  = slice(583, 3423);
+const GURU  = sliceDel(583, 3423);   // minus getRincianRaport/generateRaportPDF/getPenilaianHafalan
 const KALK  = slice(3424, 3671);
-let   MURID = slice(3672, 5471);
-const ADMIN = slice(5472, 7820);
+let   MURID = sliceDel(3672, 5471);  // minus getLatihanUploadToken
+const ADMIN = sliceDel(5472, 7820);  // minus getPushConfig
 const KETUA = slice(7821, 8103);
 const PUSH  = slice(8104, 8269);
 const IIFEBODY = slice(8284, 8392); // readPrefixes .. window._clearHQCache=clearCache
+// sanity: method asli benar-benar hilang dari slice
+assert(!/getRincianRaport: async function/.test(GURU), 'GuruAPI.getRincianRaport terhapus');
+assert(!/generateRaportPDF: async function/.test(GURU), 'GuruAPI.generateRaportPDF terhapus');
+assert(!/getPenilaianHafalan: async function/.test(GURU), 'GuruAPI.getPenilaianHafalan terhapus');
+assert(/savePenilaianHafalan: async function/.test(GURU), 'GuruAPI.savePenilaianHafalan MASIH ada (tak ikut terhapus)');
+assert(!/getLatihanUploadToken: async function/.test(MURID), 'MuridAPI.getLatihanUploadToken terhapus');
+assert(!/getPushConfig: async function/.test(ADMIN), 'AdminAPI.getPushConfig terhapus');
+if (failed) process.exit(2);
 
 // ---- edit MuridAPI wrappers: bare GuruAPI.* -> _core_* ----
-const before = MURID;
 MURID = MURID
   .replace('return GuruAPI.getRincianRaport(id_raport);', 'return _core_getRincianRaport(id_raport);')
   .replace('return GuruAPI.generateRaportPDF(id_r);', 'return _core_generateRaportPDF(id_r);');
@@ -181,11 +216,12 @@ HDR('HQ ASSEMBLE — dimuat TERAKHIR tiap portal (boundary fill, QuizAPI facade,
 '  var HQ = window.HQ; if (!HQ) return;',
 '  function ensure(n){ HQ[n] = HQ[n] || {}; return HQ[n]; }',
 '  function fill(n,m,fn){ var o = ensure(n); if (!o[m]) o[m] = fn; }',
+"  // 3 boundary diakses via HQ.<Obj> di portal yg tak memuat objek aslinya.",
 "  fill('GuruAPI','getPenilaianHafalan', _core_getPenilaianHafalan);",
-"  fill('GuruAPI','getRincianRaport',    _core_getRincianRaport);",
-"  fill('GuruAPI','generateRaportPDF',   _core_generateRaportPDF);",
 "  fill('AdminAPI','getPushConfig',      _core_getPushConfig);",
 "  fill('MuridAPI','getLatihanUploadToken', _core_getLatihanUploadToken);",
+"  // _core_getRincianRaport & _core_generateRaportPDF TIDAK di-fill: hanya dipanggil",
+"  // wrapper MuridAPI langsung (HQ.GuruAPI.* keduanya tak pernah dipanggil portal mana pun).",
 '',
 '  // QuizAPI facade — ref via HQ.* (undefined-safe; method sisi-lain hanya error bila dipanggil di portal salah)',
 '  HQ.QuizAPI = {',

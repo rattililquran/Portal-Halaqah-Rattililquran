@@ -8,11 +8,12 @@
   var HQ = window.HQ; if (!HQ) return;
   function ensure(n){ HQ[n] = HQ[n] || {}; return HQ[n]; }
   function fill(n,m,fn){ var o = ensure(n); if (!o[m]) o[m] = fn; }
+  // 3 boundary diakses via HQ.<Obj> di portal yg tak memuat objek aslinya.
   fill('GuruAPI','getPenilaianHafalan', _core_getPenilaianHafalan);
-  fill('GuruAPI','getRincianRaport',    _core_getRincianRaport);
-  fill('GuruAPI','generateRaportPDF',   _core_generateRaportPDF);
   fill('AdminAPI','getPushConfig',      _core_getPushConfig);
   fill('MuridAPI','getLatihanUploadToken', _core_getLatihanUploadToken);
+  // _core_getRincianRaport & _core_generateRaportPDF TIDAK di-fill: hanya dipanggil
+  // wrapper MuridAPI langsung (HQ.GuruAPI.* keduanya tak pernah dipanggil portal mana pun).
 
   // QuizAPI facade — ref via HQ.* (undefined-safe; method sisi-lain hanya error bila dipanggil di portal salah)
   HQ.QuizAPI = {

@@ -367,11 +367,6 @@ var MuridAPI = {
     return { status: 'ok', data: rows };
   },
 
-  getLatihanUploadToken: async function() {
-    var { data, error } = await _sb.rpc('get_latihan_upload_token');
-    _check(error, 'getLatihanUploadToken');
-    return { status: 'ok', token: data };
-  },
 
   submitPR: async function(id_nilai, catatan, lampiran_url) {
     var { data, error } = await _sb.rpc('submit_latihan_mandiri', {

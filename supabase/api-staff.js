@@ -1382,70 +1382,7 @@ var GuruAPI = {
     return { status: 'ok', message: 'Catatan disimpan' };
   },
 
-  getRincianRaport: async function(id_raport) {
-    var { data: raport } = await _sb.from('raport').select('*').eq('id_raport', id_raport).single();
-    if (!raport) return { status: 'error', message: 'Raport tidak ditemukan' };
-    // BUG-K3 fix: pakai maybeSingle() agar tidak crash jika data relasi sudah terhapus (ON DELETE SET NULL)
-    var { data: murid }   = raport.id_murid   ? await _sb.from('users').select('nama_lengkap, email').eq('id_user', raport.id_murid).maybeSingle()   : { data: null };
-    var { data: halaqah } = raport.id_halaqah ? await _sb.from('halaqah').select('nama_halaqah, nama_guru').eq('id_halaqah', raport.id_halaqah).maybeSingle() : { data: null };
-    var { data: periode } = raport.id_periode ? await _sb.from('periode').select('nama_periode').eq('id_periode', raport.id_periode).maybeSingle() : { data: null };
-    var { data: nilaiKBM } = await _sb.from('nilai_kbm')
-      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(materi_belajar, jenis_sesi, tanggal_pertemuan, pertemuan_ke)')
-      .eq('id_murid', raport.id_murid).eq('id_halaqah', raport.id_halaqah);
-    var { data: nilaiManual } = await _sb.from('nilai_manual').select('*').eq('id_murid', raport.id_murid).eq('id_periode', raport.id_periode);
-    var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
-    var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? (function(){try{return JSON.parse(raport.detail_json);}catch(e){return [];}})() : raport.detail_json) : [];
 
-    // Urutkan berdasarkan jenis_sesi (Reguler -> Qiyam -> Micro Teaching) kemudian tanggal
-    var sortedKBM = (nilaiKBM || []).sort(function(a, b) {
-      var catOrder = { 'KBM Reguler': 1, 'KBM Qiyam': 2, 'Micro Teaching': 3 };
-      var jenisA = a.jenis_sesi || (a.kbm_log && a.kbm_log.jenis_sesi) || 'KBM Reguler';
-      var jenisB = b.jenis_sesi || (b.kbm_log && b.kbm_log.jenis_sesi) || 'KBM Reguler';
-      var catA = catOrder[jenisA] || 99;
-      var catB = catOrder[jenisB] || 99;
-      if (catA !== catB) return catA - catB;
-      var tA = a.tanggal || (a.kbm_log && a.kbm_log.tanggal_pertemuan) || '';
-      var tB = b.tanggal || (b.kbm_log && b.kbm_log.tanggal_pertemuan) || '';
-      return tA.localeCompare(tB);
-    });
-
-    // Calculate attendance summary statistics using all sessions (consistent with Kehadiran grade component)
-    var hadirList = (sortedKBM || []).filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
-    var totalSesi = (sortedKBM || []).length;
-    return { status: 'ok', data: {
-      raport: {
-        id_raport: raport.id_raport, id_murid: raport.id_murid,
-        nama_murid: murid && murid.nama_lengkap, email: murid && murid.email,
-        halaqah: halaqah && halaqah.nama_halaqah, guru: halaqah && halaqah.nama_guru,
-        periode: periode && periode.nama_periode, level: '',
-        nilai_akhir: raport.nilai_akhir, predikat: raport.predikat,
-        tanggal_cetak: raport.tanggal_cetak, status: raport.status,
-        url_pdf: raport.url_pdf || '', komponen, catatan_guru: catatan && catatan.catatan || '',
-      },
-      sesi: (sortedKBM || []).map(function(n, i) { return {
-        no: i+1,
-        pertemuan_ke: n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
-        tanggal: n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
-        status_hadir: n.status_hadir, adab: n.adab, kamera: n.kamera_murid,
-        koreksi: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
-        materi: (n.kbm_log && n.kbm_log.materi_belajar) || '-',
-        jenis_sesi: n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler',
-      }; }),
-      summary: {
-        total_sesi: totalSesi, total_hadir: hadirList.length,
-        total_alpa: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length,
-        total_izin: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='I';}).length,
-        total_terlambat: (sortedKBM || []).filter(function(n){return String(n.status_hadir||'').toUpperCase()==='T';}).length,
-        pct_hadir: totalSesi > 0 ? Math.round((hadirList.length/totalSesi)*100) : 0,
-      },
-      nilai_manual: (nilaiManual || []),
-    }};
-  },
-
-  generateRaportPDF: async function(id_raport) {
-    // PDF generation via GAS masih dipertahankan sementara
-    return { status: 'error', message: 'PDF generation belum tersedia. Gunakan fitur print browser.' };
-  },
 
   // ── Password ───────────────────────────────
   changePassword: async function(d) { return Auth.changePassword(d); },
@@ -1627,14 +1564,6 @@ var GuruAPI = {
   },
 
   // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)
-  getPenilaianHafalan: async function() {
-    var { data, error } = await _sb.from('konfigurasi_penilaian_hafalan')
-      .select('kelancaran, nilai')
-      .eq('id', 'global')
-      .maybeSingle();
-    if (error) { console.warn('getPenilaianHafalan:', error.message); return { status: 'ok', data: null }; }
-    return { status: 'ok', data: data || null };
-  },
 
   savePenilaianHafalan: async function(config) {
     var { error } = await _sb.from('konfigurasi_penilaian_hafalan')
@@ -5206,10 +5135,6 @@ var AdminAPI = {
   },
 
   // ── Push Notifikasi Admin ──────────────────────
-  getPushConfig: async function() {
-    var {data,error} = await _sb.from('push_config').select('*').order('key');
-    _check(error,'getPushConfig'); return {status:'ok',data:data||[]};
-  },
   updatePushConfig: async function(key, enabled) {
     var {error} = await _sb.from('push_config').update({enabled,updated_at:new Date().toISOString()}).eq('key',key);
     _check(error,'updatePushConfig'); return {status:'ok'};
