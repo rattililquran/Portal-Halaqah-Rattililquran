@@ -2794,11 +2794,16 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
     var myAnswers = (asmtMurid || []).filter(function(a) { return a.id_murid === idMurid; });
     
     // 2. Petakan ke komponen detail_json (80% total / 7 indikator = ~11.4% per indikator)
-    var listKomp = (asmtItems || []).map(function(item) {
+    var listKomp = [];
+    (asmtItems || []).forEach(function(item) {
       var ans = myAnswers.find(function(a) { return a.id_item === item.id_item; });
       var statusGuru = ans ? ans.status_guru : null;
+      // Indikator yang BELUM diverifikasi guru (status_guru null / tak ada baris) di-exclude
+      // (tak menyumbang bobot), bukan default 50 — selaras kebijakan "hanya nilai komponen
+      // yang ada datanya". Verdict 'belum' (50) TETAP dihitung: itu penilaian guru yang sah.
+      if (statusGuru == null) return;
       var score = statusGuru === 'paham' ? 100 : statusGuru === 'ragu' ? 70 : 50;
-      return {
+      listKomp.push({
         id_komponen: item.id_item,
         nama_komponen: item.teks_latin,
         teks_arab: item.teks_arab,
@@ -2809,7 +2814,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         nilai_bobot: Math.round((score * 11.4) / 100 * 10) / 10,
         tipe: 'daurah_indikator',
         status_guru: statusGuru
-      };
+      });
     });
 
     // 3. Tambahkan komponen KBM Daurah (Kehadiran & Kamera)
