@@ -596,8 +596,9 @@ async function bukaKelolaKategori() {
   document.body.style.overflow = 'hidden';
   var wrapM = document.getElementById('kkList_masuk');
   var wrapK = document.getElementById('kkList_keluar');
-  if (wrapM) wrapM.innerHTML = '<div style="color:var(--text-3);font-size:12px;padding:8px">Memuat...</div>';
-  if (wrapK) wrapK.innerHTML = '';
+  var loadingHtml = '<div style="color:var(--text-3);font-size:12px;padding:8px">Memuat...</div>';
+  if (wrapM) wrapM.innerHTML = loadingHtml;
+  if (wrapK) wrapK.innerHTML = loadingHtml;
   await loadKasKategori(true);
   renderKelolaKategori();
 }
@@ -622,8 +623,8 @@ function renderKelolaKategori() {
         + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--text)">'+esc(k.nama)+(locked?' <span title="Kategori sistem (terkunci)" style="font-size:11px">🔒</span>':'')+'</span>'
         + (locked
             ? '<span style="font-size:10px;color:var(--text-3)">sistem</span>'
-            : '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="renameKategoriKas(\''+esc(k.id_kk)+'\',\''+escJs(k.nama)+'\')">✏️</button>'
-              + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKategoriKas(\''+esc(k.id_kk)+'\',\''+escJs(k.nama)+'\')">🗑</button>')
+            : '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="renameKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">✏️</button>'
+              + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">🗑</button>')
         + '</div>';
     }).join('');
   });
