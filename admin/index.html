@@ -2271,8 +2271,13 @@ html.theme-dark .fin-detail-card {
               <div style="font-size:13px;font-weight:800;color:var(--text)">📒 Buku Kas (Arus Kas)</div>
               <div style="font-size:11px;color:var(--text-3);margin-top:2px">Pemasukan &amp; pengeluaran kas. Ihsan Guru dihitung sebagai pengeluaran (honor), bukan pemasukan.</div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <select id="arusKasBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <button type="button" class="btn btn-outline btn-sm" onclick="arusKasPreset('bulan')" style="font-size:11px;padding:6px 10px">Bulan Ini</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="arusKasPreset('tahun')" style="font-size:11px;padding:6px 10px">Setahun</button>
+              <span style="font-size:11px;color:var(--text-3);font-weight:700">Dari</span>
+              <select id="arusKasBulanStart" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
+              <span style="font-size:11px;color:var(--text-3);font-weight:700">s/d</span>
+              <select id="arusKasBulanEnd" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
               <button class="btn btn-primary btn-sm" onclick="bukaFormKas()" style="font-size:12px;padding:6px 12px">+ Catat Transaksi</button>
             </div>
           </div>
@@ -2300,7 +2305,7 @@ html.theme-dark .fin-detail-card {
               <div id="arusKasBdKeluar" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
           </div>
-          <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🧾 Riwayat Transaksi Bulan Ini</div>
+          <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🧾 Riwayat Transaksi <span id="arusKasPeriodeLabel" style="color:var(--text-3);font-weight:700"></span></div>
           <div id="arusKasRiwayat" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
         </div>
 
@@ -4200,13 +4205,13 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.1.17"></script>
+<script src="../supabase/supabase-client.js?v=2.1.18"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=1.1.0" defer></script>
 <script src="murid-module.js?v=1.0.1" defer></script>
 <script src="kelompok-module.js?v=1.0.2" defer></script>
-<script src="spp-keuangan-module.js?v=1.0.2" defer></script>
+<script src="spp-keuangan-module.js?v=1.0.3" defer></script>
 <script src="konten-module.js?v=1.0.1" defer></script>
 <script src="laporan-module.js?v=1.0.0" defer></script>
 <script src="mutabaah-module.js?v=1.0.2" defer></script>

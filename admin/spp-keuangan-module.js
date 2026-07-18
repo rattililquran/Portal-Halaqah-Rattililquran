@@ -373,11 +373,22 @@ var KAS_KATEGORI = {
 var _arusKasRows = [];
 
 function ensureArusKasBulanOptions() {
-  var sel = document.getElementById('arusKasBulan');
-  if (sel && !sel.options.length) {
-    sel.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
-    sel.value = BULAN_LIST[new Date().getMonth()];
-  }
+  var now = BULAN_LIST[new Date().getMonth()];
+  ['arusKasBulanStart','arusKasBulanEnd'].forEach(function(id){
+    var sel = document.getElementById(id);
+    if (sel && !sel.options.length) {
+      sel.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+      sel.value = now;
+    }
+  });
+}
+function arusKasPreset(mode) {
+  var s = document.getElementById('arusKasBulanStart');
+  var e = document.getElementById('arusKasBulanEnd');
+  if (!s || !e) return;
+  if (mode === 'tahun') { s.value = BULAN_LIST[0]; e.value = BULAN_LIST[11]; }
+  else { var now = BULAN_LIST[new Date().getMonth()]; s.value = now; e.value = now; }
+  loadArusKas();
 }
 
 function renderArusKasBreakdown(containerId, items, arah) {
@@ -437,13 +448,19 @@ function renderArusKasRiwayat(rows) {
 
 async function loadArusKas() {
   ensureArusKasBulanOptions();
-  if (!document.getElementById('arusKasBulan')) return;
+  if (!document.getElementById('arusKasBulanStart')) return;
   var tahun = Number((document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || new Date().getFullYear());
-  var bulan = document.getElementById('arusKasBulan').value;
+  var bulanStart = document.getElementById('arusKasBulanStart').value;
+  var bulanEnd   = document.getElementById('arusKasBulanEnd').value;
   try {
-    var res = await window.HQ.AdminAPI.getArusKas({ tahun: tahun, bulan: bulan });
+    var res = await window.HQ.AdminAPI.getArusKas({ tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd });
     var d = res.data || {};
     _arusKasRows = d.riwayat || [];
+    var lbl = document.getElementById('arusKasPeriodeLabel');
+    if (lbl) {
+      var bs = d.bulan_start || bulanStart, be = d.bulan_end || bulanEnd;
+      lbl.textContent = (bs === be ? bs : bs + '–' + be) + ' ' + (d.tahun || tahun);
+    }
     var fmt = function(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); };
     document.getElementById('arusKasMasuk').textContent  = fmt(d.total_masuk);
     document.getElementById('arusKasKeluar').textContent = fmt(d.total_keluar);
@@ -1391,6 +1408,7 @@ async function doKirimPengumuman() {
     window.simpanOperasional = simpanOperasional;
     window.hapusOperasionalItem = hapusOperasionalItem;
     window.ensureArusKasBulanOptions = ensureArusKasBulanOptions;
+    window.arusKasPreset = arusKasPreset;
     window.loadArusKas = loadArusKas;
     window.bukaFormKas = bukaFormKas;
     window.tutupFormKas = tutupFormKas;

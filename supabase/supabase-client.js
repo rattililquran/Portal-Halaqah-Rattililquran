@@ -6862,12 +6862,16 @@ var AdminAPI = {
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var tahun = p.tahun ? Number(p.tahun) : new Date().getFullYear();
     var q = _sb.from('kas').select('*');
-    var idx = p.bulan ? BULAN.indexOf(p.bulan) : -1;
-    if (idx >= 0) {
+    // Periode: rentang (bulanStart..bulanEnd) | bulan tunggal | setahun penuh
+    var sIdx = -1, eIdx = -1;
+    if (p.bulanStart && p.bulanEnd) { sIdx = BULAN.indexOf(p.bulanStart); eIdx = BULAN.indexOf(p.bulanEnd); }
+    else if (p.bulan)               { sIdx = eIdx = BULAN.indexOf(p.bulan); }
+    if (sIdx >= 0 && eIdx >= 0) {
+      if (sIdx > eIdx) { var _t = sIdx; sIdx = eIdx; eIdx = _t; }
       var pad = function(n){ return (n < 10 ? '0' : '') + n; };
-      var start = tahun + '-' + pad(idx + 1) + '-01';
-      var endY  = idx === 11 ? tahun + 1 : tahun;
-      var endM  = idx === 11 ? 1 : idx + 2;
+      var start = tahun + '-' + pad(sIdx + 1) + '-01';
+      var endY  = eIdx === 11 ? tahun + 1 : tahun;
+      var endM  = eIdx === 11 ? 1 : eIdx + 2;
       var end   = endY + '-' + pad(endM) + '-01';
       q = q.gte('tanggal', start).lt('tanggal', end);
     } else {
@@ -6908,39 +6912,50 @@ var AdminAPI = {
     _logAudit('hapus_kas', { id_kas: id_kas });
     return { status:'ok' };
   },
-  // Laporan Arus Kas (per bulan): sisi MASUK = SPP Pribadi lunas + Infaq lunas +
-  // kas(masuk); sisi KELUAR = kas(keluar) + operasional + Ihsan Guru (gaji).
-  // Ihsan Guru TIDAK dihitung sebagai pemasukan. Infaq bulanan via RPC
-  // get_infaq_bulanan (kolom bulan infaq selalu '-', periode dari tanggal_bayar)
-  // agar konsisten dgn panel transparansi murid & distribusi beasiswa.
+  // Laporan Arus Kas (rentang bulan): sisi MASUK = SPP Pribadi lunas + Infaq
+  // lunas + kas(masuk); sisi KELUAR = kas(keluar) + operasional + Ihsan Guru
+  // (gaji). Ihsan Guru TIDAK dihitung sebagai pemasukan. Infaq via RPC
+  // get_infaq_bulanan per bulan (kolom bulan infaq selalu '-', periode dari
+  // tanggal_bayar) lalu dijumlah — konsisten dgn transparansi murid & beasiswa.
+  // Terima {tahun, bulan} (tunggal, legacy) ATAU {tahun, bulanStart, bulanEnd}.
   getArusKas: async function(p) {
     p = p || {};
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var tahun = p.tahun ? Number(p.tahun) : new Date().getFullYear();
-    var bulan = p.bulan || BULAN[new Date().getMonth()];
-    var bulanIdx = BULAN.indexOf(bulan) + 1;
+    // Resolusi periode → indeks bulan [startIdx..endIdx]
+    var startIdx, endIdx;
+    if (p.bulanStart && p.bulanEnd) { startIdx = BULAN.indexOf(p.bulanStart); endIdx = BULAN.indexOf(p.bulanEnd); }
+    else if (p.bulan)               { startIdx = endIdx = BULAN.indexOf(p.bulan); }
+    else                            { startIdx = endIdx = new Date().getMonth(); }
+    if (startIdx < 0) startIdx = new Date().getMonth();
+    if (endIdx   < 0) endIdx   = new Date().getMonth();
+    if (startIdx > endIdx) { var _t = startIdx; startIdx = endIdx; endIdx = _t; }
+    var monthNames = BULAN.slice(startIdx, endIdx + 1);
 
-    // 1. SPP Pribadi + Ihsan Guru lunas bulan ini (keduanya pakai kolom bulan = nama bulan)
+    // 1. SPP Pribadi + Ihsan Guru lunas dlm rentang (keduanya pakai kolom bulan = nama bulan)
     var { data: sppRows, error: sppErr } = await _sb.from('spp_pembayaran')
       .select('id_spp, id_murid, nama_murid, jenis, bulan, tahun, nominal, tanggal_bayar, metode_bayar, catatan')
-      .eq('tahun', tahun).eq('bulan', bulan).eq('status','lunas');
+      .eq('tahun', tahun).in('bulan', monthNames).eq('status','lunas');
     _check(sppErr,'getArusKas:spp');
     var sppPribadiRows = (sppRows||[]).filter(function(s){ return s.jenis === 'SPP Pribadi' || !s.jenis; });
     var ihsanRows      = (sppRows||[]).filter(function(s){ return s.jenis === 'Ihsan Guru'; });
     var sppMasuk    = sppPribadiRows.reduce(function(s,r){ return s+Number(r.nominal||0); }, 0);
     var ihsanKeluar = ihsanRows.reduce(function(s,r){ return s+Number(r.nominal||0); }, 0);
 
-    // 2. Infaq bulanan (RPC — periode via tanggal_bayar, konsisten dgn transparansi murid)
-    var infaqRes = await _sb.rpc('get_infaq_bulanan', { p_bulan_idx: bulanIdx, p_tahun: tahun });
-    var infaqMasuk = Number((infaqRes && infaqRes.data) || 0);
+    // 2. Infaq per bulan (RPC — periode via tanggal_bayar), dijumlah utk rentang
+    var infaqPromises = [];
+    for (var mi = startIdx; mi <= endIdx; mi++) infaqPromises.push(_sb.rpc('get_infaq_bulanan', { p_bulan_idx: mi + 1, p_tahun: tahun }));
+    var infaqResults = await Promise.all(infaqPromises);
+    var infaqMasuk = 0, infaqPerBulan = [];
+    infaqResults.forEach(function(r, i){ var n = Number((r && r.data) || 0); infaqMasuk += n; if (n > 0) infaqPerBulan.push({ bulan: BULAN[startIdx + i], nominal: n }); });
 
-    // 3. Operasional bulan ini (tabel lama, TIDAK disentuh)
-    var opRes = await this.getOperasional({ tahun: tahun, bulan: bulan });
-    var opRows = opRes.data || [];
-    var operasionalKeluar = Number(opRes.total || 0);
+    // 3. Operasional dlm rentang (tabel lama, TIDAK disentuh) — ambil setahun lalu saring
+    var opAll = await this.getOperasional({ tahun: tahun });
+    var opRows = (opAll.data || []).filter(function(o){ return monthNames.indexOf(o.bulan) >= 0; });
+    var operasionalKeluar = opRows.reduce(function(s,o){ return s+Number(o.nominal||0); }, 0);
 
-    // 4. Kas umum bulan ini
-    var kasRes = await this.getKas({ tahun: tahun, bulan: bulan });
+    // 4. Kas umum dlm rentang
+    var kasRes = await this.getKas({ tahun: tahun, bulanStart: monthNames[0], bulanEnd: monthNames[monthNames.length - 1] });
     var kasRows = kasRes.data || [];
     var kasMasuk = 0, kasKeluar = 0, bMasuk = {}, bKeluar = {};
     kasRows.forEach(function(k){
@@ -6973,7 +6988,7 @@ var AdminAPI = {
     });
     opRows.forEach(function(o){
       riwayat.push({ source:'operasional', id:o.id_operasional, tanggal:null, arah:'keluar',
-        kategori:'Operasional', nominal:Number(o.nominal||0), keterangan:o.keterangan,
+        kategori:'Operasional', nominal:Number(o.nominal||0), keterangan:(o.keterangan||'')+' ('+(o.bulan||'')+')',
         penerima:null, metode:null, catatan:o.catatan||null });
     });
     ihsanRows.forEach(function(x){
@@ -6986,11 +7001,11 @@ var AdminAPI = {
         kategori:'SPP Pribadi', nominal:Number(s.nominal||0),
         keterangan:'SPP '+(s.bulan||'')+' — '+(s.nama_murid||''), penerima:s.nama_murid||null, metode:s.metode_bayar||null, catatan:s.catatan||null });
     });
-    // Infaq sebagai satu baris agregat (per-baris bulanan tak tersedia bersih via kolom bulan='-')
-    if (infaqMasuk > 0) {
-      riwayat.push({ source:'infaq', id:'infaq-'+tahun+'-'+bulanIdx, tanggal:null, arah:'masuk',
-        kategori:'Infaq', nominal:infaqMasuk, keterangan:'Infaq/Operasional (total bulan)', penerima:null, metode:null, catatan:null });
-    }
+    // Infaq: satu baris agregat per bulan (per-baris individu tak tersedia bersih via kolom bulan='-')
+    infaqPerBulan.forEach(function(x){
+      riwayat.push({ source:'infaq', id:'infaq-'+tahun+'-'+x.bulan, tanggal:null, arah:'masuk',
+        kategori:'Infaq', nominal:x.nominal, keterangan:'Infaq/Operasional ('+x.bulan+')', penerima:null, metode:null, catatan:null });
+    });
     riwayat.sort(function(a,b){
       var ta = a.tanggal || '', tb = b.tanggal || '';
       if (ta && tb) return tb.localeCompare(ta);
@@ -7000,7 +7015,7 @@ var AdminAPI = {
     });
 
     return { status:'ok', data:{
-      tahun: tahun, bulan: bulan,
+      tahun: tahun, bulan_start: monthNames[0], bulan_end: monthNames[monthNames.length - 1],
       total_masuk: totalMasuk, total_keluar: totalKeluar, saldo: totalMasuk - totalKeluar,
       masuk:  { spp_pribadi: sppMasuk, infaq: infaqMasuk, kas: kasMasuk },
       keluar: { kas: kasKeluar, operasional: operasionalKeluar, ihsan: ihsanKeluar },
