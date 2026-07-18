@@ -2823,23 +2823,28 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       return true;
     });
 
-    // A. Kehadiran KBM (Bobot: 10%)
-    var skorHadir = myKBM.reduce(function(s,n) {
-      var kd = String(n.status_hadir||'').toUpperCase();
-      return s + (kd === 'H' ? 1 : kd === 'T' ? 0.7 : kd === 'I' ? 0.5 : 0);
-    }, 0);
-    var nilaiHadir = myKBM.length > 0 ? Math.round(skorHadir / myKBM.length * 100) : 100;
+    // A. Kehadiran KBM (Bobot: 10%) — hanya dihitung bila ada data KBM di periode ini.
+    // Tanpa sesi KBM sama sekali, kehadiran tidak dinilai (di-exclude), selaras cabang Reguler.
+    // Sebelumnya default 100 → murid tanpa data KBM ikut terangkat & membuat guard
+    // "Belum Ada Data" (listKomp.length===0) mustahil tercapai.
+    if (myKBM.length > 0) {
+      var skorHadir = myKBM.reduce(function(s,n) {
+        var kd = String(n.status_hadir||'').toUpperCase();
+        return s + (kd === 'H' ? 1 : kd === 'T' ? 0.7 : kd === 'I' ? 0.5 : 0);
+      }, 0);
+      var nilaiHadir = Math.round(skorHadir / myKBM.length * 100);
 
-    listKomp.push({
-      id_komponen: 'daurah-kehadiran-kbm',
-      nama_komponen: 'Kehadiran KBM',
-      bobot: 10,
-      bobot_original: 10,
-      nilai: nilaiHadir,
-      nilai_bobot: Math.round((nilaiHadir * 10) / 100 * 10) / 10,
-      tipe: 'daurah_kbm',
-      keterangan: 'Kedisiplinan kehadiran di ruang Zoom'
-    });
+      listKomp.push({
+        id_komponen: 'daurah-kehadiran-kbm',
+        nama_komponen: 'Kehadiran KBM',
+        bobot: 10,
+        bobot_original: 10,
+        nilai: nilaiHadir,
+        nilai_bobot: Math.round((nilaiHadir * 10) / 100 * 10) / 10,
+        tipe: 'daurah_kbm',
+        keterangan: 'Kedisiplinan kehadiran di ruang Zoom'
+      });
+    }
 
     // B. Partisipasi & Kamera KBM (Bobot: 10%) — hanya dihitung bila ada sesi hadir (H/T).
     // Murid absen total tidak dinilai adab/kamera: komponen di-exclude (tak menyumbang bobot),
@@ -4830,7 +4835,14 @@ var AdminAPI = {
 
     // 6. Nilai manual dan KBM per halaqah (dikelompokkan)
     var nilaiManualAll = [], nilaiKBMAll = [], atLogAll = [];
-    if (!isDaurahLevel) {
+    if (isDaurahLevel) {
+      // Daurah hanya butuh nilai_kbm (komponen Kehadiran + Adab/Kamera, 20%); nilai_manual
+      // & At-Tibyan tak dipakai cabang daurah. Tanpa fetch ini komponen KBM daurah hilang
+      // (selaras generateRaportHalaqah yang memang mengambil KBM untuk daurah).
+      var { data: kbmD } = await _sb.from('nilai_kbm')
+        .select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status, tanggal_pertemuan)').in('id_murid', ids);
+      nilaiKBMAll = kbmD || [];
+    } else {
       var [nmRes, kbmRes, atRes] = await Promise.all([
         _sb.from('nilai_manual').select('*').eq('id_periode', p.id_periode).in('id_murid', ids),
         _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(jenis_sesi, status, tanggal_pertemuan)').in('id_murid', ids),
