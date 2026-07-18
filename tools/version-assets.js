@@ -32,7 +32,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
-const HTML_FILES = ['admin/index.html', 'guru/index.html', 'murid/index.html'];
+const HTML_FILES = ['index.html', 'admin/index.html', 'guru/index.html', 'murid/index.html'];
 
 // Cocokkan: <path>.js|css ?v=<versi>. Path tak boleh mengandung kutip/spasi/tanda-tanya.
 const REF_RE = /([A-Za-z0-9_./-]+\.(?:js|css))\?v=([A-Za-z0-9._-]+)/g;
