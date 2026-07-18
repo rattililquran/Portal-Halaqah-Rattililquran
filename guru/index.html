@@ -3983,12 +3983,12 @@ html.theme-dark .pr-chip.active {
       <!-- ════ ASSESSMENT ════ -->
       <div class="page" id="page-assessment">
         <div class="page-title-row">
-          <span>Assessment Mandiri</span>
+          <span>Assessment</span>
           <button class="guru-refresh-btn" id="btnRefreshAsmt" onclick="guruRefresh('assessment')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
           </button>
         </div>
-        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Rekap self-assessment Makharijul &amp; Sifaatul Huruf (Level 1 &amp; 2).</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Self-assessment murid (Level 1 &amp; 2) &amp; verifikasi indikator tajwid oleh guru (Daurah Al-Fatihah).</div>
 
         <div class="fg" style="margin-bottom:16px">
           <label>Pilih Halaqah</label>
@@ -4965,7 +4965,7 @@ html.theme-dark .pr-chip.active {
           </div></div>
 
           <!-- 10. Assessment Mandiri -->
-          <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-a">✍️</div><div style="flex:1"><div class="pd-acc-title">Assessment Mandiri</div><div class="pd-acc-sub">Rekap self-assessment Makharijul &amp; Sifaatul Huruf</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
+          <div class="pd-acc"><button class="pd-acc-head" onclick="pdToggle(this)"><div class="pd-acc-ico pd-ico-a">✍️</div><div style="flex:1"><div class="pd-acc-title">Assessment</div><div class="pd-acc-sub">Rekap self-assessment Makharijul &amp; Sifaatul Huruf</div></div><div class="pd-chev"><svg fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div></button>
           <div class="pd-acc-body"><div class="pd-sep"></div>
             <div class="pd-info"><div class="pd-info-i">📌</div><div>Murid <strong>Level 1 &amp; 2</strong> mengisi self-assessment makhraj dan sifat huruf secara mandiri. Menu ini menampilkan <strong>rekapnya</strong> per halaqah.</div></div>
             <div class="pd-step-d">Pilih halaqah → tampil ringkasan dan rekap pengisian tiap murid.</div>
@@ -6420,7 +6420,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
   'nilai-manual':'Input Nilai Manual','raport':'Raport Halaqah',password:'Ganti Password',panduan:'Panduan',
   'hafalan-guru':'Input Hafalan Qiyam',
   'raport-tahfidz':'Raport Tahfidz',
-  keaktifan:'Keaktifan Murid',assessment:'Assessment Mandiri',
+  keaktifan:'Keaktifan Murid',assessment:'Assessment',
   jadwal:'Jadwal KBM',
   'peninjauan-pr':'Peninjauan Tugas & PR',
   'mutabaah-guru':"Mutaba'ah Daurah",
@@ -8635,34 +8635,97 @@ async function loadAssessmentRekap() {
   }
 }
 
+// ══════════════════════════════════════════
+//  ASSESSMENT REKAP  (Fase 1+2: context-aware Daurah = penilaian GURU)
+// ══════════════════════════════════════════
+var _asmtData = null;          // { data, totalItems, level, isDaurah }
+var _asmtOpen = {};            // id_murid -> true bila detail terbuka
+var _asmtOnlyPending = false;  // filter Daurah: hanya indikator belum dinilai guru
+
+// Sebaran verifikasi GURU (status_guru) dari detail satu murid
+function _asmtGuruCounts(detail) {
+  var c = { paham:0, ragu:0, belum:0, pending:0 };
+  (detail || []).forEach(function(d){
+    var g = d.jawaban_guru;
+    if (g === 'paham') c.paham++;
+    else if (g === 'ragu') c.ragu++;
+    else if (g === 'belum') c.belum++;
+    else c.pending++;
+  });
+  return c;
+}
+
 function renderAssessmentRekap(data, totalItems, level) {
   var el = document.getElementById('asmtRekapContent');
   var sumEl = document.getElementById('asmtSummary');
   if (!el) return;
 
+  var isDaurah = (level === 'Tahsin Al-Fatihah');
+  _asmtData = { data: data, totalItems: totalItems, level: level, isDaurah: isDaurah };
+  if (!isDaurah) _asmtOnlyPending = false;
+
   if (!data || !data.length) {
     if (sumEl) sumEl.style.display = 'none';
     el.innerHTML = '<div class="guru-empty" style="padding:40px 0"><div class="guru-empty-ico">📭</div>'
-      + '<div class="guru-empty-ttl">Belum ada data assessment</div>'
-      + '<div class="guru-empty-sub">Murid di halaqah ini belum mengisi assessment mandiri.</div></div>';
+      + '<div class="guru-empty-ttl">Belum ada data</div>'
+      + '<div class="guru-empty-sub">Belum ada murid aktif di halaqah ini.</div></div>';
     return;
   }
+  _renderAsmtSummary();
+  _renderAsmtList();
+}
 
-  // #10 — Summary halaqah keseluruhan
-  var totPaham=0, totRagu=0, totBelum=0, totKosong=0, sudahIsi=0;
-  data.forEach(function(m){
-    var s=m.summary;
-    totPaham+=s.paham; totRagu+=s.ragu; totBelum+=s.belum; totKosong+=s.kosong;
-    if (m.last_update) sudahIsi++;
-  });
-  var totAll = totPaham+totRagu+totBelum+totKosong || 1;
-  var pctP=Math.round(totPaham/totAll*100), pctR=Math.round(totRagu/totAll*100), pctB=Math.round((totBelum+totKosong)/totAll*100);
-  var belumIsi = data.length - sudahIsi;
-  if (sumEl) {
-    sumEl.style.display = 'block';
+function _renderAsmtSummary() {
+  var sumEl = document.getElementById('asmtSummary');
+  if (!sumEl || !_asmtData) return;
+  var D = _asmtData, data = D.data, totalItems = D.totalItems, level = D.level;
+  sumEl.style.display = 'block';
+
+  if (D.isDaurah) {
+    // ── Agregat dari penilaian GURU (status_guru) ──
+    var P=0,R=0,B=0,PEND=0;
+    data.forEach(function(m){ var c=_asmtGuruCounts(m.detail); P+=c.paham; R+=c.ragu; B+=c.belum; PEND+=c.pending; });
+    var denom = (totalItems * data.length) || 1;
+    var pctP=Math.round(P/denom*100), pctR=Math.round(R/denom*100), pctB=Math.round(B/denom*100);
+    var pctPend = Math.max(0, 100 - pctP - pctR - pctB);
     sumEl.innerHTML =
       '<div style="font-size:12.5px;color:var(--text-3);font-weight:700;margin-bottom:10px">'
-      + level + ' · ' + data.length + ' murid · ' + totalItems + ' poin assessment'
+      + esc(level) + ' · ' + data.length + ' murid · ' + totalItems + ' indikator'
+      + (PEND > 0
+          ? ' · <span style="color:var(--amber);font-weight:800">'+PEND+' belum dinilai guru</span>'
+          : ' · <span style="color:var(--green);font-weight:800">semua sudah dinilai guru ✅</span>')
+      + '</div>'
+      + '<div class="asmt-summary">'
+      + '<div class="asmt-summary-card asmt-s-paham"><div class="asmt-s-num">'+pctP+'%</div><div class="asmt-s-lbl">Paham</div></div>'
+      + '<div class="asmt-summary-card asmt-s-ragu"><div class="asmt-s-num">'+pctR+'%</div><div class="asmt-s-lbl">Ragu</div></div>'
+      + '<div class="asmt-summary-card asmt-s-belum"><div class="asmt-s-num">'+pctB+'%</div><div class="asmt-s-lbl">Belum</div></div>'
+      + '</div>'
+      + '<div class="asmt-dist-bar">'
+      + '<div class="asmt-dist-seg" style="width:'+pctP+'%;background:#10b981"></div>'
+      + '<div class="asmt-dist-seg" style="width:'+pctR+'%;background:#f59e0b"></div>'
+      + '<div class="asmt-dist-seg" style="width:'+pctB+'%;background:#ef4444"></div>'
+      + '<div class="asmt-dist-seg" style="width:'+pctPend+'%;background:var(--border)"></div>'
+      + '</div>'
+      + '<div class="asmt-dist-labels"><span style="color:#10b981">✅ Paham '+pctP+'%</span><span style="color:#f59e0b">🟡 Ragu '+pctR+'%</span><span style="color:#ef4444">❌ Belum '+pctB+'%</span><span style="color:var(--text-3)">⚪ Blm dinilai '+pctPend+'%</span></div>'
+      + '<div style="margin-top:12px;display:flex;justify-content:flex-end">'
+      +   '<button onclick="toggleAsmtOnlyPending()" style="cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:8px;border:1px solid '+(_asmtOnlyPending?'var(--amber)':'var(--border)')+';background:'+(_asmtOnlyPending?'rgba(245,158,11,.12)':'transparent')+';color:'+(_asmtOnlyPending?'var(--amber)':'var(--text-3)')+'">'
+      +     (_asmtOnlyPending ? '☑ Hanya belum dinilai' : '☐ Hanya belum dinilai')
+      +   '</button>'
+      + '</div>';
+  } else {
+    // ── Level 1 & 2: self-assessment MURID (perilaku lama) ──
+    var totPaham=0, totRagu=0, totBelum=0, totKosong=0, sudahIsi=0;
+    data.forEach(function(m){
+      var s=m.summary;
+      totPaham+=s.paham; totRagu+=s.ragu; totBelum+=s.belum; totKosong+=s.kosong;
+      if (m.last_update) sudahIsi++;
+    });
+    var totAll = totPaham+totRagu+totBelum+totKosong || 1;
+    var pctP=Math.round(totPaham/totAll*100), pctR=Math.round(totRagu/totAll*100), pctB=Math.round((totBelum+totKosong)/totAll*100);
+    var belumIsi = data.length - sudahIsi;
+    sumEl.innerHTML =
+      '<div style="font-size:12.5px;color:var(--text-3);font-weight:700;margin-bottom:10px">'
+      + esc(level) + ' · ' + data.length + ' murid · ' + totalItems + ' poin assessment'
       + (belumIsi > 0 ? ' · <span style="color:var(--red);font-weight:800">'+belumIsi+' belum isi</span>' : ' · <span style="color:var(--green);font-weight:800">semua sudah isi ✅</span>')
       + '</div>'
       + '<div class="asmt-summary">'
@@ -8677,51 +8740,91 @@ function renderAssessmentRekap(data, totalItems, level) {
       + '</div>'
       + '<div class="asmt-dist-labels"><span style="color:#10b981">✅ Paham '+pctP+'%</span><span style="color:#f59e0b">🟡 Ragu '+pctR+'%</span><span style="color:#ef4444">❌ Perlu fokus '+pctB+'%</span></div>';
   }
+}
 
-  var JAWABAN_LABEL = {paham:'✅ Paham', ragu:'🟡 Ragu', belum:'❌ Belum', null:'—'};
+function _renderAsmtList() {
+  var el = document.getElementById('asmtRekapContent');
+  if (!el || !_asmtData) return;
+  var D = _asmtData, data = D.data, totalItems = D.totalItems, level = D.level, isDaurah = D.isDaurah;
+
+  var list = data.slice();
+  if (isDaurah) {
+    // Yang paling banyak belum dinilai di atas (agar guru fokus melengkapi)
+    list.sort(function(a,b){ return _asmtGuruCounts(b.detail).pending - _asmtGuruCounts(a.detail).pending; });
+  }
 
   var html = '<div style="font-size:12px;color:var(--text-3);margin-bottom:12px;font-weight:600">'
-    + level + ' · ' + totalItems + ' poin · ' + data.length + ' murid</div>';
+    + esc(level) + ' · ' + totalItems + (isDaurah ? ' indikator · ' : ' poin · ') + data.length + ' murid</div>';
 
-  data.forEach(function(m) {
-    var s = m.summary;
-    var belumPct = totalItems > 0 ? Math.round(((s.belum + s.kosong) / totalItems) * 100) : 0;
-    var pahamPct = m.pct_paham;
-    var barColor = pahamPct >= 80 ? 'var(--green)' : pahamPct >= 50 ? 'var(--amber)' : 'var(--red)';
-    var lastUpd  = m.last_update ? m.last_update.substring(0,10) : '–';
-
-    html += '<div class="card" style="margin-bottom:12px">'
-      + '<div class="card-head" style="cursor:pointer" onclick="toggleAsmtDetail(\'' + esc(m.id_murid) + '\')">'
-      + '<div class="card-title" style="flex:1;gap:8px">'
-      + '<span>' + esc(m.nama_murid) + '</span>'
-      + '<span style="font-size:11px;font-weight:600;color:var(--text-3)">' + esc(m.level) + '</span>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700">'
-      + '<span style="color:var(--green)">✅ ' + s.paham + '</span>'
-      + '<span style="color:var(--amber)">🟡 ' + s.ragu + '</span>'
-      + '<span style="color:var(--red)">❌ ' + (s.belum + s.kosong) + '</span>'
-      + '</div>'
-      + '<span style="color:var(--text-3);font-size:14px;margin-left:6px">▾</span>'
-      + '</div>'
-      + '<div style="padding:0 20px 8px">'
-      + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:3px">'
-      + '<span>Pemahaman</span><span>' + pahamPct + '% paham · Update ' + lastUpd + '</span>'
-      + '</div>'
-      + '<div style="height:5px;border-radius:100px;background:var(--border);overflow:hidden">'
-      + '<div style="height:100%;width:' + pahamPct + '%;background:' + barColor + ';border-radius:100px;transition:width .4s"></div>'
-      + '</div>'
-      + '</div>'
-      // Detail expand section
-      + '<div id="asmtDetail-' + esc(m.id_murid) + '" style="display:none;padding:0 20px 16px">'
-      + renderAsmtDetailTable(m.detail, m.id_murid)
-      + '</div>'
-      + '</div>';
+  list.forEach(function(m) {
+    var open = !!_asmtOpen[m.id_murid];
+    if (isDaurah) {
+      var c = _asmtGuruCounts(m.detail);
+      var dinilai = c.paham + c.ragu + c.belum;
+      var pctDinilai = totalItems>0 ? Math.round(dinilai/totalItems*100) : 0;
+      var barColor = c.pending===0 ? 'var(--green)' : pctDinilai>=50 ? 'var(--amber)' : 'var(--red)';
+      var badge = c.pending===0
+        ? '<span style="font-size:10px;font-weight:800;color:var(--green);background:rgba(16,185,129,.12);padding:2px 8px;border-radius:100px">✅ Siap raport</span>'
+        : '<span style="font-size:10px;font-weight:800;color:var(--amber);background:rgba(245,158,11,.12);padding:2px 8px;border-radius:100px">kurang '+c.pending+'</span>';
+      html += '<div class="card" style="margin-bottom:12px">'
+        + '<div class="card-head" style="cursor:pointer" onclick="toggleAsmtDetail(\''+esc(m.id_murid)+'\')">'
+        + '<div class="card-title" style="flex:1;gap:8px"><span>'+esc(m.nama_murid)+'</span> '+badge+'</div>'
+        + '<div style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700">'
+        + '<span style="color:var(--green)">✅ '+c.paham+'</span>'
+        + '<span style="color:var(--amber)">🟡 '+c.ragu+'</span>'
+        + '<span style="color:var(--red)">❌ '+c.belum+'</span>'
+        + '<span style="color:var(--text-3)">⚪ '+c.pending+'</span>'
+        + '</div>'
+        + '<span style="color:var(--text-3);font-size:14px;margin-left:6px">▾</span>'
+        + '</div>'
+        + '<div style="padding:0 20px 8px">'
+        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:3px">'
+        + '<span>Progres penilaian guru</span><span>'+dinilai+'/'+totalItems+' dinilai</span>'
+        + '</div>'
+        + '<div style="height:5px;border-radius:100px;background:var(--border);overflow:hidden">'
+        + '<div style="height:100%;width:'+pctDinilai+'%;background:'+barColor+';border-radius:100px;transition:width .4s"></div>'
+        + '</div>'
+        + '</div>'
+        + '<div id="asmtDetail-'+esc(m.id_murid)+'" style="display:'+(open?'block':'none')+';padding:0 20px 16px">'
+        + renderAsmtDetailTable(m.detail, m.id_murid, true)
+        + '</div>'
+        + '</div>';
+    } else {
+      var s = m.summary;
+      var pahamPct = m.pct_paham;
+      var barColor = pahamPct >= 80 ? 'var(--green)' : pahamPct >= 50 ? 'var(--amber)' : 'var(--red)';
+      var lastUpd  = m.last_update ? m.last_update.substring(0,10) : '–';
+      html += '<div class="card" style="margin-bottom:12px">'
+        + '<div class="card-head" style="cursor:pointer" onclick="toggleAsmtDetail(\''+esc(m.id_murid)+'\')">'
+        + '<div class="card-title" style="flex:1;gap:8px">'
+        + '<span>'+esc(m.nama_murid)+'</span>'
+        + '<span style="font-size:11px;font-weight:600;color:var(--text-3)">'+esc(m.level)+'</span>'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700">'
+        + '<span style="color:var(--green)">✅ '+s.paham+'</span>'
+        + '<span style="color:var(--amber)">🟡 '+s.ragu+'</span>'
+        + '<span style="color:var(--red)">❌ '+(s.belum + s.kosong)+'</span>'
+        + '</div>'
+        + '<span style="color:var(--text-3);font-size:14px;margin-left:6px">▾</span>'
+        + '</div>'
+        + '<div style="padding:0 20px 8px">'
+        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:3px">'
+        + '<span>Pemahaman</span><span>'+pahamPct+'% paham · Update '+lastUpd+'</span>'
+        + '</div>'
+        + '<div style="height:5px;border-radius:100px;background:var(--border);overflow:hidden">'
+        + '<div style="height:100%;width:'+pahamPct+'%;background:'+barColor+';border-radius:100px;transition:width .4s"></div>'
+        + '</div>'
+        + '</div>'
+        + '<div id="asmtDetail-'+esc(m.id_murid)+'" style="display:'+(open?'block':'none')+';padding:0 20px 16px">'
+        + renderAsmtDetailTable(m.detail, m.id_murid, false)
+        + '</div>'
+        + '</div>';
+    }
   });
-
   el.innerHTML = html;
 }
 
-function renderAsmtDetailTable(detail, idMurid) {
+function renderAsmtDetailTable(detail, idMurid, isDaurah) {
   if (!detail || !detail.length) return '';
   var grouped = {};
   detail.forEach(function(d) {
@@ -8731,75 +8834,97 @@ function renderAsmtDetailTable(detail, idMurid) {
 
   var html = '';
   Object.keys(grouped).forEach(function(kat) {
-    html += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;'
-      + 'letter-spacing:.06em;margin:12px 0 6px">' + esc(kat) + '</div>';
-    grouped[kat].forEach(function(item) {
-      var j = item.jawaban;
-      var bg_murid = j === 'paham' ? 'rgba(16,185,129,.12)' : j === 'ragu' ? 'rgba(245,158,11,.12)' : j === 'belum' ? 'rgba(239,68,68,.12)' : 'var(--bg-2)';
-      var color_murid = j === 'paham' ? '#059669' : j === 'ragu' ? '#d97706' : j === 'belum' ? '#dc2626' : 'var(--text-3)';
-      var label_murid = j === 'paham' ? '✅ Paham' : j === 'ragu' ? '🟡 Ragu' : j === 'belum' ? '❌ Belum' : 'Belum isi';
-      
-      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap">'
-        + '<div style="flex:1;min-width:180px">'
-        +   '<div style="font-size:13px;font-weight:700;color:var(--text)">'
-        +     (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:16px;direction:rtl;margin-right:8px">' + esc(item.teks_arab) + '</span>' : '')
-        +     '<span style="font-size:12.5px">' + esc(item.teks_latin) + '</span>'
-        +   '</div>'
-        +   (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-top:2.5px">' + esc(item.keterangan) + '</div>' : '')
-        + '</div>'
-        
-        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-        +   '<div style="font-size:11px;padding:4px 8px;border-radius:6px;background:' + bg_murid + ';color:' + color_murid + ';font-weight:800;border:1px solid var(--border)">'
-        +     'Murid: ' + label_murid
-        +   '</div>'
-        +   '<div class="asmt-guru-options" style="display:flex;gap:4px">'
-        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)" class="btn-asmt-opt btn-paham ' + (item.jawaban_guru === 'paham' ? 'active' : '') + '">✅ Paham</button>'
-        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)" class="btn-asmt-opt btn-ragu ' + (item.jawaban_guru === 'ragu' ? 'active' : '') + '">🟡 Ragu</button>'
-        +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)" class="btn-asmt-opt btn-belum ' + (item.jawaban_guru === 'belum' ? 'active' : '') + '">❌ Belum</button>'
-        +   '</div>'
-        + '</div>'
-        + '</div>';
+    var items = grouped[kat];
+    var shown = (isDaurah && _asmtOnlyPending) ? items.filter(function(x){ return x.jawaban_guru == null; }) : items;
+    if (!shown.length) return;
+
+    var katHead = '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;display:flex;justify-content:space-between;align-items:center">'
+      + '<span>' + esc(kat) + '</span>';
+    if (isDaurah) {
+      var kd = items.filter(function(x){ return x.jawaban_guru != null; }).length;
+      katHead += '<span style="font-weight:700;color:'+(kd===items.length?'var(--green)':'var(--text-3)')+'">'+kd+'/'+items.length+' dinilai'+(kd===items.length?' ✅':'')+'</span>';
+    }
+    katHead += '</div>';
+    html += katHead;
+
+    shown.forEach(function(item) {
+      html += _asmtItemRow(item, idMurid, isDaurah);
     });
   });
+  if (!html) return '<div style="font-size:12px;color:var(--green);font-weight:700;padding:12px 0;text-align:center">✅ Semua indikator sudah dinilai</div>';
   return html;
 }
 
+function _asmtItemRow(item, idMurid, isDaurah) {
+  var muridBadge = '';
+  if (!isDaurah) {
+    var j = item.jawaban;
+    var bg = j === 'paham' ? 'rgba(16,185,129,.12)' : j === 'ragu' ? 'rgba(245,158,11,.12)' : j === 'belum' ? 'rgba(239,68,68,.12)' : 'var(--bg-2)';
+    var col = j === 'paham' ? '#059669' : j === 'ragu' ? '#d97706' : j === 'belum' ? '#dc2626' : 'var(--text-3)';
+    var lbl = j === 'paham' ? '✅ Paham' : j === 'ragu' ? '🟡 Ragu' : j === 'belum' ? '❌ Belum' : 'Belum isi';
+    muridBadge = '<div style="font-size:11px;padding:4px 8px;border-radius:6px;background:'+bg+';color:'+col+';font-weight:800;border:1px solid var(--border)">Murid: '+lbl+'</div>';
+  }
+  return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap">'
+    + '<div style="flex:1;min-width:180px">'
+    +   '<div style="font-size:13px;font-weight:700;color:var(--text)">'
+    +     (item.teks_arab ? '<span style="font-family:Amiri,serif;font-size:16px;direction:rtl;margin-right:8px">' + esc(item.teks_arab) + '</span>' : '')
+    +     '<span style="font-size:12.5px">' + esc(item.teks_latin) + '</span>'
+    +   '</div>'
+    +   (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-top:2.5px">' + esc(item.keterangan) + '</div>' : '')
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+    +   muridBadge
+    +   '<div class="asmt-guru-options" style="display:flex;gap:4px">'
+    +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)" class="btn-asmt-opt btn-paham ' + (item.jawaban_guru === 'paham' ? 'active' : '') + '">✅ Paham</button>'
+    +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)" class="btn-asmt-opt btn-ragu ' + (item.jawaban_guru === 'ragu' ? 'active' : '') + '">🟡 Ragu</button>'
+    +     '<button onclick="simpanVerifikasiGuru(\'' + esc(idMurid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)" class="btn-asmt-opt btn-belum ' + (item.jawaban_guru === 'belum' ? 'active' : '') + '">❌ Belum</button>'
+    +   '</div>'
+    + '</div>'
+    + '</div>';
+}
+
 function toggleAsmtDetail(idMurid) {
+  _asmtOpen[idMurid] = !_asmtOpen[idMurid];
   var el = document.getElementById('asmtDetail-' + idMurid);
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el) el.style.display = _asmtOpen[idMurid] ? 'block' : 'none';
+}
+
+function toggleAsmtOnlyPending() {
+  _asmtOnlyPending = !_asmtOnlyPending;
+  var sy = window.scrollY;
+  _renderAsmtSummary();
+  _renderAsmtList();
+  window.scrollTo(0, sy);
 }
 
 async function simpanVerifikasiGuru(idMurid, idItem, statusGuru, btn) {
-  var parent = btn.parentElement;
-  if (!parent) return;
-  
-  var siblingButtons = parent.querySelectorAll('.btn-asmt-opt');
-  var wasActive = btn.classList.contains('active');
-  var targetStatus = wasActive ? null : statusGuru;
-  
-  siblingButtons.forEach(function(b) {
-    b.classList.remove('active');
-  });
-  
-  if (!wasActive) {
-    btn.classList.add('active');
-  }
-  
+  if (!_asmtData) return;
+  var murid = _asmtData.data.find(function(m){ return m.id_murid === idMurid; });
+  if (!murid) return;
+  var item = (murid.detail || []).find(function(d){ return d.id_item === idItem; });
+  if (!item) return;
+
+  var prev = item.jawaban_guru;
+  var targetStatus = (prev === statusGuru) ? null : statusGuru;  // klik ulang = batal
+
+  // Optimistic: perbarui data + render ulang (ringkasan & progres ikut update)
+  item.jawaban_guru = targetStatus;
+  var sy = window.scrollY;
+  _renderAsmtSummary();
+  _renderAsmtList();
+  window.scrollTo(0, sy);
+
   try {
     var r = await window.HQ.GuruAPI.simpanVerifikasiGuru({
-      id_murid: idMurid,
-      id_item: idItem,
-      status_guru: targetStatus
+      id_murid: idMurid, id_item: idItem, status_guru: targetStatus
     });
     if (r.status !== 'ok') throw new Error(r.message);
     quickToast('Verifikasi disimpan', 'ok');
   } catch(e) {
-    siblingButtons.forEach(function(b) {
-      if (b.classList.contains('btn-paham') && !wasActive && statusGuru === 'paham') b.classList.add('active');
-      if (b.classList.contains('btn-ragu') && !wasActive && statusGuru === 'ragu') b.classList.add('active');
-      if (b.classList.contains('btn-belum') && !wasActive && statusGuru === 'belum') b.classList.add('active');
-    });
+    item.jawaban_guru = prev;  // revert
+    _renderAsmtSummary();
+    _renderAsmtList();
+    window.scrollTo(0, sy);
     toast('Gagal memverifikasi: ' + e.message, 'err');
   }
 }
