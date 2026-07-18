@@ -2793,7 +2793,12 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
     // 1. Ambil data jawaban murid untuk 7 indikator
     var myAnswers = (asmtMurid || []).filter(function(a) { return a.id_murid === idMurid; });
     
-    // 2. Petakan ke komponen detail_json (80% total / 7 indikator = ~11.4% per indikator)
+    // 2. Komposisi nilai raport daurah: indikator tajwid 60% (dibagi RATA antar indikator)
+    // + KBM 40% (Kehadiran 30% + Adab&Kamera 10%). Bobot indikator DINAMIS = 60 / jumlah
+    // indikator aktif, agar porsi 60% tetap terjaga berapa pun jumlah indikator (dulu
+    // hardcoded 11.4% -> menggeser komposisi drastis saat jumlah indikator > 7).
+    var _totalIndikator = (asmtItems || []).length;
+    var _bobotIndikator = _totalIndikator > 0 ? Math.round((60 / _totalIndikator) * 100) / 100 : 0;
     var listKomp = [];
     (asmtItems || []).forEach(function(item) {
       var ans = myAnswers.find(function(a) { return a.id_item === item.id_item; });
@@ -2808,10 +2813,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         nama_komponen: item.teks_latin,
         teks_arab: item.teks_arab,
         keterangan: item.keterangan,
-        bobot: 11.4,
-        bobot_original: 11.4,
+        bobot: _bobotIndikator,
+        bobot_original: _bobotIndikator,
         nilai: score,
-        nilai_bobot: Math.round((score * 11.4) / 100 * 10) / 10,
+        nilai_bobot: Math.round((score * _bobotIndikator) / 100 * 10) / 10,
         tipe: 'daurah_indikator',
         status_guru: statusGuru
       });
@@ -2828,7 +2833,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       return true;
     });
 
-    // A. Kehadiran KBM (Bobot: 10%) — hanya dihitung bila ada data KBM di periode ini.
+    // A. Kehadiran KBM (Bobot: 30%) — hanya dihitung bila ada data KBM di periode ini.
     // Tanpa sesi KBM sama sekali, kehadiran tidak dinilai (di-exclude), selaras cabang Reguler.
     // Sebelumnya default 100 → murid tanpa data KBM ikut terangkat & membuat guard
     // "Belum Ada Data" (listKomp.length===0) mustahil tercapai.
@@ -2842,10 +2847,10 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       listKomp.push({
         id_komponen: 'daurah-kehadiran-kbm',
         nama_komponen: 'Kehadiran KBM',
-        bobot: 10,
-        bobot_original: 10,
+        bobot: 30,
+        bobot_original: 30,
         nilai: nilaiHadir,
-        nilai_bobot: Math.round((nilaiHadir * 10) / 100 * 10) / 10,
+        nilai_bobot: Math.round((nilaiHadir * 30) / 100 * 10) / 10,
         tipe: 'daurah_kbm',
         keterangan: 'Kedisiplinan kehadiran di ruang Zoom'
       });

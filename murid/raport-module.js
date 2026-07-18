@@ -816,7 +816,7 @@
       
       // A. Cetak Indikator Tajwid
       var tajwidKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_indikator'; });
-      h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Capaian Kompetensi Makhraj & Tajwid (Bobot 80%)</div>'
+      h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Capaian Kompetensi Makhraj & Tajwid (Bobot 60%)</div>'
         + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
         
       tajwidKomp.forEach(function(k) {
@@ -845,7 +845,7 @@
       // B. Cetak Partisipasi KBM
       var kbmKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_kbm'; });
       if (kbmKomp.length > 0) {
-        h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Partisipasi & Kedisiplinan KBM (Bobot 20%)</div>'
+        h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Partisipasi & Kedisiplinan KBM (Bobot 40%)</div>'
           + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
           
         kbmKomp.forEach(function(k) {
