@@ -366,9 +366,12 @@ async function hapusOperasionalItem(id, nama) {
 // Additive: kas umum di tabel `kas`; kategori 'Operasional' (keluar) dirutekan
 // ke tabel operasional lama agar perhitungan beasiswa & transparansi murid
 // tetap konsisten. getArusKas menggabungkan SPP/Infaq/Ihsan + kas + operasional.
+// Catatan: 'Honor Guru' TIDAK ada di sini — honor guru diinput lewat tombol
+// "Ihsan Guru" (modal SPP Manual) yang melacak per-guru per-bulan; Buku Kas
+// hanya MENAMPILKAN-nya di laporan ("Honor Guru (Ihsan)") agar tak ada pintu ganda.
 var KAS_KATEGORI = {
   masuk:  ['Donasi', 'Hibah', 'Saldo Awal', 'Lainnya'],
-  keluar: ['Honor Guru', 'Langganan', 'ATK', 'Operasional', 'Lainnya'],
+  keluar: ['Operasional', 'Langganan', 'ATK', 'Lainnya'],
 };
 var _arusKasRows = [];
 
