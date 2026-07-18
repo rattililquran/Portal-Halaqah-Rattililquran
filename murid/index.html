@@ -7071,7 +7071,8 @@ function openProgressBreakdown(forceMicro) {
     } else {
       bodyEl.innerHTML = _defaultModalProgBodyHtml;
 
-      var isDaurah = (ang && ang.level === 'Tahsin Al-Fatihah') || (id_murid && String(id_murid).startsWith('FTH'));
+      var _idMuridDaurah = (dashData && dashData.id_murid) || '';
+      var isDaurah = (ang && ang.level === 'Tahsin Al-Fatihah') || (_idMuridDaurah && String(_idMuridDaurah).startsWith('FTH'));
       var target = kh.target_sesi || 40;
       var hadir = Number(kh.skor_hadir || 0);
       var skorTarget = Number(kh.skor_dari_40 || 0);
