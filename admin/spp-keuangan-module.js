@@ -366,14 +366,35 @@ async function hapusOperasionalItem(id, nama) {
 // Additive: kas umum di tabel `kas`; kategori 'Operasional' (keluar) dirutekan
 // ke tabel operasional lama agar perhitungan beasiswa & transparansi murid
 // tetap konsisten. getArusKas menggabungkan SPP/Infaq/Ihsan + kas + operasional.
-// Catatan: 'Honor Guru' TIDAK ada di sini — honor guru diinput lewat tombol
-// "Ihsan Guru" (modal SPP Manual) yang melacak per-guru per-bulan; Buku Kas
-// hanya MENAMPILKAN-nya di laporan ("Honor Guru (Ihsan)") agar tak ada pintu ganda.
-var KAS_KATEGORI = {
+// Kategori kas kini dari tabel kas_kategori (patch_078). DEFAULT dipakai sbg
+// fallback bila tabel belum ada (patch belum dijalankan) agar form tak rusak.
+// Catatan: 'Honor Guru' sengaja TIDAK ada — honor diinput lewat tombol "Ihsan
+// Guru" (melacak per-guru per-bulan); Buku Kas hanya menampilkannya di laporan.
+var DEFAULT_KAS_KATEGORI = {
   masuk:  ['Donasi', 'Hibah', 'Saldo Awal', 'Lainnya'],
   keluar: ['Operasional', 'Langganan', 'ATK', 'Lainnya'],
 };
+var _kasKategoriRows = null; // cache baris kas_kategori; null = belum/ gagal load
 var _arusKasRows = [];
+
+async function loadKasKategori(force) {
+  if (_kasKategoriRows && !force) return _kasKategoriRows;
+  try {
+    var r = await window.HQ.AdminAPI.getKasKategori();
+    _kasKategoriRows = r.data || [];
+  } catch(e) {
+    console.warn('kas_kategori belum tersedia — pakai default', e && e.message);
+    _kasKategoriRows = null;
+  }
+  return _kasKategoriRows;
+}
+function kasKategoriNames(arah) {
+  if (_kasKategoriRows) {
+    var names = _kasKategoriRows.filter(function(k){ return k.arah === arah; }).map(function(k){ return k.nama; });
+    if (names.length) return names;
+  }
+  return DEFAULT_KAS_KATEGORI[arah] || DEFAULT_KAS_KATEGORI.keluar;
+}
 
 function ensureArusKasBulanOptions() {
   var now = BULAN_LIST[new Date().getMonth()];
@@ -483,8 +504,10 @@ async function loadArusKas() {
 
 function fillKasKategoriOptions(arah, selected) {
   var sel = document.getElementById('kasKategori');
-  var opts = KAS_KATEGORI[arah] || KAS_KATEGORI.keluar;
-  sel.innerHTML = opts.map(function(k){ return '<option value="'+k+'"'+(k===selected?' selected':'')+'>'+k+'</option>'; }).join('');
+  var opts = kasKategoriNames(arah).slice();
+  // Pastikan kategori lama (mungkin sudah dihapus) tetap muncul saat edit
+  if (selected && opts.indexOf(selected) < 0) opts.unshift(selected);
+  sel.innerHTML = opts.map(function(k){ return '<option value="'+esc(k)+'"'+(k===selected?' selected':'')+'>'+esc(k)+'</option>'; }).join('');
 }
 function updateKasOperasionalHint() {
   var arah = document.getElementById('kasArah').value;
@@ -499,7 +522,8 @@ function onKasArahChange() {
 }
 function onKasKategoriChange() { updateKasOperasionalHint(); }
 
-function bukaFormKas(item) {
+async function bukaFormKas(item) {
+  await loadKasKategori();
   document.getElementById('kasErr').style.display = 'none';
   var arah = (item && item.arah) || 'keluar';
   document.getElementById('modalKasTitle').textContent = item ? 'Edit Transaksi Kas' : 'Catat Transaksi Kas';
@@ -564,6 +588,78 @@ async function simpanKas() {
     toast('Transaksi kas tersimpan','ok');
     loadArusKas();
   } catch(e) { fail('Gagal: '+(e.message||e)); }
+}
+
+// ── Kelola Kategori Kas (patch_078) ────────────────────────
+async function bukaKelolaKategori() {
+  document.getElementById('modalKasKategori').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  var wrapM = document.getElementById('kkList_masuk');
+  var wrapK = document.getElementById('kkList_keluar');
+  if (wrapM) wrapM.innerHTML = '<div style="color:var(--text-3);font-size:12px;padding:8px">Memuat...</div>';
+  if (wrapK) wrapK.innerHTML = '';
+  await loadKasKategori(true);
+  renderKelolaKategori();
+}
+function tutupKelolaKategori() {
+  document.getElementById('modalKasKategori').classList.remove('open');
+  document.body.style.overflow = '';
+  // Segarkan dropdown form kas bila terbuka & selectors di form beasiswa
+  if (document.getElementById('kasArah')) fillKasKategoriOptions(document.getElementById('kasArah').value, document.getElementById('kasKategori').value);
+}
+function renderKelolaKategori() {
+  ['masuk','keluar'].forEach(function(arah){
+    var wrap = document.getElementById('kkList_'+arah);
+    if (!wrap) return;
+    var rows = (_kasKategoriRows||[]).filter(function(k){ return k.arah === arah; });
+    if (!rows.length) {
+      wrap.innerHTML = '<div style="color:var(--text-3);font-size:11.5px;padding:8px">Belum ada (memakai default). Tambah kategori baru di bawah.</div>';
+      return;
+    }
+    wrap.innerHTML = rows.map(function(k){
+      var locked = !!k.kunci;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:8px">'
+        + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--text)">'+esc(k.nama)+(locked?' <span title="Kategori sistem (terkunci)" style="font-size:11px">🔒</span>':'')+'</span>'
+        + (locked
+            ? '<span style="font-size:10px;color:var(--text-3)">sistem</span>'
+            : '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="renameKategoriKas(\''+esc(k.id_kk)+'\',\''+escJs(k.nama)+'\')">✏️</button>'
+              + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKategoriKas(\''+esc(k.id_kk)+'\',\''+escJs(k.nama)+'\')">🗑</button>')
+        + '</div>';
+    }).join('');
+  });
+}
+async function tambahKategoriKas(arah) {
+  var input = document.getElementById('kkInput_'+arah);
+  var nama = (input.value||'').trim();
+  if (!nama) { input.focus(); return; }
+  try {
+    await window.HQ.AdminAPI.tambahKasKategori({ arah: arah, nama: nama, urutan: 50 });
+    input.value = '';
+    await loadKasKategori(true);
+    renderKelolaKategori();
+    toast('Kategori "'+nama+'" ditambah','ok');
+  } catch(e) { toast(friendlyError(e),'err'); }
+}
+async function renameKategoriKas(id_kk, oldNama) {
+  var nama = prompt('Ubah nama kategori:', oldNama);
+  if (nama === null) return;
+  nama = nama.trim();
+  if (!nama || nama === oldNama) return;
+  try {
+    await window.HQ.AdminAPI.updateKasKategori({ id_kk: id_kk, nama: nama });
+    await loadKasKategori(true);
+    renderKelolaKategori();
+    toast('Kategori diubah','ok');
+  } catch(e) { toast(friendlyError(e),'err'); }
+}
+async function hapusKategoriKas(id_kk, nama) {
+  if (!confirm('Hapus kategori "'+nama+'"?\nTransaksi lama yang memakai kategori ini tetap tersimpan.')) return;
+  try {
+    await window.HQ.AdminAPI.hapusKasKategori(id_kk);
+    await loadKasKategori(true);
+    renderKelolaKategori();
+    toast('Kategori dihapus','ok');
+  } catch(e) { toast(friendlyError(e),'err'); }
 }
 
 async function toggleTipeSpp(id_anggota, current, nama) {
@@ -1420,6 +1516,12 @@ async function doKirimPengumuman() {
     window.editKasItem = editKasItem;
     window.hapusKasItem = hapusKasItem;
     window.simpanKas = simpanKas;
+    window.loadKasKategori = loadKasKategori;
+    window.bukaKelolaKategori = bukaKelolaKategori;
+    window.tutupKelolaKategori = tutupKelolaKategori;
+    window.tambahKategoriKas = tambahKategoriKas;
+    window.renameKategoriKas = renameKategoriKas;
+    window.hapusKategoriKas = hapusKategoriKas;
     window.toggleTipeSpp = toggleTipeSpp;
     window.filterSPPTable = filterSPPTable;
     window.filterInfaqTable = filterInfaqTable;

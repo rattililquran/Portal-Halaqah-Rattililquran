@@ -2278,6 +2278,7 @@ html.theme-dark .fin-detail-card {
               <select id="arusKasBulanStart" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
               <span style="font-size:11px;color:var(--text-3);font-weight:700">s/d</span>
               <select id="arusKasBulanEnd" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
+              <button type="button" class="btn btn-outline btn-sm" onclick="bukaKelolaKategori()" style="font-size:11px;padding:6px 10px" title="Kelola kategori kas">⚙️ Kategori</button>
               <button class="btn btn-primary btn-sm" onclick="bukaFormKas()" style="font-size:12px;padding:6px 12px">+ Catat Transaksi</button>
             </div>
           </div>
@@ -2495,6 +2496,38 @@ html.theme-dark .fin-detail-card {
               </div>
               <div id="kasErr" style="display:none;color:var(--red);font-size:12px"></div>
               <button class="btn btn-primary" onclick="simpanKas()" style="width:100%">Simpan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Modal Kelola Kategori Kas ── -->
+        <div class="overlay" id="modalKasKategori" onclick="if(event.target===this)tutupKelolaKategori()">
+          <div class="modal" style="max-width:560px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)">⚙️ Kelola Kategori Kas</div>
+              <button class="btn-icon" onclick="tutupKelolaKategori()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:11.5px;color:var(--text-3)">Kategori dipakai di form "Catat Transaksi". <strong>Operasional</strong> terkunci (dipakai perhitungan beasiswa). <strong>Honor Guru</strong> diinput lewat tombol Ihsan Guru, bukan di sini.</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:var(--green-txt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">▲ Pemasukan</div>
+                  <div id="kkList_masuk" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+                  <div style="display:flex;gap:6px">
+                    <input id="kkInput_masuk" class="fc" placeholder="Kategori baru..." style="flex:1;font-size:12px;padding:6px 10px" onkeydown="if(event.key==='Enter')tambahKategoriKas('masuk')">
+                    <button class="btn btn-primary btn-sm" onclick="tambahKategoriKas('masuk')" style="font-size:12px;padding:6px 12px">+ Tambah</button>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:var(--red-txt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">▼ Pengeluaran</div>
+                  <div id="kkList_keluar" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+                  <div style="display:flex;gap:6px">
+                    <input id="kkInput_keluar" class="fc" placeholder="Kategori baru..." style="flex:1;font-size:12px;padding:6px 10px" onkeydown="if(event.key==='Enter')tambahKategoriKas('keluar')">
+                    <button class="btn btn-primary btn-sm" onclick="tambahKategoriKas('keluar')" style="font-size:12px;padding:6px 12px">+ Tambah</button>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-outline" onclick="tutupKelolaKategori()" style="width:100%">Selesai</button>
             </div>
           </div>
         </div>
@@ -4205,13 +4238,13 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-client.js?v=2.1.18"></script>
+<script src="../supabase/supabase-client.js?v=2.1.19"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=1.1.0" defer></script>
 <script src="murid-module.js?v=1.0.1" defer></script>
 <script src="kelompok-module.js?v=1.0.2" defer></script>
-<script src="spp-keuangan-module.js?v=1.0.4" defer></script>
+<script src="spp-keuangan-module.js?v=1.0.5" defer></script>
 <script src="konten-module.js?v=1.0.1" defer></script>
 <script src="laporan-module.js?v=1.0.0" defer></script>
 <script src="mutabaah-module.js?v=1.0.2" defer></script>

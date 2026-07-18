@@ -6912,6 +6912,54 @@ var AdminAPI = {
     _logAudit('hapus_kas', { id_kas: id_kas });
     return { status:'ok' };
   },
+  // ── Kategori Kas konfigurabel (patch_078) ───────────────────
+  // 'Operasional' (keluar) dikunci (kunci=true) karena dipakai routing ke tabel
+  // operasional. 'Honor Guru' diblokir (diinput via Ihsan Guru, bukan Buku Kas).
+  getKasKategori: async function() {
+    var { data, error } = await _sb.from('kas_kategori').select('*')
+      .order('arah', { ascending:true }).order('urutan', { ascending:true }).order('nama', { ascending:true });
+    _check(error,'getKasKategori');
+    return { status:'ok', data: data||[] };
+  },
+  tambahKasKategori: async function(d) {
+    var nama = (d.nama||'').trim();
+    var arah = d.arah === 'masuk' ? 'masuk' : 'keluar';
+    if (!nama) throw new Error('Nama kategori wajib diisi.');
+    if (arah === 'keluar' && nama.toLowerCase() === 'honor guru')
+      throw new Error('Honor Guru diinput lewat tombol "Ihsan Guru", bukan Buku Kas.');
+    var { data, error } = await _sb.from('kas_kategori')
+      .insert({ arah: arah, nama: nama, urutan: Number(d.urutan)||0, created_by: _uid() })
+      .select('id_kk').single();
+    if (error && (error.code === '23505' || /duplicate|unique/i.test(error.message||'')))
+      throw new Error('Kategori "'+nama+'" sudah ada di sisi '+arah+'.');
+    _check(error,'tambahKasKategori');
+    _logAudit('tambah_kas_kategori', { arah: arah, nama: nama });
+    return { status:'ok', data: data };
+  },
+  updateKasKategori: async function(d) {
+    var nama = (d.nama||'').trim();
+    if (!nama) throw new Error('Nama kategori wajib diisi.');
+    var { data: cur } = await _sb.from('kas_kategori').select('kunci, arah, nama').eq('id_kk', d.id_kk).single();
+    if (cur && cur.kunci) throw new Error('Kategori "'+cur.nama+'" terkunci (sistem) — tak bisa diubah.');
+    if (cur && cur.arah === 'keluar' && nama.toLowerCase() === 'honor guru')
+      throw new Error('Honor Guru diinput lewat tombol "Ihsan Guru", bukan Buku Kas.');
+    var u = { nama: nama };
+    if (d.urutan !== undefined) u.urutan = Number(d.urutan)||0;
+    var { error } = await _sb.from('kas_kategori').update(u).eq('id_kk', d.id_kk);
+    if (error && (error.code === '23505' || /duplicate|unique/i.test(error.message||'')))
+      throw new Error('Nama kategori "'+nama+'" sudah dipakai.');
+    _check(error,'updateKasKategori');
+    _logAudit('update_kas_kategori', { id_kk: d.id_kk, nama: nama });
+    return { status:'ok' };
+  },
+  hapusKasKategori: async function(id_kk) {
+    var { data: cur } = await _sb.from('kas_kategori').select('kunci, nama').eq('id_kk', id_kk).single();
+    if (cur && cur.kunci) throw new Error('Kategori "'+cur.nama+'" terkunci (sistem) — tak bisa dihapus.');
+    var { error } = await _sb.from('kas_kategori').delete().eq('id_kk', id_kk);
+    _check(error,'hapusKasKategori');
+    _logAudit('hapus_kas_kategori', { id_kk: id_kk });
+    return { status:'ok' };
+  },
   // Laporan Arus Kas (rentang bulan): sisi MASUK = SPP Pribadi lunas + Infaq
   // lunas + kas(masuk); sisi KELUAR = kas(keluar) + operasional + Ihsan Guru
   // (gaji). Ihsan Guru TIDAK dihitung sebagai pemasukan. Infaq via RPC
