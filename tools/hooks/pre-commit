@@ -1,0 +1,24 @@
+#!/bin/sh
+# pre-commit — auto content-hash cache-busting (tools/version-assets.js).
+#
+# Bila commit menyentuh file .js/.css atau index.html, jalankan version-assets
+# lalu re-stage index.html yang berubah. DEFENSIF: apa pun yang gagal (node tak
+# ada, dll) -> exit 0, TAK PERNAH memblokir commit.
+#
+# Pasang:  cp tools/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Copot :  rm .git/hooks/pre-commit
+
+staged=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null)
+echo "$staged" | grep -qE '\.(js|css)$|index\.html$' || exit 0
+
+command -v node >/dev/null 2>&1 || exit 0
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+
+node "$repo_root/tools/version-assets.js" >/dev/null 2>&1 || exit 0
+
+for f in admin/index.html guru/index.html murid/index.html; do
+  if ! git diff --quiet -- "$repo_root/$f" 2>/dev/null; then
+    git add "$repo_root/$f" 2>/dev/null
+  fi
+done
+exit 0
