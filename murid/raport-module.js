@@ -810,7 +810,7 @@
       + '<div style="font-size:10px;color:var(--text-3);margin-top:4px">'+esc(rp.periode||'')+'</div>'
       + '</div>';
 
-    var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator'; });
+    var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator' || k.tipe === 'daurah_kbm'; });
     if (isDaurah) {
       h += '<div style="padding:0 14px 6px">';
       
@@ -1159,7 +1159,7 @@
         }
       } catch(e) {}
 
-      var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator'; });
+      var isDaurah = (rp.komponen || []).some(function(k) { return k.tipe === 'daurah_indikator' || k.tipe === 'daurah_kbm'; });
       if (isDaurah) {
         // ── CETAK PDF SERTIFIKAT/RAPORT DAURAH AL-FATIHAH ──
         // ═══════════════════════════════════════════════════

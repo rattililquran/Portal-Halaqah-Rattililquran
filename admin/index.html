@@ -5759,7 +5759,7 @@ async function lihatRaport(id_raport) {
     const hq       = allHalaqah.find(h=>h.id_halaqah===r.id_halaqah)||{};
     const periode  = allPeriode.find(p=>p.id_periode===r.id_periode)||{};
 
-    const isDaurah = komponen.some(k=>k.tipe==='daurah_indikator');
+    const isDaurah = komponen.some(k=>k.tipe==='daurah_indikator'||k.tipe==='daurah_kbm');
 
     document.getElementById('modalRaportTitle').textContent = 'Raport — ' + (murid.nama_lengkap||r.id_murid);
 
