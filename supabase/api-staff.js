@@ -2810,6 +2810,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       var score = statusGuru === 'paham' ? 100 : statusGuru === 'ragu' ? 70 : 50;
       listKomp.push({
         id_komponen: item.id_item,
+        urutan: item.urutan,
         nama_komponen: item.teks_latin,
         teks_arab: item.teks_arab,
         keterangan: item.keterangan,

@@ -815,7 +815,12 @@
       h += '<div style="padding:0 14px 6px">';
       
       // A. Cetak Indikator Tajwid
-      var tajwidKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_indikator'; });
+      var tajwidKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_indikator'; })
+        .sort(function(a, b) {
+          if (a.urutan != null && b.urutan != null) return Number(a.urutan) - Number(b.urutan);
+          var aId = Number(a.id_komponen) || 0, bId = Number(b.id_komponen) || 0;
+          return aId && bId ? aId - bId : String(a.id_komponen||'').localeCompare(String(b.id_komponen||''));
+        });
       h += '<div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Capaian Kompetensi Makhraj & Tajwid (Bobot 60%)</div>'
         + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
         
@@ -1176,7 +1181,13 @@
         // ═══════════════════════════════════════════════════
 
         var items = rp.komponen || [];
-        var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; });
+        // Sort by urutan (stored in detail_json for new raports) or id_komponen numeric fallback
+        var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; })
+          .sort(function(a, b) {
+            if (a.urutan != null && b.urutan != null) return Number(a.urutan) - Number(b.urutan);
+            var aId = Number(a.id_komponen) || 0, bId = Number(b.id_komponen) || 0;
+            return aId && bId ? aId - bId : String(a.id_komponen||'').localeCompare(String(b.id_komponen||''));
+          });
         var kbmItems = items.filter(function(x) { return x.tipe === 'daurah_kbm'; });
         var finalScore = Number(rp.nilai_akhir || 0);
         // Kelulusan ditangguhkan bila indikator tajwid belum lengkap dinilai guru
