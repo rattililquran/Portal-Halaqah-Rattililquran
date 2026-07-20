@@ -2626,7 +2626,9 @@
           const jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', Tahsin: '✨' };
           contentHtml = `
             <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">
-              Juz ${h.juz || '-'} · ${esc(h.surat)} · Ayat ${h.ayat_dari}–${h.ayat_sampai}
+              ${h.jenis === 'Tahsin' && !h.surat
+                ? 'Tahsin'
+                : `Juz ${h.juz || '-'} · ${esc(h.surat)} · Ayat ${h.ayat_dari}–${h.ayat_sampai}`}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
               <span class="badge b-gray">${jenisIcon[h.jenis] || '📖'} ${esc(h.jenis || 'Ziyadah')}</span>

@@ -1453,8 +1453,10 @@ var GuruAPI = {
       nama_guru          : (user && (user.nama_lengkap || user.nama)) || '',
       juz                : d.juz ? parseInt(d.juz) : null,
       surat              : d.surat,
-      ayat_dari          : parseInt(d.ayat_dari),
-      ayat_sampai        : parseInt(d.ayat_sampai),
+      // Tahsin di sesi KBM tidak mengisi surat/ayat → parseInt jadi NaN.
+      // Kolom ayat NOT NULL, jadi coalesce ke 0 agar insert tidak gagal.
+      ayat_dari          : (parseInt(d.ayat_dari)   || 0),
+      ayat_sampai        : (parseInt(d.ayat_sampai) || 0),
       jenis              : d.jenis || 'Ziyadah',
       nilai              : d.nilai,
       kelancaran         : d.kelancaran || null,
