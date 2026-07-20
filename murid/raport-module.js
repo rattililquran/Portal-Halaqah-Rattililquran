@@ -1359,8 +1359,11 @@
 
         // Render Tajwid
         tajwidItems.forEach(function(k, idx) {
-          // Wrap long indicator names (strip Arabic chars for PDF font safety)
-          var namaLatin = (k.nama_komponen || '-').replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g, '').trim() || (k.nama_komponen || '-');
+          // Wrap long indicator names — strip non-ASCII-safe chars for jsPDF Helvetica
+          // Keep: A-Za-z0-9 + spaces + common Latin punctuation. Remove any Arabic/non-Latin.
+          var namaLatin = (k.nama_komponen || '')
+            .replace(/[^\x20-\x7E\xC0-\xD6\xD8-\xF6\xF8-\xFF]/g, ' ')
+            .replace(/\s+/g, ' ').trim() || '-';
           var maxNamaW = W - mar*2 - 12 - 42; // subtract no. col + status col
           doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
           var namaLines = doc.splitTextToSize(namaLatin, maxNamaW);
