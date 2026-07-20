@@ -593,18 +593,11 @@
     var ttdKota    = cfg.kota_terbit || 'Jakarta';
     var ttdTanggal = ttdKota + ', ' + (new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}));
 
-    var ttdImgHTML = '';
-    var ttdSource = cfg.ttd_image_url || '../assets/images/ttd.png';
-    ttdImgHTML = '<div style="height:32px;display:flex;align-items:center;justify-content:center;margin:4px 0">'
-      + '<img src="'+esc(ttdSource)+'" style="max-height:100%;max-width:120px;object-fit:contain" onerror="this.style.display=\'none\'">'
-      + '</div>';
-
     var signatureHTML = '<div class="rp-signature-container">'
       + '<div class="rp-signature-block">'
       + '<div class="rp-sig-date">'+esc(ttdTanggal)+'</div>'
       + '<div class="rp-sig-title">Mengetahui,</div>'
       + '<div class="rp-sig-role">'+esc(cfg.ttd_jabatan || 'Koordinator Akademik')+'</div>'
-      + ttdImgHTML
       + '<div class="rp-sig-name">'+esc(cfg.ttd_nama || 'Tim Akademik')+'</div>'
       + '</div>'
       + '</div>';
@@ -1061,7 +1054,6 @@
 
   async function downloadPDFResmi() {
     if (!_rincianData) return;
-    var cfg = _raportConfig || {};
     var rp  = _rincianData.raport;
     var sesi = (_rincianData && _rincianData.sesi) || [];
     var sum  = (_rincianData && _rincianData.summary) || {};
@@ -1152,13 +1144,6 @@
         doc.text('Mengetahui,', ttdX+27.5, targetY+10, {align:'center'});
         doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...G);
         doc.text('Koordinator Akademik', ttdX+27.5, targetY+14, {align:'center'});
-
-        if (ttdDataUrl) {
-          try {
-            doc.addImage(ttdDataUrl, 'PNG', ttdX + 7.5, targetY + 15, 40, 14);
-          } catch(e) {}
-        }
-
         doc.setDrawColor(...G); doc.setLineWidth(0.5);
         doc.line(ttdX+5, targetY+30, ttdX+50, targetY+30);
         doc.setTextColor(...Dk); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
@@ -1194,18 +1179,6 @@
           var logoBlob = await logoResp.blob();
           logoDataUrl = await new Promise(function(res) {
             var fr = new FileReader(); fr.onload = function(e){res(e.target.result);}; fr.readAsDataURL(logoBlob);
-          });
-        }
-      } catch(e) {}
-
-      var ttdDataUrl = null;
-      try {
-        var ttdSource = cfg.ttd_image_url || '../assets/images/ttd.png';
-        var ttdResp = await fetch(ttdSource);
-        if (ttdResp.ok) {
-          var ttdBlob = await ttdResp.blob();
-          ttdDataUrl = await new Promise(function(res) {
-            var fr = new FileReader(); fr.onload = function(e){res(e.target.result);}; fr.readAsDataURL(ttdBlob);
           });
         }
       } catch(e) {}
