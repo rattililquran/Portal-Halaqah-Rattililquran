@@ -588,16 +588,23 @@
 
     var pesanHTML = cfg.pesan_penutup
       ? '<div class="rp-pesan">❝ '+esc(cfg.pesan_penutup)+' ❞</div>'
-      : '<div class="rp-pesan">❝ Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti. ❞</div>';
+      : '<div class="rp-pesan">❝ Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti. ❞<br><span style="font-size:10.5px;color:var(--text-3);display:block;margin-top:6px;font-style:italic">Kami sangat merekomendasikan Anda untuk aktif mengikuti program tahsin, baik di Rattililquran maupun program lainnya</span></div>';
 
     var ttdKota    = cfg.kota_terbit || 'Jakarta';
     var ttdTanggal = ttdKota + ', ' + (new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}));
+
+    var ttdImgHTML = '';
+    var ttdSource = cfg.ttd_image_url || '../assets/images/ttd.png';
+    ttdImgHTML = '<div style="height:32px;display:flex;align-items:center;justify-content:center;margin:4px 0">'
+      + '<img src="'+esc(ttdSource)+'" style="max-height:100%;max-width:120px;object-fit:contain" onerror="this.style.display=\'none\'">'
+      + '</div>';
 
     var signatureHTML = '<div class="rp-signature-container">'
       + '<div class="rp-signature-block">'
       + '<div class="rp-sig-date">'+esc(ttdTanggal)+'</div>'
       + '<div class="rp-sig-title">Mengetahui,</div>'
       + '<div class="rp-sig-role">'+esc(cfg.ttd_jabatan || 'Koordinator Akademik')+'</div>'
+      + ttdImgHTML
       + '<div class="rp-sig-name">'+esc(cfg.ttd_nama || 'Tim Akademik')+'</div>'
       + '</div>'
       + '</div>';
@@ -1054,6 +1061,7 @@
 
   async function downloadPDFResmi() {
     if (!_rincianData) return;
+    var cfg = _raportConfig || {};
     var rp  = _rincianData.raport;
     var sesi = (_rincianData && _rincianData.sesi) || [];
     var sum  = (_rincianData && _rincianData.summary) || {};
@@ -1118,13 +1126,20 @@
         }
 
         var pesan = '"Teruslah bersemangat dalam mengemban amanah Al-Qur\'an. Setiap langkah kecil adalah kemajuan yang berarti."';
+        var rekomendasi = 'Kami sangat merekomendasikan Anda untuk aktif mengikuti program tahsin, baik di Rattililquran maupun program lainnya';
         doc.setDrawColor(...Lt); doc.setLineWidth(0.3);
         doc.setLineDash([1,1]);
         doc.line(mar, targetY, W-mar, targetY); targetY += 5;
         doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(8.5);
         var pesanLines = doc.splitTextToSize(pesan, W-mar*2-10);
         doc.text(pesanLines, W/2, targetY, {align:'center'});
-        targetY += pesanLines.length*4.5 + 4;
+        targetY += pesanLines.length*4.5 + 1;
+
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+        var rekLines = doc.splitTextToSize(rekomendasi, W-mar*2-10);
+        doc.text(rekLines, W/2, targetY, {align:'center'});
+        targetY += rekLines.length*4 + 3;
+
         doc.line(mar, targetY, W-mar, targetY);
         doc.setLineDash([]);
         targetY += 8;
@@ -1137,6 +1152,13 @@
         doc.text('Mengetahui,', ttdX+27.5, targetY+10, {align:'center'});
         doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...G);
         doc.text('Koordinator Akademik', ttdX+27.5, targetY+14, {align:'center'});
+
+        if (ttdDataUrl) {
+          try {
+            doc.addImage(ttdDataUrl, 'PNG', ttdX + 7.5, targetY + 15, 40, 14);
+          } catch(e) {}
+        }
+
         doc.setDrawColor(...G); doc.setLineWidth(0.5);
         doc.line(ttdX+5, targetY+30, ttdX+50, targetY+30);
         doc.setTextColor(...Dk); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
@@ -1172,6 +1194,18 @@
           var logoBlob = await logoResp.blob();
           logoDataUrl = await new Promise(function(res) {
             var fr = new FileReader(); fr.onload = function(e){res(e.target.result);}; fr.readAsDataURL(logoBlob);
+          });
+        }
+      } catch(e) {}
+
+      var ttdDataUrl = null;
+      try {
+        var ttdSource = cfg.ttd_image_url || '../assets/images/ttd.png';
+        var ttdResp = await fetch(ttdSource);
+        if (ttdResp.ok) {
+          var ttdBlob = await ttdResp.blob();
+          ttdDataUrl = await new Promise(function(res) {
+            var fr = new FileReader(); fr.onload = function(e){res(e.target.result);}; fr.readAsDataURL(ttdBlob);
           });
         }
       } catch(e) {}
@@ -1305,7 +1339,14 @@
         doc.setTextColor(...Md); doc.setFont('helvetica','italic'); doc.setFontSize(8.5);
         var daurahPesanLines = doc.splitTextToSize(daurahPesan, W - mar*2 - 20);
         doc.text(daurahPesanLines, W/2, y, {align:'center'});
-        y += daurahPesanLines.length * 4.5 + 4;
+        y += daurahPesanLines.length * 4.5 + 1;
+
+        var daurahRekomendasi = 'Kami sangat merekomendasikan Anda untuk aktif mengikuti program tahsin, baik di Rattililquran maupun program lainnya';
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+        var daurahRekLines = doc.splitTextToSize(daurahRekomendasi, W - mar*2 - 20);
+        doc.text(daurahRekLines, W/2, y, {align:'center'});
+        y += daurahRekLines.length * 4 + 3;
+
         doc.line(mar + 10, y, W - mar - 10, y);
         doc.setLineDash([]);
         y += 15;
