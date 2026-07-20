@@ -775,6 +775,30 @@ async function _core_getRincianRaport(id_raport) {
     var { data: catatan } = await _sb.from('catatan_raport').select('catatan').eq('id_halaqah', raport.id_halaqah).maybeSingle();
     var komponen = raport.detail_json ? (typeof raport.detail_json === 'string' ? (function(){try{return JSON.parse(raport.detail_json);}catch(e){return [];}})() : raport.detail_json) : [];
 
+    // Jika raport adalah daurah, inject field urutan dari assessment_items agar
+    // client dapat mengurutkan indikator sesuai urutan hari pembelajaran.
+    // Fix untuk raport lama yang detail_json-nya belum menyimpan field urutan.
+    var isDaurahKomp = komponen.some(function(k) { return k.tipe === 'daurah_indikator'; });
+    if (isDaurahKomp) {
+      try {
+        var { data: asmtOrder } = await _sb.from('assessment_items')
+          .select('id_item, urutan')
+          .eq('level', 'Tahsin Al-Fatihah')
+          .eq('status', 'aktif')
+          .order('urutan');
+        if (asmtOrder && asmtOrder.length) {
+          var orderMap = {};
+          asmtOrder.forEach(function(a, idx) { orderMap[String(a.id_item)] = a.urutan != null ? Number(a.urutan) : idx; });
+          komponen = komponen.map(function(k) {
+            if (k.tipe === 'daurah_indikator' && orderMap[String(k.id_komponen)] !== undefined) {
+              return Object.assign({}, k, { urutan: orderMap[String(k.id_komponen)] });
+            }
+            return k;
+          });
+        }
+      } catch(e) { /* gagal fetch urutan — tetap lanjut dengan urutan lama */ }
+    }
+
     // Urutkan berdasarkan jenis_sesi (Reguler -> Qiyam -> Micro Teaching) kemudian tanggal
     var sortedKBM = (nilaiKBM || []).sort(function(a, b) {
       var catOrder = { 'KBM Reguler': 1, 'KBM Qiyam': 2, 'Micro Teaching': 3 };
