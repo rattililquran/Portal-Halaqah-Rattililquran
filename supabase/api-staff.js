@@ -2811,6 +2811,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
       listKomp.push({
         id_komponen: item.id_item,
         urutan: item.urutan,
+        kategori: item.kategori,
         nama_komponen: item.teks_latin,
         teks_arab: item.teks_arab,
         keterangan: item.keterangan,

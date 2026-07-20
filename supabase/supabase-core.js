@@ -782,21 +782,27 @@ async function _core_getRincianRaport(id_raport) {
     if (isDaurahKomp) {
       try {
         var { data: asmtOrder } = await _sb.from('assessment_items')
-          .select('id_item, urutan')
+          .select('id_item, urutan, kategori')
           .eq('level', 'Tahsin Al-Fatihah')
-          .eq('status', 'aktif')
-          .order('urutan');
+          .eq('status', 'aktif');
         if (asmtOrder && asmtOrder.length) {
           var orderMap = {};
-          asmtOrder.forEach(function(a, idx) { orderMap[String(a.id_item)] = a.urutan != null ? Number(a.urutan) : idx; });
+          var katMap = {};
+          asmtOrder.forEach(function(a, idx) {
+            orderMap[String(a.id_item)] = a.urutan != null ? Number(a.urutan) : idx;
+            katMap[String(a.id_item)] = a.kategori || 'Hari 1';
+          });
           komponen = komponen.map(function(k) {
             if (k.tipe === 'daurah_indikator' && orderMap[String(k.id_komponen)] !== undefined) {
-              return Object.assign({}, k, { urutan: orderMap[String(k.id_komponen)] });
+              return Object.assign({}, k, {
+                urutan: orderMap[String(k.id_komponen)],
+                kategori: katMap[String(k.id_komponen)]
+              });
             }
             return k;
           });
         }
-      } catch(e) { /* gagal fetch urutan — tetap lanjut dengan urutan lama */ }
+      } catch(e) { /* gagal fetch urutan/kategori */ }
     }
 
     // Urutkan berdasarkan jenis_sesi (Reguler -> Qiyam -> Micro Teaching) kemudian tanggal

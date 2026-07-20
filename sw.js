@@ -1,6 +1,6 @@
 // ============================================================
 //  Service Worker — Portal Halaqah Rattililqur'an
-//  Cache version: v8.82 — fix PDF sertifikat daurah font & terpotong
+//  Cache version: v8.83 — fix PDF sertifikat daurah sorting hari & urutan
 // ============================================================
 //
 //  RIWAYAT: SW ini sempat dicurigai 2x sebagai biang login freeze

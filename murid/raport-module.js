@@ -817,6 +817,9 @@
       // A. Cetak Indikator Tajwid
       var tajwidKomp = (rp.komponen || []).filter(function(k) { return k.tipe === 'daurah_indikator'; })
         .sort(function(a, b) {
+          var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+          var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+          if (hariA !== hariB) return hariA - hariB;
           if (a.urutan != null && b.urutan != null) return Number(a.urutan) - Number(b.urutan);
           var aId = Number(a.id_komponen) || 0, bId = Number(b.id_komponen) || 0;
           return aId && bId ? aId - bId : String(a.id_komponen||'').localeCompare(String(b.id_komponen||''));
@@ -1181,9 +1184,12 @@
         // ═══════════════════════════════════════════════════
 
         var items = rp.komponen || [];
-        // Sort by urutan (stored in detail_json for new raports) or id_komponen numeric fallback
+        // Sort by kategori (Hari/Sesi) first, then by urutan
         var tajwidItems = items.filter(function(x) { return x.tipe === 'daurah_indikator'; })
           .sort(function(a, b) {
+            var hariA = parseInt((a.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+            var hariB = parseInt((b.kategori || 'Hari 1').replace(/[^0-9]/g, ''), 10) || 0;
+            if (hariA !== hariB) return hariA - hariB;
             if (a.urutan != null && b.urutan != null) return Number(a.urutan) - Number(b.urutan);
             var aId = Number(a.id_komponen) || 0, bId = Number(b.id_komponen) || 0;
             return aId && bId ? aId - bId : String(a.id_komponen||'').localeCompare(String(b.id_komponen||''));
