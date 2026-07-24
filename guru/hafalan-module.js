@@ -1012,19 +1012,24 @@
       var data = res.data || [];
       _hafalanGuruOffset += data.length;
       if (!more && listEl) listEl.innerHTML = '';
-      var jenisIcon = { Ziyadah:'📖', Murajaah:'🔄', Tahsin:'✨' };
-      var nilaiCls  = { A:'background:#dbeafe;color:#1d4ed8', B:'background:#d1fae5;color:#065f46', C:'background:#fef3c7;color:#92400e' };
+      var jenisIcon  = { Ziyadah:'📖', Murajaah:'🔄', Tahsin:'✨' };
+      var jenisColor = { Ziyadah:'#10b981', Murajaah:'#f59e0b', Tahsin:'#8b5cf6' };
+      var nilaiCls   = { Mumtaz:'background:#dbeafe;color:#1d4ed8', Baik:'background:#d1fae5;color:#065f46', Cukup:'background:#fef3c7;color:#92400e', A:'background:#dbeafe;color:#1d4ed8', B:'background:#d1fae5;color:#065f46', C:'background:#fef3c7;color:#92400e' };
       if (listEl) listEl.innerHTML += data.map(function(r) {
-        var catHtml = r.catatan ? '<div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:11px;color:#78350f;font-style:italic">' + esc(r.catatan) + '</div>' : '';
-        var tgtHtml = r.target_surat ? '<div style="margin-top:4px;font-size:11px;color:#059669;font-weight:600">🎯 Target: ' + esc(r.target_surat) + ' · ' + r.target_ayat_dari + '–' + r.target_ayat_sampai + '</div>' : '';
-        return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:13px;padding:12px 13px;margin-bottom:7px;display:flex;gap:10px;align-items:flex-start">'
-          + '<div style="' + (nilaiCls[r.nilai] || 'background:#f3f4f6;color:#374151') + ';width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0">' + (r.nilai || '?') + '</div>'
+        var railColor = jenisColor[r.jenis] || '#10b981';
+        var catHtml   = r.catatan ? '<div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:11px;color:#78350f;font-style:italic">' + esc(r.catatan) + '</div>' : '';
+        var tgtHtml   = r.target_surat ? '<div style="margin-top:4px;font-size:11px;color:#059669;font-weight:600">🎯 Target: ' + esc(r.target_surat) + ' · Ayat ' + r.target_ayat_dari + '–' + r.target_ayat_sampai + '</div>' : '';
+        var kelBadge  = r.kelancaran ? '<span style="font-size:10.5px;background:#f3f4f6;color:#4b5563;border-radius:6px;padding:1px 6px;margin-left:4px">⚡ ' + esc(r.kelancaran) + '</span>' : '';
+
+        return '<div style="background:#fff;border:1px solid #e5e7eb;border-left:4px solid ' + railColor + ';border-radius:12px;padding:11px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.03)">'
+          + '<div style="' + (nilaiCls[r.nilai] || 'background:#f3f4f6;color:#374151') + ';width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0">' + (r.nilai || '?') + '</div>'
           + '<div style="flex:1;min-width:0">'
             + '<div style="font-size:13px;font-weight:700;color:#111827">Juz ' + (r.juz||'-') + ' · ' + esc(r.surat) + '</div>'
-            + '<div style="font-size:11px;color:#6b7280;margin:2px 0">'
-              + '<span style="background:#f3f4f6;border-radius:100px;padding:1px 8px;font-weight:700">' + (jenisIcon[r.jenis]||'📖') + ' ' + esc(r.jenis||'Ziyadah') + '</span>'
-              + ' · Ayat ' + r.ayat_dari + '–' + r.ayat_sampai
-              + ' · <strong>' + esc(r.nama_murid||'-') + '</strong>'
+            + '<div style="font-size:11px;color:#6b7280;margin:2px 0;display:flex;align-items:center;flex-wrap:wrap;gap:4px">'
+              + '<span style="background:' + railColor + '1b;color:' + railColor + ';border-radius:100px;padding:1px 8px;font-weight:700">' + (jenisIcon[r.jenis]||'📖') + ' ' + esc(r.jenis||'Ziyadah') + '</span>'
+              + '<span>· Ayat ' + r.ayat_dari + '–' + r.ayat_sampai + '</span>'
+              + '<span>· <strong>' + esc(r.nama_murid||'-') + '</strong></span>'
+              + kelBadge
             + '</div>'
             + '<div style="font-size:10px;color:#9ca3af">' + _fmtHafalanDateGuru(r.created_at) + '</div>'
             + catHtml + tgtHtml

@@ -5887,7 +5887,7 @@ html.theme-dark .pr-chip.active {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=17ce37df"></script>
-<script src="../supabase/api-staff.js?v=aa68d5ee"></script>
+<script src="../supabase/api-staff.js?v=9c8fa6cb"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="../assets/js/shared-utils.js?v=20b69409"></script>
 <script src="../assets/push-permission.js"></script>
@@ -5898,9 +5898,9 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=92f6e826" defer></script>
 <script src="attibyan-module.js?v=a9eee0f1" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=f931d699" defer></script>
+<script src="kbm-module.js?v=756befcf" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
-<script src="hafalan-module.js?v=cccd74b6" defer></script>
+<script src="hafalan-module.js?v=fb6cf035" defer></script>
 <script src="mutabaah-guru-module.js?v=1be1e422" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -6988,16 +6988,17 @@ function renderEditNilai() {
 }
 
 function renderEditNilaiQiyam(body, data) {
-  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data setoran',''); return; }
+  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
   const cfg = _enQiyamCfg();
   body.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">Surat & ayat bersifat tampilan (read-only). Yang dapat diedit: jenis, nilai, kelancaran, kamera, catatan.</div>'
     + data.map(function(n){
     const status = String(n.status_hadir||'H').toUpperCase();
     const nama = esc(n.nama_murid || n.id_murid);
     const badge = (typeof hadirBadge === 'function') ? hadirBadge(status) : status;
-    const h = n.hafalan;
+    const list = (n.hafalan_list && n.hafalan_list.length) ? n.hafalan_list : (n.hafalan ? [n.hafalan] : []);
+
     // Hanya murid H/T yang punya baris setoran yang bisa diedit
-    if (status === 'I' || status === 'A' || !h || !h.id_setoran) {
+    if (status === 'I' || status === 'A' || !list.length) {
       const ket = (status === 'I') ? '🟡 Izin — tidak ada setoran'
         : (status === 'A') ? '🔴 Alpa — tidak ada setoran'
         : 'Belum ada setoran pada sesi ini';
@@ -7006,37 +7007,32 @@ function renderEditNilaiQiyam(body, data) {
         + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+ket+'</div></div>'
         + '<div>'+badge+'</div></div>';
     }
-    // Guard: bila satu murid punya >1 setoran pada sesi ini, editor per-murid
-    // ini tidak bisa menentukan setoran mana yang dimaksud → jangan edit diam-diam.
-    // Arahkan ke Riwayat Setoran (edit/hapus per setoran). Kasus ini sangat jarang
-    // (capture Qiyam normal = 1 setoran/murid), tapi tetap disurface agar aman.
-    if ((n.hafalan_count || 1) > 1) {
-      return '<div class="prow" style="align-items:center;margin-bottom:8px">'
-        + '<div><div class="prow-name">'+nama+'</div>'
-        + '<div style="font-size:11.5px;color:var(--amber-txt);font-style:italic">⚠️ '+(n.hafalan_count)+' setoran pada sesi ini — edit lewat menu Riwayat Setoran</div></div>'
-        + '<div>'+badge+'</div></div>';
-    }
+
     const mid = esc(n.id_murid);
-    const info = 'Juz '+esc(h.juz != null ? h.juz : '-')+' · '+esc(h.surat||'-')+' · Ayat '+esc(h.ayat_dari != null ? h.ayat_dari : '-')+'–'+esc(h.ayat_sampai != null ? h.ayat_sampai : '-');
-    return '<div class="card" data-en-q-mid="'+mid+'" data-en-q-setoran="'+esc(h.id_setoran)+'" style="margin-bottom:10px;padding:12px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
-      + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">📖 '+info+'</div>'
-      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
-      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Jenis</label>'
-      + '<select class="fc" id="enQJenis-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(_EN_QIYAM_JENIS, h.jenis), h.jenis)+'</select></div>'
-      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Makhraj &amp; Tajwid</label>'
-      + '<select class="fc" id="enQNilai-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.nilai, h.nilai), h.nilai)+'</select></div>'
-      + '</div>'
-      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
-      + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kelancaran</label>'
-      + '<select class="fc" id="enQKel-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kelancaran, h.kelancaran), h.kelancaran)+'</select></div>'
-      + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
-      + '<select class="fc" id="enQKam-'+mid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kamera, h.kamera), h.kamera)+'</select></div>'
-      + '</div>'
-      + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
-      + '<textarea class="fc" id="enQCat-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(h.catatan||'')+'</textarea></div>'
-      + '</div>';
+    return list.map(function(h, idx) {
+      const sid = esc(h.id_setoran);
+      const setoranNumTag = (list.length > 1) ? ' <span style="font-size:11px;color:var(--text-3);font-weight:400">(Surat #'+(idx+1)+')</span>' : '';
+      const info = 'Juz '+esc(h.juz != null ? h.juz : '-')+' · '+esc(h.surat||'-')+' · Ayat '+esc(h.ayat_dari != null ? h.ayat_dari : '-')+'–'+esc(h.ayat_sampai != null ? h.ayat_sampai : '-');
+      return '<div class="card" data-en-q-mid="'+mid+'" data-en-q-setoran="'+sid+'" style="margin-bottom:10px;padding:12px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+        + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+setoranNumTag+'</div>'+(idx===0?badge:'')+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">📖 '+info+'</div>'
+        + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+        + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Jenis</label>'
+        + '<select class="fc" id="enQJenis-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(_EN_QIYAM_JENIS, h.jenis), h.jenis)+'</select></div>'
+        + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Makhraj &amp; Tajwid</label>'
+        + '<select class="fc" id="enQNilai-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.nilai, h.nilai), h.nilai)+'</select></div>'
+        + '</div>'
+        + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+        + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kelancaran</label>'
+        + '<select class="fc" id="enQKel-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kelancaran, h.kelancaran), h.kelancaran)+'</select></div>'
+        + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
+        + '<select class="fc" id="enQKam-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kamera, h.kamera), h.kamera)+'</select></div>'
+        + '</div>'
+        + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+        + '<textarea class="fc" id="enQCat-'+sid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(h.catatan||'')+'</textarea></div>'
+        + '</div>';
+    }).join('');
   }).join('');
 }
 
@@ -7125,17 +7121,18 @@ async function _simpanEditNilaiQiyam() {
   for (const card of cards) {
     const mid = card.getAttribute('data-en-q-mid');
     const idSetoran = card.getAttribute('data-en-q-setoran');
-    const nilai = document.getElementById('enQNilai-'+mid).value;
+    const nilaiEl = document.getElementById('enQNilai-'+idSetoran);
+    const nilai = nilaiEl ? nilaiEl.value : '';
     if (!nilai) { toast('Nilai Makhraj & Tajwid wajib diisi untuk semua setoran','err'); return; }
     jobs.push({
       id_setoran: idSetoran,
       id_kbm    : editPresensiKBMId,
       id_murid  : mid,
-      jenis     : document.getElementById('enQJenis-'+mid).value,
+      jenis     : (document.getElementById('enQJenis-'+idSetoran) || {}).value || 'Ziyadah',
       nilai     : nilai,
-      kelancaran: document.getElementById('enQKel-'+mid).value || null,
-      kamera    : document.getElementById('enQKam-'+mid).value || null,
-      catatan   : document.getElementById('enQCat-'+mid).value.trim() || null,
+      kelancaran: (document.getElementById('enQKel-'+idSetoran) || {}).value || null,
+      kamera    : (document.getElementById('enQKam-'+idSetoran) || {}).value || null,
+      catatan   : ((document.getElementById('enQCat-'+idSetoran) || {}).value || '').trim() || null,
     });
   }
 

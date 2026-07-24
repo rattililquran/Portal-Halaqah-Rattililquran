@@ -608,11 +608,14 @@ var GuruAPI = {
     }
 
     var setoranMap = {};
+    var setoranListMap = {};
     var setoranCount = {};
     if (jenisSesi === 'KBM Qiyam') {
       var { data: setoranData } = await _sb.from('setoran_hafalan').select('*').eq('id_kbm', id_kbm);
       (setoranData || []).forEach(function(s) {
         setoranMap[s.id_murid] = s;               // last-wins (dipertahankan untuk kompat pemanggil lama)
+        if (!setoranListMap[s.id_murid]) setoranListMap[s.id_murid] = [];
+        setoranListMap[s.id_murid].push(s);
         setoranCount[s.id_murid] = (setoranCount[s.id_murid] || 0) + 1;
       });
     }
@@ -622,7 +625,8 @@ var GuruAPI = {
         nama_murid: namaMap[r.id_murid] || r.id_murid,
         jenis_sesi: jenisSesi,
         hafalan: setoranMap[r.id_murid] || null,
-        hafalan_count: setoranCount[r.id_murid] || 0   // >1 → ada >1 setoran/murid di sesi ini (editor menahan diri)
+        hafalan_list: setoranListMap[r.id_murid] || [],
+        hafalan_count: setoranCount[r.id_murid] || 0
       });
     })};
   },

@@ -537,6 +537,10 @@
           + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
             + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
           + '</div>'
+          + '<button type="button" onclick="addHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\')" style="width:100%;margin-bottom:8px;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">'
+            + '<span>➕</span> Tambah Surat Ke Keranjang Setoran'
+          + '</button>'
+          + '<div id="hfkbm-staged-list-' + eid + '" style="display:none;margin-bottom:8px"></div>'
           + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px;overflow:visible;margin-bottom:2px">'
             + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
             + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
@@ -670,17 +674,237 @@
 
   function _hfKbmEid(mid) { return mid.replace(/[^a-zA-Z0-9-_]/g,'_'); }
 
+  function renderHafalanKbmStagedList(mid) {
+    var eid = _hfKbmEid(mid);
+    var container = document.getElementById('hfkbm-staged-list-' + eid);
+    if (!container) return;
+    var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+    var list = Array.isArray(raw) ? raw : [];
+    if (!list.length) {
+      container.innerHTML = '';
+      container.style.display = 'none';
+      return;
+    }
+    container.style.display = 'block';
+    var jenisColor = { Ziyadah: '#10b981', Murajaah: '#f59e0b', Tahsin: '#8b5cf6' };
+    var html = '<div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">📋 Keranjang Setoran Sesi Ini (' + list.length + ' surat):</div>';
+    html += list.map(function(item, idx) {
+      var color = jenisColor[item.jenis] || '#10b981';
+      var info = (item.suratD || item.surat || 'Tahsin') + (item.dari && item.sampai ? ' · Ayat ' + item.dari + '–' + item.sampai : '') + (item.juz ? ' (Juz ' + item.juz + ')' : '');
+      var detail = 'Nilai: ' + (item.nil||'-') + ' · Kelancaran: ' + (item.kel||'-') + (item.catatan ? ' · Catatan: ' + esc(item.catatan) : '');
+      return '<div style="background:#fff;border:1px solid #e5e7eb;border-left:4px solid ' + color + ';border-radius:8px;padding:6px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+        + '<div>'
+          + '<div style="font-size:12px;font-weight:700;color:#111827"><span style="background:'+color+'22;color:'+color+';padding:1px 6px;border-radius:4px;font-size:10px;margin-right:4px">' + esc(item.jenis||'Ziyadah') + '</span>' + esc(info) + '</div>'
+          + '<div style="font-size:10.5px;color:#6b7280;margin-top:2px">' + esc(detail) + '</div>'
+        + '</div>'
+        + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#fee2e2;border:none;color:#dc2626;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
+      + '</div>';
+    }).join('');
+    container.innerHTML = html;
+  }
+
   function updateHfKbmPoin(mid) {
     var eid     = _hfKbmEid(mid);
     var cfg     = typeof _hfLoadConfig === 'function' ? _hfLoadConfig() : { kelancaran: [], nilai: [] };
+    var poinEl  = document.getElementById('hfkbm-poin-' + eid);
+    if (!poinEl) return;
+
+    var rawCache = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+    var list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
+
     var kelEl   = document.getElementById('hfkbm-kel-' + eid);
     var nilEl   = document.getElementById('hfkbm-nil-' + eid);
-    var poinEl  = document.getElementById('hfkbm-poin-' + eid);
-    if (!kelEl || !nilEl || !poinEl) return;
-    var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelEl.value; });
-    var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilEl.value; });
-    var poin    = (kelItem ? kelItem.poin : 0) + (nilItem ? nilItem.poin : 0);
-    poinEl.textContent = '⚡ Estimasi poin: +' + poin;
+    var srtEl   = document.getElementById('hfkbm-surat-' + eid);
+    var activePoin = 0;
+    if (kelEl && nilEl) {
+      var kelItem = (cfg.kelancaran||[]).find(function(k){ return k.nama === kelEl.value; });
+      var nilItem = (cfg.nilai||[]).find(function(n){ return n.kode === nilEl.value; });
+      activePoin = (kelItem ? kelItem.poin : 0) + (nilItem ? nilItem.poin : 0);
+    }
+
+    var totalPoin = 0;
+    if (list.length > 0) {
+      list.forEach(function(it) {
+        var kIt = (cfg.kelancaran||[]).find(function(k){ return k.nama === it.kel; });
+        var nIt = (cfg.nilai||[]).find(function(n){ return n.kode === it.nil; });
+        totalPoin += (kIt ? kIt.poin : 0) + (nIt ? nIt.poin : 0);
+      });
+      if (srtEl && srtEl.value && !list.some(function(it){ return it.surat === srtEl.value; })) {
+        totalPoin += activePoin;
+      }
+    } else {
+      totalPoin = activePoin;
+    }
+
+    poinEl.textContent = '⚡ Estimasi total poin: +' + totalPoin + (list.length > 1 ? ' (' + list.length + ' surat)' : '');
+  }
+
+  function addHafalanKbmItem(mid) {
+    var eid = _hfKbmEid(mid);
+    var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+    var jenis   = getV('hfkbm-jenis-'+eid);
+    var surat   = getV('hfkbm-surat-'+eid);
+    var suratD  = getV('hfkbm-surat-display-'+eid);
+    var dari    = getV('hfkbm-ayat-dari-'+eid);
+    var sampai  = getV('hfkbm-ayat-sampai-'+eid);
+    var juz     = getV('hfkbm-juz-'+eid);
+    var kel     = getV('hfkbm-kel-'+eid);
+    var nil     = getV('hfkbm-nil-'+eid);
+    var kam     = getV('hfkbm-kam-'+eid);
+    var catatan = getV('hfkbm-catatan-'+eid);
+
+    if (!jenis) { toast('Pilih jenis setoran','warn'); return; }
+    if (jenis !== 'Tahsin') {
+      if (!surat) { toast('Pilih nama surat terlebih dahulu','warn'); return; }
+      var aD = parseInt(dari);
+      var aS = parseInt(sampai);
+      if (isNaN(aD) || isNaN(aS)) { toast('Isi range ayat dari dan sampai','warn'); return; }
+      if (aD > aS) { toast('Ayat Dari tidak boleh melebihi Sampai Ayat','warn'); return; }
+      if (!juz) { toast('Pilih Juz','warn'); return; }
+
+      var meta = (typeof _getSuratData === 'function' ? _getSuratData() : []).find(function(sd) {
+        return sd.latin.toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
+      });
+      if (meta && (aD > meta.ayat || aS > meta.ayat)) {
+        toast('Ayat melebihi jumlah ayat surat ' + meta.latin + ' (' + meta.ayat + ' ayat)', 'warn');
+        return;
+      }
+
+      if (jenis === 'Ziyadah') {
+        var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[mid]) || [];
+        var staged = Array.isArray(window._hafalanKbmCache && window._hafalanKbmCache[mid]) ? window._hafalanKbmCache[mid] : [];
+        var stagedZiyadah = staged.filter(function(it){ return it.jenis === 'Ziyadah'; });
+        var allZiyadah = rawDb.concat(stagedZiyadah);
+        var rawForSurat = allZiyadah.filter(function(z) {
+          return (z.surat||'').toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
+        });
+        var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
+        var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(intervals, aD, aS) : null;
+
+        if (overlap) {
+          if (typeof tryAutoSplitZiyadah === 'function' && tryAutoSplitZiyadah(mid, surat, suratD, juz, aD, aS, kel, nil, kam, catatan)) {
+            return;
+          }
+          toast('Gagal: Sudah menyetor Ziyadah ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ' pada surat ini!', 'warn');
+          return;
+        }
+      } else if (jenis === 'Murajaah') {
+        var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[mid]) || [];
+        var rawForSurat = rawDb.filter(function(z) {
+          return (z.surat||'').toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
+        });
+        var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
+        var contained = typeof checkMurajaahContainment === 'function' ? checkMurajaahContainment(intervals, aD, aS) : true;
+        if (!contained) {
+          toast('Gagal: Rentang Murajaah harus berada di dalam range Ziyadah yang sudah disetor!', 'warn');
+          return;
+        }
+      }
+    }
+
+    var item = {
+      jenis: jenis, surat: surat, suratD: suratD,
+      dari: dari, sampai: sampai, juz: juz,
+      kel: kel, nil: nil, kam: kam, catatan: catatan,
+      _saved: false
+    };
+
+    if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
+    if (!Array.isArray(window._hafalanKbmCache[mid])) {
+      window._hafalanKbmCache[mid] = [];
+    }
+    window._hafalanKbmCache[mid].push(item);
+
+    var setV = function(id,v){ var el=document.getElementById(id);if(el)el.value=v; };
+    setV('hfkbm-surat-'+eid, '');
+    setV('hfkbm-surat-display-'+eid, '');
+    setV('hfkbm-ayat-dari-'+eid, '');
+    setV('hfkbm-ayat-sampai-'+eid, '');
+    setV('hfkbm-catatan-'+eid, '');
+    var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
+    if (infoEl) infoEl.textContent = '— pilih surat berikutnya —';
+
+    renderHafalanKbmStagedList(mid);
+    updateHfKbmPoin(mid);
+    _kbmDraftSaveDebounced();
+    toast('Setoran "' + (suratD||surat||jenis) + '" ditambahkan ke keranjang!', 'ok');
+  }
+
+  function removeHafalanKbmItem(mid, index) {
+    if (!window._hafalanKbmCache || !Array.isArray(window._hafalanKbmCache[mid])) return;
+    window._hafalanKbmCache[mid].splice(index, 1);
+    renderHafalanKbmStagedList(mid);
+    updateHfKbmPoin(mid);
+    _kbmDraftSaveDebounced();
+    toast('Item setoran dihapus', 'info');
+  }
+
+  function tryAutoSplitZiyadah(mid, surat, suratD, juz, aD, aS, kel, nil, kam, catatan) {
+    var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[mid]) || [];
+    var rawForSurat = rawDb.filter(function(z) {
+      return (z.surat||'').toLowerCase().replace(/['-]/g,'') === surat.toLowerCase().replace(/['-]/g,'');
+    });
+    var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
+    if (!intervals.length) return false;
+
+    var overlapChunks = [];
+    var newChunks = [];
+
+    var cur = aD;
+    while (cur <= aS) {
+      var isCovered = intervals.some(function(inv) { return cur >= inv.ayat_dari && cur <= inv.ayat_sampai; });
+      var start = cur;
+      while (cur <= aS) {
+        var coveredNow = intervals.some(function(inv) { return cur >= inv.ayat_dari && cur <= inv.ayat_sampai; });
+        if (coveredNow !== isCovered) break;
+        cur++;
+      }
+      var chunk = { dari: start, sampai: cur - 1 };
+      if (isCovered) overlapChunks.push(chunk);
+      else newChunks.push(chunk);
+    }
+
+    if (!overlapChunks.length || (!newChunks.length && overlapChunks.length === 1 && overlapChunks[0].dari === aD && overlapChunks[0].sampai === aS)) {
+      return false;
+    }
+
+    var htmlDesc = '<div style="font-size:13px;color:#374151;margin-bottom:12px">'
+      + 'Sebagian ayat pada <b>' + esc(suratD||surat) + ' Ayat ' + aD + '–' + aS + '</b> sudah pernah disetor sebagai Ziyadah.<br>'
+      + 'Pisah otomatis menjadi:</div>'
+      + '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:12px;margin-bottom:12px">';
+    
+    var stagedItems = [];
+    overlapChunks.forEach(function(c) {
+      htmlDesc += '<div style="color:#d97706;font-weight:700;margin-bottom:4px">🔄 Murajaah (pengulangan): Ayat ' + c.dari + '–' + c.sampai + '</div>';
+      stagedItems.push({ jenis:'Murajaah', surat:surat, suratD:suratD, dari:c.dari, sampai:c.sampai, juz:juz, kel:kel, nil:nil, kam:kam, catatan:catatan, _saved:false });
+    });
+    newChunks.forEach(function(c) {
+      htmlDesc += '<div style="color:#059669;font-weight:700;margin-bottom:4px">📖 Ziyadah (hafalan baru): Ayat ' + c.dari + '–' + c.sampai + '</div>';
+      stagedItems.push({ jenis:'Ziyadah', surat:surat, suratD:suratD, dari:c.dari, sampai:c.sampai, juz:juz, kel:kel, nil:nil, kam:kam, catatan:catatan, _saved:false });
+    });
+    htmlDesc += '</div>';
+
+    showConfirm(htmlDesc, { title: '🔀 Auto-Split Setoran Hafalan', okText: 'Tambahkan Keduanya', cancelText: 'Batal' }).then(function(confirmed) {
+      if (!confirmed) return;
+      if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
+      if (!Array.isArray(window._hafalanKbmCache[mid])) window._hafalanKbmCache[mid] = [];
+      stagedItems.forEach(function(it) { window._hafalanKbmCache[mid].push(it); });
+
+      var eid = _hfKbmEid(mid);
+      var setV = function(id,v){ var el=document.getElementById(id);if(el)el.value=v; };
+      setV('hfkbm-surat-'+eid, '');
+      setV('hfkbm-surat-display-'+eid, '');
+      setV('hfkbm-ayat-dari-'+eid, '');
+      setV('hfkbm-ayat-sampai-'+eid, '');
+      setV('hfkbm-catatan-'+eid, '');
+
+      renderHafalanKbmStagedList(mid);
+      updateHfKbmPoin(mid);
+      _kbmDraftSaveDebounced();
+      toast('Setoran berhasil dipisah otomatis!', 'ok');
+    });
+
+    return true;
   }
 
   function hfKbmSuratInput(mid, q) {
@@ -1216,7 +1440,11 @@
   }
 
   function _hafKbmHasContent(o){
-    return !!(o && (o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah')));
+    if (!o) return false;
+    if (Array.isArray(o)) {
+      return o.some(function(item) { return _hafKbmHasContent(item); });
+    }
+    return !!(o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah'));
   }
 
   function _hydrateKbmCacheFromDraft(id) {
@@ -1395,7 +1623,7 @@
       var eid = _hfKbmEid(m.id_murid);
       if (!document.getElementById('hfkbm-jenis-'+eid)) return;
       var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
-      var obj = {
+      var activeItem = {
         jenis  : getV('hfkbm-jenis-'+eid), juz     : getV('hfkbm-juz-'+eid),
         surat  : getV('hfkbm-surat-'+eid), suratD  : getV('hfkbm-surat-display-'+eid),
         dari   : getV('hfkbm-ayat-dari-'+eid), sampai: getV('hfkbm-ayat-sampai-'+eid),
@@ -1404,9 +1632,20 @@
         tgtSrt : getV('hfkbm-tgt-surat-'+eid),
         tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
       };
-      var prev = window._hafalanKbmCache[m.id_murid];
-      if (!_hafKbmHasContent(obj) && _hafKbmHasContent(prev)) return;
-      window._hafalanKbmCache[m.id_murid] = obj;
+
+      var currentCache = window._hafalanKbmCache[m.id_murid];
+      var staged = Array.isArray(currentCache) ? currentCache : (currentCache && currentCache.jenis ? [currentCache] : []);
+
+      if (_hafKbmHasContent(activeItem)) {
+        var exists = staged.some(function(it) {
+          return it.jenis === activeItem.jenis && it.surat === activeItem.surat && it.dari === activeItem.dari && it.sampai === activeItem.sampai;
+        });
+        if (!exists) {
+          staged = staged.concat([activeItem]);
+        }
+      }
+
+      window._hafalanKbmCache[m.id_murid] = staged;
     });
   }
 
@@ -1417,29 +1656,34 @@
       var eid   = _hfKbmEid(m.id_murid);
       var cache = window._hafalanKbmCache[m.id_murid];
       if (!cache) return;
+      var list = Array.isArray(cache) ? cache : [cache];
+      if (!list.length) return;
+
+      var first = list[0];
       var setV = function(id,v){ var el=document.getElementById(id);if(el&&v)el.value=v; };
       var setSel = function(id,v){ var el=document.getElementById(id); if(!el||(v===undefined||v==='')) return;
         el.value=v;
         if(el.value!==v){ var o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); el.value=v; } };
-      setSel('hfkbm-jenis-'+eid, cache.jenis);
-      setSel('hfkbm-juz-'+eid,   cache.juz);
-      setV('hfkbm-surat-'+eid,   cache.surat);
-      setV('hfkbm-surat-display-'+eid, cache.suratD);
-      setV('hfkbm-ayat-dari-'+eid,  cache.dari);
-      setV('hfkbm-ayat-sampai-'+eid,cache.sampai);
-      setSel('hfkbm-kel-'+eid,    cache.kel);
-      setSel('hfkbm-nil-'+eid,    cache.nil);
-      setSel('hfkbm-kam-'+eid,    cache.kam);
-      setV('hfkbm-catatan-'+eid, cache.catatan);
-      setV('hfkbm-tgt-surat-'+eid, cache.tgtSrt);
-      setV('hfkbm-tgt-dari-'+eid,  cache.tgtDari);
-      setV('hfkbm-tgt-sampai-'+eid,cache.tgtSmp);
-      if (cache.suratD) {
+      setSel('hfkbm-jenis-'+eid, first.jenis);
+      setSel('hfkbm-juz-'+eid,   first.juz);
+      setV('hfkbm-surat-'+eid,   first.surat);
+      setV('hfkbm-surat-display-'+eid, first.suratD);
+      setV('hfkbm-ayat-dari-'+eid,  first.dari);
+      setV('hfkbm-ayat-sampai-'+eid,first.sampai);
+      setSel('hfkbm-kel-'+eid,    first.kel);
+      setSel('hfkbm-nil-'+eid,    first.nil);
+      setSel('hfkbm-kam-'+eid,    first.kam);
+      setV('hfkbm-catatan-'+eid, first.catatan);
+      setV('hfkbm-tgt-surat-'+eid, first.tgtSrt);
+      setV('hfkbm-tgt-dari-'+eid,  first.tgtDari);
+      setV('hfkbm-tgt-sampai-'+eid,first.tgtSmp);
+      if (first.suratD) {
         var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
-          .find(function(s){ return s.latin === cache.suratD; });
+          .find(function(s){ return s.latin === first.suratD; });
         var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
-        if (infoEl && meta) { infoEl.textContent = cache.suratD + ' = ' + meta.ayat + ' ayat'; }
+        if (infoEl && meta) { infoEl.textContent = first.suratD + ' = ' + meta.ayat + ' ayat'; }
       }
+      renderHafalanKbmStagedList(m.id_murid);
       updateHfKbmPoin(m.id_murid);
     });
   }
@@ -1461,83 +1705,109 @@
       var status = presensiMap[m.id_murid] || 'A';
       if (status !== 'H' && status !== 'T') continue;
 
-      var cache = window._hafalanKbmCache[m.id_murid] || {};
-      if (!cache.jenis) {
+      var rawCache = window._hafalanKbmCache[m.id_murid];
+      var list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
+      if (!list.length) {
         toast('Pilih jenis setoran untuk ' + m.nama_murid, 'warn');
         valid = false; break;
       }
-      if (cache.jenis !== 'Tahsin') {
-        if (!cache.surat) {
-          toast('Pilih nama surat untuk ' + m.nama_murid, 'warn');
-          valid = false; break;
-        }
-        var aD = parseInt(cache.dari);
-        var aS = parseInt(cache.sampai);
-        if (isNaN(aD) || isNaN(aS)) {
-          toast('Isi range ayat untuk ' + m.nama_murid, 'warn');
-          valid = false; break;
-        }
-        if (aD > aS) {
-          toast('Ayat Dari tidak boleh melebihi Sampai Ayat untuk ' + m.nama_murid, 'warn');
-          valid = false; break;
-        }
-        if (!cache.juz) {
-          toast('Pilih Juz untuk ' + m.nama_murid, 'warn');
-          valid = false; break;
-        }
 
-        var meta = _getSuratData().find(function(sd) {
-          return sd.latin.toLowerCase().replace(/['-]/g,'') === cache.surat.toLowerCase().replace(/['-]/g,'');
-        });
-        if (meta && (aD > meta.ayat || aS > meta.ayat)) {
-          toast('Ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + meta.latin + ' (' + meta.ayat + ' ayat)', 'warn');
+      for (var j = 0; j < list.length; j++) {
+        var cache = list[j];
+        if (!cache.jenis) {
+          toast('Pilih jenis setoran untuk ' + m.nama_murid, 'warn');
           valid = false; break;
         }
-
-        if (cache.jenis === 'Ziyadah') {
-          var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
-          var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(raw) : [];
-          var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(intervals, aD, aS) : null;
-          if (overlap) {
-            toast('Gagal: ' + m.nama_murid + ' sudah menyetor Ziyadah ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ' pada surat ini!', 'warn');
+        if (cache.jenis !== 'Tahsin') {
+          if (!cache.surat) {
+            toast('Pilih nama surat untuk ' + m.nama_murid, 'warn');
             valid = false; break;
           }
-        } else if (cache.jenis === 'Murajaah') {
-          var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
-          var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(raw) : [];
-          var contained = typeof checkMurajaahContainment === 'function' ? checkMurajaahContainment(intervals, aD, aS) : true;
-          if (!contained) {
-            toast('Gagal: Rentang Murajaah ' + m.nama_murid + ' harus berada di dalam range Ziyadah yang sudah disetor!', 'warn');
+          var aD = parseInt(cache.dari);
+          var aS = parseInt(cache.sampai);
+          if (isNaN(aD) || isNaN(aS)) {
+            toast('Isi range ayat untuk ' + m.nama_murid, 'warn');
             valid = false; break;
+          }
+          if (aD > aS) {
+            toast('Ayat Dari tidak boleh melebihi Sampai Ayat untuk ' + m.nama_murid, 'warn');
+            valid = false; break;
+          }
+          if (!cache.juz) {
+            toast('Pilih Juz untuk ' + m.nama_murid, 'warn');
+            valid = false; break;
+          }
+
+          var meta = _getSuratData().find(function(sd) {
+            return sd.latin.toLowerCase().replace(/['-]/g,'') === (cache.surat||'').toLowerCase().replace(/['-]/g,'');
+          });
+          if (meta && (aD > meta.ayat || aS > meta.ayat)) {
+            toast('Ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + meta.latin + ' (' + meta.ayat + ' ayat)', 'warn');
+            valid = false; break;
+          }
+
+          if (cache.jenis === 'Ziyadah') {
+            var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
+            var priorStaged = list.slice(0, j).filter(function(it){ return it.jenis === 'Ziyadah'; });
+            var allZiyadah = rawDb.concat(priorStaged);
+            var rawForSurat = allZiyadah.filter(function(z) {
+              return (z.surat||'').toLowerCase().replace(/['-]/g,'') === (cache.surat||'').toLowerCase().replace(/['-]/g,'');
+            });
+            var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
+            var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(intervals, aD, aS) : null;
+            if (overlap) {
+              toast('Gagal: ' + m.nama_murid + ' tumpang tindih Ziyadah ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ' pada surat ini!', 'warn');
+              valid = false; break;
+            }
+          } else if (cache.jenis === 'Murajaah') {
+            var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
+            var rawForSurat = raw.filter(function(z) {
+              return (z.surat||'').toLowerCase().replace(/['-]/g,'') === (cache.surat||'').toLowerCase().replace(/['-]/g,'');
+            });
+            var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
+            var contained = typeof checkMurajaahContainment === 'function' ? checkMurajaahContainment(intervals, aD, aS) : true;
+            if (!contained) {
+              toast('Gagal: Rentang Murajaah ' + m.nama_murid + ' harus berada di dalam range Ziyadah yang sudah disetor!', 'warn');
+              valid = false; break;
+            }
           }
         }
       }
+      if (!valid) break;
 
-      if (cache.tgtSrt && (!cache.tgtDari || !cache.tgtSmp)) {
+      var eid = _hfKbmEid(m.id_murid);
+      var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+      var tgtSrt  = getV('hfkbm-tgt-surat-'+eid) || (list[0] && list[0].tgtSrt);
+      var tgtDari = getV('hfkbm-tgt-dari-'+eid)  || (list[0] && list[0].tgtDari);
+      var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid)|| (list[0] && list[0].tgtSmp);
+
+      if (tgtSrt && (!tgtDari || !tgtSmp)) {
         toast('Tolong isi ayat mulai dan selesai untuk target hafalan ' + m.nama_murid, 'warn');
         valid = false; break;
       }
-      if (!cache.tgtSrt && (cache.tgtDari || cache.tgtSmp)) {
+      if (!tgtSrt && (tgtDari || tgtSmp)) {
         toast('Tolong pilih nama surat target hafalan untuk ' + m.nama_murid, 'warn');
         valid = false; break;
       }
-      if (cache.tgtSrt && cache.tgtDari && cache.tgtSmp) {
-        var tgtD = parseInt(cache.tgtDari);
-        var tgtS = parseInt(cache.tgtSmp);
+      if (tgtSrt && tgtDari && tgtSmp) {
+        var tgtD = parseInt(tgtDari);
+        var tgtS = parseInt(tgtSmp);
         if (tgtD > tgtS) {
           toast('Ayat Dari target tidak boleh melebihi Sampai Ayat target untuk ' + m.nama_murid, 'warn');
           valid = false; break;
         }
         var targetMeta = _getSuratData().find(function(sd) {
-          return sd.latin.toLowerCase().replace(/['-]/g,'') === cache.tgtSrt.toLowerCase().replace(/['-]/g,'');
+          return sd.latin.toLowerCase().replace(/['-]/g,'') === tgtSrt.toLowerCase().replace(/['-]/g,'');
         });
         if (targetMeta && (tgtD > targetMeta.ayat || tgtS > targetMeta.ayat)) {
           toast('Target ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + targetMeta.latin + ' (' + targetMeta.ayat + ' ayat)', 'warn');
           valid = false; break;
         }
         var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
-        var rawForSurat = raw.filter(function(z) {
-          return z.surat.toLowerCase().replace(/['-]/g,'') === cache.tgtSrt.toLowerCase().replace(/['-]/g,'');
+        var stagedZiyadah = list.filter(function(it){ return it.jenis === 'Ziyadah'; });
+        var allZiyadah = raw.concat(stagedZiyadah);
+        var rawForSurat = allZiyadah.filter(function(z) {
+          return (z.surat||'').toLowerCase().replace(/['-]/g,'') === tgtSrt.toLowerCase().replace(/['-]/g,'');
         });
         var tgtIntervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
         var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(tgtIntervals, tgtD, tgtS) : null;
@@ -2864,5 +3134,7 @@
   }
 
   window.setDaurahAsmtScore = setDaurahAsmtScore;
+  window.addHafalanKbmItem = addHafalanKbmItem;
+  window.removeHafalanKbmItem = removeHafalanKbmItem;
 
 })();
