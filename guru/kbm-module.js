@@ -697,7 +697,10 @@
           + '<div style="font-size:12px;font-weight:700;color:#111827"><span style="background:'+color+'22;color:'+color+';padding:1px 6px;border-radius:4px;font-size:10px;margin-right:4px">' + esc(item.jenis||'Ziyadah') + '</span>' + esc(info) + '</div>'
           + '<div style="font-size:10.5px;color:#6b7280;margin-top:2px">' + esc(detail) + '</div>'
         + '</div>'
-        + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#fee2e2;border:none;color:#dc2626;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
+        + '<div style="display:flex;gap:4px">'
+          + '<button type="button" onclick="editHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#e0f2fe;border:none;color:#0369a1;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Edit item setoran ini">✏️ Edit</button>'
+          + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#fee2e2;border:none;color:#dc2626;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
+        + '</div>'
       + '</div>';
     }).join('');
     container.innerHTML = html;
@@ -828,6 +831,43 @@
     updateHfKbmPoin(mid);
     _kbmDraftSaveDebounced();
     toast('Setoran "' + (suratD||surat||jenis) + '" ditambahkan ke keranjang!', 'ok');
+  }
+
+  function editHafalanKbmItem(mid, index) {
+    if (!window._hafalanKbmCache || !Array.isArray(window._hafalanKbmCache[mid])) return;
+    var list = window._hafalanKbmCache[mid];
+    if (index < 0 || index >= list.length) return;
+
+    var item = list.splice(index, 1)[0];
+    var eid = _hfKbmEid(mid);
+
+    var setV = function(id,v){ var el=document.getElementById(id);if(el&&v!==undefined)el.value=v; };
+    var setSel = function(id,v){ var el=document.getElementById(id); if(!el||(v===undefined||v==='')) return;
+      el.value=v;
+      if(el.value!==v){ var o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); el.value=v; } };
+
+    setSel('hfkbm-jenis-'+eid, item.jenis);
+    setSel('hfkbm-juz-'+eid,   item.juz);
+    setV('hfkbm-surat-'+eid,   item.surat);
+    setV('hfkbm-surat-display-'+eid, item.suratD);
+    setV('hfkbm-ayat-dari-'+eid,  item.dari);
+    setV('hfkbm-ayat-sampai-'+eid,item.sampai);
+    setSel('hfkbm-kel-'+eid,    item.kel);
+    setSel('hfkbm-nil-'+eid,    item.nil);
+    setSel('hfkbm-kam-'+eid,    item.kam);
+    setV('hfkbm-catatan-'+eid, item.catatan);
+
+    if (item.suratD) {
+      var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+        .find(function(s){ return s.latin === item.suratD; });
+      var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
+      if (infoEl && meta) { infoEl.textContent = item.suratD + ' = ' + meta.ayat + ' ayat'; }
+    }
+
+    renderHafalanKbmStagedList(mid);
+    updateHfKbmPoin(mid);
+    _kbmDraftSaveDebounced();
+    toast('Setoran "' + (item.suratD||item.surat||item.jenis) + '" dimuat ke editor form untuk diubah.', 'info');
   }
 
   function removeHafalanKbmItem(mid, index) {
@@ -3135,6 +3175,7 @@
 
   window.setDaurahAsmtScore = setDaurahAsmtScore;
   window.addHafalanKbmItem = addHafalanKbmItem;
+  window.editHafalanKbmItem = editHafalanKbmItem;
   window.removeHafalanKbmItem = removeHafalanKbmItem;
 
 })();
