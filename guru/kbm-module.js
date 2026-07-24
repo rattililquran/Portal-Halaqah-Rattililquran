@@ -2258,28 +2258,32 @@
           const status = presensiMapPv[m.id_murid] || 'H';
           if (!['H','T'].includes(status)) continue;
 
-          const cache = window._hafalanKbmCache[m.id_murid] || {};
-          if (cache.jenis && !cache._saved) {
-            await window.HQ.GuruAPI.addSetoranHafalan({
-              id_murid           : m.id_murid,
-              nama_murid         : m.nama_murid,
-              id_halaqah         : sesiAktif.id_halaqah,
-              id_kbm             : sesiAktif.id_kbm,
-              tanggal            : sesiAktif.tanggal_pertemuan,
-              juz                : cache.juz,
-              surat              : cache.surat,
-              ayat_dari          : cache.dari,
-              ayat_sampai        : cache.sampai,
-              jenis              : cache.jenis,
-              nilai              : cache.nil,
-              kelancaran         : cache.kel,
-              kamera             : cache.kam,
-              catatan            : cache.catatan,
-              target_surat       : cache.tgtSrt || null,
-              target_ayat_dari   : cache.tgtDari || null,
-              target_ayat_sampai : cache.tgtSmp || null,
-            });
-            cache._saved = true;
+          const rawCache = window._hafalanKbmCache[m.id_murid];
+          const list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
+          for (var idx = 0; idx < list.length; idx++) {
+            var cache = list[idx];
+            if (cache.jenis && !cache._saved) {
+              await window.HQ.GuruAPI.addSetoranHafalan({
+                id_murid           : m.id_murid,
+                nama_murid         : m.nama_murid,
+                id_halaqah         : sesiAktif.id_halaqah,
+                id_kbm             : sesiAktif.id_kbm,
+                tanggal            : sesiAktif.tanggal_pertemuan,
+                juz                : cache.juz,
+                surat              : cache.surat,
+                ayat_dari          : cache.dari,
+                ayat_sampai        : cache.sampai,
+                jenis              : cache.jenis,
+                nilai              : cache.nil,
+                kelancaran         : cache.kel,
+                kamera             : cache.kam,
+                catatan            : cache.catatan,
+                target_surat       : (idx === 0) ? (cache.tgtSrt || null) : null,
+                target_ayat_dari   : (idx === 0) ? (cache.tgtDari || null) : null,
+                target_ayat_sampai : (idx === 0) ? (cache.tgtSmp || null) : null,
+              });
+              cache._saved = true;
+            }
           }
         }
       } else {
