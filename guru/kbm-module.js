@@ -1705,25 +1705,32 @@
       var setSel = function(id,v){ var el=document.getElementById(id); if(!el||(v===undefined||v==='')) return;
         el.value=v;
         if(el.value!==v){ var o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); el.value=v; } };
-      setSel('hfkbm-jenis-'+eid, first.jenis);
-      setSel('hfkbm-juz-'+eid,   first.juz);
-      setV('hfkbm-surat-'+eid,   first.surat);
-      setV('hfkbm-surat-display-'+eid, first.suratD);
-      setV('hfkbm-ayat-dari-'+eid,  first.dari);
-      setV('hfkbm-ayat-sampai-'+eid,first.sampai);
-      setSel('hfkbm-kel-'+eid,    first.kel);
-      setSel('hfkbm-nil-'+eid,    first.nil);
-      setSel('hfkbm-kam-'+eid,    first.kam);
-      setV('hfkbm-catatan-'+eid, first.catatan);
+      // Pulihkan Target Hafalan (opsional)
       setV('hfkbm-tgt-surat-'+eid, first.tgtSrt);
       setV('hfkbm-tgt-dari-'+eid,  first.tgtDari);
       setV('hfkbm-tgt-sampai-'+eid,first.tgtSmp);
-      if (first.suratD) {
-        var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
-          .find(function(s){ return s.latin === first.suratD; });
-        var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
-        if (infoEl && meta) { infoEl.textContent = first.suratD + ' = ' + meta.ayat + ' ayat'; }
+
+      // Jika keranjang belum berisi item staged (misal data legacy), pulihkan form editor.
+      // Jika keranjang sudah punya item staged, biarkan form input bersih agar tidak terduplikasi saat guru klik "+ Tambah".
+      if (!list.length) {
+        setSel('hfkbm-jenis-'+eid, first.jenis);
+        setSel('hfkbm-juz-'+eid,   first.juz);
+        setV('hfkbm-surat-'+eid,   first.surat);
+        setV('hfkbm-surat-display-'+eid, first.suratD);
+        setV('hfkbm-ayat-dari-'+eid,  first.dari);
+        setV('hfkbm-ayat-sampai-'+eid,first.sampai);
+        setSel('hfkbm-kel-'+eid,    first.kel);
+        setSel('hfkbm-nil-'+eid,    first.nil);
+        setSel('hfkbm-kam-'+eid,    first.kam);
+        setV('hfkbm-catatan-'+eid, first.catatan);
+        if (first.suratD) {
+          var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
+            .find(function(s){ return s.latin === first.suratD; });
+          var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
+          if (infoEl && meta) { infoEl.textContent = first.suratD + ' = ' + meta.ayat + ' ayat'; }
+        }
       }
+
       renderHafalanKbmStagedList(m.id_murid);
       updateHfKbmPoin(m.id_murid);
     });
