@@ -1676,16 +1676,17 @@
       var currentCache = window._hafalanKbmCache[m.id_murid];
       var staged = Array.isArray(currentCache) ? currentCache : (currentCache && currentCache.jenis ? [currentCache] : []);
 
-      if (_hafKbmHasContent(activeItem)) {
-        var exists = staged.some(function(it) {
-          return it.jenis === activeItem.jenis && it.surat === activeItem.surat && it.dari === activeItem.dari && it.sampai === activeItem.sampai;
-        });
-        if (!exists) {
-          staged = staged.concat([activeItem]);
-        }
+      // If keranjang already has items, keranjang IS the single source of truth.
+      // Do NOT auto-append active DOM fields! (Active DOM fields are just an item editor)
+      if (staged.length > 0) {
+        return;
       }
 
-      window._hafalanKbmCache[m.id_murid] = staged;
+      // If keranjang is empty, only sync active DOM item if it's a FULLY valid setoran item
+      var isValidSingleItem = activeItem.jenis === 'Tahsin' || (activeItem.surat && activeItem.dari && activeItem.sampai);
+      if (isValidSingleItem) {
+        window._hafalanKbmCache[m.id_murid] = [activeItem];
+      }
     });
   }
 
