@@ -2095,59 +2095,80 @@ var KetuaAPI = {
     var ahadDate = new Date(now.setDate(diff));
     var ahadThisWeek = ahadDate.toISOString().substring(0, 10);
 
-    var { data } = await _sb.from('at_tibyan_sesi')
-      .select('id_sesi, tanggal, pertemuan_ke, created_at')
+    // at_tibyan_log menyimpan id_halaqah dan tanggal
+    var { data: logs } = await _sb.from('at_tibyan_log')
+      .select('id_sesi, tanggal')
       .eq('id_halaqah', id_halaqah)
       .gte('tanggal', ahadThisWeek)
-      .maybeSingle();
+      .limit(1);
 
-    return { status: 'ok', data: data || null, id_halaqah: id_halaqah };
+    if (logs && logs.length > 0) {
+      var id_sesi = logs[0].id_sesi;
+      var { data: sesiData } = await _sb.from('at_tibyan_sesi')
+        .select('id_sesi, tanggal, pertemuan_ke, created_at')
+        .eq('id_sesi', id_sesi)
+        .maybeSingle();
+
+      return { status: 'ok', data: sesiData || { id_sesi: id_sesi, tanggal: logs[0].tanggal }, id_halaqah: id_halaqah };
+    }
+
+    return { status: 'ok', data: null, id_halaqah: id_halaqah };
   },
 
   simpanPresensiAtTibyan: async function(d) {
     var info = await KetuaAPI.getInfo();
     if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
-    var id_halaqah = info.halaqah.id_halaqah;
-    var id_ketua = _uid();
+    var halaqah = info.halaqah || {};
+    var id_halaqah = halaqah.id_halaqah;
 
     if (!d.tanggal) throw new Error('Tanggal sesi wajib diisi');
 
-    // 1. Buat Sesi At-Tibyan
-    var { data: sesi, error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
-      id_halaqah  : id_halaqah,
-      id_guru     : (info.halaqah && info.halaqah.id_guru) || null,
-      tanggal     : d.tanggal,
-      pertemuan_ke: d.pertemuan_ke || 1,
-      id_pengisi  : id_ketua,
-      status      : 'selesai'
-    }).select().single();
+    var id_sesi = _genId('ATS');
+    var presensi = d.presensi || [];
+    var hadirCount = presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
 
-    if (errSesi) {
-      if (errSesi.code === '23505') {
-        throw new Error('Presensi At-Tibyan untuk tanggal ini sudah pernah disimpan.');
-      }
-      throw errSesi;
+    // Hitung pertemuan_ke jika tidak dikirim
+    var pertemuan_ke = d.pertemuan_ke;
+    if (!pertemuan_ke) {
+      var { count } = await _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true });
+      pertemuan_ke = (count || 0) + 1;
     }
 
+    // 1. Buat Sesi At-Tibyan
+    var { error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
+      id_sesi     : id_sesi,
+      id_guru     : halaqah.id_guru || _uid(),
+      nama_guru   : halaqah.nama_guru || '',
+      tanggal     : d.tanggal,
+      pertemuan_ke: pertemuan_ke,
+      total_hadir : hadirCount,
+      total_murid : presensi.length,
+      status      : 'selesai'
+    });
+
+    if (errSesi) throw errSesi;
+
     // 2. Insert detail presensi
-    var logPayload = (d.presensi || []).map(function(m) {
+    var logPayload = presensi.map(function(m) {
       return {
-        id_sesi     : sesi.id_sesi,
+        id_sesi     : id_sesi,
         id_halaqah  : id_halaqah,
+        nama_halaqah: halaqah.nama_halaqah || halaqah.nama || '',
         id_murid    : m.id_murid,
-        nama_murid  : m.nama_murid,
-        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H'
+        nama_murid  : m.nama_murid || '',
+        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H',
+        tanggal     : d.tanggal
       };
     });
 
     var { error: errLog } = await _sb.from('at_tibyan_log').insert(logPayload);
     if (errLog) {
       // Rollback sesi jika log gagal
-      await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', sesi.id_sesi);
+      await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', id_sesi).catch(function(){});
       throw errLog;
     }
 
-    return { status: 'ok', id_sesi: sesi.id_sesi };
+    return { status: 'ok', id_sesi: id_sesi };
   },
 
   editPresensiAtTibyan: async function(id_sesi, presensiList) {
@@ -2166,6 +2187,10 @@ var KetuaAPI = {
 
       if (error) throw error;
     }
+
+    var hadirCount = presensiList.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
+    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', id_sesi).catch(function(){});
+
     return { status: 'ok' };
   },
 
@@ -2174,11 +2199,24 @@ var KetuaAPI = {
     if (info.status !== 'ok') return { status: 'ok', data: [] };
     var id_halaqah = info.halaqah.id_halaqah;
 
-    var { data, error } = await _sb.from('at_tibyan_sesi')
-      .select('id_sesi, tanggal, pertemuan_ke, created_at')
+    var { data: logs } = await _sb.from('at_tibyan_log')
+      .select('id_sesi, tanggal')
       .eq('id_halaqah', id_halaqah)
       .order('tanggal', { ascending: false })
-      .limit(5);
+      .limit(30);
+
+    if (!logs || !logs.length) return { status: 'ok', data: [] };
+
+    var uniqSesiIds = [];
+    var seen = {};
+    logs.forEach(function(l) {
+      if (l.id_sesi && !seen[l.id_sesi]) { seen[l.id_sesi] = true; uniqSesiIds.push(l.id_sesi); }
+    });
+
+    var { data, error } = await _sb.from('at_tibyan_sesi')
+      .select('id_sesi, tanggal, pertemuan_ke, created_at')
+      .in('id_sesi', uniqSesiIds.slice(0, 5))
+      .order('tanggal', { ascending: false });
 
     if (error) return { status: 'ok', data: [] };
     return { status: 'ok', data: data || [] };
