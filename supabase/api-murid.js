@@ -2196,7 +2196,7 @@ var KetuaAPI = {
     }
 
     var hadirCount = presensiList.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', id_sesi).catch(function(){});
+    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount, total_murid: presensiList.length }).eq('id_sesi', id_sesi).catch(function(){});
 
     return { status: 'ok' };
   },
