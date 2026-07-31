@@ -1108,4 +1108,6 @@ async function simpanAtTibyan() {
   window.setGroupPresensi = setGroupPresensi;
   window.doMarkContacted = doMarkContacted;
   window.openWAMurid = openWAMurid;
+  window.pdToggle = pdToggle;
+  window.pdToggleNasihat = pdToggleNasihat;
 })();
