@@ -2228,6 +2228,19 @@ var KetuaAPI = {
     if (error) return { status: 'ok', data: [] };
     return { status: 'ok', data: data || [] };
   },
+
+  getAtTibyanSesiDetail: async function(id_sesi) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var id_halaqah = info.halaqah.id_halaqah;
+
+    var [sesiRes, logRes] = await Promise.all([
+      _sb.from('at_tibyan_sesi').select('*').eq('id_sesi', id_sesi).maybeSingle(),
+      _sb.from('at_tibyan_log').select('*').eq('id_sesi', id_sesi).eq('id_halaqah', id_halaqah)
+    ]);
+
+    return { status: 'ok', data: { sesi: sesiRes.data, presensi: logRes.data || [] } };
+  },
 };
 
 // ── attach ke window.HQ ──

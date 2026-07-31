@@ -875,7 +875,7 @@
           + '<div style="font-size:12px;font-weight:700;color:var(--text-1)">✅ Presensi Sesi ' + esc(r.data.pertemuan_ke || '') + ' (' + fmtDate(r.data.tanggal) + ')</div>'
           + '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Presensi minggu ini sudah disimpan.</div>'
           + '</div>'
-          + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true)">✏️ Edit / Revisi</button>'
+          + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(r.data.id_sesi) + '\',\'' + esc(r.data.tanggal) + '\')">✏️ Edit / Revisi</button>'
           + '</div>';
       } else {
         _ketuaAtEditId = null;
@@ -887,15 +887,55 @@
           + '<button class="btn btn-primary btn-sm" onclick="bukaFormKetuaAtTibyan(false)">➕ Isi Presensi</button>'
           + '</div>';
       }
+
+      loadKetuaAtRiwayat();
     } catch(e) {
       statusEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
     }
   }
 
-  async function bukaFormKetuaAtTibyan(isEdit) {
+  async function loadKetuaAtRiwayat() {
+    var riwayatEl = document.getElementById('ketuaAtRiwayat');
+    if (!riwayatEl) return;
+
+    riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>' + skelCards(2, 2);
+
+    try {
+      var r = await window.HQ.KetuaAPI.getAtTibyanHalaqahHistory();
+      var list = (r && r.data) || [];
+      if (!list.length) {
+        riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>'
+          + '<div class="empty"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada riwayat sesi At-Tibyan</div></div>';
+        return;
+      }
+
+      riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>'
+        + list.map(function(s) {
+          return '<div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+            + '<div>'
+            + '<div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Sesi ke-' + esc(s.pertemuan_ke || '') + ' (' + fmtDate(s.tanggal) + ')</div>'
+            + '<div style="font-size:11px;color:var(--text-3);margin-top:2px">📅 ' + fmtDate(s.tanggal) + '</div>'
+            + '</div>'
+            + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(s.id_sesi) + '\',\'' + esc(s.tanggal) + '\')">✏️ Edit / Revisi</button>'
+            + '</div>';
+        }).join('');
+    } catch(e) {
+      riwayatEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
+    }
+  }
+
+  async function bukaFormKetuaAtTibyan(isEdit, targetSesiId, targetTanggal) {
     var formEl = document.getElementById('ketuaAtTibyanForm');
     var listEl = document.getElementById('ketuaAtMuridList');
     if (!formEl || !listEl) return;
+
+    if (isEdit && targetSesiId) {
+      _ketuaAtEditId = targetSesiId;
+    }
+    if (targetTanggal) {
+      var dateInput = document.getElementById('ketuaAtTanggal');
+      if (dateInput) dateInput.value = targetTanggal;
+    }
 
     formEl.style.display = '';
     listEl.innerHTML = skelCards(3, 2);
@@ -906,6 +946,17 @@
       _ketuaAtMuridAll = alerts;
       _ketuaAtMap = {};
       alerts.forEach(function(m) { _ketuaAtMap[m.id_murid] = 'H'; });
+
+      if (_ketuaAtEditId) {
+        try {
+          var rDetail = await window.HQ.KetuaAPI.getAtTibyanSesiDetail(_ketuaAtEditId);
+          var presensiExisting = (rDetail.data && rDetail.data.presensi) || [];
+          presensiExisting.forEach(function(p) {
+            if (p.id_murid) _ketuaAtMap[p.id_murid] = p.status_hadir || 'H';
+          });
+        } catch(e){}
+      }
+
       renderKetuaAtMuridList();
     } catch(e) {
       listEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
