@@ -2138,7 +2138,7 @@ var KetuaAPI = {
     var { error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
       id_sesi     : id_sesi,
       id_guru     : halaqah.id_guru || _uid(),
-      nama_guru   : halaqah.nama_guru || '',
+      nama_guru   : halaqah.nama_guru || halaqah.nama_ustadz || '',
       tanggal     : d.tanggal,
       pertemuan_ke: pertemuan_ke,
       total_hadir : hadirCount,
@@ -2146,7 +2146,12 @@ var KetuaAPI = {
       status      : 'selesai'
     });
 
-    if (errSesi) throw errSesi;
+    if (errSesi) {
+      if (errSesi.code === '42501' || (errSesi.message && errSesi.message.includes('row-level security'))) {
+        throw new Error('Akses RLS Supabase dibatasi untuk Ketua Kelas. Silakan tambahkan RLS Policy At-Tibyan di Supabase SQL Editor.');
+      }
+      throw errSesi;
+    }
 
     // 2. Insert detail presensi
     var logPayload = presensi.map(function(m) {
@@ -2163,8 +2168,10 @@ var KetuaAPI = {
 
     var { error: errLog } = await _sb.from('at_tibyan_log').insert(logPayload);
     if (errLog) {
-      // Rollback sesi jika log gagal
       await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', id_sesi).catch(function(){});
+      if (errLog.code === '42501' || (errLog.message && errLog.message.includes('row-level security'))) {
+        throw new Error('Akses RLS Supabase dibatasi pada tabel at_tibyan_log.');
+      }
       throw errLog;
     }
 
