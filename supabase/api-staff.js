@@ -1478,10 +1478,10 @@ var GuruAPI = {
     var { data, error } = await _sb.from('setoran_hafalan').insert(payload).select().single();
     _check(error, 'addSetoranHafalan');
 
-    // Auto-sync kamera to nilai_kbm for Qiyam sessions
-    if (d.id_kbm && d.id_murid) {
+    // Auto-sync kamera to nilai_kbm for Qiyam sessions (only if d.kamera is non-empty)
+    if (d.id_kbm && d.id_murid && d.kamera) {
       var { error: syncErr } = await _sb.from('nilai_kbm')
-        .update({ kamera_murid: d.kamera || 'kamera terbuka' })
+        .update({ kamera_murid: d.kamera })
         .eq('id_kbm', d.id_kbm)
         .eq('id_murid', d.id_murid);
       if (syncErr) {

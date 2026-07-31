@@ -805,10 +805,21 @@
       }
     }
 
+    var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+    var tgtSrt  = getV('hfkbm-tgt-surat-'+eid);
+    var tgtDari = getV('hfkbm-tgt-dari-'+eid);
+    var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid);
+
+    if (!window._hafalanKbmTarget) window._hafalanKbmTarget = {};
+    if (tgtSrt || tgtDari || tgtSmp) {
+      window._hafalanKbmTarget[mid] = { tgtSrt: tgtSrt, tgtDari: tgtDari, tgtSmp: tgtSmp };
+    }
+
     var item = {
       jenis: jenis, surat: surat, suratD: suratD,
       dari: dari, sampai: sampai, juz: juz,
       kel: kel, nil: nil, kam: kam, catatan: catatan,
+      tgtSrt: tgtSrt, tgtDari: tgtDari, tgtSmp: tgtSmp,
       _saved: false
     };
 
@@ -1444,6 +1455,7 @@
       updated_at    : new Date().toISOString(),
       nilai         : _mergeCacheObj(prev.nilai,         window._nilaiCache),
       hafalan       : _mergeCacheObj(prev.hafalan,       window._hafalanKbmCache),
+      target        : _mergeCacheObj(prev.target,        window._hafalanKbmTarget),
       microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
       daurah_asmt   : window._daurahAssessmentMap || {}
     };
@@ -1493,6 +1505,7 @@
     var anyData = function(o){ return !!(o && Object.keys(o).some(function(k){ return o[k]; })); };
     if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData);
     if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent);
+    if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData);
     if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData);
     if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
   }
@@ -1657,20 +1670,30 @@
 
   function _saveHafalanKbmCache() {
     if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
+    if (!window._hafalanKbmTarget) window._hafalanKbmTarget = {};
     const muridSesi = getMuridSesi();
     if (!muridSesi) return;
     muridSesi.forEach(function(m) {
       var eid = _hfKbmEid(m.id_murid);
       if (!document.getElementById('hfkbm-jenis-'+eid)) return;
       var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+
+      var tgtSrt  = getV('hfkbm-tgt-surat-'+eid);
+      var tgtDari = getV('hfkbm-tgt-dari-'+eid);
+      var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid);
+      if (tgtSrt || tgtDari || tgtSmp) {
+        window._hafalanKbmTarget[m.id_murid] = { tgtSrt: tgtSrt, tgtDari: tgtDari, tgtSmp: tgtSmp };
+      }
+
       var activeItem = {
         jenis  : getV('hfkbm-jenis-'+eid), juz     : getV('hfkbm-juz-'+eid),
         surat  : getV('hfkbm-surat-'+eid), suratD  : getV('hfkbm-surat-display-'+eid),
         dari   : getV('hfkbm-ayat-dari-'+eid), sampai: getV('hfkbm-ayat-sampai-'+eid),
         kel    : getV('hfkbm-kel-'+eid),   nil    : getV('hfkbm-nil-'+eid),
         kam    : getV('hfkbm-kam-'+eid),   catatan: getV('hfkbm-catatan-'+eid),
-        tgtSrt : getV('hfkbm-tgt-surat-'+eid),
-        tgtDari: getV('hfkbm-tgt-dari-'+eid), tgtSmp: getV('hfkbm-tgt-sampai-'+eid),
+        tgtSrt : tgtSrt,
+        tgtDari: tgtDari,
+        tgtSmp : tgtSmp,
       };
 
       var currentCache = window._hafalanKbmCache[m.id_murid];
@@ -1679,6 +1702,11 @@
       // If keranjang already has items, keranjang IS the single source of truth.
       // Do NOT auto-append active DOM fields! (Active DOM fields are just an item editor)
       if (staged.length > 0) {
+        if (staged[0] && (tgtSrt || tgtDari || tgtSmp)) {
+          staged[0].tgtSrt  = staged[0].tgtSrt  || tgtSrt;
+          staged[0].tgtDari = staged[0].tgtDari || tgtDari;
+          staged[0].tgtSmp  = staged[0].tgtSmp  || tgtSmp;
+        }
         return;
       }
 
@@ -1696,23 +1724,27 @@
     muridSesi.forEach(function(m) {
       var eid   = _hfKbmEid(m.id_murid);
       var cache = window._hafalanKbmCache[m.id_murid];
-      if (!cache) return;
-      var list = Array.isArray(cache) ? cache : [cache];
-      if (!list.length) return;
+      var tgt   = window._hafalanKbmTarget && window._hafalanKbmTarget[m.id_murid];
+      if (!cache && !tgt) return;
+      var list = Array.isArray(cache) ? cache : (cache && cache.jenis ? [cache] : []);
 
       var first = list[0];
       var setV = function(id,v){ var el=document.getElementById(id);if(el&&v)el.value=v; };
       var setSel = function(id,v){ var el=document.getElementById(id); if(!el||(v===undefined||v==='')) return;
         el.value=v;
         if(el.value!==v){ var o=document.createElement('option'); o.value=v; o.textContent=v; el.appendChild(o); el.value=v; } };
-      // Pulihkan Target Hafalan (opsional)
-      setV('hfkbm-tgt-surat-'+eid, first.tgtSrt);
-      setV('hfkbm-tgt-dari-'+eid,  first.tgtDari);
-      setV('hfkbm-tgt-sampai-'+eid,first.tgtSmp);
 
-      // Jika keranjang belum berisi item staged (misal data legacy), pulihkan form editor.
-      // Jika keranjang sudah punya item staged, biarkan form input bersih agar tidak terduplikasi saat guru klik "+ Tambah".
-      if (!list.length) {
+      // Pulihkan Target Hafalan (opsional)
+      var tS = (tgt && tgt.tgtSrt)  || (first && first.tgtSrt);
+      var tD = (tgt && tgt.tgtDari) || (first && first.tgtDari);
+      var tM = (tgt && tgt.tgtSmp)  || (first && first.tgtSmp);
+      setV('hfkbm-tgt-surat-'+eid, tS);
+      setV('hfkbm-tgt-dari-'+eid,  tD);
+      setV('hfkbm-tgt-sampai-'+eid,tM);
+
+      // Jika draf berupa item tunggal legacy (bukan array staged), pulihkan form editor.
+      var isLegacySingle = !Array.isArray(cache) && cache && cache.jenis;
+      if (isLegacySingle && first) {
         setSel('hfkbm-jenis-'+eid, first.jenis);
         setSel('hfkbm-juz-'+eid,   first.juz);
         setV('hfkbm-surat-'+eid,   first.surat);
@@ -1753,8 +1785,24 @@
       var status = presensiMap[m.id_murid] || 'A';
       if (status !== 'H' && status !== 'T') continue;
 
+      var eid = _hfKbmEid(m.id_murid);
+      var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+      var actSurat = getV('hfkbm-surat-'+eid);
+      var actDari  = getV('hfkbm-ayat-dari-'+eid);
+      var actSampai= getV('hfkbm-ayat-sampai-'+eid);
+      var actJenis = getV('hfkbm-jenis-'+eid);
+
       var rawCache = window._hafalanKbmCache[m.id_murid];
       var list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
+
+      // If active form has a valid setoran typed in but teacher didn't click "+ Tambah", auto-add it to cart
+      var isValidActive = actJenis === 'Tahsin' || (actSurat && actDari && actSampai);
+      if (isValidActive && list.length > 0) {
+        addHafalanKbmItem(m.id_murid);
+        rawCache = window._hafalanKbmCache[m.id_murid];
+        list = Array.isArray(rawCache) ? rawCache : [rawCache];
+      }
+
       if (!list.length) {
         toast('Pilih jenis setoran untuk ' + m.nama_murid, 'warn');
         valid = false; break;
@@ -1823,11 +1871,14 @@
       }
       if (!valid) break;
 
-      var eid = _hfKbmEid(m.id_murid);
-      var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
-      var tgtSrt  = getV('hfkbm-tgt-surat-'+eid) || (list[0] && list[0].tgtSrt);
-      var tgtDari = getV('hfkbm-tgt-dari-'+eid)  || (list[0] && list[0].tgtDari);
-      var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid)|| (list[0] && list[0].tgtSmp);
+      var tgtObj  = (window._hafalanKbmTarget && window._hafalanKbmTarget[m.id_murid]) || {};
+      var tgtSrt  = getV('hfkbm-tgt-surat-'+eid) || tgtObj.tgtSrt  || (list[0] && list[0].tgtSrt);
+      var tgtDari = getV('hfkbm-tgt-dari-'+eid)  || tgtObj.tgtDari || (list[0] && list[0].tgtDari);
+      var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid)|| tgtObj.tgtSmp  || (list[0] && list[0].tgtSmp);
+      if (tgtSrt || tgtDari || tgtSmp) {
+        if (!window._hafalanKbmTarget) window._hafalanKbmTarget = {};
+        window._hafalanKbmTarget[m.id_murid] = { tgtSrt: tgtSrt, tgtDari: tgtDari, tgtSmp: tgtSmp };
+      }
 
       if (tgtSrt && (!tgtDari || !tgtSmp)) {
         toast('Tolong isi ayat mulai dan selesai untuk target hafalan ' + m.nama_murid, 'warn');
@@ -2267,29 +2318,43 @@
 
           const rawCache = window._hafalanKbmCache[m.id_murid];
           const list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
+          const tgtObj = (window._hafalanKbmTarget && window._hafalanKbmTarget[m.id_murid]) || {};
+
           for (var idx = 0; idx < list.length; idx++) {
             var cache = list[idx];
             if (cache.jenis && !cache._saved) {
-              await window.HQ.GuruAPI.addSetoranHafalan({
-                id_murid           : m.id_murid,
-                nama_murid         : m.nama_murid,
-                id_halaqah         : sesiAktif.id_halaqah,
-                id_kbm             : sesiAktif.id_kbm,
-                tanggal            : sesiAktif.tanggal_pertemuan,
-                juz                : cache.juz,
-                surat              : cache.surat,
-                ayat_dari          : cache.dari,
-                ayat_sampai        : cache.sampai,
-                jenis              : cache.jenis,
-                nilai              : cache.nil,
-                kelancaran         : cache.kel,
-                kamera             : cache.kam,
-                catatan            : cache.catatan,
-                target_surat       : (idx === 0) ? (cache.tgtSrt || null) : null,
-                target_ayat_dari   : (idx === 0) ? (cache.tgtDari || null) : null,
-                target_ayat_sampai : (idx === 0) ? (cache.tgtSmp || null) : null,
-              });
-              cache._saved = true;
+              var tS = (idx === 0) ? (tgtObj.tgtSrt || cache.tgtSrt || null) : null;
+              var tD = (idx === 0) ? (tgtObj.tgtDari || cache.tgtDari || null) : null;
+              var tM = (idx === 0) ? (tgtObj.tgtSmp || cache.tgtSmp || null) : null;
+              try {
+                await window.HQ.GuruAPI.addSetoranHafalan({
+                  id_murid           : m.id_murid,
+                  nama_murid         : m.nama_murid,
+                  id_halaqah         : sesiAktif.id_halaqah,
+                  id_kbm             : sesiAktif.id_kbm,
+                  tanggal            : sesiAktif.tanggal_pertemuan,
+                  juz                : cache.juz,
+                  surat              : cache.surat,
+                  ayat_dari          : cache.dari,
+                  ayat_sampai        : cache.sampai,
+                  jenis              : cache.jenis,
+                  nilai              : cache.nil,
+                  kelancaran         : cache.kel,
+                  kamera             : cache.kam,
+                  catatan            : cache.catatan,
+                  target_surat       : tS,
+                  target_ayat_dari   : tD,
+                  target_ayat_sampai : tM,
+                });
+                cache._saved = true;
+                _saveKbmDraftLocal(sesiAktif.id_kbm);
+              } catch (errSetoran) {
+                console.error('Gagal menyimpan item setoran KBM Qiyam:', errSetoran);
+                hideLoad();
+                setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi');
+                toast('Gagal menyimpan setoran ' + (cache.suratD || cache.surat || '') + ' untuk ' + m.nama_murid + '. Silakan coba lagi.', 'error');
+                return;
+              }
             }
           }
         }
