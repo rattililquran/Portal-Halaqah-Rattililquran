@@ -1103,6 +1103,9 @@ async function simpanAtTibyan() {
   window.filterAtKeaktifan = filterAtKeaktifan;
   window.renderAtSesi = renderAtSesi;
   window.renderAtFormList = renderAtFormList;
+  window.editAtSesi = editAtSesi;
+  window.lihatDetailAtSesi = lihatDetailAtSesi;
+  window.setGroupPresensi = setGroupPresensi;
   window.doMarkContacted = doMarkContacted;
   window.openWAMurid = openWAMurid;
 })();
