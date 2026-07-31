@@ -45,6 +45,8 @@
     document.getElementById('ketuaPanelObservasi').style.display = tab === 'observasi'? '' : 'none';
     document.getElementById('ketuaPanelRiwayat').style.display   = tab === 'riwayat'  ? '' : 'none';
     document.getElementById('ketuaPanelReminder').style.display  = tab === 'reminder' ? '' : 'none';
+    var pAttibyan = document.getElementById('ketuaPanelAtTibyan');
+    if (pAttibyan) pAttibyan.style.display = tab === 'attibyan' ? '' : 'none';
 
     // Observasi selalu refresh agar badge dan status tidak stale
     if (tab === 'observasi') {
@@ -57,6 +59,9 @@
     if (tab === 'riwayat') {
       _ketuaTabLoaded['riwayat'] = false;
     }
+    if (tab === 'attibyan') {
+      _ketuaTabLoaded['attibyan'] = false;
+    }
 
     if (!_ketuaTabLoaded[tab]) {
       _ketuaTabLoaded[tab] = true;
@@ -64,6 +69,7 @@
       if (tab === 'observasi') loadKetuaObservasi();
       if (tab === 'riwayat')   loadKetuaRiwayat();
       if (tab === 'reminder')  initReminderTab();
+      if (tab === 'attibyan')  loadKetuaAtTibyan();
     }
   }
 
@@ -842,6 +848,134 @@
     });
   } catch(e) { window._rekapIdKBM = _rekapIdKBM; }
 
+  // ── AT-TIBYAN PRESENSI KETUA ──────────────────────────────
+  var _ketuaAtMuridAll = [];
+  var _ketuaAtMap = {};
+  var _ketuaAtEditId = null;
+
+  async function loadKetuaAtTibyan() {
+    var statusEl = document.getElementById('ketuaAtTibyanStatus');
+    var formEl   = document.getElementById('ketuaAtTibyanForm');
+    if (!statusEl || !formEl) return;
+
+    statusEl.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat status presensi...</div></div>';
+    formEl.style.display = 'none';
+
+    try {
+      var r = await window.HQ.KetuaAPI.getStatusAtTibyanMingguIni();
+      if (r.status !== 'ok') throw new Error(r.message || 'Gagal memuat status');
+
+      var dateInput = document.getElementById('ketuaAtTanggal');
+      if (dateInput && !dateInput.value) dateInput.value = localDateStr();
+
+      if (r.data) {
+        _ketuaAtEditId = r.data.id_sesi;
+        statusEl.innerHTML = '<div class="card" style="padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:var(--bg-2)">'
+          + '<div>'
+          + '<div style="font-size:12px;font-weight:700;color:var(--text-1)">✅ Presensi Sesi ' + esc(r.data.pertemuan_ke || '') + ' (' + fmtDate(r.data.tanggal) + ')</div>'
+          + '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Presensi minggu ini sudah disimpan.</div>'
+          + '</div>'
+          + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true)">✏️ Edit / Revisi</button>'
+          + '</div>';
+      } else {
+        _ketuaAtEditId = null;
+        statusEl.innerHTML = '<div class="card" style="padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#fffbebf0;border:1px solid #fde68a">'
+          + '<div>'
+          + '<div style="font-size:12px;font-weight:700;color:#b45309">⚠️ Belum Mengisi Presensi Minggu Ini</div>'
+          + '<div style="font-size:11px;color:#92400e;margin-top:2px">Silakan isi presensi untuk anggota halaqahmu.</div>'
+          + '</div>'
+          + '<button class="btn btn-primary btn-sm" onclick="bukaFormKetuaAtTibyan(false)">➕ Isi Presensi</button>'
+          + '</div>';
+      }
+    } catch(e) {
+      statusEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
+    }
+  }
+
+  async function bukaFormKetuaAtTibyan(isEdit) {
+    var formEl = document.getElementById('ketuaAtTibyanForm');
+    var listEl = document.getElementById('ketuaAtMuridList');
+    if (!formEl || !listEl) return;
+
+    formEl.style.display = '';
+    listEl.innerHTML = skelCards(3, 2);
+
+    try {
+      var rKBM = await window.HQ.KetuaAPI.getKeaktifanAnggota();
+      var alerts = (rKBM.data && rKBM.data.alerts) || [];
+      _ketuaAtMuridAll = alerts;
+      _ketuaAtMap = {};
+      alerts.forEach(function(m) { _ketuaAtMap[m.id_murid] = 'H'; });
+      renderKetuaAtMuridList();
+    } catch(e) {
+      listEl.innerHTML = '<div class="empty"><div class="empty-ico">❌</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
+    }
+  }
+
+  function renderKetuaAtMuridList() {
+    var listEl = document.getElementById('ketuaAtMuridList');
+    if (!listEl) return;
+    if (!_ketuaAtMuridAll.length) {
+      listEl.innerHTML = '<div class="empty"><div class="empty-ico">👥</div><div class="empty-ttl">Tidak ada anggota aktif</div></div>';
+      return;
+    }
+
+    var statuses = [
+      { code: 'H', label: 'Hadir', col: '#10b981' },
+      { code: 'I', label: 'Izin',  col: '#3b82f6' },
+      { code: 'A', label: 'Alpa',  col: '#ef4444' },
+    ];
+
+    listEl.innerHTML = _ketuaAtMuridAll.map(function(m) {
+      var cur = _ketuaAtMap[m.id_murid] || 'H';
+      var btns = statuses.map(function(s) {
+        var active = cur === s.code;
+        var style = active
+          ? 'background:' + s.col + ';color:#fff;border-color:' + s.col + ';font-weight:700'
+          : 'background:var(--bg-2);color:var(--text-2);border-color:var(--border)';
+        return '<button type="button" style="padding:5px 12px;border-radius:8px;font-size:11.5px;border:1px solid;cursor:pointer;' + style + '" onclick="setKetuaAtStatus(\'' + esc(m.id_murid) + '\',\'' + s.code + '\')">' + s.label + '</button>';
+      }).join(' ');
+
+      return '<div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+        + '<div style="font-size:12.5px;font-weight:700;color:var(--text-1)">' + esc(m.nama_murid) + '</div>'
+        + '<div style="display:flex;gap:6px">' + btns + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function setKetuaAtStatus(id_murid, status) {
+    _ketuaAtMap[id_murid] = status;
+    renderKetuaAtMuridList();
+  }
+
+  async function ketuaSimpanAtTibyan() {
+    var tgl = document.getElementById('ketuaAtTanggal').value;
+    if (!tgl) return toast('Pilih tanggal kajian terlebih dahulu', 'err');
+
+    var btn = document.getElementById('btnKetuaAtSimpan');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Menyimpan...'; }
+
+    try {
+      var presensi = _ketuaAtMuridAll.map(function(m) {
+        return { id_murid: m.id_murid, nama_murid: m.nama_murid, status_hadir: _ketuaAtMap[m.id_murid] || 'H' };
+      });
+
+      if (_ketuaAtEditId) {
+        await window.HQ.KetuaAPI.editPresensiAtTibyan(_ketuaAtEditId, presensi);
+        toast('Presensi At-Tibyan berhasil diperbarui ✅', 'ok');
+      } else {
+        await window.HQ.KetuaAPI.simpanPresensiAtTibyan({ tanggal: tgl, presensi: presensi });
+        toast('Presensi At-Tibyan berhasil disimpan ✅', 'ok');
+      }
+
+      loadKetuaAtTibyan();
+    } catch(e) {
+      toast(friendlyError(e), 'err');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan Presensi At-Tibyan'; }
+    }
+  }
+
   // Expose public functions to window
   window.initKetua = initKetua;
   window.switchKetuaTab = switchKetuaTab;
@@ -868,4 +1002,11 @@
   window.loadKetuaRiwayat = loadKetuaRiwayat;
   window.renderKetuaRiwayatList = renderKetuaRiwayatList;
 
+  window.loadKetuaAtTibyan = loadKetuaAtTibyan;
+  window.bukaFormKetuaAtTibyan = bukaFormKetuaAtTibyan;
+  window.renderKetuaAtMuridList = renderKetuaAtMuridList;
+  window.setKetuaAtStatus = setKetuaAtStatus;
+  window.ketuaSimpanAtTibyan = ketuaSimpanAtTibyan;
+
 })();
+

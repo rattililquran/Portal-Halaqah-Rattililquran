@@ -2082,6 +2082,107 @@ var KetuaAPI = {
     _check(error, 'simpanFollowupKeaktifanKetua');
     return { status: 'ok' };
   },
+
+  getStatusAtTibyanMingguIni: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'error', message: 'Bukan ketua kelas' };
+    var id_halaqah = info.halaqah.id_halaqah;
+
+    // Ambil tanggal Ahad minggu ini
+    var now = new Date();
+    var day = now.getDay();
+    var diff = now.getDate() - day; // 0 = Ahad
+    var ahadDate = new Date(now.setDate(diff));
+    var ahadThisWeek = ahadDate.toISOString().substring(0, 10);
+
+    var { data } = await _sb.from('at_tibyan_sesi')
+      .select('id_sesi, tanggal, pertemuan_ke, created_at')
+      .eq('id_halaqah', id_halaqah)
+      .gte('tanggal', ahadThisWeek)
+      .maybeSingle();
+
+    return { status: 'ok', data: data || null, id_halaqah: id_halaqah };
+  },
+
+  simpanPresensiAtTibyan: async function(d) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var id_halaqah = info.halaqah.id_halaqah;
+    var id_ketua = _uid();
+
+    if (!d.tanggal) throw new Error('Tanggal sesi wajib diisi');
+
+    // 1. Buat Sesi At-Tibyan
+    var { data: sesi, error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
+      id_halaqah  : id_halaqah,
+      id_guru     : (info.halaqah && info.halaqah.id_guru) || null,
+      tanggal     : d.tanggal,
+      pertemuan_ke: d.pertemuan_ke || 1,
+      id_pengisi  : id_ketua,
+      status      : 'selesai'
+    }).select().single();
+
+    if (errSesi) {
+      if (errSesi.code === '23505') {
+        throw new Error('Presensi At-Tibyan untuk tanggal ini sudah pernah disimpan.');
+      }
+      throw errSesi;
+    }
+
+    // 2. Insert detail presensi
+    var logPayload = (d.presensi || []).map(function(m) {
+      return {
+        id_sesi     : sesi.id_sesi,
+        id_halaqah  : id_halaqah,
+        id_murid    : m.id_murid,
+        nama_murid  : m.nama_murid,
+        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H'
+      };
+    });
+
+    var { error: errLog } = await _sb.from('at_tibyan_log').insert(logPayload);
+    if (errLog) {
+      // Rollback sesi jika log gagal
+      await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', sesi.id_sesi);
+      throw errLog;
+    }
+
+    return { status: 'ok', id_sesi: sesi.id_sesi };
+  },
+
+  editPresensiAtTibyan: async function(id_sesi, presensiList) {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var id_halaqah = info.halaqah.id_halaqah;
+
+    for (var i = 0; i < presensiList.length; i++) {
+      var m = presensiList[i];
+      var status = ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H';
+      var { error } = await _sb.from('at_tibyan_log')
+        .update({ status_hadir: status })
+        .eq('id_sesi', id_sesi)
+        .eq('id_murid', m.id_murid)
+        .eq('id_halaqah', id_halaqah);
+
+      if (error) throw error;
+    }
+    return { status: 'ok' };
+  },
+
+  getAtTibyanHalaqahHistory: async function() {
+    var info = await KetuaAPI.getInfo();
+    if (info.status !== 'ok') return { status: 'ok', data: [] };
+    var id_halaqah = info.halaqah.id_halaqah;
+
+    var { data, error } = await _sb.from('at_tibyan_sesi')
+      .select('id_sesi, tanggal, pertemuan_ke, created_at')
+      .eq('id_halaqah', id_halaqah)
+      .order('tanggal', { ascending: false })
+      .limit(5);
+
+    if (error) return { status: 'ok', data: [] };
+    return { status: 'ok', data: data || [] };
+  },
 };
 
 // ── attach ke window.HQ ──
