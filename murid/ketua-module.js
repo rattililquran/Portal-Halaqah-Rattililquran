@@ -870,21 +870,21 @@
 
       if (r.data) {
         _ketuaAtEditId = r.data.id_sesi;
-        statusEl.innerHTML = '<div class="card" style="padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:var(--bg-2)">'
+        statusEl.innerHTML = '<div class="card" style="padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border:1.5px solid #a7f3d0;border-radius:14px">'
           + '<div>'
-          + '<div style="font-size:12px;font-weight:700;color:var(--text-1)">✅ Presensi Sesi ' + esc(r.data.pertemuan_ke || '') + ' (' + fmtDate(r.data.tanggal) + ')</div>'
-          + '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Presensi minggu ini sudah disimpan.</div>'
+          + '<div style="font-size:13px;font-weight:800;color:#047857">✅ Presensi Sesi ' + esc(r.data.pertemuan_ke || '') + ' (' + fmtDate(r.data.tanggal) + ')</div>'
+          + '<div style="font-size:11.5px;color:#059669;margin-top:2px;font-weight:500">Presensi minggu ini sudah tersimpan dengan aman.</div>'
           + '</div>'
-          + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(r.data.id_sesi) + '\',\'' + esc(r.data.tanggal) + '\')">✏️ Edit / Revisi</button>'
+          + '<button class="btn btn-outline btn-sm" style="border-radius:10px;font-weight:700;padding:7px 12px" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(r.data.id_sesi) + '\',\'' + esc(r.data.tanggal) + '\')">✏️ Edit / Revisi</button>'
           + '</div>';
       } else {
         _ketuaAtEditId = null;
-        statusEl.innerHTML = '<div class="card" style="padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;background:#fffbebf0;border:1px solid #fde68a">'
+        statusEl.innerHTML = '<div class="card" style="padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#fffbeef0,#fef3c7);border:1.5px solid #fde68a;border-radius:14px">'
           + '<div>'
-          + '<div style="font-size:12px;font-weight:700;color:#b45309">⚠️ Belum Mengisi Presensi Minggu Ini</div>'
-          + '<div style="font-size:11px;color:#92400e;margin-top:2px">Silakan isi presensi untuk anggota halaqahmu.</div>'
+          + '<div style="font-size:13px;font-weight:800;color:#b45309">⚠️ Belum Mengisi Presensi Minggu Ini</div>'
+          + '<div style="font-size:11.5px;color:#92400e;margin-top:2px;font-weight:500">Silakan isi presensi untuk anggota halaqahmu hari ini.</div>'
           + '</div>'
-          + '<button class="btn btn-primary btn-sm" onclick="bukaFormKetuaAtTibyan(false)">➕ Isi Presensi</button>'
+          + '<button class="btn btn-primary btn-sm" style="border-radius:10px;font-weight:800;padding:8px 14px;box-shadow:0 4px 12px rgba(245,158,11,0.25)" onclick="bukaFormKetuaAtTibyan(false)">➕ Isi Presensi</button>'
           + '</div>';
       }
 
@@ -898,25 +898,28 @@
     var riwayatEl = document.getElementById('ketuaAtRiwayat');
     if (!riwayatEl) return;
 
-    riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>' + skelCards(2, 2);
+    riwayatEl.innerHTML = '<div style="font-size:13px;font-weight:800;color:var(--text-1);margin-bottom:10px;letter-spacing:-0.2px">📋 Riwayat 5 Sesi Terakhir</div>' + skelCards(2, 2);
 
     try {
       var r = await window.HQ.KetuaAPI.getAtTibyanHalaqahHistory();
       var list = (r && r.data) || [];
       if (!list.length) {
-        riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>'
-          + '<div class="empty"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada riwayat sesi At-Tibyan</div></div>';
+        riwayatEl.innerHTML = '<div style="font-size:13px;font-weight:800;color:var(--text-1);margin-bottom:10px">📋 Riwayat 5 Sesi Terakhir</div>'
+          + '<div class="empty" style="padding:24px"><div class="empty-ico">📖</div><div class="empty-ttl">Belum ada riwayat sesi At-Tibyan</div></div>';
         return;
       }
 
-      riwayatEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px">📋 Riwayat 5 Sesi Terakhir</div>'
+      riwayatEl.innerHTML = '<div style="font-size:13px;font-weight:800;color:var(--text-1);margin-bottom:10px">📋 Riwayat 5 Sesi Terakhir</div>'
         + list.map(function(s) {
-          return '<div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
+          return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-card);border:1px solid var(--border)">'
+            + '<div style="display:flex;align-items:center;gap:12px">'
+            + '<div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(16,185,129,0.25)">' + esc(s.pertemuan_ke || '1') + '</div>'
             + '<div>'
-            + '<div style="font-size:12.5px;font-weight:700;color:var(--text-1)">Sesi ke-' + esc(s.pertemuan_ke || '') + ' (' + fmtDate(s.tanggal) + ')</div>'
-            + '<div style="font-size:11px;color:var(--text-3);margin-top:2px">📅 ' + fmtDate(s.tanggal) + '</div>'
+            + '<div style="font-size:13px;font-weight:800;color:var(--text-1)">Sesi ke-' + esc(s.pertemuan_ke || '') + '</div>'
+            + '<div style="font-size:11px;color:var(--text-3);margin-top:2px;font-weight:600">📅 ' + fmtDate(s.tanggal) + '</div>'
             + '</div>'
-            + '<button class="btn btn-outline btn-sm" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(s.id_sesi) + '\',\'' + esc(s.tanggal) + '\')">✏️ Edit / Revisi</button>'
+            + '</div>'
+            + '<button class="btn btn-outline btn-sm" style="border-radius:10px;font-weight:700;padding:6px 12px" onclick="bukaFormKetuaAtTibyan(true,\'' + esc(s.id_sesi) + '\',\'' + esc(s.tanggal) + '\')">✏️ Edit / Revisi</button>'
             + '</div>';
         }).join('');
     } catch(e) {
@@ -972,23 +975,28 @@
     }
 
     var statuses = [
-      { code: 'H', label: 'Hadir', col: '#10b981' },
-      { code: 'I', label: 'Izin',  col: '#3b82f6' },
-      { code: 'A', label: 'Alpa',  col: '#ef4444' },
+      { code: 'H', label: 'Hadir', col: '#10b981', bg: '#ecfdf5', border: '#a7f3d0' },
+      { code: 'I', label: 'Izin',  col: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+      { code: 'A', label: 'Alpa',  col: '#e11d48', bg: '#fff1f2', border: '#fecdd3' },
     ];
 
     listEl.innerHTML = _ketuaAtMuridAll.map(function(m) {
       var cur = _ketuaAtMap[m.id_murid] || 'H';
+      var initials = (m.nama_murid || 'M').substring(0, 2).toUpperCase();
+
       var btns = statuses.map(function(s) {
         var active = cur === s.code;
         var style = active
-          ? 'background:' + s.col + ';color:#fff;border-color:' + s.col + ';font-weight:700'
-          : 'background:var(--bg-2);color:var(--text-2);border-color:var(--border)';
-        return '<button type="button" style="padding:5px 12px;border-radius:8px;font-size:11.5px;border:1px solid;cursor:pointer;' + style + '" onclick="setKetuaAtStatus(\'' + esc(m.id_murid) + '\',\'' + s.code + '\')">' + s.label + '</button>';
+          ? 'background:' + s.col + ';color:#fff;border-color:' + s.col + ';font-weight:800;box-shadow:0 3px 10px ' + s.col + '40;transform:scale(1.02);'
+          : 'background:' + s.bg + ';color:' + s.col + ';border-color:' + s.border + ';font-weight:600;';
+        return '<button type="button" style="padding:6px 14px;border-radius:10px;font-size:11.5px;border:1.5px solid;cursor:pointer;transition:all .2s;' + style + '" onclick="setKetuaAtStatus(\'' + esc(m.id_murid) + '\',\'' + s.code + '\')">' + s.label + '</button>';
       }).join(' ');
 
-      return '<div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'
-        + '<div style="font-size:12.5px;font-weight:700;color:var(--text-1)">' + esc(m.nama_murid) + '</div>'
+      return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-card);border:1px solid var(--border)">'
+        + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(2,132,199,0.25)">' + esc(initials) + '</div>'
+        + '<div style="font-size:13px;font-weight:700;color:var(--text-1)">' + esc(m.nama_murid) + '</div>'
+        + '</div>'
         + '<div style="display:flex;gap:6px">' + btns + '</div>'
         + '</div>';
     }).join('');
