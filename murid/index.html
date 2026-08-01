@@ -2207,10 +2207,10 @@ html.theme-dark .inline-loader-pulse {
 .spp-bulan-check::before{content:'○';font-size:14px;color:var(--text-3)}
 .spp-bulan-check:has(input:checked)::before{content:'✓';color:#1a5c3a}
 /* Bulan sudah lunas — tidak bisa dipilih */
-.spp-bulan-check.lunas{background:#f0fdf4;border-color:#86efac;color:#15803d;cursor:not-allowed;pointer-events:none;opacity:.75}
+.spp-bulan-check.lunas{background:#f0fdf4;border-color:#86efac;color:#15803d;cursor:pointer;opacity:.85}
 .spp-bulan-check.lunas::before{content:'✓';color:#16a34a}
 /* Bulan sedang menunggu verifikasi */
-.spp-bulan-check.menunggu{background:#fefce8;border-color:#fde047;color:#854d0e;cursor:not-allowed;pointer-events:none;opacity:.85}
+.spp-bulan-check.menunggu{background:#fefce8;border-color:#fde047;color:#854d0e;cursor:pointer;opacity:.95}
 .spp-bulan-check.menunggu::before{content:'⏳';font-size:11px;color:#b45309}
 /* Radio metode pembayaran */
 .spp-metode-radio{display:flex;align-items:center;gap:8px;padding:10px 12px;
@@ -12272,6 +12272,15 @@ function _pqMemberWaBtn(nama, no_hp) {
             <div style="font-weight:800">🏦 Transfer Manual</div>
             <div style="font-size:9.5px;color:var(--text-3);font-weight:500;margin-top:2px;line-height:1.2">Upload Bukti & Butuh Verifikasi Manual</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Banner Informasi Status Menunggu Verifikasi (⏳) -->
+      <div id="sppPendingNotice" style="display:none;background:linear-gradient(135deg,#fffbef,#fef3c7);border:1.5px solid #fde68a;border-radius:14px;padding:12px 14px;align-items:flex-start;gap:10px;margin-bottom:2px">
+        <div style="font-size:22px;line-height:1;flex-shrink:0">⏳</div>
+        <div style="font-size:12px;color:#92400e;line-height:1.55;font-weight:600">
+          <div style="font-size:12.5px;font-weight:800;color:#b45309;margin-bottom:2px">Pembayaran Sedang Diverifikasi Admin</div>
+          <span id="sppPendingNoticeText">Pembayaran bulan kamu bertanda ⏳ dan sedang ditinjau Admin. Bukti transfer sudah tersimpan & tidak perlu dikonfirmasi ulang.</span>
         </div>
       </div>
 

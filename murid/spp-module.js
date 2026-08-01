@@ -337,10 +337,13 @@
     var _sppSheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
     if (_sppSheet) _sppSheet.scrollTop = 0;
 
-    // Disable bulan yang sudah lunas/menunggu
+    // Disable bulan yang sudah lunas/menunggu & beri feedback interaktif
     try {
       var sppSt = await window.HQ.MuridAPI.getSPPStatus();
       var grid  = sppSt.data && sppSt.data.bulan_grid || [];
+      var pendingMonths = [];
+      window._sppPendingMonths = [];
+
       document.querySelectorAll('#sppBulanGrid .spp-bulan-check').forEach(function(label) {
         var inp = label.querySelector('input');
         if (!inp) return;
@@ -348,14 +351,41 @@
         var info  = grid.find(function(g){ return g.bulan === bulan; });
         var st    = info ? info.status : 'belum';
         label.classList.remove('lunas','menunggu');
+        label.onclick = null; // reset handler
+        
         if (st === 'lunas' || st === 'menunggu') {
           label.classList.add(st);
           inp.disabled = true;
           inp.checked  = false;
+          if (st === 'menunggu') pendingMonths.push(bulan);
+
+          label.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (st === 'menunggu') {
+              toast('⏳ SPP bulan ' + bulan + ' sedang menunggu verifikasi Admin. Tidak perlu dikonfirmasi ulang.', 'warn');
+            } else if (st === 'lunas') {
+              toast('✅ SPP bulan ' + bulan + ' sudah LUNAS.', 'ok');
+            }
+          };
         } else {
           inp.disabled = false;
         }
       });
+
+      window._sppPendingMonths = pendingMonths;
+
+      // Update banner pending notice di modal
+      var noticeEl = document.getElementById('sppPendingNotice');
+      var noticeTextEl = document.getElementById('sppPendingNoticeText');
+      if (noticeEl && noticeTextEl) {
+        if (pendingMonths.length > 0) {
+          noticeTextEl.innerHTML = 'Pembayaran SPP bulan <b>' + pendingMonths.join(', ') + '</b> bertanda (⏳) dan sedang ditinjau Admin. Bukti transfer sudah tersimpan & tidak perlu dikonfirmasi ulang.';
+          noticeEl.style.display = 'flex';
+        } else {
+          noticeEl.style.display = 'none';
+        }
+      }
     } catch(e) { /* gagal load status — biarkan semua aktif */ }
 
     // Load metode bayar dengan timeout 8 detik
@@ -409,7 +439,15 @@
     var catatan = document.getElementById('sppFormCatatan').value.trim();
     var errEl   = document.getElementById('sppFormErr');
 
-    if (jenis === 'SPP Pribadi' && !bulan.length) { errEl.textContent='Pilih minimal 1 bulan.'; errEl.style.display=''; return; }
+    if (jenis === 'SPP Pribadi' && !bulan.length) {
+      if (window._sppPendingMonths && window._sppPendingMonths.length > 0) {
+        errEl.textContent = 'Bulan SPP kamu (' + window._sppPendingMonths.join(', ') + ') sedang dalam proses verifikasi Admin (⏳). Pilih tab "Infaq / Operasional" jika ingin membayar infaq.';
+      } else {
+        errEl.textContent = 'Pilih minimal 1 bulan yang akan dibayar.';
+      }
+      errEl.style.display = '';
+      return;
+    }
     if (!metode) { errEl.textContent='Pilih metode pembayaran.'; errEl.style.display=''; return; }
     if (metode !== 'Cash' && !_sppBuktiBlob) { errEl.textContent='Bukti transfer wajib diunggah.'; errEl.style.display=''; return; }
     if (!nominal || Number(nominal) <= 0) { errEl.textContent='Nominal pembayaran tidak valid.'; errEl.style.display=''; return; }
@@ -590,6 +628,20 @@
         + '<span>' + BNAME[i] + '</span>'
         + '</div>';
     }).join('');
+
+    // Pesan pemberitahuan jika ada pembayaran menunggu verifikasi admin
+    var msgEl = document.getElementById('sppMsg');
+    if (msgEl) {
+      if (menungguBulan && menungguBulan.length > 0) {
+        msgEl.innerHTML = '<div style="background:linear-gradient(135deg,#fffbef,#fef3c7);border:1px solid #fde68a;border-radius:12px;padding:12px 14px;margin-top:12px;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#92400e;font-weight:600">'
+          + '<span style="font-size:20px;line-height:1">⏳</span>'
+          + '<div><b style="color:#b45309">Pembayaran Sedang Diverifikasi Admin:</b><br>Konfirmasi SPP bulan <b>' + esc(menungguBulan.join(', ')) + '</b> telah diterima dan sedang ditinjau.</div>'
+          + '</div>';
+        msgEl.style.display = 'block';
+      } else {
+        msgEl.style.display = 'none';
+      }
+    }
 
     // ── Infaq list ──
     var rows     = data.rows || [];
