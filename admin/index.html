@@ -2072,6 +2072,10 @@ html.theme-dark .fin-detail-card {
             </select></div>
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;padding-bottom:7px">
             <input type="checkbox" id="abgOnlyIssues" onchange="renderAbsensiGuru()"> Hanya guru bermasalah</label>
+          <div style="flex:1"></div>
+          <div class="fg" style="margin:0"><label style="font-size:11px" title="Usulan ihsan = jumlah sesi Mengajar (H+DS+Hᴾ) × tarif ini">Tarif / sesi (Rp)</label>
+            <input type="number" class="fc" id="abgTarif" min="0" step="1000" placeholder="mis. 25000" oninput="_abgTarifChanged()" style="max-width:140px"></div>
+          <button class="btn btn-outline btn-sm" onclick="eksporIhsanGuru()" title="Unduh CSV rekap ihsan per guru (sesi × tarif) untuk bulan terpilih" style="margin-bottom:1px">📄 Export Ihsan</button>
         </div>
 
         <!-- Pengaturan ambang & berlaku-mulai -->
@@ -5959,6 +5963,7 @@ function _populateAbgGuruSel() {
 
 async function loadAbsensiGuru() {
   _populateAbgGuruSel();
+  _abgRestoreTarif();
   const { bulan, tahun } = _abgBulanTahun();
   if (!bulan || !tahun) return;
   const id_guru = document.getElementById('abgGuruSel').value || null;
@@ -6113,6 +6118,64 @@ function _abgRenderIhsanWarn(data) {
         agar tidak ada guru yang terbayar kurang.
       </div>
     </div>`;
+}
+
+// ── Export Rekap Ihsan (per guru: sesi Mengajar × tarif) ──────────────────
+const _ABG_BULAN_NAMA = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function _abgTarif() {
+  const el = document.getElementById('abgTarif');
+  const v = Number((el && el.value) || 0);
+  return isFinite(v) && v > 0 ? Math.round(v) : 0;
+}
+// Persist tarif agar tak diketik ulang tiap bulan (lokal per-browser admin).
+function _abgTarifChanged() { try { localStorage.setItem('abg_tarif_sesi', String(_abgTarif())); } catch (e) {} }
+function _abgRestoreTarif() {
+  try {
+    const el = document.getElementById('abgTarif');
+    const t = localStorage.getItem('abg_tarif_sesi');
+    if (el && !el.value && t) el.value = t;
+  } catch (e) {}
+}
+// Cegah CSV/formula injection (nilai diawali = + - @ / tab / CR) — konsisten dgn ekspor SPP.
+function _abgCsvSafe(val) {
+  let s = String(val == null ? '' : val).replace(/"/g, '""');
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return s;
+}
+async function eksporIhsanGuru() {
+  const data = _abgData;
+  if (!data || !(data.guru || []).length) { toast('Belum ada data absensi untuk diekspor.', 'err'); return; }
+  const tarif = _abgTarif();
+  if (!tarif) { toast('Isi "Tarif / sesi (Rp)" dulu sebelum ekspor.', 'err'); return; }
+  // Guard amanah: draft belum ditutup → angka Mengajar belum final.
+  const totPt = (data.guru || []).reduce((s, g) => s + (g.perlu_ditutup || 0), 0);
+  if (totPt > 0) {
+    const ok = await showConfirm(
+      `Masih ada ${totPt} sesi lampau yang belum ditutup. Sesi itu TIDAK terhitung di kolom Mengajar, sehingga usulan ihsan bisa kurang dari yang seharusnya.\n\nSebaiknya tutup dulu semua sesi ⏳ itu. Tetap lanjut ekspor sekarang?`,
+      { title: '⚠️ Angka belum final', okText: 'Tetap ekspor', cancelText: 'Batal', danger: true });
+    if (!ok) return;
+  }
+  const bulanNama = _ABG_BULAN_NAMA[data.bulan - 1] || data.bulan;
+  const guru = (data.guru || []).slice().sort((a, b) => (a.nama_guru || '').localeCompare(b.nama_guru || ''));
+  let csv = 'ID Guru;Nama Guru;Bulan;Tahun;Sesi Mengajar;H;DS;HP;Tarif per Sesi;Usulan Ihsan\r\n';
+  let totSesi = 0, totRp = 0;
+  guru.forEach(g => {
+    const sesi = (g.H || 0) + (g.DS || 0) + (g.HP || 0);
+    const rp = sesi * tarif;
+    totSesi += sesi; totRp += rp;
+    csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"' + bulanNama + '";' + data.tahun
+      + ';' + sesi + ';' + (g.H || 0) + ';' + (g.DS || 0) + ';' + (g.HP || 0) + ';' + tarif + ';' + rp + '\r\n';
+  });
+  csv += '"";"TOTAL (' + guru.length + ' guru)";"";;' + totSesi + ';;;;;' + totRp + '\r\n';
+  const namaFile = 'ihsan_guru_' + data.tahun + '_' + String(data.bulan).padStart(2, '0') + '.csv';
+  // UTF-8 BOM agar terbaca benar di Excel (locale Indonesia).
+  const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = namaFile;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Rekap ihsan ' + bulanNama + ' ' + data.tahun + ' diekspor — ' + guru.length + ' guru, ' + totSesi + ' sesi, Rp ' + totRp.toLocaleString('id-ID') + '.', 'ok');
 }
 
 // Ringkasan KPI — agregat dari seluruh guru (sebelum filter "hanya bermasalah").
