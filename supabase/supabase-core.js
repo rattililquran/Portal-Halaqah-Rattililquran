@@ -332,14 +332,22 @@ async function _fetchAbsensiData(opts) {
   // Dihitung eksplisit (bukan anggota(count) yang tak memfilter status) & dipaginasi agar
   // tak terpotong batas 1000. Guru-scope dibatasi ke halaqah miliknya (patuh RLS).
   var scopedHqIds = halaqah.map(function(h) { return h.id_halaqah; });
-  var muridRows = await _selectAllPaged('anggota', 'id_murid, id_halaqah',
+  var muridRows = await _selectAllPaged('anggota', 'id_murid, id_halaqah, tgl_bergabung',
     function(q) {
       q = q.eq('status', 'aktif').order('id_murid');
       if (opts.scope === 'guru' && scopedHqIds.length) q = q.in('id_halaqah', scopedHqIds);
       return q;
     }, 'absensi:anggota_aktif');
   var muridByHalaqah = {};
-  muridRows.forEach(function(r) { muridByHalaqah[r.id_halaqah] = (muridByHalaqah[r.id_halaqah] || 0) + 1; });
+  muridRows.forEach(function(r) {
+    // Jangan hitung murid yang BARU bergabung setelah bulan yang direkap → agar ihsan bulan
+    // lampau tak menggelembung oleh murid baru (tiap bulan tak lagi identik). tgl_bergabung
+    // null (data lama) dianggap "sudah lama gabung" → tetap dihitung.
+    // Keterbatasan jujur: murid yang KELUAR setelah bulan itu tetap tak terhitung untuk bulan
+    // tersebut (tak ada riwayat keanggotaan per-bulan di skema) → rekap bulan lampau approksimasi.
+    if (r.tgl_bergabung && r.tgl_bergabung > end) return;
+    muridByHalaqah[r.id_halaqah] = (muridByHalaqah[r.id_halaqah] || 0) + 1;
+  });
 
   return {
     bulan: bulan, tahun: tahun, lastDay: lastDay,

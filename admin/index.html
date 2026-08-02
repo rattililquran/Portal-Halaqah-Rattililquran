@@ -2115,7 +2115,7 @@ html.theme-dark .fin-detail-card {
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
                 <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
                 <th title="Jumlah sesi mengajar yang terlaksana bulan ini = H + DS + Hᴾ">Mengajar</th>
-                <th title="Jumlah murid aktif di seluruh halaqah yang diampu guru ini">👥 Murid</th>
+                <th title="Jumlah murid aktif di halaqah yang diampu (tidak menghitung murid yang baru bergabung setelah bulan terpilih)">👥 Murid</th>
                 <th title="Usulan ihsan = jumlah murid × tarif/bulan. Sesi TIDAK berpengaruh.">💰 Ihsan</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
@@ -4258,7 +4258,7 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-core.js?v=0b981f5b"></script>
+<script src="../supabase/supabase-core.js?v=1e795dc8"></script>
 <script src="../supabase/api-staff.js?v=c8f2e611"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
@@ -6199,7 +6199,7 @@ function cetakIhsanGuru() {
       @media print{body{margin:0}}
     </style></head><body>
     <h1>Rekap Usulan Ihsan Guru — ${d.bulanNama} ${d.tahun}</h1>
-    <div class="sub">Ihsan = jumlah murid aktif × ${_abgRp(d.tarif)} / murid / bulan. Jumlah sesi tidak memengaruhi nominal.</div>
+    <div class="sub">Ihsan = jumlah murid aktif × ${_abgRp(d.tarif)} / murid / bulan. Jumlah sesi tidak memengaruhi nominal. Murid dihitung s/d akhir ${d.bulanNama} ${d.tahun} (tak termasuk murid yang bergabung setelahnya).</div>
     <table><thead><tr><th>Guru</th><th>Halaqah</th><th class="c">Murid</th><th class="r">Ihsan / bulan</th></tr></thead>
       <tbody>${body}</tbody>
       <tfoot><tr><td colspan="2">TOTAL (${d.rows.length} guru)</td><td class="c">${d.grandMurid}</td><td class="r">${_abgRp(d.grandRp)}</td></tr></tfoot>
