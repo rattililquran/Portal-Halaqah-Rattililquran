@@ -297,13 +297,17 @@ async function _fetchAbsensiData(opts) {
   var kbm = [];
   if (hqIds.length > 0) {
     // SEMUA jenis (At-Tibyan disaring saat derivasi, tapi tetap "menempati" slot → cegah Alpa palsu).
-    var kbmR = await _sb.from('kbm_log')
-      .select('id_kbm, id_halaqah, id_guru, nama_guru, jenis_sesi, status, is_pengganti, tanggal_pertemuan, jam_mulai, jam_selesai, created_at, selesai_pada, keterangan_libur')
-      .in('id_halaqah', hqIds)
-      .in('status', ['selesai', 'libur', 'draft'])
-      .gte('tanggal_pertemuan', start).lte('tanggal_pertemuan', end);
-    _check(kbmR.error, 'absensi:kbm_log');
-    kbm = kbmR.data || [];
+    // WAJIB dipaginasi: data ini jadi dasar ihsan (gaji) guru — batas diam-diam 1000 baris
+    // PostgREST akan memotong sesi & membuat guru tercatat kurang mengajar. .order('id_kbm')
+    // menjamin paginasi stabil (tanpa order, halaman bisa tumpang-tindih/lompat).
+    kbm = await _selectAllPaged('kbm_log',
+      'id_kbm, id_halaqah, id_guru, nama_guru, jenis_sesi, status, is_pengganti, tanggal_pertemuan, jam_mulai, jam_selesai, created_at, selesai_pada, keterangan_libur',
+      function(q) {
+        return q.in('id_halaqah', hqIds)
+          .in('status', ['selesai', 'libur', 'draft'])
+          .gte('tanggal_pertemuan', start).lte('tanggal_pertemuan', end)
+          .order('id_kbm');
+      }, 'absensi:kbm_log');
   }
 
   // Daftar guru untuk baris rekap. Admin: semua guru aktif. Guru: diri sendiri saja
