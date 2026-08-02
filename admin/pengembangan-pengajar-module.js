@@ -230,8 +230,19 @@
     if (!id_guru) { box.innerHTML = ''; return; }
     box.innerHTML = '<div style="color:var(--text-3);font-size:12px">⏳ Memuat rapor...</div>';
     try {
-      var r = (await window.HQ.AdminAPI.getRaporPengajar(id_guru)).data || {};
+      var [rr, apRes] = await Promise.all([
+        window.HQ.AdminAPI.getRaporPengajar(id_guru),
+        window.HQ.AdminAPI.getApresiasiList(id_guru),
+      ]);
+      var r = rr.data || {};
       var ev = r.evaluasi_terakhir;
+      var ap = apRes.data || [];
+      var apHtml = ap.map(function(a) {
+        return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
+          + '<span style="flex:1">🏅 <strong>' + esc(a.jenis) + '</strong>' + (a.keterangan ? ' · ' + esc(a.keterangan) : '') + ' <span style="color:var(--text-3)">· ' + esc(a.tanggal || '') + '</span></span>'
+          + '<button onclick="ppHapusApresiasi(\'' + esc(a.id_apresiasi) + '\',\'' + esc(id_guru) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+          + '</div>';
+      }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada apresiasi.</div>';
       box.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap">'
         + _stat('Nilai Evaluasi Terakhir', ev && ev.nilai_akhir != null ? ev.nilai_akhir : '—')
         + _stat('% Kehadiran', r.pct_kehadiran != null ? r.pct_kehadiran + '%' : '—')
@@ -239,8 +250,34 @@
         + _stat('Tashih Lulus', (r.tashih_lulus || 0) + '/' + (r.tashih_total || 0))
         + _stat('Mutaba\'ah Terbuka', r.mutabaah_terbuka || 0)
         + '</div>'
-        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">💡 % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport.</div>';
+        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">💡 % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport.</div>'
+        + '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">🏅 Apresiasi</span>'
+        + '<button onclick="ppBeriApresiasi(\'' + esc(id_guru) + '\')" style="border:none;background:#d97706;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Beri Apresiasi</button></div>'
+        + apHtml + '</div>';
     } catch (e) { box.innerHTML = '<div style="color:var(--red)">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
+  }
+
+  async function ppBeriApresiasi(id_guru) {
+    var jenis = prompt('Jenis apresiasi (teladan/kehadiran/dedikasi):', 'teladan');
+    if (jenis === null || !jenis.trim()) return;
+    var keterangan = prompt('Keterangan (opsional):') || '';
+    showLoad('Menyimpan...');
+    try {
+      await window.HQ.AdminAPI.setApresiasi({ id_guru: id_guru, jenis: jenis.trim(), keterangan: keterangan.trim() || null });
+      toast('Apresiasi diberikan', 'ok');
+      ppLoadRapor(id_guru);
+    } catch (e) { toast(friendlyError(e), 'err'); }
+    finally { hideLoad(); }
+  }
+
+  async function ppHapusApresiasi(id_apresiasi, id_guru) {
+    if (!(await showConfirm('Hapus apresiasi ini?', { title: 'Hapus Apresiasi?', okText: 'Ya', danger: true }))) return;
+    try {
+      await window.HQ.AdminAPI.hapusApresiasi(id_apresiasi);
+      toast('Apresiasi dihapus', 'ok');
+      ppLoadRapor(id_guru);
+    } catch (e) { toast(friendlyError(e), 'err'); }
   }
 
   // ══════════════════ TAB 4: HALAQAH PENGAJAR (PEER) ══════════════════
@@ -410,6 +447,8 @@
     window.ppNewPelatihan = ppNewPelatihan;
     window.ppKehadiran = ppKehadiran;
     window.ppLoadRapor = ppLoadRapor;
+    window.ppBeriApresiasi = ppBeriApresiasi;
+    window.ppHapusApresiasi = ppHapusApresiasi;
     window.ppNewKelompok = ppNewKelompok;
     window.ppSetAnggota = ppSetAnggota;
     window.ppDeleteKelompok = ppDeleteKelompok;

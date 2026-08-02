@@ -86,8 +86,85 @@
       + '<button onclick="pgSetorForm(\'' + escJs(k.id_kelompok) + '\')" style="border:none;background:#0284c7;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer">+ Setor</button>'
       + '</div>'
       + '<div style="font-size:11px;color:var(--text-3);margin-top:6px">Anggota: ' + ((k.anggota || []).map(function(a) { return esc(a.nama_guru || a.id_guru); }).join(', ') || '—') + '</div>'
+      + '<div style="margin-top:8px"><button onclick="pgToggleTarget(\'' + escJs(k.id_kelompok) + '\')" style="border:none;background:rgba(217,119,6,.12);color:#b45309;border-radius:7px;padding:4px 11px;font-size:11px;font-weight:800;cursor:pointer">🎯 Target &amp; Milestone</button></div>'
+      + '<div id="pgTgt_' + esc(k.id_kelompok) + '" style="display:none;margin-top:8px"></div>'
       + '<div id="pgSet_' + esc(k.id_kelompok) + '" style="margin-top:10px"><div style="font-size:11px;color:var(--text-3)">⏳ Memuat setoran...</div></div>'
       + '</div>';
+  }
+
+  function pgToggleTarget(id_kelompok) {
+    var c = document.getElementById('pgTgt_' + id_kelompok);
+    if (!c) return;
+    if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+    c.style.display = 'block';
+    _loadTargetMilestone(id_kelompok);
+  }
+
+  async function _loadTargetMilestone(id_kelompok) {
+    var c = document.getElementById('pgTgt_' + id_kelompok);
+    if (!c) return;
+    c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+    try {
+      var d = (await window.HQ.GuruAPI.getTargetMilestoneKelompok(id_kelompok)).data || {};
+      var kj = escJs(id_kelompok);
+      var tHtml = (d.target || []).map(function(t) {
+        var done = t.status === 'tercapai';
+        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">'
+          + '<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0">🎯 ' + esc(t.judul)
+          + (done ? ' <span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px">tercapai</span>' : (t.tanggal_target ? ' <span style="font-size:10px;color:var(--text-3)">· ' + esc(t.tanggal_target) + '</span>' : '')) + '</span>'
+          + (done ? '' : '<button onclick="pgMarkTarget(\'' + escJs(t.id_target) + '\',\'' + kj + '\')" title="Tandai tercapai" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>')
+          + '<button onclick="pgDelTgt(\'target\',\'' + escJs(t.id_target) + '\',\'' + kj + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+          + '</div>';
+      }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada target.</div>';
+      var mHtml = (d.milestone || []).map(function(m) {
+        return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
+          + '<span style="flex:1">🏆 ' + esc(m.judul) + ' <span style="color:var(--text-3);font-size:10px">· ' + esc(m.tanggal || '') + '</span></span>'
+          + '<button onclick="pgDelTgt(\'milestone\',\'' + escJs(m.id_milestone) + '\',\'' + kj + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+          + '</div>';
+      }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada milestone.</div>';
+      c.innerHTML = '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:11px;font-weight:800;color:#b45309">🎯 Target Bersama</span>'
+        + '<button onclick="pgAddTarget(\'' + kj + '\')" style="border:none;background:#d97706;color:#fff;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:800;cursor:pointer">+ Target</button></div>'
+        + tHtml
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 5px"><span style="font-size:11px;font-weight:800;color:#166534">🏆 Milestone</span>'
+        + '<button onclick="pgAddMilestone(\'' + kj + '\')" style="border:none;background:#16a34a;color:#fff;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:800;cursor:pointer">+ Milestone</button></div>'
+        + mHtml
+        + '</div>';
+    } catch (e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
+  }
+
+  async function pgAddTarget(id_kelompok) {
+    var judul = prompt('Target bersama (mis: Semua anggota khatam Matan Jazariyah):'); if (judul === null || !judul.trim()) return;
+    var tgl = prompt('Tanggal target (YYYY-MM-DD, opsional):', '') || '';
+    if (tgl.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(tgl.trim())) { toast('Tanggal tidak valid', 'err'); return; }
+    try {
+      await window.HQ.GuruAPI.upsertTargetKelompok({ tipe: 'target', id_kelompok: id_kelompok, judul: judul.trim(), tanggal_target: tgl.trim() || null });
+      toast('Target ditetapkan', 'ok'); _loadTargetMilestone(id_kelompok);
+    } catch (e) { toast(friendlyError(e), 'err'); }
+  }
+
+  async function pgAddMilestone(id_kelompok) {
+    var judul = prompt('Tandai milestone (mis: Ustadz A khatam bab isti\'la\'):'); if (judul === null || !judul.trim()) return;
+    try {
+      await window.HQ.GuruAPI.upsertTargetKelompok({ tipe: 'milestone', id_kelompok: id_kelompok, judul: judul.trim() });
+      toast('Milestone ditandai', 'ok'); _loadTargetMilestone(id_kelompok);
+    } catch (e) { toast(friendlyError(e), 'err'); }
+  }
+
+  async function pgMarkTarget(id_target, id_kelompok) {
+    try {
+      await window.HQ.GuruAPI.upsertTargetKelompok({ tipe: 'target', id_target: id_target, status: 'tercapai' });
+      toast('Target tercapai 🎉', 'ok'); _loadTargetMilestone(id_kelompok);
+    } catch (e) { toast(friendlyError(e), 'err'); }
+  }
+
+  async function pgDelTgt(tipe, id, id_kelompok) {
+    var d = { tipe: tipe };
+    d[tipe === 'milestone' ? 'id_milestone' : 'id_target'] = id;
+    try {
+      await window.HQ.GuruAPI.hapusTargetKelompok(d);
+      toast('Dihapus', 'ok'); _loadTargetMilestone(id_kelompok);
+    } catch (e) { toast(friendlyError(e), 'err'); }
   }
 
   async function _loadSetoranKelompok(id_kelompok) {
@@ -320,6 +397,11 @@
     window.pgGoTab = pgGoTab;
     window.pgSetorForm = pgSetorForm;
     window.pgSimakForm = pgSimakForm;
+    window.pgToggleTarget = pgToggleTarget;
+    window.pgAddTarget = pgAddTarget;
+    window.pgAddMilestone = pgAddMilestone;
+    window.pgMarkTarget = pgMarkTarget;
+    window.pgDelTgt = pgDelTgt;
     window.pgTashihForm = pgTashihForm;
     window.pgEvaluasiForm = pgEvaluasiForm;
     window.pgMutabaahForm = pgMutabaahForm;

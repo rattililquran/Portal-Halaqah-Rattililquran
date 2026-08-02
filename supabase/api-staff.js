@@ -2992,6 +2992,28 @@ var GuruAPI = {
     _check(error, 'upsertTargetKelompok:insert');
     return { status: 'ok', data: data };
   },
+
+  // Target + milestone satu kelompok (RLS: anggota kelompok / admin).
+  getTargetMilestoneKelompok: async function(id_kelompok) {
+    if (!id_kelompok) return { status: 'error', message: 'id_kelompok wajib diisi' };
+    var [tgt, mst] = await Promise.all([
+      _sb.from('target_kelompok_pengajar').select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false }),
+      _sb.from('milestone_kelompok_pengajar').select('*').eq('id_kelompok', id_kelompok).order('tanggal', { ascending: false }),
+    ]);
+    _check(tgt.error, 'getTargetMilestoneKelompok');
+    return { status: 'ok', data: { target: tgt.data || [], milestone: mst.data || [] } };
+  },
+
+  // Hapus target/milestone. tipe: 'target'(default) | 'milestone'.
+  hapusTargetKelompok: async function(d) {
+    d = d || {};
+    var tbl   = d.tipe === 'milestone' ? 'milestone_kelompok_pengajar' : 'target_kelompok_pengajar';
+    var idCol = tbl === 'milestone_kelompok_pengajar' ? 'id_milestone' : 'id_target';
+    if (!d[idCol]) return { status: 'error', message: idCol + ' wajib diisi' };
+    var { error } = await _sb.from(tbl).delete().eq(idCol, d[idCol]);
+    _check(error, 'hapusTargetKelompok');
+    return { status: 'ok' };
+  },
 };
 
 
@@ -5818,6 +5840,22 @@ var AdminAPI = {
     }).select().single();
     _check(error, 'setApresiasi');
     return { status: 'ok', data: data };
+  },
+
+  // Daftar apresiasi (opsional per pengajar). Admin baca semua (RLS).
+  getApresiasiList: async function(id_guru) {
+    var q = _sb.from('pengajar_apresiasi').select('*').order('tanggal', { ascending: false }).limit(50);
+    if (id_guru) q = q.eq('id_guru', id_guru);
+    var { data, error } = await q;
+    _check(error, 'getApresiasiList');
+    return { status: 'ok', data: data || [] };
+  },
+
+  hapusApresiasi: async function(id_apresiasi) {
+    if (!id_apresiasi) return { status: 'error', message: 'id_apresiasi wajib diisi' };
+    var { error } = await _sb.from('pengajar_apresiasi').delete().eq('id_apresiasi', id_apresiasi);
+    _check(error, 'hapusApresiasi');
+    return { status: 'ok' };
   },
 
   // ── Kelola kelompok pengajar (peer) ──
