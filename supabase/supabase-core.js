@@ -279,36 +279,41 @@ async function _fetchAbsensiData(opts) {
     .eq('status', 'aktif');
   if (opts.scope === 'guru') hqQ = hqQ.eq('id_guru', opts.id_guru);
 
+  // Peta nama halaqah SEMUA status (termasuk yang diarsipkan) — agar sesi nyata di halaqah
+  // non-aktif tetap punya nama saat ditampilkan. Alpa TIDAK dibangun dari peta ini.
+  var hqAllQ = _sb.from('halaqah').select('id_halaqah, nama_halaqah, id_guru, nama_guru');
+  if (opts.scope === 'guru') hqAllQ = hqAllQ.eq('id_guru', opts.id_guru);
+
   var liburQ = _sb.from('hari_libur_resmi').select('tanggal').gte('tanggal', start).lte('tanggal', end);
 
   var ovQ = _sb.from('absensi_guru_override').select('*').gte('tanggal', start).lte('tanggal', end);
   if (opts.id_guru) ovQ = ovQ.eq('id_guru', opts.id_guru);
 
-  var results = await Promise.all([settingP, hqQ, liburQ, ovQ]);
-  var settingR = results[0], hqR = results[1], liburR = results[2], ovR = results[3];
+  var results = await Promise.all([settingP, hqQ, liburQ, ovQ, hqAllQ]);
+  var settingR = results[0], hqR = results[1], liburR = results[2], ovR = results[3], hqAllR = results[4];
   _check(hqR.error, 'absensi:halaqah');
   // T2 — jangan telan error override secara senyap. Bukan fatal (rekap tetap bisa tampil tanpa
   // koreksi), tapi peringatkan agar inkonsistensi admin↔guru tidak luput dari perhatian.
   if (ovR && ovR.error) console.warn('[absensi] gagal membaca override (koreksi admin mungkin tak diterapkan):', ovR.error.message || ovR.error);
 
   var halaqah = hqR.data || [];
-  var hqIds = halaqah.map(function(h) { return h.id_halaqah; });
 
-  var kbm = [];
-  if (hqIds.length > 0) {
-    // SEMUA jenis (At-Tibyan disaring saat derivasi, tapi tetap "menempati" slot → cegah Alpa palsu).
-    // WAJIB dipaginasi: data ini jadi dasar ihsan (gaji) guru — batas diam-diam 1000 baris
-    // PostgREST akan memotong sesi & membuat guru tercatat kurang mengajar. .order('id_kbm')
-    // menjamin paginasi stabil (tanpa order, halaman bisa tumpang-tindih/lompat).
-    kbm = await _selectAllPaged('kbm_log',
-      'id_kbm, id_halaqah, id_guru, nama_guru, jenis_sesi, status, is_pengganti, tanggal_pertemuan, jam_mulai, jam_selesai, created_at, selesai_pada, keterangan_libur',
-      function(q) {
-        return q.in('id_halaqah', hqIds)
-          .in('status', ['selesai', 'libur', 'draft'])
-          .gte('tanggal_pertemuan', start).lte('tanggal_pertemuan', end)
-          .order('id_kbm');
-      }, 'absensi:kbm_log');
-  }
+  // Sesi nyata diambil per RENTANG TANGGAL (BUKAN disaring ke halaqah aktif) agar sesi di
+  // halaqah yang diarsipkan mid-bulan tetap terhitung untuk ihsan. Guru: dibatasi id_guru
+  // sendiri (patuh RLS + menangkap sesi PENGGANTI di halaqah guru lain). Alpa tetap hanya
+  // dari halaqah aktif berjadwal (derivasi B) → tak ada Alpa palsu.
+  // WAJIB dipaginasi: batas diam-diam 1000 baris PostgREST akan memotong sesi & membuat guru
+  // tercatat kurang mengajar. .order('id_kbm') menjaga paginasi stabil (tanpa order, halaman
+  // bisa tumpang-tindih/lompat).
+  var kbm = await _selectAllPaged('kbm_log',
+    'id_kbm, id_halaqah, id_guru, nama_guru, jenis_sesi, status, is_pengganti, tanggal_pertemuan, jam_mulai, jam_selesai, created_at, selesai_pada, keterangan_libur',
+    function(q) {
+      q = q.in('status', ['selesai', 'libur', 'draft'])
+        .gte('tanggal_pertemuan', start).lte('tanggal_pertemuan', end)
+        .order('id_kbm');
+      if (opts.scope === 'guru') q = q.eq('id_guru', opts.id_guru);
+      return q;
+    }, 'absensi:kbm_log');
 
   // Daftar guru untuk baris rekap. Admin: semua guru aktif. Guru: diri sendiri saja
   // (guru tak punya hak baca seluruh tabel users via RLS).
@@ -326,7 +331,8 @@ async function _fetchAbsensiData(opts) {
   return {
     bulan: bulan, tahun: tahun, lastDay: lastDay,
     setting: settingR.data || { durasi_minimal_menit: 90, durasi_outlier_menit: 180 },
-    halaqah: halaqah, kbm: kbm, override: (ovR.data || []), liburSet: liburSet, guruList: guruList,
+    halaqah: halaqah, halaqahAll: (hqAllR.data || []),
+    kbm: kbm, override: (ovR.data || []), liburSet: liburSet, guruList: guruList,
   };
 }
 
@@ -338,16 +344,25 @@ function _deriveRekapAbsensi(data) {
   var today   = _todayJakarta();
   var mm      = String(data.bulan).padStart(2, '0');
 
+  // Nama halaqah dari peta SEMUA status dulu (mencakup yang diarsipkan), lalu ditimpa data
+  // halaqah aktif (berisi field lengkap: level/jadwal) — agar sesi di halaqah non-aktif
+  // tetap bernama.
   var hqById = {};
+  (data.halaqahAll || []).forEach(function(h) { hqById[h.id_halaqah] = h; });
   data.halaqah.forEach(function(h) { hqById[h.id_halaqah] = h; });
 
   // Slot terisi (id_halaqah|tanggal) dari SEMUA kbm (termasuk At-Tibyan & draft) → guard Alpa palsu.
   var slotOccupied = {};
   data.kbm.forEach(function(k) { slotOccupied[k.id_halaqah + '|' + k.tanggal_pertemuan] = true; });
 
-  // Satu unit per sel (id_guru|id_halaqah|tanggal).
+  // Array unit per sel (id_guru|id_halaqah|tanggal). Ihsan dibayar PER SESI, jadi >1 sesi
+  // nyata pada hari & halaqah yang sama TIDAK boleh saling menimpa — semuanya disimpan &
+  // dihitung. (Override admin tetap 1 status final per sel — lihat bagian C.)
   var cellMap = {};
-  function putUnit(u) { cellMap[u.id_guru + '|' + u.id_halaqah + '|' + u.tanggal] = u; }
+  function putUnit(u) {
+    var k = u.id_guru + '|' + u.id_halaqah + '|' + u.tanggal;
+    (cellMap[k] || (cellMap[k] = [])).push(u);
+  }
   function newUnit(over) {
     return Object.assign({
       id_guru: '', nama_guru: '', id_halaqah: '', nama_halaqah: '', tanggal: '',
@@ -418,11 +433,13 @@ function _deriveRekapAbsensi(data) {
     }
   });
 
-  // (C) Overlay override admin (atas menang)
+  // (C) Overlay override admin (atas menang). Override bersifat FINAL per sel — batasan DB
+  // hanya mengizinkan 1 override per (guru+halaqah+tanggal). Maka bila sel berisi >1 sesi
+  // nyata, override meng-collapse jadi satu status final (pilihan sadar admin).
   data.override.forEach(function(ov) {
     var key = ov.id_guru + '|' + ov.id_halaqah + '|' + ov.tanggal;
     var hq  = hqById[ov.id_halaqah] || {};
-    var u = cellMap[key] || newUnit({
+    var u = (cellMap[key] && cellMap[key][0]) || newUnit({
       id_guru: ov.id_guru, nama_guru: hq.nama_guru || '',
       id_halaqah: ov.id_halaqah, nama_halaqah: hq.nama_halaqah || '',
       tanggal: ov.tanggal,
@@ -432,7 +449,7 @@ function _deriveRekapAbsensi(data) {
     u.pengganti = ov.status === 'HP';
     u.perlu_ditutup = false;
     if (ov.keterangan) u.keterangan = ov.keterangan;
-    cellMap[key] = u;
+    cellMap[key] = [u];
   });
 
   // Agregasi per guru
@@ -451,19 +468,20 @@ function _deriveRekapAbsensi(data) {
   data.guruList.forEach(function(g) { ensureRow(g.id_user, g.nama); });
 
   Object.keys(cellMap).forEach(function(key) {
-    var u = cellMap[key];
-    var row = ensureRow(u.id_guru, u.nama_guru);
-    if (!row.cells[u.tanggal]) row.cells[u.tanggal] = [];
-    row.cells[u.tanggal].push(u);
-    switch (u.status) {
-      case 'H':  row.H++; break;
-      case 'DS': row.DS++; break;
-      case 'HP': row.HP++; if (u.durasi_menit == null || u.durasi_menit >= ambang) row.HP_penuh++; break;
-      case 'I':  row.I++; break;
-      case 'A':  row.A++; break;
-      case 'L':  row.L++; break;
-      case '_DRAFT': row.perlu_ditutup++; break;
-    }
+    cellMap[key].forEach(function(u) {
+      var row = ensureRow(u.id_guru, u.nama_guru);
+      if (!row.cells[u.tanggal]) row.cells[u.tanggal] = [];
+      row.cells[u.tanggal].push(u);
+      switch (u.status) {
+        case 'H':  row.H++; break;
+        case 'DS': row.DS++; break;
+        case 'HP': row.HP++; if (u.durasi_menit == null || u.durasi_menit >= ambang) row.HP_penuh++; break;
+        case 'I':  row.I++; break;
+        case 'A':  row.A++; break;
+        case 'L':  row.L++; break;
+        case '_DRAFT': row.perlu_ditutup++; break;
+      }
+    });
   });
 
   var rows = Object.keys(guruRows).map(function(id) {

@@ -2086,6 +2086,9 @@ html.theme-dark .fin-detail-card {
           <div style="font-size:10.5px;color:var(--text-3);max-width:300px;line-height:1.4">"Berlaku mulai" mencegah tanggal lampau (sebelum guru rutin mencatat sesi) tertandai Alpa retroaktif.</div>
         </div></div>
 
+        <!-- Peringatan kesiapan ihsan (draft belum ditutup) -->
+        <div id="abgIhsanWarn"></div>
+
         <!-- Panel jadwal basi / Alpa hantu (diisi renderAbsensiGuru) -->
         <div id="abgStale"></div>
 
@@ -4248,7 +4251,7 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-core.js?v=d3903f61"></script>
+<script src="../supabase/supabase-core.js?v=88e614c9"></script>
 <script src="../supabase/api-staff.js?v=c8f2e611"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
@@ -6045,6 +6048,7 @@ function renderAbsensiGuru() {
   const data = _abgData;
   if (!data) return;
   _abgRenderKpi(data);
+  _abgRenderIhsanWarn(data);
   _abgRenderStale(data);
   const sortBy = document.getElementById('abgSort').value;
   const onlyIssues = document.getElementById('abgOnlyIssues').checked;
@@ -6088,6 +6092,27 @@ function renderAbsensiGuru() {
     <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="11">${_abgDetailHtml(g, data)}</td></tr>`;
   });
   body.innerHTML = html;
+}
+
+// Peringatan kesiapan ihsan — angka "Mengajar" (H+DS+Hᴾ) baru final bila semua sesi lampau
+// sudah ditutup. Sesi draft belum ditutup TIDAK terhitung, sehingga menghitung gaji saat masih
+// ada draft = guru terbayar kurang. Banner ini mencegah kealpaan itu (amanah).
+function _abgRenderIhsanWarn(data) {
+  const el = document.getElementById('abgIhsanWarn'); if (!el) return;
+  const guru = data.guru || [];
+  const totPt = guru.reduce((s, g) => s + (g.perlu_ditutup || 0), 0);
+  if (!totPt) { el.innerHTML = ''; return; }
+  const nGuru = guru.filter(g => (g.perlu_ditutup || 0) > 0).length;
+  el.innerHTML =
+    `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:18px;line-height:1">⚠️</span>
+      <div style="font-size:12.5px;line-height:1.6;color:#9a3412">
+        <strong>Angka belum final untuk ihsan.</strong> Ada <strong>${totPt} sesi lampau belum ditutup</strong>
+        (${nGuru} guru). Sesi draft tidak terhitung di kolom <strong>Mengajar</strong>, jadi
+        <strong>tutup semua sesi tersebut dulu</strong> (tanda ⏳ pada baris guru) sebelum menghitung gaji —
+        agar tidak ada guru yang terbayar kurang.
+      </div>
+    </div>`;
 }
 
 // Ringkasan KPI — agregat dari seluruh guru (sebelum filter "hanya bermasalah").
