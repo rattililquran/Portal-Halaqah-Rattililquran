@@ -2106,11 +2106,12 @@ html.theme-dark .fin-detail-card {
                 <th class="abg-name">Guru</th>
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
                 <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
+                <th title="Jumlah sesi mengajar yang terlaksana bulan ini = H + DS + Hᴾ">Mengajar</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
                 <th class="abg-stripcol">Kehadiran harian (klik baris → rincian)</th>
               </tr></thead>
-              <tbody id="abgBody"><tr><td colspan="10" style="padding:32px;text-align:center;color:var(--text-3)">Memuat...</td></tr></tbody>
+              <tbody id="abgBody"><tr><td colspan="11" style="padding:32px;text-align:center;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -6062,7 +6063,7 @@ function renderAbsensiGuru() {
 
   const body = document.getElementById('abgBody');
   if (!guru.length) {
-    body.innerHTML = `<tr><td colspan="10" style="padding:32px;text-align:center;color:var(--text-3)">${onlyIssues ? 'Tidak ada guru bermasalah 🎉' : 'Belum ada data guru.'}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--text-3)">${onlyIssues ? 'Tidak ada guru bermasalah 🎉' : 'Belum ada data guru.'}</td></tr>`;
     return;
   }
   const pctCol = (p) => p == null ? '<span style="color:var(--text-3)">–</span>' :
@@ -6076,6 +6077,7 @@ function renderAbsensiGuru() {
       <td class="abg-name"><span class="abg-caret">▸</span> ${esc(g.nama_guru || g.id_guru)}${ptBadge}</td>
       <td>${pctCol(g.pct_durasi)}</td>
       <td>${pctCol(g.pct_kehadiran)}${(g.izin_diganti||0)>0?`<span class="abg-izindiganti" title="${g.izin_diganti} Izin sudah ditebus kelas pengganti — tidak menggerus %Hadir">✓${g.izin_diganti}</span>`:''}</td>
+      <td class="abg-sum" style="font-weight:800;color:var(--text)" title="H+DS+Hᴾ">${g.H + g.DS + g.HP}<span style="font-size:9px;color:var(--text-3);font-weight:600">×</span></td>
       <td class="abg-sum">${g.H}</td><td class="abg-sum">${g.DS}</td>
       <td class="abg-sum">${g.I}</td>
       <td class="abg-sum" style="${g.A>0?'color:#dc2626':''}">${g.A}</td>
@@ -6083,7 +6085,7 @@ function renderAbsensiGuru() {
       <td>${hutangTxt}</td>
       <td class="abg-strip-td">${_abgStrip(g, data)}</td>
     </tr>
-    <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="10">${_abgDetailHtml(g, data)}</td></tr>`;
+    <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="11">${_abgDetailHtml(g, data)}</td></tr>`;
   });
   body.innerHTML = html;
 }
@@ -6108,6 +6110,7 @@ function _abgRenderKpi(data) {
   const col = (p) => p == null ? 'var(--text-3)' : p >= 90 ? '#16a34a' : p >= 75 ? '#b45309' : '#dc2626';
   const cards = [
     { v: guru.length, l: 'Guru', s: 'terpantau', c: 'var(--blue,#0ea5e9)' },
+    { v: hadNum, l: 'Sesi terlaksana', s: 'H+DS+Hᴾ bulan ini', c: '#16a34a' },
     { v: avgDur == null ? '–' : avgDur + '%', l: '%Durasi keseluruhan', s: 'angka inti', c: col(avgDur) },
     { v: avgHad == null ? '–' : avgHad + '%', l: '%Hadir keseluruhan', s: 'tertimbang sesi', c: col(avgHad) },
     { v: issues, l: 'Guru bermasalah', s: issues ? 'perlu perhatian' : 'aman 🎉', c: issues ? '#dc2626' : '#16a34a' },
