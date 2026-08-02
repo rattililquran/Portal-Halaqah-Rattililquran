@@ -7,7 +7,7 @@
   "use strict";
 
   var JENJANG = ['pemula', 'madya', 'utama'];
-  var PP = { tab: 'profil', pengajar: [] };
+  var PP = { tab: 'profil', pengajar: [], obsCatatan: {} };
 
   function _isSuper() { return currentUser && currentUser.role === 'superadmin'; }
   function _root()    { return document.getElementById('ppRoot'); }
@@ -230,31 +230,50 @@
     if (!id_guru) { box.innerHTML = ''; return; }
     box.innerHTML = '<div style="color:var(--text-3);font-size:12px">⏳ Memuat rapor...</div>';
     try {
-      var [rr, apRes] = await Promise.all([
-        window.HQ.AdminAPI.getRaporPengajar(id_guru),
-        window.HQ.AdminAPI.getApresiasiList(id_guru),
-      ]);
-      var r = rr.data || {};
+      // Observasi (sensitif) hanya untuk superadmin — hindari error RLS di admin biasa.
+      var calls = [window.HQ.AdminAPI.getRaporPengajar(id_guru), window.HQ.AdminAPI.getApresiasiList(id_guru)];
+      if (_isSuper()) calls.push(window.HQ.AdminAPI.getObservasiKBM({ id_guru: id_guru }));
+      var res = await Promise.all(calls);
+      var r = (res[0] && res[0].data) || {};
+      var ap = (res[1] && res[1].data) || [];
+      var obs = (res[2] && res[2].data) || [];
       var ev = r.evaluasi_terakhir;
-      var ap = apRes.data || [];
+      PP.obsCatatan = {};   // simpan catatan observasi utk tindak lanjut (hindari escaping panjang di onclick)
       var apHtml = ap.map(function(a) {
         return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
           + '<span style="flex:1">🏅 <strong>' + esc(a.jenis) + '</strong>' + (a.keterangan ? ' · ' + esc(a.keterangan) : '') + ' <span style="color:var(--text-3)">· ' + esc(a.tanggal || '') + '</span></span>'
           + '<button onclick="ppHapusApresiasi(\'' + esc(a.id_apresiasi) + '\',\'' + esc(id_guru) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
           + '</div>';
       }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada apresiasi.</div>';
+      var obsHtml = '';
+      if (_isSuper()) {
+        var obsRows = obs.slice(0, 6).map(function(o, i) {
+          var key = 'o' + i;
+          PP.obsCatatan[key] = o.catatan || o.catatan_lain || '';
+          var teks = PP.obsCatatan[key];
+          return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-top:1px solid var(--border,#f1f5f9)">'
+            + '<span style="flex:1;min-width:0">👁️ ' + esc((o.tanggal || '') + (teks ? ' · ' + teks : ' · (tanpa catatan)')) + '</span>'
+            + (teks ? '<button onclick="ppTindaklanjutiObservasi(\'' + esc(id_guru) + '\',\'' + key + '\')" style="border:none;background:rgba(217,119,6,.12);color:#b45309;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;cursor:pointer">→ Mutaba\'ah</button>' : '')
+            + '</div>';
+        }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada observasi.</div>';
+        obsHtml = '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
+          + '<div style="font-size:12px;font-weight:800;margin-bottom:5px">👁️ Observasi KBM (ketua kelas)</div>'
+          + obsRows + '</div>';
+      }
       box.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap">'
         + _stat('Nilai Evaluasi Terakhir', ev && ev.nilai_akhir != null ? ev.nilai_akhir : '—')
         + _stat('% Kehadiran', r.pct_kehadiran != null ? r.pct_kehadiran + '%' : '—')
         + _stat('Capaian Murid', r.capaian_murid != null ? r.capaian_murid : '—')
         + _stat('Tashih Lulus', (r.tashih_lulus || 0) + '/' + (r.tashih_total || 0))
+        + _stat('Micro Teaching', r.micro_teaching || 0)
         + _stat('Mutaba\'ah Terbuka', r.mutabaah_terbuka || 0)
         + '</div>'
-        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">💡 % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport.</div>'
+        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">💡 % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport; Micro Teaching dari sesi KBM.</div>'
         + '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">🏅 Apresiasi</span>'
         + '<button onclick="ppBeriApresiasi(\'' + esc(id_guru) + '\')" style="border:none;background:#d97706;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Beri Apresiasi</button></div>'
-        + apHtml + '</div>';
+        + apHtml + '</div>'
+        + obsHtml;
     } catch (e) { box.innerHTML = '<div style="color:var(--red)">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
   }
 
@@ -280,6 +299,23 @@
     } catch (e) { toast(friendlyError(e), 'err'); }
   }
 
+  // B1: temuan observasi ketua → buka mutaba'ah (sumber='observasi'). is_pembina() izinkan tulis.
+  async function ppTindaklanjutiObservasi(id_guru, key) {
+    var temuanDefault = (PP.obsCatatan && PP.obsCatatan[key]) || '';
+    var temuan = prompt('Temuan (dari observasi) untuk ditindaklanjuti:', temuanDefault);
+    if (temuan === null || !temuan.trim()) return;
+    var rencana = prompt('Rencana perbaikan (opsional):') || '';
+    showLoad('Membuka mutaba\'ah...');
+    try {
+      await window.HQ.GuruAPI.upsertMutabaahPengajar({
+        id_guru: id_guru, temuan: temuan.trim(), rencana: rencana.trim() || null, sumber: 'observasi',
+      });
+      toast('Mutaba\'ah dibuka dari observasi', 'ok');
+      ppLoadRapor(id_guru);
+    } catch (e) { toast(friendlyError(e), 'err'); }
+    finally { hideLoad(); }
+  }
+
   // ══════════════════ TAB 4: HALAQAH PENGAJAR (PEER) ══════════════════
   async function _loadPeer() {
     try {
@@ -302,6 +338,7 @@
           + '<div style="font-size:11px;color:var(--text-3);margin:4px 0">' + (k.jadwal ? '🗓️ ' + esc(k.jadwal) + ' · ' : '') + 'Setoran: ' + ((pantau.kelompok || []).filter(function(x) { return x.id_kelompok === k.id_kelompok; }).map(function(x) { return x.jumlah_setoran; })[0] || 0) + '</div>'
           + '<div style="font-size:11px;margin-bottom:6px">Anggota: ' + (anggota || '<span style="color:var(--text-3)">belum ada</span>') + '</div>'
           + '<button onclick="ppSetAnggota(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Atur Anggota</button>'
+          + ' <button onclick="ppIngatkan(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🔔 Ingatkan</button>'
           + '</div>';
       }).join('');
       _body('<div style="background:var(--bg-2,#f8fafc);border-radius:11px;padding:12px;margin-bottom:12px">'
@@ -348,6 +385,17 @@
     await window.HQ.AdminAPI.setAnggotaKelompokPengajar(id_kelompok, list);
     toast('Anggota diperbarui', 'ok');
     _loadPeer();
+  }
+
+  async function ppIngatkan(id_kelompok) {
+    var pesan = prompt('Pesan pengingat (kosongkan untuk default):', '') ;
+    if (pesan === null) return;
+    showLoad('Mengirim pengingat...');
+    try {
+      var res = await window.HQ.AdminAPI.ingatkanKelompokPengajar(id_kelompok, pesan.trim());
+      toast('Pengingat terkirim ke ' + (res.jumlah || 0) + ' anggota', 'ok');
+    } catch (e) { toast(friendlyError(e), 'err'); }
+    finally { hideLoad(); }
   }
 
   async function ppDeleteKelompok(id_kelompok) {
@@ -449,6 +497,8 @@
     window.ppLoadRapor = ppLoadRapor;
     window.ppBeriApresiasi = ppBeriApresiasi;
     window.ppHapusApresiasi = ppHapusApresiasi;
+    window.ppTindaklanjutiObservasi = ppTindaklanjutiObservasi;
+    window.ppIngatkan = ppIngatkan;
     window.ppNewKelompok = ppNewKelompok;
     window.ppSetAnggota = ppSetAnggota;
     window.ppDeleteKelompok = ppDeleteKelompok;

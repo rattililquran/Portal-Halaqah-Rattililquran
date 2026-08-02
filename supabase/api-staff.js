@@ -5775,12 +5775,15 @@ var AdminAPI = {
   getRaporPengajar: async function(id_guru, id_periode) {
     if (!id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
     var now = new Date();
-    var [komp, tashih, evalr, mtb, hqRes] = await Promise.all([
+    var [komp, tashih, evalr, mtb, hqRes, microRes] = await Promise.all([
       _sb.from('pengajar_kompetensi').select('*').eq('id_guru', id_guru).maybeSingle(),
       _sb.from('pengajar_tashih').select('hasil').eq('id_guru', id_guru),
       _sb.from('pengajar_evaluasi').select('*').eq('id_guru', id_guru).order('tanggal', { ascending: false }).limit(1),
       _sb.from('pengajar_mutabaah').select('id_mutabaah').eq('id_guru', id_guru).neq('status', 'selesai'),
       _sb.from('halaqah').select('id_halaqah').eq('id_guru', id_guru).eq('status', 'aktif'),
+      // Micro Teaching = jenis_sesi di kbm_log → referensi rapor pengajar (RENCANA integrasi).
+      _sb.from('kbm_log').select('id_kbm', { count: 'exact', head: true })
+         .eq('id_guru', id_guru).eq('jenis_sesi', 'Micro Teaching').eq('status', 'selesai'),
     ]);
     _check(komp.error, 'getRaporPengajar');
     // Kedisiplinan ← %hadir dari mesin absensi (reuse _fetchAbsensiData/_deriveRekapAbsensi).
@@ -5810,6 +5813,7 @@ var AdminAPI = {
       tashih_lulus: tData.filter(function(t){ return t.hasil === 'lulus'; }).length,
       pct_kehadiran: pctHadir, capaian_murid: capaian,
       mutabaah_terbuka: (mtb.data || []).length,
+      micro_teaching: microRes.count || 0,
     }};
   },
 
@@ -5890,6 +5894,26 @@ var AdminAPI = {
     var { error } = await _sb.from('kelompok_pengajar').delete().eq('id_kelompok', id_kelompok);
     _check(error, 'deleteKelompokPengajar');
     return { status: 'ok' };
+  },
+
+  // Pengingat MANUAL (push) ke anggota kelompok agar melanjutkan setoran peer.
+  // Auto-jadwal berkala (mingguan/bulanan) = butuh cron/edge terjadwal (di luar cakupan ini).
+  ingatkanKelompokPengajar: async function(id_kelompok, pesan) {
+    if (!id_kelompok) return { status: 'error', message: 'id_kelompok wajib diisi' };
+    var { data: ang, error } = await _sb.from('anggota_kelompok_pengajar')
+      .select('id_guru').eq('id_kelompok', id_kelompok);
+    _check(error, 'ingatkanKelompokPengajar');
+    var ids = (ang || []).map(function(a){ return a.id_guru; });
+    if (!ids.length) return { status: 'error', message: 'Kelompok belum punya anggota' };
+    _sendPushBg({
+      user_ids: ids,
+      title: '🤝 Halaqah Pengajar',
+      body : (pesan && pesan.trim()) || 'Yuk lanjutkan setoran makhraj/sifat/dalil bersama rekan pekan ini 🌱',
+      url  : '/Portal-Halaqah-Rattililquran/guru/index.html',
+      tag  : 'pengajar-reminder-' + id_kelompok,
+      data : { trigger: 'pengajar_peer' },
+    });
+    return { status: 'ok', jumlah: ids.length };
   },
 
   // Atur anggota kelompok PENGAJAR (replace-set). listGuru = [{ id_guru, nama_guru, peran }].
