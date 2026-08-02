@@ -2635,6 +2635,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn" onclick="goPage('run-guru')" data-p="run-guru"><span class="ni">🦘</span>Rattil Run</button>
       <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni">📖</span>At-Tibyan</button>
       <button class="nav-btn" id="navMutabaahGuru" onclick="goPage('mutabaah-guru')" data-p="mutabaah-guru" style="display:none"><span class="ni">📋</span>Mutaba'ah Daurah</button>
+      <button class="nav-btn" onclick="goPage('pengembangan-guru')" data-p="pengembangan-guru"><span class="ni">🌱</span>Pengembangan Diri</button>
       <button class="nav-btn" id="navHafalanGuru" onclick="goPage('hafalan-guru')" data-p="hafalan-guru" style="display:none"><span class="ni">🕌</span>Input Hafalan<span id="navHafalanBadge" style="display:none;margin-left:auto;background:#10b981;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:1px 7px">Qiyam</span></button>
 
       <div class="sb-section">Penilaian & Raport</div>
@@ -4587,6 +4588,13 @@ html.theme-dark .pr-chip.active {
         </div>
       </div>
 
+      <!-- ════ PENGEMBANGAN PENGAJAR (patch_082) ════ -->
+      <div class="page" id="page-pengembangan-guru">
+        <div class="section-title" style="font-size:19px;font-weight:800;margin-bottom:4px">🌱 Pengembangan Diri</div>
+        <div class="section-sub" style="font-size:13px;color:var(--text-3);margin-bottom:14px">Tumbuh bersama rekan sejawat: saling setor makhraj, sifat &amp; dalil di Halaqah Pengajar, pantau profil &amp; jenjang Anda. Musyrif dapat membina pengajar binaannya.</div>
+        <div id="pgRoot"><div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div></div>
+      </div>
+
       <!-- ════ MUTABA'AH DAURAH (GURU) ════ -->
       <div class="page" id="page-mutabaah-guru">
         <!-- Header + progress bar -->
@@ -5887,7 +5895,7 @@ html.theme-dark .pr-chip.active {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=1e795dc8"></script>
-<script src="../supabase/api-staff.js?v=c8f2e611"></script>
+<script src="../supabase/api-staff.js?v=4b901b12"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="../assets/js/shared-utils.js?v=20b69409"></script>
 <script src="../assets/push-permission.js"></script>
@@ -5902,6 +5910,7 @@ html.theme-dark .pr-chip.active {
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
 <script src="mutabaah-guru-module.js?v=1be1e422" defer></script>
+<script src="pengembangan-guru-module.js?v=2b639bbe" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -6412,7 +6421,7 @@ async function doTandaiLibur() {
 // ══════════════════════════════════════════
 //  NAVIGASI
 // ══════════════════════════════════════════
-const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM',
+const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM','pengembangan-guru':'Pengembangan Diri',
   presensi:'Presensi — Step 2/4',
   'nilai-murid':'Nilai — Step 3/4',
   jurnal:'Jurnal — Step 4/4',
@@ -6476,6 +6485,9 @@ function goPage(name) {
   if (name === 'keaktifan')      loadKeaktifanPage();
   if (name === 'mutabaah-guru') {
     if (typeof window.loadMutabaahGuru === 'function') window.loadMutabaahGuru();
+  }
+  if (name === 'pengembangan-guru') {
+    if (typeof window.loadPengembanganGuru === 'function') window.loadPengembanganGuru();
   }
   if (name === 'attibyan-guru') { _populateAtHalaqahFilter(); loadAtTibyanGuru(); _loadAtMateriFromDB(); }
   if (name === 'assessment') {

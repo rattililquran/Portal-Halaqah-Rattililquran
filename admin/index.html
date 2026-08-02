@@ -1388,6 +1388,7 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('absensi-guru')" data-p="absensi-guru"><span class="ni">🧑‍🏫</span>Absensi Guru</button>
       <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
       <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
+      <button class="nav-btn" onclick="goPage('pengembangan-pengajar')" data-p="pengembangan-pengajar"><span class="ni">🌱</span>Pengembangan Pengajar</button>
       <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
       <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔍</span>Audit Log</button>
 
@@ -3381,6 +3382,13 @@ html.theme-dark .fin-detail-card {
         </div>
       </div>
 
+      <!-- ══ PENGEMBANGAN PENGAJAR (patch_082) ══ -->
+      <div class="page" id="page-pengembangan-pengajar">
+        <div class="section-title">🌱 Pengembangan Pengajar</div>
+        <div class="section-sub">Bina & ukur mutu pengajar: profil &amp; jenjang, tashih, pelatihan, evaluasi berbobot, mutaba'ah, apresiasi, serta Halaqah Pengajar (peer). Ubah jenjang &amp; indikator: superadmin.</div>
+        <div id="ppRoot"><div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div></div>
+      </div>
+
       <!-- ══ OBSERVASI GURU (Superadmin only) ══ -->
       <div class="page" id="page-observasi">
         <div class="section-title">Observasi Guru</div>
@@ -4259,18 +4267,19 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=1e795dc8"></script>
-<script src="../supabase/api-staff.js?v=c8f2e611"></script>
+<script src="../supabase/api-staff.js?v=4b901b12"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=5f267bc3" defer></script>
+<script src="guru-module.js?v=9fa5999f" defer></script>
 <script src="murid-module.js?v=0b55f914" defer></script>
 <script src="kelompok-module.js?v=ee8eb9ab" defer></script>
 <script src="spp-keuangan-module.js?v=4429240b" defer></script>
 <script src="konten-module.js?v=ed190808" defer></script>
 <script src="laporan-module.js?v=ac287306" defer></script>
 <script src="mutabaah-module.js?v=97c919f1" defer></script>
+<script src="pengembangan-pengajar-module.js?v=46ad023d" defer></script>
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -4291,7 +4300,7 @@ const PAGE_TITLES = {
   halaqah:'Halaqah', anggota:'Anggota Kelas', pengganti:'Kelas Pengganti', 'kelompok-qiyam':'Kelompok Partner Qiyam', 'kelompok-belajar':'Kelompok Partner Belajar', komponen:'Komponen Raport',
   nilai:'Input Nilai Manual', raport:'Generate Raport', 'indikator-daurah':'Indikator Daurah',
   laporan:'Laporan Global', absensi:'Rekap Absensi', 'absensi-guru':'Absensi Guru',
-  pengumuman:'Pengumuman', audit:'Audit Log',
+  pengumuman:'Pengumuman', audit:'Audit Log', 'pengembangan-pengajar':'Pengembangan Pengajar',
   level:'Manajemen Level', template:'Template Koreksi', arsip:'Arsip Data',
   materi:'Materi Kajian', push:'Push Notifikasi', kepatuhan:'Kepatuhan Guru & Ketua', saran:'Saran & Masukan',
   soal:'Bank Soal', maze:'Rattil Maze', run:'Rattil Run', 'stress-test':'Stress Test'

@@ -2780,6 +2780,218 @@ var GuruAPI = {
       halaqahList, indikatorRanking, indikator, muridAlert
     }};
   },
+
+  // ============================================================
+  //  PENGEMBANGAN PENGAJAR (patch_082) — profil diri, input Musyrif, Halaqah Peer.
+  //  RLS memfilter data di DB (own / is_pembina() / anggota kelompok).
+  // ============================================================
+
+  // Indikator evaluasi aktif (render form nilai). Dibaca semua yg login (RLS).
+  getIndikatorEvaluasi: async function() {
+    var { data, error } = await _sb.from('pengajar_indikator')
+      .select('*').eq('status', 'aktif').order('urutan', { ascending: true });
+    _check(error, 'getIndikatorEvaluasi');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Profil pengembangan diri pengajar yang login (RLS: hanya barisnya sendiri).
+  getProfilPengajarSaya: async function() {
+    var id = _uid();
+    var [komp, tashih, evalr, riwayat, mutabaah] = await Promise.all([
+      _sb.from('pengajar_kompetensi').select('*').eq('id_guru', id).maybeSingle(),
+      _sb.from('pengajar_tashih').select('*').eq('id_guru', id).order('tanggal', { ascending: false }),
+      _sb.from('pengajar_evaluasi').select('*').eq('id_guru', id).order('tanggal', { ascending: false }),
+      _sb.from('pengajar_jenjang_riwayat').select('*').eq('id_guru', id).order('tanggal', { ascending: false }),
+      _sb.from('pengajar_mutabaah').select('*').eq('id_guru', id).order('created_at', { ascending: false }),
+    ]);
+    _check(komp.error, 'getProfilPengajarSaya');
+    return { status: 'ok', data: {
+      kompetensi: komp.data || null, tashih: tashih.data || [], evaluasi: evalr.data || [],
+      riwayat_jenjang: riwayat.data || [], mutabaah: mutabaah.data || [],
+    }};
+  },
+
+  // ── MUSYRIF: input pembinaan (RLS is_pembina() menolak guru biasa) ──
+
+  // Tashih bacaan. id_penguji dipatok = pemanggil. Auto-buka mutaba'ah bila 'mengulang'.
+  simpanTashihPengajar: async function(d) {
+    d = d || {};
+    if (!d.id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var { data, error } = await _sb.from('pengajar_tashih').insert({
+      id_guru: d.id_guru, id_penguji: _uid(), tanggal: d.tanggal || undefined,
+      surat_diuji: d.surat_diuji || null, skor: d.skor || {}, hasil: d.hasil || null,
+      catatan: d.catatan || null,
+    }).select().single();
+    _check(error, 'simpanTashihPengajar');
+    if (d.hasil === 'mengulang') {
+      await _sb.from('pengajar_mutabaah').insert({
+        id_guru: d.id_guru, id_pendamping: _uid(),
+        temuan: 'Tashih perlu diulang' + (d.surat_diuji ? ' (' + d.surat_diuji + ')' : ''),
+        rencana: d.catatan || null, sumber: 'tashih',
+      });
+    }
+    return { status: 'ok', data: data };
+  },
+
+  // Evaluasi berbobot. id_penilai = pemanggil. nilai_akhir = Σ (skor/5*100 × bobot/100).
+  simpanEvaluasiPengajar: async function(d) {
+    d = d || {};
+    if (!d.id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var skor = d.skor || {};   // { id_indikator: nilai 1-5 }
+    var { data: inds, error: indErr } = await _sb.from('pengajar_indikator')
+      .select('id_indikator, bobot').eq('status', 'aktif');
+    _check(indErr, 'simpanEvaluasiPengajar:indikator');
+    var nilaiAkhir = 0;
+    (inds || []).forEach(function(it) {
+      var s = Number(skor[it.id_indikator]);
+      if (s > 0) nilaiAkhir += (s / 5 * 100) * (Number(it.bobot || 0) / 100);
+    });
+    nilaiAkhir = Math.round(nilaiAkhir * 100) / 100;
+    var { data, error } = await _sb.from('pengajar_evaluasi').insert({
+      id_guru: d.id_guru, id_penilai: _uid(), id_periode: d.id_periode || null,
+      tanggal: d.tanggal || undefined, skor: skor, nilai_akhir: nilaiAkhir, catatan: d.catatan || null,
+    }).select().single();
+    _check(error, 'simpanEvaluasiPengajar');
+    return { status: 'ok', data: data };
+  },
+
+  // Buka/ubah tindak lanjut. Tanpa id_mutabaah = insert; dengan = update.
+  upsertMutabaahPengajar: async function(d) {
+    d = d || {};
+    if (d.id_mutabaah) {
+      var upd = {};
+      ['temuan','rencana','target_waktu','status','sumber'].forEach(function(k){ if (d[k] !== undefined) upd[k] = d[k]; });
+      upd.updated_at = new Date().toISOString();
+      var { data: u, error: ue } = await _sb.from('pengajar_mutabaah').update(upd)
+        .eq('id_mutabaah', d.id_mutabaah).select().single();
+      _check(ue, 'upsertMutabaahPengajar:update');
+      return { status: 'ok', data: u };
+    }
+    if (!d.id_guru || !d.temuan) return { status: 'error', message: 'id_guru & temuan wajib diisi' };
+    var { data, error } = await _sb.from('pengajar_mutabaah').insert({
+      id_guru: d.id_guru, id_pendamping: _uid(), temuan: d.temuan, rencana: d.rencana || null,
+      target_waktu: d.target_waktu || null, status: d.status || 'terbuka', sumber: d.sumber || 'manual',
+    }).select().single();
+    _check(error, 'upsertMutabaahPengajar:insert');
+    return { status: 'ok', data: data };
+  },
+
+  // Daftar pengajar binaan (musyrif). Lewat RPC get_pengajar_binaan (SECURITY DEFINER):
+  // users RLS ketat (patch_018) menutup .from('users') antar-guru — RPC hanya buka kolom
+  // non-sensitif & hanya untuk pembina (else 0 baris).
+  getBinaanSaya: async function() {
+    var { data, error } = await _sb.rpc('get_pengajar_binaan');
+    _check(error, 'getBinaanSaya');
+    return { status: 'ok', data: (data || [])
+      .sort(function(a, b){ return (a.nama_lengkap || '').localeCompare(b.nama_lengkap || ''); })
+      .map(function(u){
+        return { id_user: u.id_user, nama_lengkap: u.nama_lengkap,
+          kompetensi: { jenjang: u.jenjang, status_sertifikasi: u.status_sertifikasi } };
+      })};
+  },
+
+  // ── PEER (Halaqah Pengajar) ──
+
+  // Kelompok tempat pemanggil terdaftar + anggotanya (calon penyimak).
+  getKelompokPengajarku: async function() {
+    var id = _uid();
+    var { data: myMemb, error: mErr } = await _sb.from('anggota_kelompok_pengajar')
+      .select('id_kelompok').eq('id_guru', id);
+    _check(mErr, 'getKelompokPengajarku:membership');
+    var ids = (myMemb || []).map(function(m){ return m.id_kelompok; });
+    if (!ids.length) return { status: 'ok', data: [] };
+    var [kel, ang] = await Promise.all([
+      _sb.from('kelompok_pengajar').select('*').in('id_kelompok', ids),
+      _sb.from('anggota_kelompok_pengajar').select('*').in('id_kelompok', ids),
+    ]);
+    _check(kel.error, 'getKelompokPengajarku:kelompok');
+    var byKel = {};
+    (ang.data || []).forEach(function(a){ (byKel[a.id_kelompok] || (byKel[a.id_kelompok] = [])).push(a); });
+    return { status: 'ok', data: (kel.data || []).map(function(k){
+      return Object.assign({}, k, { anggota: byKel[k.id_kelompok] || [] });
+    })};
+  },
+
+  // Setor ke rekan. id_penyetor dipatok = pemanggil (anti-spoof). RLS validasi kelompok & penyimak.
+  simpanSetoranPeer: async function(d) {
+    d = d || {};
+    if (!d.id_kelompok || !d.id_penyimak) return { status: 'error', message: 'id_kelompok & id_penyimak wajib diisi' };
+    if (d.id_penyimak === _uid()) return { status: 'error', message: 'Penyimak tidak boleh diri sendiri' };
+    var { data, error } = await _sb.from('pengajar_setoran').insert({
+      id_kelompok: d.id_kelompok, id_penyetor: _uid(), id_penyimak: d.id_penyimak,
+      nama_penyetor: d.nama_penyetor || null, nama_penyimak: d.nama_penyimak || null,
+      kategori: d.kategori || 'makhraj', sub_materi: d.sub_materi || null,
+      dalil: d.dalil || null, catatan: d.catatan || null, tanggal: d.tanggal || undefined,
+    }).select().single();
+    _check(error, 'simpanSetoranPeer');
+    return { status: 'ok', data: data };
+  },
+
+  // Penyimak memberi nilai/kelancaran/catatan (RLS: hanya penyimak baris itu / admin).
+  nilaiSetoranPeer: async function(d) {
+    d = d || {};
+    if (!d.id_setoran) return { status: 'error', message: 'id_setoran wajib diisi' };
+    var upd = {};
+    ['nilai','kelancaran','catatan'].forEach(function(k){ if (d[k] !== undefined) upd[k] = d[k]; });
+    if (!Object.keys(upd).length) return { status: 'error', message: 'Tidak ada nilai/catatan untuk disimpan' };
+    var { data, error } = await _sb.from('pengajar_setoran').update(upd)
+      .eq('id_setoran', d.id_setoran).select().single();
+    _check(error, 'nilaiSetoranPeer');
+    if (!data) throw new Error('Gagal menyimak (0 baris — mungkin bukan penyimak setoran ini).');
+    return { status: 'ok', data: data };
+  },
+
+  // Riwayat setoran satu kelompok (opsional filter kategori). RLS: hanya anggota kelompok.
+  getSetoranKelompok: async function(id_kelompok, filter) {
+    if (!id_kelompok) return { status: 'error', message: 'id_kelompok wajib diisi' };
+    var q = _sb.from('pengajar_setoran').select('*').eq('id_kelompok', id_kelompok)
+      .order('tanggal', { ascending: false });
+    if (filter && filter.kategori) q = q.eq('kategori', filter.kategori);
+    var { data, error } = await q;
+    _check(error, 'getSetoranKelompok');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Rekap peer pribadi: jumlah setoran keluar/masuk & kategori dominan (apresiatif).
+  getRekapPeerSaya: async function() {
+    var id = _uid();
+    var [keluar, masuk] = await Promise.all([
+      _sb.from('pengajar_setoran').select('kategori').eq('id_penyetor', id),
+      _sb.from('pengajar_setoran').select('kategori').eq('id_penyimak', id),
+    ]);
+    _check(keluar.error, 'getRekapPeerSaya');
+    var katCount = {};
+    (keluar.data || []).forEach(function(s){ katCount[s.kategori] = (katCount[s.kategori] || 0) + 1; });
+    var dominan = Object.keys(katCount).sort(function(a,b){ return katCount[b]-katCount[a]; })[0] || null;
+    return { status: 'ok', data: {
+      total_setor: (keluar.data || []).length, total_simak: (masuk.data || []).length,
+      kategori_dominan: dominan,
+    }};
+  },
+
+  // Target/milestone bersama. tipe: 'target'(default) | 'milestone'. Dengan id = update.
+  upsertTargetKelompok: async function(d) {
+    d = d || {};
+    var tbl   = d.tipe === 'milestone' ? 'milestone_kelompok_pengajar' : 'target_kelompok_pengajar';
+    var idCol = tbl === 'milestone_kelompok_pengajar' ? 'id_milestone' : 'id_target';
+    if (d[idCol]) {
+      var upd = {};
+      if (d.judul !== undefined) upd.judul = d.judul;
+      if (tbl === 'target_kelompok_pengajar' && d.status !== undefined) upd.status = d.status;
+      var { data: u, error: ue } = await _sb.from(tbl).update(upd).eq(idCol, d[idCol]).select().single();
+      _check(ue, 'upsertTargetKelompok:update');
+      return { status: 'ok', data: u };
+    }
+    if (!d.id_kelompok || !d.judul) return { status: 'error', message: 'id_kelompok & judul wajib diisi' };
+    var row = { id_kelompok: d.id_kelompok, judul: d.judul, dibuat_oleh: _uid() };
+    if (tbl === 'target_kelompok_pengajar') {
+      if (d.tanggal_target) row.tanggal_target = d.tanggal_target;
+      if (d.status) row.status = d.status;
+    } else if (d.tanggal) row.tanggal = d.tanggal;
+    var { data, error } = await _sb.from(tbl).insert(row).select().single();
+    _check(error, 'upsertTargetKelompok:insert');
+    return { status: 'ok', data: data };
+  },
 };
 
 
@@ -5415,6 +5627,265 @@ var AdminAPI = {
     var { error } = await _sb.from('run_level').delete().eq('id_run_level', id_run_level);
     _check(error, 'deleteRunLevel');
     return { status: 'ok' };
+  },
+
+  // ============================================================
+  //  PENGEMBANGAN PENGAJAR (patch_082) — kelola admin/superadmin.
+  // ============================================================
+
+  // Daftar pengajar + profil kompetensi (join FK pengajar_kompetensi.id_guru→users).
+  getPengajarList: async function() {
+    var { data, error } = await _sb.from('users')
+      .select('id_user, nama_lengkap, no_hp, is_musyrif, pengajar_kompetensi(*)')
+      .eq('role', 'guru').order('nama_lengkap', { ascending: true });
+    _check(error, 'getPengajarList');
+    return { status: 'ok', data: (data || []).map(function(u){
+      var k = Array.isArray(u.pengajar_kompetensi) ? u.pengajar_kompetensi[0] : u.pengajar_kompetensi;
+      return { id_user: u.id_user, nama_lengkap: u.nama_lengkap, no_hp: u.no_hp,
+        is_musyrif: !!u.is_musyrif, kompetensi: k || null };
+    })};
+  },
+
+  // Upsert profil kompetensi (sanad, hafalan, status sertifikasi, catatan).
+  upsertPengajarKompetensi: async function(d) {
+    d = d || {};
+    if (!d.id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var row = { id_guru: d.id_guru, updated_at: new Date().toISOString() };
+    // 'jenjang' SENGAJA tidak di sini — perubahan jenjang WAJIB lewat setJenjang()
+    // agar tertulis ke pengajar_jenjang_riwayat (audit) & tunduk gate superadmin (RLS).
+    ['status_sertifikasi','status_sanad','hafalan_juz','tgl_mulai','catatan']
+      .forEach(function(k){ if (d[k] !== undefined) row[k] = d[k]; });
+    var { data, error } = await _sb.from('pengajar_kompetensi')
+      .upsert(row, { onConflict: 'id_guru' }).select().single();
+    _check(error, 'upsertPengajarKompetensi');
+    return { status: 'ok', data: data };
+  },
+
+  // Naik/atur jenjang + audit trail (tulis riwayat & update kompetensi).
+  setJenjang: async function(id_guru, jenjang, catatan) {
+    if (!id_guru || !jenjang) return { status: 'error', message: 'id_guru & jenjang wajib diisi' };
+    var { data: cur } = await _sb.from('pengajar_kompetensi').select('jenjang').eq('id_guru', id_guru).maybeSingle();
+    var lama = cur ? cur.jenjang : null;
+    // Riwayat DULU (RLS superadmin-only). Bila pemanggil bukan superadmin, ini gagal &
+    // fungsi berhenti SEBELUM mengubah kompetensi → tak ada tulisan separuh, audit konsisten.
+    var { error: rErr } = await _sb.from('pengajar_jenjang_riwayat').insert({
+      id_guru: id_guru, jenjang_lama: lama, jenjang_baru: jenjang, id_penetap: _uid(), catatan: catatan || null,
+    });
+    _check(rErr, 'setJenjang:riwayat');
+    var { error: upErr } = await _sb.from('pengajar_kompetensi')
+      .upsert({ id_guru: id_guru, jenjang: jenjang, updated_at: new Date().toISOString() }, { onConflict: 'id_guru' });
+    _check(upErr, 'setJenjang:kompetensi');
+    _logAudit('set_jenjang_pengajar', { id_guru: id_guru, jenjang_lama: lama, jenjang_baru: jenjang });
+    return { status: 'ok' };
+  },
+
+  getIndikatorEvaluasi: async function() {
+    var { data, error } = await _sb.from('pengajar_indikator').select('*').order('urutan', { ascending: true });
+    _check(error, 'getIndikatorEvaluasi');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Upsert indikator (superadmin only — dijaga RLS). Tanpa id_indikator = insert.
+  upsertIndikator: async function(d) {
+    d = d || {};
+    if (!d.nama) return { status: 'error', message: 'nama indikator wajib diisi' };
+    var row = { nama: d.nama, bobot: Number(d.bobot) || 0, urutan: Number(d.urutan) || 0, status: d.status || 'aktif' };
+    if (d.id_indikator) row.id_indikator = d.id_indikator;
+    var { data, error } = await _sb.from('pengajar_indikator')
+      .upsert(row, { onConflict: 'id_indikator' }).select().single();
+    _check(error, 'upsertIndikator');
+    _logAudit('upsert_indikator_pengajar', { id_indikator: data && data.id_indikator, bobot: row.bobot });
+    return { status: 'ok', data: data };
+  },
+
+  upsertPelatihan: async function(d) {
+    d = d || {};
+    if (!d.judul || !d.tanggal) return { status: 'error', message: 'judul & tanggal wajib diisi' };
+    var row = { judul: d.judul, tanggal: d.tanggal, kategori: d.kategori || 'tahsin',
+      pemateri: d.pemateri || null, lokasi: d.lokasi || null, deskripsi: d.deskripsi || null,
+      status: d.status || 'terjadwal' };
+    if (d.id_pelatihan) row.id_pelatihan = d.id_pelatihan;
+    var { data, error } = await _sb.from('pelatihan').upsert(row, { onConflict: 'id_pelatihan' }).select().single();
+    _check(error, 'upsertPelatihan');
+    return { status: 'ok', data: data };
+  },
+
+  // Checklist kehadiran. list = [{ id_guru, status_hadir(H/I/A), catatan }].
+  setKehadiranPelatihan: async function(id_pelatihan, list) {
+    if (!id_pelatihan || !Array.isArray(list)) return { status: 'error', message: 'id_pelatihan & list wajib diisi' };
+    var rows = list.map(function(x){ return {
+      id_pelatihan: id_pelatihan, id_guru: x.id_guru,
+      status_hadir: x.status_hadir || 'H', catatan: x.catatan || null,
+    }; });
+    if (!rows.length) return { status: 'ok' };
+    var { error } = await _sb.from('pelatihan_peserta').upsert(rows, { onConflict: 'id_pelatihan,id_guru' });
+    _check(error, 'setKehadiranPelatihan');
+    return { status: 'ok' };
+  },
+
+  // Daftar pelatihan + ringkas kehadiran (total & hadir).
+  getPelatihanList: async function() {
+    var [plt, ps] = await Promise.all([
+      _sb.from('pelatihan').select('*').order('tanggal', { ascending: false }),
+      _sb.from('pelatihan_peserta').select('id_pelatihan, status_hadir'),
+    ]);
+    _check(plt.error, 'getPelatihanList');
+    var cnt = {};
+    (ps.data || []).forEach(function(p){
+      if (!cnt[p.id_pelatihan]) cnt[p.id_pelatihan] = { total: 0, hadir: 0 };
+      cnt[p.id_pelatihan].total++;
+      if (p.status_hadir === 'H') cnt[p.id_pelatihan].hadir++;
+    });
+    return { status: 'ok', data: (plt.data || []).map(function(x){
+      return Object.assign({}, x, { peserta: cnt[x.id_pelatihan] || { total: 0, hadir: 0 } });
+    })};
+  },
+
+  getPesertaPelatihan: async function(id_pelatihan) {
+    if (!id_pelatihan) return { status: 'error', message: 'id_pelatihan wajib diisi' };
+    var { data, error } = await _sb.from('pelatihan_peserta').select('*').eq('id_pelatihan', id_pelatihan);
+    _check(error, 'getPesertaPelatihan');
+    return { status: 'ok', data: data || [] };
+  },
+
+  // Rapor pengajar: gabung kompetensi, evaluasi terakhir, ringkas tashih,
+  // %hadir (mesin absensi), capaian murid (rata2 nilai_akhir raport halaqahnya), mutaba'ah terbuka.
+  getRaporPengajar: async function(id_guru, id_periode) {
+    if (!id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var now = new Date();
+    var [komp, tashih, evalr, mtb, hqRes] = await Promise.all([
+      _sb.from('pengajar_kompetensi').select('*').eq('id_guru', id_guru).maybeSingle(),
+      _sb.from('pengajar_tashih').select('hasil').eq('id_guru', id_guru),
+      _sb.from('pengajar_evaluasi').select('*').eq('id_guru', id_guru).order('tanggal', { ascending: false }).limit(1),
+      _sb.from('pengajar_mutabaah').select('id_mutabaah').eq('id_guru', id_guru).neq('status', 'selesai'),
+      _sb.from('halaqah').select('id_halaqah').eq('id_guru', id_guru).eq('status', 'aktif'),
+    ]);
+    _check(komp.error, 'getRaporPengajar');
+    // Kedisiplinan ← %hadir dari mesin absensi (reuse _fetchAbsensiData/_deriveRekapAbsensi).
+    var pctHadir = null;
+    try {
+      var absData = await _fetchAbsensiData({ bulan: now.getMonth() + 1, tahun: now.getFullYear(), scope: 'admin', id_guru: id_guru });
+      var rekap = _deriveRekapAbsensi(absData);
+      var gr = (rekap.guru || []).filter(function(g){ return g.id_guru === id_guru; })[0];
+      pctHadir = gr ? gr.pct_kehadiran : null;
+    } catch (e) { pctHadir = null; }
+    // Capaian murid ← rata-rata nilai_akhir raport murid di halaqah guru.
+    var hqIds = (hqRes.data || []).map(function(h){ return h.id_halaqah; });
+    var capaian = null;
+    if (hqIds.length) {
+      var rq = _sb.from('raport').select('nilai_akhir').in('id_halaqah', hqIds).not('nilai_akhir', 'is', null);
+      if (id_periode) rq = rq.eq('id_periode', id_periode);
+      var { data: rap } = await rq;
+      if (rap && rap.length) {
+        capaian = Math.round(rap.reduce(function(s,r){ return s + Number(r.nilai_akhir||0); }, 0) / rap.length * 100) / 100;
+      }
+    }
+    var tData = tashih.data || [];
+    return { status: 'ok', data: {
+      kompetensi: komp.data || null,
+      evaluasi_terakhir: (evalr.data || [])[0] || null,
+      tashih_total: tData.length,
+      tashih_lulus: tData.filter(function(t){ return t.hasil === 'lulus'; }).length,
+      pct_kehadiran: pctHadir, capaian_murid: capaian,
+      mutabaah_terbuka: (mtb.data || []).length,
+    }};
+  },
+
+  // Dashboard agregat: jumlah per jenjang, rata2 nilai evaluasi, mutaba'ah belum selesai.
+  getDashboardPengajar: async function() {
+    var [komp, mtb, evalr] = await Promise.all([
+      _sb.from('pengajar_kompetensi').select('jenjang'),
+      _sb.from('pengajar_mutabaah').select('id_mutabaah').neq('status', 'selesai'),
+      _sb.from('pengajar_evaluasi').select('nilai_akhir').not('nilai_akhir', 'is', null),
+    ]);
+    _check(komp.error, 'getDashboardPengajar');
+    var perJenjang = {};
+    (komp.data || []).forEach(function(k){ perJenjang[k.jenjang] = (perJenjang[k.jenjang] || 0) + 1; });
+    var evs = (evalr.data || []).map(function(e){ return Number(e.nilai_akhir); });
+    var avg = evs.length ? Math.round(evs.reduce(function(s,x){ return s+x; }, 0) / evs.length * 100) / 100 : null;
+    return { status: 'ok', data: {
+      per_jenjang: perJenjang, total_pengajar: (komp.data || []).length,
+      rata_nilai_evaluasi: avg, mutabaah_belum_selesai: (mtb.data || []).length,
+    }};
+  },
+
+  setApresiasi: async function(d) {
+    d = d || {};
+    if (!d.id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var { data, error } = await _sb.from('pengajar_apresiasi').insert({
+      id_guru: d.id_guru, id_periode: d.id_periode || null, jenis: d.jenis || 'teladan',
+      keterangan: d.keterangan || null, tanggal: d.tanggal || undefined,
+    }).select().single();
+    _check(error, 'setApresiasi');
+    return { status: 'ok', data: data };
+  },
+
+  // ── Kelola kelompok pengajar (peer) ──
+  upsertKelompokPengajar: async function(d) {
+    d = d || {};
+    if (!d.nama_kelompok) return { status: 'error', message: 'nama_kelompok wajib diisi' };
+    var row = { nama_kelompok: d.nama_kelompok, fokus: d.fokus || null,
+      id_koordinator: d.id_koordinator || null, jadwal: d.jadwal || null, status: d.status || 'aktif' };
+    if (d.id_kelompok) row.id_kelompok = d.id_kelompok;
+    var { data, error } = await _sb.from('kelompok_pengajar').upsert(row, { onConflict: 'id_kelompok' }).select().single();
+    _check(error, 'upsertKelompokPengajar');
+    return { status: 'ok', data: data };
+  },
+
+  // Semua kelompok pengajar + anggotanya (admin: RLS is_admin() memberi akses penuh).
+  getKelompokPengajarAdmin: async function() {
+    var [kel, ang] = await Promise.all([
+      _sb.from('kelompok_pengajar').select('*').order('created_at', { ascending: false }),
+      _sb.from('anggota_kelompok_pengajar').select('*'),
+    ]);
+    _check(kel.error, 'getKelompokPengajarAdmin');
+    var byKel = {};
+    (ang.data || []).forEach(function(a){ (byKel[a.id_kelompok] || (byKel[a.id_kelompok] = [])).push(a); });
+    return { status: 'ok', data: (kel.data || []).map(function(k){
+      return Object.assign({}, k, { anggota: byKel[k.id_kelompok] || [] });
+    })};
+  },
+
+  // Hapus kelompok pengajar (cascade menghapus anggota/setoran/target/milestone).
+  deleteKelompokPengajar: async function(id_kelompok) {
+    if (!id_kelompok) return { status: 'error', message: 'id_kelompok wajib diisi' };
+    var { error } = await _sb.from('kelompok_pengajar').delete().eq('id_kelompok', id_kelompok);
+    _check(error, 'deleteKelompokPengajar');
+    return { status: 'ok' };
+  },
+
+  // Atur anggota kelompok PENGAJAR (replace-set). listGuru = [{ id_guru, nama_guru, peran }].
+  // NB: nama sengaja dibedakan dari setAnggotaKelompok (itu utk kelompok MURID) — hindari tabrakan key.
+  setAnggotaKelompokPengajar: async function(id_kelompok, listGuru) {
+    if (!id_kelompok || !Array.isArray(listGuru)) return { status: 'error', message: 'id_kelompok & listGuru wajib diisi' };
+    var { error: delErr } = await _sb.from('anggota_kelompok_pengajar').delete().eq('id_kelompok', id_kelompok);
+    _check(delErr, 'setAnggotaKelompok:delete');
+    var rows = listGuru.map(function(g){ return {
+      id_kelompok: id_kelompok, id_guru: g.id_guru, nama_guru: g.nama_guru || null, peran: g.peran || 'anggota',
+    }; });
+    if (rows.length) {
+      var { error } = await _sb.from('anggota_kelompok_pengajar').insert(rows);
+      _check(error, 'setAnggotaKelompok:insert');
+    }
+    return { status: 'ok' };
+  },
+
+  // Pantau lintas kelompok: keaktifan setoran & kategori tersering (apresiatif, bukan peringkat individu).
+  getPantauPeer: async function() {
+    var [kel, setoran] = await Promise.all([
+      _sb.from('kelompok_pengajar').select('id_kelompok, nama_kelompok, status'),
+      _sb.from('pengajar_setoran').select('id_kelompok, kategori'),
+    ]);
+    _check(kel.error, 'getPantauPeer');
+    var perKel = {}, perKat = {};
+    (setoran.data || []).forEach(function(s){
+      perKel[s.id_kelompok] = (perKel[s.id_kelompok] || 0) + 1;
+      perKat[s.kategori] = (perKat[s.kategori] || 0) + 1;
+    });
+    return { status: 'ok', data: {
+      kelompok: (kel.data || []).map(function(k){ return Object.assign({}, k, { jumlah_setoran: perKel[k.id_kelompok] || 0 }); }),
+      total_setoran: (setoran.data || []).length, kategori: perKat,
+    }};
   },
 };
 

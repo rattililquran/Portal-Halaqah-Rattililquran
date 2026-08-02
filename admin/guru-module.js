@@ -105,7 +105,8 @@ function goPage(name) {
     soal     : loadBankSoalAdmin,
     maze     : loadMazeAdmin,
     run      : loadRunAdmin,
-    'indikator-daurah' : () => { if(window.loadIndikatorDaurah) window.loadIndikatorDaurah(); }
+    'indikator-daurah' : () => { if(window.loadIndikatorDaurah) window.loadIndikatorDaurah(); },
+    'pengembangan-pengajar' : () => { if(window.loadPengembanganPengajar) window.loadPengembanganPengajar(); }
   };
   loaders[name]?.();
 }
