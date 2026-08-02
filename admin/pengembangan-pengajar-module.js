@@ -173,7 +173,7 @@
   async function ppKehadiran(id_pelatihan) {
     showLoad('Memuat peserta...');
     try {
-      var [pesRes] = await Promise.all([window.HQ.AdminAPI.getPesertaPelatihan(id_pelatihan)]);
+      var pesRes = await window.HQ.AdminAPI.getPesertaPelatihan(id_pelatihan);
       var hadirMap = {};
       (pesRes.data || []).forEach(function(x) { hadirMap[x.id_guru] = x.status_hadir; });
       var guru = (allUsers || []).filter(function(u) { return u.role === 'guru' && u.status === 'aktif'; });
@@ -231,12 +231,15 @@
     box.innerHTML = '<div style="color:var(--text-3);font-size:12px">⏳ Memuat rapor...</div>';
     try {
       // Observasi (sensitif) hanya untuk superadmin — hindari error RLS di admin biasa.
+      // allSettled: rapor inti WAJIB; apresiasi & observasi SEKUNDER (kegagalannya
+      // tak boleh mengosongkan rapor). Lihat debug #1.
       var calls = [window.HQ.AdminAPI.getRaporPengajar(id_guru), window.HQ.AdminAPI.getApresiasiList(id_guru)];
       if (_isSuper()) calls.push(window.HQ.AdminAPI.getObservasiKBM({ id_guru: id_guru }));
-      var res = await Promise.all(calls);
-      var r = (res[0] && res[0].data) || {};
-      var ap = (res[1] && res[1].data) || [];
-      var obs = (res[2] && res[2].data) || [];
+      var res = await Promise.allSettled(calls);
+      if (res[0].status !== 'fulfilled') throw (res[0].reason || new Error('Gagal memuat rapor'));
+      var r = (res[0].value && res[0].value.data) || {};
+      var ap = (res[1] && res[1].status === 'fulfilled' && res[1].value.data) || [];
+      var obs = (res[2] && res[2].status === 'fulfilled' && res[2].value.data) || [];
       var ev = r.evaluasi_terakhir;
       PP.obsCatatan = {};   // simpan catatan observasi utk tindak lanjut (hindari escaping panjang di onclick)
       var apHtml = ap.map(function(a) {
@@ -319,12 +322,15 @@
   // ══════════════════ TAB 4: HALAQAH PENGAJAR (PEER) ══════════════════
   async function _loadPeer() {
     try {
-      var [pantauRes, kelRes] = await Promise.all([
-        window.HQ.AdminAPI.getPantauPeer(),
+      // Kelola kelompok = inti (wajib). Pantau (stats) = sekunder — jangan gagalkan
+      // pengelolaan kelompok bila stats gagal (debug #1 pola sama).
+      var settled = await Promise.allSettled([
         window.HQ.AdminAPI.getKelompokPengajarAdmin(),
+        window.HQ.AdminAPI.getPantauPeer(),
       ]);
-      var pantau = pantauRes.data || {};
-      var kelompok = kelRes.data || [];
+      if (settled[0].status !== 'fulfilled') throw (settled[0].reason || new Error('Gagal memuat kelompok'));
+      var kelompok = (settled[0].value && settled[0].value.data) || [];
+      var pantau = (settled[1].status === 'fulfilled' && settled[1].value.data) || {};
       var kat = pantau.kategori || {};
       var katHtml = Object.keys(kat).sort(function(a, b) { return kat[b] - kat[a]; })
         .map(function(k) { return '<span style="font-size:11px;background:var(--bg-2,#f1f5f9);border-radius:100px;padding:2px 9px">' + esc(k) + ': ' + kat[k] + '</span>'; }).join(' ');

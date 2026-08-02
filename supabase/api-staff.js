@@ -5908,7 +5908,7 @@ var AdminAPI = {
     _sendPushBg({
       user_ids: ids,
       title: '🤝 Halaqah Pengajar',
-      body : (pesan && pesan.trim()) || 'Yuk lanjutkan setoran makhraj/sifat/dalil bersama rekan pekan ini 🌱',
+      body : (pesan && pesan.trim().slice(0, 140)) || 'Yuk lanjutkan setoran makhraj/sifat/dalil bersama rekan pekan ini 🌱',
       url  : '/Portal-Halaqah-Rattililquran/guru/index.html',
       tag  : 'pengajar-reminder-' + id_kelompok,
       data : { trigger: 'pengajar_peer' },

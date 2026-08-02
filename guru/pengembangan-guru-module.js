@@ -54,12 +54,15 @@
   // ══════════════════ TAB: HALAQAH PENGAJAR (PEER) ══════════════════
   async function _loadPeer() {
     try {
-      var [kelRes, rekapRes] = await Promise.all([
+      // Kelompok = inti (wajib). Rekap = sekunder — kegagalannya tak boleh
+      // mengosongkan daftar kelompok (debug #2). allSettled + fallback {}.
+      var settled = await Promise.allSettled([
         window.HQ.GuruAPI.getKelompokPengajarku(),
         window.HQ.GuruAPI.getRekapPeerSaya(),
       ]);
-      PG.kelompok = kelRes.data || [];
-      var rekap = rekapRes.data || {};
+      if (settled[0].status !== 'fulfilled') throw (settled[0].reason || new Error('Gagal memuat kelompok'));
+      PG.kelompok = (settled[0].value && settled[0].value.data) || [];
+      var rekap = (settled[1].status === 'fulfilled' && settled[1].value.data) || {};
       if (!PG.kelompok.length) {
         _body('<div style="color:var(--text-3);font-size:13px;padding:16px;line-height:1.6">Anda belum tergabung di halaqah pengajar mana pun.<br>Hubungi admin untuk dimasukkan ke kelompok pembinaan.</div>');
         return;
@@ -286,12 +289,15 @@
   async function _loadBinaan() {
     if (!PG.musyrif) { _body('<div style="padding:16px;color:var(--text-3)">Khusus Musyrif.</div>'); return; }
     try {
-      var [binaanRes, indRes] = await Promise.all([
+      // Daftar binaan = inti. Indikator = sekunder (dipakai saat buka form evaluasi;
+      // pgEvaluasiForm sudah menjaga bila kosong). allSettled agar tak saling menjatuhkan.
+      var settled = await Promise.allSettled([
         window.HQ.GuruAPI.getBinaanSaya(),
         window.HQ.GuruAPI.getIndikatorEvaluasi(),
       ]);
-      var binaan = (binaanRes.data || []).filter(function(u) { return u.id_user !== PG.myId; });
-      PG.indikator = indRes.data || [];
+      if (settled[0].status !== 'fulfilled') throw (settled[0].reason || new Error('Gagal memuat binaan'));
+      var binaan = ((settled[0].value && settled[0].value.data) || []).filter(function(u) { return u.id_user !== PG.myId; });
+      PG.indikator = (settled[1].status === 'fulfilled' && settled[1].value.data) || [];
       var rows = binaan.map(function(u) {
         var k = u.kompetensi || {};
         return '<div style="border:1px solid var(--border,#e5e7eb);border-radius:11px;padding:11px;margin-bottom:8px">'
