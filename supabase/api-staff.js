@@ -4258,7 +4258,12 @@ var AdminAPI = {
       if (!lunasMap[s.id_murid]) lunasMap[s.id_murid] = [];
       lunasMap[s.id_murid].push(s.bulan);
     });
-    var muridListRaw = (anggota||[]).map(function(a) {
+    // Peserta Daurah Al-Fatihah (NIS prefix FTH) TIDAK dikenai SPP Pribadi —
+    // keluarkan dari daftar & hitungan lunas/menunggak. Infaq Daurah mereka tetap
+    // tercatat lewat infaqData (langsung dari spp_pembayaran) & anggotaMap.
+    var isDaurahFth = function(id){ return !!(id && String(id).toUpperCase().startsWith('FTH')); };
+    var anggotaSPP = (anggota||[]).filter(function(a){ return !isDaurahFth(a.id_murid); });
+    var muridListRaw = anggotaSPP.map(function(a) {
       var lunasBulan = lunasMap[a.id_murid] || [];
       var firstIdx = firstBulanMap[a.id_murid];
       var isBeasiswa = a.tipe_spp === 'beasiswa';
