@@ -2073,8 +2073,8 @@ html.theme-dark .fin-detail-card {
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;padding-bottom:7px">
             <input type="checkbox" id="abgOnlyIssues" onchange="renderAbsensiGuru()"> Hanya guru bermasalah</label>
           <div style="flex:1"></div>
-          <div class="fg" style="margin:0"><label style="font-size:11px" title="Ihsan = Σ per halaqah (murid aktif × sesi mengajar) × tarif ini">Tarif / murid / sesi (Rp)</label>
-            <input type="number" class="fc" id="abgTarif" min="0" step="500" placeholder="mis. 5000" oninput="_abgTarifChanged()" style="max-width:150px"></div>
+          <div class="fg" style="margin:0"><label style="font-size:11px" title="Ihsan = jumlah murid aktif di halaqah yang diampu × tarif ini (per bulan). Sesi tidak berpengaruh.">Tarif / murid / bulan (Rp)</label>
+            <input type="number" class="fc" id="abgTarif" min="0" step="5000" placeholder="50000" oninput="_abgTarifChanged()" style="max-width:150px"></div>
           <button class="btn btn-outline btn-sm" onclick="eksporIhsanGuru()" title="Unduh CSV rekap ihsan per guru (sesi × tarif) untuk bulan terpilih" style="margin-bottom:1px">📄 Export Ihsan</button>
         </div>
 
@@ -4255,7 +4255,7 @@ html.theme-dark .fin-detail-card {
 </div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-core.js?v=9e97fd2a"></script>
+<script src="../supabase/supabase-core.js?v=0b981f5b"></script>
 <script src="../supabase/api-staff.js?v=c8f2e611"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
@@ -6099,9 +6099,9 @@ function renderAbsensiGuru() {
   body.innerHTML = html;
 }
 
-// Peringatan kesiapan ihsan — angka "Mengajar" (H+DS+Hᴾ) baru final bila semua sesi lampau
-// sudah ditutup. Sesi draft belum ditutup TIDAK terhitung, sehingga menghitung gaji saat masih
-// ada draft = guru terbayar kurang. Banner ini mencegah kealpaan itu (amanah).
+// Peringatan akurasi kehadiran — sesi draft belum ditutup TIDAK terhitung sebagai "Mengajar",
+// sehingga %Hadir/%Durasi terlihat lebih rendah dari kenyataan sampai ditutup. (Catatan: ihsan
+// dihitung dari JUMLAH MURID, bukan sesi — jadi draft tidak memengaruhi nominal gaji.)
 function _abgRenderIhsanWarn(data) {
   const el = document.getElementById('abgIhsanWarn'); if (!el) return;
   const guru = data.guru || [];
@@ -6112,15 +6112,15 @@ function _abgRenderIhsanWarn(data) {
     `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start">
       <span style="font-size:18px;line-height:1">⚠️</span>
       <div style="font-size:12.5px;line-height:1.6;color:#9a3412">
-        <strong>Angka belum final untuk ihsan.</strong> Ada <strong>${totPt} sesi lampau belum ditutup</strong>
-        (${nGuru} guru). Sesi draft tidak terhitung di kolom <strong>Mengajar</strong>, jadi
-        <strong>tutup semua sesi tersebut dulu</strong> (tanda ⏳ pada baris guru) sebelum menghitung gaji —
-        agar tidak ada guru yang terbayar kurang.
+        <strong>${totPt} sesi lampau belum ditutup</strong> (${nGuru} guru). Sesi draft belum terhitung
+        di kolom <strong>Mengajar</strong>, sehingga <strong>%Hadir/%Durasi</strong> tampak lebih rendah
+        dari kenyataan — <strong>tutup dulu</strong> (tanda ⏳ pada baris guru) agar data kehadiran akurat.
+        <em style="color:#b45309">Ihsan tetap dihitung dari jumlah murid, tidak terpengaruh draft.</em>
       </div>
     </div>`;
 }
 
-// ── Export Rekap Ihsan (per guru: sesi Mengajar × tarif) ──────────────────
+// ── Export Rekap Ihsan (per guru: jumlah murid aktif × tarif/bulan) ────────
 const _ABG_BULAN_NAMA = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 function _abgTarif() {
   const el = document.getElementById('abgTarif');
@@ -6128,12 +6128,13 @@ function _abgTarif() {
   return isFinite(v) && v > 0 ? Math.round(v) : 0;
 }
 // Persist tarif agar tak diketik ulang tiap bulan (lokal per-browser admin).
-function _abgTarifChanged() { try { localStorage.setItem('abg_tarif_sesi', String(_abgTarif())); } catch (e) {} }
+function _abgTarifChanged() { try { localStorage.setItem('abg_tarif_murid_bln', String(_abgTarif())); } catch (e) {} }
 function _abgRestoreTarif() {
   try {
     const el = document.getElementById('abgTarif');
-    const t = localStorage.getItem('abg_tarif_sesi');
-    if (el && !el.value && t) el.value = t;
+    if (!el || el.value) return;
+    // Default kebijakan saat ini: Rp 50.000 / murid / bulan (tetap bisa diubah admin).
+    el.value = localStorage.getItem('abg_tarif_murid_bln') || '50000';
   } catch (e) {}
 }
 // Cegah CSV/formula injection (nilai diawali = + - @ / tab / CR) — konsisten dgn ekspor SPP.
@@ -6146,43 +6147,35 @@ async function eksporIhsanGuru() {
   const data = _abgData;
   if (!data || !(data.guru || []).length) { toast('Belum ada data absensi untuk diekspor.', 'err'); return; }
   const tarif = _abgTarif();
-  if (!tarif) { toast('Isi "Tarif / murid / sesi (Rp)" dulu sebelum ekspor.', 'err'); return; }
-  // Guard amanah: draft belum ditutup → sesi belum final → ihsan bisa kurang.
-  const totPt = (data.guru || []).reduce((s, g) => s + (g.perlu_ditutup || 0), 0);
-  if (totPt > 0) {
-    const ok = await showConfirm(
-      `Masih ada ${totPt} sesi lampau yang belum ditutup. Sesi itu TIDAK terhitung, sehingga usulan ihsan bisa kurang dari yang seharusnya.\n\nSebaiknya tutup dulu semua sesi ⏳ itu. Tetap lanjut ekspor sekarang?`,
-      { title: '⚠️ Angka belum final', okText: 'Tetap ekspor', cancelText: 'Batal', danger: true });
-    if (!ok) return;
-  }
+  if (!tarif) { toast('Isi "Tarif / murid / bulan (Rp)" dulu sebelum ekspor.', 'err'); return; }
   const bulanNama = _ABG_BULAN_NAMA[data.bulan - 1] || data.bulan;
   const muridMap = data.murid_by_halaqah || {};
+  // Ihsan = jumlah murid aktif di halaqah yang DIAMPU guru × tarif/bulan. Sesi TIDAK berpengaruh,
+  // jadi dasar = penugasan halaqah (halaqah_list, per-guru) — bukan sesi — agar guru tanpa sesi
+  // bulan itu pun tetap terbayar sesuai murid-nya.
+  const hqByGuru = {};
+  (data.halaqah_list || []).forEach(h => { (hqByGuru[h.id_guru] || (hqByGuru[h.id_guru] = [])).push(h); });
   const guru = (data.guru || []).slice().sort((a, b) => (a.nama_guru || '').localeCompare(b.nama_guru || ''));
-  // Rincian PER HALAQAH: subtotal = murid aktif × sesi × tarif. Ihsan guru = Σ halaqah-nya.
-  // Sengaja per-halaqah (bukan total-murid×total-sesi) agar guru multi-halaqah tak salah hitung.
-  let csv = 'ID Guru;Nama Guru;Halaqah;Murid Aktif;Sesi Mengajar;Tarif/Murid/Sesi;Subtotal Ihsan\r\n';
-  let grandSesi = 0, grandRp = 0;
+  let csv = 'ID Guru;Nama Guru;Halaqah;Murid Aktif;Tarif/Murid/Bulan;Subtotal Ihsan\r\n';
+  let grandMurid = 0, grandRp = 0;
   guru.forEach(g => {
-    const phs = Object.keys(g.per_halaqah || {}).map(k => g.per_halaqah[k])
-      .sort((a, b) => (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
-    let gSesi = 0, gRp = 0;
-    if (!phs.length) {
-      // Guru tanpa sesi terlaksana bulan ini — tetap dicantumkan (payroll lengkap), subtotal 0.
-      csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"(tidak ada sesi)";0;0;' + tarif + ';0\r\n';
+    const hqs = (hqByGuru[g.id_guru] || []).slice().sort((a, b) => (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
+    let gMurid = 0;
+    if (!hqs.length) {
+      // Guru tanpa halaqah aktif — tetap dicantumkan (payroll lengkap), subtotal 0.
+      csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"(tidak ada halaqah aktif)";0;' + tarif + ';0\r\n';
     } else {
-      phs.forEach(ph => {
-        const murid = muridMap[ph.id_halaqah] || 0;
-        const rp = murid * ph.sesi * tarif;
-        gSesi += ph.sesi; gRp += rp;
+      hqs.forEach(h => {
+        const murid = muridMap[h.id_halaqah] || 0;
+        gMurid += murid;
         csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"'
-          + _abgCsvSafe(ph.nama_halaqah || ph.id_halaqah) + '";' + murid + ';' + ph.sesi + ';' + tarif + ';' + rp + '\r\n';
+          + _abgCsvSafe(h.nama_halaqah || h.id_halaqah) + '";' + murid + ';' + tarif + ';' + (murid * tarif) + '\r\n';
       });
-      // Baris subtotal per guru (Murid dikosongkan — menjumlah murid antar-halaqah tak bermakna).
-      csv += '"";"";"► Subtotal ' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";;' + gSesi + ';;' + gRp + '\r\n';
+      csv += '"";"";"► Subtotal ' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";' + gMurid + ';;' + (gMurid * tarif) + '\r\n';
     }
-    grandSesi += gSesi; grandRp += gRp;
+    grandMurid += gMurid; grandRp += gMurid * tarif;
   });
-  csv += '"";"";"TOTAL (' + guru.length + ' guru)";;' + grandSesi + ';;' + grandRp + '\r\n';
+  csv += '"";"";"TOTAL (' + guru.length + ' guru)";' + grandMurid + ';;' + grandRp + '\r\n';
   const namaFile = 'ihsan_guru_' + data.tahun + '_' + String(data.bulan).padStart(2, '0') + '.csv';
   // UTF-8 BOM agar terbaca benar di Excel (locale Indonesia).
   const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });

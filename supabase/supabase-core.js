@@ -538,6 +538,11 @@ function _deriveRekapAbsensi(data) {
     ambang: ambang, ambang_wajar: outlier, tanggal_mulai_berlaku: mulai,
     tanggal_list: tanggalList, guru: rows,
     murid_by_halaqah: data.muridByHalaqah || {},
+    // Halaqah aktif + pengampunya — dasar ihsan bulanan (murid halaqah diampu × tarif),
+    // independen dari sesi sehingga guru tanpa sesi bulan itu tetap terpetakan ke murid-nya.
+    halaqah_list: (data.halaqah || []).map(function(h) {
+      return { id_halaqah: h.id_halaqah, nama_halaqah: h.nama_halaqah, id_guru: h.id_guru };
+    }),
   };
 }
 
