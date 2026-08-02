@@ -2115,8 +2115,8 @@ html.theme-dark .fin-detail-card {
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
                 <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
                 <th title="Jumlah sesi mengajar yang terlaksana bulan ini = H + DS + Hᴾ">Mengajar</th>
-                <th title="Jumlah murid aktif di halaqah yang diampu (tidak menghitung murid yang baru bergabung setelah bulan terpilih)">👥 Murid</th>
-                <th title="Usulan ihsan = jumlah murid × tarif/bulan. Sesi TIDAK berpengaruh.">💰 Ihsan</th>
+                <th title="Jumlah murid di halaqah yang DIAJAR bulan ini (≥1 sesi). Halaqah yang tak diajar bulan ini tidak dihitung.">👥 Murid</th>
+                <th title="Usulan ihsan = murid (dari halaqah yang diajar bulan ini) × tarif/bulan.">💰 Ihsan</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
                 <th class="abg-stripcol">Kehadiran harian (klik baris → rincian)</th>
@@ -6093,8 +6093,8 @@ function renderAbsensiGuru() {
       <td>${pctCol(g.pct_durasi)}</td>
       <td>${pctCol(g.pct_kehadiran)}${(g.izin_diganti||0)>0?`<span class="abg-izindiganti" title="${g.izin_diganti} Izin sudah ditebus kelas pengganti — tidak menggerus %Hadir">✓${g.izin_diganti}</span>`:''}</td>
       <td class="abg-sum" style="font-weight:800;color:var(--text)" title="H+DS+Hᴾ">${g.H + g.DS + g.HP}<span style="font-size:9px;color:var(--text-3);font-weight:600">×</span></td>
-      <td class="abg-sum" title="Murid aktif di halaqah yang diampu">${(_ihMap[g.id_guru]||{}).murid||0}</td>
-      <td class="abg-sum" style="font-weight:800;color:#0f766e;white-space:nowrap" title="Murid × tarif/bulan (sesi tak berpengaruh)">${_ihTarif ? _abgRp((_ihMap[g.id_guru]||{}).ihsan||0) : '<span style=\'color:var(--text-3);font-weight:400\'>set tarif</span>'}</td>
+      <td class="abg-sum" title="Murid di halaqah yang diajar bulan ini">${(_ihMap[g.id_guru]||{}).murid||0}</td>
+      <td class="abg-sum" style="font-weight:800;color:#0f766e;white-space:nowrap" title="Murid (halaqah yang diajar) × tarif/bulan">${_ihTarif ? _abgRp((_ihMap[g.id_guru]||{}).ihsan||0) : '<span style=\'color:var(--text-3);font-weight:400\'>set tarif</span>'}</td>
       <td class="abg-sum">${g.H}</td><td class="abg-sum">${g.DS}</td>
       <td class="abg-sum">${g.I}</td>
       <td class="abg-sum" style="${g.A>0?'color:#dc2626':''}">${g.A}</td>
@@ -6149,19 +6149,19 @@ function _abgRestoreTarif() {
   } catch (e) {}
 }
 // Data ihsan per guru (bersama untuk kolom tabel, KPI, cetak, & salin).
-// Ihsan = Σ murid aktif di halaqah yang DIAMPU guru × tarif/bulan. Sesi TIDAK berpengaruh →
-// dasar = penugasan halaqah (halaqah_list), bukan sesi, agar guru tanpa sesi pun terbayar.
+// Ihsan = Σ (murid aktif × tarif) HANYA untuk halaqah yang guru AJAR (≥1 sesi terlaksana)
+// bulan itu. Dasar = per_halaqah (halaqah dg sesi H/DS/Hᴾ), bukan penugasan — jadi halaqah
+// yang tak diajar bulan itu TIDAK dibayar, dan bulan yang berbeda menghasilkan ihsan berbeda.
 function _abgIhsanData() {
   const data = _abgData || {};
   const tarif = _abgTarif();
   const muridMap = data.murid_by_halaqah || {};
-  const hqByGuru = {};
-  (data.halaqah_list || []).forEach(h => { (hqByGuru[h.id_guru] || (hqByGuru[h.id_guru] = [])).push(h); });
   const guru = (data.guru || []).slice().sort((a, b) => (a.nama_guru || '').localeCompare(b.nama_guru || ''));
   let grandMurid = 0, grandRp = 0;
   const rows = guru.map(g => {
-    const hqs = (hqByGuru[g.id_guru] || []).slice().sort((a, b) => (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
-    const halaqah = hqs.map(h => ({ nama: h.nama_halaqah || h.id_halaqah, murid: muridMap[h.id_halaqah] || 0 }));
+    const phs = Object.keys(g.per_halaqah || {}).map(k => g.per_halaqah[k])
+      .sort((a, b) => (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
+    const halaqah = phs.map(ph => ({ nama: ph.nama_halaqah || ph.id_halaqah, murid: muridMap[ph.id_halaqah] || 0, sesi: ph.sesi || 0 }));
     const murid = halaqah.reduce((s, x) => s + x.murid, 0);
     const ihsan = murid * tarif;
     grandMurid += murid; grandRp += ihsan;
@@ -6180,11 +6180,11 @@ function cetakIhsanGuru() {
   d.rows.forEach(r => {
     const rc = Math.max(1, r.halaqah.length);
     if (!r.halaqah.length) {
-      body += `<tr><td>${esc(r.nama)}</td><td class="mut">(tidak ada halaqah aktif)</td><td class="c">0</td><td class="r">${_abgRp(0)}</td></tr>`;
+      body += `<tr><td>${esc(r.nama)}</td><td class="mut" colspan="2">(tidak mengajar bulan ini)</td><td class="c">0</td><td class="r">${_abgRp(0)}</td></tr>`;
     } else {
       r.halaqah.forEach((h, i) => {
         body += `<tr>${i === 0 ? `<td rowspan="${rc}">${esc(r.nama)}</td>` : ''}`
-          + `<td>${esc(h.nama)}</td><td class="c">${h.murid}</td>`
+          + `<td>${esc(h.nama)}</td><td class="c">${h.sesi}×</td><td class="c">${h.murid}</td>`
           + `${i === 0 ? `<td class="r b" rowspan="${rc}">${_abgRp(r.ihsan)}</td>` : ''}</tr>`;
       });
     }
@@ -6199,10 +6199,10 @@ function cetakIhsanGuru() {
       @media print{body{margin:0}}
     </style></head><body>
     <h1>Rekap Usulan Ihsan Guru — ${d.bulanNama} ${d.tahun}</h1>
-    <div class="sub">Ihsan = jumlah murid aktif × ${_abgRp(d.tarif)} / murid / bulan. Jumlah sesi tidak memengaruhi nominal. Murid dihitung s/d akhir ${d.bulanNama} ${d.tahun} (tak termasuk murid yang bergabung setelahnya).</div>
-    <table><thead><tr><th>Guru</th><th>Halaqah</th><th class="c">Murid</th><th class="r">Ihsan / bulan</th></tr></thead>
+    <div class="sub">Ihsan = jumlah murid × ${_abgRp(d.tarif)}/murid/bulan, HANYA untuk halaqah yang diajar (≥1 sesi) pada ${d.bulanNama} ${d.tahun}. Halaqah yang tak diajar bulan ini tidak dibayar. Murid dihitung s/d akhir bulan tsb.</div>
+    <table><thead><tr><th>Guru</th><th>Halaqah</th><th class="c">Sesi</th><th class="c">Murid</th><th class="r">Ihsan / bulan</th></tr></thead>
       <tbody>${body}</tbody>
-      <tfoot><tr><td colspan="2">TOTAL (${d.rows.length} guru)</td><td class="c">${d.grandMurid}</td><td class="r">${_abgRp(d.grandRp)}</td></tr></tfoot>
+      <tfoot><tr><td colspan="3">TOTAL (${d.rows.length} guru)</td><td class="c">${d.grandMurid}</td><td class="r">${_abgRp(d.grandRp)}</td></tr></tfoot>
     </table>
     <p style="margin-top:16px;font-size:11px;color:#777">Dicetak dari Portal Halaqah Rattililqur'an</p>
     <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
@@ -6217,12 +6217,12 @@ async function salinIhsanSheets() {
   if (!_abgData || !(_abgData.guru || []).length) { toast('Belum ada data absensi.', 'err'); return; }
   if (!_abgTarif()) { toast('Isi "Tarif / murid / bulan (Rp)" dulu.', 'err'); return; }
   const d = _abgIhsanData();
-  let tsv = 'Nama Guru\tHalaqah\tMurid Aktif\tIhsan/Bulan\n';
+  let tsv = 'Nama Guru\tHalaqah\tSesi\tMurid Aktif\tIhsan/Bulan\n';
   d.rows.forEach(r => {
-    if (!r.halaqah.length) { tsv += `${r.nama}\t(tidak ada halaqah aktif)\t0\t0\n`; return; }
-    r.halaqah.forEach((h, i) => { tsv += `${r.nama}\t${h.nama}\t${h.murid}\t${i === 0 ? r.ihsan : 0}\n`; });
+    if (!r.halaqah.length) { tsv += `${r.nama}\t(tidak mengajar bulan ini)\t0\t0\t0\n`; return; }
+    r.halaqah.forEach((h, i) => { tsv += `${r.nama}\t${h.nama}\t${h.sesi}\t${h.murid}\t${i === 0 ? r.ihsan : 0}\n`; });
   });
-  tsv += `TOTAL (${d.rows.length} guru)\t\t${d.grandMurid}\t${d.grandRp}\n`;
+  tsv += `TOTAL (${d.rows.length} guru)\t\t\t${d.grandMurid}\t${d.grandRp}\n`;
   try {
     await navigator.clipboard.writeText(tsv);
     toast('Tersalin! Tempel (Ctrl/Cmd+V) langsung di Google Sheets — otomatis terpisah kolom.', 'ok');
