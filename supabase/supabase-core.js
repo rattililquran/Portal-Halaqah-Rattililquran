@@ -328,11 +328,25 @@ async function _fetchAbsensiData(opts) {
   var liburSet = {};
   (liburR.data || []).forEach(function(r) { liburSet[r.tanggal] = true; });
 
+  // Jumlah murid AKTIF per halaqah — dasar ihsan (ihsan = Σ murid×sesi×tarif per halaqah).
+  // Dihitung eksplisit (bukan anggota(count) yang tak memfilter status) & dipaginasi agar
+  // tak terpotong batas 1000. Guru-scope dibatasi ke halaqah miliknya (patuh RLS).
+  var scopedHqIds = halaqah.map(function(h) { return h.id_halaqah; });
+  var muridRows = await _selectAllPaged('anggota', 'id_murid, id_halaqah',
+    function(q) {
+      q = q.eq('status', 'aktif').order('id_murid');
+      if (opts.scope === 'guru' && scopedHqIds.length) q = q.in('id_halaqah', scopedHqIds);
+      return q;
+    }, 'absensi:anggota_aktif');
+  var muridByHalaqah = {};
+  muridRows.forEach(function(r) { muridByHalaqah[r.id_halaqah] = (muridByHalaqah[r.id_halaqah] || 0) + 1; });
+
   return {
     bulan: bulan, tahun: tahun, lastDay: lastDay,
     setting: settingR.data || { durasi_minimal_menit: 90, durasi_outlier_menit: 180 },
     halaqah: halaqah, halaqahAll: (hqAllR.data || []),
     kbm: kbm, override: (ovR.data || []), liburSet: liburSet, guruList: guruList,
+    muridByHalaqah: muridByHalaqah,
   };
 }
 
@@ -459,6 +473,9 @@ function _deriveRekapAbsensi(data) {
       guruRows[id_guru] = {
         id_guru: id_guru, nama_guru: nama || '',
         H: 0, DS: 0, HP: 0, HP_penuh: 0, I: 0, A: 0, L: 0, perlu_ditutup: 0, cells: {},
+        // Rincian sesi mengajar (H+DS+Hᴾ) PER HALAQAH — dasar ihsan (murid×sesi per halaqah,
+        // BUKAN total-murid×total-sesi yang salah bila guru mengampu >1 halaqah).
+        per_halaqah: {},
       };
     } else if (!guruRows[id_guru].nama_guru && nama) {
       guruRows[id_guru].nama_guru = nama;
@@ -480,6 +497,13 @@ function _deriveRekapAbsensi(data) {
         case 'A':  row.A++; break;
         case 'L':  row.L++; break;
         case '_DRAFT': row.perlu_ditutup++; break;
+      }
+      // Sesi mengajar terlaksana (H/DS/Hᴾ) → tally per halaqah untuk ihsan.
+      if (u.id_halaqah && (u.status === 'H' || u.status === 'DS' || u.status === 'HP')) {
+        var ph = row.per_halaqah[u.id_halaqah] ||
+          (row.per_halaqah[u.id_halaqah] = { id_halaqah: u.id_halaqah, nama_halaqah: u.nama_halaqah || '', sesi: 0 });
+        ph.sesi++;
+        if (!ph.nama_halaqah && u.nama_halaqah) ph.nama_halaqah = u.nama_halaqah;
       }
     });
   });
@@ -513,6 +537,7 @@ function _deriveRekapAbsensi(data) {
     bulan: data.bulan, tahun: data.tahun,
     ambang: ambang, ambang_wajar: outlier, tanggal_mulai_berlaku: mulai,
     tanggal_list: tanggalList, guru: rows,
+    murid_by_halaqah: data.muridByHalaqah || {},
   };
 }
 
