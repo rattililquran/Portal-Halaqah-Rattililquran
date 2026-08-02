@@ -2075,7 +2075,8 @@ html.theme-dark .fin-detail-card {
           <div style="flex:1"></div>
           <div class="fg" style="margin:0"><label style="font-size:11px" title="Ihsan = jumlah murid aktif di halaqah yang diampu × tarif ini (per bulan). Sesi tidak berpengaruh.">Tarif / murid / bulan (Rp)</label>
             <input type="number" class="fc" id="abgTarif" min="0" step="5000" placeholder="50000" oninput="_abgTarifChanged()" style="max-width:150px"></div>
-          <button class="btn btn-outline btn-sm" onclick="eksporIhsanGuru()" title="Unduh CSV rekap ihsan per guru (sesi × tarif) untuk bulan terpilih" style="margin-bottom:1px">📄 Export Ihsan</button>
+          <button class="btn btn-outline btn-sm" onclick="cetakIhsanGuru()" title="Buka tampilan cetak/PDF rekap ihsan bulan terpilih" style="margin-bottom:1px">🖨️ Cetak Ihsan</button>
+          <button class="btn btn-outline btn-sm" onclick="salinIhsanSheets()" title="Salin sebagai tabel (nempel rapi per kolom di Google Sheets)" style="margin-bottom:1px">📋 Salin ke Sheets</button>
         </div>
 
         <!-- Pengaturan ambang & berlaku-mulai -->
@@ -2114,6 +2115,8 @@ html.theme-dark .fin-detail-card {
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
                 <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
                 <th title="Jumlah sesi mengajar yang terlaksana bulan ini = H + DS + Hᴾ">Mengajar</th>
+                <th title="Jumlah murid aktif di seluruh halaqah yang diampu guru ini">👥 Murid</th>
+                <th title="Usulan ihsan = jumlah murid × tarif/bulan. Sesi TIDAK berpengaruh.">💰 Ihsan</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
                 <th class="abg-stripcol">Kehadiran harian (klik baris → rincian)</th>
@@ -6072,11 +6075,14 @@ function renderAbsensiGuru() {
 
   const body = document.getElementById('abgBody');
   if (!guru.length) {
-    body.innerHTML = `<tr><td colspan="11" style="padding:32px;text-align:center;color:var(--text-3)">${onlyIssues ? 'Tidak ada guru bermasalah 🎉' : 'Belum ada data guru.'}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="13" style="padding:32px;text-align:center;color:var(--text-3)">${onlyIssues ? 'Tidak ada guru bermasalah 🎉' : 'Belum ada data guru.'}</td></tr>`;
     return;
   }
   const pctCol = (p) => p == null ? '<span style="color:var(--text-3)">–</span>' :
     `<span class="abg-pct" style="color:${p>=90?'#16a34a':p>=75?'#b45309':'#dc2626'}">${p}%</span>`;
+  // Peta ihsan per guru (murid × tarif/bulan) untuk kolom Murid & Ihsan.
+  const _ihTarif = _abgTarif();
+  const _ihMap = {}; _abgIhsanData().rows.forEach(r => { _ihMap[r.id] = r; });
   let html = '';
   guru.forEach((g, idx) => {
     const hutang = g.hutang || { sisa: 0, diganti: 0, izin_alpa: 0 };
@@ -6087,6 +6093,8 @@ function renderAbsensiGuru() {
       <td>${pctCol(g.pct_durasi)}</td>
       <td>${pctCol(g.pct_kehadiran)}${(g.izin_diganti||0)>0?`<span class="abg-izindiganti" title="${g.izin_diganti} Izin sudah ditebus kelas pengganti — tidak menggerus %Hadir">✓${g.izin_diganti}</span>`:''}</td>
       <td class="abg-sum" style="font-weight:800;color:var(--text)" title="H+DS+Hᴾ">${g.H + g.DS + g.HP}<span style="font-size:9px;color:var(--text-3);font-weight:600">×</span></td>
+      <td class="abg-sum" title="Murid aktif di halaqah yang diampu">${(_ihMap[g.id_guru]||{}).murid||0}</td>
+      <td class="abg-sum" style="font-weight:800;color:#0f766e;white-space:nowrap" title="Murid × tarif/bulan (sesi tak berpengaruh)">${_ihTarif ? _abgRp((_ihMap[g.id_guru]||{}).ihsan||0) : '<span style=\'color:var(--text-3);font-weight:400\'>set tarif</span>'}</td>
       <td class="abg-sum">${g.H}</td><td class="abg-sum">${g.DS}</td>
       <td class="abg-sum">${g.I}</td>
       <td class="abg-sum" style="${g.A>0?'color:#dc2626':''}">${g.A}</td>
@@ -6094,7 +6102,7 @@ function renderAbsensiGuru() {
       <td>${hutangTxt}</td>
       <td class="abg-strip-td">${_abgStrip(g, data)}</td>
     </tr>
-    <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="11">${_abgDetailHtml(g, data)}</td></tr>`;
+    <tr class="abg-detail-row" id="abg-det-${idx}" style="display:none"><td class="abg-detail-td" colspan="13">${_abgDetailHtml(g, data)}</td></tr>`;
   });
   body.innerHTML = html;
 }
@@ -6127,8 +6135,11 @@ function _abgTarif() {
   const v = Number((el && el.value) || 0);
   return isFinite(v) && v > 0 ? Math.round(v) : 0;
 }
-// Persist tarif agar tak diketik ulang tiap bulan (lokal per-browser admin).
-function _abgTarifChanged() { try { localStorage.setItem('abg_tarif_murid_bln', String(_abgTarif())); } catch (e) {} }
+// Persist tarif + render ulang agar kolom Murid/Ihsan & KPI ikut berubah seketika.
+function _abgTarifChanged() {
+  try { localStorage.setItem('abg_tarif_murid_bln', String(_abgTarif())); } catch (e) {}
+  if (_abgData) renderAbsensiGuru();
+}
 function _abgRestoreTarif() {
   try {
     const el = document.getElementById('abgTarif');
@@ -6137,54 +6148,87 @@ function _abgRestoreTarif() {
     el.value = localStorage.getItem('abg_tarif_murid_bln') || '50000';
   } catch (e) {}
 }
-// Cegah CSV/formula injection (nilai diawali = + - @ / tab / CR) — konsisten dgn ekspor SPP.
-function _abgCsvSafe(val) {
-  let s = String(val == null ? '' : val).replace(/"/g, '""');
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-  return s;
-}
-async function eksporIhsanGuru() {
-  const data = _abgData;
-  if (!data || !(data.guru || []).length) { toast('Belum ada data absensi untuk diekspor.', 'err'); return; }
+// Data ihsan per guru (bersama untuk kolom tabel, KPI, cetak, & salin).
+// Ihsan = Σ murid aktif di halaqah yang DIAMPU guru × tarif/bulan. Sesi TIDAK berpengaruh →
+// dasar = penugasan halaqah (halaqah_list), bukan sesi, agar guru tanpa sesi pun terbayar.
+function _abgIhsanData() {
+  const data = _abgData || {};
   const tarif = _abgTarif();
-  if (!tarif) { toast('Isi "Tarif / murid / bulan (Rp)" dulu sebelum ekspor.', 'err'); return; }
-  const bulanNama = _ABG_BULAN_NAMA[data.bulan - 1] || data.bulan;
   const muridMap = data.murid_by_halaqah || {};
-  // Ihsan = jumlah murid aktif di halaqah yang DIAMPU guru × tarif/bulan. Sesi TIDAK berpengaruh,
-  // jadi dasar = penugasan halaqah (halaqah_list, per-guru) — bukan sesi — agar guru tanpa sesi
-  // bulan itu pun tetap terbayar sesuai murid-nya.
   const hqByGuru = {};
   (data.halaqah_list || []).forEach(h => { (hqByGuru[h.id_guru] || (hqByGuru[h.id_guru] = [])).push(h); });
   const guru = (data.guru || []).slice().sort((a, b) => (a.nama_guru || '').localeCompare(b.nama_guru || ''));
-  let csv = 'ID Guru;Nama Guru;Halaqah;Murid Aktif;Tarif/Murid/Bulan;Subtotal Ihsan\r\n';
   let grandMurid = 0, grandRp = 0;
-  guru.forEach(g => {
+  const rows = guru.map(g => {
     const hqs = (hqByGuru[g.id_guru] || []).slice().sort((a, b) => (a.nama_halaqah || '').localeCompare(b.nama_halaqah || ''));
-    let gMurid = 0;
-    if (!hqs.length) {
-      // Guru tanpa halaqah aktif — tetap dicantumkan (payroll lengkap), subtotal 0.
-      csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"(tidak ada halaqah aktif)";0;' + tarif + ';0\r\n';
-    } else {
-      hqs.forEach(h => {
-        const murid = muridMap[h.id_halaqah] || 0;
-        gMurid += murid;
-        csv += '"' + _abgCsvSafe(g.id_guru) + '";"' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";"'
-          + _abgCsvSafe(h.nama_halaqah || h.id_halaqah) + '";' + murid + ';' + tarif + ';' + (murid * tarif) + '\r\n';
-      });
-      csv += '"";"";"► Subtotal ' + _abgCsvSafe(g.nama_guru || g.id_guru) + '";' + gMurid + ';;' + (gMurid * tarif) + '\r\n';
-    }
-    grandMurid += gMurid; grandRp += gMurid * tarif;
+    const halaqah = hqs.map(h => ({ nama: h.nama_halaqah || h.id_halaqah, murid: muridMap[h.id_halaqah] || 0 }));
+    const murid = halaqah.reduce((s, x) => s + x.murid, 0);
+    const ihsan = murid * tarif;
+    grandMurid += murid; grandRp += ihsan;
+    return { id: g.id_guru, nama: g.nama_guru || g.id_guru, halaqah, murid, ihsan };
   });
-  csv += '"";"";"TOTAL (' + guru.length + ' guru)";' + grandMurid + ';;' + grandRp + '\r\n';
-  const namaFile = 'ihsan_guru_' + data.tahun + '_' + String(data.bulan).padStart(2, '0') + '.csv';
-  // UTF-8 BOM agar terbaca benar di Excel (locale Indonesia).
-  const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = namaFile;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('Rekap ihsan ' + bulanNama + ' ' + data.tahun + ' diekspor — ' + guru.length + ' guru, total Rp ' + grandRp.toLocaleString('id-ID') + '.', 'ok');
+  return { rows, grandMurid, grandRp, tarif, bulanNama: _ABG_BULAN_NAMA[(data.bulan || 1) - 1] || data.bulan, tahun: data.tahun };
+}
+const _abgRp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+
+// 🖨️ Cetak / simpan PDF — jendela bersih berisi tabel ihsan (rincian per halaqah + total).
+function cetakIhsanGuru() {
+  if (!_abgData || !(_abgData.guru || []).length) { toast('Belum ada data absensi.', 'err'); return; }
+  if (!_abgTarif()) { toast('Isi "Tarif / murid / bulan (Rp)" dulu.', 'err'); return; }
+  const d = _abgIhsanData();
+  let body = '';
+  d.rows.forEach(r => {
+    const rc = Math.max(1, r.halaqah.length);
+    if (!r.halaqah.length) {
+      body += `<tr><td>${esc(r.nama)}</td><td class="mut">(tidak ada halaqah aktif)</td><td class="c">0</td><td class="r">${_abgRp(0)}</td></tr>`;
+    } else {
+      r.halaqah.forEach((h, i) => {
+        body += `<tr>${i === 0 ? `<td rowspan="${rc}">${esc(r.nama)}</td>` : ''}`
+          + `<td>${esc(h.nama)}</td><td class="c">${h.murid}</td>`
+          + `${i === 0 ? `<td class="r b" rowspan="${rc}">${_abgRp(r.ihsan)}</td>` : ''}</tr>`;
+      });
+    }
+  });
+  const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Rekap Ihsan ${d.bulanNama} ${d.tahun}</title>
+    <style>
+      body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;margin:24px}
+      h1{font-size:18px;margin:0 0 2px} .sub{color:#555;font-size:12px;margin-bottom:14px}
+      table{border-collapse:collapse;width:100%;font-size:12.5px} th,td{border:1px solid #cbd5e1;padding:6px 9px;text-align:left;vertical-align:top}
+      th{background:#f1f5f9} .c{text-align:center} .r{text-align:right;white-space:nowrap} .b{font-weight:800;color:#0f766e}
+      .mut{color:#777} tfoot td{font-weight:800;background:#ecfeff}
+      @media print{body{margin:0}}
+    </style></head><body>
+    <h1>Rekap Usulan Ihsan Guru — ${d.bulanNama} ${d.tahun}</h1>
+    <div class="sub">Ihsan = jumlah murid aktif × ${_abgRp(d.tarif)} / murid / bulan. Jumlah sesi tidak memengaruhi nominal.</div>
+    <table><thead><tr><th>Guru</th><th>Halaqah</th><th class="c">Murid</th><th class="r">Ihsan / bulan</th></tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr><td colspan="2">TOTAL (${d.rows.length} guru)</td><td class="c">${d.grandMurid}</td><td class="r">${_abgRp(d.grandRp)}</td></tr></tfoot>
+    </table>
+    <p style="margin-top:16px;font-size:11px;color:#777">Dicetak dari Portal Halaqah Rattililqur'an</p>
+    <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+    </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { toast('Popup diblokir — izinkan popup untuk mencetak.', 'err'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// 📋 Salin ke Google Sheets — TSV (tab) nempel rapi per kolom (beda dgn CSV ; yang menumpuk).
+async function salinIhsanSheets() {
+  if (!_abgData || !(_abgData.guru || []).length) { toast('Belum ada data absensi.', 'err'); return; }
+  if (!_abgTarif()) { toast('Isi "Tarif / murid / bulan (Rp)" dulu.', 'err'); return; }
+  const d = _abgIhsanData();
+  let tsv = 'Nama Guru\tHalaqah\tMurid Aktif\tIhsan/Bulan\n';
+  d.rows.forEach(r => {
+    if (!r.halaqah.length) { tsv += `${r.nama}\t(tidak ada halaqah aktif)\t0\t0\n`; return; }
+    r.halaqah.forEach((h, i) => { tsv += `${r.nama}\t${h.nama}\t${h.murid}\t${i === 0 ? r.ihsan : 0}\n`; });
+  });
+  tsv += `TOTAL (${d.rows.length} guru)\t\t${d.grandMurid}\t${d.grandRp}\n`;
+  try {
+    await navigator.clipboard.writeText(tsv);
+    toast('Tersalin! Tempel (Ctrl/Cmd+V) langsung di Google Sheets — otomatis terpisah kolom.', 'ok');
+  } catch (e) {
+    toast('Gagal menyalin: ' + (e.message || e), 'err');
+  }
 }
 
 // Ringkasan KPI — agregat dari seluruh guru (sebelum filter "hanya bermasalah").
@@ -6205,8 +6249,10 @@ function _abgRenderKpi(data) {
   const avgDur = durPen > 0 ? Math.round(durNum / durPen * 100) : null;
   const avgHad = hadPen > 0 ? Math.round(hadNum / hadPen * 100) : null;
   const col = (p) => p == null ? 'var(--text-3)' : p >= 90 ? '#16a34a' : p >= 75 ? '#b45309' : '#dc2626';
+  const ih = _abgIhsanData();
   const cards = [
     { v: guru.length, l: 'Guru', s: 'terpantau', c: 'var(--blue,#0ea5e9)' },
+    { v: ih.tarif ? _abgRp(ih.grandRp) : '–', l: 'Total Ihsan', s: ih.tarif ? (ih.grandMurid + ' murid × ' + _abgRp(ih.tarif)) : 'set tarif dulu', c: '#0f766e' },
     { v: hadNum, l: 'Sesi terlaksana', s: 'H+DS+Hᴾ bulan ini', c: '#16a34a' },
     { v: avgDur == null ? '–' : avgDur + '%', l: '%Durasi keseluruhan', s: 'angka inti', c: col(avgDur) },
     { v: avgHad == null ? '–' : avgHad + '%', l: '%Hadir keseluruhan', s: 'tertimbang sesi', c: col(avgHad) },
