@@ -5727,6 +5727,7 @@ var AdminAPI = {
       pemateri: d.pemateri || null, lokasi: d.lokasi || null, deskripsi: d.deskripsi || null,
       status: d.status || 'terjadwal' };
     if (d.id_pelatihan) row.id_pelatihan = d.id_pelatihan;
+    if (d.id_agenda !== undefined) row.id_agenda = d.id_agenda || null;  // kaitkan ke agenda (opsional)
     var { data, error } = await _sb.from('pelatihan').upsert(row, { onConflict: 'id_pelatihan' }).select().single();
     _check(error, 'upsertPelatihan');
     return { status: 'ok', data: data };
@@ -5768,6 +5769,71 @@ var AdminAPI = {
     var { data, error } = await _sb.from('pelatihan_peserta').select('*').eq('id_pelatihan', id_pelatihan);
     _check(error, 'getPesertaPelatihan');
     return { status: 'ok', data: data || [] };
+  },
+
+  // ── Program Pembinaan / Agenda (patch_083) ──────────────────
+  // To-do dua sumber: masalah (keresahan) / kebaikan (ciri). Taksonomi opsional.
+  getAgendaPembinaan: async function() {
+    var [ag, plt] = await Promise.all([
+      _sb.from('agenda_pembinaan').select('*, pengajar_indikator(nama, bobot)'),
+      _sb.from('pelatihan').select('id_agenda').not('id_agenda', 'is', null),
+    ]);
+    _check(ag.error, 'getAgendaPembinaan');
+    var cnt = {};
+    (plt.data || []).forEach(function(p){ cnt[p.id_agenda] = (cnt[p.id_agenda] || 0) + 1; });
+    var rankAsal = { masalah: 0, kebaikan: 1 };
+    var rankRanah = { qurani: 0, pedagogik: 1, kepribadian: 2, sosial: 3, lainnya: 4 };
+    var rows = (ag.data || []).map(function(a){
+      var ind = Array.isArray(a.pengajar_indikator) ? a.pengajar_indikator[0] : a.pengajar_indikator;
+      return Object.assign({}, a, { indikator: ind || null, jumlah_dilaksanakan: cnt[a.id_agenda] || 0 });
+    });
+    rows.sort(function(a, b){
+      return (rankAsal[a.asal] - rankAsal[b.asal])
+        || ((rankRanah[a.ranah] != null ? rankRanah[a.ranah] : 9) - (rankRanah[b.ranah] != null ? rankRanah[b.ranah] : 9))
+        || (a.judul || '').localeCompare(b.judul || '');
+    });
+    return { status: 'ok', data: rows };
+  },
+
+  upsertAgendaPembinaan: async function(d) {
+    d = d || {};
+    if (!d.judul) return { status: 'error', message: 'judul wajib diisi' };
+    var row = { judul: d.judul, asal: d.asal || 'kebaikan' };
+    ['masalah','target','ranah','jenis','id_indikator','frekuensi','jadwal_teks','deskripsi','status']
+      .forEach(function(k){ if (d[k] !== undefined) row[k] = d[k] || null; });
+    if (d.id_agenda) row.id_agenda = d.id_agenda;
+    var { data, error } = await _sb.from('agenda_pembinaan')
+      .upsert(row, { onConflict: 'id_agenda' }).select().single();
+    _check(error, 'upsertAgendaPembinaan');
+    return { status: 'ok', data: data };
+  },
+
+  hapusAgendaPembinaan: async function(id_agenda) {
+    if (!id_agenda) return { status: 'error', message: 'id_agenda wajib diisi' };
+    var { error } = await _sb.from('agenda_pembinaan').delete().eq('id_agenda', id_agenda);
+    _check(error, 'hapusAgendaPembinaan');
+    return { status: 'ok' };
+  },
+
+  // Pengingat MANUAL ke semua guru aktif (auto-jadwal berkala = butuh cron, di luar cakupan).
+  ingatkanAgenda: async function(id_agenda) {
+    if (!id_agenda) return { status: 'error', message: 'id_agenda wajib diisi' };
+    var { data: ag, error } = await _sb.from('agenda_pembinaan')
+      .select('judul, jadwal_teks').eq('id_agenda', id_agenda).maybeSingle();
+    _check(error, 'ingatkanAgenda');
+    if (!ag) return { status: 'error', message: 'Agenda tidak ditemukan' };
+    var { data: gurus } = await _sb.from('users').select('id_user').eq('role', 'guru').eq('status', 'aktif');
+    var ids = (gurus || []).map(function(g){ return g.id_user; });
+    if (!ids.length) return { status: 'error', message: 'Tidak ada guru aktif' };
+    _sendPushBg({
+      user_ids: ids,
+      title: '📅 ' + (ag.judul || 'Program Pembinaan'),
+      body : (ag.jadwal_teks ? ag.jadwal_teks + ' — ' : '') + 'Yuk hadir & ikhtiar bersama 🌱',
+      url  : '/Portal-Halaqah-Rattililquran/guru/index.html',
+      tag  : 'agenda-' + id_agenda,
+      data : { trigger: 'agenda_pembinaan' },
+    });
+    return { status: 'ok', jumlah: ids.length };
   },
 
   // Rapor pengajar: gabung kompetensi, evaluasi terakhir, ringkas tashih,
