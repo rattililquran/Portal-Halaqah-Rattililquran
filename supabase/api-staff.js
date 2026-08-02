@@ -5883,6 +5883,17 @@ var AdminAPI = {
     }};
   },
 
+  // Riwayat tashih & evaluasi seorang pengajar (admin/pembina — RLS memfilter).
+  getTashihEvaluasiPengajar: async function(id_guru) {
+    if (!id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
+    var [tashih, evalr] = await Promise.all([
+      _sb.from('pengajar_tashih').select('*').eq('id_guru', id_guru).order('tanggal', { ascending: false }),
+      _sb.from('pengajar_evaluasi').select('*').eq('id_guru', id_guru).order('tanggal', { ascending: false }),
+    ]);
+    _check(tashih.error, 'getTashihEvaluasiPengajar');
+    return { status: 'ok', data: { tashih: tashih.data || [], evaluasi: evalr.data || [] } };
+  },
+
   // Dashboard agregat: jumlah per jenjang, rata2 nilai evaluasi, mutaba'ah belum selesai.
   getDashboardPengajar: async function() {
     var [komp, mtb, evalr] = await Promise.all([

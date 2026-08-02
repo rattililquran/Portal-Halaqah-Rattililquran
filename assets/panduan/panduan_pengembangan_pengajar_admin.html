@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengembangan Pengajar — Panduan Admin</title>
+<style>
+  :root{--blue:#2563eb;--blue-d:#1e3a8a;--blue-l:#dbeafe;--teal:#0d9488;--teal-l:#ccfbf1;--teal-d:#0f766e;--amber:#f59e0b;--amber-l:#fef3c7;--amber-d:#92400e;--green:#16a34a;--green-l:#dcfce7;--green-d:#166534;--text:#0f172a;--text-2:#475569;--gray:#64748b;--border:#e2e8f0;--bg-soft:#f8fafc}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,'Segoe UI','Plus Jakarta Sans',sans-serif;font-size:15px;line-height:1.7;color:var(--text);background:#f0fdf4;padding:20px 12px}
+  .wrap{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 10px 36px rgba(0,0,0,.08)}
+  .cover{background:linear-gradient(148deg,#0a4f39,#0f6e4f 55%,#16a34a);color:#fff;padding:30px 26px 24px}
+  .cover .role{display:inline-block;background:rgba(255,255,255,.2);font-size:11px;font-weight:800;letter-spacing:.1em;padding:4px 11px;border-radius:100px;text-transform:uppercase}
+  .cover h1{font-size:26px;font-weight:900;margin:8px 0 6px;letter-spacing:-.02em}
+  .cover p{color:rgba(255,255,255,.9);font-size:13.5px}
+  .body{padding:22px 26px 34px}
+  h2{font-size:17px;font-weight:800;color:#fff;background:linear-gradient(135deg,#0f766e,#16a34a);padding:9px 15px;border-radius:9px;margin:26px 0 12px}
+  h3{font-size:14.5px;font-weight:800;color:var(--green-d);margin:18px 0 7px;padding:5px 11px;background:var(--green-l);border-radius:7px;border-left:3px solid var(--green)}
+  p{margin:0 0 9px;color:var(--text-2)}
+  ul{margin:7px 0 11px 20px}li{margin-bottom:5px;color:var(--text-2)}ul li::marker{color:var(--green)}
+  strong{color:var(--text);font-weight:700}
+  .steps{counter-reset:s;list-style:none;margin:8px 0 12px}
+  .steps li{position:relative;padding-left:32px;margin-bottom:8px}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:1px;width:22px;height:22px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .tip{background:var(--amber-l);border-left:4px solid var(--amber);border-radius:0 9px 9px 0;padding:10px 14px;margin:11px 0;font-size:13.5px;color:var(--amber-d)}
+  .note{background:var(--teal-l);border-left:4px solid var(--teal);border-radius:0 9px 9px 0;padding:10px 14px;margin:11px 0;font-size:13.5px;color:var(--teal-d)}
+  .flow{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0;font-size:13.5px}
+  .flow b{color:var(--green-d)}
+  .footer{text-align:center;color:var(--gray);font-size:12px;padding:16px;border-top:1px solid var(--border)}
+  @media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border-radius:0}h2,h3,.tip,.note{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="cover">
+    <span class="role">Panduan Admin</span>
+    <h1>🌱 Pengembangan Pengajar</h1>
+    <p>Membina & mengukur mutu pengajar: jenjang, tashih, program pembinaan, evaluasi, apresiasi, dan halaqah pengajar.</p>
+  </div>
+  <div class="body">
+
+    <p>Sidebar admin → <strong>🌱 Pengembangan Pengajar</strong>. Modul punya beberapa tab. Sebagian aksi (ubah jenjang, kelola Indikator) khusus <strong>Superadmin</strong>. Bendahara tidak melihat modul ini.</p>
+    <div class="note">Filosofi program: <strong>dibina bersama, bukan sekadar dinilai</strong>. Komponen top-down (tashih/evaluasi) menjaga standar; halaqah pengajar (peer) adalah jantung kebersamaan.</div>
+
+    <h2>👤 Profil & Jenjang</h2>
+    <p>Daftar seluruh pengajar beserta jenjang (Pemula → Madya → Utama/Musyrif) dan status sertifikasi.</p>
+    <ul>
+      <li><strong>Jenjang</strong> (Superadmin): pilih dari dropdown → otomatis tercatat ke <strong>riwayat jenjang</strong> (audit) &amp; ter-log.</li>
+      <li><strong>Sertifikasi</strong>: klik badge untuk beralih <em>orientasi ⇄ tersertifikasi</em>. Guru <em>orientasi</em> = dalam pendampingan.</li>
+      <li><strong>Edit</strong>: isi sanad/talaqqi &amp; jumlah hafalan (juz).</li>
+    </ul>
+    <div class="tip">Perubahan jenjang <strong>hanya</strong> lewat tombol ini agar audit terjaga — bukan lewat edit profil.</div>
+
+    <h2>📅 Program Pembinaan (to-do)</h2>
+    <p>Daftar kegiatan pembinaan yang berangkat dari <strong>dua sumber</strong>:</p>
+    <div class="flow">🩹 <b>Dari Keresahan</b> — mulai dari masalah nyata: <b>Masalah → Eksekusi → Target</b>. Contoh: "banyak guru telat" → "check-in 10 menit + briefing" → "tepat waktu ≥95%". Bisa ditandai <b>Selesai</b> saat teratasi.</div>
+    <div class="flow">🌱 <b>Dari Kebaikan</b> — ciri guru terbaik yang dikejar lewat <b>belajar (ilmu) + praktik (amal)</b>, ditautkan ke indikator evaluasi terukur.</div>
+    <ol class="steps">
+      <li><strong>+ To-do Pembinaan</strong> → pilih sumber (Keresahan/Kebaikan).</li>
+      <li>Gunakan <strong>chip pustaka</strong> (siap-pakai) untuk mengisi cepat, lalu sunting bebas.</li>
+      <li>Isi ranah/ikhtiar/indikator/frekuensi/jadwal (semua opsional).</li>
+      <li><strong>🔔 Ingatkan</strong> → kirim notifikasi ke seluruh guru aktif.</li>
+    </ol>
+    <div class="tip">Saat kegiatan benar-benar dilaksanakan, catat sebagai <strong>Pelatihan</strong> (tab berikutnya) agar terhitung "N× dilaksanakan".</div>
+
+    <h2>🎓 Pelatihan</h2>
+    <p>Event pelatihan nyata + kehadiran.</p>
+    <ol class="steps">
+      <li><strong>+ Pelatihan Baru</strong> (atau klik <strong>chip template</strong> untuk judul siap-pakai) → isi judul, tanggal, kategori.</li>
+      <li>Klik <strong>✓ Kehadiran</strong> → centang H (hadir) / I (izin) / A (alpa) tiap guru.</li>
+    </ol>
+
+    <h2>📊 Mutaba'ah & Rapor</h2>
+    <p>Dashboard agregat + rapor per pengajar. Pilih pengajar untuk melihat:</p>
+    <ul>
+      <li><strong>Nilai evaluasi</strong> terakhir, <strong>% kehadiran</strong> (dari absensi), <strong>capaian murid</strong> (dari raport), tashih lulus, <strong>Micro Teaching</strong>, mutaba'ah terbuka.</li>
+      <li><strong>Riwayat Tashih &amp; Evaluasi</strong> lengkap.</li>
+      <li><strong>🏅 Apresiasi</strong>: beri penghargaan (teladan/kehadiran/dedikasi).</li>
+      <li><strong>👁️ Observasi KBM</strong> (Superadmin): temuan ketua kelas → tombol <strong>→ Mutaba'ah</strong> untuk menindaklanjuti.</li>
+    </ul>
+    <div class="note">% Kehadiran &amp; Capaian Murid ditarik <strong>otomatis</strong> dari data absensi &amp; raport — tak perlu input ulang.</div>
+
+    <h2>🤝 Halaqah Pengajar (peer)</h2>
+    <p>Kelola lingkaran belajar antar-guru (saling setor makhraj/sifat/dalil).</p>
+    <ol class="steps">
+      <li><strong>+ Kelompok Pengajar</strong> → beri nama, fokus, jadwal.</li>
+      <li><strong>Atur Anggota</strong> → centang guru anggota.</li>
+      <li><strong>🔔 Ingatkan</strong> → dorong anggota melanjutkan setoran.</li>
+    </ol>
+    <div class="tip">Rekap peer bersifat <strong>apresiatif</strong> (kelompok paling aktif), bukan papan peringkat yang mempermalukan.</div>
+
+    <h2>⚙️ Indikator (Superadmin)</h2>
+    <p>Master indikator evaluasi + bobot. Total bobot ideal = <strong>100</strong>. Default: Kefasihan 30, Keterampilan mengajar 25, Capaian murid 20, Kedisiplinan 15, Adab 10.</p>
+
+    <h2>Panel Guru & Musyrif</h2>
+    <p>Guru mengakses <strong>🌱 Pengembangan Diri</strong> di portal guru untuk halaqah peer &amp; profil dirinya. Guru ber-flag <strong>Musyrif</strong> mendapat tab <strong>Binaan</strong> untuk input tashih/evaluasi/mutaba'ah. Tetapkan Musyrif lewat data pengguna (<code>is_musyrif</code>).</p>
+
+  </div>
+  <div class="footer">Pengembangan Pengajar • Panduan Admin • Portal Halaqah Rattililqur'an</div>
+</div>
+</body>
+</html>

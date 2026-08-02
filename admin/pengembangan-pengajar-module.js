@@ -465,13 +465,18 @@
       // Observasi (sensitif) hanya untuk superadmin — hindari error RLS di admin biasa.
       // allSettled: rapor inti WAJIB; apresiasi & observasi SEKUNDER (kegagalannya
       // tak boleh mengosongkan rapor). Lihat debug #1.
-      var calls = [window.HQ.AdminAPI.getRaporPengajar(id_guru), window.HQ.AdminAPI.getApresiasiList(id_guru)];
-      if (_isSuper()) calls.push(window.HQ.AdminAPI.getObservasiKBM({ id_guru: id_guru }));
+      var calls = [
+        window.HQ.AdminAPI.getRaporPengajar(id_guru),          // 0 (wajib)
+        window.HQ.AdminAPI.getApresiasiList(id_guru),          // 1
+        window.HQ.AdminAPI.getTashihEvaluasiPengajar(id_guru), // 2
+      ];
+      if (_isSuper()) calls.push(window.HQ.AdminAPI.getObservasiKBM({ id_guru: id_guru })); // 3
       var res = await Promise.allSettled(calls);
       if (res[0].status !== 'fulfilled') throw (res[0].reason || new Error('Gagal memuat rapor'));
       var r = (res[0].value && res[0].value.data) || {};
       var ap = (res[1] && res[1].status === 'fulfilled' && res[1].value.data) || [];
-      var obs = (res[2] && res[2].status === 'fulfilled' && res[2].value.data) || [];
+      var re = (res[2] && res[2].status === 'fulfilled' && res[2].value.data) || { tashih: [], evaluasi: [] };
+      var obs = (res[3] && res[3].status === 'fulfilled' && res[3].value.data) || [];
       var ev = r.evaluasi_terakhir;
       PP.obsCatatan = {};   // simpan catatan observasi utk tindak lanjut (hindari escaping panjang di onclick)
       var apHtml = ap.map(function(a) {
@@ -508,8 +513,32 @@
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">🏅 Apresiasi</span>'
         + '<button onclick="ppBeriApresiasi(\'' + esc(id_guru) + '\')" style="border:none;background:#d97706;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Beri Apresiasi</button></div>'
         + apHtml + '</div>'
+        + _riwayatHtml(re)
         + obsHtml;
     } catch (e) { box.innerHTML = '<div style="color:var(--red)">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
+  }
+
+  // Riwayat tashih & evaluasi (tab Rapor).
+  function _riwayatHtml(re) {
+    re = re || {};
+    var tashih = (re.tashih || []).map(function(t) {
+      var badge = t.hasil === 'lulus' ? 'background:#dcfce7;color:#166534' : (t.hasil === 'mengulang' ? 'background:#fee2e2;color:#991b1b' : 'background:#f1f5f9;color:#475569');
+      return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
+        + esc(t.tanggal || '') + ' · ' + esc(t.surat_diuji || '-')
+        + ' <span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 7px;' + badge + '">' + esc(t.hasil || '—') + '</span>'
+        + (t.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(t.catatan) + '</div>' : '')
+        + '</div>';
+    }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada tashih.</div>';
+    var evalr = (re.evaluasi || []).map(function(e) {
+      return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
+        + esc(e.tanggal || '') + ' · nilai <strong>' + (e.nilai_akhir != null ? e.nilai_akhir : '—') + '</strong>'
+        + (e.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(e.catatan) + '</div>' : '')
+        + '</div>';
+    }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada evaluasi.</div>';
+    return '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
+      + '<div style="font-size:12px;font-weight:800;margin-bottom:4px">🎤 Riwayat Tashih</div>' + tashih
+      + '<div style="font-size:12px;font-weight:800;margin:8px 0 4px">📊 Riwayat Evaluasi</div>' + evalr
+      + '</div>';
   }
 
   async function ppBeriApresiasi(id_guru) {
