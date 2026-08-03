@@ -2917,14 +2917,17 @@ var GuruAPI = {
     d = d || {};
     if (!d.id_kelompok || !d.id_penyimak) return { status: 'error', message: 'id_kelompok & id_penyimak wajib diisi' };
     if (d.id_penyimak === _uid()) return { status: 'error', message: 'Penyimak tidak boleh diri sendiri' };
+    // Terima audio_url hanya bila https (tolak skema berbahaya spt javascript:/data:).
+    var audioUrl = (d.audio_url && /^https:\/\//i.test(String(d.audio_url))) ? String(d.audio_url) : null;
+    var durasi = parseInt(d.audio_durasi_detik, 10);
     var { data, error } = await _sb.from('pengajar_setoran').insert({
       id_kelompok: d.id_kelompok, id_penyetor: _uid(), id_penyimak: d.id_penyimak,
       nama_penyetor: d.nama_penyetor || null, nama_penyimak: d.nama_penyimak || null,
       kategori: d.kategori || 'makhraj', sub_materi: d.sub_materi || null,
       dalil: d.dalil || null, catatan: d.catatan || null, tanggal: d.tanggal || undefined,
-      audio_url: d.audio_url || null,
-      audio_durasi_detik: d.audio_durasi_detik ? parseInt(d.audio_durasi_detik) : null,
-      audio_tipe: d.audio_tipe || null,
+      audio_url: audioUrl,
+      audio_durasi_detik: (audioUrl && Number.isFinite(durasi) && durasi >= 0) ? durasi : null,
+      audio_tipe: audioUrl ? (d.audio_tipe || null) : null,
     }).select().single();
     _check(error, 'simpanSetoranPeer');
     return { status: 'ok', data: data };

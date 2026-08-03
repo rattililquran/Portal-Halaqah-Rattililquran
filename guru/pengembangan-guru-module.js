@@ -419,14 +419,22 @@
       catch (e) { toast(friendlyError(e), 'err'); btn.disabled = false; btn.textContent = label; btn.style.opacity = ''; }
     };
   }
-  function pgCloseModal() { var m = document.getElementById('pgModal'); if (m) m.remove(); }
+  function pgCloseModal() {
+    // Selalu bebaskan sumber daya rekaman saat modal ditutup (Batal/backdrop/sukses)
+    // agar mikrofon tak menyala terus & timer/blob-URL tak menggantung.
+    pgRecReset();
+    var m = document.getElementById('pgModal'); if (m) m.remove();
+  }
 
   // ══════════════════ REKAM & UNGGAH AUDIO SETORAN PEER ══════════════════
   // Pola murid: file audio → Google Drive via GAS Web App; URL disimpan di
   // pengajar_setoran.audio_url. Reuse token get_latihan_upload_token (lintas-peran)
   // & pemutar putarAudioInline (sudah ada di portal guru via pr-jurnal-module.js).
   var PG_GAS_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec';
-  var _pgRec = { mr: null, chunks: [], blob: null, mime: '', durasi: 0, t0: 0, timer: null };
+  function _pgRecBlank() {
+    return { mr: null, stream: null, chunks: [], blob: null, mime: '', durasi: 0, t0: 0, timer: null, previewUrl: '', uploadedUrl: '' };
+  }
+  var _pgRec = _pgRecBlank();
 
   function _pgRecHtml() {
     return '<div style="margin-bottom:10px">'
@@ -440,11 +448,18 @@
       + '</div>';
   }
 
+  // Hentikan SEMUA sumber daya aktif: mic, recorder, timer, blob-URL. Aman dipanggil
+  // kapan pun (mis. saat modal ditutup) — mencegah mic menyala terus & timer bocor.
   function pgRecReset() {
-    try { if (_pgRec.mr && _pgRec.mr.state === 'recording') _pgRec.mr.stop(); } catch (e) {}
-    if (_pgRec.timer) { clearInterval(_pgRec.timer); }
-    _pgRec = { mr: null, chunks: [], blob: null, mime: '', durasi: 0, t0: 0, timer: null };
-    var pv = document.getElementById('pgRecPreview'); if (pv) { pv.src = ''; pv.style.display = 'none'; }
+    if (_pgRec.mr) {
+      // Lepas onstop lebih dulu agar callback basi tak menulis ke state baru.
+      try { _pgRec.mr.onstop = null; if (_pgRec.mr.state === 'recording') _pgRec.mr.stop(); } catch (e) {}
+    }
+    if (_pgRec.stream) { try { _pgRec.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }
+    if (_pgRec.timer) clearInterval(_pgRec.timer);
+    if (_pgRec.previewUrl) { try { URL.revokeObjectURL(_pgRec.previewUrl); } catch (e) {} }
+    _pgRec = _pgRecBlank();
+    var pv = document.getElementById('pgRecPreview'); if (pv) { pv.removeAttribute('src'); pv.style.display = 'none'; }
     var del = document.getElementById('pgRecDel'); if (del) del.style.display = 'none';
     var b = document.getElementById('pgRecBtn'); if (b) b.textContent = '🔴 Mulai Rekam';
     var dur = document.getElementById('pgRecDur'); if (dur) dur.textContent = '00:00';
@@ -452,7 +467,9 @@
 
   function pgRecToggle() {
     if (_pgRec.mr && _pgRec.mr.state === 'recording') { _pgRec.mr.stop(); return; }
-    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices) { toast('Perangkat tidak mendukung perekaman suara.', 'err'); return; }
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast('Perangkat tidak mendukung perekaman suara.', 'err'); return;
+    }
     navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
       var mime = 'audio/webm';
       if (!MediaRecorder.isTypeSupported(mime)) {
@@ -460,17 +477,20 @@
         else if (MediaRecorder.isTypeSupported('audio/wav')) mime = 'audio/wav';
         else mime = '';
       }
-      _pgRec.chunks = []; _pgRec.blob = null;
+      _pgRec.stream = stream;
+      _pgRec.chunks = []; _pgRec.blob = null; _pgRec.uploadedUrl = '';
       _pgRec.mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       _pgRec.mime = _pgRec.mr.mimeType || mime || 'audio/webm';
       _pgRec.mr.ondataavailable = function (e) { if (e.data && e.data.size) _pgRec.chunks.push(e.data); };
       _pgRec.mr.onstop = function () {
-        stream.getTracks().forEach(function (t) { t.stop(); });
+        if (_pgRec.stream) { _pgRec.stream.getTracks().forEach(function (t) { t.stop(); }); }
         if (_pgRec.timer) { clearInterval(_pgRec.timer); _pgRec.timer = null; }
         _pgRec.blob = new Blob(_pgRec.chunks, { type: _pgRec.mime });
         _pgRec.durasi = Math.round((Date.now() - _pgRec.t0) / 1000);
+        if (_pgRec.previewUrl) { try { URL.revokeObjectURL(_pgRec.previewUrl); } catch (e) {} }
+        _pgRec.previewUrl = URL.createObjectURL(_pgRec.blob);
         var pv = document.getElementById('pgRecPreview');
-        if (pv) { pv.src = URL.createObjectURL(_pgRec.blob); pv.style.display = 'block'; }
+        if (pv) { pv.src = _pgRec.previewUrl; pv.style.display = 'block'; }
         var del = document.getElementById('pgRecDel'); if (del) del.style.display = 'inline-block';
         var b = document.getElementById('pgRecBtn'); if (b) b.textContent = '🔴 Rekam Ulang';
       };
@@ -487,11 +507,18 @@
 
   // Unggah blob rekaman ke GAS → kembalikan { url, durasi, tipe } atau null bila tak ada rekaman.
   async function _pgUploadAudio(id_kelompok) {
+    // Cegah simpan diam-diam tanpa audio saat rekaman masih berjalan.
+    if (_pgRec.mr && _pgRec.mr.state === 'recording') {
+      throw new Error('Rekaman masih berjalan — hentikan dulu sebelum menyimpan.');
+    }
     if (!_pgRec.blob) return null;
+    // Idempoten: bila sudah pernah terunggah (mis. simpan DB gagal lalu retry),
+    // pakai URL yang sama — jangan unggah berkas kedua ke Drive.
+    if (_pgRec.uploadedUrl) return { url: _pgRec.uploadedUrl, durasi: _pgRec.durasi, tipe: _pgRec.mime };
     // Umpan balik di dalam modal (loader global z-index 9999 < modal 99999 → tak terlihat).
-    var _okBtn = document.getElementById('pgModalOk');
-    var _okPrev = _okBtn ? _okBtn.textContent : '';
-    if (_okBtn) _okBtn.textContent = '⏳ Mengunggah rekaman…';
+    var okBtn = document.getElementById('pgModalOk');
+    var okPrev = okBtn ? okBtn.textContent : '';
+    if (okBtn) okBtn.textContent = '⏳ Mengunggah rekaman…';
     try {
       var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
       var token = tokRes && tokRes.token;
@@ -513,18 +540,25 @@
       });
       if (!res.ok) throw new Error('Koneksi ke server penyimpanan gagal.');
       var out = await res.json();
-      if (out.status !== 'success') throw new Error(out.message || 'Gagal mengunggah rekaman.');
+      if (out.status !== 'success' || !out.url) throw new Error(out.message || 'Gagal mengunggah rekaman.');
+      _pgRec.uploadedUrl = out.url;
       return { url: out.url, durasi: _pgRec.durasi, tipe: _pgRec.mime };
     } finally {
-      if (_okBtn) _okBtn.textContent = _okPrev;
+      if (okBtn) okBtn.textContent = okPrev;
     }
+  }
+
+  // Hanya izinkan URL http/https — cegah skema berbahaya (javascript:, data:) yang
+  // bisa tersimpan di audio_url via API lalu jadi Stored XSS saat dirender ke <a href>.
+  function _pgIsHttpUrl(u) {
+    return typeof u === 'string' && /^https?:\/\//i.test(u.trim());
   }
 
   // Tombol pemutar rekaman untuk riwayat setoran (reuse putarAudioInline portal guru).
   function _pgAudioBtnHtml(url) {
-    if (!url) return '';
+    if (!_pgIsHttpUrl(url)) return '';
     if (url.indexOf('id=') === -1) {
-      return '<div style="margin-top:4px"><a href="' + esc(url) + '" target="_blank" style="font-size:10px;color:#0284c7;font-weight:700">📂 Buka Rekaman</a></div>';
+      return '<div style="margin-top:4px"><a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:#0284c7;font-weight:700">📂 Buka Rekaman</a></div>';
     }
     var fid = url.split('id=')[1].split('&')[0];
     var cid = 'pgAud_' + fid;
