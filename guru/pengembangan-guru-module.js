@@ -506,11 +506,23 @@
   }
 
   // Unggah blob rekaman ke GAS → kembalikan { url, durasi, tipe } atau null bila tak ada rekaman.
+  // Bila masih merekam, hentikan & tunggu blob final siap (mr.stop async → blob baru
+  // tersedia di onstop). Membuat "Simpan" otomatis menutup rekaman tanpa langkah manual.
+  function _pgFinishRecording() {
+    return new Promise(function (resolve) {
+      if (!(_pgRec.mr && _pgRec.mr.state === 'recording')) { resolve(); return; }
+      var mr = _pgRec.mr;
+      var prevOnstop = mr.onstop;
+      mr.onstop = function () {
+        if (typeof prevOnstop === 'function') prevOnstop();  // set blob/preview seperti biasa
+        resolve();
+      };
+      try { mr.stop(); } catch (e) { resolve(); }
+    });
+  }
+
   async function _pgUploadAudio(id_kelompok) {
-    // Cegah simpan diam-diam tanpa audio saat rekaman masih berjalan.
-    if (_pgRec.mr && _pgRec.mr.state === 'recording') {
-      throw new Error('Rekaman masih berjalan — hentikan dulu sebelum menyimpan.');
-    }
+    await _pgFinishRecording();
     if (!_pgRec.blob) return null;
     // Idempoten: bila sudah pernah terunggah (mis. simpan DB gagal lalu retry),
     // pakai URL yang sama — jangan unggah berkas kedua ke Drive.
