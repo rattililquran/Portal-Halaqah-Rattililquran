@@ -21,13 +21,86 @@
   // Label bertumbuh (bukan menghakimi). Nilai enum DB tetap.
   function _hasilLabel(h) { return h === 'mengulang' ? 'lanjut berproses' : (h === 'lulus' ? 'lulus' : (h || '—')); }
   var _RUH = '«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ» — sebaik-baik kita yang belajar & mengajarkan Al-Qur\'an. Ini ikhtiar tumbuh bersama, bukan rapor kinerja.';
-  function _ruhBar() { return '<div style="background:var(--bg-2,#f8fafc);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:11.5px;color:var(--text-3);line-height:1.6">🌿 ' + _RUH + '</div>'; }
+  function _ruhBar() { return '<div class="pg-note" style="margin-bottom:12px">🌿 ' + _RUH + '</div>'; }
   function _privasiBar() { return '<div style="font-size:11px;color:var(--text-3);margin-top:8px">🔒 Data ini rahasia — hanya Anda &amp; pembina yang melihatnya, untuk tumbuh bersama.</div>'; }
+
+  function _pgStyles() {
+    return '<style id="pgStyles">'
+      + '#pgRoot{--pg-a:#0ea5e9;--pg-a2:#38bdf8;--pg-ad:#2563eb}'
+      + '#pgRoot *{box-sizing:border-box}'
+      // Segmented tabs
+      + '.pg-tabs{display:flex;gap:4px;padding:4px;background:rgba(0,0,0,.045);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}'
+      + '.pg-tab{flex:1 0 auto;white-space:nowrap;border:none;border-radius:10px;padding:9px 15px;font-size:12.5px;font-weight:800;cursor:pointer;color:var(--text-2);background:transparent;transition:color .18s,background .18s,box-shadow .18s}'
+      + '.pg-tab:hover{color:var(--text)}'
+      + '.pg-tab.on{background:linear-gradient(135deg,var(--pg-a),var(--pg-ad));color:#fff;box-shadow:0 4px 13px rgba(14,165,233,.3)}'
+      + 'html.theme-dark .pg-tabs{background:rgba(255,255,255,.05)}'
+      // Hero
+      + '.pg-hero{position:relative;overflow:hidden;border-radius:16px;padding:16px 18px;margin-bottom:14px;background:linear-gradient(135deg,rgba(14,165,233,.13),rgba(56,189,248,.05));border:1px solid rgba(14,165,233,.18)}'
+      + '.pg-hero::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.18),transparent 70%);pointer-events:none}'
+      + '.pg-hero .ar{font-family:\'Amiri\',serif;font-size:17px;color:var(--blue);line-height:1.95;margin-bottom:5px;position:relative}'
+      + '.pg-hero .msg{font-size:12.5px;color:var(--text-2);line-height:1.6;position:relative}'
+      + 'html.theme-dark .pg-hero{background:linear-gradient(135deg,rgba(56,189,248,.13),rgba(56,189,248,.04));border-color:rgba(56,189,248,.2)}'
+      // Stat tiles
+      + '.pg-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;margin-bottom:16px}'
+      + '.pg-stat{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 14px;position:relative;overflow:hidden}'
+      + '.pg-stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--pg-a),var(--pg-a2))}'
+      + '.pg-stat .v{font-size:23px;font-weight:800;color:var(--text);line-height:1}'
+      + '.pg-stat .l{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-top:6px}'
+      + 'html.theme-dark .pg-stat{background:rgba(255,255,255,.04)}'
+      // Cards
+      + '.pg-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .22s,transform .22s}'
+      + '.pg-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.08);transform:translateY(-1px)}'
+      + 'html.theme-dark .pg-card{background:rgba(255,255,255,.035)}'
+      + 'html.theme-dark .pg-card:hover{box-shadow:0 10px 26px rgba(0,0,0,.35)}'
+      + '.pg-card-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}'
+      + '.pg-card-t{font-weight:800;font-size:15px;color:var(--text);line-height:1.25}'
+      + '.pg-card-sub{font-size:11.5px;color:var(--text-3);margin-top:3px}'
+      // Buttons
+      + '.pg-btn{border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;transition:transform .12s,filter .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}'
+      + '.pg-btn:active{transform:scale(.95)}'
+      + '.pg-btn-primary{background:linear-gradient(135deg,var(--pg-a),var(--pg-ad));color:#fff;box-shadow:0 3px 10px rgba(14,165,233,.3)}'
+      + '.pg-btn-primary:hover{filter:brightness(1.06)}'
+      + '.pg-btn-soft{background:rgba(217,119,6,.13);color:#b45309}'
+      + '.pg-btn-soft:hover{background:rgba(217,119,6,.2)}'
+      + 'html.theme-dark .pg-btn-soft{background:rgba(217,119,6,.2);color:#fbbf24}'
+      // Chips
+      + '.pg-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}'
+      + '.pg-chip{font-size:10.5px;font-weight:700;color:var(--text-2);background:rgba(0,0,0,.05);border-radius:100px;padding:3px 10px;display:inline-flex;align-items:center;gap:4px}'
+      + 'html.theme-dark .pg-chip{background:rgba(255,255,255,.08)}'
+      // Empty
+      + '.pg-empty{text-align:center;color:var(--text-3);font-size:13px;padding:34px 18px;line-height:1.75;background:var(--card);border:1px dashed var(--border);border-radius:15px}'
+      + '.pg-empty .ico{font-size:34px;display:block;margin-bottom:8px;opacity:.85}'
+      + 'html.theme-dark .pg-empty{background:rgba(255,255,255,.03)}'
+      // Profil sections
+      + '.pg-sec{margin-bottom:14px}'
+      + '.pg-sec-t{font-size:12.5px;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px}'
+      + '.pg-row{font-size:12px;color:var(--text-2);padding:9px 11px;border-radius:10px;background:rgba(0,0,0,.025);margin-bottom:5px;line-height:1.5}'
+      + 'html.theme-dark .pg-row{background:rgba(255,255,255,.035)}'
+      + '.pg-badge{font-size:12px;font-weight:800;border-radius:100px;padding:4px 13px;text-transform:capitalize}'
+      + '.pg-note{background:rgba(0,0,0,.025);border-radius:11px;padding:11px 13px;font-size:11.5px;color:var(--text-2);line-height:1.65}'
+      + 'html.theme-dark .pg-note{background:rgba(255,255,255,.04)}'
+      // Modal (dipasang global karena #pgModal menempel di body) — dark-aware
+      + '@keyframes pgFade{from{opacity:0}to{opacity:1}}'
+      + '.pg-modal-card{background:#fff;color:var(--text);border-radius:16px;max-width:440px;width:100%;max-height:85vh;overflow:auto;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.32);animation:pgPop .2s cubic-bezier(.2,.8,.2,1)}'
+      + '@keyframes pgPop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}'
+      + 'html.theme-dark .pg-modal-card{background:#1a1d24;color:#e8eaed}'
+      + '.pg-modal-title{font-weight:800;font-size:15px;margin-bottom:14px;color:var(--text)}'
+      + 'html.theme-dark .pg-modal-title{color:#f0f2f8}'
+      + '#pgModal .pg-inp{width:100%;box-sizing:border-box;font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid var(--border);background:#fff;color:inherit;transition:border-color .15s,box-shadow .15s}'
+      + '#pgModal .pg-inp:focus{outline:none;border-color:var(--pg-a);box-shadow:0 0 0 3px rgba(14,165,233,.14)}'
+      + 'html.theme-dark #pgModal .pg-inp{background:#22262e;border-color:rgba(255,255,255,.13)}'
+      + '.pg-modal-cancel{border:none;background:#f1f5f9;color:#334155;border-radius:9px;padding:8px 15px;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s}'
+      + '.pg-modal-cancel:hover{background:#e2e8f0}'
+      + 'html.theme-dark .pg-modal-cancel{background:rgba(255,255,255,.08);color:#cbd5e1}'
+      + '.pg-modal-ok{border:none;background:linear-gradient(135deg,var(--pg-a),var(--pg-ad));color:#fff;border-radius:9px;padding:8px 17px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(14,165,233,.3)}'
+      + '.pg-modal-ok:disabled{cursor:default}'
+      + '</style>';
+  }
 
   async function loadPengembanganGuru() {
     var r = _root(); if (!r) return;
     PG.myId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id_user : null;
-    r.innerHTML = '<div id="pgTabs"></div><div id="pgBody"></div>';
+    r.innerHTML = _pgStyles() + '<div id="pgTabs"></div><div id="pgBody"></div>';
     _busy();
     try { var p = await window.HQ.Auth.getProfile(); PG.musyrif = !!(p.data && p.data.is_musyrif); }
     catch (e) { PG.musyrif = false; }
@@ -42,11 +115,9 @@
   }
   function _renderTabs() {
     var el = document.getElementById('pgTabs'); if (!el) return;
-    el.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">'
+    el.innerHTML = '<div class="pg-tabs">'
       + _tabs().map(function(t) {
-          var on = t.id === PG.tab;
-          return '<button onclick="pgGoTab(\'' + t.id + '\')" style="border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;'
-            + (on ? 'background:#0284c7;color:#fff' : 'background:var(--bg-2,#f1f5f9);color:var(--text-1,#334155)') + '">' + t.label + '</button>';
+          return '<button class="pg-tab' + (t.id === PG.tab ? ' on' : '') + '" onclick="pgGoTab(\'' + t.id + '\')">' + t.label + '</button>';
         }).join('')
       + '</div>';
   }
@@ -69,15 +140,15 @@
       PG.kelompok = (settled[0].value && settled[0].value.data) || [];
       var rekap = (settled[1].status === 'fulfilled' && settled[1].value.data) || {};
       if (!PG.kelompok.length) {
-        _body('<div style="color:var(--text-3);font-size:13px;padding:16px;line-height:1.6">Anda belum tergabung di halaqah pengajar mana pun.<br>Hubungi admin untuk dimasukkan ke kelompok pembinaan.</div>');
+        _body('<div class="pg-empty"><span class="ico">🤝</span>Anda belum tergabung di halaqah pengajar mana pun.<br>Hubungi admin untuk dimasukkan ke kelompok pembinaan.</div>');
         return;
       }
       var totalKontribusi = (rekap.total_setor || 0) + (rekap.total_simak || 0);
       var sapa = totalKontribusi > 0
         ? '🌱 Alhamdulillah, sudah <strong>' + totalKontribusi + '</strong> kali tumbuh bersama rekan. Barakallahu fiik.'
         : '🌱 Mari mulai saling menyimak — sekecil apa pun langkahnya, berharga.';
-      var head = '<div style="background:var(--bg-2,#f8fafc);border-radius:11px;padding:12px;margin-bottom:6px;font-size:12px;color:var(--text-2,#475569);line-height:1.6">' + sapa + '</div>'
-        + '<div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 12px 12px">'
+      var head = '<div class="pg-hero"><div class="ar">خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</div><div class="msg">' + sapa + '</div></div>'
+        + '<div class="pg-stats">'
         + _mini('Setoran keluar', rekap.total_setor || 0)
         + _mini('Menyimak rekan', rekap.total_simak || 0)
         + (rekap.kategori_dominan ? _mini('Fokus tersering', esc(rekap.kategori_dominan)) : '')
@@ -88,20 +159,21 @@
   }
 
   function _mini(label, val) {
-    return '<div><div style="font-size:11px;color:var(--text-3)">' + label + '</div><div style="font-size:18px;font-weight:800;margin-top:2px">' + val + '</div></div>';
+    return '<div class="pg-stat"><div class="v">' + val + '</div><div class="l">' + label + '</div></div>';
   }
 
   function _peerCard(k) {
-    return '<div style="border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:13px;margin-bottom:10px">'
-      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:start">'
-      + '<div><div style="font-weight:800;font-size:14px">' + esc(k.nama_kelompok) + '</div>'
-      + '<div style="font-size:11px;color:var(--text-3)">' + (k.fokus ? esc(k.fokus) + ' · ' : '') + (k.jadwal ? '🗓️ ' + esc(k.jadwal) : '') + '</div></div>'
-      + '<button onclick="pgSetorForm(\'' + escJs(k.id_kelompok) + '\')" style="border:none;background:#0284c7;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer">+ Setor</button>'
+    var anggota = (k.anggota || []).map(function(a) { return '<span class="pg-chip">👤 ' + esc(a.nama_guru || a.id_guru) + '</span>'; }).join('') || '<span class="pg-chip">—</span>';
+    return '<div class="pg-card">'
+      + '<div class="pg-card-h">'
+      + '<div><div class="pg-card-t">' + esc(k.nama_kelompok) + '</div>'
+      + '<div class="pg-card-sub">' + (k.fokus ? esc(k.fokus) + ' · ' : '') + (k.jadwal ? '🗓️ ' + esc(k.jadwal) : (k.fokus ? '' : '&nbsp;')) + '</div></div>'
+      + '<button class="pg-btn pg-btn-primary" onclick="pgSetorForm(\'' + escJs(k.id_kelompok) + '\')">+ Setor</button>'
       + '</div>'
-      + '<div style="font-size:11px;color:var(--text-3);margin-top:6px">Anggota: ' + ((k.anggota || []).map(function(a) { return esc(a.nama_guru || a.id_guru); }).join(', ') || '—') + '</div>'
-      + '<div style="margin-top:8px"><button onclick="pgToggleTarget(\'' + escJs(k.id_kelompok) + '\')" style="border:none;background:rgba(217,119,6,.12);color:#b45309;border-radius:7px;padding:4px 11px;font-size:11px;font-weight:800;cursor:pointer">🎯 Target &amp; Milestone</button></div>'
-      + '<div id="pgTgt_' + esc(k.id_kelompok) + '" style="display:none;margin-top:8px"></div>'
-      + '<div id="pgSet_' + esc(k.id_kelompok) + '" style="margin-top:10px"><div style="font-size:11px;color:var(--text-3)">⏳ Memuat setoran...</div></div>'
+      + '<div class="pg-chips">' + anggota + '</div>'
+      + '<div style="margin-top:11px"><button class="pg-btn pg-btn-soft" onclick="pgToggleTarget(\'' + escJs(k.id_kelompok) + '\')">🎯 Target &amp; Milestone</button></div>'
+      + '<div id="pgTgt_' + esc(k.id_kelompok) + '" style="display:none;margin-top:10px"></div>'
+      + '<div id="pgSet_' + esc(k.id_kelompok) + '" style="margin-top:12px"><div style="font-size:11px;color:var(--text-3)">⏳ Memuat setoran...</div></div>'
       + '</div>';
   }
 
@@ -273,13 +345,13 @@
       var d = (await window.HQ.GuruAPI.getProfilPengajarSaya()).data || {};
       var k = d.kompetensi || {};
       var jenjang = k.jenjang || 'pemula';
-      var head = '<div style="border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:14px;margin-bottom:12px">'
-        + '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
-        + '<span style="font-size:12px;font-weight:800;border-radius:100px;padding:3px 11px;' + (JENJANG_BADGE[jenjang] || '') + '">' + esc(jenjang) + '</span>'
+      var head = '<div class="pg-card">'
+        + '<div class="pg-jenjang" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+        + '<span class="pg-badge" style="' + (JENJANG_BADGE[jenjang] || '') + '">' + esc(jenjang) + '</span>'
         + '<span style="font-size:11px;font-weight:700;color:' + (k.status_sertifikasi === 'tersertifikasi' ? '#166534' : '#92400e') + '">' + esc(k.status_sertifikasi || 'orientasi') + '</span>'
         + (k.hafalan_juz != null ? '<span style="font-size:11px;color:var(--text-3)">· ' + esc(k.hafalan_juz) + ' juz</span>' : '')
         + '</div>'
-        + (k.status_sanad ? '<div style="font-size:12px;color:var(--text-3);margin-top:6px">Sanad: ' + esc(k.status_sanad) + '</div>' : '')
+        + (k.status_sanad ? '<div style="font-size:12px;color:var(--text-3);margin-top:8px">Sanad: ' + esc(k.status_sanad) + '</div>' : '')
         + _privasiBar()
         + '</div>';
       var evalSec = _profilList('📊 Evaluasi', (d.evaluasi || []).map(function(e) {
@@ -302,9 +374,9 @@
   }
 
   function _profilList(title, items) {
-    return '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:800;margin-bottom:6px">' + title + '</div>'
-      + (items.length ? items.map(function(x) { return '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border,#f1f5f9)">' + x + '</div>'; }).join('')
-                      : '<div style="font-size:11px;color:var(--text-3)">Belum ada.</div>')
+    return '<div class="pg-sec"><div class="pg-sec-t">' + title + '</div>'
+      + (items.length ? items.map(function(x) { return '<div class="pg-row">' + x + '</div>'; }).join('')
+                      : '<div style="font-size:11.5px;color:var(--text-3);padding:4px 2px">Belum ada.</div>')
       + '</div>';
   }
 
@@ -323,16 +395,16 @@
       PG.indikator = (settled[1].status === 'fulfilled' && settled[1].value.data) || [];
       var rows = binaan.map(function(u) {
         var k = u.kompetensi || {};
-        return '<div style="border:1px solid var(--border,#e5e7eb);border-radius:11px;padding:11px;margin-bottom:8px">'
-          + '<div style="font-weight:800;font-size:13px">' + esc(u.nama_lengkap) + ' <span style="font-size:10px;font-weight:600;color:var(--text-3)">· ' + esc(k.jenjang || 'pemula') + '</span></div>'
-          + '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
-          + '<button onclick="pgTashihForm(\'' + escJs(u.id_user) + '\')" style="border:none;background:rgba(2,132,199,.1);color:#0284c7;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer">🎤 Tashih</button>'
-          + '<button onclick="pgEvaluasiForm(\'' + escJs(u.id_user) + '\')" style="border:none;background:rgba(124,58,237,.1);color:#7c3aed;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer">📊 Evaluasi</button>'
-          + '<button onclick="pgMutabaahForm(\'' + escJs(u.id_user) + '\')" style="border:none;background:rgba(217,119,6,.1);color:#b45309;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer">🎯 Mutaba\'ah</button>'
+        return '<div class="pg-card" style="padding:13px">'
+          + '<div class="pg-card-t" style="font-size:14px">' + esc(u.nama_lengkap) + ' <span style="font-size:10px;font-weight:700;color:var(--text-3)">· ' + esc(k.jenjang || 'pemula') + '</span></div>'
+          + '<div style="display:flex;gap:6px;margin-top:11px;flex-wrap:wrap">'
+          + '<button class="pg-btn" style="background:rgba(2,132,199,.12);color:#0284c7" onclick="pgTashihForm(\'' + escJs(u.id_user) + '\')">🎤 Tashih</button>'
+          + '<button class="pg-btn" style="background:rgba(124,58,237,.12);color:#7c3aed" onclick="pgEvaluasiForm(\'' + escJs(u.id_user) + '\')">📊 Evaluasi</button>'
+          + '<button class="pg-btn" style="background:rgba(217,119,6,.13);color:#b45309" onclick="pgMutabaahForm(\'' + escJs(u.id_user) + '\')">🎯 Mutaba\'ah</button>'
           + '</div></div>';
       }).join('');
-      _body('<div style="background:var(--bg-2,#f8fafc);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px;color:var(--text-2,#475569);line-height:1.6">🤝 Membina dengan lembut &amp; menguatkan — dahulukan apresiasi atas koreksi. Data mutu bersifat rahasia (hanya Anda &amp; admin).</div>'
-        + (rows || '<div style="color:var(--text-3);font-size:12px">Belum ada pengajar binaan.</div>'));
+      _body('<div class="pg-note" style="margin-bottom:12px">🤝 Membina dengan lembut &amp; menguatkan — dahulukan apresiasi atas koreksi. Data mutu bersifat rahasia (hanya Anda &amp; admin).</div>'
+        + (rows || '<div class="pg-empty"><span class="ico">🌱</span>Belum ada pengajar binaan.</div>'));
     } catch (e) { _err(e); }
   }
 
@@ -402,14 +474,13 @@
     var old = document.getElementById('pgModal'); if (old) old.remove();
     var ov = document.createElement('div');
     ov.id = 'pgModal';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
-    ov.innerHTML = '<div style="background:var(--bg-1,#fff);border-radius:14px;max-width:440px;width:100%;max-height:85vh;overflow:auto;padding:18px">'
-      + '<div style="font-weight:800;font-size:14px;margin-bottom:12px">' + esc(title) + '</div>'
-      + '<style>#pgModal .pg-inp{width:100%;box-sizing:border-box;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border,#e5e7eb);background:var(--bg-1,#fff);color:inherit}</style>'
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;animation:pgFade .18s ease';
+    ov.innerHTML = '<div class="pg-modal-card">'
+      + '<div class="pg-modal-title">' + esc(title) + '</div>'
       + '<div>' + bodyHtml + '</div>'
-      + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">'
-      + '<button onclick="pgCloseModal()" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer">Batal</button>'
-      + '<button id="pgModalOk" style="border:none;background:#0284c7;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer">Simpan</button>'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">'
+      + '<button class="pg-modal-cancel" onclick="pgCloseModal()">Batal</button>'
+      + '<button id="pgModalOk" class="pg-modal-ok">Simpan</button>'
       + '</div></div>';
     document.body.appendChild(ov);
     document.getElementById('pgModalOk').onclick = async function() {
