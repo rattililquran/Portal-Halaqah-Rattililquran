@@ -18,6 +18,11 @@
   function _busy() { _body('<div style="padding:20px;color:var(--text-3,#6b7280)">⏳ Memuat...</div>'); }
   function _err(e) { _body('<div style="padding:20px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'); }
   function _optTags(arr, sel) { return arr.map(function(v) { return '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join(''); }
+  // Label bertumbuh (bukan menghakimi). Nilai enum DB tetap.
+  function _hasilLabel(h) { return h === 'mengulang' ? 'lanjut berproses' : (h === 'lulus' ? 'lulus' : (h || '—')); }
+  var _RUH = '«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ» — sebaik-baik kita yang belajar & mengajarkan Al-Qur\'an. Ini ikhtiar tumbuh bersama, bukan rapor kinerja.';
+  function _ruhBar() { return '<div style="background:var(--bg-2,#f8fafc);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:11.5px;color:var(--text-3);line-height:1.6">🌿 ' + _RUH + '</div>'; }
+  function _privasiBar() { return '<div style="font-size:11px;color:var(--text-3);margin-top:8px">🔒 Data ini rahasia — hanya Anda &amp; pembina yang melihatnya, untuk tumbuh bersama.</div>'; }
 
   async function loadPengembanganGuru() {
     var r = _root(); if (!r) return;
@@ -67,7 +72,12 @@
         _body('<div style="color:var(--text-3);font-size:13px;padding:16px;line-height:1.6">Anda belum tergabung di halaqah pengajar mana pun.<br>Hubungi admin untuk dimasukkan ke kelompok pembinaan.</div>');
         return;
       }
-      var head = '<div style="background:var(--bg-2,#f8fafc);border-radius:11px;padding:12px;margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap">'
+      var totalKontribusi = (rekap.total_setor || 0) + (rekap.total_simak || 0);
+      var sapa = totalKontribusi > 0
+        ? '🌱 Alhamdulillah, sudah <strong>' + totalKontribusi + '</strong> kali tumbuh bersama rekan. Barakallahu fiik.'
+        : '🌱 Mari mulai saling menyimak — sekecil apa pun langkahnya, berharga.';
+      var head = '<div style="background:var(--bg-2,#f8fafc);border-radius:11px;padding:12px;margin-bottom:6px;font-size:12px;color:var(--text-2,#475569);line-height:1.6">' + sapa + '</div>'
+        + '<div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 12px 12px">'
         + _mini('Setoran keluar', rekap.total_setor || 0)
         + _mini('Menyimak rekan', rekap.total_simak || 0)
         + (rekap.kategori_dominan ? _mini('Fokus tersering', esc(rekap.kategori_dominan)) : '')
@@ -261,20 +271,24 @@
         + (k.hafalan_juz != null ? '<span style="font-size:11px;color:var(--text-3)">· ' + esc(k.hafalan_juz) + ' juz</span>' : '')
         + '</div>'
         + (k.status_sanad ? '<div style="font-size:12px;color:var(--text-3);margin-top:6px">Sanad: ' + esc(k.status_sanad) + '</div>' : '')
+        + _privasiBar()
         + '</div>';
       var evalSec = _profilList('📊 Evaluasi', (d.evaluasi || []).map(function(e) {
         return '<strong>' + (e.nilai_akhir != null ? e.nilai_akhir : '—') + '</strong> · ' + esc(e.tanggal || '') + (e.catatan ? ' · ' + esc(e.catatan) : '');
       }));
       var tashihSec = _profilList('🎤 Tashih', (d.tashih || []).map(function(t) {
-        return esc(t.tanggal || '') + ' · ' + esc(t.surat_diuji || '-') + ' · ' + esc(t.hasil || '-');
+        var baik = 0, tot = 0;
+        if (t.skor && typeof t.skor === 'object') { Object.keys(t.skor).forEach(function(k){ tot++; if (t.skor[k] === 'baik') baik++; }); }
+        return esc(t.tanggal || '') + ' · ' + esc(t.surat_diuji || '-') + ' · ' + esc(_hasilLabel(t.hasil))
+          + (tot ? ' <span style="color:#166534;font-size:10px">✓ ' + baik + '/' + tot + ' butir sudah baik</span>' : '');
       }));
-      var mtbSec = _profilList('🎯 Mutaba\'ah', (d.mutabaah || []).map(function(m) {
+      var mtbSec = _profilList('🎯 Tindak lanjut & harapan', (d.mutabaah || []).map(function(m) {
         return '<strong>' + esc(m.status) + '</strong> · ' + esc(m.temuan) + (m.rencana ? ' → ' + esc(m.rencana) : '');
       }));
       var jenjangSec = _profilList('🪜 Riwayat Jenjang', (d.riwayat_jenjang || []).map(function(r) {
         return esc(r.tanggal || '') + ' · ' + esc(r.jenjang_lama || '-') + ' → <strong>' + esc(r.jenjang_baru) + '</strong>';
       }));
-      _body(head + evalSec + tashihSec + mtbSec + jenjangSec);
+      _body(_ruhBar() + head + evalSec + tashihSec + mtbSec + jenjangSec);
     } catch (e) { _err(e); }
   }
 
@@ -308,7 +322,7 @@
           + '<button onclick="pgMutabaahForm(\'' + escJs(u.id_user) + '\')" style="border:none;background:rgba(217,119,6,.1);color:#b45309;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer">🎯 Mutaba\'ah</button>'
           + '</div></div>';
       }).join('');
-      _body('<div style="font-size:11px;color:var(--text-3);margin-bottom:10px">Sebagai Musyrif, Anda membina pengajar berikut. Data mutu bersifat rahasia antar pengajar.</div>'
+      _body('<div style="background:var(--bg-2,#f8fafc);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px;color:var(--text-2,#475569);line-height:1.6">🤝 Membina dengan lembut &amp; menguatkan — dahulukan apresiasi atas koreksi. Data mutu bersifat rahasia (hanya Anda &amp; admin).</div>'
         + (rows || '<div style="color:var(--text-3);font-size:12px">Belum ada pengajar binaan.</div>'));
     } catch (e) { _err(e); }
   }
@@ -319,7 +333,7 @@
       + butir.map(function(b) {
           return _fld(b.charAt(0).toUpperCase() + b.slice(1), '<select id="pgTs_' + b + '" class="pg-inp"><option value="baik">Baik</option><option value="perlu">Perlu perbaikan</option></select>');
         }).join('')
-      + _fld('Hasil', '<select id="pgTsHasil" class="pg-inp"><option value="lulus">Lulus</option><option value="mengulang">Mengulang</option></select>')
+      + _fld('Hasil', '<select id="pgTsHasil" class="pg-inp"><option value="lulus">Lulus</option><option value="mengulang">Lanjut berproses</option></select>')
       + _fld('Catatan (opsional)', '<textarea id="pgTsCatatan" class="pg-inp" rows="2"></textarea>');
     pgModal('Tashih Bacaan Pengajar', body, async function() {
       var skor = {};
@@ -354,12 +368,12 @@
   }
 
   function pgMutabaahForm(id_guru) {
-    var body = _fld('Temuan / kelemahan', '<textarea id="pgMtTemuan" class="pg-inp" rows="2"></textarea>')
+    var body = _fld('Area bertumbuh / catatan sayang', '<textarea id="pgMtTemuan" class="pg-inp" rows="2" placeholder="tulis dengan bahasa yang menguatkan"></textarea>')
       + _fld('Rencana perbaikan (opsional)', '<textarea id="pgMtRencana" class="pg-inp" rows="2"></textarea>')
       + _fld('Target waktu (opsional)', '<input id="pgMtTarget" type="date" class="pg-inp">');
     pgModal('Buka Mutaba\'ah', body, async function() {
       var temuan = document.getElementById('pgMtTemuan').value.trim();
-      if (!temuan) { throw new Error('Temuan wajib diisi'); }
+      if (!temuan) { throw new Error('Catatan wajib diisi'); }
       await window.HQ.GuruAPI.upsertMutabaahPengajar({
         id_guru: id_guru, temuan: temuan,
         rencana: document.getElementById('pgMtRencana').value.trim() || null,

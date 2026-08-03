@@ -85,7 +85,8 @@
           return '<button onclick="ppGoTab(\'' + t.id + '\')" style="border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:800;cursor:pointer;'
             + (on ? 'background:var(--blue,#2563eb);color:#fff' : 'background:var(--bg-2,#f1f5f9);color:var(--text-1,#334155)') + '">' + t.label + '</button>';
         }).join('')
-      + '</div>';
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--text-3);background:var(--bg-2,#f8fafc);border-radius:8px;padding:7px 11px;margin-bottom:12px;line-height:1.5">🌱 Ini <strong>ikhtiar tumbuh bersama</strong>, bukan rapor kinerja — dahulukan apresiasi, bina dengan lembut.</div>';
   }
 
   function loadPengembanganPengajar() {
@@ -479,6 +480,9 @@
       var obs = (res[3] && res[3].status === 'fulfilled' && res[3].value.data) || [];
       var ev = r.evaluasi_terakhir;
       PP.obsCatatan = {};   // simpan catatan observasi utk tindak lanjut (hindari escaping panjang di onclick)
+      // Nudge apresiasi ≥ koreksi: bila tak ada apresiasi dalam 30 hari.
+      var adaApresiasiBaru = ap.some(function(a){ return a.tanggal && (Date.now() - new Date(a.tanggal).getTime()) < 30 * 86400000; });
+      var nudgeApresiasi = adaApresiasiBaru ? '' : '<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:7px 10px;margin-bottom:8px">✨ Sudah beri apresiasi bulan ini? Sekecil apa pun menguatkan.</div>';
       var apHtml = ap.map(function(a) {
         return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
           + '<span style="flex:1">🏅 <strong>' + esc(a.jenis) + '</strong>' + (a.keterangan ? ' · ' + esc(a.keterangan) : '') + ' <span style="color:var(--text-3)">· ' + esc(a.tanggal || '') + '</span></span>'
@@ -512,7 +516,7 @@
         + '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">🏅 Apresiasi</span>'
         + '<button onclick="ppBeriApresiasi(\'' + esc(id_guru) + '\')" style="border:none;background:#d97706;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Beri Apresiasi</button></div>'
-        + apHtml + '</div>'
+        + nudgeApresiasi + apHtml + '</div>'
         + _riwayatHtml(re)
         + obsHtml;
     } catch (e) { box.innerHTML = '<div style="color:var(--red)">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
@@ -522,10 +526,12 @@
   function _riwayatHtml(re) {
     re = re || {};
     var tashih = (re.tashih || []).map(function(t) {
-      var badge = t.hasil === 'lulus' ? 'background:#dcfce7;color:#166534' : (t.hasil === 'mengulang' ? 'background:#fee2e2;color:#991b1b' : 'background:#f1f5f9;color:#475569');
+      // Warna hangat — "lanjut berproses" (amber), bukan merah menghakimi.
+      var badge = t.hasil === 'lulus' ? 'background:#dcfce7;color:#166534' : (t.hasil === 'mengulang' ? 'background:#fef3c7;color:#92400e' : 'background:#f1f5f9;color:#475569');
+      var label = t.hasil === 'mengulang' ? 'lanjut berproses' : (t.hasil || '—');
       return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
         + esc(t.tanggal || '') + ' · ' + esc(t.surat_diuji || '-')
-        + ' <span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 7px;' + badge + '">' + esc(t.hasil || '—') + '</span>'
+        + ' <span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 7px;' + badge + '">' + esc(label) + '</span>'
         + (t.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(t.catatan) + '</div>' : '')
         + '</div>';
     }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada tashih.</div>';
@@ -566,7 +572,7 @@
   // B1: temuan observasi ketua → buka mutaba'ah (sumber='observasi'). is_pembina() izinkan tulis.
   async function ppTindaklanjutiObservasi(id_guru, key) {
     var temuanDefault = (PP.obsCatatan && PP.obsCatatan[key]) || '';
-    var temuan = prompt('Temuan (dari observasi) untuk ditindaklanjuti:', temuanDefault);
+    var temuan = prompt('Area bertumbuh (dari observasi) untuk didampingi:', temuanDefault);
     if (temuan === null || !temuan.trim()) return;
     var rencana = prompt('Rencana perbaikan (opsional):') || '';
     showLoad('Membuka mutaba\'ah...');

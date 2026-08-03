@@ -2826,7 +2826,7 @@ var GuruAPI = {
     if (d.hasil === 'mengulang') {
       await _sb.from('pengajar_mutabaah').insert({
         id_guru: d.id_guru, id_pendamping: _uid(),
-        temuan: 'Tashih perlu diulang' + (d.surat_diuji ? ' (' + d.surat_diuji + ')' : ''),
+        temuan: 'Lanjut berproses pada tashih' + (d.surat_diuji ? ' (' + d.surat_diuji + ')' : ''),
         rencana: d.catatan || null, sumber: 'tashih',
       });
     }
