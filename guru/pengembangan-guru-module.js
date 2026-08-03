@@ -79,6 +79,49 @@
       + '.pg-badge{font-size:12px;font-weight:800;border-radius:100px;padding:4px 13px;text-transform:capitalize}'
       + '.pg-note{background:rgba(0,0,0,.025);border-radius:11px;padding:11px 13px;font-size:11.5px;color:var(--text-2);line-height:1.65}'
       + 'html.theme-dark .pg-note{background:rgba(255,255,255,.04)}'
+      // Avatar inisial
+      + '.pg-av{width:28px;height:28px;flex:0 0 auto;border-radius:50%;background:linear-gradient(135deg,var(--pg-a),var(--pg-ad));color:#fff;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;text-transform:uppercase;box-shadow:0 2px 6px rgba(14,165,233,.3)}'
+      // Pill kategori (warna per jenis, dark-aware)
+      + '.pg-kat{font-size:9.5px;font-weight:800;border-radius:100px;padding:2px 9px;text-transform:capitalize;letter-spacing:.02em;color:#475569;background:rgba(100,116,139,.14);white-space:nowrap}'
+      + '.pg-kat[data-k="makhraj"]{color:#0369a1;background:rgba(14,165,233,.14)}html.theme-dark .pg-kat[data-k="makhraj"]{color:#7dd3fc;background:rgba(14,165,233,.18)}'
+      + '.pg-kat[data-k="sifat"]{color:#6d28d9;background:rgba(124,58,237,.13)}html.theme-dark .pg-kat[data-k="sifat"]{color:#c4b5fd;background:rgba(124,58,237,.2)}'
+      + '.pg-kat[data-k="dalil"]{color:#047857;background:rgba(5,150,105,.13)}html.theme-dark .pg-kat[data-k="dalil"]{color:#6ee7b7;background:rgba(5,150,105,.2)}'
+      + '.pg-kat[data-k="tajwid"]{color:#b45309;background:rgba(217,119,6,.15)}html.theme-dark .pg-kat[data-k="tajwid"]{color:#fbbf24;background:rgba(217,119,6,.2)}'
+      + '.pg-kat[data-k="hafalan"]{color:#be123c;background:rgba(225,29,72,.12)}html.theme-dark .pg-kat[data-k="hafalan"]{color:#fda4af;background:rgba(225,29,72,.2)}'
+      + 'html.theme-dark .pg-kat{color:#cbd5e1;background:rgba(255,255,255,.08)}'
+      // Kartu "menunggu menyimak"
+      + '.pg-pending{background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.32);border-radius:12px;padding:11px 12px;margin-bottom:10px}'
+      + 'html.theme-dark .pg-pending{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(245,158,11,.03));border-color:rgba(245,158,11,.3)}'
+      + '.pg-pending-h{font-size:11px;font-weight:800;color:#b45309;margin-bottom:9px;display:flex;align-items:center;gap:7px}'
+      + 'html.theme-dark .pg-pending-h{color:#fbbf24}'
+      + '.pg-count{background:#d97706;color:#fff;font-size:10px;font-weight:800;border-radius:100px;padding:1px 8px}'
+      // Feed setoran
+      + '.pg-feed-t{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin:13px 0 4px}'
+      + '.pg-fi{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border)}'
+      + '.pg-fi:first-of-type{border-top:none}'
+      + '.pg-fi-body{flex:1;min-width:0}'
+      + '.pg-fi-line{font-size:12px;color:var(--text);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.4}'
+      + '.pg-fi-sub{font-size:11px;color:var(--text-3);margin-top:4px;line-height:1.5}'
+      + '.pg-nilai{font-size:9.5px;font-weight:800;border-radius:100px;padding:2px 8px;background:rgba(22,163,74,.15);color:#15803d;white-space:nowrap}'
+      + 'html.theme-dark .pg-nilai{background:rgba(34,197,94,.18);color:#4ade80}'
+      + '.pg-nilai.wait{background:rgba(217,119,6,.15);color:#b45309}html.theme-dark .pg-nilai.wait{color:#fbbf24}'
+      + '.pg-mini-btn{border:none;border-radius:8px;padding:5px 13px;font-size:11px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 2px 7px rgba(22,163,74,.28);transition:filter .15s}'
+      + '.pg-mini-btn:hover{filter:brightness(1.06)}'
+      // Target & Milestone
+      + '.pg-tm{border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(0,0,0,.015)}'
+      + 'html.theme-dark .pg-tm{background:rgba(255,255,255,.025)}'
+      + '.pg-tm-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}'
+      + '.pg-tm-h .t{font-size:11px;font-weight:800}'
+      + '.pg-tm-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;margin-bottom:5px;font-size:11.5px;line-height:1.4}'
+      + '.pg-tm-item.tg{background:rgba(245,158,11,.1)}html.theme-dark .pg-tm-item.tg{background:rgba(245,158,11,.13)}'
+      + '.pg-tm-item.ms{background:rgba(22,163,74,.09)}html.theme-dark .pg-tm-item.ms{background:rgba(22,163,74,.13)}'
+      + '.pg-tm-item .g{flex:1;min-width:0}'
+      + '.pg-tm-empty{font-size:11px;color:var(--text-3);padding:3px 2px}'
+      + '.pg-x{background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px;line-height:1;padding:2px 4px;opacity:.65;transition:opacity .15s}'
+      + '.pg-x:hover{opacity:1}'
+      + '.pg-ok{background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;cursor:pointer}'
+      + '.pg-add{border:none;border-radius:7px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;color:#fff}'
+      + '.pg-tag-done{font-size:9.5px;font-weight:800;color:#15803d;background:rgba(22,163,74,.16);border-radius:100px;padding:1px 8px}html.theme-dark .pg-tag-done{color:#4ade80}'
       // Modal (dipasang global karena #pgModal menempel di body) — dark-aware
       + '@keyframes pgFade{from{opacity:0}to{opacity:1}}'
       + '.pg-modal-card{background:#fff;color:var(--text);border-radius:16px;max-width:440px;width:100%;max-height:85vh;overflow:auto;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.32);animation:pgPop .2s cubic-bezier(.2,.8,.2,1)}'
@@ -162,6 +205,9 @@
     return '<div class="pg-stat"><div class="v">' + val + '</div><div class="l">' + label + '</div></div>';
   }
 
+  function _katPill(kat) { return '<span class="pg-kat" data-k="' + esc(kat || 'lainnya') + '">' + esc(kat || 'lainnya') + '</span>'; }
+  function _avatar(name) { var n = String(name || '?').trim(); return '<span class="pg-av">' + esc(n ? n.charAt(0) : '?') + '</span>'; }
+
   function _peerCard(k) {
     var anggota = (k.anggota || []).map(function(a) { return '<span class="pg-chip">👤 ' + esc(a.nama_guru || a.id_guru) + '</span>'; }).join('') || '<span class="pg-chip">—</span>';
     return '<div class="pg-card">'
@@ -194,25 +240,25 @@
       var kj = escJs(id_kelompok);
       var tHtml = (d.target || []).map(function(t) {
         var done = t.status === 'tercapai';
-        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">'
-          + '<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0">🎯 ' + esc(t.judul)
-          + (done ? ' <span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px">tercapai</span>' : (t.tanggal_target ? ' <span style="font-size:10px;color:var(--text-3)">· ' + esc(t.tanggal_target) + '</span>' : '')) + '</span>'
-          + (done ? '' : '<button onclick="pgMarkTarget(\'' + escJs(t.id_target) + '\',\'' + kj + '\')" title="Tandai tercapai" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>')
-          + '<button onclick="pgDelTgt(\'target\',\'' + escJs(t.id_target) + '\',\'' + kj + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+        return '<div class="pg-tm-item tg">'
+          + '<span class="g" style="color:#92400e;font-weight:700">🎯 ' + esc(t.judul)
+          + (done ? ' <span class="pg-tag-done">tercapai</span>' : (t.tanggal_target ? ' <span style="font-size:10px;color:var(--text-3)">· ' + esc(t.tanggal_target) + '</span>' : '')) + '</span>'
+          + (done ? '' : '<button class="pg-ok" onclick="pgMarkTarget(\'' + escJs(t.id_target) + '\',\'' + kj + '\')" title="Tandai tercapai">✓</button>')
+          + '<button class="pg-x" onclick="pgDelTgt(\'target\',\'' + escJs(t.id_target) + '\',\'' + kj + '\')">✕</button>'
           + '</div>';
-      }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada target.</div>';
+      }).join('') || '<div class="pg-tm-empty">Belum ada target.</div>';
       var mHtml = (d.milestone || []).map(function(m) {
-        return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
-          + '<span style="flex:1">🏆 ' + esc(m.judul) + ' <span style="color:var(--text-3);font-size:10px">· ' + esc(m.tanggal || '') + '</span></span>'
-          + '<button onclick="pgDelTgt(\'milestone\',\'' + escJs(m.id_milestone) + '\',\'' + kj + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+        return '<div class="pg-tm-item ms">'
+          + '<span class="g" style="font-weight:600">🏆 ' + esc(m.judul) + ' <span style="color:var(--text-3);font-size:10px">· ' + esc(m.tanggal || '') + '</span></span>'
+          + '<button class="pg-x" onclick="pgDelTgt(\'milestone\',\'' + escJs(m.id_milestone) + '\',\'' + kj + '\')">✕</button>'
           + '</div>';
-      }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada milestone.</div>';
-      c.innerHTML = '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:11px;font-weight:800;color:#b45309">🎯 Target Bersama</span>'
-        + '<button onclick="pgAddTarget(\'' + kj + '\')" style="border:none;background:#d97706;color:#fff;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:800;cursor:pointer">+ Target</button></div>'
+      }).join('') || '<div class="pg-tm-empty">Belum ada milestone.</div>';
+      c.innerHTML = '<div class="pg-tm">'
+        + '<div class="pg-tm-h"><span class="t" style="color:#b45309">🎯 Target Bersama</span>'
+        + '<button class="pg-add" style="background:#d97706" onclick="pgAddTarget(\'' + kj + '\')">+ Target</button></div>'
         + tHtml
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 5px"><span style="font-size:11px;font-weight:800;color:#166534">🏆 Milestone</span>'
-        + '<button onclick="pgAddMilestone(\'' + kj + '\')" style="border:none;background:#16a34a;color:#fff;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:800;cursor:pointer">+ Milestone</button></div>'
+        + '<div class="pg-tm-h" style="margin-top:11px"><span class="t" style="color:#166534">🏆 Milestone</span>'
+        + '<button class="pg-add" style="background:#16a34a" onclick="pgAddMilestone(\'' + kj + '\')">+ Milestone</button></div>'
         + mHtml
         + '</div>';
     } catch (e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal: ' + esc(friendlyError(e)) + '</div>'; }
@@ -261,29 +307,31 @@
       var pendingSimak = list.filter(function(s) { return s.id_penyimak === PG.myId && !s.nilai; });
       var html = '';
       if (pendingSimak.length) {
-        html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:9px;margin-bottom:8px">'
-          + '<div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">⏳ Menunggu Anda menyimak (' + pendingSimak.length + ')</div>'
+        html += '<div class="pg-pending">'
+          + '<div class="pg-pending-h">⏳ Menunggu Anda menyimak <span class="pg-count">' + pendingSimak.length + '</span></div>'
           + pendingSimak.map(function(s) {
-              return '<div style="padding:4px 0">'
-                + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'
-                + '<span style="font-size:12px">' + esc(s.nama_penyetor || s.id_penyetor) + ' · <strong>' + esc(s.kategori) + '</strong>' + (s.sub_materi ? ' · ' + esc(s.sub_materi) : '') + '</span>'
-                + '<button onclick="pgSimakForm(\'' + escJs(s.id_setoran) + '\',\'' + escJs(id_kelompok) + '\')" style="border:none;background:#16a34a;color:#fff;border-radius:7px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer">Nilai</button>'
-                + '</div>'
-                + _pgAudioBtnHtml(s.audio_url)
+              return '<div style="display:flex;gap:9px;align-items:center;padding:5px 0">'
+                + _avatar(s.nama_penyetor || s.id_penyetor)
+                + '<div class="pg-fi-body"><div class="pg-fi-line">' + esc(s.nama_penyetor || s.id_penyetor) + ' ' + _katPill(s.kategori) + (s.sub_materi ? '<span class="pg-fi-sub" style="margin:0">· ' + esc(s.sub_materi) + '</span>' : '') + '</div>' + _pgAudioBtnHtml(s.audio_url) + '</div>'
+                + '<button class="pg-mini-btn" onclick="pgSimakForm(\'' + escJs(s.id_setoran) + '\',\'' + escJs(id_kelompok) + '\')">Nilai</button>'
                 + '</div>';
             }).join('')
           + '</div>';
       }
       var recent = list.slice(0, 5).map(function(s) {
-        var nilaiBadge = s.nilai ? '<span style="font-size:10px;font-weight:800;background:#dcfce7;color:#166534;border-radius:100px;padding:1px 7px">' + esc(s.nilai) + (s.kelancaran ? ' · ' + esc(s.kelancaran) : '') + '</span>' : '<span style="font-size:10px;color:#92400e">belum dinilai</span>';
-        return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
-          + esc(s.nama_penyetor || '-') + ' → ' + esc(s.nama_penyimak || '-') + ' · <strong>' + esc(s.kategori) + '</strong> ' + nilaiBadge
-          + (s.dalil ? '<div style="color:#0f766e;font-size:10px">📜 ' + esc(s.dalil) + '</div>' : '')
-          + (s.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(s.catatan) + '</div>' : '')
+        var nilaiBadge = s.nilai
+          ? '<span class="pg-nilai">' + esc(s.nilai) + (s.kelancaran ? ' · ' + esc(s.kelancaran) : '') + '</span>'
+          : '<span class="pg-nilai wait">belum dinilai</span>';
+        return '<div class="pg-fi">'
+          + _avatar(s.nama_penyetor)
+          + '<div class="pg-fi-body">'
+          + '<div class="pg-fi-line">' + esc(s.nama_penyetor || '-') + ' <span style="color:var(--text-3)">→</span> ' + esc(s.nama_penyimak || '-') + ' ' + _katPill(s.kategori) + ' ' + nilaiBadge + '</div>'
+          + (s.dalil ? '<div class="pg-fi-sub">📜 ' + esc(s.dalil) + '</div>' : '')
+          + (s.catatan ? '<div class="pg-fi-sub">💬 ' + esc(s.catatan) + '</div>' : '')
           + _pgAudioBtnHtml(s.audio_url)
-          + '</div>';
+          + '</div></div>';
       }).join('');
-      c.innerHTML = html + (recent ? '<div style="font-size:11px;font-weight:700;color:var(--text-3);margin-top:4px">Terbaru</div>' + recent : (html ? '' : '<div style="font-size:11px;color:var(--text-3)">Belum ada setoran.</div>'));
+      c.innerHTML = html + (recent ? '<div class="pg-feed-t">Terbaru</div>' + recent : (html ? '' : '<div style="font-size:11.5px;color:var(--text-3);padding:6px 2px">Belum ada setoran. Mulailah saling menyimak 🤝</div>'));
     } catch (e) { c.innerHTML = '<div style="font-size:11px;color:#dc2626">Gagal memuat setoran.</div>'; }
   }
 
