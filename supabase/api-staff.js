@@ -3475,6 +3475,18 @@ var AdminAPI = {
     _logAudit('hard_delete_murid', { id_user: id_user });
     return {status:'ok',data};
   },
+  hardDeleteGuru: async function(id_user) {
+    var {data,error}=await _sb.rpc('hard_delete_guru', { p_id_user: id_user });
+    _check(error,'hardDeleteGuru');
+    _logAudit('hard_delete_guru', { id_user: id_user });
+    return {status:'ok',data};
+  },
+  hardDeleteHalaqah: async function(id_halaqah) {
+    var {data,error}=await _sb.rpc('hard_delete_halaqah', { p_id_halaqah: id_halaqah });
+    _check(error,'hardDeleteHalaqah');
+    _logAudit('hard_delete_halaqah', { id_halaqah: id_halaqah });
+    return {status:'ok',data};
+  },
   getAllHalaqah: async function() {
     // Fetch halaqah + seluruh anggota aktif (untuk ketua + hitung jumlah murid) in parallel
     var [{data: hqData, error: hqErr}, {data: anggotaData}] = await Promise.all([

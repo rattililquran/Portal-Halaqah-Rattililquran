@@ -233,9 +233,11 @@ function renderUsersTable(role) {
     var btnDel = (u.id_user !== 'USR-ADMIN-001')
       ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Nonaktifkan (reversible)">🗑</button>'
       : '';
-    // Hapus permanen: hanya superadmin & khusus murid (membebaskan ID + hapus akun login)
-    if (currentUser && currentUser.role === 'superadmin' && u.role === 'murid') {
-      btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px" onclick="hardDeleteMurid(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Hapus PERMANEN: hapus data, bebaskan ID, hapus akun login">⚠️ Hapus Permanen</button>';
+    // Hapus permanen: hanya superadmin (membebaskan ID + hapus akun login)
+    if (currentUser && currentUser.role === 'superadmin' && (u.role === 'murid' || u.role === 'guru')) {
+      var _hdFn = u.role === 'guru' ? 'hardDeleteGuru' : 'hardDeleteMurid';
+      var _hdTitle = u.role === 'guru' ? 'Hapus PERMANEN guru: hapus halaqah yang diampu + seluruh riwayat + akun login' : 'Hapus PERMANEN: hapus data, bebaskan ID, hapus akun login';
+      btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">⚠️ Hapus Permanen</button>';
     }
     return '<tr>'
       + '<td><code style="font-size:11.5px">' + esc(u.id_user) + '</code></td>'
@@ -442,6 +444,70 @@ async function confirmHardDeleteMurid(id, nama) {
     await window.HQ.AdminAPI.hardDeleteMurid(id);
     toast(nama + ' dihapus permanen','ok');
     await loadMasterData(); loadUsers(currentUserTab);
+  } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+}
+
+// ── Hard delete GURU & HALAQAH (superadmin) — modal ketik-ID untuk konfirmasi ──
+function _hardDelModal(title, warnHtml, id, confirmFn, nama) {
+  if (!currentUser || currentUser.role !== 'superadmin') return toast('Hanya superadmin yang dapat menghapus permanen','err');
+  var existing = document.getElementById('_hardDelOverlay'); if (existing) existing.remove();
+  var ov = document.createElement('div');
+  ov.id = '_hardDelOverlay'; ov.className = 'overlay open';
+  ov.innerHTML =
+    '<div class="modal" style="max-width:460px" onclick="event.stopPropagation()">'
+    + '<div class="modal-head"><div class="modal-title" style="color:#b91c1c">' + title + '</div>'
+    + '<button class="modal-x" onclick="document.getElementById(\'_hardDelOverlay\').remove()">×</button></div>'
+    + '<div class="modal-body">'
+    + '<div style="background:rgba(127,29,29,.08);border:1px solid rgba(127,29,29,.25);border-radius:10px;padding:12px;font-size:12.5px;color:var(--text-2);line-height:1.6;margin-bottom:14px">' + warnHtml + '</div>'
+    + '<div class="fg"><label>Ketik ID <code>' + esc(id) + '</code> untuk konfirmasi</label>'
+    + '<input id="_hardDelConfirm" class="fc" placeholder="' + esc(id) + '" autocomplete="off" oninput="document.getElementById(\'_hardDelBtn\').disabled=(this.value.trim().toUpperCase()!==\'' + esc(id) + '\'.toUpperCase())"></div>'
+    + '</div><div class="modal-foot">'
+    + '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'_hardDelOverlay\').remove()">Batal</button>'
+    + '<button id="_hardDelBtn" class="btn btn-red btn-sm" disabled onclick="' + confirmFn + '(\'' + esc(id) + '\',\'' + escJs(nama) + '\')">🗑 Hapus Permanen</button>'
+    + '</div></div>';
+  ov.addEventListener('click', function(){ ov.remove(); });
+  document.body.appendChild(ov);
+  document.getElementById('_hardDelConfirm').focus();
+}
+
+function hardDeleteGuru(id, nama) {
+  _hardDelModal('⚠️ Hapus Guru Permanen',
+    'Tindakan ini <strong>TIDAK BISA dibatalkan</strong>. Untuk <strong>' + esc(nama) + '</strong> (<code>' + esc(id) + '</code>) akan:'
+    + '<ul style="margin:6px 0 0;padding-left:18px">'
+    + '<li>Menghapus <strong>halaqah yang ia ampu</strong> beserta SELURUH riwayatnya (anggota, KBM, nilai, raport, absensi).</li>'
+    + '<li>Menghapus data pembinaan (kompetensi, tashih, evaluasi, mutaba\'ah, apresiasi).</li>'
+    + '<li>Menghapus akun login guru secara permanen.</li>'
+    + '<li>Murid <strong>tidak</strong> ikut terhapus (hanya keanggotaannya di halaqah itu).</li></ul>',
+    id, 'confirmHardDeleteGuru', nama);
+}
+async function confirmHardDeleteGuru(id, nama) {
+  var inp = document.getElementById('_hardDelConfirm');
+  if (!inp || inp.value.trim().toUpperCase() !== id.toUpperCase()) return toast('Ketik ID guru dengan benar untuk konfirmasi','err');
+  document.getElementById('_hardDelOverlay').remove();
+  showLoad('Bismillah, menghapus permanen...');
+  try {
+    await window.HQ.AdminAPI.hardDeleteGuru(id);
+    toast(nama + ' dihapus permanen','ok');
+    await loadMasterData(); loadUsers(currentUserTab);
+  } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+}
+
+function hardDeleteHalaqah(id, nama) {
+  _hardDelModal('⚠️ Hapus Halaqah Permanen',
+    'Tindakan ini <strong>TIDAK BISA dibatalkan</strong>. Halaqah <strong>' + esc(nama) + '</strong> (<code>' + esc(id) + '</code>) beserta <strong>SELURUH riwayatnya</strong> akan dihapus: keanggotaan murid, semua sesi KBM, nilai, raport, observasi, dll. Murid tetap ada (hanya keanggotaannya di halaqah ini yang hilang).',
+    id, 'confirmHardDeleteHalaqah', nama);
+}
+async function confirmHardDeleteHalaqah(id, nama) {
+  var inp = document.getElementById('_hardDelConfirm');
+  if (!inp || inp.value.trim().toUpperCase() !== id.toUpperCase()) return toast('Ketik ID halaqah dengan benar untuk konfirmasi','err');
+  document.getElementById('_hardDelOverlay').remove();
+  showLoad('Bismillah, menghapus permanen...');
+  try {
+    await window.HQ.AdminAPI.hardDeleteHalaqah(id);
+    toast('Halaqah ' + nama + ' dihapus permanen','ok');
+    await loadMasterData(); if (typeof loadHalaqah === 'function') loadHalaqah(); else renderHalaqahTable();
   } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }
 }
@@ -793,7 +859,10 @@ function renderHalaqahTable() {
       + '<td>' + (h.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
       + '<td style="display:flex;gap:5px">'
       + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')">🗑</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Nonaktifkan (reversible)">🗑</button>'
+      + ((currentUser && currentUser.role === 'superadmin')
+          ? '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px" onclick="hardDeleteHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Hapus PERMANEN: halaqah + seluruh riwayat KBM/nilai/raport">⚠️</button>'
+          : '')
       + '</td></tr>';
   }).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada halaqah ditemukan</td></tr>';
 
@@ -954,6 +1023,10 @@ function _kqRenderList() {
     window.deleteUser = deleteUser;
     window.hardDeleteMurid = hardDeleteMurid;
     window.confirmHardDeleteMurid = confirmHardDeleteMurid;
+    window.hardDeleteGuru = hardDeleteGuru;
+    window.confirmHardDeleteGuru = confirmHardDeleteGuru;
+    window.hardDeleteHalaqah = hardDeleteHalaqah;
+    window.confirmHardDeleteHalaqah = confirmHardDeleteHalaqah;
     window.openBulkImport = openBulkImport;
     window.downloadTemplate = downloadTemplate;
     window.handleFileDrop = handleFileDrop;
