@@ -413,9 +413,10 @@
       + '</div></div>';
     document.body.appendChild(ov);
     document.getElementById('pgModalOk').onclick = async function() {
-      var btn = this; btn.disabled = true;
+      var btn = this; var label = btn.textContent;
+      btn.disabled = true; btn.textContent = '⏳ Menyimpan…'; btn.style.opacity = '.75';
       try { await onOk(); pgCloseModal(); }
-      catch (e) { toast(friendlyError(e), 'err'); btn.disabled = false; }
+      catch (e) { toast(friendlyError(e), 'err'); btn.disabled = false; btn.textContent = label; btn.style.opacity = ''; }
     };
   }
   function pgCloseModal() { var m = document.getElementById('pgModal'); if (m) m.remove(); }
@@ -487,28 +488,36 @@
   // Unggah blob rekaman ke GAS → kembalikan { url, durasi, tipe } atau null bila tak ada rekaman.
   async function _pgUploadAudio(id_kelompok) {
     if (!_pgRec.blob) return null;
-    var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
-    var token = tokRes && tokRes.token;
-    if (!token) throw new Error('Gagal mengambil token keamanan.');
-    var base64 = await new Promise(function (resolve, reject) {
-      var r = new FileReader();
-      r.onloadend = function () { resolve(r.result.split(',')[1]); };
-      r.onerror = reject;
-      r.readAsDataURL(_pgRec.blob);
-    });
-    var ext = ((_pgRec.mime.split('/')[1] || 'webm').split(';')[0]) || 'webm';
-    var res = await fetch(PG_GAS_UPLOAD_URL, {
-      method: 'POST', mode: 'cors',
-      body: JSON.stringify({
-        token: token, base64Data: base64,
-        fileName: 'PEER-' + id_kelompok + '-' + (PG.myId || '') + '-' + Date.now() + '.' + ext,
-        mimeType: _pgRec.mime
-      })
-    });
-    if (!res.ok) throw new Error('Koneksi ke server penyimpanan gagal.');
-    var out = await res.json();
-    if (out.status !== 'success') throw new Error(out.message || 'Gagal mengunggah rekaman.');
-    return { url: out.url, durasi: _pgRec.durasi, tipe: _pgRec.mime };
+    // Umpan balik di dalam modal (loader global z-index 9999 < modal 99999 → tak terlihat).
+    var _okBtn = document.getElementById('pgModalOk');
+    var _okPrev = _okBtn ? _okBtn.textContent : '';
+    if (_okBtn) _okBtn.textContent = '⏳ Mengunggah rekaman…';
+    try {
+      var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+      var token = tokRes && tokRes.token;
+      if (!token) throw new Error('Gagal mengambil token keamanan.');
+      var base64 = await new Promise(function (resolve, reject) {
+        var r = new FileReader();
+        r.onloadend = function () { resolve(r.result.split(',')[1]); };
+        r.onerror = reject;
+        r.readAsDataURL(_pgRec.blob);
+      });
+      var ext = ((_pgRec.mime.split('/')[1] || 'webm').split(';')[0]) || 'webm';
+      var res = await fetch(PG_GAS_UPLOAD_URL, {
+        method: 'POST', mode: 'cors',
+        body: JSON.stringify({
+          token: token, base64Data: base64,
+          fileName: 'PEER-' + id_kelompok + '-' + (PG.myId || '') + '-' + Date.now() + '.' + ext,
+          mimeType: _pgRec.mime
+        })
+      });
+      if (!res.ok) throw new Error('Koneksi ke server penyimpanan gagal.');
+      var out = await res.json();
+      if (out.status !== 'success') throw new Error(out.message || 'Gagal mengunggah rekaman.');
+      return { url: out.url, durasi: _pgRec.durasi, tipe: _pgRec.mime };
+    } finally {
+      if (_okBtn) _okBtn.textContent = _okPrev;
+    }
   }
 
   // Tombol pemutar rekaman untuk riwayat setoran (reuse putarAudioInline portal guru).
