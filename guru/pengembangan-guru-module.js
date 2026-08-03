@@ -192,9 +192,12 @@
         html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:9px;margin-bottom:8px">'
           + '<div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">⏳ Menunggu Anda menyimak (' + pendingSimak.length + ')</div>'
           + pendingSimak.map(function(s) {
-              return '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0">'
+              return '<div style="padding:4px 0">'
+                + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'
                 + '<span style="font-size:12px">' + esc(s.nama_penyetor || s.id_penyetor) + ' · <strong>' + esc(s.kategori) + '</strong>' + (s.sub_materi ? ' · ' + esc(s.sub_materi) : '') + '</span>'
                 + '<button onclick="pgSimakForm(\'' + escJs(s.id_setoran) + '\',\'' + escJs(id_kelompok) + '\')" style="border:none;background:#16a34a;color:#fff;border-radius:7px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer">Nilai</button>'
+                + '</div>'
+                + _pgAudioBtnHtml(s.audio_url)
                 + '</div>';
             }).join('')
           + '</div>';
@@ -205,6 +208,7 @@
           + esc(s.nama_penyetor || '-') + ' → ' + esc(s.nama_penyimak || '-') + ' · <strong>' + esc(s.kategori) + '</strong> ' + nilaiBadge
           + (s.dalil ? '<div style="color:#0f766e;font-size:10px">📜 ' + esc(s.dalil) + '</div>' : '')
           + (s.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(s.catatan) + '</div>' : '')
+          + _pgAudioBtnHtml(s.audio_url)
           + '</div>';
       }).join('');
       c.innerHTML = html + (recent ? '<div style="font-size:11px;font-weight:700;color:var(--text-3);margin-top:4px">Terbaru</div>' + recent : (html ? '' : '<div style="font-size:11px;color:var(--text-3)">Belum ada setoran.</div>'));
@@ -217,12 +221,14 @@
       .filter(function(a) { return a.id_guru !== PG.myId; })
       .map(function(a) { return { id: a.id_guru, nama: a.nama_guru || a.id_guru }; });
     if (!anggota.length) { toast('Belum ada rekan lain di kelompok ini untuk menyimak.', 'err'); return; }
+    pgRecReset();
     var body = ''
       + _fld('Simak oleh (rekan)', '<select id="pgSetPenyimak" class="pg-inp">' + anggota.map(function(a) { return '<option value="' + esc(a.id) + '">' + esc(a.nama) + '</option>'; }).join('') + '</select>')
       + _fld('Kategori', '<select id="pgSetKategori" class="pg-inp">' + _optTags(KATEGORI, 'makhraj') + '</select>')
       + _fld('Sub materi (opsional)', '<input id="pgSetSub" class="pg-inp" placeholder="mis. Huruf isti\'la\'">')
       + _fld('Dalil / matan (opsional)', '<textarea id="pgSetDalil" class="pg-inp" rows="2" placeholder="mis. dari Matan Al-Jazariyah"></textarea>')
-      + _fld('Catatan (opsional)', '<input id="pgSetCatatan" class="pg-inp" placeholder="konteks setoran">');
+      + _fld('Catatan (opsional)', '<input id="pgSetCatatan" class="pg-inp" placeholder="konteks setoran">')
+      + _pgRecHtml();
     pgModal('Setor ke Rekan', body, async function() {
       var penyimakSel = document.getElementById('pgSetPenyimak');
       var d = {
@@ -235,8 +241,11 @@
         dalil: document.getElementById('pgSetDalil').value.trim() || null,
         catatan: document.getElementById('pgSetCatatan').value.trim() || null,
       };
+      var audio = await _pgUploadAudio(id_kelompok);
+      if (audio) { d.audio_url = audio.url; d.audio_durasi_detik = audio.durasi; d.audio_tipe = audio.tipe; }
       await window.HQ.GuruAPI.simpanSetoranPeer(d);
       toast('Setoran terkirim', 'ok');
+      pgRecReset();
       _loadSetoranKelompok(id_kelompok);
     });
   }
@@ -411,12 +420,118 @@
   }
   function pgCloseModal() { var m = document.getElementById('pgModal'); if (m) m.remove(); }
 
+  // ══════════════════ REKAM & UNGGAH AUDIO SETORAN PEER ══════════════════
+  // Pola murid: file audio → Google Drive via GAS Web App; URL disimpan di
+  // pengajar_setoran.audio_url. Reuse token get_latihan_upload_token (lintas-peran)
+  // & pemutar putarAudioInline (sudah ada di portal guru via pr-jurnal-module.js).
+  var PG_GAS_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbwtY2wL-JSwKU1rmrJBOoa_3JNsRibn5CARn6Fq3gfuD_CztOhx5vW6zbqc0Z_hgjj7/exec';
+  var _pgRec = { mr: null, chunks: [], blob: null, mime: '', durasi: 0, t0: 0, timer: null };
+
+  function _pgRecHtml() {
+    return '<div style="margin-bottom:10px">'
+      + '<label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:3px">Rekaman suara (opsional)</label>'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      + '<button type="button" id="pgRecBtn" onclick="pgRecToggle()" style="border:none;background:#dc2626;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer">🔴 Mulai Rekam</button>'
+      + '<span id="pgRecDur" style="font-size:12px;color:var(--text-3);font-weight:700">00:00</span>'
+      + '<button type="button" id="pgRecDel" onclick="pgRecReset()" style="display:none;border:1px solid var(--border,#e5e7eb);background:transparent;color:var(--text-3);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">Hapus</button>'
+      + '</div>'
+      + '<audio id="pgRecPreview" controls style="display:none;width:100%;margin-top:8px;height:36px"></audio>'
+      + '</div>';
+  }
+
+  function pgRecReset() {
+    try { if (_pgRec.mr && _pgRec.mr.state === 'recording') _pgRec.mr.stop(); } catch (e) {}
+    if (_pgRec.timer) { clearInterval(_pgRec.timer); }
+    _pgRec = { mr: null, chunks: [], blob: null, mime: '', durasi: 0, t0: 0, timer: null };
+    var pv = document.getElementById('pgRecPreview'); if (pv) { pv.src = ''; pv.style.display = 'none'; }
+    var del = document.getElementById('pgRecDel'); if (del) del.style.display = 'none';
+    var b = document.getElementById('pgRecBtn'); if (b) b.textContent = '🔴 Mulai Rekam';
+    var dur = document.getElementById('pgRecDur'); if (dur) dur.textContent = '00:00';
+  }
+
+  function pgRecToggle() {
+    if (_pgRec.mr && _pgRec.mr.state === 'recording') { _pgRec.mr.stop(); return; }
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices) { toast('Perangkat tidak mendukung perekaman suara.', 'err'); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      var mime = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported(mime)) {
+        if (MediaRecorder.isTypeSupported('audio/mp4')) mime = 'audio/mp4';
+        else if (MediaRecorder.isTypeSupported('audio/wav')) mime = 'audio/wav';
+        else mime = '';
+      }
+      _pgRec.chunks = []; _pgRec.blob = null;
+      _pgRec.mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      _pgRec.mime = _pgRec.mr.mimeType || mime || 'audio/webm';
+      _pgRec.mr.ondataavailable = function (e) { if (e.data && e.data.size) _pgRec.chunks.push(e.data); };
+      _pgRec.mr.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        if (_pgRec.timer) { clearInterval(_pgRec.timer); _pgRec.timer = null; }
+        _pgRec.blob = new Blob(_pgRec.chunks, { type: _pgRec.mime });
+        _pgRec.durasi = Math.round((Date.now() - _pgRec.t0) / 1000);
+        var pv = document.getElementById('pgRecPreview');
+        if (pv) { pv.src = URL.createObjectURL(_pgRec.blob); pv.style.display = 'block'; }
+        var del = document.getElementById('pgRecDel'); if (del) del.style.display = 'inline-block';
+        var b = document.getElementById('pgRecBtn'); if (b) b.textContent = '🔴 Rekam Ulang';
+      };
+      _pgRec.t0 = Date.now();
+      _pgRec.mr.start();
+      var b = document.getElementById('pgRecBtn'); if (b) b.textContent = '⏹️ Hentikan';
+      _pgRec.timer = setInterval(function () {
+        var s = Math.floor((Date.now() - _pgRec.t0) / 1000);
+        var el = document.getElementById('pgRecDur');
+        if (el) el.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      }, 500);
+    }).catch(function () { toast('Izin mikrofon ditolak atau tidak tersedia.', 'err'); });
+  }
+
+  // Unggah blob rekaman ke GAS → kembalikan { url, durasi, tipe } atau null bila tak ada rekaman.
+  async function _pgUploadAudio(id_kelompok) {
+    if (!_pgRec.blob) return null;
+    var tokRes = await window.HQ.MuridAPI.getLatihanUploadToken();
+    var token = tokRes && tokRes.token;
+    if (!token) throw new Error('Gagal mengambil token keamanan.');
+    var base64 = await new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onloadend = function () { resolve(r.result.split(',')[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(_pgRec.blob);
+    });
+    var ext = ((_pgRec.mime.split('/')[1] || 'webm').split(';')[0]) || 'webm';
+    var res = await fetch(PG_GAS_UPLOAD_URL, {
+      method: 'POST', mode: 'cors',
+      body: JSON.stringify({
+        token: token, base64Data: base64,
+        fileName: 'PEER-' + id_kelompok + '-' + (PG.myId || '') + '-' + Date.now() + '.' + ext,
+        mimeType: _pgRec.mime
+      })
+    });
+    if (!res.ok) throw new Error('Koneksi ke server penyimpanan gagal.');
+    var out = await res.json();
+    if (out.status !== 'success') throw new Error(out.message || 'Gagal mengunggah rekaman.');
+    return { url: out.url, durasi: _pgRec.durasi, tipe: _pgRec.mime };
+  }
+
+  // Tombol pemutar rekaman untuk riwayat setoran (reuse putarAudioInline portal guru).
+  function _pgAudioBtnHtml(url) {
+    if (!url) return '';
+    if (url.indexOf('id=') === -1) {
+      return '<div style="margin-top:4px"><a href="' + esc(url) + '" target="_blank" style="font-size:10px;color:#0284c7;font-weight:700">📂 Buka Rekaman</a></div>';
+    }
+    var fid = url.split('id=')[1].split('&')[0];
+    var cid = 'pgAud_' + fid;
+    return '<div id="' + cid + '" style="margin-top:5px">'
+      + '<button onclick="putarAudioInline(\'' + cid + '\',\'' + escJs(fid) + '\')" style="border:1px solid #0284c7;color:#0284c7;background:transparent;border-radius:7px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer">▶️ Putar Rekaman</button>'
+      + '</div>';
+  }
+
   // ── Export ke window ──
   if (typeof window !== 'undefined') {
     window.loadPengembanganGuru = loadPengembanganGuru;
     window.pgGoTab = pgGoTab;
     window.pgSetorForm = pgSetorForm;
     window.pgSimakForm = pgSimakForm;
+    window.pgRecToggle = pgRecToggle;
+    window.pgRecReset = pgRecReset;
     window.pgToggleTarget = pgToggleTarget;
     window.pgAddTarget = pgAddTarget;
     window.pgAddMilestone = pgAddMilestone;

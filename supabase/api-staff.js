@@ -2922,6 +2922,9 @@ var GuruAPI = {
       nama_penyetor: d.nama_penyetor || null, nama_penyimak: d.nama_penyimak || null,
       kategori: d.kategori || 'makhraj', sub_materi: d.sub_materi || null,
       dalil: d.dalil || null, catatan: d.catatan || null, tanggal: d.tanggal || undefined,
+      audio_url: d.audio_url || null,
+      audio_durasi_detik: d.audio_durasi_detik ? parseInt(d.audio_durasi_detik) : null,
+      audio_tipe: d.audio_tipe || null,
     }).select().single();
     _check(error, 'simpanSetoranPeer');
     return { status: 'ok', data: data };
