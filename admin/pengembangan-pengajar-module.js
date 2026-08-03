@@ -131,8 +131,11 @@
         var sertBtn = '<button onclick="ppToggleSertifikasi(\'' + esc(p.id_user) + '\',\'' + sert + '\')" style="border:none;border-radius:100px;padding:2px 9px;font-size:10px;font-weight:800;cursor:pointer;'
           + (sert === 'tersertifikasi' ? 'background:#dcfce7;color:#166534' : 'background:#fef3c7;color:#92400e') + '">'
           + (sert === 'tersertifikasi' ? '✓ tersertifikasi' : '⏳ orientasi') + '</button>';
+        var musyrifCell = _isSuper()
+          ? ' <button onclick="ppToggleMusyrif(\'' + escJs(p.id_user) + '\',' + (p.is_musyrif ? 'true' : 'false') + ',\'' + escJs(p.nama_lengkap) + '\')" style="border:none;border-radius:100px;padding:1px 8px;font-size:10px;font-weight:800;cursor:pointer;' + (p.is_musyrif ? 'background:#ede9fe;color:#7c3aed' : 'background:var(--bg-2,#f1f5f9);color:var(--text-3)') + '">' + (p.is_musyrif ? '· Musyrif ✓' : '+ Musyrif') + '</button>'
+          : (p.is_musyrif ? ' <span style="font-size:10px;color:#7c3aed;font-weight:800">· Musyrif</span>' : '');
         return '<tr>'
-          + '<td><strong>' + esc(p.nama_lengkap) + '</strong>' + (p.is_musyrif ? ' <span style="font-size:10px;color:#7c3aed;font-weight:800">· Musyrif</span>' : '') + '</td>'
+          + '<td><strong>' + esc(p.nama_lengkap) + '</strong>' + musyrifCell + '</td>'
           + '<td>' + jenjangSel + '</td>'
           + '<td>' + sertBtn + '</td>'
           + '<td style="font-size:11px;color:var(--text-3)">' + esc(k.status_sanad || '—') + (k.hafalan_juz != null ? ' · ' + esc(k.hafalan_juz) + ' juz' : '') + '</td>'
@@ -165,6 +168,19 @@
     try {
       await window.HQ.AdminAPI.upsertPengajarKompetensi({ id_guru: id_guru, status_sertifikasi: next });
       toast('Status sertifikasi diperbarui', 'ok');
+      _loadProfil();
+    } catch (e) { toast(friendlyError(e), 'err'); }
+    finally { hideLoad(); }
+  }
+
+  // Tetapkan/cabut Musyrif (Superadmin). Reuse AdminAPI.updateUser (kolom users.is_musyrif).
+  async function ppToggleMusyrif(id_guru, isMusyrif, nama) {
+    var msg = isMusyrif ? 'Cabut status Musyrif dari ' + nama + '?' : 'Jadikan ' + nama + ' sebagai Musyrif (pembina)?';
+    if (!(await showConfirm(msg, { title: 'Status Musyrif', okText: 'Ya, Lanjutkan' }))) return;
+    showLoad('Menyimpan...');
+    try {
+      await window.HQ.AdminAPI.updateUser({ id_user: id_guru, is_musyrif: !isMusyrif });
+      toast(isMusyrif ? 'Status Musyrif dicabut' : 'Ditetapkan sebagai Musyrif', 'ok');
       _loadProfil();
     } catch (e) { toast(friendlyError(e), 'err'); }
     finally { hideLoad(); }
@@ -764,6 +780,7 @@
     window.ppGoTab = ppGoTab;
     window.ppSetJenjang = ppSetJenjang;
     window.ppToggleSertifikasi = ppToggleSertifikasi;
+    window.ppToggleMusyrif = ppToggleMusyrif;
     window.ppEditKompetensi = ppEditKompetensi;
     window.ppNewPelatihan = ppNewPelatihan;
     window.ppKehadiran = ppKehadiran;
