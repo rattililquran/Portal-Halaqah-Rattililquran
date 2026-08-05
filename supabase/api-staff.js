@@ -316,6 +316,11 @@ var GuruAPI = {
 
   // ── KBM ────────────────────────────────────
   bukaKBM: async function(d) {
+    // Guard sesi: cek sesi Supabase ASLI (bukan _uid() yang baca cache hq_user —
+    // di kondisi setengah-login cache tetap terisi & lolos). Cegah insert yang
+    // pasti kena RLS + beri pesan jelas alih-alih popup teknis.
+    var _sess = await _sb.auth.getSession();
+    if (!_sess.data || !_sess.data.session) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
     // Cek tidak ada draft aktif
     var { data: draft } = await _sb.from('kbm_log')
       .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
@@ -353,6 +358,9 @@ var GuruAPI = {
 
   // ── Kelas Pengganti: Flow 1 — tandai sesi hari ini sebagai libur ──
   tandaiLibur: async function(d) {
+    // Guard sesi (lihat catatan di bukaKBM) — cek sesi Supabase asli.
+    var _sess = await _sb.auth.getSession();
+    if (!_sess.data || !_sess.data.session) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
     var keterangan = (d.keterangan_libur || '').trim();
     if (!keterangan) return { status: 'error', message: 'Alasan libur wajib diisi' };
 

@@ -56,12 +56,72 @@ _sb.auth.onAuthStateChange(function(event, session) {
 });
 
 // ─────────────────────────────────────────────
+//  PEMULIHAN "SETENGAH LOGIN" (half-login)
+// ─────────────────────────────────────────────
+// Bug historis: cache identitas app (hq_user) bisa tetap ada sementara sesi Auth
+// Supabase (auth.uid) sudah hilang/dicabut — app mengira masih login, padahal DB
+// melihat request anonim → operasi tulis kena "row-level security policy" (mis.
+// kbm_log saat Buka KBM). Helper di bawah membereskan kondisi itu.
+
+// Bersihkan cermin identitas lokal (BUKAN sesi Supabase; itu diurus signOut/SDK).
+function _clearLocalIdentity() {
+  _currentUser = null;
+  try {
+    localStorage.removeItem('hq_user');  sessionStorage.removeItem('hq_user');
+    localStorage.removeItem('hq_token'); localStorage.removeItem('hq_refresh');
+  } catch (e) {}
+}
+
+// Arahkan ke halaman login HANYA bila sedang di subdir portal (guru/admin/murid)
+// agar tidak memicu loop di halaman login itu sendiri. Pola path = Auth.logout().
+function _redirectToLogin() {
+  if (/\/(guru|admin|murid)\//i.test(window.location.pathname)) {
+    window.location.href = '../index.html';
+  }
+}
+
+// Reaktif dari _check saat error RLS: verifikasi sesi Supabase asli; bila memang
+// hilang → kondisi setengah-login: bersihkan & minta login ulang. Fire-and-forget
+// agar tidak menahan _check yang sinkron.
+function _handlePossibleSessionLoss() {
+  _sb.auth.getSession().then(function (res) {
+    var session = res && res.data && res.data.session;
+    if (!session) {
+      _clearLocalIdentity();
+      _sb.auth.signOut().catch(function () {});
+      _redirectToLogin();
+    }
+  }).catch(function () {});
+}
+
+// Rekonsiliasi saat startup: kalau cache hq_user ada TAPI sesi Supabase tidak,
+// jangan pernah tampil dalam keadaan setengah-login. Async karena pemulihan sesi
+// oleh SDK juga async (jangan pakai setSession() manual — lihat catatan di atas).
+if (_currentUser) {
+  _sb.auth.getSession().then(function (res) {
+    var session = res && res.data && res.data.session;
+    if (!session) { _clearLocalIdentity(); _redirectToLogin(); }
+  }).catch(function () {});
+}
+
+// ─────────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────────
 function _uid() { return _currentUser && _currentUser.id_user; }
 
 function _check(error, ctx) {
-  if (error) { console.error('[SB] ' + ctx + ':', error); throw new Error(error.message || ctx); }
+  if (!error) return;
+  console.error('[SB] ' + ctx + ':', error);
+  // Error RLS Postgres (SQLSTATE 42501 / "row-level security") pada operasi tulis
+  // hampir selalu berarti sesi Auth hilang (setengah-login). Tangani reaktif:
+  // verifikasi sesi & pulihkan (async), lalu tampilkan pesan manusiawi — bukan
+  // teks teknis "new row violates row-level security policy...".
+  var isRLS = error.code === '42501' || /row-level security/i.test(error.message || '');
+  if (isRLS) {
+    _handlePossibleSessionLoss();
+    throw new Error('Sesi Anda telah berakhir. Silakan muat ulang halaman dan login kembali.');
+  }
+  throw new Error(error.message || ctx);
 }
 
 // Ambil SEMUA baris menembus batas PostgREST max_rows (1000) dengan paginasi .range().
