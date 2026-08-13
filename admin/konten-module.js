@@ -123,6 +123,12 @@ async function savePopupNotif() {
   if (!isi) { toast('Isi pesan wajib diisi.', 'err'); return; }
   if ((ctaLabel && !ctaUrl) || (ctaUrl && !ctaLabel)) { toast('Teks tombol & link harus diisi berdua, atau dikosongkan berdua.', 'err'); return; }
   if (ctaUrl && !/^https:\/\//.test(ctaUrl)) { toast('Link tombol wajib diawali https://', 'err'); return; }
+  // Mode "+ Baru" (bukan edit) tapi id_popup yg diketik ternyata sudah dipakai --
+  // upsert akan menimpa baris lama tanpa peringatan kalau tidak dicegat di sini.
+  if (_pnEditingId === null && _pnRows.some(function(r){ return r.id_popup === idPopup; })) {
+    toast('ID Popup "' + idPopup + '" sudah dipakai. Pilih dari daftar di atas untuk mengedit, atau pakai ID lain.', 'err');
+    return;
+  }
   var cfg = {
     id_popup  : idPopup,
     judul     : document.getElementById('pnJudul').value.trim(),
@@ -135,8 +141,9 @@ async function savePopupNotif() {
   try {
     await window.HQ.AdminAPI.savePopupNotif(cfg);
     toast('💾 Popup notifikasi tersimpan' + (cfg.aktif ? ' & aktif' : ''), 'ok');
-    _pnEditingId = idPopup;
     await loadPopupNotif();
+    pnEditForm(idPopup); // masuk mode edit penuh (ID terkunci, tombol Hapus muncul) --
+                          // cegah simpan ulang dgn ID field yg masih bisa diubah bebas
   } catch(e) { toast(friendlyError(e), 'err'); }
 }
 

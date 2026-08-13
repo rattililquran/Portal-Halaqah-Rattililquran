@@ -73,6 +73,7 @@ function fetchActive() {
     .select('id_popup, judul, isi, dalil_arab, cta_label, cta_url, updated_at')
     .eq('aktif', true)
     .order('updated_at', { ascending:false })
+    .order('id_popup', { ascending:false }) // tie-break deterministik kalau >1 baris updated_at-nya sama persis
     .limit(1)
     .then(function(res){ return (res.data && res.data[0]) || null; })
     .catch(function(){ return null; });
@@ -82,7 +83,7 @@ function render(p) {
   injectStyle();
   var old = document.getElementById('pn-card'); if (old) old.remove();
   var ctaBtn = (p.cta_label && p.cta_url && /^https:\/\//.test(p.cta_url))
-    ? '<a class="pn-cta" href="' + _pnEsc(p.cta_url) + '" target="_blank" rel="noopener" onclick="window._pnDismiss()">' + _pnEsc(p.cta_label) + '</a>'
+    ? '<a class="pn-cta" href="' + _pnEsc(p.cta_url) + '" target="_blank" rel="noopener noreferrer" onclick="window._pnDismiss()">' + _pnEsc(p.cta_label) + '</a>'
     : '';
   var card = document.createElement('div');
   card.id = 'pn-card';
