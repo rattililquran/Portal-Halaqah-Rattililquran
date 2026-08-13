@@ -6881,6 +6881,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../supabase/api-murid.js?v=3dfc59e2" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
+<script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=c62f1132" defer></script>
 <script src="spp-module.js?v=2c0a5cda" defer></script>
 <script src="partner-module.js?v=4f1156ae" defer></script>
@@ -7649,6 +7650,7 @@ function startApp() {
   resetMuridSession();
   startMuridAutoRefresh();
   loadDashboard();
+  if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid');
 }
 
 // ══════════════════════════════════════════

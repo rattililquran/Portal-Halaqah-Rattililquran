@@ -5468,6 +5468,33 @@ var AdminAPI = {
     var {error} = await _sb.from('onboarding_config').upsert(row, {onConflict:'id'});
     _check(error,'saveOnboarding'); return {status:'ok'};
   },
+  // Popup notifikasi (popup dakwah -- bukan push, TERPISAH dari onboarding_config,
+  // lihat RENCANA_fitur-popup-notifikasi.md §2.2 di repo Modul-Web). Multi-baris
+  // (id_popup bebas pilih admin), admin lihat semua baris; publik hanya baca yg
+  // aktif=true (RLS, patch_087). dibuat_oleh TIDAK dikirim di sini -- diisi
+  // otomatis oleh DEFAULT kolom saat INSERT (current_user_id()), dan sengaja
+  // tak disentuh saat UPDATE supaya tercatat siapa pembuat aslinya.
+  getPopupNotifList: async function() {
+    var {data,error} = await _sb.from('popup_notifikasi').select('*').order('updated_at',{ascending:false});
+    _check(error,'getPopupNotifList'); return {status:'ok',data:data||[]};
+  },
+  savePopupNotif: async function(cfg) {
+    var row = {
+      id_popup       : cfg.id_popup,
+      judul          : cfg.judul || null,
+      isi            : cfg.isi,
+      dalil_arab     : cfg.dalil_arab || null,
+      cta_label      : cfg.cta_label || null,
+      cta_url        : cfg.cta_url || null,
+      aktif          : !!cfg.aktif,
+    };
+    var {error} = await _sb.from('popup_notifikasi').upsert(row, {onConflict:'id_popup'});
+    _check(error,'savePopupNotif'); return {status:'ok'};
+  },
+  deletePopupNotif: async function(idPopup) {
+    var {error} = await _sb.from('popup_notifikasi').delete().eq('id_popup',idPopup);
+    _check(error,'deletePopupNotif'); return {status:'ok'};
+  },
   getPushStats: async function() {
     var [total,murid,guru,admin] = await Promise.all([
       _sb.from('push_subscriptions').select('*',{count:'exact',head:true}),

@@ -54,6 +54,103 @@ function previewOnboarding() {
   } else { toast('Pratinjau tidak tersedia.', 'err'); }
 }
 
+// ── Popup Notifikasi (admin editor) ──────────────────────────
+// Popup dakwah (infaq/keutamaan Qur'an/dzikir dll) -- bukan push, TERPISAH
+// dari Pengumuman Onboarding di atas. Multi-baris (beda dari onboarding_config
+// yang single-row): admin pilih dari daftar utk edit, atau "+ Baru" utk buat
+// id_popup baru. Tampil di Portal (murid/guru) DAN Modul-Web dari tabel yang sama.
+var _pnRows = [];
+var _pnEditingId = null;
+
+function pnNewForm() {
+  _pnEditingId = null;
+  document.getElementById('pnIdPopup').value = '';
+  document.getElementById('pnIdPopup').disabled = false;
+  document.getElementById('pnJudul').value = '';
+  document.getElementById('pnIsi').value = '';
+  document.getElementById('pnDalilArab').value = '';
+  document.getElementById('pnCtaLabel').value = '';
+  document.getElementById('pnCtaUrl').value = '';
+  document.getElementById('pnAktif').checked = false;
+  document.getElementById('pnDeleteBtn').style.display = 'none';
+}
+
+function pnEditForm(idPopup) {
+  var row = _pnRows.find(function(r){ return r.id_popup === idPopup; });
+  if (!row) return;
+  _pnEditingId = idPopup;
+  document.getElementById('pnIdPopup').value = row.id_popup;
+  document.getElementById('pnIdPopup').disabled = true; // id_popup = primary key, jangan diubah saat edit
+  document.getElementById('pnJudul').value = row.judul || '';
+  document.getElementById('pnIsi').value = row.isi || '';
+  document.getElementById('pnDalilArab').value = row.dalil_arab || '';
+  document.getElementById('pnCtaLabel').value = row.cta_label || '';
+  document.getElementById('pnCtaUrl').value = row.cta_url || '';
+  document.getElementById('pnAktif').checked = !!row.aktif;
+  document.getElementById('pnDeleteBtn').style.display = '';
+}
+
+function renderPopupNotifList() {
+  var el = document.getElementById('pnList');
+  if (!_pnRows.length) { el.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-3);font-size:12.5px">Belum ada popup. Klik "+ Baru" untuk membuat.</div>'; return; }
+  el.innerHTML = _pnRows.map(function(r) {
+    var label = r.judul || r.id_popup;
+    var dot = r.aktif ? 'var(--green)' : 'var(--text-3)';
+    var active = _pnEditingId === r.id_popup ? 'background:var(--bg-2)' : '';
+    return '<div onclick="pnEditForm(\'' + escJs(r.id_popup) + '\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;' + active + '">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + dot + ';flex-shrink:0"></span>' +
+      '<span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(label) + '</span>' +
+      '<span style="font-size:11px;color:var(--text-3)">' + (r.aktif ? 'aktif' : 'nonaktif') + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+async function loadPopupNotif() {
+  try {
+    var r = await window.HQ.AdminAPI.getPopupNotifList();
+    _pnRows = r.data || [];
+    renderPopupNotifList();
+  } catch(e) { console.warn('loadPopupNotif:', e); }
+}
+
+async function savePopupNotif() {
+  var idPopup = document.getElementById('pnIdPopup').value.trim();
+  var isi     = document.getElementById('pnIsi').value.trim();
+  var ctaLabel = document.getElementById('pnCtaLabel').value.trim();
+  var ctaUrl   = document.getElementById('pnCtaUrl').value.trim();
+  if (!idPopup) { toast('ID Popup wajib diisi.', 'err'); return; }
+  if (!/^[a-z0-9-]+$/.test(idPopup)) { toast('ID Popup hanya huruf kecil, angka, dan tanda "-".', 'err'); return; }
+  if (!isi) { toast('Isi pesan wajib diisi.', 'err'); return; }
+  if ((ctaLabel && !ctaUrl) || (ctaUrl && !ctaLabel)) { toast('Teks tombol & link harus diisi berdua, atau dikosongkan berdua.', 'err'); return; }
+  if (ctaUrl && !/^https:\/\//.test(ctaUrl)) { toast('Link tombol wajib diawali https://', 'err'); return; }
+  var cfg = {
+    id_popup  : idPopup,
+    judul     : document.getElementById('pnJudul').value.trim(),
+    isi       : isi,
+    dalil_arab: document.getElementById('pnDalilArab').value.trim(),
+    cta_label : ctaLabel,
+    cta_url   : ctaUrl,
+    aktif     : document.getElementById('pnAktif').checked,
+  };
+  try {
+    await window.HQ.AdminAPI.savePopupNotif(cfg);
+    toast('💾 Popup notifikasi tersimpan' + (cfg.aktif ? ' & aktif' : ''), 'ok');
+    _pnEditingId = idPopup;
+    await loadPopupNotif();
+  } catch(e) { toast(friendlyError(e), 'err'); }
+}
+
+async function deletePopupNotif() {
+  if (!_pnEditingId) return;
+  if (!confirm('Hapus popup "' + _pnEditingId + '"? Tindakan ini tidak bisa dibatalkan.')) return;
+  try {
+    await window.HQ.AdminAPI.deletePopupNotif(_pnEditingId);
+    toast('🗑️ Popup notifikasi dihapus', 'ok');
+    pnNewForm();
+    await loadPopupNotif();
+  } catch(e) { toast(friendlyError(e), 'err'); }
+}
+
 var PUSH_CONFIG_META = {
   kbm_h1          : { group:'Terjadwal', waktu:'Setiap hari 20:00 WIB', target:'Murid + Guru' },
   attibyan_h1      : { group:'Terjadwal', waktu:'Sabtu 19:30 WIB',       target:'Semua Murid' },
@@ -1177,6 +1274,11 @@ function resetAdminSession() {
     window._obReadForm = _obReadForm;
     window.saveOnboarding = saveOnboarding;
     window.previewOnboarding = previewOnboarding;
+    window.pnNewForm = pnNewForm;
+    window.pnEditForm = pnEditForm;
+    window.loadPopupNotif = loadPopupNotif;
+    window.savePopupNotif = savePopupNotif;
+    window.deletePopupNotif = deletePopupNotif;
     window.renderPushConfig = renderPushConfig;
     window.togglePushConfig = togglePushConfig;
     window._pushFailLabel = _pushFailLabel;

@@ -2171,6 +2171,7 @@ async function loadPushAdmin() {
     renderPushConfig(r2.data);
   } catch(e) { console.warn('loadPushConfig:', e); }
   loadOnboarding();
+  loadPopupNotif();
   // Load halaqah & level untuk dropdown target
   loadPushTargetOptions();
 }

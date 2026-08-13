@@ -2939,6 +2939,54 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
 
+          <!-- Popup Notifikasi (popup dakwah -- bukan push, bukan onboarding) -->
+          <div class="card" style="grid-column:1/3">
+            <div class="card-head" style="border-bottom:1px solid var(--border);padding-bottom:14px">
+              <div>
+                <div class="card-title">📣 Popup Notifikasi</div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:2px">Popup ajakan/kebaikan (infaq, keutamaan baca Qur'an, dzikir, dll) -- tampil di Portal <strong>dan</strong> Modul-Web. Terpisah dari Pengumuman Onboarding di atas.</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="pnNewForm()">+ Baru</button>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;padding-top:12px">
+              <div id="pnList" style="display:flex;flex-direction:column;gap:6px">
+                <div style="text-align:center;padding:12px;color:var(--text-3);font-size:12.5px">Memuat...</div>
+              </div>
+              <div style="border-top:1px solid var(--border);margin:4px 0 2px;padding-top:12px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <div class="fg" style="margin:0;flex:1;min-width:160px"><label>ID Popup (slug unik)</label>
+                    <input class="fc" id="pnIdPopup" maxlength="60" placeholder="mis. infaq-2026-08">
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;padding-top:18px">
+                    <input type="checkbox" id="pnAktif" style="width:18px;height:18px;cursor:pointer">
+                    Aktif
+                  </label>
+                </div>
+                <div class="fg" style="margin:0"><label>Judul (opsional)</label>
+                  <input class="fc" id="pnJudul" maxlength="120" placeholder="mis. Kesempatan Berinfaq">
+                </div>
+                <div class="fg" style="margin:0"><label>Isi</label>
+                  <textarea class="fc" id="pnIsi" rows="4" maxlength="800" placeholder="Tulis isi pesan. Baris baru didukung."></textarea>
+                </div>
+                <div class="fg" style="margin:0"><label>Dalil Arab (opsional)</label>
+                  <textarea class="fc" id="pnDalilArab" rows="2" maxlength="400" placeholder="Kutipan ayat/hadits, opsional" dir="rtl" style="font-size:16px"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <div class="fg" style="margin:0;flex:1;min-width:160px"><label>Teks Tombol (opsional)</label>
+                    <input class="fc" id="pnCtaLabel" maxlength="40" placeholder="mis. Infaq Sekarang">
+                  </div>
+                  <div class="fg" style="margin:0;flex:1;min-width:200px"><label>Link Tombol (https://)</label>
+                    <input class="fc" id="pnCtaUrl" maxlength="300" placeholder="https://...">
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+                  <button class="btn btn-outline btn-sm" id="pnDeleteBtn" style="display:none" onclick="deletePopupNotif()">🗑️ Hapus</button>
+                  <button class="btn btn-green btn-sm" onclick="savePopupNotif()">💾 Simpan</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Kirim Notifikasi -->
           <div class="card">
             <div class="card-head"><div class="card-title">📤 Kirim Notifikasi</div></div>
@@ -4267,16 +4315,16 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=322aed30"></script>
-<script src="../supabase/api-staff.js?v=b82c1ca8"></script>
+<script src="../supabase/api-staff.js?v=35111af3"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=9fa5999f" defer></script>
+<script src="guru-module.js?v=2c2ca81f" defer></script>
 <script src="murid-module.js?v=da447ae4" defer></script>
 <script src="kelompok-module.js?v=ee8eb9ab" defer></script>
 <script src="spp-keuangan-module.js?v=4429240b" defer></script>
-<script src="konten-module.js?v=ed190808" defer></script>
+<script src="konten-module.js?v=3cadcce8" defer></script>
 <script src="laporan-module.js?v=ac287306" defer></script>
 <script src="mutabaah-module.js?v=97c919f1" defer></script>
 <script src="pengembangan-pengajar-module.js?v=b22db9c7" defer></script>

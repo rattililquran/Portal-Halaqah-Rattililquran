@@ -1,0 +1,127 @@
+// ============================================================
+//  Popup Notifikasi -- Rattililqur'an
+//  Popup dakwah admin-editable (infaq, keutamaan baca Qur'an, dzikir, dll).
+//  BUKAN push notification, BUKAN Pengumuman Onboarding (onboarding_config) --
+//  tabel & kanal terpisah, lihat RENCANA_fitur-popup-notifikasi.md (repo
+//  Modul-Web) utk latar belakang & keputusan desain lengkap.
+//  Include di semua portal SETELAH supabase-core.js & push-permission.js.
+// ============================================================
+
+(function() {
+'use strict';
+
+function _pnEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── CSS: kartu non-blocking (bukan overlay/modal spt #ob-overlay /
+//    #push-dialog-overlay -- lihat §8 RENCANA: ajakan, bukan aksi wajib,
+//    jangan menghalangi user memakai portal) ──
+var STYLE = `
+#pn-card {
+  position:fixed; z-index:9000;
+  /* bottom digeser naik utk hindari .bottom-nav murid (fixed di mobile, ~64px +
+     safe-area) -- murid & guru pakai file CSS terpisah jadi lebih aman pakai
+     satu jarak aman yg sama drpd menebak breakpoint persis tiap portal. */
+  right:16px; left:16px; bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  max-width:380px; margin-left:auto;
+  background:#fff; border-radius:18px;
+  box-shadow:0 12px 40px rgba(15,23,42,.22); overflow:hidden;
+  animation:pnSlideIn .35s ease;
+}
+@keyframes pnSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+#pn-card .pn-head{background:linear-gradient(135deg,#0c4a6e,#0ea5e9);padding:14px 40px 12px 16px;position:relative}
+#pn-card .pn-close{position:absolute;top:8px;right:8px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+#pn-card .pn-close:hover{background:rgba(255,255,255,.3)}
+#pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:800;color:#fff;padding-right:4px}
+#pn-card .pn-body{padding:14px 16px 16px}
+#pn-card .pn-isi{font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap}
+#pn-card .pn-dalil{margin-top:10px;padding:10px 12px;background:#f8fafc;border-radius:10px;font-size:15px;color:#0f172a;line-height:2;text-align:right;direction:rtl}
+#pn-card .pn-cta{display:block;width:100%;margin-top:12px;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;font-family:inherit;font-size:13px;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box}
+html.theme-dark #pn-card{background:#111c30}
+html.theme-dark #pn-card .pn-isi{color:#94a3b8}
+html.theme-dark #pn-card .pn-dalil{background:#0d1f35;color:#f0f4ff}
+@media (min-width:640px){ #pn-card{ left:auto; width:360px; } }
+`;
+
+function injectStyle() {
+  if (document.getElementById('pn-style')) return;
+  var s = document.createElement('style');
+  s.id = 'pn-style'; s.textContent = STYLE;
+  document.head.appendChild(s);
+}
+
+// ── Dismissal versi-aware, per user login (pola sama dgn onboarding_seen_<uid>
+//    di push-permission.js), tapi key ikut sertakan id_popup krn tabel ini
+//    multi-baris (beda dari onboarding_config yang single-row) ──
+function _pnUid() {
+  var u = window.HQ && window.HQ.getCurrentUser && window.HQ.getCurrentUser();
+  return (u && u.id_user) || 'anon';
+}
+function seenKey(idPopup) { return 'popup_notif_seen_' + _pnUid() + '_' + idPopup; }
+function markSeen(p) { try { localStorage.setItem(seenKey(p.id_popup), String(p.updated_at)); } catch(_) {} }
+function hasSeen(p) { try { return localStorage.getItem(seenKey(p.id_popup)) === String(p.updated_at); } catch(_) { return false; } }
+
+// Kolom diminimalkan -- dibuat_oleh (id_user admin) tak perlu sampai ke klien.
+// RLS (supabase/patch_087_popup_notifikasi.sql) sudah membatasi baris ke
+// aktif=true + dalam rentang tanggal utk role non-admin.
+function fetchActive() {
+  var sb = window.HQ && window.HQ.supabase;
+  if (!sb) return Promise.resolve(null);
+  return sb.from('popup_notifikasi')
+    .select('id_popup, judul, isi, dalil_arab, cta_label, cta_url, updated_at')
+    .eq('aktif', true)
+    .order('updated_at', { ascending:false })
+    .limit(1)
+    .then(function(res){ return (res.data && res.data[0]) || null; })
+    .catch(function(){ return null; });
+}
+
+function render(p) {
+  injectStyle();
+  var old = document.getElementById('pn-card'); if (old) old.remove();
+  var ctaBtn = (p.cta_label && p.cta_url && /^https:\/\//.test(p.cta_url))
+    ? '<a class="pn-cta" href="' + _pnEsc(p.cta_url) + '" target="_blank" rel="noopener" onclick="window._pnDismiss()">' + _pnEsc(p.cta_label) + '</a>'
+    : '';
+  var card = document.createElement('div');
+  card.id = 'pn-card';
+  card.innerHTML =
+    '<div class="pn-head">' +
+      '<button type="button" class="pn-close" aria-label="Tutup" onclick="window._pnDismiss()">&times;</button>' +
+      '<div class="pn-title">' + (p.judul ? _pnEsc(p.judul) : '📣 Info') + '</div>' +
+    '</div>' +
+    '<div class="pn-body">' +
+      '<div class="pn-isi">' + _pnEsc(p.isi) + '</div>' +
+      (p.dalil_arab ? '<div class="pn-dalil">' + _pnEsc(p.dalil_arab) + '</div>' : '') +
+      ctaBtn +
+    '</div>';
+  document.body.appendChild(card);
+  window._pnCtx = p;
+}
+
+window._pnDismiss = function() {
+  if (window._pnCtx) markSeen(window._pnCtx);
+  var el = document.getElementById('pn-card'); if (el) el.remove();
+};
+
+// Entry point -- panggil eksplisit dari startApp() murid/guru (JANGAN ulangi
+// pola initOnboarding yang didefinisikan tapi tak pernah dipanggil).
+// roleLabel diterima utk konsistensi tanda tangan dgn initOnboarding(), tapi
+// TIDAK dipakai memfilter Fase 0 -- popup ini satu kanal utk semua role
+// (target per-role sengaja ditunda, lihat RENCANA §7 #4).
+window.initPopupNotifikasi = function(roleLabel) {
+  fetchActive().then(function(p) {
+    if (!p || hasSeen(p)) return;
+    setTimeout(function() {
+      // Cek ULANG persis sebelum render (bukan cuma sekali di awal) -- salah
+      // satu overlay lain mungkin baru muncul selama jeda. Pola sama dgn
+      // showDialog()/initOnboarding() di push-permission.js.
+      if (document.getElementById('ob-overlay')) return;
+      if (document.getElementById('push-dialog-overlay')) return;
+      render(p);
+    }, 4000); // sengaja paling akhir: onboarding=1.5s, push-dialog=3s, ini=4s
+  }).catch(function(){});
+};
+
+})();
