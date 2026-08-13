@@ -113,13 +113,21 @@ async function loadPopupNotif() {
   } catch(e) { console.warn('loadPopupNotif:', e); }
 }
 
+// Ubah teks bebas (kapital, spasi, tanda baca) jadi slug aman utk primary key --
+// admin tak perlu tahu/ingat aturan format, cukup ketik apa saja.
+function pnSlugify(s) {
+  return String(s || '').trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')  // spasi/simbol/kapital(sudah lowercase)/dll -> satu "-"
+    .replace(/^-+|-+$/g, '');     // buang "-" nyasar di ujung
+}
+
 async function savePopupNotif() {
-  var idPopup = document.getElementById('pnIdPopup').value.trim();
+  var idPopup = pnSlugify(document.getElementById('pnIdPopup').value);
+  document.getElementById('pnIdPopup').value = idPopup; // tampilkan slug hasil rapikan ke admin
   var isi     = document.getElementById('pnIsi').value.trim();
   var ctaLabel = document.getElementById('pnCtaLabel').value.trim();
   var ctaUrl   = document.getElementById('pnCtaUrl').value.trim();
-  if (!idPopup) { toast('ID Popup wajib diisi.', 'err'); return; }
-  if (!/^[a-z0-9-]+$/.test(idPopup)) { toast('ID Popup hanya huruf kecil, angka, dan tanda "-".', 'err'); return; }
+  if (!idPopup) { toast('ID Popup wajib diisi (minimal satu huruf/angka).', 'err'); return; }
   if (!isi) { toast('Isi pesan wajib diisi.', 'err'); return; }
   if ((ctaLabel && !ctaUrl) || (ctaUrl && !ctaLabel)) { toast('Teks tombol & link harus diisi berdua, atau dikosongkan berdua.', 'err'); return; }
   if (ctaUrl && !/^https:\/\//.test(ctaUrl)) { toast('Link tombol wajib diawali https://', 'err'); return; }
