@@ -32,9 +32,9 @@ var STYLE = `
 #pn-card .pn-head{background:linear-gradient(135deg,#0c4a6e,#0ea5e9);padding:18px 46px 16px 20px;position:relative}
 #pn-card .pn-close{position:absolute;top:10px;right:10px;width:30px;height:30px;border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 #pn-card .pn-close:hover{background:rgba(255,255,255,.3)}
-#pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:#fff;padding-right:4px}
+#pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:#fff;padding-right:4px;overflow-wrap:break-word}
 #pn-card .pn-body{padding:18px 20px 20px}
-#pn-card .pn-isi{font-size:15px;color:#334155;line-height:1.65;white-space:pre-wrap}
+#pn-card .pn-isi{font-size:15px;color:#334155;line-height:1.65;white-space:pre-wrap;overflow-wrap:break-word}
 #pn-card .pn-dalil{margin-top:12px;padding:12px 14px;background:#f8fafc;border-radius:12px;font-size:18px;color:#0f172a;line-height:2.1;text-align:right;direction:rtl}
 #pn-card .pn-cta{display:block;width:100%;margin-top:14px;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;font-family:inherit;font-size:15px;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box}
 html.theme-dark #pn-card{background:#111c30}

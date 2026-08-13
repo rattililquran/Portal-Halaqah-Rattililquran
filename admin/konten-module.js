@@ -122,7 +122,13 @@ function pnSlugify(s) {
 }
 
 async function savePopupNotif() {
-  var idPopup = pnSlugify(document.getElementById('pnIdPopup').value);
+  // Mode edit: SELALU pakai id_popup asli yg sedang di-track (field-nya disabled
+  // tapi disabled input tetap terbaca .value oleh JS) -- jangan re-slugify field
+  // itu. Kalau baris asalnya dibuat lewat jalur lain (mis. Supabase Studio
+  // langsung) dgn karakter yg tak sesuai pola slug, re-slugify di sini akan
+  // menghasilkan id_popup BEDA dari _pnEditingId -> upsert bikin baris baru
+  // (fork) alih-alih update baris yg sedang diedit.
+  var idPopup = _pnEditingId !== null ? _pnEditingId : pnSlugify(document.getElementById('pnIdPopup').value);
   document.getElementById('pnIdPopup').value = idPopup; // tampilkan slug hasil rapikan ke admin
   var isi     = document.getElementById('pnIsi').value.trim();
   var ctaLabel = document.getElementById('pnCtaLabel').value.trim();
