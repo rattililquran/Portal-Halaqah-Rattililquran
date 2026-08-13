@@ -21,28 +21,25 @@ function _pnEsc(s) {
 var STYLE = `
 #pn-card {
   position:fixed; z-index:9000;
-  /* bottom digeser naik utk hindari .bottom-nav murid (fixed di mobile, ~64px +
-     safe-area) -- murid & guru pakai file CSS terpisah jadi lebih aman pakai
-     satu jarak aman yg sama drpd menebak breakpoint persis tiap portal. */
-  right:16px; left:16px; bottom:calc(84px + env(safe-area-inset-bottom,0px));
-  max-width:380px; margin-left:auto;
-  background:#fff; border-radius:18px;
-  box-shadow:0 12px 40px rgba(15,23,42,.22); overflow:hidden;
-  animation:pnSlideIn .35s ease;
+  top:50%; left:50%; transform:translate(-50%,-50%);
+  width:calc(100% - 2.4rem); max-width:420px;
+  max-height:calc(100vh - 3rem); overflow-x:hidden; overflow-y:auto;
+  background:#fff; border-radius:20px;
+  box-shadow:0 28px 72px rgba(15,23,42,.35);
+  animation:pnPopIn .3s ease;
 }
-@keyframes pnSlideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-#pn-card .pn-head{background:linear-gradient(135deg,#0c4a6e,#0ea5e9);padding:14px 40px 12px 16px;position:relative}
-#pn-card .pn-close{position:absolute;top:8px;right:8px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+@keyframes pnPopIn{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#pn-card .pn-head{background:linear-gradient(135deg,#0c4a6e,#0ea5e9);padding:18px 46px 16px 20px;position:relative}
+#pn-card .pn-close{position:absolute;top:10px;right:10px;width:30px;height:30px;border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 #pn-card .pn-close:hover{background:rgba(255,255,255,.3)}
-#pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:800;color:#fff;padding-right:4px}
-#pn-card .pn-body{padding:14px 16px 16px}
-#pn-card .pn-isi{font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap}
-#pn-card .pn-dalil{margin-top:10px;padding:10px 12px;background:#f8fafc;border-radius:10px;font-size:15px;color:#0f172a;line-height:2;text-align:right;direction:rtl}
-#pn-card .pn-cta{display:block;width:100%;margin-top:12px;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;font-family:inherit;font-size:13px;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box}
+#pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:#fff;padding-right:4px}
+#pn-card .pn-body{padding:18px 20px 20px}
+#pn-card .pn-isi{font-size:15px;color:#334155;line-height:1.65;white-space:pre-wrap}
+#pn-card .pn-dalil{margin-top:12px;padding:12px 14px;background:#f8fafc;border-radius:12px;font-size:18px;color:#0f172a;line-height:2.1;text-align:right;direction:rtl}
+#pn-card .pn-cta{display:block;width:100%;margin-top:14px;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;font-family:inherit;font-size:15px;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box}
 html.theme-dark #pn-card{background:#111c30}
 html.theme-dark #pn-card .pn-isi{color:#94a3b8}
 html.theme-dark #pn-card .pn-dalil{background:#0d1f35;color:#f0f4ff}
-@media (min-width:640px){ #pn-card{ left:auto; width:360px; } }
 `;
 
 function injectStyle() {
