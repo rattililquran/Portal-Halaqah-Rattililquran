@@ -1321,6 +1321,7 @@ function resetAdminSession() {
     window.loadPopupNotif = loadPopupNotif;
     window.savePopupNotif = savePopupNotif;
     window.deletePopupNotif = deletePopupNotif;
+    window.resendPopupNotif = resendPopupNotif;
     window.renderPushConfig = renderPushConfig;
     window.togglePushConfig = togglePushConfig;
     window._pushFailLabel = _pushFailLabel;
