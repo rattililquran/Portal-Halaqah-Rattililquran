@@ -73,6 +73,7 @@ function pnNewForm() {
   document.getElementById('pnCtaUrl').value = '';
   document.getElementById('pnAktif').checked = false;
   document.getElementById('pnDeleteBtn').style.display = 'none';
+  document.getElementById('pnResendBtn').style.display = 'none';
 }
 
 function pnEditForm(idPopup) {
@@ -88,6 +89,26 @@ function pnEditForm(idPopup) {
   document.getElementById('pnCtaUrl').value = row.cta_url || '';
   document.getElementById('pnAktif').checked = !!row.aktif;
   document.getElementById('pnDeleteBtn').style.display = '';
+  document.getElementById('pnResendBtn').style.display = '';
+}
+
+// "Kirim Lagi" -- popup versi lama disimpan di localStorage user per id_popup +
+// updated_at (lihat RQPopup di Modul-Web assets/js/huruf.js). Upsert baris yg
+// sama persis (tanpa ubah isi) tetap memicu trg_popup_notifikasi_updated ->
+// updated_at baru -> localStorage user lama tak cocok lagi -> popup tampil
+// ulang ke semua orang, termasuk yg sudah pernah menutupnya.
+async function resendPopupNotif() {
+  if (!_pnEditingId) return;
+  var row = _pnRows.find(function(r){ return r.id_popup === _pnEditingId; });
+  if (!row) { toast('Popup tidak ditemukan, muat ulang halaman.', 'err'); return; }
+  if (!row.aktif) { toast('Popup ini nonaktif -- aktifkan & simpan dulu sebelum kirim ulang.', 'err'); return; }
+  if (!confirm('Kirim ulang popup "' + (row.judul || row.id_popup) + '"?\n\nPopup akan tampil lagi ke semua pengguna, termasuk yang sudah pernah menutupnya.')) return;
+  try {
+    await window.HQ.AdminAPI.savePopupNotif(row);
+    toast('🔁 Popup dikirim ulang ke semua pengguna', 'ok');
+    await loadPopupNotif();
+    pnEditForm(_pnEditingId);
+  } catch(e) { toast(friendlyError(e), 'err'); }
 }
 
 function renderPopupNotifList() {
