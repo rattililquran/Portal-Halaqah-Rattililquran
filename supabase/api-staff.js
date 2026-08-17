@@ -15,9 +15,8 @@ var GuruAPI = {
     var today   = _todayJakarta();   // L2: zona Asia/Jakarta, bukan UTC (hindari off-by-one < 07:00 WIB)
     var month   = today.slice(0, 7);
 
-    var [hqRes, anggotaRes, kbmHariRes, kbmBulanRes, draftRes, levelsRes] = await Promise.all([
+    var [hqRes, kbmHariRes, kbmBulanRes, draftRes, levelsRes] = await Promise.all([
       _sb.from('halaqah').select('*').eq('id_guru', id_guru).eq('status', 'aktif'),
-      _sb.from('anggota').select('id_murid, id_halaqah').eq('status', 'aktif'),
       _sb.from('kbm_log').select('id_kbm').eq('id_guru', id_guru)
          .eq('status', 'selesai').eq('tanggal_pertemuan', today),
       _sb.from('kbm_log').select('id_kbm').eq('id_guru', id_guru)
@@ -31,9 +30,14 @@ var GuruAPI = {
 
     var halaqah   = hqRes.data || [];
     var hqIds     = halaqah.map(function(h) { return h.id_halaqah; });
-    var muridSet  = new Set((anggotaRes.data || []).filter(function(a) {
-      return hqIds.includes(a.id_halaqah);
-    }).map(function(a) { return a.id_murid; }));
+    // C7 fix (bug hunt 2026-08-18): dulu query ini ambil SEMUA anggota aktif
+    // se-sekolah tanpa filter/limit -> bisa terpotong diam-diam oleh batas 1000
+    // baris PostgREST begitu sekolah tumbuh, membuat total_murid/muridCount salah.
+    // Sekarang di-scope ke halaqah milik guru ini saja (jumlahnya kecil, aman).
+    var anggotaRes = hqIds.length
+      ? await _sb.from('anggota').select('id_murid, id_halaqah').eq('status', 'aktif').in('id_halaqah', hqIds)
+      : { data: [] };
+    var muridSet  = new Set((anggotaRes.data || []).map(function(a) { return a.id_murid; }));
 
     // Hitung pertemuan_ke per halaqah per jenis_sesi secara terpisah
     var kbmCounts = {}; // { id_halaqah: { jenis_sesi: count } }
@@ -1340,12 +1344,16 @@ var GuruAPI = {
         var raportData = _kalkulasiRaport(m.id_murid, d.id_periode, d.id_halaqah,
           komponen, nilaiManual, nilaiKBM, atLog, totalAt, gradeConfig, m.level, periodeRange, asmtItems, asmtMurid);
         var detailJson = raportData.komponen;
+        // C1 fix (bug hunt 2026-08-18): 'status' SENGAJA tidak disertakan di sini.
+        // Kolom raport.status default 'draft' di DB (001_schema.sql:346), jadi baris
+        // BARU tetap lahir 'draft' seperti sebelumnya -- tapi baris yang SUDAH 'published'
+        // tidak lagi ikut ditimpa balik ke 'draft' setiap kali guru generate ulang halaqah
+        // (dulu ini mem-unpublish SEMUA raport murid lain di halaqah/periode yang sama).
         var { error: upErr } = await _sb.from('raport')
           .upsert({
             id_murid: m.id_murid, id_periode: d.id_periode, id_halaqah: d.id_halaqah,
             nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat,
             detail_json: detailJson, tanggal_cetak: _localDate(),
-            status: 'draft',
           }, { onConflict: 'id_murid,id_periode' });
         if (upErr) throw new Error(upErr.message);
         berhasil.push(Object.assign({ nama_murid: m.nama_murid, catatan_guru: catatan && catatan.catatan }, raportData));
@@ -1783,6 +1791,25 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // C3 fix (bug hunt 2026-08-18, patch_088): tambah/hapus 1 anggota tanpa
+  // membangun ulang seluruh daftar dari cache klien -- setAnggotaKelompok
+  // di atas rawan "stale read" (2 tab edit bersamaan bisa menghidupkan
+  // kembali/menghapus anggota yang salah). Ini murni mutasi 1 baris.
+  addAnggotaKelompok: async function(id_kelompok, id_murid, nama_murid) {
+    var { error } = await _sb.rpc('add_anggota_kelompok_partner', {
+      p_id_kelompok: id_kelompok, p_id_murid: id_murid, p_nama_murid: nama_murid || null
+    });
+    _check(error, 'addAnggotaKelompok');
+    return { status: 'ok' };
+  },
+  removeAnggotaKelompok: async function(id_kelompok, id_murid) {
+    var { error } = await _sb.rpc('remove_anggota_kelompok_partner', {
+      p_id_kelompok: id_kelompok, p_id_murid: id_murid
+    });
+    _check(error, 'removeAnggotaKelompok');
+    return { status: 'ok' };
+  },
+
   // Hapus kelompok (anggota ikut terhapus via on delete cascade)
   deleteKelompokPartner: async function(id_kelompok) {
     var { error } = await _sb.from('kelompok_partner_qiyam').delete().eq('id_kelompok', id_kelompok);
@@ -1992,6 +2019,23 @@ var GuruAPI = {
       p_id_kelompok: id_kelompok, p_anggota: rows
     });
     _check(error, 'setAnggotaKelompokBelajar');
+    return { status: 'ok' };
+  },
+
+  // C3 fix (bug hunt 2026-08-18, patch_088): lihat addAnggotaKelompok/
+  // removeAnggotaKelompok (versi Qiyam) -- mirror-nya utk Partner Belajar.
+  addAnggotaKelompokBelajar: async function(id_kelompok, id_murid, nama_murid) {
+    var { error } = await _sb.rpc('add_anggota_kelompok_belajar', {
+      p_id_kelompok: id_kelompok, p_id_murid: id_murid, p_nama_murid: nama_murid || null
+    });
+    _check(error, 'addAnggotaKelompokBelajar');
+    return { status: 'ok' };
+  },
+  removeAnggotaKelompokBelajar: async function(id_kelompok, id_murid) {
+    var { error } = await _sb.rpc('remove_anggota_kelompok_belajar', {
+      p_id_kelompok: id_kelompok, p_id_murid: id_murid
+    });
+    _check(error, 'removeAnggotaKelompokBelajar');
     return { status: 'ok' };
   },
 
@@ -3202,13 +3246,16 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         isExcluded = true;
       }
     } else {
+      var matched = false;
       var hadir = myRegulerKBM.filter(function(n) { return ['H','T'].includes(String(n.status_hadir||'').toUpperCase()); });
       if (nama.includes('kehadiran') && !nama.includes('tibyan')) {
+        matched = true;
         // Kehadiran counts MT sessions to reward observer presence (uses myKBM instead of myRegulerKBM)
         var skor = myKBM.reduce(function(s,n) { var kd=String(n.status_hadir||'').toUpperCase(); return s+(kd==='H'?1:kd==='T'?0.7:kd==='I'?0.5:0); }, 0);
         v = myKBM.length > 0 ? Math.round(skor/myKBM.length*100) : 0;
         if (myKBM.length === 0) isExcluded = true;
       } else if (nama.includes('kbm') || nama.includes('harian')) {
+        matched = true;
         if (lvl === 'Micro Teaching') {
           isExcluded = true;
         } else {
@@ -3228,6 +3275,7 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
           if (hadir.length === 0) isExcluded = true;
         }
       } else if (nama.includes('adab')) {
+        matched = true;
         if (lvl === 'Level Qiyam' || lvl === 'Micro Teaching') {
           isExcluded = true;
         } else {
@@ -3236,10 +3284,12 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
           if (vAdab.length === 0) isExcluded = true;
         }
       } else if (nama.includes('tibyan') || nama.includes('at-tibyan')) {
+        matched = true;
         var hadirAt = myAt.filter(function(n){return ['H','T'].includes(String(n.status_hadir||'').toUpperCase());}).length;
         v = totalAt > 0 ? Math.round(hadirAt/totalAt*100) : 0;
         if (totalAt === 0) isExcluded = true;
       } else if (nama.includes('micro') || nama.includes('micro teaching')) {
+        matched = true;
         var mtRows = myKBM.filter(function(n) {
           var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
           return jenis === 'Micro Teaching' && n.nilai != null && n.nilai !== '';
@@ -3248,6 +3298,12 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
         v = mtRows.length > 0 ? Math.round(mtSum / mtRows.length) : 0;
         if (mtRows.length === 0) isExcluded = true;
       }
+      // C2 fix (bug hunt 2026-08-18): nama komponen "Otomatis" yang tak cocok satu pun
+      // kata kunci di atas dulu diam-diam ikut dihitung sbg skor 0 (bukan dikecualikan) --
+      // admin yang menamai komponen dgn sinonim ("UTS"/"Presensi") menjatuhkan nilai_akhir
+      // SEMUA murid di periode itu tanpa disadari. Sekarang dikecualikan, sama seperti
+      // komponen manual yang belum diisi.
+      if (!matched) isExcluded = true;
     }
     return { id_komponen: k.id_komponen, nama_komponen: k.nama_komponen, bobot: Number(k.bobot), nilai: v, isExcluded: isExcluded, tipe: k.tipe };
   });

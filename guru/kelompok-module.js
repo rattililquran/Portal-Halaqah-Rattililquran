@@ -420,17 +420,22 @@ async function kpDeleteKelompok(id_kelompok) {
 }
 
 async function kpRemoveAnggota(id_kelompok, id_murid) {
+  // C3 fix (bug hunt 2026-08-18): dulu fungsi ini membangun ulang seluruh
+  // daftar anggota dari cache klien (_kpData) lalu replace-all -- kalau cache
+  // basi (tab/sesi lain sudah ubah anggota duluan), anggota yang dihapus tab
+  // lain bisa "hidup lagi" di sini. Sekarang cuma hapus 1 baris di server;
+  // jumlah minimum dicek dari cache utk validasi UX saja (server tetap sumber
+  // kebenaran -- kalau ternyata sudah di bawah minimum di server, RPC/trigger
+  // akan menolak dan errornya ditangkap di catch).
   var k = _kpData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
   if (!k) return;
-  var anggotaBaru = (k.anggota_kelompok_partner || [])
-    .filter(function(a) { return a.id_murid !== id_murid; })
-    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; });
-  if (anggotaBaru.length < 2) {
+  var jumlahSaatIni = (k.anggota_kelompok_partner || []).length;
+  if (jumlahSaatIni <= 2) {
     showToast('Kelompok minimal harus punya 2 anggota. Hapus kelompok ini jika ingin mengosongkannya.', 'warning');
     return;
   }
   try {
-    await window.HQ.GuruAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    await window.HQ.GuruAPI.removeAnggotaKelompok(id_kelompok, id_murid);
     showToast('Anggota diperbarui ✓', 'success');
     renderKelolaKelompokPartner();
   } catch(e) {
@@ -444,15 +449,13 @@ async function kpAddAnggota(id_kelompok, selectEl) {
   var nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
   var k = _kpData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
   if (!k) return;
-  var anggotaBaru = (k.anggota_kelompok_partner || [])
-    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; })
-    .concat([{ id_murid: id_murid, nama_murid: nama_murid }]);
-  if (anggotaBaru.length > 3) {
+  var jumlahSaatIni = (k.anggota_kelompok_partner || []).length;
+  if (jumlahSaatIni >= 3) {
     showToast('Maksimal 3 anggota per kelompok', 'warning');
     return;
   }
   try {
-    await window.HQ.GuruAPI.setAnggotaKelompok(id_kelompok, anggotaBaru);
+    await window.HQ.GuruAPI.addAnggotaKelompok(id_kelompok, id_murid, nama_murid);
     showToast('Anggota ditambahkan ✓', 'success');
     renderKelolaKelompokPartner();
   } catch(e) {
@@ -949,17 +952,17 @@ async function kbDeleteKelompok(id_kelompok) {
 }
 
 async function kbRemoveAnggota(id_kelompok, id_murid) {
+  // C3 fix (bug hunt 2026-08-18): lihat catatan di kpRemoveAnggota -- mutasi
+  // 1 baris di server, bukan replace-all dari cache klien yang bisa basi.
   var k = _kbData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
   if (!k) return;
-  var anggotaBaru = (k.anggota_kelompok_belajar || [])
-    .filter(function(a) { return a.id_murid !== id_murid; })
-    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; });
-  if (anggotaBaru.length < 3) {
+  var jumlahSaatIni = (k.anggota_kelompok_belajar || []).length;
+  if (jumlahSaatIni <= 3) {
     showToast('Kelompok minimal harus punya 3 anggota. Hapus kelompok ini jika ingin mengosongkannya.', 'warning');
     return;
   }
   try {
-    await window.HQ.GuruAPI.setAnggotaKelompokBelajar(id_kelompok, anggotaBaru);
+    await window.HQ.GuruAPI.removeAnggotaKelompokBelajar(id_kelompok, id_murid);
     showToast('Anggota diperbarui ✓', 'success');
     renderKelolaKelompokBelajar();
   } catch(e) {
@@ -973,15 +976,13 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   var nama_murid = selectEl.options[selectEl.selectedIndex].getAttribute('data-nama');
   var k = _kbData.kelompok.find(function(x) { return x.id_kelompok === id_kelompok; });
   if (!k) return;
-  var anggotaBaru = (k.anggota_kelompok_belajar || [])
-    .map(function(a) { return { id_murid: a.id_murid, nama_murid: a.nama_murid }; })
-    .concat([{ id_murid: id_murid, nama_murid: nama_murid }]);
-  if (anggotaBaru.length > 5) {
+  var jumlahSaatIni = (k.anggota_kelompok_belajar || []).length;
+  if (jumlahSaatIni >= 5) {
     showToast('Maksimal 5 anggota per kelompok', 'warning');
     return;
   }
   try {
-    await window.HQ.GuruAPI.setAnggotaKelompokBelajar(id_kelompok, anggotaBaru);
+    await window.HQ.GuruAPI.addAnggotaKelompokBelajar(id_kelompok, id_murid, nama_murid);
     showToast('Anggota ditambahkan ✓', 'success');
     renderKelolaKelompokBelajar();
   } catch(e) {
