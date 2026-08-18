@@ -2029,9 +2029,15 @@
       const kamVal  = (document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '') || _cache.kamera || '';
       const korVal  = (document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '') || _cache.koreksi || '';
       const catVal  = (document.getElementById('catatan-'+ m.id_murid) ? document.getElementById('catatan-'+ m.id_murid).value : '') || _cache.catatan || '';
+      const isDaurahMurid = (m.level === 'Tahsin Al-Fatihah');
       if (adabVal && !isSkip) terisi++;
 
-      const cardClass = isSkip ? 'nilai-murid-card alpa' : (adabVal ? 'nilai-murid-card terisi' : 'nilai-murid-card');
+      // Collapse-on-fill (hemat ruang di HP): kartu yg Adab+Kamera sudah terisi mulai
+      // dalam keadaan tertutup (kecuali sedang dibuka manual oleh guru -- lihat toggleNilaiCard).
+      const prevCardEl = document.getElementById('nmcard-' + m.id_murid);
+      const manualOpen = prevCardEl && prevCardEl.dataset.manualToggle === '1';
+      const startCollapsed = !isSkip && adabVal && kamVal && !manualOpen;
+      const cardClass = isSkip ? 'nilai-murid-card alpa' : (adabVal ? 'nilai-murid-card terisi' + (startCollapsed ? ' collapsed' : '') : 'nilai-murid-card');
       const skipMsg   = isAlpa
         ? '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🔴 Murid alpa — nilai tidak perlu diisi</div>'
         : '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🟡 Murid izin — nilai tidak perlu diisi</div>';
@@ -2050,7 +2056,7 @@
         '<div style="margin-bottom:8px">',
         '  <div class="fg" style="margin:0">',
         '    <div class="nm-section-label">📷 Kamera Murid</div>',
-        '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px" onchange="_saveKbmDraftLocal()">',
+        '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
         '      <option value="">— Pilih —</option>',
         '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
         '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>🟡 kamera sering buka tutup</option>',
@@ -2059,16 +2065,15 @@
         '  </div>',
         '</div>',
         '<div class="fg" style="margin:0">',
-        '  <div class="nm-section-label">✏️ Koreksi Tahsin</div>',
-        '  <div id="chips-' + esc(m.id_murid) + '" style="margin-bottom:8px"></div>',
-        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Makhraj huruf, mad, dll..." style="font-size:13px;resize:vertical;min-height:72px">' + esc(korVal) + '</textarea>',
-        '  <div style="display:flex;justify-content:flex-end;margin-top:4px">',
-        '    <button type="button" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)" style="background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;display:block">📋 Lihat Riwayat Koreksi Sebelumnya</button>',
+        '  <div class="nm-section-label">✏️ Koreksi &amp; Catatan Tahsin</div>',
+        '  <div style="display:flex;gap:8px;margin-bottom:8px">',
+        (isDaurahMurid ? '' :
+        '    <button type="button" class="nm-tool-btn" id="tplbtn-' + esc(m.id_murid) + '" data-mid="' + esc(m.id_murid) + '" onclick="toggleTemplateKoreksi(this.dataset.mid)">🏷️ Template</button>'),
+        '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">📋 Riwayat</button>',
         '  </div>',
-        '</div>',
-        '<div class="fg" style="margin-top:10px">',
-        '  <div class="nm-section-label">📝 Catatan Lainnya</div><div style="font-size:10px;color:var(--text-3);font-weight:500;margin-bottom:5px">(opsional)</div>',
-        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan khusus untuk murid ini..." style="font-size:13px;resize:vertical">' + esc(catVal) + '</textarea>',
+        '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahMurid ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
+        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:13px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
+        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:13px;resize:vertical;margin-top:6px">' + esc(catVal) + '</textarea>',
         '</div>',
       ].join('\n');
 
@@ -2137,14 +2142,29 @@
           + '</div>';
       }
 
+      var summaryText = '';
+      if (!isSkip && adabVal) {
+        var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
+        var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
+        var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
+        var summaryParts = [adabIcon + ' ' + adabVal];
+        if (kamVal)    summaryParts.push(kamIcon + ' ' + kamVal);
+        if (korCount)  summaryParts.push('✏️ ' + korCount + ' catatan');
+        summaryText = summaryParts.join(' · ');
+      }
+
       return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
-        + '<div class="nm-header">'
+        + '<div class="nm-header" onclick="toggleNilaiCard(\'' + esc(m.id_murid) + '\')">'
         + '<div class="nm-nama">'
         + '<div class="nm-nama-avatar">' + initials + '</div>'
         + esc(m.nama_murid)
         + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px">'
         + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
+        + (isSkip ? '' : '<span class="nm-chevron">▾</span>')
         + '</div>'
+        + '</div>'
+        + (isSkip ? '' : '<div class="nm-summary" id="nmsum-' + esc(m.id_murid) + '">' + esc(summaryText) + '</div>')
         + '<div class="nm-body">'
         + (isSkip ? skipMsg : (nilaiForm + daurahHtml))
         + '</div>'
@@ -2154,7 +2174,13 @@
     function doRenderChips() {
       muridSesi.forEach(function(m) {
         var status = presensiMap[m.id_murid] || 'H';
-        if (!['A','I'].includes(status) && typeof renderChipsKoreksi === 'function') {
+        if (['A','I'].includes(status)) return;
+        // Non-Daurah: chips di-lazy-render saat tombol "🏷️ Template" diketuk
+        // (toggleTemplateKoreksi) -- hemat kerja render utk roster panjang, dan
+        // template memang default tersembunyi (guru lebih sering pakai bahasa sendiri).
+        // Daurah: chips koreksi cepat tetap tampil default spt sebelumnya (kurikulum).
+        var isDaurahM = (m.level === 'Tahsin Al-Fatihah');
+        if (isDaurahM && typeof renderChipsKoreksi === 'function') {
           renderChipsKoreksi(m.id_murid);
         }
       });
@@ -2171,10 +2197,21 @@
   }
 
   function updateNilaiCard(id_murid) {
-    const card = document.getElementById('nmcard-' + id_murid);
-    var adabEl = document.getElementById('adab-' + id_murid);
-    var val    = adabEl ? adabEl.value : '';
-    if (card) card.className = 'nilai-murid-card ' + (val ? 'terisi' : '');
+    const card   = document.getElementById('nmcard-' + id_murid);
+    const adabEl = document.getElementById('adab-'   + id_murid);
+    const kamEl  = document.getElementById('kamera-' + id_murid);
+    const adabVal = adabEl ? adabEl.value : '';
+    const kamVal  = kamEl  ? kamEl.value  : '';
+    if (card) {
+      var cls = 'nilai-murid-card' + (adabVal ? ' terisi' : '');
+      // Collapse-on-fill (hemat ruang di HP): begitu Adab & Kamera (dua field
+      // wajib) terisi, kartu otomatis mengecil -- kecuali guru sudah membukanya
+      // manual (dataset.manualToggle, lihat toggleNilaiCard) utk melihat/edit lagi.
+      var manualOpen = card.dataset.manualToggle === '1';
+      if (adabVal && kamVal && !manualOpen) cls += ' collapsed';
+      card.className = cls;
+      updateNmSummary(id_murid);
+    }
 
     const presensiMap = {};
     document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
@@ -2188,6 +2225,58 @@
     const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
     const progEl = document.getElementById('nilaiProgress');
     if (progEl) progEl.textContent = terisi + '/' + total + ' terisi';
+  }
+
+  // Ringkasan 1 baris yg tampil saat kartu murid collapsed.
+  function updateNmSummary(id_murid) {
+    var el = document.getElementById('nmsum-' + id_murid);
+    if (!el) return;
+    var adabVal = (document.getElementById('adab-'+id_murid)    || {}).value || '';
+    var kamVal  = (document.getElementById('kamera-'+id_murid)  || {}).value || '';
+    var korVal  = (document.getElementById('koreksi-'+id_murid) || {}).value || '';
+    if (!adabVal) { el.textContent = ''; return; }
+    var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
+    var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
+    var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
+    var parts = [adabIcon + ' ' + adabVal];
+    if (kamVal)   parts.push(kamIcon + ' ' + kamVal);
+    if (korCount) parts.push('✏️ ' + korCount + ' catatan');
+    el.textContent = parts.join(' · ');
+  }
+
+  // Tap header kartu murid: buka/tutup manual (hanya berlaku utk kartu yg
+  // sudah "terisi" -- kartu kosong/alpa tak ada gunanya di-collapse).
+  function toggleNilaiCard(id_murid) {
+    var card = document.getElementById('nmcard-' + id_murid);
+    if (!card || !card.classList.contains('terisi')) return;
+    var willCollapse = !card.classList.contains('collapsed');
+    card.classList.toggle('collapsed', willCollapse);
+    // Tandai supaya updateNilaiCard (dipicu ganti Adab/Kamera berikutnya) tak
+    // langsung auto-collapse ulang selagi guru sengaja membukanya utk diedit.
+    card.dataset.manualToggle = willCollapse ? '' : '1';
+    if (willCollapse) updateNmSummary(id_murid);
+  }
+
+  // Tombol "🏷️ Template": template koreksi default tersembunyi (guru lebih
+  // sering pakai bahasa sendiri) -- baru di-render & ditampilkan saat diketuk.
+  async function toggleTemplateKoreksi(id_murid) {
+    var cont = document.getElementById('chips-' + id_murid);
+    var btn  = document.getElementById('tplbtn-' + id_murid);
+    if (!cont) return;
+    var opening = (cont.style.display === 'none' || !cont.style.display);
+    if (opening) {
+      if ((typeof templateKoreksi === 'undefined' || !Object.keys(templateKoreksi).length) && typeof loadTemplateKoreksi === 'function') {
+        await loadTemplateKoreksi();
+      }
+      if (!cont.dataset.rendered && typeof renderChipsKoreksi === 'function') {
+        renderChipsKoreksi(id_murid);
+        cont.dataset.rendered = '1';
+      }
+      cont.style.display = 'block';
+    } else {
+      cont.style.display = 'none';
+    }
+    if (btn) btn.classList.toggle('active', opening);
   }
 
   function renderNilaiList() { renderNilaiMuridStep(); }
@@ -3153,6 +3242,9 @@
   window.kembaliKeStep3 = kembaliKeStep3;
   window.renderNilaiMuridStep = renderNilaiMuridStep;
   window.updateNilaiCard = updateNilaiCard;
+  window.updateNmSummary = updateNmSummary;
+  window.toggleNilaiCard = toggleNilaiCard;
+  window.toggleTemplateKoreksi = toggleTemplateKoreksi;
   window.renderNilaiList = renderNilaiList;
   window.doSelesaiKBM = doSelesaiKBM;
   window.getStepsDef = getStepsDef;
