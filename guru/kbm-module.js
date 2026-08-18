@@ -2165,7 +2165,7 @@
         + '</div>'
         + '</div>'
         + (isSkip ? '' : '<div class="nm-summary" id="nmsum-' + esc(m.id_murid) + '">' + esc(summaryText) + '</div>')
-        + '<div class="nm-body">'
+        + '<div class="nm-body"' + (isSkip ? '' : ' onfocusout="_nmCardFocusOut(\'' + esc(m.id_murid) + '\')"') + '>'
         + (isSkip ? skipMsg : (nilaiForm + daurahHtml))
         + '</div>'
         + '</div>';
@@ -2199,17 +2199,17 @@
   function updateNilaiCard(id_murid) {
     const card   = document.getElementById('nmcard-' + id_murid);
     const adabEl = document.getElementById('adab-'   + id_murid);
-    const kamEl  = document.getElementById('kamera-' + id_murid);
     const adabVal = adabEl ? adabEl.value : '';
-    const kamVal  = kamEl  ? kamEl.value  : '';
     if (card) {
-      var cls = 'nilai-murid-card' + (adabVal ? ' terisi' : '');
-      // Collapse-on-fill (hemat ruang di HP): begitu Adab & Kamera (dua field
-      // wajib) terisi, kartu otomatis mengecil -- kecuali guru sudah membukanya
-      // manual (dataset.manualToggle, lihat toggleNilaiCard) utk melihat/edit lagi.
-      var manualOpen = card.dataset.manualToggle === '1';
-      if (adabVal && kamVal && !manualOpen) cls += ' collapsed';
-      card.className = cls;
+      // Hanya kelola class 'terisi' di sini -- 'collapsed' JANGAN disentuh
+      // (dikelola khusus oleh _nmCardFocusOut/toggleNilaiCard). Kalau dulu
+      // pakai card.className = ... penuh, tiap kali Adab/Kamera berubah
+      // 'collapsed' ikut ditimpa/dibangun ulang dari sini -- itu penyebab kartu
+      // langsung mengecil begitu Adab+Kamera dipilih, padahal guru belum sempat
+      // isi Koreksi/Catatan. Sekarang collapse HANYA terjadi saat fokus benar2
+      // meninggalkan kartu (lihat _nmCardFocusOut), bukan begitu 2 dropdown terisi.
+      card.classList.toggle('terisi', !!adabVal);
+      if (!adabVal) card.classList.remove('collapsed');
       updateNmSummary(id_murid);
     }
 
@@ -2251,10 +2251,30 @@
     if (!card || !card.classList.contains('terisi')) return;
     var willCollapse = !card.classList.contains('collapsed');
     card.classList.toggle('collapsed', willCollapse);
-    // Tandai supaya updateNilaiCard (dipicu ganti Adab/Kamera berikutnya) tak
-    // langsung auto-collapse ulang selagi guru sengaja membukanya utk diedit.
+    // Tandai supaya _nmCardFocusOut tak langsung auto-collapse ulang begitu
+    // fokus keluar, selagi guru sengaja membukanya lagi utk melihat/mengedit.
     card.dataset.manualToggle = willCollapse ? '' : '1';
     if (willCollapse) updateNmSummary(id_murid);
+  }
+
+  // Collapse OTOMATIS -- dipicu saat fokus benar2 MENINGGALKAN kartu (bukan
+  // begitu Adab/Kamera dipilih), lewat event `focusout` (bubbling) pada .nm-body.
+  // setTimeout(0) WAJIB: focusout elemen lama terjadi SEBELUM elemen baru
+  // menerima fokus, jadi activeElement harus dicek 1 tick kemudian -- kalau
+  // dicek langsung/sinkron, berpindah fokus ANTAR field DALAM kartu yang sama
+  // (mis. dari Adab ke Kamera, atau ke textarea Koreksi/Catatan) akan salah
+  // terdeteksi sbg "sudah keluar kartu" dan menutup kartu sebelum guru selesai.
+  function _nmCardFocusOut(id_murid) {
+    setTimeout(function() {
+      var card = document.getElementById('nmcard-' + id_murid);
+      if (!card || card.contains(document.activeElement)) return; // fokus masih di kartu ini
+      var adabVal = (document.getElementById('adab-'+id_murid)   || {}).value || '';
+      var kamVal  = (document.getElementById('kamera-'+id_murid) || {}).value || '';
+      if (adabVal && kamVal && card.dataset.manualToggle !== '1' && !card.classList.contains('collapsed')) {
+        card.classList.add('collapsed');
+        updateNmSummary(id_murid);
+      }
+    }, 0);
   }
 
   // Tombol "🏷️ Template": template koreksi default tersembunyi (guru lebih
@@ -3244,6 +3264,7 @@
   window.updateNilaiCard = updateNilaiCard;
   window.updateNmSummary = updateNmSummary;
   window.toggleNilaiCard = toggleNilaiCard;
+  window._nmCardFocusOut = _nmCardFocusOut;
   window.toggleTemplateKoreksi = toggleTemplateKoreksi;
   window.renderNilaiList = renderNilaiList;
   window.doSelesaiKBM = doSelesaiKBM;
