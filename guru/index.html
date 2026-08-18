@@ -5921,7 +5921,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=eaa978e4" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=85550b5d" defer></script>
+<script src="kbm-module.js?v=d8a37f66" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
@@ -7737,15 +7737,25 @@ function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
 
 // ══ #5 TEMPLATE KOREKSI ══════════════════
 var templateKoreksi = {};
+var _templateKoreksiPromise = null;
+// Bug hunt fix: guru bisa tap "🏷️ Template" di 2 kartu murid berbeda sebelum
+// fetch pertama selesai -- tanpa memoize, keduanya lolos cek "belum ada data"
+// dan sama-sama memicu request getTemplateKoreksi() (round-trip network dobel
+// yg sia-sia). Promise in-flight-nya di-cache supaya panggilan bersamaan
+// menunggu request YANG SAMA, bukan masing-masing bikin request baru.
 async function loadTemplateKoreksi() {
-  try {
-    var r = await window.HQ.GuruAPI.getTemplateKoreksi();
-    templateKoreksi = r.data || {};
-  } catch(e) {
-    console.warn('loadTemplateKoreksi error:', e.message);
-  }
-  // Selalu return templateKoreksi agar .then() bisa mengakses
-  return templateKoreksi;
+  if (_templateKoreksiPromise) return _templateKoreksiPromise;
+  _templateKoreksiPromise = (async function() {
+    try {
+      var r = await window.HQ.GuruAPI.getTemplateKoreksi();
+      templateKoreksi = r.data || {};
+    } catch(e) {
+      console.warn('loadTemplateKoreksi error:', e.message);
+      _templateKoreksiPromise = null; // izinkan retry kalau gagal
+    }
+    return templateKoreksi;
+  })();
+  return _templateKoreksiPromise;
 }
 
 // ── Preferensi Notifikasi (Push) ──────────────

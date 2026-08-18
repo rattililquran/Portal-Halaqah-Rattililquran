@@ -21,6 +21,13 @@
     { val: 1, code: 'PP', cls: 'opt-pp' }
   ];
 
+  // Kartu murid yg sengaja dibuka manual oleh guru (tap header) setelah auto-
+  // collapse -- state di sini, BUKAN di dataset DOM node (spt pola _collapsedPrGroups
+  // di pr-jurnal-module.js), supaya bertahan lintas re-render penuh. Kalau disimpan
+  // di dataset node lama, node itu hilang saat innerHTML diganti (mis. guru pindah
+  // ke step Jurnal lalu "Kembali") dan pilihan "biarkan terbuka" diam-diam terlupakan.
+  var _nmManualOpen = {};
+
   function getSesiAktif() {
     return window.HQ && window.HQ.AppState && typeof window.HQ.AppState.sesiAktif !== 'undefined'
       ? window.HQ.AppState.sesiAktif
@@ -166,6 +173,14 @@
     if (window._presensiStateKbm !== sesiAktif.id_kbm) {
       window._presensiState = {};
       window._presensiStateKbm = sesiAktif.id_kbm;
+    }
+    // Bug hunt fix: _nmManualOpen dulu tak pernah direset lintas sesi -- kalau
+    // murid yg sama tampil lagi di sesi KBM lain nanti (halaqah beda/hari lain),
+    // flag "sengaja dibuka manual" dari sesi lama bisa nyangkut & bikin kartunya
+    // tak auto-collapse di sesi baru walau tak pernah dibuka manual di sana.
+    if (window._nmManualOpenKbm !== sesiAktif.id_kbm) {
+      _nmManualOpen = {};
+      window._nmManualOpenKbm = sesiAktif.id_kbm;
     }
 
     var proceed = function() {
@@ -1988,6 +2003,11 @@
         var setV = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
         setV('adab-'+id, cache.adab); setV('kamera-'+id, cache.kamera);
         setV('koreksi-'+id, cache.koreksi); setV('catatan-'+id, cache.catatan);
+        // Bug hunt fix: resync ringkasan/collapse card ke nilai DOM final di atas
+        // -- tanpa ini, kalau restore ini menimpa sesuatu, ringkasan 1-baris &
+        // status terisi/collapsed kartu bisa nyangkut ketinggalan (tak sinkron
+        // dgn apa yg sebenarnya tersimpan di form).
+        if (typeof updateNilaiCard === 'function') updateNilaiCard(id);
       });
     }, 100);
   }
@@ -2018,6 +2038,16 @@
     var sepInserted = false;
 
     const sesiAktif = getSesiAktif();
+    // Sumber kebenaran "Daurah?" HARUS sama dgn yg dipakai renderChipsKoreksi
+    // (guru/index.html) -- level HALAQAH sesi ini (bukan m.level per-murid, yg
+    // bisa berbeda dari level halaqah pada anomali data). Kalau dua sinyal ini
+    // beda, tombol Template bisa tampil/sembunyi tak sinkron dgn chip yg
+    // sebenarnya dirender (template umum vs chip cepat Al-Fatihah tertukar).
+    const _kbmHqEl = document.getElementById('kbmHalaqah');
+    const _kbmHqId = _kbmHqEl ? _kbmHqEl.value : (sesiAktif && sesiAktif.id_halaqah);
+    const _hqList  = (window.HQ && window.HQ.AppState && window.HQ.AppState.halaqahList) || window.halaqahList || [];
+    const _hqNow   = (_hqList || []).find(function(h){ return h.id_halaqah === _kbmHqId; });
+    const isDaurahHalaqah = !!(_hqNow && _hqNow.level === 'Tahsin Al-Fatihah');
     let terisi = 0;
     cont.innerHTML = muridSorted.map(m => {
       const status   = presensiMap[m.id_murid] || 'H';
@@ -2029,14 +2059,12 @@
       const kamVal  = (document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '') || _cache.kamera || '';
       const korVal  = (document.getElementById('koreksi-'+ m.id_murid) ? document.getElementById('koreksi-'+ m.id_murid).value : '') || _cache.koreksi || '';
       const catVal  = (document.getElementById('catatan-'+ m.id_murid) ? document.getElementById('catatan-'+ m.id_murid).value : '') || _cache.catatan || '';
-      const isDaurahMurid = (m.level === 'Tahsin Al-Fatihah');
       if (adabVal && !isSkip) terisi++;
 
       // Collapse-on-fill (hemat ruang di HP): kartu yg Adab+Kamera sudah terisi mulai
-      // dalam keadaan tertutup (kecuali sedang dibuka manual oleh guru -- lihat toggleNilaiCard).
-      const prevCardEl = document.getElementById('nmcard-' + m.id_murid);
-      const manualOpen = prevCardEl && prevCardEl.dataset.manualToggle === '1';
-      const startCollapsed = !isSkip && adabVal && kamVal && !manualOpen;
+      // dalam keadaan tertutup (kecuali sedang dibuka manual oleh guru -- lihat
+      // _nmManualOpen, bertahan lintas re-render karena bukan disimpan di DOM node lama).
+      const startCollapsed = !isSkip && adabVal && kamVal && !_nmManualOpen[m.id_murid];
       const cardClass = isSkip ? 'nilai-murid-card alpa' : (adabVal ? 'nilai-murid-card terisi' + (startCollapsed ? ' collapsed' : '') : 'nilai-murid-card');
       const skipMsg   = isAlpa
         ? '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🔴 Murid alpa — nilai tidak perlu diisi</div>'
@@ -2067,11 +2095,11 @@
         '<div class="fg" style="margin:0">',
         '  <div class="nm-section-label">✏️ Koreksi &amp; Catatan Tahsin</div>',
         '  <div style="display:flex;gap:8px;margin-bottom:8px">',
-        (isDaurahMurid ? '' :
+        (isDaurahHalaqah ? '' :
         '    <button type="button" class="nm-tool-btn" id="tplbtn-' + esc(m.id_murid) + '" data-mid="' + esc(m.id_murid) + '" onclick="toggleTemplateKoreksi(this.dataset.mid)">🏷️ Template</button>'),
         '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">📋 Riwayat</button>',
         '  </div>',
-        '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahMurid ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
+        '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahHalaqah ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
         '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:13px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
         '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:13px;resize:vertical;margin-top:6px">' + esc(catVal) + '</textarea>',
         '</div>',
@@ -2142,16 +2170,7 @@
           + '</div>';
       }
 
-      var summaryText = '';
-      if (!isSkip && adabVal) {
-        var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
-        var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
-        var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
-        var summaryParts = [adabIcon + ' ' + adabVal];
-        if (kamVal)    summaryParts.push(kamIcon + ' ' + kamVal);
-        if (korCount)  summaryParts.push('✏️ ' + korCount + ' catatan');
-        summaryText = summaryParts.join(' · ');
-      }
+      var summaryText = isSkip ? '' : _nmSummaryText(adabVal, kamVal, korVal, catVal);
 
       return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
         + '<div class="nm-header" onclick="toggleNilaiCard(\'' + esc(m.id_murid) + '\')">'
@@ -2172,17 +2191,17 @@
     }).join('');
 
     function doRenderChips() {
+      // Non-Daurah: chips di-lazy-render saat tombol "🏷️ Template" diketuk
+      // (toggleTemplateKoreksi) -- hemat kerja render utk roster panjang, dan
+      // template memang default tersembunyi (guru lebih sering pakai bahasa sendiri).
+      // Daurah: chips koreksi cepat tetap tampil default spt sebelumnya (kurikulum).
+      // isDaurahHalaqah 1 nilai utk seluruh sesi (bukan per-murid) -- lihat catatan
+      // di awal renderNilaiMuridStep kenapa level HALAQAH, bukan level murid.
+      if (!isDaurahHalaqah || typeof renderChipsKoreksi !== 'function') return;
       muridSesi.forEach(function(m) {
         var status = presensiMap[m.id_murid] || 'H';
         if (['A','I'].includes(status)) return;
-        // Non-Daurah: chips di-lazy-render saat tombol "🏷️ Template" diketuk
-        // (toggleTemplateKoreksi) -- hemat kerja render utk roster panjang, dan
-        // template memang default tersembunyi (guru lebih sering pakai bahasa sendiri).
-        // Daurah: chips koreksi cepat tetap tampil default spt sebelumnya (kurikulum).
-        var isDaurahM = (m.level === 'Tahsin Al-Fatihah');
-        if (isDaurahM && typeof renderChipsKoreksi === 'function') {
-          renderChipsKoreksi(m.id_murid);
-        }
+        renderChipsKoreksi(m.id_murid);
       });
     }
     if (typeof templateKoreksi !== 'undefined' && Object.keys(templateKoreksi).length > 0) {
@@ -2227,6 +2246,22 @@
     if (progEl) progEl.textContent = terisi + '/' + total + ' terisi';
   }
 
+  // Teks ringkasan 1 baris kartu murid (dipakai render awal & saat collapse
+  // ulang) -- pure function, hindari duplikasi logika di 2 tempat spt sebelumnya.
+  // Ikon "🏷️" sengaja pakai kata "koreksi" (bukan "catatan") krn ada field
+  // Catatan terpisah -- pakai "catatan" di sini dulu bikin ambigu dgn field itu.
+  function _nmSummaryText(adabVal, kamVal, korVal, catVal) {
+    if (!adabVal) return '';
+    var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
+    var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
+    var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
+    var parts = [adabIcon + ' ' + adabVal];
+    if (kamVal)                    parts.push(kamIcon + ' ' + kamVal);
+    if (korCount)                  parts.push('✏️ ' + korCount + ' koreksi');
+    if (catVal && catVal.trim())   parts.push('📝 ada catatan');
+    return parts.join(' · ');
+  }
+
   // Ringkasan 1 baris yg tampil saat kartu murid collapsed.
   function updateNmSummary(id_murid) {
     var el = document.getElementById('nmsum-' + id_murid);
@@ -2234,14 +2269,8 @@
     var adabVal = (document.getElementById('adab-'+id_murid)    || {}).value || '';
     var kamVal  = (document.getElementById('kamera-'+id_murid)  || {}).value || '';
     var korVal  = (document.getElementById('koreksi-'+id_murid) || {}).value || '';
-    if (!adabVal) { el.textContent = ''; return; }
-    var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
-    var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
-    var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
-    var parts = [adabIcon + ' ' + adabVal];
-    if (kamVal)   parts.push(kamIcon + ' ' + kamVal);
-    if (korCount) parts.push('✏️ ' + korCount + ' catatan');
-    el.textContent = parts.join(' · ');
+    var catVal  = (document.getElementById('catatan-'+id_murid) || {}).value || '';
+    el.textContent = _nmSummaryText(adabVal, kamVal, korVal, catVal);
   }
 
   // Tap header kartu murid: buka/tutup manual (hanya berlaku utk kartu yg
@@ -2251,9 +2280,12 @@
     if (!card || !card.classList.contains('terisi')) return;
     var willCollapse = !card.classList.contains('collapsed');
     card.classList.toggle('collapsed', willCollapse);
-    // Tandai supaya _nmCardFocusOut tak langsung auto-collapse ulang begitu
-    // fokus keluar, selagi guru sengaja membukanya lagi utk melihat/mengedit.
-    card.dataset.manualToggle = willCollapse ? '' : '1';
+    // Tandai di _nmManualOpen (bukan dataset DOM) supaya _nmCardFocusOut tak
+    // langsung auto-collapse ulang begitu fokus keluar, selagi guru sengaja
+    // membukanya lagi utk melihat/mengedit -- dan supaya pilihan ini TETAP
+    // berlaku meski kartunya nanti di-render ulang penuh (pindah step lalu
+    // "Kembali"), bukan hilang diam-diam krn node DOM lamanya sudah diganti.
+    if (willCollapse) delete _nmManualOpen[id_murid]; else _nmManualOpen[id_murid] = true;
     if (willCollapse) updateNmSummary(id_murid);
   }
 
@@ -2270,7 +2302,7 @@
       if (!card || card.contains(document.activeElement)) return; // fokus masih di kartu ini
       var adabVal = (document.getElementById('adab-'+id_murid)   || {}).value || '';
       var kamVal  = (document.getElementById('kamera-'+id_murid) || {}).value || '';
-      if (adabVal && kamVal && card.dataset.manualToggle !== '1' && !card.classList.contains('collapsed')) {
+      if (adabVal && kamVal && !_nmManualOpen[id_murid] && !card.classList.contains('collapsed')) {
         card.classList.add('collapsed');
         updateNmSummary(id_murid);
       }
@@ -2297,6 +2329,14 @@
       cont.style.display = 'none';
     }
     if (btn) btn.classList.toggle('active', opening);
+    // Bug hunt fix: WebKit (Safari desktop & iOS) TIDAK memberi fokus ke <button>
+    // saat di-tap (beda dgn Chrome/Android) -- activeElement jadi document.body,
+    // di luar kartu, jadi _nmCardFocusOut() salah mendeteksi "fokus sudah keluar
+    // kartu" dan kartu langsung collapse, MENYEMBUNYIKAN panel Template yg baru
+    // saja dibuka. .focus() programatik di sini tetap berjalan normal di WebKit
+    // (yg tak jalan cuma auto-focus dari tap/klik), jadi ini memaksa activeElement
+    // tetap di dalam kartu. No-op/aman di browser yg sudah fokus dgn benar.
+    if (btn) btn.focus();
   }
 
   function renderNilaiList() { renderNilaiMuridStep(); }
