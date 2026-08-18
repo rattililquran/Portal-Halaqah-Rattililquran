@@ -478,7 +478,17 @@ var GuruAPI = {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: n.id_murid,
       adab: n.adab, kamera_murid: n.kamera_murid,
       koreksi_tahsin: n.koreksi_tahsin, catatan_murid: n.catatan_murid,
-      nilai: n.nilai || null,
+      // Bug hunt lanjutan (2026-08-18): `n.nilai || null` adalah jebakan falsy-zero
+      // -- Micro Teaching sengaja push nilai:0 utk murid Alpa saat jadwal sendiri
+      // (kbm-module.js doSelesaiKBM, cabang isMicroteachingSesi), tapi `0 || null`
+      // = null di JS, jadi absen-bernilai-0 tersimpan sbg NULL (tak beda dgn
+      // "belum dinilai"). Dampak nyata: _kalkulasiRaport (baris ~3396-3402)
+      // MENGECUALIKAN baris nilai=null dari rata-rata komponen micro teaching --
+      // murid yg BOLOS praktik mengajar jadi lolos tanpa nilai 0 yg semestinya
+      // menekan rata-ratanya, bukannya dikecualikan. Fix: pertahankan 0 eksplisit,
+      // biarkan null/undefined/string kosong tetap null spt semula (sesi lain --
+      // KBM Reguler/Qiyam -- tak pernah kirim nilai berarti, field ini legacy utk itu).
+      nilai: n.nilai === 0 ? 0 : (n.nilai || null),
     }; });
     if (!updates.length) return { status: 'ok' };
     var { error } = await _sb.from('nilai_kbm')
