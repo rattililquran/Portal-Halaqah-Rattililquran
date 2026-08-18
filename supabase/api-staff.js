@@ -42,9 +42,12 @@ var GuruAPI = {
     // Hitung pertemuan_ke per halaqah per jenis_sesi secara terpisah
     var kbmCounts = {}; // { id_halaqah: { jenis_sesi: count } }
     if (hqIds.length > 0) {
-      var { data: kbmAll } = await _sb.from('kbm_log')
-        .select('id_halaqah, jenis_sesi')
-        .in('id_halaqah', hqIds).eq('status', 'selesai');
+      // H9 fix (bug hunt 2026-08-18): dulu tanpa paginasi -> guru senior dgn 1000+
+      // log kbm_log selesai bisa kena batas diam-diam PostgREST, pertemuan_ke/
+      // sisa_sesi jadi salah. _selectAllPaged menembus batas itu.
+      var kbmAll = await _selectAllPaged('kbm_log', 'id_halaqah, jenis_sesi', function(q) {
+        return q.in('id_halaqah', hqIds).eq('status', 'selesai').order('id_kbm');
+      }, 'getDashboard.kbmAll');
       (kbmAll || []).forEach(function(k) {
         var jenis = k.jenis_sesi || 'KBM Reguler';
         if (!kbmCounts[k.id_halaqah]) kbmCounts[k.id_halaqah] = {};
@@ -119,9 +122,12 @@ var GuruAPI = {
     var penggantiByJenis = {};  // { id_halaqah: { jenis: N (selesai & is_pengganti) } }
     var liburEntries     = {};  // { id_halaqah: { jenis: [{tanggal_pertemuan, keterangan_libur}, ...] } }
     if (hqIds.length > 0) {
-      var { data: kbmAll } = await _sb.from('kbm_log')
-        .select('id_halaqah, jenis_sesi, status, is_pengganti, tanggal_pertemuan, keterangan_libur')
-        .in('id_halaqah', hqIds).in('status', ['selesai', 'libur']);
+      // H9 fix (bug hunt 2026-08-18): idem getDashboard -- paginasi agar tak
+      // terpotong batas 1000-baris PostgREST utk guru dgn riwayat log panjang.
+      var kbmAll = await _selectAllPaged('kbm_log',
+        'id_halaqah, jenis_sesi, status, is_pengganti, tanggal_pertemuan, keterangan_libur',
+        function(q) { return q.in('id_halaqah', hqIds).in('status', ['selesai', 'libur']).order('id_kbm'); },
+        'getJadwalHariIni.kbmAll');
       (kbmAll || []).forEach(function(k) {
         var jenis = k.jenis_sesi || 'KBM Reguler';
         if (k.status === 'selesai') {
@@ -390,6 +396,14 @@ var GuruAPI = {
       pertemuan_ke: null,
       is_pengganti: false,
     }).select().single();
+    // H1 fix (bug hunt 2026-08-18, patch_089): unique partial index
+    // uniq_kbm_log_libur_per_hari menolak baris libur kedua utk
+    // halaqah+tanggal+jenis_sesi yang sama secara atomik di level DB (cegah
+    // race condition saat guru tandai libur dari 2 tab/perangkat hampir
+    // bersamaan) -- cek check-then-insert di atas tak cukup sendirian.
+    if (error && error.code === '23505') {
+      return { status: 'error', message: 'Sudah ada catatan KBM untuk halaqah dan tanggal ini' };
+    }
     _check(error, 'tandaiLibur');
     return { status: 'ok', message: 'Sesi ditandai libur', data };
   },
@@ -1168,10 +1182,15 @@ var GuruAPI = {
 
   simpanAtTibyan: async function(d) {
     // BUG-M2 fix: cek duplikat pertemuan_ke sebelum insert
+    // H6 fix (bug hunt 2026-08-18): dulu cek ini GLOBAL lintas-guru (tanpa
+    // .eq('id_guru', _uid())), padahal nomor pertemuan dihitung per-guru
+    // mandiri (attibyan-module.js: own count + 1). Akibatnya guru pertama yang
+    // simpan "Pertemuan ke-N" memblokir semua guru lain bikin sesi ke-N milik
+    // mereka sendiri -- rusak untuk hampir semua guru selain yang pertama.
     if (d.pertemuan_ke) {
       var { count: dupCount } = await _sb.from('at_tibyan_sesi')
         .select('*', { count: 'exact', head: true })
-        .eq('pertemuan_ke', d.pertemuan_ke);
+        .eq('pertemuan_ke', d.pertemuan_ke).eq('id_guru', _uid());
       if (dupCount > 0) {
         return { status: 'error', message: 'Pertemuan ke-' + d.pertemuan_ke + ' sudah ada. Gunakan fitur Edit untuk mengubahnya.' };
       }
@@ -1743,7 +1762,15 @@ var GuruAPI = {
     return { status: 'ok', data: data };
   },
   updateTargetByKelompok: async function(id_target, updates) {
-    var { error } = await _sb.from('target_kelompok_partner').update(updates).eq('id_target', id_target);
+    // H4 fix (bug hunt 2026-08-18, patch_089): saat guru memaksa status jadi
+    // 'tercapai' (override konsensus, mis. 1 anggota absen tapi lainnya selesai),
+    // tandai dipaksa_guru=true supaya RPC tandai_progress_target_partner (dipicu
+    // toggle progres murid yg wajar) berhenti menimpa keputusan guru itu balik ke
+    // 'aktif'. Guru set balik ke 'aktif' -> lepas paksa, kembali ke konsensus normal.
+    var payload = Object.assign({}, updates);
+    if (updates && updates.status === 'tercapai') payload.dipaksa_guru = true;
+    else if (updates && updates.status === 'aktif') payload.dipaksa_guru = false;
+    var { error } = await _sb.from('target_kelompok_partner').update(payload).eq('id_target', id_target);
     _check(error, 'updateTargetByKelompok');
     return { status: 'ok' };
   },
@@ -1974,7 +2001,12 @@ var GuruAPI = {
     return { status: 'ok', data: data };
   },
   updateTargetBelajarByKelompok: async function(id_target, updates) {
-    var { error } = await _sb.from('target_kelompok_belajar').update(updates).eq('id_target', id_target);
+    // H4 fix (bug hunt 2026-08-18, patch_089): lihat catatan di updateTargetByKelompok
+    // (versi Qiyam) -- mirror-nya utk Partner Belajar.
+    var payload = Object.assign({}, updates);
+    if (updates && updates.status === 'tercapai') payload.dipaksa_guru = true;
+    else if (updates && updates.status === 'aktif') payload.dipaksa_guru = false;
+    var { error } = await _sb.from('target_kelompok_belajar').update(payload).eq('id_target', id_target);
     _check(error, 'updateTargetBelajarByKelompok');
     return { status: 'ok' };
   },
@@ -2875,14 +2907,21 @@ var GuruAPI = {
       catatan: d.catatan || null,
     }).select().single();
     _check(error, 'simpanTashihPengajar');
+    var followupWarning = null;
     if (d.hasil === 'mengulang') {
-      await _sb.from('pengajar_mutabaah').insert({
+      // H7 fix (bug hunt 2026-08-18): dulu error insert follow-up ini tak dicek --
+      // kalau gagal, catatan tindak lanjut pastoral yang wajib bisa hilang diam-diam
+      // padahal tashih di atas sudah tersimpan. Sekarang errornya dikembalikan sbg
+      // warning (bukan dilempar) supaya tashih yg sudah tersimpan tidak dianggap gagal
+      // total, tapi UI tetap bisa memberi tahu guru penguji utk membuat mutaba'ah manual.
+      var { error: mtbErr } = await _sb.from('pengajar_mutabaah').insert({
         id_guru: d.id_guru, id_pendamping: _uid(),
         temuan: 'Lanjut berproses pada tashih' + (d.surat_diuji ? ' (' + d.surat_diuji + ')' : ''),
         rencana: d.catatan || null, sumber: 'tashih',
       });
+      if (mtbErr) followupWarning = 'Tashih tersimpan, tapi catatan tindak lanjut mutaba\'ah GAGAL dibuat otomatis (' + mtbErr.message + '). Silakan buat manual.';
     }
-    return { status: 'ok', data: data };
+    return { status: 'ok', data: data, warning: followupWarning };
   },
 
   // Evaluasi berbobot. id_penilai = pemanggil. nilai_akhir = Σ (skor/5*100 × bobot/100).
@@ -3353,9 +3392,16 @@ function _kalkulasiRaport(idMurid, idPeriode, idHalaqah, komponen, nilaiManual, 
 
   // Apply perfect attendance bonus using all KBM sessions (myKBM)
   var alpa = myKBM.filter(function(n){return String(n.status_hadir||'').toUpperCase()==='A';}).length;
-  if (myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
+  // H3 fix (bug hunt 2026-08-18): dulu bonus & predikat pakai myKBM.length sbg sinyal
+  // "ada data" -- murid hadir sempurna tapi TANPA komponen akademik ber-data
+  // (totalActiveWeight=0, mis. periode itu belum punya komponen "kehadiran" yg
+  // cocok) bisa dapat nilai_akhir=5/predikat 'Maqbul' (nilai palsu) padahal
+  // seharusnya 'Belum Ada Data'. Sinyal yg benar: apakah ADA komponen aktif
+  // ber-bobot yg benar2 dihitung ke nilai_akhir (totalActiveWeight), sama seperti
+  // pola yg sudah dipakai di cabang Daurah (listKomp.length === 0).
+  if (totalActiveWeight > 0 && myKBM.length > 0 && alpa === 0) nilaiAkhir = Math.min(100, nilaiAkhir + BONUS_PERFECT);
 
-  var predikat = myKBM.length === 0 ? 'Belum Ada Data'
+  var predikat = totalActiveWeight === 0 ? 'Belum Ada Data'
     : nilaiAkhir >= GRADE_MUMTAZ        ? 'Mumtaz'
     : nilaiAkhir >= GRADE_JAYYID_JIDDAN ? 'Jayyid Jiddan'
     : nilaiAkhir >= GRADE_JAYYID        ? 'Jayyid'
@@ -5795,18 +5841,17 @@ var AdminAPI = {
   // Naik/atur jenjang + audit trail (tulis riwayat & update kompetensi).
   setJenjang: async function(id_guru, jenjang, catatan) {
     if (!id_guru || !jenjang) return { status: 'error', message: 'id_guru & jenjang wajib diisi' };
-    var { data: cur } = await _sb.from('pengajar_kompetensi').select('jenjang').eq('id_guru', id_guru).maybeSingle();
-    var lama = cur ? cur.jenjang : null;
-    // Riwayat DULU (RLS superadmin-only). Bila pemanggil bukan superadmin, ini gagal &
-    // fungsi berhenti SEBELUM mengubah kompetensi → tak ada tulisan separuh, audit konsisten.
-    var { error: rErr } = await _sb.from('pengajar_jenjang_riwayat').insert({
-      id_guru: id_guru, jenjang_lama: lama, jenjang_baru: jenjang, id_penetap: _uid(), catatan: catatan || null,
+    // H8 fix (bug hunt 2026-08-18, patch_089): dulu riwayat INSERT lalu kompetensi
+    // UPSERT sbg 2 request terpisah -- kalau yg kedua gagal setelah yg pertama sukses,
+    // pengajar_jenjang_riwayat mencatat perubahan jenjang yg SEBENARNYA TAK PERNAH
+    // terjadi (audit trail rusak oleh fungsi yg justru dibuat utk menjaganya).
+    // Sekarang 1 RPC atomik (security invoker -- RLS superadmin-only di
+    // pengajar_jenjang_riwayat & trigger guard C5 di pengajar_kompetensi tetap berlaku).
+    var { error } = await _sb.rpc('set_jenjang_pengajar', {
+      p_id_guru: id_guru, p_jenjang: jenjang, p_catatan: catatan || null
     });
-    _check(rErr, 'setJenjang:riwayat');
-    var { error: upErr } = await _sb.from('pengajar_kompetensi')
-      .upsert({ id_guru: id_guru, jenjang: jenjang, updated_at: new Date().toISOString() }, { onConflict: 'id_guru' });
-    _check(upErr, 'setJenjang:kompetensi');
-    _logAudit('set_jenjang_pengajar', { id_guru: id_guru, jenjang_lama: lama, jenjang_baru: jenjang });
+    _check(error, 'setJenjang');
+    _logAudit('set_jenjang_pengajar', { id_guru: id_guru, jenjang_baru: jenjang });
     return { status: 'ok' };
   },
 

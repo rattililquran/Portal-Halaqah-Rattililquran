@@ -1482,11 +1482,14 @@
     try { window.HQ.GuruAPI.clearKbmDraftServer(id).catch(function(){}); } catch (e) {}
   }
 
-  function _mergeFill(mem, ls, hasData) {
+  // H2 fix (bug hunt 2026-08-18): parameter `force` opsional -- lihat
+  // _reconcileKbmDraftServer utk alasan kenapa merge-fill biasa ("cuma isi slot
+  // kosong") tidak cukup saat draft server terbukti lebih baru dari draft lokal.
+  function _mergeFill(mem, ls, hasData, force) {
     mem = mem || {};
     if (!ls) return mem;
     Object.keys(ls).forEach(function(id) {
-      if (!hasData(mem[id])) mem[id] = ls[id];
+      if (force || !hasData(mem[id])) mem[id] = ls[id];
     });
     return mem;
   }
@@ -1499,14 +1502,14 @@
     return !!(o.surat || o.suratD || o.dari || o.sampai || o.catatan || (o.jenis && o.jenis !== 'Ziyadah'));
   }
 
-  function _hydrateKbmCacheFromDraft(id) {
+  function _hydrateKbmCacheFromDraft(id, force) {
     var d = _loadKbmDraftLocal(id);
     if (!d) return;
     var anyData = function(o){ return !!(o && Object.keys(o).some(function(k){ return o[k]; })); };
-    if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData);
-    if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent);
-    if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData);
-    if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData);
+    if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData, force);
+    if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent, force);
+    if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData, force);
+    if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData, force);
     if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
   }
 
@@ -1565,7 +1568,14 @@
             nilai: dd.nilai || {}, hafalan: dd.hafalan || {}, microteaching: dd.microteaching || {},
           }));
         } catch (e) {}
-        _hydrateKbmCacheFromDraft(id_kbm);
+        // H2 fix (bug hunt 2026-08-18): serverNewer sudah true di titik ini, tapi
+        // lanjutSesi() memanggil _hydrateKbmCacheFromDraft() SINKRON dari draft
+        // lokal (lama) SEBELUM reconcile async ini selesai -- cache in-memory
+        // (window._nilaiCache dkk) sudah terisi nilai lama saat baris ini jalan.
+        // Merge-fill biasa ("isi kalau kosong") jadi tak pernah benar2 menang, jadi
+        // dipaksa (force=true): utk murid yg ada di draft server, nilai server SELALU
+        // menang -- murid yg cuma ada di draft lokal (belum sempat sync) tetap aman.
+        _hydrateKbmCacheFromDraft(id_kbm, true);
       }).catch(function(){});
     } catch (e) {}
   }

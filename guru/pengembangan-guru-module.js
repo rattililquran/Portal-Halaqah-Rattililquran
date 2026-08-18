@@ -467,12 +467,15 @@
     pgModal('Tashih Bacaan Pengajar', body, async function() {
       var skor = {};
       butir.forEach(function(b) { skor[b] = document.getElementById('pgTs_' + b).value; });
-      await window.HQ.GuruAPI.simpanTashihPengajar({
+      var _tsRes = await window.HQ.GuruAPI.simpanTashihPengajar({
         id_guru: id_guru, surat_diuji: document.getElementById('pgTsSurat').value.trim() || null,
         skor: skor, hasil: document.getElementById('pgTsHasil').value,
         catatan: document.getElementById('pgTsCatatan').value.trim() || null,
       });
-      toast('Tashih tersimpan', 'ok');
+      // H7 fix (bug hunt 2026-08-18): tampilkan warning kalau catatan tindak
+      // lanjut mutaba'ah otomatis gagal dibuat, jangan diam-diam hilang.
+      if (_tsRes && _tsRes.warning) { toast(_tsRes.warning, 'err'); }
+      else { toast('Tashih tersimpan', 'ok'); }
     });
   }
 

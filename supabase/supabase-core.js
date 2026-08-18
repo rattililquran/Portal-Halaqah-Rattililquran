@@ -251,11 +251,6 @@ async function _saveTemplateKoreksiLegacy(templates) {
   return { status:'ok', written: written };
 }
 
-// Nama hari Indonesia
-function _hariIni() {
-  return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
-}
-
 // Tanggal hari ini di zona waktu Asia/Jakarta, format YYYY-MM-DD
 // (new Date().toISOString() pakai UTC -- bisa nyasar ke tanggal kemarin
 // sekitar jam 00:00-07:00 WIB. Lihat rencana_kelas_pengganti.md §10.G)
@@ -270,6 +265,19 @@ function _todayJakarta() {
     else if (p.type === 'day') d = p.value;
   });
   return y + '-' + m + '-' + d;
+}
+
+// Nama hari Indonesia -- H10 fix (bug hunt 2026-08-18): dulu pakai
+// `new Date().getDay()` (device-local timezone), dicampur dgn _todayJakarta()
+// (dipaksa WIB) di pemanggil yg sama (getJadwalHariIni). Kalau timezone
+// perangkat guru bukan Asia/Jakarta, keduanya bisa beda hari -> "is_hari_ini"
+// salah (kelas hari ini tak muncul, atau muncul di hari yg salah). Sekarang
+// diturunkan dari _todayJakarta() sendiri, bukan jam perangkat.
+function _hariIni() {
+  // 'YYYY-MM-DD'+'T00:00:00Z' diparse sbg UTC midnight (spesifikasi JS),
+  // jadi getUTCDay() aman dari pergeseran timezone perangkat.
+  var d = new Date(_todayJakarta() + 'T00:00:00Z');
+  return ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][d.getUTCDay()];
 }
 
 // Daftar nama_level dengan partner_belajar_enabled=true (cache ringan per sesi)
