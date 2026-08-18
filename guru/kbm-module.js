@@ -1946,7 +1946,7 @@
     goToJurnal();
   }
 
-  function lanjutKeJurnal() {
+  async function lanjutKeJurnal() {
     const muridSesi = getMuridSesi();
     if (typeof muridSesi !== 'undefined' && muridSesi.length) {
       if (!window._nilaiCache) window._nilaiCache = {};
@@ -1962,6 +1962,31 @@
           catatan : catEl  ? catEl.value  : '',
         };
       });
+
+      // Safety net: dulu tombol ini lanjut diam-diam tanpa cek apa pun --
+      // murid bisa ke-skip tanpa sengaja. Sekarang peringatkan dulu kalau
+      // masih ada murid (bukan Izin/Alpa, tak perlu dinilai) yg Adab-nya
+      // kosong -- pola hitung SAMA persis dgn _updateNmProgress (excl. A/I)
+      // supaya jumlah di dialog ini selalu cocok dgn progress bar di atas.
+      var presensiMap = {};
+      document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
+        presensiMap[btn.dataset.id] = btn.dataset.k;
+      });
+      var belumDinilai = muridSesi.filter(function(m) {
+        var st = presensiMap[m.id_murid] || 'H';
+        if (['A','I'].includes(st)) return false;
+        var cache = window._nilaiCache[m.id_murid] || {};
+        return !cache.adab;
+      });
+      if (belumDinilai.length > 0) {
+        var namaPratinjau = belumDinilai.slice(0, 3).map(function(m){ return m.nama_murid; }).join(', ')
+          + (belumDinilai.length > 3 ? ', dan ' + (belumDinilai.length - 3) + ' lainnya' : '');
+        var lanjutkan = await window.showConfirm(
+          'Masih ada ' + belumDinilai.length + ' murid belum dinilai:\n' + namaPratinjau + '.\n\nTetap lanjutkan ke Jurnal?',
+          { title: 'Belum Semua Dinilai', okText: 'Ya, Lanjutkan', cancelText: 'Kembali Isi Dulu' }
+        );
+        if (!lanjutkan) return;
+      }
     }
     goToJurnal();
   }
