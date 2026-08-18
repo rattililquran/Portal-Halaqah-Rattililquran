@@ -733,6 +733,7 @@ html.theme-dark .nm-section-label{background:rgba(245,158,11,.15)!important;bord
   background:linear-gradient(135deg,#fff8ec,#fdeccf);
   border-color:#e0a93a;border-left:6px solid #e0a93a;
   box-shadow:0 4px 16px rgba(224,169,58,.18);
+  max-width:100%;box-sizing:border-box;overflow:hidden;
 }
 #draftWarning .draft-warning-title{color:#9a6212;font-size:15px}
 .draft-warning-note{
@@ -2892,12 +2893,12 @@ html.theme-dark .pr-chip.active {
             <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
             <div class="draft-warning-note">Tuntaskan dulu sesi ini agar tidak ada nilai murid yang tertinggal. Bismillah, kita selesaikan. 🤲</div>
             <div class="draft-warning-btns" style="display:flex;flex-direction:column;gap:10px;margin-top:14px;width:100%">
-              <button class="btn" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700;padding:12px 20px;font-size:14px;width:100%;justify-content:center;border-radius:12px"
-                onclick="lanjutSesi()">▶ Lanjutkan &amp; Selesaikan</button>
-              <div style="display:flex;gap:10px;width:100%">
-                <button class="btn btn-outline" id="btnDraftLibur" style="flex:1;color:#e0772a;border-color:#e0772a;background:rgba(224,119,42,0.05);padding:11.5px 14px;font-size:13px;justify-content:center;border-radius:12px"
+              <button class="btn" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700;padding:12px 14px;font-size:13.5px;width:100%;justify-content:center;border-radius:12px;white-space:normal;text-align:center;line-height:1.3"
+                onclick="lanjutSesi()">▶ Lanjutkan &amp; Selesaikan Pertemuan</button>
+              <div style="display:flex;gap:8px;width:100%;flex-wrap:wrap">
+                <button class="btn btn-outline" id="btnDraftLibur" style="flex:1;min-width:120px;color:#e0772a;border-color:#e0772a;background:rgba(224,119,42,0.05);padding:10px 10px;font-size:12.5px;justify-content:center;border-radius:12px;white-space:nowrap"
                   onclick="batalkanDanTandaiLibur()">📵 Tandai Libur</button>
-                <button class="btn btn-outline" id="btnDraftHapus" style="flex:1;color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05);padding:11.5px 14px;font-size:13px;justify-content:center;border-radius:12px"
+                <button class="btn btn-outline" id="btnDraftHapus" style="flex:1;min-width:120px;color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05);padding:10px 10px;font-size:12.5px;justify-content:center;border-radius:12px;white-space:nowrap"
                   onclick="hapusSesiDraft()">🗑️ Hapus Sesi</button>
               </div>
             </div>
