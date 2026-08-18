@@ -2184,7 +2184,10 @@
         + '</div>'
         + '</div>'
         + (isSkip ? '' : '<div class="nm-summary" id="nmsum-' + esc(m.id_murid) + '">' + esc(summaryText) + '</div>')
-        + '<div class="nm-body-grid">'
+        // startCollapsed -> display:none langsung di markup (bukan lewat class CSS
+        // berbasis tinggi) -- render awal tak butuh animasi, dan display:none tak
+        // mungkin bocor sisa piksel spt teknik animasi tinggi manapun.
+        + '<div class="nm-body-wrap"' + (startCollapsed ? ' style="display:none"' : '') + '>'
         + '<div class="nm-body"' + (isSkip ? '' : ' onfocusout="_nmCardFocusOut(\'' + esc(m.id_murid) + '\')"') + '>'
         + (isSkip ? skipMsg : (nilaiForm + daurahHtml))
         + '</div>'
@@ -2284,6 +2287,49 @@
     el.textContent = _nmSummaryText(adabVal, kamVal, korVal, catVal);
   }
 
+  // Animasikan buka/tutup body kartu murid, presisi ke tinggi konten ASLI
+  // (scrollHeight terukur, bukan tebakan plafon statis) & berakhir di
+  // display:none saat menutup -- jaring pengaman keras supaya sisa piksel
+  // dari transisi tinggi manapun TAK PERNAH bocor terlihat lewat sudut kartu
+  // yg membulat (bug yg pernah terjadi dgn teknik grid-template-rows murni).
+  function _nmSetBodyCollapsed(id_murid, collapsed) {
+    var card = document.getElementById('nmcard-' + id_murid);
+    var wrap = card && card.querySelector('.nm-body-wrap');
+    if (!wrap) return;
+    // Lepas listener transitionend sisa dari toggle sebelumnya (kalau ditekan
+    // cepat berturut-turut sebelum transisi lama selesai) -- cegah listener menumpuk.
+    if (wrap._nmTransEnd) { wrap.removeEventListener('transitionend', wrap._nmTransEnd); wrap._nmTransEnd = null; }
+
+    if (collapsed) {
+      wrap.style.maxHeight = wrap.scrollHeight + 'px';
+      void wrap.offsetHeight; // paksa reflow -- "kunci" nilai awal sblm pindah ke 0
+      wrap.style.maxHeight = '0px';
+      var onCloseEnd = function(e) {
+        if (e.propertyName !== 'max-height') return;
+        wrap.removeEventListener('transitionend', onCloseEnd);
+        wrap._nmTransEnd = null;
+        if (wrap.style.maxHeight === '0px') wrap.style.display = 'none';
+      };
+      wrap._nmTransEnd = onCloseEnd;
+      wrap.addEventListener('transitionend', onCloseEnd);
+    } else {
+      wrap.style.display = '';
+      wrap.style.maxHeight = '0px';
+      void wrap.offsetHeight;
+      wrap.style.maxHeight = wrap.scrollHeight + 'px';
+      var onOpenEnd = function(e) {
+        if (e.propertyName !== 'max-height') return;
+        wrap.removeEventListener('transitionend', onOpenEnd);
+        wrap._nmTransEnd = null;
+        // Lepas batas eksplisit stlh transisi selesai, supaya konten yg berubah
+        // kemudian (mis. guru mengetik koreksi lbh panjang) tak ke-clip diam-diam.
+        wrap.style.maxHeight = '';
+      };
+      wrap._nmTransEnd = onOpenEnd;
+      wrap.addEventListener('transitionend', onOpenEnd);
+    }
+  }
+
   // Tap header kartu murid: buka/tutup manual (hanya berlaku utk kartu yg
   // sudah "terisi" -- kartu kosong/alpa tak ada gunanya di-collapse).
   function toggleNilaiCard(id_murid) {
@@ -2291,6 +2337,7 @@
     if (!card || !card.classList.contains('terisi')) return;
     var willCollapse = !card.classList.contains('collapsed');
     card.classList.toggle('collapsed', willCollapse);
+    _nmSetBodyCollapsed(id_murid, willCollapse);
     // Tandai di _nmManualOpen (bukan dataset DOM) supaya _nmCardFocusOut tak
     // langsung auto-collapse ulang begitu fokus keluar, selagi guru sengaja
     // membukanya lagi utk melihat/mengedit -- dan supaya pilihan ini TETAP
@@ -2315,6 +2362,7 @@
       var kamVal  = (document.getElementById('kamera-'+id_murid) || {}).value || '';
       if (adabVal && kamVal && !_nmManualOpen[id_murid] && !card.classList.contains('collapsed')) {
         card.classList.add('collapsed');
+        _nmSetBodyCollapsed(id_murid, true);
         updateNmSummary(id_murid);
       }
     }, 0);

@@ -1362,23 +1362,25 @@ html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;co
 .nm-badge-A{background:#ef4444;color:#fff}
 
 /* Collapse-on-fill (hemat ruang di HP untuk roster panjang).
-   Animasi pakai trik grid-template-rows 1fr→0fr (bukan max-height) krn tinggi
-   kartu murid sangat bervariasi (murid biasa vs murid Daurah dgn banyak item
-   evaluasi) -- max-height butuh nilai plafon tetap yg bikin animasi terlihat
-   "diam lama lalu tiba-tiba lenyap" utk konten yg jauh lebih pendek dari
-   plafonnya. grid-rows menganimasikan tinggi ASLI kontennya, presisi di semua
-   ukuran kartu. */
+   Bug hunt fix: sempat pakai trik CSS murni grid-template-rows 1fr→0fr, TAPI
+   di WebKit itu tak selalu tuntas ke 0 (residu beberapa piksel) -- residunya
+   nongol sbg chip "ADAB" yg bocor lewat sudut kartu yg membulat. Sekarang
+   tinggi diukur & dianimasikan oleh JS (_nmSetBodyCollapsed, kbm-module.js)
+   dari nilai scrollHeight ASLI ke 0, lalu dikunci `display:none` di akhir
+   transisi sbg jaring pengaman keras -- display:none tak mungkin bocor sisa
+   piksel krn elemen benar2 dikeluarkan dari layout, beda dgn teknik berbasis
+   tinggi manapun (grid-rows atau max-height) yg gantung ke ketepatan mesin
+   render. Kelas CSS di sini HANYA transisi max-height; buka/tutup+display
+   dikendalikan murni oleh JS.  */
 .nilai-murid-card.terisi .nm-header{cursor:pointer}
-.nm-body-grid{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s cubic-bezier(.4,0,.2,1)}
-.nm-body-grid > .nm-body{overflow:hidden;min-height:0}
-.nilai-murid-card.collapsed .nm-body-grid{grid-template-rows:0fr}
+.nm-body-wrap{overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1)}
 .nm-chevron{font-size:11px;color:rgba(255,255,255,.7);transition:transform .2s;flex-shrink:0}
 .nilai-murid-card.collapsed .nm-chevron{transform:rotate(-90deg)}
 .nm-summary{display:none;padding:8px 14px;font-size:12px;color:var(--text-2);background:var(--bg-2,#f8fafc)}
 .nilai-murid-card.collapsed .nm-summary{display:block}
 /* Reduced-motion: langsung snap, jangan paksa animasi ke pengguna yg matikan gerak */
 @media (prefers-reduced-motion: reduce){
-  .nm-body-grid{transition:none}
+  .nm-body-wrap{transition:none}
 }
 /* Progress bar "X/Y terisi" di card-head step Nilai -- isi & teks berasal
    dari hitungan terisi/total yg SAMA (updateNilaiCard), tak pernah beda angka. */
@@ -5956,7 +5958,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=eaa978e4" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=cd9d00ff" defer></script>
+<script src="kbm-module.js?v=895f3b4f" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
