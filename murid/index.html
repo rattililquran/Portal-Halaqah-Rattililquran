@@ -48,41 +48,40 @@
 <link rel="stylesheet" href="../assets/css/ui-theme.css">
 <style>
 :root{
-  /* Brand & Accents (Tally Style) */
-  --blue:#0284c7;--blue-d:#0369a1;--blue-l:rgba(2,132,199,0.08);
-  --blue-m:rgba(2,132,199,0.16);
+  /* Sky blue palette — KhatamKu style */
+  --blue:#0ea5e9;--blue-d:#2563eb;--blue-l:rgba(14,165,233,0.1);
+  --blue-m:rgba(14,165,233,0.18);
   /* Semantic */
-  --green:#10b981;--green-d:#047857;--green-l:rgba(16,185,129,0.08);
-  --amber:#d97706;--amber-l:rgba(217,119,6,0.08);
-  --red:#ef4444;--red-l:rgba(239,68,68,0.08);
-  --purple:#8b5cf6;--purple-l:rgba(139,92,246,0.08);
-  --teal:#0d9488;--teal-l:rgba(13,148,136,0.08);
-  /* Surface & Canvas */
+  --green:#10b981;--green-d:#065f46;--green-l:rgba(16,185,129,0.1);
+  --amber:#f59e0b;--amber-l:rgba(245,158,11,0.1);
+  --red:#ef4444;--red-l:rgba(239,68,68,0.1);
+  --purple:#8b5cf6;--purple-l:rgba(139,92,246,0.1);
+  --teal:#06b6d4;--teal-l:rgba(6,182,212,0.1);
+  /* Surface */
   --bg:#f8fafc;
   --bg-2:#f1f5f9;
-  --card:#ffffff;
+  --card:rgba(255,255,255,0.7);
   --card-solid:#ffffff;
-  --glass:#ffffff;
-  --glass-border:rgba(15,23,42,0.08);
-  --text:#0f172a;--text-2:#475569;--text-3:#94a3b8;--border:rgba(15,23,42,0.08);
-  --border-strong:rgba(15,23,42,0.15);
-  /* Radius Utility Tally */
-  --r:16px;--r-sm:10px;--r-lg:20px;--r-xl:24px;--r-pill:100px;
-  /* Shadows — ambient depth */
-  --shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.02);
-  --shadow-card:0 4px 20px -2px rgba(15,23,42,0.05);
-  --shadow-lg:0 10px 30px -4px rgba(15,23,42,0.08);
-  --shadow-blue:0 4px 14px rgba(2,132,199,0.25);
+  --glass:rgba(255,255,255,0.7);
+  --glass-border:rgba(255,255,255,0.9);
+  --text:#0f172a;--text-2:#475569;--text-3:#94a3b8;--border:rgba(0,0,0,0.06);
+  /* Radius */
+  --r:20px;--r-sm:12px;--r-lg:24px;--r-xl:28px;--r-pill:100px;
+  /* Shadows — tinted blue */
+  --shadow:0 4px 16px rgba(14,165,233,0.08),0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 10px 40px rgba(14,165,233,0.18),0 4px 12px rgba(0,0,0,0.06);
+  --shadow-card:0 8px 32px rgba(14,165,233,0.1),0 2px 8px rgba(0,0,0,0.04);
+  --shadow-blue:0 8px 24px rgba(14,165,233,0.4),0 2px 8px rgba(14,165,233,0.2);
   /* Glass blur */
-  --blur:none;
-  --blur-sm:none;
+  --blur:blur(20px) saturate(1.8);
+  --blur-sm:blur(16px) saturate(1.6);
   /* Safe area */
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
-  --green-txt:#059669;--green-bg:#ecfdf5;
+  --green-txt:#16a34a;--green-bg:#f0fdf4;
   --amber-txt:#b45309;--amber-bg:#fffbeb;
-  --red-txt:#dc2626;--red-bg:#fef2f2;
-  --blue-txt:#0284c7;--blue-bg:#f0f9ff;
+  --red-txt:#dc2626;--red-bg:#fff5f5;
+  --blue-txt:#1a73e8;--blue-bg:#eff6ff;
   --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -2284,38 +2283,30 @@ input, select, textarea, button, table, td, th {
 }
 
 html.theme-dark {
-  /* Brand & Accents Neon/Crisp */
-  --blue:#38bdf8;--blue-d:#0284c7;--blue-l:rgba(56,189,248,0.12);
-  --blue-m:rgba(56,189,248,0.2);
-  --green:#34d399;--green-d:#10b981;--green-l:rgba(52,211,153,0.12);
-  --amber:#fbbf24;--amber-l:rgba(251,191,36,0.12);
-  --red:#f87171;--red-l:rgba(248,113,113,0.12);
-  --purple:#a78bfa;--purple-l:rgba(167,139,250,0.12);
-  --teal:#2dd4bf;--teal-l:rgba(45,212,191,0.12);
-  /* Surface Deep Dark */
-  --bg:#0b0f17;
-  --bg-2:#131924;
-  --card:#131924;
-  --card-solid:#131924;
-  --glass:#131924;
-  --glass-border:rgba(255,255,255,0.08);
-  /* Typography & Border */
-  --text:#f8fafc;
-  --text-2:#cbd5e1;
-  --text-3:#64748b;
-  --border:rgba(255,255,255,0.08);
-  --border-strong:rgba(255,255,255,0.16);
-  /* Shadows Dark */
-  --shadow:0 2px 8px rgba(0,0,0,0.3);
-  --shadow-card:0 4px 24px -2px rgba(0,0,0,0.45);
-  --shadow-lg:0 12px 36px rgba(0,0,0,0.6);
-  --shadow-blue:0 4px 14px rgba(56,189,248,0.25);
-  /* Text Semantic */
-  --green-txt:#34d399;--green-bg:rgba(52,211,153,0.1);
-  --amber-txt:#fbbf24;--amber-bg:rgba(251,191,36,0.1);
-  --red-txt:#f87171;--red-bg:rgba(248,113,113,0.1);
-  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,0.1);
-  --purple-txt:#a78bfa;--purple-bg:rgba(167,139,250,0.1);
+  /* Palette gelap bersih */
+  --bg:         #111318;
+  --bg-2:       #1a1d24;
+  --card:       #1e2128;
+  --card-solid: #1e2128;
+  --glass:      #1e2128;
+  --glass-border:rgba(255,255,255,0.07);
+  --text:       #f0f2f8;
+  --text-2:     #b0b7c3;
+  --text-3:     #94a3b8;
+  --border:     rgba(255,255,255,0.08);
+  --blue:#38bdf8;--blue-d:#0ea5e9;
+  --blue-l:rgba(56,189,248,0.1);--blue-m:rgba(56,189,248,0.14);
+  --green:#34d399;--green-d:#059669;--green-l:rgba(34,211,153,0.12);
+  --amber-l:rgba(251,191,36,0.1);
+  --red-l:rgba(248,113,113,0.1);
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.5);
+  --shadow-card:0 2px 8px rgba(0,0,0,.35);
+  --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
+  --amber-txt:#fbbf24;--amber-bg:rgba(251,191,36,.1);
+  --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
+  --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
+  --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
 
 /* ══ DARK MODE ══════════════════════════════════════════════════════ */
@@ -3649,507 +3640,6 @@ html.theme-dark .materi-daurah-banner-title {
   }
 }
 
-
-/* ════════ TALLY MODERN UTILITY SYSTEM ════════ */
-.bg-blobs { display: none !important; }
-
-/* Dashboard Responsive Layout: 1-col mobile, 2-col desktop */
-@media(min-width: 900px) {
-  #page-dashboard {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: 20px;
-    align-items: start;
-  }
-  .dash-col-left {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-  }
-  .dash-col-right {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-  }
-  #keaktifanAlertBox {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Cards Tally Clean & Crisp */
-.card, .stat-card, .progress-card, .spp-card, .partner-dash-card, .attibyan-dash-card, .micro-dash-card, .materi-card, .page-header {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--r) !important;
-  box-shadow: var(--shadow-card) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.card:hover, .stat-card:hover, .spp-card:hover, .partner-dash-card:hover, .attibyan-dash-card:hover, .materi-card:hover {
-  box-shadow: var(--shadow-lg) !important;
-  border-color: var(--border-strong) !important;
-}
-
-/* Header Profil Topbar */
-.top-header {
-  background: var(--card) !important;
-  border-bottom: 1px solid var(--border) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
-}
-.top-hamburger, .top-action-btn {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-2) !important;
-}
-.top-hamburger:hover, .top-action-btn:hover {
-  background: var(--border) !important;
-  color: var(--text) !important;
-}
-.top-name {
-  color: var(--text) !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.02em !important;
-}
-.top-badge {
-  background: var(--blue-l) !important;
-  border-color: rgba(2, 132, 199, 0.15) !important;
-  color: var(--blue-txt) !important;
-  font-weight: 700 !important;
-}
-
-/* Progress Card Clean Tally Box */
-.progress-card {
-  padding: 18px 18px 16px !important;
-  cursor: default !important;
-}
-.progress-card::before, .progress-card::after { display: none !important; }
-.dash-cal-title-text {
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  letter-spacing: .08em !important;
-  color: var(--text-3) !important;
-}
-.dash-cal-title-line {
-  background: var(--blue) !important;
-  height: 2px !important;
-}
-.dash-cal-month {
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  color: var(--text) !important;
-}
-.dash-cal-today-chip {
-  background: var(--blue-l) !important;
-  border: 1px solid rgba(2, 132, 199, 0.18) !important;
-  color: var(--blue-txt) !important;
-  font-weight: 700 !important;
-  border-radius: var(--r-pill) !important;
-}
-.dash-cal-today-chip::before {
-  background: var(--blue) !important;
-}
-.dash-cal-nav {
-  background: var(--bg-2) !important;
-  color: var(--text-2) !important;
-  border: 1px solid var(--border) !important;
-}
-.dash-cal-nav:hover {
-  background: var(--border) !important;
-  color: var(--text) !important;
-}
-.dash-cal-dn {
-  color: var(--text-3) !important;
-  font-weight: 700 !important;
-}
-.dash-cal-day {
-  color: var(--text) !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-}
-.dash-cal-day:hover {
-  background: var(--bg-2) !important;
-}
-.dash-cal-day.today {
-  background: var(--blue-l) !important;
-  color: var(--blue-txt) !important;
-  font-weight: 800 !important;
-}
-.dash-cal-day.sel {
-  background: var(--blue) !important;
-  color: #ffffff !important;
-  font-weight: 800 !important;
-  box-shadow: var(--shadow-blue) !important;
-}
-.dash-cal-agenda {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 10px !important;
-}
-.dash-cal-agenda-head {
-  color: var(--text-3) !important;
-  font-weight: 800 !important;
-}
-.dash-cal-evt {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-}
-.dash-cal-evt-name {
-  color: var(--text) !important;
-  font-weight: 700 !important;
-}
-.dash-cal-evt-time {
-  color: var(--text-2) !important;
-}
-.prog-inner-wrap {
-  background: transparent !important;
-  padding: 0 !important;
-  margin-top: 14px !important;
-  border-top: 1px solid var(--border) !important;
-  padding-top: 14px !important;
-}
-.prog-inner-card {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  padding: 14px 16px !important;
-}
-.prog-donut-wrap {
-  box-shadow: none !important;
-}
-.prog-donut-inner {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: none !important;
-}
-.prog-donut-pct {
-  color: var(--text) !important;
-}
-.prog-donut-lbl {
-  color: var(--text-3) !important;
-}
-.prog-info-title {
-  color: var(--text) !important;
-  font-weight: 800 !important;
-}
-.prog-info-sesi {
-  color: var(--text-2) !important;
-  font-weight: 600 !important;
-}
-.prog-bar-wrap {
-  background: var(--border) !important;
-  box-shadow: none !important;
-}
-.prog-bar-fill {
-  background: var(--blue) !important;
-}
-.prog-title {
-  color: var(--text) !important;
-  text-shadow: none !important;
-  font-weight: 800 !important;
-}
-
-/* At-Tibyan & Partner Dash Card Tally */
-.attibyan-dash-card {
-  padding: 18px !important;
-  border-left: 4px solid var(--amber) !important;
-}
-.attibyan-dash-card .prog-title {
-  color: var(--amber-txt) !important;
-}
-.attibyan-quote-box {
-  background: var(--amber-bg) !important;
-  border: 1px solid rgba(217, 119, 6, 0.15) !important;
-  border-radius: 12px !important;
-  padding: 12px 14px !important;
-}
-.attibyan-quote-arabic {
-  font-family: Amiri, serif !important;
-  color: var(--amber-txt) !important;
-  font-size: 18px !important;
-}
-.attibyan-quote-id {
-  color: var(--text-2) !important;
-}
-.attibyan-quote-src {
-  color: var(--amber-txt) !important;
-}
-.partner-dash-card {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-left: 4px solid var(--teal) !important;
-  padding: 16px 18px !important;
-}
-.partner-dash-card .prog-title {
-  color: var(--teal) !important;
-}
-.micro-dash-card {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-left: 4px solid var(--purple) !important;
-  padding: 16px 18px !important;
-}
-.micro-dash-card .prog-title {
-  color: var(--purple-txt) !important;
-}
-
-/* Stats Grid Tally Modern */
-.stats-grid {
-  gap: 10px !important;
-  margin-bottom: 16px !important;
-}
-.stat-card {
-  padding: 14px 10px !important;
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow-card) !important;
-}
-.stat-card .val {
-  font-size: 20px !important;
-  font-weight: 800 !important;
-  color: var(--text) !important;
-}
-.stat-card .lbl {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  color: var(--text-3) !important;
-  letter-spacing: .04em !important;
-}
-.stat-card .ico {
-  font-size: 18px !important;
-  margin-bottom: 4px !important;
-}
-
-/* SPP & Transparansi Card Tally Presisi */
-.spp-card {
-  padding: 18px !important;
-  border: 1px solid var(--border) !important;
-  margin-bottom: 16px !important;
-}
-.spp-head {
-  padding: 0 !important;
-  margin-bottom: 14px !important;
-}
-.spp-title {
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  color: var(--text) !important;
-}
-.spp-body {
-  padding: 0 !important;
-}
-.spp-jenis-tabs {
-  background: var(--bg-2) !important;
-  padding: 3px !important;
-  border-radius: 10px !important;
-  border: 1px solid var(--border) !important;
-  gap: 4px !important;
-}
-.spp-jenis-tab {
-  border: none !important;
-  background: transparent !important;
-  color: var(--text-2) !important;
-  border-radius: 8px !important;
-  padding: 7px 10px !important;
-  font-weight: 700 !important;
-}
-.spp-jenis-tab.active {
-  background: var(--card) !important;
-  color: var(--blue-txt) !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
-}
-.spp-konfirm-btn {
-  background: var(--blue) !important;
-  border-radius: 12px !important;
-  font-weight: 800 !important;
-  padding: 12px !important;
-  box-shadow: var(--shadow-blue) !important;
-  color: #fff !important;
-}
-.spp-konfirm-btn:hover {
-  background: var(--blue-d) !important;
-}
-
-/* Bottom Nav Tally Solid Clean */
-.bottom-nav {
-  background: var(--card) !important;
-  border-top: 1px solid var(--border) !important;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.03) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.nav-item {
-  color: var(--text-3) !important;
-}
-.nav-item.active {
-  color: var(--blue) !important;
-}
-.nav-profile-wrap {
-  background: var(--card) !important;
-  border: 2px solid var(--blue) !important;
-  box-shadow: var(--shadow-blue) !important;
-}
-
-
-/* ════════ SUBPAGES & MODALS TALLY POLISH ════════ */
-
-/* Modal Dialogs Tally Standard */
-.modal-overlay {
-  background: rgba(15, 23, 42, 0.4) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-}
-.modal-sheet {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.2) !important;
-  border-radius: 20px !important;
-}
-.modal-head {
-  background: var(--card) !important;
-  border-bottom: 1px solid var(--border) !important;
-  padding: 16px 20px !important;
-}
-.modal-title {
-  color: var(--text) !important;
-  font-weight: 800 !important;
-}
-.modal-x {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-2) !important;
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-}
-.modal-x:hover {
-  background: var(--border) !important;
-  color: var(--text) !important;
-}
-.modal-body {
-  padding: 20px !important;
-}
-.modal-foot {
-  background: var(--card) !important;
-  border-top: 1px solid var(--border) !important;
-  box-shadow: none !important;
-  padding: 14px 20px !important;
-}
-.fc {
-  background: var(--card) !important;
-  border: 1.5px solid var(--border) !important;
-  border-radius: 10px !important;
-  color: var(--text) !important;
-}
-.fc:focus {
-  border-color: var(--blue) !important;
-  box-shadow: 0 0 0 3px var(--blue-l) !important;
-}
-.btn-primary {
-  background: var(--blue) !important;
-  box-shadow: var(--shadow-blue) !important;
-  border-radius: 10px !important;
-  font-weight: 800 !important;
-}
-.btn-primary:hover {
-  background: var(--blue-d) !important;
-}
-
-/* Riwayat KBM Receipt Items */
-.riwayat-item {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--shadow-card) !important;
-  margin-bottom: 10px !important;
-}
-.riwayat-item:hover {
-  border-color: var(--border-strong) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-.riwayat-summary {
-  padding: 14px 16px !important;
-}
-.riwayat-detail {
-  background: var(--bg-2) !important;
-  border-top: 1px solid var(--border) !important;
-  padding: 14px 16px !important;
-}
-
-/* PR Items Clean */
-.pr-item {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--shadow-card) !important;
-  margin-bottom: 12px !important;
-  padding: 16px !important;
-}
-.pr-item.aman {
-  border-left: 4px solid var(--green) !important;
-  background: var(--card) !important;
-}
-.pr-item.hari_ini {
-  border-left: 4px solid var(--amber) !important;
-  background: var(--card) !important;
-}
-.pr-item.lewat {
-  border-left: 4px solid var(--red) !important;
-  background: var(--card) !important;
-}
-
-/* Raport & Materi Statement Cards */
-.raport-card {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 16px !important;
-  box-shadow: var(--shadow-card) !important;
-  padding: 18px !important;
-}
-.materi-card {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--shadow-card) !important;
-  margin-bottom: 10px !important;
-}
-.materi-head:hover {
-  background: var(--bg-2) !important;
-}
-.materi-body {
-  background: var(--bg-2) !important;
-  border-top: 1px solid var(--border) !important;
-  padding: 16px !important;
-}
-
-/* Hafalan & Partner Timeline */
-.hfal-item {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  box-shadow: var(--shadow-card) !important;
-  margin-bottom: 10px !important;
-  padding: 14px 16px !important;
-}
-.hflt-btn {
-  background: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 100px !important;
-  color: var(--text-2) !important;
-  font-weight: 700 !important;
-}
-.hflt-btn.active {
-  background: var(--blue) !important;
-  border-color: var(--blue) !important;
-  color: #ffffff !important;
-  box-shadow: var(--shadow-blue) !important;
-}
-
 </style>
 </head>
 <body>
@@ -4272,361 +3762,394 @@ html.theme-dark .materi-daurah-banner-title {
 
     <!-- ════ DASHBOARD ════ -->
     <div class="page active" id="page-dashboard">
+
       <!-- Keaktifan Alert Box -->
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;" onclick="openNotifications()"></div>
 
-      <div class="dash-col-left">
-        <!-- PR Aktif (Action Hero) -->
-        <div class="card" id="prCard" style="display:none">
-          <div class="card-head">
-            <div class="card-title">📝 Latihan Mandiri (PR) Aktif</div>
-            <button class="card-more" onclick="goPage('pr')">Lihat →</button>
-          </div>
-          <div class="card-body" id="dashPrPreview"></div>
+      <!-- Progress Level -->
+      <div class="progress-card" id="dashProgressCard">
+        <!-- Judul elegan di atas kalender -->
+        <div class="dash-cal-title">
+          <div class="dash-cal-title-text">Perjuanganku Bersama Al-Qur'an</div>
+          <div class="dash-cal-title-line"></div>
         </div>
-
-        <!-- Progress Level & Kalender KBM -->
-        <div class="progress-card" id="dashProgressCard">
-          <!-- Judul elegan di atas kalender -->
-          <div class="dash-cal-title">
-            <div class="dash-cal-title-text">Perjuanganku Bersama Al-Qur'an</div>
-            <div class="dash-cal-title-line"></div>
+        <!-- Kalender KBM Tahsin + At-Tibyan -->
+        <div class="dash-cal-wrap">
+          <div class="dash-cal-head">
+            <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(-1)">‹</button>
+            <span class="dash-cal-month" id="dashKalMonth">–</span>
+            <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(1)">›</button>
           </div>
-          <!-- Kalender KBM Tahsin + At-Tibyan -->
-          <div class="dash-cal-wrap">
-            <div class="dash-cal-head">
-              <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(-1)">‹</button>
-              <span class="dash-cal-month" id="dashKalMonth">–</span>
-              <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(1)">›</button>
+          <div class="dash-cal-today"><span class="dash-cal-today-chip" id="dashKalToday">–</span></div>
+          <div class="dash-cal-body">
+            <div class="dash-cal-grid" id="dashKalGrid"></div>
+            <div class="dash-cal-agenda" id="dashKalAgenda" onclick="event.stopPropagation();goPage('riwayat')"></div>
+          </div>
+        </div>
+        <!-- Judul -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Perjuanganku Bersama Al-Qur'an
+        </div>
+        <!-- Chip level sekarang → chip level target -->
+        <div class="prog-level-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
+          <span class="level-badge" id="dashLevel">Level 1</span>
+          <div id="dashEstimasiContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 0;">
+            <span class="level-arrow" id="dashLevelArrow" style="line-height: 1; margin-bottom: 2px;">→</span>
+            <div class="prog-estimasi-middle" id="dashEstimasi" style="display:none; align-items:center; gap:3px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span id="dashEstimasiTxt">–</span>
             </div>
-            <div class="dash-cal-today"><span class="dash-cal-today-chip" id="dashKalToday">–</span></div>
-            <div class="dash-cal-body">
-              <div class="dash-cal-grid" id="dashKalGrid"></div>
-              <div class="dash-cal-agenda" id="dashKalAgenda" onclick="event.stopPropagation();goPage('riwayat')"></div>
+          </div>
+          <span class="level-target-chip" id="dashTarget">Level 2</span>
+        </div>
+        <!-- Motivasi (di atas kartu putih) -->
+        <div class="prog-motivasi-outer" id="dashMotivasi"></div>
+        <!-- Inner white card — donut ring KhatamKu style -->
+        <div class="prog-inner-wrap">
+        <div class="prog-inner-card" onclick="openProgressBreakdown()">
+          <div class="prog-inner-row">
+            <!-- Donut ring -->
+            <div class="prog-donut-wrap" id="dashDonutRing"
+              style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+              <div class="prog-donut-inner">
+                <span class="prog-donut-pct" id="dashProgressPctNum" style="color:#94a3b8">0%</span>
+                <span class="prog-donut-lbl" id="dashDonutRingLbl">level</span>
+              </div>
+              <div id="dashQiyamBadge" style="display:none; position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; border-radius:50%; background:#10b981; border:2px solid var(--card-solid, #fff); align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.15); z-index:10;">M</div>
             </div>
-          </div>
-          <!-- Judul -->
-          <div class="prog-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            Perjuanganku Bersama Al-Qur'an
-          </div>
-          <!-- Chip level sekarang → chip level target -->
-          <div class="prog-level-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
-            <span class="level-badge" id="dashLevel">Level 1</span>
-            <div id="dashEstimasiContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 0;">
-              <span class="level-arrow" id="dashLevelArrow" style="line-height: 1; margin-bottom: 2px;">→</span>
-              <div class="prog-estimasi-middle" id="dashEstimasi" style="display:none; align-items:center; gap:3px;">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span id="dashEstimasiTxt">–</span>
+            <!-- Info kanan -->
+            <div class="prog-info-right">
+              <div id="dashQiyamSetoranStat" class="qiyam-setoran-stat" style="display:none">
+                <span class="qiyam-setoran-num" id="dashQiyamSetoranNum">0</span>
+                <span class="qiyam-setoran-lbl">Total Setoran</span>
+              </div>
+              <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
+              <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
+              <div class="prog-bar-wrap" id="dashProgressBarWrap">
+                <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
+              </div>
+              <div id="dashQiyamTargetWrap" class="qiyam-target-box" style="display:none;">
+                <div class="qiyam-target-main">
+                  <span class="qiyam-target-icon">🎯</span>
+                  <div class="qiyam-target-text">
+                    <div class="qiyam-target-label">Target Setoran Berikutnya</div>
+                    <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
+                  </div>
+                </div>
+                <span class="qiyam-target-hint">Persiapkan dengan baik 🌙</span>
               </div>
             </div>
-            <span class="level-target-chip" id="dashTarget">Level 2</span>
           </div>
-          <!-- Motivasi (di atas kartu putih) -->
-          <div class="prog-motivasi-outer" id="dashMotivasi"></div>
-          <!-- Inner white card — donut ring KhatamKu style -->
-          <div class="prog-inner-wrap">
-          <div class="prog-inner-card" onclick="openProgressBreakdown()">
+          <div id="dashQiyamQuoteBox" class="qiyam-quote-box" style="display:none">
+            <div class="qiyam-quote-text">&ldquo;Lakukanlah qiyamullail, karena hal itu merupakan kebiasaan orang-orang shalih sebelum kalian. Ia pun dapat mendekatkan kalian kepada Rabb kalian, menghapus segala kesalahan, dan mencegah dari perbuatan dosa.&rdquo;</div>
+            <div class="qiyam-quote-src">HR. Tirmidzi</div>
+          </div>
+        </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
+
+      <!-- Partner Qiyam Card -->
+      <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
+        <div class="prog-title">
+          <span>🤝 Partner Qiyam</span>
+          <span id="dashPartnerBadge" class="partner-dash-badge" style="display:none"></span>
+        </div>
+        <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
+      </div>
+
+      <!-- Partner Belajar Card (Level 1-4) -->
+      <div class="partner-dash-card" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
+        <div class="prog-title">
+          <span>📚 Partner Belajar</span>
+          <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
+        </div>
+        <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
+      </div>
+
+      <!-- At-Tibyan Card -->
+      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
+        <!-- Judul At-Tibyan -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Kajian Mingguan (At-Tibyan)
+        </div>
+        <!-- Chip label -->
+        <div class="prog-level-row">
+          <span class="level-badge" style="background:linear-gradient(135deg,rgba(217,119,6,.55),rgba(245,158,11,.4)); border:1.5px solid rgba(251,191,36,.6); box-shadow:0 0 12px rgba(217,119,6,.35),inset 0 1px 0 rgba(255,255,255,.25);">At-Tibyan</span>
+        </div>
+        <!-- Quote At-Tibyan -->
+        <div class="attibyan-quote-box">
+          <div class="attibyan-quote-arabic">بِالْأَدَبِ تَفْهَمُ الْعِلْمَ</div>
+          <div class="attibyan-quote-id">Dengan mempelajari adab, maka engkau jadi mudah memahami ilmu.</div>
+          <div class="attibyan-quote-src">Yusuf bin Al-Husain</div>
+        </div>
+        <!-- Inner wrap -->
+        <div class="prog-inner-wrap">
+          <div class="prog-inner-card">
             <div class="prog-inner-row">
               <!-- Donut ring -->
-              <div class="prog-donut-wrap" id="dashDonutRing"
-                style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+              <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
                 <div class="prog-donut-inner">
-                  <span class="prog-donut-pct" id="dashProgressPctNum" style="color:#94a3b8">0%</span>
-                  <span class="prog-donut-lbl" id="dashDonutRingLbl">level</span>
+                  <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#d97706">0%</span>
+                  <span class="prog-donut-lbl">hadir</span>
                 </div>
-                <div id="dashQiyamBadge" style="display:none; position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; border-radius:50%; background:#10b981; border:2px solid var(--card-solid, #fff); align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.15); z-index:10;">M</div>
               </div>
               <!-- Info kanan -->
               <div class="prog-info-right">
-                <div id="dashQiyamSetoranStat" class="qiyam-setoran-stat" style="display:none">
-                  <span class="qiyam-setoran-num" id="dashQiyamSetoranNum">0</span>
-                  <span class="qiyam-setoran-lbl">Total Setoran</span>
-                </div>
-                <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
-                <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
-                <div class="prog-bar-wrap" id="dashProgressBarWrap">
-                  <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
-                </div>
-                <div id="dashQiyamTargetWrap" class="qiyam-target-box" style="display:none;">
-                  <div class="qiyam-target-main">
-                    <span class="qiyam-target-icon">🎯</span>
-                    <div class="qiyam-target-text">
-                      <div class="qiyam-target-label">Target Setoran Berikutnya</div>
-                      <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
-                    </div>
-                  </div>
-                  <span class="qiyam-target-hint">Persiapkan dengan baik 🌙</span>
+                <div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>
+                <div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>
+                <div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">
+                  <div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>
                 </div>
               </div>
             </div>
-            <div id="dashQiyamQuoteBox" class="qiyam-quote-box" style="display:none">
-              <div class="qiyam-quote-text">&ldquo;Lakukanlah qiyamullail, karena hal itu merupakan kebiasaan orang-orang shalih sebelum kalian. Ia pun dapat mendekatkan kalian kepada Rabb kalian, menghapus segala kesalahan, dan mencegah dari perbuatan dosa.&rdquo;</div>
-              <div class="qiyam-quote-src">HR. Tirmidzi</div>
+          </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
+
+      <!-- Stats -->
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card clickable" onclick="goPage('riwayat')">
+          <div class="ico">✅</div>
+          <div class="val stat-val" id="st-hadir">–</div>
+          <div class="lbl">% Hadir</div>
+        </div>
+        <div class="stat-card clickable" onclick="goPage('info')">
+          <div class="ico">📋</div>
+          <div class="val stat-val" id="st-sesi">–</div>
+          <div class="lbl">Sesi</div>
+        </div>
+        <div class="stat-card clickable" onclick="openAdabDetail()">
+          <div class="ico">⭐</div>
+          <div class="val stat-val" id="st-adab">–</div>
+          <div class="lbl">Poin Adab</div>
+        </div>
+        <div class="stat-card clickable" onclick="openKameraDetail()">
+          <div class="ico">📷</div>
+          <div class="val stat-val" id="st-kamera">–</div>
+          <div class="lbl">Poin Kamera</div>
+        </div>
+      </div>
+      <!-- Rattil Quiz Card -->
+      <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="cursor:pointer; background:linear-gradient(135deg, #e52d27 0%, #b31217 100%); border:1px solid rgba(255, 255, 255, 0.15); margin-bottom:16px; box-shadow:0 8px 24px rgba(229, 45, 39, 0.25); color:#ffffff !important;">
+        <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center; color:#ffffff !important;">
+          <span style="display:flex; align-items:center; gap:6px; color:#ffffff !important;">🎯 Rattil Quiz</span>
+          <span id="dashQuizBadge" class="badge" style="display:none; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px;">Baru</span>
+        </div>
+        <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:rgba(255, 255, 255, 0.9); margin-top:8px;">
+          ⏳ Memuat kuis tersedia...
+        </div>
+      </div>
+      <!-- Micro Teaching Card -->
+      <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
+        <!-- Judul MT -->
+        <div class="prog-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Micro Teaching
+        </div>
+        <!-- Chip label -->
+        <div class="prog-level-row">
+          <span class="level-badge" style="background:linear-gradient(135deg,rgba(139,92,246,.55),rgba(167,139,250,.4)); border:1.5px solid rgba(139,92,246,.6); box-shadow:0 0 12px rgba(139,92,246,.35),inset 0 1px 0 rgba(255,255,255,.25);">Micro Teaching</span>
+        </div>
+        <!-- Inner wrap -->
+        <div class="prog-inner-wrap">
+          <div class="prog-inner-card">
+            <div class="prog-inner-row">
+              <!-- Donut ring -->
+              <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+                <div class="prog-donut-inner">
+                  <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:#8b5cf6">0%</span>
+                  <span class="prog-donut-lbl">nilai</span>
+                </div>
+              </div>
+              <!-- Info kanan -->
+              <div class="prog-info-right">
+                <div class="prog-info-title" id="dashMicroProgressPct">Belum ada latihan</div>
+                <div class="prog-info-sesi" id="dashMicroSisa">Mulai praktik mengajar Anda</div>
+                <div class="prog-bar-wrap" id="dashMicroProgressBarWrap">
+                  <div class="prog-bar-fill" id="dashMicroProgressBar" style="width:0%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div>
+                </div>
+              </div>
             </div>
           </div>
-          </div><!-- /prog-inner-wrap -->
-        </div>
+        </div><!-- /prog-inner-wrap -->
+      </div>
 
-        <!-- Log Belajar Partner (Form Cepat) -->
-        <div class="card" id="dashPbCard" style="display:none">
+      <div class="spp-card" id="sppCard" style="display:none;">
+        <div class="spp-head">
+          <div class="spp-title">💳 Pembayaran & Infaq</div>
+          <span id="sppBadge"></span>
+        </div>
+        <div class="spp-body">
+          <!-- Tab: SPP Pribadi | Infaq -->
+          <div class="spp-jenis-tabs">
+            <div class="spp-jenis-tab active" id="sppTabSpp" onclick="switchSppTab('spp')">🏠 SPP Pribadi</div>
+            <div class="spp-jenis-tab" id="sppTabInfaq" onclick="switchSppTab('infaq')">💛 Infaq / Operasional</div>
+          </div>
+          <!-- Panel SPP Pribadi -->
+          <div id="sppPanelSpp">
+            <div class="spp-donut-row">
+              <svg width="56" height="56" viewBox="0 0 40 40" id="sppDonut">
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#f1f5f9" stroke-width="5"/>
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="5"
+                  stroke-linecap="round" id="sppDonutArc"
+                  stroke-dasharray="0 94.25" stroke-dashoffset="23.56"/>
+                <text x="20" y="24" text-anchor="middle" font-size="10" font-weight="800" id="sppDonutNum" fill="#1e293b">0</text>
+              </svg>
+              <div class="spp-donut-info">
+                <div class="spp-donut-title" id="sppDonutTitle">Memuat...</div>
+                <div class="spp-donut-sub" id="sppDonutSub"></div>
+              </div>
+            </div>
+            <div class="spp-bulan-grid" id="sppBulanGridDisplay"></div>
+            <div class="spp-msg" id="sppMsg" style="display:none"></div>
+          </div>
+          <!-- Panel Infaq -->
+          <div id="sppPanelInfaq" style="display:none">
+            <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-bottom:10px">Riwayat Infaq / Operasional</div>
+            <div id="sppInfaqList"><div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div></div>
+          </div>
+          <button class="spp-konfirm-btn" onclick="bukaModalKonfirmasiSPP()">
+            💳 Bayar & Infaq
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
+      <div class="spp-card" id="transparansiCard" style="display:none;">
+        <div class="spp-head">
+          <div class="spp-title">💛 Transparansi Dana Infaq</div>
+          <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
+        </div>
+        <div class="spp-body">
+          <div style="font-size:11.5px;color:var(--text-3);line-height:1.6;margin-bottom:12px">Sebagai amanah kepada para Muhsinin, berikut ringkasan dana infaq/operasional bulan ini.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Infaq Terkumpul</div>
+              <div style="font-size:15px;font-weight:900;color:#b45309;margin-top:3px" id="transInfaq">—</div>
+            </div>
+            <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Operasional</div>
+              <div style="font-size:15px;font-weight:900;color:#b91c1c;margin-top:3px" id="transOperasional">—</div>
+            </div>
+          </div>
+          <div id="transOpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+          <div style="background:linear-gradient(180deg,#f0fdf4,#ecfdf5);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa Untuk Program Beasiswa</div>
+            <div style="font-size:18px;font-weight:900;color:#059669;margin-top:3px" id="transSisa">—</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px" id="transSisaNote"></div>
+          </div>
+          <!-- Ucapan terima kasih & doa untuk Muhsinin -->
+          <div style="margin-top:12px;background:linear-gradient(180deg,#fffbeb,#fff);border:1px solid rgba(180,83,9,.14);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:13px;font-weight:800;color:#b45309;margin-bottom:6px">💛 Jazākumullāhu khairan, para Muhsinin</div>
+            <div style="font-size:11.5px;line-height:1.7;color:var(--text-2)">Terima kasih atas setiap infaq yang Anda titipkan. Semoga Allah menjadikannya amal jariyah yang terus mengalir, melapangkan rezeki Anda, dan memberatkan timbangan kebaikan di hari perhitungan.</div>
+            <div dir="rtl" lang="ar" style="font-family:'Amiri','Scheherazade New','Traditional Arabic','Geeza Pro',serif;font-size:16px;color:#7c4a03;margin-top:8px">آمين يا رب العالمين 🤲</div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+
+
+      <!-- Log Latihan Harian Card -->
+      <!-- ── Kartu Lapor Aktivitas Belajar (Partner Belajar) ── -->
+      <div class="card" id="dashPbCard" style="margin-bottom:16px;overflow:visible">
+        <!-- State: Loading -->
+        <div id="dashPbLoading" style="padding:18px">
+          <div class="skel skel-text" style="height:13px;width:55%;border-radius:6px;margin-bottom:12px"></div>
+          <div class="skel" style="height:34px;border-radius:8px;margin-bottom:8px"></div>
+          <div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px"></div>
+          <div class="skel" style="height:38px;border-radius:10px"></div>
+        </div>
+        <!-- State: Belum punya kelompok -->
+        <div id="dashPbNoKelompok" style="display:none">
           <div class="card-head">
-            <div class="card-title">📚 Log Belajar Partner</div>
-            <button class="card-more" onclick="goPage('partner-belajar')">Lihat Semua →</button>
+            <div class="card-title">📚 Partner Belajar</div>
+            <button class="card-more" onclick="goPage('partner-belajar')">Buka →</button>
           </div>
           <div class="card-body">
-            <div id="dashPbLoading" style="text-align:center;padding:12px;color:var(--text-3);font-size:12px">Memuat data partner...</div>
-            <div id="dashPbForm" style="display:none">
-              <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.5">
-                Partner kamu: <strong id="dashPbPartnerNama" style="color:var(--text)">—</strong>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-                <div>
-                  <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Durasi (Menit)</label>
-                  <input type="number" class="fc" id="dashPbDurasi" placeholder="Mis: 30" min="5" max="300" style="font-size:12px">
-                </div>
-                <div>
-                  <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
-                  <input type="date" class="fc" id="dashPbTanggal" style="font-size:12px">
-                </div>
-              </div>
-              <div style="margin-bottom:10px">
-                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
-                <textarea class="fc" id="dashPbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1–20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical;font-size:12px"></textarea>
-              </div>
-              <button id="dashPbSubmitBtn" onclick="submitDashLogBelajar()" style="background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:opacity .2s">
-                📚 Simpan &amp; Kirim ke Partner
-              </button>
+            <div style="text-align:center;padding:6px 0 10px;font-size:12px;color:var(--text-3);line-height:1.65">
+              Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung. 🤝
             </div>
           </div>
         </div>
-      </div><!-- /dash-col-left -->
-
-      <div class="dash-col-right">
-        <!-- Stats Grid (4 Metrik) -->
-        <div class="stats-grid">
-          <div class="stat-card clickable" onclick="goPage('riwayat')">
-            <div class="ico">✅</div>
-            <div class="val stat-val" id="st-hadir">–</div>
-            <div class="lbl">% Hadir</div>
+        <!-- State: Ada kelompok → tampilkan mini-form -->
+        <div id="dashPbForm" style="display:none">
+          <div class="card-head">
+            <div class="card-title">📝 Lapor Aktivitas Belajar</div>
+            <button class="card-more" onclick="goPage('partner-belajar')">Riwayat →</button>
           </div>
-          <div class="stat-card clickable" onclick="goPage('info')">
-            <div class="ico">📋</div>
-            <div class="val stat-val" id="st-sesi">–</div>
-            <div class="lbl">Sesi</div>
-          </div>
-          <div class="stat-card clickable" onclick="openAdabDetail()">
-            <div class="ico">⭐</div>
-            <div class="val stat-val" id="st-adab">–</div>
-            <div class="lbl">Poin Adab</div>
-          </div>
-          <div class="stat-card clickable" onclick="openKameraDetail()">
-            <div class="ico">📷</div>
-            <div class="val stat-val" id="st-kamera">–</div>
-            <div class="lbl">Poin Kamera</div>
-          </div>
-        </div>
-
-        <!-- 💳 Pembayaran & Infaq Card (100% Dipertahankan) -->
-        <div class="spp-card" id="sppCard" style="display:none;">
-          <div class="spp-head">
-            <div class="spp-title">💳 Pembayaran & Infaq</div>
-            <span id="sppBadge"></span>
-          </div>
-          <div class="spp-body">
-            <!-- Tab: SPP Pribadi | Infaq -->
-            <div class="spp-jenis-tabs">
-              <div class="spp-jenis-tab active" id="sppTabSpp" onclick="switchSppTab('spp')">🏠 SPP Pribadi</div>
-              <div class="spp-jenis-tab" id="sppTabInfaq" onclick="switchSppTab('infaq')">💛 Infaq / Operasional</div>
-            </div>
-            <!-- Panel SPP Pribadi -->
-            <div id="sppPanelSpp">
-              <div class="spp-donut-row">
-                <svg width="56" height="56" viewBox="0 0 40 40" id="sppDonut">
-                  <circle cx="20" cy="20" r="15" fill="none" stroke="#f1f5f9" stroke-width="5"/>
-                  <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="5"
-                    stroke-linecap="round" id="sppDonutArc"
-                    stroke-dasharray="0 94.25" stroke-dashoffset="23.56"/>
-                  <text x="20" y="24" text-anchor="middle" font-size="10" font-weight="800" id="sppDonutNum" fill="#1e293b">0</text>
-                </svg>
-                <div class="spp-donut-info">
-                  <div class="spp-donut-title" id="sppDonutTitle">Memuat...</div>
-                  <div class="spp-donut-sub" id="sppDonutSub"></div>
-                </div>
+          <div class="card-body">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:10px">Catat aktivitas mandirimu — partner kelompokmu akan konfirmasi</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div>
+                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
+                <select class="fc" id="dashPbJenis" style="font-size:12px">
+                  <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
+                  <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
+                  <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+                  <option value="Tajwid">📐 Tajwid</option>
+                  <option value="Doa-Doa Pilihan">🤲 Doa-Doa Pilihan</option>
+                  <option value="Murajaah">🔄 Murajaah</option>
+                </select>
               </div>
-              <div class="spp-bulan-grid" id="sppBulanGridDisplay"></div>
-              <div class="spp-msg" id="sppMsg" style="display:none"></div>
+              <div>
+                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
+                <input type="date" class="fc" id="dashPbTanggal" style="font-size:12px">
+              </div>
             </div>
-            <!-- Panel Infaq -->
-            <div id="sppPanelInfaq" style="display:none">
-              <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-bottom:10px">Riwayat Infaq / Operasional</div>
-              <div id="sppInfaqList"><div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div></div>
+            <div style="margin-bottom:10px">
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
+              <textarea class="fc" id="dashPbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1–20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical;font-size:12px"></textarea>
             </div>
-            <button class="spp-konfirm-btn" onclick="bukaModalKonfirmasiSPP()">
-              💳 Bayar &amp; Infaq
+            <button id="dashPbSubmitBtn" onclick="submitDashLogBelajar()" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:opacity .2s">
+              📚 Simpan &amp; Kirim ke Partner
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- 💛 Transparansi Dana Infaq (100% Dipertahankan) -->
-        <div class="spp-card" id="transparansiCard" style="display:none;">
-          <div class="spp-head">
-            <div class="spp-title">💛 Transparansi Dana Infaq</div>
-            <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
-          </div>
-          <div class="spp-body">
-            <div style="font-size:11.5px;color:var(--text-3);line-height:1.6;margin-bottom:12px">Sebagai amanah kepada para Muhsinin, berikut ringkasan dana infaq/operasional bulan ini.</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-              <div style="background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.18);border-radius:10px;padding:10px">
-                <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Infaq Terkumpul</div>
-                <div style="font-size:15px;font-weight:900;color:#b45309;margin-top:3px" id="transInfaq">—</div>
-              </div>
-              <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px">
-                <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Operasional</div>
-                <div style="font-size:15px;font-weight:900;color:#b91c1c;margin-top:3px" id="transOperasional">—</div>
-              </div>
-            </div>
-            <div id="transOpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-            <div style="background:linear-gradient(180deg,#f0fdf4,#ecfdf5);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px;text-align:center">
-              <div style="font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa Untuk Program Beasiswa</div>
-              <div style="font-size:18px;font-weight:900;color:#059669;margin-top:3px" id="transSisa">—</div>
-              <div style="font-size:10.5px;color:var(--text-3);margin-top:4px" id="transSisaNote"></div>
-            </div>
-            <!-- Ucapan terima kasih & doa untuk Muhsinin -->
-            <div style="margin-top:12px;background:linear-gradient(180deg,#fffbeb,#fff);border:1px solid rgba(180,83,9,.14);border-radius:12px;padding:14px;text-align:center">
-              <div style="font-size:13px;font-weight:800;color:#b45309;margin-bottom:6px">💛 Jazākumullāhu khairan, para Muhsinin</div>
-              <div style="font-size:11.5px;line-height:1.7;color:var(--text-2)">Terima kasih atas setiap infaq yang Anda titipkan. Semoga Allah menjadikannya amal jariyah yang terus mengalir, melapangkan rezeki Anda, dan memberatkan timbangan kebaikan di hari perhitungan.</div>
-              <div dir="rtl" lang="ar" style="font-family:'Amiri','Scheherazade New','Traditional Arabic','Geeza Pro',serif;font-size:16px;color:#7c4a03;margin-top:8px">آمين يا رب العالمين 🤲</div>
-            </div>
-          </div>
+      <!-- PR Aktif -->
+      <div class="card" id="prCard" style="display:none">
+        <div class="card-head">
+          <div class="card-title">📝 Latihan Mandiri (PR) Aktif</div>
+          <button class="card-more" onclick="goPage('pr')">Lihat →</button>
         </div>
+        <div class="card-body" id="dashPrPreview"></div>
+      </div>
 
-        <!-- At-Tibyan Card -->
-        <div class="attibyan-dash-card" onclick="goPage('attibyan')">
-          <!-- Judul At-Tibyan -->
-          <div class="prog-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            Kajian Mingguan (At-Tibyan)
-          </div>
-          <!-- Chip label -->
-          <div class="prog-level-row">
-            <span class="level-badge" style="background:var(--amber); border:1.5px solid rgba(251,191,36,.6);">At-Tibyan</span>
-          </div>
-          <!-- Quote At-Tibyan -->
-          <div class="attibyan-quote-box">
-            <div class="attibyan-quote-arabic">بِالْأَدَبِ تَفْهَمُ الْعِلْمَ</div>
-            <div class="attibyan-quote-id">Dengan mempelajari adab, maka engkau jadi mudah memahami ilmu.</div>
-            <div class="attibyan-quote-src">Yusuf bin Al-Husain</div>
-          </div>
-          <!-- Inner wrap -->
-          <div class="prog-inner-wrap">
-            <div class="prog-inner-card">
-              <div class="prog-inner-row">
-                <!-- Donut ring -->
-                <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
-                  <div class="prog-donut-inner">
-                    <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#d97706">0%</span>
-                    <span class="prog-donut-lbl">hadir</span>
-                  </div>
-                </div>
-                <!-- Info kanan -->
-                <div class="prog-info-right">
-                  <div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>
-                  <div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>
-                  <div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">
-                    <div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div><!-- /prog-inner-wrap -->
+      <!-- Pengumuman preview -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">📢 Pengumuman</div>
+          <button class="card-more" onclick="goPage('pengumuman')">Semua →</button>
         </div>
+        <div class="card-body" id="dashPengumuman">
+          <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
+        </div>
+      </div>
 
-        <!-- Partner Qiyam Card -->
-        <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
-          <div class="prog-title">
-            <span>🤝 Partner Qiyam</span>
-            <span id="dashPartnerBadge" class="partner-dash-badge" style="display:none"></span>
-          </div>
-          <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
+      <!-- Akses Cepat -->
+      <div class="links-grid">
+        <a class="link-card" href="https://rattililquran.github.io/KhatamKu/" target="_blank">
+          <div class="lc-ico">📖</div>
+          <div class="lc-title">KhatamKu</div>
+          <div class="lc-sub">Tracker khatam Al-Qur'an</div>
+        </a>
+        <div class="link-card" onclick="bukaModalKonfirmasiSPP()" style="cursor:pointer">
+          <div class="lc-ico">💳</div>
+          <div class="lc-title">Bayar SPP</div>
+          <div class="lc-sub">Bayar SPP & Infaq</div>
         </div>
+      </div>
 
-        <!-- Partner Belajar Card (Level 1-4) -->
-        <div class="partner-dash-card" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
-          <div class="prog-title">
-            <span>📚 Partner Belajar</span>
-            <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
-          </div>
-          <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
-        </div>
-
-        <!-- Rattil Quiz Card -->
-        <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="cursor:pointer; background:var(--card); border:1px solid var(--border); border-left:4px solid var(--red); margin-bottom:16px;">
-          <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center; color:var(--text);">
-            <span style="display:flex; align-items:center; gap:6px; color:var(--red-txt);">🎯 Rattil Quiz</span>
-            <span id="dashQuizBadge" class="badge" style="display:none; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px; background:var(--red); color:#fff;">Baru</span>
-          </div>
-          <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:var(--text-2); margin-top:8px;">
-            ⏳ Memuat kuis tersedia...
-          </div>
-        </div>
-
-        <!-- Micro Teaching Card -->
-        <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
-          <div class="prog-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Micro Teaching
-          </div>
-          <div class="prog-level-row">
-            <span class="level-badge" style="background:var(--purple); border:1.5px solid rgba(167,139,250,.6);">Kelas Pengajar</span>
-          </div>
-          <div class="prog-inner-wrap">
-            <div class="prog-inner-card">
-              <div class="prog-inner-row">
-                <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
-                  <div class="prog-donut-inner">
-                    <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:var(--purple-txt)">0%</span>
-                    <span class="prog-donut-lbl" id="dashMicroDonutRingLbl">nilai</span>
-                  </div>
-                </div>
-                <div class="prog-info-right">
-                  <div class="prog-info-title" id="dashMicroProgressPct">0 dari 8 sesi</div>
-                  <div class="prog-info-sesi" id="dashMicroSisa">8 sesi tersisa</div>
-                  <div class="prog-bar-wrap" id="dashMicroProgressBarWrap">
-                    <div class="prog-bar-fill" id="dashMicroProgressBar" style="width:0%; background:var(--purple)"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pengumuman preview -->
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📢 Pengumuman</div>
-            <button class="card-more" onclick="goPage('pengumuman')">Semua →</button>
-          </div>
-          <div class="card-body" id="dashPengumuman">
-            <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
-          </div>
-        </div>
-
-        <!-- Akses Cepat -->
-        <div class="links-grid">
-          <a class="link-card" href="https://rattililquran.github.io/KhatamKu/" target="_blank">
-            <div class="lc-ico">📖</div>
-            <div class="lc-title">KhatamKu</div>
-            <div class="lc-sub">Tracker khatam Al-Qur'an</div>
-          </a>
-          <div class="link-card" onclick="bukaModalKonfirmasiSPP()" style="cursor:pointer">
-            <div class="lc-ico">💳</div>
-            <div class="lc-title">Bayar SPP</div>
-            <div class="lc-sub">Bayar SPP &amp; Infaq</div>
-          </div>
-        </div>
-      </div><!-- /dash-col-right -->
-</div><!-- /dashboard -->
+    </div><!-- /dashboard -->
 
     <!-- ════ RIWAYAT KBM ════ -->
     <div class="page" id="page-riwayat">
