@@ -2213,8 +2213,18 @@
     }
 
     const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
-    const progEl = document.getElementById('nilaiProgress');
+    _updateNmProgress(terisi, total);
+  }
+
+  // Teks + bar progres "X/Y terisi" -- 1 fungsi dipanggil dari render awal &
+  // updateNilaiCard, supaya teks dan lebar bar tak pernah menunjukkan angka beda.
+  function _updateNmProgress(terisi, total) {
+    const progEl   = document.getElementById('nilaiProgress');
+    const trackEl  = document.getElementById('nmProgressTrack');
+    const fillEl   = document.getElementById('nmProgressFill');
     if (progEl) progEl.textContent = terisi + '/' + total + ' terisi';
+    if (trackEl) trackEl.style.display = total > 0 ? 'block' : 'none';
+    if (fillEl)  fillEl.style.width = (total > 0 ? Math.min(100, (terisi / total) * 100) : 0) + '%';
   }
 
   function updateNilaiCard(id_murid) {
@@ -2244,8 +2254,7 @@
       return !['A','I'].includes(status) && document.getElementById('adab-'+m.id_murid) && document.getElementById('adab-'+m.id_murid).value;
     }).length;
     const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
-    const progEl = document.getElementById('nilaiProgress');
-    if (progEl) progEl.textContent = terisi + '/' + total + ' terisi';
+    _updateNmProgress(terisi, total);
   }
 
   // Teks ringkasan 1 baris kartu murid (dipakai render awal & saat collapse
