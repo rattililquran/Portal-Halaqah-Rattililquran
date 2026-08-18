@@ -5967,7 +5967,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=eaa978e4" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=b17fa7e6" defer></script>
+<script src="kbm-module.js?v=abfa741e" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
@@ -7532,11 +7532,15 @@ function showPreview() {
   const LABEL_PV = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
 
   const nilaiItems = muridSesi.map(m => {
-    const nilai  = document.getElementById('nilai-'  + m.id_murid) ? document.getElementById('nilai-'  + m.id_murid).value : '';
-    const adab   = document.getElementById('adab-'   + m.id_murid) ? document.getElementById('adab-'   + m.id_murid).value : '';
-    const kamera = document.getElementById('kamera-' + m.id_murid) ? document.getElementById('kamera-' + m.id_murid).value : '';
+    const nilai   = document.getElementById('nilai-'   + m.id_murid) ? document.getElementById('nilai-'   + m.id_murid).value : '';
+    const adab    = document.getElementById('adab-'    + m.id_murid) ? document.getElementById('adab-'    + m.id_murid).value : '';
+    const kamera  = document.getElementById('kamera-'  + m.id_murid) ? document.getElementById('kamera-'  + m.id_murid).value : '';
+    // P1-1 (audit form Jurnal 2026-08-18): dibaca supaya preview bisa tunjukkan
+    // indikator "ada catatan" -- lihat fix P0 di doSelesaiKBM (catatan-only kini
+    // ikut tersimpan; ini buat guru bisa LIHAT itu bekerja sebelum submit).
+    const catatan = document.getElementById('catatan-' + m.id_murid) ? document.getElementById('catatan-' + m.id_murid).value.trim() : '';
     const status = presensiMapPv[m.id_murid] || 'H';
-    return { nama: m.nama_murid, nilai, adab, kamera, status, hadir: LABEL_PV[status]||status, id_murid: m.id_murid };
+    return { nama: m.nama_murid, nilai, adab, kamera, catatan, status, hadir: LABEL_PV[status]||status, id_murid: m.id_murid };
   });
 
   // Cek adab atau kamera kosong hanya untuk KBM Reguler
@@ -7586,6 +7590,7 @@ function showPreview() {
       + (m.status !== 'H' ? '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>' : '')
       + (!skipStatus && m.adab ? '<span class="badge b-green" style="font-size:11px">' + esc(m.adab) + '</span>' : '')
       + (!skipStatus && m.kamera ? '<span class="badge b-blue" style="font-size:11px">' + esc(m.kamera) + '</span>' : '')
+      + (!skipStatus && m.catatan ? '<span title="Ada catatan tambahan" style="font-size:13px">📝</span>' : '')
       + (!skipStatus && (!m.adab || !m.kamera) ? '<span style="color:var(--red);font-size:12px;font-weight:600">' + (!m.adab && !m.kamera ? 'adab & kamera kosong' : (!m.adab ? 'adab kosong' : 'kamera kosong')) + '</span>' : '')
       + '</div></div>';
   }).join('') || '<div style="color:var(--text-3);font-size:13px;text-align:center;padding:8px">Tidak ada data murid</div>';

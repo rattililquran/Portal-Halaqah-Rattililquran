@@ -1981,9 +1981,14 @@
       if (belumDinilai.length > 0) {
         var namaPratinjau = belumDinilai.slice(0, 3).map(function(m){ return m.nama_murid; }).join(', ')
           + (belumDinilai.length > 3 ? ', dan ' + (belumDinilai.length - 3) + ' lainnya' : '');
+        // P1-2 (audit form Jurnal 2026-08-18): nada dilunakkan -- ini cuma heads-up
+        // awal (masih bisa kembali isi sebelum sesi benar2 ditutup), bukan peringatan
+        // final. Peringatan tegas soal dampak ke raport tetap ada di doSelesaiKBM()
+        // sbg palang pintu terakhir, tak perlu diulang di sini dgn nada yg sama.
         var lanjutkan = await window.showConfirm(
-          'Masih ada ' + belumDinilai.length + ' murid belum dinilai:\n' + namaPratinjau + '.\n\nTetap lanjutkan ke Jurnal?',
-          { title: 'Belum Semua Dinilai', okText: 'Ya, Lanjutkan', cancelText: 'Kembali Isi Dulu' }
+          'Masih ada ' + belumDinilai.length + ' murid belum dinilai:\n' + namaPratinjau
+          + '.\n\nBisa kembali isi sebelum sesi ditutup. Lanjut ke Jurnal dulu?',
+          { title: 'Belum Semua Dinilai', okText: 'Lanjut, Isi Nanti', cancelText: 'Kembali Isi Dulu' }
         );
         if (!lanjutkan) return;
       }
@@ -2678,8 +2683,13 @@
             const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
             const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
             const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-            if (nilai || adab || kamera || koreksi) {
-              const catatan = document.getElementById('catatan-'+m.id_murid);
+            const catatanEl  = document.getElementById('catatan-'+m.id_murid);
+            const catatanVal = catatanEl ? catatanEl.value.trim() : '';
+            // P0 fix (audit form Jurnal 2026-08-18): `catatan` dulu TIDAK ikut
+            // syarat "ada data" -- murid yang HANYA diisi Catatan (tanpa Adab/
+            // Kamera/Koreksi) tak pernah masuk nilaiList, catatannya hilang diam-
+            // diam tanpa error. Disamakan dgn 3 field lain yg sudah diperlakukan begini.
+            if (nilai || adab || kamera || koreksi || catatanVal) {
               nilaiList.push({
                 id_murid     : m.id_murid,
                 nama_murid   : m.nama_murid,
@@ -2687,7 +2697,7 @@
                 adab         : adab,
                 kamera_murid : kamera,
                 koreksi_tahsin: koreksi,
-                catatan_murid: catatan ? catatan.value.trim() : '',
+                catatan_murid: catatanVal,
               });
             }
           }
