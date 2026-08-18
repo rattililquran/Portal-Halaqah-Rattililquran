@@ -3178,74 +3178,162 @@ html.theme-dark .pr-chip.active {
         <div style="font-size:19px;font-weight:800;margin-bottom:14px">Jurnal & Latihan Mandiri (PR)</div>
         <div id="stepBarJurnal" class="steps"></div>
 
-        <div class="card">
-          <div class="card-head"><div class="card-title">📓 Jurnal Sesi</div></div>
-          <div class="card-body">
-            <div class="fg">
-              <label>Topik / Materi yang Dipelajari</label>
-              <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
-            </div>
-            <div class="fg">
-              <label>Halaman / Modul</label>
-              <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
-            </div>
-            <div class="fg">
-              <label>Jam Selesai</label>
-              <input type="time" class="fc" id="jurnalJamSelesai" style="max-width:180px">
-            </div>
-            <input type="hidden" id="jurnalMetode" value="Campuran">
-            <div class="fg">
-              <label>Catatan Umum Sesi</label>
-              <textarea class="fc" id="jurnalCatatan" rows="3"
-                placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
-            </div>
-          </div>
-        </div>
+        <style>
+          .jurnal-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          @media (min-width: 900px) {
+            .jurnal-grid {
+              grid-template-columns: 1fr 1fr;
+              align-items: start;
+            }
+          }
+          .jurnal-card {
+            background: var(--card-solid, rgba(255,255,255,0.85));
+            border-radius: 16px;
+            border: 1px solid var(--border, rgba(0,0,0,0.08));
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+          }
+          .jurnal-card:hover {
+            box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+          }
+          .jurnal-card-head {
+            padding: 14px 18px;
+            background: linear-gradient(130deg, rgba(14,165,233,0.06), rgba(99,102,241,0.04));
+            border-bottom: 1px solid var(--border, rgba(0,0,0,0.07));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          .jurnal-card-head.pr-head {
+            background: linear-gradient(130deg, rgba(16,185,129,0.06), rgba(14,165,233,0.04));
+          }
+          .jurnal-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .jurnal-card-body {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+          }
+          .jurnal-card-body .fg {
+            margin-bottom: 0;
+          }
+          .jurnal-field-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          @media (min-width: 480px) {
+            .jurnal-field-row {
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+          .jurnal-tip {
+            font-size: 11.5px;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(14,165,233,0.05);
+            border-radius: 8px;
+            border: 1px dashed rgba(14,165,233,0.2);
+          }
+        </style>
 
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">📝 Latihan Mandiri (PR)</div>
+        <div class="jurnal-grid">
+          <!-- Card Jurnal Sesi -->
+          <div class="jurnal-card">
+            <div class="jurnal-card-head">
+              <div class="jurnal-card-title">📓 Jurnal Sesi</div>
+            </div>
+            <div class="jurnal-card-body">
+              <div class="fg">
+                <label>Topik / Materi yang Dipelajari</label>
+                <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
+              </div>
+
+              <div class="jurnal-field-row">
+                <div class="fg">
+                  <label>Halaman / Modul</label>
+                  <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
+                </div>
+                <div class="fg">
+                  <label>Jam Selesai</label>
+                  <input type="time" class="fc" id="jurnalJamSelesai">
+                </div>
+              </div>
+
+              <input type="hidden" id="jurnalMetode" value="Campuran">
+
+              <div class="fg">
+                <label>Catatan Umum Sesi</label>
+                <textarea class="fc" id="jurnalCatatan" rows="3"
+                  placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
+              </div>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="fg">
-              <label>Jenis Latihan Mandiri (PR)</label>
-              <select class="fc" id="jurnalJenisLatihan" onchange="toggleReferensiJurnal()">
-                <option value="">— Tidak ada Latihan Mandiri (PR) —</option>
-                <option value="Rekaman Portal">🎙️ Rekaman Suara di Portal (Disarankan)</option>
-                <option value="VN di WAG">📱 Kirim Voice Note (VN) di WhatsApp Group</option>
-                <option value="Mendengar dan membaca mandiri">🎧 Mendengar Murattal & Membaca Mandiri (Tanpa Setor Suara)</option>
-                <option value="Lainnya">📌 Lainnya</option>
+
+          <!-- Card Latihan Mandiri (PR) -->
+          <div class="jurnal-card">
+            <div class="jurnal-card-head pr-head">
+              <div class="jurnal-card-title">📝 Latihan Mandiri (PR)</div>
+              <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--card-solid, #fff); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer;">
+                <option value="">✨ Template PR...</option>
+                <option value="vn">🎙️ VN Setoran Hafalan</option>
+                <option value="murottal">🎧 Mendengar Murottal Referensi</option>
+                <option value="baca">📖 Membaca Mandiri 3x</option>
               </select>
             </div>
-             <div class="fg">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <label style="margin-bottom:0">Deskripsi Latihan Mandiri (PR)</label>
-                <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--bg-2); border:1px solid var(--border); border-radius:6px; padding:2px 6px; font-size:11px; color:var(--text); cursor:pointer;">
-                  <option value="">✨ Pilih Template PR...</option>
-                  <option value="vn">🎙️ VN Setoran Hafalan</option>
-                  <option value="murottal">🎧 Mendengar Murottal Referensi</option>
-                  <option value="baca">📖 Membaca Mandiri 3x</option>
-                </select>
+            <div class="jurnal-card-body">
+              <div class="jurnal-field-row">
+                <div class="fg">
+                  <label>Jenis Latihan Mandiri (PR)</label>
+                  <select class="fc" id="jurnalJenisLatihan" onchange="toggleReferensiJurnal()">
+                    <option value="">— Tidak ada Latihan Mandiri (PR) —</option>
+                    <option value="Rekaman Portal">🎙️ Rekaman Suara di Portal (Disarankan)</option>
+                    <option value="VN di WAG">📱 Kirim Voice Note (VN) di WhatsApp Group</option>
+                    <option value="Mendengar dan membaca mandiri">🎧 Mendengar Murattal & Membaca Mandiri (Tanpa Setor Suara)</option>
+                    <option value="Lainnya">📌 Lainnya</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label>Deadline Pengerjaan</label>
+                  <input type="date" class="fc" id="jurnalDeadline">
+                </div>
               </div>
-              <textarea class="fc" id="jurnalLatihanMandiri" rows="2"
-                placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..."
-                style="resize:vertical"></textarea>
-            </div>
-            <div class="fg">
-              <label>Deadline Pengerjaan</label>
-              <input type="date" class="fc" id="jurnalDeadline">
-            </div>
-            <div class="fg" id="wadahJurnalReferensi" style="display: none;">
-              <label>Tautan Referensi Rekaman / Murattal (Opsional)</label>
-              <input type="url" class="fc" id="jurnalReferensiUrl" placeholder="https://drive.google.com/file/d/.../view atau link audio lainnya">
-            </div>
-            <div style="font-size:11.5px;color:var(--text-3);margin-top:6px">
-              💡 Latihan Mandiri (PR) akan tampil di dashboard murid
+
+              <div class="fg">
+                <label>Deskripsi Latihan Mandiri (PR)</label>
+                <textarea class="fc" id="jurnalLatihanMandiri" rows="3"
+                  placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..."
+                  style="resize:vertical"></textarea>
+              </div>
+
+              <div class="fg" id="wadahJurnalReferensi" style="display: none;">
+                <label>Tautan Referensi Rekaman / Murattal (Opsional)</label>
+                <input type="url" class="fc" id="jurnalReferensiUrl" placeholder="https://drive.google.com/file/d/.../view atau link audio lainnya">
+              </div>
+
+              <div class="jurnal-tip">
+                💡 Latihan Mandiri (PR) akan tampil di dashboard murid
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="step-nav">
+        <div class="step-nav" style="margin-top:20px;">
           <button class="btn-back" onclick="kembaliKeStep3()">← Kembali</button>
           <button class="btn-next" id="btnSelesai" onclick="showPreview()">✅ Selesaikan Sesi</button>
         </div>
