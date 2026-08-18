@@ -2074,7 +2074,7 @@
         '<div style="margin-bottom:8px">',
         '  <div class="fg" style="margin:0">',
         '    <div class="nm-section-label">😊 Adab</div>',
-        '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
+        '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:16px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
         '      <option value="">— Pilih —</option>',
         '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
         '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>⚠️ Butuh Perhatian</option>',
@@ -2084,7 +2084,7 @@
         '<div style="margin-bottom:8px">',
         '  <div class="fg" style="margin:0">',
         '    <div class="nm-section-label">📷 Kamera Murid</div>',
-        '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:13px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
+        '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:16px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
         '      <option value="">— Pilih —</option>',
         '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
         '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>🟡 kamera sering buka tutup</option>',
@@ -2100,8 +2100,8 @@
         '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">📋 Riwayat</button>',
         '  </div>',
         '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahHalaqah ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
-        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:13px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
-        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:13px;resize:vertical;margin-top:6px">' + esc(catVal) + '</textarea>',
+        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:16px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
+        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:16px;resize:vertical;margin-top:6px">' + esc(catVal) + '</textarea>',
         '</div>',
       ].join('\n');
 
@@ -2184,8 +2184,10 @@
         + '</div>'
         + '</div>'
         + (isSkip ? '' : '<div class="nm-summary" id="nmsum-' + esc(m.id_murid) + '">' + esc(summaryText) + '</div>')
+        + '<div class="nm-body-grid">'
         + '<div class="nm-body"' + (isSkip ? '' : ' onfocusout="_nmCardFocusOut(\'' + esc(m.id_murid) + '\')"') + '>'
         + (isSkip ? skipMsg : (nilaiForm + daurahHtml))
+        + '</div>'
         + '</div>'
         + '</div>';
     }).join('');

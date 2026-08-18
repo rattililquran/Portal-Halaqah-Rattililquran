@@ -1361,13 +1361,25 @@ html.theme-dark .draft-warning-note{background:rgba(224,169,58,.12)!important;co
 .nm-badge-I{background:#f59e0b;color:#fff}
 .nm-badge-A{background:#ef4444;color:#fff}
 
-/* Collapse-on-fill (hemat ruang di HP untuk roster panjang) */
+/* Collapse-on-fill (hemat ruang di HP untuk roster panjang).
+   Animasi pakai trik grid-template-rows 1fr→0fr (bukan max-height) krn tinggi
+   kartu murid sangat bervariasi (murid biasa vs murid Daurah dgn banyak item
+   evaluasi) -- max-height butuh nilai plafon tetap yg bikin animasi terlihat
+   "diam lama lalu tiba-tiba lenyap" utk konten yg jauh lebih pendek dari
+   plafonnya. grid-rows menganimasikan tinggi ASLI kontennya, presisi di semua
+   ukuran kartu. */
 .nilai-murid-card.terisi .nm-header{cursor:pointer}
-.nilai-murid-card.collapsed .nm-body{display:none}
+.nm-body-grid{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s cubic-bezier(.4,0,.2,1)}
+.nm-body-grid > .nm-body{overflow:hidden;min-height:0}
+.nilai-murid-card.collapsed .nm-body-grid{grid-template-rows:0fr}
 .nm-chevron{font-size:11px;color:rgba(255,255,255,.7);transition:transform .2s;flex-shrink:0}
 .nilai-murid-card.collapsed .nm-chevron{transform:rotate(-90deg)}
 .nm-summary{display:none;padding:8px 14px;font-size:12px;color:var(--text-2);background:var(--bg-2,#f8fafc)}
 .nilai-murid-card.collapsed .nm-summary{display:block}
+/* Reduced-motion: langsung snap, jangan paksa animasi ke pengguna yg matikan gerak */
+@media (prefers-reduced-motion: reduce){
+  .nm-body-grid{transition:none}
+}
 /* Tombol Template/Riwayat sejajar (bukan full-width bertumpuk) */
 .nm-tool-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;
   background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);
@@ -1863,6 +1875,16 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
 }
 @media(min-width:1025px){
   .nilai-murid-card{padding:20px 24px}
+}
+/* Step Nilai di HP: .card-body/.card-head bawaan (20px / 16px 20px) tak
+   pernah dikecilkan di mobile spt .content -- pada layar sempit itu makan
+   ~40px lebar cuma utk padding bungkus terluar, sebelum kartu murid (yg
+   sudah punya border+shadow sendiri) bahkan mulai. Dipersempit khusus di
+   halaman ini (bukan .card-body global) supaya tak mengubah tampilan card
+   di halaman lain yg belum diaudit. */
+@media(max-width:600px){
+  #page-nilai-murid .card-head{padding:12px 14px}
+  #page-nilai-murid .card-body{padding:8px}
 }
 
 /* Table sticky header */
@@ -5921,7 +5943,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=eaa978e4" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=d8a37f66" defer></script>
+<script src="kbm-module.js?v=2cba2be7" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
