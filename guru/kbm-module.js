@@ -2531,8 +2531,13 @@
           toast("Harap isi Tanggal Batas Waktu (Deadline) Pengerjaan PR.", "warn");
           return;
         }
-        if (referensiUrl && !referensiUrl.startsWith("http://") && !referensiUrl.startsWith("https://")) {
-          toast("Tautan referensi harus diawali dengan http:// atau https://", "warn");
+        // P2 cleanup (2026-08-18): diselaraskan ke https-only, mengikuti pola yg
+        // sudah dipakai utk validasi URL lain di codebase ini (audio_url setoran
+        // peer pengajar, supabase/api-staff.js). http:// praktis tak dipakai lagi
+        // oleh layanan modern (Drive/YouTube/dll semua https), jadi tak mengurangi
+        // kegunaan bagi guru, sekaligus menutup celah tautan tak terenkripsi.
+        if (referensiUrl && !referensiUrl.startsWith("https://")) {
+          toast("Tautan referensi harus diawali dengan https://", "warn");
           return;
         }
       } else {
@@ -2689,7 +2694,6 @@
               });
             }
           } else {
-            const nilai   = (document.getElementById('nilai-'+m.id_murid) ? document.getElementById('nilai-'+m.id_murid).value : '') || '';
             const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
             const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
             const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
@@ -2698,13 +2702,13 @@
             // syarat "ada data" -- murid yang HANYA diisi Catatan (tanpa Adab/
             // Kamera/Koreksi) tak pernah masuk nilaiList, catatannya hilang diam-
             // diam tanpa error. Disamakan dgn adab/kamera/koreksi yg sudah
-            // diperlakukan begini (`nilai` di kondisi ini selalu kosong -- field
-            // legacy, tak pernah dirender di form KBM Reguler manapun lagi).
-            if (nilai || adab || kamera || koreksi || catatanVal) {
+            // diperlakukan begini. (P2 cleanup: field legacy `nilai-<id>` sudah
+            // dihapus dari sini -- tak pernah dirender di form KBM Reguler manapun,
+            // selalu kosong tanpa konsumen, dikonfirmasi via review multi-agent.)
+            if (adab || kamera || koreksi || catatanVal) {
               nilaiList.push({
                 id_murid     : m.id_murid,
                 nama_murid   : m.nama_murid,
-                nilai        : nilai,
                 adab         : adab,
                 kamera_murid : kamera,
                 koreksi_tahsin: koreksi,

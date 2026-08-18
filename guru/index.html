@@ -5973,7 +5973,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=eaa978e4" defer></script>
 <script src="raport-module.js?v=ea298ea2" defer></script>
-<script src="kbm-module.js?v=39d62620" defer></script>
+<script src="kbm-module.js?v=2f80a245" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=e83df4a7" defer></script>
 <script src="hafalan-module.js?v=fb6cf035" defer></script>
@@ -7347,6 +7347,14 @@ async function simpanEditJurnal() {
   // sama; tabel Riwayat KBM menampilkan pencapaian_modul). Wajib di-mirror agar
   // hasil edit topik ikut tampil & kedua field tidak desync.
   const materi = document.getElementById('ejMateri').value.trim();
+  const referensiUrl = document.getElementById('ejReferensiUrl').value.trim();
+  // P2 cleanup (2026-08-18): dulu tak ada validasi sama sekali di sini, padahal
+  // jalur simpan awal (doSelesaiKBM) sudah mewajibkan https:// -- diselaraskan
+  // supaya kedua jalur simpan field yg sama ini konsisten.
+  if (referensiUrl && !referensiUrl.startsWith('https://')) {
+    toast('Tautan referensi harus diawali dengan https://', 'warn');
+    return;
+  }
 
   showLoad('Bismillah, menyimpan jurnal & latihan...');
   try {
@@ -7361,7 +7369,7 @@ async function simpanEditJurnal() {
       latihan_mandiri : latihan,
       jenis_latihan   : jenis,
       deadline_latihan: document.getElementById('ejDeadline').value || null,
-      referensi_url   : document.getElementById('ejReferensiUrl').value.trim(),
+      referensi_url   : referensiUrl,
     });
     // Bug hunt (audit Edit KBM, 2026-08-18): modal sengaja TIDAK ditutup lagi di
     // sini -- lihat catatan di simpanEditPresensi() utk alasan lengkapnya.
@@ -7546,7 +7554,6 @@ function showPreview() {
   const LABEL_PV = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'};
 
   const nilaiItems = muridSesi.map(m => {
-    const nilai   = document.getElementById('nilai-'   + m.id_murid) ? document.getElementById('nilai-'   + m.id_murid).value : '';
     const adab    = document.getElementById('adab-'    + m.id_murid) ? document.getElementById('adab-'    + m.id_murid).value : '';
     const kamera  = document.getElementById('kamera-'  + m.id_murid) ? document.getElementById('kamera-'  + m.id_murid).value : '';
     // P1-1 (audit form Jurnal 2026-08-18) + review lanjutan: dibaca supaya preview
@@ -7557,7 +7564,10 @@ function showPreview() {
     const koreksi = (document.getElementById('koreksi-' + m.id_murid) || {}).value || '';
     const catatan = ((document.getElementById('catatan-' + m.id_murid) || {}).value || '').trim();
     const status = presensiMapPv[m.id_murid] || 'H';
-    return { nama: m.nama_murid, nilai, adab, kamera, koreksi, catatan, status, hadir: LABEL_PV[status]||status, id_murid: m.id_murid };
+    // P2 cleanup (2026-08-18): kolom "nilai-<id>" dihapus dari sini -- field lama
+    // sblm form diganti Adab+Kamera, tak pernah dirender di form manapun lagi
+    // (dikonfirmasi via review multi-agent), selalu string kosong tanpa konsumen.
+    return { nama: m.nama_murid, adab, kamera, koreksi, catatan, status, hadir: LABEL_PV[status]||status, id_murid: m.id_murid };
   });
 
   // Cek adab atau kamera kosong hanya untuk KBM Reguler
