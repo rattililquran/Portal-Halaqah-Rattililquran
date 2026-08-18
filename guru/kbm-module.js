@@ -122,7 +122,7 @@
       _pruneKbmDrafts(r.data.id_kbm);
       window._presensiState = {};
       window._presensiStateKbm = r.data.id_kbm;
-      ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline','jurnalReferensiUrl'].forEach(function(id){
+      ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalDeadline','jurnalReferensiUrl','jurnalPrTemplate'].forEach(function(id){
         var el = document.getElementById(id); if (el) el.value = '';
       });
       var prSel = document.getElementById('jurnalJenisLatihan');

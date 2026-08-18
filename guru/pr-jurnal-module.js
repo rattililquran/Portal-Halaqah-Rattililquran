@@ -881,6 +881,7 @@
   function applyJurnalPrTemplate(val) {
     const selectJenis = document.getElementById('jurnalJenisLatihan');
     const txtArea = document.getElementById('jurnalLatihanMandiri');
+    const tplSel = document.getElementById('jurnalPrTemplate');
     if (!txtArea || !val) return;
     
     if (val === 'vn') {
@@ -909,6 +910,7 @@
       const targetDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
       deadlineInput.value = localDateStr(targetDate);
     }
+    if (tplSel) tplSel.value = '';
   }
 
   // ── EXPOSE PUBLIC INTERFACE ──────────────────────
