@@ -2171,14 +2171,20 @@
       }
 
       var summaryText = isSkip ? '' : _nmSummaryText(adabVal, kamVal, korVal, catVal);
+      // Chip merah "Perhatian" di HEADER (bukan cuma teks di ringkasan) -- tetap
+      // terlihat langsung walau kartu belum/sudah collapsed, jadi guru yg men-
+      // scroll roster panjang bisa langsung kenali murid mana yg perlu dicek
+      // lebih dekat tanpa harus baca teks ringkasan kecil satu per satu.
+      var needsAttention = !isSkip && (adabVal === 'Butuh Perhatian' || (!!kamVal && kamVal !== 'kamera terbuka'));
 
       return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
         + '<div class="nm-header" onclick="toggleNilaiCard(\'' + esc(m.id_murid) + '\')">'
         + '<div class="nm-nama">'
         + '<div class="nm-nama-avatar">' + initials + '</div>'
-        + esc(m.nama_murid)
+        + '<span class="nm-nama-txt">' + esc(m.nama_murid) + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
+        + (isSkip ? '' : '<span class="nm-badge-warn" id="nmwarn-' + esc(m.id_murid) + '"' + (needsAttention ? '' : ' style="display:none"') + '>⚠️ Perhatian</span>')
         + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
         + (isSkip ? '' : '<span class="nm-chevron">▾</span>')
         + '</div>'
@@ -2245,6 +2251,7 @@
       card.classList.toggle('terisi', !!adabVal);
       if (!adabVal) card.classList.remove('collapsed');
       updateNmSummary(id_murid);
+      _nmUpdateWarnBadge(id_murid);
     }
 
     const presensiMap = {};
@@ -2285,6 +2292,19 @@
     var korVal  = (document.getElementById('koreksi-'+id_murid) || {}).value || '';
     var catVal  = (document.getElementById('catatan-'+id_murid) || {}).value || '';
     el.textContent = _nmSummaryText(adabVal, kamVal, korVal, catVal);
+  }
+
+  // Chip merah "⚠️ Perhatian" di header kartu -- tampil kalau Adab "Butuh
+  // Perhatian" atau Kamera bermasalah (bukan "kamera terbuka"). Selalu
+  // terlihat di header (bukan cuma di ringkasan collapsed) supaya guru
+  // langsung sadar tanpa harus baca teks kecil satu-satu di roster panjang.
+  function _nmUpdateWarnBadge(id_murid) {
+    var el = document.getElementById('nmwarn-' + id_murid);
+    if (!el) return;
+    var adabVal = (document.getElementById('adab-'+id_murid)   || {}).value || '';
+    var kamVal  = (document.getElementById('kamera-'+id_murid) || {}).value || '';
+    var needsAttention = (adabVal === 'Butuh Perhatian') || (!!kamVal && kamVal !== 'kamera terbuka');
+    el.style.display = needsAttention ? '' : 'none';
   }
 
   // Animasikan buka/tutup body kartu murid, presisi ke tinggi konten ASLI
