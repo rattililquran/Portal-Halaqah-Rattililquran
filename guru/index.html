@@ -6880,7 +6880,12 @@ async function simpanEditPresensi() {
       pertemuan_ke,
       presensi,
     });
-    closeModal('editPresensiModal');
+    // Bug hunt (audit Edit KBM, 2026-08-18): dulu modal DITUTUP di sini -- kalau
+    // guru sudah sempat mengedit tab lain (mis. Nilai) sebelum menekan Simpan di
+    // tab Presensi, edit di tab lain itu hilang diam-diam (modal tertutup, tak
+    // pernah tersimpan, dan reload berikutnya memuat data lama). Modal SEKARANG
+    // dibiarkan terbuka setelah simpan -- guru bebas pindah tab & simpan lagi
+    // tanpa kehilangan apa pun; ditutup manual via ✕/Batal saat benar2 selesai.
     toast('Presensi berhasil diperbarui!','ok');
     // Refresh riwayat & murid
     muridCache = {};
@@ -7224,7 +7229,8 @@ async function _simpanEditNilaiQiyam() {
     for (const job of jobs) {
       await window.HQ.GuruAPI.updateSetoranHafalan(job);
     }
-    closeModal('editPresensiModal');
+    // Bug hunt (audit Edit KBM, 2026-08-18): modal sengaja TIDAK ditutup lagi di
+    // sini -- lihat catatan di simpanEditPresensi() utk alasan lengkapnya.
     toast('Setoran hafalan berhasil diperbarui!','ok');
     muridCache = {};
     const rSel = document.getElementById('riwayatHalaqahSel').value;
@@ -7304,7 +7310,8 @@ async function _commitEditNilai(nilai_list) {
       id_halaqah: idHalaqah,
       nilai_list: nilai_list,
     });
-    closeModal('editPresensiModal');
+    // Bug hunt (audit Edit KBM, 2026-08-18): modal sengaja TIDAK ditutup lagi di
+    // sini -- lihat catatan di simpanEditPresensi() utk alasan lengkapnya.
     toast('Nilai murid berhasil diperbarui!','ok');
     muridCache = {};
     const rSel = document.getElementById('riwayatHalaqahSel').value;
@@ -7356,7 +7363,8 @@ async function simpanEditJurnal() {
       deadline_latihan: document.getElementById('ejDeadline').value || null,
       referensi_url   : document.getElementById('ejReferensiUrl').value.trim(),
     });
-    closeModal('editPresensiModal');
+    // Bug hunt (audit Edit KBM, 2026-08-18): modal sengaja TIDAK ditutup lagi di
+    // sini -- lihat catatan di simpanEditPresensi() utk alasan lengkapnya.
     toast('Jurnal & Latihan berhasil diperbarui!','ok');
     const rSel = document.getElementById('riwayatHalaqahSel').value;
     if (rSel) loadRiwayat();
