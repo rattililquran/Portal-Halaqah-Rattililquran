@@ -1950,13 +1950,23 @@
     const muridSesi = getMuridSesi();
     if (typeof muridSesi !== 'undefined' && muridSesi.length) {
       if (!window._nilaiCache) window._nilaiCache = {};
+      // Bug hunt fix (review atas commit 39d01ba): dulu blok ini SELALU menimpa
+      // _nilaiCache[id] dgn objek baru meski elemen field-nya tak ada (murid
+      // yg tadinya Hadir diubah ke Alpa/Izin di Presensi -> field disembunyikan)
+      // -- menimpa dgn string kosong = MENGHAPUS data yg sudah diketik sebelumnya
+      // (mis. catatan), lalu terus dipersist ke draft lokal/server, jadi tak
+      // bisa dipulihkan lagi. Pola aman yg SUDAH ADA di _snapshotNilaiCache()
+      // (skip total kalau elemen Adab tak ada, jangan sentuh cache-nya) diikuti
+      // di sini juga -- kalau murid jadi Alpa/Izin, cache lama TETAP disimpan
+      // (utuh kalau guru salah klik & mengembalikan status ke Hadir/Terlambat).
       muridSesi.forEach(function(m) {
-        var adabEl = document.getElementById('adab-'    + m.id_murid);
+        var adabEl = document.getElementById('adab-' + m.id_murid);
+        if (!adabEl) return;
         var kamEl  = document.getElementById('kamera-'  + m.id_murid);
         var korEl  = document.getElementById('koreksi-' + m.id_murid);
         var catEl  = document.getElementById('catatan-' + m.id_murid);
         window._nilaiCache[m.id_murid] = {
-          adab    : adabEl ? adabEl.value : '',
+          adab    : adabEl.value,
           kamera  : kamEl  ? kamEl.value  : '',
           koreksi : korEl  ? korEl.value  : '',
           catatan : catEl  ? catEl.value  : '',
@@ -2683,12 +2693,13 @@
             const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
             const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
             const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-            const catatanEl  = document.getElementById('catatan-'+m.id_murid);
-            const catatanVal = catatanEl ? catatanEl.value.trim() : '';
+            const catatanVal = ((document.getElementById('catatan-'+m.id_murid) || {}).value || '').trim();
             // P0 fix (audit form Jurnal 2026-08-18): `catatan` dulu TIDAK ikut
             // syarat "ada data" -- murid yang HANYA diisi Catatan (tanpa Adab/
             // Kamera/Koreksi) tak pernah masuk nilaiList, catatannya hilang diam-
-            // diam tanpa error. Disamakan dgn 3 field lain yg sudah diperlakukan begini.
+            // diam tanpa error. Disamakan dgn adab/kamera/koreksi yg sudah
+            // diperlakukan begini (`nilai` di kondisi ini selalu kosong -- field
+            // legacy, tak pernah dirender di form KBM Reguler manapun lagi).
             if (nilai || adab || kamera || koreksi || catatanVal) {
               nilaiList.push({
                 id_murid     : m.id_murid,
