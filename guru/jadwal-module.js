@@ -223,7 +223,9 @@
       });
     });
 
-    const todayIdx = new Date().getDay();
+    // M8 fix (bug hunt 2026-08-18): new Date().getDay() device-local -> _ksWeekday()
+    // atas _ksTodayJakarta() (sudah dipakai benar di tempat lain di file ini).
+    const todayIdx = _ksWeekday(_ksTodayJakarta());
     const todayName = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][todayIdx];
 
     const chev = '<svg class="jd-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
@@ -351,9 +353,12 @@
 
     const todayLbl = document.getElementById('jdKalToday');
     if (todayLbl) {
-      const _now = new Date();
-      todayLbl.textContent = 'Hari ini · ' + HARI_FULL[_now.getDay()] + ', '
-        + _now.getDate() + ' ' + BULAN_NAMES[_now.getMonth()] + ' ' + _now.getFullYear();
+      // M8 fix (bug hunt 2026-08-18): new Date() device-local -> _ksTodayJakarta()
+      const _nowStr = _ksTodayJakarta();
+      const _nowP = _nowStr.split('-');
+      const _nowY = +_nowP[0], _nowM = +_nowP[1] - 1, _nowD = +_nowP[2];
+      todayLbl.textContent = 'Hari ini · ' + HARI_FULL[_ksWeekday(_nowStr)] + ', '
+        + _nowD + ' ' + BULAN_NAMES[_nowM] + ' ' + _nowY;
     }
 
     const evtMap = {};
@@ -368,8 +373,11 @@
     const mineHalaqahs = (typeof window.HQ.AppState.halaqahList !== 'undefined' && window.HQ.AppState.halaqahList || []);
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const firstDay = new Date(y, m, 1).getDay();
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    // M8 fix (bug hunt 2026-08-18): new Date() device-local -> _ksTodayJakarta().
+    // todayY/todayM dipakai di bawah utk cek "apakah bulan yg ditampilkan = bulan ini".
+    const todayStr = _ksTodayJakarta();
+    const todayParts = todayStr.split('-');
+    const todayY = +todayParts[0], todayM = +todayParts[1] - 1;
 
     for (let dd = 1; dd <= daysInMonth; dd++) {
       const dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
@@ -411,7 +419,7 @@
 
     _jdKalEvtMap = evtMap;
     if (!_jdKalSelected) {
-      _jdKalSelected = (y === today.getFullYear() && m === today.getMonth())
+      _jdKalSelected = (y === todayY && m === todayM)
         ? todayStr
         : (y + '-' + String(m + 1).padStart(2, '0') + '-01');
     }
@@ -461,7 +469,9 @@
     const dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
     const BULAN_SINGKAT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
-    const isSelectedToday = (new Date().toDateString() === dt.toDateString());
+    // M8 fix (bug hunt 2026-08-18): new Date().toDateString() device-local ->
+    // bandingkan string tanggal langsung dgn _ksTodayJakarta() (lebih sederhana juga).
+    const isSelectedToday = (_jdKalSelected === _ksTodayJakarta());
 
     const items = [];
 

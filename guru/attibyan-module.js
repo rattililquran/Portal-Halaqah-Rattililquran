@@ -1047,8 +1047,11 @@ async function simpanAtTibyan() {
   if (btn) { btn.disabled = true; btn.classList.add('btn-loading'); }
   try {
     if (_atEditId) {
-      await window.HQ.GuruAPI.editAtTibyan({ id_sesi: _atEditId, presensi });
-      toast('Presensi berhasil diperbarui ✅','ok');
+      var _atRes = await window.HQ.GuruAPI.editAtTibyan({ id_sesi: _atEditId, presensi });
+      // M4 fix (bug hunt 2026-08-18): tampilkan warning kalau update total_hadir
+      // gagal, jangan diam-diam hilang (presensi sendiri tetap tersimpan).
+      if (_atRes && _atRes.warning) { toast(_atRes.warning, 'err'); }
+      else { toast('Presensi berhasil diperbarui ✅','ok'); }
     } else {
       await window.HQ.GuruAPI.simpanAtTibyan({ tanggal, presensi, pertemuan_ke: _atNextPertemuan });
       toast('Sesi At-Tibyan berhasil disimpan ✅','ok');

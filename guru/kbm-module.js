@@ -2521,26 +2521,6 @@
     } catch(e) { toast(friendlyError(e),'err'); hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
   }
 
-  async function konfirmasiTutup() {
-    const sesiAktif = getSesiAktif();
-    if (!(await showConfirm('Tutup sesi tanpa mengisi jurnal nilai?\nData presensi yang sudah diisi akan tetap tersimpan.', { title: 'Tutup Sesi?', okText: 'Ya, Tutup' }))) return;
-    showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
-    try {
-      const idKbmTutup = sesiAktif.id_kbm;
-      const res = await window.HQ.GuruAPI.tutupKBM(sesiAktif.id_kbm);
-      toast(res.message || 'Sesi ditutup','ok');
-      _clearKbmDraftLocal(idKbmTutup);
-      setSesiAktif(null);
-      setMuridSesi([]);
-      window._nilaiCache = {};
-      window._microteachingKbmCache = {};
-      if (typeof resetPersiapan === 'function') resetPersiapan();
-      updateSesiBanner();
-      if (typeof loadDashboard === 'function') loadDashboard();
-    } catch(e) { toast(friendlyError(e),'err'); }
-    finally { hideLoad(); }
-  }
-
   // ── STEP INDICATOR ──────────────────────
   function getStepsDef() {
     const sesiAktif = getSesiAktif();
@@ -3175,7 +3155,6 @@
   window.updateNilaiCard = updateNilaiCard;
   window.renderNilaiList = renderNilaiList;
   window.doSelesaiKBM = doSelesaiKBM;
-  window.konfirmasiTutup = konfirmasiTutup;
   window.getStepsDef = getStepsDef;
   window.renderSteps = renderSteps;
   window.getPoinAdabBadge = getPoinAdabBadge;

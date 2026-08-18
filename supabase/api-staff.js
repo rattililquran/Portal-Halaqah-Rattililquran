@@ -221,9 +221,12 @@ var GuruAPI = {
   // Rekap kehadiran + durasi milik sendiri untuk satu bulan. Lihat RANCANGAN §6, §7.2.
   getAbsensiSaya: async function(p) {
     p = p || {};
-    var now   = new Date();
-    var bulan = Number(p.bulan) || (now.getMonth() + 1);
-    var tahun = Number(p.tahun) || now.getFullYear();
+    // M9 fix (bug hunt 2026-08-18): dulu default bulan/tahun dari new Date() device-
+    // local -- di sekitar pergantian bulan, kalau timezone perangkat guru beda dari
+    // WIB, laporan "bulan ini" bisa nyasar ke bulan yang salah. Pakai _todayJakarta().
+    var todayJkt = _todayJakarta();
+    var bulan = Number(p.bulan) || Number(todayJkt.slice(5, 7));
+    var tahun = Number(p.tahun) || Number(todayJkt.slice(0, 4));
     var id_guru = _uid();
     if (!id_guru) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
 
@@ -417,8 +420,12 @@ var GuruAPI = {
       .select('id_kbm').eq('id_guru', _uid()).eq('status', 'draft').maybeSingle();
     if (!draft) return { status: 'error', message: 'Tidak ada sesi draft yang aktif' };
 
-    // Bersihkan presensi/nilai parsial yang sudah terlanjur diisi pada draft ini
-    await _sb.from('nilai_kbm').delete().eq('id_kbm', draft.id_kbm);
+    // Bersihkan presensi/nilai parsial yang sudah terlanjur diisi pada draft ini.
+    // M1 fix (bug hunt 2026-08-18): dulu error delete ini tak dicek -- kalau gagal
+    // diam-diam, sesi tetap ditandai libur di bawah padahal presensi/nilai draft
+    // lama masih tersisa (data hantu yang kontradiktif dengan status libur).
+    var { error: delNilaiErr } = await _sb.from('nilai_kbm').delete().eq('id_kbm', draft.id_kbm);
+    _check(delNilaiErr, 'batalkanTandaiLibur:delete_nilai');
 
     var { data, error } = await _sb.from('kbm_log').update({
       status: 'libur',
@@ -581,8 +588,16 @@ var GuruAPI = {
   },
 
   editPresensi: async function(d) {
+    // L2 fix (bug hunt 2026-08-18): dulu payload upsert nilai_kbm tak menyertakan
+    // tanggal/jenis_sesi -- kalau ada murid BARU (belum punya baris nilai_kbm utk
+    // id_kbm ini) di antara yg diedit, insert-nya lahir dgn kolom itu NULL (kolom
+    // denormalisasi ini dipakai getRiwayatMuridKoreksi utk filter langsung). Ambil
+    // jenis_sesi dari kbm_log (tanggal_pertemuan sdh dikirim caller sbg d.tanggal_pertemuan).
+    var { data: kbmRow } = await _sb.from('kbm_log').select('jenis_sesi').eq('id_kbm', d.id_kbm).maybeSingle();
+    var jenisSesi = (kbmRow && kbmRow.jenis_sesi) || d.jenis_sesi || 'KBM Reguler';
     var rows = d.presensi.map(function(p) { return {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: p.id_murid, status_hadir: p.status_hadir,
+      tanggal: d.tanggal_pertemuan || undefined, jenis_sesi: jenisSesi,
     }; });
     var { error } = await _sb.from('nilai_kbm').upsert(rows, { onConflict: 'id_kbm,id_murid' });
     _check(error, 'editPresensi');
@@ -888,8 +903,12 @@ var GuruAPI = {
     // Key: id_murid + '_' + id_halaqah — satu murid bisa di banyak halaqah
     var followupMap = {};
     if (alertIds.length) {
+      // M6 fix (bug hunt 2026-08-18): tambah kolom baseline followup_terlambat/
+      // followup_kamera (lihat catatan di bawah) -- dulu cuma followup_alpa_kbm yg
+      // dibaca, jadi flag "Sering Terlambat"/"Kamera Tertutup" tak pernah bisa
+      // di-dismiss (selalu >= ambang selamanya, counter kumulatif tak pernah reset).
       var { data: followupRows } = await _sb.from('anggota')
-        .select('id_murid, id_halaqah, followup_alpa_kbm, followup_alpa_at, followup_at')
+        .select('id_murid, id_halaqah, followup_alpa_kbm, followup_terlambat, followup_kamera, followup_alpa_at, followup_at')
         .in('id_murid', alertIds);
       (followupRows || []).forEach(function(r) { followupMap[r.id_murid + '_' + r.id_halaqah] = r; });
     }
@@ -901,14 +920,16 @@ var GuruAPI = {
         kamera_tertutup : m.kamera_buruk || 0,
       };
       // Compute flags dari metrics — filter yang sudah di-dismiss guru (persisten via DB)
-      var dismissed = followupMap[m.id_murid + '_' + m.id_halaqah] || {};
-      var kbmBase   = dismissed.followup_alpa_kbm || 0;
+      var dismissed   = followupMap[m.id_murid + '_' + m.id_halaqah] || {};
+      var kbmBase       = dismissed.followup_alpa_kbm   || 0;
+      var terlambatBase = dismissed.followup_terlambat  || 0;
+      var kameraBase    = dismissed.followup_kamera     || 0;
       var flags = [];
       if (metrics.absen >= 1 && metrics.absen > kbmBase)
         flags.push({ tipe:'absen',    label:'Absen/Alpa',       detail: metrics.absen + 'x',           count: metrics.absen });
-      if (metrics.terlambat >= 2)
+      if (metrics.terlambat >= 2 && metrics.terlambat > terlambatBase)
         flags.push({ tipe:'terlambat',label:'Sering Terlambat', detail: metrics.terlambat + 'x',       count: metrics.terlambat });
-      if (metrics.kamera_tertutup >= 2)
+      if (metrics.kamera_tertutup >= 2 && metrics.kamera_tertutup > kameraBase)
         flags.push({ tipe:'kamera',   label:'Kamera Tertutup',  detail: metrics.kamera_tertutup + 'x', count: metrics.kamera_tertutup });
 
       var riwayatKey = m.id_murid + '_' + m.id_halaqah;
@@ -940,13 +961,23 @@ var GuruAPI = {
     if (!anggota) return { status: 'ok' };
     var id_halaqah = anggota.id_halaqah;
 
-    // Hitung alpa KBM dan At-Tibyan per halaqah sebagai baseline dismissal
-    var [kbmRes, atRes] = await Promise.all([
+    // Hitung alpa KBM dan At-Tibyan per halaqah sebagai baseline dismissal.
+    // M6 fix (bug hunt 2026-08-18): tambah baseline terlambat & kamera_buruk (sama
+    // predikat dgn get_keaktifan_alerts RPC: status_hadir='T', kamera_murid ilike
+    // '%selalu%'/'%sering%') -- dulu HANYA alpa yg di-baseline, jadi flag "Sering
+    // Terlambat"/"Kamera Tertutup" tak pernah bisa di-dismiss (counter kumulatif
+    // tak pernah reset, selalu >= ambang selamanya walau guru sudah menghubungi).
+    var [kbmRes, atRes, terlambatRes, kameraRes] = await Promise.all([
       _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah).eq('status_hadir','A'),
       _sb.from('at_tibyan_log').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('status_hadir','A'),
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah).eq('status_hadir','T'),
+      _sb.from('nilai_kbm').select('*',{count:'exact',head:true}).eq('id_murid',d.id_murid).eq('id_halaqah',id_halaqah)
+        .or('kamera_murid.ilike.%selalu%,kamera_murid.ilike.%sering%'),
     ]);
-    var kbmAlpa = kbmRes.count || 0;
-    var atAlpa  = atRes.count  || 0;
+    var kbmAlpa   = kbmRes.count       || 0;
+    var atAlpa    = atRes.count        || 0;
+    var terlambat = terlambatRes.count || 0;
+    var kamera    = kameraRes.count    || 0;
 
     // Simpan catatan — batasi 10 entri terakhir agar tidak tumbuh tak terbatas
     var tglStr = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
@@ -957,10 +988,12 @@ var GuruAPI = {
     var catatan = existing.slice(-10).join('\n'); // simpan maksimal 10 entri
 
     var { error } = await _sb.from('anggota').update({
-      catatan_guru     : catatan,
-      followup_alpa_kbm: kbmAlpa,
-      followup_alpa_at : atAlpa,
-      followup_at      : new Date().toISOString(),
+      catatan_guru      : catatan,
+      followup_alpa_kbm : kbmAlpa,
+      followup_alpa_at  : atAlpa,
+      followup_terlambat: terlambat,
+      followup_kamera   : kamera,
+      followup_at       : new Date().toISOString(),
     }).eq('id_murid', d.id_murid).eq('id_halaqah', id_halaqah);
     _check(error, 'simpanFollowupKeaktifan');
     return { status: 'ok' };
@@ -970,7 +1003,13 @@ var GuruAPI = {
   getAssessmentRekap: async function(id_halaqah) {
     var { data: anggota } = await _sb.from('anggota').select('id_murid, nama_murid, level').eq('id_halaqah', id_halaqah).eq('status','aktif');
     if (!anggota || !anggota.length) return { status:'ok', data:[], total_items:0, level:'' };
-    var level    = anggota[0].level || 'Level 1';
+    // M7 fix (bug hunt 2026-08-18): dulu level diambil dari anggota[0].level --
+    // baris pertama dari urutan yang tak dijamin (arbitrary), jadi hasilnya bisa
+    // beda tiap kali dipanggil kalau ada anomali murid ber-level beda dari
+    // halaqah-nya sendiri. Level halaqah (tabel halaqah, sumber kebenaran
+    // kurikulum kelas ini) jauh lebih deterministik drpd menebak dari anggota.
+    var { data: hqRow } = await _sb.from('halaqah').select('level').eq('id_halaqah', id_halaqah).maybeSingle();
+    var level    = (hqRow && hqRow.level) || anggota[0].level || 'Level 1';
     var muridIds = anggota.map(function(a){ return a.id_murid; });
     var [itemsRes, jawabanRes] = await Promise.all([
       _sb.from('assessment_items').select('id_item, kategori, teks_latin, teks_arab, keterangan, urutan').eq('level', level).eq('status','aktif').order('urutan'),
@@ -1235,11 +1274,11 @@ var GuruAPI = {
     // insert berikutnya akan menghasilkan baris log dobel.
     var { error: delErr } = await _sb.from('at_tibyan_log').delete().eq('id_sesi', d.id_sesi);
     _check(delErr, 'editAtTibyan:delete');
-    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
 
     var { error: insertErr } = await _sb.from('at_tibyan_log').insert(logRows);
     if (insertErr) {
-      // Rollback: kembalikan data lama
+      // Rollback: kembalikan data lama (delete sukses, insert gagal -> log kosong utk
+      // id_sesi ini, aman utk restore tanpa bentrok unique constraint)
       if (oldLogs && oldLogs.length) {
         var rollbackRows = oldLogs.map(function(r) {
           var copy = Object.assign({}, r);
@@ -1248,12 +1287,18 @@ var GuruAPI = {
         });
         await _sb.from('at_tibyan_log').insert(rollbackRows).catch(function(){});
       }
-      if (oldHadirCount !== undefined) {
-        await _sb.from('at_tibyan_sesi').update({ total_hadir: oldHadirCount }).eq('id_sesi', d.id_sesi).catch(function(){});
-      }
       _check(insertErr, 'editAtTibyan.insert');
     }
-    return { status: 'ok' };
+
+    // M4 fix (bug hunt 2026-08-18): total_hadir SEKARANG diupdate SETELAH insert log
+    // sukses (bukan sebelumnya) -- dulu errornya tak dicek sama sekali, dan kalau
+    // insert log gagal setelah update ini jalan, rollback log lama akan bentrok
+    // dgn unique constraint karena log baru masih ada. total_hadir adalah kolom
+    // turunan/denormalisasi (bukan data primer spt log), jadi kalau update ini
+    // gagal cukup dilaporkan sbg warning, tak perlu rollback seluruh operasi.
+    var { error: updHadirErr } = await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount }).eq('id_sesi', d.id_sesi);
+    var warning = updHadirErr ? ('Presensi tersimpan, tapi hitungan total hadir gagal diperbarui (' + updHadirErr.message + '). Muat ulang halaman untuk memeriksa.') : null;
+    return { status: 'ok', warning: warning };
   },
 
   // ── Raport ─────────────────────────────────
@@ -1598,8 +1643,12 @@ var GuruAPI = {
       .order('created_at', { ascending: true })
       .limit(500); // BUG-14 fix: cegah timeout untuk dataset besar
     if (id_murid)    q = q.eq('id_murid', id_murid);
-    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
-    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    // M2 fix (bug hunt 2026-08-18): dulu string naive ('T00:00:00' tanpa offset)
+    // dibandingkan ke created_at (timestamptz UTC asli) -- batas efektif geser
+    // ~7 jam dari yang dimaksud. Sertakan offset WIB eksplisit (+07:00) supaya
+    // batas hari benar-benar hari kalender Asia/Jakarta, bukan UTC.
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00+07:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59+07:00');
     var { data, error } = await q;
     _check(error, 'getRaportTahfidzData');
     return { status: 'ok', data: data || [] };
@@ -1681,7 +1730,8 @@ var GuruAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || _localDate(),
+      // L3 fix (bug hunt 2026-08-18): _localDate() device-local -> _todayJakarta()
+      tanggal      : d.tanggal || _todayJakarta(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
     };
@@ -1920,7 +1970,8 @@ var GuruAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || _localDate(),
+      // L3 fix (bug hunt 2026-08-18): _localDate() device-local -> _todayJakarta()
+      tanggal      : d.tanggal || _todayJakarta(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || 'Ustadz',
     };
@@ -2461,15 +2512,19 @@ var GuruAPI = {
     };
 
     // .select() agar bisa mendeteksi jumlah baris terupdate. Di bawah RLS, update yang
-    // diblok (mis. soal terkunci karena kuisnya sudah dikerjakan murid, atau bukan
-    // pemilik/bukan admin) mengembalikan 0 baris TANPA error — kalau tidak dicek, kita
-    // salah melapor "berhasil". Guard ini juga WAJIB sebelum delete opsi di bawah, agar
-    // pilihan/pasangan/kunci tidak ikut terhapus saat soal-nya sendiri gagal diperbarui.
+    // diblok (bukan pemilik/bukan admin) mengembalikan 0 baris TANPA error — kalau
+    // tidak dicek, kita salah melapor "berhasil". Guard ini juga WAJIB sebelum delete
+    // opsi di bawah, agar pilihan/pasangan/kunci tidak ikut terhapus saat soal-nya
+    // sendiri gagal diperbarui.
     var { data: updatedRows, error: updateErr } = await _sb.from('soal')
       .update(soalRow).eq('id_soal', id_soal).select('id_soal');
     _check(updateErr, 'updateSoalFull:soal');
     if (!updatedRows || updatedRows.length === 0) {
-      throw new Error('Soal tidak bisa diedit: kemungkinan sudah dipakai di kuis yang telah dikerjakan murid (terkunci), atau akses ditolak. Duplikasi soal terlebih dahulu jika ingin mengubahnya.');
+      // L5 fix (bug hunt 2026-08-18): pesan lama menyalahkan "soal terkunci" (soal
+      // dipakai kuis yg sudah dikerjakan murid) -- lock itu sudah DIHAPUS sejak
+      // patch_068 begitu pola snapshot bank soal membuat riwayat kuis kebal thd
+      // edit bank soal. Satu-satunya penyebab 0 baris yg tersisa adalah RLS/akses.
+      throw new Error('Soal tidak bisa diedit: bukan milik Anda atau akses ditolak.');
     }
 
     await Promise.all([
@@ -2995,7 +3050,10 @@ var GuruAPI = {
       _sb.from('kelompok_pengajar').select('*').in('id_kelompok', ids),
       _sb.from('anggota_kelompok_pengajar').select('*').in('id_kelompok', ids),
     ]);
+    // L6 fix (bug hunt 2026-08-18): dulu hanya kel.error dicek, ang.error diabaikan --
+    // kalau query kedua gagal, anggota kelompok yg tampil jadi kosong tanpa diketahui.
     _check(kel.error, 'getKelompokPengajarku:kelompok');
+    _check(ang.error, 'getKelompokPengajarku:anggota');
     var byKel = {};
     (ang.data || []).forEach(function(a){ (byKel[a.id_kelompok] || (byKel[a.id_kelompok] = [])).push(a); });
     return { status: 'ok', data: (kel.data || []).map(function(k){
@@ -3056,7 +3114,10 @@ var GuruAPI = {
       _sb.from('pengajar_setoran').select('kategori').eq('id_penyetor', id),
       _sb.from('pengajar_setoran').select('kategori').eq('id_penyimak', id),
     ]);
-    _check(keluar.error, 'getRekapPeerSaya');
+    // L6 fix (bug hunt 2026-08-18): dulu hanya keluar.error dicek, masuk.error
+    // diabaikan -- total_simak bisa salah (0) tanpa error yg terlihat.
+    _check(keluar.error, 'getRekapPeerSaya:keluar');
+    _check(masuk.error, 'getRekapPeerSaya:masuk');
     var katCount = {};
     (keluar.data || []).forEach(function(s){ katCount[s.kategori] = (katCount[s.kategori] || 0) + 1; });
     var dominan = Object.keys(katCount).sort(function(a,b){ return katCount[b]-katCount[a]; })[0] || null;
@@ -3097,7 +3158,10 @@ var GuruAPI = {
       _sb.from('target_kelompok_pengajar').select('*').eq('id_kelompok', id_kelompok).order('created_at', { ascending: false }),
       _sb.from('milestone_kelompok_pengajar').select('*').eq('id_kelompok', id_kelompok).order('tanggal', { ascending: false }),
     ]);
-    _check(tgt.error, 'getTargetMilestoneKelompok');
+    // L6 fix (bug hunt 2026-08-18): dulu hanya tgt.error dicek, mst.error diabaikan --
+    // daftar milestone bisa kosong diam-diam kalau query itu yg gagal.
+    _check(tgt.error, 'getTargetMilestoneKelompok:target');
+    _check(mst.error, 'getTargetMilestoneKelompok:milestone');
     return { status: 'ok', data: { target: tgt.data || [], milestone: mst.data || [] } };
   },
 

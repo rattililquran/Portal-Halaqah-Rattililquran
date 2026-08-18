@@ -1343,7 +1343,10 @@
         var newSoal = res.data;
 
         if (prefilledQuizId && newSoal) {
-          await window.HQ.QuizAPI.addSoalToKuis(prefilledQuizId, newSoal.id_soal, 1, 10);
+          // L4 fix (bug hunt 2026-08-18): urutan:1 dulu hardcode -> selalu menggeser
+          // soal lain yg sudah ada ke posisi berikutnya. null = auto-append di akhir,
+          // sama seperti jalur tambah normal (+ Tambah / bulk-add di atas).
+          await window.HQ.QuizAPI.addSoalToKuis(prefilledQuizId, newSoal.id_soal, null, 10);
         }
 
         hideLoading();
