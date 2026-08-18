@@ -136,7 +136,7 @@ var MuridAPI = {
     });
     var mtLatest = sortedMt.length > 0 ? sortedMt[0] : null;
 
-    var today = _localDate();
+    var today = _todayJakarta();
     var prAktif = (prRaw||[])
       .filter(function(n){
         var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
@@ -335,7 +335,7 @@ var MuridAPI = {
       .not('kbm_log.latihan_mandiri', 'is', null)
       .order('tanggal', { ascending: false }).limit(20);
     _check(error, 'getLatihanMandiri');
-    var today = _localDate();
+    var today = _todayJakarta();
     var rows = (data||[])
       .filter(function(n){
         return n.kbm_log && n.kbm_log.latihan_mandiri;
@@ -382,7 +382,7 @@ var MuridAPI = {
     var id_murid = _uid();
     var { data, error } = await _sb.from('log_latihan_harian').upsert({
       id_murid: id_murid,
-      tanggal: _localDate(),
+      tanggal: _todayJakarta(),
       durasi_menit: parseInt(durasi),
       kategori: kategori,
       catatan: catatan
@@ -830,8 +830,11 @@ var MuridAPI = {
       .eq('id_murid', _uid())
       .eq('sumber', 'guru') // §3.7: raport resmi hanya hitung setoran guru
       .order('created_at', { ascending: true });
-    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
-    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    // Offset +07:00 eksplisit -- created_at timestamptz (UTC); tanpa offset,
+    // batas tanggal WIB yang dimaksud murid bisa geser 1 hari (pola sama dgn
+    // fix M2 di sisi guru utk getRaportTahfidzData).
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00+07:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59+07:00');
     var { data, error } = await q;
     _check(error, 'getMyRaportTahfidz');
     return { status: 'ok', data: data || [] };
@@ -844,8 +847,11 @@ var MuridAPI = {
       .eq('id_murid', _uid())
       .eq('sumber', 'partner')
       .eq('status_konfirmasi', 'dikonfirmasi');
-    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00');
-    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59');
+    // Offset +07:00 eksplisit -- created_at timestamptz (UTC); tanpa offset,
+    // batas tanggal WIB yang dimaksud murid bisa geser 1 hari (pola sama dgn
+    // fix M2 di sisi guru utk getRaportTahfidzData).
+    if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00+07:00');
+    if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59+07:00');
     var { data, error } = await q;
     _check(error, 'getMyAktivitasPartner');
     var rows = data || [];
@@ -1005,7 +1011,7 @@ var MuridAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || _localDate(),
+      tanggal      : d.tanggal || _todayJakarta(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
     };
@@ -1227,7 +1233,7 @@ var MuridAPI = {
       id_kelompok  : d.id_kelompok,
       id_halaqah   : d.id_halaqah,
       judul        : d.judul,
-      tanggal      : d.tanggal || _localDate(),
+      tanggal      : d.tanggal || _todayJakarta(),
       dibuat_oleh  : _uid(),
       nama_pembuat : (user && (user.nama_lengkap || user.nama)) || '',
     };
@@ -1458,23 +1464,24 @@ var MuridAPI = {
 
   getKuisDetail: async function(id_quiz) {
     var { data: quizData, error: qErr } = await _sb.from('quiz')
-      .select('*, quiz_soal(urutan, bobot_poin, durasi_detik_override, soal(*, soal_pilihan(id_pilihan, teks_pilihan, urutan), soal_pasangan(id_pasangan, teks_kiri, teks_kanan, urutan)))')
+      .select('*, quiz_soal(urutan, bobot_poin, durasi_detik_override, soal(*))')
       .eq('id_quiz', id_quiz).single();
     _check(qErr, 'getKuisDetail');
+
+    // Opsi PG/Menjodohkan diambil lewat RPC SECURITY DEFINER (bukan join langsung
+    // ke soal_pilihan/soal_pasangan) supaya kunci jawaban (is_benar, pasangan
+    // kiri-kanan yang benar) tidak pernah terkirim ke client sama sekali — RLS
+    // baris-per-baris tidak bisa menyembunyikan kolom, jadi proteksinya harus di RPC.
+    var { data: opsiMap, error: opsiErr } = await _sb.rpc('get_soal_opsi_murid', { p_id_quiz: id_quiz });
+    _check(opsiErr, 'getKuisDetail:opsi');
+    opsiMap = opsiMap || {};
 
     var soalList = (quizData.quiz_soal || []).map(function(qs) {
       var s = qs.soal;
       if (!s) return null;
-      var pilihan = (s.soal_pilihan || []).map(function(p) {
-        return { id_pilihan: p.id_pilihan, teks_pilihan: p.teks_pilihan, urutan: p.urutan };
-      });
-      var pasangan = s.soal_pasangan || [];
-      if (s.tipe_soal === 'matching') {
-        var kananShuffled = pasangan.map(function(p) { return p.teks_kanan; }).sort(function() { return Math.random() - 0.5; });
-        pasangan = pasangan.map(function(p, idx) {
-          return { id_pasangan: p.id_pasangan, teks_kiri: p.teks_kiri, opsi_kanan: kananShuffled };
-        });
-      }
+      var opsi = opsiMap[s.id_soal] || { pilihan: [], pasangan: [] };
+      var pilihan = opsi.pilihan || [];
+      var pasangan = opsi.pasangan || [];
       return {
         id_soal: s.id_soal,
         tipe_soal: s.tipe_soal,
@@ -2011,8 +2018,15 @@ var KetuaAPI = {
   submitObservasi: async function(d) {
     var info = await KetuaAPI.getInfo();
     if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    // Filter eksplisit ke id_halaqah sendiri (bukan cuma id_kbm) — mencegah
+    // id_kbm halaqah lain (mis. dari cache basi) lolos jadi observasi dengan
+    // pertemuan_ke/tanggal null yang tak terdeteksi (RLS sudah menolak di DB,
+    // ini defense-in-depth + pesan error yang jelas ke ketua).
     var kbm = await _sb.from('kbm_log').select('tanggal_pertemuan, pertemuan_ke')
-      .eq('id_kbm', d.id_kbm).single();
+      .eq('id_kbm', d.id_kbm).eq('id_halaqah', info.halaqah.id_halaqah).single();
+    if (kbm.error || !kbm.data) {
+      throw new Error('Sesi KBM tidak ditemukan di halaqah Anda. Muat ulang daftar observasi.');
+    }
     var { error } = await _sb.from('observasi_kbm').insert({
       id_kbm          : d.id_kbm,
       id_halaqah      : info.halaqah.id_halaqah,
@@ -2034,6 +2048,11 @@ var KetuaAPI = {
   simpanRekapStatus: async function(d) {
     var info = await KetuaAPI.getInfo();
     if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
+    var kbmCek = await _sb.from('kbm_log').select('id_kbm')
+      .eq('id_kbm', d.id_kbm).eq('id_halaqah', info.halaqah.id_halaqah).maybeSingle();
+    if (!kbmCek.data) {
+      throw new Error('Sesi KBM tidak ditemukan di halaqah Anda. Muat ulang daftar.');
+    }
     var { error } = await _sb.from('rekap_status').insert({
       id_halaqah   : info.halaqah.id_halaqah,
       id_kbm       : d.id_kbm,
@@ -2088,11 +2107,12 @@ var KetuaAPI = {
     if (info.status !== 'ok') return { status: 'error', message: 'Bukan ketua kelas' };
     var id_halaqah = info.halaqah.id_halaqah;
 
-    // Ambil tanggal Ahad minggu ini
-    var now = new Date();
-    var day = now.getDay();
-    var diff = now.getDate() - day; // 0 = Ahad
-    var ahadDate = new Date(now.setDate(diff));
+    // Ambil tanggal Ahad minggu ini (dihitung dari kalender Jakarta, BUKAN
+    // new Date() device-local + toISOString(): kombinasi itu bisa salah 1
+    // hari dekat tengah malam WIB krn toISOString() mengonversi ke UTC).
+    var todayParts = _todayJakarta().split('-').map(Number);
+    var ahadDate = new Date(Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2], 12, 0, 0));
+    ahadDate.setUTCDate(ahadDate.getUTCDate() - ahadDate.getUTCDay()); // 0 = Ahad
     var ahadThisWeek = ahadDate.toISOString().substring(0, 10);
 
     // at_tibyan_log menyimpan id_halaqah dan tanggal
@@ -2115,89 +2135,42 @@ var KetuaAPI = {
     return { status: 'ok', data: null, id_halaqah: id_halaqah };
   },
 
+  // Ketua kelas TIDAK punya (dan sengaja tidak diberi) akses tulis langsung ke
+  // at_tibyan_sesi/at_tibyan_log — tidak pernah ada RLS INSERT/UPDATE untuk
+  // role murid di tabel itu di seluruh riwayat migrasi, jadi jalur ini WAJIB
+  // lewat RPC SECURITY DEFINER (ketua_simpan_presensi_at_tibyan/
+  // ketua_edit_presensi_at_tibyan) yang memverifikasi kepemilikan halaqah di
+  // server lalu menulis kedua tabel dalam SATU transaksi atomik.
   simpanPresensiAtTibyan: async function(d) {
-    var info = await KetuaAPI.getInfo();
-    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
-    var halaqah = info.halaqah || {};
-    var id_halaqah = halaqah.id_halaqah;
-
     if (!d.tanggal) throw new Error('Tanggal sesi wajib diisi');
-
-    var id_sesi = _genId('ATS');
-    var presensi = d.presensi || [];
-    var hadirCount = presensi.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-
-    // Hitung pertemuan_ke jika tidak dikirim
-    var pertemuan_ke = d.pertemuan_ke;
-    if (!pertemuan_ke) {
-      var { count } = await _sb.from('at_tibyan_sesi').select('*', { count: 'exact', head: true });
-      pertemuan_ke = (count || 0) + 1;
-    }
-
-    // 1. Buat Sesi At-Tibyan
-    var { error: errSesi } = await _sb.from('at_tibyan_sesi').insert({
-      id_sesi     : id_sesi,
-      id_guru     : halaqah.id_guru || _uid(),
-      nama_guru   : halaqah.nama_guru || halaqah.nama_ustadz || '',
-      tanggal     : d.tanggal,
-      pertemuan_ke: pertemuan_ke,
-      total_hadir : hadirCount,
-      total_murid : presensi.length,
-      status      : 'selesai'
-    });
-
-    if (errSesi) {
-      if (errSesi.code === '42501' || (errSesi.message && errSesi.message.includes('row-level security'))) {
-        throw new Error('Akses RLS Supabase dibatasi untuk Ketua Kelas. Silakan tambahkan RLS Policy At-Tibyan di Supabase SQL Editor.');
-      }
-      throw errSesi;
-    }
-
-    // 2. Insert detail presensi
-    var logPayload = presensi.map(function(m) {
+    var presensi = (d.presensi || []).map(function(m) {
       return {
-        id_sesi     : id_sesi,
-        id_halaqah  : id_halaqah,
-        nama_halaqah: halaqah.nama_halaqah || halaqah.nama || '',
-        id_murid    : m.id_murid,
-        nama_murid  : m.nama_murid || '',
-        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H',
-        tanggal     : d.tanggal
+        id_murid: m.id_murid,
+        nama_murid: m.nama_murid || '',
+        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H'
       };
     });
-
-    var { error: errLog } = await _sb.from('at_tibyan_log').insert(logPayload);
-    if (errLog) {
-      await _sb.from('at_tibyan_sesi').delete().eq('id_sesi', id_sesi).catch(function(){});
-      if (errLog.code === '42501' || (errLog.message && errLog.message.includes('row-level security'))) {
-        throw new Error('Akses RLS Supabase dibatasi pada tabel at_tibyan_log.');
-      }
-      throw errLog;
-    }
-
-    return { status: 'ok', id_sesi: id_sesi };
+    var { data, error } = await _sb.rpc('ketua_simpan_presensi_at_tibyan', {
+      p_tanggal: d.tanggal,
+      p_presensi: presensi,
+      p_pertemuan_ke: d.pertemuan_ke || null
+    });
+    _check(error, 'simpanPresensiAtTibyan');
+    return { status: 'ok', id_sesi: data };
   },
 
   editPresensiAtTibyan: async function(id_sesi, presensiList) {
-    var info = await KetuaAPI.getInfo();
-    if (info.status !== 'ok') throw new Error('Bukan ketua kelas');
-    var id_halaqah = info.halaqah.id_halaqah;
-
-    for (var i = 0; i < presensiList.length; i++) {
-      var m = presensiList[i];
-      var status = ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H';
-      var { error } = await _sb.from('at_tibyan_log')
-        .update({ status_hadir: status })
-        .eq('id_sesi', id_sesi)
-        .eq('id_murid', m.id_murid)
-        .eq('id_halaqah', id_halaqah);
-
-      if (error) throw error;
-    }
-
-    var hadirCount = presensiList.filter(function(p) { return ['H','T'].includes(p.status_hadir); }).length;
-    await _sb.from('at_tibyan_sesi').update({ total_hadir: hadirCount, total_murid: presensiList.length }).eq('id_sesi', id_sesi).catch(function(){});
-
+    var presensi = (presensiList || []).map(function(m) {
+      return {
+        id_murid: m.id_murid,
+        status_hadir: ['H','I','A','T'].includes(m.status_hadir) ? m.status_hadir : 'H'
+      };
+    });
+    var { error } = await _sb.rpc('ketua_edit_presensi_at_tibyan', {
+      p_id_sesi: id_sesi,
+      p_presensi: presensi
+    });
+    _check(error, 'editPresensiAtTibyan');
     return { status: 'ok' };
   },
 

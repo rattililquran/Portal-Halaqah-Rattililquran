@@ -386,6 +386,12 @@ async function generateRaportTahfidz() {
 }
 
 // ── Hitung poin dari nilai + kelancaran berdasarkan config ──────────────
+// Catatan (L7, bug hunt 2026-08-19): kalau kode nilai/kelancaran sudah
+// di-rename/dihapus dari config (guru bebas edit via Kelola Penilaian
+// Hafalan), poin entri lama diam-diam jadi 0 -- tally poin gamifikasi jadi
+// tidak akurat tanpa indikasi apa pun. Bukan fix penuh (butuh perubahan UI
+// render utk tampilkan indikator "poin tak terhitung" ke guru/murid, di luar
+// cakupan patch ini), tapi minimal beri jejak debug di console.
 function _rtHitungPoin(nilai, kelancaran, cfg) {
   var mappedNilai = nilai;
   if (nilai === 'Mumtaz') mappedNilai = 'A';
@@ -393,6 +399,8 @@ function _rtHitungPoin(nilai, kelancaran, cfg) {
   else if (nilai === 'Cukup') mappedNilai = 'C';
   var n = (cfg.nilai||[]).find(function(x){ return x.kode === mappedNilai; });
   var k = (cfg.kelancaran||[]).find(function(x){ return x.nama === kelancaran; });
+  if (!n && nilai) console.warn('[Raport] Kode nilai "' + nilai + '" tidak ditemukan di config penilaian -- poin dihitung 0 utk entri ini.');
+  if (!k && kelancaran) console.warn('[Raport] Kode kelancaran "' + kelancaran + '" tidak ditemukan di config penilaian -- poin dihitung 0 utk entri ini.');
   return (n ? n.poin : 0) + (k ? k.poin : 0);
 }
 

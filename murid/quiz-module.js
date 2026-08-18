@@ -518,52 +518,75 @@
     renderQuestion(_currentQuestionIdx);
   };
 
+  var _isAwayNow = false;
+  var _antiCheatBlurHandler = null;
+  var _antiCheatFocusHandler = null;
+
+  function _antiCheatMarkAway() {
+    if (!_isQuizActive || _isAwayNow) return;
+    _isAwayNow = true;
+    _tabAwayStartTime = Date.now();
+    _tabSwitchCount++;
+  }
+
+  function _antiCheatMarkReturn() {
+    if (!_isQuizActive || !_isAwayNow) return;
+    _isAwayNow = false;
+    if (_tabAwayStartTime > 0) {
+      var awayDuration = Math.round((Date.now() - _tabAwayStartTime) / 1000);
+      _totalAwayDuration += awayDuration;
+      _tabAwayStartTime = 0;
+    }
+
+    // Pop up warning modal (custom glassmorphism UI)
+    var maxWarn = _quizData.maks_peringatan_tab || 2;
+    if (_tabSwitchCount >= maxWarn) {
+      showQuizAlert({
+        title: '⚠️ Peringatan Pindah Tab',
+        message: 'Terdeteksi meninggalkan halaman kuis ' + _tabSwitchCount + ' kali. Kuis akan otomatis disubmit!',
+        type: 'danger',
+        icon: '🚨',
+        buttonText: 'Submit Kuis Sekarang',
+        callback: function () {
+          finishAndSubmitQuiz();
+        }
+      });
+    } else {
+      showQuizAlert({
+        title: '⚠️ Peringatan Pindah Tab (' + _tabSwitchCount + '/' + maxWarn + ')',
+        message: 'Kamu baru saja meninggalkan halaman kuis! Aktivitas ini telah dicatat oleh sistem.',
+        type: 'warning',
+        icon: '⚠️',
+        buttonText: 'Kembali ke Kuis'
+      });
+    }
+  }
+
   function setupAntiCheatListener() {
     if (!_quizData.anti_tab_aktif) return;
 
     if (_antiCheatHandler) {
       document.removeEventListener('visibilitychange', _antiCheatHandler);
     }
+    if (_antiCheatBlurHandler) window.removeEventListener('blur', _antiCheatBlurHandler);
+    if (_antiCheatFocusHandler) window.removeEventListener('focus', _antiCheatFocusHandler);
 
+    _isAwayNow = false;
+
+    // visibilitychange menangkap tab-switch/minimize; blur/focus menambah lapisan
+    // deteksi utk kasus jendela kuis kehilangan fokus tapi tetap "visible" (mis.
+    // jendela lain ditaruh di sebelahnya pada layar lebar/monitor kedua) — tanpa
+    // ini, murid bisa dapat bantuan dari luar tanpa terdeteksi sama sekali.
     _antiCheatHandler = function () {
-      if (!_isQuizActive) return;
-
-      if (document.hidden) {
-        _tabAwayStartTime = Date.now();
-        _tabSwitchCount++;
-      } else {
-        if (_tabAwayStartTime > 0) {
-          var awayDuration = Math.round((Date.now() - _tabAwayStartTime) / 1000);
-          _totalAwayDuration += awayDuration;
-          _tabAwayStartTime = 0;
-        }
-
-        // Pop up warning modal (custom glassmorphism UI)
-        var maxWarn = _quizData.maks_peringatan_tab || 2;
-        if (_tabSwitchCount >= maxWarn) {
-          showQuizAlert({
-            title: '⚠️ Peringatan Pindah Tab',
-            message: 'Terdeteksi meninggalkan halaman kuis ' + _tabSwitchCount + ' kali. Kuis akan otomatis disubmit!',
-            type: 'danger',
-            icon: '🚨',
-            buttonText: 'Submit Kuis Sekarang',
-            callback: function () {
-              finishAndSubmitQuiz();
-            }
-          });
-        } else {
-          showQuizAlert({
-            title: '⚠️ Peringatan Pindah Tab (' + _tabSwitchCount + '/' + maxWarn + ')',
-            message: 'Kamu baru saja meninggalkan halaman kuis! Aktivitas ini telah dicatat oleh sistem.',
-            type: 'warning',
-            icon: '⚠️',
-            buttonText: 'Kembali ke Kuis'
-          });
-        }
-      }
+      if (document.hidden) _antiCheatMarkAway();
+      else _antiCheatMarkReturn();
     };
+    _antiCheatBlurHandler = function () { _antiCheatMarkAway(); };
+    _antiCheatFocusHandler = function () { _antiCheatMarkReturn(); };
 
     document.addEventListener('visibilitychange', _antiCheatHandler);
+    window.addEventListener('blur', _antiCheatBlurHandler);
+    window.addEventListener('focus', _antiCheatFocusHandler);
   }
 
   function renderQuestion(idx) {
@@ -907,7 +930,7 @@
 
   async function submitAnswerToServer(id_soal) {
     var ans = _userAnswers[id_soal];
-    if (!ans) return;
+    if (!ans) return true;
 
     try {
       await window.HQ.QuizAPI.jawabSoal({
@@ -919,14 +942,16 @@
         teks_isian: ans.teks_isian || null,
         waktu_detik: ans.waktu_detik || 0
       });
+      return true;
     } catch (e) {
       console.warn('[Quiz] RPC jawab_soal error:', e);
+      return false;
     }
   }
 
   function saveCurrentQuestionAnswer() {
     var soal = _quizData.soal[_currentQuestionIdx];
-    if (soal) submitAnswerToServer(soal.id_soal);
+    return soal ? submitAnswerToServer(soal.id_soal) : Promise.resolve(true);
   }
 
   window.nextQuestion = function () {
@@ -941,16 +966,28 @@
     renderQuestion(_currentQuestionIdx - 1);
   };
 
-  window.finishAndSubmitQuiz = async function () {
-    if (_timerInterval) clearInterval(_timerInterval);
+  function stopQuizTimersAndListeners() {
+    if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
     _isQuizActive = false;
-
     if (_antiCheatHandler) {
       document.removeEventListener('visibilitychange', _antiCheatHandler);
       _antiCheatHandler = null;
     }
+    if (_antiCheatBlurHandler) { window.removeEventListener('blur', _antiCheatBlurHandler); _antiCheatBlurHandler = null; }
+    if (_antiCheatFocusHandler) { window.removeEventListener('focus', _antiCheatFocusHandler); _antiCheatFocusHandler = null; }
+    _isAwayNow = false;
+  }
 
-    saveCurrentQuestionAnswer();
+  // Dipanggil dari goPage() (murid/index.html) saat murid pindah tab TANPA submit
+  // kuis — mencegah timer/anti-cheat "hantu" tetap jalan di background dan
+  // memicu auto-submit/overlay di halaman lain yang sedang dilihat murid.
+  window.hentikanKuisAktif = function () {
+    if (!_isQuizActive) return;
+    stopQuizTimersAndListeners();
+  };
+
+  window.finishAndSubmitQuiz = async function () {
+    stopQuizTimersAndListeners();
 
     var btnSubmit = document.getElementById('btnSubmitQuiz');
     if (btnSubmit) {
@@ -959,6 +996,15 @@
     }
 
     try {
+      showLoading('Menyimpan jawaban terakhir...');
+      // WAJIB ditunggu: jawaban soal terakhir harus tersimpan di server SEBELUM
+      // submit_quiz menghitung skor, kalau tidak race condition bisa membuat
+      // jawaban terakhir gagal tercatat tanpa error apa pun ke murid.
+      var lastSaveOk = await saveCurrentQuestionAnswer();
+      if (!lastSaveOk && typeof toast === 'function') {
+        toast('Jawaban terakhir sempat gagal tersimpan, tetap melanjutkan submit...', 'warn');
+      }
+
       showLoading('Finalisasi & menghitung skor kuis...');
       var totalDuration = Math.round((Date.now() - _quizStartTime) / 1000);
 

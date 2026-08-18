@@ -66,12 +66,19 @@
   }
 
   function _myRtHitungPoin(nilai, kelancaran, cfg) {
+    // FIX (bug hunt 2026-08-19): config penilaian (lihat _hfDefaultConfig di
+    // hafalan-module.js) memakai field `kode` (nilai) / `nama` (kelancaran) --
+    // BUKAN `label`, yang tidak pernah ada di schema-nya sama sekali. Karena
+    // itu, sebelum fix ini, ketiga item find() SELALU gagal cocok utk SEMUA
+    // entri (bukan cuma yang kodenya berubah) sehingga total poin di "Raport
+    // Tahfidz" pribadi murid selalu 0. Disamakan dgn versi guru yang benar
+    // (guru/raport-module.js _rtHitungPoin).
     var mappedNilai = nilai;
     if (nilai === 'Mumtaz') mappedNilai = 'A';
     else if (nilai === 'Baik') mappedNilai = 'B';
     else if (nilai === 'Cukup') mappedNilai = 'C';
-    var kObj = (cfg.kelancaran || []).find(function(k){ return k.label === kelancaran; }) || { poin: 0 };
-    var nObj = (cfg.nilai || []).find(function(n){ return n.label === mappedNilai; }) || { poin: 0 };
+    var kObj = (cfg.kelancaran || []).find(function(k){ return k.nama === kelancaran; }) || { poin: 0 };
+    var nObj = (cfg.nilai || []).find(function(n){ return n.kode === mappedNilai; }) || { poin: 0 };
     return (kObj.poin || 0) + (nObj.poin || 0);
   }
 

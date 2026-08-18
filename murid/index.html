@@ -6878,18 +6878,18 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=3dfc59e2" defer></script>
+<script src="../supabase/api-murid.js?v=03790581" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
-<script src="quiz-module.js?v=c62f1132" defer></script>
+<script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=2c0a5cda" defer></script>
 <script src="partner-module.js?v=4f1156ae" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>
 <script src="saran-observasi-module.js?v=13bfaa19" defer></script>
-<script src="raport-module.js?v=dd7e42eb" defer></script>
+<script src="raport-module.js?v=bdd7d39d" defer></script>
 <script src="ketua-module.js?v=257eff70" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -7680,6 +7680,11 @@ function goPage(name, swipeDir) {
   if (prev === 'hafalan' && typeof hentikanPerekamanQiyam === 'function') {
     hentikanPerekamanQiyam();
   }
+  // Hentikan timer/anti-cheat kuis yang sedang berjalan kalau murid pindah tab
+  // tanpa submit — cegah auto-submit "hantu" muncul di halaman lain.
+  if (prev === 'kuis' && typeof window.hentikanKuisAktif === 'function') {
+    window.hentikanKuisAktif();
+  }
 
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active','slide-in-left','slide-in-right');
@@ -7767,11 +7772,13 @@ window.addEventListener('popstate', function(e) {
 // ══════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════
-async function loadDashboard() {
-  showLoad('Bismillah, memuat dashboard...');
-  document.querySelectorAll('.stat-val').forEach(function(el) {
-    el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
-  });
+async function loadDashboard(silent) {
+  if (!silent) {
+    showLoad('Bismillah, memuat dashboard...');
+    document.querySelectorAll('.stat-val').forEach(function(el) {
+      el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
+    });
+  }
   try {
     var [r, atRes, quizRes] = await Promise.all([
       window.HQ.MuridAPI.getDashboard(),
@@ -8981,12 +8988,13 @@ function renderDashKalender(hq, atRows) {
   var today = new Date();
   var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
 
+  // Catatan: sebelumnya ada fallback tanggal hardcode '2026-07-11'..'2026-07-18'
+  // khusus utk Daurah Tahsin Al-Fatihah. Dihapus karena akan salah terapkan ke
+  // kohort Daurah baru yang tanggalnya berbeda — proyeksi kalender ini murni
+  // tampilan (bukan data kehadiran asli), jadi lebih aman tidak menampilkan
+  // proyeksi sama sekali kalau tanggal_mulai/selesai belum diisi admin.
   var tglMulai = hq.tanggal_mulai || '';
   var tglSelesai = hq.tanggal_selesai || '';
-  if (!tglMulai && hq.level === 'Tahsin Al-Fatihah') {
-    tglMulai = '2026-07-11';
-    tglSelesai = '2026-07-18';
-  }
 
   for (var dd = 1; dd <= daysInMonth; dd++) {
     var dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
@@ -9331,7 +9339,11 @@ function bukaFormPR(idNilai, deskripsi, jenisLatihan, statusDeadline, deadline) 
     }
   }
   
-  hapusRekamanLokal();
+  // Reset TAMPILAN saja (bukan hapus cadangan IndexedDB) — kalau dihapus di sini,
+  // checkCadanganPR() di bawah tidak akan pernah menemukan draft untuk ditawarkan
+  // pemulihan. Cadangan hanya dihapus lewat aksi eksplisit murid (tombol
+  // "Hapus & Rekam Ulang"/"Abaikan") atau setelah laporan berhasil dikirim.
+  resetTampilanRekamanPR();
   checkCadanganPR();
   document.getElementById('ltCatatanMurid').value = '';
   openModal('latihanModal');
@@ -9391,9 +9403,11 @@ function mulaiPerekaman() {
         }
         stopMicVisualizer('ltMicWave', 'pr');
         
-        // Simpan cadangan offline
+        // Simpan cadangan offline (idNilai WAJIB disertakan — checkCadanganPR()
+        // mencocokkan draft ke tugas yang sedang dibuka lewat field ini)
         if (typeof HQBackupDB !== 'undefined' && _rekamanBlob) {
-          HQBackupDB.simpan('draft_pr', _rekamanBlob, { detik: _detikRekam });
+          var _idNilaiAktif = document.getElementById('ltIdNilai') ? document.getElementById('ltIdNilai').value : '';
+          HQBackupDB.simpan('draft_pr', _rekamanBlob, { detik: _detikRekam, idNilai: _idNilaiAktif });
         }
         stream.getTracks().forEach(function(track) { track.stop(); });
       };
@@ -9462,14 +9476,18 @@ function hentikanPerekaman() {
   if (btnJeda) btnJeda.style.display = 'none';
 }
 
-function hapusRekamanLokal() {
+function resetTampilanRekamanPR() {
   _rekamanBlob = null;
   _recordedChunks = [];
   document.getElementById('ltAudioPreview').src = '';
   document.getElementById('ltPlayerWadah').style.display = 'none';
   document.getElementById('ltDurasiRekam').textContent = "00:00";
   document.getElementById('btnMulaiRekam').textContent = "🔴 Mulai Rekam";
-  
+}
+
+function hapusRekamanLokal() {
+  resetTampilanRekamanPR();
+
   if (typeof HQBackupDB !== 'undefined') {
     HQBackupDB.hapus('draft_pr');
   }
@@ -10151,7 +10169,13 @@ function _waLink(hp, msg) {
   return 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
 }
 
+var _audPlayerSeq = 0;
 function _renderAudioPlayerHtml(url, containerId, label, durText) {
+  // containerId opsional di sebagian caller — tanpa default unik di sini, tiap
+  // pemanggilan tanpa argumen ke-2 akan bentrok jadi id="aud_undefined" yang
+  // sama persis, sehingga kontrol Speed hanya pernah mengenai player PERTAMA
+  // di halaman.
+  if (!containerId) containerId = 'audp_' + (++_audPlayerSeq);
   if (url && url.includes('id=')) {
     var fileId = url.split('id=')[1].split('&')[0];
     return '<div id="' + containerId + '" style="margin-top:6px;margin-bottom:8px;background:var(--blue-bg);border:1.5px solid var(--blue-m);border-radius:12px;padding:8px 10px">'
@@ -10176,7 +10200,7 @@ function _renderAudioPlayerHtml(url, containerId, label, durText) {
         + '</select>'
       + '</div>'
     + '</div>'
-    + '<audio id="' + audId + '" src="' + url + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
+    + '<audio id="' + audId + '" src="' + esc(url) + '" controls style="width:100%;height:32px;border-radius:8px"></audio>'
     + '</div>';
 }
 
@@ -10402,7 +10426,7 @@ async function gunakanCadanganQiyam() {
       document.getElementById('pqDurasiRekam').textContent = m + ":" + s;
       document.getElementById('btnMulaiRekamQiyam').textContent = "🔴 Rekam Ulang";
       
-      toast("Berhasil memulihkan rekaman cadangan sebelumnya!", "success");
+      toast("Berhasil memulihkan rekaman cadangan sebelumnya!", "ok");
     }
     var banner = document.getElementById('pqRestoreBanner');
     if (banner) banner.style.display = 'none';
@@ -10464,7 +10488,7 @@ async function gunakanCadanganPR() {
       document.getElementById('ltDurasiRekam').textContent = m + ":" + s;
       document.getElementById('btnMulaiRekam').textContent = "🔴 Rekam Ulang";
       
-      toast("Berhasil memulihkan rekaman cadangan tugas mandiri!", "success");
+      toast("Berhasil memulihkan rekaman cadangan tugas mandiri!", "ok");
     }
     var banner = document.getElementById('ltRestoreBanner');
     if (banner) banner.style.display = 'none';
