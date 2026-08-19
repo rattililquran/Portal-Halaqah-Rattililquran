@@ -1116,6 +1116,67 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   backdrop-filter:blur(8px)}
 .filter-pill.active{border-color:var(--green);background:var(--green-l);color:var(--green-d)}
 
+/* View Toggle Buttons */
+.dash-view-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:8px;border:none;
+  background:transparent;color:var(--text-3);
+  font-family:inherit;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .15s ease;
+}
+.dash-view-btn:hover{color:var(--text);background:rgba(0,0,0,0.04)}
+.dash-view-btn.active{background:#fff;color:var(--blue-d);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+html.theme-dark .dash-view-btn.active{background:#252830;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+html.theme-dark .dash-view-toggle{background:rgba(255,255,255,0.04) !important}
+
+/* Halaqah Grid Layout for >10 halaqah */
+.hq-dashboard-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:12px;
+}
+@media(max-width:480px){
+  .hq-dashboard-grid{grid-template-columns:1fr}
+}
+
+/* Compact list / table for halaqah */
+.hq-compact-table-wrap{
+  background:rgba(255,255,255,0.8);
+  backdrop-filter:blur(16px);
+  border-radius:16px;
+  border:1px solid rgba(0,0,0,0.06);
+  box-shadow:0 2px 12px rgba(13,27,42,0.04);
+  overflow:hidden;
+}
+html.theme-dark .hq-compact-table-wrap{
+  background:#1e2128;
+  border-color:rgba(255,255,255,0.08);
+}
+.hq-compact-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12.5px;
+  text-align:left;
+}
+.hq-compact-table th{
+  background:rgba(0,0,0,0.02);
+  padding:10px 12px;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--text-3);
+  border-bottom:1px solid var(--border);
+}
+.hq-compact-table td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.hq-compact-table tr:last-child td{border-bottom:none}
+.hq-compact-table tr:hover td{background:rgba(14,165,233,0.03)}
+html.theme-dark .hq-compact-table tr:hover td{background:rgba(56,189,248,0.04)}
+
 /* Badge hari ini */
 .badge-hari-ini{background:var(--green);color:#fff;font-size:10px;font-weight:700;
   padding:2px 8px;border-radius:100px;margin-left:6px;
@@ -2873,10 +2934,49 @@ html.theme-dark .pr-chip.active {
         </div>
 
         <!-- Halaqah Saya — gabungan jadwal + halaqah diampu -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text-2)">📅 Halaqah Saya</div>
+        <div class="dash-hq-header-bar" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:15px;font-weight:800;color:var(--text)">📅 Halaqah Saya</span>
+              <span id="hqCountSummary" style="font-size:11px;font-weight:700;background:rgba(14,165,233,0.1);color:var(--blue-d);padding:2px 8px;border-radius:100px">0 Halaqah</span>
+            </div>
+            <!-- View Mode Switcher -->
+            <div class="dash-view-toggle" style="display:inline-flex;background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:10px;padding:2px;gap:2px">
+              <button type="button" class="dash-view-btn active" id="btnViewGrid" onclick="setHqViewMode('grid')" title="Tampilan Kartu">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span class="lbl-view">Kartu</span>
+              </button>
+              <button type="button" class="dash-view-btn" id="btnViewCompact" onclick="setHqViewMode('compact')" title="Tampilan Ringkas / Tabel (Cocok >10 Halaqah)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span class="lbl-view">Ringkas</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Controls Bar: Pencarian & Filter & Sort -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <div style="flex:1;min-width:180px;position:relative">
+              <input type="search" id="hqSearchInput" class="fc" placeholder="🔍 Cari halaqah, level, hari..."
+                oninput="renderJadwal()" style="width:100%;padding:8px 12px;font-size:12.5px;border-radius:10px">
+            </div>
+            <select class="fc" id="hqStatusFilter" onchange="renderJadwal()" style="max-width:160px;padding:8px 10px;font-size:12.5px;border-radius:10px">
+              <option value="">— Semua Status —</option>
+              <option value="today">🟢 Jadwal Hari Ini</option>
+              <option value="pengganti">🔄 Ada Sisa Pengganti</option>
+            </select>
+            <select class="fc" id="hqSortSel" onchange="renderJadwal()" style="max-width:160px;padding:8px 10px;font-size:12.5px;border-radius:10px">
+              <option value="default">⚡ Hari Ini &amp; Jam</option>
+              <option value="name_asc">🔤 Nama (A-Z)</option>
+              <option value="level">🏆 Level</option>
+              <option value="murid_desc">👥 Murid Terbanyak</option>
+              <option value="progres_desc">📈 Sesi Terbanyak</option>
+            </select>
+          </div>
+
+          <!-- Level Pills -->
           <div class="filter-pills" id="levelFilterPills" style="margin-bottom:0"></div>
         </div>
+
         <div id="jadwalList">
           <div style="color:var(--text-3);font-size:13px;padding:12px 0;text-align:center">
             Memuat halaqah...
@@ -7870,16 +7970,235 @@ function getHqColor(id_halaqah) {
   return _hqColorMap[id_halaqah];
 }
 var _activeLevel = '';
-function renderLevelPills(levels) {
-  var cont = document.getElementById('levelFilterPills');
-  if (!cont) return;
-  var pills = '<button class="filter-pill' + (!_activeLevel ? ' active' : '') + '" onclick="setLevelFilter(\'\')">Semua</button>';
-  levels.forEach(function(l){
-    pills += '<button class="filter-pill' + (_activeLevel===l?' active':'') + '" onclick="setLevelFilter(\'' + esc(l) + '\')">' + esc(l) + '</button>';
-  });
-  cont.innerHTML = pills;
+var _hqViewMode = localStorage.getItem('hq_guru_view_mode') || 'grid';
+
+function setHqViewMode(mode) {
+  _hqViewMode = mode;
+  localStorage.setItem('hq_guru_view_mode', mode);
+  var btnGrid = document.getElementById('btnViewGrid');
+  var btnCompact = document.getElementById('btnViewCompact');
+  if (btnGrid) btnGrid.classList.toggle('active', mode === 'grid');
+  if (btnCompact) btnCompact.classList.toggle('active', mode === 'compact');
+  renderJadwal();
 }
-function setLevelFilter(level) { _activeLevel = level; renderJadwal(); }
+
+function renderJadwal() {
+  var cont = document.getElementById('jadwalList');
+  if (!cont) return;
+  if (!jadwalData.length) {
+    cont.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:20px;text-align:center">Belum ada halaqah terdaftar</div>';
+    renderLevelPills([]);
+    var sumEl = document.getElementById('hqCountSummary');
+    if (sumEl) sumEl.textContent = '0 Halaqah';
+    return;
+  }
+  // Kumpulkan level unik
+  var levels = [];
+  jadwalData.forEach(function(h){ if(h.level && levels.indexOf(h.level)<0) levels.push(h.level); });
+  levels.sort();
+  renderLevelPills(levels);
+
+  // Sync state tombol switcher
+  var btnGrid = document.getElementById('btnViewGrid');
+  var btnCompact = document.getElementById('btnViewCompact');
+  if (btnGrid) btnGrid.classList.toggle('active', _hqViewMode === 'grid');
+  if (btnCompact) btnCompact.classList.toggle('active', _hqViewMode === 'compact');
+
+  // Ambil filter & sort
+  var q = (document.getElementById('hqSearchInput')?.value || '').toLowerCase().trim();
+  var statusFil = document.getElementById('hqStatusFilter')?.value || '';
+  var sortVal = document.getElementById('hqSortSel')?.value || 'default';
+
+  // Filter
+  var filtered = jadwalData.slice();
+  if (_activeLevel) filtered = filtered.filter(function(h){ return h.level === _activeLevel; });
+  if (q) {
+    filtered = filtered.filter(function(h) {
+      var hay = [(h.nama_halaqah||''), (h.level||''), (h.jadwal_hari||''), (h.jam_mulai||''), (h.lokasi||'')].join(' ').toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+  }
+  if (statusFil === 'today') {
+    filtered = filtered.filter(function(h){ return !!h.is_hari_ini; });
+  } else if (statusFil === 'pengganti') {
+    filtered = filtered.filter(function(h) {
+      var sTotal = 0;
+      if (h.sisa_pengganti) {
+        Object.keys(h.sisa_pengganti).forEach(function(j){ sTotal += h.sisa_pengganti[j] || 0; });
+      }
+      return sTotal > 0;
+    });
+  }
+
+  // Update counter summary
+  var sumEl = document.getElementById('hqCountSummary');
+  if (sumEl) {
+    sumEl.textContent = filtered.length === jadwalData.length
+      ? filtered.length + ' Halaqah'
+      : filtered.length + ' dari ' + jadwalData.length + ' Halaqah';
+  }
+
+  // Sorting
+  var LEVEL_ORDER = {'Level 1':1,'Level 2':2,'Level 3':3,'Level Qiyam':4,'Micro Teaching':5,'Tahsin Al-Fatihah':6};
+  function levelRank(l){ return LEVEL_ORDER[l] || 99; }
+
+  filtered.sort(function(a,b) {
+    if (sortVal === 'name_asc') {
+      return (a.nama_halaqah||'').localeCompare(b.nama_halaqah||'');
+    }
+    if (sortVal === 'level') {
+      var diff = levelRank(a.level) - levelRank(b.level);
+      return diff !== 0 ? diff : (a.nama_halaqah||'').localeCompare(b.nama_halaqah||'');
+    }
+    if (sortVal === 'murid_desc') {
+      return (b.total_murid||0) - (a.total_murid||0);
+    }
+    if (sortVal === 'progres_desc') {
+      return (b.total_sesi||0) - (a.total_sesi||0);
+    }
+    // Default: Hari ini dulu, lalu jam terdekat
+    if (a.is_hari_ini && !b.is_hari_ini) return -1;
+    if (!a.is_hari_ini && b.is_hari_ini) return 1;
+    return (a.jam_mulai||'99:99').localeCompare(b.jam_mulai||'99:99');
+  });
+
+  if (!filtered.length) {
+    cont.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:30px 20px;text-align:center;background:rgba(0,0,0,0.02);border-radius:16px;border:1px dashed var(--border)">'
+      + '🔍 Tidak ada halaqah yang sesuai dengan filter atau kata kunci.'
+      + '<br><button class="btn btn-outline btn-sm" onclick="document.getElementById(\'hqSearchInput\').value=\'\';document.getElementById(\'hqStatusFilter\').value=\'\';_activeLevel=\'\';renderJadwal();" style="margin-top:10px;display:inline-flex">Reset Filter</button>'
+      + '</div>';
+    return;
+  }
+
+  // Render berdasarkan mode tampilan
+  if (_hqViewMode === 'compact') {
+    // ── TAMPILAN RINGKAS / TABEL (Sangat cocok untuk >10 halaqah) ──
+    var tableHtml = '<div class="hq-compact-table-wrap">'
+      + '<div style="overflow-x:auto">'
+      + '<table class="hq-compact-table">'
+      + '<thead>'
+      + '<tr>'
+      + '<th style="min-width:180px">Halaqah</th>'
+      + '<th style="min-width:130px">Level</th>'
+      + '<th style="min-width:140px">Jadwal</th>'
+      + '<th style="min-width:70px;text-align:center">Murid</th>'
+      + '<th style="min-width:150px">Progres Sesi</th>'
+      + '<th style="min-width:170px;text-align:right">Aksi</th>'
+      + '</tr>'
+      + '</thead>'
+      + '<tbody>'
+      + filtered.map(function(h) {
+        var targetSesi = h.target_sesi || 40;
+        var pct   = targetSesi > 0 ? Math.min(Math.round((h.total_sesi / targetSesi) * 100), 100) : 0;
+        var color = getHqColor(h.id_halaqah);
+        var jamInfo = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '–'+h.jam_selesai : '')) : '-';
+
+        var sisaTotal = 0;
+        if (h.sisa_pengganti) {
+          Object.keys(h.sisa_pengganti).forEach(function(j){ sisaTotal += h.sisa_pengganti[j] || 0; });
+        }
+        var sisaBadge = sisaTotal > 0
+          ? ' <span class="badge-hari-ini" style="background:#fff7ed;color:#c2410c;border:1px solid #fdba74;font-size:9px;padding:1px 6px">🔄 Pengganti: ' + sisaTotal + '</span>'
+          : '';
+
+        return '<tr class="' + color + '">'
+          + '<td>'
+          + '  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+          + '    <span style="font-weight:800;color:var(--text)">' + esc(h.nama_halaqah) + '</span>'
+          + (h.is_hari_ini ? ' <span class="badge-hari-ini" style="font-size:9px;padding:1px 6px">Hari ini</span>' : '')
+          + sisaBadge
+          + '  </div>'
+          + '  <div style="font-size:11px;color:var(--text-3);margin-top:2px">'
+          + '    Berikutnya: <b style="color:var(--text)">Pertemuan ke-' + h.pertemuan_ke_reguler + '</b>'
+          + '  </div>'
+          + '</td>'
+          + '<td><span class="hq-chip" style="margin-bottom:0;font-size:11px;padding:2px 8px">' + esc(h.level||'–') + '</span></td>'
+          + '<td>'
+          + '  <div style="font-weight:600;color:var(--text-2)">📅 ' + esc(h.jadwal_hari||'-') + '</div>'
+          + '  <div style="font-size:11px;color:var(--text-3)">⏰ ' + esc(jamInfo) + '</div>'
+          + '</td>'
+          + '<td style="text-align:center">'
+          + '  <button class="btn btn-outline btn-sm" onclick="lihatDaftarMuridHalaqah(\'' + esc(h.id_halaqah) + '\')" title="Lihat daftar ' + h.total_murid + ' murid" style="padding:3px 8px;font-size:11px;border-radius:8px;display:inline-flex;align-items:center;gap:4px">'
+          + '    👥 <b>' + h.total_murid + '</b>'
+          + '  </button>'
+          + '</td>'
+          + '<td>'
+          + '  <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:2px">'
+          + '    <span>ke-' + h.total_sesi + ' / ' + targetSesi + '</span>'
+          + '    <b>' + pct + '%</b>'
+          + '  </div>'
+          + '  <div class="hq-progress-bar" style="margin-bottom:0;height:5px"><div class="hq-progress-fill" style="width:' + pct + '%"></div></div>'
+          + '</td>'
+          + '<td style="text-align:right">'
+          + '  <div style="display:inline-flex;gap:6px">'
+          + '    <button class="btn btn-outline btn-sm" onclick="lihatRiwayatHalaqah(\'' + esc(h.id_halaqah) + '\')" title="Riwayat KBM" style="padding:5px 8px;font-size:11.5px;border-radius:8px">'
+          + '      📚'
+          + '    </button>'
+          + '    <button class="btn btn-primary btn-sm" onclick="mulaiSesiHalaqah(\'' + esc(h.id_halaqah) + '\', ' + h.pertemuan_ke_reguler + ')" style="padding:5px 10px;font-size:11.5px;border-radius:8px;font-weight:700;white-space:nowrap">'
+          + '      ▶ Sesi ke-' + h.pertemuan_ke_reguler
+          + '    </button>'
+          + '  </div>'
+          + '</td>'
+          + '</tr>';
+      }).join('')
+      + '</tbody>'
+      + '</table>'
+      + '</div>'
+      + '</div>';
+    cont.innerHTML = tableHtml;
+  } else {
+    // ── TAMPILAN GRID KARTU (Responsive multi-kolom) ──
+    cont.innerHTML = '<div class="hq-dashboard-grid">'
+      + filtered.map(function(h) {
+        var targetSesi = h.target_sesi || 40;
+        var pct   = targetSesi > 0 ? Math.min(Math.round((h.total_sesi / targetSesi) * 100), 100) : 0;
+        var color = getHqColor(h.id_halaqah);
+        var jamInfo = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '–'+h.jam_selesai : '')) : '';
+
+        var sisaTotal = 0;
+        if (h.sisa_pengganti) {
+          Object.keys(h.sisa_pengganti).forEach(function(j){ sisaTotal += h.sisa_pengganti[j] || 0; });
+        }
+        var sisaBadge = sisaTotal > 0
+          ? ' <span class="badge-hari-ini" style="background:#fff7ed;color:#c2410c;border:1px solid #fdba74">🔄 Sisa Pengganti: ' + sisaTotal + '</span>'
+          : '';
+
+        return '<div class="hq-card-new ' + color + '" style="cursor:default;margin-bottom:0">'
+          + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+          + '<div>'
+          + '<span class="hq-chip">' + esc(h.nama_halaqah) + (h.is_hari_ini ? ' <span class="badge-hari-ini">Hari ini</span>' : '') + sisaBadge + '</span>'
+          + '</div>'
+          + '<div class="hq-pertemuan">'
+          + '<div style="font-size:9px;color:var(--text-3);font-weight:600;text-align:right;margin-bottom:1px">Pertemuan berikutnya</div>'
+          + '<div class="hq-pertemuan-num">ke-' + h.pertemuan_ke_reguler + '</div>'
+          + '</div>'
+          + '</div>'
+          + '<div class="hq-meta">'
+          + '<span class="hq-meta-item">🏆 ' + esc(h.level||'–') + '</span>'
+          + '<span class="hq-meta-item" onclick="lihatDaftarMuridHalaqah(\'' + esc(h.id_halaqah) + '\')" style="cursor:pointer;text-decoration:underline" title="Buka daftar murid">👥 ' + h.total_murid + ' murid ↗</span>'
+          + (jamInfo ? '<span class="hq-meta-item">⏰ ' + esc(jamInfo) + '</span>' : '')
+          + (h.jadwal_hari ? '<span class="hq-meta-item">📅 ' + esc(h.jadwal_hari) + '</span>' : '')
+          + '</div>'
+          + '<div class="hq-progress-wrap">'
+          + '<div class="hq-progress-bar"><div class="hq-progress-fill" style="width:' + pct + '%"></div></div>'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">'
+          + '<span class="hq-sesi-chip">📋 ' + h.total_sesi + ' dari ' + targetSesi + ' sesi reguler</span>'
+          + '<span style="font-size:11px;color:var(--text-3);font-weight:600">' + pct + '%</span>'
+          + '</div>'
+          + '</div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1.2fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(13,27,42,.07)">'
+          + '<button class="btn btn-outline btn-sm" onclick="lihatRiwayatHalaqah(\'' + esc(h.id_halaqah) + '\')" style="justify-content:center;font-size:12px;padding:8px 10px;border-radius:10px;font-weight:600">'
+          + '📚 Riwayat KBM'
+          + '</button>'
+          + '<button class="btn btn-primary btn-sm" onclick="mulaiSesiHalaqah(\'' + esc(h.id_halaqah) + '\', ' + h.pertemuan_ke_reguler + ')" style="justify-content:center;font-size:12px;padding:8px 10px;border-radius:10px;font-weight:700">'
+          + '▶ Lanjut Sesi ke-' + h.pertemuan_ke_reguler
+          + '</button>'
+          + '</div>'
+          + '</div>';
+      }).join('')
+      + '</div>';
+  }
+}
 
 function lihatRiwayatHalaqah(id_halaqah) {
   const sel = document.getElementById('riwayatHalaqahSel');
@@ -7906,6 +8225,17 @@ function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
     // Biarkan kbmPertemuan kosong agar server auto-hitung
     // placeholder sudah diset oleh autoFillPertemuan()
   }, 0);
+}
+
+function lihatDaftarMuridHalaqah(id_halaqah) {
+  goPage('murid');
+  setTimeout(function() {
+    var sel = document.getElementById('muridHalaqahSel');
+    if (sel) {
+      sel.value = id_halaqah;
+      if (typeof window.loadMurid === 'function') window.loadMurid();
+    }
+  }, 50);
 }
 
 // ══ #5 TEMPLATE KOREKSI ══════════════════
