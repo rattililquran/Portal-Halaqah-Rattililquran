@@ -5,26 +5,14 @@
 (function(){const t=localStorage.getItem('theme')||'system';if(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('theme-dark');})();
 </script>
 <script>
-// ── EKSPERIMEN tema minimalis putih — sementara, hapus setelah selesai eksperimen ──
+// ── Pilihan tema tampilan (Biru / Minimalis) — diset dari Profil Saya > Pengaturan Akun ──
 (function(){
   try{
-    var p=new URLSearchParams(location.search);
-    if(p.has('exp')){
-      if(p.get('exp')==='minimal') localStorage.setItem('hq_theme_experiment','minimal');
-      else localStorage.removeItem('hq_theme_experiment');
-    }
-    if(localStorage.getItem('hq_theme_experiment')==='minimal'){
+    if(localStorage.getItem('hq_theme_variant')==='minimal'){
       document.documentElement.classList.add('theme-minimal');
       document.documentElement.classList.remove('theme-dark');
     }
   }catch(e){}
-  window.toggleMinimalTheme=function(on){
-    var h=document.documentElement;
-    var enable = typeof on==='boolean' ? on : !h.classList.contains('theme-minimal');
-    if(enable){h.classList.add('theme-minimal');h.classList.remove('theme-dark');try{localStorage.setItem('hq_theme_experiment','minimal');}catch(e){}}
-    else{h.classList.remove('theme-minimal');try{localStorage.removeItem('hq_theme_experiment');}catch(e){}}
-    return enable;
-  };
 })();
 </script>
 <meta charset="UTF-8">
@@ -108,7 +96,7 @@
   --blue-txt:#1a73e8;--blue-bg:#eff6ff;
   --purple-txt:#7c3aed;--purple-bg:#f5f3ff;
 }
-/* ── EKSPERIMEN: tema minimalis putih (toggle via toggleMinimalTheme() / ?exp=minimal) ── */
+/* ── Varian tema Minimalis (pilih di Profil Saya > Pengaturan Akun > Tampilan) ── */
 html.theme-minimal{
   --blue-rgb:15,23,42;
   --blue:#0f172a;--blue-d:#020617;--blue-l:rgba(var(--blue-rgb),0.06);
@@ -125,6 +113,20 @@ html.theme-minimal{
 }
 html.theme-minimal .bg-blobs{display:none}
 html.theme-minimal body{background:#ffffff !important}
+
+/* ── Pemilih tema (Biru / Minimalis) — segmented control ── */
+.theme-picker{display:inline-flex;background:var(--bg-2);border-radius:100px;padding:3px;gap:2px}
+.theme-picker-opt{
+  border:none;background:none;font-family:inherit;cursor:pointer;
+  font-size:11.5px;font-weight:700;color:var(--text-3);
+  padding:6px 12px;border-radius:100px;
+  transition:background .2s ease,color .2s ease;
+}
+.theme-picker-opt.active{background:var(--card-solid);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+html.theme-dark .theme-picker{background:rgba(255,255,255,.06)}
+html.theme-dark .theme-picker-opt{color:rgba(255,255,255,.5)}
+html.theme-dark .theme-picker-opt.active{background:rgba(255,255,255,.12);color:#fff}
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);
   font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
@@ -190,9 +192,9 @@ html.theme-dark #authScreen{background:#111318}
 /* ── TOP HEADER ── */
 /* ── TOP HEADER — KhatamKu white glass ── */
 .top-header{
-  background:rgba(255,255,255,0.55);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(60px);
+  -webkit-backdrop-filter:blur(60px);
   border-bottom:1px solid rgba(255,255,255,.6);
   box-shadow:0 -1px 0 rgba(255,255,255,.9) inset,0 4px 20px rgba(var(--blue-rgb),.06);
   padding:calc(8px + var(--sat)) 14px 8px;
@@ -218,7 +220,7 @@ html.theme-dark #authScreen{background:#111318}
   display:inline-flex;align-items:center;gap:3px;margin-top:2px;
   background:rgba(var(--blue-rgb),.08);
   border:1px solid rgba(var(--blue-rgb),.12);border-radius:100px;
-  padding:2px 8px;font-size:9px;color:#0284c7;font-weight:700;
+  padding:2px 8px;font-size:9px;color:var(--blue);font-weight:700;
 }
 /* action buttons kanan */
 .top-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -477,8 +479,8 @@ html.theme-dark .prog-estimasi-middle{
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
 @media(max-width:400px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
 .stat-card{
-  background:rgba(255,255,255,0.7);
-  backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-radius:20px;padding:16px 10px;text-align:center;
   border:1px solid rgba(255,255,255,0.9);
   box-shadow:var(--shadow-card);
@@ -503,8 +505,8 @@ html.theme-dark .prog-estimasi-middle{
 
 /* ── CARD ── */
 .card{
-  background:rgba(255,255,255,0.7);
-  backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-radius:var(--r);border:1px solid rgba(255,255,255,.9);
   box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden;
   transition:transform .3s ease,box-shadow .3s ease;
@@ -521,9 +523,9 @@ html.theme-dark .prog-estimasi-middle{
 /* ── BOTTOM NAV ── */
 .bottom-nav{
   position:fixed;bottom:0;left:0;right:0;
-  background:rgba(255,255,255,0.65);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(60px);
+  -webkit-backdrop-filter:blur(60px);
   border-top:1px solid rgba(255,255,255,0.75);
   display:flex;align-items:flex-end;
   padding:6px 0 calc(var(--sab)+8px);
@@ -667,7 +669,7 @@ html.theme-dark .prog-estimasi-middle{
   width:fit-content !important;
   font-size:9px !important;
   font-weight:800 !important;
-  color:#0284c7 !important;
+  color:var(--blue) !important;
   text-transform:uppercase;
   letter-spacing:.08em;
   padding:3px 10px !important;
@@ -6610,6 +6612,13 @@ html.theme-dark .materi-daurah-banner-title {
       <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
         <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">⚙️ Pengaturan Akun</div>
         <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
+            <span style="font-weight:600; color:var(--text); font-size:13.5px;">🎨 Tampilan</span>
+            <div class="theme-picker" id="themePicker">
+              <button type="button" class="theme-picker-opt" data-theme-choice="blue">Biru</button>
+              <button type="button" class="theme-picker-opt" data-theme-choice="minimal">Minimalis</button>
+            </div>
+          </div>
           <div onclick="closeModal('profilModal');goPage('password')" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; border-bottom:1px solid var(--border);" class="menu-item-hover">
             <span style="font-weight:600; color:var(--text); font-size:13.5px;">🔐 Ganti Password</span>
             <span style="color:var(--text-3); font-weight:700;">&rsaquo;</span>
@@ -11701,6 +11710,29 @@ function initThemeToggle() {
   });
 }
 initThemeToggle();
+
+// ── Pemilih varian tema (Biru / Minimalis) — di Profil Saya > Pengaturan Akun ──
+function updateThemePickerUI(variant) {
+  document.querySelectorAll('.theme-picker-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === variant);
+  });
+}
+function setAppTheme(variant) {
+  var h = document.documentElement;
+  if (variant === 'minimal') h.classList.add('theme-minimal');
+  else h.classList.remove('theme-minimal');
+  try { localStorage.setItem('hq_theme_variant', variant); } catch (e) {}
+  updateThemePickerUI(variant);
+}
+function initThemeVariantPicker() {
+  var current = 'blue';
+  try { current = localStorage.getItem('hq_theme_variant') || 'blue'; } catch (e) {}
+  updateThemePickerUI(current);
+  document.querySelectorAll('.theme-picker-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() { setAppTheme(btn.getAttribute('data-theme-choice')); });
+  });
+}
+initThemeVariantPicker();
 
 // ── Push Preferences ──────────────────────────
 var _pushPrefsData   = {};
