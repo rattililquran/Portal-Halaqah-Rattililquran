@@ -698,33 +698,18 @@ html.theme-dark .prog-estimasi-middle{
   width:38px;height:38px;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
+  background:rgba(100,116,139,.08);color:#64748b;
   font-size:0; /* hide stray emoji */
-  transition:background 0.25s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:background 0.25s ease, color 0.25s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .sidebar-item-ico svg{display:block}
 
-/* Color variants */
-.sidebar-item.ico-blue  .sidebar-item-ico{background:rgba(var(--blue-rgb),.06);color:#0284c7}
-.sidebar-item.ico-sky   .sidebar-item-ico{background:rgba(2,132,199,.06);color:#0369a1}
-.sidebar-item.ico-green .sidebar-item-ico{background:rgba(16,185,129,.06);color:#059669}
-.sidebar-item.ico-teal  .sidebar-item-ico{background:rgba(20,184,166,.06);color:#0d9488}
-.sidebar-item.ico-amber .sidebar-item-ico{background:rgba(245,158,11,.06);color:#b45309}
-.sidebar-item.ico-orange .sidebar-item-ico{background:rgba(234,88,12,.06);color:#c2410c}
-.sidebar-item.ico-purple .sidebar-item-ico{background:rgba(139,92,246,.06);color:#7c3aed}
-.sidebar-item.ico-rose  .sidebar-item-ico{background:rgba(244,63,94,.06);color:#e11d48}
-.sidebar-item.ico-slate .sidebar-item-ico{background:rgba(100,116,139,.08);color:#64748b}
-
-/* Active state */
+/* Active state — satu-satunya aksen warna di sidebar, sisanya monokrom */
 .sidebar-item[data-p].active{
-  background:rgba(var(--blue-rgb),.1);color:#0284c7;
+  background:rgba(var(--blue-rgb),.1);color:var(--blue);
   box-shadow:inset 3px 0 0 var(--blue);
 }
-.sidebar-item[data-p].active .sidebar-item-ico{background:rgba(var(--blue-rgb),.15)!important;color:#0284c7!important}
-
-/* Hover override for color variants */
-.sidebar-item.ico-green:hover{background:rgba(16,185,129,.08);color:#059669}
-.sidebar-item.ico-amber:hover{background:rgba(245,158,11,.08);color:#b45309}
-.sidebar-item.ico-purple:hover{background:rgba(139,92,246,.08);color:#7c3aed}
+.sidebar-item[data-p].active .sidebar-item-ico{background:rgba(var(--blue-rgb),.15)!important;color:var(--blue)!important}
 
 /* Divider */
 .sidebar-divider{height:1px;background:#e8f0fe;margin:8px 2px}
@@ -2543,11 +2528,7 @@ html.theme-dark .sidebar-item:hover{background:rgba(56,189,248,.08) !important;c
 html.theme-dark .sidebar-item[data-p].active{background:rgba(56,189,248,.12) !important;color:#38bdf8 !important;box-shadow:inset 3px 0 0 #38bdf8 !important}
 html.theme-dark .sidebar-item[data-p].active .sidebar-item-ico{background:rgba(56,189,248,.18)!important;color:#38bdf8!important}
 html.theme-dark .sidebar-divider{background:rgba(255,255,255,.06) !important}
-html.theme-dark .sidebar-item.ico-blue .sidebar-item-ico{background:rgba(56,189,248,.12);color:#38bdf8}
-html.theme-dark .sidebar-item.ico-green .sidebar-item-ico{background:rgba(52,211,153,.12);color:#34d399}
-html.theme-dark .sidebar-item.ico-amber .sidebar-item-ico{background:rgba(251,191,36,.12);color:#fbbf24}
-html.theme-dark .sidebar-item.ico-purple .sidebar-item-ico{background:rgba(167,139,250,.12);color:#a78bfa}
-html.theme-dark .sidebar-item.ico-slate .sidebar-item-ico{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4)}
+html.theme-dark .sidebar-item-ico{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
 html.theme-dark .sidebar-item.danger{color:#f87171 !important}
 html.theme-dark .sidebar-item.danger .sidebar-item-ico{background:rgba(248,113,113,.1);color:#f87171 !important}
 html.theme-dark .sidebar-item.danger:hover{background:rgba(248,113,113,.08) !important}
@@ -2861,10 +2842,6 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 @media(min-width:1280px){
   .bottom-nav{opacity:.85}
 }
-
-/* Sidebar active nav item */
-.sidebar-item[data-p].active{background:rgba(59,130,246,.1)!important;color:var(--blue)!important}
-.sidebar-item[data-p].active .sidebar-item-ico{background:rgba(59,130,246,.15)!important;color:var(--blue)!important}
 
 /* ── Desktop persistent sidebar ≥768px ── */
 @media(min-width:768px){
