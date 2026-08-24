@@ -592,12 +592,11 @@ html.theme-dark .prog-estimasi-middle{
 }
 .sidebar-profile-row:hover{background:rgba(14,165,233,.06)}
 .sidebar-avatar{
-  width:58px;height:58px;border-radius:50%;
+  width:64px;height:64px;border-radius:22px;
   background:#fff;overflow:hidden;flex-shrink:0;
-  border:2.5px solid transparent;
-  background-image:linear-gradient(#fff,#fff),linear-gradient(135deg,#0ea5e9,#22d3ee 55%,#0ea5e9);
-  background-origin:border-box;background-clip:content-box, border-box;
-  box-shadow:0 4px 14px rgba(14,165,233,0.22);
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,.9);
+  box-shadow:0 4px 16px rgba(14,165,233,.3),0 0 0 2px rgba(14,165,233,.15);
 }
 .sidebar-profile-text{flex:1;min-width:0}
 .sidebar-name{
@@ -2485,8 +2484,9 @@ html.theme-dark .sidebar-top{
   background: transparent !important;
 }
 html.theme-dark .sidebar-avatar{
-  background-image: linear-gradient(#fff,#fff),linear-gradient(135deg,#38bdf8,#67e8f9 55%,#38bdf8) !important;
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.22) !important;
+  background: #fff !important;
+  border-color: rgba(255,255,255,.15) !important;
+  box-shadow: 0 4px 14px rgba(56,189,248,.25),0 0 0 2.5px #1a1d24 !important;
 }
 html.theme-dark .sidebar-profile-row:hover{background:rgba(56,189,248,.08) !important}
 html.theme-dark .sidebar-profile-hint{color:rgba(255,255,255,.4) !important}
@@ -5824,7 +5824,7 @@ html.theme-dark .materi-daurah-banner-title {
       <div style="height:env(safe-area-inset-top,0px);min-height:0"></div>
       <div class="sidebar-profile-row" style="cursor:pointer" onclick="closeSidebar();openModal('profilModal')" title="Lihat Profil Saya">
         <div class="sidebar-avatar" id="sidebarAvatar">
-          <img src="../assets/images/logo-abu.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">
+          <img src="../assets/images/logo-abu.png" style="width:82%;height:82%;object-fit:contain" alt="Rattil">
         </div>
         <div class="sidebar-profile-text">
           <div class="sidebar-name" id="sidebarName">–</div>
@@ -8640,8 +8640,8 @@ function updateSidebarInfo() {
   // Avatar sidebar
   var sbAv = document.getElementById('sidebarAvatar');
   if (sbAv) sbAv.innerHTML = foto
-    ? '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
-    : '<img src="'+logoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">';
+    ? '<img src="'+foto+'" style="width:100%;height:100%;object-fit:cover" alt="">'
+    : '<img src="'+logoSrc+'" style="width:82%;height:82%;object-fit:contain" alt="Rattil">';
 
   // Avatar bottom nav center
   var navWrap = document.getElementById('navProfileWrap');
@@ -11081,8 +11081,8 @@ function renderAvatar(elId, fotoBase64, fallback) {
       ? '<img src="'+fotoBase64+'" class="nav-profile-avatar" alt="">'
       : '<img src="'+logoSrc+'" class="nav-profile-avatar" alt="Rattil">';
     if (sbAv) sbAv.innerHTML = fotoBase64
-      ? '<img src="'+fotoBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
-      : '<img src="'+logoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Rattil">';
+      ? '<img src="'+fotoBase64+'" style="width:100%;height:100%;object-fit:cover" alt="">'
+      : '<img src="'+logoSrc+'" style="width:82%;height:82%;object-fit:contain" alt="Rattil">';
   }
 }
 
