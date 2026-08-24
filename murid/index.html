@@ -111,6 +111,7 @@ html.theme-minimal{
   --shadow-blue:0 6px 18px rgba(var(--blue-rgb),0.18),0 2px 6px rgba(var(--blue-rgb),0.1);
   --blue-txt:#0f172a;--blue-bg:#f1f5f9;
   --r-card:6px;
+  --r:var(--r-card);--r-sm:var(--r-card);--r-lg:var(--r-card);
 }
 html.theme-minimal .bg-blobs{display:none}
 html.theme-minimal body{background:#ffffff !important}
@@ -144,6 +145,41 @@ html.theme-minimal .attibyan-dash-card.attibyan-locked{box-shadow:none !importan
 html.theme-minimal .level-badge{box-shadow:none !important;text-shadow:none !important}
 html.theme-minimal .prog-donut-wrap{box-shadow:0 0 0 1px rgba(0,0,0,.06)}
 html.theme-minimal .prog-donut-inner{box-shadow:none;border-color:rgba(0,0,0,.06)}
+/* Samakan radius SEMUA kartu konten lain yang masih hardcode radius besar sendiri
+   (SPP, riwayat, materi, raport, dll) -- tidak termasuk modal/popup bottom-sheet
+   (.modal-sheet/.rincian-modal/.notif-box/.kal-popup-box) & bentuk avatar/icon
+   yang memang disengaja (.sidebar-avatar/.nav-profile-wrap/.pwa-hero-icon dst) */
+html.theme-minimal .spp-card,
+html.theme-minimal .raport-card,
+html.theme-minimal .page-header,
+html.theme-minimal .riwayat-item,
+html.theme-minimal .pr-item,
+html.theme-minimal .kalender-wrap,
+html.theme-minimal .materi-card,
+html.theme-minimal .at-card-pin,
+html.theme-minimal .at-card,
+html.theme-minimal .link-card,
+html.theme-minimal .charging-note-card,
+html.theme-minimal .charging-empty,
+html.theme-minimal .charging-hero,
+html.theme-minimal .tentang-hero,
+html.theme-minimal .nasihat-card,
+html.theme-minimal .myrt-glass-card,
+html.theme-minimal .donasi-card,
+html.theme-minimal .myrt-card,
+html.theme-minimal .attibyan-quote-box,
+html.theme-minimal .peng-item,
+html.theme-minimal .raport-preview-box,
+html.theme-minimal .pwa-benefit,
+html.theme-minimal .skel-card,
+html.theme-minimal .cal-benefit,
+html.theme-minimal .charging-hero-quote,
+html.theme-minimal .pg-section,
+html.theme-minimal .partner-dash-card,
+html.theme-minimal .prog-inner-wrap,
+html.theme-minimal .grafik-card{
+  border-radius:var(--r-card) !important;
+}
 
 /* ── Pemilih tema (Biru / Minimalis) — segmented control ── */
 .theme-picker{display:inline-flex;background:var(--bg-2);border-radius:100px;padding:3px;gap:2px}
