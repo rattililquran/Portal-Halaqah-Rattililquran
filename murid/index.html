@@ -2955,7 +2955,7 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
    grid-template-columns 1fr 1fr -> kedua kartu lebarnya sama persis (kalender tetap
    center & tidak melebar berlebihan karena .dash-cal-wrap sudah punya cap max-width:640px sendiri).
    align-items:stretch -> kedua kartu tingginya sama persis juga.
-   Margin bawah .card TIDAK dinolkan -> jarak ke kartu berikutnya (Pembayaran & Infaq) tetap 16px seperti kartu lain */
+   Margin bawah .card TIDAK dinolkan -> jarak ke kartu berikutnya tetap 16px seperti kartu lain */
 @media(min-width:1360px){
   .dash-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
   #dashProgressCard{order:-1;display:flex;flex-direction:column}
@@ -4172,84 +4172,6 @@ html.theme-dark .materi-daurah-banner-title {
         </div><!-- /prog-inner-wrap -->
       </div>
 
-      <div class="spp-card" id="sppCard" style="display:none;">
-        <div class="spp-head">
-          <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>Pembayaran & Infaq</div>
-          <span id="sppBadge"></span>
-        </div>
-        <div class="spp-body">
-          <!-- Tab: SPP Pribadi | Infaq -->
-          <div class="spp-jenis-tabs">
-            <div class="spp-jenis-tab active" id="sppTabSpp" onclick="switchSppTab('spp')">🏠 SPP Pribadi</div>
-            <div class="spp-jenis-tab" id="sppTabInfaq" onclick="switchSppTab('infaq')">💛 Infaq / Operasional</div>
-          </div>
-          <!-- Panel SPP Pribadi -->
-          <div id="sppPanelSpp">
-            <div class="spp-donut-row">
-              <svg width="56" height="56" viewBox="0 0 40 40" id="sppDonut">
-                <circle cx="20" cy="20" r="15" fill="none" stroke="#f1f5f9" stroke-width="5"/>
-                <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="5"
-                  stroke-linecap="round" id="sppDonutArc"
-                  stroke-dasharray="0 94.25" stroke-dashoffset="23.56"/>
-                <text x="20" y="24" text-anchor="middle" font-size="10" font-weight="800" id="sppDonutNum" fill="#1e293b">0</text>
-              </svg>
-              <div class="spp-donut-info">
-                <div class="spp-donut-title" id="sppDonutTitle">Memuat...</div>
-                <div class="spp-donut-sub" id="sppDonutSub"></div>
-              </div>
-            </div>
-            <div class="spp-bulan-grid" id="sppBulanGridDisplay"></div>
-            <div class="spp-msg" id="sppMsg" style="display:none"></div>
-          </div>
-          <!-- Panel Infaq -->
-          <div id="sppPanelInfaq" style="display:none">
-            <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-bottom:10px">Riwayat Infaq / Operasional</div>
-            <div id="sppInfaqList"><div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div></div>
-          </div>
-          <button class="spp-konfirm-btn" onclick="bukaModalKonfirmasiSPP()">
-            💳 Bayar & Infaq
-          </button>
-        </div>
-      </div>
-
-      <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
-      <div class="spp-card" id="transparansiCard" style="display:none;">
-        <div class="spp-head">
-          <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.67 10.9 4.6a5.5 5.5 0 0 0-7.8 7.8l1.1 1.06L12 21.2l7.8-7.75 1.1-1.06a5.5 5.5 0 0 0-.1-7.8z"/></svg></div>Transparansi Dana Infaq</div>
-          <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
-        </div>
-        <div class="spp-body">
-          <div style="font-size:11.5px;color:var(--text-3);line-height:1.6;margin-bottom:12px">Sebagai amanah kepada para Muhsinin, berikut ringkasan dana infaq/operasional bulan ini.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Infaq Terkumpul</div>
-              <div style="font-size:15px;font-weight:900;color:#b45309;margin-top:3px" id="transInfaq">—</div>
-            </div>
-            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px">
-              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Operasional</div>
-              <div style="font-size:15px;font-weight:900;color:#b91c1c;margin-top:3px" id="transOperasional">—</div>
-            </div>
-          </div>
-          <div id="transOpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-          <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-            <div style="font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa Untuk Program Beasiswa</div>
-            <div style="font-size:18px;font-weight:900;color:#059669;margin-top:3px" id="transSisa">—</div>
-            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px" id="transSisaNote"></div>
-          </div>
-          <!-- Ucapan terima kasih & doa untuk Muhsinin -->
-          <div style="margin-top:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
-            <div style="font-size:13px;font-weight:800;color:#b45309;margin-bottom:6px">💛 Jazākumullāhu khairan, para Muhsinin</div>
-            <div style="font-size:11.5px;line-height:1.7;color:var(--text-2)">Terima kasih atas setiap infaq yang Anda titipkan. Semoga Allah menjadikannya amal jariyah yang terus mengalir, melapangkan rezeki Anda, dan memberatkan timbangan kebaikan di hari perhitungan.</div>
-            <div dir="rtl" lang="ar" style="font-family:'Amiri','Scheherazade New','Traditional Arabic','Geeza Pro',serif;font-size:16px;color:#7c4a03;margin-top:8px">آمين يا رب العالمين 🤲</div>
-          </div>
-        </div>
-      </div>
-
-
-
-
-
-
 
       <!-- Log Latihan Harian Card -->
       <!-- ── Kartu Lapor Aktivitas Belajar (Partner Belajar) ── -->
@@ -4343,6 +4265,94 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
 
     </div><!-- /dashboard -->
+
+    <!-- ════ PEMBAYARAN & INFAQ (SPP) ════ -->
+    <div class="page" id="page-spp-infaq">
+      <div class="page-header">
+        <div class="page-header-ico">💳</div>
+        <div>
+          <div class="page-title">Pembayaran & Infaq</div>
+          <div class="page-sub">Status SPP, riwayat infaq, dan transparansi dana operasional bulan ini.</div>
+        </div>
+      </div>
+
+      <div class="spp-card" id="sppCard" style="display:none;">
+        <div class="spp-head">
+          <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>Pembayaran & Infaq</div>
+          <span id="sppBadge"></span>
+        </div>
+        <div class="spp-body">
+          <!-- Tab: SPP Pribadi | Infaq -->
+          <div class="spp-jenis-tabs">
+            <div class="spp-jenis-tab active" id="sppTabSpp" onclick="switchSppTab('spp')">🏠 SPP Pribadi</div>
+            <div class="spp-jenis-tab" id="sppTabInfaq" onclick="switchSppTab('infaq')">💛 Infaq / Operasional</div>
+          </div>
+          <!-- Panel SPP Pribadi -->
+          <div id="sppPanelSpp">
+            <div class="spp-donut-row">
+              <svg width="56" height="56" viewBox="0 0 40 40" id="sppDonut">
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#f1f5f9" stroke-width="5"/>
+                <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="5"
+                  stroke-linecap="round" id="sppDonutArc"
+                  stroke-dasharray="0 94.25" stroke-dashoffset="23.56"/>
+                <text x="20" y="24" text-anchor="middle" font-size="10" font-weight="800" id="sppDonutNum" fill="#1e293b">0</text>
+              </svg>
+              <div class="spp-donut-info">
+                <div class="spp-donut-title" id="sppDonutTitle">Memuat...</div>
+                <div class="spp-donut-sub" id="sppDonutSub"></div>
+              </div>
+            </div>
+            <div class="spp-bulan-grid" id="sppBulanGridDisplay"></div>
+            <div class="spp-msg" id="sppMsg" style="display:none"></div>
+          </div>
+          <!-- Panel Infaq -->
+          <div id="sppPanelInfaq" style="display:none">
+            <div style="font-size:12px;color:var(--text-3);font-weight:600;margin-bottom:10px">Riwayat Infaq / Operasional</div>
+            <div id="sppInfaqList"><div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Belum ada data infaq.</div></div>
+          </div>
+          <button class="spp-konfirm-btn" onclick="bukaModalKonfirmasiSPP()">
+            💳 Bayar & Infaq
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
+      <div class="spp-card" id="transparansiCard" style="display:none;">
+        <div class="spp-head">
+          <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.67 10.9 4.6a5.5 5.5 0 0 0-7.8 7.8l1.1 1.06L12 21.2l7.8-7.75 1.1-1.06a5.5 5.5 0 0 0-.1-7.8z"/></svg></div>Transparansi Dana Infaq</div>
+          <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
+        </div>
+        <div class="spp-body">
+          <div style="font-size:11.5px;color:var(--text-3);line-height:1.6;margin-bottom:12px">Sebagai amanah kepada para Muhsinin, berikut ringkasan dana infaq/operasional bulan ini.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Infaq Terkumpul</div>
+              <div style="font-size:15px;font-weight:900;color:#b45309;margin-top:3px" id="transInfaq">—</div>
+            </div>
+            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px">
+              <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase">Operasional</div>
+              <div style="font-size:15px;font-weight:900;color:#b91c1c;margin-top:3px" id="transOperasional">—</div>
+            </div>
+          </div>
+          <div id="transOpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+          <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Sisa Untuk Program Beasiswa</div>
+            <div style="font-size:18px;font-weight:900;color:#059669;margin-top:3px" id="transSisa">—</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px" id="transSisaNote"></div>
+          </div>
+          <!-- Ucapan terima kasih & doa untuk Muhsinin -->
+          <div style="margin-top:12px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:13px;font-weight:800;color:#b45309;margin-bottom:6px">💛 Jazākumullāhu khairan, para Muhsinin</div>
+            <div style="font-size:11.5px;line-height:1.7;color:var(--text-2)">Terima kasih atas setiap infaq yang Anda titipkan. Semoga Allah menjadikannya amal jariyah yang terus mengalir, melapangkan rezeki Anda, dan memberatkan timbangan kebaikan di hari perhitungan.</div>
+            <div dir="rtl" lang="ar" style="font-family:'Amiri','Scheherazade New','Traditional Arabic','Geeza Pro',serif;font-size:16px;color:#7c4a03;margin-top:8px">آمين يا رب العالمين 🤲</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:16px;margin-bottom:16px">
+        <a href="javascript:void(0)" onclick="goPage('infaq-beasiswa')" style="font-size:12.5px;font-weight:700;color:var(--blue);text-decoration:none">📖 Panduan Program Beasiswa &amp; Transparansi Infaq/Operasional →</a>
+      </div>
+    </div><!-- /page-spp-infaq -->
 
     <!-- ════ RIWAYAT KBM ════ -->
     <div class="page" id="page-riwayat">
@@ -6137,7 +6147,7 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- ── ADMINISTRASI ── -->
       <div class="sidebar-section">Administrasi</div>
 
-      <button class="sidebar-item ico-teal" onclick="goToPembayaran()">
+      <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('spp-infaq')" data-p="spp-infaq">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
         <span class="sidebar-item-label">Pembayaran &amp; Infaq</span>
       </button>
@@ -7969,6 +7979,7 @@ function goPage(name, swipeDir) {
   else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'partner-belajar') { loadPagePartnerBelajar(); }
+  else if (name === 'spp-infaq') { _sppLoaded = false; loadSPP(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -8860,7 +8871,7 @@ var PAGE_TO_GROUP = {
   dashboard: 'utama', pengumuman: 'utama', saran: 'utama',
   kuis: 'akademik', riwayat: 'akademik', info: 'akademik', pr: 'akademik',
   attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
-  'infaq-beasiswa': 'administrasi',
+  'spp-infaq': 'administrasi', 'infaq-beasiswa': 'administrasi',
   assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi', charging: 'evaluasi',
   panduan: 'pengaturan', password: 'pengaturan',
 };
@@ -8903,26 +8914,6 @@ function toggleSidebar() {
   } else {
     openSidebar();
   }
-}
-
-// Item sidebar "Pembayaran & Infaq" (grup Administrasi) menuju kartu SPP di Dashboard,
-// bukan halaman terpisah -- kartu itu baru muncul (display:block) setelah data SPP
-// selesai dimuat async (lihat renderSPP() di spp-module.js), jadi ditunggu sebentar
-// sebelum discroll, bukan langsung scrollIntoView setelah pindah halaman.
-function goToPembayaran() {
-  closeSidebar();
-  goPage('dashboard');
-  var tries = 0;
-  var iv = setInterval(function () {
-    var el = document.getElementById('sppCard');
-    tries++;
-    if (el && el.style.display !== 'none') {
-      clearInterval(iv);
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (tries > 20) {
-      clearInterval(iv); // murid tanpa SPP aktif -- kartu memang tidak akan tampil, diam saja
-    }
-  }, 150);
 }
 
 // ── Petualangan (Maze) — dimuat DINAMIS saat dibuka saja (tidak membebani load awal).
