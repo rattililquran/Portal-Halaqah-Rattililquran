@@ -3009,9 +3009,18 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
    laptop/desktop kartu ini melebar penuh, dan karena .kal-day pakai aspect-ratio:1
    (kotak), tingginya ikut membengkak proporsional dgn lebarnya, bikin kalender
    raksasa yg menenggelamkan daftar riwayat di bawahnya. Kunci lebar spy tetap
-   proporsional seperti tampilan mobile. */
+   proporsional seperti tampilan mobile. Di desktop, ruang kosong kiri-kanan yg
+   tersisa dimanfaatkan utk preview bulan sebelum/sesudahnya (redup, klik utk
+   lompat) -- makanya cap lebarnya lebih lega drpd cuma 1 bulan sendirian. */
+.kal-months-row{display:flex;align-items:flex-start;gap:10px}
+.kal-month-main{flex:1;min-width:0}
+.kal-month-side{flex:1;min-width:0;display:none;cursor:pointer;opacity:.4;transition:opacity .15s ease}
+.kal-month-side:hover{opacity:.7}
+.kal-month-side-label{text-align:center;font-size:10.5px;font-weight:700;color:var(--text-3);margin-bottom:6px}
+.kal-grid-mini .kal-day-name{display:none}
 @media(min-width:768px){
-  .kalender-wrap{max-width:420px;margin-left:auto;margin-right:auto}
+  .kalender-wrap{max-width:960px;margin-left:auto;margin-right:auto}
+  .kal-month-side{display:block}
 }
 
 /* Kalender + Kehadiranku: berdampingan (Kehadiranku kiri, kalender kanan) di layar lebar
@@ -4452,7 +4461,21 @@ html.theme-dark .materi-daurah-banner-title {
           <div class="kal-month" id="kalMonth"></div>
           <button class="kal-nav" onclick="kalNav(1)" aria-label="Bulan berikutnya"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
         </div>
-        <div class="kal-grid" id="kalGrid"></div>
+        <div class="kal-months-row">
+          <!-- Bulan sebelumnya -- cuma tampil di desktop (≥768px), redup, klik utk lompat -->
+          <div class="kal-month-side" id="kalSidePrev" onclick="kalNav(-1)" role="button" aria-label="Lihat bulan sebelumnya">
+            <div class="kal-month-side-label" id="kalMonthPrevLbl"></div>
+            <div class="kal-grid kal-grid-mini" id="kalGridPrev"></div>
+          </div>
+          <div class="kal-month-main">
+            <div class="kal-grid" id="kalGrid"></div>
+          </div>
+          <!-- Bulan berikutnya -- sama seperti di atas, cermin ke kanan -->
+          <div class="kal-month-side" id="kalSideNext" onclick="kalNav(1)" role="button" aria-label="Lihat bulan berikutnya">
+            <div class="kal-month-side-label" id="kalMonthNextLbl"></div>
+            <div class="kal-grid kal-grid-mini" id="kalGridNext"></div>
+          </div>
+        </div>
         <div class="kal-legend">
           <div class="kal-leg"><div class="kal-dot" style="background:var(--green-l);border:1px solid var(--green)"></div>Hadir</div>
           <div class="kal-leg"><div class="kal-dot" style="background:var(--red-l);border:1px solid var(--red)"></div>Alpa</div>
@@ -9463,36 +9486,29 @@ async function muatLebihRiwayatMurid() {
 // ══════════════════════════════════════════
 //  KALENDER KEHADIRAN
 // ══════════════════════════════════════════
-function renderKalender() {
-  var HARI_NAMES = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-  var BLAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
-                     'Juli','Agustus','September','Oktober','November','Desember'];
-  var y = _kalDate.getFullYear();
-  var m = _kalDate.getMonth();
+var KAL_HARI_NAMES = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+var KAL_BLAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+                   'Juli','Agustus','September','Oktober','November','Desember'];
 
-  document.getElementById('kalMonth').textContent = BLAN_NAMES[m] + ' ' + y;
-
-  // Build map tanggal → status dari riwayatData
+function _kalBuildDateMap() {
   var dateMap = {};
   riwayatData.forEach(function(k) {
     if (!k.tanggal) return;
-    var d = k.tanggal.substring(0,10); // yyyy-mm-dd
-    dateMap[d] = k.status_hadir;
+    dateMap[k.tanggal.substring(0,10)] = k.status_hadir; // yyyy-mm-dd
   });
+  return dateMap;
+}
 
-  var html = HARI_NAMES.map(function(d){
-    return '<div class="kal-day-name">'+d+'</div>';
-  }).join('');
-
+// interactive=true (bulan tengah): header nama hari + tiap tanggal ber-sesi
+// bisa diklik buka detail. interactive=false (preview bulan samping): cuma
+// warna status, tanpa header nama hari & tanpa klik per-tanggal (klik ada di
+// pembungkus panelnya, utk lompat bulan -- lihat kalSidePrev/kalSideNext).
+function _kalBuildGridHtml(y, m, dateMap, interactive) {
+  var html = interactive ? KAL_HARI_NAMES.map(function(d){ return '<div class="kal-day-name">'+d+'</div>'; }).join('') : '';
   var firstDay = new Date(y, m, 1).getDay();
   var daysInMonth = new Date(y, m+1, 0).getDate();
   var today = new Date();
-
-  // Empty cells sebelum hari pertama
-  for (var i = 0; i < firstDay; i++) {
-    html += '<div class="kal-day empty"></div>';
-  }
-
+  for (var i = 0; i < firstDay; i++) html += '<div class="kal-day empty"></div>';
   for (var d = 1; d <= daysInMonth; d++) {
     var dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
     var status  = dateMap[dateStr];
@@ -9501,13 +9517,34 @@ function renderKalender() {
     else if (status === 'A') cls = 'alpa';
     else if (status === 'I' || status === 'T') cls = 'izin';
     var isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
-    // Tanggal berwarna = ada sesi, bisa diklik
-    var onclick = status ? ' onclick="bukaKalDetail(\'' + dateStr + '\')" style="cursor:pointer"' : '';
+    var onclick = (interactive && status) ? ' onclick="bukaKalDetail(\'' + dateStr + '\')" style="cursor:pointer"' : '';
     html += '<div class="kal-day '+ cls + (isToday?' today':'') + '"' + onclick + '>' + d + '</div>';
   }
+  return html;
+}
 
+function renderKalender() {
+  var y = _kalDate.getFullYear();
+  var m = _kalDate.getMonth();
+  document.getElementById('kalMonth').textContent = KAL_BLAN_NAMES[m] + ' ' + y;
+
+  var dateMap = _kalBuildDateMap();
   var grid = document.getElementById('kalGrid');
-  if (grid) grid.innerHTML = html;
+  if (grid) grid.innerHTML = _kalBuildGridHtml(y, m, dateMap, true);
+
+  // Preview bulan sebelum & sesudah -- desktop only secara visual (CSS yg
+  // mengatur tampil/sembunyinya via media query), tapi tetap dihitung di sini
+  // supaya tidak perlu deteksi lebar layar di JS.
+  var prevM = m - 1, prevY = y; if (prevM < 0) { prevM = 11; prevY--; }
+  var nextM = m + 1, nextY = y; if (nextM > 11) { nextM = 0; nextY++; }
+  var prevLbl = document.getElementById('kalMonthPrevLbl');
+  var nextLbl = document.getElementById('kalMonthNextLbl');
+  if (prevLbl) prevLbl.textContent = KAL_BLAN_NAMES[prevM] + ' ' + prevY;
+  if (nextLbl) nextLbl.textContent = KAL_BLAN_NAMES[nextM] + ' ' + nextY;
+  var gridPrev = document.getElementById('kalGridPrev');
+  var gridNext = document.getElementById('kalGridNext');
+  if (gridPrev) gridPrev.innerHTML = _kalBuildGridHtml(prevY, prevM, dateMap, false);
+  if (gridNext) gridNext.innerHTML = _kalBuildGridHtml(nextY, nextM, dateMap, false);
 }
 
 function kalNav(dir) {
