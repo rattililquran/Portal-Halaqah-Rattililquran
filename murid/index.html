@@ -2869,6 +2869,14 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .dash-prog-panel{flex:1;display:flex;flex-direction:column;justify-content:center}
 }
 
+/* ── Kartu Lapor Aktivitas Belajar (dashPbCard): icon badge di judul + empty-state lebih ramah ── */
+#dashPbCard .card-title{gap:10px}
+.pb-title-ico{width:30px;height:30px;border-radius:9px;font-size:14px;flex-shrink:0}
+#dashPbCard .pb-empty{text-align:center;padding:8px 18px 26px}
+#dashPbCard .pb-empty-ico{width:52px;height:52px;border-radius:50%;background:var(--blue-l);
+  display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px}
+#dashPbCard .pb-empty-txt{font-size:12.5px;color:var(--text-2);line-height:1.7;max-width:280px;margin:0 auto}
+
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
   .card{padding:20px!important}
@@ -4130,19 +4138,18 @@ html.theme-dark .materi-daurah-banner-title {
         <!-- State: Belum punya kelompok -->
         <div id="dashPbNoKelompok" style="display:none">
           <div class="card-head">
-            <div class="card-title">📚 Partner Belajar</div>
+            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico">📚</div>Partner Belajar</div>
             <button class="card-more" onclick="goPage('partner-belajar')">Buka →</button>
           </div>
-          <div class="card-body">
-            <div style="text-align:center;padding:6px 0 10px;font-size:12px;color:var(--text-3);line-height:1.65">
-              Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung. 🤝
-            </div>
+          <div class="pb-empty">
+            <div class="pb-empty-ico">🤝</div>
+            <div class="pb-empty-txt">Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung.</div>
           </div>
         </div>
         <!-- State: Ada kelompok → tampilkan mini-form -->
         <div id="dashPbForm" style="display:none">
           <div class="card-head">
-            <div class="card-title">📝 Lapor Aktivitas Belajar</div>
+            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico">📝</div>Lapor Aktivitas Belajar</div>
             <button class="card-more" onclick="goPage('partner-belajar')">Riwayat →</button>
           </div>
           <div class="card-body">
