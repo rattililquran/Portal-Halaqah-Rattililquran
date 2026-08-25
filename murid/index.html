@@ -2857,10 +2857,12 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 /* Kalender + Kehadiranku: berdampingan (Kehadiranku kiri, kalender kanan) di layar lebar
    agar ruang kosong di kanan-kiri kalender terpakai, bukan sekadar margin kosong.
-   align-items:stretch -> kedua kartu tingginya sama persis (simetris).
+   grid-template-columns 1fr 1fr -> kedua kartu lebarnya sama persis (kalender tetap
+   center & tidak melebar berlebihan karena .dash-cal-wrap sudah punya cap max-width:640px sendiri).
+   align-items:stretch -> kedua kartu tingginya sama persis juga.
    Margin bawah .card TIDAK dinolkan -> jarak ke kartu berikutnya (Pembayaran & Infaq) tetap 16px seperti kartu lain */
 @media(min-width:1360px){
-  .dash-top-grid{display:grid;grid-template-columns:1fr minmax(0,640px);gap:16px;align-items:stretch}
+  .dash-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
   #dashProgressCard{order:-1;display:flex;flex-direction:column}
   /* Isi Kehadiranku mengisi tinggi kartu secara merata, bukan menggantung kosong di bawah */
   .dash-prog-body{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
