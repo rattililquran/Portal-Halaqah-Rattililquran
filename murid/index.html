@@ -297,6 +297,16 @@ html.theme-dark #authScreen{background:#111318}
   border:1px solid rgba(var(--blue-rgb),.12);border-radius:100px;
   padding:2px 8px;font-size:9px;color:var(--blue);font-weight:700;
 }
+/* Brand Rattililqur'an di header atas */
+.top-brand{display:flex;align-items:center;gap:8px;min-width:0}
+.top-brand-mark{height:28px;width:auto;display:block;flex-shrink:0}
+.top-brand-mark.dark-only{display:none}
+html.theme-dark .top-brand-mark.light-only{display:none}
+html.theme-dark .top-brand-mark.dark-only{display:block}
+.top-brand-name{font-size:15px;font-weight:800;letter-spacing:-.01em;color:#0f172a;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-brand-accent{color:var(--red)}
+html.theme-dark .top-brand-name{color:#e8eaf0}
 /* action buttons kanan */
 .top-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .top-action-btn{
@@ -3822,10 +3832,16 @@ html.theme-dark .materi-daurah-banner-title {
           <line x1="1" y1="11.5" x2="14" y2="11.5"/>
         </svg>
       </button>
-      <!-- Info tengah -->
+      <!-- Info tengah: brand Rattililqur'an (menggantikan sapaan nama -- nama murid sudah tampil di sidebar) -->
       <div class="top-left">
-        <div class="top-name" id="topName">–</div>
-        <div class="top-badge" id="topHalaqah">📚 Halaqah</div>
+        <div class="top-brand">
+          <img class="top-brand-mark light-only" src="../assets/images/logo-abu.png" alt="Rattililqur'an">
+          <img class="top-brand-mark dark-only" src="../assets/images/logo-putih.png" alt="Rattililqur'an">
+          <span class="top-brand-name">RATTILIL<span class="top-brand-accent">QUR'AN</span></span>
+        </div>
+        <!-- dipertahankan tersembunyi untuk kompatibilitas kode JS (topName/topHalaqah masih di-set di banyak tempat) -->
+        <div class="top-name" id="topName" style="display:none">–</div>
+        <div class="top-badge" id="topHalaqah" style="display:none">📚 Halaqah</div>
       </div>
       <!-- Actions kanan -->
       <div class="top-actions">
