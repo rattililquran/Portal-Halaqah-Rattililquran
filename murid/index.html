@@ -1209,6 +1209,7 @@ html.theme-dark .at-dot.null{background:#374151!important}
 html.theme-dark #dashProgressCard{
   background:#162032 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
 }
+.kh-title-ico{width:30px;height:30px;border-radius:9px;color:#16a34a}
 /* Kartu kalender dashboard -> samakan bayangan/border dengan Kehadiranku (persis, termasuk di tema Minimalis) */
 #dashCalCard{
   background:#fff !important;box-shadow:var(--shadow-card);
@@ -2241,6 +2242,8 @@ html.theme-dark .inline-loader-pulse {
   justify-content:space-between;margin-bottom:10px}
 .spp-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px}
 .spp-title-ico{width:30px;height:30px;border-radius:9px;font-size:14px;flex-shrink:0}
+.spp-title-ico.ico-green{color:#16a34a}
+.spp-title-ico.ico-gold{color:#a16207}
 .spp-body{padding:0 18px 16px}
 /* Bulan grid (hanya SPP Pribadi) */
 .spp-bulan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
@@ -2249,7 +2252,7 @@ html.theme-dark .inline-loader-pulse {
 .spp-lunas{background:var(--bg-2);color:var(--text-2);border-color:var(--border)}
 .spp-menunggu{background:var(--bg-2);color:var(--text-2);border-color:var(--border)}
 .spp-belum{background:var(--bg-2);color:var(--text-3);border-color:var(--border)}
-.spp-bulan-ico{font-size:14px;line-height:1}
+.spp-bulan-ico{display:flex;align-items:center;justify-content:center;line-height:1}
 /* Layar lebar: kunci lebar isi + perbesar donut & grid bulan agar tidak melebar/kecil berlebihan.
    Diletakkan SETELAH deklarasi dasar di atas -- spesifisitas sama, urutan sumber yang menentukan pemenang. */
 @media(min-width:1360px){
@@ -2257,7 +2260,7 @@ html.theme-dark .inline-loader-pulse {
   #sppDonut{width:84px;height:84px}
   .spp-bulan-grid{grid-template-columns:repeat(6,1fr)}
   .spp-bulan{font-size:11.5px;padding:10px 4px}
-  .spp-bulan-ico{font-size:17px}
+  .spp-bulan-ico svg{width:16px;height:16px}
 }
 /* Donut SVG tunggakan */
 .spp-donut-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
@@ -2889,13 +2892,13 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 /* ── Kartu Lapor Aktivitas Belajar (dashPbCard): icon badge di judul + empty-state lebih ramah ── */
 #dashPbCard .card-title{gap:10px}
-.pb-title-ico{width:30px;height:30px;border-radius:9px;font-size:14px;flex-shrink:0}
+.pb-title-ico{width:30px;height:30px;border-radius:9px;font-size:14px;flex-shrink:0;color:#0284c7}
 #dashPbCard .pb-empty{text-align:center;padding:8px 18px 26px}
-#dashPbCard .pb-empty-ico{width:52px;height:52px;border-radius:50%;background:var(--blue-l);
+#dashPbCard .pb-empty-ico{width:52px;height:52px;border-radius:50%;background:var(--blue-l);color:#0284c7;
   display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px}
 #dashPbCard .pb-empty-txt{font-size:12.5px;color:var(--text-2);line-height:1.7;max-width:280px;margin:0 auto}
 /* State form (sudah ada anggota/kelompok) -> badge judul dinetralkan, tidak biru mencolok */
-#dashPbForm .pg-sec-ico{background:var(--bg-2)}
+#dashPbForm .pg-sec-ico{background:var(--bg-2);color:var(--text-2)}
 
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
@@ -3898,7 +3901,7 @@ html.theme-dark .materi-daurah-banner-title {
         <div class="prog-motivasi-outer" id="dashMotivasi" style="display:none"></div>
 
         <!-- Judul besar -->
-        <div class="card-title" style="margin-bottom:16px">✅ Kehadiranku</div>
+        <div class="card-title" style="margin-bottom:16px;gap:10px"><div class="pg-sec-ico ico-green kh-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.5 15 16 9"/></svg></div>Kehadiranku</div>
 
         <div class="dash-prog-body">
         <!-- KBM Reguler -->
@@ -4068,7 +4071,7 @@ html.theme-dark .materi-daurah-banner-title {
 
       <div class="spp-card" id="sppCard" style="display:none;">
         <div class="spp-head">
-          <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico">💳</div>Pembayaran & Infaq</div>
+          <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>Pembayaran & Infaq</div>
           <span id="sppBadge"></span>
         </div>
         <div class="spp-body">
@@ -4109,7 +4112,7 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
       <div class="spp-card" id="transparansiCard" style="display:none;">
         <div class="spp-head">
-          <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico">💛</div>Transparansi Dana Infaq</div>
+          <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.67 10.9 4.6a5.5 5.5 0 0 0-7.8 7.8l1.1 1.06L12 21.2l7.8-7.75 1.1-1.06a5.5 5.5 0 0 0-.1-7.8z"/></svg></div>Transparansi Dana Infaq</div>
           <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
         </div>
         <div class="spp-body">
@@ -4158,18 +4161,18 @@ html.theme-dark .materi-daurah-banner-title {
         <!-- State: Belum punya kelompok -->
         <div id="dashPbNoKelompok" style="display:none">
           <div class="card-head">
-            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico">📚</div>Partner Belajar</div>
+            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>Partner Belajar</div>
             <button class="card-more" onclick="goPage('partner-belajar')">Buka →</button>
           </div>
           <div class="pb-empty">
-            <div class="pb-empty-ico">🤝</div>
+            <div class="pb-empty-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="pb-empty-txt">Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung.</div>
           </div>
         </div>
         <!-- State: Ada kelompok → tampilkan mini-form -->
         <div id="dashPbForm" style="display:none">
           <div class="card-head">
-            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico">📝</div>Lapor Aktivitas Belajar</div>
+            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div>Lapor Aktivitas Belajar</div>
             <button class="card-more" onclick="goPage('partner-belajar')">Riwayat →</button>
           </div>
           <div class="card-body">
@@ -6969,7 +6972,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
-<script src="spp-module.js?v=83a0d5f0" defer></script>
+<script src="spp-module.js?v=786f49d0" defer></script>
 <script src="partner-module.js?v=4f1156ae" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
