@@ -853,6 +853,30 @@ html.theme-dark.nav-tabs .top-tabbar{background:#1e2128 !important;border-color:
 html.theme-dark.nav-tabs .top-tab{color:rgba(255,255,255,.5) !important}
 html.theme-dark.nav-tabs .top-tab:hover{color:#e8eaf0 !important}
 html.theme-dark.nav-tabs .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
+html.nav-tabs a.top-tab{text-decoration:none}
+
+/* Dropdown menu: muncul saat hover/focus salah satu .top-tab[data-group] (lihat JS
+   showTabDropdown/hideTabDropdown) -- SATU panel dipakai ulang utk semua tab, isinya
+   diganti tiap kali dibuka (pola sama seperti .grafik-tooltip yang sudah ada).
+   position:fixed sengaja jadi sibling .top-tabbar (bukan di dalam .sidebar-drawer --
+   itu punya transform yang bikin position:fixed child-nya tidak lepas ke viewport). */
+html.nav-tabs .top-tab-dropdown{
+  position:fixed;z-index:400;min-width:200px;max-width:280px;
+  max-height:70vh;overflow-y:auto;
+  background:var(--card-solid,#fff);border:1px solid var(--border);
+  border-radius:var(--r-sm);box-shadow:var(--shadow-lg);
+  padding:6px;opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .15s ease,transform .15s ease,visibility .15s;
+}
+html.nav-tabs .top-tab-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
+html.nav-tabs .top-tab-dropdown-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+  font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;font-family:inherit;
+}
+html.nav-tabs .top-tab-dropdown-item:hover{background:rgba(var(--blue-rgb),.08)}
+html.nav-tabs .top-tab-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
+html.nav-tabs .top-tab-dropdown-empty{padding:10px;font-size:12px;color:var(--text-3);text-align:center}
 
 /* Grup sidebar -- default (jalur lama) selalu tampil; di varian baru difilter oleh tab aktif */
 html.nav-tabs .sidebar-group{display:none}
@@ -3928,31 +3952,36 @@ html.theme-dark .materi-daurah-banner-title {
   <!-- TAB ATAS (varian baru, opt-in via html.nav-tabs -- tersembunyi total di jalur lama) --
        memfilter grup sidebar mana yang tampil, TIDAK pindah halaman sendiri -->
   <nav class="top-tabbar" id="topTabbar" role="tablist" aria-label="Navigasi utama">
-    <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true">
+    <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       <span>Utama</span>
     </button>
-    <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik')" role="tab" aria-selected="false">
+    <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
       <span>Akademik</span>
     </button>
-    <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan')" role="tab" aria-selected="false">
+    <a class="top-tab" href="https://modul-rattililquran.web.app" target="_blank" rel="noopener" aria-label="Buka Modul Rattililqur'an (tab baru)">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+      <span>Modul</span>
+    </a>
+    <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
       <span>Permainan</span>
     </button>
-    <button class="top-tab" data-group="administrasi" onclick="onTopTabClick('administrasi')" role="tab" aria-selected="false">
+    <button class="top-tab" data-group="administrasi" onclick="onTopTabClick('administrasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
       <span>Administrasi</span>
     </button>
-    <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi')" role="tab" aria-selected="false">
+    <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></span>
       <span>Evaluasi</span>
     </button>
-    <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan')" role="tab" aria-selected="false">
+    <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       <span>Pengaturan</span>
     </button>
   </nav>
+  <div class="top-tab-dropdown" id="topTabDropdown" role="menu" aria-hidden="true"></div>
 
   <!-- CONTENT -->
   <div class="content">
@@ -8903,6 +8932,73 @@ function onTopTabClick(key) {
   // -- jadi ikut buka drawer-nya. Desktop: sidebar (penuh/collapsed) sudah selalu terlihat.
   if (!_isDesktop()) openSidebar();
 }
+
+// ── Dropdown menu tab atas (hover/focus, desktop only) ──
+// Tambahan MURNI di atas onTopTabClick -- tidak mengubah perilaku klik tab yang sudah
+// ada. Di HP, tap tab tetap cuma buka drawer penuh seperti biasa (drawer itu sendiri
+// sudah berperan sbg "daftar pilihan", jadi tidak perlu dropdown kedua yg tumpang tindih
+// dgn gesture tap yg sama).
+var _tabDropdownHideT = null;
+function buildTabDropdownItems(key) {
+  var group = document.querySelector('.sidebar-group[data-group="' + key + '"]');
+  if (!group) return [];
+  return Array.prototype.slice.call(group.querySelectorAll('.sidebar-item[data-p]'))
+    // .style.display MILIK ITEM ITU SENDIRI saja (bukan offsetParent/computed) -- grup yg
+    // sedang tidak aktif ikut display:none di ancestornya, offsetParent akan salah kira
+    // semua isinya "tersembunyi utk siswa ini" padahal itu cuma efek filter tab lain.
+    .filter(function(el){ return el.style.display !== 'none'; })
+    .map(function(el){
+      return {
+        page: el.getAttribute('data-p'),
+        icon: (el.querySelector('.sidebar-item-ico') || {}).innerHTML || '',
+        label: (el.querySelector('.sidebar-item-label') || {}).textContent || ''
+      };
+    });
+}
+function showTabDropdown(key, tabEl) {
+  if (!_isDesktop()) return;
+  clearTimeout(_tabDropdownHideT);
+  var dd = document.getElementById('topTabDropdown');
+  if (!dd) return;
+  var items = buildTabDropdownItems(key);
+  dd.innerHTML = items.length ? items.map(function(it){
+    return '<button class="top-tab-dropdown-item" role="menuitem" onclick="goPage(\'' + escJs(it.page) + '\');hideTabDropdown()">'
+      + it.icon + '<span>' + esc(it.label) + '</span></button>';
+  }).join('') : '<div class="top-tab-dropdown-empty">Tidak ada item.</div>';
+  var r = tabEl.getBoundingClientRect();
+  var left = Math.min(r.left, window.innerWidth - 288);
+  dd.style.left = Math.max(8, left) + 'px';
+  dd.style.top  = (r.bottom + 6) + 'px';
+  dd.classList.add('open');
+  dd.setAttribute('aria-hidden', 'false');
+  tabEl.setAttribute('aria-expanded', 'true');
+}
+function hideTabDropdown() {
+  var dd = document.getElementById('topTabDropdown');
+  if (!dd) return;
+  dd.classList.remove('open');
+  dd.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.top-tab[aria-expanded="true"]').forEach(function(b){ b.setAttribute('aria-expanded', 'false'); });
+}
+function scheduleHideTabDropdown() {
+  clearTimeout(_tabDropdownHideT);
+  _tabDropdownHideT = setTimeout(hideTabDropdown, 220);
+}
+(function initTabDropdownEvents(){
+  document.querySelectorAll('.top-tab[data-group]').forEach(function(tab){
+    tab.addEventListener('mouseenter', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
+    tab.addEventListener('mouseleave', scheduleHideTabDropdown);
+    tab.addEventListener('focus', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
+    tab.addEventListener('blur', scheduleHideTabDropdown);
+  });
+  var dd = document.getElementById('topTabDropdown');
+  if (dd) {
+    dd.addEventListener('mouseenter', function(){ clearTimeout(_tabDropdownHideT); });
+    dd.addEventListener('mouseleave', scheduleHideTabDropdown);
+  }
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideTabDropdown(); });
+})();
+
 function toggleSidebarCollapse() {
   var drawer = document.getElementById('sidebarDrawer');
   if (!drawer) return;
