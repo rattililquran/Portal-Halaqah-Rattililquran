@@ -281,11 +281,11 @@ html.theme-dark #authScreen{background:#111318}
 /* Hamburger kiri */
 .top-hamburger{
   width:40px;height:40px;border-radius:50%;flex-shrink:0;
-  background:rgba(var(--blue-rgb),.08);border:none;
+  background:none;border:none;
   color:#475569;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;
 }
-.top-hamburger:active{background:rgba(var(--blue-rgb),.16)}
+.top-hamburger:active{background:rgba(var(--blue-rgb),.1)}
 /* nama + halaqah tengah */
 .top-left{flex:1;min-width:0}
 .top-greet{font-size:10.5px;color:#64748b;font-weight:500;line-height:1;margin-bottom:1px}
@@ -299,24 +299,36 @@ html.theme-dark #authScreen{background:#111318}
 }
 /* Brand Rattililqur'an di header atas */
 .top-brand{display:flex;align-items:center;gap:8px;min-width:0}
-.top-brand-mark{height:28px;width:auto;display:block;flex-shrink:0}
+/* Logo aslinya adalah lockup Arab+Latin jadi satu gambar -- di-crop via overflow:hidden
+   supaya cuma bagian kaligrafi Arab yang tampil (tulisan Latin di bawahnya sudah
+   diwakili teks HTML .top-brand-name, jangan sampai dobel) */
+.top-brand-mark-wrap{height:28px;overflow:hidden;display:block;flex-shrink:0}
+.top-brand-mark{height:39px;width:auto;display:block}
 .top-brand-mark.dark-only{display:none}
 html.theme-dark .top-brand-mark.light-only{display:none}
 html.theme-dark .top-brand-mark.dark-only{display:block}
 .top-brand-name{font-size:15px;font-weight:800;letter-spacing:-.01em;color:#0f172a;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top-brand-accent{color:var(--red)}
+/* Efek kilatan (shimmer) di "QUR'AN" -- gradasi merah bergerak */
+.top-brand-accent{
+  background:linear-gradient(90deg,#ef4444 0%,#f97316 35%,#fecaca 50%,#ef4444 65%,#ef4444 100%);
+  background-size:200% auto;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:#ef4444;
+  animation:brandShimmer 2.4s linear infinite;
+}
+@keyframes brandShimmer{0%{background-position:0% center}100%{background-position:200% center}}
+@media(prefers-reduced-motion:reduce){.top-brand-accent{animation:none;background:none;-webkit-text-fill-color:#ef4444;color:#ef4444}}
 html.theme-dark .top-brand-name{color:#e8eaf0}
 /* action buttons kanan */
 .top-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .top-action-btn{
   width:40px;height:40px;border-radius:50%;
-  background:rgba(var(--blue-rgb),.08);border:none;
+  background:none;border:none;
   color:#475569;display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:background .15s;position:relative;
   -webkit-tap-highlight-color:transparent;
 }
-.top-action-btn:active{background:rgba(var(--blue-rgb),.16)}
+.top-action-btn:active{background:rgba(var(--blue-rgb),.1)}
 #bell-badge{border-color:rgba(248,250,252,1) !important}
 .top-avatar{
   width:40px;height:40px;border-radius:50%;overflow:hidden;
@@ -2546,7 +2558,8 @@ html.theme-dark .top-header{background:#1a1d24 !important;border-bottom:1px soli
 html.theme-dark .top-greet{color:rgba(255,255,255,.65) !important}
 html.theme-dark .top-name{color:#e8eaf0 !important}
 html.theme-dark .top-badge{background:rgba(56,189,248,.12) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
-html.theme-dark .top-hamburger,html.theme-dark .top-action-btn{background:#252830 !important;color:rgba(255,255,255,.55) !important;border:none !important}
+html.theme-dark .top-hamburger,html.theme-dark .top-action-btn{background:none !important;color:rgba(255,255,255,.55) !important;border:none !important}
+html.theme-dark .top-hamburger:active,html.theme-dark .top-action-btn:active{background:rgba(255,255,255,.1) !important}
 
 /* Bottom nav — solid, tidak blur */
 html.theme-dark .bottom-nav{background:#1a1d24 !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;border-top:1px solid rgba(255,255,255,.07) !important}
@@ -3835,8 +3848,10 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- Info tengah: brand Rattililqur'an (menggantikan sapaan nama -- nama murid sudah tampil di sidebar) -->
       <div class="top-left">
         <div class="top-brand">
-          <img class="top-brand-mark light-only" src="../assets/images/logo-abu.png" alt="Rattililqur'an">
-          <img class="top-brand-mark dark-only" src="../assets/images/logo-putih.png" alt="Rattililqur'an">
+          <div class="top-brand-mark-wrap">
+            <img class="top-brand-mark light-only" src="../assets/images/logo-abu.png" alt="Rattililqur'an">
+            <img class="top-brand-mark dark-only" src="../assets/images/logo-putih.png" alt="Rattililqur'an">
+          </div>
           <span class="top-brand-name">RATTILIL<span class="top-brand-accent">QUR'AN</span></span>
         </div>
         <!-- dipertahankan tersembunyi untuk kompatibilitas kode JS (topName/topHalaqah masih di-set di banyak tempat) -->
