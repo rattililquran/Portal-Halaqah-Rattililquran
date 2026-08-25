@@ -8173,6 +8173,7 @@ async function loadDashboard(silent) {
     if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
     if (document.getElementById('dashPartnerCard')) document.getElementById('dashPartnerCard').style.display = 'none';
     if (document.getElementById('dashPartnerBelajarCard')) document.getElementById('dashPartnerBelajarCard').style.display = 'none';
+    if (document.getElementById('dashPbCard')) document.getElementById('dashPbCard').style.display = 'none';
     if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
     // Kartu Partner Belajar di dashboard — muncul jika level halaqah mengaktifkannya
     if (d.halaqah && d.halaqah.partner_belajar_enabled) loadPartnerBelajarDashCard();
@@ -8496,8 +8497,13 @@ async function loadDashboard(silent) {
     document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
     document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
-    // Load kartu Lapor Aktivitas Belajar (Partner Belajar)
-    loadDashPbCard();
+    // Load kartu Lapor Aktivitas Belajar (Partner Belajar) -- HANYA level 1-4 (non-Qiyam).
+    // Murid Qiyam pakai kartu Partner Qiyam sendiri (dashPartnerCard di atas), bukan ini.
+    if (!isQiyam) {
+      var dashPbCardEl = document.getElementById('dashPbCard');
+      if (dashPbCardEl) dashPbCardEl.style.display = '';
+      loadDashPbCard();
+    }
 
     // Render Rattil Quiz Card
     try {
