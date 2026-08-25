@@ -6,9 +6,12 @@
 </script>
 <script>
 // ── Pilihan tema tampilan (Biru / Minimalis) — diset dari Profil Saya > Pengaturan Akun ──
+// Default tema (belum pernah pilih) = Minimalis. Simpanan 'blue' eksplisit dari
+// pilihan pengguna sebelumnya tetap dihormati, tidak dipaksa ke Minimalis.
 (function(){
   try{
-    if(localStorage.getItem('hq_theme_variant')==='minimal'){
+    var v = localStorage.getItem('hq_theme_variant');
+    if(v === null || v === 'minimal'){
       document.documentElement.classList.add('theme-minimal');
       document.documentElement.classList.remove('theme-dark');
     }
@@ -11742,8 +11745,8 @@ function setAppTheme(variant) {
   updateThemePickerUI(variant);
 }
 function initThemeVariantPicker() {
-  var current = 'blue';
-  try { current = localStorage.getItem('hq_theme_variant') || 'blue'; } catch (e) {}
+  var current = 'minimal';
+  try { var v = localStorage.getItem('hq_theme_variant'); current = (v === null) ? 'minimal' : v; } catch (e) {}
   updateThemePickerUI(current);
   document.querySelectorAll('.theme-picker-opt').forEach(function(btn) {
     btn.addEventListener('click', function() { setAppTheme(btn.getAttribute('data-theme-choice')); });
