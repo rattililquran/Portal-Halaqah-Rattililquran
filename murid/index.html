@@ -8942,14 +8942,23 @@ var _tabDropdownHideT = null;
 function buildTabDropdownItems(key) {
   var group = document.querySelector('.sidebar-group[data-group="' + key + '"]');
   if (!group) return [];
-  return Array.prototype.slice.call(group.querySelectorAll('.sidebar-item[data-p]'))
+  // Semua .sidebar-item yang punya onclick -- BUKAN cuma yang ber-data-p (goPage). Ada
+  // item yang bukan goPage sama sekali (mis. Petualangan/Rattil Run buka overlay game via
+  // openMazeAdventure()/openRattilRun(), Notifikasi/Panduan Beasiswa dst buka modal/panel)
+  // -- itu tetap tujuan yang sah utk ditampilkan di dropdown. Onclick-nya dipakai APA
+  // ADANYA (bukan direkonstruksi ulang) supaya perilakunya identik dgn item aslinya utk
+  // jenis aksi apa pun. ":not(.danger)" sengaja mengecualikan "Keluar dari Aplikasi" --
+  // aksi merusak/tanpa konfirmasi tidak pantas nangkring di menu hover yang gampang
+  // ke-trigger tanpa sengaja. "Mode Gelap" otomatis ikut terkecuali juga (tombolnya
+  // tidak punya atribut onclick sama sekali, diwire lewat addEventListener terpisah).
+  return Array.prototype.slice.call(group.querySelectorAll('.sidebar-item:not(.danger)[onclick]'))
     // .style.display MILIK ITEM ITU SENDIRI saja (bukan offsetParent/computed) -- grup yg
     // sedang tidak aktif ikut display:none di ancestornya, offsetParent akan salah kira
     // semua isinya "tersembunyi utk siswa ini" padahal itu cuma efek filter tab lain.
     .filter(function(el){ return el.style.display !== 'none'; })
     .map(function(el){
       return {
-        page: el.getAttribute('data-p'),
+        onclick: el.getAttribute('onclick'),
         icon: (el.querySelector('.sidebar-item-ico') || {}).innerHTML || '',
         label: (el.querySelector('.sidebar-item-label') || {}).textContent || ''
       };
@@ -8962,7 +8971,7 @@ function showTabDropdown(key, tabEl) {
   if (!dd) return;
   var items = buildTabDropdownItems(key);
   dd.innerHTML = items.length ? items.map(function(it){
-    return '<button class="top-tab-dropdown-item" role="menuitem" onclick="goPage(\'' + escJs(it.page) + '\');hideTabDropdown()">'
+    return '<button class="top-tab-dropdown-item" role="menuitem" onclick="' + esc(it.onclick) + ';hideTabDropdown()">'
       + it.icon + '<span>' + esc(it.label) + '</span></button>';
   }).join('') : '<div class="top-tab-dropdown-empty">Tidak ada item.</div>';
   var r = tabEl.getBoundingClientRect();
