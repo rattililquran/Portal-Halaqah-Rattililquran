@@ -590,17 +590,24 @@
     var lunasBulan   = data.lunas_bulan || [];
     var menungguBulan= data.menunggu_bulan || [];
     var bulanMulaiIdx    = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
-    var totalBulanLevel  = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : 5;
-    // lunasCount dihitung HANYA dalam jendela [bulanMulaiIdx, bulanMulaiIdx+totalBulanLevel) --
-    // bulanGrid selalu tampilkan 12 bulan kalender penuh untuk referensi, tapi progress SPP
-    // dihitung dari jendela yang berlaku (maks 5 bulan), bukan seluruh 12 bulan yang tampil.
-    var lunasCount   = bulanGrid.slice(bulanMulaiIdx, bulanMulaiIdx + totalBulanLevel)
-      .filter(function(b){ return b.status === 'lunas'; }).length;
-    var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, totalBulanLevel - lunasCount);
 
-    // ── Donut chart ──
+    // Batas mulai & berhentinya "level" murid tidak selalu pasti diketahui, jadi progress
+    // TIDAK dihitung sebagai pecahan dari window 5-bulan per level (rawan salah kalau window
+    // itu sendiri tidak akurat). Yang pasti dari data grid: total bulan yang sudah lunas, dan
+    // jumlah bulan yang sudah lewat jatuh tempo tapi belum dibayar (tunggakan) -- dua angka ini
+    // dihitung langsung dari status tiap bulan, tidak bergantung pada batas level.
+    var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
+    var tunggakanGrid = bulanGrid.filter(function(b, i){
+      var sudahMulai = i >= bulanMulaiIdx;
+      var lewat      = (i + 1) <= bulanBerjalan;
+      return sudahMulai && lewat && b.status !== 'lunas' && b.status !== 'menunggu';
+    }).length;
+    var tunggakan = (data.tunggakan !== undefined) ? data.tunggakan : tunggakanGrid;
+
+    // ── Donut chart -- isi ring = proporsi bulan lunas dari total yang sudah lunas+tunggakan ──
     var circ = 2 * Math.PI * 15; // 94.25
-    var pct  = totalBulanLevel > 0 ? (lunasCount / totalBulanLevel) : 0;
+    var donutTotal = lunasCount + tunggakan;
+    var pct  = donutTotal > 0 ? (lunasCount / donutTotal) : 1;
     var arc  = document.getElementById('sppDonutArc');
     var num  = document.getElementById('sppDonutNum');
     var titleEl = document.getElementById('sppDonutTitle');
@@ -611,12 +618,12 @@
       arc.setAttribute('stroke', tunggakan===0?'#10b981': tunggakan>=3?'#ef4444':'#f59e0b');
     }
     if (num) {
-      var numTxt = tunggakan===0 ? (lunasCount + '/' + totalBulanLevel) : String(tunggakan);
+      var numTxt = tunggakan===0 ? String(lunasCount) : String(tunggakan);
       num.textContent = numTxt;
-      num.setAttribute('font-size', numTxt.length > 1 ? '7.5' : '10');
+      num.setAttribute('font-size', numTxt.length > 1 ? '9' : '10');
     }
     if (titleEl) titleEl.textContent = tunggakan===0 ? 'SPP Lunas ✅' : tunggakan + ' bulan belum lunas';
-    if (subEl)   subEl.textContent = lunasCount + ' dari ' + totalBulanLevel + ' bulan sudah terbayar';
+    if (subEl)   subEl.textContent = lunasCount + ' bulan sudah terbayar';
 
     // Badge
     if (badge) {
