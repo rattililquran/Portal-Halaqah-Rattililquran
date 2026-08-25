@@ -193,8 +193,8 @@
           && when && (Date.now() - new Date(when).getTime()) < 3*86400000;
       })[0];
       if (recent) {
-        notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
-          + '<span style="font-weight:800">💚 Partnermu mengonfirmasi aktivitasmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+        notifHtml = '<div class="partner-dash-hint">'
+          + '<span style="font-weight:800;color:var(--text)">💚 Partnermu mengonfirmasi aktivitasmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
           + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
         + '</div>';
       }
@@ -206,13 +206,13 @@
 
       var ctaHtml = '';
       if (jumlahMenunggu > 0) {
-        ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        ctaHtml = '<div class="partner-dash-hint strong">'
           + '🎧 Ada ' + jumlahMenunggu + ' teman lapor aktivitas — pantau lalu konfirmasi</div>';
       } else if (myLast === null) {
-        ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        ctaHtml = '<div class="partner-dash-hint strong">'
           + '📚 Belum ada aktivitas. Mulai catat belajar mandirimu</div>';
       } else if (hariSejak >= 3) {
-        ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+        ctaHtml = '<div class="partner-dash-hint strong">'
           + '📚 Sudah ' + hariSejak + ' hari belum catat aktivitas. Partnermu menanti kabarmu</div>';
       }
 

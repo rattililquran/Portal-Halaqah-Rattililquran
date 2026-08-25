@@ -201,7 +201,6 @@ html.theme-minimal .skel-card,
 html.theme-minimal .cal-benefit,
 html.theme-minimal .charging-hero-quote,
 html.theme-minimal .pg-section,
-html.theme-minimal .partner-dash-card,
 html.theme-minimal .prog-inner-wrap,
 html.theme-minimal .grafik-card{
   border-radius:var(--r-card) !important;
@@ -461,32 +460,28 @@ html.theme-dark .qiyam-target-box{background:rgba(251,191,36,.08);border-color:r
 html.theme-dark .qiyam-target-label{color:#fcd34d;opacity:.75}
 html.theme-dark .qiyam-target-value{color:#fde68a}
 html.theme-dark .qiyam-target-hint{color:#fcd34d;opacity:.5}
-/* ── PARTNER QIYAM DASH CARD ── */
-.partner-dash-card{border-radius:20px;border:1px solid rgba(13,148,136,.25);
-  background:linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 60%,#99f6e4 100%);
+/* ── PARTNER QIYAM & PARTNER BELAJAR DASH CARD -- flat/minimalis, ikut var tema
+   (dipakai bersama oleh dashPartnerCard & dashPartnerBelajarCard) ── */
+.partner-dash-card{border-radius:var(--r);border:1px solid var(--border);
+  background:var(--card-solid,#fff);
   padding:18px 20px;margin-bottom:16px;cursor:pointer;
-  box-shadow:0 4px 16px rgba(13,148,136,.15);transition:transform .15s ease,box-shadow .15s ease}
-.partner-dash-card:hover{box-shadow:0 6px 20px rgba(13,148,136,.22)}
+  box-shadow:var(--shadow-card);transition:box-shadow .15s ease,transform .15s ease}
+.partner-dash-card:hover{box-shadow:var(--shadow-lg)}
 .partner-dash-card:active{transform:scale(.98)}
-.partner-dash-card .prog-title{color:#134e4a !important;margin-bottom:10px;justify-content:space-between}
+.partner-dash-card .prog-title{color:var(--text) !important;font-size:14px;margin-bottom:10px;
+  justify-content:space-between;text-shadow:none}
 .partner-dash-badge{
-  background:#ef4444;color:#fff;font-size:11px;font-weight:900;
-  border-radius:100px;padding:3px 10px;text-align:center;
-  box-shadow:0 2px 6px rgba(239,68,68,.35);
-  animation:partnerDashPulse 1.8s ease-in-out infinite;
+  background:var(--red-l,#fee2e2);color:#b91c1c;font-size:11px;font-weight:800;
+  border-radius:100px;padding:3px 10px;text-align:center;border:1px solid rgba(239,68,68,.2);
 }
-@keyframes partnerDashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-.partner-dash-body{font-size:12px;color:#0f766e}
-.partner-dash-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(13,148,136,.12)}
+.partner-dash-body{font-size:12px;color:var(--text-2)}
+.partner-dash-hint{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
+  padding:9px 11px;margin-bottom:8px;font-size:12px;color:var(--text-2)}
+.partner-dash-hint.strong{font-weight:700;color:var(--text)}
+.partner-dash-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .partner-dash-row:last-child{border-bottom:none}
-.partner-dash-name{font-weight:700;font-size:12px;color:#134e4a}
-.partner-dash-date{font-size:11px;color:#0d9488}
-html.theme-dark .partner-dash-card{background:linear-gradient(135deg,rgba(13,148,136,.12),rgba(20,184,166,.06));border-color:rgba(45,212,191,.25)}
-html.theme-dark .partner-dash-card .prog-title{color:#5eead4 !important}
-html.theme-dark .partner-dash-name{color:#ccfbf1}
-html.theme-dark .partner-dash-date{color:#5eead4}
-html.theme-dark .partner-dash-row{border-color:rgba(45,212,191,.15)}
-html.theme-dark .partner-dash-card>.partner-dash-body>div:first-child{color:#5eead4 !important}
+.partner-dash-name{font-weight:700;font-size:12px;color:var(--text)}
+.partner-dash-date{font-size:11px;color:var(--text-3)}
 .prog-estimasi-middle{
   background:rgba(255,255,255,0.18);
   border:1px solid rgba(255,255,255,0.3);
@@ -7164,7 +7159,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=2ca05d50" defer></script>
-<script src="partner-module.js?v=4f1156ae" defer></script>
+<script src="partner-module.js?v=3589fe5c" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>
@@ -12682,8 +12677,8 @@ async function loadPartnerDashCard() {
         && r.updated_at && (Date.now() - new Date(r.updated_at).getTime()) < 3*86400000;
     })[0];
     if (recent) {
-      notifHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;color:#0f766e">'
-        + '<span style="font-weight:800">💚 Partnermu mengonfirmasi setoranmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
+      notifHtml = '<div class="partner-dash-hint">'
+        + '<span style="font-weight:800;color:var(--text)">💚 Partnermu mengonfirmasi setoranmu' + (recent.reaksi_partner ? ' ' + _esc(recent.reaksi_partner) : '') + '</span>'
         + (recent.catatan_partner ? '<div style="margin-top:2px;color:var(--text-2)">"' + _esc(recent.catatan_partner) + '"</div>' : '')
       + '</div>';
     }
@@ -12696,13 +12691,13 @@ async function loadPartnerDashCard() {
     // CTA prioritas: (1) ada ajakan partner menunggu disimak, (2) aku vakum
     var ctaHtml = '';
     if (jumlahMenunggu > 0) {
-      ctaHtml = '<div style="background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+      ctaHtml = '<div class="partner-dash-hint strong">'
         + '🎧 Ada ' + jumlahMenunggu + ' teman ingin setor ke kamu — simak via WA lalu konfirmasi</div>';
     } else if (myLast === null) {
-      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+      ctaHtml = '<div class="partner-dash-hint strong">'
         + '🌙 Belum ada setoran mandiri. Ajak partnermu menyimak hafalanmu</div>';
     } else if (hariSejak >= 3) {
-      ctaHtml = '<div style="background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;font-weight:700;color:#0f766e">'
+      ctaHtml = '<div class="partner-dash-hint strong">'
         + '🌙 Sudah ' + hariSejak + ' hari belum setor. Partnermu menanti kabar hafalanmu</div>';
     }
 
