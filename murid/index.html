@@ -2856,12 +2856,21 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 }
 
 /* Kalender + Kehadiranku: berdampingan (Kehadiranku kiri, kalender kanan) di layar lebar
-   agar ruang kosong di kanan-kiri kalender terpakai, bukan sekadar margin kosong */
+   agar ruang kosong di kanan-kiri kalender terpakai, bukan sekadar margin kosong.
+   align-items:stretch -> kedua kartu tingginya sama persis (simetris) */
 @media(min-width:1360px){
-  .dash-top-grid{display:grid;grid-template-columns:1fr minmax(0,640px);gap:16px;align-items:start}
+  .dash-top-grid{display:grid;grid-template-columns:1fr minmax(0,640px);gap:16px;align-items:stretch}
   .dash-top-grid > .card{margin-bottom:0}
-  #dashProgressCard{order:-1}
+  #dashProgressCard{order:-1;display:flex;flex-direction:column}
+  /* Isi Kehadiranku mengisi tinggi kartu secara merata, bukan menggantung kosong di bawah */
+  .dash-prog-body{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
+  .dash-prog-panel{flex:1;display:flex;flex-direction:column;justify-content:center;
+    background:var(--bg-2);border-radius:16px;padding:16px 18px;border-left:3px solid transparent}
+  .dash-prog-panel-kbm{border-left-color:rgba(14,165,233,.45)}
+  .dash-prog-panel-attibyan{border-left-color:rgba(15,23,42,.3)}
+  .dash-prog-divider{display:none}
 }
+html.theme-dark .dash-prog-panel{background:rgba(255,255,255,.04)}
 
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
@@ -3866,7 +3875,9 @@ html.theme-dark .materi-daurah-banner-title {
         <!-- Judul besar -->
         <div class="card-title" style="margin-bottom:16px">✅ Kehadiranku</div>
 
+        <div class="dash-prog-body">
         <!-- KBM Reguler -->
+        <div class="dash-prog-panel dash-prog-panel-kbm">
         <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">KBM Reguler</div>
         <div class="prog-inner-wrap" style="margin-top:0;padding:0">
         <div class="prog-inner-card" onclick="openProgressBreakdown()">
@@ -3909,11 +3920,12 @@ html.theme-dark .materi-daurah-banner-title {
           </div>
         </div>
         </div><!-- /prog-inner-wrap -->
+        </div><!-- /dash-prog-panel-kbm -->
 
-        <div style="height:1px;background:var(--border);margin:18px 0"></div>
+        <div class="dash-prog-divider" style="height:1px;background:var(--border);margin:18px 0"></div>
 
         <!-- At-Tibyan -->
-        <div id="dashAtTibyanCard" onclick="goPage('attibyan')" style="cursor:pointer">
+        <div id="dashAtTibyanCard" class="dash-prog-panel dash-prog-panel-attibyan" onclick="goPage('attibyan')" style="cursor:pointer">
           <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">At-Tibyan</div>
           <div class="prog-inner-wrap" style="margin-top:0;padding:0">
             <div class="prog-inner-card">
@@ -3937,6 +3949,7 @@ html.theme-dark .materi-daurah-banner-title {
             </div>
           </div><!-- /prog-inner-wrap -->
         </div><!-- /dashAtTibyanCard -->
+        </div><!-- /dash-prog-body -->
       </div>
       </div><!-- /dash-top-grid -->
 
