@@ -1429,7 +1429,7 @@ html.theme-dark .attibyan-dash-card.attibyan-locked .prog-title {
   color: #065f46 !important;
 }
 .attibyan-dash-card .prog-info-title {
-  color: #065f46 !important;
+  color: var(--blue) !important;
 }
 .attibyan-quote-box{
   margin:14px 0 4px;padding:16px 18px;border-radius:16px;
@@ -1461,7 +1461,7 @@ html.theme-dark .attibyan-dash-card.attibyan-locked .prog-title {
   background:rgba(5,150,105,.35);
 }
 .attibyan-dash-card .prog-info-sesi {
-  color: #059669 !important;
+  color: var(--blue) !important;
 }
 .attibyan-dash-card .prog-inner-wrap {
   background: var(--bg-2) !important;
@@ -2509,10 +2509,10 @@ html.theme-dark .attibyan-dash-card .prog-title {
   color: #a7f3d0 !important;
 }
 html.theme-dark .attibyan-dash-card .prog-info-title {
-  color: #a7f3d0 !important;
+  color: var(--blue) !important;
 }
 html.theme-dark .attibyan-dash-card .prog-info-sesi {
-  color: #34d399 !important;
+  color: var(--blue) !important;
 }
 html.theme-dark .attibyan-dash-card .prog-inner-wrap {
   background: var(--bg-2) !important;
@@ -3962,7 +3962,7 @@ html.theme-dark .materi-daurah-banner-title {
               <!-- Donut ring -->
               <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
                 <div class="prog-donut-inner">
-                  <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#059669">0%</span>
+                  <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--blue)">0%</span>
                   <span class="prog-donut-lbl">hadir</span>
                 </div>
               </div>
@@ -8137,7 +8137,7 @@ async function loadDashboard(silent) {
             + '<div class="prog-inner-row">'
             +   '<div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">'
             +     '<div class="prog-donut-inner">'
-            +       '<span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:#059669">0%</span>'
+            +       '<span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--blue)">0%</span>'
             +       '<span class="prog-donut-lbl">hadir</span>'
             +     '</div>'
             +   '</div>'
@@ -8162,14 +8162,14 @@ async function loadDashboard(silent) {
         var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
         
         if (atDonutRing) {
-          atDonutRing.style.background = 'conic-gradient(#059669 ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
+          atDonutRing.style.background = 'conic-gradient(var(--blue) ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
         }
         if (atPctNum) {
           atPctNum.textContent = atPct + '%';
         }
         if (atProgressBar) {
           atProgressBar.style.width = atPct + '%';
-          atProgressBar.style.background = 'linear-gradient(90deg, #34d399, #059669)';
+          atProgressBar.style.background = 'linear-gradient(90deg, var(--blue-d), var(--blue))';
         }
         
         document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
