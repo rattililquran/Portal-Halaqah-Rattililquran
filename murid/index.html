@@ -2253,10 +2253,12 @@ html.theme-dark .inline-loader-pulse {
 .spp-menunggu{background:var(--bg-2);color:var(--text-2);border-color:var(--border)}
 .spp-belum{background:var(--bg-2);color:var(--text-3);border-color:var(--border)}
 .spp-bulan-ico{display:flex;align-items:center;justify-content:center;line-height:1}
-/* Layar lebar: kunci lebar isi + perbesar donut & grid bulan agar tidak melebar/kecil berlebihan.
+/* Layar lebar: kunci lebar SELURUH kartu (bukan cuma .spp-body) supaya judul & badge di
+   .spp-head ikut center -- kalau cuma .spp-body yg dikunci, judul tetap mepet kiri sementara
+   isi di bawahnya nampak menjorok ke tengah (tidak sejajar, terlihat aneh).
    Diletakkan SETELAH deklarasi dasar di atas -- spesifisitas sama, urutan sumber yang menentukan pemenang. */
 @media(min-width:1360px){
-  .spp-body{max-width:680px;margin-left:auto;margin-right:auto}
+  .spp-card{max-width:680px;margin-left:auto;margin-right:auto}
   #sppDonut{width:84px;height:84px}
   .spp-bulan-grid{grid-template-columns:repeat(6,1fr)}
   .spp-bulan{font-size:11.5px;padding:10px 4px}
