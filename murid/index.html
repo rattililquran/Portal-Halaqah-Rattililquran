@@ -136,12 +136,9 @@ html.theme-minimal .btn-primary:hover{box-shadow:none}
 html.theme-minimal .auth-box{box-shadow:none;border-color:rgba(0,0,0,.08)}
 html.theme-minimal .auth-btn{box-shadow:none}
 html.theme-minimal .auth-btn:hover{box-shadow:none}
-/* Kartu fitur dashboard (At-Tibyan, Micro Teaching, dll — pakai komponen prog-* bersama) */
-html.theme-minimal .attibyan-dash-card,
+/* Kartu fitur dashboard (Micro Teaching, dll — pakai komponen prog-* bersama) */
 html.theme-minimal .micro-dash-card{border-radius:var(--r-card);box-shadow:none}
-html.theme-minimal .attibyan-dash-card:hover,
 html.theme-minimal .micro-dash-card:hover{box-shadow:none}
-html.theme-minimal .attibyan-dash-card.attibyan-locked{box-shadow:none !important}
 html.theme-minimal .level-badge{box-shadow:none !important;text-shadow:none !important}
 html.theme-minimal .prog-donut-wrap{box-shadow:none}
 html.theme-minimal .prog-donut-inner{box-shadow:none;border-color:rgba(0,0,0,.06)}
@@ -1196,7 +1193,7 @@ html.theme-dark .at-dot.null{background:#374151!important}
 .kal-leg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);font-weight:600}
 .kal-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
-/* ── DASHBOARD: Kalender KBM + Donat (kartu polos, ganti tampilan dekoratif lama) ── */
+/* ── DASHBOARD: Kartu Kehadiranku (KBM Reguler + At-Tibyan digabung, kalender di kartu terpisah) ── */
 #dashProgressCard{
   background:#fff !important;box-shadow:var(--shadow-card);
   border:1px solid var(--border);cursor:default;
@@ -1254,7 +1251,7 @@ html.theme-dark .dash-cal-evt{background:rgba(255,255,255,.06)}
 .dash-cal-evt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dash-cal-evt-name{font-size:11px;font-weight:800;color:var(--text)}
 .dash-cal-evt-time{font-size:9.5px;color:var(--text-3);font-weight:600}
-#dashProgressCard .prog-inner-wrap{margin-top:0;border-top:1px solid var(--border);padding-top:14px}
+#dashProgressCard .prog-inner-wrap{margin-top:0}
 #dashProgressCard .prog-inner-card{cursor:pointer}
 
 /* ── MATERI LEVEL ── */
@@ -1391,43 +1388,22 @@ html.theme-dark .hfal-card-partner{border-left:4px solid #2dd4bf !important}
 .hfal-tabs-wrap {display:flex;gap:4px;background:var(--bg-2);padding:4px;border-radius:12px;margin-bottom:16px;border:1px solid var(--border)}
 .hfal-tab-btn {flex:1;padding:8px 0;border-radius:9px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;transition:all 0.25s ease}
 .hfal-tab-btn.active {background:var(--card-solid);box-shadow:var(--shadow);color:var(--blue);font-weight:700}
-.attibyan-dash-card{border-radius:20px;border:1px solid var(--border);
-  background:#fff;
-  padding:20px 20px 20px;margin-bottom:16px;cursor:pointer;
-  box-shadow:var(--shadow-card);transition:transform .15s ease,box-shadow .15s ease}
-.attibyan-dash-card:hover{box-shadow:var(--shadow-lg)}
-.attibyan-dash-card:active{transform:scale(.98)}
-.attibyan-dash-card.attibyan-locked {
+#dashAtTibyanCard:active{transform:scale(.98)}
+#dashAtTibyanCard.attibyan-locked {
   filter: grayscale(0.2) contrast(0.95);
   border: 1px dashed rgba(148, 163, 184, 0.4) !important;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%) !important;
-  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.08) !important;
+  border-radius: 12px;
   cursor: not-allowed;
 }
-.attibyan-dash-card.attibyan-locked:active {
+#dashAtTibyanCard.attibyan-locked:active {
   transform: none !important;
 }
-.attibyan-dash-card.attibyan-locked .prog-title {
-  color: #64748b !important;
-}
-.attibyan-dash-card.attibyan-locked .level-badge {
-  background: #64748b !important;
-  border-color: #475569 !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-html.theme-dark .attibyan-dash-card.attibyan-locked {
+html.theme-dark #dashAtTibyanCard.attibyan-locked {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 60%, #020617 100%) !important;
   border-color: rgba(148, 163, 184, 0.2) !important;
-  box-shadow: none !important;
-}
-html.theme-dark .attibyan-dash-card.attibyan-locked .prog-title {
-  color: #94a3b8 !important;
 }
 
-.attibyan-dash-card .prog-title {
-  color: var(--text) !important;
-}
 .attibyan-quote-box{
   margin:14px 0 4px;padding:16px 18px;border-radius:16px;
   background:rgba(255,255,255,.4);
@@ -2494,10 +2470,6 @@ html.theme-dark .at-card{background:#1e2128 !important;border-color:rgba(255,255
 html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .at-btn-copy{background:#252830 !important;color:#9ca3af !important}
-html.theme-dark .attibyan-dash-card{background:var(--card-solid) !important;border-color:var(--border) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
-html.theme-dark .attibyan-dash-card .prog-title {
-  color: var(--text) !important;
-}
 /* dark mode micro-dash-card */
 html.theme-dark .micro-dash-card{background:linear-gradient(135deg,#1e1535 0%,#2a1d4a 60%,#341f5e 100%) !important;border-color:rgba(139,92,246,.25) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
 html.theme-dark .micro-dash-card .prog-title{color:#c4b5fd !important;}
@@ -3823,14 +3795,14 @@ html.theme-dark .materi-daurah-banner-title {
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;" onclick="openNotifications()"></div>
 
       <!-- Progress Level -->
-      <div class="progress-card" id="dashProgressCard">
-        <!-- Judul elegan di atas kalender -->
+      <!-- Kalender KBM (kartu terpisah) -->
+      <div class="card" style="padding:18px">
         <div class="dash-cal-title">
           <div class="dash-cal-title-text">Perjuanganku Bersama Al-Qur'an</div>
           <div class="dash-cal-title-line"></div>
         </div>
         <!-- Kalender KBM Tahsin + At-Tibyan -->
-        <div class="dash-cal-wrap">
+        <div class="dash-cal-wrap" style="margin-bottom:0">
           <div class="dash-cal-head">
             <button type="button" class="dash-cal-nav" onclick="event.stopPropagation();dashKalNav(-1)" aria-label="Bulan sebelumnya"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
             <span class="dash-cal-month" id="dashKalMonth">–</span>
@@ -3842,13 +3814,17 @@ html.theme-dark .materi-daurah-banner-title {
             <div class="dash-cal-agenda" id="dashKalAgenda" onclick="event.stopPropagation();goPage('riwayat')"></div>
           </div>
         </div>
-        <!-- Judul -->
-        <div class="prog-title">
+      </div>
+
+      <!-- Kehadiranku (gabungan KBM Reguler + At-Tibyan) -->
+      <div class="card" id="dashProgressCard" style="padding:18px;cursor:default">
+        <!-- Elemen lama dipertahankan untuk kompatibilitas JS (dashLevel/dashTarget/dashEstimasi/dashMotivasi),
+             tetap disembunyikan seperti sebelumnya -- bukan bagian tampilan "Kehadiranku" -->
+        <div class="prog-title" style="display:none">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           Perjuanganku Bersama Al-Qur'an
         </div>
-        <!-- Chip level sekarang → chip level target -->
-        <div class="prog-level-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;">
+        <div class="prog-level-row" style="display:none">
           <span class="level-badge" id="dashLevel">Level 1</span>
           <div id="dashEstimasiContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 0;">
             <span class="level-arrow" id="dashLevelArrow" style="line-height: 1; margin-bottom: 2px;">→</span>
@@ -3859,10 +3835,14 @@ html.theme-dark .materi-daurah-banner-title {
           </div>
           <span class="level-target-chip" id="dashTarget">Level 2</span>
         </div>
-        <!-- Motivasi (di atas kartu putih) -->
-        <div class="prog-motivasi-outer" id="dashMotivasi"></div>
-        <!-- Inner white card — donut ring KhatamKu style -->
-        <div class="prog-inner-wrap">
+        <div class="prog-motivasi-outer" id="dashMotivasi" style="display:none"></div>
+
+        <!-- Judul besar -->
+        <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px">Kehadiranku</div>
+
+        <!-- KBM Reguler -->
+        <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">KBM Reguler</div>
+        <div class="prog-inner-wrap" style="margin-top:0;padding:0">
         <div class="prog-inner-card" onclick="openProgressBreakdown()">
           <div class="prog-inner-row">
             <!-- Donut ring -->
@@ -3903,6 +3883,34 @@ html.theme-dark .materi-daurah-banner-title {
           </div>
         </div>
         </div><!-- /prog-inner-wrap -->
+
+        <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+        <!-- At-Tibyan -->
+        <div id="dashAtTibyanCard" onclick="goPage('attibyan')" style="cursor:pointer">
+          <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">At-Tibyan</div>
+          <div class="prog-inner-wrap" style="margin-top:0;padding:0">
+            <div class="prog-inner-card">
+              <div class="prog-inner-row">
+                <!-- Donut ring -->
+                <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
+                  <div class="prog-donut-inner">
+                    <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--text)">0%</span>
+                    <span class="prog-donut-lbl">hadir</span>
+                  </div>
+                </div>
+                <!-- Info kanan -->
+                <div class="prog-info-right">
+                  <div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>
+                  <div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>
+                  <div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">
+                    <div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /prog-inner-wrap -->
+        </div><!-- /dashAtTibyanCard -->
       </div>
 
       <!-- Partner Qiyam Card -->
@@ -3921,37 +3929,6 @@ html.theme-dark .materi-daurah-banner-title {
           <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
         </div>
         <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
-      </div>
-
-      <!-- At-Tibyan Card -->
-      <div class="attibyan-dash-card" onclick="goPage('attibyan')">
-        <!-- Judul At-Tibyan -->
-        <div class="prog-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          Kajian Mingguan (At-Tibyan)
-        </div>
-        <!-- Inner wrap -->
-        <div class="prog-inner-wrap">
-          <div class="prog-inner-card">
-            <div class="prog-inner-row">
-              <!-- Donut ring -->
-              <div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
-                <div class="prog-donut-inner">
-                  <span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--blue)">0%</span>
-                  <span class="prog-donut-lbl">hadir</span>
-                </div>
-              </div>
-              <!-- Info kanan -->
-              <div class="prog-info-right">
-                <div class="prog-info-title" id="dashAtTibyanProgressPct">0 dari 20 sesi</div>
-                <div class="prog-info-sesi" id="dashAtTibyanSisa">20 sesi tersisa</div>
-                <div class="prog-bar-wrap" id="dashAtTibyanProgressBarWrap">
-                  <div class="prog-bar-fill" id="dashAtTibyanProgressBar" style="width:0%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div><!-- /prog-inner-wrap -->
       </div>
 
       <!-- Stats -->
@@ -8070,7 +8047,7 @@ async function loadDashboard(silent) {
     // At-Tibyan Card visibility and population
     var user = window.HQ.getCurrentUser();
     var isFth = !!(user && user.id_user && user.id_user.toUpperCase().startsWith('FTH'));
-    var atCard = document.querySelector('.attibyan-dash-card');
+    var atCard = document.getElementById('dashAtTibyanCard');
     
     if (atCard) {
       if (isFth) {
@@ -8112,7 +8089,7 @@ async function loadDashboard(silent) {
             + '<div class="prog-inner-row">'
             +   '<div class="prog-donut-wrap" id="dashAtTibyanDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">'
             +     '<div class="prog-donut-inner">'
-            +       '<span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--blue)">0%</span>'
+            +       '<span class="prog-donut-pct" id="dashAtTibyanProgressPctNum" style="color:var(--text)">0%</span>'
             +       '<span class="prog-donut-lbl">hadir</span>'
             +     '</div>'
             +   '</div>'
@@ -8137,14 +8114,14 @@ async function loadDashboard(silent) {
         var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
         
         if (atDonutRing) {
-          atDonutRing.style.background = 'conic-gradient(var(--blue) ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
+          atDonutRing.style.background = 'conic-gradient(var(--text) ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
         }
         if (atPctNum) {
           atPctNum.textContent = atPct + '%';
         }
         if (atProgressBar) {
           atProgressBar.style.width = atPct + '%';
-          atProgressBar.style.background = 'linear-gradient(90deg, var(--blue-d), var(--blue))';
+          atProgressBar.style.background = 'linear-gradient(90deg, var(--text-2), var(--text))';
         }
         
         document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
