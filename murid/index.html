@@ -546,15 +546,18 @@ html.theme-dark .prog-estimasi-middle{
   padding:16px 16px 16px;
 }
 .prog-inner-row{display:flex;align-items:center;gap:16px}
-/* Level Qiyam: .prog-info-right dikosongkan (donut ring sudah cukup mewakili info
-   -- lihat loadDashboard()), jadi donut-nya dipusatkan alih-alih nempel kiri
-   dgn ruang kosong besar di kanannya. #dashProgressCard.qiyam-card sudah
-   ditoggle JS sebelumnya, dipakai ulang di sini. .prog-info-right WAJIB ikut
-   disembunyikan -- flex:1 di elemen itu bikin justify-content:center di parent
-   tidak berefek sama sekali selama masih ada elemen flex:1 yang "melahap"
-   semua sisa ruang duluan. */
-#dashProgressCard.qiyam-card .prog-inner-row{justify-content:center}
-#dashProgressCard.qiyam-card .prog-info-right{display:none}
+/* Level Qiyam: info kanan panel KBM dikosongkan (donut ring sudah cukup mewakili
+   info -- lihat loadDashboard()), jadi donut-nya dipusatkan alih-alih nempel kiri
+   dgn ruang kosong besar di kanannya. DIBATASI KE ID SPESIFIK (dashKbmInnerRow/
+   dashKbmInfoRight), BUKAN ".qiyam-card .prog-info-right" polos -- panel At-Tibyan
+   di bawahnya sama-sama anak dari #dashProgressCard.qiyam-card dan ikut punya
+   .prog-info-right sendiri (isinya % hadir + bar), kalau dipukul rata jadi ikut
+   hilang juga (bug nyata yg pernah kejadian). .prog-info-right WAJIB ikut
+   disembunyikan (bukan cuma dikosongkan tekstnya) -- flex:1 di elemen itu bikin
+   justify-content:center di parent tidak berefek sama sekali selama masih ada
+   elemen flex:1 yang "melahap" semua sisa ruang duluan. */
+#dashProgressCard.qiyam-card #dashKbmInnerRow{justify-content:center}
+#dashProgressCard.qiyam-card #dashKbmInfoRight{display:none}
 
 /* Donut ring — conic-gradient persis KhatamKu */
 .prog-donut-wrap{
@@ -4077,7 +4080,7 @@ html.theme-dark .materi-daurah-banner-title {
         <div id="dashKbmLabel" style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">KBM Reguler</div>
         <div class="prog-inner-wrap" style="margin-top:0;padding:0">
         <div class="prog-inner-card" onclick="openProgressBreakdown()">
-          <div class="prog-inner-row">
+          <div class="prog-inner-row" id="dashKbmInnerRow">
             <!-- Donut ring -- utk Qiyam diisi jumlah total setoran (bukan persen level) -->
             <div class="prog-donut-wrap" id="dashDonutRing"
               style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
@@ -4088,7 +4091,7 @@ html.theme-dark .materi-daurah-banner-title {
               <div id="dashQiyamBadge" style="display:none; position:absolute; bottom:-4px; right:-4px; width:22px; height:22px; border-radius:50%; background:#10b981; border:2px solid var(--card-solid, #fff); align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.15); z-index:10;">M</div>
             </div>
             <!-- Info kanan -->
-            <div class="prog-info-right">
+            <div class="prog-info-right" id="dashKbmInfoRight">
               <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
               <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
               <div class="prog-bar-wrap" id="dashProgressBarWrap">
