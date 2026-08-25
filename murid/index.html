@@ -2239,7 +2239,8 @@ html.theme-dark .inline-loader-pulse {
   box-shadow:var(--shadow-card);margin-bottom:16px;overflow:hidden}
 .spp-head{padding:16px 18px 0;display:flex;align-items:center;
   justify-content:space-between;margin-bottom:10px}
-.spp-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.spp-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px}
+.spp-title-ico{width:30px;height:30px;border-radius:9px;font-size:14px;flex-shrink:0}
 .spp-body{padding:0 18px 16px}
 /* Bulan grid (hanya SPP Pribadi) */
 .spp-bulan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
@@ -2249,6 +2250,15 @@ html.theme-dark .inline-loader-pulse {
 .spp-menunggu{background:var(--bg-2);color:var(--text-2);border-color:var(--border)}
 .spp-belum{background:var(--bg-2);color:var(--text-3);border-color:var(--border)}
 .spp-bulan-ico{font-size:14px;line-height:1}
+/* Layar lebar: kunci lebar isi + perbesar donut & grid bulan agar tidak melebar/kecil berlebihan.
+   Diletakkan SETELAH deklarasi dasar di atas -- spesifisitas sama, urutan sumber yang menentukan pemenang. */
+@media(min-width:1360px){
+  .spp-body{max-width:680px;margin-left:auto;margin-right:auto}
+  #sppDonut{width:84px;height:84px}
+  .spp-bulan-grid{grid-template-columns:repeat(6,1fr)}
+  .spp-bulan{font-size:11.5px;padding:10px 4px}
+  .spp-bulan-ico{font-size:17px}
+}
 /* Donut SVG tunggakan */
 .spp-donut-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
 .spp-donut-info{flex:1}
@@ -4058,7 +4068,7 @@ html.theme-dark .materi-daurah-banner-title {
 
       <div class="spp-card" id="sppCard" style="display:none;">
         <div class="spp-head">
-          <div class="spp-title">💳 Pembayaran & Infaq</div>
+          <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico">💳</div>Pembayaran & Infaq</div>
           <span id="sppBadge"></span>
         </div>
         <div class="spp-body">
@@ -4099,7 +4109,7 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- ── Transparansi Dana Infaq (untuk para Muhsinin) ── -->
       <div class="spp-card" id="transparansiCard" style="display:none;">
         <div class="spp-head">
-          <div class="spp-title">💛 Transparansi Dana Infaq</div>
+          <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico">💛</div>Transparansi Dana Infaq</div>
           <span id="transBulanLabel" style="font-size:11px;color:var(--text-3);font-weight:700"></span>
         </div>
         <div class="spp-body">
