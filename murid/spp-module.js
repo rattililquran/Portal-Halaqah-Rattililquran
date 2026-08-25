@@ -591,12 +591,19 @@
     var menungguBulan= data.menunggu_bulan || [];
     var bulanMulaiIdx    = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
 
-    // Batas mulai & berhentinya "level" murid tidak selalu pasti diketahui, jadi progress
-    // TIDAK dihitung sebagai pecahan dari window 5-bulan per level (rawan salah kalau window
-    // itu sendiri tidak akurat). Yang pasti dari data grid: total bulan yang sudah lunas, dan
-    // jumlah bulan yang sudah lewat jatuh tempo tapi belum dibayar (tunggakan) -- dua angka ini
-    // dihitung langsung dari status tiap bulan, tidak bergantung pada batas level.
+    // Aturan PASTI (dikonfirmasi): satu level SPP = 5 bulan. Batas kalender mulai/berhentinya
+    // level TIDAK selalu pasti diketahui sistem, jadi progress dihitung murni dari akumulasi
+    // total bulan lunas -- bukan dari window kalender per-level (itu penyebab bug sebelumnya).
+    // floor((lunasCount-1)/5) = jumlah level yang SUDAH TUNTAS 5 bulannya.
+    // sisanya (1..5) = progress bulan pada level yang sedang berjalan/baru saja tuntas.
     var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
+    var levelSelesai = 0, progressLevelIni = 0;
+    if (lunasCount > 0) {
+      levelSelesai     = Math.floor((lunasCount - 1) / 5);
+      progressLevelIni = lunasCount - (levelSelesai * 5); // 1..5
+    }
+    // Tunggakan = bulan yang sudah lewat jatuh tempo tapi belum dibayar -- konsep TERPISAH
+    // dari progress level (soal keterlambatan, bukan soal sudah berapa level terselesaikan).
     var tunggakanGrid = bulanGrid.filter(function(b, i){
       var sudahMulai = i >= bulanMulaiIdx;
       var lewat      = (i + 1) <= bulanBerjalan;
@@ -604,10 +611,9 @@
     }).length;
     var tunggakan = (data.tunggakan !== undefined) ? data.tunggakan : tunggakanGrid;
 
-    // ── Donut chart -- isi ring = proporsi bulan lunas dari total yang sudah lunas+tunggakan ──
+    // ── Donut chart -- isi ring = progress level yang sedang berjalan (X dari 5 bulan) ──
     var circ = 2 * Math.PI * 15; // 94.25
-    var donutTotal = lunasCount + tunggakan;
-    var pct  = donutTotal > 0 ? (lunasCount / donutTotal) : 1;
+    var pct  = progressLevelIni / 5;
     var arc  = document.getElementById('sppDonutArc');
     var num  = document.getElementById('sppDonutNum');
     var titleEl = document.getElementById('sppDonutTitle');
@@ -615,17 +621,24 @@
     if (arc) {
       var dashLen = pct * circ;
       arc.setAttribute('stroke-dasharray', dashLen + ' ' + (circ - dashLen));
-      arc.setAttribute('stroke', tunggakan===0?'#10b981': tunggakan>=3?'#ef4444':'#f59e0b');
+      arc.setAttribute('stroke', progressLevelIni===5?'#10b981':'#3b82f6');
     }
     if (num) {
-      var numTxt = tunggakan===0 ? String(lunasCount) : String(tunggakan);
-      num.textContent = numTxt;
-      num.setAttribute('font-size', numTxt.length > 1 ? '9' : '10');
+      num.textContent = progressLevelIni;
+      num.setAttribute('font-size', '10');
     }
-    if (titleEl) titleEl.textContent = tunggakan===0 ? 'SPP Lunas ✅' : tunggakan + ' bulan belum lunas';
-    if (subEl)   subEl.textContent = lunasCount + ' bulan sudah terbayar';
+    if (titleEl) {
+      titleEl.textContent = progressLevelIni===5
+        ? 'SPP Level Ini Lunas ✅'
+        : 'Progress Level: ' + progressLevelIni + ' dari 5 bulan';
+    }
+    if (subEl) {
+      subEl.textContent = levelSelesai > 0
+        ? levelSelesai + ' level sebelumnya lunas (' + lunasCount + ' bulan total)'
+        : lunasCount + ' bulan sudah terbayar';
+    }
 
-    // Badge
+    // Badge -- status TUNGGAKAN (keterlambatan), terpisah dari progress level
     if (badge) {
       badge.className = 'badge ' + (tunggakan===0?'b-green':tunggakan>=3?'b-red':'b-amber');
       badge.textContent = tunggakan===0 ? '✅ Lunas' : '⚠ ' + tunggakan + ' bulan';
