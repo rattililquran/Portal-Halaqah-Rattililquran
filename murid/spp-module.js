@@ -590,8 +590,8 @@
     var lunasBulan   = data.lunas_bulan || [];
     var menungguBulan= data.menunggu_bulan || [];
     var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-    var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, 5 - lunasCount);
-    var totalBulanLevel = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : 5;
+    var totalBulanLevel = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : (bulanGrid.length || 12);
+    var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, totalBulanLevel - lunasCount);
 
     // ── Donut chart ──
     var circ = 2 * Math.PI * 15; // 94.25
@@ -605,7 +605,11 @@
       arc.setAttribute('stroke-dasharray', dashLen + ' ' + (circ - dashLen));
       arc.setAttribute('stroke', tunggakan===0?'#10b981': tunggakan>=3?'#ef4444':'#f59e0b');
     }
-    if (num) num.textContent = tunggakan;
+    if (num) {
+      var numTxt = tunggakan===0 ? (lunasCount + '/' + totalBulanLevel) : String(tunggakan);
+      num.textContent = numTxt;
+      num.setAttribute('font-size', numTxt.length > 1 ? '7.5' : '10');
+    }
     if (titleEl) titleEl.textContent = tunggakan===0 ? 'SPP Lunas ✅' : tunggakan + ' bulan belum lunas';
     if (subEl)   subEl.textContent = lunasCount + ' dari ' + totalBulanLevel + ' bulan sudah terbayar';
 
