@@ -6137,9 +6137,9 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- ── ADMINISTRASI ── -->
       <div class="sidebar-section">Administrasi</div>
 
-      <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('infaq-beasiswa')" data-p="infaq-beasiswa">
-        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-        <span class="sidebar-item-label">Infaq&amp;Beasiswa</span>
+      <button class="sidebar-item ico-teal" onclick="goToPembayaran()">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <span class="sidebar-item-label">Pembayaran &amp; Infaq</span>
       </button>
 
       </div><!-- /sidebar-group administrasi -->
@@ -8903,6 +8903,26 @@ function toggleSidebar() {
   } else {
     openSidebar();
   }
+}
+
+// Item sidebar "Pembayaran & Infaq" (grup Administrasi) menuju kartu SPP di Dashboard,
+// bukan halaman terpisah -- kartu itu baru muncul (display:block) setelah data SPP
+// selesai dimuat async (lihat renderSPP() di spp-module.js), jadi ditunggu sebentar
+// sebelum discroll, bukan langsung scrollIntoView setelah pindah halaman.
+function goToPembayaran() {
+  closeSidebar();
+  goPage('dashboard');
+  var tries = 0;
+  var iv = setInterval(function () {
+    var el = document.getElementById('sppCard');
+    tries++;
+    if (el && el.style.display !== 'none') {
+      clearInterval(iv);
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (tries > 20) {
+      clearInterval(iv); // murid tanpa SPP aktif -- kartu memang tidak akan tampil, diam saja
+    }
+  }, 150);
 }
 
 // ── Petualangan (Maze) — dimuat DINAMIS saat dibuka saja (tidak membebani load awal).
