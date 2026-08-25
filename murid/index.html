@@ -3005,6 +3005,15 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .dash-cal-agenda-empty{font-size:12.5px}
 }
 
+/* Kalender halaman Riwayat KBM: sama seperti .dash-cal-wrap di atas -- di layar
+   laptop/desktop kartu ini melebar penuh, dan karena .kal-day pakai aspect-ratio:1
+   (kotak), tingginya ikut membengkak proporsional dgn lebarnya, bikin kalender
+   raksasa yg menenggelamkan daftar riwayat di bawahnya. Kunci lebar spy tetap
+   proporsional seperti tampilan mobile. */
+@media(min-width:768px){
+  .kalender-wrap{max-width:420px;margin-left:auto;margin-right:auto}
+}
+
 /* Kalender + Kehadiranku: berdampingan (Kehadiranku kiri, kalender kanan) di layar lebar
    agar ruang kosong di kanan-kiri kalender terpakai, bukan sekadar margin kosong.
    grid-template-columns 1fr 1fr -> kedua kartu lebarnya sama persis (kalender tetap
