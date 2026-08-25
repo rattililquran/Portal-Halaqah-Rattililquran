@@ -589,8 +589,13 @@
     var bulanGrid    = data.bulan_grid || [];
     var lunasBulan   = data.lunas_bulan || [];
     var menungguBulan= data.menunggu_bulan || [];
-    var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-    var totalBulanLevel = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : (bulanGrid.length || 12);
+    var bulanMulaiIdx    = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
+    var totalBulanLevel  = (data.window_size !== undefined && data.window_size > 0) ? data.window_size : 5;
+    // lunasCount dihitung HANYA dalam jendela [bulanMulaiIdx, bulanMulaiIdx+totalBulanLevel) --
+    // bulanGrid selalu tampilkan 12 bulan kalender penuh untuk referensi, tapi progress SPP
+    // dihitung dari jendela yang berlaku (maks 5 bulan), bukan seluruh 12 bulan yang tampil.
+    var lunasCount   = bulanGrid.slice(bulanMulaiIdx, bulanMulaiIdx + totalBulanLevel)
+      .filter(function(b){ return b.status === 'lunas'; }).length;
     var tunggakan       = (data.tunggakan !== undefined) ? data.tunggakan : Math.max(0, totalBulanLevel - lunasCount);
 
     // ── Donut chart ──
@@ -621,7 +626,6 @@
 
     // ── Grid 12 bulan ──
     var BNAME = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
-    var bulanMulaiIdx = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
     grid.innerHTML = (bulanGrid || []).map(function(b, i) {
       var sudahMulai = i >= bulanMulaiIdx;
       var lewat      = (i + 1) <= bulanBerjalan;
