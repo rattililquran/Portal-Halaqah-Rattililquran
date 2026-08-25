@@ -546,6 +546,15 @@ html.theme-dark .prog-estimasi-middle{
   padding:16px 16px 16px;
 }
 .prog-inner-row{display:flex;align-items:center;gap:16px}
+/* Level Qiyam: .prog-info-right dikosongkan (donut ring sudah cukup mewakili info
+   -- lihat loadDashboard()), jadi donut-nya dipusatkan alih-alih nempel kiri
+   dgn ruang kosong besar di kanannya. #dashProgressCard.qiyam-card sudah
+   ditoggle JS sebelumnya, dipakai ulang di sini. .prog-info-right WAJIB ikut
+   disembunyikan -- flex:1 di elemen itu bikin justify-content:center di parent
+   tidak berefek sama sekali selama masih ada elemen flex:1 yang "melahap"
+   semua sisa ruang duluan. */
+#dashProgressCard.qiyam-card .prog-inner-row{justify-content:center}
+#dashProgressCard.qiyam-card .prog-info-right{display:none}
 
 /* Donut ring — conic-gradient persis KhatamKu */
 .prog-donut-wrap{
@@ -4063,13 +4072,13 @@ html.theme-dark .materi-daurah-banner-title {
         <div class="card-title" style="margin-bottom:16px;gap:10px"><div class="pg-sec-ico ico-green kh-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.5 15 16 9"/></svg></div>Kehadiranku</div>
 
         <div class="dash-prog-body">
-        <!-- KBM Reguler -->
+        <!-- KBM Reguler (jadi "KBM Qiyam" utk level Qiyam -- lihat dashKbmLabel di JS) -->
         <div class="dash-prog-panel">
-        <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">KBM Reguler</div>
+        <div id="dashKbmLabel" style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">KBM Reguler</div>
         <div class="prog-inner-wrap" style="margin-top:0;padding:0">
         <div class="prog-inner-card" onclick="openProgressBreakdown()">
           <div class="prog-inner-row">
-            <!-- Donut ring -->
+            <!-- Donut ring -- utk Qiyam diisi jumlah total setoran (bukan persen level) -->
             <div class="prog-donut-wrap" id="dashDonutRing"
               style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
               <div class="prog-donut-inner">
@@ -4080,26 +4089,27 @@ html.theme-dark .materi-daurah-banner-title {
             </div>
             <!-- Info kanan -->
             <div class="prog-info-right">
-              <div id="dashQiyamSetoranStat" class="qiyam-setoran-stat" style="display:none">
-                <span class="qiyam-setoran-num" id="dashQiyamSetoranNum">0</span>
-                <span class="qiyam-setoran-lbl">Total Setoran</span>
-              </div>
               <div class="prog-info-title" id="dashProgressPct">0 dari 40 sesi</div>
               <div class="prog-info-sesi" id="dashSisa">40 sesi tersisa</div>
               <div class="prog-bar-wrap" id="dashProgressBarWrap">
                 <div class="prog-bar-fill" id="dashProgressBar" style="width:0%"></div>
               </div>
-              <div id="dashQiyamTargetWrap" class="qiyam-target-box" style="display:none;">
-                <div class="qiyam-target-main">
-                  <span class="qiyam-target-icon">🎯</span>
-                  <div class="qiyam-target-text">
-                    <div class="qiyam-target-label">Target Setoran Berikutnya</div>
-                    <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
-                  </div>
-                </div>
-                <span class="qiyam-target-hint">Persiapkan dengan baik 🌙</span>
+            </div>
+          </div>
+          <!-- Target Setoran Berikutnya -- full-width di bawah baris donut, bukan
+               desak-desakan di kolom kanan lagi. Hint kanan ("Persiapkan dengan baik")
+               kini kondisional (lihat dashQiyamTargetHint di JS) -- sebelumnya selalu
+               tampil termasuk saat target BELUM diset, jadi kesannya kontradiktif
+               ("belum diset" tapi diminta "persiapkan"). -->
+          <div id="dashQiyamTargetWrap" class="qiyam-target-box" style="display:none;">
+            <div class="qiyam-target-main">
+              <span class="qiyam-target-icon">🎯</span>
+              <div class="qiyam-target-text">
+                <div class="qiyam-target-label">Target Setoran Berikutnya</div>
+                <div class="qiyam-target-value" id="dashQiyamTargetTxt">–</div>
               </div>
             </div>
+            <span class="qiyam-target-hint" id="dashQiyamTargetHint" style="display:none">Persiapkan dengan baik 🌙</span>
           </div>
           <div id="dashQiyamQuoteBox" class="qiyam-quote-box" style="display:none">
             <div class="qiyam-quote-text">&ldquo;Lakukanlah qiyamullail, karena hal itu merupakan kebiasaan orang-orang shalih sebelum kalian. Ia pun dapat mendekatkan kalian kepada Rabb kalian, menghapus segala kesalahan, dan mencegah dari perbuatan dosa.&rdquo;</div>
@@ -8200,13 +8210,14 @@ async function loadDashboard(silent) {
     if (dashProgCardEl) dashProgCardEl.classList.toggle('qiyam-card', isQiyam);
 
     // Reset default elements
+    if (document.getElementById('dashKbmLabel')) document.getElementById('dashKbmLabel').textContent = 'KBM Reguler';
     if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'inline';
     if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'inline';
     if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'level';
     if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'block';
     if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'none';
+    if (document.getElementById('dashQiyamTargetHint')) document.getElementById('dashQiyamTargetHint').style.display = 'none';
     if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
-    if (document.getElementById('dashQiyamSetoranStat')) document.getElementById('dashQiyamSetoranStat').style.display = 'none';
     if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
     if (document.getElementById('dashPartnerCard')) document.getElementById('dashPartnerCard').style.display = 'none';
     if (document.getElementById('dashPartnerBelajarCard')) document.getElementById('dashPartnerBelajarCard').style.display = 'none';
@@ -8223,39 +8234,41 @@ async function loadDashboard(silent) {
     var sisa = 0;
 
     if (isQiyam) {
+      if (document.getElementById('dashKbmLabel')) document.getElementById('dashKbmLabel').textContent = 'KBM Qiyam';
       if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
-      if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
       if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
       if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'block';
 
-      // Donut ring dihilangkan untuk level Qiyam — diganti angka total setoran polos
-      if (donutRing) donutRing.style.display = 'none';
+      // Info kanan (judul+subjudul+progress bar level) tidak relevan utk Qiyam --
+      // donut ring di kiri sudah menampilkan total setoran-nya sendiri.
+      if (document.getElementById('dashProgressPct')) document.getElementById('dashProgressPct').textContent = '';
+      if (document.getElementById('dashSisa')) document.getElementById('dashSisa').textContent = '';
+      if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
+
+      // Donut ring TETAP tampil (sebelumnya disembunyikan diganti angka polos) --
+      // sekarang diisi jumlah total setoran, bukan persen level.
+      var totalSetoran = d.qiyam ? d.qiyam.total_setoran : 0;
+      if (donutRing) donutRing.style.background = 'conic-gradient(#059669 100%, transparent 0%)';
+      if (pctNum) { pctNum.textContent = totalSetoran; pctNum.style.color = '#059669'; }
+      if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'setoran';
       if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
 
-      var totalSetoran = d.qiyam ? d.qiyam.total_setoran : 0;
-      var setoranStat = document.getElementById('dashQiyamSetoranStat');
-      if (setoranStat) {
-        setoranStat.style.display = 'flex';
-        document.getElementById('dashQiyamSetoranNum').textContent = totalSetoran;
-      }
-
       var lastSetoran = d.qiyam && d.qiyam.terakhir;
+      var targetHintEl = document.getElementById('dashQiyamTargetHint');
 
-      if (lastSetoran) {
-        document.getElementById('dashProgressPct').textContent = lastSetoran.jenis + ': QS. ' + lastSetoran.surat + ' ' + lastSetoran.ayat_dari + '-' + lastSetoran.ayat_sampai;
-        document.getElementById('dashSisa').textContent = 'Predikat: ' + (lastSetoran.nilai || '–') + ' · ' + (lastSetoran.kelancaran || '–');
-        
-        if (lastSetoran.target_surat) {
-          var tText = lastSetoran.target_surat + (lastSetoran.target_ayat_dari ? ' ' + lastSetoran.target_ayat_dari + '-' + lastSetoran.target_ayat_sampai : '');
-          document.getElementById('dashQiyamTargetTxt').textContent = tText;
-        } else {
-          document.getElementById('dashQiyamTargetTxt').innerHTML = '<span style="opacity:.6;font-style:italic;font-weight:600">Belum diset — diskusikan dengan Ustadz</span>';
-        }
+      if (lastSetoran && lastSetoran.target_surat) {
+        var tText = lastSetoran.target_surat + (lastSetoran.target_ayat_dari ? ' ' + lastSetoran.target_ayat_dari + '-' + lastSetoran.target_ayat_sampai : '');
+        document.getElementById('dashQiyamTargetTxt').textContent = tText;
+        // Hint "Persiapkan dengan baik" cuma masuk akal kalau memang ADA target
+        // yang perlu dipersiapkan -- sebelumnya selalu tampil termasuk saat
+        // target belum diset, jadi kesannya kontradiktif.
+        if (targetHintEl) targetHintEl.style.display = '';
       } else {
-        document.getElementById('dashProgressPct').textContent = 'Belum ada setoran';
-        document.getElementById('dashSisa').textContent = 'Mulai setoran pertama Anda';
-        document.getElementById('dashQiyamTargetTxt').innerHTML = '<span style="opacity:.6;font-style:italic;font-weight:600">Diskusikan dengan Ustadz untuk target pertama</span>';
+        document.getElementById('dashQiyamTargetTxt').innerHTML = lastSetoran
+          ? '<span style="opacity:.6;font-style:italic;font-weight:600">Belum diset — diskusikan dengan Ustadz</span>'
+          : '<span style="opacity:.6;font-style:italic;font-weight:600">Diskusikan dengan Ustadz untuk target pertama</span>';
+        if (targetHintEl) targetHintEl.style.display = 'none';
       }
 
       loadPartnerDashCard();
