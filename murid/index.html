@@ -2855,6 +2855,14 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .dash-cal-agenda-empty{font-size:12.5px}
 }
 
+/* Kalender + Kehadiranku: berdampingan (Kehadiranku kiri, kalender kanan) di layar lebar
+   agar ruang kosong di kanan-kiri kalender terpakai, bukan sekadar margin kosong */
+@media(min-width:1360px){
+  .dash-top-grid{display:grid;grid-template-columns:1fr minmax(0,640px);gap:16px;align-items:start}
+  .dash-top-grid > .card{margin-bottom:0}
+  #dashProgressCard{order:-1}
+}
+
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
   .card{padding:20px!important}
@@ -3812,7 +3820,8 @@ html.theme-dark .materi-daurah-banner-title {
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;" onclick="openNotifications()"></div>
 
       <!-- Progress Level -->
-      <!-- Kalender KBM (kartu terpisah) -->
+      <!-- Kalender KBM + Kehadiranku: berdampingan di layar lebar (lihat .dash-top-grid) -->
+      <div class="dash-top-grid">
       <div class="card" style="padding:18px">
         <div class="dash-cal-title">
           <div class="dash-cal-title-text">Perjuanganku Bersama Al-Qur'an</div>
@@ -3929,6 +3938,7 @@ html.theme-dark .materi-daurah-banner-title {
           </div><!-- /prog-inner-wrap -->
         </div><!-- /dashAtTibyanCard -->
       </div>
+      </div><!-- /dash-top-grid -->
 
       <!-- Partner Qiyam Card -->
       <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
