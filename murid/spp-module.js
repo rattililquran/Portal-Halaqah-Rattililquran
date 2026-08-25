@@ -699,11 +699,17 @@
 
     // Hook opsional -- kartu ringkas SPP di Beranda (index.html), kalau ada. Tidak
     // menghitung ulang apa pun, cuma meneruskan teks yang sudah selesai dihitung di atas.
+    // Utk murid beasiswa/daurah, applyBeasiswaMode() di bawah menyembunyikan panel
+    // progress-level ini (bukan relevan buat mereka) -- title/subEl di atas TETAP
+    // berisi teks "Progress Level: 0 dari 5 bulan" (dihitung sebelum tau statusnya),
+    // jadi kalau ikut di-mirror apa adanya, kartu ringkas Beranda akan salah kasih
+    // kesan murid beasiswa masih nunggak SPP. Ganti dgn teks yg sesuai utk mereka.
     try {
       if (typeof window.onSppRendered === 'function') {
+        var _isBeasiswaHook = isBeasiswaMurid();
         window.onSppRendered({
-          title: titleEl ? titleEl.textContent : '',
-          sub: subEl ? subEl.textContent : '',
+          title: _isBeasiswaHook ? (badge ? badge.textContent : '🎓 Beasiswa') : (titleEl ? titleEl.textContent : ''),
+          sub: _isBeasiswaHook ? 'Alhamdulillah, biaya belajar sudah ditanggung penuh oleh para Muhsinin 🤲' : (subEl ? subEl.textContent : ''),
           badgeClass: badge ? badge.className : '',
           badgeText: badge ? badge.textContent : ''
         });

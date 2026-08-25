@@ -13,7 +13,10 @@
     var v = localStorage.getItem('hq_theme_variant');
     if(v === null || v === 'minimal'){
       document.documentElement.classList.add('theme-minimal');
-      document.documentElement.classList.remove('theme-dark');
+      // JANGAN sentuh theme-dark di sini -- itu preferensi terpisah (Mode Gelap),
+      // orthogonal dari Biru/Minimalis. Sebelumnya baris ini selalu menghapus
+      // theme-dark utk hampir semua user (default = Minimalis), jadi dark mode
+      // tidak pernah nyala walau localStorage.theme='dark'.
     }
   }catch(e){}
 })();
@@ -470,9 +473,13 @@ html.theme-dark .qiyam-target-hint{color:#fcd34d;opacity:.5}
 .partner-dash-card:active{transform:scale(.98)}
 .partner-dash-card .prog-title{color:var(--text) !important;font-size:14px;margin-bottom:10px;
   justify-content:space-between;text-shadow:none}
+/* Solid (bukan var tema) sengaja -- badge notifikasi harus tetap kontras terbaca di
+   ketiga varian tema (Biru/Minimalis/Dark), bukan mengikuti tint yg bisa jadi gelap
+   di atas kartu gelap juga (var(--red-l) pernah dipakai di sini, kontrasnya jatuh
+   di dark mode karena tint merahnya jadi terlalu redup dibanding teks merah gelap). */
 .partner-dash-badge{
-  background:var(--red-l,#fee2e2);color:#b91c1c;font-size:11px;font-weight:800;
-  border-radius:100px;padding:3px 10px;text-align:center;border:1px solid rgba(239,68,68,.2);
+  background:#ef4444;color:#fff;font-size:11px;font-weight:800;
+  border-radius:100px;padding:3px 10px;text-align:center;
 }
 .partner-dash-body{font-size:12px;color:var(--text-2)}
 .partner-dash-hint{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
@@ -879,19 +886,34 @@ html.nav-tabs .sidebar-group{display:none}
 html.nav-tabs .sidebar-group.active{display:block}
 
 /* Desktop (≥768px): sidebar bisa collapse jadi strip ikon -- lihat juga blok
-   "Desktop persistent sidebar ≥768px" untuk override .top-hamburger{display:none} */
-html.nav-tabs .sidebar-drawer.collapsed{width:64px !important;min-width:64px !important;max-width:64px !important}
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-item-label,
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-text,
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-chevron,
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-group > div:first-child /* pill judul grup -- !important WAJIB, .sidebar-section punya display:flex!important sendiri */
-  {display:none !important}
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-item{justify-content:center !important;padding:7px 0}
-html.nav-tabs .sidebar-drawer.collapsed .sidebar-item > span:last-child:not(.sidebar-item-label){
-  position:absolute;top:2px;right:10px;transform:scale(.8);transform-origin:top right;
+   "Desktop persistent sidebar ≥768px" untuk override .top-hamburger{display:none}.
+   Dibungkus @media supaya tidak "nyangkut" 64px kalau window di-resize sampai
+   selebar HP (drawer mobile butuh lebar min(300px,88vw) yang benar, bukan strip
+   ikon). html.sidebar-precollapsed adalah placeholder pre-paint (hindari flash
+   sidebar lebar lalu menyempit sebelum JS sempat sinkron .collapsed yang
+   sebenarnya di startApp()) -- disamakan efeknya persis dgn .collapsed di sini
+   supaya tidak ada flash label/pill kepotong sebelum JS jalan. */
+@media(min-width:768px){
+  html.nav-tabs .sidebar-drawer.collapsed,
+  html.sidebar-precollapsed .sidebar-drawer{
+    width:64px !important;min-width:64px !important;max-width:64px !important;
+  }
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item-label,
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-text,
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-chevron,
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-group > div:first-child, /* pill judul grup -- !important WAJIB, .sidebar-section punya display:flex!important sendiri */
+  html.sidebar-precollapsed .sidebar-item-label,
+  html.sidebar-precollapsed .sidebar-profile-text,
+  html.sidebar-precollapsed .sidebar-profile-chevron,
+  html.sidebar-precollapsed .sidebar-group > div:first-child
+    {display:none !important}
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item,
+  html.sidebar-precollapsed .sidebar-item{justify-content:center !important;padding:7px 0}
+  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item > span:last-child:not(.sidebar-item-label),
+  html.sidebar-precollapsed .sidebar-item > span:last-child:not(.sidebar-item-label){
+    position:absolute;top:2px;right:10px;transform:scale(.8);transform-origin:top right;
+  }
 }
-/* Pre-collapse sebelum paint (hindari flash sidebar lebar lalu menyempit) -- pasangan .collapsed di atas */
-html.sidebar-precollapsed .sidebar-drawer{width:64px !important;min-width:64px !important;max-width:64px !important}
 
 /* ── PAGES + SWIPE TRANSITION ── */
 .page{display:none}.page.active{display:block}
@@ -7158,7 +7180,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
-<script src="spp-module.js?v=2ca05d50" defer></script>
+<script src="spp-module.js?v=c5244a6c" defer></script>
 <script src="partner-module.js?v=3589fe5c" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
@@ -7475,7 +7497,7 @@ window.addEventListener('DOMContentLoaded', function() {
       startApp();
       setTimeout(function() {
         toast('Pembayaran sedang diproses — status akan diperbarui otomatis dalam beberapa saat ✅', 'ok');
-        goPage('spp');
+        goPage('spp-infaq');
       }, 1200);
       return;
     } else if (targetPage) {
@@ -7886,6 +7908,16 @@ function setCalTab(os, btn) {
 function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  // Sinkronkan collapse sidebar sungguhan -- html.sidebar-precollapsed cuma
+  // placeholder pre-paint (elemen sidebar belum ada saat script <head> jalan).
+  // Sekarang #sidebarDrawer sudah ada, sinkron ke .collapsed yang sesungguhnya
+  // lalu lepas placeholder-nya (kalau tidak dilepas, !important-nya bikin
+  // sidebar tidak akan pernah bisa dilebarkan lagi walau .collapsed ditoggle).
+  if (document.documentElement.classList.contains('sidebar-precollapsed')) {
+    var _sbDrawer = document.getElementById('sidebarDrawer');
+    if (_sbDrawer) _sbDrawer.classList.add('collapsed');
+    document.documentElement.classList.remove('sidebar-precollapsed');
+  }
   // Anchor histori untuk pola "tombol kembali ke Beranda dulu, baru keluar"
   // (lihat listener popstate di bawah goPage()) — hanya dipasang sekali per
   // sesi browser agar tidak menumpuk entry tiap kali startApp() dipanggil ulang.
@@ -7987,6 +8019,19 @@ function goPage(name, swipeDir) {
   var _contentEl = document.querySelector('.content');
   if (_contentEl) _contentEl.scrollTop = 0; else window.scrollTo(0, 0);
 
+  // Varian navigasi baru (tab atas): sinkronkan tab & filter sidebar ke grup halaman
+  // ini, dari MANAPUN goPage() dipanggil (bukan cuma klik sidebar) -- no-op di jalur lama.
+  // WAJIB di sini (SEBELUM early-return kuis/assessment/_muridTabLoaded di bawah) --
+  // sebelumnya taruh di akhir fungsi jadi cuma jalan di kunjungan PERTAMA ke tiap
+  // halaman (return di bawah selalu memotongnya duluan sejak kunjungan kedua).
+  var _navGrp = PAGE_TO_GROUP[name];
+  if (_navGrp && typeof setActiveNavGroup === 'function') setActiveNavGroup(_navGrp);
+
+  // Data SPP harus selalu segar tiap kali halaman Pembayaran & Infaq dibuka -- taruh
+  // di sini juga (bukan di dalam blok _muridTabLoaded "hanya sekali" di bawah), dgn
+  // alasan yang sama seperti sinkronisasi tab di atas.
+  if (name === 'spp-infaq') { _sppLoaded = false; loadSPP(); }
+
   // Lazy load — hanya load sekali, kecuali assessment (harus reload setiap kunjungan
   // karena dashData.anggota.level bisa belum tersedia saat pertama kali diklik,
   // dan level user bisa berubah antar sesi)
@@ -8019,7 +8064,6 @@ function goPage(name, swipeDir) {
   else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'partner-belajar') { loadPagePartnerBelajar(); }
-  else if (name === 'spp-infaq') { _sppLoaded = false; loadSPP(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -8029,13 +8073,6 @@ function goPage(name, swipeDir) {
   else if (name === 'panduan') { pdInitKetua(); }
   else if (name === 'saran') { populateSaranInfo(); }
   else if (name === 'mutabaah') { loadMutabaahMurid(); }
-  // BUG-10 fix: reset _sppLoaded agar data SPP selalu segar saat balik ke beranda
-  if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
-
-  // Varian navigasi baru (tab atas): sinkronkan tab & filter sidebar ke grup halaman
-  // ini, dari MANAPUN goPage() dipanggil (bukan cuma klik sidebar) -- no-op di jalur lama.
-  var _navGrp = PAGE_TO_GROUP[name];
-  if (_navGrp && typeof setActiveNavGroup === 'function') setActiveNavGroup(_navGrp);
 }
 
 // Tombol "kembali" browser/HP → kembali ke Beranda dulu (1x tekan, dari tab
@@ -8492,9 +8529,12 @@ async function loadDashboard(silent) {
     document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
     document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
-    // Load kartu Lapor Aktivitas Belajar (Partner Belajar) -- HANYA level 1-4 (non-Qiyam).
-    // Murid Qiyam pakai kartu Partner Qiyam sendiri (dashPartnerCard di atas), bukan ini.
-    if (!isQiyam) {
+    // Load kartu Lapor Aktivitas Belajar (Partner Belajar) -- HANYA level 1-4 (non-Qiyam)
+    // DAN halaqah-nya mengaktifkan fitur ini (samakan syarat dgn dashPartnerBelajarCard
+    // & sidebar-nya di atas -- sebelumnya kartu ini cuma dicek !isQiyam saja, jadi
+    // murid di halaqah yg belum mengaktifkan partner_belajar_enabled tetap lihat kartu
+    // kosong "hubungi guru/admin" yg tidak relevan).
+    if (!isQiyam && d.halaqah && d.halaqah.partner_belajar_enabled) {
       var dashPbCardEl = document.getElementById('dashPbCard');
       if (dashPbCardEl) dashPbCardEl.style.display = '';
       loadDashPbCard();
@@ -8941,7 +8981,7 @@ var _activeNavGroup = 'utama';
 function setActiveNavGroup(key) {
   if (NAV_GROUPS.indexOf(key) === -1) return;
   _activeNavGroup = key;
-  document.querySelectorAll('.top-tab').forEach(function(b) {
+  document.querySelectorAll('.top-tab[data-group]').forEach(function(b) {
     var on = b.getAttribute('data-group') === key;
     b.classList.toggle('active', on);
     b.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -9020,19 +9060,48 @@ function scheduleHideTabDropdown() {
   clearTimeout(_tabDropdownHideT);
   _tabDropdownHideT = setTimeout(hideTabDropdown, 220);
 }
+// Fokus keyboard (Tab key) wajar pindah dari tombol tab KE item menu di dalam
+// panel -- itu bukan alasan menutup panel. Cek helper ini di blur/focusout supaya
+// panel cuma nutup kalau fokus benar2 keluar dari tab & panelnya sekaligus
+// (sebelumnya blur tab langsung nutup panel 220ms kemudian, memutus fokus
+// keyboard yang baru saja pindah ke item menu di dalamnya).
+function _isInsideTabDropdownSystem(el) {
+  if (!el) return false;
+  var dd2 = document.getElementById('topTabDropdown');
+  if (dd2 && dd2.contains(el)) return true;
+  return !!(el.classList && el.classList.contains('top-tab'));
+}
 (function initTabDropdownEvents(){
   document.querySelectorAll('.top-tab[data-group]').forEach(function(tab){
     tab.addEventListener('mouseenter', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
     tab.addEventListener('mouseleave', scheduleHideTabDropdown);
     tab.addEventListener('focus', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
-    tab.addEventListener('blur', scheduleHideTabDropdown);
+    tab.addEventListener('blur', function(e){
+      if (_isInsideTabDropdownSystem(e.relatedTarget)) return;
+      scheduleHideTabDropdown();
+    });
   });
   var dd = document.getElementById('topTabDropdown');
   if (dd) {
     dd.addEventListener('mouseenter', function(){ clearTimeout(_tabDropdownHideT); });
     dd.addEventListener('mouseleave', scheduleHideTabDropdown);
+    dd.addEventListener('focusout', function(e){
+      if (_isInsideTabDropdownSystem(e.relatedTarget)) return;
+      scheduleHideTabDropdown();
+    });
   }
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideTabDropdown(); });
+  // Klik di luar tab & panel (mis. area konten) langsung nutup -- sebelumnya cuma
+  // bisa nutup lewat mouseleave/blur/Escape, jadi panel bisa "nyangkut" terbuka
+  // kalau salah satu onclick item di dalamnya error sebelum sempat panggil
+  // hideTabDropdown(), atau di perangkat yang mouseleave-nya tidak konsisten.
+  document.addEventListener('click', function(e){
+    var dd3 = document.getElementById('topTabDropdown');
+    if (!dd3 || !dd3.classList.contains('open')) return;
+    if (dd3.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.top-tab[data-group]')) return;
+    hideTabDropdown();
+  });
 })();
 
 function toggleSidebarCollapse() {
@@ -11890,7 +11959,12 @@ function nilaiClass(n) {
 
 
 // ══ SPP STATUS ════════════════════════════
-var _sppLoaded = false; // hanya load sekali per sesi
+// _sppLoaded TIDAK dideklarasikan di sini (var top-level lama) -- itu membuat
+// window._sppLoaded jadi properti non-configurable, sehingga bridge getter/setter
+// spp-module.js (delete window._sppLoaded lalu Object.defineProperty) SELALU gagal
+// (delete pada properti non-configurable throw di 'use strict', fallback-nya cuma
+// assignment sekali pakai, terputus dari flag internal modul selamanya). Sekarang
+// window._sppLoaded murni didefinisikan oleh spp-module.js sendiri.
 // ══════════════════════════════════════════
 //  GRAFIK KEHADIRAN BULANAN (Dashboard)
 // ══════════════════════════════════════════
