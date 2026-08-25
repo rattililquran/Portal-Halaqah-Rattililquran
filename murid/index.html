@@ -18,6 +18,20 @@
   }catch(e){}
 })();
 </script>
+<script>
+// ── Navigasi: tab atas + sidebar collapsible (varian baru, opt-in) — Profil Saya > Pengaturan Akun ──
+// Default = 'legacy' (sidebar penuh seperti sebelumnya). Diterapkan SEBELUM paint supaya tidak flash.
+(function(){
+  try{
+    if(localStorage.getItem('hq_nav_variant') === 'tabs'){
+      document.documentElement.classList.add('nav-tabs');
+      if(localStorage.getItem('hq_sidebar_collapsed') === '1' && window.innerWidth >= 768){
+        document.documentElement.classList.add('sidebar-precollapsed');
+      }
+    }
+  }catch(e){}
+})();
+</script>
 <meta charset="UTF-8">
 <!-- Beri tahu browser sejak awal render bahwa halaman ini mendukung mode
      terang & gelap, supaya kanvas kosong sebelum CSS termuat langsung dicat
@@ -811,6 +825,49 @@ html.theme-dark .prog-estimasi-middle{
 .sidebar-item.danger{color:#dc2626}
 .sidebar-item.danger .sidebar-item-ico{background:rgba(220,38,38,.1);color:#dc2626}
 .sidebar-item.danger:hover{background:rgba(220,38,38,.08);color:#b91c1c}
+
+/* ══ NAVIGASI VARIAN BARU: tab atas + sidebar collapsible (opt-in, html.nav-tabs) ══
+   Default (html TANPA class nav-tabs) -> semua rule di bawah ini tidak berlaku,
+   sidebar tetap seperti jalur lama (semua grup selalu tampil, tab atas tersembunyi). */
+.top-tabbar{display:none}
+html.nav-tabs .top-tabbar{
+  display:flex;gap:4px;padding:0 10px;border-bottom:1px solid var(--border);
+  background:var(--card-solid,#fff);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  flex-shrink:0;
+}
+html.nav-tabs .top-tabbar::-webkit-scrollbar{display:none}
+html.nav-tabs .top-tab{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;padding:11px 10px;
+  border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:700;
+  color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;
+}
+html.nav-tabs .top-tab:hover{color:var(--text)}
+html.nav-tabs .top-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+html.nav-tabs .top-tab-ico svg{display:block;width:15px;height:15px}
+html.theme-dark.nav-tabs .top-tabbar{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark.nav-tabs .top-tab{color:rgba(255,255,255,.5) !important}
+html.theme-dark.nav-tabs .top-tab:hover{color:#e8eaf0 !important}
+html.theme-dark.nav-tabs .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
+
+/* Grup sidebar -- default (jalur lama) selalu tampil; di varian baru difilter oleh tab aktif */
+html.nav-tabs .sidebar-group{display:none}
+html.nav-tabs .sidebar-group.active{display:block}
+
+/* Desktop (≥768px): sidebar bisa collapse jadi strip ikon -- lihat juga blok
+   "Desktop persistent sidebar ≥768px" untuk override .top-hamburger{display:none} */
+html.nav-tabs .sidebar-drawer.collapsed{width:64px !important;min-width:64px !important;max-width:64px !important}
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-item-label,
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-text,
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-chevron,
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-group > div:first-child /* pill judul grup */
+  {display:none}
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-item{justify-content:center !important;padding:7px 0}
+html.nav-tabs .sidebar-drawer.collapsed .sidebar-item > span:last-child:not(.sidebar-item-label){
+  position:absolute;top:2px;right:10px;transform:scale(.8);transform-origin:top right;
+}
+/* Pre-collapse sebelum paint (hindari flash sidebar lebar lalu menyempit) -- pasangan .collapsed di atas */
+html.sidebar-precollapsed .sidebar-drawer{width:64px !important;min-width:64px !important;max-width:64px !important}
 
 /* ── PAGES + SWIPE TRANSITION ── */
 .page{display:none}.page.active{display:block}
@@ -2993,6 +3050,11 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   /* Sidebar item semua bisa diklik tanpa closeSidebar mengganggu */
   .sidebar-item{cursor:pointer}
 }
+/* Varian baru: hamburger dipakai lagi di desktop sebagai toggle collapse sidebar
+   (di jalur lama tetap disembunyikan seperti rule di atas -- sidebar desktop selalu penuh) */
+@media(min-width:768px){
+  html.nav-tabs .top-hamburger{display:flex !important}
+}
 
 /* ══ PANDUAN MURID ════════════════════════════════════════════ */
 .pd-wrap{max-width:640px;margin:0 auto;padding:0 0 32px}
@@ -3846,7 +3908,7 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
       <!-- Notifikasi & toggle tema dipindah ke sidebar -->
       <!-- Hamburger kanan (seperti Modul-Web) -->
-      <button class="top-hamburger" onclick="openSidebar()" title="Menu" aria-label="Buka menu">
+      <button class="top-hamburger" onclick="toggleSidebar()" title="Menu" aria-label="Buka menu">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
           <line x1="1" y1="3.5" x2="14" y2="3.5"/>
           <line x1="1" y1="7.5" x2="14" y2="7.5"/>
@@ -3858,6 +3920,31 @@ html.theme-dark .materi-daurah-banner-title {
 
   <!-- topAvatar ghost element — dipertahankan untuk kompatibilitas kode JS -->
   <div id="topAvatar" style="display:none"></div>
+
+  <!-- TAB ATAS (varian baru, opt-in via html.nav-tabs -- tersembunyi total di jalur lama) --
+       memfilter grup sidebar mana yang tampil, TIDAK pindah halaman sendiri -->
+  <nav class="top-tabbar" id="topTabbar" role="tablist" aria-label="Navigasi utama">
+    <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      <span>Utama</span>
+    </button>
+    <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik')" role="tab" aria-selected="false">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <span>Akademik</span>
+    </button>
+    <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan')" role="tab" aria-selected="false">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+      <span>Permainan</span>
+    </button>
+    <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi')" role="tab" aria-selected="false">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></span>
+      <span>Evaluasi</span>
+    </button>
+    <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan')" role="tab" aria-selected="false">
+      <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      <span>Pengaturan</span>
+    </button>
+  </nav>
 
   <!-- CONTENT -->
   <div class="content">
@@ -5952,172 +6039,186 @@ html.theme-dark .materi-daurah-banner-title {
     <!-- Navigasi -->
     <div class="sidebar-nav">
 
+      <div class="sidebar-group" data-group="utama">
       <!-- ── UTAMA ── -->
       <div class="sidebar-section">Utama</div>
 
       <button class="sidebar-item ico-blue" id="sidebarNavDashboard" onclick="closeSidebar();goPage('dashboard')" data-p="dashboard">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-        Beranda
+        <span class="sidebar-item-label">Beranda</span>
       </button>
 
-      <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('pengumuman')">
+      <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('pengumuman')" data-p="pengumuman">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        Pengumuman
+        <span class="sidebar-item-label">Pengumuman</span>
       </button>
 
       <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('saran')" data-p="saran">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        Saran &amp; Masukan
+        <span class="sidebar-item-label">Saran &amp; Masukan</span>
       </button>
 
+      </div><!-- /sidebar-group utama -->
+
+      <div class="sidebar-group" data-group="akademik">
       <!-- ── AKADEMIK & KBM ── -->
       <div class="sidebar-section">Akademik &amp; KBM</div>
 
       <button class="sidebar-item ico-amber" id="sidebarNavKuis" onclick="closeSidebar();goPage('kuis')" data-p="kuis">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
-        Rattil Quiz
+        <span class="sidebar-item-label">Rattil Quiz</span>
       </button>
 
       <button class="sidebar-item ico-sky" id="sidebarNavRiwayat" onclick="closeSidebar();goPage('riwayat')" data-p="riwayat">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/></svg></div>
-        Riwayat KBM
+        <span class="sidebar-item-label">Riwayat KBM</span>
       </button>
 
       <button class="sidebar-item ico-purple" id="sidebarNavMateri" onclick="closeSidebar();goPage('info')" data-p="info">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-        Materi Level
+        <span class="sidebar-item-label">Materi Level</span>
       </button>
 
       <button class="sidebar-item ico-amber" id="sidebarNavPr" onclick="closeSidebar();goPage('pr')" data-p="pr">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-        <span style="flex:1">Latihan Mandiri (PR)</span>
+        <span class="sidebar-item-label">Latihan Mandiri (PR)</span>
         <span id="sidebarPrBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
 
       <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('attibyan')" data-p="attibyan">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        Kajian At-Tibyan
+        <span class="sidebar-item-label">Kajian At-Tibyan</span>
       </button>
 
       <button class="sidebar-item ico-green" id="sidebarHafalanBtn" onclick="closeSidebar();goPage('hafalan')" data-p="hafalan">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-        <span style="flex:1">Setoran Hafalan</span>
+        <span class="sidebar-item-label">Setoran Hafalan</span>
         <span id="sidebarQiyamBadge" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4">Qiyam</span>
         <span id="sidebarHafalanLockIcon" style="font-size:13px;color:#9ca3af">🔒</span>
       </button>
 
       <button class="sidebar-item ico-teal" id="sidebarBelajarBtn" onclick="closeSidebar();goPage('partner-belajar')" data-p="partner-belajar" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <span style="flex:1">Partner Belajar</span>
+        <span class="sidebar-item-label">Partner Belajar</span>
         <span id="sidebarBelajarBadge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
 
-      <div class="sidebar-item ico-purple" id="sidebarKetuaBtn" onclick="closeSidebar();goPage('ketua')" style="display:none">
+      <div class="sidebar-item ico-purple" id="sidebarKetuaBtn" onclick="closeSidebar();goPage('ketua')" data-p="ketua" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <span style="flex:1">Ketua Kelas</span>
+        <span class="sidebar-item-label">Ketua Kelas</span>
         <span class="ketua-badge" id="sidebarKetuaBadge" style="display:none">0</span>
       </div>
 
+      </div><!-- /sidebar-group akademik -->
+
+      <div class="sidebar-group" data-group="permainan">
       <!-- ── PERMAINAN ── -->
       <div class="sidebar-section">Permainan</div>
 
       <button class="sidebar-item ico-purple" id="sidebarNavPetualangan" onclick="closeSidebar();openMazeAdventure()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
-        <span style="flex:1">Petualangan</span>
+        <span class="sidebar-item-label">Petualangan</span>
         <span style="font-size:9px;font-weight:800;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border-radius:100px;padding:2px 7px;line-height:1.4">Game</span>
       </button>
 
       <button class="sidebar-item ico-amber" id="sidebarNavRattilRun" onclick="closeSidebar();openRattilRun()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-        <span style="flex:1">Rattil Run</span>
+        <span class="sidebar-item-label">Rattil Run</span>
         <span style="font-size:9px;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:100px;padding:2px 7px;line-height:1.4">Game</span>
       </button>
 
+      </div><!-- /sidebar-group permainan -->
+
+      <div class="sidebar-group" data-group="evaluasi">
       <!-- ── EVALUASI & KEUANGAN ── -->
       <div class="sidebar-section">Evaluasi &amp; Keuangan</div>
 
-      <button class="sidebar-item ico-purple" id="sidebarAssessmentBtn" onclick="closeSidebar();goPage('assessment')" style="display:none">
+      <button class="sidebar-item ico-purple" id="sidebarAssessmentBtn" onclick="closeSidebar();goPage('assessment')" data-p="assessment" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        Assessment Mandiri
+        <span class="sidebar-item-label">Assessment Mandiri</span>
       </button>
 
-      <button class="sidebar-item ico-blue" id="sidebarMutabaahBtn" onclick="closeSidebar();goPage('mutabaah')" style="display:none">
+      <button class="sidebar-item ico-blue" id="sidebarMutabaahBtn" onclick="closeSidebar();goPage('mutabaah')" data-p="mutabaah" style="display:none">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
-        Mutaba'ah Daurah
+        <span class="sidebar-item-label">Mutaba'ah Daurah</span>
       </button>
 
       <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('raport')" data-p="raport">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></div>
-        <span style="flex:1">Raport</span>
+        <span class="sidebar-item-label">Raport</span>
         <span id="raportNavBadge" style="display:none;margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.3px">BARU</span>
       </button>
 
       <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('infaq-beasiswa')" data-p="infaq-beasiswa">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-        Infaq&amp;Beasiswa
+        <span class="sidebar-item-label">Infaq&amp;Beasiswa</span>
       </button>
 
       <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('charging')" data-p="charging">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
-        Charging
+        <span class="sidebar-item-label">Charging</span>
       </button>
 
+      </div><!-- /sidebar-group evaluasi -->
+
+      <div class="sidebar-group" data-group="pengaturan">
       <!-- ── PENGATURAN & BANTUAN ── -->
       <div class="sidebar-section">Pengaturan &amp; Bantuan</div>
 
       <button class="sidebar-item ico-blue" id="bell-btn" onclick="closeSidebar();openNotifications()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-        <span style="flex:1">Notifikasi</span>
+        <span class="sidebar-item-label">Notifikasi</span>
         <span id="bell-badge" style="display:none;background:#ef4444;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 7px;line-height:1.4"></span>
       </button>
 
       <!-- Toggle mode gelap/terang (dipindah dari header atas) -->
       <button class="sidebar-item ico-slate" id="theme-toggle" title="Ganti Mode Gelap/Terang">
         <div class="sidebar-item-ico" id="themeToggleIco"></div>
-        <span style="flex:1">Mode Gelap</span>
+        <span class="sidebar-item-label">Mode Gelap</span>
       </button>
 
       <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('panduan')" data-p="panduan">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
-        Panduan
+        <span class="sidebar-item-label">Panduan</span>
       </button>
 
       <button class="sidebar-item ico-green" onclick="closeSidebar();openCalendarModal()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="12 12 12 16 16 16"/></svg></div>
-        Pengingat Kalender HP
+        <span class="sidebar-item-label">Pengingat Kalender HP</span>
       </button>
 
       <button class="sidebar-item ico-blue" onclick="closeSidebar();openPushPrefsPanel()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="4"/></svg></div>
-        Preferensi Notifikasi
+        <span class="sidebar-item-label">Preferensi Notifikasi</span>
       </button>
 
       <button class="sidebar-item ico-blue" onclick="closeSidebar();openModal('pwaModal')">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
-        <span style="flex:1">Install Aplikasi</span>
+        <span class="sidebar-item-label">Install Aplikasi</span>
         <span style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2px 8px;line-height:1.5">PWA</span>
       </button>
 
-      <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('password')">
+      <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('password')" data-p="password">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        Ganti Password
+        <span class="sidebar-item-label">Ganti Password</span>
       </button>
 
       <button class="sidebar-item ico-slate" onclick="closeSidebar();openModal('tentangModal')">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><polyline points="12 12 12 16"/></svg></div>
-        Tentang Rattililqur'an
+        <span class="sidebar-item-label">Tentang Rattililqur'an</span>
       </button>
 
       <div class="sidebar-divider" style="margin:10px 2px"></div>
 
       <button class="sidebar-item danger" onclick="doLogout()">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
-        Keluar dari Aplikasi
+        <span class="sidebar-item-label">Keluar dari Aplikasi</span>
       </button>
 
       <div style="font-size:10px;color:var(--text-3);text-align:center;margin-top:20px;padding:0 8px;opacity:0.6" id="appVersionInfo">
         Versi Aplikasi: v8.15
       </div>
+      </div><!-- /sidebar-group pengaturan -->
     </div>
   </div>
 
@@ -6719,6 +6820,13 @@ html.theme-dark .materi-daurah-banner-title {
             <div class="theme-picker" id="themePicker">
               <button type="button" class="theme-picker-opt" data-theme-choice="blue">Biru</button>
               <button type="button" class="theme-picker-opt" data-theme-choice="minimal">Minimalis</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
+            <span style="font-weight:600; color:var(--text); font-size:13.5px;">🧭 Navigasi</span>
+            <div class="theme-picker" id="navVariantPicker">
+              <button type="button" class="theme-picker-opt" data-nav-choice="legacy">Lama</button>
+              <button type="button" class="theme-picker-opt" data-nav-choice="tabs">Baru</button>
             </div>
           </div>
           <div onclick="closeModal('profilModal');goPage('password')" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; border-bottom:1px solid var(--border);" class="menu-item-hover">
@@ -7858,6 +7966,11 @@ function goPage(name, swipeDir) {
   else if (name === 'mutabaah') { loadMutabaahMurid(); }
   // BUG-10 fix: reset _sppLoaded agar data SPP selalu segar saat balik ke beranda
   if (name === 'beranda') { _sppLoaded = false; loadSPP(); }
+
+  // Varian navigasi baru (tab atas): sinkronkan tab & filter sidebar ke grup halaman
+  // ini, dari MANAPUN goPage() dipanggil (bukan cuma klik sidebar) -- no-op di jalur lama.
+  var _navGrp = PAGE_TO_GROUP[name];
+  if (_navGrp && typeof setActiveNavGroup === 'function') setActiveNavGroup(_navGrp);
 }
 
 // Tombol "kembali" browser/HP → kembali ke Beranda dulu (1x tekan, dari tab
@@ -8721,6 +8834,58 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('sidebarDrawer').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ══ Navigasi varian baru: tab atas + sidebar collapsible (opt-in, html.nav-tabs) ══
+// Semua fungsi di bawah ini no-op/tidak berpengaruh apa pun di jalur lama (default).
+var NAV_GROUPS = ['utama', 'akademik', 'permainan', 'evaluasi', 'pengaturan'];
+// Pemetaan nama halaman (goPage) -> grup sidebar yang memuatnya. 'permainan' & sebagian
+// item 'pengaturan' (notifikasi, mode gelap, dst.) tidak ada di sini karena tidak
+// memanggil goPage() sama sekali (modal/toggle) -- tab-nya jadi murni pilihan manual.
+var PAGE_TO_GROUP = {
+  dashboard: 'utama', pengumuman: 'utama', saran: 'utama',
+  kuis: 'akademik', riwayat: 'akademik', info: 'akademik', pr: 'akademik',
+  attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
+  assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi',
+  'infaq-beasiswa': 'evaluasi', charging: 'evaluasi',
+  panduan: 'pengaturan', password: 'pengaturan',
+};
+// Grup aktif diturunkan dari navigasi (goPage), TIDAK di-persist localStorage terpisah --
+// supaya tidak pernah out-of-sync dengan halaman yang benar-benar sedang tampil.
+var _activeNavGroup = 'utama';
+function setActiveNavGroup(key) {
+  if (NAV_GROUPS.indexOf(key) === -1) return;
+  _activeNavGroup = key;
+  document.querySelectorAll('.top-tab').forEach(function(b) {
+    var on = b.getAttribute('data-group') === key;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('.sidebar-group').forEach(function(g) {
+    g.classList.toggle('active', g.getAttribute('data-group') === key);
+  });
+}
+function onTopTabClick(key) {
+  setActiveNavGroup(key);
+  // HP: tap tab cuma mengganti filter, tak kelihatan apa-apa selama drawer tertutup
+  // -- jadi ikut buka drawer-nya. Desktop: sidebar (penuh/collapsed) sudah selalu terlihat.
+  if (!_isDesktop()) openSidebar();
+}
+function toggleSidebarCollapse() {
+  var drawer = document.getElementById('sidebarDrawer');
+  if (!drawer) return;
+  var collapsed = !drawer.classList.contains('collapsed');
+  drawer.classList.toggle('collapsed', collapsed);
+  try { localStorage.setItem('hq_sidebar_collapsed', collapsed ? '1' : '0'); } catch (e) {}
+}
+// Dipanggil oleh onclick tombol .top-hamburger (satu tombol, dua peran tergantung konteks).
+// Jalur lama (bukan nav-tabs) & mobile: perilaku persis seperti sebelumnya (openSidebar saja).
+function toggleSidebar() {
+  if (_isDesktop() && document.documentElement.classList.contains('nav-tabs')) {
+    toggleSidebarCollapse();
+  } else {
+    openSidebar();
+  }
 }
 
 // ── Petualangan (Maze) — dimuat DINAMIS saat dibuka saja (tidak membebani load awal).
@@ -11816,7 +11981,7 @@ initThemeToggle();
 
 // ── Pemilih varian tema (Biru / Minimalis) — di Profil Saya > Pengaturan Akun ──
 function updateThemePickerUI(variant) {
-  document.querySelectorAll('.theme-picker-opt').forEach(function(btn) {
+  document.querySelectorAll('#themePicker .theme-picker-opt').forEach(function(btn) {
     btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === variant);
   });
 }
@@ -11831,11 +11996,41 @@ function initThemeVariantPicker() {
   var current = 'minimal';
   try { var v = localStorage.getItem('hq_theme_variant'); current = (v === null) ? 'minimal' : v; } catch (e) {}
   updateThemePickerUI(current);
-  document.querySelectorAll('.theme-picker-opt').forEach(function(btn) {
+  // Scoped ke #themePicker -- jangan pakai selector global '.theme-picker-opt', sebab
+  // segmented control lain (mis. #navVariantPicker) reuse class yang sama.
+  document.querySelectorAll('#themePicker .theme-picker-opt').forEach(function(btn) {
     btn.addEventListener('click', function() { setAppTheme(btn.getAttribute('data-theme-choice')); });
   });
 }
 initThemeVariantPicker();
+
+// ── Pemilih varian navigasi (Lama / Baru: tab atas + sidebar collapsible) — di Profil Saya > Pengaturan Akun ──
+// Cerminan 1:1 dari initThemeVariantPicker() di atas, key localStorage & efeknya beda.
+function updateNavPickerUI(variant) {
+  document.querySelectorAll('#navVariantPicker .theme-picker-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-nav-choice') === variant);
+  });
+}
+function setNavVariant(variant) {
+  try { localStorage.setItem('hq_nav_variant', variant); } catch (e) {}
+  updateNavPickerUI(variant);
+  // Restructure DOM (grup sidebar, tab bar) terlalu besar untuk di-toggle live tanpa
+  // reload -- sama seperti ganti tema di banyak app, minta reload sekali.
+  location.reload();
+}
+function initNavVariantPicker() {
+  var current = 'legacy';
+  try { var v = localStorage.getItem('hq_nav_variant'); current = (v === 'tabs') ? 'tabs' : 'legacy'; } catch (e) {}
+  updateNavPickerUI(current);
+  document.querySelectorAll('#navVariantPicker .theme-picker-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var choice = btn.getAttribute('data-nav-choice');
+      if (choice === current) return; // sudah aktif, tak perlu reload
+      setNavVariant(choice);
+    });
+  });
+}
+initNavVariantPicker();
 
 // ── Push Preferences ──────────────────────────
 var _pushPrefsData   = {};
