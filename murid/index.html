@@ -546,18 +546,12 @@ html.theme-dark .prog-estimasi-middle{
   padding:16px 16px 16px;
 }
 .prog-inner-row{display:flex;align-items:center;gap:16px}
-/* Level Qiyam: info kanan panel KBM dikosongkan (donut ring sudah cukup mewakili
-   info -- lihat loadDashboard()), jadi donut-nya dipusatkan alih-alih nempel kiri
-   dgn ruang kosong besar di kanannya. DIBATASI KE ID SPESIFIK (dashKbmInnerRow/
-   dashKbmInfoRight), BUKAN ".qiyam-card .prog-info-right" polos -- panel At-Tibyan
-   di bawahnya sama-sama anak dari #dashProgressCard.qiyam-card dan ikut punya
-   .prog-info-right sendiri (isinya % hadir + bar), kalau dipukul rata jadi ikut
-   hilang juga (bug nyata yg pernah kejadian). .prog-info-right WAJIB ikut
-   disembunyikan (bukan cuma dikosongkan tekstnya) -- flex:1 di elemen itu bikin
-   justify-content:center di parent tidak berefek sama sekali selama masih ada
-   elemen flex:1 yang "melahap" semua sisa ruang duluan. */
-#dashProgressCard.qiyam-card #dashKbmInnerRow{justify-content:center}
-#dashProgressCard.qiyam-card #dashKbmInfoRight{display:none}
+/* Kehadiran murid Qiyam sekarang direkap gabungan (lihat getDashboard() di
+   api-murid.js) & dirender lewat jalur SAMA dgn murid reguler (donut %, teks
+   "X dari Y sesi", progress bar) -- jadi .prog-info-right panel KBM ini TETAP
+   tampil normal utk Qiyam juga, tidak lagi disembunyikan/dipusatkan seperti
+   percobaan sebelumnya (waktu donut sempat diisi angka total setoran, bukan
+   persen kehadiran). */
 
 /* Donut ring — conic-gradient persis KhatamKu */
 .prog-donut-wrap{
@@ -7193,7 +7187,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=03790581" defer></script>
+<script src="../supabase/api-murid.js?v=8825b667" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -8237,24 +8231,18 @@ async function loadDashboard(silent) {
     var sisa = 0;
 
     if (isQiyam) {
+      // Hanya sentuhan UI khusus Qiyam (label, chip naik-level disembunyikan krn
+      // sudah level tertinggi, kutipan motivasi, kotak Target Setoran Berikutnya --
+      // ini dari data setoran_hafalan, TERPISAH dari kehadiran/nilai). Donut ring +
+      // teks kehadiran (di bawah) TIDAK disentuh di sini -- ikut jalur sama dgn
+      // murid reguler (blok "else" setelah isMicro), krn kehadiran murid Qiyam
+      // sekarang direkap gabungan (lihat getDashboard() di api-murid.js) sama
+      // seperti murid reguler, bukan metrik terpisah.
       if (document.getElementById('dashKbmLabel')) document.getElementById('dashKbmLabel').textContent = 'KBM Qiyam';
       if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
       if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
       if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'block';
-
-      // Info kanan (judul+subjudul+progress bar level) tidak relevan utk Qiyam --
-      // donut ring di kiri sudah menampilkan total setoran-nya sendiri.
-      if (document.getElementById('dashProgressPct')) document.getElementById('dashProgressPct').textContent = '';
-      if (document.getElementById('dashSisa')) document.getElementById('dashSisa').textContent = '';
-      if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'none';
-
-      // Donut ring TETAP tampil (sebelumnya disembunyikan diganti angka polos) --
-      // sekarang diisi jumlah total setoran, bukan persen level.
-      var totalSetoran = d.qiyam ? d.qiyam.total_setoran : 0;
-      if (donutRing) donutRing.style.background = 'conic-gradient(#059669 100%, transparent 0%)';
-      if (pctNum) { pctNum.textContent = totalSetoran; pctNum.style.color = '#059669'; }
-      if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'setoran';
       if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
 
       var lastSetoran = d.qiyam && d.qiyam.terakhir;
@@ -8275,7 +8263,8 @@ async function loadDashboard(silent) {
       }
 
       loadPartnerDashCard();
-    } else if (isMicro) {
+    }
+    if (isMicro) {
       if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
       if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
       if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'nilai';

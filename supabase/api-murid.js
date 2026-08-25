@@ -67,16 +67,15 @@ var MuridAPI = {
       };
     });
 
-    // Filter KBM sessions strictly based on student level (prevent MT leakages)
-    var dashboardNilai = [];
-    if (anggota && anggota.level === 'Level Qiyam') {
-      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Qiyam'; });
-    } else if (anggota && (anggota.level === 'Micro Teaching' || (anggota.halaqah && anggota.halaqah.level === 'Micro Teaching'))) {
-      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
-    } else {
-      // Regular KBM student: only show KBM Reguler
-      dashboardNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
-    }
+    // Kehadiran direkap gabungan KBM Reguler + KBM Qiyam + Micro Teaching, apa pun
+    // level murid saat ini -- kehadiran (status_hadir) tetap dicatat di semua jenis
+    // sesi walau cara PENILAIANnya beda per jenis (Reguler soal kesalahan tahsin,
+    // Qiyam soal hafalan, MT kadang tanpa nilai kalau cuma menyimak) -- nilai dan
+    // hadir memang dua hal terpisah. "40 pertemuan" adalah total gabungan ketiganya,
+    // BUKAN per-jenis terpisah (sebelumnya murid Qiyam yang sesinya sempat dicatat
+    // guru sbg "KBM Reguler" -- atau sebaliknya -- hilang dari rekap kehadirannya).
+    var KBM_JENIS_DIHITUNG = ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching'];
+    var dashboardNilai = allSessions.filter(function(n) { return KBM_JENIS_DIHITUNG.indexOf(n.jenis_sesi) !== -1; });
 
     var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
     // Fetch pengumuman aktif untuk murid ini (target: semua atau halaqah ini)
@@ -176,9 +175,9 @@ var MuridAPI = {
     var poinKamera  = kameraData.length > 0 ? Math.round(kamTerbuka/kameraData.length*100) : undefined;
     var hq = (anggota && anggota.halaqah) || {};
 
-    var regulerNilai = allSessions.filter(function(n) { return n.jenis_sesi === 'KBM Reguler'; });
-    var regHadir     = regulerNilai.filter(function(n) { return n.status_hadir === 'H' || n.status_hadir === 'T'; }).length;
-    var regTotalSesi = regulerNilai.length;
+    // regHadir/regTotalSesi dulu dihitung terpisah (khusus 'KBM Reguler' saja) --
+    // sekarang identik dgn totalHadir/totalSesi di atas krn dashboardNilai sudah
+    // gabungan ketiga jenis sesi, jadi tinggal dipakai ulang (hindari hitung dobel).
 
     var daurahData = null;
     if (anggota && (anggota.level === 'Tahsin Al-Fatihah' || (anggota.halaqah && anggota.halaqah.level === 'Tahsin Al-Fatihah'))) {
@@ -246,12 +245,12 @@ var MuridAPI = {
         tanggal_selesai: hq.periode ? hq.periode.tanggal_selesai : null,
       },
       kehadiran: {
-        skor_hadir  : regHadir,
-        skor_dari_40: Math.min(Math.round(regHadir / ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) * 100), 100),
+        skor_hadir  : totalHadir,
+        skor_dari_40: Math.min(Math.round(totalHadir / ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) * 100), 100),
         pct_hadir   : pctHadir,
         total_hadir : totalHadir,
         total_sesi  : totalSesi,
-        sisa_sesi   : Math.max(0, ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) - regTotalSesi),
+        sisa_sesi   : Math.max(0, ((levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40) - totalSesi),
         target_sesi : (levelBelajarRes && levelBelajarRes.data && levelBelajarRes.data.jumlah_pertemuan) || 40,
         count_h     : countH,
         count_t     : countT,
