@@ -4463,6 +4463,20 @@ html.theme-dark .materi-daurah-banner-title {
       </button>
     </div>
 
+    <!-- ════ CATATAN EMAS (kumpulan Koreksi Tahsin/Rubrik MT + Catatan Guru + Catatan PR) ════ -->
+    <div class="page" id="page-catatan-emas">
+      <div class="page-header">
+        <div class="page-header-ico">✨</div>
+        <div class="page-header-inner"><div class="page-title">Catatan Emas</div><div class="page-sub">Kumpulan catatan dari Ustadz/Ustadzah, satu tempat.</div></div>
+        <button class="btn-refresh" id="btnRefreshCatatanEmas" onclick="refreshTab('catatan-emas')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
+      <div id="catatanEmasList">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ LATIHAN MANDIRI (PR) ════ -->
     <div class="page" id="page-pr">
       <div class="page-header">
@@ -6155,6 +6169,11 @@ html.theme-dark .materi-daurah-banner-title {
         <span class="sidebar-item-label">Riwayat KBM</span>
       </button>
 
+      <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('catatan-emas')" data-p="catatan-emas">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
+        <span class="sidebar-item-label">Catatan Emas</span>
+      </button>
+
       <button class="sidebar-item ico-purple" id="sidebarNavMateri" onclick="closeSidebar();goPage('info')" data-p="info">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
         <span class="sidebar-item-label">Materi Level</span>
@@ -7187,7 +7206,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=8825b667" defer></script>
+<script src="../supabase/api-murid.js?v=521cb6a2" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -8076,6 +8095,7 @@ function goPage(name, swipeDir) {
   else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'partner-belajar') { loadPagePartnerBelajar(); }
+  else if (name === 'catatan-emas') { loadCatatanEmas(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -8981,6 +9001,7 @@ var PAGE_TO_GROUP = {
   dashboard: 'utama', pengumuman: 'utama', saran: 'utama',
   kuis: 'akademik', riwayat: 'akademik', info: 'akademik', pr: 'akademik',
   attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
+  'catatan-emas': 'akademik',
   'spp-infaq': 'administrasi', 'infaq-beasiswa': 'administrasi',
   assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi', charging: 'evaluasi',
   panduan: 'pengaturan', password: 'pengaturan',
@@ -9257,6 +9278,57 @@ function formatMicroTeachingRubric(koreksiTahsin) {
   });
   html += '</div>';
   return html;
+}
+
+// ══════════════════════════════════════════
+//  CATATAN EMAS -- kumpulan Koreksi Tahsin/Rubrik MT + Catatan Guru + Catatan PR
+// ══════════════════════════════════════════
+var CATATAN_EMAS_TIPE = {
+  tahsin : { ico: '✏️', label: 'Koreksi Tahsin' },
+  rubrik : { ico: '📊', label: 'Rubrik Penilaian MT' },
+  catatan: { ico: '📝', label: 'Catatan Guru' },
+  pr     : { ico: '💪', label: 'Catatan PR' },
+};
+async function loadCatatanEmas() {
+  var el = document.getElementById('catatanEmasList');
+  showLoad('Bismillah, memuat catatan...');
+  try {
+    var r = await promiseWithTimeout(window.HQ.MuridAPI.getCatatanEmas(), 4000, 'Permintaan timeout');
+    renderCatatanEmas(r.data || []);
+  } catch(e) {
+    el.innerHTML = '<div class="empty">' +
+      '<div class="empty-ico">❌</div>' +
+      '<div class="empty-ttl">' + esc(friendlyError(e)) + '</div>' +
+      '<button class="btn btn-outline btn-sm" onclick="refreshTab(\'catatan-emas\')" style="margin-top:12px;max-width:140px;margin-left:auto;margin-right:auto;">🔄 Coba Lagi</button>' +
+      '</div>';
+  }
+  finally { hideLoad(); }
+}
+function renderCatatanEmas(rows) {
+  var el = document.getElementById('catatanEmasList');
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">✨</div><div class="empty-ttl">Belum ada catatan</div>'
+      + '<div style="font-size:12.5px;color:var(--text-3);margin-top:4px">Catatan dari Ustadz/Ustadzah akan muncul di sini.</div></div>';
+    return;
+  }
+  el.innerHTML = rows.map(function(c) {
+    var meta = CATATAN_EMAS_TIPE[c.tipe] || CATATAN_EMAS_TIPE.catatan;
+    var isiHtml = c.tipe === 'rubrik'
+      ? formatMicroTeachingRubric(c.isi)
+      : '<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap">' + esc(c.isi) + '</div>';
+    var konteksParts = [];
+    if (c.pertemuan_ke) konteksParts.push('Sesi ke-' + esc(c.pertemuan_ke));
+    if (c.konteks) konteksParts.push(esc(c.konteks));
+    return '<div class="card" style="padding:14px 16px;margin-bottom:12px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">'
+      +   '<span style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em">' + meta.ico + ' ' + meta.label + '</span>'
+      +   '<span style="font-size:11px;color:var(--text-3);white-space:nowrap;flex-shrink:0">' + esc(fmtDate(c.tanggal)) + '</span>'
+      + '</div>'
+      + isiHtml
+      + (konteksParts.length ? '<div style="font-size:11px;color:var(--text-3);margin-top:8px">' + konteksParts.join(' · ') + '</div>' : '')
+      + '</div>';
+  }).join('');
 }
 
 function formatKameraText(kameraVal) {
@@ -10451,7 +10523,7 @@ var _attibyanFilter  = 'all';
 //  REFRESH TAB
 // ══════════════════════════════════════════
 function refreshTab(name) {
-  var btnId = { riwayat:'btnRefreshRiwayat', pr:'btnRefreshPR', raport:'btnRefreshRaport', attibyan:'btnRefreshAtTibyan' }[name];
+  var btnId = { riwayat:'btnRefreshRiwayat', pr:'btnRefreshPR', raport:'btnRefreshRaport', attibyan:'btnRefreshAtTibyan', 'catatan-emas':'btnRefreshCatatanEmas' }[name];
   var btn = btnId ? document.getElementById(btnId) : null;
   if (btn) { btn.classList.add('spinning'); setTimeout(function(){ btn.classList.remove('spinning'); }, 1200); }
   delete _muridTabLoaded[name];
@@ -10459,6 +10531,7 @@ function refreshTab(name) {
   if (name === 'riwayat') { _riwayatOffset = 8; loadRiwayat(); }
   else if (name === 'pr') { loadPR(); }
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
+  else if (name === 'catatan-emas') { loadCatatanEmas(); }
   else if (name === 'attibyan') {
     _attibyanData = []; _attibyanColumns = []; _attibyanFilter = 'all'; _atSearchQuery = '';
     _atMuridTabLoaded = false;

@@ -288,26 +288,16 @@ var MuridAPI = {
 
   getRiwayat: async function(limit, offset) {
     var id_murid = _uid();
-    
-    // Fetch student level first to filter history correctly (KBM Reguler and MT do not appear in Qiyam)
-    var { data: ang } = await _sb.from('anggota')
-      .select('level')
-      .eq('id_murid', id_murid)
-      .eq('status', 'aktif')
-      .maybeSingle();
 
+    // Riwayat KBM gabungan KBM Reguler + KBM Qiyam + Micro Teaching, apa pun level
+    // murid saat ini -- samakan dgn dashboardNilai di getDashboard() (kehadiran
+    // gabungan), supaya sesi yg kebetulan tercatat guru dgn label jenis yg
+    // "salah" tidak ikut hilang dari riwayat juga. Legacy record jenis_sesi NULL
+    // tetap ikut (dianggap KBM Reguler).
     var q = _sb.from('nilai_kbm')
       .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan,jenis_sesi)', { count: 'exact' })
-      .eq('id_murid', id_murid);
-
-    if (ang && ang.level === 'Level Qiyam') {
-      q = q.eq('jenis_sesi', 'KBM Qiyam');
-    } else if (ang && ang.level === 'Micro Teaching') {
-      q = q.eq('jenis_sesi', 'Micro Teaching');
-    } else {
-      // Regular KBM student: only show KBM Reguler. Use OR filter to include legacy records where jenis_sesi is NULL
-      q = q.or('jenis_sesi.eq.KBM Reguler,jenis_sesi.is.null');
-    }
+      .eq('id_murid', id_murid)
+      .or('jenis_sesi.in.(KBM Reguler,KBM Qiyam,Micro Teaching),jenis_sesi.is.null');
 
     var { data, error, count } = await q
       .order('tanggal', { ascending: false })
@@ -366,6 +356,54 @@ var MuridAPI = {
     return { status: 'ok', data: rows };
   },
 
+  // "Catatan Emas" -- kumpulan semua catatan guru (Koreksi Tahsin/Rubrik MT,
+  // Catatan Guru per-sesi, Catatan PR) jadi satu daftar kronologis, supaya tidak
+  // perlu buka Riwayat KBM / PR satu-satu utk menemukannya. Sengaja TIDAK
+  // difilter jenis_sesi sama sekali (beda dgn getRiwayat/getDashboard) --
+  // catatan guru relevan apa pun jenis sesinya, dan salah satu alasan fitur ini
+  // dibuat justru supaya catatan tidak ikut hilang kalau sesinya kebetulan
+  // salah label jenis (persis kasus yang memicu perbaikan kehadiran gabungan).
+  getCatatanEmas: async function() {
+    var id_murid = _uid();
+    var { data, error } = await _sb.from('nilai_kbm')
+      .select('id_nilai, tanggal, pertemuan_ke, jenis_sesi, koreksi_tahsin, catatan_murid, pr_catatan_guru, pr_dinilai_at, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,materi_belajar,latihan_mandiri,jenis_sesi)')
+      .eq('id_murid', id_murid)
+      .or('koreksi_tahsin.not.is.null,catatan_murid.not.is.null,pr_catatan_guru.not.is.null')
+      .order('tanggal', { ascending: false })
+      .limit(200);
+    _check(error, 'getCatatanEmas');
+
+    var catatan = [];
+    (data || []).forEach(function(n) {
+      var tanggal   = n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan) || '';
+      var jenisSesi = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler';
+      var materi    = (n.kbm_log && n.kbm_log.materi_belajar) || '';
+
+      if (n.koreksi_tahsin) {
+        catatan.push({
+          id: n.id_nilai + '-tahsin', tanggal: tanggal, pertemuan_ke: n.pertemuan_ke,
+          jenis_sesi: jenisSesi, tipe: jenisSesi === 'Micro Teaching' ? 'rubrik' : 'tahsin',
+          isi: n.koreksi_tahsin, konteks: materi,
+        });
+      }
+      if (n.catatan_murid) {
+        catatan.push({
+          id: n.id_nilai + '-catatan', tanggal: tanggal, pertemuan_ke: n.pertemuan_ke,
+          jenis_sesi: jenisSesi, tipe: 'catatan', isi: n.catatan_murid, konteks: materi,
+        });
+      }
+      if (n.pr_catatan_guru) {
+        catatan.push({
+          id: n.id_nilai + '-pr',
+          tanggal: (n.pr_dinilai_at ? String(n.pr_dinilai_at).substring(0, 10) : tanggal),
+          pertemuan_ke: n.pertemuan_ke, jenis_sesi: jenisSesi, tipe: 'pr',
+          isi: n.pr_catatan_guru, konteks: (n.kbm_log && n.kbm_log.latihan_mandiri) || '',
+        });
+      }
+    });
+    catatan.sort(function(a, b) { return (b.tanggal || '').localeCompare(a.tanggal || ''); });
+    return { status: 'ok', data: catatan };
+  },
 
   submitPR: async function(id_nilai, catatan, lampiran_url) {
     var { data, error } = await _sb.rpc('submit_latihan_mandiri', {
