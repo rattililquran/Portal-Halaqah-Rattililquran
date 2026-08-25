@@ -294,16 +294,30 @@ var MuridAPI = {
     // gabungan), supaya sesi yg kebetulan tercatat guru dgn label jenis yg
     // "salah" tidak ikut hilang dari riwayat juga. Legacy record jenis_sesi NULL
     // tetap ikut (dianggap KBM Reguler).
-    var q = _sb.from('nilai_kbm')
-      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan,jenis_sesi)', { count: 'exact' })
+    //
+    // Filter jenis DILAKUKAN DI JS, BUKAN via .or('jenis_sesi.in.(...)') di
+    // query -- percobaan pertama pakai itu TERBUKTI gagal di produksi (sesi yg
+    // dicatat guru sbg "KBM Reguler" utk murid Qiyam tidak muncul di riwayat),
+    // kemungkinan krn nilai multi-kata (ada spasi, "KBM Reguler") di dalam
+    // in.() tidak diparse PostgREST spt yang diharapkan saat digabung dgn OR --
+    // tidak ada precedent lain di file ini yg pakai in() dgn nilai berspasi.
+    // Filter di memori jauh lebih aman & sudah terbukti (dashboardNilai di
+    // getDashboard(), getCatatanEmas() di atas).
+    var KBM_JENIS_DIHITUNG = ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching'];
+    var { data: allRows, error } = await _sb.from('nilai_kbm')
+      .select('*, kbm_log!nilai_kbm_id_kbm_fkey(tanggal_pertemuan,pertemuan_ke,materi_belajar,latihan_mandiri,jenis_latihan,deadline_latihan,jenis_sesi)')
       .eq('id_murid', id_murid)
-      .or('jenis_sesi.in.(KBM Reguler,KBM Qiyam,Micro Teaching),jenis_sesi.is.null');
-
-    var { data, error, count } = await q
       .order('tanggal', { ascending: false })
-      .range(offset||0, (offset||0)+(limit||8)-1);
+      .limit(500);
     _check(error, 'getRiwayat');
-    var mapped = (data||[]).map(function(n) { return Object.assign({}, n, {
+
+    var filtered = (allRows || []).filter(function(n) {
+      var jenis = n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi);
+      return !jenis || KBM_JENIS_DIHITUNG.indexOf(jenis) !== -1;
+    });
+    var count = filtered.length;
+    var page = filtered.slice(offset || 0, (offset || 0) + (limit || 8));
+    var mapped = page.map(function(n) { return Object.assign({}, n, {
       tanggal         : n.tanggal || (n.kbm_log && n.kbm_log.tanggal_pertemuan),
       pertemuan_ke    : n.pertemuan_ke || (n.kbm_log && n.kbm_log.pertemuan_ke),
       materi          : (n.kbm_log && n.kbm_log.materi_belajar) || '',
@@ -313,7 +327,7 @@ var MuridAPI = {
       deadline_latihan: n.kbm_log && n.kbm_log.deadline_latihan,
       jenis_sesi      : n.jenis_sesi || (n.kbm_log && n.kbm_log.jenis_sesi) || 'KBM Reguler',
     }); });
-    return { status: 'ok', data: mapped, total: count, has_more: (offset||0)+(limit||8) < (count||0) };
+    return { status: 'ok', data: mapped, total: count, has_more: (offset||0)+(limit||8) < count };
   },
 
   getLatihanMandiri: async function() {
