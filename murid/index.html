@@ -7866,6 +7866,10 @@ function startApp() {
   startMuridAutoRefresh();
   loadDashboard();
   if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid');
+  // Varian navigasi baru: startApp() TIDAK memanggil goPage() (halaman dashboard sudah
+  // .active dari HTML statis) -- jadi filter tab/sidebar perlu disinkronkan manual di sini,
+  // kalau tidak sidebar bakal kosong sampai user klik tab pertama kali. No-op di jalur lama.
+  if (typeof setActiveNavGroup === 'function') setActiveNavGroup(PAGE_TO_GROUP[_currentTabName] || 'utama');
 }
 
 // ══════════════════════════════════════════
@@ -8861,8 +8865,11 @@ function setActiveNavGroup(key) {
     b.classList.toggle('active', on);
     b.setAttribute('aria-selected', on ? 'true' : 'false');
   });
+  // Tab "Utama" = tampilkan SEMUA grup sidebar (overview), bukan cuma grup Utama --
+  // tab lain tetap memfilter ke grup masing-masing saja.
+  var showAll = (key === 'utama');
   document.querySelectorAll('.sidebar-group').forEach(function(g) {
-    g.classList.toggle('active', g.getAttribute('data-group') === key);
+    g.classList.toggle('active', showAll || g.getAttribute('data-group') === key);
   });
 }
 function onTopTabClick(key) {
