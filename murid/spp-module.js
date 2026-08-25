@@ -62,6 +62,16 @@
               + '</div>';
           }).join('');
       card.style.display = 'block';
+
+      // Hook opsional -- kartu ringkas Transparansi di Beranda, kalau ada.
+      try {
+        if (typeof window.onTransparansiRendered === 'function') {
+          window.onTransparansiRendered({
+            sisaText: document.getElementById('transSisa').textContent,
+            beasiswaCount: beasiswa_count
+          });
+        }
+      } catch (e2) {}
     } catch(e) { console.error('loadTransparansi', e); }
   }
 
@@ -696,6 +706,19 @@
     }
 
     applyBeasiswaMode();
+
+    // Hook opsional -- kartu ringkas SPP di Beranda (index.html), kalau ada. Tidak
+    // menghitung ulang apa pun, cuma meneruskan teks yang sudah selesai dihitung di atas.
+    try {
+      if (typeof window.onSppRendered === 'function') {
+        window.onSppRendered({
+          title: titleEl ? titleEl.textContent : '',
+          sub: subEl ? subEl.textContent : '',
+          badgeClass: badge ? badge.className : '',
+          badgeText: badge ? badge.textContent : ''
+        });
+      }
+    } catch (e) {}
   }
 
   function isBeasiswaMurid() {

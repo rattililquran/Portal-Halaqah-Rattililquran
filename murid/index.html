@@ -4206,6 +4206,24 @@ html.theme-dark .materi-daurah-banner-title {
         </div><!-- /prog-inner-wrap -->
       </div>
 
+      <!-- Ringkasan Pembayaran & Transparansi -- kartu PENUHnya sudah pindah ke halaman
+           khusus (Administrasi > Pembayaran & Infaq, goPage('spp-infaq')). Dua kartu ringkas
+           ini HANYA menampilkan teks yang sudah dihitung oleh renderSPP()/loadTransparansi()
+           di spp-module.js (via hook window.onSppRendered/onTransparansiRendered) -- tidak
+           menghitung ulang apa pun sendiri, supaya tidak ada risiko angka beda antara
+           Beranda & halaman Administrasi. -->
+      <div class="card" id="dashSppSummaryCard" style="margin-bottom:16px;padding:16px 18px;display:none">
+        <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>Pembayaran & Infaq<span id="dashSppSummaryBadge" style="margin-left:auto"></span></div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-top:10px" id="dashSppSummaryTitle">Memuat...</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px" id="dashSppSummarySub"></div>
+        <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="goPage('spp-infaq')">Lihat Detail &amp; Bayar →</button>
+      </div>
+
+      <div class="card" id="dashTransSummaryCard" style="margin-bottom:16px;padding:16px 18px;display:none">
+        <div class="spp-title"><div class="pg-sec-ico ico-gold spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.67 10.9 4.6a5.5 5.5 0 0 0-7.8 7.8l1.1 1.06L12 21.2l7.8-7.75 1.1-1.06a5.5 5.5 0 0 0-.1-7.8z"/></svg></div>Transparansi Dana Infaq</div>
+        <div style="font-size:12px;color:var(--text-2);margin-top:10px" id="dashTransSummaryText">Memuat...</div>
+        <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="goPage('spp-infaq')">Lihat Rincian →</button>
+      </div>
 
       <!-- Log Latihan Harian Card -->
       <!-- ── Kartu Lapor Aktivitas Belajar (Partner Belajar) ── -->
@@ -7152,7 +7170,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
-<script src="spp-module.js?v=786f49d0" defer></script>
+<script src="spp-module.js?v=5aec83df" defer></script>
 <script src="partner-module.js?v=4f1156ae" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
@@ -8047,6 +8065,27 @@ window.addEventListener('popstate', function(e) {
   }
   // Sudah di Beranda → biarkan browser melanjutkan navigasi keluar dari SPA
 });
+
+// Kartu ringkas SPP & Transparansi di Beranda -- dipanggil oleh spp-module.js (renderSPP/
+// loadTransparansi) via hook, HANYA menampilkan ulang teks yang sudah dihitung di sana.
+// Sengaja tidak menghitung ulang lunas/tunggakan/dsb sendiri di sini (rawan angka beda
+// dgn kartu asli di halaman Administrasi kalau logikanya sampai didupilkasi/menyimpang).
+window.onSppRendered = function (s) {
+  var card = document.getElementById('dashSppSummaryCard');
+  if (!card) return;
+  card.style.display = 'block';
+  var badge = document.getElementById('dashSppSummaryBadge');
+  if (badge) { badge.className = s.badgeClass || ''; badge.textContent = s.badgeText || ''; }
+  var t = document.getElementById('dashSppSummaryTitle'); if (t) t.textContent = s.title || '';
+  var u = document.getElementById('dashSppSummarySub'); if (u) u.textContent = s.sub || '';
+};
+window.onTransparansiRendered = function (s) {
+  var card = document.getElementById('dashTransSummaryCard');
+  if (!card) return;
+  card.style.display = 'block';
+  var el = document.getElementById('dashTransSummaryText');
+  if (el) el.textContent = 'Sisa untuk beasiswa bulan ini: ' + (s.sisaText || '—') + '. Sudah membantu ' + (s.beasiswaCount || 0) + ' murid.';
+};
 
 // ══════════════════════════════════════════
 //  DASHBOARD
