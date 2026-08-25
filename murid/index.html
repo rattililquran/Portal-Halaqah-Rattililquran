@@ -463,6 +463,11 @@ html.theme-dark .qiyam-target-box{background:rgba(251,191,36,.08);border-color:r
 html.theme-dark .qiyam-target-label{color:#fcd34d;opacity:.75}
 html.theme-dark .qiyam-target-value{color:#fde68a}
 html.theme-dark .qiyam-target-hint{color:#fcd34d;opacity:.5}
+/* pbTertundaCard (Partner Belajar/Qiyam -- "Saatnya Lakukan Lagi!"): warna amber
+   di light mode kontrasnya jatuh di atas kartu gelap, ganti ke gold lebih terang
+   sama seperti pola qiyam-target-* di atas. */
+html.theme-dark .pb-tertunda-title{color:#fcd34d}
+html.theme-dark .pb-tertunda-desc{color:#fde68a}
 /* ── PARTNER QIYAM & PARTNER BELAJAR DASH CARD -- flat/minimalis, ikut var tema
    (dipakai bersama oleh dashPartnerCard & dashPartnerBelajarCard) ── */
 .partner-dash-card{border-radius:var(--r);border:1px solid var(--border);
@@ -4877,8 +4882,8 @@ html.theme-dark .materi-daurah-banner-title {
           </div>
 
           <!-- #1 Saran Muraja'ah -->
-          <div id="pqMurajaahCard" style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border:1px solid rgba(13,148,136,.2);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
-            <div style="font-size:13px;font-weight:800;color:#0f766e;margin-bottom:8px">🔄 Saatnya Muraja'ah</div>
+          <div id="pqMurajaahCard" style="background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px">🔄 Saatnya Muraja'ah</div>
             <div id="pqMurajaahBody" style="font-size:12px;color:var(--text-2)"></div>
           </div>
 
@@ -4978,7 +4983,7 @@ html.theme-dark .materi-daurah-banner-title {
           <div id="pqLiniMasaCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:14px;display:none">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
               <div style="font-size:13px;font-weight:800;color:var(--text)">🗓️ Lini Masa Kelompok</div>
-              <button onclick="pqToggleMilestoneForm()" id="pqMilestoneBtn" style="background:rgba(13,148,136,.12);color:#0f766e;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Tandai Milestone</button>
+              <button onclick="pqToggleMilestoneForm()" id="pqMilestoneBtn" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Tandai Milestone</button>
             </div>
             <div id="pqMilestoneForm" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">
               <input type="text" class="fc" id="pqMilestoneJudul" placeholder="Mis: Dedy khatam Juz 30 🎉" style="margin-bottom:6px">
@@ -5030,12 +5035,12 @@ html.theme-dark .materi-daurah-banner-title {
         </div>
 
         <!-- Aktivitas tertunda (adaptasi muraja'ah cerdas) -->
-        <div id="pbTertundaCard" style="background:linear-gradient(135deg,#fffbeb,#fff7ed);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:14px;margin-bottom:14px;display:none;box-shadow:0 2px 10px rgba(245,158,11,.12)">
+        <div id="pbTertundaCard" style="background:var(--bg-2);border:1.5px solid rgba(245,158,11,.35);border-radius:14px;padding:14px;margin-bottom:14px;display:none">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
             <span style="font-size:18px">⏰</span>
-            <div style="font-size:14px;font-weight:900;color:#b45309">Saatnya Lakukan Lagi!</div>
+            <div class="pb-tertunda-title" style="font-size:14px;font-weight:900;color:#b45309">Saatnya Lakukan Lagi!</div>
           </div>
-          <div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:10px;line-height:1.45">Sudah <b>lebih dari 7 hari</b> kamu belum melaporkan poin belajar di bawah ini. Yuk mulai kembali — konsistensi itu kunci 💪</div>
+          <div class="pb-tertunda-desc" style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:10px;line-height:1.45">Sudah <b>lebih dari 7 hari</b> kamu belum melaporkan poin belajar di bawah ini. Yuk mulai kembali — konsistensi itu kunci 💪</div>
           <div id="pbTertundaBody" style="font-size:12px;color:var(--text-2)"></div>
         </div>
 
@@ -5084,7 +5089,7 @@ html.theme-dark .materi-daurah-banner-title {
         <div id="pbLiniMasaCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:14px;display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
             <div style="font-size:13px;font-weight:800;color:var(--text)">🗓️ Lini Masa Kelompok</div>
-            <button onclick="pbToggleMilestoneForm()" id="pbMilestoneBtn" style="background:rgba(13,148,136,.12);color:#0f766e;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Tandai Milestone</button>
+            <button onclick="pbToggleMilestoneForm()" id="pbMilestoneBtn" style="background:var(--bg-2);color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Tandai Milestone</button>
           </div>
           <div id="pbMilestoneForm" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px">
             <input type="text" class="fc" id="pbMilestoneJudul" placeholder="Mis: Dedy lancar makhraj huruf halqi 🎉" style="margin-bottom:6px">
@@ -7181,7 +7186,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=c5244a6c" defer></script>
-<script src="partner-module.js?v=3589fe5c" defer></script>
+<script src="partner-module.js?v=5144674e" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>

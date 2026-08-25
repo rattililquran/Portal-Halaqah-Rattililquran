@@ -50,7 +50,7 @@
       card.style.display = 'block';
       body.innerHTML = suggest.map(function(m){
         var hari = Math.floor((now - m.last)/86400000);
-        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">'
           + '<div><span style="font-weight:700;color:var(--text)">QS. ' + _esc(m.surat) + '</span> <span style="color:var(--text-3);font-size:11px">· terakhir ' + hari + ' hari lalu</span></div>'
           + '<button onclick="pqMurajaahNow(\'' + escJs(m.surat) + '\',\'' + (m.juz||'') + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Muraja\'ah</button>'
         + '</div>';
@@ -145,7 +145,7 @@
       card.style.display = 'block';
       body.innerHTML = tertunda.map(function(m){
         var ket = m.last === 0 ? 'belum pernah' : Math.floor((now - m.last)/86400000) + ' hari lalu';
-        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(13,148,136,.12)">'
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">'
           + '<div><span style="font-weight:700;color:var(--text)">' + _esc(m.jenis) + '</span> <span style="color:var(--text-3);font-size:11px">· ' + ket + '</span></div>'
           + '<button onclick="pbTertundaNow(\'' + escJs(m.jenis) + '\')" style="background:#0d9488;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">Isi Log</button>'
         + '</div>';
@@ -436,7 +436,7 @@
         if (isMilestone) {
           var canDel = item.dibuat_oleh === myId;
           var delBtn = canDel ? ' <button onclick="pbDeleteMilestone(\'' + item.id_item + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
-          content = '<div style="background:rgba(13,148,136,0.08); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
+          content = '<div style="background:var(--bg-2); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
             + '  <strong>' + _esc(item.judul) + '</strong>' + delBtn
             + '  <div style="font-size:10px; color:var(--text-3); margin-top:2px;">Ditandai oleh ' + _esc(item.nama_pembuat || 'Anggota') + '</div>'
             + '</div>';
@@ -775,7 +775,7 @@
         if (isMilestone) {
           var canDel = item.dibuat_oleh === myId;
           var delBtn = canDel ? ' <button onclick="pqDeleteMilestone(\'' + item.id_item + '\')" style="background:none; border:none; color:var(--red); font-size:11px; cursor:pointer; font-weight:700; padding:2px 6px;">[Hapus]</button>' : '';
-          content = '<div style="background:rgba(13,148,136,0.08); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
+          content = '<div style="background:var(--bg-2); border-left:3px solid var(--green); padding:8px 10px; border-radius:8px; margin:4px 0;">'
             + '  <strong>' + _esc(item.judul) + '</strong>' + delBtn
             + '  <div style="font-size:10px; color:var(--text-3); margin-top:2px;">Ditandai oleh ' + _esc(item.nama_pembuat || 'Anggota') + '</div>'
             + '</div>';
