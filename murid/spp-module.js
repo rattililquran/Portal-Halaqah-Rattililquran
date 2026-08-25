@@ -62,16 +62,6 @@
               + '</div>';
           }).join('');
       card.style.display = 'block';
-
-      // Hook opsional -- kartu ringkas Transparansi di Beranda, kalau ada.
-      try {
-        if (typeof window.onTransparansiRendered === 'function') {
-          window.onTransparansiRendered({
-            sisaText: document.getElementById('transSisa').textContent,
-            beasiswaCount: beasiswa_count
-          });
-        }
-      } catch (e2) {}
     } catch(e) { console.error('loadTransparansi', e); }
   }
 
