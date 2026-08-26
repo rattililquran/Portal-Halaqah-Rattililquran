@@ -6980,7 +6980,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=c5244a6c" defer></script>
-<script src="partner-module.js?v=46b0bf05" defer></script>
+<script src="partner-module.js?v=a1bb9940" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>
@@ -12351,6 +12351,11 @@ async function loadPartnerDashCard() {
   try {
     var resKel = await window.HQ.MuridAPI.getMyKelompokPartner();
     var kel = resKel.data;
+    // Sinkronkan ke _pqKelompok global (dipakai submitSetoranMandiri()) -- kartu Beranda
+    // ini biasanya termuat duluan drpd user sempat buka tab Partner Qiyam, jadi ini
+    // lapis pertahanan kedua spy _pqKelompok tidak pernah nyangkut null (lihat juga
+    // sinkronisasi serupa di loadPartnerKelompok(), partner-module.js).
+    _pqKelompok = kel;
     if (!kel) { card.style.display = 'none'; return; }
     card.style.display = 'block';
 

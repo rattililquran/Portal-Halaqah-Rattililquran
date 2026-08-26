@@ -691,6 +691,12 @@
     try {
       var resKel = await window.HQ.MuridAPI.getMyKelompokPartner();
       _pqKelompok = resKel.data;
+      // Sinkronkan ke window._pqKelompok -- submitSetoranMandiri() di index.html baca
+      // bare "_pqKelompok" yg resolve ke variabel GLOBAL index.html sendiri (var terpisah,
+      // dideklarasikan sendiri di sana), BUKAN closure modul ini. Tanpa baris ini,
+      // submitSetoranMandiri() akan SELALU melihat null walau kelompok sungguhan ada
+      // (bug nyata, terverifikasi via simulasi Node.js -- lihat riwayat kerja terkait).
+      window._pqKelompok = _pqKelompok;
       if (!_pqKelompok) {
         body.innerHTML = '<div style="color:var(--text-3)">Kamu belum tergabung di kelompok partner Qiyam. Hubungi guru/admin untuk dimasukkan ke kelompok.</div>';
         return;
