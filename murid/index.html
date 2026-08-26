@@ -126,7 +126,6 @@ html.theme-minimal{
 }
 html.theme-minimal .bg-blobs{display:none}
 html.theme-minimal body{background:#ffffff !important}
-html.theme-minimal .stat-card,
 html.theme-minimal .card{
   background:#ffffff;
   backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -134,7 +133,6 @@ html.theme-minimal .card{
   border:1px solid rgba(0,0,0,0.08);
   box-shadow:none;
 }
-html.theme-minimal .stat-card:hover,
 html.theme-minimal .card:hover{
   transform:none;box-shadow:none;
   border-color:rgba(0,0,0,0.16);
@@ -595,29 +593,11 @@ html.theme-dark .prog-estimasi-middle{
   text-shadow:0 1px 4px rgba(0,0,0,.15);
   text-align:center;padding:8px 4px 10px;position:relative;z-index:1}
 
-/* ── STATS GRID ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-@media(max-width:400px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
-.stat-card{
-  background:rgba(255,255,255,0.88);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-radius:20px;padding:16px 10px;text-align:center;
-  border:1px solid rgba(255,255,255,0.9);
-  box-shadow:var(--shadow-card);
-  transition:transform .3s ease,box-shadow .3s ease;
-}
-.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
-.stat-card.clickable{cursor:pointer}
-.stat-card.clickable:hover{border-color:rgba(var(--blue-rgb),.3)}
 /* #bell-badge: sekarang badge inline di sidebar (lihat style inline di markup), bukan lagi
    dot bundar di pojok tombol lingkaran header -- style lama sudah tidak berlaku */
 /* .avatar-opt dihapus — emoji picker sudah tidak digunakan */
 .menu-item-hover{transition:background .2s ease}
 .menu-item-hover:hover{background:rgba(var(--blue-rgb),.05)!important}
-.stat-card .ico{font-size:22px;margin-bottom:4px}
-.stat-card .val{font-size:22px;font-weight:800;line-height:1.1;color:var(--text)}
-.stat-card .lbl{font-size:10px;color:var(--text-3);margin-top:4px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em}
 
 /* ── CARD ── */
 .card{
@@ -2054,7 +2034,6 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
 
 /* ── TABLET / DESKTOP ── */
 @media(min-width:768px){
-  .stats-grid{grid-template-columns:repeat(4,1fr)}
   .at-actions{gap:12px}
   .at-btn{font-size:13px;padding:10px 20px}
   .page-title{font-size:20px}
@@ -2453,7 +2432,7 @@ html.theme-dark .inline-loader-pulse {
 }
 
 /* Transitions for Theme Toggling */
-body, .card, .stat-card, .progress-card, .spp-card,
+body, .card, .progress-card, .spp-card,
 .riwayat-item, .pr-item, .materi-card, .raport-card,
 .url-box, .benefit-card, .portal-card, .guide-card,
 .kalender-wrap, .kal-popup-box, .peng-item,
@@ -2494,7 +2473,6 @@ html.theme-dark body{background:#111318}
 /* Semua cards — solid, tidak glass blur */
 html.theme-dark .card,
 html.theme-dark .hfal-card,
-html.theme-dark .stat-card,
 html.theme-dark .spp-card,
 html.theme-dark .riwayat-item,
 html.theme-dark .pr-item,
@@ -2512,7 +2490,7 @@ html.theme-dark .asmnt-legend {
   border:1px solid rgba(255,255,255,0.07) !important;
   box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
 }
-html.theme-dark .card:hover,html.theme-dark .stat-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
+html.theme-dark .card:hover{box-shadow:0 4px 16px rgba(0,0,0,.45) !important}
 html.theme-dark .card-head{background:rgba(255,255,255,.03) !important;border-bottom-color:rgba(255,255,255,.06) !important}
 /* Dark Mode Riwayat Setoran & Filter */
 html.theme-dark .hfal-jenis-chip {background: rgba(255,255,255,0.06) !important}
@@ -2550,9 +2528,6 @@ html.theme-dark .prog-info-sesi{color:#64748b !important}
 html.theme-dark .prog-info-estimasi{background:rgba(56,189,248,.1) !important;border-color:rgba(56,189,248,.2) !important;color:#38bdf8 !important}
 html.theme-dark .prog-meta .prog-sisa{color:rgba(255,255,255,.55) !important}
 
-/* Stat card icons */
-html.theme-dark .stat-card .val{color:#e8eaf0 !important}
-html.theme-dark .stat-card .lbl{color:#6b7280 !important}
 
 /* Riwayat detail */
 html.theme-dark .riwayat-detail{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
@@ -2916,10 +2891,6 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 
 
 
-/* Stats: 4 kolom mulai 600px */
-@media(min-width:600px){
-  .stats-grid{grid-template-columns:repeat(4,1fr)!important}
-}
 
 /* Touch targets minimal 44px */
 .top-action-btn,.top-hamburger{min-width:44px!important;min-height:44px!important}
@@ -3017,7 +2988,6 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
   .card{padding:20px!important}
-  .stat-card{padding:16px!important}
   .page-title{font-size:21px!important}
 }
 
@@ -4143,31 +4113,6 @@ html.theme-dark .materi-daurah-banner-title {
         <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
       </div>
 
-      <!-- Stats -->
-
-      <!-- Stats (disembunyikan dari Beranda -- elemen tetap ada karena diisi loadDashboard() tanpa null-check) -->
-      <div class="stats-grid" style="display:none">
-        <div class="stat-card clickable" onclick="goPage('riwayat')">
-          <div class="ico">✅</div>
-          <div class="val stat-val" id="st-hadir">–</div>
-          <div class="lbl">% Hadir</div>
-        </div>
-        <div class="stat-card clickable" onclick="goPage('info')">
-          <div class="ico">📋</div>
-          <div class="val stat-val" id="st-sesi">–</div>
-          <div class="lbl">Sesi</div>
-        </div>
-        <div class="stat-card clickable" onclick="openAdabDetail()">
-          <div class="ico">⭐</div>
-          <div class="val stat-val" id="st-adab">–</div>
-          <div class="lbl">Poin Adab</div>
-        </div>
-        <div class="stat-card clickable" onclick="openKameraDetail()">
-          <div class="ico">📷</div>
-          <div class="val stat-val" id="st-kamera">–</div>
-          <div class="lbl">Poin Kamera</div>
-        </div>
-      </div>
       <!-- Micro Teaching Card -->
       <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
         <!-- Judul MT -->
@@ -7016,83 +6961,6 @@ html.theme-dark .materi-daurah-banner-title {
   </div>
 </div>
 
-<!-- MODAL RINCIAN POIN ADAB -->
-<div class="modal-overlay" id="adabDetailModal" onclick="closeModal('adabDetailModal')">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <div class="modal-title">⭐ Rincian Poin Adab</div>
-      <button class="modal-x" onclick="closeModal('adabDetailModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="text-align:center;margin-bottom:20px;background:rgba(245,158,11,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(245,158,11,0.2)">
-        <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Total Poin Adab</div>
-        <div style="font-size:32px;font-weight:800;color:var(--amber);" id="modalAdabVal">0 Poin</div>
-      </div>
-
-      <div style="margin-bottom:20px">
-        <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Penilaian Adab</div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-            <span style="font-weight:600;color:var(--text-2)">🟢 Adab Baik (skor +1)</span>
-            <span style="font-weight:700;color:var(--text)" id="modalAdabBaik">0 Sesi</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:10px 14px">
-            <span style="font-weight:600;color:var(--text-2)">🟡 Adab Cukup (skor +0)</span>
-            <span style="font-weight:700;color:var(--text)" id="modalAdabCukup">0 Sesi</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:linear-gradient(135deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02));border:1px solid rgba(245,158,11,0.15);padding:14px;border-radius:12px;">
-        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">💡 Informasi Skor</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text-2);line-height:1.4">
-          Adab yang dinilai Baik selama KBM memberikan tambahan 1 poin. Tetap pertahankan adab mulia selama belajar Al-Qur'an!
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL RINCIAN POIN KAMERA -->
-<div class="modal-overlay" id="kameraDetailModal" onclick="closeModal('kameraDetailModal')">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <div class="modal-title">📷 Rincian Poin Kamera</div>
-      <button class="modal-x" onclick="closeModal('kameraDetailModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="text-align:center;margin-bottom:20px;background:rgba(59,130,246,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(59,130,246,0.2)">
-        <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Total Poin Kamera</div>
-        <div style="font-size:32px;font-weight:800;color:var(--blue);" id="modalKameraVal">0 Poin</div>
-      </div>
-
-      <div style="margin-bottom:20px">
-        <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px">Rincian Status Kamera</div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-            <span style="font-weight:600;color:var(--text-2)">🟢 Kamera Terbuka (skor +1)</span>
-            <span style="font-weight:700;color:var(--text)" id="modalKameraTerbuka">0 Sesi</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)">
-            <span style="font-weight:600;color:var(--text-2)">🟡 Kamera Sering Tertutup (skor +0)</span>
-            <span style="font-weight:700;color:var(--text)" id="modalKameraSeringTertutup">0 Sesi</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:10px 14px">
-            <span style="font-weight:600;color:var(--text-2)">🔴 Kamera Selalu Tertutup (skor -1)</span>
-            <span style="font-weight:700;color:var(--text)" id="modalKameraSelaluTertutup">0 Sesi</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02));border:1px solid rgba(59,130,246,0.15);padding:14px;border-radius:12px;">
-        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:4px">💡 Informasi Skor</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text-2);line-height:1.4">
-          Mengaktifkan kamera membantu ustadz/ustadzah menyimak bacaan dengan lebih optimal. Kamera yang selalu tertutup akan mengurangi skor kamera.
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL NOTIFIKASI (LONCENG) -->
 <div class="modal-overlay" id="notificationModal" onclick="closeModal('notificationModal')">
@@ -7462,33 +7330,6 @@ function openProgressBreakdown(forceMicro) {
 
 function openMicroTeachingBreakdown() {
   openProgressBreakdown(true);
-}
-
-// Open Adab Detail Modal
-function openAdabDetail() {
-  if (!dashData) return;
-  var adabDetail = dashData.poin_adab_detail || {};
-  var totalAdab = dashData.poin_adab !== undefined ? dashData.poin_adab : 0;
-  
-  document.getElementById('modalAdabVal').textContent = totalAdab + ' Poin';
-  document.getElementById('modalAdabBaik').textContent = (adabDetail.baik || 0) + ' Sesi';
-  document.getElementById('modalAdabCukup').textContent = (adabDetail.cukup || 0) + ' Sesi';
-  
-  openModal('adabDetailModal');
-}
-
-// Open Kamera Detail Modal
-function openKameraDetail() {
-  if (!dashData) return;
-  var kameraDetail = dashData.poin_kamera_detail || {};
-  var totalKamera = dashData.poin_kamera !== undefined ? dashData.poin_kamera : 0;
-  
-  document.getElementById('modalKameraVal').textContent = totalKamera + ' Poin';
-  document.getElementById('modalKameraTerbuka').textContent = (kameraDetail.terbuka || 0) + ' Sesi';
-  document.getElementById('modalKameraSelaluTertutup').textContent = (kameraDetail.selalu_tertutup || 0) + ' Sesi';
-  document.getElementById('modalKameraSeringTertutup').textContent = (kameraDetail.sering_tertutup || 0) + ' Sesi';
-  
-  openModal('kameraDetailModal');
 }
 
 // ══════════════════════════════════════════
@@ -8118,9 +7959,6 @@ window.onSppRendered = function (s) {
 async function loadDashboard(silent) {
   if (!silent) {
     showLoad('Bismillah, memuat dashboard...');
-    document.querySelectorAll('.stat-val').forEach(function(el) {
-      el.innerHTML = '<span class="skel" style="width:40px;height:20px;display:inline-block"></span>';
-    });
   }
   try {
     var [r, atRes] = await Promise.all([
@@ -8512,23 +8350,6 @@ async function loadDashboard(silent) {
         sessionStorage.setItem('hq_confetti_fired', 'true');
       }, 800);
     }
-
-    // Stats click routing (KBM Reguler and MT do not appear in Qiyam)
-    var hadirCard = document.querySelector('.stats-grid .stat-card:nth-child(1)');
-    var sesiCard  = document.querySelector('.stats-grid .stat-card:nth-child(2)');
-    if (isQiyam) {
-      if (hadirCard) hadirCard.setAttribute('onclick', "goPage('hafalan')");
-      if (sesiCard)  sesiCard.setAttribute('onclick', "goPage('hafalan')");
-    } else {
-      if (hadirCard) hadirCard.setAttribute('onclick', "goPage('riwayat')");
-      if (sesiCard)  sesiCard.setAttribute('onclick', "goPage('info')");
-    }
-
-    // Stats
-    document.getElementById('st-hadir').textContent = kh.pct_hadir !== undefined ? kh.pct_hadir+'%' : '–';
-    document.getElementById('st-sesi').textContent  = kh.total_sesi !== undefined ? kh.total_sesi : '–';
-    document.getElementById('st-adab').textContent   = d.poin_adab !== undefined ? d.poin_adab : '–';
-    document.getElementById('st-kamera').textContent = d.poin_kamera !== undefined ? d.poin_kamera : '–';
 
     // Load kartu Lapor Aktivitas Belajar (Partner Belajar) -- HANYA level 1-4 (non-Qiyam)
     // DAN halaqah-nya mengaktifkan fitur ini (samakan syarat dgn dashPartnerBelajarCard
