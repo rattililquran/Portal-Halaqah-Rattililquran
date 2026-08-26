@@ -4294,20 +4294,6 @@ html.theme-dark .materi-daurah-banner-title {
       </button>
     </div>
 
-    <!-- ════ CATATAN EMAS (kumpulan Koreksi Tahsin/Rubrik MT + Catatan Guru + Catatan PR) ════ -->
-    <div class="page" id="page-catatan-emas">
-      <div class="page-header">
-        <div class="page-header-ico">✨</div>
-        <div class="page-header-inner"><div class="page-title">Catatan Emas</div><div class="page-sub">Kumpulan catatan dari Ustadz/Ustadzah, satu tempat.</div></div>
-        <button class="btn-refresh" id="btnRefreshCatatanEmas" onclick="refreshTab('catatan-emas')" title="Refresh">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
-        </button>
-      </div>
-      <div id="catatanEmasList">
-        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
-      </div>
-    </div>
-
     <!-- ════ LATIHAN MANDIRI (PR) ════ -->
     <div class="page" id="page-pr">
       <div class="page-header">
@@ -4350,11 +4336,28 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
     </div>
 
-    <!-- ════ INSIGHT BELAJAR ════ -->
+    <!-- ════ INSIGHT BELAJAR (Ringkasan + Catatan Emas dari guru, satu tab) ════ -->
     <div class="page" id="page-insight">
-      <div class="page-header"><div class="page-header-ico">📊</div><div><div class="page-title">Insight Belajar</div><div class="page-sub">Tren adab, kamera, dan kategori koreksi tahsin yang paling sering — dari riwayat KBM-mu.</div></div></div>
-      <div id="insightContent">
-        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      <div class="page-header">
+        <div class="page-header-ico">📊</div>
+        <div class="page-header-inner"><div class="page-title">Insight Belajar</div><div class="page-sub">Ringkasan tren belajarmu, dan kumpulan catatan dari Ustadz/Ustadzah.</div></div>
+        <button class="btn-refresh" id="btnRefreshInsight" onclick="refreshTab('insight')" title="Refresh">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh
+        </button>
+      </div>
+      <div id="insightTabBar" style="display:flex;gap:6px;margin-bottom:16px;background:#f1f5f9;border-radius:12px;padding:4px">
+        <button class="atf-btn active" id="insightTabRingkasan" onclick="switchInsightTab('ringkasan',this)" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s">📊 Ringkasan</button>
+        <button class="atf-btn" id="insightTabCatatan" onclick="switchInsightTab('catatan',this)" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s">✨ Catatan Guru</button>
+      </div>
+      <div id="insightPanelRingkasan">
+        <div id="insightContent">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
+      </div>
+      <div id="insightPanelCatatan" style="display:none">
+        <div id="catatanEmasList">
+          <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+        </div>
       </div>
     </div>
 
@@ -6116,11 +6119,6 @@ html.theme-dark .materi-daurah-banner-title {
         <span class="sidebar-item-label">Mutaba'ah Daurah</span>
       </button>
 
-      <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('catatan-emas')" data-p="catatan-emas">
-        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
-        <span class="sidebar-item-label">Catatan Emas</span>
-      </button>
-
       <button class="sidebar-item ico-green" onclick="closeSidebar();goPage('raport')" data-p="raport">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></div>
         <span class="sidebar-item-label">Raport</span>
@@ -7012,6 +7010,7 @@ var prData = [];
 var materiData = {};
 var _kalDate = new Date();
 var _muridTabLoaded = {};
+var _insightCatatanLoaded = false; // lazy: sub-tab "Catatan Guru" di Insight baru fetch saat pertama dibuka
 var _muridRiwayatExpanded = false;
 var _rfInterval = null, _rfLast = null;
 var _sTimeout = null;
@@ -7842,7 +7841,6 @@ function goPage(name, swipeDir) {
   else if (name === 'charging') { loadCharging(); }
   else if (name === 'hafalan') { loadPageHafalan(); }
   else if (name === 'partner-belajar') { loadPagePartnerBelajar(); }
-  else if (name === 'catatan-emas') { loadCatatanEmas(); }
   else if (name === 'ketua')    {
     // Reset state observasi saat masuk tab ketua agar tidak pakai data lama
     _ketuaObsIdKBM = null;
@@ -8600,7 +8598,7 @@ var PAGE_TO_GROUP = {
   attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
   'spp-infaq': 'administrasi', 'infaq-beasiswa': 'administrasi',
   assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi', charging: 'evaluasi',
-  'catatan-emas': 'evaluasi', insight: 'evaluasi',
+  insight: 'evaluasi',
   panduan: 'pengaturan', password: 'pengaturan',
 };
 // Grup aktif diturunkan dari navigasi (goPage), TIDAK di-persist localStorage terpisah --
@@ -8863,7 +8861,29 @@ function formatMicroTeachingRubric(koreksiTahsin) {
 }
 
 // ══════════════════════════════════════════
+//  INSIGHT BELAJAR -- sub-tab Ringkasan / Catatan Guru
+// ══════════════════════════════════════════
+function switchInsightTab(tabName, btn) {
+  document.querySelectorAll('#insightTabBar .atf-btn').forEach(function(b) {
+    b.classList.remove('active');
+  });
+  if (btn) btn.classList.add('active');
+
+  var panelRingkasan = document.getElementById('insightPanelRingkasan');
+  var panelCatatan = document.getElementById('insightPanelCatatan');
+  if (tabName === 'ringkasan') {
+    if (panelRingkasan) panelRingkasan.style.display = 'block';
+    if (panelCatatan) panelCatatan.style.display = 'none';
+  } else {
+    if (panelRingkasan) panelRingkasan.style.display = 'none';
+    if (panelCatatan) panelCatatan.style.display = 'block';
+    if (!_insightCatatanLoaded) { _insightCatatanLoaded = true; loadCatatanEmas(); }
+  }
+}
+
+// ══════════════════════════════════════════
 //  CATATAN EMAS -- kumpulan Koreksi Tahsin/Rubrik MT + Catatan Guru + Catatan PR
+//  (sub-tab "Catatan Guru" di dalam halaman Insight Belajar)
 // ══════════════════════════════════════════
 var CATATAN_EMAS_TIPE = {
   tahsin : { ico: '✏️', label: 'Koreksi Tahsin' },
@@ -8881,7 +8901,7 @@ async function loadCatatanEmas() {
     el.innerHTML = '<div class="empty">' +
       '<div class="empty-ico">❌</div>' +
       '<div class="empty-ttl">' + esc(friendlyError(e)) + '</div>' +
-      '<button class="btn btn-outline btn-sm" onclick="refreshTab(\'catatan-emas\')" style="margin-top:12px;max-width:140px;margin-left:auto;margin-right:auto;">🔄 Coba Lagi</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="loadCatatanEmas()" style="margin-top:12px;max-width:140px;margin-left:auto;margin-right:auto;">🔄 Coba Lagi</button>' +
       '</div>';
   }
   finally { hideLoad(); }
@@ -10096,7 +10116,7 @@ function toggleMateri(idx) {
 //  REFRESH TAB
 // ══════════════════════════════════════════
 function refreshTab(name) {
-  var btnId = { riwayat:'btnRefreshRiwayat', pr:'btnRefreshPR', raport:'btnRefreshRaport', attibyan:'btnRefreshAtTibyan', 'catatan-emas':'btnRefreshCatatanEmas' }[name];
+  var btnId = { riwayat:'btnRefreshRiwayat', pr:'btnRefreshPR', raport:'btnRefreshRaport', attibyan:'btnRefreshAtTibyan', insight:'btnRefreshInsight' }[name];
   var btn = btnId ? document.getElementById(btnId) : null;
   if (btn) { btn.classList.add('spinning'); setTimeout(function(){ btn.classList.remove('spinning'); }, 1200); }
   delete _muridTabLoaded[name];
@@ -10104,7 +10124,13 @@ function refreshTab(name) {
   if (name === 'riwayat') { _riwayatOffset = 8; loadRiwayat(); }
   else if (name === 'pr') { loadPR(); }
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
-  else if (name === 'catatan-emas') { loadCatatanEmas(); }
+  else if (name === 'insight') {
+    loadInsightBelajar();
+    // Catatan Guru dimuat lazy saat sub-tab dibuka -- refresh cuma perlu
+    // memuat ulang kalau memang sudah pernah dibuka, biar tak nambah query
+    // percuma buat murid yang belum pernah lihat sub-tab itu.
+    if (_insightCatatanLoaded) loadCatatanEmas();
+  }
   else if (name === 'attibyan') {
     _atSearchQuery = '';
     _atMuridTabLoaded = false;
