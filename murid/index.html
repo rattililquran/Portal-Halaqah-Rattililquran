@@ -21,19 +21,6 @@
   }catch(e){}
 })();
 </script>
-<script>
-// ── Navigasi: tab atas + sidebar (varian baru, opt-in) — Profil Saya > Pengaturan Akun ──
-// Default = 'legacy' (sidebar penuh seperti sebelumnya). Diterapkan SEBELUM paint supaya tidak flash.
-// Sidebar di varian baru SENGAJA tidak bisa di-collapse lagi di desktop -- selalu
-// terbuka penuh (fitur collapse-strip via hamburger dinonaktifkan permanen).
-(function(){
-  try{
-    if(localStorage.getItem('hq_nav_variant') === 'tabs'){
-      document.documentElement.classList.add('nav-tabs');
-    }
-  }catch(e){}
-})();
-</script>
 <meta charset="UTF-8">
 <!-- Beri tahu browser sejak awal render bahwa halaman ini mendukung mode
      terang & gelap, supaya kanvas kosong sebelum CSS termuat langsung dicat
@@ -840,37 +827,34 @@ html.theme-dark .prog-estimasi-middle{
 .sidebar-item.danger .sidebar-item-ico{background:rgba(220,38,38,.1);color:#dc2626}
 .sidebar-item.danger:hover{background:rgba(220,38,38,.08);color:#b91c1c}
 
-/* ══ NAVIGASI VARIAN BARU: tab atas + sidebar collapsible (opt-in, html.nav-tabs) ══
-   Default (html TANPA class nav-tabs) -> semua rule di bawah ini tidak berlaku,
-   sidebar tetap seperti jalur lama (semua grup selalu tampil, tab atas tersembunyi). */
-.top-tabbar{display:none}
-html.nav-tabs .top-tabbar{
+/* ══ NAVIGASI: tab atas + sidebar (grup difilter oleh tab aktif) ══ */
+.top-tabbar{
   display:flex;gap:4px;padding:0 10px;border-bottom:1px solid var(--border);
   background:var(--card-solid,#fff);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
   flex-shrink:0;
 }
-html.nav-tabs .top-tabbar::-webkit-scrollbar{display:none}
-html.nav-tabs .top-tab{
+.top-tabbar::-webkit-scrollbar{display:none}
+.top-tab{
   flex-shrink:0;display:flex;align-items:center;gap:6px;padding:11px 10px;
   border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:700;
   color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
   transition:color .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;
 }
-html.nav-tabs .top-tab:hover{color:var(--text)}
-html.nav-tabs .top-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
-html.nav-tabs .top-tab-ico svg{display:block;width:15px;height:15px}
-html.theme-dark.nav-tabs .top-tabbar{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
-html.theme-dark.nav-tabs .top-tab{color:rgba(255,255,255,.5) !important}
-html.theme-dark.nav-tabs .top-tab:hover{color:#e8eaf0 !important}
-html.theme-dark.nav-tabs .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
-html.nav-tabs a.top-tab{text-decoration:none}
+.top-tab:hover{color:var(--text)}
+.top-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.top-tab-ico svg{display:block;width:15px;height:15px}
+html.theme-dark .top-tabbar{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark .top-tab{color:rgba(255,255,255,.5) !important}
+html.theme-dark .top-tab:hover{color:#e8eaf0 !important}
+html.theme-dark .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
+a.top-tab{text-decoration:none}
 
 /* Dropdown menu: muncul saat hover/focus salah satu .top-tab[data-group] (lihat JS
    showTabDropdown/hideTabDropdown) -- SATU panel dipakai ulang utk semua tab, isinya
    diganti tiap kali dibuka (pola sama seperti .grafik-tooltip yang sudah ada).
    position:fixed sengaja jadi sibling .top-tabbar (bukan di dalam .sidebar-drawer --
    itu punya transform yang bikin position:fixed child-nya tidak lepas ke viewport). */
-html.nav-tabs .top-tab-dropdown{
+.top-tab-dropdown{
   position:fixed;z-index:400;min-width:200px;max-width:280px;
   max-height:70vh;overflow-y:auto;
   background:var(--card-solid,#fff);border:1px solid var(--border);
@@ -878,20 +862,20 @@ html.nav-tabs .top-tab-dropdown{
   padding:6px;opacity:0;visibility:hidden;transform:translateY(-4px);
   transition:opacity .15s ease,transform .15s ease,visibility .15s;
 }
-html.nav-tabs .top-tab-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
-html.nav-tabs .top-tab-dropdown-item{
+.top-tab-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
+.top-tab-dropdown-item{
   display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:8px 10px;border-radius:8px;
   font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;
   border:none;background:none;width:100%;text-align:left;font-family:inherit;
   -webkit-appearance:none;appearance:none;
 }
-html.nav-tabs .top-tab-dropdown-item:hover{background:rgba(var(--blue-rgb),.08)}
-html.nav-tabs .top-tab-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
-html.nav-tabs .top-tab-dropdown-empty{padding:10px;font-size:12px;color:var(--text-3);text-align:center}
+.top-tab-dropdown-item:hover{background:rgba(var(--blue-rgb),.08)}
+.top-tab-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
+.top-tab-dropdown-empty{padding:10px;font-size:12px;color:var(--text-3);text-align:center}
 
-/* Grup sidebar -- default (jalur lama) selalu tampil; di varian baru difilter oleh tab aktif */
-html.nav-tabs .sidebar-group{display:none}
-html.nav-tabs .sidebar-group.active{display:block}
+/* Grup sidebar -- difilter oleh tab aktif */
+.sidebar-group{display:none}
+.sidebar-group.active{display:block}
 
 /* ── PAGES + SWIPE TRANSITION ── */
 .page{display:none}.page.active{display:block}
@@ -3958,8 +3942,7 @@ html.theme-dark .materi-daurah-banner-title {
   <!-- topAvatar ghost element — dipertahankan untuk kompatibilitas kode JS -->
   <div id="topAvatar" style="display:none"></div>
 
-  <!-- TAB ATAS (varian baru, opt-in via html.nav-tabs -- tersembunyi total di jalur lama) --
-       memfilter grup sidebar mana yang tampil, TIDAK pindah halaman sendiri -->
+  <!-- TAB ATAS -- memfilter grup sidebar mana yang tampil, TIDAK pindah halaman sendiri -->
   <nav class="top-tabbar" id="topTabbar" role="tablist" aria-label="Navigasi utama">
     <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true" aria-haspopup="true" aria-expanded="false">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
@@ -6931,13 +6914,6 @@ html.theme-dark .materi-daurah-banner-title {
               <button type="button" class="theme-picker-opt" data-theme-choice="minimal">Minimalis</button>
             </div>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--border);">
-            <span style="font-weight:600; color:var(--text); font-size:13.5px;">🧭 Navigasi</span>
-            <div class="theme-picker" id="navVariantPicker">
-              <button type="button" class="theme-picker-opt" data-nav-choice="legacy">Lama</button>
-              <button type="button" class="theme-picker-opt" data-nav-choice="tabs">Baru</button>
-            </div>
-          </div>
           <div onclick="closeModal('profilModal');goPage('password')" style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; border-bottom:1px solid var(--border);" class="menu-item-hover">
             <span style="font-weight:600; color:var(--text); font-size:13.5px;">🔐 Ganti Password</span>
             <span style="color:var(--text-3); font-weight:700;">&rsaquo;</span>
@@ -7975,9 +7951,9 @@ function startApp() {
   startMuridAutoRefresh();
   loadDashboard();
   if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid');
-  // Varian navigasi baru: startApp() TIDAK memanggil goPage() (halaman dashboard sudah
-  // .active dari HTML statis) -- jadi filter tab/sidebar perlu disinkronkan manual di sini,
-  // kalau tidak sidebar bakal kosong sampai user klik tab pertama kali. No-op di jalur lama.
+  // startApp() TIDAK memanggil goPage() (halaman dashboard sudah .active dari HTML
+  // statis) -- jadi filter tab/sidebar perlu disinkronkan manual di sini, kalau
+  // tidak sidebar bakal kosong sampai user klik tab pertama kali.
   if (typeof setActiveNavGroup === 'function') setActiveNavGroup(PAGE_TO_GROUP[_currentTabName] || 'utama');
 }
 
@@ -8036,9 +8012,9 @@ function goPage(name, swipeDir) {
   var _contentEl = document.querySelector('.content');
   if (_contentEl) _contentEl.scrollTop = 0; else window.scrollTo(0, 0);
 
-  // Varian navigasi baru (tab atas): sinkronkan tab & filter sidebar ke grup halaman
-  // ini, dari MANAPUN goPage() dipanggil (bukan cuma klik sidebar) -- no-op di jalur lama.
-  // WAJIB di sini (SEBELUM early-return kuis/assessment/_muridTabLoaded di bawah) --
+  // Sinkronkan tab atas & filter sidebar ke grup halaman ini, dari MANAPUN goPage()
+  // dipanggil (bukan cuma klik sidebar). WAJIB di sini (SEBELUM early-return
+  // kuis/assessment/_muridTabLoaded di bawah) --
   // sebelumnya taruh di akhir fungsi jadi cuma jalan di kunjungan PERTAMA ke tiap
   // halaman (return di bawah selalu memotongnya duluan sejak kunjungan kedua).
   var _navGrp = PAGE_TO_GROUP[name];
@@ -8977,8 +8953,7 @@ function closeSidebar() {
   document.body.style.overflow = '';
 }
 
-// ══ Navigasi varian baru: tab atas + sidebar collapsible (opt-in, html.nav-tabs) ══
-// Semua fungsi di bawah ini no-op/tidak berpengaruh apa pun di jalur lama (default).
+// ══ Navigasi: tab atas + sidebar ══
 var NAV_GROUPS = ['utama', 'akademik', 'permainan', 'administrasi', 'evaluasi', 'pengaturan'];
 // Pemetaan nama halaman (goPage) -> grup sidebar yang memuatnya. 'permainan' & sebagian
 // item 'pengaturan' (notifikasi, mode gelap, dst.) tidak ada di sini karena tidak
@@ -12307,41 +12282,11 @@ function initThemeVariantPicker() {
   var current = 'minimal';
   try { var v = localStorage.getItem('hq_theme_variant'); current = (v === null) ? 'minimal' : v; } catch (e) {}
   updateThemePickerUI(current);
-  // Scoped ke #themePicker -- jangan pakai selector global '.theme-picker-opt', sebab
-  // segmented control lain (mis. #navVariantPicker) reuse class yang sama.
   document.querySelectorAll('#themePicker .theme-picker-opt').forEach(function(btn) {
     btn.addEventListener('click', function() { setAppTheme(btn.getAttribute('data-theme-choice')); });
   });
 }
 initThemeVariantPicker();
-
-// ── Pemilih varian navigasi (Lama / Baru: tab atas + sidebar collapsible) — di Profil Saya > Pengaturan Akun ──
-// Cerminan 1:1 dari initThemeVariantPicker() di atas, key localStorage & efeknya beda.
-function updateNavPickerUI(variant) {
-  document.querySelectorAll('#navVariantPicker .theme-picker-opt').forEach(function(btn) {
-    btn.classList.toggle('active', btn.getAttribute('data-nav-choice') === variant);
-  });
-}
-function setNavVariant(variant) {
-  try { localStorage.setItem('hq_nav_variant', variant); } catch (e) {}
-  updateNavPickerUI(variant);
-  // Restructure DOM (grup sidebar, tab bar) terlalu besar untuk di-toggle live tanpa
-  // reload -- sama seperti ganti tema di banyak app, minta reload sekali.
-  location.reload();
-}
-function initNavVariantPicker() {
-  var current = 'legacy';
-  try { var v = localStorage.getItem('hq_nav_variant'); current = (v === 'tabs') ? 'tabs' : 'legacy'; } catch (e) {}
-  updateNavPickerUI(current);
-  document.querySelectorAll('#navVariantPicker .theme-picker-opt').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var choice = btn.getAttribute('data-nav-choice');
-      if (choice === current) return; // sudah aktif, tak perlu reload
-      setNavVariant(choice);
-    });
-  });
-}
-initNavVariantPicker();
 
 // ── Push Preferences ──────────────────────────
 var _pushPrefsData   = {};
