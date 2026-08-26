@@ -22,15 +22,14 @@
 })();
 </script>
 <script>
-// ── Navigasi: tab atas + sidebar collapsible (varian baru, opt-in) — Profil Saya > Pengaturan Akun ──
+// ── Navigasi: tab atas + sidebar (varian baru, opt-in) — Profil Saya > Pengaturan Akun ──
 // Default = 'legacy' (sidebar penuh seperti sebelumnya). Diterapkan SEBELUM paint supaya tidak flash.
+// Sidebar di varian baru SENGAJA tidak bisa di-collapse lagi di desktop -- selalu
+// terbuka penuh (fitur collapse-strip via hamburger dinonaktifkan permanen).
 (function(){
   try{
     if(localStorage.getItem('hq_nav_variant') === 'tabs'){
       document.documentElement.classList.add('nav-tabs');
-      if(localStorage.getItem('hq_sidebar_collapsed') === '1' && window.innerWidth >= 768){
-        document.documentElement.classList.add('sidebar-precollapsed');
-      }
     }
   }catch(e){}
 })();
@@ -893,36 +892,6 @@ html.nav-tabs .top-tab-dropdown-empty{padding:10px;font-size:12px;color:var(--te
 /* Grup sidebar -- default (jalur lama) selalu tampil; di varian baru difilter oleh tab aktif */
 html.nav-tabs .sidebar-group{display:none}
 html.nav-tabs .sidebar-group.active{display:block}
-
-/* Desktop (≥768px): sidebar bisa collapse jadi strip ikon -- lihat juga blok
-   "Desktop persistent sidebar ≥768px" untuk override .top-hamburger{display:none}.
-   Dibungkus @media supaya tidak "nyangkut" 64px kalau window di-resize sampai
-   selebar HP (drawer mobile butuh lebar min(300px,88vw) yang benar, bukan strip
-   ikon). html.sidebar-precollapsed adalah placeholder pre-paint (hindari flash
-   sidebar lebar lalu menyempit sebelum JS sempat sinkron .collapsed yang
-   sebenarnya di startApp()) -- disamakan efeknya persis dgn .collapsed di sini
-   supaya tidak ada flash label/pill kepotong sebelum JS jalan. */
-@media(min-width:768px){
-  html.nav-tabs .sidebar-drawer.collapsed,
-  html.sidebar-precollapsed .sidebar-drawer{
-    width:64px !important;min-width:64px !important;max-width:64px !important;
-  }
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item-label,
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-text,
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-profile-chevron,
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-group > div:first-child, /* pill judul grup -- !important WAJIB, .sidebar-section punya display:flex!important sendiri */
-  html.sidebar-precollapsed .sidebar-item-label,
-  html.sidebar-precollapsed .sidebar-profile-text,
-  html.sidebar-precollapsed .sidebar-profile-chevron,
-  html.sidebar-precollapsed .sidebar-group > div:first-child
-    {display:none !important}
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item,
-  html.sidebar-precollapsed .sidebar-item{justify-content:center !important;padding:7px 0}
-  html.nav-tabs .sidebar-drawer.collapsed .sidebar-item > span:last-child:not(.sidebar-item-label),
-  html.sidebar-precollapsed .sidebar-item > span:last-child:not(.sidebar-item-label){
-    position:absolute;top:2px;right:10px;transform:scale(.8);transform-origin:top right;
-  }
-}
 
 /* ── PAGES + SWIPE TRANSITION ── */
 .page{display:none}.page.active{display:block}
@@ -3124,12 +3093,6 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   /* Sidebar item semua bisa diklik tanpa closeSidebar mengganggu */
   .sidebar-item{cursor:pointer}
 }
-/* Varian baru: hamburger dipakai lagi di desktop sebagai toggle collapse sidebar
-   (di jalur lama tetap disembunyikan seperti rule di atas -- sidebar desktop selalu penuh) */
-@media(min-width:768px){
-  html.nav-tabs .top-hamburger{display:flex !important}
-}
-
 /* ══ PANDUAN MURID ════════════════════════════════════════════ */
 .pd-wrap{max-width:640px;margin:0 auto;padding:0 0 32px}
 .pd-nasihat{background:linear-gradient(160deg,#f0fdf4 0%,#ecfdf5 60%,#f0f9ff 100%);border:1px solid #bbf7d0;border-radius:16px;padding:20px 18px;margin-bottom:14px;position:relative;overflow:hidden}
@@ -7972,16 +7935,6 @@ function setCalTab(os, btn) {
 function startApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // Sinkronkan collapse sidebar sungguhan -- html.sidebar-precollapsed cuma
-  // placeholder pre-paint (elemen sidebar belum ada saat script <head> jalan).
-  // Sekarang #sidebarDrawer sudah ada, sinkron ke .collapsed yang sesungguhnya
-  // lalu lepas placeholder-nya (kalau tidak dilepas, !important-nya bikin
-  // sidebar tidak akan pernah bisa dilebarkan lagi walau .collapsed ditoggle).
-  if (document.documentElement.classList.contains('sidebar-precollapsed')) {
-    var _sbDrawer = document.getElementById('sidebarDrawer');
-    if (_sbDrawer) _sbDrawer.classList.add('collapsed');
-    document.documentElement.classList.remove('sidebar-precollapsed');
-  }
   // Anchor histori untuk pola "tombol kembali ke Beranda dulu, baru keluar"
   // (lihat listener popstate di bawah goPage()) — hanya dipasang sekali per
   // sesi browser agar tidak menumpuk entry tiap kali startApp() dipanggil ulang.
@@ -9168,21 +9121,11 @@ function _isInsideTabDropdownSystem(el) {
   });
 })();
 
-function toggleSidebarCollapse() {
-  var drawer = document.getElementById('sidebarDrawer');
-  if (!drawer) return;
-  var collapsed = !drawer.classList.contains('collapsed');
-  drawer.classList.toggle('collapsed', collapsed);
-  try { localStorage.setItem('hq_sidebar_collapsed', collapsed ? '1' : '0'); } catch (e) {}
-}
-// Dipanggil oleh onclick tombol .top-hamburger (satu tombol, dua peran tergantung konteks).
-// Jalur lama (bukan nav-tabs) & mobile: perilaku persis seperti sebelumnya (openSidebar saja).
+// Dipanggil oleh onclick tombol .top-hamburger. Di desktop, sidebar SENGAJA tidak
+// lagi bisa di-collapse (selalu terbuka penuh) -- hamburger di desktop pun sudah
+// disembunyikan (lihat CSS .top-hamburger), fungsi ini praktis cuma jalan di HP.
 function toggleSidebar() {
-  if (_isDesktop() && document.documentElement.classList.contains('nav-tabs')) {
-    toggleSidebarCollapse();
-  } else {
-    openSidebar();
-  }
+  openSidebar();
 }
 
 // ── Petualangan (Maze) — dimuat DINAMIS saat dibuka saja (tidak membebani load awal).
