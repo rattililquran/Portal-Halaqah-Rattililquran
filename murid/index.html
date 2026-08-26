@@ -4168,16 +4168,6 @@ html.theme-dark .materi-daurah-banner-title {
           <div class="lbl">Poin Kamera</div>
         </div>
       </div>
-      <!-- Rattil Quiz Card (disembunyikan dari Beranda) -->
-      <div class="partner-dash-card" id="dashQuizCard" onclick="goPage('kuis')" style="display:none; cursor:pointer; background:linear-gradient(135deg, #e52d27 0%, #b31217 100%); border:1px solid rgba(255, 255, 255, 0.15); margin-bottom:16px; box-shadow:0 8px 24px rgba(229, 45, 39, 0.25); color:#ffffff !important;">
-        <div class="prog-title" style="display:flex; justify-content:space-between; align-items:center; color:#ffffff !important;">
-          <span style="display:flex; align-items:center; gap:6px; color:#ffffff !important;">🎯 Rattil Quiz</span>
-          <span id="dashQuizBadge" class="badge" style="display:none; font-size:10px; font-weight:800; padding:2px 8px; border-radius:100px;">Baru</span>
-        </div>
-        <div id="dashQuizBody" class="partner-dash-body" style="font-size:12.5px; color:rgba(255, 255, 255, 0.9); margin-top:8px;">
-          ⏳ Memuat kuis tersedia...
-        </div>
-      </div>
       <!-- Micro Teaching Card -->
       <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
         <!-- Judul MT -->
@@ -8133,15 +8123,11 @@ async function loadDashboard(silent) {
     });
   }
   try {
-    var [r, atRes, quizRes] = await Promise.all([
+    var [r, atRes] = await Promise.all([
       window.HQ.MuridAPI.getDashboard(),
       window.HQ.MuridAPI.getAtTibyanMurid().catch(function(e) {
         console.error("Gagal memuat kehadiran At-Tibyan:", e);
         return { data: [], summary: { hadir: 0, total: 0, pct: 0 } };
-      }),
-      window.HQ.QuizAPI.getKuisTersedia().catch(function(e) {
-        console.error("Gagal memuat kuis dashboard:", e);
-        return { data: [] };
       })
     ]);
     dashData = r.data;
@@ -8553,49 +8539,6 @@ async function loadDashboard(silent) {
       var dashPbCardEl = document.getElementById('dashPbCard');
       if (dashPbCardEl) dashPbCardEl.style.display = '';
       loadDashPbCard();
-    }
-
-    // Render Rattil Quiz Card
-    try {
-      var quizList = (quizRes && quizRes.data) || [];
-      var dashQuizCard = document.getElementById('dashQuizCard');
-      var dashQuizBody = document.getElementById('dashQuizBody');
-      var dashQuizBadge = document.getElementById('dashQuizBadge');
-      if (dashQuizCard && dashQuizBody) {
-        if (quizList.length === 0) {
-          dashQuizBody.innerHTML = '<div style="color:rgba(255,255,255,0.7); font-style:italic;">Tidak ada kuis aktif saat ini.</div>';
-          if (dashQuizBadge) dashQuizBadge.style.display = 'none';
-        } else {
-          var activeQuizzes = quizList.filter(function(q) { return !q.sudah_dikerjakan; });
-          if (activeQuizzes.length > 0) {
-            if (dashQuizBadge) {
-              dashQuizBadge.textContent = activeQuizzes.length + ' Baru';
-              dashQuizBadge.style.background = '#ffffff';
-              dashQuizBadge.style.color = '#e52d27';
-              dashQuizBadge.style.display = 'inline-block';
-            }
-            dashQuizBody.innerHTML = activeQuizzes.slice(0, 2).map(function(q) {
-              return '<div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(255,255,255,0.25); padding-bottom:8px;">'
-                + '  <div>'
-                + '    <strong style="color:#ffffff;">' + esc(q.judul) + '</strong>'
-                + '    <div style="font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px;">' + esc(q.kategori || 'Umum') + ' · ' + (q.durasi_per_soal_detik ? q.durasi_per_soal_detik + ' dtk/soal' : 'Tanpa batas') + '</div>'
-                + '  </div>'
-                + '  <span style="font-size:11px; background:#ffffff; color:#e52d27; font-weight:800; padding:4px 10px; border-radius:100px; white-space:nowrap; margin-left:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer;">Mulai Kuis 🚀</span>'
-                + '</div>';
-            }).join('');
-          } else {
-            if (dashQuizBadge) {
-              dashQuizBadge.textContent = 'Selesai';
-              dashQuizBadge.style.background = '#ffffff';
-              dashQuizBadge.style.color = '#059669';
-              dashQuizBadge.style.display = 'inline-block';
-            }
-            dashQuizBody.innerHTML = '<div style="color:#ffffff; font-weight:600; display:flex; align-items:center; gap:6px;">🎉 Semua kuis telah selesai! Mantap!</div>';
-          }
-        }
-      }
-    } catch (eQuiz) {
-      console.error("Gagal merender kuis di dashboard:", eQuiz);
     }
 
     // PR preview
