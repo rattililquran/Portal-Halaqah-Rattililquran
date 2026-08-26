@@ -2867,6 +2867,22 @@
     return `<span class="badge ${colorClass}">${prefix}${p}</span>`;
   }
 
+  // KhatamKu: k = {streak_days, dzikir_streak, total_khatam, last_active_date} | null.
+  // null berarti belum ada baris cache -- bisa krn belum terhubung SAMA SEKALI,
+  // atau sudah terhubung tapi sinkronisasi berkala (Fase 4) belum jalan -- kedua
+  // kasus itu tak bisa dibedakan dari sini, jadi label-nya sengaja netral.
+  function khatamkuHariTakAktif(k) {
+    if (!k || !k.last_active_date) return null;
+    return Math.floor((Date.now() - new Date(k.last_active_date + 'T00:00:00').getTime()) / 86400000);
+  }
+  function getKhatamkuBadge(k) {
+    if (!k) return `<span class="badge b-gray">⚫ Belum ada data</span>`;
+    const hari = khatamkuHariTakAktif(k);
+    if (hari === null) return `<span class="badge b-blue">🔵 Belum ada bacaan</span>`;
+    if (hari >= 3) return `<span class="badge b-amber">🟡 ${hari} hari tidak aktif</span>`;
+    return `<span class="badge b-green">🟢 Streak ${k.streak_days || 0}h</span>`;
+  }
+
   async function getMurid(id_halaqah) {
     const muridCache = getMuridCache();
     if (muridCache[id_halaqah]) return muridCache[id_halaqah];
@@ -2887,7 +2903,7 @@
     const halaqahList = getHalaqahList();
     if (!id && !halaqahList.length) return;
     const tbody = document.getElementById('muridTbl');
-    if (tbody) tbody.innerHTML = Array(4).fill('<tr>'+Array(9).fill('<td><div class="skel skel-text" style="height:12px;border-radius:6px"></div></td>').join('')+'</tr>').join('');
+    if (tbody) tbody.innerHTML = Array(4).fill('<tr>'+Array(10).fill('<td><div class="skel skel-text" style="height:12px;border-radius:6px"></div></td>').join('')+'</tr>').join('');
     showLoad('Bismillah, memuat data murid...');
     try {
       var murid = [];
@@ -2939,6 +2955,7 @@
     var kFil  = document.getElementById('muridKehadiranFilter')  ? document.getElementById('muridKehadiranFilter').value  : '';
     var sFil  = document.getElementById('muridSkorFilter')       ? document.getElementById('muridSkorFilter').value       : '';
     var lFil  = document.getElementById('muridLevelFilter')      ? document.getElementById('muridLevelFilter').value      : '';
+    var khFil = document.getElementById('muridKhatamkuFilter')   ? document.getElementById('muridKhatamkuFilter').value   : '';
     var sort  = document.getElementById('muridSortSel')          ? document.getElementById('muridSortSel').value          : 'level_asc';
     var tbody = document.getElementById('muridTbl');
     if (!tbody) return;
@@ -2948,12 +2965,13 @@
     function levelRank(l){ return LEVEL_ORDER[l] || 99; }
 
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="9"><div class="guru-empty">'
+      tbody.innerHTML = '<tr><td colspan="10"><div class="guru-empty">'
         + '<div class="guru-empty-ico">👥</div>'
         + '<div class="guru-empty-ttl">Belum ada murid di halaqah ini</div>'
         + '<div class="guru-empty-sub">Murid baru dapat ditambahkan oleh Admin melalui portal admin.</div>'
         + '</div></td></tr>';
       var b = document.getElementById('muridCountBadge'); if(b) b.textContent='';
+      var bk = document.getElementById('muridKhatamkuSummary'); if(bk) bk.textContent='';
       return;
     }
 
@@ -2971,6 +2989,12 @@
       if (sFil === 'rendah' && s40 >= 50)           return false;
       if (sFil === 'cukup'  && (s40<50||s40>=75))   return false;
       if (sFil === 'baik'   && s40 < 75)            return false;
+      if (khFil) {
+        var khHari = khatamkuHariTakAktif(m.khatamku);
+        if (khFil === 'belum'    && m.khatamku)                    return false;
+        if (khFil === 'nonaktif' && !(khHari !== null && khHari >= 3)) return false;
+        if (khFil === 'aktif'    && !(khHari !== null && khHari < 3))  return false;
+      }
       return true;
     });
 
@@ -2991,8 +3015,14 @@
     var badge = document.getElementById('muridCountBadge');
     if (badge) badge.textContent = filtered.length + ' dari ' + rows.length + ' murid';
 
+    var khSummary = document.getElementById('muridKhatamkuSummary');
+    if (khSummary) {
+      var khAktif = rows.filter(function(m){ var h = khatamkuHariTakAktif(m.khatamku); return h !== null && h < 3; }).length;
+      khSummary.textContent = '🔗 ' + khAktif + '/' + rows.length + ' aktif KhatamKu';
+    }
+
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada murid yang sesuai filter</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada murid yang sesuai filter</td></tr>';
       return;
     }
 
@@ -3025,6 +3055,7 @@
         + '<div style="height:4px;background:'+pctC+';border-radius:4px;width:'+Math.min(pct,100)+'%"></div></div></td>'
         + '<td><span style="font-weight:700;color:'+s40C+'">'+s40+'%</span>'
         + '<div style="font-size:10.5px;color:var(--text-3)">'+(m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'\u2013')+'/' + targetSesi + '</div></td>'
+        + '<td>'+getKhatamkuBadge(m.khatamku)+'</td>'
         + '<td>'+getPoinAdabBadge(m.poin_adab)+'</td>'
         + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
         + '<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
@@ -3048,12 +3079,14 @@
     var h = (jadwalData || []).find(function(x){ return x.id_halaqah === selHalaqahId; });
     var targetSesi = (h && h.target_sesi) || 40;
 
-    var header = ['NIS/ID Murid','Nama Murid','Level','Total Hadir','Total Sesi','% Kehadiran','Skor/' + targetSesi + ' (%)','Raw Skor','Poin Adab','Poin Kamera'].join(';');
+    var header = ['NIS/ID Murid','Nama Murid','Level','Total Hadir','Total Sesi','% Kehadiran','Skor/' + targetSesi + ' (%)','Raw Skor','Poin Adab','Poin Kamera','KhatamKu Hari Tidak Aktif','KhatamKu Streak'].join(';');
     var body = rows.map(function(m){
+      var khHari = khatamkuHariTakAktif(m.khatamku);
       return [m.id_murid||'',m.nama_murid||'',m.level||'',
         m.total_hadir||0,m.total_sesi||0,(m.pct_hadir||0)+'%',(m.skor_dari_40||0)+'%',
         m.skor_hadir_raw?Number(m.skor_hadir_raw).toFixed(1):'',
-        m.poin_adab||0,m.poin_kamera||0
+        m.poin_adab||0,m.poin_kamera||0,
+        khHari === null ? '' : khHari, m.khatamku ? (m.khatamku.streak_days||0) : ''
       ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(';');
     }).join('\r\n');
     var blob = new Blob(['\uFEFF'+header+'\r\n'+body],{type:'text/csv;charset=utf-8;'});

@@ -276,6 +276,17 @@ var GuruAPI = {
       if (lvl && lvl.jumlah_pertemuan) targetSesi = lvl.jumlah_pertemuan;
     }
 
+    // KhatamKu: perlu daftar id_murid dari anggotaRes dulu (tabel ini tak
+    // punya id_halaqah, tak bisa ikut Promise.all paralel di atas) -- 1
+    // query tambahan, bukan N+1 (semua murid halaqah ini sekaligus).
+    var idMuridList = (anggotaRes.data || []).map(function(a){ return a.id_murid; });
+    var khatamkuMap = {};
+    if (idMuridList.length) {
+      var { data: khatamkuRows } = await _sb.from('khatamku_progress_cache')
+        .select('id_user, streak_days, dzikir_streak, total_khatam, last_active_date').in('id_user', idMuridList);
+      (khatamkuRows || []).forEach(function(k){ khatamkuMap[k.id_user] = k; });
+    }
+
     return { status: 'ok', data: (anggotaRes.data || []).map(function(a) {
       var nm = nilaiAll.filter(function(n) { return n.id_murid === a.id_murid; });
       var hadir = nm.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
@@ -293,6 +304,7 @@ var GuruAPI = {
         skor_dari_40  : Math.min(Math.round(hadirCount / targetSesi * 100), 100),
         poin_adab     : adabData.length > 0 ? Math.round(adabData.filter(function(n){return n.adab==='Baik';}).length / adabData.length * 100) : 0,
         poin_kamera   : kameraData.length > 0 ? Math.round(kameraData.filter(function(n){return n.kamera_murid==='kamera terbuka';}).length / kameraData.length * 100) : 0,
+        khatamku      : khatamkuMap[a.id_murid] || null,
       });
     })};
   },
@@ -918,16 +930,22 @@ var GuruAPI = {
       // dibaca, jadi flag "Sering Terlambat"/"Kamera Tertutup" tak pernah bisa
       // di-dismiss (selalu >= ambang selamanya, counter kumulatif tak pernah reset).
       var { data: followupRows } = await _sb.from('anggota')
-        .select('id_murid, id_halaqah, followup_alpa_kbm, followup_terlambat, followup_kamera, followup_alpa_at, followup_at')
+        .select('id_murid, id_halaqah, followup_alpa_kbm, followup_terlambat, followup_kamera, followup_alpa_at, followup_at, followup_khatamku_at')
         .in('id_murid', alertIds);
       (followupRows || []).forEach(function(r) { followupMap[r.id_murid + '_' + r.id_halaqah] = r; });
     }
 
     var alerts = alertList.map(function(m) {
+      var hariTakAktifKhatamku = 0;
+      if (m.khatamku_last_active) {
+        var msPerHari = 24*60*60*1000;
+        hariTakAktifKhatamku = Math.floor((Date.now() - new Date(m.khatamku_last_active+'T00:00:00').getTime()) / msPerHari);
+      }
       var metrics = {
         absen           : m.alpa || 0,
         terlambat       : m.terlambat || 0,
         kamera_tertutup : m.kamera_buruk || 0,
+        khatamku_hari_tidak_aktif: m.khatamku_tidak_aktif ? hariTakAktifKhatamku : 0,
       };
       // Compute flags dari metrics — filter yang sudah di-dismiss guru (persisten via DB)
       var dismissed   = followupMap[m.id_murid + '_' + m.id_halaqah] || {};
@@ -941,6 +959,16 @@ var GuruAPI = {
         flags.push({ tipe:'terlambat',label:'Sering Terlambat', detail: metrics.terlambat + 'x',       count: metrics.terlambat });
       if (metrics.kamera_tertutup >= 2 && metrics.kamera_tertutup > kameraBase)
         flags.push({ tipe:'kamera',   label:'Kamera Tertutup',  detail: metrics.kamera_tertutup + 'x', count: metrics.kamera_tertutup });
+      // KhatamKu: BUKAN count-baseline (metrik ini bisa reset ke 0 kalau murid
+      // baca lagi, beda dari 3 kriteria di atas yg cuma naik) -- dismiss pakai
+      // cooldown 3 hari sejak followup_khatamku_at, bukan bandingkan angka.
+      if (metrics.khatamku_hari_tidak_aktif >= 3) {
+        var cooldownAktif = dismissed.followup_khatamku_at &&
+          (Date.now() - new Date(dismissed.followup_khatamku_at).getTime()) < 3*24*60*60*1000;
+        if (!cooldownAktif) {
+          flags.push({ tipe:'khatamku', label:'Belum Baca KhatamKu', detail: metrics.khatamku_hari_tidak_aktif + ' hari', count: metrics.khatamku_hari_tidak_aktif });
+        }
+      }
 
       var riwayatKey = m.id_murid + '_' + m.id_halaqah;
       return {
@@ -1004,6 +1032,11 @@ var GuruAPI = {
       followup_terlambat: terlambat,
       followup_kamera   : kamera,
       followup_at       : new Date().toISOString(),
+      // followup_khatamku_at: pola BEDA drpd 4 kolom di atas (count-baseline) --
+      // ini cooldown timestamp, krn metrik "hari tak aktif" bisa reset (murid
+      // baca lagi), bukan monoton naik. Ikut ditulis di sini (dismiss semua
+      // flag murid ini bersamaan) supaya konsisten dgn perilaku existing.
+      followup_khatamku_at: new Date().toISOString(),
     }).eq('id_murid', d.id_murid).eq('id_halaqah', id_halaqah);
     _check(error, 'simpanFollowupKeaktifan');
     return { status: 'ok' };

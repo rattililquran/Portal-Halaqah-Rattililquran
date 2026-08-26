@@ -189,7 +189,10 @@ function buildWAMessageKeaktifan(m) {
   var flagLines = '';
   if (m.flags && m.flags.length) {
     m.flags.forEach(function(f) {
-      var ikon = f.tipe === 'absen' ? (f.count >= 2 ? '🔴' : '🟠') : (f.tipe === 'terlambat' ? '🕐' : '📷');
+      var ikon = f.tipe === 'absen' ? (f.count >= 2 ? '🔴' : '🟠')
+        : f.tipe === 'terlambat' ? '🕐'
+        : f.tipe === 'khatamku'  ? '📖'
+        : '📷';
       flagLines += '\n  ' + ikon + ' ' + f.label + ': *' + f.detail + '*';
     });
   }
