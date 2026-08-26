@@ -164,17 +164,37 @@
     }
   }
 
-  // Kartu "Partner Belajar" di Dashboard — CTA state-aware (mirror loadPartnerDashCard)
+  // Kartu "Partner Belajar" di Dashboard — CTA state-aware (mirror loadPartnerDashCard).
+  // Merangkap 2 peran (dulu 2 kartu terpisah): ringkasan dua-arah + trigger form mini
+  // "Lapor Aktivitas" (lihat toggleDashPbForm()/submitDashLogBelajar() di index.html,
+  // keduanya baca window._pbKelompok yg disinkronkan di sini).
   async function loadPartnerBelajarDashCard() {
-    var card  = document.getElementById('dashPartnerBelajarCard');
-    var body  = document.getElementById('dashPartnerBelajarBody');
-    var badge = document.getElementById('dashPartnerBelajarBadge');
+    var card      = document.getElementById('dashPartnerBelajarCard');
+    var body      = document.getElementById('dashPartnerBelajarBody');
+    var badge     = document.getElementById('dashPartnerBelajarBadge');
+    var formBtn   = document.getElementById('dashPbFormToggleBtn');
+    var form      = document.getElementById('dashPbForm');
     if (!card || !body) return;
+    // Tutup form tiap render ulang -- cegah form "nyangkut" terbuka dgn data kelompok basi
+    if (form)    form.style.display = 'none';
+    if (formBtn) formBtn.textContent = '+ Lapor Aktivitas Belajar';
     try {
       var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
       var kel = resKel.data;
-      if (!kel) { card.style.display = 'none'; return; }
+      window._pbKelompok = kel; // dipakai submitDashLogBelajar()/toggleDashPbForm() di index.html
       card.style.display = 'block';
+      if (!kel) {
+        // Belum tergabung kelompok -- tetap tampilkan kartu dgn pesan ramah (bukan hilang
+        // total spt versi lama), tidak ada yg bisa dilaporkan jadi form toggle disembunyikan.
+        if (badge) badge.style.display = 'none';
+        if (formBtn) formBtn.style.display = 'none';
+        body.innerHTML = '<div class="pb-empty">'
+          + '<div class="pb-empty-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>'
+          + '<div class="pb-empty-txt">Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung.</div>'
+          + '</div>';
+        return;
+      }
+      if (formBtn) formBtn.style.display = '';
 
       var both = await Promise.all([
         window.HQ.MuridAPI.getStatusKelompokBelajar(),

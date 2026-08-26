@@ -2949,15 +2949,14 @@ html.theme-dark .obs-radio.selected{border-color:#38bdf8!important;background:#1
   .dash-prog-panel{flex:1;display:flex;flex-direction:column;justify-content:center}
 }
 
-/* ── Kartu Lapor Aktivitas Belajar (dashPbCard): icon badge di judul + empty-state lebih ramah ── */
-#dashPbCard .card-title{gap:10px}
-.pb-title-ico{width:30px;height:30px;background:none !important;font-size:14px;flex-shrink:0;color:#0284c7}
-#dashPbCard .pb-empty{text-align:center;padding:8px 18px 26px}
-#dashPbCard .pb-empty-ico{width:52px;height:52px;border-radius:50%;background:var(--blue-l);color:#0284c7;
+/* ── Kartu Partner Belajar (dashPartnerBelajarCard): empty-state "belum tergabung"
+   + form mini "Lapor Aktivitas" (dulu dua kartu terpisah, sekarang digabung) ── */
+#dashPartnerBelajarCard .pb-empty{text-align:center;padding:8px 4px 4px}
+#dashPartnerBelajarCard .pb-empty-ico{width:52px;height:52px;border-radius:50%;background:var(--blue-l);color:#0284c7;
   display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px}
-#dashPbCard .pb-empty-txt{font-size:12.5px;color:var(--text-2);line-height:1.7;max-width:280px;margin:0 auto}
-/* State form (sudah ada anggota/kelompok) -> icon judul dinetralkan (abu), tidak biru mencolok */
-#dashPbForm .pg-sec-ico{color:var(--text-2)}
+#dashPartnerBelajarCard .pb-empty-txt{font-size:12.5px;color:var(--text-2);line-height:1.7;max-width:280px;margin:0 auto}
+#dashPbFormToggleBtn{width:100%;justify-content:center;margin-top:12px}
+#dashPbForm{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 
 /* Card: lebih besar padding di tablet */
 @media(min-width:768px){
@@ -4059,13 +4058,43 @@ html.theme-dark .materi-daurah-banner-title {
         <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
       </div>
 
-      <!-- Partner Belajar Card (Level 1-4) -->
+      <!-- Partner Belajar Card (Level 1-4) -- ringkasan dua-arah (notifikasi konfirmasi,
+           CTA kontekstual, daftar anggota) + form mini "Lapor Aktivitas" sebagai CTA
+           sekunder (dulu dua kartu terpisah dgn syarat tampil yg tidak sinkron). -->
       <div class="partner-dash-card" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
         <div class="prog-title">
           <span>📚 Partner Belajar</span>
           <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
         </div>
         <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
+        <button type="button" class="btn btn-ghost" id="dashPbFormToggleBtn" style="display:none" onclick="event.stopPropagation();toggleDashPbForm()">+ Lapor Aktivitas Belajar</button>
+        <div id="dashPbForm" style="display:none" onclick="event.stopPropagation()">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:10px">Catat aktivitas mandirimu — partner kelompokmu akan konfirmasi</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
+              <select class="fc" id="dashPbJenis" style="font-size:12px">
+                <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
+                <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
+                <option value="Hafalan Materi">🧠 Hafalan Materi</option>
+                <option value="Tajwid">📐 Tajwid</option>
+                <option value="Doa-Doa Pilihan">🤲 Doa-Doa Pilihan</option>
+                <option value="Murajaah">🔄 Murajaah</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
+              <input type="date" class="fc" id="dashPbTanggal" style="font-size:12px">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
+            <textarea class="fc" id="dashPbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1–20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical;font-size:12px"></textarea>
+          </div>
+          <button id="dashPbSubmitBtn" onclick="submitDashLogBelajar()" style="background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:opacity .2s">
+            📚 Simpan &amp; Kirim ke Partner
+          </button>
+        </div>
       </div>
 
       <!-- PR Aktif -->
@@ -4122,63 +4151,6 @@ html.theme-dark .materi-daurah-banner-title {
         <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-top:10px" id="dashSppSummaryTitle">Memuat...</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:2px" id="dashSppSummarySub"></div>
         <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="goPage('spp-infaq')">Lihat Detail &amp; Bayar →</button>
-      </div>
-
-      <!-- Log Latihan Harian Card -->
-      <!-- ── Kartu Lapor Aktivitas Belajar (Partner Belajar) ── -->
-      <div class="card" id="dashPbCard" style="margin-bottom:16px;overflow:visible">
-        <!-- State: Loading -->
-        <div id="dashPbLoading" style="padding:18px">
-          <div class="skel skel-text" style="height:13px;width:55%;border-radius:6px;margin-bottom:12px"></div>
-          <div class="skel" style="height:34px;border-radius:8px;margin-bottom:8px"></div>
-          <div class="skel" style="height:50px;border-radius:8px;margin-bottom:8px"></div>
-          <div class="skel" style="height:38px;border-radius:10px"></div>
-        </div>
-        <!-- State: Belum punya kelompok -->
-        <div id="dashPbNoKelompok" style="display:none">
-          <div class="card-head">
-            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>Partner Belajar</div>
-            <button class="card-more" onclick="goPage('partner-belajar')">Buka →</button>
-          </div>
-          <div class="pb-empty">
-            <div class="pb-empty-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <div class="pb-empty-txt">Belum tergabung di kelompok belajar.<br>Hubungi guru atau admin untuk bergabung.</div>
-          </div>
-        </div>
-        <!-- State: Ada kelompok → tampilkan mini-form -->
-        <div id="dashPbForm" style="display:none">
-          <div class="card-head">
-            <div class="card-title"><div class="pg-sec-ico ico-blue pb-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div>Lapor Aktivitas Belajar</div>
-            <button class="card-more" onclick="goPage('partner-belajar')">Riwayat →</button>
-          </div>
-          <div class="card-body">
-            <div style="font-size:11px;color:var(--text-3);margin-bottom:10px">Catat aktivitas mandirimu — partner kelompokmu akan konfirmasi</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-              <div>
-                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Jenis</label>
-                <select class="fc" id="dashPbJenis" style="font-size:12px">
-                  <option value="Makharijul Huruf">🗣️ Makharijul Huruf</option>
-                  <option value="Shifatul Huruf">🔤 Shifatul Huruf</option>
-                  <option value="Hafalan Materi">🧠 Hafalan Materi</option>
-                  <option value="Tajwid">📐 Tajwid</option>
-                  <option value="Doa-Doa Pilihan">🤲 Doa-Doa Pilihan</option>
-                  <option value="Murajaah">🔄 Murajaah</option>
-                </select>
-              </div>
-              <div>
-                <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Tanggal</label>
-                <input type="date" class="fc" id="dashPbTanggal" style="font-size:12px">
-              </div>
-            </div>
-            <div style="margin-bottom:10px">
-              <label style="display:block;font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em">Deskripsi</label>
-              <textarea class="fc" id="dashPbDeskripsi" rows="2" placeholder="Mis: QS Al-Baqarah 1–20, fokus mad / hafal definisi makhraj halqi" style="resize:vertical;font-size:12px"></textarea>
-            </div>
-            <button id="dashPbSubmitBtn" onclick="submitDashLogBelajar()" style="background:linear-gradient(135deg,var(--blue-d),var(--blue));color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:opacity .2s">
-              📚 Simpan &amp; Kirim ke Partner
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Pengumuman preview -->
@@ -7019,7 +6991,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=c5244a6c" defer></script>
-<script src="partner-module.js?v=5144674e" defer></script>
+<script src="partner-module.js?v=46b0bf05" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>
@@ -7992,10 +7964,12 @@ async function loadDashboard(silent) {
     if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'none';
     if (document.getElementById('dashPartnerCard')) document.getElementById('dashPartnerCard').style.display = 'none';
     if (document.getElementById('dashPartnerBelajarCard')) document.getElementById('dashPartnerBelajarCard').style.display = 'none';
-    if (document.getElementById('dashPbCard')) document.getElementById('dashPbCard').style.display = 'none';
     if (document.getElementById('dashDonutRing')) document.getElementById('dashDonutRing').style.display = 'flex';
-    // Kartu Partner Belajar di dashboard — muncul jika level halaqah mengaktifkannya
-    if (d.halaqah && d.halaqah.partner_belajar_enabled) loadPartnerBelajarDashCard();
+    // Kartu Partner Belajar di dashboard -- HANYA level 1-4 (non-Qiyam, fitur ini
+    // punya "Partner Qiyam" tersendiri) DAN halaqah-nya mengaktifkan fitur ini.
+    // Satu kartu ini sekarang merangkap ringkasan dua-arah + form lapor aktivitas
+    // (dulu dua kartu terpisah dgn syarat tampil yg tidak sinkron satu sama lain).
+    if (!isQiyam && d.halaqah && d.halaqah.partner_belajar_enabled) loadPartnerBelajarDashCard();
 
     var donutRing = document.getElementById('dashDonutRing');
     var pctNum = document.getElementById('dashProgressPctNum');
@@ -8231,17 +8205,6 @@ async function loadDashboard(silent) {
         triggerConfetti();
         sessionStorage.setItem('hq_confetti_fired', 'true');
       }, 800);
-    }
-
-    // Load kartu Lapor Aktivitas Belajar (Partner Belajar) -- HANYA level 1-4 (non-Qiyam)
-    // DAN halaqah-nya mengaktifkan fitur ini (samakan syarat dgn dashPartnerBelajarCard
-    // & sidebar-nya di atas -- sebelumnya kartu ini cuma dicek !isQiyam saja, jadi
-    // murid di halaqah yg belum mengaktifkan partner_belajar_enabled tetap lihat kartu
-    // kosong "hubungi guru/admin" yg tidak relevan).
-    if (!isQiyam && d.halaqah && d.halaqah.partner_belajar_enabled) {
-      var dashPbCardEl = document.getElementById('dashPbCard');
-      if (dashPbCardEl) dashPbCardEl.style.display = '';
-      loadDashPbCard();
     }
 
     // PR preview
@@ -9900,35 +9863,20 @@ async function putarAudioInline(containerId, fileId) {
 }
 
 
-// ── DASHBOARD: Lapor Aktivitas Belajar (Partner Belajar mini-form) ──
-async function loadDashPbCard() {
-  var loading = document.getElementById('dashPbLoading');
-  var noKel   = document.getElementById('dashPbNoKelompok');
-  var form    = document.getElementById('dashPbForm');
-  if (!loading && !noKel && !form) return;
-
-  // Set today's date jika belum diisi
-  var tgl = document.getElementById('dashPbTanggal');
-  if (tgl && !tgl.value) tgl.value = localDateStr();
-
-  function showState(state) {
-    if (loading) loading.style.display = state === 'loading' ? '' : 'none';
-    if (noKel)   noKel.style.display   = state === 'empty'   ? '' : 'none';
-    if (form)    form.style.display    = state === 'form'    ? '' : 'none';
+// ── DASHBOARD: toggle form mini "Lapor Aktivitas Belajar" di dalam kartu
+// Partner Belajar (data kelompok sendiri sudah difetch oleh loadPartnerBelajarDashCard()
+// di partner-module.js -- fungsi ini murni buka/tutup form, tidak fetch apa pun). ──
+function toggleDashPbForm() {
+  var form = document.getElementById('dashPbForm');
+  var btn  = document.getElementById('dashPbFormToggleBtn');
+  if (!form) return;
+  var opening = form.style.display === 'none';
+  form.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    var tgl = document.getElementById('dashPbTanggal');
+    if (tgl && !tgl.value) tgl.value = localDateStr();
   }
-
-  showState('loading');
-  try {
-    // Jika halaman Partner Belajar belum pernah dibuka, ambil data kelompok dulu
-    if (!_pbInitialized && _pbKelompok === null) {
-      var resKel = await window.HQ.MuridAPI.getMyKelompokBelajar();
-      _pbKelompok = resKel.data;
-    }
-    showState(_pbKelompok ? 'form' : 'empty');
-  } catch(e) {
-    console.error('loadDashPbCard:', e);
-    showState('empty');
-  }
+  if (btn) btn.textContent = opening ? '− Tutup Form' : '+ Lapor Aktivitas Belajar';
 }
 
 async function submitDashLogBelajar() {
