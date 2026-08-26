@@ -46,21 +46,45 @@
   function renderTrenAdabKamera(tren) {
     if (!tren || !tren.length) return '';
     var rows = tren.map(function(b) {
-      return rowDuaBar(b.bulan, b.pct_adab_baik, b.pct_kamera_terbuka);
+      return rowDuaBar(b);
     }).join('');
     return '<div style="' + CARD_STYLE + '">'
       + '<div style="font-weight:800;font-size:14px;margin-bottom:4px">📈 Tren Adab &amp; Kamera per Bulan</div>'
-      + '<div style="color:var(--text-3);font-size:12.5px;margin-bottom:12px">% sesi dengan adab "Baik" dan kamera terbuka, dari sesi kamu hadir</div>'
+      + '<div style="color:var(--text-3);font-size:12.5px;margin-bottom:8px">% sesi dengan adab "Baik", dan rekap kamera (terbuka/sering/selalu tertutup), dari sesi kamu hadir</div>'
+      + legendKamera()
       + rows
       + '</div>';
   }
 
-  function rowDuaBar(bulan, pctAdab, pctKamera) {
-    return '<div style="margin-bottom:10px">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">' + esc(bulan) + '</div>'
-      + miniBar('Adab', pctAdab)
-      + miniBar('Kamera', pctKamera)
+  function legendKamera() {
+    return '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--text-3);margin-bottom:10px">'
+      + legendDot('var(--green)', 'Terbuka')
+      + legendDot('var(--amber)', 'Sering Tertutup')
+      + legendDot('var(--red)', 'Selalu Tertutup')
       + '</div>';
+  }
+
+  function legendDot(color, label) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block"></span>' + esc(label) + '</span>';
+  }
+
+  function rowDuaBar(b) {
+    return '<div style="margin-bottom:10px">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px">' + esc(b.bulan) + '</div>'
+      + miniBar('Adab', b.pct_adab_baik)
+      + stackedKameraBar(b.pct_kamera_terbuka, b.pct_kamera_sering_tertutup, b.pct_kamera_selalu_tertutup)
+      + kameraCaption(b.n_kamera_sering_tertutup, b.n_kamera_selalu_tertutup)
+      + '</div>';
+  }
+
+  // Keterangan jumlah kejadian tertutup -- hanya muncul kalau ada, biar bulan
+  // yang bersih (tidak ada masalah kamera) tidak penuh angka "0x" tak berguna.
+  function kameraCaption(nSering, nSelalu) {
+    var parts = [];
+    if (nSelalu) parts.push('🔴 selalu tertutup ' + nSelalu + '×');
+    if (nSering) parts.push('🟠 sering tertutup ' + nSering + '×');
+    if (!parts.length) return '';
+    return '<div style="margin:2px 0 0 60px;font-size:10.5px;color:var(--text-3)">' + parts.join(' · ') + '</div>';
   }
 
   function miniBar(label, pct) {
@@ -73,6 +97,24 @@
       + '<div style="height:100%;width:' + w + '%;background:' + color + ';border-radius:5px"></div>'
       + '</div>'
       + '<div style="width:34px;text-align:right;font-size:11px;font-weight:700;color:var(--text-2)">' + (known ? pct + '%' : '-') + '</div>'
+      + '</div>';
+  }
+
+  // Kamera: satu bar 3-segmen (terbuka hijau / sering tertutup amber / selalu
+  // tertutup merah) supaya rekap tertutup & sering tertutup ikut tampil secara
+  // visual -- jumlah kejadian persisnya ditulis di kameraCaption() di bawah bar.
+  function stackedKameraBar(pctTerbuka, pctSering, pctSelalu) {
+    var known = pctTerbuka !== null && pctTerbuka !== undefined;
+    var segs = '';
+    if (known) {
+      if (pctTerbuka > 0) segs += '<div style="height:100%;width:' + pctTerbuka + '%;background:var(--green)"></div>';
+      if (pctSering > 0) segs += '<div style="height:100%;width:' + pctSering + '%;background:var(--amber)"></div>';
+      if (pctSelalu > 0) segs += '<div style="height:100%;width:' + pctSelalu + '%;background:var(--red)"></div>';
+    }
+    return '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="width:52px;font-size:11px;color:var(--text-3)">Kamera</div>'
+      + '<div style="flex:1;height:8px;background:var(--bg-2);border-radius:5px;overflow:hidden;display:flex">' + segs + '</div>'
+      + '<div style="width:34px;text-align:right;font-size:11px;font-weight:700;color:var(--text-2)">' + (known ? pctTerbuka + '%' : '-') + '</div>'
       + '</div>';
   }
 

@@ -676,7 +676,7 @@ var MuridAPI = {
     hadirRows.forEach(function(n) {
       if (!n.tanggal) return;
       var key = n.tanggal.substring(0, 7);
-      if (!bulanMap[key]) bulanMap[key] = { adabBaik: 0, adabTotal: 0, kamTerbuka: 0, kamTotal: 0 };
+      if (!bulanMap[key]) bulanMap[key] = { adabBaik: 0, adabTotal: 0, kamTerbuka: 0, kamSering: 0, kamSelalu: 0, kamTotal: 0 };
       if (n.adab) {
         bulanMap[key].adabTotal++;
         if (n.adab === 'Baik') bulanMap[key].adabBaik++;
@@ -684,6 +684,8 @@ var MuridAPI = {
       if (n.kamera_murid) {
         bulanMap[key].kamTotal++;
         if (n.kamera_murid === 'kamera terbuka') bulanMap[key].kamTerbuka++;
+        else if (n.kamera_murid === 'kamera sering tertutup') bulanMap[key].kamSering++;
+        else if (n.kamera_murid === 'kamera selalu tertutup') bulanMap[key].kamSelalu++;
       }
     });
     var trenAdabKamera = Object.keys(bulanMap).sort().map(function(key) {
@@ -692,6 +694,10 @@ var MuridAPI = {
         bulan: bulanLabel(key),
         pct_adab_baik: b.adabTotal > 0 ? Math.round(b.adabBaik / b.adabTotal * 100) : null,
         pct_kamera_terbuka: b.kamTotal > 0 ? Math.round(b.kamTerbuka / b.kamTotal * 100) : null,
+        pct_kamera_sering_tertutup: b.kamTotal > 0 ? Math.round(b.kamSering / b.kamTotal * 100) : null,
+        pct_kamera_selalu_tertutup: b.kamTotal > 0 ? Math.round(b.kamSelalu / b.kamTotal * 100) : null,
+        n_kamera_sering_tertutup: b.kamSering,
+        n_kamera_selalu_tertutup: b.kamSelalu,
       };
     });
 
