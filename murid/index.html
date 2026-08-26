@@ -485,19 +485,6 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
 .partner-dash-row:last-child{border-bottom:none}
 .partner-dash-name{font-weight:700;font-size:12px;color:var(--text)}
 .partner-dash-date{font-size:11px;color:var(--text-3)}
-.prog-estimasi-middle{
-  background:rgba(255,255,255,0.18);
-  border:1px solid rgba(255,255,255,0.3);
-  color:#fff;font-size:11px;font-weight:800;letter-spacing:.02em;
-  padding:3px 10px;border-radius:100px;line-height:1.3;
-  text-align:center;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;
-  text-shadow:0 1px 3px rgba(0,0,0,.12);
-}
-html.theme-dark .prog-estimasi-middle{
-  background:rgba(255,255,255,0.1) !important;
-  border-color:rgba(255,255,255,0.15) !important;
-  color:#cbd5e1 !important;
-}
 /* judul atas */
 .prog-title{font-size:16px;font-weight:800;color:#fde68a;
   letter-spacing:.015em;margin-bottom:14px;
@@ -513,16 +500,6 @@ html.theme-dark .prog-estimasi-middle{
   border:1.5px solid rgba(52,211,153,.6);
   box-shadow:0 0 12px rgba(16,185,129,.35),inset 0 1px 0 rgba(255,255,255,.25);
   text-shadow:0 1px 3px rgba(0,0,0,.12);
-}
-.level-arrow{color:rgba(255,255,255,.7);font-size:15px;font-weight:700;flex:1;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.12)}
-.level-target-chip{
-  background:rgba(255,255,255,.12);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  color:rgba(255,255,255,.88);padding:6px 18px;border-radius:100px;
-  font-size:13.5px;font-weight:700;letter-spacing:.02em;
-  border:1.5px solid rgba(255,255,255,.22);
-  margin-left:auto;
-  text-shadow:0 1px 3px rgba(0,0,0,.1);
 }
 /* kartu putih dalam */
 /* wrapper biru muda di sekitar kartu putih */
@@ -1288,9 +1265,6 @@ html.theme-dark .at-dot.null{background:#374151!important}
   border:1px solid var(--border);cursor:default;
 }
 #dashProgressCard::before,#dashProgressCard::after{display:none !important}
-#dashProgressCard > .prog-title,
-#dashProgressCard > .prog-level-row,
-#dashProgressCard > .prog-motivasi-outer,
 #dashQiyamQuoteBox{display:none !important}
 html.theme-dark #dashProgressCard{
   background:#162032 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
@@ -3994,25 +3968,6 @@ html.theme-dark .materi-daurah-banner-title {
 
       <!-- Kehadiranku (gabungan KBM Reguler + At-Tibyan) -->
       <div class="card" id="dashProgressCard" style="padding:18px;cursor:default">
-        <!-- Elemen lama dipertahankan untuk kompatibilitas JS (dashLevel/dashTarget/dashEstimasi/dashMotivasi),
-             tetap disembunyikan seperti sebelumnya -- bukan bagian tampilan "Kehadiranku" -->
-        <div class="prog-title" style="display:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          Perjuanganku Bersama Al-Qur'an
-        </div>
-        <div class="prog-level-row" style="display:none">
-          <span class="level-badge" id="dashLevel">Level 1</span>
-          <div id="dashEstimasiContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 0;">
-            <span class="level-arrow" id="dashLevelArrow" style="line-height: 1; margin-bottom: 2px;">→</span>
-            <div class="prog-estimasi-middle" id="dashEstimasi" style="display:none; align-items:center; gap:3px;">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span id="dashEstimasiTxt">–</span>
-            </div>
-          </div>
-          <span class="level-target-chip" id="dashTarget">Level 2</span>
-        </div>
-        <div class="prog-motivasi-outer" id="dashMotivasi" style="display:none"></div>
-
         <!-- Judul besar -->
         <div class="card-title" style="margin-bottom:16px;gap:10px"><div class="pg-sec-ico ico-green kh-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.5 15 16 9"/></svg></div>Kehadiranku</div>
 
@@ -8013,7 +7968,6 @@ async function loadDashboard(silent) {
 
     // Progress level — d.anggota.level
     var _level = ang.level || '–';
-    document.getElementById('dashLevel').textContent = _level;
     // Tampilkan tab Assessment hanya untuk Level 1 & 2
     // Assessment di sidebar — update visibility
     var sbAsmt2 = document.getElementById('sidebarAssessmentBtn');
@@ -8021,13 +7975,6 @@ async function loadDashboard(silent) {
     // Mutaba'ah Daurah — khusus murid daurah (level Tahsin Al-Fatihah)
     var sbMtb = document.getElementById('sidebarMutabaahBtn');
     if (sbMtb) sbMtb.style.display = (_level === 'Tahsin Al-Fatihah') ? 'flex' : 'none';
-    var tLevel = ang.target_level || '';
-    if (!tLevel && _level !== '–') {
-      var lvlNum = parseInt(String(_level).replace(/[^0-9]/g,''));
-      tLevel = isNaN(lvlNum) ? '' : 'Level ' + (lvlNum + 1);
-    }
-    // dashTarget sekarang chip — hanya nama level tanpa panah (panah di HTML)
-    document.getElementById('dashTarget').textContent = tLevel || '–';
 
     var isQiyam = (_level === 'Level Qiyam');
     var isMicro = (_level === 'Micro Teaching');
@@ -8037,8 +7984,6 @@ async function loadDashboard(silent) {
 
     // Reset default elements
     if (document.getElementById('dashKbmLabel')) document.getElementById('dashKbmLabel').textContent = 'KBM Reguler';
-    if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'inline';
-    if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'inline';
     if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'level';
     if (document.getElementById('dashProgressBarWrap')) document.getElementById('dashProgressBarWrap').style.display = 'block';
     if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'none';
@@ -8068,8 +8013,6 @@ async function loadDashboard(silent) {
       // sekarang direkap gabungan (lihat getDashboard() di api-murid.js) sama
       // seperti murid reguler, bukan metrik terpisah.
       if (document.getElementById('dashKbmLabel')) document.getElementById('dashKbmLabel').textContent = 'KBM Qiyam';
-      if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
-      if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
       if (document.getElementById('dashQiyamTargetWrap')) document.getElementById('dashQiyamTargetWrap').style.display = 'flex';
       if (document.getElementById('dashQiyamQuoteBox')) document.getElementById('dashQiyamQuoteBox').style.display = 'block';
       if (document.getElementById('dashQiyamBadge')) document.getElementById('dashQiyamBadge').style.display = 'none';
@@ -8094,8 +8037,6 @@ async function loadDashboard(silent) {
       loadPartnerDashCard();
     }
     if (isMicro) {
-      if (document.getElementById('dashLevelArrow')) document.getElementById('dashLevelArrow').style.display = 'none';
-      if (document.getElementById('dashTarget')) document.getElementById('dashTarget').style.display = 'none';
       if (document.getElementById('dashDonutRingLbl')) document.getElementById('dashDonutRingLbl').textContent = 'nilai';
 
       var avgNilai = d.micro_teaching ? d.micro_teaching.rata_nilai : 0;
@@ -8282,65 +8223,6 @@ async function loadDashboard(silent) {
         var atSisaTeks = atSisa > 0 ? atSisa + ' sesi tersisa' : '🎉 Target tercapai!';
         document.getElementById('dashAtTibyanSisa').textContent = atSisaTeks;
       }
-    }
-
-    // Estimasi selesai — gunakan jadwal mingguan (hq.jadwal) sama seperti modal progress
-    var estimasiEl = document.getElementById('dashEstimasi');
-    var estimasiTxt = document.getElementById('dashEstimasiTxt');
-    if (!isQiyam && !isMicro && estimasiEl && estimasiTxt && sisa > 0) {
-      var daysPerWeek = 1;
-      var jadwalStr = hq && hq.jadwal ? hq.jadwal : '';
-      if (jadwalStr) {
-        var jadwalParts = jadwalStr.trim().split(/\s+|[,&]|\bdan\b/).filter(function(p){ return p.trim().length > 0; });
-        daysPerWeek = Math.max(1, jadwalParts.length);
-      }
-      var weeksRem = sisa / daysPerWeek;
-      var daysRem = Math.ceil(weeksRem * 7);
-      var tglEst = new Date(); tglEst.setDate(tglEst.getDate() + daysRem);
-      var opsi = { day:'numeric', month:'short', year:'numeric' };
-      estimasiTxt.textContent = tglEst.toLocaleDateString('id-ID', opsi);
-      estimasiEl.style.display = 'inline-flex';
-    } else if (estimasiEl) {
-      estimasiEl.style.display = 'none';
-    }
-
-    // Dynamic motivational subtext
-    var defaultMotivasi = {
-      motivasi_0: "Bismillah, mari mulai perjuangan menjadi sahabat Al-Qur'an! 💪",
-      motivasi_30: "Langkah pertama yang luar biasa! Tetap istikamah ya. ✨",
-      motivasi_60: "Masya Allah, kamu sudah berjalan sejauh ini. Pertahankan! 🌟",
-      motivasi_90: "Sedikit lagi! Gurumu bersiap menyambut kenaikan levelmu. 🚀",
-      motivasi_99: "Sangat dekat! Sempurnakan langkah terakhirmu. 🎓",
-      motivasi_100: "Barakallah! Target KBM tercapai untuk level ini. 🏆"
-    };
-
-    var motiv = d.motivasi || {};
-    var motivText = "";
-    if (isQiyam) {
-      motivText = "Bismillah, mari istiqamah menambah dan menjaga hafalan Al-Qur'an! 🕌";
-    } else if (isMicro) {
-      motivText = "Tingkatkan kemampuan mengajar untuk menjadi pendidik Al-Qur'an yang hebat! 🎓";
-    } else {
-      var pctVal = pct || 0;
-      if (pctVal === 0) {
-        motivText = motiv.motivasi_0 || defaultMotivasi.motivasi_0;
-      } else if (pctVal <= 30) {
-        motivText = motiv.motivasi_30 || defaultMotivasi.motivasi_30;
-      } else if (pctVal <= 60) {
-        motivText = motiv.motivasi_60 || defaultMotivasi.motivasi_60;
-      } else if (pctVal <= 90) {
-        motivText = motiv.motivasi_90 || defaultMotivasi.motivasi_90;
-      } else if (pctVal <= 99) {
-        motivText = motiv.motivasi_99 || defaultMotivasi.motivasi_99;
-      } else {
-        motivText = motiv.motivasi_100 || defaultMotivasi.motivasi_100;
-      }
-    }
-
-    var motivEl = document.getElementById('dashMotivasi');
-    if (motivEl) {
-      motivEl.textContent = motivText;
-      motivEl.style.color = ''; // warna diatur via .prog-motivasi-outer CSS
     }
 
     // Trigger confetti once per session when target is reached (100%)
