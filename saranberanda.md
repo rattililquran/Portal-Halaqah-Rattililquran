@@ -26,13 +26,13 @@ Latihan Mandiri (PR) yang sifatnya deadline-driven ditaruh di posisi hampir pali
 ### 6. Micro Teaching — gaya visual belum ikut diseragamkan
 Kartu Partner Qiyam/Belajar sudah diflatkan minimalis di sesi sebelumnya, tapi kartu Micro Teaching masih memakai gradient ungu mencolok (di HTML, CSS, dan sebagian di-set langsung oleh JS) — belum konsisten dengan arah desain flat yang sudah diterapkan ke kartu-kartu lain.
 
-## Rencana eksekusi (6 tahap, urut dari risiko terendah)
+## Rencana eksekusi (6 tahap, urut dari risiko terendah) — TUNTAS
 
-- [ ] **Tahap 1** — Hapus kartu Rattil Quiz dari Beranda (markup + JS render + 1 API call yang jadi tak perlu).
-- [ ] **Tahap 2** — Hapus `stats-grid` beserta 2 modal & 2 fungsi yang jadi orphan setelahnya (HTML + JS dihapus bersamaan, karena tanpa null-check).
-- [ ] **Tahap 3** — Bersihkan elemen legacy "Kehadiranku" (chip Level/Target/Estimasi/Motivasi) yang sudah tergantikan oleh modal.
-- [ ] **Tahap 4** — Naikkan posisi kartu PR Aktif ke lebih atas, dekat kartu-kartu status personal lain.
-- [ ] **Tahap 5** — Gabung dua kartu Partner Belajar jadi satu: ringkasan dua-arah sebagai konten utama, form lapor sebagai tombol/CTA sekunder, sekaligus samakan syarat tampil dan satukan sumber data yang tadinya redundan.
-- [ ] **Tahap 6** — Seragamkan gaya visual Micro Teaching ke gaya flat yang sama dengan kartu Partner.
+- [x] **Tahap 1** — Hapus kartu Rattil Quiz dari Beranda (markup + JS render + 1 API call yang jadi tak perlu).
+- [x] **Tahap 2** — Hapus `stats-grid` beserta 2 modal & 2 fungsi yang jadi orphan setelahnya (HTML + JS dihapus bersamaan, karena tanpa null-check).
+- [x] **Tahap 3** — Bersihkan elemen legacy "Kehadiranku" (chip Level/Target/Estimasi/Motivasi) yang sudah tergantikan oleh modal.
+- [x] **Tahap 4** — Naikkan posisi kartu PR Aktif ke lebih atas, dekat kartu-kartu status personal lain.
+- [x] **Tahap 5** — Gabung dua kartu Partner Belajar jadi satu: ringkasan dua-arah sebagai konten utama, form lapor sebagai tombol/CTA sekunder ("+ Lapor Aktivitas Belajar", collapsible), syarat tampil disamakan (`!isQiyam && partner_belajar_enabled`), satu sumber data (`loadPartnerBelajarDashCard()`) mengisi keduanya.
+- [x] **Tahap 6** — Seragamkan gaya visual Micro Teaching ke gaya flat yang sama dengan kartu Partner (kontainer saja — aksen ungu donut/progress-bar/badge sengaja dipertahankan, ternyata konsisten dgn pola default app & modal breakdown-nya sendiri).
 
-Setiap tahap dieksekusi & di-commit terpisah, diverifikasi (tag-balance HTML + cek syntax JS) sebelum lanjut ke tahap berikutnya — detail teknis lengkap (nomor baris, nama fungsi) ada di riwayat kerja sesi ini.
+Semua tahap dieksekusi & di-commit terpisah (6 commit, `8badefe`..`cf4b157`), diverifikasi (tag-balance HTML + cek syntax JS + repro visual/interaktif utk Tahap 5 & 6) sebelum lanjut ke tahap berikutnya. Mohon cross-check langsung di HP/laptop untuk Tahap 5 (kartu Partner Belajar gabungan) & Tahap 6 (kartu Micro Teaching) — dua tahap ini satu-satunya yang mengubah perilaku/tampilan terlihat, bukan cuma membersihkan yang sudah tersembunyi.
