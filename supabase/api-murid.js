@@ -638,6 +638,121 @@ var MuridAPI = {
     return { status: 'ok', data: grafik };
   },
 
+  // Insight Belajar: tren adab/kamera per bulan + kategori koreksi tahsin
+  // tersering, dari data nilai_kbm yang sudah ada (tanpa tabel/RLS baru).
+  getInsightBelajar: async function() {
+    var id_murid = _uid();
+    if (!id_murid) return { status: 'ok', data: null };
+    var since = new Date();
+    since.setMonth(since.getMonth() - 6);
+    var sinceStr = _localDate(since);
+    var [nilaiRes, templateRes] = await Promise.all([
+      _sb.from('nilai_kbm')
+        .select('tanggal, status_hadir, adab, kamera_murid, koreksi_tahsin, jenis_sesi')
+        .eq('id_murid', id_murid).gte('tanggal', sinceStr).order('tanggal'),
+      // Ambil SEMUA template (bukan cuma yang 'aktif') -- koreksi lama bisa
+      // merujuk chip yang sudah dinonaktifkan/diubah, tetap perlu dikenali kategorinya.
+      _sb.from('template_koreksi').select('kategori, teks'),
+    ]);
+    if (nilaiRes.error || !nilaiRes.data) return { status: 'ok', data: null };
+
+    var templateMap = {};
+    (templateRes.data || []).forEach(function(t) {
+      if (t.teks) templateMap[t.teks.trim()] = t.kategori;
+    });
+
+    var BULAN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    function bulanLabel(key) {
+      var parts = key.split('-');
+      return BULAN[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+    }
+
+    // Hanya sesi hadir yang punya penilaian adab/kamera/koreksi -- sama seperti
+    // pola hadirNilai di getDashboard().
+    var hadirRows = nilaiRes.data.filter(function(n) { return ['H','T'].includes(n.status_hadir); });
+
+    // ── Tren adab & kamera per bulan ──
+    var bulanMap = {};
+    hadirRows.forEach(function(n) {
+      if (!n.tanggal) return;
+      var key = n.tanggal.substring(0, 7);
+      if (!bulanMap[key]) bulanMap[key] = { adabBaik: 0, adabTotal: 0, kamTerbuka: 0, kamTotal: 0 };
+      if (n.adab) {
+        bulanMap[key].adabTotal++;
+        if (n.adab === 'Baik') bulanMap[key].adabBaik++;
+      }
+      if (n.kamera_murid) {
+        bulanMap[key].kamTotal++;
+        if (n.kamera_murid === 'kamera terbuka') bulanMap[key].kamTerbuka++;
+      }
+    });
+    var trenAdabKamera = Object.keys(bulanMap).sort().map(function(key) {
+      var b = bulanMap[key];
+      return {
+        bulan: bulanLabel(key),
+        pct_adab_baik: b.adabTotal > 0 ? Math.round(b.adabBaik / b.adabTotal * 100) : null,
+        pct_kamera_terbuka: b.kamTotal > 0 ? Math.round(b.kamTerbuka / b.kamTotal * 100) : null,
+      };
+    });
+
+    // ── Kategori koreksi tahsin tersering (sesi non-Micro Teaching) ──
+    // KBM Reguler: koreksi_tahsin = gabungan teks chip dipisah newline, kategori
+    // TIDAK ikut tersimpan -- harus di-join-back ke template_koreksi.teks.
+    var kategoriCount = {};
+    hadirRows.forEach(function(n) {
+      if (n.jenis_sesi === 'Micro Teaching' || !n.koreksi_tahsin) return;
+      String(n.koreksi_tahsin).split(/\r?\n/).forEach(function(line) {
+        var teks = line.trim();
+        if (!teks) return;
+        var kategori = templateMap[teks] || 'Lainnya';
+        kategoriCount[kategori] = (kategoriCount[kategori] || 0) + 1;
+      });
+    });
+    var topKategoriKoreksi = Object.keys(kategoriCount)
+      .map(function(k) { return { kategori: k, jumlah: kategoriCount[k] }; })
+      .sort(function(a, b) { return b.jumlah - a.jumlah; })
+      .slice(0, 5);
+
+    // ── Rubrik Micro Teaching per bulan (kalau ada) ──
+    // Micro Teaching: koreksi_tahsin BUKAN teks koreksi, tapi JSON rubrik
+    // {penguasaan, penyampaian, tajwid, interaksi, waktu} skala 1-4.
+    var RUBRIK_KEYS = ['penguasaan', 'penyampaian', 'tajwid', 'interaksi', 'waktu'];
+    var mtBulanMap = {};
+    hadirRows.forEach(function(n) {
+      if (n.jenis_sesi !== 'Micro Teaching' || !n.koreksi_tahsin || !n.tanggal) return;
+      var rubrik;
+      try { rubrik = JSON.parse(n.koreksi_tahsin); } catch (e) { return; }
+      if (!rubrik || typeof rubrik !== 'object' || rubrik.absent) return;
+      var key = n.tanggal.substring(0, 7);
+      if (!mtBulanMap[key]) mtBulanMap[key] = { sums: {}, count: 0 };
+      var entry = mtBulanMap[key];
+      entry.count++;
+      RUBRIK_KEYS.forEach(function(k) {
+        var v = Number(rubrik[k]);
+        if (!isNaN(v)) entry.sums[k] = (entry.sums[k] || 0) + v;
+      });
+    });
+    var trenRubrikMt = Object.keys(mtBulanMap).sort().map(function(key) {
+      var entry = mtBulanMap[key];
+      var rata = { bulan: bulanLabel(key) };
+      RUBRIK_KEYS.forEach(function(k) {
+        rata[k] = entry.sums[k] != null ? Math.round(entry.sums[k] / entry.count * 10) / 10 : null;
+      });
+      return rata;
+    });
+
+    return {
+      status: 'ok',
+      data: {
+        insufficientData: hadirRows.length < 8,
+        totalSesiHadir: hadirRows.length,
+        trenAdabKamera: trenAdabKamera,
+        topKategoriKoreksi: topKategoriKoreksi,
+        trenRubrikMt: trenRubrikMt,
+      }
+    };
+  },
+
   getMateriLevel: async function() {
     var {data,error} = await _sb.from('materi_level').select('*').order('level').order('urutan');
     if (!error && data && data.length) {

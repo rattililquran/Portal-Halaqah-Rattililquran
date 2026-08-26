@@ -4350,6 +4350,14 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
     </div>
 
+    <!-- ════ INSIGHT BELAJAR ════ -->
+    <div class="page" id="page-insight">
+      <div class="page-header"><div class="page-header-ico">📊</div><div><div class="page-title">Insight Belajar</div><div class="page-sub">Tren adab, kamera, dan kategori koreksi tahsin yang paling sering — dari riwayat KBM-mu.</div></div></div>
+      <div id="insightContent">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ INFO / MATERI LEVEL ════ -->
     <div class="page" id="page-info">
       <div class="page-header"><div class="page-header-ico">📚</div><div><div class="page-title">Materi Level</div><div class="page-sub">Panduan belajar dan tips tajwid dari guru.</div></div></div>
@@ -6119,6 +6127,11 @@ html.theme-dark .materi-daurah-banner-title {
         <span id="raportNavBadge" style="display:none;margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;letter-spacing:.3px">BARU</span>
       </button>
 
+      <button class="sidebar-item ico-teal" onclick="closeSidebar();goPage('insight')" data-p="insight">
+        <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></div>
+        <span class="sidebar-item-label">Insight Belajar</span>
+      </button>
+
       <button class="sidebar-item ico-amber" onclick="closeSidebar();goPage('charging')" data-p="charging">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
         <span class="sidebar-item-label">Charging</span>
@@ -6974,7 +6987,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=bef34121" defer></script>
+<script src="../supabase/api-murid.js?v=f4a0a2d4" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -6986,6 +6999,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="attibyan-module.js?v=c465773e" defer></script>
 <script src="saran-observasi-module.js?v=13bfaa19" defer></script>
 <script src="raport-module.js?v=bdd7d39d" defer></script>
+<script src="insight-module.js?v=8c39986b" defer></script>
 <script src="ketua-module.js?v=257eff70" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -7822,6 +7836,7 @@ function goPage(name, swipeDir) {
   else if (name === 'pr') { loadPR(); }
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
+  else if (name === 'insight') { loadInsightBelajar(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
   else if (name === 'charging') { loadCharging(); }
@@ -8585,7 +8600,7 @@ var PAGE_TO_GROUP = {
   attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
   'spp-infaq': 'administrasi', 'infaq-beasiswa': 'administrasi',
   assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi', charging: 'evaluasi',
-  'catatan-emas': 'evaluasi',
+  'catatan-emas': 'evaluasi', insight: 'evaluasi',
   panduan: 'pengaturan', password: 'pengaturan',
 };
 // Grup aktif diturunkan dari navigasi (goPage), TIDAK di-persist localStorage terpisah --
