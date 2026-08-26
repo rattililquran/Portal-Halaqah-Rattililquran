@@ -150,8 +150,6 @@ html.theme-minimal .auth-box{box-shadow:none;border-color:rgba(0,0,0,.08)}
 html.theme-minimal .auth-btn{box-shadow:none}
 html.theme-minimal .auth-btn:hover{box-shadow:none}
 /* Kartu fitur dashboard (Micro Teaching, dll — pakai komponen prog-* bersama) */
-html.theme-minimal .micro-dash-card{border-radius:var(--r-card);box-shadow:none}
-html.theme-minimal .micro-dash-card:hover{box-shadow:none}
 html.theme-minimal .level-badge{box-shadow:none !important;text-shadow:none !important}
 html.theme-minimal .prog-donut-wrap{box-shadow:none}
 html.theme-minimal .prog-donut-inner{box-shadow:none;border-color:rgba(0,0,0,.06)}
@@ -1507,17 +1505,16 @@ html.theme-dark #dashAtTibyanCard.attibyan-locked {
 }
 .attibyan-dash-card-row{display:flex;align-items:center;gap:12px}
 
-/* ── MICRO TEACHING DASH CARD (ungu) ── */
-.micro-dash-card{border-radius:20px;border:1px solid rgba(139,92,246,.25);
-  background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 60%,#ddd6fe 100%);
-  padding:20px 20px 20px;margin-bottom:16px;cursor:pointer;
-  box-shadow:0 4px 16px rgba(139,92,246,.15);transition:transform .15s ease,box-shadow .15s ease}
-.micro-dash-card:hover{box-shadow:0 6px 20px rgba(139,92,246,.25)}
+/* ── MICRO TEACHING DASH CARD -- flat, konsisten dgn .partner-dash-card (dulu gradient
+   ungu, diseragamkan spy tidak lagi satu-satunya kartu Beranda yg masih gaya lama) ── */
+.micro-dash-card{border-radius:var(--r);border:1px solid var(--border);
+  background:var(--card-solid,#fff);
+  padding:18px 20px;margin-bottom:16px;cursor:pointer;
+  box-shadow:var(--shadow-card);transition:box-shadow .15s ease,transform .15s ease}
+.micro-dash-card:hover{box-shadow:var(--shadow-lg)}
 .micro-dash-card:active{transform:scale(.98)}
-.micro-dash-card .prog-title{color:#5b21b6 !important;}
-.micro-dash-card .prog-info-title{color:#5b21b6 !important;}
-.micro-dash-card .prog-info-sesi{color:#7c3aed !important;}
-.micro-dash-card .prog-inner-wrap{background:rgba(139,92,246,0.08) !important;margin-top:4px;}
+.micro-dash-card .prog-title{color:var(--text) !important;}
+.micro-dash-card .prog-inner-wrap{background:var(--bg-2) !important;margin-top:4px;}
 .attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;
@@ -2538,14 +2535,6 @@ html.theme-dark .at-card{background:#1e2128 !important;border-color:rgba(255,255
 html.theme-dark .at-card-head:hover{background:rgba(255,255,255,.03) !important}
 html.theme-dark .at-card-body{background:#161920 !important;border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .at-btn-copy{background:#252830 !important;color:#9ca3af !important}
-/* dark mode micro-dash-card */
-html.theme-dark .micro-dash-card{background:linear-gradient(135deg,#1e1535 0%,#2a1d4a 60%,#341f5e 100%) !important;border-color:rgba(139,92,246,.25) !important;box-shadow:0 4px 16px rgba(0,0,0,.3) !important}
-html.theme-dark .micro-dash-card .prog-title{color:#c4b5fd !important;}
-html.theme-dark .micro-dash-card .prog-info-title{color:#c4b5fd !important;}
-html.theme-dark .micro-dash-card .prog-info-sesi{color:#a78bfa !important;}
-html.theme-dark .micro-dash-card .prog-inner-wrap{background:rgba(139,92,246,0.1) !important;}
-html.theme-dark .micro-dash-card .prog-inner-card{background:#1a1230 !important;}
-html.theme-dark .micro-dash-card .prog-donut-inner{background:rgba(26,18,48,0.8) !important;}
 html.theme-dark .atf-btn{border-color:rgba(255,255,255,.12) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh{border-color:rgba(255,255,255,.1) !important;color:#9ca3af !important}
 html.theme-dark .btn-refresh:hover{border-color:#38bdf8 !important;color:#38bdf8 !important;background:#1a2535 !important}
