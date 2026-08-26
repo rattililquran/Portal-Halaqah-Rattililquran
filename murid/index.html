@@ -862,12 +862,16 @@ a.top-tab{text-decoration:none}
    scroll-nya nyaris tak kelihatan (scrollbar sengaja disembunyikan utk desktop),
    jadi tab "Administrasi/Evaluasi/Pengaturan" (termasuk ganti password & logout)
    praktis tak terjangkau tanpa user tahu harus swipe. Icon-only di HP mengecilkan
-   total lebar jadi ~230px, muat semua tanpa scroll -- label tetap ada di aria-label
+   total lebar -- KECUALI tab yg SEDANG aktif, labelnya tetap dimunculkan (auto-
+   expand) supaya user dapat petunjuk fungsi ikon dari tab yg baru saja disentuh,
+   tanpa perlu tombol toggle terpisah. Tab non-aktif tetap icon-only+aria-label
    utk pembaca layar. */
 @media(max-width:767px){
   .top-tab{padding:13px 11px}
-  .top-tab span:not(.top-tab-ico){display:none}
+  .top-tab:not(.active) span:not(.top-tab-ico){display:none}
+  .top-tab.active span:not(.top-tab-ico){color:var(--blue);font-weight:800}
 }
+html.theme-dark .top-tab.active span:not(.top-tab-ico){color:#38bdf8}
 
 /* Dropdown menu: muncul saat tap/klik/hover/fokus salah satu .top-tab[data-group]
    (lihat JS showTabDropdown/hideTabDropdown/onTopTabClick) -- SATU panel dipakai
