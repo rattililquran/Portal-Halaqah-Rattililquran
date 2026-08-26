@@ -2873,7 +2873,13 @@
   // kasus itu tak bisa dibedakan dari sini, jadi label-nya sengaja netral.
   function khatamkuHariTakAktif(k) {
     if (!k || !k.last_active_date) return null;
-    return Math.floor((Date.now() - new Date(k.last_active_date + 'T00:00:00').getTime()) / 86400000);
+    // Anchor 'Z'/UTC utk KEDUA sisi -> murni aritmetika tanggal kalender,
+    // bebas skew timezone lokal browser/DST -- todayWIB sendiri yg sudah
+    // menerjemahkan "hari ini" ke kalender WIB (bug hunt #4, patch_095).
+    const todayWIB = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    const d1 = new Date(todayWIB + 'T00:00:00Z').getTime();
+    const d2 = new Date(k.last_active_date + 'T00:00:00Z').getTime();
+    return Math.round((d1 - d2) / 86400000);
   }
   function getKhatamkuBadge(k) {
     if (!k) return `<span class="badge b-gray">⚫ Belum ada data</span>`;
@@ -2991,9 +2997,13 @@
       if (sFil === 'baik'   && s40 < 75)            return false;
       if (khFil) {
         var khHari = khatamkuHariTakAktif(m.khatamku);
-        if (khFil === 'belum'    && m.khatamku)                    return false;
-        if (khFil === 'nonaktif' && !(khHari !== null && khHari >= 3)) return false;
-        if (khFil === 'aktif'    && !(khHari !== null && khHari < 3))  return false;
+        // 4 opsi filter cocok persis 4 tingkat badge getKhatamkuBadge() --
+        // bug hunt #6: dulu murid "terhubung tapi blm ada bacaan" (khHari
+        // null TAPI m.khatamku ada) tak tertangkap filter mana pun.
+        if (khFil === 'belum'     && m.khatamku)                       return false;
+        if (khFil === 'terhubung' && !(m.khatamku && khHari === null)) return false;
+        if (khFil === 'nonaktif'  && !(khHari !== null && khHari >= 3)) return false;
+        if (khFil === 'aktif'     && !(khHari !== null && khHari < 3))  return false;
       }
       return true;
     });

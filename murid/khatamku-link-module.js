@@ -100,8 +100,10 @@
     return html;
   }
 
+  // Dipakai jg oleh khatamku-popup-module.js (window._khStatBox, di-expose di
+  // bawah) -- bug hunt #5: dulu ada 2 salinan nyaris identik, disatukan di sini.
   function statBox(label, value) {
-    return '<div style="flex:1;background:var(--bg-2);border-radius:10px;padding:10px 6px">'
+    return '<div style="flex:1;background:var(--bg-2);border-radius:10px;padding:10px 6px;text-align:center">'
       + '<div style="font-size:16px;font-weight:800;color:var(--text-2)">' + (value !== null && value !== undefined ? value : '-') + '</div>'
       + '<div style="font-size:10.5px;color:var(--text-3)">' + esc(label) + '</div>'
       + '</div>';
@@ -135,4 +137,5 @@
   };
 
   window.loadKhatamkuLink = loadKhatamkuLink;
+  window._khStatBox = statBox;
 })();

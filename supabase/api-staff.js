@@ -938,8 +938,12 @@ var GuruAPI = {
     var alerts = alertList.map(function(m) {
       var hariTakAktifKhatamku = 0;
       if (m.khatamku_last_active) {
+        // Anchor 'Z'/UTC utk KEDUA sisi -> murni aritmetika tanggal kalender,
+        // bebas skew timezone lokal server/browser -- todayWIB sendiri yg
+        // sudah menerjemahkan "hari ini" ke kalender WIB (bug hunt #4, patch_095).
+        var todayWIB = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
         var msPerHari = 24*60*60*1000;
-        hariTakAktifKhatamku = Math.floor((Date.now() - new Date(m.khatamku_last_active+'T00:00:00').getTime()) / msPerHari);
+        hariTakAktifKhatamku = Math.round((new Date(todayWIB+'T00:00:00Z').getTime() - new Date(m.khatamku_last_active+'T00:00:00Z').getTime()) / msPerHari);
       }
       var metrics = {
         absen           : m.alpa || 0,

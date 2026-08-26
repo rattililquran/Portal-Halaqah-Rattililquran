@@ -56,12 +56,11 @@
     } catch(_) { return ''; }
   }
 
-  function statBox(label, value) {
-    return '<div style="flex:1;background:var(--bg-2);border-radius:10px;padding:10px 6px;text-align:center">'
-      + '<div style="font-size:16px;font-weight:800;color:var(--text-2)">' + (value !== null && value !== undefined ? value : '-') + '</div>'
-      + '<div style="font-size:10.5px;color:var(--text-3)">' + esc(label) + '</div>'
-      + '</div>';
-  }
+  // Shared dgn khatamku-link-module.js (window._khStatBox) -- bug hunt #5,
+  // dulu ada 2 salinan nyaris identik di file ini & khatamku-link-module.js.
+  // khatamku-link-module.js dimuat SEBELUM file ini di index.html (urutan
+  // script defer), jadi window._khStatBox sudah pasti terdefinisi di sini.
+  var statBox = window._khStatBox;
 
   function bodyBelumTerhubung() {
     return '<div class="kp-sub">Sambungkan akun KhatamKu-mu supaya progres bacaan &amp; dzikirmu tampil di sini setiap kali buka aplikasi.</div>'
