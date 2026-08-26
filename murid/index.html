@@ -35,7 +35,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../assets/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="../assets/icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- interactive-widget=resizes-content: browser yg dukung (Chrome 108+/Safari 17.4+)
+     akan MENYUSUTKAN viewport saat keyboard HP muncul, bukan cuma menimpanya --
+     supaya tombol footer modal (position:sticky/fixed) tetap di atas keyboard,
+     bukan tertutup di baliknya. Browser lama abaikan parameter tak dikenal ini
+     dgn aman (fallback ke perilaku sebelumnya, tidak ada regresi). -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <script>
 // Reset skala zoom saat PWA dibuka/kembali dari background — WebKit iOS kadang
 // menyimpan & memulihkan level pinch-zoom terakhir saat app standalone dibuka
@@ -442,7 +447,11 @@ html.theme-dark .qiyam-setoran-lbl{color:#64748b}
 .qiyam-target-main{display:flex;align-items:center;gap:10px;min-width:0}
 .qiyam-target-icon{font-size:17px;line-height:1;flex-shrink:0}
 .qiyam-target-hint{font-size:10.5px;font-style:italic;font-weight:600;color:var(--text-3);white-space:nowrap;flex-shrink:0}
-@media(max-width:380px){.qiyam-target-hint{display:none}}
+/* Disembunyikan di SEMUA lebar HP (bukan cuma <380px) -- hint ini nowrap+flex-shrink:0
+   jadi tetap rebut ~136px tetap di 390-428px (iPhone standar/Pro Max, kelas device
+   paling umum), maksa label+value pecah 2-4 baris berantakan. 767px = breakpoint
+   mobile/desktop yg sama dipakai konsisten di seluruh file (.kalender-wrap dkk). */
+@media(max-width:767px){.qiyam-target-hint{display:none}}
 .qiyam-target-label{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:2px}
 .qiyam-target-value{font-size:13px;font-weight:800;color:var(--text);line-height:1.3}
 /* pbTertundaCard (Partner Belajar/Qiyam -- "Saatnya Lakukan Lagi!"): sengaja
@@ -461,7 +470,8 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
 .partner-dash-card:hover{box-shadow:var(--shadow-lg)}
 .partner-dash-card:active{transform:scale(.98)}
 .partner-dash-card .prog-title{color:var(--text) !important;font-size:14px;margin-bottom:10px;
-  justify-content:space-between;text-shadow:none}
+  justify-content:space-between;text-shadow:none;flex-wrap:wrap;row-gap:4px}
+.partner-dash-card .prog-title > span:first-child{white-space:nowrap}
 /* Solid (bukan var tema) sengaja -- badge notifikasi harus tetap kontras terbaca di
    ketiga varian tema (Biru/Minimalis/Dark), bukan mengikuti tint yg bisa jadi gelap
    di atas kartu gelap juga (var(--red-l) pernah dipakai di sini, kontrasnya jatuh
@@ -848,6 +858,16 @@ html.theme-dark .top-tab{color:rgba(255,255,255,.5) !important}
 html.theme-dark .top-tab:hover{color:#e8eaf0 !important}
 html.theme-dark .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
 a.top-tab{text-decoration:none}
+/* HP: 7 tab (label penuh) lebar totalnya ~740px, jauh melebihi layar 320-428px --
+   scroll-nya nyaris tak kelihatan (scrollbar sengaja disembunyikan utk desktop),
+   jadi tab "Administrasi/Evaluasi/Pengaturan" (termasuk ganti password & logout)
+   praktis tak terjangkau tanpa user tahu harus swipe. Icon-only di HP mengecilkan
+   total lebar jadi ~230px, muat semua tanpa scroll -- label tetap ada di aria-label
+   utk pembaca layar. */
+@media(max-width:767px){
+  .top-tab{padding:13px 11px}
+  .top-tab span:not(.top-tab-ico){display:none}
+}
 
 /* Dropdown menu: muncul saat hover/focus salah satu .top-tab[data-group] (lihat JS
    showTabDropdown/hideTabDropdown) -- SATU panel dipakai ulang utk semua tab, isinya
@@ -2181,6 +2201,9 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   font-weight:600;outline:none;color:var(--text);background:#fff;
   transition:all .2s ease}
 .fc:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,122,255,.1)}
+/* HP: field &lt;16px yg difokus memicu auto-zoom Safari iOS (mengganggu &amp; tidak
+   diinginkan). Dinaikkan ke 16px KHUSUS di HP -- desktop tetap 14px sesuai desain. */
+@media(max-width:767px){.fc{font-size:16px}}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:12px 20px;
   border-radius:100px;font-family:inherit;font-size:14px;
   font-weight:800;cursor:pointer;border:none;transition:all .15s ease}
@@ -3944,11 +3967,11 @@ html.theme-dark .materi-daurah-banner-title {
 
   <!-- TAB ATAS -- memfilter grup sidebar mana yang tampil, TIDAK pindah halaman sendiri -->
   <nav class="top-tabbar" id="topTabbar" role="tablist" aria-label="Navigasi utama">
-    <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama')" role="tab" aria-selected="true" aria-haspopup="true" aria-expanded="false" aria-label="Utama">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       <span>Utama</span>
     </button>
-    <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Akademik">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
       <span>Akademik</span>
     </button>
@@ -3956,19 +3979,19 @@ html.theme-dark .materi-daurah-banner-title {
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
       <span>Modul</span>
     </a>
-    <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Permainan">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
       <span>Permainan</span>
     </button>
-    <button class="top-tab" data-group="administrasi" onclick="onTopTabClick('administrasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab" data-group="administrasi" onclick="onTopTabClick('administrasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Administrasi">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
       <span>Administrasi</span>
     </button>
-    <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Evaluasi">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></span>
       <span>Evaluasi</span>
     </button>
-    <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false">
+    <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan')" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Pengaturan">
       <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       <span>Pengaturan</span>
     </button>
