@@ -10078,14 +10078,6 @@ function toggleMateri(idx) {
 }
 
 // ══════════════════════════════════════════
-//  AT-TIBYAN
-// ══════════════════════════════════════════
-var _attibyanData    = [];   // semua rows dari server
-var _attibyanColumns = [];   // headers dinamis
-var _attibyanFilter  = 'all';
-
-
-// ══════════════════════════════════════════
 //  REFRESH TAB
 // ══════════════════════════════════════════
 function refreshTab(name) {
@@ -10099,7 +10091,7 @@ function refreshTab(name) {
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
   else if (name === 'catatan-emas') { loadCatatanEmas(); }
   else if (name === 'attibyan') {
-    _attibyanData = []; _attibyanColumns = []; _attibyanFilter = 'all'; _atSearchQuery = '';
+    _atSearchQuery = '';
     _atMuridTabLoaded = false;
     var si = document.getElementById('atSearchInput'); if(si) si.value='';
     var sc = document.getElementById('atSearchClear'); if(sc) sc.classList.remove('visible');
@@ -10275,9 +10267,6 @@ var _assessmentLevel   = '';
 // ══════════════════════════════════════════
 //  SETORAN HAFALAN (TAHFIDZ — LEVEL QIYAM)
 // ══════════════════════════════════════════
-var _hafalanOffset   = 0;
-var _hafalanFilter   = '';
-var _hafalanAllData  = [];   // cache semua setoran yang sudah dimuat
 var HAFALAN_LEVEL    = 'Level Qiyam';
 var HAFALAN_LEVELS   = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level Qiyam'];
 
@@ -10662,7 +10651,6 @@ async function abaikanCadanganPR() {
 
 
 // ── Tab Partner Qiyam ────────────────────────────────────────────────
-var _pqInitialized = false;
 var _pqKelompok    = null;
 var _pqZiyadahMap  = null; // { suratLower: [{ayat_dari,ayat_sampai}, ...] (merged) }
 var _pqMediaRecorder = null;
@@ -10890,7 +10878,6 @@ function hapusRekamanQiyamLokal() {
 //  PARTNER BELAJAR (Level 1-4) — mirror Partner Qiyam, prefix pb
 // ══════════════════════════════════════════════════════════════════════
 var _pbKelompok = null;
-var _pbInitialized = false;
 var _pbEditId = null;
 var _pbRiwayatData = [];
 var PB_JENIS_ICON = { 'Makharijul Huruf':'🗣️', 'Shifatul Huruf':'🔤', 'Hafalan Materi':'🧠', 'Tajwid':'📐', 'Doa-Doa Pilihan':'🤲', 'Murajaah':'🔄' };
@@ -10918,8 +10905,6 @@ document.getElementById('hfPanelPartner').style.display = tab === 'partner' ? 'b
   if (tab === 'raport') _initMyRaportPanel();
   if (tab === 'partner') _initPartnerPanel();
 }
-
-var _myRtPeriodeLoaded = false;
 
 var _assessmentLoading = false; // debounce flag cegah double-load
 
