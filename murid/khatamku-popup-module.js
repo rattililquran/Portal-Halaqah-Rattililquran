@@ -122,27 +122,40 @@
     if (typeof goPage === 'function') goPage('khatamku-link');
   };
 
+  // Overlay lain (onboarding/push-dialog/popup-notifikasi) BUKAN auto-hilang --
+  // tetap terbuka sampai user pilih aksi. Dialog "ajakan notifikasi" (push-dialog)
+  // khususnya muncul TIAP KALI buka app buat murid yang belum memutuskan
+  // (lihat assets/push-permission.js:432-446) -- cek sekali lalu nyerah bikin
+  // popup ini nyaris tak pernah tampil buat populasi itu. Coba ulang tiap 3
+  // detik (maks ~36 detik) supaya nunggu giliran, bukan langsung nyerah.
+  function tunggGiliran(data, percobaan) {
+    if (hasSeenToday()) return; // sudah kelihatan lewat cara lain, batal
+    if (typeof _currentTabName !== 'undefined' && _currentTabName === 'khatamku-link') return;
+    var terhalang = document.getElementById('kp-card')
+      || document.getElementById('pn-card')
+      || document.getElementById('ob-overlay')
+      || document.getElementById('push-dialog-overlay');
+    if (terhalang) {
+      if (percobaan < 12) setTimeout(function(){ tunggGiliran(data, percobaan + 1); }, 3000);
+      return; // menyerah diam-diam kalau masih terhalang sampai batas -- jangan maksa
+    }
+    markSeenToday();
+    render(data);
+  }
+
   // Entry point -- panggil dari startApp() SETELAH initPopupNotifikasi (lihat
-  // murid/index.html:7744), delay 5000ms (onboarding=1.5s, push-dialog=3s,
-  // popup-notifikasi=4s, ini=5s -- urutan stagger existing, cegah tumpang tindih).
+  // murid/index.html:7744). Delay awal 15000ms -- lebih santai drpd popup lain
+  // (onboarding=1.5s, push-dialog=3s, popup-notifikasi=4s) SENGAJA, supaya di
+  // percobaan pertama saja overlay lain sudah besar kemungkinan sudah user
+  // tutup duluan (popup KhatamKu tidak time-sensitive, boleh telat tampil).
+  // tunggGiliran() tetap jaga-jaga kalau masih terhalang setelah itu.
   window.initKhatamkuPopup = function(roleLabel) {
     if (hasSeenToday()) return;
     if (!window.HQ || !window.HQ.MuridAPI || typeof window.HQ.MuridAPI.getKhatamkuLinkStatus !== 'function') return;
     window.HQ.MuridAPI.getKhatamkuLinkStatus().then(function(r) {
       var data = (r && r.data) || null;
       if (!data) return;
-      setTimeout(function() {
-        // Cek ULANG persis sebelum render (bukan cuma sekali di awal) -- pola
-        // sama dgn initPopupNotifikasi/initOnboarding.
-        if (hasSeenToday()) return;
-        if (document.getElementById('kp-card')) return;
-        if (document.getElementById('pn-card')) return;
-        if (document.getElementById('ob-overlay')) return;
-        if (document.getElementById('push-dialog-overlay')) return;
-        if (typeof _currentTabName !== 'undefined' && _currentTabName === 'khatamku-link') return;
-        markSeenToday();
-        render(data);
-      }, 5000);
+      setTimeout(function(){ tunggGiliran(data, 0); }, 15000);
     }).catch(function(){});
   };
 })();
