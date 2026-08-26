@@ -4361,6 +4361,14 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
     </div>
 
+    <!-- ════ HUBUNGKAN KHATAMKU ════ -->
+    <div class="page" id="page-khatamku-link">
+      <div class="page-header"><div class="page-header-ico">🔗</div><div><div class="page-title">Hubungkan KhatamKu</div><div class="page-sub">Sambungkan akun KhatamKu-mu supaya progres bacaan &amp; dzikir muncul di Portal.</div></div></div>
+      <div id="khatamkuLinkContent">
+        <div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>
+      </div>
+    </div>
+
     <!-- ════ INFO / MATERI LEVEL ════ -->
     <div class="page" id="page-info">
       <div class="page-header"><div class="page-header-ico">📚</div><div><div class="page-title">Materi Level</div><div class="page-sub">Panduan belajar dan tips tajwid dari guru.</div></div></div>
@@ -6062,7 +6070,7 @@ html.theme-dark .materi-daurah-banner-title {
         <span class="sidebar-item-label">Modul Rattil</span>
       </button>
 
-      <button class="sidebar-item ico-blue" onclick="closeSidebar();window.open('https://rattililquran.github.io/KhatamKu/','_blank')">
+      <button class="sidebar-item ico-blue" onclick="closeSidebar();goPage('khatamku-link')" data-p="khatamku-link">
         <div class="sidebar-item-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
         <span class="sidebar-item-label">Khatamku</span>
       </button>
@@ -6985,7 +6993,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=89e7aad8" defer></script>
+<script src="../supabase/api-murid.js?v=6e1cd0e8" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -6998,6 +7006,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="saran-observasi-module.js?v=13bfaa19" defer></script>
 <script src="raport-module.js?v=bdd7d39d" defer></script>
 <script src="insight-module.js?v=f57917cd" defer></script>
+<script src="khatamku-link-module.js?v=4a9a73fc" defer></script>
 <script src="ketua-module.js?v=257eff70" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -7836,6 +7845,7 @@ function goPage(name, swipeDir) {
   else if (name === 'pengumuman') { loadPengumuman(); }
   else if (name === 'raport') { loadRaport(); _clearRaportBadge(); }
   else if (name === 'insight') { loadInsightBelajar(); }
+  else if (name === 'khatamku-link') { loadKhatamkuLink(); }
   else if (name === 'info') { loadMateri(); }
   else if (name === 'attibyan') { loadAtTibyan(); }
   else if (name === 'charging') { loadCharging(); }
@@ -8598,7 +8608,7 @@ var PAGE_TO_GROUP = {
   attibyan: 'akademik', hafalan: 'akademik', 'partner-belajar': 'akademik', ketua: 'akademik',
   'spp-infaq': 'administrasi', 'infaq-beasiswa': 'administrasi',
   assessment: 'evaluasi', mutabaah: 'evaluasi', raport: 'evaluasi', charging: 'evaluasi',
-  insight: 'evaluasi',
+  insight: 'evaluasi', 'khatamku-link': 'evaluasi',
   panduan: 'pengaturan', password: 'pengaturan',
 };
 // Grup aktif diturunkan dari navigasi (goPage), TIDAK di-persist localStorage terpisah --

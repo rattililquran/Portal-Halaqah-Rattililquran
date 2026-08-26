@@ -606,6 +606,50 @@ var MuridAPI = {
     return data;
   },
 
+  // Account Linking KhatamKu -- baca status saat ini (langsung ke tabel,
+  // murah, RLS sudah izinkan baca baris sendiri via patch_092).
+  getKhatamkuLinkStatus: async function() {
+    var id_murid = _uid();
+    if (!id_murid) return { status: 'ok', data: null };
+    var [linkRes, progressRes] = await Promise.all([
+      _sb.from('khatamku_link').select('*').eq('id_user', id_murid).maybeSingle(),
+      _sb.from('khatamku_progress_cache').select('*').eq('id_user', id_murid).maybeSingle(),
+    ]);
+    return { status: 'ok', data: { link: linkRes.data || null, progress: progressRes.data || null } };
+  },
+
+  // Mulai/cek ulang proses linking (auto-match by username=NIS, atau
+  // siapkan kode manual kalau tidak ketemu). Idempotent -- aman dipanggil
+  // ulang, edge function sudah guard kalau sudah verified.
+  hubungkanKhatamku: async function() {
+    var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+    if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
+    var res = await fetch(SUPABASE_URL + '/functions/v1/khatamku-link-init', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body   : '{}',
+    });
+    var data;
+    try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
+    if (data.status === 'error') throw new Error(data.message);
+    return data;
+  },
+
+  // Konfirmasi 1-tap hasil auto-match ("Ya, ini saya")
+  konfirmasiKhatamku: async function() {
+    var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
+    if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
+    var res = await fetch(SUPABASE_URL + '/functions/v1/khatamku-link-confirm', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body   : JSON.stringify({ action: 'confirm_auto' }),
+    });
+    var data;
+    try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
+    if (data.status === 'error') throw new Error(data.message);
+    return data;
+  },
+
   // BUG-M6 fix: implementasi nyata — grafik kehadiran 6 bulan terakhir
   getProgressGrafik: async function() {
     var id_murid = _uid();
