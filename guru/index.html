@@ -1980,6 +1980,19 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
   .hamburger{display:none!important}
 }
 
+/* Sidebar desktop: rata/dempet ala murid (persistent sidebar ≥768px di
+   murid/index.html pakai border-radius:0 + box-shadow garis tipis, BUKAN
+   kartu melayang bersudut bulat + shadow blur besar) -- sebelumnya sidebar
+   guru tetap berbentuk kartu melayang di semua lebar layar, jadi terasa
+   lebih "renggang"/kurang rapat drpd punya murid meski nilai padding item
+   nav-nya sudah sama persis. */
+@media(min-width:769px){
+  .sidebar{
+    border-radius:0!important;
+    box-shadow:1px 0 0 var(--border)!important;
+  }
+}
+
 /* Sidebar: sedikit lebih ramping di tablet landscape */
 @media(min-width:769px) and (max-width:1100px){
   :root{--sw:220px}
