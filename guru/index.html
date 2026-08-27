@@ -272,10 +272,92 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   display:flex;align-items:center;padding:var(--sat) 22px 0;gap:12px;
   position:sticky;top:0;z-index:50;
   box-shadow:0 -8px 32px rgba(14,165,233,.06),0 1px 0 rgba(255,255,255,.9) inset}
-.topbar-title{font-size:15px;font-weight:700;flex:1}
+.topbar-title{font-size:15px;font-weight:700}
 .topbar-date{font-size:11.5px;color:var(--text-3)}
 .hamburger{display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);padding:4px}
 .content{flex:1;padding:22px 24px;width:100%;padding-bottom:40px;position:relative;z-index:1}
+
+/* ── Brand Rattililqur'an di header atas (pola identik Portal Murid) ── */
+.top-left{flex:1;min-width:0;display:flex;align-items:center}
+.top-brand{display:flex;align-items:center;gap:8px;min-width:0}
+/* Logo aslinya lockup Arab+Latin jadi satu gambar -- di-crop via overflow:hidden supaya
+   cuma bagian kaligrafi Arab yang tampil (tulisan Latin diwakili teks HTML .top-brand-name) */
+.top-brand-mark-wrap{height:28px;overflow:hidden;display:block;flex-shrink:0}
+.top-brand-mark{height:39px;width:auto;display:block}
+.top-brand-mark.dark-only{display:none}
+html.theme-dark .top-brand-mark.light-only{display:none}
+html.theme-dark .top-brand-mark.dark-only{display:block}
+.top-brand-name{font-size:17px;font-weight:800;letter-spacing:-.01em;color:#0f172a;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Efek kilatan (shimmer) di "QUR'AN" -- gradasi merah bergerak */
+.top-brand-accent{
+  background:linear-gradient(90deg,#ef4444 0%,#f97316 35%,#fecaca 50%,#ef4444 65%,#ef4444 100%);
+  background-size:200% auto;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:#ef4444;
+  animation:brandShimmer 2.4s linear infinite;
+}
+@keyframes brandShimmer{0%{background-position:0% center}100%{background-position:200% center}}
+@media(prefers-reduced-motion:reduce){.top-brand-accent{animation:none;background:none;-webkit-text-fill-color:#ef4444;color:#ef4444}}
+html.theme-dark .top-brand-name{color:#e8eaf0}
+
+/* ══ NAVIGASI: tab atas (murni pembuka dropdown quick-pick) + sidebar (selalu utuh) ══
+   Pola identik Portal Murid -- sidebar sengaja tidak punya hubungan apa pun dgn tab
+   atas, selalu menampilkan semua grup sekaligus apa pun tab yg terakhir aktif. */
+.top-tabbar{
+  display:flex;gap:4px;padding:0 10px;border-bottom:1px solid var(--border);
+  background:var(--card-solid,#fff);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  flex-shrink:0;
+}
+.top-tabbar::-webkit-scrollbar{display:none}
+.top-tab{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;padding:11px 10px;
+  border:none;background:none;font-family:inherit;font-size:12.5px;font-weight:700;
+  color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .2s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;
+}
+.top-tab:hover{color:var(--text)}
+.top-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.top-tab-ico{display:inline-flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.top-tab:hover .top-tab-ico{transform:translateY(-1px) scale(1.1)}
+.top-tab:active .top-tab-ico{transform:scale(.9)}
+.top-tab.active .top-tab-ico{animation:navIconPop .38s ease}
+.top-tab-ico svg{display:block;width:15px;height:15px}
+@media(prefers-reduced-motion:reduce){.top-tab-ico{transition:none !important;animation:none !important}}
+html.theme-dark .top-tabbar{background:#121214 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark .top-tab{color:rgba(255,255,255,.5) !important}
+html.theme-dark .top-tab:hover{color:#e8eaf0 !important}
+html.theme-dark .top-tab.active{color:#38bdf8 !important;border-bottom-color:#38bdf8 !important}
+/* HP: label penuh 5 tab kepanjangan drpd layar sempit -- icon-only kecuali tab aktif
+   (auto-expand), supaya user tetap dpt petunjuk fungsi ikon yg baru disentuh */
+@media(max-width:767px){
+  .top-tab{padding:13px 11px}
+  .top-tab:not(.active) span:not(.top-tab-ico){display:none}
+  .top-tab.active span:not(.top-tab-ico){color:var(--blue);font-weight:800}
+}
+html.theme-dark .top-tab.active span:not(.top-tab-ico){color:#38bdf8}
+
+/* Dropdown menu: muncul saat tap/klik/hover/fokus salah satu .top-tab[data-group]
+   (lihat JS showTabDropdown/hideTabDropdown/onTopTabClick) -- SATU panel dipakai
+   ulang utk semua tab, isinya diganti tiap kali dibuka. position:fixed sengaja jadi
+   sibling .top-tabbar (bukan child .sidebar yg posisinya fixed sendiri). */
+.top-tab-dropdown{
+  position:fixed;z-index:400;min-width:200px;max-width:280px;
+  max-height:70vh;overflow-y:auto;
+  background:var(--card-solid,#fff);border:1px solid var(--border);
+  border-radius:var(--r-sm);box-shadow:var(--shadow-lg);
+  padding:6px;opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .15s ease,transform .15s ease,visibility .15s;
+}
+.top-tab-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
+.top-tab-dropdown-item{
+  display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:8px 10px;border-radius:8px;
+  font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;font-family:inherit;
+  -webkit-appearance:none;appearance:none;
+}
+.top-tab-dropdown-item:hover{background:rgba(var(--blue-rgb),.08)}
+.top-tab-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
+.top-tab-dropdown-empty{padding:10px;font-size:12px;color:var(--text-3);text-align:center}
 
 /* ── PAGES ── */
 .page{display:none}.page.active{display:block}
@@ -2703,37 +2785,50 @@ html.theme-dark .pr-chip.active {
           Mulai Sesi Baru
         </button>
       </div>
+      <div class="sidebar-group" data-group="utama">
       <div class="sb-section">Utama</div>
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M9 21V12h6v9"/></svg></span>Dashboard</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>Pengumuman</button>
       <button class="nav-btn" onclick="goPage('jadwal')" data-p="jadwal"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Jadwal KBM</button>
+      </div><!-- /sidebar-group utama -->
 
+      <div class="sidebar-group" data-group="akademik">
       <div class="sb-section">Kelas & Murid</div>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Daftar Murid</button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
       <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
-      <button class="nav-btn" onclick="goPage('kuis-guru')" data-p="kuis-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>Rattil Quiz</button>
-      <button class="nav-btn" onclick="goPage('maze-guru')" data-p="maze-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/><circle cx="16" cy="11" r="1"/><circle cx="19" cy="14" r="1"/></svg></span>Rattil Maze</button>
-      <button class="nav-btn" onclick="goPage('run-guru')" data-p="run-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Rattil Run</button>
       <button class="nav-btn" onclick="goPage('attibyan-guru')" data-p="attibyan-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>At-Tibyan</button>
       <button class="nav-btn" id="navMutabaahGuru" onclick="goPage('mutabaah-guru')" data-p="mutabaah-guru" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></span>Mutaba'ah Daurah</button>
       <button class="nav-btn" onclick="goPage('pengembangan-guru')" data-p="pengembangan-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>Pengembangan Diri</button>
       <button class="nav-btn" id="navHafalanGuru" onclick="goPage('hafalan-guru')" data-p="hafalan-guru" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>Input Hafalan<span id="navHafalanBadge" style="display:none;margin-left:auto;background:#10b981;color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:1px 7px">Qiyam</span></button>
+      </div><!-- /sidebar-group akademik -->
 
-      <div class="sb-section">Penilaian & Raport</div>
+      <div class="sidebar-group" data-group="permainan">
+      <div class="sb-section">Permainan</div>
+      <button class="nav-btn" onclick="goPage('kuis-guru')" data-p="kuis-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>Rattil Quiz</button>
+      <button class="nav-btn" onclick="goPage('maze-guru')" data-p="maze-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/><circle cx="16" cy="11" r="1"/><circle cx="19" cy="14" r="1"/></svg></span>Rattil Maze</button>
+      <button class="nav-btn" onclick="goPage('run-guru')" data-p="run-guru"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Rattil Run</button>
+      </div><!-- /sidebar-group permainan -->
+
+      <div class="sidebar-group" data-group="evaluasi">
+      <div class="sb-section">Evaluasi</div>
       <button class="nav-btn" onclick="goPage('assessment')" data-p="assessment"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></span>Assessment</button>
       <button class="nav-btn" onclick="goPage('nilai-manual')" data-p="nilai-manual"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>Nilai Manual</button>
       <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Raport Halaqah</button>
       <button class="nav-btn" id="navRaportTahfidz" onclick="goPage('raport-tahfidz')" data-p="raport-tahfidz" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>Raport Tahfidz</button>
+      </div><!-- /sidebar-group evaluasi -->
 
-      <div class="sb-section">Bantuan & Sistem</div>
+      <div class="sidebar-group" data-group="pengaturan">
+      <div class="sb-section">Pengaturan</div>
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Berkas Pengajar</button>
       <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Panduan</button>
       <button class="nav-btn" onclick="closeSB();openCalendarModal()" data-p="calendar"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 15.5l1.8 1.8L15 13.5"/></svg></span>Pengingat Kalender</button>
       <button class="nav-btn" onclick="closeSB();openPushPrefsPanel()" data-p="notif"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Preferensi Notifikasi</button>
       <button class="nav-btn" onclick="closeSB();openModal('pwaModal')" id="pwaInstallSidebarBtn"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Install Aplikasi<span style="margin-left:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2.5px 8px;line-height:1">PWA</span></button>
       <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="4"/><line x1="10.6" y1="11.4" x2="20" y2="2"/><line x1="15" y1="7" x2="18" y2="10"/><line x1="18" y1="4" x2="21" y2="7"/></svg></span>Ganti Password</button>
+      </div><!-- /sidebar-group pengaturan -->
+
       <div style="height:1px;background:var(--border,#e2eaf5);margin:8px 4px"></div>
       <button class="nav-btn danger" onclick="doLogout()"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Keluar dari Aplikasi</button>
     </div>
@@ -2742,7 +2837,17 @@ html.theme-dark .pr-chip.active {
   <div class="main">
     <div class="topbar">
       <button class="hamburger" onclick="openSB()">☰</button>
-      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="top-left">
+        <div class="top-brand">
+          <div class="top-brand-mark-wrap">
+            <img class="top-brand-mark light-only" src="../assets/images/logo-abu.png" alt="Rattililqur'an">
+            <img class="top-brand-mark dark-only" src="../assets/images/logo-putih.png" alt="Rattililqur'an">
+          </div>
+          <span class="top-brand-name">RATTILIL<span class="top-brand-accent">QUR'AN</span></span>
+        </div>
+        <!-- dipertahankan tersembunyi utk kompatibilitas -- goPage() masih men-set textContent-nya -->
+        <div class="topbar-title" id="pageTitle" style="display:none">Dashboard</div>
+      </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="topbar-date" id="topDate"></div>
         <button id="theme-toggle" class="theme-toggle-btn" title="Ganti Mode Gelap/Terang" aria-label="Ganti mode gelap/terang">
@@ -2756,6 +2861,34 @@ html.theme-dark .pr-chip.active {
         </button>
       </div>
     </div>
+
+    <!-- TAB ATAS -- membuka dropdown quick-pick isi grup ybs (tap di HP, hover/klik di
+         desktop), tidak berhubungan dgn sidebar sama sekali & tidak pindah halaman
+         sendiri (goPage() dipanggil dari item DI DALAM dropdown, bukan dari tab-nya).
+         Pola identik Portal Murid. -->
+    <nav class="top-tabbar" id="topTabbar" role="tablist" aria-label="Navigasi utama">
+      <button class="top-tab active" data-group="utama" onclick="onTopTabClick('utama', this)" role="tab" aria-selected="true" aria-haspopup="true" aria-expanded="false" aria-label="Utama">
+        <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        <span>Utama</span>
+      </button>
+      <button class="top-tab" data-group="akademik" onclick="onTopTabClick('akademik', this)" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Akademik">
+        <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+        <span>Akademik</span>
+      </button>
+      <button class="top-tab" data-group="permainan" onclick="onTopTabClick('permainan', this)" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Permainan">
+        <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+        <span>Permainan</span>
+      </button>
+      <button class="top-tab" data-group="evaluasi" onclick="onTopTabClick('evaluasi', this)" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Evaluasi">
+        <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 12 18 15 15"/><line x1="12" y1="12" x2="12" y2="18"/></svg></span>
+        <span>Evaluasi</span>
+      </button>
+      <button class="top-tab" data-group="pengaturan" onclick="onTopTabClick('pengaturan', this)" role="tab" aria-selected="false" aria-haspopup="true" aria-expanded="false" aria-label="Pengaturan">
+        <span class="top-tab-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+        <span>Pengaturan</span>
+      </button>
+    </nav>
+    <div class="top-tab-dropdown" id="topTabDropdown" role="menu" aria-hidden="true"></div>
     <div class="content">
 
       <!-- ════ DASHBOARD ════ -->
@@ -6687,6 +6820,7 @@ function goPage(name) {
   document.getElementById('page-' + name) && document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('[data-p="' + name + '"]').forEach(b => b.classList.add('active'));
   document.getElementById('pageTitle').textContent = PAGE_TITLES[name] || name;
+  if (typeof setActiveNavGroup === 'function') setActiveNavGroup(PAGE_TO_GROUP[name] || 'utama');
   closeSB();
   if (name === 'kuis-guru') {
     if (typeof window.renderGuruQuizPage === 'function') window.renderGuruQuizPage();
@@ -6769,6 +6903,134 @@ function goPage(name) {
 
 function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
 function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
+
+// ══ NAVIGASI: tab atas (murni pembuka dropdown quick-pick) + sidebar (selalu utuh) ══
+// Pola identik Portal Murid -- sidebar sengaja tidak punya hubungan apa pun dgn tab
+// atas, selalu tampil semua grup sekaligus apa pun tab yg terakhir aktif.
+var NAV_GROUPS = ['utama', 'akademik', 'permainan', 'evaluasi', 'pengaturan'];
+// Pemetaan nama halaman (goPage) -> grup sidebar yang memuatnya. Item yang tidak
+// pernah memanggil goPage() (Berkas, Kalender, Notifikasi, Install Aplikasi) tidak
+// perlu masuk sini -- tab-nya jadi murni pilihan manual, tak pernah auto-highlight.
+var PAGE_TO_GROUP = {
+  dashboard: 'utama', pengumuman: 'utama', jadwal: 'utama',
+  murid: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
+  'attibyan-guru': 'akademik', 'mutabaah-guru': 'akademik', 'pengembangan-guru': 'akademik', 'hafalan-guru': 'akademik',
+  'kuis-guru': 'permainan', 'maze-guru': 'permainan', 'run-guru': 'permainan',
+  assessment: 'evaluasi', 'nilai-manual': 'evaluasi', raport: 'evaluasi', 'raport-tahfidz': 'evaluasi',
+  panduan: 'pengaturan', password: 'pengaturan',
+};
+function setActiveNavGroup(key) {
+  if (NAV_GROUPS.indexOf(key) === -1) return;
+  document.querySelectorAll('.top-tab[data-group]').forEach(function(b) {
+    var on = b.getAttribute('data-group') === key;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+}
+// Tab atas TIDAK PERNAH membuka/memfilter sidebar -- satu-satunya perannya adalah
+// memicu dropdown quick-pick (showTabDropdown), sama persis di HP (tap) maupun
+// desktop (hover/fokus/klik). Sidebar (dibuka lewat hamburger) berdiri sendiri,
+// selalu menampilkan SEMUA grup sekaligus, apa pun tab yg terakhir aktif.
+function onTopTabClick(key, tabEl) {
+  setActiveNavGroup(key);
+  showTabDropdown(key, tabEl);
+}
+
+// ── Dropdown menu tab atas (tap di HP, hover/fokus di desktop) ──
+var _tabDropdownHideT = null;
+function buildTabDropdownItems(key) {
+  var group = document.querySelector('.sidebar-group[data-group="' + key + '"]');
+  if (!group) return [];
+  // Semua .nav-btn yang punya onclick -- BUKAN cuma yang ber-data-p (goPage). Ada item
+  // yang bukan goPage sama sekali (Berkas Pengajar/Pengingat Kalender/Preferensi
+  // Notifikasi/Install Aplikasi buka fungsi/modal langsung) -- itu tetap tujuan yang
+  // sah utk ditampilkan di dropdown, onclick-nya dipakai apa adanya. ":not(.danger)"
+  // sengaja mengecualikan "Keluar dari Aplikasi" dari menu hover yang gampang
+  // ke-trigger tanpa sengaja.
+  return Array.prototype.slice.call(group.querySelectorAll('.nav-btn:not(.danger)[onclick]'))
+    .filter(function(el){ return el.style.display !== 'none'; })
+    .map(function(el){
+      // guru tak punya <span class="sidebar-item-label"> pembungkus label seperti
+      // murid -- labelnya teks polos di antara ikon (.ni) & badge opsional. Ambil
+      // text node langsung milik tombol itu sendiri saja.
+      var label = Array.prototype.filter.call(el.childNodes, function(n){ return n.nodeType === 3; })
+        .map(function(n){ return n.textContent; }).join('').trim();
+      return {
+        onclick: el.getAttribute('onclick'),
+        icon: (el.querySelector('.ni') || {}).innerHTML || '',
+        label: label
+      };
+    });
+}
+function showTabDropdown(key, tabEl) {
+  if (!tabEl) return;
+  clearTimeout(_tabDropdownHideT);
+  var dd = document.getElementById('topTabDropdown');
+  if (!dd) return;
+  var items = buildTabDropdownItems(key);
+  dd.innerHTML = items.length ? items.map(function(it){
+    return '<button class="top-tab-dropdown-item" role="menuitem" onclick="' + esc(it.onclick) + ';hideTabDropdown()">'
+      + it.icon + '<span>' + esc(it.label) + '</span></button>';
+  }).join('') : '<div class="top-tab-dropdown-empty">Tidak ada item.</div>';
+  var r = tabEl.getBoundingClientRect();
+  var left = Math.min(r.left, window.innerWidth - 288);
+  dd.style.left = Math.max(8, left) + 'px';
+  dd.style.top  = (r.bottom + 6) + 'px';
+  dd.classList.add('open');
+  dd.setAttribute('aria-hidden', 'false');
+  tabEl.setAttribute('aria-expanded', 'true');
+}
+function hideTabDropdown() {
+  var dd = document.getElementById('topTabDropdown');
+  if (!dd) return;
+  dd.classList.remove('open');
+  dd.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.top-tab[aria-expanded="true"]').forEach(function(b){ b.setAttribute('aria-expanded', 'false'); });
+}
+function scheduleHideTabDropdown() {
+  clearTimeout(_tabDropdownHideT);
+  _tabDropdownHideT = setTimeout(hideTabDropdown, 220);
+}
+// Fokus keyboard (Tab key) wajar pindah dari tombol tab KE item menu di dalam panel --
+// itu bukan alasan menutup panel. Panel cuma nutup kalau fokus benar2 keluar dari tab
+// & panelnya sekaligus.
+function _isInsideTabDropdownSystem(el) {
+  if (!el) return false;
+  var dd2 = document.getElementById('topTabDropdown');
+  if (dd2 && dd2.contains(el)) return true;
+  return !!(el.classList && el.classList.contains('top-tab'));
+}
+(function initTabDropdownEvents(){
+  document.querySelectorAll('.top-tab[data-group]').forEach(function(tab){
+    tab.addEventListener('mouseenter', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
+    tab.addEventListener('mouseleave', scheduleHideTabDropdown);
+    tab.addEventListener('focus', function(){ showTabDropdown(tab.getAttribute('data-group'), tab); });
+    tab.addEventListener('blur', function(e){
+      if (_isInsideTabDropdownSystem(e.relatedTarget)) return;
+      scheduleHideTabDropdown();
+    });
+  });
+  var dd = document.getElementById('topTabDropdown');
+  if (dd) {
+    dd.addEventListener('mouseenter', function(){ clearTimeout(_tabDropdownHideT); });
+    dd.addEventListener('mouseleave', scheduleHideTabDropdown);
+    dd.addEventListener('focusout', function(e){
+      if (_isInsideTabDropdownSystem(e.relatedTarget)) return;
+      scheduleHideTabDropdown();
+    });
+  }
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideTabDropdown(); });
+  // Klik di luar tab & panel (mis. area konten) langsung nutup -- panel bisa "nyangkut"
+  // terbuka kalau salah satu onclick item di dalamnya error sblm sempat panggil
+  // hideTabDropdown(), atau di perangkat yang mouseleave-nya tidak konsisten.
+  document.addEventListener('click', function(e){
+    var dd3 = document.getElementById('topTabDropdown');
+    if (!dd3 || !dd3.classList.contains('open')) return;
+    if (e.target.closest && e.target.closest('.top-tab[data-group]')) return;
+    if (e.target.closest && e.target.closest('#topTabDropdown')) return;
+    hideTabDropdown();
+  });
+})();
 
 // ══════════════════════════════════════════
 //  DASHBOARD
