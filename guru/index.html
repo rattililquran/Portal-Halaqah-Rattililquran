@@ -9111,12 +9111,33 @@ async function mulaiSesiBaruCepat() {
   if (halaqahList.length === 1) {
     buatSesiInstan(halaqahList[0].id_halaqah);
   } else {
-    const pilihanHtml = halaqahList.map(h => 
-      `<button class="btn btn-outline" style="width:100%;margin-bottom:8px;justify-content:center;padding:12px;font-weight:700" ` +
-      `onclick="closeModal('modalPilihHalaqahSesi'); window._mulaiSesiBaruCepatHalaqah('${h.id_halaqah}')">` +
-      `📚 ${esc(h.nama_halaqah)}` +
-      `</button>`
-    ).join('');
+    // Tunjukkan jadwal (hari & jam) tiap halaqah -- bukan cuma nama -- supaya
+    // guru tak perlu menebak/buka Jadwal KBM dulu buat tahu mana yg dimaksud.
+    // Halaqah yg jadwalnya HARI INI ditaruh paling atas & disorot hijau, biar
+    // yg paling relevan sekarang langsung kelihatan tanpa perlu menelusuri list.
+    const NAMA_HARI_ID = ['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const hariIni = NAMA_HARI_ID[new Date().getDay()];
+    const isHariIni = (h) => (h.jadwal_hari || '').toLowerCase().includes(hariIni.toLowerCase());
+    const sortedHalaqah = halaqahList.slice().sort((a, b) => (isHariIni(b) ? 1 : 0) - (isHariIni(a) ? 1 : 0));
+
+    const pilihanHtml = sortedHalaqah.map(h => {
+      const today = isHariIni(h);
+      const jam = h.jam_mulai ? (h.jam_mulai + (h.jam_selesai ? '–' + h.jam_selesai : '')) : '';
+      const jadwalTxt = [h.jadwal_hari, jam].filter(Boolean).join(' · ');
+      return `<button class="btn btn-outline" style="width:100%;margin-bottom:8px;flex-direction:column;align-items:stretch;gap:3px;padding:12px 14px;font-weight:700;` +
+        (today ? 'border-color:var(--green);background:var(--green-l)' : '') + `" ` +
+        `onclick="closeModal('modalPilihHalaqahSesi'); window._mulaiSesiBaruCepatHalaqah('${h.id_halaqah}')">` +
+        `<span style="display:flex;align-items:center;gap:8px;width:100%">` +
+          `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>` +
+          `<span>${esc(h.nama_halaqah)}</span>` +
+          (today ? `<span class="badge-hari-ini" style="margin-left:auto">Hari ini</span>` : '') +
+        `</span>` +
+        (jadwalTxt ? `<span style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:${today ? 'var(--green-d)' : 'var(--text-3)'};padding-left:23px">` +
+          `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>` +
+          esc(jadwalTxt) +
+        `</span>` : '') +
+        `</button>`;
+    }).join('');
 
     let modalEl = document.getElementById('modalPilihHalaqahSesi');
     if (!modalEl) {
