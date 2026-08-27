@@ -1674,7 +1674,15 @@
 
   function escapeJsStr(str) {
     if (!str) return '';
-    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    // Fix bug hunt 27 Agustus 2026 (CRITICAL): versi lama cuma escape backslash/kutip
+    // TANPA HTML-entity-encode dulu -- HTML tak kenal backslash sbg escape char, jadi
+    // string berisi `"` (mis. dari nama_lengkap murid, bebas-teks & murid bisa ubah
+    // sendiri) tetap memutus atribut onclick="..." lebih awal meski sudah di-\"-escape.
+    // Delegasikan ke escJs() global (guru/index.html) yang sudah benar (HTML-encode
+    // &/</>/" dulu, baru escape backslash & apostrof) -- konsisten dgn modul lain.
+    if (typeof window.escJs === 'function') return window.escJs(str);
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
   function showLoading(msg) {

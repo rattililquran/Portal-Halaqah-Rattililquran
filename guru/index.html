@@ -6240,7 +6240,7 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/popup-notifikasi.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="quiz-module.js?v=32951523"></script>
+<script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b4631877" defer></script>
 <script src="dashboard-module.js?v=895bd7e0" defer></script>
 <script src="kelompok-module.js?v=6f0dec9c" defer></script>
@@ -6249,7 +6249,7 @@ html.theme-dark .pr-chip.active {
 <script src="kbm-module.js?v=a10bf81e" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=9e12a9aa" defer></script>
-<script src="hafalan-module.js?v=fb6cf035" defer></script>
+<script src="hafalan-module.js?v=a06180c3" defer></script>
 <script src="mutabaah-guru-module.js?v=1be1e422" defer></script>
 <script src="pengembangan-guru-module.js?v=c5bc33e2" defer></script>
 <script>
@@ -8121,6 +8121,11 @@ async function loadJadwal() {
     var r = await window.HQ.GuruAPI.getJadwalHariIni();
     jadwalData = r.data || [];
     var hari = r.hari_ini || '';
+    // Simpan nama hari dari server (WIB, sudah lolos _todayJakarta()) sbg global --
+    // dipakai mulaiSesiBaruCepat() jg (lihat MB12 bug hunt 2026-08-27) supaya TIDAK
+    // ada 2 sumber kebenaran "hari ini" yg beda (device-local vs server) di 2 tempat
+    // yg sama2 menyoroti halaqah "hari ini" di dashboard.
+    window._hariIniServer = hari;
     window._liburResmiHariIni = r.libur_resmi_hari_ini || null;
     updateDraftWarning();
     renderJadwal();
@@ -9245,11 +9250,19 @@ async function mulaiSesiBaruCepat() {
     // includes() substring (toleran thd teks/tanda baca tambahan di jadwal_hari),
     // dicek thd SEMUA varian ejaan hari ini via _HARI_INDEX (mis. "jumat" &
     // "jum'at"), bukan exact-match per token yg kelewat ketat.
-    const todayIdxCepat = new Date().getDay();
+    // MB12 fix (bug hunt 2026-08-27): dulu SELALU new Date().getDay() device-local,
+    // beda sumber kebenaran dgn kartu hero dashboard (yg pakai hari_ini dari server/
+    // WIB) -- guru dgn device non-WIB bisa lihat halaqah yg salah disorot "hari ini"
+    // di sini vs di kartu tepat di atasnya. Prioritaskan window._hariIniServer
+    // (di-set loadJadwal() dari r.hari_ini), device-local cuma fallback kalau
+    // belum sempat ke-set (mis. halaman baru dibuka & loadJadwal belum selesai).
+    const _hariIdxMap = window._HARI_INDEX || {};
+    const todayIdxCepat = (window._hariIniServer && _hariIdxMap[window._hariIniServer.toLowerCase()] !== undefined)
+      ? _hariIdxMap[window._hariIniServer.toLowerCase()]
+      : new Date().getDay();
     const isHariIni = (h) => {
       const jadwalLower = (h.jadwal_hari || '').toLowerCase();
-      const hariIdx = window._HARI_INDEX || {};
-      return Object.keys(hariIdx).some(k => hariIdx[k] === todayIdxCepat && jadwalLower.includes(k));
+      return Object.keys(_hariIdxMap).some(k => _hariIdxMap[k] === todayIdxCepat && jadwalLower.includes(k));
     };
     const sortedHalaqah = halaqahList.slice().sort((a, b) => (isHariIni(b) ? 1 : 0) - (isHariIni(a) ? 1 : 0));
 

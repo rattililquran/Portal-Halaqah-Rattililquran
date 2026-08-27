@@ -1034,7 +1034,10 @@
             + '<div style="font-size:10px;color:#9ca3af">' + _fmtHafalanDateGuru(r.created_at) + '</div>'
             + catHtml + tgtHtml
           + '</div>'
-          + '<button onclick="deleteSetoranHafalanGuru(\'' + r.id_setoran + '\', \'' + esc((r.nama_murid||'').replace(/'/g, "\\'")) + '\', \'' + esc((r.surat||'').replace(/'/g, "\\'")) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:4px 8px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background 0.2s;margin-top:2px" title="Hapus Setoran" onmouseover="this.style.background=\'#fee2e2\'" onmouseout="this.style.background=\'none\'">'
+          // Fix bug hunt 27 Agustus 2026 (HIGH): pola lama (replace apostrof manual
+          // lalu esc()) tak HTML-encode dulu -- nama_murid berisi karakter aneh masih
+          // bisa memutus atribut onclick. Pakai escJs() global (sama spt modul lain).
+          + '<button onclick="deleteSetoranHafalanGuru(\'' + escJs(r.id_setoran) + '\', \'' + escJs(r.nama_murid||'') + '\', \'' + escJs(r.surat||'') + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:4px 8px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background 0.2s;margin-top:2px" title="Hapus Setoran" onmouseover="this.style.background=\'#fee2e2\'" onmouseout="this.style.background=\'none\'">'
             + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
           + '</button>'
         + '</div>';
