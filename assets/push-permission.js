@@ -26,6 +26,11 @@ var STYLE = `
   box-shadow:0 32px 64px -16px rgba(3,54,90,.38),0 12px 28px -12px rgba(3,54,90,.22);
   overflow:hidden;
 }
+/* Gradient header diduplikasi persis di assets/popup-notifikasi.js
+   (.pn-head) & murid/khatamku-popup-module.js (.kp-head) -- keep-in-sync,
+   lihat catatan lengkap di popup-notifikasi.js. Dialog ini sendiri tak
+   punya tombol close X (Allow/Skip, bukan silang) jadi bagian itu tak ikut
+   duplikat di sini. */
 .push-header {
   background:
     radial-gradient(135% 180% at 82% -30%,rgba(255,255,255,.28),transparent 55%),

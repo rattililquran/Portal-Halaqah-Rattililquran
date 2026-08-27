@@ -19,6 +19,10 @@
   animation:kpPopIn .3s ease;
 }
 @keyframes kpPopIn{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Gradient header & tombol close (di bawah) diduplikasi persis di
+   assets/popup-notifikasi.js (.pn-head/.pn-close) & assets/push-
+   permission.js (.push-header) -- keep-in-sync, lihat catatan lengkap di
+   popup-notifikasi.js. */
 #kp-card .kp-head{
   background:
     radial-gradient(135% 180% at 82% -30%,rgba(255,255,255,.28),transparent 55%),

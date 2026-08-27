@@ -29,6 +29,12 @@ var STYLE = `
   animation:pnPopIn .3s ease;
 }
 @keyframes pnPopIn{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+/* Gradient header & tombol close (di bawah) diduplikasi persis (byte-for-
+   byte) di assets/push-permission.js (.push-header) & murid/khatamku-
+   popup-module.js (.kp-head/.kp-close) -- 3 file terpisah tanpa mekanisme
+   share-CSS (plain <style> injection per modul, bukan build system), jadi
+   sengaja disalin drpd direstrukturisasi. Kalau ubah salah satu, ikut ubah
+   yg lain (code review 2026-08-27, ditandai duplikasi tapi bukan bug). */
 #pn-card .pn-head{
   background:
     radial-gradient(135% 180% at 82% -30%,rgba(255,255,255,.28),transparent 55%),
