@@ -1477,7 +1477,13 @@ var GuruAPI = {
             id_murid: m.id_murid, id_periode: d.id_periode, id_halaqah: d.id_halaqah,
             nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat,
             detail_json: detailJson, tanggal_cetak: _localDate(),
-          }, { onConflict: 'id_murid,id_periode' });
+          // MB7 fix (bug hunt 2026-08-27): dulu onConflict cuma (id_murid,id_periode)
+          // -- murid yg aktif di 2 halaqah sekaligus (reguler + Level Qiyam) berebut
+          // 1 baris fisik, guru halaqah kedua yg generate belakangan selalu gagal
+          // (RLS guru_owns_halaqah menolak update baris berkepemilikan guru pertama).
+          // Constraint unik DB juga sudah diperluas (id_murid,id_periode,id_halaqah)
+          // via patch_096 -- sertakan id_halaqah di sini spy match constraint barunya.
+          }, { onConflict: 'id_murid,id_periode,id_halaqah' });
         if (upErr) throw new Error(upErr.message);
         berhasil.push(Object.assign({ nama_murid: m.nama_murid, catatan_guru: catatan && catatan.catatan }, raportData));
       } catch(e) { gagal.push({ id_murid: m.id_murid, nama: m.nama_murid, alasan: e.message }); }
@@ -5388,7 +5394,10 @@ var AdminAPI = {
           detail_json: raportData.komponen,
           tanggal_cetak: _localDate(),
           status: 'draft',
-        }, { onConflict: 'id_murid,id_periode' });
+        // MB7 fix (bug hunt 2026-08-27): idem generateRaportHalaqah -- sertakan
+        // id_halaqah spy match constraint unik baru (patch_096), tak lagi berebut
+        // 1 baris dgn halaqah lain murid yg sama utk periode yg sama.
+        }, { onConflict: 'id_murid,id_periode,id_halaqah' });
         if (upErr) throw new Error(upErr.message);
         berhasil.push({ nama_murid: m.nama_murid, nilai_akhir: raportData.nilai_akhir, predikat: raportData.predikat });
       } catch(e) { gagal.push({ id_murid: m.id_murid, nama: m.nama_murid, alasan: e.message }); }
