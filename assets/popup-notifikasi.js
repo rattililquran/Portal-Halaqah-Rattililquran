@@ -36,7 +36,11 @@ var STYLE = `
   padding:22px 50px 20px 22px;position:relative;
 }
 #pn-card .pn-close{-webkit-appearance:none;appearance:none;position:absolute;top:12px;right:12px;width:32px;height:32px;min-width:32px;max-width:32px;min-height:32px;max-height:32px;box-sizing:border-box;flex-shrink:0;flex-grow:0;aspect-ratio:1/1;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:0;outline:none;transition:background .15s ease,transform .15s ease}
-#pn-card .pn-close svg{display:block;flex-shrink:0}
+#pn-card .pn-close svg{display:block;flex-shrink:0;overflow:visible}
+#pn-card .pn-close line{transform-origin:center;transition:transform .4s ease}
+#pn-card .pn-close:hover line.l1{transition-delay:0s;transform:rotate(90deg)}
+#pn-card .pn-close:hover line.l2{transition-delay:.1s;transform:rotate(90deg)}
+@media (prefers-reduced-motion: reduce){ #pn-card .pn-close line{transition:none} }
 #pn-card .pn-close:hover{background:rgba(255,255,255,.3);transform:scale(1.06)}
 #pn-card .pn-close:active{transform:scale(.94)}
 #pn-card .pn-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;font-weight:800;color:#fff;padding-right:4px;overflow-wrap:break-word}
@@ -96,7 +100,7 @@ function render(p) {
   card.innerHTML =
     '<div class="pn-head">' +
       '<button type="button" class="pn-close" aria-label="Tutup" onclick="window._pnDismiss()">'
-        + '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+        + '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line class="l1" x1="1" y1="1" x2="13" y2="13"/><line class="l2" x1="13" y1="1" x2="1" y2="13"/></svg>'
       + '</button>' +
       '<div class="pn-title">' + (p.judul ? _pnEsc(p.judul) : '📣 Info') + '</div>' +
     '</div>' +
