@@ -631,9 +631,19 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
-    // .noRetry: error definitif dari server (bukan soal jaringan/cold-start)
-    // -- percobaan ulang pasti gagal lagi dgn hasil sama, jgn buang waktu user.
-    if (data.status === 'error') { var eSrv = new Error(data.message); eSrv.noRetry = true; throw eSrv; }
+    // .noRetry HANYA utk error identitas (401/403 -- sesi habis/profil tak
+    // ketemu): pasti gagal lagi walau diulang. Selain itu (mis. 502 "Gagal
+    // menghubungi KhatamKu" saat bridge-portal cold-start/timeout) TETAP
+    // retryable -- itu justru kasus yang paling butuh percobaan ulang.
+    // Bug ditemukan 2026-08-27: sebelumnya SEMUA status==='error' ditandai
+    // noRetry, jadi retry loop di khatamku-link-module.js berhenti di
+    // percobaan pertama persis saat bridge lagi cold-start -- yg terlihat
+    // user sbg "loading lalu balik ke Belum Terhubung".
+    if (data.status === 'error') {
+      var eSrv = new Error(data.message);
+      if (res.status === 401 || res.status === 403) eSrv.noRetry = true;
+      throw eSrv;
+    }
     return data;
   },
 
@@ -648,7 +658,11 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
-    if (data.status === 'error') { var eSrv2 = new Error(data.message); eSrv2.noRetry = true; throw eSrv2; }
+    if (data.status === 'error') {
+      var eSrv2 = new Error(data.message);
+      if (res.status === 401 || res.status === 403) eSrv2.noRetry = true;
+      throw eSrv2;
+    }
     return data;
   },
 
