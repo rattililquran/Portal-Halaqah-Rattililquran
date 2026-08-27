@@ -884,88 +884,6 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 .empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
 .empty-sub{font-size:12.5px}
 
-/* Collapsed Sidebar Rules */
-@media(min-width:769px) {
-  body.sidebar-collapsed {
-    --sw: 78px !important;
-  }
-  body.sidebar-collapsed .sidebar {
-    border-radius: 0 16px 16px 0;
-  }
-  body.sidebar-collapsed .sb-profile-row {
-    justify-content: center;
-  }
-  body.sidebar-collapsed .sb-avatar {
-    width: 40px;
-    height: 40px;
-  }
-  body.sidebar-collapsed .sb-info,
-  body.sidebar-collapsed .sb-section,
-  body.sidebar-collapsed .logout-btn span,
-  body.sidebar-collapsed .nav-btn span:not(.ni) {
-    display: none !important;
-  }
-  body.sidebar-collapsed .logout-btn {
-    padding: 10px 0;
-    width: 44px;
-    margin: 0 auto;
-  }
-  body.sidebar-collapsed .sb-nav > div:first-child button {
-    padding: 10px !important;
-    width: 44px !important;
-    margin: 0 auto !important;
-    font-size: 0 !important;
-    justify-content: center;
-  }
-  body.sidebar-collapsed .nav-btn {
-    font-size: 0 !important;
-    padding: 10px 10px;
-    justify-content: center;
-  }
-  body.sidebar-collapsed .nav-btn .ni {
-    margin: 0 !important;
-  }
-}
-
-/* Toggle Collapse Button style */
-.sb-toggle-collapse {
-  display: none;
-}
-@media(min-width:769px) {
-  .sb-toggle-collapse {
-    display: flex;
-    position: fixed;
-    bottom: 24px;
-    left: calc(var(--sw) - 16px);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #fff;
-    border: 1px solid rgba(14,165,233,0.15);
-    box-shadow: 0 4px 12px rgba(14,165,233,0.08);
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 110;
-    transition: left 0.3s cubic-bezier(.22,1,.36,1), transform 0.2s, background-color 0.2s, border-color 0.2s;
-    color: #0ea5e9;
-  }
-  .sb-toggle-collapse:hover {
-    transform: scale(1.1);
-    background: #eff6ff;
-    border-color: #0ea5e9;
-  }
-  .sb-toggle-collapse svg {
-    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
-  }
-  body.sidebar-collapsed .sb-toggle-collapse {
-    left: 62px !important;
-  }
-  body.sidebar-collapsed .sb-toggle-collapse svg {
-    transform: rotate(180deg);
-  }
-}
-
 /* ── SIDEBAR OVERLAY ── */
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
 
@@ -1652,16 +1570,6 @@ html.theme-dark .sb-section{
 html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .logout-btn{background:rgba(248,113,113,.06) !important;color:#f87171 !important;border-color:rgba(248,113,113,.15) !important}
 html.theme-dark .logout-btn:hover{background:rgba(248,113,113,.1) !important;border-color:rgba(248,113,113,0.3) !important}
-html.theme-dark .sb-toggle-collapse {
-  background: #121214 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #38bdf8 !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-}
-html.theme-dark .sb-toggle-collapse:hover {
-  background: rgba(56, 189, 248, 0.1) !important;
-  border-color: #38bdf8 !important;
-}
 html.theme-dark .overlay{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(4px)!important}
 html.theme-dark .modal{background:#121214!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
 html.theme-dark .modal-head{background:#121214!important;border-bottom-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
@@ -2726,11 +2634,6 @@ html.theme-dark .pr-chip.active {
   <span class="offline-banner-text">Koneksi internet terputus. Anda sedang bekerja secara offline.</span>
 </div>
 
-<script>
-  if (localStorage.getItem('hq_sidebar_collapsed') === 'true' && window.innerWidth > 768) {
-    document.body.classList.add('sidebar-collapsed');
-  }
-</script>
 
 <div class="loader" id="loader">
   <div class="loader-inner">
@@ -2848,11 +2751,6 @@ html.theme-dark .pr-chip.active {
       </button>
     </div>
   </aside>
-
-  <!-- Collapse Button (Desktop only) -->
-  <button class="sb-toggle-collapse" onclick="toggleSidebarCollapse()" aria-label="Toggle Sidebar" title="Collapse/Expand Sidebar">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
 
   <div class="main">
     <div class="topbar">
@@ -6884,11 +6782,6 @@ function goPage(name) {
 
 function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
 function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
-
-function toggleSidebarCollapse() {
-  const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-  localStorage.setItem('hq_sidebar_collapsed', isCollapsed ? 'true' : 'false');
-}
 
 // ══════════════════════════════════════════
 //  DASHBOARD
