@@ -7073,7 +7073,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf" defer></script>
-<script src="../supabase/api-murid.js?v=df9256cf" defer></script>
+<script src="../supabase/api-murid.js?v=41fa35bf" defer></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -8009,9 +8009,21 @@ function _kbmBarColor(pct) {
   return 'linear-gradient(90deg,#fbbf24,#f59e0b)';
 }
 function _paintDonutRing(el, pctNumEl, colorOrFn, pct, barEl, barColorOrFn) {
-  var color = (typeof colorOrFn === 'function') ? colorOrFn(pct) : colorOrFn;
+  var dinamis = (typeof colorOrFn === 'function');
+  var color = dinamis ? colorOrFn(pct) : colorOrFn;
   el.style.background = 'conic-gradient(' + color + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
-  if (pctNumEl) pctNumEl.textContent = Math.round(pct) + '%';
+  if (pctNumEl) {
+    pctNumEl.textContent = Math.round(pct) + '%';
+    // Warna teks persen ikut dianimasikan tiap frame HANYA kalau ring-nya
+    // pakai warna dinamis-per-zona (mis. KBM Reguler) -- ring yg warnanya
+    // tetap (MT/At-Tibyan/Micro) tak perlu, biar tak nimpa warna yg sudah
+    // benar percuma tiap frame. Bug hunt: sebelumnya pctNum.style.color
+    // di-set SEKALI di luar sebelum animasi mulai (ke warna zona TARGET),
+    // jadi selama ~1,55 detik sapuan angka persennya sudah warna akhir
+    // duluan sementara ring-nya masih melintasi merah/biru/hijau di
+    // belakangnya -- tak nyambung.
+    if (dinamis) pctNumEl.style.color = color;
+  }
   if (barEl) {
     barEl.style.width = pct + '%';
     if (barColorOrFn) {
@@ -8031,9 +8043,22 @@ function animateDonutRing(el, pctNumEl, colorOrFn, targetPct, sweep, barEl, barC
   targetPct = Math.max(0, Math.min(100, Number(targetPct) || 0));
   el.dataset.pct = targetPct;
   el._donutColorFn = colorOrFn; // fungsi (warna ikut pct saat animasi) ATAU string (warna tetap)
+  // Ring yg sama dipakai gantian utk metrik yg py bar (KBM Reguler) & yg
+  // tidak (Micro Teaching) -- kalau bar SEBELUMNYA beda/kosong drpd yg
+  // skrg, kembalikan transition-nya dulu spy tak nyangkut 'none' permanen
+  // kalau ternyata bar itu tak lagi disentuh panggilan-panggilan berikutnya.
+  if (el._donutBarEl && el._donutBarEl !== barEl) el._donutBarEl.style.transition = '';
   el._donutBarEl = barEl;
   el._donutBarColorFn = barColorOrFn;
   var kurangGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // TOKEN SELALU di-increment di sini, sebelum cabang mana pun -- bug hunt:
+  // dulu cuma di-increment di jalur sweep, jadi panggilan silent/reduced-
+  // motion (early-return di bawah) tak pernah membatalkan sapuan LAMA yg
+  // kebetulan masih berjalan di elemen yg sama. Akibatnya rAF loop lama itu
+  // terus jalan pakai targetPct BASI dari closure-nya sendiri & menimpa
+  // balik hasil silent-refresh yg baru saja dilukis benar -- ring/persen/
+  // bar kelihatan "macet" ke data lama sampai ~1,55 detik (durasi sapuan).
+  var tokenSaya = (el._donutTok = (el._donutTok || 0) + 1);
   // sweep=false dipakai utk silent-refresh (polling data di latar) -- cuma
   // sinkron angka tanpa animasi 0->100->pct, biar tak muncul tiba-tiba
   // sendiri saat user diam. Sweep penuh cuma utk buka tab pertama & replay
@@ -8044,7 +8069,6 @@ function animateDonutRing(el, pctNumEl, colorOrFn, targetPct, sweep, barEl, barC
     return;
   }
   if (barEl) barEl.style.transition = 'none';
-  var tokenSaya = (el._donutTok = (el._donutTok || 0) + 1);
   var mulai = null;
   var NAIK = 800, TURUN = 750; // diperlambat -- dilaporkan user versi awal (500+550) kecepatan
   function frame(now) {
@@ -8241,15 +8265,13 @@ async function loadDashboard(silent) {
       pct     = skor40 > 0 ? Math.min(skor40, 100)
                   : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
 
-      // Warna dinamis KhatamKu style — merah→amber→biru→hijau→emas
-      // (ringColor/_kbmBarColor spy 1 sumber kebenaran dgn animasi)
-      var ringColor = _kbmRingColor(pct);
-      if (pctNum) { pctNum.style.color = ringColor; }
-
-      // Update donut ring + progress bar BARENG, 1 rAF loop -- warna
-      // dikirim sbg FUNGSI (_kbmRingColor/_kbmBarColor), bukan string hasil
-      // akhir, spy keduanya ikut ganti warna melintasi tiap zona selagi
-      // animasi menyapu 0->100->pct, bukan cuma diam di 1 warna dari awal.
+      // Update donut ring + progress bar + warna teks persen BARENG, 1 rAF
+      // loop -- warna dikirim sbg FUNGSI (_kbmRingColor/_kbmBarColor), bukan
+      // string hasil akhir, spy semuanya ikut ganti warna melintasi tiap
+      // zona selagi animasi menyapu 0->100->pct, bukan cuma diam/beku di 1
+      // warna dari awal (bug hunt: dulu pctNum di-set duluan ke warna
+      // TARGET sebelum animasi mulai, jadi angka & ring tak sinkron warna
+      // selama sapuan berlangsung -- lihat _paintDonutRing).
       if (donutRing) {
         animateDonutRing(donutRing, pctNum, _kbmRingColor, pct, !silent, progressBar, _kbmBarColor);
       }

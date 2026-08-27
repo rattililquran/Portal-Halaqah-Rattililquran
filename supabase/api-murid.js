@@ -631,17 +631,24 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
-    // .noRetry HANYA utk error identitas (401/403 -- sesi habis/profil tak
-    // ketemu): pasti gagal lagi walau diulang. Selain itu (mis. 502 "Gagal
-    // menghubungi KhatamKu" saat bridge-portal cold-start/timeout) TETAP
-    // retryable -- itu justru kasus yang paling butuh percobaan ulang.
-    // Bug ditemukan 2026-08-27: sebelumnya SEMUA status==='error' ditandai
-    // noRetry, jadi retry loop di khatamku-link-module.js berhenti di
-    // percobaan pertama persis saat bridge lagi cold-start -- yg terlihat
-    // user sbg "loading lalu balik ke Belum Terhubung".
+    // .noRetry utk error identitas (401/403 -- sesi habis/profil tak
+    // ketemu) DAN 409 (akun KhatamKu ini sudah terhubung ke murid lain,
+    // unique_violation di khatamku-link-init): keduanya pasti gagal lagi
+    // walau diulang. 502 "Gagal menghubungi KhatamKu" (bridge-portal cold-
+    // start/timeout) TETAP retryable -- itu justru kasus yang paling butuh
+    // percobaan ulang. Bug ditemukan 2026-08-27: sebelumnya SEMUA
+    // status==='error' ditandai noRetry, jadi retry loop di
+    // khatamku-link-module.js berhenti di percobaan pertama persis saat
+    // bridge lagi cold-start -- yg terlihat user sbg "loading lalu balik
+    // ke Belum Terhubung".
+    // Catatan 409: khatamku-link-init jg balikan 409 utk "Kode sedang
+    // dipakai" (tabrakan kode manual, kasus lain, jauh lebih jarang --
+    // sudah dijaga pre-check loop di server) -- diterima trade-off-nya drpd
+    // biarkan kasus "akun sudah dipakai murid lain" yg jauh lebih sering
+    // kena, buang 3x1,5 detik percuma tiap kali kejadian (bug hunt susulan).
     if (data.status === 'error') {
       var eSrv = new Error(data.message);
-      if (res.status === 401 || res.status === 403) eSrv.noRetry = true;
+      if (res.status === 401 || res.status === 403 || res.status === 409) eSrv.noRetry = true;
       throw eSrv;
     }
     return data;
@@ -658,9 +665,13 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
+    // 400 ("Tidak ada permintaan konfirmasi yang menunggu") & 409 ("akun
+    // sudah terhubung ke murid lain") dari confirm_auto SAMA-SAMA definitif
+    // -- tak ada sumber 400/409 lain di aksi ini (beda dari hubungkanKhatamku
+    // di atas), jadi aman ditandai tanpa trade-off.
     if (data.status === 'error') {
       var eSrv2 = new Error(data.message);
-      if (res.status === 401 || res.status === 403) eSrv2.noRetry = true;
+      if (res.status === 401 || res.status === 403 || res.status === 400 || res.status === 409) eSrv2.noRetry = true;
       throw eSrv2;
     }
     return data;
