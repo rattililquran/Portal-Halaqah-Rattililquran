@@ -109,26 +109,41 @@
       + '</div>';
   }
 
+  // Cegah kirim ganda -- dilaporkan user (2026-08-27): tap "Ya, ini saya"
+  // terasa tak ada respons (loading polos, tak ada teks penenang), jadi user
+  // tap berkali-kali. Guard ini + teks "mohon tunggu" di bawah menangani
+  // gejalanya; fix akar di khatamku-link-confirm/index.ts bikin tap ganda
+  // aman (idempotent) apa pun yang terjadi.
+  var _khBusy = false;
+  var TUNGGU_HTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">%JUDUL%</div>'
+    + '<div style="color:var(--text-3);font-size:12px;margin-top:6px">Mohon tunggu, jangan tutup halaman ini.</div></div>';
+
   window.hubungkanKhatamkuKlik = async function() {
+    if (_khBusy) return;
+    _khBusy = true;
     var el = document.getElementById('khatamkuLinkContent');
-    if (el) el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Menghubungi KhatamKu...</div></div>';
+    if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menghubungi KhatamKu...');
     try {
       await window.HQ.MuridAPI.hubungkanKhatamku();
     } catch (e) {
       toast(friendlyError(e), 'err');
     }
+    _khBusy = false;
     loadKhatamkuLink();
   };
 
   window.konfirmasiKhatamkuKlik = async function() {
+    if (_khBusy) return;
+    _khBusy = true;
     var el = document.getElementById('khatamkuLinkContent');
-    if (el) el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Menyimpan...</div></div>';
+    if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menyimpan...');
     try {
       await window.HQ.MuridAPI.konfirmasiKhatamku();
       toast('Berhasil terhubung ke KhatamKu!', 'ok');
     } catch (e) {
       toast(friendlyError(e), 'err');
     }
+    _khBusy = false;
     loadKhatamkuLink();
   };
 
