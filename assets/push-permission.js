@@ -23,16 +23,20 @@ var STYLE = `
 @keyframes pushFadeIn{from{opacity:0}to{opacity:1}}
 #push-dialog {
   background:#fff;border-radius:24px;width:100%;max-width:440px;
-  box-shadow:0 24px 64px rgba(15,23,42,.25);overflow:hidden;
+  box-shadow:0 32px 64px -16px rgba(3,54,90,.38),0 12px 28px -12px rgba(3,54,90,.22);
+  overflow:hidden;
 }
 .push-header {
-  background:linear-gradient(135deg,#0c4a6e,#0ea5e9);
+  background:
+    radial-gradient(135% 180% at 82% -30%,rgba(255,255,255,.28),transparent 55%),
+    linear-gradient(135deg,#0c4a6e 0%,#075985 45%,#0ea5e9 100%);
   padding:20px 20px 16px;position:relative;
 }
 .push-header-ico {
-  width:52px;height:52px;background:rgba(255,255,255,.15);
+  width:52px;height:52px;background:rgba(255,255,255,.16);
   border-radius:16px;display:flex;align-items:center;justify-content:center;
-  font-size:26px;margin-bottom:10px;
+  font-size:26px;margin-bottom:10px;backdrop-filter:blur(6px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
 }
 .push-header-title {
   font-family:'Plus Jakarta Sans',sans-serif;
@@ -65,11 +69,12 @@ var STYLE = `
   background:linear-gradient(135deg,#0284c7,#0369a1);
   color:#fff;font-family:inherit;font-size:14px;font-weight:800;
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 4px 16px rgba(2,132,199,.35);
-  transition:opacity .2s;
+  box-shadow:0 6px 18px -4px rgba(2,132,199,.5);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
 }
-.push-btn-allow:hover{opacity:.9}
-.push-btn-allow:disabled{opacity:.6;cursor:not-allowed}
+.push-btn-allow:hover{transform:translateY(-1px);filter:brightness(1.06);box-shadow:0 10px 22px -4px rgba(2,132,199,.55)}
+.push-btn-allow:active{transform:translateY(0) scale(.98)}
+.push-btn-allow:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .push-btn-skip {
   width:100%;padding:10px;border:none;background:none;
   color:#94a3b8;font-family:inherit;font-size:12.5px;font-weight:600;
@@ -112,7 +117,8 @@ html.theme-dark .push-step-text .push-ico-inline{background:#0d2a45}
 }
 #ob-card{
   background:#fff;border-radius:24px;width:100%;max-width:440px;
-  box-shadow:0 24px 64px rgba(15,23,42,.25);overflow:hidden;
+  box-shadow:0 32px 64px -16px rgba(3,54,90,.38),0 12px 28px -12px rgba(3,54,90,.22);
+  overflow:hidden;
 }
 html.theme-dark #ob-card{background:#111c30}
 .ob-msg{font-size:13.5px;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:16px}
