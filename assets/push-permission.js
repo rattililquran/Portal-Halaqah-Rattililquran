@@ -9,7 +9,7 @@
 // ── Config ───────────────────────────────────────────────────
 var STORAGE_KEY_DISMISSED  = 'push_prompt_dismissed';
 var STORAGE_KEY_SUBSCRIBED = 'push_subscribed';
-var DISMISS_DAYS           = 30; // tanya lagi setelah 30 hari jika di-skip
+var DISMISS_DAYS           = 7; // tanya lagi setelah 7 hari jika di-skip
 
 // ── CSS dialog ───────────────────────────────────────────────
 var STYLE = `
