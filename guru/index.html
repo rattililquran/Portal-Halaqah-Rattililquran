@@ -8235,7 +8235,13 @@ function updateHalaqahHariIniCard(hariIniServer) {
   var best = null, bestDays = Infinity;
   jadwalData.forEach(function(h) {
     var d = h.is_hari_ini ? 0 : daysUntil(h.jadwal_hari);
-    if (d < bestDays) { bestDays = d; best = h; }
+    if (d < bestDays) {
+      bestDays = d; best = h;
+    } else if (d === bestDays && best && h.jam_mulai && (!best.jam_mulai || h.jam_mulai < best.jam_mulai)) {
+      // Beberapa halaqah bisa sama-sama jatuh di hari terdekat yg sama --
+      // menangkan yg jamnya lebih pagi/cepat, bukan asal yg pertama di array.
+      best = h;
+    }
   });
 
   if (!best || bestDays === Infinity) {
@@ -8246,7 +8252,9 @@ function updateHalaqahHariIniCard(hariIniServer) {
   }
 
   var jam = best.jam_mulai ? (best.jam_mulai + (best.jam_selesai ? '–' + best.jam_selesai : '')) : '';
-  var labelHari = bestDays === 0 ? 'Hari ini' : NAMA_HARI_ID[(todayIdx + bestDays) % 7];
+  // Tampilkan SEMUA hari halaqah ini terjadwal (mis. "Senin, Jumat"), bukan cuma
+  // hari terdekat yg dipakai utk menyortir -- halaqah sering ketemu >1x seminggu.
+  var labelHari = bestDays === 0 ? 'Hari ini' : (best.jadwal_hari || NAMA_HARI_ID[(todayIdx + bestDays) % 7]);
   if (bestDays === 0) {
     greetEl.textContent = 'Halaqah Hari Ini';
   } else {
