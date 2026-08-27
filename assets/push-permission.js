@@ -624,12 +624,26 @@ window.initOnboarding = function(roleLabel) {
     var gate = cfg.only_unsubscribed ? hasActivePush() : Promise.resolve(false);
     gate.then(function(sudahAktif) {
       if (sudahAktif) return; // sudah aktif & admin minta hanya yang belum → lewati
-      setTimeout(function() {
-        if (document.getElementById('ob-overlay')) return;
-        window.renderOnboardingPopup(cfg, role, false);
-      }, 1500);
+      setTimeout(function() { _obTungguGiliran(cfg, role, 0); }, 1500);
     });
   }).catch(function(){});
 };
+
+// Pengaman tabrakan popup (bug hunt susulan 2026-08-27): getOnboarding() bisa
+// lambat (cold start/jaringan) sampai delay 1.5 detik di atas tak lagi cukup
+// -- popup lain (ajakan notifikasi/dakwah admin/KhatamKu) bisa sudah tampil
+// duluan saat config ini akhirnya siap. Cek & coba ulang spt 3 sistem popup
+// lain, bukan cuma cek ob-overlay milik sendiri lalu render tanpa peduli.
+function _obTungguGiliran(cfg, role, percobaan) {
+  if (document.getElementById('ob-overlay')) return;
+  var terhalang = document.getElementById('push-dialog-overlay')
+    || document.getElementById('pn-card')
+    || document.getElementById('kp-card');
+  if (terhalang) {
+    if (percobaan < 12) setTimeout(function() { _obTungguGiliran(cfg, role, percobaan + 1); }, 3000);
+    return;
+  }
+  window.renderOnboardingPopup(cfg, role, false);
+}
 
 })();

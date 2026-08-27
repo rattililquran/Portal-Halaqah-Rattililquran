@@ -623,7 +623,7 @@ var MuridAPI = {
   // ulang, edge function sudah guard kalau sudah verified.
   hubungkanKhatamku: async function() {
     var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-    if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
+    if (!tk) { var eSesi = new Error('Sesi berakhir. Silakan login ulang.'); eSesi.noRetry = true; throw eSesi; }
     var res = await fetch(SUPABASE_URL + '/functions/v1/khatamku-link-init', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
@@ -631,14 +631,16 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
-    if (data.status === 'error') throw new Error(data.message);
+    // .noRetry: error definitif dari server (bukan soal jaringan/cold-start)
+    // -- percobaan ulang pasti gagal lagi dgn hasil sama, jgn buang waktu user.
+    if (data.status === 'error') { var eSrv = new Error(data.message); eSrv.noRetry = true; throw eSrv; }
     return data;
   },
 
   // Konfirmasi 1-tap hasil auto-match ("Ya, ini saya")
   konfirmasiKhatamku: async function() {
     var tk = sessionStorage.getItem('hq_token') || localStorage.getItem('hq_token');
-    if (!tk) throw new Error('Sesi berakhir. Silakan login ulang.');
+    if (!tk) { var eSesi2 = new Error('Sesi berakhir. Silakan login ulang.'); eSesi2.noRetry = true; throw eSesi2; }
     var res = await fetch(SUPABASE_URL + '/functions/v1/khatamku-link-confirm', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
@@ -646,7 +648,7 @@ var MuridAPI = {
     });
     var data;
     try { data = await res.json(); } catch(e) { throw new Error('Server tidak merespons. Coba lagi.'); }
-    if (data.status === 'error') throw new Error(data.message);
+    if (data.status === 'error') { var eSrv2 = new Error(data.message); eSrv2.noRetry = true; throw eSrv2; }
     return data;
   },
 

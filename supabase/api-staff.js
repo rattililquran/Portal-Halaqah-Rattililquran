@@ -4,6 +4,19 @@
 //  supabase-client.js lama disimpan sbg fallback rollback; boleh dihapus stlh live OK.
 // ============================================================
 
+// Hari sejak `tanggalStr` (YYYY-MM-DD) sampai HARI INI, dihitung dari
+// kalender WIB (bukan UTC/timezone lokal browser) -- dipakai jg oleh
+// guru/kbm-module.js (file ini dimuat lebih dulu, tanpa `defer`, jadi fungsi
+// ini sudah pasti ada saat kbm-module.js jalan). Konsolidasi bug hunt
+// susulan 2026-08-27 -- dulu duplikat persis di 2 file.
+function hariSejakWIB(tanggalStr) {
+  if (!tanggalStr) return null;
+  var todayWIB = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+  var d1 = new Date(todayWIB + 'T00:00:00Z').getTime();
+  var d2 = new Date(tanggalStr + 'T00:00:00Z').getTime();
+  return Math.round((d1 - d2) / 86400000);
+}
+
 // ─────────────────────────────────────────────
 //  GURU API
 // ─────────────────────────────────────────────
@@ -936,15 +949,7 @@ var GuruAPI = {
     }
 
     var alerts = alertList.map(function(m) {
-      var hariTakAktifKhatamku = 0;
-      if (m.khatamku_last_active) {
-        // Anchor 'Z'/UTC utk KEDUA sisi -> murni aritmetika tanggal kalender,
-        // bebas skew timezone lokal server/browser -- todayWIB sendiri yg
-        // sudah menerjemahkan "hari ini" ke kalender WIB (bug hunt #4, patch_095).
-        var todayWIB = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
-        var msPerHari = 24*60*60*1000;
-        hariTakAktifKhatamku = Math.round((new Date(todayWIB+'T00:00:00Z').getTime() - new Date(m.khatamku_last_active+'T00:00:00Z').getTime()) / msPerHari);
-      }
+      var hariTakAktifKhatamku = hariSejakWIB(m.khatamku_last_active) || 0;
       var metrics = {
         absen           : m.alpa || 0,
         terlambat       : m.terlambat || 0,

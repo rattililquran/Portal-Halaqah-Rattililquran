@@ -2873,13 +2873,10 @@
   // kasus itu tak bisa dibedakan dari sini, jadi label-nya sengaja netral.
   function khatamkuHariTakAktif(k) {
     if (!k || !k.last_active_date) return null;
-    // Anchor 'Z'/UTC utk KEDUA sisi -> murni aritmetika tanggal kalender,
-    // bebas skew timezone lokal browser/DST -- todayWIB sendiri yg sudah
-    // menerjemahkan "hari ini" ke kalender WIB (bug hunt #4, patch_095).
-    const todayWIB = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
-    const d1 = new Date(todayWIB + 'T00:00:00Z').getTime();
-    const d2 = new Date(k.last_active_date + 'T00:00:00Z').getTime();
-    return Math.round((d1 - d2) / 86400000);
+    // hariSejakWIB() didefinisikan di supabase/api-staff.js (dimuat lebih
+    // dulu tanpa `defer`, lihat guru/index.html) -- konsolidasi bug hunt
+    // susulan 2026-08-27, dulu duplikat persis di 2 file.
+    return hariSejakWIB(k.last_active_date);
   }
   function getKhatamkuBadge(k) {
     if (!k) return `<span class="badge b-gray">⚫ Belum ada data</span>`;

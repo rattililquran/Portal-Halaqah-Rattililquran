@@ -134,13 +134,36 @@
     var errTerakhir = null;
     for (var i = 0; i < maxPercobaan; i++) {
       try { return await fn(); }
-      catch (e) { errTerakhir = e; if (i < maxPercobaan - 1) await jeda(1500); }
+      catch (e) {
+        errTerakhir = e;
+        // Error permanen (sesi habis, akun sudah dipakai murid lain, kode
+        // kedaluwarsa, dst -- ditandai .noRetry di api-murid.js) TAK akan
+        // beda hasilnya walau diulang -- langsung gagal, jangan buang waktu
+        // user 4.5 detik nunggu retry yang pasti gagal lagi.
+        if (e && e.noRetry) throw e;
+        if (i < maxPercobaan - 1) await jeda(1500);
+      }
     }
     throw errTerakhir;
   }
 
+  // Refresh TANPA reset ke "Memuat..." dulu -- dipakai setelah render
+  // optimistic supaya tak langsung ketimpa sebelum sempat browser repaint
+  // (bug hunt susulan 2026-08-27: renderKhatamkuLink() lalu loadKhatamkuLink()
+  // tanpa jeda/yield di antaranya membuat "Memuat..."-nya loadKhatamkuLink()
+  // menimpa render optimistic SEBELUM sempat ter-paint sama sekali -- jadi
+  // optimistic render sebelumnya efeknya nol).
+  function refreshDiamDiam() {
+    if (!window.HQ || !window.HQ.MuridAPI) return;
+    window.HQ.MuridAPI.getKhatamkuLinkStatus().then(function(r) {
+      var el = document.getElementById('khatamkuLinkContent');
+      if (!el) return;
+      renderKhatamkuLink(el, (r && r.data) || { link: null, progress: null });
+    }).catch(function(){});
+  }
+
   window.hubungkanKhatamkuKlik = async function() {
-    if (_khBusy) return;
+    if (_khBusy) { toast('Masih diproses, mohon tunggu...', 'info'); return; }
     _khBusy = true;
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menghubungi KhatamKu...');
@@ -154,7 +177,7 @@
   };
 
   window.konfirmasiKhatamkuKlik = async function() {
-    if (_khBusy) return;
+    if (_khBusy) { toast('Masih diproses, mohon tunggu...', 'info'); return; }
     _khBusy = true;
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menyimpan...');
@@ -162,18 +185,21 @@
       await panggilDenganRetry(function(){ return window.HQ.MuridAPI.konfirmasiKhatamku(); }, 3);
       toast('Berhasil terhubung ke KhatamKu!', 'ok');
       // Optimistic: render status verified LANGSUNG pakai data yg sudah ada
-      // (nama/username dari kartu konfirmasi tadi), TIDAK gantung ke
-      // loadKhatamkuLink() di bawah berhasil & sempat repaint duluan --
-      // dilaporkan user (2026-08-27): setelah popup "Berhasil terhubung",
-      // kartu di baliknya masih kartu konfirmasi lama, bikin bingung.
+      // (nama/username dari kartu konfirmasi tadi) -- dilaporkan user
+      // (2026-08-27): setelah popup "Berhasil terhubung", kartu di baliknya
+      // masih kartu konfirmasi lama. Refresh susulan pakai refreshDiamDiam()
+      // (BUKAN loadKhatamkuLink() yg reset ke "Memuat..." & menimpa ini).
       if (el && _khLastLink) {
         renderKhatamkuLink(el, { link: Object.assign({}, _khLastLink, { status: 'verified' }), progress: null });
       }
+      _khBusy = false;
+      refreshDiamDiam();
+      return;
     } catch (e) {
       toast(friendlyError(e), 'err');
     }
     _khBusy = false;
-    loadKhatamkuLink(); // refresh di belakang layar (utk data progress kalau sudah ada)
+    loadKhatamkuLink();
   };
 
   window.bukanAkunKhatamkuKlik = function() {
