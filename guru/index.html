@@ -1306,16 +1306,17 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   background:rgba(255,255,255,.04);
 }
 .dash-greet{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:2px}
-/* "Halaqah Berikutnya" -- sengaja dibedakan dari "Halaqah Hari Ini" (teks polos)
-   spy guru langsung sadar hari ini kosong, bukan cuma lolos terbaca sekilas.
-   Pil + ikon (beda BENTUK, bukan cuma warna) + lebih besar/tebal drpd caption biasa. */
-.dash-greet.is-next{
+/* Kedua status ("Hari Ini" & "Berikutnya") sama persis pil+ikon -- lebih
+   besar/tebal drpd caption biasa spy langsung ternotice, bukan cuma teks
+   polos yg gampang lolos terbaca sekilas. Style identik, cuma ikon & teks
+   yg beda (sesuai permintaan: "sama seperti halaqah berikutnya"). */
+.dash-greet.is-next,.dash-greet.is-today{
   display:inline-flex;align-items:center;gap:5px;
   font-size:13px;font-weight:800;color:#fff;
   background:rgba(255,255,255,.18);
   padding:4px 11px;border-radius:100px;margin-bottom:6px;
 }
-.dash-greet.is-next svg{width:12px;height:12px;flex-shrink:0}
+.dash-greet.is-next svg,.dash-greet.is-today svg{width:12px;height:12px;flex-shrink:0}
 .dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
 .dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
 .dash-sesi-lain{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;align-items:center;gap:4px}
@@ -8282,7 +8283,10 @@ function updateHalaqahHariIniCard(hariIniServer) {
   // hari terdekat yg dipakai utk menyortir -- halaqah sering ketemu >1x seminggu.
   var labelHari = bestDays === 0 ? 'Hari ini' : (best.jadwal_hari || NAMA_HARI_ID[(todayIdx + bestDays) % 7]);
   if (bestDays === 0) {
-    greetEl.textContent = 'Halaqah Hari Ini';
+    // Pil + ikon centang (hijau) -- konsisten dgn perlakuan "Halaqah Berikutnya",
+    // supaya sama2 ternotice, bukan cuma salah satunya yg berupa teks polos.
+    greetEl.className = 'dash-greet is-today';
+    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.8 15.5 16 9.5"/></svg> Halaqah Hari Ini';
   } else {
     // Dibuat lebih "ternotice" drpd caption biasa -- pil + ikon kalender, supaya
     // guru langsung sadar hari ini kosong, bukan cuma lolos terbaca sekilas.
