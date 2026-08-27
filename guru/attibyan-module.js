@@ -412,40 +412,10 @@ function showKeaktifanDetailModal(idx) {
   openModal(modalId);
 }
 
-function initThemeToggle() {
-  const btn = document.getElementById('theme-toggle');
-  if (!btn) return;
-  function updateIcon(isDark) {
-    btn.innerHTML = isDark ? 
-      '<svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>' : 
-      '<svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-  }
-  let isDark = document.documentElement.classList.contains('theme-dark');
-  updateIcon(isDark);
-  btn.addEventListener('click', function() {
-    isDark = !isDark;
-    if (isDark) {
-      document.documentElement.classList.add('theme-dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('theme-dark');
-      localStorage.setItem('theme', 'light');
-    }
-    updateIcon(isDark);
-  });
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-    if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
-      if (e.matches) {
-        document.documentElement.classList.add('theme-dark');
-        updateIcon(true);
-      } else {
-        document.documentElement.classList.remove('theme-dark');
-        updateIcon(false);
-      }
-    }
-  });
-}
-initThemeToggle();
+// initThemeToggle() dipindah ke guru/index.html (ikon animasi matahari/bulan,
+// pola identik Portal Murid) -- versi lama di sini (ganti innerHTML statis)
+// dihapus krn dobel pasang click-listener di tombol yang sama & saling
+// membatalkan toggle-nya kalau dibiarkan jalan bareng.
 
 // ── Panduan functions ──────────────────────────
 function pdToggle(btn) {

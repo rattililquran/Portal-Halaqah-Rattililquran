@@ -4,6 +4,18 @@
 <script>
 (function(){const t=localStorage.getItem('theme')||'system';if(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('theme-dark');})();
 </script>
+<script>
+// ── Pilihan tema tampilan (Biru / Minimalis) — diset dari Profil Saya > Pengaturan Akun ──
+// Beda dari Portal Murid: default di sini tetap 'blue' (tampilan lama, tak berubah)
+// sampai guru memilih Minimalis sendiri -- bukan dipaksa default seperti murid.
+(function(){
+  try{
+    if (localStorage.getItem('hq_theme_variant') === 'minimal'){
+      document.documentElement.classList.add('theme-minimal');
+    }
+  }catch(e){}
+})();
+</script>
 <meta charset="UTF-8">
 <!-- Preconnect Supabase -->
 <link rel="preconnect" href="https://zefriybfrirrtsulogta.supabase.co">
@@ -19,16 +31,25 @@
 <link rel="stylesheet" href="../assets/css/ui-theme.css">
 <style>
 :root{
+  --blue-rgb:14,165,233;
   --blue:#0ea5e9;--blue-d:#2563eb;--blue-l:rgba(14,165,233,0.1);
+  --blue-m:rgba(14,165,233,0.18);
   --green:#10b981;--green-d:#065f46;--green-l:rgba(16,185,129,0.1);
   --amber:#f59e0b;--amber-l:#fef3c7;--amber-txt:#b45309;
   --red:#ef4444;--red-l:#fef2f2;
   --purple:#8b5cf6;--purple-l:#f5f3ff;
-  --bg:#f8fafc;--card:rgba(255,255,255,0.75);--text:#0f172a;
+  --teal:#06b6d4;--teal-l:rgba(6,182,212,0.1);
+  --bg:#f8fafc;--bg-2:#f1f5f9;
+  --card:rgba(255,255,255,0.75);--card-solid:#ffffff;
+  --glass:rgba(255,255,255,0.7);--glass-border:rgba(255,255,255,0.9);
+  --text:#0f172a;
   --text-2:#475569;--text-3:#64748b;--border:rgba(0,0,0,0.06);
-  --r:20px;--r-sm:12px;--r-lg:24px;--r-xl:28px;
+  --r:20px;--r-sm:12px;--r-lg:24px;--r-xl:28px;--r-pill:100px;
   --shadow:0 8px 32px rgba(14,165,233,0.1),0 2px 8px rgba(0,0,0,0.04);
   --shadow-lg:0 16px 40px rgba(14,165,233,0.15),0 4px 12px rgba(0,0,0,0.06);
+  --shadow-card:0 8px 32px rgba(14,165,233,0.1),0 2px 8px rgba(0,0,0,0.04);
+  --shadow-blue:0 8px 24px rgba(14,165,233,0.4),0 2px 8px rgba(14,165,233,0.2);
+  --blur:blur(20px) saturate(1.8);--blur-sm:blur(16px) saturate(1.6);
   --sw:260px;--hh:58px;
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
@@ -40,6 +61,77 @@
   --libur-bg:#fff7ed;--libur-border:#fdba74;
   --libur-title:#9a3412;--libur-sub:#c2410c;--libur-note:#7c2d12;
 }
+/* ── Varian tema Minimalis (pilih di Profil Saya > Pengaturan Akun > Tampilan) ──
+   Pola & token identik Portal Murid: satu radius kecil, tanpa shadow-glow,
+   border tipis menggantikannya. Kartu isi (bukan modal/popup) dipetakan ke
+   kelas guru sendiri (.card/.stat/.hq-card/dst -- beda nama dari kelas murid). */
+html.theme-minimal{
+  --blue-rgb:15,23,42;
+  --blue:#0f172a;--blue-d:#020617;--blue-l:rgba(15,23,42,.06);--blue-m:rgba(15,23,42,.1);
+  --bg:#ffffff;--bg-2:#fafafa;
+  --card:rgba(255,255,255,0.92);--card-solid:#ffffff;
+  --glass:rgba(255,255,255,0.9);--glass-border:rgba(0,0,0,0.06);
+  --border:rgba(0,0,0,0.08);
+  --shadow:0 2px 10px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 28px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.05);
+  --shadow-card:0 4px 20px rgba(0,0,0,0.06),0 1px 6px rgba(0,0,0,0.04);
+  --shadow-blue:0 6px 18px rgba(15,23,42,.18),0 2px 6px rgba(15,23,42,.1);
+  --blue-txt:#0f172a;--blue-bg:#f1f5f9;
+  --r-card:6px;
+  --r:var(--r-card);--r-sm:var(--r-card);--r-lg:var(--r-card);--r-xl:var(--r-card);
+}
+html.theme-minimal .bg-blobs-guru{display:none}
+html.theme-minimal:not(.theme-dark) body{background:#ffffff !important}
+html.theme-minimal .card,
+html.theme-minimal .stat,
+html.theme-minimal .hq-card,
+html.theme-minimal .hq-card-new,
+html.theme-minimal .stat-top,
+html.theme-minimal .glass-card,
+html.theme-minimal .nilai-murid-card,
+html.theme-minimal .auth-box{
+  background:#ffffff;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-radius:var(--r-card);
+  border:1px solid rgba(0,0,0,0.08);
+  box-shadow:none;
+}
+html.theme-minimal .card:hover,
+html.theme-minimal .stat:hover,
+html.theme-minimal .hq-card:hover,
+html.theme-minimal .hq-card-new:hover,
+html.theme-minimal .stat-top.clickable:hover{
+  transform:none;box-shadow:none;
+  border-color:rgba(0,0,0,0.16);
+}
+html.theme-minimal .stat::before,
+html.theme-minimal .hq-card::before{display:none}
+html.theme-minimal .sb-avatar{box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+html.theme-minimal .nav-btn.active{box-shadow:none}
+html.theme-minimal .auth-btn{box-shadow:none}
+html.theme-minimal .theme-toggle-btn,html.theme-minimal #refreshBtn{box-shadow:none !important}
+/* Kombinasi Minimalis+Gelap: aturan html.theme-dark di bawah pakai !important
+   & datang belakangan di sumber, jadi menang lawan aturan polos di atas kalau
+   cuma diandalkan urutan. Selector 2-kelas ini spesifisitasnya lebih tinggi
+   drpd html.theme-dark .card (1 kelas) -- menang apa pun urutannya, jadi kartu
+   tetap flat (tanpa shadow) walau dark mode ikut aktif. */
+html.theme-dark.theme-minimal .card,
+html.theme-dark.theme-minimal .stat,
+html.theme-dark.theme-minimal .hq-card,
+html.theme-dark.theme-minimal .hq-card-new,
+html.theme-dark.theme-minimal .stat-top,
+html.theme-dark.theme-minimal .glass-card,
+html.theme-dark.theme-minimal .nilai-murid-card,
+html.theme-dark.theme-minimal .auth-box{
+  box-shadow:none !important;border-color:rgba(255,255,255,.08) !important;border-radius:var(--r-card) !important;
+}
+html.theme-dark.theme-minimal .card:hover,
+html.theme-dark.theme-minimal .stat:hover,
+html.theme-dark.theme-minimal .hq-card:hover,
+html.theme-dark.theme-minimal .hq-card-new:hover{
+  transform:none !important;box-shadow:none !important;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
 
@@ -160,8 +252,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   flex-shrink:0;font-size:15px;
   transition:background 0.25s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.nav-btn.active .ni{background:rgba(14,165,233,.15)}
+.nav-btn.active .ni{background:rgba(14,165,233,.15);animation:navIconPop .38s ease}
 .nav-btn:hover .ni{background:rgba(14,165,233,.12);transform:scale(1.1) translateY(-1px)}
+@keyframes navIconPop{0%{transform:scale(1)}45%{transform:scale(1.24)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.nav-btn .ni{transition:none !important;animation:none !important}}
 
 .sb-foot{padding:12px 12px 16px;border-top:1px solid rgba(14,165,233,0.08);transition:all 0.3s;}
 .logout-btn{
@@ -425,12 +519,12 @@ tr:hover td{background:#f8fafc}
 }
 /* Target student card (inside target grid) */
 .hf-target-murid-card{background:#f8faff;border:1px solid #e0eaff}
-html.theme-dark .hf-target-murid-card{background:#1e2128!important;border-color:rgba(56,189,248,.15)!important}
+html.theme-dark .hf-target-murid-card{background:#121214!important;border-color:rgba(56,189,248,.15)!important}
 html.theme-dark .hf-target-murid-card [style*="color:#111827"]{color:#f0f2f8!important}
 html.theme-dark .hf-target-murid-card [style*="color:#6b7280"]{color:#9ca3af!important}
 /* Target guru outer card */
-html.theme-dark #hafalanTargetGuruCard{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
-html.theme-dark #hafalanTargetGuruCard [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#1e2128)!important}
+html.theme-dark #hafalanTargetGuruCard{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanTargetGuruCard [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#121214)!important}
 html.theme-dark #hafalanTargetGuruCard [style*="color:#111827"]{color:#f0f2f8!important}
 html.theme-dark #hafalanTargetGuruCard [style*="color:#9ca3af"]{color:#6b7280!important}
 html.theme-dark #hafalanTargetGuruCard [style*="background:#dbeafe"]{background:rgba(56,189,248,.15)!important;color:#7dd3fc!important;border-color:rgba(56,189,248,.25)!important}
@@ -446,7 +540,7 @@ html.theme-dark #hafalanFormWrap [style*="background:linear-gradient(135deg,#1d4
 /* Submit button readability */
 html.theme-dark #btnSubmitHafalan{box-shadow:0 4px 14px rgba(29,78,216,.4)!important}
 /* Raport filter bar */
-html.theme-dark #page-raport-tahfidz [style*="background:#fff"]{background:#1e2128!important}
+html.theme-dark #page-raport-tahfidz [style*="background:#fff"]{background:#121214!important}
 html.theme-dark #page-raport-tahfidz [style*="border:1px solid #e5e7eb"]{border-color:rgba(255,255,255,.07)!important}
 html.theme-dark #page-raport-tahfidz [style*="color:#111827"]{color:#f0f2f8!important}
 html.theme-dark #page-raport-tahfidz [style*="color:#374151"]{color:#b0b7c3!important}
@@ -486,34 +580,34 @@ html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{colo
 }
 /* ── Dark mode: Hafalan & Raport Tahfidz ── */
 html.theme-dark .hf-lbl{background:rgba(245,158,11,.15)!important;border-color:rgba(245,158,11,.3)!important;color:#fbbf24!important}
-html.theme-dark #hafalanFormWrap{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
-html.theme-dark #hafalanTargetGuruCard{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanFormWrap{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #hafalanTargetGuruCard{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark #hafalanMurajaahInfo{background:rgba(56,189,248,.08)!important;border-color:rgba(56,189,248,.2)!important;color:#7dd3fc!important}
 html.theme-dark #hafalanPoinPreview{background:rgba(251,191,36,.07)!important;border-color:rgba(251,191,36,.2)!important;color:#fbbf24!important}
 html.theme-dark #hafalanAyatInfo{background:#252830!important;border-color:rgba(255,255,255,.08)!important;color:#6b7280!important}
 html.theme-dark [style*="background:linear-gradient(135deg,#eff6ff"]{background:#1a2336!important;border-color:rgba(56,189,248,.2)!important}
-html.theme-dark #modalKelolaPenilaian>div{background:#1e2128!important;border:1px solid rgba(255,255,255,.08)!important;color:#f0f2f8!important}
+html.theme-dark #modalKelolaPenilaian>div{background:#121214!important;border:1px solid rgba(255,255,255,.08)!important;color:#f0f2f8!important}
 html.theme-dark #modalKelolaPenilaian [style*="background:#fff"]{background:#252830!important}
 html.theme-dark #modalKelolaPenilaian [style*="border-bottom:1px solid #f0f0f0"]{border-color:rgba(255,255,255,.06)!important}
-html.theme-dark #modalKelolaPenilaian [style*="background:#f9fafb"]{background:#1e2128!important}
+html.theme-dark #modalKelolaPenilaian [style*="background:#f9fafb"]{background:#121214!important}
 html.theme-dark #modalKelolaPenilaian [style*="background:#f8faff"]{background:#252830!important}
 html.theme-dark #modalKelolaPenilaian [style*="border-color:#e0eaff"]{border-color:rgba(56,189,248,.15)!important}
 html.theme-dark .hf-pn-row{background:#252830!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark .hf-pn-row:hover{background:#2d3142!important;border-color:rgba(56,189,248,.3)!important}
-html.theme-dark .rt-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
+html.theme-dark .rt-card{background:#121214!important;border-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
 html.theme-dark .rt-stat{background:#252830!important;border-color:rgba(56,189,248,.15)!important}
 html.theme-dark .rt-stat-val{color:#38bdf8!important}
 html.theme-dark .rt-stat-lbl{color:#6b7280!important}
 html.theme-dark .rt-surat-tbl th{background:#252830!important;color:#38bdf8!important;border-color:rgba(56,189,248,.15)!important}
 html.theme-dark .rt-surat-tbl td{border-color:rgba(255,255,255,.05)!important;color:#b0b7c3!important}
-html.theme-dark #page-raport-tahfidz [style*="background:#fff;border:1px solid #e5e7eb"]{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark #page-raport-tahfidz [style*="background:#fff;border:1px solid #e5e7eb"]{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark #rtContent [style*="background:#f8faff"],
 html.theme-dark #rtContent [style*="background:#f3f4f6"],
 html.theme-dark #rtContent [style*="background:#f9fafb"]{background:#252830!important}
 html.theme-dark #rtContent [style*="color:#374151"]{color:#b0b7c3!important}
 html.theme-dark #rtContent [style*="color:#111827"]{color:#f0f2f8!important}
 html.theme-dark #rtContent [style*="border-bottom:1px solid #f3f4f6"]{border-color:rgba(255,255,255,.05)!important}
-html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#1e2128)!important}
+html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{background:linear-gradient(90deg,#1a2336,#121214)!important}
 .fc{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);
   font-family:inherit;font-size:14px;outline:none;background:var(--card,#fff);color:var(--text);transition:border-color .2s}
 .fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(20,88,168,.1)}
@@ -905,10 +999,12 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 /* ── SIDEBAR CLOSE BUTTON (mobile) ── */
 .sb-close-btn{
   display:none;
+  -webkit-appearance:none;appearance:none;
   position:absolute;top:12px;right:12px;
-  width:40px;height:40px;border-radius:50%;
+  width:40px;height:40px;min-width:40px;max-width:40px;min-height:40px;max-height:40px;
+  border-radius:50%;box-sizing:border-box;flex-shrink:0;flex-grow:0;padding:0;outline:none;
   background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
-  color:#fff;font-size:16px;cursor:pointer;
+  color:#fff;font-size:16px;cursor:pointer;font-family:inherit;
   align-items:center;justify-content:center;
   transition:background .2s;z-index:2;
 }
@@ -1440,12 +1536,34 @@ html.theme-dark .nm-progress-track{background:rgba(255,255,255,.12)}
   border-color: var(--text-3) !important;
   color: var(--text) !important;
 }
-html.theme-dark .theme-toggle-btn:hover, 
+html.theme-dark .theme-toggle-btn:hover,
 html.theme-dark #refreshBtn:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
   color: #fff !important;
 }
+/* Ikon toggle mode gelap/terang beranimasi -- matahari & bulan ditumpuk,
+   disilangkan lewat rotate+scale+opacity (pola identik Portal Murid) */
+.theme-ico-swap{position:relative;width:17px;height:17px}
+.theme-ico-swap svg{position:absolute;top:0;left:0;transform-origin:center;transition:transform .45s cubic-bezier(.34,1.2,.4,1),opacity .3s ease}
+.theme-ico-swap .ico-sun{opacity:1;transform:rotate(0deg) scale(1)}
+.theme-ico-swap .ico-moon{opacity:0;transform:rotate(-90deg) scale(.5)}
+.theme-ico-swap.is-dark .ico-sun{opacity:0;transform:rotate(90deg) scale(.5)}
+.theme-ico-swap.is-dark .ico-moon{opacity:1;transform:rotate(0deg) scale(1)}
+@media(prefers-reduced-motion:reduce){.theme-ico-swap svg{transition:opacity .2s ease}}
+
+/* ── Pemilih tema (Biru / Minimalis) — segmented control, Profil > Pengaturan Akun ── */
+.theme-picker{display:inline-flex;background:var(--bg-2);border-radius:100px;padding:3px;gap:2px}
+.theme-picker-opt{
+  border:none;background:none;font-family:inherit;cursor:pointer;
+  font-size:11.5px;font-weight:700;color:var(--text-3);
+  padding:6px 12px;border-radius:100px;
+  transition:background .2s ease,color .2s ease;
+}
+.theme-picker-opt.active{background:var(--card-solid);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+html.theme-dark .theme-picker{background:rgba(255,255,255,.06)}
+html.theme-dark .theme-picker-opt{color:rgba(255,255,255,.5)}
+html.theme-dark .theme-picker-opt.active{background:rgba(255,255,255,.12);color:#fff}
 
 /* Transitions for Theme Toggling */
 body, .card, .stat-card, .progress-card, .spp-card, .nilai-murid-card, .sidebar, .nav-btn, .header, input, select, textarea, button, table, td, th {
@@ -1454,29 +1572,34 @@ body, .card, .stat-card, .progress-card, .spp-card, .nilai-murid-card, .sidebar,
 
 /* ── DARK MODE ── */
 html.theme-dark {
-  --bg:#111318;--bg-2:#1a1d24;--card:#1e2128;--glass:#1e2128;
+  /* Palet gelap bersih (AMOLED) -- disamakan dgn Portal Murid */
+  --bg:#000000;--bg-2:#0a0a0c;--card:#121214;--card-solid:#121214;--glass:#121214;
   --glass-border:rgba(255,255,255,.07);
   --text:#f0f2f8;--text-2:#b0b7c3;--text-3:#94a3b8;
   --border:rgba(255,255,255,.08);
-  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,.1);
+  --blue-rgb:56,189,248;
+  --blue:#38bdf8;--blue-d:#0ea5e9;--blue-l:rgba(56,189,248,.1);--blue-m:rgba(56,189,248,.14);
   --green:#34d399;--green-d:#059669;--green-l:rgba(52,211,153,.1);
   --amber-l:rgba(251,191,36,.1);--amber-txt:#fbbf24;
   --red-l:rgba(248,113,113,.1);
+  --teal:#22d3ee;--teal-l:rgba(34,211,238,.12);
   --shadow:0 2px 8px rgba(0,0,0,.4);
   --shadow-lg:0 8px 24px rgba(0,0,0,.5);
   --shadow-card:0 2px 8px rgba(0,0,0,.35);
+  --shadow-blue:0 6px 18px rgba(56,189,248,.18),0 2px 6px rgba(56,189,248,.1);
+  --blur:none;--blur-sm:none;
   --green-txt:#34d399;--green-bg:rgba(52,211,153,.1);
   --amber-bg:rgba(251,191,36,.1);
   --red-txt:#f87171;--red-bg:rgba(248,113,113,.1);
   --blue-txt:#38bdf8;--blue-bg:rgba(56,189,248,.1);
   --purple-txt:#a78bfa;--purple-bg:rgba(139,92,246,.1);
 }
-html.theme-dark body{background:#111318!important}
+html.theme-dark body{background:#000000!important}
 html.theme-dark .card,html.theme-dark .stat,html.theme-dark .stat-top,
 html.theme-dark .hq-card,html.theme-dark .hq-card-new,
 html.theme-dark .nilai-murid-card,html.theme-dark .draft-warning,
 html.theme-dark .prow,html.theme-dark .nilai-row{
-  background:#1e2128!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  background:#121214!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   border:1px solid rgba(255,255,255,.07)!important;box-shadow:0 2px 8px rgba(0,0,0,.3)!important}
 html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45)!important}
 html.theme-dark .card-head{background:rgba(255,255,255,.03)!important;border-bottom-color:rgba(255,255,255,.06)!important}
@@ -1490,11 +1613,11 @@ html.theme-dark input:not([type=range]),html.theme-dark select,html.theme-dark t
   color:#f0f2f8!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html.theme-dark .fc:focus,html.theme-dark .auth-input:focus{
   border-color:#38bdf8!important;box-shadow:0 0 0 3px rgba(56,189,248,.25)!important}
-html.theme-dark .auth-box{background:#1e2128!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.1)!important}
+html.theme-dark .auth-box{background:#121214!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.1)!important}
 html.theme-dark .auth-arabic{color:#38bdf8!important}
 html.theme-dark .auth-sub,html.theme-dark .auth-hint{color:#b0b7c3!important}
 html.theme-dark .auth-label,html.theme-dark label{color:#d1d5db!important}
-html.theme-dark .topbar{background:#1a1d24!important;backdrop-filter:none!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
+html.theme-dark .topbar{background:#0a0a0c!important;backdrop-filter:none!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
 html.theme-dark .topbar-title{color:#f0f2f8!important}
 html.theme-dark .topbar-date{color:#6b7280!important}
 /* Sidebar */
@@ -1532,7 +1655,7 @@ html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .logout-btn{background:rgba(248,113,113,.06) !important;color:#f87171 !important;border-color:rgba(248,113,113,.15) !important}
 html.theme-dark .logout-btn:hover{background:rgba(248,113,113,.1) !important;border-color:rgba(248,113,113,0.3) !important}
 html.theme-dark .sb-toggle-collapse {
-  background: #1e2128 !important;
+  background: #121214 !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
   color: #38bdf8 !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
@@ -1542,10 +1665,10 @@ html.theme-dark .sb-toggle-collapse:hover {
   border-color: #38bdf8 !important;
 }
 html.theme-dark .overlay{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(4px)!important}
-html.theme-dark .modal{background:#1e2128!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
-html.theme-dark .modal-head{background:#1e2128!important;border-bottom-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
-html.theme-dark .modal-foot{background:#1e2128!important;border-top-color:rgba(255,255,255,.07)!important}
-html.theme-dark .notif-overlay .notif-box{background:#1e2128!important;border:1px solid rgba(255,255,255,.08)!important}
+html.theme-dark .modal{background:#121214!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
+html.theme-dark .modal-head{background:#121214!important;border-bottom-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
+html.theme-dark .modal-foot{background:#121214!important;border-top-color:rgba(255,255,255,.07)!important}
+html.theme-dark .notif-overlay .notif-box{background:#121214!important;border:1px solid rgba(255,255,255,.08)!important}
 html.theme-dark .notif-title{color:#f0f2f8!important}
 html.theme-dark .notif-msg{color:#b0b7c3!important}
 html.theme-dark table{color:#f0f2f8!important}
@@ -1559,11 +1682,11 @@ html.theme-dark .page-sub,html.theme-dark .card-sub{color:#b0b7c3!important}
 html.theme-dark .hq-name{color:#f0f2f8!important}
 html.theme-dark .hq-meta{color:#6b7280!important}
 html.theme-dark .hq-stat .v{color:#38bdf8!important}
-html.theme-dark .loader{background:#111318!important}
+html.theme-dark .loader{background:#000000!important}
 html.theme-dark .loader-txt{color:#7dd3fc!important}
 html.theme-dark .loader-dot{background:rgba(56,189,248,.3)!important}
 html.theme-dark .loader-bar{background:rgba(56,189,248,.15)!important}
-html.theme-dark ::-webkit-scrollbar-track{background:#111318}
+html.theme-dark ::-webkit-scrollbar-track{background:#000000}
 html.theme-dark ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 html.theme-dark .btn-ghost{background:transparent!important;border-color:rgba(255,255,255,.12)!important;color:#b0b7c3!important}
 html.theme-dark .btn-ghost:hover{background:rgba(255,255,255,.05)!important}
@@ -1734,7 +1857,7 @@ html.theme-dark .chip-koreksi.daurah-chip.selected {
   display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
 .at-tab-btn.active{background:#fff;color:#0c4a6e;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 html.theme-dark .at-tab-bar{background:#252830!important}
-html.theme-dark .at-tab-btn.active{background:#1e2128!important;color:#bae6fd!important}
+html.theme-dark .at-tab-btn.active{background:#121214!important;color:#bae6fd!important}
 
 /* Presensi bulk */
 .at-halaqah-group{margin-bottom:20px}
@@ -1781,7 +1904,7 @@ html.theme-dark .at-pb.on-A{background:rgba(220,38,38,.2)!important;border-color
 .at-dot.absen{background:#ef4444}
 .at-dot.izin{background:#9ca3af}
 .at-dot.null{background:#e2e8f0}
-html.theme-dark .at-keaktifan-card{background:#1e2128!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .at-keaktifan-card{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark .at-dot.null{background:#374151!important}
 
 /* Rekap At-Tibyan */
@@ -1813,24 +1936,24 @@ html.theme-dark #draftOrphanDetail {
 
 /* ══ DARK MODE FIX — glass + stat cards ══════════════════════ */
 html.theme-dark .glass-card{
-  background:#1e2128 !important;
+  background:#121214 !important;
   backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
   border:1px solid rgba(255,255,255,.07) !important;
   box-shadow:0 2px 8px rgba(0,0,0,.4) !important}
 /* Table header override — lebih gelap dari default */
-html.theme-dark th{background:#1a1d24 !important;color:#94a3b8 !important}
+html.theme-dark th{background:#0a0a0c !important;color:#94a3b8 !important}
 html.theme-dark td{background:transparent}
 html.theme-dark tr:nth-child(even) td{background:rgba(255,255,255,.02) !important}
 html.theme-dark tr:hover td{background:rgba(255,255,255,.03) !important}
 /* Nilai manual table */
 html.theme-dark #nilaiBody .nilai-murid-card,
-html.theme-dark #raportNilaiBody .nilai-murid-card{background:#1e2128 !important;border-color:rgba(255,255,255,.06) !important}
+html.theme-dark #raportNilaiBody .nilai-murid-card{background:#121214 !important;border-color:rgba(255,255,255,.06) !important}
 html.theme-dark #nilaiBody input,html.theme-dark #raportNilaiBody input{background:#252830 !important;color:#f0f2f8 !important}
 /* Raport preview section */
-html.theme-dark #raportPreviewCard{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark #raportPreviewCard{background:#121214 !important;border-color:rgba(255,255,255,.07) !important}
 html.theme-dark #raportPreviewTable table{color:#e2e8f0 !important}
 html.theme-dark #raportPreviewTable th{background:#0f172a !important;color:#94a3b8 !important}
-html.theme-dark #raportPreviewTable td{background:#1e2128 !important}
+html.theme-dark #raportPreviewTable td{background:#121214 !important}
 html.theme-dark #raportPreviewTable tr:nth-child(even) td{background:#212736 !important}
 /* Alert raport double-check */
 html.theme-dark #raportAlertBox{background:#2a1e00 !important;border-color:rgba(245,158,11,.3) !important}
@@ -1839,7 +1962,7 @@ html.theme-dark #raportAlertBody{color:#fde68a !important}
 /* Catatan halaqah textarea */
 html.theme-dark #raportCatatanTa{background:#252830 !important;color:#e2e8f0 !important;border-color:rgba(255,255,255,.1) !important}
 /* Nilai ujian section */
-html.theme-dark #raportNilaiCard,html.theme-dark #raportCatatanCard{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
+html.theme-dark #raportNilaiCard,html.theme-dark #raportCatatanCard{background:#121214 !important;border-color:rgba(255,255,255,.07) !important}
 /* Preview badge */
 html.theme-dark #raportPublishStatus{color:#6b7280 !important}
 
@@ -1923,7 +2046,7 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
   .tbl-wrap{max-height:65vh;overflow-y:auto}
   .tbl-wrap thead th{position:sticky;top:0;z-index:2;background:var(--card);box-shadow:0 1px 0 var(--border)}
 }
-html.theme-dark .tbl-wrap thead th{background:#1e2128!important}
+html.theme-dark .tbl-wrap thead th{background:#121214!important}
 
 /* Sortable column header indicator */
 .sort-ind{font-size:10px;display:inline-block;margin-left:3px}
@@ -2252,7 +2375,7 @@ html.theme-dark .cal-os-tabs {
   background: #252830 !important;
 }
 html.theme-dark .cal-os-tab.active {
-  background: #1e2128 !important;
+  background: #121214 !important;
   color: #6ee7b7 !important;
 }
 html.theme-dark .cal-note {
@@ -2276,7 +2399,7 @@ html.theme-dark .kor-acc-head:hover {
   background: var(--bg) !important;
 }
 html.theme-dark .kor-acc-body {
-  background: #1e2128 !important;
+  background: #121214 !important;
   border-top-color: var(--border) !important;
 }
 html.theme-dark .chip-koreksi {
@@ -2417,7 +2540,7 @@ html.theme-dark .pwa-benefit{background:linear-gradient(135deg,#1a2d40,#1e3448) 
 html.theme-dark .pwa-benefit-title{color:#bae6fd !important}
 html.theme-dark .pwa-benefit-desc{color:#7dd3fc !important}
 html.theme-dark .pwa-os-tabs{background:#252830 !important}
-html.theme-dark .pwa-os-tab.active{background:#1e2128 !important;color:#bae6fd !important}
+html.theme-dark .pwa-os-tab.active{background:#121214 !important;color:#bae6fd !important}
 html.theme-dark .pwa-step-desc code{background:#252830 !important;border-color:rgba(255,255,255,.1) !important;color:#7dd3fc !important}
 html.theme-dark .pwa-step-img{background:#252830 !important;border-color:rgba(255,255,255,.08) !important}
 html.theme-dark .pwa-note{background:#2d1f00 !important;border-color:rgba(251,191,36,.2) !important}
@@ -2473,7 +2596,7 @@ html.theme-dark .pwa-note-text{color:#fde68a !important}
   color: #64748b;
 }
 html.theme-dark .pr-sum-card {
-  background: #1e2128;
+  background: #121214;
 }
 html.theme-dark .pr-sum-card.active {
   background: rgba(14,165,233,0.12);
@@ -2740,7 +2863,12 @@ html.theme-dark .pr-chip.active {
       <div class="topbar-title" id="pageTitle">Dashboard</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="topbar-date" id="topDate"></div>
-        <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Tema"></button>
+        <button id="theme-toggle" class="theme-toggle-btn" title="Ganti Mode Gelap/Terang" aria-label="Ganti mode gelap/terang">
+          <div class="theme-ico-swap">
+            <svg class="ico-sun" viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg class="ico-moon" viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </div>
+        </button>
         <button onclick="refreshPage()" title="Refresh data" id="refreshBtn">
           <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:block"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         </button>
@@ -3516,7 +3644,10 @@ html.theme-dark .pr-chip.active {
         .dash-cal-today-chip::before{content:'';width:6px;height:6px;border-radius:50%;background:#2563eb;flex-shrink:0}
         html.theme-dark .dash-cal-today-chip{color:#93c5fd;background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.25)}
         html.theme-dark .dash-cal-today-chip::before{background:#60a5fa}
-        .dash-cal-nav{background:#f1f5f9;border:none;border-radius:50%;width:36px;height:36px;
+        .dash-cal-nav{background:#f1f5f9;border:none;border-radius:50%;
+          -webkit-appearance:none;appearance:none;
+          width:36px;height:36px;min-width:36px;max-width:36px;min-height:36px;max-height:36px;
+          box-sizing:border-box;flex-shrink:0;flex-grow:0;padding:0;font-family:inherit;
           display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;
           color:var(--text-2);transition:all .2s ease;outline:none}
         .dash-cal-nav:hover{background:var(--border);color:var(--text)}
@@ -5256,6 +5387,16 @@ html.theme-dark .pr-chip.active {
       <!-- Pengaturan Akun -->
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:15px">
         <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px;letter-spacing:0.05em">⚙️ Pengaturan Akun</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:600;font-size:13px;color:var(--text)">🎨 Tampilan</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">Mode Gelap: ketuk ikon 🌙/☀️ di pojok kanan atas</div>
+          </div>
+          <div class="theme-picker" id="themePicker">
+            <button type="button" class="theme-picker-opt" data-theme-choice="blue">Biru</button>
+            <button type="button" class="theme-picker-opt" data-theme-choice="minimal">Minimalis</button>
+          </div>
+        </div>
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
           <div onclick="closeModal('profilModal');goPage('password')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border)" class="menu-item-hover">
             <span style="font-weight:600;font-size:13px;color:var(--text)">🔐 Ganti Password</span>
@@ -6073,7 +6214,7 @@ html.theme-dark .pr-chip.active {
 <script src="jadwal-module.js?v=f07fe18c" defer></script>
 <script src="dashboard-module.js?v=32a5a33d" defer></script>
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
-<script src="attibyan-module.js?v=e3463f23" defer></script>
+<script src="attibyan-module.js?v=655cb7fb" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=a10bf81e" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
@@ -6176,7 +6317,58 @@ function _localDateStr(d) {
   var m = d.getMonth() + 1, day = d.getDate();
   return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
 }
+// Toggle mode gelap/terang -- animasi ikon (rotate+scale+opacity matahari<->bulan)
+// murni CSS via class is-dark di .theme-ico-swap (lihat CSS), JS di sini cuma
+// toggle class-nya. Tombolnya sendiri sudah ada di topbar (#theme-toggle) sejak
+// awal tapi belum pernah disambungkan ke fungsi apa pun.
+function initThemeToggle() {
+  var btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  function updateIcon(isDark) {
+    document.querySelectorAll('.theme-ico-swap').forEach(function(w) { w.classList.toggle('is-dark', isDark); });
+  }
+  var isDark = document.documentElement.classList.contains('theme-dark');
+  updateIcon(isDark);
+  btn.addEventListener('click', function() {
+    isDark = !isDark;
+    document.documentElement.classList.toggle('theme-dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateIcon(isDark);
+  });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
+      isDark = e.matches;
+      document.documentElement.classList.toggle('theme-dark', isDark);
+      updateIcon(isDark);
+    }
+  });
+}
+
+// ── Pemilih varian tema (Biru / Minimalis) — di Profil Saya > Pengaturan Akun ──
+function updateThemePickerUI(variant) {
+  document.querySelectorAll('#themePicker .theme-picker-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-theme-choice') === variant);
+  });
+}
+function setAppTheme(variant) {
+  var h = document.documentElement;
+  if (variant === 'minimal') h.classList.add('theme-minimal');
+  else h.classList.remove('theme-minimal');
+  try { localStorage.setItem('hq_theme_variant', variant); } catch (e) {}
+  updateThemePickerUI(variant);
+}
+function initThemeVariantPicker() {
+  var current = 'blue';
+  try { var v = localStorage.getItem('hq_theme_variant'); current = (v === 'minimal') ? 'minimal' : 'blue'; } catch (e) {}
+  updateThemePickerUI(current);
+  document.querySelectorAll('#themePicker .theme-picker-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() { setAppTheme(btn.getAttribute('data-theme-choice')); });
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  initThemeToggle();
+  initThemeVariantPicker();
   const now = new Date();
   document.getElementById('kbmTanggal').value = _localDateStr(now);
   document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
