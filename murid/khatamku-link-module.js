@@ -28,8 +28,13 @@
     }
   }
 
+  // Simpan data link yg lagi ditampilkan -- dipakai konfirmasiKhatamkuKlik()
+  // utk optimistic update (lihat catatan di sana).
+  var _khLastLink = null;
+
   function renderKhatamkuLink(el, data) {
     var link = data.link;
+    _khLastLink = link;
     var openBtn = '<button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="window.open(\'' + KHATAMKU_URL + '\',\'_blank\')">↗️ Buka KhatamKu</button>';
 
     if (link && link.status === 'verified') {
@@ -140,11 +145,19 @@
     try {
       await window.HQ.MuridAPI.konfirmasiKhatamku();
       toast('Berhasil terhubung ke KhatamKu!', 'ok');
+      // Optimistic: render status verified LANGSUNG pakai data yg sudah ada
+      // (nama/username dari kartu konfirmasi tadi), TIDAK gantung ke
+      // loadKhatamkuLink() di bawah berhasil & sempat repaint duluan --
+      // dilaporkan user (2026-08-27): setelah popup "Berhasil terhubung",
+      // kartu di baliknya masih kartu konfirmasi lama, bikin bingung.
+      if (el && _khLastLink) {
+        renderKhatamkuLink(el, { link: Object.assign({}, _khLastLink, { status: 'verified' }), progress: null });
+      }
     } catch (e) {
       toast(friendlyError(e), 'err');
     }
     _khBusy = false;
-    loadKhatamkuLink();
+    loadKhatamkuLink(); // refresh di belakang layar (utk data progress kalau sudah ada)
   };
 
   window.bukanAkunKhatamkuKlik = function() {
