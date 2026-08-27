@@ -1121,22 +1121,41 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 .stats-top-2col{grid-template-columns:repeat(2,1fr) !important}
 .stats-top-2col.has-pengganti{grid-template-columns:repeat(3,1fr) !important}
 @media(max-width:600px){.stats-top-2col.has-pengganti{grid-template-columns:repeat(2,1fr) !important}}
+/* Kartu stat ringkas -- ikon+angka sebaris (bukan ditumpuk vertikal) supaya
+   lebih hemat ruang & label lebih gampang dibaca (rata kiri, bukan center di
+   antara ikon besar & angka besar). Urutan DOM ikon/nilai/label/sub tetap
+   sama seperti sebelumnya (JS yang mengisi via ID/nth-child tak perlu diubah),
+   cuma tata letaknya yang diatur ulang lewat CSS Grid. */
 .stat-top{
   background:rgba(255,255,255,.8);
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,.6);
-  border-radius:16px;padding:14px 12px;
-  text-align:center;cursor:default;
+  border-radius:14px;padding:10px 12px;
+  display:grid;grid-template-columns:auto 1fr;column-gap:9px;
+  align-items:center;text-align:left;cursor:default;
   box-shadow:0 2px 12px rgba(13,27,42,.06);
   transition:all .2s;
 }
 .stat-top.clickable{cursor:pointer}
 .stat-top.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,27,42,.1)}
-.stat-top .ico{font-size:20px;margin-bottom:4px}
-.stat-top .val{font-size:22px;font-weight:800;line-height:1;color:var(--text)}
-.stat-top .lbl{font-size:10px;color:var(--text-3);margin-top:3px;font-weight:600;
-  text-transform:uppercase;letter-spacing:.04em}
+.stat-top .ico{
+  grid-column:1;grid-row:1/3;
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(100,116,139,.1);color:#475569;
+}
+.stat-top .ico svg{width:15px;height:15px;display:block}
+.stat-top .ico.ico-blue{background:rgba(14,165,233,.1);color:#0284c7}
+.stat-top .ico.ico-red{background:rgba(239,68,68,.1);color:#dc2626}
+.stat-top .ico.ico-amber{background:rgba(194,65,12,.1);color:#c2410c}
+.stat-top .val{grid-column:2;grid-row:1;font-size:18px;font-weight:800;line-height:1.15;color:var(--text)}
+.stat-top .lbl{grid-column:2;grid-row:2;font-size:10.5px;color:var(--text-2);margin-top:1px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.03em}
+/* Baris sub-caption opsional (4th child: st-*-sub) -- selebar penuh di bawah
+   ikon+angka+label, gaya (font-size/warna/margin) sudah diatur inline di
+   markup masing-masing, di sini cuma posisinya saja */
+.stat-top > div:nth-child(4){grid-column:1/3;grid-row:3}
 
 /* ── HALAQAH CARD BARU ── */
 .hq-card-new{
@@ -2023,7 +2042,7 @@ html.theme-dark .tbl-wrap thead th{background:#121214!important}
 /* Typography desktop */
 @media(min-width:1025px){
   .page-sub{font-size:13px}
-  .stat-top .val{font-size:24px}
+  .stat-top .val{font-size:20px}
 }
 
 /* Touch targets: minimal 44px di semua interaktif */
@@ -2923,12 +2942,12 @@ html.theme-dark .pr-chip.active {
         <!-- Stats 2 kartu tetap (info sekilas, tidak butuh tindakan) -->
         <div class="stats-top">
           <div class="stat-top">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
             <div class="val" id="st-halaqah">–</div>
             <div class="lbl">Halaqah</div>
           </div>
           <div class="stat-top">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="val" id="st-murid">–</div>
             <div class="lbl">Total Murid</div>
           </div>
@@ -2939,32 +2958,32 @@ html.theme-dark .pr-chip.active {
              halaman lain, spy langsung kelihatan tanpa perlu tahu harus cari ke mana) -->
         <div class="stats-top stats-top-baris2" id="statsTopBaris2" style="margin-bottom:18px">
           <div class="stat-top clickable" onclick="goPage('keaktifan')" title="Lihat keaktifan murid">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="ico ico-red"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             <div class="val" id="st-keaktifan-kritis">–</div>
-            <div class="lbl">Butuh Perhatian ↗</div>
+            <div class="lbl">Butuh Perhatian&nbsp;↗</div>
             <div id="st-keaktifan-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
           </div>
           <div class="stat-top clickable" onclick="goPage('peninjauan-pr')" title="Lihat & nilai PR murid">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
             <div class="val" id="st-peninjauan-pr">–</div>
-            <div class="lbl">Peninjauan PR ↗</div>
+            <div class="lbl">Peninjauan PR&nbsp;↗</div>
             <div id="st-peninjauan-pr-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500">Memuat...</div>
           </div>
           <div class="stat-top clickable" id="statPengganti" onclick="_showPenggantiReminderDetail()" title="Lihat kelas pengganti yang belum diganti" style="display:none">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+            <div class="ico ico-amber"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
             <div class="val" id="st-pengganti" style="color:#c2410c">–</div>
-            <div class="lbl">Kelas Pengganti ↗</div>
+            <div class="lbl">Kelas Pengganti&nbsp;↗</div>
             <div id="st-pengganti-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
           </div>
           <div class="stat-top clickable" id="statKelompokPartner" onclick="toggleKelolaKelompokPartner()" title="Kelola & pantau kelompok partner qiyam" style="display:none">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Partner</div>
-            <div class="lbl">Kelompok Partner ↗</div>
+            <div class="lbl">Kelompok Partner&nbsp;↗</div>
           </div>
           <div class="stat-top clickable" id="statKelompokBelajar" onclick="toggleKelolaKelompokBelajar()" title="Kelola & pantau kelompok partner belajar" style="display:none">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
             <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Belajar</div>
-            <div class="lbl">Kelompok Belajar ↗</div>
+            <div class="lbl">Kelompok Belajar&nbsp;↗</div>
           </div>
         </div>
 
