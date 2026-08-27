@@ -1306,6 +1306,16 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   background:rgba(255,255,255,.04);
 }
 .dash-greet{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:2px}
+/* "Halaqah Berikutnya" -- sengaja dibedakan dari "Halaqah Hari Ini" (teks polos)
+   spy guru langsung sadar hari ini kosong, bukan cuma lolos terbaca sekilas.
+   Pil + ikon (beda BENTUK, bukan cuma warna) + lebih besar/tebal drpd caption biasa. */
+.dash-greet.is-next{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:13px;font-weight:800;color:#fff;
+  background:rgba(255,255,255,.18);
+  padding:4px 11px;border-radius:100px;margin-bottom:6px;
+}
+.dash-greet.is-next svg{width:12px;height:12px;flex-shrink:0}
 .dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
 .dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
 
@@ -8198,6 +8208,8 @@ function updateHalaqahHariIniCard(hariIniServer) {
   var hariEl  = document.getElementById('dashHariIni');
   if (!greetEl || !namaEl || !hariEl) return;
 
+  greetEl.className = 'dash-greet'; // reset dulu -- bisa saja sebelumnya berstatus is-next
+
   if (!jadwalData || !jadwalData.length) {
     greetEl.textContent = 'Halaqah';
     namaEl.textContent  = 'Belum ada halaqah aktif';
@@ -8235,7 +8247,14 @@ function updateHalaqahHariIniCard(hariIniServer) {
 
   var jam = best.jam_mulai ? (best.jam_mulai + (best.jam_selesai ? '–' + best.jam_selesai : '')) : '';
   var labelHari = bestDays === 0 ? 'Hari ini' : NAMA_HARI_ID[(todayIdx + bestDays) % 7];
-  greetEl.textContent = bestDays === 0 ? 'Halaqah Hari Ini' : 'Halaqah Berikutnya';
+  if (bestDays === 0) {
+    greetEl.textContent = 'Halaqah Hari Ini';
+  } else {
+    // Dibuat lebih "ternotice" drpd caption biasa -- pil + ikon kalender, supaya
+    // guru langsung sadar hari ini kosong, bukan cuma lolos terbaca sekilas.
+    greetEl.className = 'dash-greet is-next';
+    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Halaqah Berikutnya';
+  }
   namaEl.textContent  = best.nama_halaqah;
   hariEl.textContent  = labelHari + (jam ? ' · ' + jam : '') + ' — Semoga Allah mudahkan perjuangan hari ini.';
 }
