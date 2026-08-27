@@ -123,13 +123,29 @@
   var TUNGGU_HTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">%JUDUL%</div>'
     + '<div style="color:var(--text-3);font-size:12px;margin-top:6px">Mohon tunggu, jangan tutup halaman ini.</div></div>';
 
+  // Retry otomatis -- dilaporkan user (2026-08-27): tap "Cek & Hubungkan"
+  // sering gagal di percobaan PERTAMA (loading lalu balik ke "Belum
+  // Terhubung"), baru berhasil di tap kedua. hubungkanKhatamku() lompat 2
+  // edge function (Portal -> KhatamKu), jadi lebih rawan cold-start drpd
+  // konfirmasiKhatamku() yang cuma di Portal. Upsert-nya idempotent (aman
+  // dipanggil ulang), jadi retry di sini tidak bikin duplikasi apa pun.
+  function jeda(ms) { return new Promise(function(resolve){ setTimeout(resolve, ms); }); }
+  async function panggilDenganRetry(fn, maxPercobaan) {
+    var errTerakhir = null;
+    for (var i = 0; i < maxPercobaan; i++) {
+      try { return await fn(); }
+      catch (e) { errTerakhir = e; if (i < maxPercobaan - 1) await jeda(1500); }
+    }
+    throw errTerakhir;
+  }
+
   window.hubungkanKhatamkuKlik = async function() {
     if (_khBusy) return;
     _khBusy = true;
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menghubungi KhatamKu...');
     try {
-      await window.HQ.MuridAPI.hubungkanKhatamku();
+      await panggilDenganRetry(function(){ return window.HQ.MuridAPI.hubungkanKhatamku(); }, 3);
     } catch (e) {
       toast(friendlyError(e), 'err');
     }
@@ -143,7 +159,7 @@
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menyimpan...');
     try {
-      await window.HQ.MuridAPI.konfirmasiKhatamku();
+      await panggilDenganRetry(function(){ return window.HQ.MuridAPI.konfirmasiKhatamku(); }, 3);
       toast('Berhasil terhubung ke KhatamKu!', 'ok');
       // Optimistic: render status verified LANGSUNG pakai data yg sudah ada
       // (nama/username dari kartu konfirmasi tadi), TIDAK gantung ke
