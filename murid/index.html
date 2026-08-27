@@ -524,8 +524,8 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
   position:relative;width:90px;height:90px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
-  transition:background 1s ease-out;
   box-shadow:none;
+  cursor:pointer;
 }
 .prog-donut-inner{
   width:64px;height:64px;border-radius:50%;
@@ -7903,6 +7903,63 @@ window.onSppRendered = function (s) {
 // ══════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════
+
+// ── Animasi ring donut (conic-gradient) — 0% -> 100% -> persentase asli.
+//    Dipicu: (a) tiap kali ring dilukis ulang dgn data baru & BUKAN silent-
+//    refresh (lihat pemanggil), (b) replay saat ring disentuh/di-hover
+//    (lihat _donutReplayHandler di bawah, event delegation krn beberapa
+//    donut wrap ini di-rebuild via innerHTML shg listener langsung bisa
+//    lepas). conic-gradient tak bisa dianimasikan lewat CSS transition
+//    (browser tak interpolasi gradient stop-nya), jadi dilukis manual per
+//    frame via requestAnimationFrame.
+function _easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function _paintDonutRing(el, pctNumEl, color, pct) {
+  el.style.background = 'conic-gradient(' + color + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
+  if (pctNumEl) pctNumEl.textContent = Math.round(pct) + '%';
+}
+function animateDonutRing(el, pctNumEl, color, targetPct, sweep) {
+  if (!el) return;
+  targetPct = Math.max(0, Math.min(100, Number(targetPct) || 0));
+  el.dataset.pct = targetPct;
+  el.dataset.color = color;
+  var kurangGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // sweep=false dipakai utk silent-refresh (polling data di latar) -- cuma
+  // sinkron angka tanpa animasi 0->100->pct, biar tak muncul tiba-tiba
+  // sendiri saat user diam. Sweep penuh cuma utk buka tab pertama & replay
+  // sentuh/hover (lihat pemanggil & _donutReplayHandler).
+  if (kurangGerak || sweep === false) { _paintDonutRing(el, pctNumEl, color, targetPct); return; }
+  var tokenSaya = (el._donutTok = (el._donutTok || 0) + 1);
+  var mulai = null;
+  var NAIK = 500, TURUN = 550;
+  function frame(now) {
+    if (el._donutTok !== tokenSaya) return; // ada animasi lebih baru menimpa punya kita
+    if (mulai === null) mulai = now;
+    var lewat = now - mulai;
+    if (lewat < NAIK) {
+      _paintDonutRing(el, pctNumEl, color, 100 * _easeOutCubic(lewat / NAIK));
+    } else if (lewat < NAIK + TURUN) {
+      var t = (lewat - NAIK) / TURUN;
+      _paintDonutRing(el, pctNumEl, color, 100 + (targetPct - 100) * _easeOutCubic(t));
+    } else {
+      _paintDonutRing(el, pctNumEl, color, targetPct);
+      return;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+// Replay animasi saat ring disentuh (HP) / di-hover (desktop) — event
+// delegation di document supaya tetap jalan walau elemennya sempat
+// di-rebuild via innerHTML (mis. kartu At-Tibyan saat data pertama masuk).
+function _donutReplayHandler(e) {
+  var w = e.target.closest && e.target.closest('.prog-donut-wrap[data-pct]');
+  if (!w) return;
+  if (e.type === 'mouseover' && w.contains(e.relatedTarget)) return; // masih di dalam, bukan "masuk" baru
+  animateDonutRing(w, w.querySelector('.prog-donut-pct'), w.dataset.color, Number(w.dataset.pct));
+}
+document.addEventListener('mouseover', _donutReplayHandler);
+document.addEventListener('click', _donutReplayHandler);
+
 async function loadDashboard(silent) {
   if (!silent) {
     showLoad('Bismillah, memuat dashboard...');
@@ -8035,10 +8092,9 @@ async function loadDashboard(silent) {
 
       var avgNilai = d.micro_teaching ? d.micro_teaching.rata_nilai : 0;
       if (donutRing) {
-        donutRing.style.background = 'conic-gradient(#8b5cf6 ' + avgNilai + '%, rgba(0,0,0,0.05) 0%)';
+        animateDonutRing(donutRing, pctNum, '#8b5cf6', avgNilai, !silent);
       }
       if (pctNum) {
-        pctNum.textContent = avgNilai + '%';
         pctNum.style.color = '#8b5cf6';
       }
 
@@ -8076,10 +8132,9 @@ async function loadDashboard(silent) {
 
       // Update donut ring — conic-gradient persis KhatamKu
       if (donutRing) {
-        donutRing.style.background =
-          'conic-gradient(' + ringColor + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
+        animateDonutRing(donutRing, pctNum, ringColor, pct, !silent);
       }
-      if (pctNum) { pctNum.textContent = pct + '%'; pctNum.style.color = ringColor; }
+      if (pctNum) { pctNum.style.color = ringColor; }
 
       // Progress bar
       if (progressBar) { progressBar.style.width = pct + '%'; progressBar.style.background = barColor; }
@@ -8107,10 +8162,7 @@ async function loadDashboard(silent) {
         var mtProgressBar = document.getElementById('dashMicroProgressBar');
         
         if (mtDonutRing) {
-          mtDonutRing.style.background = 'conic-gradient(#8b5cf6 ' + mtAvgNilai + '%, rgba(0,0,0,0.05) 0%)';
-        }
-        if (mtPctNum) {
-          mtPctNum.textContent = mtAvgNilai + '%';
+          animateDonutRing(mtDonutRing, mtPctNum, '#8b5cf6', mtAvgNilai, !silent);
         }
         if (mtProgressBar) {
           mtProgressBar.style.width = mtAvgNilai + '%';
@@ -8203,10 +8255,7 @@ async function loadDashboard(silent) {
         var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
         
         if (atDonutRing) {
-          atDonutRing.style.background = 'conic-gradient(var(--text) ' + atPct + '%, rgba(0,0,0,0.05) 0%)';
-        }
-        if (atPctNum) {
-          atPctNum.textContent = atPct + '%';
+          animateDonutRing(atDonutRing, atPctNum, 'var(--text)', atPct, !silent);
         }
         if (atProgressBar) {
           atProgressBar.style.width = atPct + '%';
