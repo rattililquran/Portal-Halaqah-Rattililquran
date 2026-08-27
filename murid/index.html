@@ -781,7 +781,7 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
   background:rgba(var(--blue-rgb),.1);color:var(--blue);
   box-shadow:inset 3px 0 0 var(--blue);
 }
-.sidebar-item[data-p].active .sidebar-item-ico{color:var(--blue)!important}
+.sidebar-item[data-p].active .sidebar-item-ico{color:var(--blue)!important;animation:navIconPop .38s ease}
 
 /* Divider */
 .sidebar-divider{height:1px;background:#e8f0fe;margin:8px 2px}
@@ -806,7 +806,13 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
 }
 .top-tab:hover{color:var(--text)}
 .top-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.top-tab-ico{display:inline-flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.top-tab:hover .top-tab-ico{transform:translateY(-1px) scale(1.1)}
+.top-tab:active .top-tab-ico{transform:scale(.9)}
+.top-tab.active .top-tab-ico{animation:navIconPop .38s ease}
 .top-tab-ico svg{display:block;width:15px;height:15px}
+@keyframes navIconPop{0%{transform:scale(1)}45%{transform:scale(1.24)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.top-tab-ico,.sidebar-item-ico{transition:none !important;animation:none !important}}
 html.theme-dark .top-tabbar{background:#1e2128 !important;border-color:rgba(255,255,255,.07) !important}
 html.theme-dark .top-tab{color:rgba(255,255,255,.5) !important}
 html.theme-dark .top-tab:hover{color:#e8eaf0 !important}
