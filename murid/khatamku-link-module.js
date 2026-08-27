@@ -22,8 +22,10 @@
     el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>';
     try {
       var r = await window.HQ.MuridAPI.getKhatamkuLinkStatus();
+      console.log('[KH] loadKhatamkuLink status:', JSON.stringify(r));
       renderKhatamkuLink(el, (r && r.data) || { link: null, progress: null });
     } catch (e) {
+      console.log('[KH] loadKhatamkuLink ERROR:', e && e.message);
       el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
     }
   }
@@ -133,6 +135,7 @@
   async function panggilDenganRetry(fn, maxPercobaan) {
     var errTerakhir = null;
     for (var i = 0; i < maxPercobaan; i++) {
+      console.log('[KH] panggilDenganRetry percobaan ke-' + (i + 1));
       try { return await fn(); }
       catch (e) {
         errTerakhir = e;
@@ -165,14 +168,18 @@
   window.hubungkanKhatamkuKlik = async function() {
     if (_khBusy) { toast('Masih diproses, mohon tunggu...', 'info'); return; }
     _khBusy = true;
+    console.log('[KH] hubungkanKhatamkuKlik MULAI');
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menghubungi KhatamKu...');
     try {
-      await panggilDenganRetry(function(){ return window.HQ.MuridAPI.hubungkanKhatamku(); }, 3);
+      var hasil = await panggilDenganRetry(function(){ return window.HQ.MuridAPI.hubungkanKhatamku(); }, 3);
+      console.log('[KH] hubungkanKhatamku SUKSES:', JSON.stringify(hasil));
     } catch (e) {
+      console.log('[KH] hubungkanKhatamku GAGAL:', e && e.message, 'noRetry=', e && e.noRetry);
       toast(friendlyError(e), 'err');
     }
     _khBusy = false;
+    console.log('[KH] hubungkanKhatamkuKlik panggil loadKhatamkuLink()');
     loadKhatamkuLink();
   };
 
