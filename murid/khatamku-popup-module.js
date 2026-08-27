@@ -25,7 +25,8 @@
     linear-gradient(135deg,#0c4a6e 0%,#075985 45%,#0ea5e9 100%);
   padding:22px 50px 20px 22px;position:relative;
 }
-#kp-card .kp-close{position:absolute;top:12px;right:12px;width:32px;height:32px;box-sizing:border-box;flex-shrink:0;aspect-ratio:1;border:none;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s ease,transform .15s ease}
+#kp-card .kp-close{-webkit-appearance:none;appearance:none;position:absolute;top:12px;right:12px;width:32px;height:32px;min-width:32px;max-width:32px;min-height:32px;max-height:32px;box-sizing:border-box;flex-shrink:0;flex-grow:0;aspect-ratio:1/1;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:0;outline:none;transition:background .15s ease,transform .15s ease}
+#kp-card .kp-close svg{display:block;flex-shrink:0}
 #kp-card .kp-close:hover{background:rgba(255,255,255,.3);transform:scale(1.06)}
 #kp-card .kp-close:active{transform:scale(.94)}
 #kp-card .kp-head-ico{width:46px;height:46px;background:rgba(255,255,255,.16);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:12px;backdrop-filter:blur(6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
