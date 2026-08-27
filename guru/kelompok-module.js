@@ -484,10 +484,13 @@ function _kbBelajarHalaqah() {
   return (window.HQ.AppState.halaqahList || []).filter(function(h){ return lv.indexOf(h.level) !== -1; });
 }
 
-// Tampilkan kartu dashboard "Kelompok Belajar" hanya bila guru punya halaqah yang enabled
+// Tampilkan tombol "Kelompok Belajar" (toolbar halaman Daftar Murid) hanya
+// bila guru punya halaqah yang enabled -- dulu kartu dashboard tersendiri,
+// dipindah ke sini saat beranda dirampingkan (kartu pintasan yang rangkap
+// dgn sidebar/tab-atas dihapus dari beranda).
 async function _kbInitDashCard() {
   await _kbEnsureEnabledLevels();
-  var card = document.getElementById('statKelompokBelajar');
+  var card = document.getElementById('btnKelolaKelompokBelajar');
   if (card) card.style.display = _kbBelajarHalaqah().length ? '' : 'none';
 }
 
