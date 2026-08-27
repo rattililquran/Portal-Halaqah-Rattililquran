@@ -44,7 +44,6 @@
     getHasilKuis: function() { return HQ.GuruAPI.getHasilKuis.apply(HQ.GuruAPI, arguments); },
     getAntrianReviewIsian: function() { return HQ.GuruAPI.getAntrianReviewIsian.apply(HQ.GuruAPI, arguments); },
     reviewIsianSingkat: function() { return HQ.GuruAPI.reviewIsianSingkat.apply(HQ.GuruAPI, arguments); },
-    startSesiLive: function() { return HQ.GuruAPI.startSesiLive.apply(HQ.GuruAPI, arguments); },
     // Murid Methods
     getKuisTersedia: function() { return HQ.MuridAPI.getKuisTersedia.apply(HQ.MuridAPI, arguments); },
     getKuisDetail: function() { return HQ.MuridAPI.getKuisDetail.apply(HQ.MuridAPI, arguments); },

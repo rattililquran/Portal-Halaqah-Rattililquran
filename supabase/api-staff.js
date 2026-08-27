@@ -2662,19 +2662,6 @@ var GuruAPI = {
   },
 
   addSoalToKuis: async function(id_quiz, id_soal, urutan, bobot_poin, durasi_detik_override) {
-    var finalUrutan = urutan;
-    if (finalUrutan === undefined || finalUrutan === null) {
-      var { data: qsData, error: qsErr } = await _sb
-        .from('quiz_soal')
-        .select('urutan')
-        .eq('id_quiz', id_quiz)
-        .order('urutan', { ascending: false })
-        .limit(1);
-      if (qsErr) console.warn('[Quiz] Failed to fetch max urutan:', qsErr);
-      var maxUrutan = (qsData && qsData.length > 0) ? qsData[0].urutan : 0;
-      finalUrutan = maxUrutan + 1;
-    }
-
     var finalPoin = bobot_poin;
     var finalDurasi = durasi_detik_override;
 
@@ -2693,13 +2680,29 @@ var GuruAPI = {
         console.warn('[Quiz] Failed to fetch soal defaults:', e);
       }
     }
+    finalPoin = finalPoin !== undefined && finalPoin !== null ? finalPoin : 10;
+    finalDurasi = finalDurasi || null;
+
+    if (urutan === undefined || urutan === null) {
+      // LB13 fix (bug hunt 2026-08-27): dulu SELECT max(urutan) lalu INSERT sbg 2
+      // langkah terpisah -- 2 panggilan bersamaan (2 tab/guru menambah soal ke
+      // kuis yg sama nyaris bersamaan) bisa membaca max yg sama & dpt urutan
+      // kembar. RPC ini mengunci (advisory lock per id_quiz) + hitung max+1 +
+      // insert dlm 1 transaksi atomik.
+      var { error: rpcErr } = await _sb.rpc('add_soal_to_kuis_auto_urutan', {
+        p_id_quiz: id_quiz, p_id_soal: id_soal,
+        p_bobot_poin: finalPoin, p_durasi_detik_override: finalDurasi
+      });
+      _check(rpcErr, 'addSoalToKuis:auto_urutan');
+      return { status: 'ok' };
+    }
 
     var { error } = await _sb.from('quiz_soal').insert([{
       id_quiz: id_quiz,
       id_soal: id_soal,
-      urutan: finalUrutan,
-      bobot_poin: finalPoin !== undefined && finalPoin !== null ? finalPoin : 10,
-      durasi_detik_override: finalDurasi || null
+      urutan: urutan,
+      bobot_poin: finalPoin,
+      durasi_detik_override: finalDurasi
     }]);
     _check(error, 'addSoalToKuis');
     return { status: 'ok' };
@@ -2844,17 +2847,6 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
-  startSesiLive: async function(id_quiz, id_halaqah, kode_join) {
-    var kode = (kode_join || 'RATTIL-' + Math.random().toString(36).substring(2,6).toUpperCase()).toUpperCase();
-    var { data, error } = await _sb.from('sesi_quiz').insert([{
-      id_quiz: id_quiz,
-      id_halaqah: id_halaqah,
-      kode_join: kode,
-      status: 'menunggu'
-    }]).select().single();
-    _check(error, 'startSesiLive');
-    return { status: 'ok', data: data };
-  },
   getMutabaahDaurahGuru: async function(id_periode) {
     id_periode = id_periode || 'P-DAURAH-JULI-2026';
     var id_guru = _uid();
