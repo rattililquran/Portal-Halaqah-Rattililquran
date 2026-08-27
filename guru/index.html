@@ -253,19 +253,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 }
 .nav-btn.active .ni{animation:navIconPop .38s ease}
 .nav-btn:hover .ni{transform:scale(1.1) translateY(-1px)}
+.nav-btn.danger{color:#dc2626}
+.nav-btn.danger .ni{background:rgba(220,38,38,.06);color:#dc2626}
+.nav-btn.danger:hover{background:rgba(220,38,38,.08);color:#b91c1c}
 @keyframes navIconPop{0%{transform:scale(1)}45%{transform:scale(1.24)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.nav-btn .ni{transition:none !important;animation:none !important}}
 
-.sb-foot{padding:12px 12px 16px;border-top:1px solid rgba(14,165,233,0.08);transition:all 0.3s;}
-.logout-btn{
-  width:100%;padding:10px;
-  background:rgba(220,38,38,0.05);color:#dc2626;
-  border:1px solid rgba(220,38,38,0.12);border-radius:12px;
-  font-family:inherit;font-size:12.5px;font-weight:700;
-  cursor:pointer;transition:all .2s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.logout-btn:hover{background:rgba(220,38,38,0.1);border-color:rgba(220,38,38,0.25)}
 
 /* ── sb-logo (lama) tetap tersembunyi jika ada ── */
 .sb-logo{display:none}
@@ -1567,9 +1560,9 @@ html.theme-dark .sb-section{
   background: rgba(56, 189, 248, 0.08) !important;
   border-color: rgba(56, 189, 248, 0.15) !important;
 }
-html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
-html.theme-dark .logout-btn{background:rgba(248,113,113,.06) !important;color:#f87171 !important;border-color:rgba(248,113,113,.15) !important}
-html.theme-dark .logout-btn:hover{background:rgba(248,113,113,.1) !important;border-color:rgba(248,113,113,0.3) !important}
+html.theme-dark .nav-btn.danger{color:#f87171 !important}
+html.theme-dark .nav-btn.danger .ni{background:rgba(248,113,113,.1) !important;color:#f87171 !important}
+html.theme-dark .nav-btn.danger:hover{background:rgba(248,113,113,.08) !important}
 html.theme-dark .overlay{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(4px)!important}
 html.theme-dark .modal{background:#121214!important;backdrop-filter:none!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
 html.theme-dark .modal-head{background:#121214!important;border-bottom-color:rgba(255,255,255,.07)!important;color:#f0f2f8!important}
@@ -2742,13 +2735,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn" onclick="closeSB();openModal('pwaModal')" id="pwaInstallSidebarBtn"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Install Aplikasi<span style="margin-left:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border-radius:100px;font-size:9px;font-weight:800;padding:2.5px 8px;line-height:1">PWA</span></button>
       <button class="nav-btn" onclick="goPage('password')" data-p="password"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="4"/><line x1="10.6" y1="11.4" x2="20" y2="2"/><line x1="15" y1="7" x2="18" y2="10"/><line x1="18" y1="4" x2="21" y2="7"/></svg></span>Ganti Password</button>
       <div style="height:1px;background:var(--border,#e2eaf5);margin:8px 4px"></div>
-      <button class="nav-btn" onclick="doLogout()" style="color:#dc2626"><span class="ni" style="background:rgba(220,38,38,.06);color:#dc2626">→</span><span>Keluar dari Aplikasi</span></button>
-    </div>
-    <div class="sb-foot">
-      <button class="logout-btn" onclick="doLogout()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Keluar dari Aplikasi</span>
-      </button>
+      <button class="nav-btn danger" onclick="doLogout()"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>Keluar dari Aplikasi</button>
     </div>
   </aside>
 
