@@ -7925,22 +7925,51 @@ function _kbmRingColor(pct) {
   if (pct < 100) return '#10b981';
   return '#fbbf24';
 }
-function _paintDonutRing(el, pctNumEl, colorOrFn, pct) {
+// Padanan _kbmRingColor tapi versi gradient linear (dipakai batang bar) --
+// zona sama persis, cuma bentuk nilainya beda (conic vs linear gradient).
+function _kbmBarColor(pct) {
+  if (pct < 25)  return 'linear-gradient(90deg,#ef4444,#f97316)';
+  if (pct < 50)  return 'linear-gradient(90deg,#f59e0b,#eab308)';
+  if (pct < 75)  return 'linear-gradient(90deg,#3b82f6,#06b6d4)';
+  if (pct < 100) return 'linear-gradient(90deg,#10b981,#34d399)';
+  return 'linear-gradient(90deg,#fbbf24,#f59e0b)';
+}
+function _paintDonutRing(el, pctNumEl, colorOrFn, pct, barEl, barColorOrFn) {
   var color = (typeof colorOrFn === 'function') ? colorOrFn(pct) : colorOrFn;
   el.style.background = 'conic-gradient(' + color + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
   if (pctNumEl) pctNumEl.textContent = Math.round(pct) + '%';
+  if (barEl) {
+    barEl.style.width = pct + '%';
+    if (barColorOrFn) {
+      barEl.style.background = (typeof barColorOrFn === 'function') ? barColorOrFn(pct) : barColorOrFn;
+    }
+  }
 }
-function animateDonutRing(el, pctNumEl, colorOrFn, targetPct, sweep) {
+// barEl/barColorOrFn opsional -- kalau diisi, batang bar di bawah ring ikut
+// digerakkan bareng ring di rAF loop yg SAMA (bukan animasi CSS width
+// terpisah) spy sinkron persis frame-per-frame dgn ring, termasuk ikut
+// ganti warna per zona kalau barColorOrFn berupa fungsi (mis. KBM Reguler).
+// .prog-bar-fill sendiri punya transition:width bawaan (utk kasus non-
+// animasi) -- dimatikan sementara di sini krn di-drive manual per frame,
+// biar tak baku-lawan (lag/ketinggalan drpd ring).
+function animateDonutRing(el, pctNumEl, colorOrFn, targetPct, sweep, barEl, barColorOrFn) {
   if (!el) return;
   targetPct = Math.max(0, Math.min(100, Number(targetPct) || 0));
   el.dataset.pct = targetPct;
   el._donutColorFn = colorOrFn; // fungsi (warna ikut pct saat animasi) ATAU string (warna tetap)
+  el._donutBarEl = barEl;
+  el._donutBarColorFn = barColorOrFn;
   var kurangGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // sweep=false dipakai utk silent-refresh (polling data di latar) -- cuma
   // sinkron angka tanpa animasi 0->100->pct, biar tak muncul tiba-tiba
   // sendiri saat user diam. Sweep penuh cuma utk buka tab pertama & replay
   // sentuh/hover (lihat pemanggil & _donutReplayHandler).
-  if (kurangGerak || sweep === false) { _paintDonutRing(el, pctNumEl, colorOrFn, targetPct); return; }
+  if (kurangGerak || sweep === false) {
+    if (barEl) barEl.style.transition = '';
+    _paintDonutRing(el, pctNumEl, colorOrFn, targetPct, barEl, barColorOrFn);
+    return;
+  }
+  if (barEl) barEl.style.transition = 'none';
   var tokenSaya = (el._donutTok = (el._donutTok || 0) + 1);
   var mulai = null;
   var NAIK = 800, TURUN = 750; // diperlambat -- dilaporkan user versi awal (500+550) kecepatan
@@ -7949,12 +7978,13 @@ function animateDonutRing(el, pctNumEl, colorOrFn, targetPct, sweep) {
     if (mulai === null) mulai = now;
     var lewat = now - mulai;
     if (lewat < NAIK) {
-      _paintDonutRing(el, pctNumEl, colorOrFn, 100 * _easeOutCubic(lewat / NAIK));
+      _paintDonutRing(el, pctNumEl, colorOrFn, 100 * _easeOutCubic(lewat / NAIK), barEl, barColorOrFn);
     } else if (lewat < NAIK + TURUN) {
       var t = (lewat - NAIK) / TURUN;
-      _paintDonutRing(el, pctNumEl, colorOrFn, 100 + (targetPct - 100) * _easeOutCubic(t));
+      _paintDonutRing(el, pctNumEl, colorOrFn, 100 + (targetPct - 100) * _easeOutCubic(t), barEl, barColorOrFn);
     } else {
-      _paintDonutRing(el, pctNumEl, colorOrFn, targetPct);
+      _paintDonutRing(el, pctNumEl, colorOrFn, targetPct, barEl, barColorOrFn);
+      if (barEl) barEl.style.transition = ''; // kembalikan transition CSS default utk perubahan width di luar animasi ini
       return;
     }
     requestAnimationFrame(frame);
@@ -7970,7 +8000,7 @@ function _donutReplayHandler(e) {
   var w = e.target.closest && e.target.closest('.prog-donut-wrap[data-pct]');
   if (!w) return;
   if (e.type === 'mouseover' && w.contains(e.relatedTarget)) return; // masih di dalam, bukan "masuk" baru
-  animateDonutRing(w, w.querySelector('.prog-donut-pct'), w._donutColorFn, Number(w.dataset.pct));
+  animateDonutRing(w, w.querySelector('.prog-donut-pct'), w._donutColorFn, Number(w.dataset.pct), true, w._donutBarEl, w._donutBarColorFn);
 }
 document.addEventListener('mouseover', _donutReplayHandler);
 document.addEventListener('click', _donutReplayHandler);
@@ -8138,25 +8168,17 @@ async function loadDashboard(silent) {
                   : (target > 0 ? Math.min(Math.round((hadir/target)*100), 100) : 0);
 
       // Warna dinamis KhatamKu style — merah→amber→biru→hijau→emas
-      // (ringColor pakai _kbmRingColor spy 1 sumber kebenaran dgn animasi)
-      var ringColor = _kbmRingColor(pct), barColor;
-      if (pct < 25)       { barColor = 'linear-gradient(90deg,#ef4444,#f97316)'; }
-      else if (pct < 50)  { barColor = 'linear-gradient(90deg,#f59e0b,#eab308)'; }
-      else if (pct < 75)  { barColor = 'linear-gradient(90deg,#3b82f6,#06b6d4)'; }
-      else if (pct < 100) { barColor = 'linear-gradient(90deg,#10b981,#34d399)'; }
-      else                { barColor = 'linear-gradient(90deg,#fbbf24,#f59e0b)'; }
-
-      // Update donut ring — conic-gradient persis KhatamKu. Warna dikirim
-      // sbg FUNGSI (_kbmRingColor), bukan string ringColor final -- spy
-      // ring ikut ganti warna melintasi tiap zona selagi animasi menyapu
-      // 0->100->pct, bukan cuma 1 warna diam dari awal ke akhir.
-      if (donutRing) {
-        animateDonutRing(donutRing, pctNum, _kbmRingColor, pct, !silent);
-      }
+      // (ringColor/_kbmBarColor spy 1 sumber kebenaran dgn animasi)
+      var ringColor = _kbmRingColor(pct);
       if (pctNum) { pctNum.style.color = ringColor; }
 
-      // Progress bar
-      if (progressBar) { progressBar.style.width = pct + '%'; progressBar.style.background = barColor; }
+      // Update donut ring + progress bar BARENG, 1 rAF loop -- warna
+      // dikirim sbg FUNGSI (_kbmRingColor/_kbmBarColor), bukan string hasil
+      // akhir, spy keduanya ikut ganti warna melintasi tiap zona selagi
+      // animasi menyapu 0->100->pct, bukan cuma diam di 1 warna dari awal.
+      if (donutRing) {
+        animateDonutRing(donutRing, pctNum, _kbmRingColor, pct, !silent, progressBar, _kbmBarColor);
+      }
 
       // Info teks
       sisa = Number(kh.sisa_sesi);
@@ -8181,10 +8203,7 @@ async function loadDashboard(silent) {
         var mtProgressBar = document.getElementById('dashMicroProgressBar');
         
         if (mtDonutRing) {
-          animateDonutRing(mtDonutRing, mtPctNum, '#8b5cf6', mtAvgNilai, !silent);
-        }
-        if (mtProgressBar) {
-          mtProgressBar.style.width = mtAvgNilai + '%';
+          animateDonutRing(mtDonutRing, mtPctNum, '#8b5cf6', mtAvgNilai, !silent, mtProgressBar);
         }
         
         var mtLast = d.micro_teaching.terakhir;
@@ -8274,11 +8293,7 @@ async function loadDashboard(silent) {
         var atProgressBar = document.getElementById('dashAtTibyanProgressBar');
         
         if (atDonutRing) {
-          animateDonutRing(atDonutRing, atPctNum, 'var(--text)', atPct, !silent);
-        }
-        if (atProgressBar) {
-          atProgressBar.style.width = atPct + '%';
-          atProgressBar.style.background = 'linear-gradient(90deg, var(--text-2), var(--text))';
+          animateDonutRing(atDonutRing, atPctNum, 'var(--text)', atPct, !silent, atProgressBar, 'linear-gradient(90deg, var(--text-2), var(--text))');
         }
         
         document.getElementById('dashAtTibyanProgressPct').textContent = atHadir + ' dari 20 sesi';
