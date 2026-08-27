@@ -125,7 +125,13 @@ html.theme-minimal{
   --r:var(--r-card);--r-sm:var(--r-card);--r-lg:var(--r-card);
 }
 html.theme-minimal .bg-blobs{display:none}
-html.theme-minimal body{background:#ffffff !important}
+/* :not(.theme-dark) -- dilaporkan user: tema Minimalis + Mode Gelap
+   barengan msh nyisa putih. Rule ini pakai warna literal + !important
+   (bukan var(--bg)), jadi SELALU menang lawan aturan dark mode manapun
+   (yg gak !important) apa pun urutannya di file. Dikunci hanya utk
+   kombinasi Minimalis+Terang; Minimalis+Gelap serahkan ke var(--bg) dari
+   html.theme-dark spt komponen lain. */
+html.theme-minimal:not(.theme-dark) body{background:#ffffff !important}
 html.theme-minimal .card{
   background:#ffffff;
   backdrop-filter:none;-webkit-backdrop-filter:none;
