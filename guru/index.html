@@ -107,10 +107,7 @@ html.theme-minimal .stat-top.clickable:hover{
   transform:none;box-shadow:none;
   border-color:rgba(0,0,0,0.16);
 }
-html.theme-minimal .stat::before,
-html.theme-minimal .hq-card::before{display:none}
 html.theme-minimal .sb-avatar{box-shadow:0 0 0 1px rgba(0,0,0,.08)}
-html.theme-minimal .nav-btn.active{box-shadow:none}
 html.theme-minimal .auth-btn{box-shadow:none}
 html.theme-minimal .theme-toggle-btn,html.theme-minimal #refreshBtn{box-shadow:none !important}
 /* Kombinasi Minimalis+Gelap: aturan html.theme-dark di bawah pakai !important
@@ -246,8 +243,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   transition:background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, padding 0.2s ease, font-size 0.25s ease;
 }
 .nav-btn:hover{background:rgba(14,165,233,.08);color:var(--text)}
-.nav-btn.active{background:rgba(14,165,233,.1);color:var(--blue);
-  box-shadow:inset 3px 0 0 var(--blue)}
+.nav-btn.active{background:rgba(14,165,233,.1);color:var(--blue)}
 .nav-btn .ni{
   width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;
@@ -373,8 +369,7 @@ html.theme-dark .top-tab.active span:not(.top-tab-ico){color:#38bdf8}
   border-radius:var(--r);padding:22px 20px;border:1px solid rgba(255,255,255,.9);
   box-shadow:0 8px 32px rgba(14,165,233,.08);
   transition:all .25s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,var(--blue),#38bdf8)}
+.stat::before{display:none}
 .stat:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(14,165,233,.15);border-color:rgba(14,165,233,.2)}
 .stat-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
 .stat-val{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--text)}
@@ -401,8 +396,7 @@ html.theme-dark .top-tab.active span:not(.top-tab-ico){color:#38bdf8}
   border-radius:var(--r);border:1px solid rgba(255,255,255,.9);
   box-shadow:0 8px 32px rgba(14,165,233,.08);
   padding:20px;cursor:pointer;transition:all .25s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
-.hq-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,var(--blue),#38bdf8)}
+.hq-card::before{display:none}
 .hq-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(14,165,233,.15);border-color:rgba(14,165,233,.2)}
 .hq-name{font-size:14.5px;font-weight:700;margin-bottom:5px;color:var(--text)}
 .hq-meta{font-size:11.5px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -1022,8 +1016,7 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   box-shadow:var(--shadow-card);padding:16px;margin-bottom:10px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.jadwal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border)}
-.jadwal-card.hari-ini::before{background:var(--green)}
+.jadwal-card::before{display:none}
 .jadwal-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
 .jadwal-nama{font-weight:700;font-size:14px;margin-bottom:3px}
 .jadwal-info{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -1171,10 +1164,7 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   box-shadow:0 3px 16px rgba(13,27,42,.07);
   position:relative;overflow:hidden;
 }
-.hq-card-new::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  border-radius:20px 20px 0 0;
-}
+.hq-card-new::before{display:none}
 .hq-card-new:hover{transform:translateY(-3px);
   box-shadow:0 8px 32px rgba(13,27,42,.12)}
 .hq-card-new:active{transform:translateY(-1px)}
@@ -1619,7 +1609,6 @@ html.theme-dark .prow,html.theme-dark .nilai-row{
 html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45)!important}
 html.theme-dark .card-head{background:rgba(255,255,255,.03)!important;border-bottom-color:rgba(255,255,255,.06)!important}
 html.theme-dark .card-title{color:#f0f2f8!important}
-html.theme-dark .stat::before{background:linear-gradient(90deg,#38bdf8,#7dd3fc)!important}
 html.theme-dark .nilai-murid-card.terisi{background:rgba(52,211,153,.12)!important;border-color:rgba(52,211,153,.25)!important}
 html.theme-dark .nilai-murid-card .nm-body{background:transparent!important}
 html.theme-dark .fc,html.theme-dark .auth-input,
@@ -1658,7 +1647,7 @@ html.theme-dark .sb-sec{color:#4b5563 !important}
 html.theme-dark .nav-btn{color:rgba(255,255,255,.75) !important}
 html.theme-dark .nav-btn .ni{color:rgba(255,255,255,.75)}
 html.theme-dark .nav-btn:hover{background:rgba(56, 189, 248,.08) !important;color:#7dd3fc !important}
-html.theme-dark .nav-btn.active{background:rgba(56, 189, 248,.12) !important;color:#38bdf8 !important;box-shadow:inset 3px 0 0 #38bdf8 !important}
+html.theme-dark .nav-btn.active{background:rgba(56, 189, 248,.12) !important;color:#38bdf8 !important}
 html.theme-dark .nav-btn.active .ni{color:#38bdf8 !important}
 html.theme-dark .sb-section{
   color: #38bdf8 !important;
@@ -1897,10 +1886,7 @@ html.theme-dark .at-pb.on-A{background:rgba(220,38,38,.2)!important;border-color
 
 /* Keaktifan At-Tibyan */
 .at-keaktifan-card{border-radius:16px;background:#fff;border:1px solid var(--border);
-  padding:16px;box-shadow:var(--shadow);margin-bottom:12px;
-  border-left:5px solid var(--green)}
-.at-keaktifan-card.kritis{border-left-color:var(--red)}
-.at-keaktifan-card.peringatan{border-left-color:var(--amber)}
+  padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
 .at-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
 .at-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .at-dot.hadir{background:#10b981}
@@ -2824,6 +2810,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>Pengumuman</button>
       <button class="nav-btn" onclick="goPage('jadwal')" data-p="jadwal"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Jadwal KBM</button>
       <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></span>Sesi KBM</button>
+      <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Panduan</button>
       </div><!-- /sidebar-group utama -->
 
       <div class="sidebar-group" data-group="akademik">
@@ -2842,7 +2829,6 @@ html.theme-dark .pr-chip.active {
       <div class="sb-section">Penghubung</div>
       <button class="nav-btn" onclick="closeSB();window.open('https://modul-rattililquran.web.app','_blank')"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>Modul Rattil</button>
       <button class="nav-btn" onclick="bukaTabBerkas()" data-p="berkas"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Berkas Pengajar</button>
-      <button class="nav-btn" onclick="goPage('panduan')" data-p="panduan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Panduan</button>
       </div><!-- /sidebar-group penghubung -->
 
       <div class="sidebar-group" data-group="permainan">
@@ -3650,7 +3636,7 @@ html.theme-dark .pr-chip.active {
         .jd-day.open .jd-chev{transform:rotate(90deg)}
         .jd-body{display:none;padding:2px 11px 12px}
         .jd-day.open .jd-body{display:block}
-        .jd-sesi{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.025);border-left:3px solid var(--c,var(--blue));margin-top:7px}
+        .jd-sesi{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:11px;background:rgba(0,0,0,.025);margin-top:7px}
         .jd-sesi.mine{background:var(--blue-l)}
         .jd-time{font-weight:800;font-size:11.5px;color:var(--c,var(--blue));white-space:nowrap;line-height:1.5;padding-top:1px}
         .jd-info{min-width:0;flex:1}
@@ -3944,15 +3930,15 @@ html.theme-dark .pr-chip.active {
         <!-- Panel: Keaktifan -->
         <div id="atPanelKeaktifan" style="display:none">
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--red)">
+            <div class="card" style="padding:14px;text-align:center;">
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kritis 🔴</div>
               <div style="font-size:28px;font-weight:900;color:var(--red)" id="atKritisCount">–</div>
             </div>
-            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--amber)">
+            <div class="card" style="padding:14px;text-align:center;">
               <div style="font-size:11px;color:var(--amber-txt);font-weight:700;text-transform:uppercase">Peringatan 🟡</div>
               <div style="font-size:28px;font-weight:900;color:var(--amber)" id="atPeringatanCount">–</div>
             </div>
-            <div class="card" style="padding:14px;text-align:center;border-left:4px solid var(--green)">
+            <div class="card" style="padding:14px;text-align:center;">
               <div style="font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase">Normal 🟢</div>
               <div style="font-size:28px;font-weight:900;color:var(--green)" id="atNormalCount">–</div>
             </div>
@@ -6473,11 +6459,12 @@ var NAV_GROUPS = ['utama', 'akademik', 'penghubung', 'permainan', 'evaluasi', 'p
 var PAGE_TO_GROUP = {
   dashboard: 'utama', pengumuman: 'utama', jadwal: 'utama', kbm: 'utama',
   presensi: 'utama', 'nilai-murid': 'utama', jurnal: 'utama', 'hafalan-kbm': 'utama', 'microteaching-kbm': 'utama',
+  panduan: 'utama',
   murid: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
   'attibyan-guru': 'akademik', 'mutabaah-guru': 'akademik', 'pengembangan-guru': 'akademik', 'hafalan-guru': 'akademik',
   'kuis-guru': 'permainan', 'maze-guru': 'permainan', 'run-guru': 'permainan',
   assessment: 'evaluasi', 'nilai-manual': 'evaluasi', raport: 'evaluasi', 'raport-tahfidz': 'evaluasi',
-  panduan: 'penghubung', password: 'pengaturan',
+  password: 'pengaturan',
 };
 function setActiveNavGroup(key) {
   if (NAV_GROUPS.indexOf(key) === -1) return;
