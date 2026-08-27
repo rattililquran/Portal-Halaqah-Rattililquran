@@ -172,9 +172,14 @@ var GuruAPI = {
     }
 
     var result = (halaqah || []).map(function(h) {
-      var jadwalHari = (h.jadwal_hari || '').split(/[,\s]+/);
+      // _HARI_INDEX (supabase-core.js) mencakup variasi ejaan "jumat"/"jum'at" --
+      // sebagian jadwal_hari lama di DB tersimpan pakai apostrof, includes()
+      // string-polos sebelumnya gagal cocok utk varian itu di hari Jumat
+      // (halaqah tak pernah terdeteksi "hari ini" tiap kali jatuh Jumat).
+      var jadwalHari = (h.jadwal_hari || '').toLowerCase().split(/[,\s]+/);
+      var todayIdxJadwal = _HARI_INDEX[hari.toLowerCase()];
       var isHariIni  = jadwalHari.some(function(j) {
-        return j.toLowerCase().includes(hari.toLowerCase());
+        return _HARI_INDEX[j] === todayIdxJadwal;
       });
       var jenisCounts = kbmByJenis[h.id_halaqah] || {};
       var regCount    = jenisCounts['KBM Reguler']    || 0;
