@@ -7824,6 +7824,17 @@ function startApp() {
   loadDashboard();
   if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid');
   if (typeof window.initKhatamkuPopup === 'function') window.initKhatamkuPopup('murid');
+  // Dilaporkan user 2026-08-27: ajakan notifikasi "tak pernah muncul" --
+  // ternyata initPushPrompt() (didefinisikan lengkap di assets/push-
+  // permission.js, dgn delay 30 detik & pengaman tabrakan popup) memang tak
+  // pernah dipanggil di murid sama sekali (cuma ada di guru/attibyan-
+  // module.js & admin/laporan-module.js, itupun nempel di modul fitur
+  // tertentu bukan alur start-up utama). Satu-satunya jalur aktivasi push
+  // murid selama ini cuma tombol manual "Aktifkan" di halaman Preferensi
+  // Notifikasi -- jelas kenapa subscriber rendah (114/397). Dipanggil di
+  // sini spy sejajar dgn popup lain (stagger: dakwah=4dtk, KhatamKu=15dtk,
+  // push=30dtk).
+  if (typeof window.initPushPrompt === 'function') window.initPushPrompt('murid');
   // startApp() TIDAK memanggil goPage() (halaman dashboard sudah .active dari HTML
   // statis) -- jadi highlight tab atas perlu disinkronkan manual di sini supaya
   // tab "Utama" sudah menyala sejak awal, bukan baru menyala setelah tab pertama
