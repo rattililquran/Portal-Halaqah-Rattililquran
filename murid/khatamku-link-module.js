@@ -22,10 +22,8 @@
     el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-ttl">Memuat...</div></div>';
     try {
       var r = await window.HQ.MuridAPI.getKhatamkuLinkStatus();
-      console.log('[KH] loadKhatamkuLink status:', JSON.stringify(r));
       renderKhatamkuLink(el, (r && r.data) || { link: null, progress: null });
     } catch (e) {
-      console.log('[KH] loadKhatamkuLink ERROR:', e && e.message);
       el.innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-ttl">' + esc(friendlyError(e)) + '</div></div>';
     }
   }
@@ -135,7 +133,6 @@
   async function panggilDenganRetry(fn, maxPercobaan) {
     var errTerakhir = null;
     for (var i = 0; i < maxPercobaan; i++) {
-      console.log('[KH] panggilDenganRetry percobaan ke-' + (i + 1));
       try { return await fn(); }
       catch (e) {
         errTerakhir = e;
@@ -150,36 +147,38 @@
     throw errTerakhir;
   }
 
-  // Refresh TANPA reset ke "Memuat..." dulu -- dipakai setelah render
-  // optimistic supaya tak langsung ketimpa sebelum sempat browser repaint
-  // (bug hunt susulan 2026-08-27: renderKhatamkuLink() lalu loadKhatamkuLink()
-  // tanpa jeda/yield di antaranya membuat "Memuat..."-nya loadKhatamkuLink()
-  // menimpa render optimistic SEBELUM sempat ter-paint sama sekali -- jadi
-  // optimistic render sebelumnya efeknya nol).
-  function refreshDiamDiam() {
-    if (!window.HQ || !window.HQ.MuridAPI) return;
-    window.HQ.MuridAPI.getKhatamkuLinkStatus().then(function(r) {
-      var el = document.getElementById('khatamkuLinkContent');
-      if (!el) return;
-      renderKhatamkuLink(el, (r && r.data) || { link: null, progress: null });
-    }).catch(function(){});
-  }
-
   window.hubungkanKhatamkuKlik = async function() {
     if (_khBusy) { toast('Masih diproses, mohon tunggu...', 'info'); return; }
     _khBusy = true;
-    console.log('[KH] hubungkanKhatamkuKlik MULAI');
     var el = document.getElementById('khatamkuLinkContent');
     if (el) el.innerHTML = TUNGGU_HTML.replace('%JUDUL%', 'Menghubungi KhatamKu...');
     try {
       var hasil = await panggilDenganRetry(function(){ return window.HQ.MuridAPI.hubungkanKhatamku(); }, 3);
-      console.log('[KH] hubungkanKhatamku SUKSES:', JSON.stringify(hasil));
+      _khBusy = false;
+      // Render LANGSUNG dari hasil respons server -- JANGAN baca-ulang DB
+      // segera setelah tulis. Dibuktikan via log 2026-08-27: baca
+      // (getKhatamkuLinkStatus) bisa "belum melihat" baris yang BARU SAJA
+      // sukses ditulis server (status:'found' terkonfirmasi) sampai puluhan
+      // detik -- eventual-consistency di lapisan REST Supabase, bukan bug
+      // logika. Baca-ulang instan (loadKhatamkuLink lama) jadi selalu nampak
+      // "gagal balik ke Belum Terhubung" walau tulisannya sebenarnya sukses.
+      if (hasil && hasil.status === 'found' && el) {
+        renderKhatamkuLink(el, { link: { khatamku_nama: hasil.nama, khatamku_username: hasil.username, status: 'pending_confirm' }, progress: null });
+        return;
+      }
+      if (hasil && hasil.status === 'manual' && el) {
+        renderKhatamkuLink(el, { link: { link_code: hasil.link_code, link_code_expires: hasil.expires_at, status: 'pending' }, progress: null });
+        return;
+      }
+      // 'already_linked' atau kasus lain -- jarang terjadi & butuh data
+      // lengkap (nama/progress) yg tak ada di respons ini, aman baca DB krn
+      // bukan detik-detik pertama setelah tulis.
+      loadKhatamkuLink();
+      return;
     } catch (e) {
-      console.log('[KH] hubungkanKhatamku GAGAL:', e && e.message, 'noRetry=', e && e.noRetry);
       toast(friendlyError(e), 'err');
     }
     _khBusy = false;
-    console.log('[KH] hubungkanKhatamkuKlik panggil loadKhatamkuLink()');
     loadKhatamkuLink();
   };
 
@@ -194,13 +193,17 @@
       // Optimistic: render status verified LANGSUNG pakai data yg sudah ada
       // (nama/username dari kartu konfirmasi tadi) -- dilaporkan user
       // (2026-08-27): setelah popup "Berhasil terhubung", kartu di baliknya
-      // masih kartu konfirmasi lama. Refresh susulan pakai refreshDiamDiam()
-      // (BUKAN loadKhatamkuLink() yg reset ke "Memuat..." & menimpa ini).
+      // masih kartu konfirmasi lama. TIDAK dipanggil refreshDiamDiam() susulan
+      // di sini (beda dari versi sebelumnya) -- dibuktikan via log: baca DB
+      // segera setelah tulis bisa "belum melihat" perubahan sampai puluhan
+      // detik (eventual-consistency REST Supabase), jadi refresh instan
+      // justru BERISIKO menimpa render optimistic yg sudah benar ini dengan
+      // hasil baca basi. Data progres akan muncul natural saat murid
+      // membuka lagi halaman ini nanti (loadKhatamkuLink dari awal).
       if (el && _khLastLink) {
         renderKhatamkuLink(el, { link: Object.assign({}, _khLastLink, { status: 'verified' }), progress: null });
       }
       _khBusy = false;
-      refreshDiamDiam();
       return;
     } catch (e) {
       toast(friendlyError(e), 'err');
