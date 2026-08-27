@@ -1800,6 +1800,12 @@ var MuridAPI = {
       _sb.from('quiz_soal').select(_SNAP_COLS).eq('id_quiz', id_quiz)
     ]);
     _check(hasilRes.error, 'getHasilKuisMurid:hasil');
+    // MB9 fix (bug hunt 2026-08-27): 3 hasil lain dulu tak dicek errornya sama
+    // sekali -- gagal diam2 bikin rincian jawaban/pengaturan tampilan jawaban/
+    // snapshot soal kosong tanpa toast error, murid salah kira memang kosong.
+    _check(jawabanRes.error, 'getHasilKuisMurid:jawaban');
+    _check(quizRes.error, 'getHasilKuisMurid:quiz');
+    _check(snapRes.error, 'getHasilKuisMurid:snapshot');
 
     var quizSetting = quizRes.data ? quizRes.data.tampilkan_jawaban : 'setelah_submit';
 

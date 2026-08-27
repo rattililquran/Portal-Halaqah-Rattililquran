@@ -2592,11 +2592,16 @@ var GuruAPI = {
       throw new Error('Soal tidak bisa diedit: bukan milik Anda atau akses ditolak.');
     }
 
-    await Promise.all([
+    // MB9 fix (bug hunt 2026-08-27): dulu tak satu pun dari 3 hasil delete ini
+    // dicek errornya -- kalau salah satu gagal diam-diam (mis. RLS/network),
+    // insert opsi baru di bawah tetap jalan di atas sisa opsi lama yg gagal
+    // terhapus, mencampur opsi lama+baru di 1 soal Bank Soal bersama.
+    var _delResults = await Promise.all([
       _sb.from('soal_pilihan').delete().eq('id_soal', id_soal),
       _sb.from('soal_pasangan').delete().eq('id_soal', id_soal),
       _sb.from('soal_kunci_isian').delete().eq('id_soal', id_soal)
     ]);
+    _delResults.forEach(function(r) { _check(r.error, 'updateSoalFull:hapus_opsi_lama'); });
 
     if (payload.pilihan && payload.pilihan.length > 0) {
       var pilihanRows = payload.pilihan.map(function(p, idx) {
@@ -2731,6 +2736,10 @@ var GuruAPI = {
     ]);
     _check(quizRes.error, 'getHasilKuis:quiz');
     _check(hasilRes.error, 'getHasilKuis:hasil');
+    // MB9 fix (bug hunt 2026-08-27): jawabanRes.error dulu diabaikan -- dipakai
+    // jadi summary.jawaban_detail (dasar "Soal Tersulit" & rincian jawaban),
+    // gagal diam2 bikin bagian itu kosong tanpa toast error apa pun.
+    _check(jawabanRes.error, 'getHasilKuis:jawaban');
 
     // PATCH 066/067: tampilkan konten soal beku (snapshot). quiz_soal(*) sudah
     // membawa kolom snap_*, jadi timpa embed soal-nya langsung.

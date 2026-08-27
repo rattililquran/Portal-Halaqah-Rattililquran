@@ -3362,7 +3362,11 @@
               for (const k in keyMap) {
                 if (rubrik[k]) {
                   const val = rubrik[k];
-                  items.push(`<strong>${keyMap[k]}:</strong> ${optMap[val] || val}`);
+                  // MB13 fix (bug hunt 2026-08-27): fallback ini luput dari esc() --
+                  // field lain di fungsi yg sama konsisten di-escape, val (dari
+                  // koreksi_tahsin, kolom text tanpa validasi DB) tidak kalau bukan
+                  // salah satu dari 4 kode rubrik yg dikenal.
+                  items.push(`<strong>${keyMap[k]}:</strong> ${optMap[val] || esc(val)}`);
                 }
               }
               if (items.length > 0) {
