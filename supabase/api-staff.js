@@ -172,14 +172,16 @@ var GuruAPI = {
     }
 
     var result = (halaqah || []).map(function(h) {
-      // _HARI_INDEX (supabase-core.js) mencakup variasi ejaan "jumat"/"jum'at" --
-      // sebagian jadwal_hari lama di DB tersimpan pakai apostrof, includes()
-      // string-polos sebelumnya gagal cocok utk varian itu di hari Jumat
-      // (halaqah tak pernah terdeteksi "hari ini" tiap kali jatuh Jumat).
-      var jadwalHari = (h.jadwal_hari || '').toLowerCase().split(/[,\s]+/);
-      var todayIdxJadwal = _HARI_INDEX[hari.toLowerCase()];
-      var isHariIni  = jadwalHari.some(function(j) {
-        return _HARI_INDEX[j] === todayIdxJadwal;
+      // Balik ke includes() substring (spt semula) supaya toleran thd jadwal_hari
+      // yg ada teks/tanda baca tambahan (mis. "Sabtu (ganjil)") -- TAPI dicek thd
+      // SEMUA varian ejaan hari ini (_HARI_INDEX, mencakup "jumat"/"jum'at",
+      // "minggu"/"ahad"), bukan cuma satu ejaan polos spt kode lama. Fix murni
+      // exact-match sebelumnya kelewat ketat & sempat menghilangkan chip "Hari
+      // ini" utk jadwal_hari yg formatnya di luar dugaan.
+      var jadwalHariLower = (h.jadwal_hari || '').toLowerCase();
+      var todayIdxJadwal  = _HARI_INDEX[hari.toLowerCase()];
+      var isHariIni = Object.keys(_HARI_INDEX).some(function(k) {
+        return _HARI_INDEX[k] === todayIdxJadwal && jadwalHariLower.includes(k);
       });
       var jenisCounts = kbmByJenis[h.id_halaqah] || {};
       var regCount    = jenisCounts['KBM Reguler']    || 0;
