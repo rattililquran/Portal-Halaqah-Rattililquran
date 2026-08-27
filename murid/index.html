@@ -2499,7 +2499,14 @@ html.theme-dark .progress-card.micro-card .prog-info-title{
 html.theme-dark .progress-card.micro-card .prog-info-sesi{
   color:#c084fc !important;
 }
-html.theme-dark .prog-inner-wrap{background:rgba(255,255,255,.1) !important}
+/* Dulu rgba(255,255,255,.1) -- tint PUTIH tersisa dari mode terang (frame
+   8px di sekitar kartu donut, lihat .prog-inner-wrap light-mode: "wrapper
+   biru muda di sekitar kartu putih"). Radius wrap (20px) & kartu dalam
+   (14px) tak pas menyatu persis, jadi tint putihnya "bocor" plg kentara
+   di sudut membulat -- dilaporkan user via screenshot ditandai lingkaran
+   merah. Ganti jadi tint HITAM (bukan putih) spy bingkainya terlihat
+   "masuk ke dalam" (recessed), bukan menyala putih di dark mode. */
+html.theme-dark .prog-inner-wrap{background:rgba(0,0,0,.35) !important}
 html.theme-dark .prog-inner-card{background:#121214 !important;border:none !important}
 html.theme-dark .prog-inner-title{color:#e2e8f0 !important}
 html.theme-dark .prog-donut-inner{
