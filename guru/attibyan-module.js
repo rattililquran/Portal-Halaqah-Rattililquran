@@ -812,7 +812,11 @@ async function bukaFormAtTibyan() {
     ? Math.max.apply(null, _atSesiData.map(function(s){ return s.pertemuan_ke || 0; })) + 1
     : 1;
   document.getElementById('atFormTitle').textContent = 'Presensi At-Tibyan Baru (Sesi ' + _atNextPertemuan + ')';
-  document.getElementById('atFormTanggal').value = localDateStr();
+  // LB6 fix (bug hunt 2026-08-27): localDateStr() (alias global ke _localDate()
+  // di supabase-core.js) pakai jam/zona PERANGKAT, bukan WIB -- default tanggal
+  // form bisa salah hari kalau device guru bukan Asia/Jakarta. Pakai
+  // _todayJakarta(), sudah dlm format YYYY-MM-DD yg cocok utk <input type="date">.
+  document.getElementById('atFormTanggal').value = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : new Date().toISOString().slice(0, 10);
   document.getElementById('atFormPertemuanInfo').textContent = 'Pertemuan ke-' + _atNextPertemuan;
   _showAtMateriInfo(_atNextPertemuan);
   await _loadAtFormMurid();

@@ -2881,11 +2881,14 @@ var GuruAPI = {
     var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
     var itemIds = indikator.map(function(i){ return i.id_item; });
 
-    var today = new Date(); today.setHours(0,0,0,0);
-    var tglMulai = new Date(periode.tanggal_mulai); tglMulai.setHours(0,0,0,0);
-    var tglSelesai = new Date(periode.tanggal_selesai); tglSelesai.setHours(0,0,0,0);
-    var hariKe = today < tglMulai ? 0 : today > tglSelesai ? 8 : Math.floor((today - tglMulai) / 86400000) + 1;
-    var statusDaurah = today < tglMulai ? 'belum' : today > tglSelesai ? 'selesai' : 'berlangsung';
+    // MB10 fix (bug hunt 2026-08-27): new Date() device-local -> _todayJakarta().
+    // Bandingkan sbg epoch UTC-midnight (pola sama dgn _hariIni()), bukan Date
+    // object device-local -- device guru non-WIB bisa geser hariKe/status 1 hari.
+    var todayMs    = new Date(_todayJakarta() + 'T00:00:00Z').getTime();
+    var mulaiMs    = new Date((periode.tanggal_mulai   || '').slice(0, 10) + 'T00:00:00Z').getTime();
+    var selesaiMs  = new Date((periode.tanggal_selesai || '').slice(0, 10) + 'T00:00:00Z').getTime();
+    var hariKe = todayMs < mulaiMs ? 0 : todayMs > selesaiMs ? 8 : Math.floor((todayMs - mulaiMs) / 86400000) + 1;
+    var statusDaurah = todayMs < mulaiMs ? 'belum' : todayMs > selesaiMs ? 'selesai' : 'berlangsung';
 
     // Data besar diambil TERFILTER (halaqah milik guru + rentang tanggal periode)
     // dan berpaginasi via _selectAllPaged agar tidak terpotong batas 1000 baris PostgREST.
@@ -3828,9 +3831,12 @@ var AdminAPI = {
   //  p: { bulan(1-12), tahun, id_guru? }. Tanpa argumen → bulan & tahun berjalan.
   getRekapAbsensiGuru: async function(p) {
     p = p || {};
-    var now   = new Date();
-    var bulan = Number(p.bulan) || (now.getMonth() + 1);
-    var tahun = Number(p.tahun) || now.getFullYear();
+    // MB11 fix (bug hunt 2026-08-27): kembaran M9 lama yg tak ikut ditambal --
+    // getAbsensiSaya (versi guru, laporan yg sama) sudah pakai _todayJakarta(),
+    // versi admin ini masih new Date() device-local. Disamakan polanya.
+    var todayJkt = _todayJakarta();
+    var bulan = Number(p.bulan) || Number(todayJkt.slice(5, 7));
+    var tahun = Number(p.tahun) || Number(todayJkt.slice(0, 4));
     var data  = await _fetchAbsensiData({ bulan: bulan, tahun: tahun, scope: 'admin', id_guru: p.id_guru || null });
     var rekap = _deriveRekapAbsensi(data);
     if (p.id_guru) rekap.guru = rekap.guru.filter(function(g) { return g.id_guru === p.id_guru; });
@@ -4148,11 +4154,14 @@ var AdminAPI = {
     var hqIds = (halaqahRes.data||[]).map(function(h){ return h.id_halaqah; });
     var itemIds = indikator.map(function(i){ return i.id_item; });
 
-    var today = new Date(); today.setHours(0,0,0,0);
-    var tglMulai = new Date(periode.tanggal_mulai); tglMulai.setHours(0,0,0,0);
-    var tglSelesai = new Date(periode.tanggal_selesai); tglSelesai.setHours(0,0,0,0);
-    var hariKe = today < tglMulai ? 0 : today > tglSelesai ? 8 : Math.floor((today - tglMulai) / 86400000) + 1;
-    var statusDaurah = today < tglMulai ? 'belum' : today > tglSelesai ? 'selesai' : 'berlangsung';
+    // MB10 fix (bug hunt 2026-08-27): new Date() device-local -> _todayJakarta().
+    // Bandingkan sbg epoch UTC-midnight (pola sama dgn _hariIni()), bukan Date
+    // object device-local -- device guru non-WIB bisa geser hariKe/status 1 hari.
+    var todayMs    = new Date(_todayJakarta() + 'T00:00:00Z').getTime();
+    var mulaiMs    = new Date((periode.tanggal_mulai   || '').slice(0, 10) + 'T00:00:00Z').getTime();
+    var selesaiMs  = new Date((periode.tanggal_selesai || '').slice(0, 10) + 'T00:00:00Z').getTime();
+    var hariKe = todayMs < mulaiMs ? 0 : todayMs > selesaiMs ? 8 : Math.floor((todayMs - mulaiMs) / 86400000) + 1;
+    var statusDaurah = todayMs < mulaiMs ? 'belum' : todayMs > selesaiMs ? 'selesai' : 'berlangsung';
 
     // Data besar diambil TERFILTER (halaqah daurah + rentang tanggal periode)
     // dan berpaginasi via _selectAllPaged agar tidak terpotong batas 1000 baris PostgREST.
@@ -6135,7 +6144,10 @@ var AdminAPI = {
   // %hadir (mesin absensi), capaian murid (rata2 nilai_akhir raport halaqahnya), mutaba'ah terbuka.
   getRaporPengajar: async function(id_guru, id_periode) {
     if (!id_guru) return { status: 'error', message: 'id_guru wajib diisi' };
-    var now = new Date();
+    // LB4 fix (bug hunt 2026-08-27): new Date() device-local -> _todayJakarta()
+    // -- komponen "Kedisiplinan" (pctHadir) bisa terhitung dari bulan yg salah
+    // di sekitar pergantian bulan kalau device server/pemanggil beda zona.
+    var todayJkt = _todayJakarta();
     var [komp, tashih, evalr, mtb, hqRes, microRes] = await Promise.all([
       _sb.from('pengajar_kompetensi').select('*').eq('id_guru', id_guru).maybeSingle(),
       _sb.from('pengajar_tashih').select('hasil').eq('id_guru', id_guru),
@@ -6150,7 +6162,7 @@ var AdminAPI = {
     // Kedisiplinan ← %hadir dari mesin absensi (reuse _fetchAbsensiData/_deriveRekapAbsensi).
     var pctHadir = null;
     try {
-      var absData = await _fetchAbsensiData({ bulan: now.getMonth() + 1, tahun: now.getFullYear(), scope: 'admin', id_guru: id_guru });
+      var absData = await _fetchAbsensiData({ bulan: Number(todayJkt.slice(5, 7)), tahun: Number(todayJkt.slice(0, 4)), scope: 'admin', id_guru: id_guru });
       var rekap = _deriveRekapAbsensi(absData);
       var gr = (rekap.guru || []).filter(function(g){ return g.id_guru === id_guru; })[0];
       pctHadir = gr ? gr.pct_kehadiran : null;

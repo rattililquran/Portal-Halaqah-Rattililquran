@@ -132,10 +132,13 @@
       }
     }
     
+    // LB2 fix (bug hunt 2026-08-27): new Date() device-local -> _todayJakarta()
+    // (WIB) -- teks rekap WA bisa salah sebut hari/tanggal kalau device beda zona.
     const days = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const today = new Date();
-    const namaHari = days[today.getDay()];
-    const tanggalSkg = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const todayJktStr = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
+    const today = todayJktStr ? new Date(todayJktStr + 'T00:00:00Z') : new Date();
+    const namaHari = days[todayJktStr ? today.getUTCDay() : today.getDay()];
+    const tanggalSkg = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
     const tglFull = `${namaHari}, ${tanggalSkg}`;
     
     let text = `📋 *REKAPAN PR BELUM DIKERJAKAN* 📋\n`;
@@ -906,9 +909,14 @@
     
     const deadlineInput = document.getElementById('jurnalDeadline');
     if (deadlineInput) {
-      const today = new Date();
-      const targetDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
-      deadlineInput.value = localDateStr(targetDate);
+      // LB2 fix (bug hunt 2026-08-27): localDateStr() (alias global ke _localDate()
+      // di supabase-core.js) + new Date() di sini sama2 pakai jam/zona PERANGKAT,
+      // bukan WIB -- deadline default bisa meleset 1 hari kalau device guru bukan
+      // Asia/Jakarta. Pakai _todayJakarta() + aritmetika UTC-midnight, aman dari itu.
+      const todayJktStr = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
+      const baseMs = todayJktStr ? new Date(todayJktStr + 'T00:00:00Z').getTime() : Date.now();
+      const targetDate = new Date(baseMs + 3 * 24 * 60 * 60 * 1000);
+      deadlineInput.value = targetDate.toISOString().slice(0, 10);
     }
     if (tplSel) tplSel.value = '';
   }

@@ -6234,23 +6234,23 @@ html.theme-dark .pr-chip.active {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=68a53e29"></script>
+<script src="../supabase/api-staff.js?v=69b63c02"></script>
 <script src="../supabase/hq-assemble.js?v=0abf4844"></script>
 <script src="../assets/js/shared-utils.js?v=20b69409"></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/popup-notifikasi.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
-<script src="jadwal-module.js?v=b4631877" defer></script>
+<script src="jadwal-module.js?v=b2b2adea" defer></script>
 <script src="dashboard-module.js?v=895bd7e0" defer></script>
 <script src="kelompok-module.js?v=6f0dec9c" defer></script>
-<script src="attibyan-module.js?v=655cb7fb" defer></script>
+<script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=ffb3d278" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
-<script src="pr-jurnal-module.js?v=9e12a9aa" defer></script>
-<script src="hafalan-module.js?v=a06180c3" defer></script>
-<script src="mutabaah-guru-module.js?v=1be1e422" defer></script>
+<script src="pr-jurnal-module.js?v=44d125b2" defer></script>
+<script src="hafalan-module.js?v=c78ba7e2" defer></script>
+<script src="mutabaah-guru-module.js?v=eeec8d51" defer></script>
 <script src="pengembangan-guru-module.js?v=c5bc33e2" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -6400,7 +6400,10 @@ window.addEventListener('DOMContentLoaded', () => {
   initThemeToggle();
   initThemeVariantPicker();
   const now = new Date();
-  document.getElementById('kbmTanggal').value = _localDateStr(now);
+  // LB3 fix (bug hunt 2026-08-27): default tanggal form KBM manual pakai
+  // _todayJakarta() (WIB), bukan _localDateStr(new Date()) device-local --
+  // kbmJam/topDate di bawah tetap device-local (di luar cakupan temuan ini).
+  document.getElementById('kbmTanggal').value = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : _localDateStr(now);
   document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
   document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
@@ -6926,8 +6929,13 @@ var NAV_GROUPS = ['utama', 'akademik', 'permainan', 'evaluasi', 'pengaturan'];
 // Pemetaan nama halaman (goPage) -> grup sidebar yang memuatnya. Item yang tidak
 // pernah memanggil goPage() (Berkas, Kalender, Notifikasi, Install Aplikasi) tidak
 // perlu masuk sini -- tab-nya jadi murni pilihan manual, tak pernah auto-highlight.
+// LB8 fix (bug hunt 2026-08-27): 5 sub-halaman step-wizard KBM (kbm-module.js)
+// luput dari peta ini -- kebetulan aman selama ini krn cuma reachable dari dalam
+// alur 'kbm' (sama2 'utama'), tapi rapuh kalau 'kbm' suatu saat pindah grup tanpa
+// ke-5 entri ini ikut diupdate. Didaftarkan eksplisit spy tak lagi bergantung fallback.
 var PAGE_TO_GROUP = {
   dashboard: 'utama', pengumuman: 'utama', jadwal: 'utama', kbm: 'utama',
+  presensi: 'utama', 'nilai-murid': 'utama', jurnal: 'utama', 'hafalan-kbm': 'utama', 'microteaching-kbm': 'utama',
   murid: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
   'attibyan-guru': 'akademik', 'mutabaah-guru': 'akademik', 'pengembangan-guru': 'akademik', 'hafalan-guru': 'akademik',
   'kuis-guru': 'permainan', 'maze-guru': 'permainan', 'run-guru': 'permainan',

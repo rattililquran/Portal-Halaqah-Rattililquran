@@ -319,7 +319,10 @@
 
     var tglInput = document.getElementById('hafalanTanggal');
     if (tglInput && !tglInput.value) {
-      tglInput.value = localDateStr();
+      // Fix bug hunt 2026-08-27: localDateStr() (alias global ke _localDate() di
+      // supabase-core.js) pakai jam/zona PERANGKAT, bukan WIB -- tanggal default
+      // bisa salah hari kalau device guru bukan Asia/Jakarta. Pakai _todayJakarta().
+      tglInput.value = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : new Date().toISOString().slice(0, 10);
     }
 
     _hfConfigCache = null;

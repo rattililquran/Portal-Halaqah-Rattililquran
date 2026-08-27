@@ -347,7 +347,11 @@
     });
     var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'mutabaah-guru-daurah-' + localDateStr() + '.csv';
+    // Fix bug hunt 2026-08-27: localDateStr() (alias global ke _localDate() di
+    // supabase-core.js) pakai jam/zona PERANGKAT, bukan WIB -- tanggal di nama
+    // file export bisa salah hari kalau device guru bukan Asia/Jakarta.
+    var _tglExport = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : new Date().toISOString().slice(0, 10);
+    a.download = 'mutabaah-guru-daurah-' + _tglExport + '.csv';
     a.click(); URL.revokeObjectURL(a.href);
     toast('Export CSV berhasil', 'ok');
   }

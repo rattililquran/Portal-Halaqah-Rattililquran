@@ -43,6 +43,12 @@
   let _jdKalFetchedMonth = null;
 
   var _ksBulan = null, _ksTahun = null, _ksBusy = false;
+  // MB4 fix (bug hunt 2026-08-27): token permintaan monotonik -- loadKehadiranSaya()
+  // dipanggil dari 2 jalur (dashboard-module.js langsung, TANPA cek _ksBusy; dan
+  // ksNavBulan yg cek _ksBusy) -- kalau 2 request tumpang tindih & yg lebih lama
+  // selesai belakangan, hasilnya bisa menimpa data yg lebih baru. Token memastikan
+  // cuma request TERAKHIR yg boleh menerapkan hasilnya ke DOM.
+  var _ksReqTok = 0;
   var _ksDetailOpen = false; // dipertahankan antar-reload kartu
   var _ksMoreOpen = false; // panel "Lihat rincian lengkap" -- dipertahankan antar-reload kartu
 
@@ -629,8 +635,11 @@
     var m = _ksBulan + delta, y = _ksTahun;
     if (m < 1) { m = 12; y--; } else if (m > 12) { m = 1; y++; }
 
-    var now = new Date();
-    if (y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth() + 1)) return;
+    // MB3 fix (bug hunt 2026-08-27): new Date() device-local -> _ksTodayJakarta()
+    // (pola M8 yg sama, sudah dipakai benar di 4 tempat lain di file ini).
+    var todayJkt = _ksTodayJakarta();
+    var nowY = +todayJkt.slice(0, 4), nowM = +todayJkt.slice(5, 7);
+    if (y > nowY || (y === nowY && m > nowM)) return;
     loadKehadiranSaya({ bulan: m, tahun: y, fromNav: true });
   }
 
@@ -741,14 +750,20 @@
     if (!card) return;
     var fromNav = !!opts.fromNav;
     _ksBusy = true;
+    var myTok = ++_ksReqTok;
     try {
       var r = await window.HQ.GuruAPI.getAbsensiSaya({ bulan: opts.bulan, tahun: opts.tahun });
+      // MB4 fix: request lain sudah menyusul & jadi yg terbaru selagi await di atas
+      // berjalan -- jangan terapkan hasil basi ini ke DOM, biarkan request terbaru
+      // yg menang (ia akan selesai & merender sendiri).
+      if (myTok !== _ksReqTok) return;
       var d = r.data, me = d.rekap;
       _ksBulan = d.bulan; _ksTahun = d.tahun;
 
       document.getElementById('ksBulanLbl').textContent = _KS_NAMA_BULAN[d.bulan - 1] + ' ' + d.tahun;
-      var now = new Date();
-      var atMaxMonth = (d.tahun === now.getFullYear() && d.bulan === now.getMonth() + 1);
+      // MB3 fix (bug hunt 2026-08-27): new Date() device-local -> _ksTodayJakarta().
+      var todayJkt = _ksTodayJakarta();
+      var atMaxMonth = (d.tahun === +todayJkt.slice(0, 4) && d.bulan === +todayJkt.slice(5, 7));
       var nextBtn = document.getElementById('ksNext');
       if (nextBtn) nextBtn.disabled = atMaxMonth;
 
@@ -1009,8 +1024,16 @@
         window.renderJadwal();
       }
     } catch (e) {
-      if (!fromNav) card.style.display = 'none';
-    } finally { _ksBusy = false; }
+      // MB4 fix: jangan sembunyikan kartu gara2 request LAMA yg gagal kalau
+      // sudah ada request lebih baru menyusul (biarkan request baru itu yg
+      // menentukan tampilan akhir).
+      if (myTok === _ksReqTok && !fromNav) card.style.display = 'none';
+    } finally {
+      // MB4 fix: cuma request TERAKHIR yg boleh melepas flag busy -- kalau ini
+      // request lama yg sudah ketinggalan, biarkan request terbaru yg mengatur
+      // flag-nya sendiri saat ia selesai.
+      if (myTok === _ksReqTok) _ksBusy = false;
+    }
   }
 
   // ── EXPOSE PUBLIC INTERFACE TO WINDOW ──
