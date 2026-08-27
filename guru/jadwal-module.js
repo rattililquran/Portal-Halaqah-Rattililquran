@@ -44,6 +44,7 @@
 
   var _ksBulan = null, _ksTahun = null, _ksBusy = false;
   var _ksDetailOpen = false; // dipertahankan antar-reload kartu
+  var _ksMoreOpen = false; // panel "Lihat rincian lengkap" -- dipertahankan antar-reload kartu
 
   const _KS_NAMA_BULAN = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -586,6 +587,22 @@
     if (btn) btn.setAttribute('aria-expanded', String(!open));
   }
 
+  // Panel "Lihat rincian lengkap" -- menyembunyikan metrik sekunder (durasi
+  // tertunaikan, per-halaqah, kalender harian, catatan izin, rincian sesi)
+  // di belakang satu tombol, supaya tampilan default kartu cuma menyisakan
+  // yang paling penting utk dilirik sekilas: persentase, status, & 4 chip.
+  function ksToggleMore() {
+    var panel = document.getElementById('ksMorePanel');
+    var caret = document.getElementById('ksMoreCaret');
+    var btn   = document.getElementById('ksMoreToggle');
+    if (!panel) return;
+    var open = panel.style.display !== 'none';
+    _ksMoreOpen = !open;
+    panel.style.display = open ? 'none' : '';
+    if (caret) caret.style.transform = open ? '' : 'rotate(90deg)';
+    if (btn) btn.setAttribute('aria-expanded', String(!open));
+  }
+
   function ksBukaSusulan(id_halaqah, jenis) {
     const activeSesi = window.HQ.AppState.sesiAktif;
     if (typeof activeSesi !== 'undefined' && activeSesi) {
@@ -702,16 +719,21 @@
       var st = _ksStatus(pctK);
       var stD = _ksStatus(pctD);
 
+      // Hero: cuma sinyal paling penting utk dilirik sekilas (persen, status,
+      // progress bar, ringkasan 1 baris). Metrik sekunder (durasi tertunaikan,
+      // per-halaqah, kalender harian, rincian sesi, catatan) dipindah ke panel
+      // "Lihat rincian lengkap" yang collapsed by default -- lihat moreHtml.
       var hero =
         '<div class="ks-hero">' +
           '<div class="big" style="color:' + st.bar + '">' + (pctK == null ? '–' : pctK + '%') + '</div>' +
           '<div class="body">' +
             '<span class="ks-pill" style="color:' + st.col + ';background:' + st.bg + '">' + st.ico + ' ' + st.txt + '</span>' +
-            '<div class="cap">Kehadiranmu bulan ini — hadir di sesi yang seharusnya kamu ampu</div>' +
             '<div class="ks-bar"><i style="width:' + (pctK == null ? 0 : pctK) + '%;background:' + st.bar + '"></i></div>' +
             '<div class="ks-bar-meta"><span>0%</span><span>hadir ' + hadirNum + ' dari ' + seharusnya + ' sesi</span><span>100%</span></div>' +
           '</div>' +
-        '</div>' +
+        '</div>';
+
+      var durasiHtml =
         '<div class="ks-sub">' +
           '<div class="v" style="color:' + stD.bar + '">' + (pctD == null ? '–' : pctD + '%') + '</div>' +
           '<div class="minibar"><i style="width:' + (pctD == null ? 0 : pctD) + '%;background:' + stD.bar + '"></i></div>' +
@@ -829,20 +851,23 @@
           '</div>';
       }
 
-      var callouts = '';
+      // Urgent: perlu ditutup (butuh tindakan segera) tetap tampil di luar panel.
+      // Izin ditebus/sisa sifatnya informasional -- masuk panel "lebih lanjut".
+      var urgentCallout = '';
       if (me.perlu_ditutup > 0) {
-        callouts += '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
+        urgentCallout = '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
           '<span class="ic">⏳</span><div><strong>' + me.perlu_ditutup + ' sesi lampau belum ditutup.</strong> ' +
           'Sesi ini belum dihitung sampai kamu tuntaskan penilaiannya.</div></div>';
       }
+      var izinCallouts = '';
       var izinDiganti = me.izin_diganti || 0;
       var izinSisa = Math.max(0, me.I - me.HP);
       if (izinDiganti > 0) {
-        callouts += '<div class="ks-callout" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">' +
+        izinCallouts += '<div class="ks-callout" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">' +
           '<span class="ic">✅</span><div><strong>' + izinDiganti + ' Izin sudah ditebus kelas pengganti</strong> — tidak menurunkan persentase kehadiranmu.</div></div>';
       }
       if (izinSisa > 0) {
-        callouts += '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
+        izinCallouts += '<div class="ks-callout" style="background:#fffbeb;color:#92400e;border:1px solid #fde68a">' +
           '<span class="ic">🔁</span><div>Masih ada <strong>' + izinSisa + ' Izin</strong> yang perlu ditebus dengan kelas pengganti agar tidak menurunkan persentase.</div></div>';
       }
 
@@ -885,7 +910,20 @@
         '<strong>Durasi tertunaikan</strong> menilai mutu sesi yang sudah dijalankan — sesi dengan durasi ≥ ' + d.ambang + ' menit. ' +
         '<span style="color:var(--text-3)">Catatan: kuota kelas pengganti bersifat akumulatif (lintas bulan), sehingga pengganti yang ditunaikan bulan ini bisa menebus libur bulan sebelumnya.</span></div>';
 
-      document.getElementById('ksBody').innerHTML = hero + nudge + statsHtml + hqHtml + stripHtml + detailHtml + callouts + note;
+      // Panel "Lihat rincian lengkap" -- semua metrik sekunder disatukan di sini,
+      // collapsed by default, supaya kartu defaultnya cuma hero + chip + urgent.
+      var moreHtml =
+        '<div class="ks-more">' +
+          '<button type="button" class="ks-detail-toggle" id="ksMoreToggle" aria-expanded="' + (_ksMoreOpen ? 'true' : 'false') + '" onclick="window.ksToggleMore()">' +
+            '<span class="ks-strip-ttl" style="margin:0">📊 Lihat rincian lengkap</span>' +
+            '<span class="ks-caret" id="ksMoreCaret"' + (_ksMoreOpen ? ' style="transform:rotate(90deg)"' : '') + '>▸</span>' +
+          '</button>' +
+          '<div class="ks-detail-list" id="ksMorePanel"' + (_ksMoreOpen ? '' : ' style="display:none"') + '>' +
+            durasiHtml + hqHtml + stripHtml + izinCallouts + detailHtml + note +
+          '</div>' +
+        '</div>';
+
+      document.getElementById('ksBody').innerHTML = hero + nudge + urgentCallout + statsHtml + moreHtml;
       card.style.display = '';
       
       // KBM Page refresh trigger if available
@@ -907,6 +945,7 @@
 
   window.ksNavBulan = ksNavBulan;
   window.ksToggleDetail = ksToggleDetail;
+  window.ksToggleMore = ksToggleMore;
   window.ksBukaSusulan = ksBukaSusulan;
   window.ksTandaiIzin = ksTandaiIzin;
   window.loadKehadiranSaya = loadKehadiranSaya;
