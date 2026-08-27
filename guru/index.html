@@ -1112,7 +1112,7 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 
 /* ── STATS BARU (dipindah ke atas) ── */
 .stats-top{
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:repeat(2,1fr);
   gap:10px;margin-bottom:18px;
 }
 @media(max-width:600px){.stats-top{grid-template-columns:repeat(2,1fr)}}
@@ -1977,9 +1977,9 @@ html.theme-dark #raportPublishStatus{color:#6b7280 !important}
   .f3{grid-template-columns:1fr 1fr!important}
 }
 
-/* Stats top: 4 kolom di tablet landscape ke atas */
+/* Stats top: baris 1 cuma 2 kartu tetap (Halaqah/Total Murid) sejak
+   Kelompok Partner/Belajar dipindah ke baris 2 -- 2 kolom di semua lebar */
 @media(min-width:769px){
-  .stats-top{grid-template-columns:repeat(4,1fr)!important}
   .stats-top-2col{grid-template-columns:repeat(2,1fr)!important}
   .stats-top-2col.has-pengganti{grid-template-columns:repeat(3,1fr)!important}
 }
@@ -2778,6 +2778,7 @@ html.theme-dark .pr-chip.active {
       <button class="nav-btn active" onclick="goPage('dashboard')" data-p="dashboard"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M9 21V12h6v9"/></svg></span>Dashboard</button>
       <button class="nav-btn" onclick="goPage('pengumuman')" data-p="pengumuman"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>Pengumuman</button>
       <button class="nav-btn" onclick="goPage('jadwal')" data-p="jadwal"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Jadwal KBM</button>
+      <button class="nav-btn" onclick="goPage('kbm')" data-p="kbm"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></span>Sesi KBM</button>
       </div><!-- /sidebar-group utama -->
 
       <div class="sidebar-group" data-group="akademik">
@@ -2919,7 +2920,7 @@ html.theme-dark .pr-chip.active {
           </div>
         </div>
 
-        <!-- Stats 4 kartu — KBM hari ini bisa diklik -->
+        <!-- Stats 2 kartu tetap (info sekilas, tidak butuh tindakan) -->
         <div class="stats-top">
           <div class="stat-top">
             <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
@@ -2931,19 +2932,11 @@ html.theme-dark .pr-chip.active {
             <div class="val" id="st-murid">–</div>
             <div class="lbl">Total Murid</div>
           </div>
-          <div class="stat-top clickable" onclick="goPage('kbm')" title="Mulai KBM hari ini">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></div>
-            <div class="val" id="st-kbm">–</div>
-            <div class="lbl">KBM Hari Ini ↗</div>
-          </div>
-          <div class="stat-top">
-            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
-            <div class="val" id="st-bulan">–</div>
-            <div class="lbl">Sesi Bulan Ini</div>
-          </div>
         </div>
 
-        <!-- Kartu akses cepat baris 2 -->
+        <!-- Kartu akses cepat baris 2 -- alert butuh tindakan + pengelolaan kelompok
+             (Kelompok Partner/Belajar sengaja ditaruh di sini, bukan disembunyikan di
+             halaman lain, spy langsung kelihatan tanpa perlu tahu harus cari ke mana) -->
         <div class="stats-top stats-top-baris2" id="statsTopBaris2" style="margin-bottom:18px">
           <div class="stat-top clickable" onclick="goPage('keaktifan')" title="Lihat keaktifan murid">
             <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
@@ -2962,6 +2955,16 @@ html.theme-dark .pr-chip.active {
             <div class="val" id="st-pengganti" style="color:#c2410c">–</div>
             <div class="lbl">Kelas Pengganti ↗</div>
             <div id="st-pengganti-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
+          </div>
+          <div class="stat-top clickable" id="statKelompokPartner" onclick="toggleKelolaKelompokPartner()" title="Kelola & pantau kelompok partner qiyam" style="display:none">
+            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Partner</div>
+            <div class="lbl">Kelompok Partner ↗</div>
+          </div>
+          <div class="stat-top clickable" id="statKelompokBelajar" onclick="toggleKelolaKelompokBelajar()" title="Kelola & pantau kelompok partner belajar" style="display:none">
+            <div class="ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Belajar</div>
+            <div class="lbl">Kelompok Belajar ↗</div>
           </div>
         </div>
 
@@ -6193,8 +6196,8 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=32951523"></script>
 <script src="jadwal-module.js?v=b4631877" defer></script>
-<script src="dashboard-module.js?v=32a5a33d" defer></script>
-<script src="kelompok-module.js?v=ca8e9208" defer></script>
+<script src="dashboard-module.js?v=895bd7e0" defer></script>
+<script src="kelompok-module.js?v=6f0dec9c" defer></script>
 <script src="attibyan-module.js?v=655cb7fb" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=a10bf81e" defer></script>
@@ -6878,7 +6881,7 @@ var NAV_GROUPS = ['utama', 'akademik', 'permainan', 'evaluasi', 'pengaturan'];
 // pernah memanggil goPage() (Berkas, Kalender, Notifikasi, Install Aplikasi) tidak
 // perlu masuk sini -- tab-nya jadi murni pilihan manual, tak pernah auto-highlight.
 var PAGE_TO_GROUP = {
-  dashboard: 'utama', pengumuman: 'utama', jadwal: 'utama',
+  dashboard: 'utama', pengumuman: 'utama', jadwal: 'utama', kbm: 'utama',
   murid: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
   'attibyan-guru': 'akademik', 'mutabaah-guru': 'akademik', 'pengembangan-guru': 'akademik', 'hafalan-guru': 'akademik',
   'kuis-guru': 'permainan', 'maze-guru': 'permainan', 'run-guru': 'permainan',

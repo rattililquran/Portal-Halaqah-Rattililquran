@@ -102,10 +102,14 @@
         });
       });
 
-      document.getElementById('st-halaqah').textContent = d.total_halaqah ?? '–';
-      document.getElementById('st-murid').textContent   = d.total_murid   ?? '–';
-      document.getElementById('st-kbm').textContent     = d.kbm_hari_ini  ?? '–';
-      document.getElementById('st-bulan').textContent   = d.kbm_bulan_ini ?? '–';
+      // st-kbm/st-bulan dijaga null krn kartunya sudah dilepas dari beranda
+      // (digantikan Kelompok Partner/Belajar) -- guard spy sisa fungsi ini
+      // (toggle kartu Kelompok, load kuis, dst di bawah) tetap jalan kalau
+      // suatu saat elemennya benar2 tak ada.
+      var _elHalaqah = document.getElementById('st-halaqah'); if (_elHalaqah) _elHalaqah.textContent = d.total_halaqah ?? '–';
+      var _elMurid   = document.getElementById('st-murid');   if (_elMurid)   _elMurid.textContent   = d.total_murid   ?? '–';
+      var _elKbm     = document.getElementById('st-kbm');     if (_elKbm)     _elKbm.textContent     = d.kbm_hari_ini  ?? '–';
+      var _elBulan   = document.getElementById('st-bulan');   if (_elBulan)   _elBulan.textContent   = d.kbm_bulan_ini ?? '–';
       
       // Kartu Kelompok Partner — hanya untuk guru yang punya halaqah Level Qiyam
       var _kpHasQiyam = hList.some(function(h) { return h.level === 'Level Qiyam'; });

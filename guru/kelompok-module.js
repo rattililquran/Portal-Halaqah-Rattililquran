@@ -484,14 +484,19 @@ function _kbBelajarHalaqah() {
   return (window.HQ.AppState.halaqahList || []).filter(function(h){ return lv.indexOf(h.level) !== -1; });
 }
 
-// Tampilkan tombol "Kelompok Belajar" (toolbar halaman Daftar Murid) hanya
-// bila guru punya halaqah yang enabled -- dulu kartu dashboard tersendiri,
-// dipindah ke sini saat beranda dirampingkan (kartu pintasan yang rangkap
-// dgn sidebar/tab-atas dihapus dari beranda).
+// Tampilkan kartu dashboard "Kelompok Belajar" DAN tombol cadangannya di
+// toolbar halaman Daftar Murid -- keduanya hanya utk guru yang punya halaqah
+// yang enabled. Dua titik akses sengaja dipertahankan: kartu dashboard biar
+// langsung kelihatan tanpa perlu tahu harus cari ke mana (dilaporkan user
+// sempat "jadi jauh sekali" waktu cuma ditaruh di toolbar Daftar Murid),
+// tombol toolbar sebagai cadangan kalau sedang berada di halaman itu.
 async function _kbInitDashCard() {
   await _kbEnsureEnabledLevels();
-  var card = document.getElementById('btnKelolaKelompokBelajar');
-  if (card) card.style.display = _kbBelajarHalaqah().length ? '' : 'none';
+  var tampil = _kbBelajarHalaqah().length ? '' : 'none';
+  var card = document.getElementById('statKelompokBelajar');
+  if (card) card.style.display = tampil;
+  var btn = document.getElementById('btnKelolaKelompokBelajar');
+  if (btn) btn.style.display = tampil;
 }
 
 function _kbPopulateHalaqahSel() {
