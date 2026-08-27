@@ -1277,7 +1277,11 @@ html.theme-dark .at-dot.null{background:#374151!important}
 #dashProgressCard::before,#dashProgressCard::after{display:none !important}
 #dashQiyamQuoteBox{display:none !important}
 html.theme-dark #dashProgressCard{
-  background:#121214 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
+  /* Disamakan ke bayangan kartu umum (dulu 0 4px 20px .5 tanpa border sama
+     sekali -- lebih kuat drpd kartu lain & jadi kelihatan menggumpal di
+     sudut yg rounded, dilaporkan user). Border tipis ditambah spy tak
+     cuma bayangan yg menegaskan tepi kartu. */
+  background:#121214 !important;border:1px solid rgba(255,255,255,.07) !important;box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
 }
 .kh-title-ico{width:30px;height:30px;background:none !important;color:#16a34a}
 /* Kartu kalender dashboard -> samakan bayangan/border dengan Kehadiranku (persis, termasuk di tema Minimalis) */
@@ -1286,7 +1290,7 @@ html.theme-dark #dashProgressCard{
   border:1px solid var(--border);
 }
 html.theme-dark #dashCalCard{
-  background:#121214 !important;border:none !important;box-shadow:0 4px 20px rgba(0,0,0,.5) !important;
+  background:#121214 !important;border:1px solid rgba(255,255,255,.07) !important;box-shadow:0 2px 8px rgba(0,0,0,.3) !important;
 }
 .dash-cal-title{text-align:center;margin-bottom:16px}
 .dash-cal-title-text{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
