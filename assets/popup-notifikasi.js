@@ -111,15 +111,26 @@ window._pnDismiss = function() {
 window.initPopupNotifikasi = function(roleLabel) {
   fetchActive().then(function(p) {
     if (!p || hasSeen(p)) return;
-    setTimeout(function() {
-      // Cek ULANG persis sebelum render (bukan cuma sekali di awal) -- salah
-      // satu overlay lain mungkin baru muncul selama jeda. Pola sama dgn
-      // showDialog()/initOnboarding() di push-permission.js.
-      if (document.getElementById('ob-overlay')) return;
-      if (document.getElementById('push-dialog-overlay')) return;
-      render(p);
-    }, 4000); // sengaja paling akhir: onboarding=1.5s, push-dialog=3s, ini=4s
+    // Urutan stagger: onboarding=1.5s, popup dakwah (ini)=4s, ajakan
+    // notifikasi=30s, popup KhatamKu (murid)=15s.
+    setTimeout(function() { _pnTungguGiliran(p, 0); }, 4000);
   }).catch(function(){});
 };
+
+// Pengaman tabrakan popup: cek ULANG scr berkala (bukan sekali lalu nyerah)
+// -- popup lain tetap terbuka sampai user pilih aksi, jadi cek sekali-lalu-
+// nyerah bikin popup ini nyaris tak pernah tampil kalau kebetulan
+// bertabrakan. Coba ulang tiap 3 detik, maks ~36 detik tambahan.
+function _pnTungguGiliran(p, percobaan) {
+  if (hasSeen(p)) return; // sudah kelihatan lewat cara lain selama jeda
+  var terhalang = document.getElementById('ob-overlay')
+    || document.getElementById('push-dialog-overlay')
+    || document.getElementById('kp-card');
+  if (terhalang) {
+    if (percobaan < 12) setTimeout(function() { _pnTungguGiliran(p, percobaan + 1); }, 3000);
+    return;
+  }
+  render(p);
+}
 
 })();

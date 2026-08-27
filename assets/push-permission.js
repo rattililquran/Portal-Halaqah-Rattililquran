@@ -438,13 +438,28 @@ window.initPushPrompt = function(roleLabel) {
     if (daysSince < DISMISS_DAYS) return;
   }
 
-  // Tunda 3 detik agar tidak langsung popup saat buka halaman.
-  setTimeout(function() {
-    if (document.getElementById('push-dialog-overlay')) return;
-    if (document.getElementById('ob-overlay')) return; // jangan tumpuk di atas onboarding
-    showDialog(state, roleLabel || 'murid');
-  }, 3000);
+  // Tunda 30 detik (dinaikkan dari 3 detik) -- kasih jarak lebih lega dari
+  // popup lain (onboarding 1.5 detik) supaya tak gampang tumpang tindih, dan
+  // beri waktu murid lihat-lihat dashboard dulu sebelum diminta izin.
+  setTimeout(function() { _pushTungguGiliran(state, roleLabel, 0); }, 30000);
 };
+
+// Pengaman tabrakan popup: cek ULANG scr berkala (bukan sekali lalu nyerah)
+// -- popup lain (onboarding/dakwah admin/KhatamKu) tetap terbuka sampai user
+// pilih aksi, jadi cek sekali-lalu-nyerah bikin dialog ini nyaris tak pernah
+// tampil kalau kebetulan bertabrakan waktu munculnya. Coba ulang tiap 3
+// detik, maks ~36 detik tambahan, baru benar2 menyerah kalau masih terhalang.
+function _pushTungguGiliran(state, roleLabel, percobaan) {
+  if (document.getElementById('push-dialog-overlay')) return;
+  var terhalang = document.getElementById('ob-overlay')
+    || document.getElementById('pn-card')
+    || document.getElementById('kp-card');
+  if (terhalang) {
+    if (percobaan < 12) setTimeout(function() { _pushTungguGiliran(state, roleLabel, percobaan + 1); }, 3000);
+    return;
+  }
+  showDialog(state, roleLabel || 'murid');
+}
 
 // ── Entry point PERMANEN: dipanggil dari tombol "Aktifkan" di portal ─
 // Selalu buka (abaikan timer skip) & tampilkan instruksi sesuai kondisi.

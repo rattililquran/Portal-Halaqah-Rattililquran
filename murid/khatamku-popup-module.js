@@ -143,11 +143,11 @@
   }
 
   // Entry point -- panggil dari startApp() SETELAH initPopupNotifikasi (lihat
-  // murid/index.html:7744). Delay awal 15000ms -- lebih santai drpd popup lain
-  // (onboarding=1.5s, push-dialog=3s, popup-notifikasi=4s) SENGAJA, supaya di
-  // percobaan pertama saja overlay lain sudah besar kemungkinan sudah user
-  // tutup duluan (popup KhatamKu tidak time-sensitive, boleh telat tampil).
-  // tunggGiliran() tetap jaga-jaga kalau masih terhalang setelah itu.
+  // murid/index.html:7744). Urutan stagger: onboarding=1.5s, popup dakwah=4s,
+  // ini=15s, ajakan notifikasi=30s. Delay 15000ms SENGAJA lebih santai drpd
+  // onboarding/dakwah (popup KhatamKu tidak time-sensitive, boleh telat
+  // tampil) tapi masih sebelum ajakan notifikasi. tunggGiliran() tetap
+  // jaga-jaga kalau masih terhalang setelah itu.
   window.initKhatamkuPopup = function(roleLabel) {
     if (hasSeenToday()) return;
     if (!window.HQ || !window.HQ.MuridAPI || typeof window.HQ.MuridAPI.getKhatamkuLinkStatus !== 'function') return;
