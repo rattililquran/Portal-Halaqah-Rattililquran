@@ -417,16 +417,26 @@ html.theme-dark .top-tab.active span:not(.top-tab-ico){color:#38bdf8}
 .ks-nav button:hover:not(:disabled){background:rgba(0,0,0,.06)}
 .ks-nav button:disabled{opacity:.3;cursor:default}
 .ks-nav .lbl{font-size:12px;font-weight:700;color:var(--text-2);min-width:96px;text-align:center}
-/* hero */
-.ks-hero{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(16,185,129,.10),rgba(14,165,233,.06));border:1px solid rgba(16,185,129,.16)}
-.ks-hero .big{font-size:38px;font-weight:900;line-height:1;letter-spacing:-1px}
+/* hero -- donut ring + status, pola persis Portal Murid (flat, tanpa kotak
+   gradient berwarna di belakangnya -- lebih minimalis drpd versi angka besar) */
+.ks-hero{display:flex;align-items:center;gap:16px}
 .ks-hero .body{flex:1;min-width:0}
-.ks-hero .cap{font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:7px}
-.ks-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin-bottom:8px}
-.ks-bar{height:9px;border-radius:999px;background:rgba(0,0,0,.07);overflow:hidden}
-.ks-bar > i{display:block;height:100%;border-radius:999px;transition:width .5s cubic-bezier(.16,1,.3,1)}
-.ks-bar-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-weight:600}
+.ks-hero-cap{font-size:12px;font-weight:600;color:var(--text-2);margin-top:6px}
+.ks-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+/* Donut ring — conic-gradient persis Portal Murid */
+.prog-donut-wrap{
+  position:relative;width:78px;height:78px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;
+}
+.prog-donut-inner{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--card-solid,#fff);
+  border:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.prog-donut-pct{font-size:15px;font-weight:900;line-height:1;letter-spacing:-.03em}
+.prog-donut-lbl{font-size:8px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
 /* metrik sekunder (durasi tertunaikan) */
 .ks-sub{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 12px;border-radius:12px;
   background:rgba(0,0,0,.025);border:1px solid var(--border)}
@@ -507,8 +517,8 @@ html.theme-dark .ks-hq .bar,html.theme-dark .ks-hq-warn{background:rgba(255,255,
 .ks-callout .ic{font-size:14px;line-height:1.2}
 .ks-note{margin-top:12px;font-size:10.5px;color:var(--text-3);line-height:1.55;padding-top:10px;border-top:1px solid var(--border)}
 .ks-empty{text-align:center;color:var(--text-3);font-size:12.5px;padding:26px 10px}
-html.theme-dark .ks-nav,html.theme-dark .ks-bar{background:rgba(255,255,255,.08)}
-html.theme-dark .ks-hero{background:linear-gradient(135deg,rgba(52,211,153,.12),rgba(56,189,248,.07));border-color:rgba(52,211,153,.18)}
+html.theme-dark .ks-nav{background:rgba(255,255,255,.08)}
+html.theme-dark .prog-donut-inner{background:#121214!important;border-color:rgba(255,255,255,.08)}
 
 /* ── TABLE ── */
 .tbl-wrap{overflow-x:auto}
@@ -6227,7 +6237,7 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/popup-notifikasi.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=32951523"></script>
-<script src="jadwal-module.js?v=1a22d084" defer></script>
+<script src="jadwal-module.js?v=b4631877" defer></script>
 <script src="dashboard-module.js?v=32a5a33d" defer></script>
 <script src="kelompok-module.js?v=5bcfe085" defer></script>
 <script src="attibyan-module.js?v=655cb7fb" defer></script>

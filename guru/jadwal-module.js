@@ -46,6 +46,65 @@
   var _ksDetailOpen = false; // dipertahankan antar-reload kartu
   var _ksMoreOpen = false; // panel "Lihat rincian lengkap" -- dipertahankan antar-reload kartu
 
+  // ── Animasi ring donut (conic-gradient) — 0% -> 100% -> persentase asli.
+  //    Pola & kode identik Portal Murid: conic-gradient tak bisa dianimasikan
+  //    lewat CSS transition (browser tak interpolasi gradient stop-nya), jadi
+  //    dilukis manual per frame via requestAnimationFrame. Dipicu tiap kali
+  //    kartu Kehadiranku dirender ulang, & replay saat ring disentuh/di-hover
+  //    (event delegation krn ring-nya di-rebuild via innerHTML tiap render).
+  function _ksEaseOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function _ksPaintDonutRing(el, opts, pct) {
+    var dinamis = (typeof opts.color === 'function');
+    var color = dinamis ? opts.color(pct) : opts.color;
+    el.style.background = 'conic-gradient(' + color + ' ' + pct + '%, rgba(0,0,0,0.05) 0%)';
+    if (opts.pctNumEl) {
+      opts.pctNumEl.textContent = Math.round(pct) + '%';
+      if (dinamis) opts.pctNumEl.style.color = color;
+    }
+  }
+  // animateDonutRing(el, opts) -- opts: { pctNumEl, color, targetPct }. color
+  // boleh string (warna tetap) atau fungsi pct->warna (ikut berubah per-zona
+  // selagi animasi jalan, mis. warna status kehadiran merah->kuning->hijau).
+  function animateDonutRing(el, opts) {
+    if (!el) return;
+    var targetPct = Math.max(0, Math.min(100, Number(opts.targetPct) || 0));
+    el.dataset.pct = targetPct;
+    el._donutOpts = opts; // dipakai _ksDonutReplayHandler utk replay dgn parameter yg sama persis
+    var kurangGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tokenSaya = (el._donutTok = (el._donutTok || 0) + 1);
+    if (kurangGerak || opts.sweep === false) {
+      _ksPaintDonutRing(el, opts, targetPct);
+      return;
+    }
+    var mulai = null;
+    var NAIK = 800, TURUN = 750;
+    function frame(now) {
+      if (el._donutTok !== tokenSaya) return; // ada animasi lebih baru menimpa punya kita
+      if (mulai === null) mulai = now;
+      var lewat = now - mulai;
+      if (lewat < NAIK) {
+        _ksPaintDonutRing(el, opts, 100 * _ksEaseOutCubic(lewat / NAIK));
+      } else if (lewat < NAIK + TURUN) {
+        var t = (lewat - NAIK) / TURUN;
+        _ksPaintDonutRing(el, opts, 100 + (targetPct - 100) * _ksEaseOutCubic(t));
+      } else {
+        _ksPaintDonutRing(el, opts, targetPct);
+        return;
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  function _ksDonutReplayHandler(e) {
+    var w = e.target.closest && e.target.closest('#ksDonutRing[data-pct]');
+    if (!w || !w._donutOpts) return;
+    if (e.type === 'mouseover' && w.contains(e.relatedTarget)) return; // masih di dalam, bukan "masuk" baru
+    var o = w._donutOpts;
+    animateDonutRing(w, { pctNumEl: o.pctNumEl, color: o.color, targetPct: Number(w.dataset.pct) });
+  }
+  document.addEventListener('mouseover', _ksDonutReplayHandler);
+  document.addEventListener('click', _ksDonutReplayHandler);
+
   const _KS_NAMA_BULAN = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -719,17 +778,23 @@
       var st = _ksStatus(pctK);
       var stD = _ksStatus(pctD);
 
-      // Hero: cuma sinyal paling penting utk dilirik sekilas (persen, status,
-      // progress bar, ringkasan 1 baris). Metrik sekunder (durasi tertunaikan,
+      // Hero: cuma sinyal paling penting utk dilirik sekilas (donut ring, status,
+      // ringkasan 1 baris) -- pola persis Portal Murid (donut conic-gradient
+      // dianimasikan via animateDonutRing() setelah kartu disisipkan ke DOM,
+      // bukan progress bar angka besar). Metrik sekunder (durasi tertunaikan,
       // per-halaqah, kalender harian, rincian sesi, catatan) dipindah ke panel
       // "Lihat rincian lengkap" yang collapsed by default -- lihat moreHtml.
       var hero =
         '<div class="ks-hero">' +
-          '<div class="big" style="color:' + st.bar + '">' + (pctK == null ? '–' : pctK + '%') + '</div>' +
+          '<div class="prog-donut-wrap" id="ksDonutRing" data-pct="0" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">' +
+            '<div class="prog-donut-inner">' +
+              '<span class="prog-donut-pct" id="ksDonutPctNum" style="color:#94a3b8">0%</span>' +
+              '<span class="prog-donut-lbl">hadir</span>' +
+            '</div>' +
+          '</div>' +
           '<div class="body">' +
             '<span class="ks-pill" style="color:' + st.col + ';background:' + st.bg + '">' + st.ico + ' ' + st.txt + '</span>' +
-            '<div class="ks-bar"><i style="width:' + (pctK == null ? 0 : pctK) + '%;background:' + st.bar + '"></i></div>' +
-            '<div class="ks-bar-meta"><span>0%</span><span>hadir ' + hadirNum + ' dari ' + seharusnya + ' sesi</span><span>100%</span></div>' +
+            '<div class="ks-hero-cap">hadir ' + hadirNum + ' dari ' + seharusnya + ' sesi</div>' +
           '</div>' +
         '</div>';
 
@@ -925,6 +990,18 @@
 
       document.getElementById('ksBody').innerHTML = hero + nudge + urgentCallout + statsHtml + moreHtml;
       card.style.display = '';
+
+      // Donut ring -- sapuan 0% -> 100% -> persentase asli, pola persis Portal
+      // Murid (conic-gradient tak bisa dianimasikan via CSS transition, jadi
+      // dilukis manual per frame lewat animateDonutRing/requestAnimationFrame).
+      var ksRing = document.getElementById('ksDonutRing');
+      if (ksRing) {
+        animateDonutRing(ksRing, {
+          pctNumEl: document.getElementById('ksDonutPctNum'),
+          color: function(p) { return _ksStatus(p).bar; },
+          targetPct: pctK == null ? 0 : pctK,
+        });
+      }
       
       // KBM Page refresh trigger if available
       var jData = window.jadwalData;
