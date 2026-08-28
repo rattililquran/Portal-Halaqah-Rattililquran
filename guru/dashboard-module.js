@@ -134,7 +134,13 @@
 
       // Kartu Kelompok Belajar — hanya untuk guru yang punya halaqah level partner_belajar_enabled
       if (typeof window._kbInitDashCard === 'function') window._kbInitDashCard();
-      
+
+      // Badge merah "N murid belum berkelompok" di nav sidebar "Kelompok Belajar" --
+      // prefetch background (murid+kelompok tiap halaqah eligible) supaya guru
+      // langsung lihat ada yg perlu ditindaklanjuti dari mana saja di portal,
+      // tak perlu ingat buka halaman Kelompok Belajar dulu utk cek satu-satu.
+      if (typeof window._kgRefreshNavBadge === 'function') window._kgRefreshNavBadge();
+
       // Hapus skeleton stats
       document.querySelectorAll('.skel-stat').forEach(function(el) { el.remove(); });
 

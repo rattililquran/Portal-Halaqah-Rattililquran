@@ -659,6 +659,13 @@ html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{colo
 .kg-pill-badge.ok{background:var(--green-bg);color:var(--green-txt)}
 .kg-pill-badge.warn{background:var(--amber-bg);color:var(--amber-txt)}
 .kg-pill-badge.muted{background:var(--bg-2);color:var(--text-3)}
+/* Strip ringkasan gabungan ("4 halaqah · 7 kelompok · 3 murid belum
+   berkelompok") -- lihat _kgRenderSectionSummary. */
+.kg-agg-summary{padding:9px 16px;font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-bottom:1px solid var(--border)}
+/* Bar peringatan anggota mandek + tombol salin rekap bulk -- lihat
+   kpColekHalaqah/kbColekHalaqah. */
+.kg-util-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 12px;background:var(--amber-bg);border:1px solid var(--amber-l, rgba(245,158,11,.3));border-radius:10px;margin-bottom:10px;font-size:11.5px;font-weight:700;color:var(--amber-txt)}
+.kg-btn-colek-all{background:var(--card-solid);color:var(--blue-txt);border:1px solid var(--border);flex-shrink:0}
 .kg-card{background:var(--card-solid);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px}
 .kg-card-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2);border-bottom:1px solid var(--border)}
 .kg-card-name{flex:1;min-width:0;font-size:12.5px;padding:6px 10px;font-weight:700;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:8px}
@@ -2911,7 +2918,7 @@ html.theme-dark .pr-chip.active {
       <div class="sidebar-group" data-group="akademik">
       <div class="sb-section">Kelas & Murid</div>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Daftar Murid</button>
-      <button class="nav-btn" id="navKelompok" onclick="goPage('kelompok')" data-p="kelompok" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>Kelompok Belajar</button>
+      <button class="nav-btn" id="navKelompok" onclick="goPage('kelompok')" data-p="kelompok" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>Kelompok Belajar<span class="nav-draft-badge" id="navKelompokBadge" title="Murid belum berkelompok"></span></button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
       <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
@@ -3720,6 +3727,9 @@ html.theme-dark .pr-chip.active {
               <div class="kg-section-sub">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
             </div>
           </div>
+          <!-- Bird's-eye ringkasan gabungan semua halaqah -- cuma tampil kalau guru
+               punya >1 halaqah eligible (lihat _kgRenderSectionSummary) -->
+          <div id="kbSectionSummary" class="kg-agg-summary" style="display:none"></div>
           <div class="kg-section-body">
             <div id="kbHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah</label>
@@ -3759,6 +3769,7 @@ html.theme-dark .pr-chip.active {
               <div class="kg-section-sub">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
             </div>
           </div>
+          <div id="kpSectionSummary" class="kg-agg-summary" style="display:none"></div>
           <div class="kg-section-body">
             <div id="kpHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah Qiyam</label>
@@ -5964,8 +5975,8 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
-<script src="dashboard-module.js?v=6fde4521" defer></script>
-<script src="kelompok-module.js?v=21dc7eb1" defer></script>
+<script src="dashboard-module.js?v=b8f0a898" defer></script>
+<script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=ffb3d278" defer></script>

@@ -45,10 +45,10 @@ function _kgHalaqahPillBadge(sum) {
 // Ambil ringkasan (jumlah kelompok + murid belum berkelompok) tiap halaqah
 // secara paralel (di-cache per id_halaqah, sekali per sesi) -- dipakai
 // bersama oleh seksi Partner Qiyam & Partner Belajar (getMurid/getKelompok
-// beda per seksi, dioper sbg parameter). Kalau belum ada halaqah terpilih,
-// otomatis arahkan ke halaqah PERTAMA yg masih ada murid belum berkelompok
-// (bukan sekadar halaqah pertama di daftar) -- itu yg paling butuh perhatian.
-async function _kgLoadHalaqahSummaries(list, cache, prefix, rerenderFn, selectFn) {
+// beda per seksi, dioper sbg parameter). Fungsi MURNI fetch (tanpa efek
+// render/auto-pilih) supaya bisa dipakai jg oleh prefetch badge nav
+// (_kgRefreshNavBadge) yg jalan di background tanpa halaman kelompok dibuka.
+async function _kgFetchSummaries(list, cache, prefix) {
   var getMurid = prefix === 'kp' ? window.HQ.GuruAPI.getMuridQiyam : window.HQ.GuruAPI.getMuridBelajar;
   var getKelompok = prefix === 'kp' ? window.HQ.GuruAPI.getKelompokPartnerHalaqah : window.HQ.GuruAPI.getKelompokBelajarHalaqah;
   var anggotaKey = prefix === 'kp' ? 'anggota_kelompok_partner' : 'anggota_kelompok_belajar';
@@ -72,13 +72,75 @@ async function _kgLoadHalaqahSummaries(list, cache, prefix, rerenderFn, selectFn
       cache[h.id_halaqah] = { kelompok: null, belum: null, total: null };
     }
   }));
+}
+
+// Versi dipakai halaman kelompok: fetch + render ulang pil + auto-arahkan ke
+// halaqah PERTAMA yg masih ada murid belum berkelompok (bukan sekadar halaqah
+// pertama di daftar) kalau belum ada yg dipilih -- itu yg paling butuh perhatian.
+async function _kgLoadHalaqahSummaries(list, cache, prefix, rerenderFn, selectFn) {
+  await _kgFetchSummaries(list, cache, prefix);
   rerenderFn();
-  // Belum ada halaqah dipilih sama sekali -> arahkan otomatis ke yg paling butuh perhatian
+  _kgRenderSectionSummary(prefix);
+  _kgRecomputeNavBadge();
   var sel = prefix === 'kp' ? document.getElementById('kpHalaqahSel') : document.getElementById('kbHalaqahSel');
   if (sel && !sel.value) {
     var target = list.find(function(h){ var s = cache[h.id_halaqah]; return s && s.belum > 0; }) || list[0];
     if (target) selectFn(target.id_halaqah);
   }
+}
+
+// ── Strip ringkasan gabungan di kepala tiap seksi ("4 halaqah · 7 kelompok ·
+// 3 murid belum berkelompok") -- bird's-eye view tanpa perlu baca satu-satu
+// pil, terutama berguna kalau guru punya banyak halaqah. ──
+function _kgRenderSectionSummary(prefix) {
+  var list = prefix === 'kp' ? _kpEligibleHalaqah : _kbEligibleHalaqah;
+  var cache = prefix === 'kp' ? _kpSummary : _kbSummary;
+  var el = document.getElementById(prefix === 'kp' ? 'kpSectionSummary' : 'kbSectionSummary');
+  if (!el) return;
+  if (list.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  var totalKelompok = 0, totalBelum = 0;
+  list.forEach(function(h) {
+    var s = cache[h.id_halaqah];
+    if (!s) return;
+    totalKelompok += s.kelompok || 0;
+    totalBelum += s.belum || 0;
+  });
+  el.style.display = 'block';
+  el.innerHTML = '<b>' + list.length + '</b> halaqah &nbsp;·&nbsp; <b>' + totalKelompok + '</b> kelompok aktif'
+    + (totalBelum > 0
+        ? ' &nbsp;·&nbsp; <b style="color:var(--amber-txt)">' + totalBelum + '</b> murid belum berkelompok'
+        : ' &nbsp;·&nbsp; <span style="color:var(--green-txt);font-weight:800">✓ semua murid sudah berkelompok</span>');
+}
+
+// ── Badge merah di sidebar nav "Kelompok Belajar" (#navKelompokBadge) --
+// total murid belum berkelompok gabungan Partner Qiyam + Partner Belajar,
+// supaya guru langsung tahu ada yg perlu ditindaklanjuti dari MANA SAJA di
+// portal, tak perlu ingat buka halaman kelompok dulu utk cek. ──
+function _kgRecomputeNavBadge() {
+  var badge = document.getElementById('navKelompokBadge');
+  if (!badge) return;
+  var total = 0;
+  Object.keys(_kpSummary).forEach(function(id){ var s = _kpSummary[id]; if (s && s.belum) total += s.belum; });
+  Object.keys(_kbSummary).forEach(function(id){ var s = _kbSummary[id]; if (s && s.belum) total += s.belum; });
+  if (total > 0) { badge.textContent = total > 99 ? '99+' : String(total); badge.classList.add('show'); }
+  else badge.classList.remove('show');
+}
+
+// Prefetch ringan (murid+kelompok, TANPA pantau/menunggu) dipanggil dr
+// loadDashboard() -- badge nav terisi begitu guru masuk portal, bukan cuma
+// setelah membuka halaman Kelompok Belajar.
+async function _kgRefreshNavBadge() {
+  try {
+    var hList = window.HQ.AppState.halaqahList || [];
+    var qiyam = hList.filter(function(h){ return h.level === 'Level Qiyam'; });
+    await _kbEnsureEnabledLevels();
+    var belajar = _kbBelajarHalaqah();
+    await Promise.all([
+      qiyam.length ? _kgFetchSummaries(qiyam, _kpSummary, 'kp') : Promise.resolve(),
+      belajar.length ? _kgFetchSummaries(belajar, _kbSummary, 'kb') : Promise.resolve()
+    ]);
+    _kgRecomputeNavBadge();
+  } catch(e) { /* non-fatal -- badge cukup tetap tersembunyi */ }
 }
 
 function _kpRenderHalaqahPills() {
@@ -148,6 +210,8 @@ async function renderKelolaKelompokPartner() {
     var assignedNow = _kpAssignedMurid(null);
     _kpSummary[id_halaqah] = { kelompok: kelompokList.length, belum: muridList.filter(function(m){ return !assignedNow[m.id_murid]; }).length, total: muridList.length };
     _kpRenderHalaqahPills();
+    _kgRenderSectionSummary('kp');
+    _kgRecomputeNavBadge();
   } catch(e) {
     listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--red-txt);font-size:12px">Gagal memuat data</div>';
   }
@@ -163,13 +227,36 @@ function _kpAssignedMurid(excludeKelompok) {
   return ids;
 }
 
+// Anggota "mandek": belum pernah setor, atau setoran terakhir >= 7 hari lalu.
+// Dipakai utk urutkan kartu/baris denyut (paling butuh perhatian di atas) &
+// hitung total mandek utk bar peringatan + rekap bulk colek.
+function _kpIsMandek(a) {
+  var p = (_kpData.pantau && _kpData.pantau[a.id_murid]) || null;
+  var last = p && p.tanggal_terakhir;
+  var hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+  return (hari === null) || (hari >= 7);
+}
+
 function _kpRenderList() {
   var listWrap = document.getElementById('kpListWrap');
   if (!_kpData.kelompok.length) {
     listWrap.innerHTML = '<div class="kg-empty-lg">Belum ada kelompok partner di halaqah ini.<br>Buat lewat form di bawah ⬇</div>';
     return;
   }
-  listWrap.innerHTML = _kpData.kelompok.map(function(k) {
+  // Kelompok dgn anggota paling banyak mandek ditaruh paling atas (paling butuh
+  // perhatian); seri -> kelompok dgn anggota lebih sedikit (belum penuh) duluan.
+  var kelompokSorted = _kpData.kelompok.slice().sort(function(a, b) {
+    var am = (a.anggota_kelompok_partner || []).filter(_kpIsMandek).length;
+    var bm = (b.anggota_kelompok_partner || []).filter(_kpIsMandek).length;
+    if (am !== bm) return bm - am;
+    return (a.anggota_kelompok_partner || []).length - (b.anggota_kelompok_partner || []).length;
+  });
+  var totalMandek = 0;
+  _kpData.kelompok.forEach(function(k){ totalMandek += (k.anggota_kelompok_partner || []).filter(_kpIsMandek).length; });
+  var utilBar = totalMandek > 0
+    ? '<div class="kg-util-bar"><span>⚠️ ' + totalMandek + ' anggota mandek/belum setor &gt;7 hari di halaqah ini</span><button type="button" onclick="kpColekHalaqah()" class="kg-btn-tool kg-btn-colek-all">📋 Salin Rekap Mandek</button></div>'
+    : '';
+  listWrap.innerHTML = utilBar + kelompokSorted.map(function(k) {
     var anggota = k.anggota_kelompok_partner || [];
     var chips = anggota.map(function(a) {
       return '<span class="kg-chip">'
@@ -186,8 +273,9 @@ function _kpRenderList() {
       return '<option value="' + esc(m.id_murid) + '" data-nama="' + esc(m.nama_murid) + '">' + esc(m.nama_murid) + '</option>';
     }).join('');
 
-    // Denyut anggota: tanggal setoran mandiri terakhir + status aktif/mandek + ingatkan WA
-    var denyutRows = anggota.map(function(a) { return _kpDenyutRow(a); }).join('');
+    // Denyut anggota: mandek duluan (paling butuh perhatian), lalu yg aktif
+    var anggotaUrut = anggota.slice().sort(function(x, y){ return (_kpIsMandek(y)?1:0) - (_kpIsMandek(x)?1:0); });
+    var denyutRows = anggotaUrut.map(function(a) { return _kpDenyutRow(a); }).join('');
     var denyutBlock = anggota.length
       ? '<div class="kg-sub"><div class="kg-sub-lbl">Denyut Setoran Partner</div>' + denyutRows + '</div>'
       : '';
@@ -442,6 +530,37 @@ function kpNudgeAnggota(nama, hp) {
     'Sudah beberapa waktu belum ada setoran baru — yuk semangat lanjutkan setoran & muraja\'ah bersama partner ya 🤝\n\n' +
     'Barakallahu fiikum.';
   window.open('https://wa.me/' + raw + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// Rekap SATU KALI salin utk SEMUA anggota mandek di halaqah ini (lintas
+// kelompok) -- pelengkap kpNudgeAnggota yg per-orang; berguna kalau ada
+// banyak anggota mandek sekaligus di halaqah beranggota banyak, guru tak
+// perlu klik "Ingatkan" satu-satu.
+function kpColekHalaqah() {
+  if (!_kpData.kelompok.length) { showToast('Belum ada kelompok di halaqah ini', 'warning'); return; }
+  var lines = [];
+  _kpData.kelompok.forEach(function(k) {
+    var nama = k.nama_kelompok || 'Kelompok';
+    (k.anggota_kelompok_partner || []).forEach(function(a) {
+      if (!_kpIsMandek(a)) return;
+      var p = (_kpData.pantau && _kpData.pantau[a.id_murid]) || null;
+      var last = p && p.tanggal_terakhir;
+      var hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+      var statusTxt = hari === null ? 'belum pernah setor' : ('terakhir ' + hari + ' hari lalu');
+      lines.push('- *' + (a.nama_murid || a.id_murid) + '* (' + nama + '): ' + statusTxt);
+    });
+  });
+  if (!lines.length) { showToast('Tidak ada anggota yang mandek saat ini 🎉', 'success'); return; }
+  var msg = 'Assalamu\'alaikum Warahmatullahi Wabarakaatuh 👋\n\n'
+    + 'Rekap murid yang perlu diingatkan utk lanjutkan setoran hafalan Qiyam:\n\n'
+    + lines.join('\n') + '\n\n'
+    + 'Mohon bantuannya utk saling mengingatkan sesama partner. Barakallahu fiikum. 😊';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).then(function() {
+      showToast(lines.length + ' anggota mandek disalin ke clipboard ✓', 'success');
+      window.open('https://web.whatsapp.com', '_blank');
+    }).catch(function() { _fallbackCopyText(msg); });
+  } else { _fallbackCopyText(msg); }
 }
 
 function _kpRenderNewForm() {
@@ -742,6 +861,8 @@ async function renderKelolaKelompokBelajar() {
     var assignedNow = _kbAssignedMurid(null);
     _kbSummary[id_halaqah] = { kelompok: kelompokList.length, belum: muridList.filter(function(m){ return !assignedNow[m.id_murid]; }).length, total: muridList.length };
     _kbRenderHalaqahPills();
+    _kgRenderSectionSummary('kb');
+    _kgRecomputeNavBadge();
   } catch(e) {
     listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--red-txt);font-size:12px">Gagal memuat data</div>';
   }
@@ -756,13 +877,32 @@ function _kbAssignedMurid(excludeKelompok) {
   return ids;
 }
 
+// Anggota "mandek" (lihat komentar _kpIsMandek).
+function _kbIsMandek(a) {
+  var p = (_kbData.pantau && _kbData.pantau[a.id_murid]) || null;
+  var last = p && p.tanggal_terakhir;
+  var hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+  return (hari === null) || (hari >= 7);
+}
+
 function _kbRenderList() {
   var listWrap = document.getElementById('kbListWrap');
   if (!_kbData.kelompok.length) {
     listWrap.innerHTML = '<div class="kg-empty-lg">Belum ada kelompok belajar di halaqah ini.<br>Buat lewat form di bawah ⬇</div>';
     return;
   }
-  listWrap.innerHTML = _kbData.kelompok.map(function(k) {
+  var kelompokSorted = _kbData.kelompok.slice().sort(function(a, b) {
+    var am = (a.anggota_kelompok_belajar || []).filter(_kbIsMandek).length;
+    var bm = (b.anggota_kelompok_belajar || []).filter(_kbIsMandek).length;
+    if (am !== bm) return bm - am;
+    return (a.anggota_kelompok_belajar || []).length - (b.anggota_kelompok_belajar || []).length;
+  });
+  var totalMandek = 0;
+  _kbData.kelompok.forEach(function(k){ totalMandek += (k.anggota_kelompok_belajar || []).filter(_kbIsMandek).length; });
+  var utilBar = totalMandek > 0
+    ? '<div class="kg-util-bar"><span>⚠️ ' + totalMandek + ' anggota mandek/belum catat &gt;7 hari di halaqah ini</span><button type="button" onclick="kbColekHalaqah()" class="kg-btn-tool kg-btn-colek-all">📋 Salin Rekap Mandek</button></div>'
+    : '';
+  listWrap.innerHTML = utilBar + kelompokSorted.map(function(k) {
     var anggota = k.anggota_kelompok_belajar || [];
     var chips = anggota.map(function(a) {
       return '<span class="kg-chip">'
@@ -780,7 +920,8 @@ function _kbRenderList() {
       return '<option value="' + esc(m.id_murid) + '" data-nama="' + esc(m.nama_murid) + '">' + esc(m.nama_murid) + '</option>';
     }).join('');
 
-    var denyutRows = anggota.map(function(a) { return _kbDenyutRow(a); }).join('');
+    var anggotaUrut = anggota.slice().sort(function(x, y){ return (_kbIsMandek(y)?1:0) - (_kbIsMandek(x)?1:0); });
+    var denyutRows = anggotaUrut.map(function(a) { return _kbDenyutRow(a); }).join('');
     var denyutBlock = anggota.length
       ? '<div class="kg-sub"><div class="kg-sub-lbl">Denyut Aktivitas Partner</div>' + denyutRows + '</div>'
       : '';
@@ -1072,6 +1213,36 @@ function kbColekKelompok(id_kelompok) {
   }
 }
 
+// Rekap SATU KALI salin utk SEMUA anggota mandek di halaqah ini (lintas
+// kelompok) -- pelengkap kbColekKelompok yg per-kelompok & tampilkan semua
+// anggota; ini cuma yg mandek, dari seluruh halaqah sekaligus.
+function kbColekHalaqah() {
+  if (!_kbData.kelompok.length) { showToast('Belum ada kelompok di halaqah ini', 'warning'); return; }
+  var lines = [];
+  _kbData.kelompok.forEach(function(k) {
+    var nama = k.nama_kelompok || 'Kelompok';
+    (k.anggota_kelompok_belajar || []).forEach(function(a) {
+      if (!_kbIsMandek(a)) return;
+      var p = (_kbData.pantau && _kbData.pantau[a.id_murid]) || null;
+      var last = p && p.tanggal_terakhir;
+      var hari = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+      var statusTxt = hari === null ? 'belum pernah lapor' : ('terakhir lapor ' + hari + ' hari lalu');
+      lines.push('- *' + (a.nama_murid || a.id_murid) + '* (' + nama + '): ' + statusTxt);
+    });
+  });
+  if (!lines.length) { showToast('Tidak ada anggota yang mandek saat ini 🎉', 'success'); return; }
+  var msg = 'Assalamu\'alaikum Warahmatullahi Wabarakaatuh 👋\n\n'
+    + 'Rekap murid yang perlu diingatkan utk lapor aktivitas Partner Belajar:\n\n'
+    + lines.join('\n') + '\n\n'
+    + 'Mohon bantuannya utk saling mengingatkan sesama partner. Barakallahu fiikum. 😊';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).then(function() {
+      showToast(lines.length + ' anggota mandek disalin ke clipboard ✓', 'success');
+      window.open('https://web.whatsapp.com', '_blank');
+    }).catch(function() { _fallbackCopyText(msg); });
+  } else { _fallbackCopyText(msg); }
+}
+
 function _fallbackCopyText(text) {
   var textArea = document.createElement("textarea");
   textArea.value = text;
@@ -1240,8 +1411,10 @@ async function kbAddAnggota(id_kelompok, selectEl) {
 
   // ── EXPOSE PUBLIC INTERFACE TO WINDOW ──
   window._kbInitDashCard = _kbInitDashCard;
+  window._kgRefreshNavBadge = _kgRefreshNavBadge;
   window.toggleKelolaKelompokPartner = toggleKelolaKelompokPartner;
   window.renderKelolaKelompokPartner = renderKelolaKelompokPartner;
+  window.kpColekHalaqah = kpColekHalaqah;
   window.kpToggleLiniMasa = kpToggleLiniMasa;
   window.kpAddMilestone = kpAddMilestone;
   window.kpDeleteMilestone = kpDeleteMilestone;
@@ -1280,4 +1453,5 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   window._kbOnCheckToggle = _kbOnCheckToggle;
   window.kbAutoBentukKelompok = kbAutoBentukKelompok;
   window._kbSelectHalaqah = _kbSelectHalaqah;
+  window.kbColekHalaqah = kbColekHalaqah;
 })();
