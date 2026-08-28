@@ -110,7 +110,14 @@
       var _elMurid   = document.getElementById('st-murid');   if (_elMurid)   _elMurid.textContent   = d.total_murid   ?? '–';
       var _elKbm     = document.getElementById('st-kbm');     if (_elKbm)     _elKbm.textContent     = d.kbm_hari_ini  ?? '–';
       var _elBulan   = document.getElementById('st-bulan');   if (_elBulan)   _elBulan.textContent   = d.kbm_bulan_ini ?? '–';
-      
+
+      // Statistik ringkas di halaman "Halaqah Saya" -- data sama persis dgn 4 baris
+      // di atas, cuma elemen/id berbeda krn ditaruh di halaman lain (bukan beranda).
+      var _hsHalaqah = document.getElementById('hsStHalaqah');     if (_hsHalaqah) _hsHalaqah.textContent = d.total_halaqah ?? '–';
+      var _hsMurid   = document.getElementById('hsStMurid');       if (_hsMurid)   _hsMurid.textContent   = d.total_murid   ?? '–';
+      var _hsKbm     = document.getElementById('hsStKbmHariIni');  if (_hsKbm)     _hsKbm.textContent     = d.kbm_hari_ini  ?? '–';
+      var _hsBulan   = document.getElementById('hsStKbmBulanIni'); if (_hsBulan)   _hsBulan.textContent   = d.kbm_bulan_ini ?? '–';
+
       // Kartu Kelompok Partner — hanya untuk guru yang punya halaqah Level Qiyam
       var _kpHasQiyam = hList.some(function(h) { return h.level === 'Level Qiyam'; });
       var _kpCard = document.getElementById('statKelompokPartner');

@@ -3032,6 +3032,34 @@ html.theme-dark .pr-chip.active {
       <div class="page" id="page-halaqah-saya">
         <div style="font-size:19px;font-weight:800;margin-bottom:2px">Halaqah Saya</div>
         <div style="font-size:12.5px;color:var(--text-3);margin-bottom:14px">Jadwal & progres semua halaqah yang Anda ampu.</div>
+
+        <!-- Statistik ringkas -- data yg sama persis dgn d.total_halaqah/total_murid/
+             kbm_hari_ini/kbm_bulan_ini yg sudah difetch getDashboard(), cuma dulu
+             elemennya (st-kbm/st-bulan) dilepas dari beranda saat decluttering.
+             Ditempatkan lagi di sini krn lebih pas -- halaman ini memang soal halaqah/KBM. -->
+        <div class="stats-top stats-top-baris2" style="margin-bottom:18px">
+          <div class="stat-top">
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <div class="val" id="hsStHalaqah">–</div>
+            <div class="lbl">Halaqah</div>
+          </div>
+          <div class="stat-top">
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="val" id="hsStMurid">–</div>
+            <div class="lbl">Total Murid</div>
+          </div>
+          <div class="stat-top">
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></div>
+            <div class="val" id="hsStKbmHariIni">–</div>
+            <div class="lbl">KBM Hari Ini</div>
+          </div>
+          <div class="stat-top">
+            <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="val" id="hsStKbmBulanIni">–</div>
+            <div class="lbl">Sesi Bulan Ini</div>
+          </div>
+        </div>
+
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-bottom:10px">
           <div class="filter-pills" id="levelFilterPills" style="margin-bottom:0"></div>
         </div>
@@ -5769,7 +5797,7 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
-<script src="dashboard-module.js?v=895bd7e0" defer></script>
+<script src="dashboard-module.js?v=9b236dfd" defer></script>
 <script src="kelompok-module.js?v=6f0dec9c" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
