@@ -3870,55 +3870,51 @@ html.theme-dark .pr-chip.active {
         </div>
       </div>
 
-      <!-- ════ JURNAL ════ -->
+      <!-- ════ JURNAL — 2 sub-step ala wizard: PR dulu, Jurnal+Selesai kemudian ════ -->
       <div class="page" id="page-jurnal">
-        <div style="font-size:19px;font-weight:800;margin-bottom:14px">Jurnal & Latihan Mandiri (PR)</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:14px">Jurnal &amp; Latihan Mandiri</div>
         <div id="stepBarJurnal" class="steps"></div>
 
         <style>
-          .jurnal-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-          }
-          @media (min-width: 900px) {
-            .jurnal-grid {
-              grid-template-columns: 1fr 1fr;
-              align-items: start;
-            }
-          }
+          /* Sub-step jurnal — bahasa minimalis KBM (flat, sudut kecil, tanpa gradient) */
+          .jurnal-wiz-steps{display:flex;align-items:center;margin-bottom:16px}
+          .jurnal-wiz-steps .jw-step{display:flex;align-items:center;gap:7px;flex-shrink:0}
+          .jurnal-wiz-steps .jw-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+            font-size:12.5px;font-weight:800;background:var(--kbm-card,#fff);color:var(--kbm-ink-3,var(--text-3));
+            border:1.5px solid var(--kbm-line,var(--border));transition:all .2s}
+          .jurnal-wiz-steps .jw-lbl{font-size:12.5px;font-weight:700;color:var(--kbm-ink-3,var(--text-3));transition:color .2s}
+          .jurnal-wiz-steps .jw-line{flex:1;height:2px;background:var(--kbm-track,rgba(15,23,42,.08));margin:0 8px;min-width:12px}
+          .jurnal-wiz-steps .jw-step.active .jw-num{background:var(--kbm-accent,#0f172a);border-color:var(--kbm-accent,#0f172a);color:var(--kbm-card,#fff)}
+          .jurnal-wiz-steps .jw-step.active .jw-lbl{color:var(--kbm-ink,var(--text))}
+          .jurnal-wiz-steps .jw-step.done .jw-num{background:var(--kbm-ok,#16a34a);border-color:var(--kbm-ok,#16a34a);color:#fff}
+          .jurnal-wiz-steps .jw-step.done .jw-lbl{color:var(--kbm-ok,#16a34a)}
+          @media (max-width:520px){.jurnal-wiz-steps .jw-lbl{display:none}.jurnal-wiz-steps .jw-step.active .jw-lbl{display:inline}}
+
           .jurnal-card {
-            background: var(--card-solid, rgba(255,255,255,0.85));
-            border-radius: 16px;
-            border: 1px solid var(--border, rgba(0,0,0,0.08));
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            background: var(--kbm-card, var(--card-solid, #fff));
+            border-radius: var(--kbm-radius, 10px);
+            border: 1px solid var(--kbm-line, var(--border, rgba(0,0,0,0.08)));
+            box-shadow: none;
             overflow: hidden;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-          }
-          .jurnal-card:hover {
-            box-shadow: 0 6px 24px rgba(0,0,0,0.07);
           }
           .jurnal-card-head {
-            padding: 14px 18px;
-            background: linear-gradient(130deg, rgba(14,165,233,0.06), rgba(99,102,241,0.04));
-            border-bottom: 1px solid var(--border, rgba(0,0,0,0.07));
+            padding: 13px 16px;
+            background: transparent;
+            border-bottom: 1px solid var(--kbm-line, var(--border));
             display: flex;
             align-items: center;
             justify-content: space-between;
           }
-          .jurnal-card-head.pr-head {
-            background: linear-gradient(130deg, rgba(16,185,129,0.06), rgba(14,165,233,0.04));
-          }
           .jurnal-card-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text);
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--kbm-ink, var(--text));
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
           }
           .jurnal-card-body {
-            padding: 18px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 14px;
@@ -3938,7 +3934,7 @@ html.theme-dark .pr-chip.active {
           }
           .jurnal-tip {
             font-size: 11.5px;
-            color: var(--text-3);
+            color: var(--kbm-ink-3, var(--text-3));
             display: flex;
             align-items: center;
             gap: 6px;
@@ -3949,44 +3945,19 @@ html.theme-dark .pr-chip.active {
           }
         </style>
 
-        <div class="jurnal-grid">
-          <!-- Card Jurnal Sesi -->
+        <!-- Mini step indicator jurnal -->
+        <div class="jurnal-wiz-steps" id="jurnalWizSteps">
+          <div class="jw-step" data-jw="1"><span class="jw-num">1</span><span class="jw-lbl">Latihan Mandiri</span></div>
+          <div class="jw-line"></div>
+          <div class="jw-step" data-jw="2"><span class="jw-num">2</span><span class="jw-lbl">Jurnal Sesi</span></div>
+        </div>
+
+        <!-- ── SUB-STEP 1: LATIHAN MANDIRI (PR) ── -->
+        <div id="jurnalPane1">
           <div class="jurnal-card">
             <div class="jurnal-card-head">
-              <div class="jurnal-card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg>Jurnal Sesi</div>
-            </div>
-            <div class="jurnal-card-body">
-              <div class="fg">
-                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Topik / Materi yang Dipelajari</label>
-                <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
-              </div>
-
-              <div class="jurnal-field-row">
-                <div class="fg">
-                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg> Halaman / Modul</label>
-                  <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
-                </div>
-                <div class="fg">
-                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M12 7v5l3 2"/></svg> Jam Selesai</label>
-                  <input type="time" class="fc" id="jurnalJamSelesai">
-                </div>
-              </div>
-
-              <input type="hidden" id="jurnalMetode" value="Campuran">
-
-              <div class="fg">
-                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Catatan Umum Sesi</label>
-                <textarea class="fc" id="jurnalCatatan" rows="3"
-                  placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Latihan Mandiri (PR) -->
-          <div class="jurnal-card">
-            <div class="jurnal-card-head pr-head">
               <div class="jurnal-card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Latihan Mandiri (PR)</div>
-              <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--card-solid, #fff); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer;">
+              <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--kbm-card,#fff); border:1px solid var(--kbm-line,var(--border)); border-radius:8px; padding:4px 8px; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer;">
                 <option value="">Template PR...</option>
                 <option value="vn">VN Setoran Hafalan</option>
                 <option value="murottal">Mendengar Murottal Referensi</option>
@@ -4024,15 +3995,54 @@ html.theme-dark .pr-chip.active {
               </div>
 
               <div class="jurnal-tip">
-                <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path class="kbm-d1" d="M12 3a6 6 0 0 1 4 10.5c-.6.5-1 1.3-1 2.5H9c0-1.2-.4-2-1-2.5A6 6 0 0 1 12 3z"/></svg> Latihan Mandiri (PR) akan tampil di dashboard murid
+                <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path class="kbm-d1" d="M12 3a6 6 0 0 1 4 10.5c-.6.5-1 1.3-1 2.5H9c0-1.2-.4-2-1-2.5A6 6 0 0 1 12 3z"/></svg> Latihan Mandiri (PR) akan tampil di dashboard murid — boleh dikosongkan bila tidak ada PR
               </div>
             </div>
           </div>
+
+          <div class="step-nav" style="margin-top:14px;">
+            <button class="btn-back" onclick="kembaliKeStep3()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Kembali</button>
+            <button class="btn-next" onclick="jurnalWizNext()">Lanjut ke Jurnal <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/></svg></button>
+          </div>
         </div>
 
-        <div class="step-nav" style="margin-top:20px;">
-          <button class="btn-back" onclick="kembaliKeStep3()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Kembali</button>
-          <button class="btn-next" id="btnSelesai" onclick="showPreview()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Selesaikan Sesi</button>
+        <!-- ── SUB-STEP 2: JURNAL SESI + SELESAIKAN ── -->
+        <div id="jurnalPane2" style="display:none">
+          <div class="jurnal-card">
+            <div class="jurnal-card-head">
+              <div class="jurnal-card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg>Jurnal Sesi</div>
+            </div>
+            <div class="jurnal-card-body">
+              <div class="fg">
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Topik / Materi yang Dipelajari</label>
+                <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
+              </div>
+
+              <div class="jurnal-field-row">
+                <div class="fg">
+                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg> Halaman / Modul</label>
+                  <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
+                </div>
+                <div class="fg">
+                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M12 7v5l3 2"/></svg> Jam Selesai</label>
+                  <input type="time" class="fc" id="jurnalJamSelesai">
+                </div>
+              </div>
+
+              <input type="hidden" id="jurnalMetode" value="Campuran">
+
+              <div class="fg">
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Catatan Umum Sesi</label>
+                <textarea class="fc" id="jurnalCatatan" rows="3"
+                  placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-nav" style="margin-top:14px;">
+            <button class="btn-back" onclick="jurnalWizGo(1)"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Latihan Mandiri</button>
+            <button class="btn-next" id="btnSelesai" onclick="showPreview()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Selesaikan Sesi</button>
+          </div>
         </div>
       </div>
 
@@ -6398,7 +6408,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=77f974ee" defer></script>
+<script src="kbm-module.js?v=5e7ab2a0" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>

@@ -1993,6 +1993,38 @@
     goPage('jurnal');
     renderSteps('jurnal');
     setStepTitle('jurnal');
+    // Sub-step jurnal (PR -> Jurnal) selalu mulai dari 1 saat masuk step.
+    if (typeof jurnalWizGo === 'function') jurnalWizGo(1);
+  }
+
+  // ── SUB-STEP JURNAL (1=Latihan Mandiri, 2=Jurnal Sesi + Selesaikan) ──
+  // Sama polanya dgn wizard buka sesi: murni navigasi panel, data tetap di
+  // field jurnal yg sama (jurnalMateri dkk), jadi doSelesaiKBM tak berubah.
+  var _jurnalWizStep = 1;
+  function jurnalWizGo(n) {
+    _jurnalWizStep = Math.min(2, Math.max(1, n));
+    var p1 = document.getElementById('jurnalPane1');
+    var p2 = document.getElementById('jurnalPane2');
+    if (p1) p1.style.display = (_jurnalWizStep === 1) ? '' : 'none';
+    if (p2) p2.style.display = (_jurnalWizStep === 2) ? '' : 'none';
+    var wrap = document.getElementById('jurnalWizSteps');
+    if (wrap) {
+      wrap.querySelectorAll('.jw-step').forEach(function(el) {
+        var n2 = Number(el.getAttribute('data-jw'));
+        el.classList.toggle('active', n2 === _jurnalWizStep);
+        el.classList.toggle('done', n2 < _jurnalWizStep);
+        var num = el.querySelector('.jw-num');
+        if (num) num.textContent = n2 < _jurnalWizStep ? '✓' : String(n2);
+      });
+    }
+  }
+  function jurnalWizNext() {
+    if (_jurnalWizStep === 1) {
+      // Simpan PR yg sudah diisi sebelum pindah panel (debounce 400ms bisa
+      // belum jalan saat klik cepat).
+      _saveKbmDraftLocal();
+      jurnalWizGo(2);
+    }
   }
 
   function _saveHafalanKbmCache() {
@@ -3786,6 +3818,8 @@
   window.selectKbmJenis = selectKbmJenis;
   window.wizGo = wizGo;
   window.wizGantiHalaqah = wizGantiHalaqah;
+  window.jurnalWizGo = jurnalWizGo;
+  window.jurnalWizNext = jurnalWizNext;
   window.kbmIco = kbmIco;
   window.wizNext = wizNext;
   window.wizPickHalaqah = wizPickHalaqah;
