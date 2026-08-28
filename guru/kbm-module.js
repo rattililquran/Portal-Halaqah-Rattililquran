@@ -370,6 +370,12 @@
     if (!isQiyam && jenisEl.value === 'KBM Qiyam') {
       selectKbmJenis('KBM Reguler');
     }
+    // Ganti halaqah (dari sub-step 1 atau "Ganti Halaqah" di sub-step 2) ->
+    // reset flag tanggal-touch supaya guard kelas pengganti (D5) mengevaluasi
+    // ulang utk halaqah baru. Tanpa ini, guard bisa ter-bypass: guru yg sudah
+    // menyentuh tanggal di halaqah A lalu ganti ke halaqah B (yg punya sisa
+    // pengganti) akan lolos guard dgn tanggal default hari ini.
+    _wizTglTouched = false;
     // Wizard: segarkan ringkasan halaqah terpilih + highlight kartu (aman no-op
     // bila elemen wizard belum ada, mis. sebelum DOM siap).
     _wizSyncPickedHalaqah();
@@ -425,6 +431,15 @@
     });
   }
 
+  // Ganti halaqah (kartu, atau tombol "Ganti Halaqah") -> reset flag tanggal-touch
+  // & uncheck kelas pengganti, karena sisa pengganti itu per-halaqah+jenis.
+  function wizGantiHalaqah() {
+    _wizTglTouched = false;
+    var cb = document.getElementById('kbmIsPengganti');
+    if (cb) cb.checked = false;
+    wizGo(1);
+  }
+
   function wizGo(n) {
     _wizStep = Math.min(3, Math.max(1, n));
     [1,2,3].forEach(function(i) {
@@ -450,17 +465,23 @@
   }
 
   // Label "pertemuan berikutnya" per jenis, konsisten dgn autoFillPertemuan().
-  // Prioritaskan jenis dari LEVEL halaqah (Level Qiyam -> Qiyam) karena tile
-  // Qiyam hanya muncul utk level itu & jadi pilihan otomatis; jenis dari
-  // kbmJenis dipakai hanya bila relevan (Micro Teaching di halaqah non-Qiyam).
+  // Level Qiyam -> selalu Qiyam (tile Qiyam hanya muncul utk level itu). Utk
+  // halaqah non-Qiyam yg bisa Reguler ATAU Micro Teaching, tampilkan KEDUANYA
+  // supaya konsisten dgn apa pun jenis yg nanti dipilih guru di sub-step 2
+  // (fix A-6: dulu label mengikuti kbmJenis saat render -> bisa beda dgn
+  // placeholder setelah guru ganti jenis).
   function _wizNextPtLabel(h) {
-    var jenisEl = (document.getElementById('kbmJenis')||{}).value || 'KBM Reguler';
-    var jenis = (h.level === 'Level Qiyam') ? 'KBM Qiyam' : jenisEl;
-    var nextPt, label;
-    if      (jenis === 'KBM Qiyam')      { nextPt = h.pertemuan_ke_qiyam      || 1; label = 'Qiyam ke-'; }
-    else if (jenis === 'Micro Teaching') { nextPt = h.pertemuan_ke_microteach || 1; label = 'Micro ke-'; }
-    else                                 { nextPt = h.pertemuan_ke_reguler || h.pertemuan_ke || 1; label = 'Pertemuan ke-'; }
-    return label + nextPt;
+    if (h.level === 'Level Qiyam') {
+      return 'Qiyam ke-' + (h.pertemuan_ke_qiyam || 1);
+    }
+    var reg = h.pertemuan_ke_reguler || h.pertemuan_ke || 1;
+    var micro = h.pertemuan_ke_microteach;
+    // Tampilkan varian Micro hanya bila memang ada hitungan tersendiri (>0),
+    // supaya kartu tidak penuh angka yg tidak relevan utk halaqah Reguler murni.
+    if (micro) {
+      return 'Pertemuan ke-' + reg + ' · Micro ke-' + micro;
+    }
+    return 'Pertemuan ke-' + reg;
   }
 
   // Sorot halaqah yg jadwalnya hari ini (server WIB dulu, device-local fallback)
@@ -498,8 +519,12 @@
     cont.innerHTML = sorted.map(function(h) {
       var isSel = h.id_halaqah === curVal;
       var isToday = _wizIsHariIni(h);
+      // escJs utk argumen string JS di onclick (id_halaqah bisa mengandung
+      // apostrof/backslash yg mematahkan string & membuka injeksi kode) -- esc()
+      // saja TIDAK cukup (polar baku codebase, lihat shared-utils.js escJs).
+      var _escId = (typeof escJs === 'function') ? escJs : esc;
       return '<button type="button" class="wiz-hq-card' + (isSel ? ' selected' : '') + (isToday ? ' today' : '') + '"'
-        + ' data-hid="' + esc(h.id_halaqah) + '" onclick="wizPickHalaqah(\'' + esc(h.id_halaqah) + '\')">'
+        + ' data-hid="' + esc(h.id_halaqah) + '" onclick="wizPickHalaqah(\'' + _escId(h.id_halaqah) + '\')">'
         + '<span class="wiz-hq-dot" style="background:' + _dotColor(h.id_halaqah) + '"></span>'
         + '<span class="wiz-hq-info">'
         +   '<span class="wiz-hq-nama">' + esc(h.nama_halaqah || h.id_halaqah) + '</span>'
@@ -3661,6 +3686,7 @@
   window.onKbmHalaqahChange = onKbmHalaqahChange;
   window.selectKbmJenis = selectKbmJenis;
   window.wizGo = wizGo;
+  window.wizGantiHalaqah = wizGantiHalaqah;
   window.wizNext = wizNext;
   window.wizPickHalaqah = wizPickHalaqah;
   window.renderWizHalaqahCards = renderWizHalaqahCards;
