@@ -264,9 +264,9 @@
     const _ps = window._presensiState || {};
     cont.innerHTML = muridSesi.map(m => `
       <div class="prow" id="prow-${esc(m.id_murid)}">
-        <div>
+        <div class="prow-info">
           <div class="prow-name">${esc(m.nama_murid)}</div>
-          <div class="prow-level">Level: ${esc(m.level||'-')} &nbsp;·&nbsp; ${m.total_hadir||0}× hadir</div>
+          <div class="prow-sub">${m.total_hadir||0}× hadir</div>
         </div>
         <div class="prow-btns">
           ${['H','T','I','A'].map(k=>`

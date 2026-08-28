@@ -797,11 +797,14 @@ html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{b
 .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
 /* ── PRESENSI ── */
-.presensi-list{display:flex;flex-direction:column;gap:0}
+.presensi-list{display:flex;flex-direction:column;gap:8px}
+/* Baris presensi = kartu: nama tidak menempel garis tepi (padding internal),
+   dipisah gap antar-kartu (bukan border-bottom), aksen minimalis. */
 .prow{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-bottom:1px solid var(--border);gap:12px}
-.prow:last-child{border-bottom:none}
-.prow-name{font-weight:600;font-size:14px;flex:1}
+  padding:12px 14px;border:1px solid var(--kbm-line,rgba(100,116,139,.18));
+  border-radius:10px;background:var(--kbm-card,#fff);gap:12px}
+.prow-name{font-weight:600;font-size:14px;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prow-level{font-size:11px;color:var(--text-3);margin-top:1px}
 .prow-btns{display:flex;gap:4px}
 .pb{padding:8px 13px;border-radius:9px;border:1.5px solid;font-family:inherit;
@@ -2194,6 +2197,36 @@ html.theme-dark .pb[data-k="A"].on{background:var(--red)!important;color:#fff!im
 html.theme-dark .prow{background:transparent!important;border-bottom-color:rgba(255,255,255,.06)!important}
 html.theme-dark .prow-name{color:#f0f2f8!important}
 html.theme-dark .prow-level{color:#6b7280!important}
+/* Redesain kartu presensi (KBM) — padding tepi, avatar inisial, tombol lega */
+#page-presensi .presensi-list{gap:8px}
+#page-presensi .prow{
+  background:var(--kbm-card);border:1px solid var(--kbm-line);
+  border-radius:10px;padding:10px 12px;gap:12px;box-shadow:none;
+}
+#page-presensi .prow:hover{border-color:var(--kbm-accent-border)}
+#page-presensi .prow-info{min-width:0;flex:1}
+#page-presensi .prow-name{
+  font-weight:700;font-size:13.5px;color:var(--kbm-ink,var(--text));
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;
+}
+#page-presensi .prow-sub{font-size:11px;color:var(--kbm-ink-3,var(--text-3));margin-top:1px}
+#page-presensi .prow-btns{display:flex;gap:5px;flex-shrink:0}
+#page-presensi .pb{
+  min-width:40px;padding:9px 0;text-align:center;border-radius:8px;
+  font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;
+  border:1.5px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-3);
+  transition:background .18s,border-color .18s,color .18s,transform .12s;
+}
+#page-presensi .pb:active{transform:scale(.94)}
+#page-presensi .pb[data-k="H"]{border-color:var(--kbm-ok,#16a34a);color:var(--kbm-ok,#16a34a)}
+#page-presensi .pb[data-k="H"].on{background:var(--kbm-ok,#16a34a);border-color:var(--kbm-ok,#16a34a);color:#fff}
+#page-presensi .pb[data-k="T"]{border-color:var(--kbm-ink-3,#64748b);color:var(--kbm-ink-3,#64748b)}
+#page-presensi .pb[data-k="T"].on{background:var(--kbm-ink-3,#64748b);border-color:var(--kbm-ink-3,#64748b);color:#fff}
+#page-presensi .pb[data-k="I"]{border-color:var(--kbm-warn,#b45309);color:var(--kbm-warn,#b45309)}
+#page-presensi .pb[data-k="I"].on{background:var(--kbm-warn,#b45309);border-color:var(--kbm-warn,#b45309);color:#fff}
+#page-presensi .pb[data-k="A"]{border-color:var(--kbm-danger,#dc2626);color:var(--kbm-danger,#dc2626)}
+#page-presensi .pb[data-k="A"].on{background:var(--kbm-danger,#dc2626);border-color:var(--kbm-danger,#dc2626);color:#fff}
+html.theme-dark #page-presensi .pb.on{color:#0f172a}
 html.theme-dark .section-title{color:#f0f2f8!important}
 html.theme-dark .section-sub{color:#9ca3af!important}
 html.theme-dark .persiapan-wrap{background:#0f1a13!important;border-color:#166534!important}
@@ -6362,7 +6395,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=3dcfd5a9" defer></script>
+<script src="kbm-module.js?v=cce7d642" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -7243,12 +7276,12 @@ function hideLoad() { document.getElementById('loader').classList.remove('show')
 
 // ── NOTIF CENTER (ganti toast) ──
 function toast(msg, type='') {
-  const icons = { ok:'✅', err:'❌', warn:'⚠️', '':'ℹ️' };
+  const icons = { ok:'', err:'', warn:'', '':'' };
   const titles = { ok:'Berhasil', err:'Gagal', warn:'Perhatian', '':'Info' };
   const overlay = document.getElementById('notifOverlay');
   const btn     = document.getElementById('notifBtn');
 
-  document.getElementById('notifIcon').textContent  = icons[type]  || 'ℹ️';
+  document.getElementById('notifIcon').textContent  = icons[type]  || '';
   document.getElementById('notifTitle').textContent = titles[type] || 'Info';
   document.getElementById('notifMsg').textContent   = msg;
 
@@ -7469,14 +7502,16 @@ async function bukaEditPresensi(id_kbm, tanggal) {
         ? await getMurid(editPresensiHalaqah) : [];
       if (!murid.length) {
         document.getElementById('editPresensiList').innerHTML =
-          emptyHTML('📭','Tidak ada murid','');
+          emptyHTML('','Tidak ada murid','');
         return;
       }
       document.getElementById('editPresensiList').innerHTML = murid.map(m => `
         <div class="prow">
-          <div>
-            <div class="prow-name">${esc(m.nama_murid)}</div>
-            <div class="prow-level">Level: ${esc(m.level||'-')}</div>
+          <div class="prow-info">
+            <span class="prow-avatar">${esc(String(m.nama_murid||'?').trim().charAt(0).toUpperCase())}</span>
+            <div>
+              <div class="prow-name">${esc(m.nama_murid)}</div>
+            </div>
           </div>
           <div class="prow-btns">
             ${['H','T','I','A'].map(k => `
@@ -7492,8 +7527,11 @@ async function bukaEditPresensi(id_kbm, tanggal) {
     document.getElementById('editPresensiList').innerHTML = data.map(n => {
       const status = String(n.status_hadir||'H').toUpperCase();
       return `<div class="prow">
-        <div>
-          <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
+        <div class="prow-info">
+          <span class="prow-avatar">${esc(String(n.nama_murid||n.id_murid||'?').trim().charAt(0).toUpperCase())}</span>
+          <div>
+            <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
+          </div>
         </div>
         <div class="prow-btns">
           ${['H','T','I','A'].map(k => `
@@ -7633,8 +7671,8 @@ function simpanEditModal() {
 
 // ── Tab Nilai (Paket 3a: KBM Reguler, 3b: Micro Teaching) ──
 // Opsi harus persis sama dengan form capture live agar konsisten.
-const _EN_ADAB   = [['','— Pilih —'],['Baik','😊 Baik'],['Butuh Perhatian','⚠️ Butuh Perhatian']];
-const _EN_KAMERA = [['','— Pilih —'],['kamera terbuka','📷 kamera terbuka'],['kamera sering buka tutup','🟡 kamera sering buka tutup'],['kamera tertutup','❌ kamera tertutup']];
+const _EN_ADAB   = [['','— Pilih —'],['Baik','Baik'],['Butuh Perhatian','Butuh Perhatian']];
+const _EN_KAMERA = [['','— Pilih —'],['kamera terbuka','kamera terbuka'],['kamera sering buka tutup','kamera sering buka tutup'],['kamera tertutup','kamera tertutup']];
 // Micro Teaching: kriteria + bobot & rumus skor HARUS sama dengan KRITERIA_MT di
 // kbm-module.js (skor = Σ(val×bobot)×25, hanya jika kelima kriteria terisi).
 const _EN_MT_KRITERIA = [
@@ -7647,7 +7685,7 @@ const _EN_MT_KRITERIA = [
 const _EN_MT_OPT = [['','— Pilih —'],['4','Sangat Baik (SB)'],['3','Baik (B)'],['2','Cukup (C)'],['1','Perlu Perbaikan (PP)']];
 // Qiyam (Paket 3c): opsi mengikuti konfigurasi penilaian (via _hfLoadConfig) agar
 // sama dgn capture; fallback ke standar bila config kosong. `jenis` tetap 3 nilai.
-const _EN_QIYAM_JENIS = [['Ziyadah','📖 Ziyadah'],['Murajaah','🔄 Murajaah'],['Tahsin','✨ Tahsin']];
+const _EN_QIYAM_JENIS = [['Ziyadah','Ziyadah'],['Murajaah','Murajaah'],['Tahsin','Tahsin']];
 function _enQiyamCfg() {
   var cfg = (typeof window._hfLoadConfig === 'function') ? (window._hfLoadConfig() || {}) : {};
   var nilai = (cfg.nilai && cfg.nilai.length)
@@ -7655,10 +7693,10 @@ function _enQiyamCfg() {
     : [['Mumtaz','⭐ Mumtaz'],['Baik','✅ Baik'],['Cukup','📌 Cukup']];
   var kel = (cfg.kelancaran && cfg.kelancaran.length)
     ? cfg.kelancaran.map(function(k){ return [k.nama, ((k.icon||'')+' '+k.nama).trim()]; })
-    : [['Lancar','🟢 Lancar'],['Cukup','🟡 Cukup'],['Perlu Perbaikan','🔴 Perlu Perbaikan']];
+    : [['Lancar','Lancar'],['Cukup','Cukup'],['Perlu Perbaikan','Perlu Perbaikan']];
   var kam = (cfg.kamera && cfg.kamera.length)
     ? cfg.kamera.map(function(k){ return [k.nama, ((k.icon||'')+' '+k.nama).trim()]; })
-    : [['kamera terbuka','📷 kamera terbuka'],['kamera sering buka tutup','🟡 kamera sering buka tutup'],['kamera tertutup','❌ kamera tertutup']];
+    : [['kamera terbuka','kamera terbuka'],['kamera sering buka tutup','kamera sering buka tutup'],['kamera tertutup','kamera tertutup']];
   return { nilai: nilai, kelancaran: [['','— Pilih —']].concat(kel), kamera: [['','— Pilih —']].concat(kam) };
 }
 
@@ -7716,7 +7754,7 @@ async function loadEditNilai() {
     renderEditNilai();
   } catch(e) {
     _editNilaiLoaded = false;
-    document.getElementById('editNilaiBody').innerHTML = emptyHTML('❌','Gagal memuat nilai: '+esc(friendlyError(e)),'');
+    document.getElementById('editNilaiBody').innerHTML = emptyHTML('','Gagal memuat nilai: '+esc(friendlyError(e)),'');
   } finally { hideLoad(); }
 }
 
@@ -7729,12 +7767,12 @@ function renderEditNilai() {
   // Jenis lain: belum didukung. Daurah memakai jalur 'KBM Reguler' untuk adab/
   // kamera; 7 indikatornya diedit di halaman Assessment Rekap.
   body.innerHTML = '<div style="background:var(--bg-2);border:1px dashed var(--border);border-radius:var(--r-sm);padding:16px;font-size:12.5px;color:var(--text-2);text-align:center">'
-    + 'ℹ️ Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.'
+    + 'Edit nilai untuk jenis sesi <b>' + esc(_editNilaiJenis) + '</b> belum tersedia.'
     + '</div>';
 }
 
 function renderEditNilaiQiyam(body, data) {
-  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+  if (!data.length) { body.innerHTML = emptyHTML('','Belum ada data nilai',''); return; }
   const cfg = _enQiyamCfg();
   body.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">Surat & ayat bersifat tampilan (read-only). Yang dapat diedit: jenis, nilai, kelancaran, kamera, catatan.</div>'
     + data.map(function(n){
@@ -7745,8 +7783,8 @@ function renderEditNilaiQiyam(body, data) {
 
     // Hanya murid H/T yang punya baris setoran yang bisa diedit
     if (status === 'I' || status === 'A' || !list.length) {
-      const ket = (status === 'I') ? '🟡 Izin — tidak ada setoran'
-        : (status === 'A') ? '🔴 Alpa — tidak ada setoran'
+      const ket = (status === 'I') ? 'Izin — tidak ada setoran'
+        : (status === 'A') ? 'Alpa — tidak ada setoran'
         : 'Belum ada setoran pada sesi ini';
       return '<div class="prow" style="align-items:center;margin-bottom:8px">'
         + '<div><div class="prow-name">'+nama+'</div>'
@@ -7761,8 +7799,8 @@ function renderEditNilaiQiyam(body, data) {
       const info = 'Juz '+esc(h.juz != null ? h.juz : '-')+' · '+esc(h.surat||'-')+' · Ayat '+esc(h.ayat_dari != null ? h.ayat_dari : '-')+'–'+esc(h.ayat_sampai != null ? h.ayat_sampai : '-');
       return '<div class="card" data-en-q-mid="'+mid+'" data-en-q-setoran="'+sid+'" style="margin-bottom:10px;padding:12px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+setoranNumTag+'</div>'+(idx===0?badge:'')+'</div>'
-        + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">📖 '+info+'</div>'
+        + '<div style="font-weight:700;font-size:13.5px">'+nama+setoranNumTag+'</div>'+(idx===0?badge:'')+'</div>'
+        + '<div style="font-size:11.5px;color:var(--text-2);background:var(--bg-2);border-radius:8px;padding:6px 10px;margin-bottom:8px">'+info+'</div>'
         + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
         + '<div class="fg" style="flex:1;min-width:120px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Jenis</label>'
         + '<select class="fc" id="enQJenis-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(_EN_QIYAM_JENIS, h.jenis), h.jenis)+'</select></div>'
@@ -7775,7 +7813,7 @@ function renderEditNilaiQiyam(body, data) {
         + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
         + '<select class="fc" id="enQKam-'+sid+'" style="font-size:13px">'+_enOpts(_enEnsure(cfg.kamera, h.kamera), h.kamera)+'</select></div>'
         + '</div>'
-        + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+        + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Catatan (opsional)</label>'
         + '<textarea class="fc" id="enQCat-'+sid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(h.catatan||'')+'</textarea></div>'
         + '</div>';
     }).join('');
@@ -7783,7 +7821,7 @@ function renderEditNilaiQiyam(body, data) {
 }
 
 function renderEditNilaiReguler(body, data) {
-  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+  if (!data.length) { body.innerHTML = emptyHTML('','Belum ada data nilai',''); return; }
   body.innerHTML = data.map(function(n){
     const status = String(n.status_hadir||'H').toUpperCase();
     const nama = esc(n.nama_murid || n.id_murid);
@@ -7792,29 +7830,29 @@ function renderEditNilaiReguler(body, data) {
     if (status === 'I' || status === 'A') {
       return '<div class="prow" style="align-items:center;margin-bottom:8px">'
         + '<div><div class="prow-name">'+nama+'</div>'
-        + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+(status==='A'?'🔴 Alpa':'🟡 Izin')+' — nilai tidak perlu diisi</div></div>'
+        + '<div style="font-size:11.5px;color:var(--text-3);font-style:italic">'+(status==='A'?'Alpa':'Izin')+' — nilai tidak perlu diisi</div></div>'
         + '<div>'+badge+'</div></div>';
     }
     const mid = esc(n.id_murid);
     return '<div class="card" data-en-mid="'+mid+'" style="margin-bottom:10px;padding:12px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
+      + '<div style="font-weight:700;font-size:13.5px">'+nama+'</div>'+badge+'</div>'
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
-      + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">😊 Adab</label>'
+      + '<div class="fg" style="flex:1;min-width:130px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Adab</label>'
       + '<select class="fc" id="enAdab-'+mid+'" style="font-size:13px">'+_enOpts(_EN_ADAB, n.adab)+'</select></div>'
-      + '<div class="fg" style="flex:1;min-width:150px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📷 Kamera</label>'
+      + '<div class="fg" style="flex:1;min-width:150px;margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Kamera</label>'
       + '<select class="fc" id="enKamera-'+mid+'" style="font-size:13px">'+_enOpts(_EN_KAMERA, n.kamera_murid)+'</select></div>'
       + '</div>'
-      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">✏️ Koreksi Tahsin</label>'
+      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Koreksi Tahsin</label>'
       + '<textarea class="fc" id="enKoreksi-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.koreksi_tahsin||'')+'</textarea></div>'
-      + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+      + '<div class="fg" style="margin:0"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Catatan (opsional)</label>'
       + '<textarea class="fc" id="enCatatan-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.catatan_murid||'')+'</textarea></div>'
       + '</div>';
   }).join('');
 }
 
 function renderEditNilaiMT(body, data) {
-  if (!data.length) { body.innerHTML = emptyHTML('📭','Belum ada data nilai',''); return; }
+  if (!data.length) { body.innerHTML = emptyHTML('','Belum ada data nilai',''); return; }
   body.innerHTML = '<div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">Hanya murid yang dinilai sebagai <b>pembicara</b> pada sesi ini yang dapat diedit.</div>'
     + data.map(function(n){
     const status = String(n.status_hadir||'H').toUpperCase();
@@ -7824,8 +7862,8 @@ function renderEditNilaiMT(body, data) {
     // Hanya pembicara yang dinilai (punya rubrik valid) yang editable — jaga
     // semantik "pembicara" agar tak sengaja menilai murid yang bukan pembicara.
     if (status === 'I' || status === 'A' || !rubrik || rubrik.absent) {
-      const ket = (status === 'I') ? '🟡 Izin — tidak dinilai'
-        : (status === 'A') ? '🔴 Alpa — tidak dinilai'
+      const ket = (status === 'I') ? 'Izin — tidak dinilai'
+        : (status === 'A') ? 'Alpa — tidak dinilai'
         : 'Bukan pembicara pada sesi ini';
       return '<div class="prow" style="align-items:center;margin-bottom:8px">'
         + '<div><div class="prow-name">'+nama+'</div>'
@@ -7841,9 +7879,9 @@ function renderEditNilaiMT(body, data) {
     const curScore = _enMtScore(rubrik);
     return '<div class="card" data-en-mt-mid="'+mid+'" style="margin-bottom:10px;padding:12px">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      + '<div style="font-weight:700;font-size:13.5px">👤 '+nama+'</div>'+badge+'</div>'
+      + '<div style="font-weight:700;font-size:13.5px">'+nama+'</div>'+badge+'</div>'
       + sels
-      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">📝 Catatan (opsional)</label>'
+      + '<div class="fg" style="margin:0 0 8px"><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Catatan (opsional)</label>'
       + '<textarea class="fc" id="enMtCat-'+mid+'" rows="2" style="font-size:13px;resize:vertical">'+esc(n.catatan_murid||'')+'</textarea></div>'
       + '<div style="font-size:12px;font-weight:700;color:var(--blue-d)">Skor: <span id="enMtScore-'+mid+'">'+(curScore===null?'Belum lengkap':(curScore+' / 100'))+'</span></div>'
       + '</div>';
