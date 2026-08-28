@@ -1519,6 +1519,55 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   margin-top:8px;display:none;
 }
 .libur-hint.show{display:block}
+
+/* ── WIZARD BUKA SESI (STEP 1) ── */
+.wiz-steps{display:flex;align-items:center;gap:0;margin-bottom:16px}
+.wiz-step{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.wiz-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:800;background:var(--bg);color:var(--text-3);
+  border:1.5px solid var(--border);transition:all .2s}
+.wiz-lbl{font-size:12.5px;font-weight:700;color:var(--text-3);transition:color .2s}
+.wiz-step-line{flex:1;height:2px;background:var(--border);margin:0 8px;min-width:12px}
+.wiz-step.active .wiz-num{background:var(--blue);border-color:var(--blue);color:#fff}
+.wiz-step.active .wiz-lbl{color:var(--blue)}
+.wiz-step.done .wiz-num{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step.done .wiz-lbl{color:var(--green)}
+
+/* Kartu pilihan halaqah (sub-step 1) */
+.wiz-halaqah-cards{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.wiz-hq-card{
+  display:flex;align-items:center;gap:12px;text-align:left;width:100%;
+  padding:12px 14px;border-radius:12px;cursor:pointer;font-family:inherit;
+  border:1.5px solid var(--border);background:var(--card-solid,rgba(255,255,255,.85));
+  transition:border-color .15s,box-shadow .15s;
+}
+.wiz-hq-card:hover{border-color:var(--blue)}
+.wiz-hq-card.selected{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.wiz-hq-card.today{border-color:#86efac}
+.wiz-hq-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--blue)}
+.wiz-hq-info{flex:1;min-width:0}
+.wiz-hq-nama{font-size:14px;font-weight:800;color:var(--text);line-height:1.3}
+.wiz-hq-meta{font-size:11.5px;color:var(--text-3);font-weight:600;margin-top:2px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.wiz-hq-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;background:var(--green);color:#fff;flex-shrink:0}
+.wiz-hq-check{width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;
+  display:none;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.wiz-hq-card.selected .wiz-hq-check{display:flex}
+.wiz-hq-empty{color:var(--text-3);font-size:12.5px;text-align:center;padding:14px 0}
+
+/* Ringkasan halaqah terpilih (sub-step 2) */
+.wiz-picked{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 12px;border-radius:10px;background:rgba(14,165,233,.06);
+  border:1px solid rgba(14,165,233,.25);margin-bottom:14px}
+.wiz-picked-nama{font-size:13.5px;font-weight:800;color:var(--text);flex:1;min-width:0}
+.wiz-ganti{background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;
+  cursor:pointer;padding:4px 2px;white-space:nowrap;font-family:inherit}
+.wiz-hint{font-size:11.5px;color:#c2410c;font-weight:700;margin:10px 0 4px;line-height:1.5;
+  background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px}
+
+@media (max-width:520px){
+  .wiz-lbl{display:none}
+  .wiz-step.active .wiz-lbl{display:inline}
+}
 /* ── TEMPLATE KOREKSI ACCORDION ── */
 .kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
   border:1px solid var(--border)}
@@ -3191,113 +3240,147 @@ html.theme-dark .pr-chip.active {
           </div>
         </div>
 
-        <!-- Form buka sesi -->
+        <!-- Form buka sesi — wizard 3 sub-step -->
         <div class="card" id="formBukaKBM">
           <div class="card-head"><div class="card-title">▶ KBM Baru</div></div>
           <div class="card-body">
-            <div class="f2">
-              <div class="fg">
-                <label>Level</label>
-                <select class="fc" id="kbmLevel" onchange="filterKbmHalaqah()">
+
+            <!-- Mini step indicator -->
+            <div class="wiz-steps" id="wizSteps">
+              <div class="wiz-step" data-wstep="1"><span class="wiz-num">1</span><span class="wiz-lbl">Halaqah</span></div>
+              <div class="wiz-step-line"></div>
+              <div class="wiz-step" data-wstep="2"><span class="wiz-num">2</span><span class="wiz-lbl">Detail</span></div>
+              <div class="wiz-step-line"></div>
+              <div class="wiz-step" data-wstep="3"><span class="wiz-num">3</span><span class="wiz-lbl">Persiapan</span></div>
+            </div>
+
+            <!-- ── SUB-STEP 1: PILIH HALAQAH ── -->
+            <div class="wiz-pane" id="wizPane1">
+              <div class="fg" style="margin-bottom:10px">
+                <label>Filter Level</label>
+                <select class="fc" id="kbmLevel" onchange="filterKbmHalaqah();renderWizHalaqahCards()">
                   <option value="">— Semua Level —</option>
                 </select>
               </div>
-              <div class="fg">
-                <label>Pilih Halaqah</label>
-                <select class="fc" id="kbmHalaqah" onchange="autoFillPertemuan();onKbmHalaqahChange()">
-                  <option value="">— Pilih Halaqah —</option>
-                </select>
-              </div>
-            </div>
-            <div class="fg">
-              <label style="margin-bottom: 6px; display: block;">Jenis Sesi</label>
-              <input type="hidden" id="kbmJenis" value="KBM Reguler">
-              <div class="kbm-jenis-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 4px;">
-                <div class="kbm-jenis-btn kbm-jenis-reguler active" id="btnKbmJenis-KBM_Reguler" onclick="selectKbmJenis('KBM Reguler')">
-                  <span>📖</span> KBM Reguler
-                </div>
-                <div class="kbm-jenis-btn kbm-jenis-qiyam" id="btnKbmJenis-KBM_Qiyam" onclick="selectKbmJenis('KBM Qiyam')" style="display: none;">
-                  <span>🕌</span> KBM Qiyam
-                </div>
-                <div class="kbm-jenis-btn kbm-jenis-micro" id="btnKbmJenis-Micro_Teaching" onclick="selectKbmJenis('Micro Teaching')">
-                  <span>🎓</span> Micro Teaching
-                </div>
-              </div>
-            </div>
-            <div class="f2">
-              <div class="fg">
-                <label>Tanggal</label>
-                <input type="date" class="fc" id="kbmTanggal">
-              </div>
-              <div class="fg">
-                <label>Jam Mulai</label>
-                <input type="time" class="fc" id="kbmJam">
-              </div>
-            </div>
-            <div class="f2">
-              <div class="fg">
-                <label>Pertemuan ke-</label>
-                <input type="number" class="fc" id="kbmPertemuan" min="1" placeholder="Auto">
-                <div style="font-size:11px;color:var(--text-3);margin-top:4px">Kosongkan untuk auto-hitung</div>
-              </div>
+              <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:8px">Pilih Halaqah</div>
+              <div id="wizHalaqahCards" class="wiz-halaqah-cards"></div>
+              <!-- select asli dipertahankan sebagai single source of truth (dibaca
+                   doBukaKBM/doTandaiLibur/populateSel/dashboard-module) -->
+              <select id="kbmHalaqah" hidden onchange="autoFillPertemuan();onKbmHalaqahChange()">
+                <option value="">— Pilih Halaqah —</option>
+              </select>
             </div>
 
-            <!-- ── KELAS PENGGANTI: tandai sesi ini sebagai pengganti (Flow 2/3) ── -->
-            <div class="fg" id="kbmPenggantiWrap" style="display:none;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:14px">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600">
-                <input type="checkbox" id="kbmIsPengganti" style="width:18px;height:18px;flex-shrink:0">
-                <span>🔄 Tandai sesi ini sebagai <strong>Kelas Pengganti</strong> (sisa: <span id="kbmSisaPengganti">0</span>)</span>
-              </label>
-            </div>
-
-            <!-- ── PERSIAPAN SEBELUM MENGAJAR ── -->
-            <div class="persiapan-wrap" id="persiapanWrap">
-              <div class="persiapan-title">☑ Persiapan Sebelum Mengajar</div>
-              <div class="persiapan-sub">Sebelum kita berjuang menjadi manusia terbaik,<br>sudahkan kita melakukan ikhtiar ini semua?</div>
-
-              <div class="persiapan-item" id="pItem0" onclick="togglePersiapan(0)">
-                <div class="persiapan-cb" id="pCb0"></div>
-                <div class="persiapan-item-text">
-                  <div class="persiapan-item-label">💚 Memperbaiki Niat</div>
-                  <div class="persiapan-item-desc">Luruskan niat — mengajar karena Allah semata</div>
-                </div>
+            <!-- ── SUB-STEP 2: DETAIL SESI ── -->
+            <div class="wiz-pane" id="wizPane2" style="display:none">
+              <div class="wiz-picked" id="wizPickedHalaqah">
+                <span class="wiz-picked-nama" id="wizPickedNama">—</span>
+                <button type="button" class="wiz-ganti" onclick="wizGo(1)">← Ganti Halaqah</button>
               </div>
 
-              <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
-                <div class="persiapan-cb" id="pCb1"></div>
-                <div class="persiapan-item-text">
-                  <div class="persiapan-item-label">📖 Membaca Silabus</div>
-                  <div class="persiapan-item-desc">
-                    Tinjau silabus &amp; berkas pengajaran sebelum kelas —
-                    <span class="persiapan-link" onclick="event.stopPropagation();bukaTabBerkas()">📂 Lihat Berkas Pengajar</span>
+              <div class="fg">
+                <label style="margin-bottom: 6px; display: block;">Jenis Sesi</label>
+                <input type="hidden" id="kbmJenis" value="KBM Reguler">
+                <div class="kbm-jenis-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 4px;">
+                  <div class="kbm-jenis-btn kbm-jenis-reguler active" id="btnKbmJenis-KBM_Reguler" onclick="selectKbmJenis('KBM Reguler')">
+                    <span>📖</span> KBM Reguler
+                  </div>
+                  <div class="kbm-jenis-btn kbm-jenis-qiyam" id="btnKbmJenis-KBM_Qiyam" onclick="selectKbmJenis('KBM Qiyam')" style="display: none;">
+                    <span>🕌</span> KBM Qiyam
+                  </div>
+                  <div class="kbm-jenis-btn kbm-jenis-micro" id="btnKbmJenis-Micro_Teaching" onclick="selectKbmJenis('Micro Teaching')">
+                    <span>🎓</span> Micro Teaching
                   </div>
                 </div>
               </div>
-
-              <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
-                <div class="persiapan-cb" id="pCb2"></div>
-                <div class="persiapan-item-text">
-                  <div class="persiapan-item-label">💬 Menyiapkan 1 Nasihat</div>
-                  <div class="persiapan-item-desc">Siapkan satu nasihat bermakna untuk disampaikan kepada murid hari ini</div>
+              <div class="f2">
+                <div class="fg">
+                  <label>Tanggal</label>
+                  <input type="date" class="fc" id="kbmTanggal">
+                </div>
+                <div class="fg">
+                  <label>Jam Mulai</label>
+                  <input type="time" class="fc" id="kbmJam">
+                </div>
+              </div>
+              <div class="f2">
+                <div class="fg">
+                  <label>Pertemuan ke-</label>
+                  <input type="number" class="fc" id="kbmPertemuan" min="1" placeholder="Auto">
+                  <div style="font-size:11px;color:var(--text-3);margin-top:4px">Kosongkan untuk auto-hitung</div>
                 </div>
               </div>
 
-              <div class="persiapan-progress">
-                <div class="persiapan-progress-fill" id="persiapanBar" style="width:0%"></div>
+              <!-- ── KELAS PENGGANTI: tandai sesi ini sebagai pengganti (Flow 2/3) ── -->
+              <div class="fg" id="kbmPenggantiWrap" style="display:none;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:14px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600">
+                  <input type="checkbox" id="kbmIsPengganti" style="width:18px;height:18px;flex-shrink:0">
+                  <span>🔄 Tandai sesi ini sebagai <strong>Kelas Pengganti</strong> (sisa: <span id="kbmSisaPengganti">0</span>)</span>
+                </label>
               </div>
-              <div class="persiapan-footer" id="persiapanFooter">
-                Semoga Allah mudahkan ikhtiar hari ini. Baarakallahu fiikum 🌿
-              </div>
-            </div>
-            <!-- ── END PERSIAPAN ── -->
 
-            <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()" disabled
-              style="opacity:.45;cursor:not-allowed;transform:none">
-              🔒 Selesaikan Persiapan Dahulu
-            </button>
-            <div class="persiapan-hint show" id="persiapanHint">
-              ☝ Centang semua persiapan di atas untuk mengaktifkan tombol
+              <div class="wiz-hint" id="wizDetailHint" style="display:none"></div>
+              <div class="step-nav" style="margin-top:4px">
+                <button class="btn-back" onclick="wizGo(1)">← Halaqah</button>
+                <button class="btn-next" id="btnWizNext2" onclick="wizNext()">Lanjut →</button>
+              </div>
             </div>
+
+            <!-- ── SUB-STEP 3: PERSIAPAN ── -->
+            <div class="wiz-pane" id="wizPane3" style="display:none">
+              <!-- ── PERSIAPAN SEBELUM MENGAJAR ── -->
+              <div class="persiapan-wrap" id="persiapanWrap">
+                <div class="persiapan-title">☑ Persiapan Sebelum Mengajar</div>
+                <div class="persiapan-sub">Sebelum kita berjuang menjadi manusia terbaik,<br>sudahkan kita melakukan ikhtiar ini semua?</div>
+
+                <div class="persiapan-item" id="pItem0" onclick="togglePersiapan(0)">
+                  <div class="persiapan-cb" id="pCb0"></div>
+                  <div class="persiapan-item-text">
+                    <div class="persiapan-item-label">💚 Memperbaiki Niat</div>
+                    <div class="persiapan-item-desc">Luruskan niat — mengajar karena Allah semata</div>
+                  </div>
+                </div>
+
+                <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
+                  <div class="persiapan-cb" id="pCb1"></div>
+                  <div class="persiapan-item-text">
+                    <div class="persiapan-item-label">📖 Membaca Silabus</div>
+                    <div class="persiapan-item-desc">
+                      Tinjau silabus &amp; berkas pengajaran sebelum kelas —
+                      <span class="persiapan-link" onclick="event.stopPropagation();bukaTabBerkas()">📂 Lihat Berkas Pengajar</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
+                  <div class="persiapan-cb" id="pCb2"></div>
+                  <div class="persiapan-item-text">
+                    <div class="persiapan-item-label">💬 Menyiapkan 1 Nasihat</div>
+                    <div class="persiapan-item-desc">Siapkan satu nasihat bermakna untuk disampaikan kepada murid hari ini</div>
+                  </div>
+                </div>
+
+                <div class="persiapan-progress">
+                  <div class="persiapan-progress-fill" id="persiapanBar" style="width:0%"></div>
+                </div>
+                <div class="persiapan-footer" id="persiapanFooter">
+                  Semoga Allah mudahkan ikhtiar hari ini. Baarakallahu fiikum 🌿
+                </div>
+              </div>
+              <!-- ── END PERSIAPAN ── -->
+
+              <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()" disabled
+                style="opacity:.45;cursor:not-allowed;transform:none">
+                🔒 Selesaikan Persiapan Dahulu
+              </button>
+              <div class="persiapan-hint show" id="persiapanHint">
+                ☝ Centang semua persiapan di atas untuk mengaktifkan tombol
+              </div>
+              <div class="step-nav" style="margin-top:10px">
+                <button class="btn-back" onclick="wizGo(2)">← Detail Sesi</button>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -5963,12 +6046,12 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/popup-notifikasi.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
-<script src="jadwal-module.js?v=b2b2adea" defer></script>
-<script src="dashboard-module.js?v=b2d149fd" defer></script>
+<script src="jadwal-module.js?v=a3b9c615" defer></script>
+<script src="dashboard-module.js?v=b069f612" defer></script>
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=54ee984e" defer></script>
+<script src="kbm-module.js?v=d195dc7a" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -6127,6 +6210,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // kbmJam/topDate di bawah tetap device-local (di luar cakupan temuan ini).
   document.getElementById('kbmTanggal').value = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : _localDateStr(now);
   document.getElementById('kbmJam').value = now.toTimeString().slice(0,5);
+  // Wizard buka sesi: tandai tanggal yg diubah manual (guard kelas pengganti, D5)
+  // + init posisi sub-step.
+  document.getElementById('kbmTanggal').addEventListener('change', function(){ if (typeof wizMarkTglTouched==='function') wizMarkTglTouched(); });
+  document.getElementById('kbmTanggal').addEventListener('input',  function(){ if (typeof wizMarkTglTouched==='function') wizMarkTglTouched(); });
+  var _cbPengganti = document.getElementById('kbmIsPengganti');
+  if (_cbPengganti) _cbPengganti.addEventListener('change', function(){ if (typeof _wizUpdateDetailGuard==='function') _wizUpdateDetailGuard(); });
+  if (typeof wizGo === 'function') wizGo(1);
   document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
   });
@@ -6596,6 +6686,8 @@ function goPage(name) {
     // Reset checklist hanya jika tidak ada sesi aktif
     // (jika ada sesi aktif, form sudah disembunyikan — reset tidak perlu)
     if (!sesiAktif) resetPersiapan();
+    // Render ulang kartu halaqah wizard sesuai pilihan terkini (setelah populateSel)
+    if (typeof renderWizHalaqahCards === 'function') renderWizHalaqahCards();
   }
   if (name === 'murid')      {
     populateSel('muridHalaqahSel');
@@ -8126,6 +8218,8 @@ function mulaiSesiHalaqah(id_halaqah, pertemuan_ke) {
     }
     // Biarkan kbmPertemuan kosong agar server auto-hitung
     // placeholder sudah diset oleh autoFillPertemuan()
+    // Quick-start: langsung ke sub-step Detail (halaqah sudah terisi), D2.
+    if (typeof wizGo === 'function') wizGo(2);
   }, 0);
 }
 
@@ -8632,6 +8726,8 @@ function updatePenggantiCheckbox() {
     wrap.style.display = 'none';
     cb.checked = false;
   }
+  // Wizard: status kelas pengganti memengaruhi guard sub-step Detail (D5).
+  if (typeof window._wizUpdateDetailGuard === 'function') window._wizUpdateDetailGuard();
 }
 
 

@@ -101,6 +101,8 @@
           sel.appendChild(o);
         });
       });
+      // Wizard buka sesi: sinkronkan highlight kartu halaqah setelah repopulasi.
+      if (typeof window.renderWizHalaqahCards === 'function') window.renderWizHalaqahCards();
 
       // st-kbm/st-bulan dijaga null krn kartunya sudah dilepas dari beranda
       // (digantikan Kelompok Partner/Belajar) -- guard spy sisa fungsi ini

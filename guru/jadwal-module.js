@@ -704,8 +704,15 @@
     } else {
       window.toast('Tidak ada slot kelas pengganti untuk halaqah ini. Jika tetap dibuka, akan tercatat sebagai sesi biasa (tidak menebus Izin).', 'warn');
     }
-    var form = document.getElementById('formBukaKBM');
-    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Wizard buka sesi: langsung ke sub-step Detail (halaqah + pengganti sudah
+    // terisi) supaya guru tinggal memilih tanggal pelaksanaan (guard D5 aktif).
+    if (typeof window.wizGo === 'function') {
+      window.wizGo(2);
+      if (typeof window._wizUpdateDetailGuard === 'function') window._wizUpdateDetailGuard();
+    } else {
+      var form = document.getElementById('formBukaKBM');
+      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   async function ksTandaiIzin(id_halaqah, tanggal, jenis) {

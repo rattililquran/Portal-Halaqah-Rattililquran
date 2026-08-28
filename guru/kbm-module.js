@@ -370,6 +370,10 @@
     if (!isQiyam && jenisEl.value === 'KBM Qiyam') {
       selectKbmJenis('KBM Reguler');
     }
+    // Wizard: segarkan ringkasan halaqah terpilih + highlight kartu (aman no-op
+    // bila elemen wizard belum ada, mis. sebelum DOM siap).
+    _wizSyncPickedHalaqah();
+    renderWizHalaqahCards();
   }
 
   function selectKbmJenis(val) {
@@ -394,7 +398,184 @@
     });
 
     if (typeof autoFillPertemuan === 'function') autoFillPertemuan();
+    if (typeof _wizUpdateDetailGuard === 'function') _wizUpdateDetailGuard();
   }
+
+  // ── WIZARD BUKA SESI (STEP 1) ──────────────────────
+  // Tiga sub-step: 1=Pilih Halaqah, 2=Detail Sesi, 3=Persiapan. Semua kontrol
+  // asli (kbmHalaqah/kbmTanggal/...) TETAP jadi single source of truth -- kartu
+  // halaqah & tile hanya menulis ke sana, jadi doBukaKBM/doTandaiLibur/
+  // mulaiSesiHalaqah/ksBukaKelasPengganti/dashboard-module tak perlu berubah.
+  var _wizStep = 1;
+  var _wizTglTouched = false; // true bila guru mengubah kbmTanggal manual
+
+  function _wizStepsDef() {
+    return [ {n:1,l:'Halaqah'}, {n:2,l:'Detail'}, {n:3,l:'Persiapan'} ];
+  }
+
+  function _wizRenderSteps() {
+    var wrap = document.getElementById('wizSteps');
+    if (!wrap) return;
+    wrap.querySelectorAll('.wiz-step').forEach(function(el) {
+      var n = Number(el.getAttribute('data-wstep'));
+      el.classList.toggle('active', n === _wizStep);
+      el.classList.toggle('done', n < _wizStep);
+      var num = el.querySelector('.wiz-num');
+      if (num) num.textContent = n < _wizStep ? '✓' : String(n);
+    });
+  }
+
+  function wizGo(n) {
+    _wizStep = Math.min(3, Math.max(1, n));
+    [1,2,3].forEach(function(i) {
+      var pane = document.getElementById('wizPane' + i);
+      if (pane) pane.style.display = (i === _wizStep) ? '' : 'none';
+    });
+    _wizRenderSteps();
+    if (_wizStep === 1) renderWizHalaqahCards();
+    if (_wizStep === 2) _wizSyncPickedHalaqah();
+  }
+
+  function wizNext() {
+    if (_wizStep === 1) {
+      if (!(document.getElementById('kbmHalaqah')||{}).value) return;
+      wizGo(2);
+      return;
+    }
+    if (_wizStep === 2) {
+      if (!_wizDetailValid()) { _wizUpdateDetailGuard(); return; }
+      wizGo(3);
+      return;
+    }
+  }
+
+  // Label "pertemuan berikutnya" per jenis, konsisten dgn autoFillPertemuan().
+  function _wizNextPtLabel(h) {
+    var jenis = (document.getElementById('kbmJenis')||{}).value || 'KBM Reguler';
+    var nextPt, label;
+    if      (jenis === 'KBM Qiyam')      { nextPt = h.pertemuan_ke_qiyam      || 1; label = 'Qiyam ke-'; }
+    else if (jenis === 'Micro Teaching') { nextPt = h.pertemuan_ke_microteach || 1; label = 'Micro ke-'; }
+    else                                 { nextPt = h.pertemuan_ke_reguler || h.pertemuan_ke || 1; label = 'Pertemuan ke-'; }
+    return label + nextPt;
+  }
+
+  // Sorot halaqah yg jadwalnya hari ini (server WIB dulu, device-local fallback)
+  // -- pola yg sama dgn mulaiSesiBaruCepat di index.html.
+  function _wizIsHariIni(h) {
+    var _hariIdxMap = window._HARI_INDEX || {};
+    var todayIdx = (window._hariIniServer && _hariIdxMap[window._hariIniServer.toLowerCase()] !== undefined)
+      ? _hariIdxMap[window._hariIniServer.toLowerCase()]
+      : new Date().getDay();
+    var jadwalLower = (h.jadwal_hari || '').toLowerCase();
+    return Object.keys(_hariIdxMap).some(function(k){ return _hariIdxMap[k] === todayIdx && jadwalLower.indexOf(k) >= 0; });
+  }
+
+  function renderWizHalaqahCards() {
+    var cont = document.getElementById('wizHalaqahCards');
+    if (!cont) return;
+    var lvl = (document.getElementById('kbmLevel')||{}).value || '';
+    var sel = document.getElementById('kbmHalaqah');
+    var curVal = sel ? sel.value : '';
+    var list = (getHalaqahList() || []).filter(function(h){ return !lvl || h.level === lvl; });
+
+    if (!list.length) {
+      cont.innerHTML = '<div class="wiz-hq-empty">Tidak ada halaqah pada level ini.</div>';
+      return;
+    }
+    // Halaqah hari ini di atas, sisanya menyusul (urutan asal dipertahankan).
+    var sorted = list.slice().sort(function(a, b) {
+      return (_wizIsHariIni(b) ? 1 : 0) - (_wizIsHariIni(a) ? 1 : 0);
+    });
+    // getHqColor() mengembalikan class 'hq-cN' yg punya variabel warna --HQ-cn.
+    // Petakan ke variabel CSS-nya; fallback biru bila helper belum termuat.
+    var _dotColor = (typeof getHqColor === 'function')
+      ? function(id) { return 'var(--' + getHqColor(id) + ', var(--blue))'; }
+      : function()   { return 'var(--blue)'; };
+    cont.innerHTML = sorted.map(function(h) {
+      var isSel = h.id_halaqah === curVal;
+      var isToday = _wizIsHariIni(h);
+      return '<button type="button" class="wiz-hq-card' + (isSel ? ' selected' : '') + (isToday ? ' today' : '') + '"'
+        + ' data-hid="' + esc(h.id_halaqah) + '" onclick="wizPickHalaqah(\'' + esc(h.id_halaqah) + '\')">'
+        + '<span class="wiz-hq-dot" style="background:' + _dotColor(h.id_halaqah) + '"></span>'
+        + '<span class="wiz-hq-info">'
+        +   '<span class="wiz-hq-nama">' + esc(h.nama_halaqah || h.id_halaqah) + '</span>'
+        +   '<span class="wiz-hq-meta">'
+        +     '<span>📅 ' + esc(h.jadwal_hari || '-') + '</span>'
+        +     '<span>⏰ ' + esc(h.jam_mulai || '-') + '</span>'
+        +     '<span>🔢 ' + esc(_wizNextPtLabel(h)) + '</span>'
+        +   '</span>'
+        + '</span>'
+        + (isToday ? '<span class="wiz-hq-badge">HARI INI</span>' : '')
+        + '<span class="wiz-hq-check">✓</span>'
+        + '</button>';
+    }).join('');
+  }
+
+  // Klik kartu -> tulis ke select asli + picu handler lama, lalu lanjut ke Detail.
+  function wizPickHalaqah(id) {
+    var sel = document.getElementById('kbmHalaqah');
+    if (!sel) return;
+    sel.value = id;
+    if (sel.value !== id) return; // id tak ada di option (halaqah non-aktif)
+    _wizTglTouched = false;
+    sel.dispatchEvent(new Event('change')); // autoFillPertemuan + onKbmHalaqahChange
+    renderWizHalaqahCards();
+    wizGo(2);
+  }
+
+  function _wizSyncPickedHalaqah() {
+    var sel = document.getElementById('kbmHalaqah');
+    var list = getHalaqahList() || [];
+    var h = sel && list.find(function(x){ return x.id_halaqah === sel.value; });
+    var nama = document.getElementById('wizPickedNama');
+    if (nama) nama.textContent = h ? (h.nama_halaqah || sel.value) : '—';
+    _wizUpdateDetailGuard();
+  }
+
+  // Guard ringan (D8): tanggal & jam wajib terisi; + guard pengganti (D5):
+  // bila is_pengganti tercentang & tanggal masih default hari ini (belum diubah
+  // manual), blokir -- kelas pengganti hampir pasti BUKAN hari ini.
+  function _wizDetailValid() {
+    var tgl = (document.getElementById('kbmTanggal')||{}).value;
+    var jam = (document.getElementById('kbmJam')||{}).value;
+    if (!tgl || !jam) return false;
+    var isPengganti = !!(document.getElementById('kbmIsPengganti')||{}).checked;
+    if (isPengganti && !_wizTglTouched) {
+      var todayJkt = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
+      if (todayJkt && tgl === todayJkt) return false;
+    }
+    return true;
+  }
+
+  function _wizUpdateDetailGuard() {
+    var btn = document.getElementById('btnWizNext2');
+    var hint = document.getElementById('wizDetailHint');
+    if (!btn && !hint) return;
+    var tgl = (document.getElementById('kbmTanggal')||{}).value;
+    var jam = (document.getElementById('kbmJam')||{}).value;
+    var isPengganti = !!(document.getElementById('kbmIsPengganti')||{}).checked;
+    var msg = '';
+    if (!tgl || !jam) {
+      msg = '⚠️ Isi tanggal & jam mulai terlebih dahulu.';
+    } else if (isPengganti && !_wizTglTouched) {
+      var todayJkt = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
+      if (todayJkt && tgl === todayJkt) {
+        msg = '⚠️ Ini kelas pengganti — pilih tanggal pelaksanaannya (bukan hari ini). Ubah tanggal untuk melanjutkan.';
+      }
+    }
+    var ok = !msg;
+    if (btn) {
+      btn.disabled = !ok;
+      btn.style.opacity = ok ? '1' : '.5';
+      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    }
+    if (hint) {
+      hint.textContent = msg;
+      hint.style.display = msg ? '' : 'none';
+    }
+  }
+
+  function wizMarkTglTouched() { _wizTglTouched = true; _wizUpdateDetailGuard(); }
 
   function goToHafalanQiyam() {
     const sesiAktif = getSesiAktif();
@@ -3462,6 +3643,12 @@
   window.goToNilai = goToNilai;
   window.onKbmHalaqahChange = onKbmHalaqahChange;
   window.selectKbmJenis = selectKbmJenis;
+  window.wizGo = wizGo;
+  window.wizNext = wizNext;
+  window.wizPickHalaqah = wizPickHalaqah;
+  window.renderWizHalaqahCards = renderWizHalaqahCards;
+  window.wizMarkTglTouched = wizMarkTglTouched;
+  window._wizUpdateDetailGuard = _wizUpdateDetailGuard;
   window.goToHafalanQiyam = goToHafalanQiyam;
   window.goToMicroteachingAssessment = goToMicroteachingAssessment;
   window.renderHafalanKbm = renderHafalanKbm;
