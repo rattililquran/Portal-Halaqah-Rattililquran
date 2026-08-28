@@ -2818,6 +2818,7 @@ html.theme-dark .pr-chip.active {
       <div class="sidebar-group" data-group="akademik">
       <div class="sb-section">Kelas & Murid</div>
       <button class="nav-btn" onclick="goPage('murid')" data-p="murid"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Daftar Murid</button>
+      <button class="nav-btn" id="navKelompok" onclick="goPage('kelompok')" data-p="kelompok" style="display:none"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>Kelompok Belajar</button>
       <button class="nav-btn" onclick="goPage('keaktifan')" data-p="keaktifan"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Keaktifan Murid</button>
       <button class="nav-btn" onclick="goPage('riwayat')" data-p="riwayat"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>Riwayat KBM<span class="nav-draft-badge" id="navDraftBadge"></span></button>
       <button class="nav-btn" onclick="goPage('peninjauan-pr')" data-p="peninjauan-pr"><span class="ni"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></span>Peninjauan PR<span class="nav-draft-badge" id="navPrSubmissionBadge"></span></button>
@@ -2987,12 +2988,12 @@ html.theme-dark .pr-chip.active {
             <div class="lbl">Kelas Pengganti&nbsp;↗</div>
             <div id="st-pengganti-sub" style="font-size:10px;color:var(--text-3);margin-top:2px;font-weight:500"></div>
           </div>
-          <div class="stat-top clickable" id="statKelompokPartner" onclick="toggleKelolaKelompokPartner()" title="Kelola & pantau kelompok partner qiyam" style="display:none">
+          <div class="stat-top clickable" id="statKelompokPartner" onclick="goPage('kelompok')" title="Kelola & pantau kelompok partner qiyam" style="display:none">
             <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Partner</div>
             <div class="lbl">Kelompok Partner&nbsp;↗</div>
           </div>
-          <div class="stat-top clickable" id="statKelompokBelajar" onclick="toggleKelolaKelompokBelajar()" title="Kelola & pantau kelompok partner belajar" style="display:none">
+          <div class="stat-top clickable" id="statKelompokBelajar" onclick="goPage('kelompok')" title="Kelola & pantau kelompok partner belajar" style="display:none">
             <div class="ico ico-blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
             <div class="val" style="font-size:14px;font-weight:800;line-height:1.3">Belajar</div>
             <div class="lbl">Kelompok Belajar&nbsp;↗</div>
@@ -3521,7 +3522,7 @@ html.theme-dark .pr-chip.active {
         <div class="page-title-row">
           <span>Daftar Murid</span>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="guru-refresh-btn" id="btnKelolaKelompokBelajar" onclick="toggleKelolaKelompokBelajar()" title="Kelola Kelompok Belajar" style="display:none">
+            <button class="guru-refresh-btn" id="btnKelolaKelompokBelajar" onclick="goPage('kelompok')" title="Kelola Kelompok Belajar" style="display:none">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Kelompok Belajar
             </button>
             <button class="guru-refresh-btn" onclick="doExportMuridCSV()" title="Export CSV">
@@ -3604,6 +3605,89 @@ html.theme-dark .pr-chip.active {
                 <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-3)">Pilih halaqah</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ KELOMPOK BELAJAR & PARTNER QIYAM ════
+           Gabungan 2 fitur kelompok kecil murid yang sebelumnya cuma bisa dibuka lewat
+           modal (tanpa halaman/tab sendiri). Digabung 1 halaman krn Partner Qiyam
+           dipakai sangat sedikit guru (baru 2 org ngajar Qiyam) -- section-nya
+           disembunyikan default & baru dimunculkan per-guru sesuai halaqah yang diampu
+           (lihat _kbInitDashCard() & blok _kpHasQiyam di dashboard-module.js). -->
+      <div class="page" id="page-kelompok">
+        <div style="font-size:19px;font-weight:800;margin-bottom:2px">Kelompok Belajar</div>
+        <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Kelola kelompok kecil murid untuk saling menyimak, mencatat &amp; mengingatkan secara mandiri.</div>
+
+        <!-- ═ Kelompok Partner Belajar (Level 1-4) ═ -->
+        <div id="kbSectionWrap" style="display:none;background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(37,99,235,.08),transparent)">
+            <div>
+              <div style="font-size:14.5px;font-weight:800;color:var(--text)">📚 Kelompok Partner Belajar</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:1px">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
+            </div>
+          </div>
+          <div style="padding:16px">
+            <div id="kbHalaqahSelWrap" style="margin-bottom:14px">
+              <label class="hf-lbl">Halaqah</label>
+              <select class="fc" id="kbHalaqahSel" onchange="renderKelolaKelompokBelajar()"></select>
+            </div>
+            <div id="kbMenungguWrap" style="display:none;margin-bottom:14px"></div>
+            <div id="kbListWrap" style="margin-bottom:16px"></div>
+
+            <!-- Form buat kelompok baru -->
+            <div style="background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,rgba(37,99,235,.08),transparent);border-bottom:1px solid var(--border)">
+                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:800;color:var(--text)">Buat Kelompok Baru</div>
+                  <div style="font-size:10px;color:var(--text-3)">Pilih 3-5 murid</div>
+                </div>
+              </div>
+              <div style="padding:12px 14px">
+                <label class="hf-lbl">Nama Kelompok (opsional)</label>
+                <input type="text" class="fc" id="kbNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
+                <label class="hf-lbl">Anggota</label>
+                <div id="kbNewAnggotaList" style="margin:6px 0 10px"></div>
+                <button onclick="kbCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═ Kelompok Partner Qiyam -- hanya tampil utk guru yg punya halaqah Level Qiyam ═ -->
+        <div id="kpSectionWrap" style="display:none;background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(37,99,235,.08),transparent)">
+            <div>
+              <div style="font-size:14.5px;font-weight:800;color:var(--text)">👥 Kelompok Partner Qiyam</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:1px">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
+            </div>
+          </div>
+          <div style="padding:16px">
+            <div id="kpHalaqahSelWrap" style="margin-bottom:14px">
+              <label class="hf-lbl">Halaqah Qiyam</label>
+              <select class="fc" id="kpHalaqahSel" onchange="renderKelolaKelompokPartner()"></select>
+            </div>
+            <div id="kpMenungguWrap" style="display:none;margin-bottom:14px"></div>
+            <div id="kpListWrap" style="margin-bottom:16px"></div>
+
+            <!-- Form buat kelompok baru -->
+            <div style="background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,rgba(37,99,235,.08),transparent);border-bottom:1px solid var(--border)">
+                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:800;color:var(--text)">Buat Kelompok Baru</div>
+                  <div style="font-size:10px;color:var(--text-3)">Pilih 2-3 murid Level Qiyam</div>
+                </div>
+              </div>
+              <div style="padding:12px 14px">
+                <label class="hf-lbl">Nama Kelompok (opsional)</label>
+                <input type="text" class="fc" id="kpNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
+                <label class="hf-lbl">Anggota</label>
+                <div id="kpNewAnggotaList" style="margin:6px 0 10px"></div>
+                <button onclick="kpCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -4164,7 +4248,7 @@ html.theme-dark .pr-chip.active {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Kelola Penilaian
             </button>
-            <button class="guru-refresh-btn" onclick="toggleKelolaKelompokPartner()" id="btnKelolaKelompokPartner" title="Kelola Kelompok Partner Qiyam">
+            <button class="guru-refresh-btn" onclick="goPage('kelompok')" id="btnKelolaKelompokPartner" title="Kelola Kelompok Partner Qiyam">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               Kelompok Partner
             </button>
@@ -5783,8 +5867,8 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
-<script src="dashboard-module.js?v=9b236dfd" defer></script>
-<script src="kelompok-module.js?v=6f0dec9c" defer></script>
+<script src="dashboard-module.js?v=6fde4521" defer></script>
+<script src="kelompok-module.js?v=bfe03a4a" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=ffb3d278" defer></script>
@@ -6369,6 +6453,7 @@ const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM','pengembangan-guru':'P
   keaktifan:'Keaktifan Murid',assessment:'Assessment',
   jadwal:'Jadwal KBM',
   'halaqah-saya':'Halaqah Saya',
+  'kelompok':'Kelompok Belajar',
   'peninjauan-pr':'Peninjauan Tugas & PR',
   'mutabaah-guru':"Mutaba'ah Daurah",
   'kuis-guru':'Manajemen Rattil Quiz',
@@ -6398,6 +6483,13 @@ function goPage(name) {
     // jadwalData sudah dimuat sejak loadDashboard() -- render ulang di sini murni
     // jaga-jaga (idempoten) supaya tetap fresh kalau data sempat berubah tanpa reload.
     if (typeof renderJadwal === 'function') renderJadwal();
+  }
+  if (name === 'kelompok') {
+    // toggleKelolaKelompokPartner/Belajar sudah tidak membuka modal (halamannya
+    // sudah dilebur ke sini) -- dipanggil di sini murni utk isi dropdown halaqah
+    // & render ulang daftar kelompok tiap kali halaman ini dibuka.
+    if (typeof toggleKelolaKelompokPartner === 'function') toggleKelolaKelompokPartner();
+    if (typeof toggleKelolaKelompokBelajar === 'function') toggleKelolaKelompokBelajar();
   }
   if (name === 'kbm') {
     populateSel('kbmHalaqah');
@@ -6484,7 +6576,7 @@ var PAGE_TO_GROUP = {
   dashboard: 'utama', 'halaqah-saya': 'utama', pengumuman: 'utama', jadwal: 'utama', kbm: 'utama',
   presensi: 'utama', 'nilai-murid': 'utama', jurnal: 'utama', 'hafalan-kbm': 'utama', 'microteaching-kbm': 'utama',
   panduan: 'utama',
-  murid: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
+  murid: 'akademik', kelompok: 'akademik', keaktifan: 'akademik', riwayat: 'akademik', 'peninjauan-pr': 'akademik',
   'attibyan-guru': 'akademik', 'mutabaah-guru': 'akademik', 'pengembangan-guru': 'akademik', 'hafalan-guru': 'akademik',
   'kuis-guru': 'permainan', 'maze-guru': 'permainan', 'run-guru': 'permainan',
   assessment: 'evaluasi', 'nilai-manual': 'evaluasi', raport: 'evaluasi', 'raport-tahfidz': 'evaluasi',
@@ -9432,93 +9524,9 @@ function _fmtHafalanDateGuru(iso) {
   </div>
 </div>
 
-<!-- ════ MODAL: KELOLA KELOMPOK PARTNER QIYAM ════ -->
-<div id="modalKelolaKelompokPartner" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:16px;overflow-y:auto"
-  onclick="if(event.target===this)toggleKelolaKelompokPartner()">
-  <div style="background:#fff;border-radius:20px;max-width:640px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,0.25);overflow:hidden">
-
-    <!-- Modal Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;background:linear-gradient(90deg,#eef3fb,#fff)">
-      <div>
-        <div style="font-size:15px;font-weight:800;color:#111827">👥 Kelola Kelompok Partner Qiyam</div>
-        <div style="font-size:11px;color:#9ca3af;margin-top:1px">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
-      </div>
-      <button onclick="toggleKelolaKelompokPartner()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-
-    <!-- Modal Body -->
-    <div style="padding:20px">
-      <div id="kpHalaqahSelWrap" style="margin-bottom:14px">
-        <label class="hf-lbl">Halaqah Qiyam</label>
-        <select class="fc" id="kpHalaqahSel" onchange="renderKelolaKelompokPartner()"></select>
-      </div>
-      <div id="kpMenungguWrap" style="display:none;margin-bottom:14px"></div>
-      <div id="kpListWrap" style="margin-bottom:16px"></div>
-
-      <!-- Form buat kelompok baru -->
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#eff6ff,#fff);border-bottom:1px solid #f0f0f0">
-          <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800;color:#111827">Buat Kelompok Baru</div>
-            <div style="font-size:10px;color:#9ca3af">Pilih 2-3 murid Level Qiyam</div>
-          </div>
-        </div>
-        <div style="padding:12px 14px">
-          <label class="hf-lbl">Nama Kelompok (opsional)</label>
-          <input type="text" class="fc" id="kpNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
-          <label class="hf-lbl">Anggota</label>
-          <div id="kpNewAnggotaList" style="margin:6px 0 10px"></div>
-          <button onclick="kpCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════ MODAL: KELOLA KELOMPOK PARTNER BELAJAR (Level 1-4) ════ -->
-<div id="modalKelolaKelompokBelajar" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:16px;overflow-y:auto"
-  onclick="if(event.target===this)toggleKelolaKelompokBelajar()">
-  <div style="background:#fff;border-radius:20px;max-width:640px;margin:0 auto;box-shadow:0 24px 64px rgba(0,0,0,0.25);overflow:hidden">
-
-    <!-- Modal Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0;background:linear-gradient(90deg,#eef3fb,#fff)">
-      <div>
-        <div style="font-size:15px;font-weight:800;color:#111827">📚 Kelola Kelompok Partner Belajar</div>
-        <div style="font-size:11px;color:#9ca3af;margin-top:1px">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
-      </div>
-      <button onclick="toggleKelolaKelompokBelajar()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-
-    <!-- Modal Body -->
-    <div style="padding:20px">
-      <div id="kbHalaqahSelWrap" style="margin-bottom:14px">
-        <label class="hf-lbl">Halaqah</label>
-        <select class="fc" id="kbHalaqahSel" onchange="renderKelolaKelompokBelajar()"></select>
-      </div>
-      <div id="kbMenungguWrap" style="display:none;margin-bottom:14px"></div>
-      <div id="kbListWrap" style="margin-bottom:16px"></div>
-
-      <!-- Form buat kelompok baru -->
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#eff6ff,#fff);border-bottom:1px solid #f0f0f0">
-          <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:800;color:#111827">Buat Kelompok Baru</div>
-            <div style="font-size:10px;color:#9ca3af">Pilih 3-5 murid</div>
-          </div>
-        </div>
-        <div style="padding:12px 14px">
-          <label class="hf-lbl">Nama Kelompok (opsional)</label>
-          <input type="text" class="fc" id="kbNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
-          <label class="hf-lbl">Anggota</label>
-          <div id="kbNewAnggotaList" style="margin:6px 0 10px"></div>
-          <button onclick="kbCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Modal Kelola Kelompok Partner Qiyam/Belajar dulu di sini, sudah dipindah jadi
+     halaman penuh #page-kelompok (lihat dekat #page-murid) supaya bisa dibuka dari
+     sidebar/tab-atas, bukan cuma dari kartu dashboard/tombol toolbar. -->
 
 <!-- Print area — hanya tampil saat cetak -->
 <div id="raportTahfidzPrintArea" style="display:none"></div>

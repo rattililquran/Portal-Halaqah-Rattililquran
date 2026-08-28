@@ -22,17 +22,14 @@ function _kpPopulateHalaqahSel() {
   else if (qiyam.length === 1) sel.value = qiyam[0].id_halaqah;
 }
 
+// Dulu toggle buka/tutup modal -- sekarang seksinya sudah jadi bagian tetap
+// halaman #page-kelompok, jadi fungsi ini tinggal isi dropdown halaqah &
+// render ulang daftar kelompok tiap kali halaman dibuka (dipanggil dari
+// goPage() dan dari kartu dashboard/tombol toolbar yang masih memicu
+// goPage('kelompok') lalu fungsi ini).
 function toggleKelolaKelompokPartner() {
-  var modal = document.getElementById('modalKelolaKelompokPartner');
-  if (!modal) return;
-  var isOpen = modal.style.display !== 'none';
-  modal.style.display = isOpen ? 'none' : 'flex';
-  modal.style.alignItems = 'flex-start';
-  if (!isOpen) {
-    _kpPopulateHalaqahSel();
-    renderKelolaKelompokPartner();
-    setTimeout(function(){ modal.scrollTop = 0; }, 50);
-  }
+  _kpPopulateHalaqahSel();
+  renderKelolaKelompokPartner();
 }
 
 async function renderKelolaKelompokPartner() {
@@ -497,6 +494,15 @@ async function _kbInitDashCard() {
   if (card) card.style.display = tampil;
   var btn = document.getElementById('btnKelolaKelompokBelajar');
   if (btn) btn.style.display = tampil;
+  // Seksi "Kelompok Partner Belajar" di halaman #page-kelompok + nav sidebarnya --
+  // sama seperti 2 titik akses di atas, hanya DITAMPILKAN di sini (tidak pernah
+  // disembunyikan lagi), krn halaqah yang diampu guru tak menyusut dalam 1 sesi.
+  var wrap = document.getElementById('kbSectionWrap');
+  if (wrap) wrap.style.display = tampil;
+  if (tampil === '') {
+    var nav = document.getElementById('navKelompok');
+    if (nav) nav.style.display = '';
+  }
 }
 
 function _kbPopulateHalaqahSel() {
@@ -511,18 +517,12 @@ function _kbPopulateHalaqahSel() {
   else if (belajar.length === 1) sel.value = belajar[0].id_halaqah;
 }
 
+// Dulu toggle buka/tutup modal -- sekarang seksinya sudah jadi bagian tetap
+// halaman #page-kelompok (lihat komentar toggleKelolaKelompokPartner di atas).
 async function toggleKelolaKelompokBelajar() {
-  var modal = document.getElementById('modalKelolaKelompokBelajar');
-  if (!modal) return;
-  var isOpen = modal.style.display !== 'none';
-  modal.style.display = isOpen ? 'none' : 'flex';
-  modal.style.alignItems = 'flex-start';
-  if (!isOpen) {
-    await _kbEnsureEnabledLevels();
-    _kbPopulateHalaqahSel();
-    renderKelolaKelompokBelajar();
-    setTimeout(function(){ modal.scrollTop = 0; }, 50);
-  }
+  await _kbEnsureEnabledLevels();
+  _kbPopulateHalaqahSel();
+  renderKelolaKelompokBelajar();
 }
 
 async function renderKelolaKelompokBelajar() {

@@ -122,7 +122,16 @@
       var _kpHasQiyam = hList.some(function(h) { return h.level === 'Level Qiyam'; });
       var _kpCard = document.getElementById('statKelompokPartner');
       if (_kpCard) _kpCard.style.display = _kpHasQiyam ? '' : 'none';
-      
+      // Seksi "Kelompok Partner Qiyam" di halaman #page-kelompok + nav sidebarnya --
+      // hanya DITAMPILKAN di sini (tak pernah disembunyikan lagi), sama pola dgn
+      // _kbInitDashCard() di kelompok-module.js untuk Kelompok Belajar.
+      var _kpSectionWrap = document.getElementById('kpSectionWrap');
+      if (_kpSectionWrap) _kpSectionWrap.style.display = _kpHasQiyam ? '' : 'none';
+      if (_kpHasQiyam) {
+        var _navKelompok = document.getElementById('navKelompok');
+        if (_navKelompok) _navKelompok.style.display = '';
+      }
+
       // Kartu Kelompok Belajar — hanya untuk guru yang punya halaqah level partner_belajar_enabled
       if (typeof window._kbInitDashCard === 'function') window._kbInitDashCard();
       
