@@ -3022,6 +3022,16 @@
     ];
   }
 
+  // Step bar: step yg SUDAH dilewati (done) bisa diklik untuk kembali -- KECUALI
+  // 'kbm' (Buka Sesi), karena kembali ke sana = membatalkan konteks sesi yg sudah
+  // dibuka di server (D7). Navigasi memakai fungsi restore yg sudah teruji
+  // (kembaliKeStep2/3) agar cache nilai/presensi/hafalan ikut ter-restore benar.
+  function stepNavTarget(stepId) {
+    if (stepId === 'presensi')    return 'kembaliKeStep2()';
+    if (stepId === 'nilai-murid' || stepId === 'hafalan-kbm' || stepId === 'microteaching-kbm') return 'kembaliKeStep3()';
+    return null; // 'kbm' & lainnya tidak clickable
+  }
+
   function renderSteps(current) {
     const steps = getStepsDef();
     const ci    = steps.findIndex(s => s.id === current);
@@ -3033,10 +3043,13 @@
         const state = i < ci ? 'done' : i === ci ? 'active' : 'pending';
         const line  = i < steps.length-1
           ? '<div class="step-line ' + (i < ci ? 'done' : '') + '"></div>' : '';
-        return '<div class="step">'
-          + '<div class="step-num ' + state + '">' + (i < ci ? '✓' : i+1) + '</div>'
-          + '<div class="step-label ' + state + '">' + s.label + '</div>'
-          + '</div>' + line;
+        const nav = (state === 'done') ? stepNavTarget(s.id) : null;
+        const inner = '<div class="step-num ' + state + '">' + (i < ci ? '✓' : i+1) + '</div>'
+          + '<div class="step-label ' + state + '">' + s.label + '</div>';
+        const node = nav
+          ? '<button type="button" class="step step-clickable" onclick="' + nav + '" title="Kembali ke ' + esc(s.label) + '">' + inner + '</button>'
+          : '<div class="step">' + inner + '</div>';
+        return node + line;
       }).join('');
     });
   }
