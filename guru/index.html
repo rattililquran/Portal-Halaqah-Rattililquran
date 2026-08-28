@@ -647,6 +647,18 @@ html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{colo
 .kg-section-title{font-size:14.5px;font-weight:800;color:var(--text)}
 .kg-section-sub{font-size:11px;color:var(--text-3);margin-top:1px}
 .kg-section-body{padding:16px}
+/* Pilihan halaqah bergaya pil (guru dgn >1 halaqah eligible) -- gantikan
+   dropdown polos supaya semua halaqah + status kelengkapannya langsung
+   kelihatan sekaligus, tak perlu buka-tutup dropdown & tebak2 mana yg
+   masih perlu dilengkapi. Lihat _kgHalaqahPillBadge/_kgLoadHalaqahSummaries. */
+.kg-halaqah-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.kg-halaqah-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:100px;border:1.5px solid var(--border);background:var(--card-solid);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+.kg-halaqah-pill:hover{border-color:var(--blue)}
+.kg-halaqah-pill.active{border-color:var(--blue-d);background:var(--blue-bg);color:var(--blue-txt)}
+.kg-pill-badge{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:100px;letter-spacing:.01em}
+.kg-pill-badge.ok{background:var(--green-bg);color:var(--green-txt)}
+.kg-pill-badge.warn{background:var(--amber-bg);color:var(--amber-txt)}
+.kg-pill-badge.muted{background:var(--bg-2);color:var(--text-3)}
 .kg-card{background:var(--card-solid);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px}
 .kg-card-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2);border-bottom:1px solid var(--border)}
 .kg-card-name{flex:1;min-width:0;font-size:12.5px;padding:6px 10px;font-weight:700;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:8px}
@@ -3711,6 +3723,9 @@ html.theme-dark .pr-chip.active {
           <div class="kg-section-body">
             <div id="kbHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah</label>
+              <!-- Pil dipakai kalau guru punya >1 halaqah eligible (lihat _kbRenderHalaqahPills) --
+                   select tetap ada sbg penyimpan nilai terpilih, disembunyikan saat itu terjadi. -->
+              <div id="kbHalaqahPills" class="kg-halaqah-pills" style="display:none"></div>
               <select class="fc" id="kbHalaqahSel" onchange="renderKelolaKelompokBelajar()"></select>
             </div>
             <div id="kbMenungguWrap" style="display:none;margin-bottom:14px"></div>
@@ -3747,6 +3762,7 @@ html.theme-dark .pr-chip.active {
           <div class="kg-section-body">
             <div id="kpHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah Qiyam</label>
+              <div id="kpHalaqahPills" class="kg-halaqah-pills" style="display:none"></div>
               <select class="fc" id="kpHalaqahSel" onchange="renderKelolaKelompokPartner()"></select>
             </div>
             <div id="kpMenungguWrap" style="display:none;margin-bottom:14px"></div>
@@ -5949,7 +5965,7 @@ html.theme-dark .pr-chip.active {
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
 <script src="dashboard-module.js?v=6fde4521" defer></script>
-<script src="kelompok-module.js?v=73fc70a9" defer></script>
+<script src="kelompok-module.js?v=21dc7eb1" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=ffb3d278" defer></script>

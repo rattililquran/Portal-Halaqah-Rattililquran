@@ -5,13 +5,21 @@
 
 (function() {
 var _kpData = { id_halaqah: null, kelompok: [], murid: [] };
+var _kpEligibleHalaqah = [];
+// Ringkasan per halaqah (jumlah kelompok + murid belum berkelompok) utk badge
+// pilihan-halaqah -- lihat komentar _kgHalaqahPillBadge di bawah.
+var _kpSummary = {};
 
-// Isi dropdown halaqah Qiyam di dalam modal (agar bisa dibuka dari mana saja,
-// termasuk kartu dashboard yang tidak punya selector halaqah hafalan)
+// Isi dropdown halaqah Qiyam (dipertahankan sbg penyimpan nilai terpilih --
+// dibaca semua fungsi render lain via .value) + render "pilihan halaqah"
+// bergaya pil kalau guru punya >1 halaqah Qiyam, supaya guru dgn banyak
+// halaqah (mis. 6) tak perlu buka-tutup dropdown & tebak-tebak mana yang
+// masih perlu dilengkapi -- tiap pil punya badge status.
 function _kpPopulateHalaqahSel() {
   var sel = document.getElementById('kpHalaqahSel');
   if (!sel) return;
   var qiyam = (window.HQ.AppState.halaqahList || []).filter(function(h){ return h.level === 'Level Qiyam'; });
+  _kpEligibleHalaqah = qiyam;
   // Pertahankan pilihan sebelumnya, atau ikuti selector di halaman hafalan kalau ada
   var hfSel = document.getElementById('hafalanGuruHalaqahSel');
   var prev = sel.value || (hfSel ? hfSel.value : '');
@@ -20,6 +28,79 @@ function _kpPopulateHalaqahSel() {
   }).join('');
   if (prev && qiyam.some(function(h){ return h.id_halaqah === prev; })) sel.value = prev;
   else if (qiyam.length === 1) sel.value = qiyam[0].id_halaqah;
+  _kpRenderHalaqahPills();
+  if (qiyam.length > 1) _kgLoadHalaqahSummaries(qiyam, _kpSummary, 'kp', _kpRenderHalaqahPills, function(id){ sel.value = id; renderKelolaKelompokPartner(); });
+}
+
+// Badge status 1 pil halaqah: hijau=semua murid sudah berkelompok, kuning=masih
+// ada yg belum, abu=lagi dimuat/gagal/halaqah belum ada murid sama sekali.
+function _kgHalaqahPillBadge(sum) {
+  if (!sum) return '<span class="kg-pill-badge muted">…</span>';
+  if (sum.belum === null) return '<span class="kg-pill-badge muted">?</span>';
+  if (!sum.total) return '<span class="kg-pill-badge muted">kosong</span>';
+  if (sum.belum === 0) return '<span class="kg-pill-badge ok">✓ ' + sum.kelompok + ' klp</span>';
+  return '<span class="kg-pill-badge warn">' + sum.belum + ' blm</span>';
+}
+
+// Ambil ringkasan (jumlah kelompok + murid belum berkelompok) tiap halaqah
+// secara paralel (di-cache per id_halaqah, sekali per sesi) -- dipakai
+// bersama oleh seksi Partner Qiyam & Partner Belajar (getMurid/getKelompok
+// beda per seksi, dioper sbg parameter). Kalau belum ada halaqah terpilih,
+// otomatis arahkan ke halaqah PERTAMA yg masih ada murid belum berkelompok
+// (bukan sekadar halaqah pertama di daftar) -- itu yg paling butuh perhatian.
+async function _kgLoadHalaqahSummaries(list, cache, prefix, rerenderFn, selectFn) {
+  var getMurid = prefix === 'kp' ? window.HQ.GuruAPI.getMuridQiyam : window.HQ.GuruAPI.getMuridBelajar;
+  var getKelompok = prefix === 'kp' ? window.HQ.GuruAPI.getKelompokPartnerHalaqah : window.HQ.GuruAPI.getKelompokBelajarHalaqah;
+  var anggotaKey = prefix === 'kp' ? 'anggota_kelompok_partner' : 'anggota_kelompok_belajar';
+  var muridCache = prefix === 'kp' ? _hafalanGuruMuridCache : _kbMuridCache;
+  await Promise.all(list.map(async function(h) {
+    if (cache[h.id_halaqah]) return;
+    try {
+      var muridList = muridCache[h.id_halaqah];
+      if (!muridList) {
+        var resM = await getMurid(h.id_halaqah);
+        muridList = resM.data || [];
+        muridCache[h.id_halaqah] = muridList;
+      }
+      var resK = await getKelompok(h.id_halaqah);
+      var kelompokList = (resK.data || []).filter(function(k){ return k.status === 'aktif'; });
+      var assigned = {};
+      kelompokList.forEach(function(k){ (k[anggotaKey] || []).forEach(function(a){ assigned[a.id_murid] = true; }); });
+      var belum = muridList.filter(function(m){ return !assigned[m.id_murid]; }).length;
+      cache[h.id_halaqah] = { kelompok: kelompokList.length, belum: belum, total: muridList.length };
+    } catch(e) {
+      cache[h.id_halaqah] = { kelompok: null, belum: null, total: null };
+    }
+  }));
+  rerenderFn();
+  // Belum ada halaqah dipilih sama sekali -> arahkan otomatis ke yg paling butuh perhatian
+  var sel = prefix === 'kp' ? document.getElementById('kpHalaqahSel') : document.getElementById('kbHalaqahSel');
+  if (sel && !sel.value) {
+    var target = list.find(function(h){ var s = cache[h.id_halaqah]; return s && s.belum > 0; }) || list[0];
+    if (target) selectFn(target.id_halaqah);
+  }
+}
+
+function _kpRenderHalaqahPills() {
+  var wrap = document.getElementById('kpHalaqahPills');
+  var sel = document.getElementById('kpHalaqahSel');
+  if (!wrap) return;
+  if (_kpEligibleHalaqah.length <= 1) { wrap.innerHTML = ''; wrap.style.display = 'none'; if (sel) sel.style.display = ''; return; }
+  if (sel) sel.style.display = 'none';
+  var active = sel ? sel.value : '';
+  wrap.style.display = 'flex';
+  wrap.innerHTML = _kpEligibleHalaqah.map(function(h) {
+    return '<button type="button" class="kg-halaqah-pill' + (h.id_halaqah === active ? ' active' : '') + '" onclick="_kpSelectHalaqah(\'' + esc(h.id_halaqah) + '\')">'
+      + esc(h.nama_halaqah) + ' ' + _kgHalaqahPillBadge(_kpSummary[h.id_halaqah])
+    + '</button>';
+  }).join('');
+}
+
+function _kpSelectHalaqah(id) {
+  var sel = document.getElementById('kpHalaqahSel');
+  if (!sel || sel.value === id) return;
+  sel.value = id;
+  renderKelolaKelompokPartner();
 }
 
 // Dulu toggle buka/tutup modal -- sekarang seksinya sudah jadi bagian tetap
@@ -62,6 +143,11 @@ async function renderKelolaKelompokPartner() {
     _kpRenderList();
     _kpRenderNewForm();
     _kpRenderMenunggu();
+    // Perbarui badge pil halaqah aktif dari data yg baru saja dimuat -- gratis,
+    // tanpa panggilan API tambahan (beda dgn halaqah lain yg baru dimuat lazy).
+    var assignedNow = _kpAssignedMurid(null);
+    _kpSummary[id_halaqah] = { kelompok: kelompokList.length, belum: muridList.filter(function(m){ return !assignedNow[m.id_murid]; }).length, total: muridList.length };
+    _kpRenderHalaqahPills();
   } catch(e) {
     listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--red-txt);font-size:12px">Gagal memuat data</div>';
   }
@@ -533,6 +619,8 @@ async function kpAddAnggota(id_kelompok, selectEl) {
 var _kbData = { id_halaqah: null, kelompok: [], murid: [], pantau: {} };
 var _kbMuridCache = {};
 var _kbEnabledLevels = null;
+var _kbEligibleHalaqah = [];
+var _kbSummary = {}; // ringkasan per halaqah utk badge pil (lihat _kgHalaqahPillBadge)
 var KB_JENIS_ICON = { 'Makharijul Huruf':'🗣️', 'Shifatul Huruf':'🔤', 'Hafalan Materi':'🧠', 'Tajwid':'📐', 'Doa-Doa Pilihan':'🤲', 'Murajaah':'🔄' };
 
 async function _kbEnsureEnabledLevels() {
@@ -576,12 +664,40 @@ function _kbPopulateHalaqahSel() {
   var sel = document.getElementById('kbHalaqahSel');
   if (!sel) return;
   var belajar = _kbBelajarHalaqah();
+  _kbEligibleHalaqah = belajar;
   var prev = sel.value || '';
   sel.innerHTML = '<option value="">— Pilih Halaqah —</option>' + belajar.map(function(h){
     return '<option value="' + esc(h.id_halaqah) + '">' + esc(h.nama_halaqah) + ' · ' + esc(h.level) + '</option>';
   }).join('');
   if (prev && belajar.some(function(h){ return h.id_halaqah === prev; })) sel.value = prev;
   else if (belajar.length === 1) sel.value = belajar[0].id_halaqah;
+  _kbRenderHalaqahPills();
+  if (belajar.length > 1) _kgLoadHalaqahSummaries(belajar, _kbSummary, 'kb', _kbRenderHalaqahPills, function(id){ sel.value = id; renderKelolaKelompokBelajar(); });
+}
+
+// Pil halaqah bergaya sama dgn _kpRenderHalaqahPills -- lihat komentarnya di
+// bagian Partner Qiyam di atas. Tiap halaqah tampilkan "nama · level" krn
+// (beda dgn Qiyam) halaqah Belajar bisa lintas level.
+function _kbRenderHalaqahPills() {
+  var wrap = document.getElementById('kbHalaqahPills');
+  var sel = document.getElementById('kbHalaqahSel');
+  if (!wrap) return;
+  if (_kbEligibleHalaqah.length <= 1) { wrap.innerHTML = ''; wrap.style.display = 'none'; if (sel) sel.style.display = ''; return; }
+  if (sel) sel.style.display = 'none';
+  var active = sel ? sel.value : '';
+  wrap.style.display = 'flex';
+  wrap.innerHTML = _kbEligibleHalaqah.map(function(h) {
+    return '<button type="button" class="kg-halaqah-pill' + (h.id_halaqah === active ? ' active' : '') + '" onclick="_kbSelectHalaqah(\'' + esc(h.id_halaqah) + '\')">'
+      + esc(h.nama_halaqah) + ' <span style="opacity:.65;font-weight:600">· ' + esc(h.level) + '</span> ' + _kgHalaqahPillBadge(_kbSummary[h.id_halaqah])
+    + '</button>';
+  }).join('');
+}
+
+function _kbSelectHalaqah(id) {
+  var sel = document.getElementById('kbHalaqahSel');
+  if (!sel || sel.value === id) return;
+  sel.value = id;
+  renderKelolaKelompokBelajar();
 }
 
 // Dulu toggle buka/tutup modal -- sekarang seksinya sudah jadi bagian tetap
@@ -621,6 +737,11 @@ async function renderKelolaKelompokBelajar() {
     _kbRenderList();
     _kbRenderNewForm();
     _kbRenderMenunggu();
+    // Perbarui badge pil halaqah aktif dari data yg baru dimuat (gratis, lihat
+    // komentar serupa di renderKelolaKelompokPartner).
+    var assignedNow = _kbAssignedMurid(null);
+    _kbSummary[id_halaqah] = { kelompok: kelompokList.length, belum: muridList.filter(function(m){ return !assignedNow[m.id_murid]; }).length, total: muridList.length };
+    _kbRenderHalaqahPills();
   } catch(e) {
     listWrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--red-txt);font-size:12px">Gagal memuat data</div>';
   }
@@ -1137,6 +1258,7 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   window.kpAddAnggota = kpAddAnggota;
   window._kpOnCheckToggle = _kpOnCheckToggle;
   window.kpAutoBentukKelompok = kpAutoBentukKelompok;
+  window._kpSelectHalaqah = _kpSelectHalaqah;
 
   window.toggleKelolaKelompokBelajar = toggleKelolaKelompokBelajar;
   window.renderKelolaKelompokBelajar = renderKelolaKelompokBelajar;
@@ -1157,4 +1279,5 @@ async function kbAddAnggota(id_kelompok, selectEl) {
   window.kbAddAnggota = kbAddAnggota;
   window._kbOnCheckToggle = _kbOnCheckToggle;
   window.kbAutoBentukKelompok = kbAutoBentukKelompok;
+  window._kbSelectHalaqah = _kbSelectHalaqah;
 })();
