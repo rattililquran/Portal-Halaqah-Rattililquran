@@ -7798,9 +7798,25 @@ function updateHalaqahHariIniCard(hariIniServer) {
     return min;
   }
 
+  // Jam WIB saat ini ("HH:MM") lewat aritmetika UTC+7 langsung -- bukan new Date()
+  // device-local (pola sama dgn helper Jakarta lain di file ini).
+  var _nowWib = new Date(Date.now() + 7 * 3600000);
+  var nowHHMM = String(_nowWib.getUTCHours()).padStart(2, '0') + ':' + String(_nowWib.getUTCMinutes()).padStart(2, '0');
+
+  // Guru bisa punya >1 sesi di hari yg sama jam beda (mis. 03:00 & 19:30) -- kalau
+  // sesi hari-ini SUDAH LEWAT jam selesainya, jangan anggap "0 hari lagi" lagi,
+  // supaya tak terus nyangkut nyorot sesi yg sudah usai selagi ada sesi lain hari
+  // ini yg masih akan datang/berlangsung. Kejadian berikutnya utk hari itu baru
+  // minggu depan (+7), sesuai jadwal mingguan tetap.
+  function effectiveDays(h) {
+    var d = daysUntil(h.jadwal_hari);
+    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = 7;
+    return d;
+  }
+
   var best = null, bestDays = Infinity;
   jadwalData.forEach(function(h) {
-    var d = h.is_hari_ini ? 0 : daysUntil(h.jadwal_hari);
+    var d = effectiveDays(h);
     if (d < bestDays) {
       bestDays = d; best = h;
     } else if (d === bestDays && best && h.jam_mulai && (!best.jam_mulai || h.jam_mulai < best.jam_mulai)) {
@@ -7841,8 +7857,7 @@ function updateHalaqahHariIniCard(hariIniServer) {
   if (lainEl) {
     var others = jadwalData.filter(function(h) {
       if (h === best) return false;
-      var d = h.is_hari_ini ? 0 : daysUntil(h.jadwal_hari);
-      return d === bestDays;
+      return effectiveDays(h) === bestDays;
     }).length;
     if (others > 0) {
       var teksLain = bestDays === 0
