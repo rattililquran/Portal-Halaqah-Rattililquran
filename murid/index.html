@@ -499,6 +499,23 @@ html.theme-dark .pb-tertunda-desc{color:#fde68a}
 .partner-dash-row:last-child{border-bottom:none}
 .partner-dash-name{font-weight:700;font-size:12px;color:var(--text)}
 .partner-dash-date{font-size:11px;color:var(--text-3)}
+/* ── Streak & Motivasi Harian (Partner Qiyam & Partner Belajar) -- lihat
+   _computeQuranStreak()/_renderStreakCard() di partner-module.js. ── */
+.streak-card{background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.streak-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.streak-flame{font-size:28px;line-height:1;flex-shrink:0;filter:drop-shadow(0 2px 5px rgba(249,115,22,.35))}
+.streak-flame.off{filter:grayscale(1);opacity:.35}
+.streak-num{font-size:22px;font-weight:900;color:var(--text);line-height:1.2}
+.streak-msg{font-size:11.5px;font-weight:600;color:var(--text-2);margin-top:3px}
+.streak-longest{text-align:right;flex-shrink:0}
+.streak-longest .n{font-size:15px;font-weight:800;color:var(--text-2)}
+.streak-longest .l{font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+.streak-grid{display:grid;grid-template-columns:repeat(15,1fr);gap:4px}
+@media(max-width:420px){.streak-grid{grid-template-columns:repeat(10,1fr)}}
+.streak-cell{aspect-ratio:1;border-radius:4px;background:var(--bg-2);border:1px solid var(--border)}
+.streak-cell.on{background:linear-gradient(135deg,#f97316,#ef4444);border-color:transparent}
+.streak-cell.today{box-shadow:0 0 0 2px var(--card-solid,#fff),0 0 0 3.5px #f97316}
+html.theme-dark .streak-cell.today{box-shadow:0 0 0 2px var(--card-solid,#121214),0 0 0 3.5px #fb923c}
 /* judul atas */
 .prog-title{font-size:16px;font-weight:800;color:#fde68a;
   letter-spacing:.015em;margin-bottom:14px;
@@ -4803,6 +4820,11 @@ html.theme-dark .materi-daurah-banner-title {
             <div id="pqKelompokBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
           </div>
 
+          <!-- Streak & Motivasi Harian -->
+          <div id="pqStreakCard" class="streak-card" style="display:none">
+            <div id="pqStreakBody"></div>
+          </div>
+
           <!-- Menunggu Konfirmasi -->
           <div id="pqMenungguWrap" style="margin-bottom:14px;display:none">
             <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px">⏳ Menunggu Konfirmasi dari Kamu</div>
@@ -4954,6 +4976,11 @@ html.theme-dark .materi-daurah-banner-title {
         <div id="pbKelompokCard" style="background:var(--card-solid);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px">
           <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px">👥 Kelompok Belajar Saya</div>
           <div id="pbKelompokBody" style="font-size:12px;color:var(--text-3)">⏳ Memuat...</div>
+        </div>
+
+        <!-- Streak & Motivasi Harian -->
+        <div id="pbStreakCard" class="streak-card" style="display:none">
+          <div id="pbStreakBody"></div>
         </div>
 
         <!-- Menunggu Konfirmasi -->
@@ -7079,7 +7106,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="../assets/popup-notifikasi.js" defer></script>
 <script src="quiz-module.js?v=b412d3fd" defer></script>
 <script src="spp-module.js?v=c5244a6c" defer></script>
-<script src="partner-module.js?v=a1bb9940" defer></script>
+<script src="partner-module.js?v=3372c1be" defer></script>
 <script src="charging-module.js?v=ee9a0e5b" defer></script>
 <script src="hafalan-module.js?v=ba64c1ad" defer></script>
 <script src="attibyan-module.js?v=c465773e" defer></script>
@@ -12595,6 +12622,7 @@ async function loadPartnerDashCard() {
       window.HQ.MuridAPI.getStatusKelompokPartner(),
       window.HQ.MuridAPI.getSetoranMenungguKonfirmasi(),
       window.HQ.MuridAPI.getSetoranHafalan(5, 0),
+      window.HQ.MuridAPI.getSetoranRingkasSaya(), // riwayat lengkap (tanpa limit) utk streak
     ]);
     var statusList = both[0].data || [];
     var jumlahMenunggu = (both[1].data || []).length;
@@ -12641,7 +12669,14 @@ async function loadPartnerDashCard() {
         + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
         + '</div>';
     }).join('');
-    body.innerHTML = notifHtml + ctaHtml
+    // Streak (lihat komentar _computeQuranStreak di partner-module.js) -- dari
+    // both[3] (getSetoranRingkasSaya) yg sudah difetch bareng di atas.
+    var pqMiniStreak = '';
+    if (typeof window._computeQuranStreak === 'function' && typeof window._miniStreakLine === 'function') {
+      var pqDates = (both[3].data || []).map(function(r) { return r.created_at ? localDateStr(new Date(r.created_at)) : null; });
+      pqMiniStreak = window._miniStreakLine(window._computeQuranStreak(pqDates));
+    }
+    body.innerHTML = pqMiniStreak + notifHtml + ctaHtml
       + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Partner') + '</div>'
       + rows;
 

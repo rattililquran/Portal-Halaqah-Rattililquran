@@ -10,6 +10,98 @@
   var _pbInitialized = false;
   var _pbKelompok = null;
 
+  // ══════════════════════════════════════════════════════════════
+  //  STREAK & MOTIVASI HARIAN -- dorong murid berinteraksi dgn Al-Qur'an
+  //  tiap hari (Partner Qiyam: setoran hafalan; Partner Belajar: aktivitas
+  //  mandiri). Murni dihitung client-side dari data yg SUDAH ADA
+  //  (getSetoranRingkasSaya/getLogRingkasSaya, tanpa limit tanggal) --
+  //  tak perlu tabel/kolom baru, langsung live. Dipakai bareng oleh kartu
+  //  ringkas Beranda & kartu detail+grid di tab Partner Qiyam/Belajar.
+  // ══════════════════════════════════════════════════════════════
+
+  // dateStrings: array 'YYYY-MM-DD' (device-local, format sama persis dgn
+  // localDateStr() global) -- 1 entri per hari yg ada aktivitas (boleh
+  // duplikat, di-dedupe di sini). "Hari ini" boleh kosong tanpa memutus
+  // streak (masih dianggap "berjalan", tinggal isi sebelum lewat tengah
+  // malam) -- baru dianggap putus kalau KEMARIN juga kosong.
+  function _computeQuranStreak(dateStrings) {
+    var daySet = {};
+    (dateStrings || []).forEach(function(d) { if (d) daySet[d] = true; });
+
+    var today = window.localDateStr ? window.localDateStr() : localDateStr();
+    var oneDay = 86400000;
+
+    var cursor = new Date(today + 'T00:00:00');
+    var doneToday = !!daySet[today];
+    if (!doneToday) cursor.setDate(cursor.getDate() - 1);
+    var current = 0;
+    while (daySet[localDateStr(cursor)]) {
+      current++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    // Grid 30 hari terakhir (29 hari lalu -> hari ini)
+    var grid = [];
+    var base = new Date(today + 'T00:00:00');
+    for (var i = 29; i >= 0; i--) {
+      var dt = new Date(base); dt.setDate(dt.getDate() - i);
+      var key = localDateStr(dt);
+      grid.push({ date: key, active: !!daySet[key], isToday: key === today });
+    }
+
+    // Streak terpanjang sepanjang riwayat yg tercatat
+    var allDays = Object.keys(daySet).sort();
+    var longest = 0, run = 0, prevT = null;
+    allDays.forEach(function(d) {
+      var t = new Date(d + 'T00:00:00').getTime();
+      run = (prevT !== null && (t - prevT) === oneDay) ? run + 1 : 1;
+      if (run > longest) longest = run;
+      prevT = t;
+    });
+
+    return { current: current, longest: longest, doneToday: doneToday, grid: grid };
+  }
+
+  // Kartu detail (dipakai di tab Partner Qiyam & Partner Belajar) -- angka
+  // besar + pesan motivasi state-aware + grid 30 hari ala kalender kontribusi.
+  function _renderStreakCard(streak, verb) {
+    var msg;
+    if (streak.current === 0) {
+      msg = 'Belum ada aktivitas tercatat. Yuk mulai ' + verb + ' hari ini! 🌱';
+    } else if (!streak.doneToday) {
+      msg = 'Streak-mu masih hidup! Yuk ' + verb + ' hari ini sebelum terputus ⏰';
+    } else if (streak.current >= 100) {
+      msg = 'Subhanallah, istiqomahmu luar biasa! 🕌';
+    } else if (streak.current >= 30) {
+      msg = 'Masya Allah, sebulan penuh istiqomah! 🏆';
+    } else if (streak.current >= 7) {
+      msg = 'Masya Allah, sepekan penuh! Terus pertahankan 💪';
+    } else {
+      msg = 'Terus semangat, istiqomah sedikit demi sedikit 🤍';
+    }
+    var grid = streak.grid.map(function(d) {
+      var cls = 'streak-cell' + (d.active ? ' on' : '') + (d.isToday ? ' today' : '');
+      return '<div class="' + cls + '" title="' + d.date + (d.active ? ' ✓' : '') + '"></div>';
+    }).join('');
+    return '<div class="streak-top">'
+      + '<span class="streak-flame' + (streak.current > 0 ? '' : ' off') + '">🔥</span>'
+      + '<div style="flex:1;min-width:0"><div class="streak-num">' + streak.current + ' <span style="font-size:13px;font-weight:700;color:var(--text-3)">hari berturut-turut</span></div>'
+        + '<div class="streak-msg">' + _esc(msg) + '</div></div>'
+      + (streak.longest > streak.current ? '<div class="streak-longest"><div class="n">' + streak.longest + '</div><div class="l">Terlama</div></div>' : '')
+    + '</div>'
+    + '<div class="streak-grid">' + grid + '</div>';
+  }
+
+  // Baris ringkas (dipakai di kartu Beranda -- cuma tampil kalau streak > 0,
+  // spy kartu ringkas tak sesak; state "0/mulai" cukup di kartu detail).
+  function _miniStreakLine(streak) {
+    if (!streak || streak.current <= 0) return '';
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12.5px;font-weight:800;color:var(--text)">'
+      + '<span style="font-size:16px">🔥</span>' + streak.current + ' hari berturut-turut'
+      + (streak.doneToday ? '' : ' <span style="font-weight:700;color:#b45309;font-size:11px">· belum lapor hari ini</span>')
+    + '</div>';
+  }
+
   async function _initPartnerPanel() {
     if (!_pqInitialized) {
       _pqInitialized = true;
@@ -23,6 +115,25 @@
     loadMurajaahSuggest();
     loadTargetKelompok();
     checkCadanganQiyam();
+    loadPqStreak();
+  }
+
+  // Kartu streak Partner Qiyam -- "hari berturut-turut" dihitung dari SEMUA
+  // setoran mandiri milik sendiri (jenis/sumber apa saja, termasuk yg masih
+  // menunggu konfirmasi partner) -- lapor hari ini yg dihitung, bukan
+  // kecepatan partner mengonfirmasi, spy streak adil & tak tersandera org lain.
+  async function loadPqStreak() {
+    var card = document.getElementById('pqStreakCard');
+    var body = document.getElementById('pqStreakBody');
+    if (!card || !body) return;
+    if (!_pqKelompok) { card.style.display = 'none'; return; }
+    try {
+      var res = await window.HQ.MuridAPI.getSetoranRingkasSaya();
+      var dates = (res.data || []).map(function(r) { return r.created_at ? localDateStr(new Date(r.created_at)) : null; });
+      var streak = _computeQuranStreak(dates);
+      card.style.display = 'block';
+      body.innerHTML = _renderStreakCard(streak, 'menyetor hafalan');
+    } catch(e) { card.style.display = 'none'; }
   }
 
   async function loadMurajaahSuggest() {
@@ -75,6 +186,27 @@
     loadPartnerBelajarLiniMasa();
     loadTargetBelajar();
     loadPbRiwayat();
+    loadPbStreak();
+  }
+
+  // Kartu streak Partner Belajar -- lihat komentar loadPqStreak(). Pakai
+  // field "tanggal" (bukan created_at) krn itu tanggal aktivitas sebenarnya,
+  // bisa beda dgn kapan dicatat.
+  async function loadPbStreak() {
+    var card = document.getElementById('pbStreakCard');
+    var body = document.getElementById('pbStreakBody');
+    if (!card || !body) return;
+    if (!_pbKelompok) { card.style.display = 'none'; return; }
+    try {
+      var res = await window.HQ.MuridAPI.getLogRingkasSaya();
+      var dates = (res.data || []).map(function(r) {
+        if (r.tanggal) return r.tanggal.slice(0, 10);
+        return r.created_at ? localDateStr(new Date(r.created_at)) : null;
+      });
+      var streak = _computeQuranStreak(dates);
+      card.style.display = 'block';
+      body.innerHTML = _renderStreakCard(streak, 'mencatat aktivitas');
+    } catch(e) { card.style.display = 'none'; }
   }
 
   function _pbMemberWaBtn(nama, no_hp) {
@@ -246,7 +378,14 @@
           + '<span style="display:flex;align-items:center;gap:8px"><span class="partner-dash-date">' + _esc(tgl) + '</span>' + waBtn + '</span>'
           + '</div>';
       }).join('');
-      body.innerHTML = notifHtml + ctaHtml
+      // Streak dihitung dr data yg SUDAH difetch di atas (both[2], getLogRingkasSaya) --
+      // tanpa panggilan API tambahan.
+      var pbDates = (both[2].data || []).map(function(r) {
+        if (r.tanggal) return r.tanggal.slice(0, 10);
+        return r.created_at ? localDateStr(new Date(r.created_at)) : null;
+      });
+      var pbMiniStreak = _miniStreakLine(_computeQuranStreak(pbDates));
+      body.innerHTML = pbMiniStreak + notifHtml + ctaHtml
         + '<div style="font-weight:800;font-size:13px;margin-bottom:6px">' + _esc(kel.nama_kelompok || 'Kelompok Belajar') + '</div>'
         + rows;
 
@@ -1048,4 +1187,11 @@
   window.loadPartnerMenunggu = loadPartnerMenunggu;
   window.loadPartnerLiniMasa = loadPartnerLiniMasa;
   window.loadTargetKelompok = loadTargetKelompok;
+  // Streak -- _computeQuranStreak/_miniStreakLine diekspos supaya loadPartnerDashCard()
+  // di index.html (kartu Beranda Partner Qiyam, scope BEDA drpd modul ini) bisa pakai jg.
+  window._computeQuranStreak = _computeQuranStreak;
+  window._renderStreakCard = _renderStreakCard;
+  window._miniStreakLine = _miniStreakLine;
+  window.loadPqStreak = loadPqStreak;
+  window.loadPbStreak = loadPbStreak;
 })();
