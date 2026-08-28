@@ -148,21 +148,6 @@
     }
   }
 
-  function updateSesiBanner() {
-    const b = document.getElementById('sesiBanner');
-    if (!b) return;
-    const sesiAktif = getSesiAktif();
-    if (!sesiAktif) { b.style.display='none'; return; }
-    const halaqahList = getHalaqahList();
-    const h = halaqahList.find(x => x.id_halaqah === sesiAktif.id_halaqah);
-    document.getElementById('sesiInfo').innerHTML =
-      `<strong>${esc((h && h.nama_halaqah)||sesiAktif.id_halaqah)}</strong> &nbsp;·&nbsp;
-       ${esc(sesiAktif.jenis_sesi||'KBM')} &nbsp;·&nbsp;
-       ${fmtDate(sesiAktif.tanggal_pertemuan)} ${sesiAktif.jam_mulai||''} &nbsp;·&nbsp;
-       Pertemuan ke-${sesiAktif.pertemuan_ke}`;
-    b.style.display = 'flex';
-  }
-
   function lanjutSesi() {
     const sesiAktif = getSesiAktif();
     if (!sesiAktif) return;
@@ -185,7 +170,7 @@
 
     var proceed = function() {
       goPage('presensi'); renderPresensi(); renderSteps('presensi');
-      document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+      setStepTitle('presensi');
     };
 
     var loadPresensiThen = function(cb) {
@@ -281,8 +266,7 @@
     }
   }
 
-  async function doSimpanPresensi() {
-    const sesiAktif = getSesiAktif();
+  async function doSimpanPresensi() {    const sesiAktif = getSesiAktif();
     if (!sesiAktif) return;
     const presensi = [];
     document.querySelectorAll('.prow').forEach(row => {
@@ -304,14 +288,16 @@
         presensi
       });
       const jenisSesi = sesiAktif ? sesiAktif.jenis_sesi : 'KBM Reguler';
-      if (jenisSesi === 'KBM Reguler') {
-        goToNilai();
-      } else if (jenisSesi === 'KBM Qiyam') {
+      if (jenisSesi === 'KBM Qiyam') {
         goToHafalanQiyam();
       } else if (jenisSesi === 'Micro Teaching') {
         goToMicroteachingAssessment();
       } else {
-        goToPreviewNonReguler();
+        // 'KBM Reguler' + fallback jenis lain (termasuk sesi lama 'Lainnya'
+        // yg dibuka sebelum tile-nya dihapus) → alur nilai standar yg punya
+        // ujung jelas (Jurnal → Selesai), bukan goToPreviewNonReguler() yg
+        // hanya menyimpan presensi lalu mentok tanpa penutup.
+        goToNilai();
       }
       quickToast('Presensi tersimpan!','ok');
     } catch(e) { toast(friendlyError(e),'err'); }
@@ -362,7 +348,7 @@
     renderNilaiMuridStep();
     goPage('nilai-murid');
     renderSteps('nilai-murid');
-    document.getElementById('pageTitle').textContent = 'Nilai — Step 3/4';
+    setStepTitle('nilai-murid');
   }
 
   function onKbmHalaqahChange() {
@@ -391,7 +377,10 @@
     if (!jenisEl) return;
     jenisEl.value = val;
 
-    var buttons = ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching', 'Lainnya'];
+    // Jenis "Lainnya" dihapus dari UI (dead-end: tidak punya halaman nilai/jurnal
+    // sehingga sesi tak bisa ditutup via doSelesaiKBM). Data lama jenis_sesi
+    // 'Lainnya' di DB/riwayat tidak terpengaruh -- ini murni jalur pembukaan.
+    var buttons = ['KBM Reguler', 'KBM Qiyam', 'Micro Teaching'];
     buttons.forEach(function(b) {
       var btnId = 'btnKbmJenis-' + b.replace(' ', '_');
       var btn = document.getElementById(btnId);
@@ -415,7 +404,7 @@
     var id_halaqah = sesiAktif && sesiAktif.id_halaqah;
     goPage('hafalan-kbm');
     renderSteps('hafalan-kbm');
-    document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+    setStepTitle('hafalan-kbm');
     var studentIds = muridSesi ? muridSesi.map(function(m){ return m.id_murid; }) : [];
     if (id_halaqah) {
       window.HQ.GuruAPI.getTargetHafalanMurid(id_halaqah, studentIds)
@@ -434,7 +423,7 @@
     _hydrateKbmCacheFromDraft(sesiAktif && sesiAktif.id_kbm);
     goPage('microteaching-kbm');
     renderSteps('microteaching-kbm');
-    document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
+    setStepTitle('microteaching-kbm');
     renderMicroteachingKbm();
   }
 
@@ -1690,7 +1679,7 @@
     if (jamEl) jamEl.value = new Date().toTimeString().slice(0,5);
     goPage('jurnal');
     renderSteps('jurnal');
-    document.getElementById('pageTitle').textContent = 'Jurnal — Step 4/4';
+    setStepTitle('jurnal');
   }
 
   function _saveHafalanKbmCache() {
@@ -2008,14 +1997,14 @@
 
   function kembaliKeStep1() {
     goPage('kbm');
-    document.getElementById('pageTitle').textContent = 'Sesi KBM';
+    setStepTitle('kbm');
   }
 
   function kembaliKeStep2() {
     _saveKbmDraftLocal();
     goPage('presensi');
     renderSteps('presensi');
-    document.getElementById('pageTitle').textContent = 'Presensi — Step 2/4';
+    setStepTitle('presensi');
   }
 
   function kembaliKeStep3() {
@@ -2024,14 +2013,14 @@
     if (jenis === 'KBM Qiyam') {
       goPage('hafalan-kbm');
       renderSteps('hafalan-kbm');
-      document.getElementById('pageTitle').textContent = 'Hafalan — Step 3/4';
+      setStepTitle('hafalan-kbm');
       setTimeout(function() { _restoreHafalanKbmCache(); }, 80);
       return;
     }
     if (jenis === 'Micro Teaching') {
       goPage('microteaching-kbm');
       renderSteps('microteaching-kbm');
-      document.getElementById('pageTitle').textContent = 'Assessment — Step 3/4';
+      setStepTitle('microteaching-kbm');
       setTimeout(function() { _restoreMicroteachingKbmCache(); }, 80);
       return;
     }
@@ -2800,6 +2789,21 @@
   }
 
   // ── STEP INDICATOR ──────────────────────
+  // Satu sumber kebenaran judul halaman step KBM. Menggantikan penulisan
+  // `pageTitle.textContent = 'X — Step N/4'` hardcoded yg tersebar di banyak
+  // tempat (berisiko selip saat urutan/jumlah step berubah, mis. Qiyam pakai
+  // Hafalan & Micro Teaching pakai Assessment di step 3). Hitung posisi dari
+  // getStepsDef() supaya label selalu konsisten dgn step bar.
+  function setStepTitle(stepId) {
+    var el = document.getElementById('pageTitle');
+    if (!el) return;
+    if (stepId === 'kbm') { el.textContent = 'Sesi KBM'; return; }
+    var steps = getStepsDef();
+    var idx = steps.findIndex(function(s){ return s.id === stepId; });
+    if (idx < 0) { el.textContent = 'Sesi KBM'; return; }
+    el.textContent = steps[idx].label + ' — Step ' + (idx + 1) + '/' + steps.length;
+  }
+
   function getStepsDef() {
     const sesiAktif = getSesiAktif();
     const jenis = sesiAktif ? sesiAktif.jenis_sesi : 'KBM Reguler';
@@ -2827,9 +2831,13 @@
         {id:'jurnal',             label:'Jurnal'},
       ];
     }
+    // Fallback aman (termasuk sesi lama jenis 'Lainnya' yg dibuka sebelum tile-nya
+    // dihapus): perlakukan seperti Reguler agar alurnya punya ujung yg jelas.
     return [
-      {id:'kbm',      label:'Buka Sesi'},
-      {id:'presensi', label:'Presensi'},
+      {id:'kbm',         label:'Buka Sesi'},
+      {id:'presensi',    label:'Presensi'},
+      {id:'nilai-murid', label:'Nilai'},
+      {id:'jurnal',      label:'Jurnal'},
     ];
   }
 
@@ -3444,8 +3452,8 @@
   // ── EXPOSE PUBLIC INTERFACE ──────────────────────
   window.validateFields = validateFields;
   window.doBukaKBM = doBukaKBM;
-  window.updateSesiBanner = updateSesiBanner;
   window.lanjutSesi = lanjutSesi;
+  window.setStepTitle = setStepTitle;
   window.renderPresensi = renderPresensi;
   window.togPresensi = togPresensi;
   window.setAllPresensi = setAllPresensi;

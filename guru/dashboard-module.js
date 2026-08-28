@@ -161,7 +161,6 @@
       // Cek sesi draft aktif (untuk banner lanjut/hapus)
       if (d.sesi_draft) {
         window.HQ.AppState.sesiAktif = d.sesi_draft;
-        if (typeof window.updateSesiBanner === 'function') window.updateSesiBanner();
       }
 
       // Cek draft dari dashboard (jika database sudah update dengan total_draft)

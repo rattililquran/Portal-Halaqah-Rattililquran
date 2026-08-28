@@ -3191,9 +3191,6 @@ html.theme-dark .pr-chip.active {
           </div>
         </div>
 
-        <!-- sesiBanner hidden — tidak dipakai lagi -->
-        <div id="sesiBanner" style="display:none"><span id="sesiInfo"></span></div>
-
         <!-- Form buka sesi -->
         <div class="card" id="formBukaKBM">
           <div class="card-head"><div class="card-title">▶ KBM Baru</div></div>
@@ -3225,9 +3222,6 @@ html.theme-dark .pr-chip.active {
                 <div class="kbm-jenis-btn kbm-jenis-micro" id="btnKbmJenis-Micro_Teaching" onclick="selectKbmJenis('Micro Teaching')">
                   <span>🎓</span> Micro Teaching
                 </div>
-                <div class="kbm-jenis-btn kbm-jenis-lainnya" id="btnKbmJenis-Lainnya" onclick="selectKbmJenis('Lainnya')">
-                  <span>📌</span> Lainnya
-                </div>
               </div>
             </div>
             <div class="f2">
@@ -3245,10 +3239,6 @@ html.theme-dark .pr-chip.active {
                 <label>Pertemuan ke-</label>
                 <input type="number" class="fc" id="kbmPertemuan" min="1" placeholder="Auto">
                 <div style="font-size:11px;color:var(--text-3);margin-top:4px">Kosongkan untuk auto-hitung</div>
-              </div>
-              <div class="fg" style="visibility: hidden;">
-                <label>&nbsp;</label>
-                <input type="text" class="fc" disabled>
               </div>
             </div>
 
@@ -3393,12 +3383,11 @@ html.theme-dark .pr-chip.active {
         </div>
       </div>
 
-      <!-- ════ STEP 4: JURNAL & LATIHAN ════ -->
       <!-- ════ STEP 3: HAFALAN QIYAM ════ -->
       <div class="page" id="page-hafalan-kbm">
         <div id="stepBarHafalanKbm" class="steps"></div>
 
-        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">📖 Input Hafalan — Step 3/4</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">📖 Input Hafalan</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — input hafalan satu per satu</div>
 
         <div id="hafalanKbmList"></div>
@@ -3415,7 +3404,7 @@ html.theme-dark .pr-chip.active {
       <div class="page" id="page-microteaching-kbm">
         <div id="stepBarMicroteachingKbm" class="steps"></div>
 
-        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">✍️ Penilaian Micro Teaching — Step 3/4</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">✍️ Penilaian Micro Teaching</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — nilai rubrik satu per satu</div>
 
         <!-- Legenda skor -->
@@ -5975,11 +5964,11 @@ html.theme-dark .pr-chip.active {
 <script src="../assets/confirm-modal.js"></script>
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
-<script src="dashboard-module.js?v=b8f0a898" defer></script>
+<script src="dashboard-module.js?v=b2d149fd" defer></script>
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=ffb3d278" defer></script>
+<script src="kbm-module.js?v=54ee984e" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -6551,9 +6540,9 @@ async function doTandaiLibur() {
 //  NAVIGASI
 // ══════════════════════════════════════════
 const PAGE_TITLES = {dashboard:'Dashboard',kbm:'Sesi KBM','pengembangan-guru':'Pengembangan Diri',
-  presensi:'Presensi — Step 2/4',
-  'nilai-murid':'Nilai — Step 3/4',
-  jurnal:'Jurnal — Step 4/4',
+  presensi:'Presensi',
+  'nilai-murid':'Nilai',
+  jurnal:'Jurnal',
   murid:'Daftar Murid',riwayat:'Riwayat KBM',pengumuman:'Pengumuman',
   'nilai-manual':'Input Nilai Manual','raport':'Raport Halaqah',password:'Ganti Password',panduan:'Panduan',
   'hafalan-guru':'Input Hafalan Qiyam',
@@ -6601,7 +6590,6 @@ function goPage(name) {
   }
   if (name === 'kbm') {
     populateSel('kbmHalaqah');
-    updateSesiBanner();
     // updateDraftWarning menyembunyikan formBukaKBM jika ada sesiAktif,
     // atau menampilkannya kembali jika tidak ada sesi aktif
     updateDraftWarning();
@@ -8618,7 +8606,6 @@ function autoFillPertemuan() {
       var nextPt, label;
       if      (jenis === 'KBM Qiyam')       { nextPt = h.pertemuan_ke_qiyam      || 1; label = 'Qiyam ke-'; }
       else if (jenis === 'Micro Teaching') { nextPt = h.pertemuan_ke_microteach || 1; label = 'Micro ke-'; }
-      else if (jenis === 'Lainnya')        { nextPt = h.pertemuan_ke_lainnya    || 1; label = 'Sesi ke-'; }
       else                                 { nextPt = h.pertemuan_ke_reguler    || h.pertemuan_ke || 1; label = 'Pertemuan ke-'; }
       ptInput.placeholder = 'Auto (' + label + nextPt + ')';
     }
