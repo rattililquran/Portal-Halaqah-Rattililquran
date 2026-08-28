@@ -409,7 +409,7 @@
     }
     if (btnReguler) {
       var isDaurah = halaqah && halaqah.level === 'Tahsin Al-Fatihah';
-      btnReguler.innerHTML = '<span>📖</span> ' + (isDaurah ? 'KBM Daurah' : 'KBM Reguler');
+      btnReguler.innerHTML = kbmIco('buku') + ' ' + (isDaurah ? 'KBM Daurah' : 'KBM Reguler');
     }
     if (!isQiyam && jenisEl.value === 'KBM Qiyam') {
       selectKbmJenis('KBM Reguler');
@@ -741,11 +741,11 @@
       var targetInfo = _targetMapKbm[mid];
       var targetSubtext = '';
       if (targetInfo && targetInfo.target_surat) {
-        targetSubtext = '<div style="display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#f0fdf4,#e8fdf0);border:1px solid #86efac;border-radius:9px;padding:7px 11px;margin-bottom:10px;flex-wrap:wrap">'
-          + '<span style="font-size:13px;flex-shrink:0">🎯</span>'
-          + '<span style="font-size:11.5px;font-weight:700;color:#166534">Target Sebelumnya:</span>'
-          + '<span style="font-size:11.5px;font-weight:800;color:#15803d">' + esc(targetInfo.target_surat) + '</span>'
-          + '<span style="font-size:11px;color:#16a34a;background:rgba(22,163,74,0.12);border-radius:5px;padding:1px 6px;font-weight:600">Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-') + '</span>'
+        targetSubtext = '<div style="display:flex;align-items:center;gap:7px;background:var(--kbm-ok-soft, rgba(22,163,74,.08));border:1px solid var(--kbm-ok, #16a34a);border-radius:8px;padding:7px 11px;margin-bottom:10px;flex-wrap:wrap">'
+          + '<span style="flex-shrink:0;color:var(--kbm-ok,#16a34a);display:inline-flex">' + kbmIco('pin') + '</span>'
+          + '<span style="font-size:11.5px;font-weight:700;color:var(--kbm-ink-2, var(--text-2))">Target Sebelumnya:</span>'
+          + '<span style="font-size:11.5px;font-weight:800;color:var(--kbm-ink, var(--text))">' + esc(targetInfo.target_surat) + '</span>'
+          + '<span style="font-size:11px;color:var(--kbm-ok,#16a34a);background:var(--kbm-ok-soft, rgba(22,163,74,.12));border-radius:5px;padding:1px 6px;font-weight:600">Ayat ' + (targetInfo.target_ayat_dari||'-') + '–' + (targetInfo.target_ayat_sampai||'-') + '</span>'
         + '</div>';
       }
 
@@ -768,9 +768,9 @@
           + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
             + '<div><div class="nm-section-label">Jenis</div>'
               + '<select class="fc hfkbm-jenis" data-mid="' + esc(mid) + '" id="hfkbm-jenis-' + eid + '" style="font-size:12px">'
-                + '<option value="Ziyadah">📖 Ziyadah</option>'
-                + '<option value="Murajaah">🔄 Murajaah</option>'
-                + '<option value="Tahsin">✨ Tahsin</option>'
+                + '<option value="Ziyadah">Ziyadah</option>'
+                + '<option value="Murajaah">Murajaah</option>'
+                + '<option value="Tahsin">Tahsin</option>'
               + '</select>'
             + '</div>'
             + '<div><div class="nm-section-label">Nama Surat</div>'
@@ -791,24 +791,24 @@
             + '</div>'
           + '</div>'
           + '<div id="hfkbm-ayat-info-' + eid + '" style="font-size:11px;color:#6b7280;margin-bottom:8px;padding:0 2px">— pilih surat —</div>'
-          + '<div style="background:linear-gradient(135deg,#eff6ff,#f0f9ff);border:1px solid #bfdbfe;border-radius:10px;padding:10px;margin-bottom:8px">'
-            + '<div style="font-size:10px;font-weight:800;color:#1d4ed8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">★ Penilaian Bacaan</div>'
+          + '<div style="background:var(--kbm-accent-soft, rgba(15,23,42,.05));border:1px solid var(--kbm-line, var(--border));border-radius:10px;padding:10px;margin-bottom:8px">'
+            + '<div style="font-size:10px;font-weight:800;color:var(--kbm-ink-2, var(--text-2));text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Penilaian Bacaan</div>'
             + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
               + '<div><div class="nm-section-label">Kelancaran</div><select class="fc hfkbm-kel" data-mid="' + esc(mid) + '" id="hfkbm-kel-' + eid + '" style="font-size:12px">' + kelOpts + '</select></div>'
               + '<div><div class="nm-section-label">Makhraj & Tajwid</div><select class="fc hfkbm-nil" data-mid="' + esc(mid) + '" id="hfkbm-nil-' + eid + '" style="font-size:12px">' + nilOpts + '</select></div>'
               + '<div><div class="nm-section-label">Kamera</div><select class="fc" id="hfkbm-kam-' + eid + '" style="font-size:12px">' + kamOpts + '</select></div>'
             + '</div>'
-            + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-top:8px">⚡ Estimasi poin: akan dihitung</div>'
+            + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:var(--kbm-warn,#b45309);background:var(--kbm-warn-soft, rgba(180,83,9,.07));border:1px solid var(--kbm-warn,#b45309);border-radius:8px;padding:6px 10px;margin-top:8px">Estimasi poin: akan dihitung</div>'
           + '</div>'
           + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
             + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
           + '</div>'
-          + '<button type="button" onclick="addHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\')" style="width:100%;margin-bottom:8px;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">'
-            + '<span>➕</span> Tambah Surat Ke Keranjang Setoran'
+          + '<button type="button" onclick="addHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\')" style="width:100%;margin-bottom:8px;background:var(--kbm-ok,#059669);color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+            + kbmIco('centang') + ' Tambah Surat Ke Keranjang Setoran'
           + '</button>'
           + '<div id="hfkbm-staged-list-' + eid + '" style="display:none;margin-bottom:8px"></div>'
-          + '<div style="background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:10px;overflow:visible;margin-bottom:2px">'
-            + '<div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🎯 Target Hafalan Berikutnya (opsional)</div>'
+          + '<div style="background:var(--kbm-ok-soft, rgba(22,163,74,.06));border:1px dashed var(--kbm-ok,#16a34a);border-radius:10px;padding:10px;overflow:visible;margin-bottom:2px">'
+            + '<div style="font-size:10px;font-weight:800;color:var(--kbm-ink-2, var(--text-2));text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Target Hafalan Berikutnya (opsional)</div>'
             + '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:6px">'
               + '<div style="position:relative"><input type="text" class="fc hfkbm-tgt-surat-input" data-mid="' + esc(mid) + '" id="hfkbm-tgt-surat-' + eid + '" placeholder="Nama surat target…" style="font-size:12px"><div id="hfkbm-tgt-dd-' + eid + '" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:999;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);max-height:180px;overflow-y:auto;padding:4px"></div></div>'
               + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-' + eid + '" min="1" placeholder="Dari" style="font-size:12px"></div>'
@@ -953,7 +953,7 @@
     }
     container.style.display = 'block';
     var jenisColor = { Ziyadah: '#10b981', Murajaah: '#f59e0b', Tahsin: '#8b5cf6' };
-    var html = '<div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">📋 Keranjang Setoran Sesi Ini (' + list.length + ' surat):</div>';
+    var html = '<div style="font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px">' + kbmIco('dokumen') + ' Keranjang Setoran Sesi Ini (' + list.length + ' surat):</div>';
     html += list.map(function(item, idx) {
       var color = jenisColor[item.jenis] || '#10b981';
       var info = (item.suratD || item.surat || 'Tahsin') + (item.dari && item.sampai ? ' · Ayat ' + item.dari + '–' + item.sampai : '') + (item.juz ? ' (Juz ' + item.juz + ')' : '');
@@ -964,8 +964,8 @@
           + '<div style="font-size:10.5px;color:#6b7280;margin-top:2px">' + esc(detail) + '</div>'
         + '</div>'
         + '<div style="display:flex;gap:4px">'
-          + '<button type="button" onclick="editHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#e0f2fe;border:none;color:#0369a1;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Edit item setoran ini">✏️ Edit</button>'
-          + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:#fee2e2;border:none;color:#dc2626;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
+          + '<button type="button" onclick="editHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:var(--kbm-accent-soft, rgba(15,23,42,.08));border:none;color:var(--kbm-ink-2, var(--text-2));border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Edit item setoran ini">Edit</button>'
+          + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:var(--kbm-warn-soft, rgba(220,38,38,.08));border:none;color:var(--kbm-danger,#dc2626);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
         + '</div>'
       + '</div>';
     }).join('');
@@ -2409,37 +2409,37 @@
       const startCollapsed = !isSkip && adabVal && kamVal && !_nmManualOpen[m.id_murid];
       const cardClass = isSkip ? 'nilai-murid-card alpa' : (adabVal ? 'nilai-murid-card terisi' + (startCollapsed ? ' collapsed' : '') : 'nilai-murid-card');
       const skipMsg   = isAlpa
-        ? '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🔴 Murid alpa — nilai tidak perlu diisi</div>'
-        : '<div style="font-size:12.5px;color:var(--text-3);font-style:italic;padding:6px 0">🟡 Murid izin — nilai tidak perlu diisi</div>';
+        ? '<div style="font-size:12.5px;color:var(--kbm-danger,#dc2626);font-style:italic;padding:6px 0">Murid alpa — nilai tidak perlu diisi</div>'
+        : '<div style="font-size:12.5px;color:var(--kbm-warn,#b45309);font-style:italic;padding:6px 0">Murid izin — nilai tidak perlu diisi</div>';
 
       const nilaiForm = [
         '<div style="margin-bottom:8px">',
         '  <div class="fg" style="margin:0">',
-        '    <div class="nm-section-label">😊 Adab</div>',
+        '    <div class="nm-section-label">Adab</div>',
         '    <select class="fc" id="adab-' + esc(m.id_murid) + '" style="font-size:16px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
         '      <option value="">— Pilih —</option>',
-        '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>😊 Baik</option>',
-        '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>⚠️ Butuh Perhatian</option>',
+        '      <option value="Baik"' + (adabVal==='Baik' ? ' selected' : '') + '>Baik</option>',
+        '      <option value="Butuh Perhatian"' + (adabVal==='Butuh Perhatian' ? ' selected' : '') + '>Butuh Perhatian</option>',
         '    </select>',
         '  </div>',
         '</div>',
         '<div style="margin-bottom:8px">',
         '  <div class="fg" style="margin:0">',
-        '    <div class="nm-section-label">📷 Kamera Murid</div>',
+        '    <div class="nm-section-label">Kamera Murid</div>',
         '    <select class="fc" id="kamera-' + esc(m.id_murid) + '" style="font-size:16px" onchange="updateNilaiCard(\'' + esc(m.id_murid) + '\');_saveKbmDraftLocal()">',
         '      <option value="">— Pilih —</option>',
-        '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>📷 kamera terbuka</option>',
-        '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>🟡 kamera sering buka tutup</option>',
-        '      <option value="kamera tertutup"' + (kamVal==='kamera tertutup' ? ' selected' : '') + '>❌ kamera tertutup</option>',
+        '      <option value="kamera terbuka"' + (kamVal==='kamera terbuka' ? ' selected' : '') + '>kamera terbuka</option>',
+        '      <option value="kamera sering buka tutup"' + (kamVal==='kamera sering buka tutup' ? ' selected' : '') + '>kamera sering buka tutup</option>',
+        '      <option value="kamera tertutup"' + (kamVal==='kamera tertutup' ? ' selected' : '') + '>kamera tertutup</option>',
         '    </select>',
         '  </div>',
         '</div>',
         '<div class="fg" style="margin:0">',
-        '  <div class="nm-section-label">✏️ Koreksi &amp; Catatan Tahsin</div>',
+        '  <div class="nm-section-label">' + kbmIco('edit') + ' Koreksi &amp; Catatan Tahsin</div>',
         '  <div style="display:flex;gap:8px;margin-bottom:8px">',
         (isDaurahHalaqah ? '' :
-        '    <button type="button" class="nm-tool-btn" id="tplbtn-' + esc(m.id_murid) + '" data-mid="' + esc(m.id_murid) + '" onclick="toggleTemplateKoreksi(this.dataset.mid)">🏷️ Template</button>'),
-        '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">📋 Riwayat</button>',
+        '    <button type="button" class="nm-tool-btn" id="tplbtn-' + esc(m.id_murid) + '" data-mid="' + esc(m.id_murid) + '" onclick="toggleTemplateKoreksi(this.dataset.mid)">Template</button>'),
+        '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">Riwayat</button>',
         '  </div>',
         '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahHalaqah ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
         '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:16px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
@@ -2464,8 +2464,8 @@
           };
 
           daurahHtml = '<div class="daurah-kbm-assessment" style="margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--border);margin-bottom:8px">'
-            + '<div class="nm-section-label" style="display:flex;align-items:center;gap:4px;color:var(--blue-d);font-weight:800;font-size:12px">'
-            + '🎯 Evaluasi Bacaan: ' + getDaurahDayTitle(meetingNo)
+            + '<div class="nm-section-label" style="display:flex;align-items:center;gap:4px;color:var(--kbm-ink-2, var(--text-2));font-weight:800;font-size:12px">'
+            + kbmIco('pin') + ' Evaluasi Bacaan: ' + getDaurahDayTitle(meetingNo)
             + '</div>';
 
           var currentCat = '';
@@ -2476,8 +2476,8 @@
             if (itemCat !== currentCat) {
               currentCat = itemCat;
               var catDisp = catTitles[currentCat] || currentCat;
-              daurahHtml += '<div class="daurah-cat-divider" style="margin:16px 0 8px 0;padding:6px 12px;background:rgba(2,132,199,0.06);border:1px solid rgba(2,132,199,0.15);border-radius:8px;font-size:11.5px;font-weight:800;color:#0284c7;display:flex;align-items:center;gap:6px">'
-                + '<span>📖</span> ' + esc(catDisp)
+              daurahHtml += '<div class="daurah-cat-divider" style="margin:16px 0 8px 0;padding:6px 12px;background:var(--kbm-accent-soft, rgba(15,23,42,.06));border:1px solid var(--kbm-accent-border, rgba(15,23,42,.14));border-radius:8px;font-size:11.5px;font-weight:800;color:var(--kbm-ink-2, var(--text-2));display:flex;align-items:center;gap:6px">'
+                + kbmIco('buku') + ' ' + esc(catDisp)
                 + '</div>';
             }
 
@@ -2488,9 +2488,9 @@
               + '</div>'
               + (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">' + esc(item.keterangan) + '</div>' : '')
               + '<div style="display:flex;gap:6px">'
-              + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">✅ Paham</button>'
-              + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">🟡 Ragu</button>'
-              + '<button type="button" class="btn-asmt-opt btn-belum ' + (ans === 'belum' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)">❌ Belum</button>'
+              + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">Paham</button>'
+              + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">Ragu</button>'
+              + '<button type="button" class="btn-asmt-opt btn-belum ' + (ans === 'belum' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'belum\', this)">Belum</button>'
               + '</div>'
               + '</div>';
           });
@@ -2526,7 +2526,7 @@
         + '<span class="nm-nama-txt">' + esc(m.nama_murid) + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
-        + (isSkip ? '' : '<span class="nm-badge-warn" id="nmwarn-' + esc(m.id_murid) + '"' + (needsAttention ? '' : ' style="display:none"') + '>⚠️ Perhatian</span>')
+        + (isSkip ? '' : '<span class="nm-badge-warn" id="nmwarn-' + esc(m.id_murid) + '"' + (needsAttention ? '' : ' style="display:none"') + '>Perhatian</span>')
         + '<span class="nm-badge-hadir ' + badgeCls + '">' + (HADIR_LABEL[status]||status) + '</span>'
         + (isSkip ? '' : '<span class="nm-chevron">▾</span>')
         + '</div>'
@@ -2611,17 +2611,14 @@
 
   // Teks ringkasan 1 baris kartu murid (dipakai render awal & saat collapse
   // ulang) -- pure function, hindari duplikasi logika di 2 tempat spt sebelumnya.
-  // Ikon "🏷️" sengaja pakai kata "koreksi" (bukan "catatan") krn ada field
-  // Catatan terpisah -- pakai "catatan" di sini dulu bikin ambigu dgn field itu.
+  // Tanpa emoji (bahasa minimalis): status dibaca lewat kata, bukan ikon.
   function _nmSummaryText(adabVal, kamVal, korVal, catVal) {
     if (!adabVal) return '';
-    var adabIcon = adabVal === 'Baik' ? '😊' : '⚠️';
-    var kamIcon  = kamVal === 'kamera terbuka' ? '📷' : (kamVal ? '❌' : '');
     var korCount = korVal ? korVal.split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
-    var parts = [adabIcon + ' ' + adabVal];
-    if (kamVal)                    parts.push(kamIcon + ' ' + kamVal);
-    if (korCount)                  parts.push('✏️ ' + korCount + ' koreksi');
-    if (catVal && catVal.trim())   parts.push('📝 ada catatan');
+    var parts = [adabVal];
+    if (kamVal)                    parts.push(kamVal);
+    if (korCount)                  parts.push(korCount + ' koreksi');
+    if (catVal && catVal.trim())   parts.push('ada catatan');
     return parts.join(' · ');
   }
 
@@ -3402,8 +3399,8 @@
         + '<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
           + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button>'
           + (m.no_hp
-            ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="Hubungi via WhatsApp">💬 WA</button>'
-            : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6" title="No HP belum diisi di profil murid">💬 WA</button>')
+            ? '<button class="btn btn-outline btn-sm" style="border-color:var(--kbm-ok,#16a34a);color:var(--kbm-ok,#16a34a)" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="Hubungi via WhatsApp">' + kbmIco('nasihat') + ' WA</button>'
+            : '<button class="btn btn-outline btn-sm" disabled style="border-color:var(--kbm-line,#cbd5e1);color:var(--kbm-ink-3,#94a3b8);cursor:not-allowed;opacity:0.6" title="No HP belum diisi di profil murid">' + kbmIco('nasihat') + ' WA</button>')
           + '</div></td>'
         + '</tr>';
     }).join('');
@@ -3521,7 +3518,7 @@
     if (!tbody) return;
 
     if (!window._riwayatDataFiltered.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="guru-empty"><div class="guru-empty-ico">📋</div><div class="guru-empty-ttl">Tidak ada riwayat KBM yang sesuai</div></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="guru-empty"><div class="guru-empty-ttl">Tidak ada riwayat KBM yang sesuai</div></div></td></tr>`;
       return;
     }
 
@@ -3531,7 +3528,7 @@
           <td>${fmtDate(k.tanggal_pertemuan)}</td>
           <td><span class="badge b-gray">—</span></td>
           <td>${typeof jenisKbmBadge === 'function' ? jenisKbmBadge(k.jenis_sesi) : k.jenis_sesi}</td>
-          <td colspan="2" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.keterangan_libur||'-')}">📵 ${esc(k.keterangan_libur||'-')}</td>
+          <td colspan="2" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(k.keterangan_libur||'-')}">${esc(k.keterangan_libur||'-')}</td>
           <td>${typeof statusBadge === 'function' ? statusBadge(k.status) : k.status}</td>
           <td>—</td>
         </tr>`;
@@ -3652,7 +3649,6 @@
         let contentHtml = '';
         if (n.hafalan) {
           const h = n.hafalan;
-          const jenisIcon = { Ziyadah: '📖', Murajaah: '🔄', Tahsin: '✨' };
           contentHtml = `
             <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">
               ${h.jenis === 'Tahsin' && !h.surat
@@ -3660,7 +3656,7 @@
                 : `Juz ${h.juz || '-'} · ${esc(h.surat)} · Ayat ${h.ayat_dari}–${h.ayat_sampai}`}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-              <span class="badge b-gray">${jenisIcon[h.jenis] || '📖'} ${esc(h.jenis || 'Ziyadah')}</span>
+              <span class="badge b-gray">${esc(h.jenis || 'Ziyadah')}</span>
               <span class="badge ${h.nilai === 'A' ? 'b-blue' : h.nilai === 'B' ? 'b-green' : 'b-amber'}" style="font-weight:bold">Nilai: ${esc(h.nilai)}</span>
               ${h.kelancaran ? `<span class="badge b-purple">Kelancaran: ${esc(h.kelancaran)}</span>` : ''}
               ${h.kamera ? `<span class="badge b-purple">Kamera: ${esc(h.kamera)}</span>` : n.kamera_murid ? `<span class="badge b-purple">Kamera: ${esc(n.kamera_murid)}</span>` : ''}
@@ -3705,14 +3701,14 @@
               }
               if (items.length > 0) {
                 rubrikHtml = `<div style="font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.4">
-                  📋 <strong>Rubrik Penilaian:</strong><br>
+                  <strong>Rubrik Penilaian:</strong><br>
                   ${items.join('<br>')}
                 </div>`;
               } else {
-                rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>`;
+                rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">${esc(n.koreksi_tahsin)}</div>`;
               }
             } catch(e) {
-              rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>`;
+              rubrikHtml = `<div style="font-size:12.5px;color:var(--text-2)">${esc(n.koreksi_tahsin)}</div>`;
             }
           }
           contentHtml = `
@@ -3722,7 +3718,7 @@
             ${rubrikHtml}
             ${n.catatan_murid ? `
               <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
-                📝 Catatan: ${esc(n.catatan_murid)}
+                Catatan: ${esc(n.catatan_murid)}
               </div>` : ''}
           `;
         } else {
@@ -3732,10 +3728,10 @@
               ${n.adab ? `<span class="badge b-blue">Adab: ${esc(n.adab)}</span>` : ''}
               ${n.kamera_murid ? `<span class="badge b-purple">Kamera: ${esc(n.kamera_murid)}</span>` : ''}
             </div>
-            ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">✏️ ${esc(n.koreksi_tahsin)}</div>` : ''}
+            ${n.koreksi_tahsin ? `<div style="font-size:12.5px;color:var(--text-2)">${esc(n.koreksi_tahsin)}</div>` : ''}
             ${n.catatan_murid ? `
               <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
-                📝 Catatan: ${esc(n.catatan_murid)}
+                Catatan: ${esc(n.catatan_murid)}
               </div>` : ''}
           `;
         }
@@ -3743,7 +3739,7 @@
         return `
           <div class="nilai-row">
             <div class="nilai-murid-name">
-              <span>👤 ${esc(n.nama_murid||n.id_murid)}</span>
+              <span>${esc(n.nama_murid||n.id_murid)}</span>
               ${typeof hadirBadge === 'function' ? hadirBadge(n.status_hadir) : n.status_hadir}
             </div>
             ${contentHtml}
@@ -3751,7 +3747,7 @@
         `;
       }).join('');
     } catch(e) {
-      document.getElementById('detailBody').innerHTML = emptyHTML('❌','Gagal memuat','');
+      document.getElementById('detailBody').innerHTML = emptyHTML('','Gagal memuat','');
     }
   }
 
