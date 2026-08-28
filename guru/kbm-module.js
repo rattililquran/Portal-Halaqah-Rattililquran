@@ -450,8 +450,12 @@
   }
 
   // Label "pertemuan berikutnya" per jenis, konsisten dgn autoFillPertemuan().
+  // Prioritaskan jenis dari LEVEL halaqah (Level Qiyam -> Qiyam) karena tile
+  // Qiyam hanya muncul utk level itu & jadi pilihan otomatis; jenis dari
+  // kbmJenis dipakai hanya bila relevan (Micro Teaching di halaqah non-Qiyam).
   function _wizNextPtLabel(h) {
-    var jenis = (document.getElementById('kbmJenis')||{}).value || 'KBM Reguler';
+    var jenisEl = (document.getElementById('kbmJenis')||{}).value || 'KBM Reguler';
+    var jenis = (h.level === 'Level Qiyam') ? 'KBM Qiyam' : jenisEl;
     var nextPt, label;
     if      (jenis === 'KBM Qiyam')      { nextPt = h.pertemuan_ke_qiyam      || 1; label = 'Qiyam ke-'; }
     else if (jenis === 'Micro Teaching') { nextPt = h.pertemuan_ke_microteach || 1; label = 'Micro ke-'; }
