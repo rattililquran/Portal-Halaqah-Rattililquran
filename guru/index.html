@@ -1312,6 +1312,7 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 .dash-greet.is-next svg,.dash-greet.is-today svg{width:12px;height:12px;flex-shrink:0}
 .dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
 .dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
+.dash-hari strong{font-weight:800;color:#fff;font-size:12.5px;letter-spacing:.01em}
 .dash-sesi-lain{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;align-items:center;gap:4px}
 .dash-sesi-lain svg{width:11px;height:11px;flex-shrink:0}
 
@@ -7849,7 +7850,9 @@ function updateHalaqahHariIniCard(hariIniServer) {
     greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Halaqah Berikutnya';
   }
   namaEl.textContent  = best.nama_halaqah;
-  hariEl.textContent  = labelHari + (jam ? ' · ' + jam : '') + ' — Semoga Allah mudahkan perjuangan hari ini.';
+  // Hari & jam ditebalkan (<strong>) supaya lebih ternotice drpd sisa kalimat -- guru
+  // langsung tertangkap info paling penting (kapan) tanpa perlu baca seluruh kalimat.
+  hariEl.innerHTML = '<strong>' + esc(labelHari + (jam ? ' · ' + jam : '')) + '</strong> — Semoga Allah mudahkan perjuangan hari ini.';
 
   // Kartu cuma menyorot SATU halaqah (jamnya paling dekat/pagi) -- kalau di
   // hari yg sama ternyata ada halaqah lain juga (jam beda), guru perlu tahu
