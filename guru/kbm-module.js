@@ -264,6 +264,7 @@
     const _ps = window._presensiState || {};
     cont.innerHTML = muridSesi.map(m => `
       <div class="prow" id="prow-${esc(m.id_murid)}">
+        <span class="prow-avatar">${esc(String(m.nama_murid||'?').trim().charAt(0).toUpperCase())}</span>
         <div class="prow-info">
           <div class="prow-name">${esc(m.nama_murid)}</div>
           <div class="prow-sub">${m.total_hadir||0}× hadir</div>

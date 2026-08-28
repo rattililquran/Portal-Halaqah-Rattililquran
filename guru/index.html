@@ -807,8 +807,8 @@ html.theme-dark #rtContent [style*="background:linear-gradient(90deg,#eef3fb"]{b
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prow-level{font-size:11px;color:var(--text-3);margin-top:1px}
 .prow-btns{display:flex;gap:4px}
-.pb{padding:8px 13px;border-radius:9px;border:1.5px solid;font-family:inherit;
-  font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;min-width:38px}
+.pb{padding:8px 11px;border-radius:9px;border:1.5px solid;font-family:inherit;
+  font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;min-width:36px}
 .pb[data-k="H"]{border-color:var(--green);color:var(--green)}.pb[data-k="H"].on{background:var(--green);color:#fff}
 .pb[data-k="T"]{border-color:var(--purple);color:var(--purple)}.pb[data-k="T"].on{background:var(--purple);color:#fff}
 .pb[data-k="I"]{border-color:var(--amber);color:var(--amber-txt)}.pb[data-k="I"].on{background:var(--amber);color:#fff}
@@ -2105,7 +2105,8 @@ html.theme-dark body{background:#000000!important}
 html.theme-dark .card,html.theme-dark .stat,html.theme-dark .stat-top,
 html.theme-dark .hq-card,html.theme-dark .hq-card-new,
 html.theme-dark .nilai-murid-card,html.theme-dark .draft-warning,
-html.theme-dark .prow,html.theme-dark .nilai-row{
+html.theme-dark .nilai-row,
+html.theme-dark .prow:not(#page-presensi .prow){
   background:#121214!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   border:1px solid rgba(255,255,255,.07)!important;box-shadow:0 2px 8px rgba(0,0,0,.3)!important}
 html.theme-dark .card:hover,html.theme-dark .stat:hover{box-shadow:0 4px 16px rgba(0,0,0,.45)!important}
@@ -2190,13 +2191,13 @@ html.theme-dark .sb-name{color:#f0f2f8!important}
 html.theme-dark .refresh-badge,html.theme-dark .refresh-badge-murid{background:#252830!important;border-color:rgba(255,255,255,.1)!important;color:#d1d5db!important}
 html.theme-dark .refresh-dot{background:#34d399!important}
 html.theme-dark .bg-blobs-guru{display:none}
-html.theme-dark .pb[data-k="H"].on{background:var(--green)!important;color:#fff!important}
-html.theme-dark .pb[data-k="T"].on{background:#7c3aed!important;color:#fff!important}
-html.theme-dark .pb[data-k="I"].on{background:var(--amber-txt)!important;color:#0f172a!important}
-html.theme-dark .pb[data-k="A"].on{background:var(--red)!important;color:#fff!important}
-html.theme-dark .prow{background:transparent!important;border-bottom-color:rgba(255,255,255,.06)!important}
-html.theme-dark .prow-name{color:#f0f2f8!important}
-html.theme-dark .prow-level{color:#6b7280!important}
+html.theme-dark #editPresensiList .pb[data-k="H"].on{background:var(--green)!important;color:#fff!important}
+html.theme-dark #editPresensiList .pb[data-k="T"].on{background:#7c3aed!important;color:#fff!important}
+html.theme-dark #editPresensiList .pb[data-k="I"].on{background:var(--amber-txt)!important;color:#0f172a!important}
+html.theme-dark #editPresensiList .pb[data-k="A"].on{background:var(--red)!important;color:#fff!important}
+html.theme-dark #editPresensiList .prow{background:transparent!important;border-bottom-color:rgba(255,255,255,.06)!important}
+html.theme-dark #editPresensiList .prow-name{color:#f0f2f8!important}
+html.theme-dark #editPresensiList .prow-level{color:#6b7280!important}
 /* Redesain kartu presensi (KBM) — padding tepi, avatar inisial, tombol lega */
 #page-presensi .presensi-list{gap:8px}
 #page-presensi .prow{
@@ -2210,6 +2211,15 @@ html.theme-dark .prow-level{color:#6b7280!important}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;
 }
 #page-presensi .prow-sub{font-size:11px;color:var(--kbm-ink-3,var(--text-3));margin-top:1px}
+/* Avatar inisial murid (sesi aktif & modal edit presensi) */
+#page-presensi .prow-avatar, #editPresensiList .prow-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;letter-spacing:.02em;
+  background:var(--kbm-accent-soft,rgba(15,23,42,.06));
+  color:var(--kbm-accent,#0f172a);
+  border:1px solid var(--kbm-accent-border,rgba(15,23,42,.14));
+}
 #page-presensi .prow-btns{display:flex;gap:5px;flex-shrink:0}
 #page-presensi .pb{
   min-width:40px;padding:9px 0;text-align:center;border-radius:8px;
@@ -2227,6 +2237,23 @@ html.theme-dark .prow-level{color:#6b7280!important}
 #page-presensi .pb[data-k="A"]{border-color:var(--kbm-danger,#dc2626);color:var(--kbm-danger,#dc2626)}
 #page-presensi .pb[data-k="A"].on{background:var(--kbm-danger,#dc2626);border-color:var(--kbm-danger,#dc2626);color:#fff}
 html.theme-dark #page-presensi .pb.on{color:#0f172a}
+/* Dark mode eksplisit utk halaman presensi KBM (design system token) --
+   melindungi dr rule dark global dgn !important di atas. */
+html.theme-dark #page-presensi .prow{background:var(--kbm-card)!important;border:1px solid var(--kbm-line)!important;box-shadow:none!important;backdrop-filter:none!important}
+html.theme-dark #page-presensi .prow-name{color:var(--kbm-ink,#f0f2f8)!important}
+html.theme-dark #page-presensi .prow-sub{color:var(--kbm-ink-3,#94a3b8)!important}
+html.theme-dark #page-presensi .prow-avatar{background:rgba(240,242,248,.08)!important;color:var(--kbm-ink-2,#cbd5e1)!important;border-color:rgba(240,242,248,.14)!important}
+/* HP: tombol H/T/I/A 2x2 kompak supaya nama panjang tetap terbaca penuh */
+@media (max-width:480px){
+  #page-presensi .prow{flex-wrap:wrap;padding:10px 12px;gap:8px}
+  #page-presensi .prow-info{flex:1 1 100%;display:flex;align-items:center;gap:10px}
+  #page-presensi .prow-avatar{width:34px;height:34px;font-size:14px;flex-shrink:0}
+  #page-presensi .prow-btns{flex:1 1 100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  #page-presensi .pb{min-width:0;width:100%;padding:8px 0;font-size:12px;border-radius:7px}
+}
+@media (max-width:360px){
+  #page-presensi .pb{padding:7px 0;font-size:11.5px}
+}
 html.theme-dark .section-title{color:#f0f2f8!important}
 html.theme-dark .section-sub{color:#9ca3af!important}
 html.theme-dark .persiapan-wrap{background:#0f1a13!important;border-color:#166534!important}
@@ -6395,7 +6422,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=cce7d642" defer></script>
+<script src="kbm-module.js?v=07f826df" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
