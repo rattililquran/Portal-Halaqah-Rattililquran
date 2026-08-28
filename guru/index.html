@@ -1439,7 +1439,7 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
 
 /* ── PERSIAPAN MENGAJAR CHECKLIST ── */
 .persiapan-wrap{
-  background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
+  background:var(--card-solid,rgba(255,255,255,.85));
   border:1.5px solid #86efac;border-radius:var(--r);
   padding:16px 18px;margin-bottom:16px;
 }
@@ -1563,6 +1563,16 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   cursor:pointer;padding:4px 2px;white-space:nowrap;font-family:inherit}
 .wiz-hint{font-size:11.5px;color:#c2410c;font-weight:700;margin:10px 0 4px;line-height:1.5;
   background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px}
+
+/* Toggle kartu "Tidak bisa mengajar?" (CTA sekunder collapsible) */
+.libur-toggle{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:14px 16px;background:none;border:none;cursor:pointer;font-family:inherit}
+.libur-toggle-ico{font-size:20px;flex-shrink:0}
+.libur-toggle-text{flex:1;min-width:0}
+.libur-toggle-title{display:block;font-size:14px;font-weight:800;color:#c2410c;line-height:1.3}
+.libur-toggle-sub{display:block;font-size:11.5px;color:#9a3412;font-weight:600;margin-top:2px;line-height:1.4}
+.libur-toggle-caret{font-size:14px;color:#c2410c;transition:transform .2s;flex-shrink:0}
+.libur-toggle-caret.open{transform:rotate(90deg)}
 
 @media (max-width:520px){
   .wiz-lbl{display:none}
@@ -1847,7 +1857,7 @@ html.theme-dark .prow-name{color:#f0f2f8!important}
 html.theme-dark .prow-level{color:#6b7280!important}
 html.theme-dark .section-title{color:#f0f2f8!important}
 html.theme-dark .section-sub{color:#9ca3af!important}
-html.theme-dark .persiapan-wrap{background:linear-gradient(135deg,#0a2e1f,#052e16)!important;border-color:#166534!important}
+html.theme-dark .persiapan-wrap{background:#0f1a13!important;border-color:#166534!important}
 html.theme-dark .persiapan-title{color:#34d399!important}
 html.theme-dark .persiapan-sub{color:#6ee7b7!important}
 html.theme-dark .persiapan-item{background:rgba(0,0,0,.3)!important;border-color:transparent!important}
@@ -3384,14 +3394,19 @@ html.theme-dark .pr-chip.active {
           </div>
         </div>
 
-        <!-- ── KELAS DILIBURKAN (Flow 1) ── -->
+        <!-- ── KELAS DILIBURKAN (Flow 1) — CTA sekunder collapsible ── -->
         <div class="card" id="cardKelasLibur" style="margin-top:14px;border:1.5px solid #fdba74">
-          <div class="card-head" style="background:linear-gradient(135deg,#fff7ed,#ffedd5)">
-            <div class="card-title" style="color:#c2410c;font-size:15px;font-weight:800">📵 Tidak Bisa Mengajar Hari Ini?</div>
-          </div>
-          <div class="card-body">
+          <button type="button" class="libur-toggle" id="liburToggle" onclick="toggleKelasLibur()" aria-expanded="false">
+            <span class="libur-toggle-ico">📵</span>
+            <span class="libur-toggle-text">
+              <span class="libur-toggle-title">Tidak bisa mengajar hari ini?</span>
+              <span class="libur-toggle-sub">Tandai sesi sebagai libur (pertemuan tidak bertambah, +1 sisa kelas pengganti)</span>
+            </span>
+            <span class="libur-toggle-caret" id="liburCaret">▸</span>
+          </button>
+          <div class="card-body" id="liburBody" style="display:none">
             <div style="font-size:12.5px;color:#9a3412;margin-bottom:12px;line-height:1.6;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px">
-              Pilih halaqah &amp; jenis sesi di atas, lalu isi alasan di bawah untuk menandai sesi ini sebagai <strong>libur</strong>.
+              Pilih halaqah &amp; jenis sesi di wizard di atas, lalu isi alasan di bawah untuk menandai sesi ini sebagai <strong>libur</strong>.
               Pertemuan ke- tidak akan bertambah, dan akan tercatat sebagai sisa kelas pengganti.
             </div>
             <div class="fg">
@@ -3413,7 +3428,7 @@ html.theme-dark .pr-chip.active {
             <button class="btn btn-outline btn-sm" id="btnTandaiLibur" disabled
               style="color:#e0772a;border-color:#e0772a;width:100%;justify-content:center;font-weight:800;font-size:14px;padding:12px;opacity:.45;cursor:not-allowed"
               onclick="doTandaiLibur()">📵 Tandai Kelas Diliburkan</button>
-            <div class="libur-hint show" id="liburHint">☝ Centang konfirmasi & isi alasan libur untuk mengaktifkan tombol</div>
+            <div class="libur-hint show" id="liburHint">☝ Centang konfirmasi &amp; isi alasan libur untuk mengaktifkan tombol</div>
           </div>
         </div>
       </div>
@@ -6685,7 +6700,13 @@ function goPage(name) {
     updateDraftWarning();
     // Reset checklist hanya jika tidak ada sesi aktif
     // (jika ada sesi aktif, form sudah disembunyikan — reset tidak perlu)
-    if (!sesiAktif) resetPersiapan();
+    if (!sesiAktif) {
+      resetPersiapan();
+      // D6: checklist & alasan libur jangan nyangkut dari kunjungan sebelumnya.
+      resetLiburCheck();
+      var _la = document.getElementById('liburAlasan');
+      if (_la) _la.value = '';
+    }
     // Render ulang kartu halaqah wizard sesuai pilihan terkini (setelah populateSel)
     if (typeof renderWizHalaqahCards === 'function') renderWizHalaqahCards();
   }
@@ -8738,6 +8759,18 @@ function filterMuridSearch() { renderMuridTable(); }
 // ══ PERSIAPAN SEBELUM MENGAJAR ══════════════════
 // ── Checklist konfirmasi sebelum "Tandai Kelas Diliburkan" ──
 var _liburCheckState = [false, false];
+
+// Kartu "Tidak bisa mengajar?" kini CTA collapsible (Tahap 3) -- buka/tutup body.
+function toggleKelasLibur() {
+  var body  = document.getElementById('liburBody');
+  var caret = document.getElementById('liburCaret');
+  var btn   = document.getElementById('liburToggle');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (caret) caret.classList.toggle('open', !open);
+  if (btn)   btn.setAttribute('aria-expanded', String(!open));
+}
 
 function toggleLiburCheck(idx) {
   _liburCheckState[idx] = !_liburCheckState[idx];
