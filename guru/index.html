@@ -1583,6 +1583,333 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   .wiz-lbl{display:none}
   .wiz-step.active .wiz-lbl{display:inline}
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM KBM — Modern Minimalis (aksen netral/slate, flat, sudut
+   kecil, tanpa gradient dekoratif). Scope ketat ke halaman KBM supaya halaman
+   lain yg berbagi class generik tak ikut berubah. Light & dark diambil dari
+   token yg sudah ada (--text/--card/--border + html.theme-dark), jadi konsisten
+   dgn tema Minimalis & AMOLED dark yg dipakai portal.
+   ════════════════════════════════════════════════════════════════════ */
+#page-kbm,#page-presensi,#page-nilai-murid,
+#page-hafalan-kbm,#page-microteaching-kbm,#page-jurnal{
+  --kbm-accent:#0f172a;        /* slate-900: aksen netral (bukan biru) */
+  --kbm-accent-soft:rgba(15,23,42,.06);
+  --kbm-accent-border:rgba(15,23,42,.14);
+  --kbm-ok:#16a34a;            /* hijau utk status sukses/hadir (fungsional) */
+  --kbm-ok-soft:rgba(22,163,74,.08);
+  --kbm-warn:#b45309;          /* amber utk libur/draft (fungsional) */
+  --kbm-warn-soft:rgba(180,83,9,.07);
+  --kbm-danger:#dc2626;
+  --kbm-radius:10px;
+  --kbm-radius-sm:8px;
+  --kbm-ink:var(--text);
+  --kbm-ink-2:var(--text-2);
+  --kbm-ink-3:var(--text-3);
+  --kbm-line:var(--border);
+  --kbm-card:var(--card-solid,#fff);
+  --kbm-track:rgba(15,23,42,.08);
+}
+html.theme-dark #page-kbm,html.theme-dark #page-presensi,html.theme-dark #page-nilai-murid,
+html.theme-dark #page-hafalan-kbm,html.theme-dark #page-microteaching-kbm,html.theme-dark #page-jurnal{
+  --kbm-accent:#f0f2f8;
+  --kbm-accent-soft:rgba(240,242,248,.08);
+  --kbm-accent-border:rgba(240,242,248,.18);
+  --kbm-ok:#34d399;
+  --kbm-ok-soft:rgba(52,211,153,.12);
+  --kbm-warn:#fbbf24;
+  --kbm-warn-soft:rgba(251,191,36,.1);
+  --kbm-card:#121214;
+  --kbm-track:rgba(255,255,255,.1);
+}
+
+/* — Tipografi & judul halaman — */
+#page-kbm,#page-presensi,#page-nilai-murid,#page-hafalan-kbm,#page-microteaching-kbm,#page-jurnal{
+  letter-spacing:-.01em;
+}
+
+/* — KARTU: flat, sudut kecil, tanpa shadow/gradient — */
+#page-kbm .card,#page-presensi .card,#page-nilai-murid .card,
+#page-hafalan-kbm .card,#page-microteaching-kbm .card,#page-jurnal .card,
+#page-nilai-murid .nilai-murid-card,#page-hafalan-kbm .nilai-murid-card,
+#page-microteaching-kbm .nilai-murid-card,
+#page-kbm .wiz-hq-card,#page-kbm .persiapan-wrap,#page-kbm .persiapan-item,
+#page-kbm .libur-item,#page-kbm .wiz-picked,
+#page-kbm .draft-warning,#page-presensi .prow,#page-nilai-murid .nilai-row{
+  background:var(--kbm-card);
+  border:1px solid var(--kbm-line);
+  border-radius:var(--kbm-radius);
+  box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#page-kbm .card:hover,#page-kbm .wiz-hq-card:hover,
+#page-presensi .card:hover,#page-nilai-murid .card:hover{transform:none;box-shadow:none}
+
+/* Kartu kepala: header rata tanpa gradient */
+#page-kbm .card-head,#page-jurnal .jurnal-card-head{
+  background:transparent;border-bottom:1px solid var(--kbm-line);
+}
+#page-jurnal .jurnal-card,#page-jurnal .jurnal-card.pr-head{background:var(--kbm-card)}
+
+/* — TOMBOL: flat, sudut kecil, aksen netral — */
+#page-kbm .btn,#page-presensi .btn,#page-nilai-murid .btn,
+#page-hafalan-kbm .btn,#page-microteaching-kbm .btn,#page-jurnal .btn,
+#page-kbm .btn-perjuangan,
+#page-presensi .step-nav .btn-back,#page-nilai-murid .step-nav .btn-back,
+#page-hafalan-kbm .step-nav .btn-back,#page-microteaching-kbm .step-nav .btn-back,#page-jurnal .step-nav .btn-back,
+#page-presensi .step-nav .btn-next,#page-nilai-murid .step-nav .btn-next,
+#page-hafalan-kbm .step-nav .btn-next,#page-microteaching-kbm .step-nav .btn-next,#page-jurnal .step-nav .btn-next,
+#page-kbm .step-nav .btn-back,#page-kbm .step-nav .btn-next{
+  border-radius:var(--kbm-radius-sm);
+  box-shadow:none;
+  font-weight:700;
+  transition:background .15s,border-color .15s,color .15s;
+}
+/* Tombol utama (aksi maju / buka sesi): blok aksen netral, bukan hijau/biru gradient */
+#page-kbm .btn-perjuangan,
+#page-presensi .step-nav .btn-next,#page-nilai-murid .step-nav .btn-next,
+#page-hafalan-kbm .step-nav .btn-next,#page-microteaching-kbm .step-nav .btn-next,#page-jurnal .step-nav .btn-next,
+#page-kbm .step-nav .btn-next{
+  background:var(--kbm-accent);color:var(--kbm-card);
+  border:1px solid var(--kbm-accent);
+  transform:none;
+}
+html.theme-dark #page-kbm .btn-perjuangan,
+html.theme-dark #page-presensi .step-nav .btn-next,html.theme-dark #page-nilai-murid .step-nav .btn-next,
+html.theme-dark #page-hafalan-kbm .step-nav .btn-next,html.theme-dark #page-microteaching-kbm .step-nav .btn-next,
+html.theme-dark #page-jurnal .step-nav .btn-next,html.theme-dark #page-kbm .step-nav .btn-next{
+  background:#f0f2f8;color:#0f172a;border-color:#f0f2f8;
+}
+#page-kbm .btn-perjuangan:hover,
+#page-presensi .step-nav .btn-next:hover,#page-nilai-murid .step-nav .btn-next:hover,
+#page-hafalan-kbm .step-nav .btn-next:hover,#page-microteaching-kbm .step-nav .btn-next:hover,
+#page-jurnal .step-nav .btn-next:hover,#page-kbm .step-nav .btn-next:hover{
+  transform:none;box-shadow:none;filter:brightness(1.06);
+}
+#page-kbm .btn-perjuangan:disabled,
+#page-presensi .step-nav .btn-next:disabled,#page-nilai-murid .step-nav .btn-next:disabled,
+#page-hafalan-kbm .step-nav .btn-next:disabled,#page-microteaching-kbm .step-nav .btn-next:disabled,
+#page-jurnal .step-nav .btn-next:disabled,#page-kbm .step-nav .btn-next:disabled{
+  opacity:.45;cursor:not-allowed;filter:none;
+}
+/* Tombol sekunder / kembali: outline netral */
+#page-presensi .step-nav .btn-back,#page-nilai-murid .step-nav .btn-back,
+#page-hafalan-kbm .step-nav .btn-back,#page-microteaching-kbm .step-nav .btn-back,#page-jurnal .step-nav .btn-back,
+#page-kbm .step-nav .btn-back,#page-kbm .btn-outline{
+  background:transparent;color:var(--kbm-ink-2);
+  border:1px solid var(--kbm-line);
+}
+#page-presensi .step-nav .btn-back:hover,#page-nilai-murid .step-nav .btn-back:hover,
+#page-hafalan-kbm .step-nav .btn-back:hover,#page-microteaching-kbm .step-nav .btn-back:hover,
+#page-jurnal .step-nav .btn-back:hover,#page-kbm .step-nav .btn-back:hover{
+  border-color:var(--kbm-accent-border);color:var(--kbm-ink);box-shadow:none;
+}
+
+/* — INPUT / FORM CONTROL: flat, sudut kecil — */
+#page-kbm .fc,#page-presensi .fc,#page-nilai-murid .fc,
+#page-hafalan-kbm .fc,#page-microteaching-kbm .fc,#page-jurnal .fc{
+  border-radius:var(--kbm-radius-sm);
+  background:var(--kbm-card);
+  border:1px solid var(--kbm-line);
+  color:var(--kbm-ink);
+  transition:border-color .15s,box-shadow .15s;
+}
+#page-kbm .fc:focus,#page-presensi .fc:focus,#page-nilai-murid .fc:focus,
+#page-hafalan-kbm .fc:focus,#page-microteaching-kbm .fc:focus,#page-jurnal .fc:focus{
+  border-color:var(--kbm-accent);box-shadow:0 0 0 3px var(--kbm-accent-soft);outline:none;
+}
+html.theme-dark #page-kbm .fc,html.theme-dark #page-presensi .fc,
+html.theme-dark #page-nilai-murid .fc,html.theme-dark #page-hafalan-kbm .fc,
+html.theme-dark #page-microteaching-kbm .fc,html.theme-dark #page-jurnal .fc{
+  background:#1b1d20;border-color:rgba(255,255,255,.12);
+}
+html.theme-dark #page-kbm .fc:focus,html.theme-dark #page-presensi .fc:focus,
+html.theme-dark #page-nilai-murid .fc:focus,html.theme-dark #page-hafalan-kbm .fc:focus,
+html.theme-dark #page-microteaching-kbm .fc:focus,html.theme-dark #page-jurnal .fc:focus{
+  border-color:#f0f2f8;box-shadow:0 0 0 3px rgba(240,242,248,.12);
+}
+/* Label form: tegas tapi tidak uppercase berlebihan */
+#page-kbm .fg>label,#page-kbm .nm-section-label,
+#page-jurnal .nm-section-label{
+  color:var(--kbm-ink-2);font-weight:700;
+}
+
+/* — STEP BAR (progress 4 step): garis minimal — */
+#page-presensi .steps,#page-nilai-murid .steps,#page-jurnal .steps,
+#page-hafalan-kbm .steps,#page-microteaching-kbm .steps{margin-bottom:18px}
+#page-presensi .step-num,#page-nilai-murid .step-num,#page-jurnal .step-num,
+#page-hafalan-kbm .step-num,#page-microteaching-kbm .step-num{
+  width:26px;height:26px;font-size:11.5px;border-radius:50%;
+  border:1.5px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-3);
+}
+#page-presensi .step-num.active,#page-nilai-murid .step-num.active,#page-jurnal .step-num.active,
+#page-hafalan-kbm .step-num.active,#page-microteaching-kbm .step-num.active{
+  background:var(--kbm-accent);border-color:var(--kbm-accent);color:var(--kbm-card);box-shadow:none;
+}
+#page-presensi .step-num.done,#page-nilai-murid .step-num.done,#page-jurnal .step-num.done,
+#page-hafalan-kbm .step-num.done,#page-microteaching-kbm .step-num.done{
+  background:var(--kbm-ok);border-color:var(--kbm-ok);color:#fff;
+}
+#page-presensi .step-label.active,#page-nilai-murid .step-label.active,#page-jurnal .step-label.active,
+#page-hafalan-kbm .step-label.active,#page-microteaching-kbm .step-label.active{color:var(--kbm-ink)}
+#page-presensi .step-label.done,#page-nilai-murid .step-label.done,#page-jurnal .step-label.done,
+#page-hafalan-kbm .step-label.done,#page-microteaching-kbm .step-label.done{color:var(--kbm-ok)}
+#page-presensi .step-line,#page-nilai-murid .step-line,#page-jurnal .step-line,
+#page-hafalan-kbm .step-line,#page-microteaching-kbm .step-line{background:var(--kbm-track)}
+#page-presensi .step-line.done,#page-nilai-murid .step-line.done,#page-jurnal .step-line.done,
+#page-hafalan-kbm .step-line.done,#page-microteaching-kbm .step-line.done{background:var(--kbm-ok)}
+
+/* — MINI STEP WIZARD (sub-step buka sesi): konsisten dgn step bar — */
+#page-kbm .wiz-num{background:var(--kbm-card);border-color:var(--kbm-line);color:var(--kbm-ink-3)}
+#page-kbm .wiz-step.active .wiz-num{background:var(--kbm-accent);border-color:var(--kbm-accent);color:var(--kbm-card)}
+#page-kbm .wiz-step.done .wiz-num{background:var(--kbm-ok);border-color:var(--kbm-ok);color:#fff}
+#page-kbm .wiz-step.active .wiz-lbl{color:var(--kbm-ink)}
+#page-kbm .wiz-step.done .wiz-lbl{color:var(--kbm-ok)}
+#page-kbm .wiz-step-line{background:var(--kbm-track)}
+
+/* — KARTU HALAQAH (sub-step 1): flat, selected = aksen netral — */
+#page-kbm .wiz-hq-card{border-radius:var(--kbm-radius);border:1px solid var(--kbm-line)}
+#page-kbm .wiz-hq-card:hover{border-color:var(--kbm-accent-border)}
+#page-kbm .wiz-hq-card.selected{border-color:var(--kbm-accent);box-shadow:0 0 0 1px var(--kbm-accent) inset}
+#page-kbm .wiz-hq-card.today{border-color:var(--kbm-ok)}
+#page-kbm .wiz-hq-dot{width:8px;height:8px}
+#page-kbm .wiz-hq-badge{background:var(--kbm-ok);color:#fff;border-radius:100px}
+#page-kbm .wiz-hq-check{background:var(--kbm-accent);color:var(--kbm-card)}
+
+/* — TILE JENIS SESI: grid rapi, aksen netral saat aktif — */
+#page-kbm .kbm-jenis-btn{
+  border-radius:var(--kbm-radius-sm);border:1px solid var(--kbm-line);
+  background:var(--kbm-card);color:var(--kbm-ink-2);font-weight:700;
+  box-shadow:none;transition:border-color .15s,color .15s,background .15s;
+}
+#page-kbm .kbm-jenis-btn:hover{border-color:var(--kbm-accent-border)}
+#page-kbm .kbm-jenis-btn.active{
+  background:var(--kbm-accent);color:var(--kbm-card);border-color:var(--kbm-accent);
+}
+html.theme-dark #page-kbm .kbm-jenis-btn.active{background:#f0f2f8;color:#0f172a;border-color:#f0f2f8}
+
+/* — RINGKasan terpilih & hint: netral/amber, tanpa bubble biru — */
+#page-kbm .wiz-picked{background:var(--kbm-accent-soft);border:1px solid var(--kbm-accent-border);border-radius:var(--kbm-radius-sm)}
+#page-kbm .wiz-ganti{color:var(--kbm-accent)}
+html.theme-dark #page-kbm .wiz-ganti{color:#f0f2f8}
+#page-kbm .wiz-hint{background:var(--kbm-warn-soft);border:1px solid var(--kbm-warn);color:var(--kbm-warn);border-radius:var(--kbm-radius-sm)}
+
+/* — PERSIAPAN & LIBUR checklist: flat, sudut kecil, aksen fungsional — */
+#page-kbm .persiapan-wrap{border:1px solid var(--kbm-line);border-radius:var(--kbm-radius)}
+#page-kbm .persiapan-title{color:var(--kbm-ink)}
+#page-kbm .persiapan-sub{color:var(--kbm-ink-3)}
+#page-kbm .persiapan-item{border:1px solid var(--kbm-line);background:var(--kbm-card)}
+#page-kbm .persiapan-item:hover{border-color:var(--kbm-ok)}
+#page-kbm .persiapan-item.checked{border-color:var(--kbm-ok);background:var(--kbm-ok-soft)}
+#page-kbm .persiapan-cb{border-color:var(--kbm-line);border-radius:6px}
+#page-kbm .persiapan-item.checked .persiapan-cb{background:var(--kbm-ok);border-color:var(--kbm-ok);color:#fff}
+#page-kbm .persiapan-item.checked .persiapan-item-label{color:var(--kbm-ink)}
+#page-kbm .persiapan-item.checked .persiapan-item-desc{color:var(--kbm-ink-3)}
+#page-kbm .persiapan-progress{background:var(--kbm-track)}
+#page-kbm .persiapan-progress-fill{background:var(--kbm-ok)}
+#page-kbm .persiapan-footer{color:var(--kbm-ink-3);border-top-color:var(--kbm-line)}
+#page-kbm .persiapan-hint{color:var(--kbm-ink-3)}
+#page-kbm .persiapan-link{color:var(--kbm-accent)}
+html.theme-dark #page-kbm .persiapan-link{color:#f0f2f8}
+
+#page-kbm .libur-item{border:1px solid var(--kbm-line);background:var(--kbm-card)}
+#page-kbm .libur-item:hover{border-color:var(--kbm-warn)}
+#page-kbm .libur-item.checked{border-color:var(--kbm-warn);background:var(--kbm-warn-soft)}
+#page-kbm .libur-cb{border-color:var(--kbm-line);border-radius:6px}
+#page-kbm .libur-item.checked .libur-cb{background:var(--kbm-warn);border-color:var(--kbm-warn);color:#fff}
+#page-kbm .libur-item-label{color:var(--kbm-ink-2)}
+#page-kbm .libur-item.checked .libur-item-label{color:var(--kbm-ink)}
+#page-kbm .libur-hint{color:var(--kbm-warn)}
+#page-kbm .libur-toggle-title{color:var(--kbm-warn)}
+#page-kbm .libur-toggle-sub{color:var(--kbm-ink-3)}
+#page-kbm .libur-toggle-caret{color:var(--kbm-warn)}
+
+/* — DRAFT WARNING (banner sesi belum tuntas): amber fungsional, flat — */
+#page-kbm .draft-warning{background:var(--kbm-warn-soft);border:1px solid var(--kbm-warn);border-radius:var(--kbm-radius)}
+#page-kbm #draftWarning .draft-warning-title{color:var(--kbm-warn)}
+#page-kbm #draftWarning .draft-warning-sub{color:var(--kbm-ink-2)}
+#page-kbm .draft-warning-note{background:transparent;border:1px dashed var(--kbm-warn);color:var(--kbm-warn)}
+#page-kbm #btnDraftLanjut{background:var(--kbm-accent)!important;color:var(--kbm-card)!important;border-radius:var(--kbm-radius-sm)!important}
+html.theme-dark #page-kbm #btnDraftLanjut{background:#f0f2f8!important;color:#0f172a!important}
+
+/* — PRESENSI: baris murid & tombol status — */
+#page-presensi .prow{background:var(--kbm-card);border:1px solid var(--kbm-line);border-radius:var(--kbm-radius-sm);box-shadow:none}
+#page-presensi .pb{border-radius:6px;font-weight:800;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-3);box-shadow:none}
+#page-presensi .pb[data-k="H"].on{background:var(--kbm-ok);border-color:var(--kbm-ok);color:#fff}
+#page-presensi .pb[data-k="T"].on{background:var(--kbm-accent);border-color:var(--kbm-accent);color:var(--kbm-card)}
+#page-presensi .pb[data-k="I"].on{background:var(--kbm-warn);border-color:var(--kbm-warn);color:#fff}
+#page-presensi .pb[data-k="A"].on{background:var(--kbm-danger);border-color:var(--kbm-danger);color:#fff}
+html.theme-dark #page-presensi .pb[data-k="H"].on{background:var(--kbm-ok);color:#0f172a}
+html.theme-dark #page-presensi .pb[data-k="T"].on{background:#f0f2f8;color:#0f172a}
+
+/* — KARTU NILAI / HAFALAN / MT: terisi = hijau fungsional, flat — */
+#page-nilai-murid .nilai-murid-card,#page-hafalan-kbm .nilai-murid-card,#page-microteaching-kbm .nilai-murid-card{
+  border-radius:var(--kbm-radius);
+}
+#page-nilai-murid .nilai-murid-card.terisi,#page-hafalan-kbm .nilai-murid-card.terisi,
+#page-microteaching-kbm .nilai-murid-card.terisi{
+  border-color:var(--kbm-ok);background:var(--kbm-ok-soft);
+}
+#page-nilai-murid .nilai-murid-card.alpa,#page-hafalan-kbm .nilai-murid-card.alpa{opacity:.55}
+#page-nilai-murid .nm-progress-track,#page-nilai-murid .nm-progress-fill{border-radius:100px}
+#page-nilai-murid .nm-progress-track{background:var(--kbm-track)}
+#page-nilai-murid .nm-progress-fill{background:var(--kbm-ok)}
+#page-nilai-murid .nm-tool-btn,#page-hafalan-kbm .nm-tool-btn,#page-microteaching-kbm .nm-tool-btn{
+  border-radius:6px;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-2);box-shadow:none;font-weight:700;
+}
+
+/* — BADGE status (Hadir/Izin/dsb): flat, sudut kecil — */
+#page-presensi .badge,#page-nilai-murid .badge,#page-hafalan-kbm .badge,#page-microteaching-kbm .badge,
+#page-kbm .badge{border-radius:6px;font-weight:800}
+
+/* — Kartu jurnal grid: rata — */
+#page-jurnal .jurnal-card{border-radius:var(--kbm-radius);border:1px solid var(--kbm-line);box-shadow:none}
+#page-jurnal .jurnal-card:hover{box-shadow:none}
+
+/* — Ikon SVG garis di halaman KBM: konsisten stroke + ANIMASI — */
+.kbm-ico{width:1.1em;height:1.1em;flex-shrink:0;vertical-align:-.18em;
+  stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:inline-block}
+.kbm-ico-lg{width:1.3em;height:1.3em}
+/* Animasi stroke-draw saat ikon pertama muncul (garis "digambar" lalu diisi) */
+.kbm-ico path,.kbm-ico circle,.kbm-ico rect,.kbm-ico polyline,.kbm-ico line{
+  stroke-dasharray:100;stroke-dashoffset:100;
+  animation:kbmDraw .55s cubic-bezier(.5,0,.3,1) forwards;
+}
+.kbm-ico .kbm-d1{animation-delay:.08s}
+.kbm-ico .kbm-d2{animation-delay:.16s}
+.kbm-ico .kbm-d3{animation-delay:.24s}
+@keyframes kbmDraw{to{stroke-dashoffset:0}}
+/* Interaksi: ikon di dalam tombol/kartu sedikit "hidup" saat hover (bukan bounce berlebihan) */
+.wiz-hq-card:hover .kbm-ico,.kbm-jenis-btn:hover .kbm-ico,
+.persiapan-item:hover .kbm-ico,.libur-item:hover .kbm-ico,
+.btn-perjuangan:hover .kbm-ico{transform:translateY(-1px) scale(1.06)}
+.wiz-hq-card .kbm-ico,.kbm-jenis-btn .kbm-ico,.persiapan-item .kbm-ico,
+.libur-item .kbm-ico,.btn-perjuangan .kbm-ico{transition:transform .18s cubic-bezier(.34,1.3,.64,1)}
+/* Centang terpilih: pop lembut */
+.wiz-hq-card.selected .wiz-hq-check,.persiapan-item.checked .persiapan-cb,.libur-item.checked .libur-cb{
+  animation:kbmPop .28s cubic-bezier(.34,1.5,.64,1);
+}
+@keyframes kbmPop{0%{transform:scale(.4)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+/* Spinner ikon (loading) — putaran halus */
+.kbm-ico-spin{animation:kbmSpin 1s linear infinite}
+.kbm-ico-spin path,.kbm-ico-spin circle{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+@keyframes kbmSpin{to{transform:rotate(360deg)}}
+/* Hormati preferensi gerak-minim: matikan semua animasi ikon */
+@media (prefers-reduced-motion:reduce){
+  .kbm-ico path,.kbm-ico circle,.kbm-ico rect,.kbm-ico polyline,.kbm-ico line{animation:none;stroke-dashoffset:0}
+  .wiz-hq-card.selected .wiz-hq-check,.persiapan-item.checked .persiapan-cb,.libur-item.checked .libur-cb,
+  .kbm-ico-spin{animation:none}
+  .wiz-hq-card .kbm-ico,.kbm-jenis-btn .kbm-ico,.persiapan-item .kbm-ico,.libur-item .kbm-ico{transition:none}
+}
+
+/* — Responsif HP: padding & grid nyaman di layar kecil — */
+@media (max-width:520px){
+  #page-kbm .card-body,#page-presensi .card-body,#page-nilai-murid .card-body,
+  #page-hafalan-kbm .card-body,#page-microteaching-kbm .card-body{padding:14px}
+  #page-kbm .kbm-jenis-group{grid-template-columns:1fr 1fr !important}
+  #page-kbm .f2{grid-template-columns:1fr !important}
+}
+/* ══════════ END DESIGN SYSTEM KBM ══════════ */
 /* ── TEMPLATE KOREKSI ACCORDION ── */
 .kor-accordion{margin-bottom:8px;border-radius:12px;overflow:hidden;
   border:1px solid var(--border)}
@@ -3228,19 +3555,19 @@ html.theme-dark .pr-chip.active {
 
         <!-- Sesi aktif — satu kartu saja -->
         <div class="draft-warning" id="draftWarning">
-          <div class="draft-warning-ico">⏳</div>
+          <div class="draft-warning-ico"><svg class="kbm-ico kbm-ico-lg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M12 7v5l3 2"/></svg></div>
           <div class="draft-warning-body">
             <div class="draft-warning-title">Masih ada amanah KBM yang belum tuntas</div>
             <div class="draft-warning-sub" id="draftWarningInfo">Sesi sebelumnya masih terbuka.</div>
-            <div class="draft-warning-note">Tuntaskan dulu sesi ini agar tidak ada nilai murid yang tertinggal. Bismillah, kita selesaikan. 🤲</div>
+            <div class="draft-warning-note">Tuntaskan dulu sesi ini agar tidak ada nilai murid yang tertinggal. Bismillah, kita selesaikan.</div>
             <div class="draft-warning-btns" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%">
-              <button class="btn" id="btnDraftLanjut" style="background:var(--green);color:#fff;font-weight:700;padding:12px 14px;font-size:13.5px;width:100%;justify-content:center;border-radius:12px;white-space:normal;text-align:center;line-height:1.3;min-height:44px"
-                onclick="lanjutSesi()">▶ Lanjutkan &amp; Selesaikan Pertemuan</button>
+              <button class="btn" id="btnDraftLanjut" style="font-weight:700;padding:12px 14px;font-size:13.5px;width:100%;justify-content:center;white-space:normal;text-align:center;line-height:1.3;min-height:44px"
+                onclick="lanjutSesi()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg> Lanjutkan &amp; Selesaikan Pertemuan</button>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%">
-                <button class="btn btn-outline" id="btnDraftLibur" style="width:100%;min-width:0;color:#e0772a;border-color:#e0772a;background:rgba(224,119,42,0.05);padding:10px 6px;font-size:12px;font-weight:600;justify-content:center;border-radius:10px;white-space:normal;text-align:center;min-height:40px"
-                  onclick="batalkanDanTandaiLibur()">📵 Tandai Libur</button>
-                <button class="btn btn-outline" id="btnDraftHapus" style="width:100%;min-width:0;color:var(--red);border-color:var(--red);background:rgba(224,90,42,0.05);padding:10px 6px;font-size:12px;font-weight:600;justify-content:center;border-radius:10px;white-space:normal;text-align:center;min-height:40px"
-                  onclick="hapusSesiDraft()">🗑️ Hapus Sesi</button>
+                <button class="btn btn-outline" id="btnDraftLibur" style="width:100%;min-width:0;color:var(--kbm-warn);border-color:var(--kbm-warn);background:transparent;padding:10px 6px;font-size:12px;font-weight:600;justify-content:center;white-space:normal;text-align:center;min-height:40px"
+                  onclick="batalkanDanTandaiLibur()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M5.5 5.5l13 13"/></svg> Tandai Libur</button>
+                <button class="btn btn-outline" id="btnDraftHapus" style="width:100%;min-width:0;color:var(--kbm-danger);border-color:var(--kbm-danger);background:transparent;padding:10px 6px;font-size:12px;font-weight:600;justify-content:center;white-space:normal;text-align:center;min-height:40px"
+                  onclick="hapusSesiDraft()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg> Hapus Sesi</button>
               </div>
             </div>
           </div>
@@ -3248,7 +3575,7 @@ html.theme-dark .pr-chip.active {
 
         <!-- Banner Libur Resmi (Flow 4) -->
         <div class="draft-warning" id="liburResmiBanner">
-          <div class="draft-warning-ico">🏖️</div>
+          <div class="draft-warning-ico"><svg class="kbm-ico kbm-ico-lg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M5.5 5.5l13 13"/></svg></div>
           <div class="draft-warning-body">
             <div class="draft-warning-title">Hari Ini Libur Resmi</div>
             <div class="draft-warning-sub" id="liburResmiInfo">-</div>
@@ -3257,7 +3584,7 @@ html.theme-dark .pr-chip.active {
 
         <!-- Form buka sesi — wizard 3 sub-step -->
         <div class="card" id="formBukaKBM">
-          <div class="card-head"><div class="card-title">▶ KBM Baru</div></div>
+          <div class="card-head"><div class="card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><polygon points="6 4 20 12 6 20 6 4"/></svg>KBM Baru</div></div>
           <div class="card-body">
 
             <!-- Mini step indicator -->
@@ -3290,7 +3617,7 @@ html.theme-dark .pr-chip.active {
             <div class="wiz-pane" id="wizPane2" style="display:none">
               <div class="wiz-picked" id="wizPickedHalaqah">
                 <span class="wiz-picked-nama" id="wizPickedNama">—</span>
-                <button type="button" class="wiz-ganti" onclick="wizGantiHalaqah()">← Ganti Halaqah</button>
+                <button type="button" class="wiz-ganti" onclick="wizGantiHalaqah()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Ganti Halaqah</button>
               </div>
 
               <div class="fg">
@@ -3298,13 +3625,13 @@ html.theme-dark .pr-chip.active {
                 <input type="hidden" id="kbmJenis" value="KBM Reguler">
                 <div class="kbm-jenis-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 4px;">
                   <div class="kbm-jenis-btn kbm-jenis-reguler active" id="btnKbmJenis-KBM_Reguler" onclick="selectKbmJenis('KBM Reguler')">
-                    <span>📖</span> KBM Reguler
+                    <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> KBM Reguler
                   </div>
                   <div class="kbm-jenis-btn kbm-jenis-qiyam" id="btnKbmJenis-KBM_Qiyam" onclick="selectKbmJenis('KBM Qiyam')" style="display: none;">
-                    <span>🕌</span> KBM Qiyam
+                    <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path class="kbm-d1" d="M5 21V10m14 11V10"/><path class="kbm-d2" d="M12 3c3 3 5 4.5 5 7H7c0-2.5 2-4 5-7z"/></svg> KBM Qiyam
                   </div>
                   <div class="kbm-jenis-btn kbm-jenis-micro" id="btnKbmJenis-Micro_Teaching" onclick="selectKbmJenis('Micro Teaching')">
-                    <span>🎓</span> Micro Teaching
+                    <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path class="kbm-d1" d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path class="kbm-d2" d="M22 9v5"/></svg> Micro Teaching
                   </div>
                 </div>
               </div>
@@ -3327,17 +3654,17 @@ html.theme-dark .pr-chip.active {
               </div>
 
               <!-- ── KELAS PENGGANTI: tandai sesi ini sebagai pengganti (Flow 2/3) ── -->
-              <div class="fg" id="kbmPenggantiWrap" style="display:none;background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:10px 12px;margin-bottom:14px">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600">
+              <div class="fg" id="kbmPenggantiWrap" style="display:none;background:var(--kbm-warn-soft);border:1px solid var(--kbm-warn);border-radius:10px;padding:10px 12px;margin-bottom:14px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-weight:600;color:var(--kbm-ink-2)">
                   <input type="checkbox" id="kbmIsPengganti" style="width:18px;height:18px;flex-shrink:0">
-                  <span>🔄 Tandai sesi ini sebagai <strong>Kelas Pengganti</strong> (sisa: <span id="kbmSisaPengganti">0</span>)</span>
+                  <span>Tandai sesi ini sebagai <strong>Kelas Pengganti</strong> (sisa: <span id="kbmSisaPengganti">0</span>)</span>
                 </label>
               </div>
 
               <div class="wiz-hint" id="wizDetailHint" style="display:none"></div>
               <div class="step-nav" style="margin-top:4px">
-                <button class="btn-back" onclick="wizGantiHalaqah()">← Halaqah</button>
-                <button class="btn-next" id="btnWizNext2" onclick="wizNext()">Lanjut →</button>
+                <button class="btn-back" onclick="wizGantiHalaqah()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Halaqah</button>
+                <button class="btn-next" id="btnWizNext2" onclick="wizNext()">Lanjut <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/></svg></button>
               </div>
             </div>
 
@@ -3345,13 +3672,13 @@ html.theme-dark .pr-chip.active {
             <div class="wiz-pane" id="wizPane3" style="display:none">
               <!-- ── PERSIAPAN SEBELUM MENGAJAR ── -->
               <div class="persiapan-wrap" id="persiapanWrap">
-                <div class="persiapan-title">☑ Persiapan Sebelum Mengajar</div>
+                <div class="persiapan-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg>Persiapan Sebelum Mengajar</div>
                 <div class="persiapan-sub">Sebelum kita berjuang menjadi manusia terbaik,<br>sudahkan kita melakukan ikhtiar ini semua?</div>
 
                 <div class="persiapan-item" id="pItem0" onclick="togglePersiapan(0)">
                   <div class="persiapan-cb" id="pCb0"></div>
                   <div class="persiapan-item-text">
-                    <div class="persiapan-item-label">💚 Memperbaiki Niat</div>
+                    <div class="persiapan-item-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c4 0 7-2.7 7-7 0-3-2-5.5-4-7-1 2-2 3-2 3s-1-4-4-6c0 4-4 5.5-4 10 0 4.3 3 7 7 7z"/></svg> Memperbaiki Niat</div>
                     <div class="persiapan-item-desc">Luruskan niat — mengajar karena Allah semata</div>
                   </div>
                 </div>
@@ -3359,10 +3686,10 @@ html.theme-dark .pr-chip.active {
                 <div class="persiapan-item" id="pItem1" onclick="togglePersiapan(1)">
                   <div class="persiapan-cb" id="pCb1"></div>
                   <div class="persiapan-item-text">
-                    <div class="persiapan-item-label">📖 Membaca Silabus</div>
+                    <div class="persiapan-item-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Membaca Silabus</div>
                     <div class="persiapan-item-desc">
                       Tinjau silabus &amp; berkas pengajaran sebelum kelas —
-                      <span class="persiapan-link" onclick="event.stopPropagation();bukaTabBerkas()">📂 Lihat Berkas Pengajar</span>
+                      <span class="persiapan-link" onclick="event.stopPropagation();bukaTabBerkas()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg> Lihat Berkas Pengajar</span>
                     </div>
                   </div>
                 </div>
@@ -3370,7 +3697,7 @@ html.theme-dark .pr-chip.active {
                 <div class="persiapan-item" id="pItem2" onclick="togglePersiapan(2)">
                   <div class="persiapan-cb" id="pCb2"></div>
                   <div class="persiapan-item-text">
-                    <div class="persiapan-item-label">💬 Menyiapkan 1 Nasihat</div>
+                    <div class="persiapan-item-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Menyiapkan 1 Nasihat</div>
                     <div class="persiapan-item-desc">Siapkan satu nasihat bermakna untuk disampaikan kepada murid hari ini</div>
                   </div>
                 </div>
@@ -3379,20 +3706,20 @@ html.theme-dark .pr-chip.active {
                   <div class="persiapan-progress-fill" id="persiapanBar" style="width:0%"></div>
                 </div>
                 <div class="persiapan-footer" id="persiapanFooter">
-                  Semoga Allah mudahkan ikhtiar hari ini. Baarakallahu fiikum 🌿
+                  Semoga Allah mudahkan ikhtiar hari ini. Baarakallahu fiikum
                 </div>
               </div>
               <!-- ── END PERSIAPAN ── -->
 
               <button class="btn-perjuangan" id="btnMulai" onclick="doBukaKBM()" disabled
                 style="opacity:.45;cursor:not-allowed;transform:none">
-                🔒 Selesaikan Persiapan Dahulu
+                Selesaikan Persiapan Dahulu
               </button>
               <div class="persiapan-hint show" id="persiapanHint">
-                ☝ Centang semua persiapan di atas untuk mengaktifkan tombol
+                Centang semua persiapan di atas untuk mengaktifkan tombol
               </div>
               <div class="step-nav" style="margin-top:10px">
-                <button class="btn-back" onclick="wizGo(2)">← Detail Sesi</button>
+                <button class="btn-back" onclick="wizGo(2)"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Detail Sesi</button>
               </div>
             </div>
 
@@ -3400,9 +3727,9 @@ html.theme-dark .pr-chip.active {
         </div>
 
         <!-- ── KELAS DILIBURKAN (Flow 1) — CTA sekunder collapsible ── -->
-        <div class="card" id="cardKelasLibur" style="margin-top:14px;border:1.5px solid #fdba74">
+        <div class="card" id="cardKelasLibur" style="margin-top:14px;border:1px solid var(--kbm-warn)">
           <button type="button" class="libur-toggle" id="liburToggle" onclick="toggleKelasLibur()" aria-expanded="false">
-            <span class="libur-toggle-ico">📵</span>
+            <span class="libur-toggle-ico"><svg class="kbm-ico kbm-ico-lg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M5.5 5.5l13 13"/></svg></span>
             <span class="libur-toggle-text">
               <span class="libur-toggle-title">Tidak bisa mengajar hari ini?</span>
               <span class="libur-toggle-sub">Tandai sesi sebagai libur (pertemuan tidak bertambah, +1 sisa kelas pengganti)</span>
@@ -3410,12 +3737,12 @@ html.theme-dark .pr-chip.active {
             <span class="libur-toggle-caret" id="liburCaret">▸</span>
           </button>
           <div class="card-body" id="liburBody" style="display:none">
-            <div style="font-size:12.5px;color:#9a3412;margin-bottom:12px;line-height:1.6;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px">
+            <div style="font-size:12.5px;color:var(--kbm-ink-2);margin-bottom:12px;line-height:1.6;background:var(--kbm-warn-soft);border:1px solid var(--kbm-warn);border-radius:10px;padding:10px 12px">
               Pilih halaqah &amp; jenis sesi di wizard di atas, lalu isi alasan di bawah untuk menandai sesi ini sebagai <strong>libur</strong>.
               Pertemuan ke- tidak akan bertambah, dan akan tercatat sebagai sisa kelas pengganti.
             </div>
             <div class="fg">
-              <label style="color:#c2410c;font-weight:800">Alasan Libur</label>
+              <label style="color:var(--kbm-warn);font-weight:800">Alasan Libur</label>
               <textarea class="fc" id="liburAlasan" rows="2" placeholder="Contoh: Sakit demam, ada keperluan mendadak, dll" oninput="_updateLiburCheckUI()"></textarea>
             </div>
 
@@ -3431,9 +3758,9 @@ html.theme-dark .pr-chip.active {
             </div>
 
             <button class="btn btn-outline btn-sm" id="btnTandaiLibur" disabled
-              style="color:#e0772a;border-color:#e0772a;width:100%;justify-content:center;font-weight:800;font-size:14px;padding:12px;opacity:.45;cursor:not-allowed"
-              onclick="doTandaiLibur()">📵 Tandai Kelas Diliburkan</button>
-            <div class="libur-hint show" id="liburHint">☝ Centang konfirmasi &amp; isi alasan libur untuk mengaktifkan tombol</div>
+              style="color:var(--kbm-warn);border-color:var(--kbm-warn);width:100%;justify-content:center;font-weight:800;font-size:14px;padding:12px;opacity:.45;cursor:not-allowed"
+              onclick="doTandaiLibur()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M5.5 5.5l13 13"/></svg> Tandai Kelas Diliburkan</button>
+            <div class="libur-hint show" id="liburHint">Centang konfirmasi &amp; isi alasan libur untuk mengaktifkan tombol</div>
           </div>
         </div>
       </div>
@@ -3445,19 +3772,19 @@ html.theme-dark .pr-chip.active {
 
         <div class="card">
           <div class="card-head">
-            <div class="card-title">👥 Daftar Kehadiran</div>
+            <div class="card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><circle cx="9" cy="8" r="3.5"/><path class="kbm-d1" d="M2.5 20c0-3.3 2.9-5 6.5-5s6.5 1.7 6.5 5"/><path class="kbm-d2" d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 15.5c2 .8 3 2.2 3 4.5"/></svg>Daftar Kehadiran</div>
             <span id="presensiCount" style="font-size:12px;color:var(--text-3)"></span>
           </div>
           <div class="card-body">
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-              <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green)" onclick="setAllPresensi('H')">✓ Semua Hadir</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--kbm-ok);border-color:var(--kbm-ok)" onclick="setAllPresensi('H')"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Semua Hadir</button>
             </div>
             <div id="presensiList" class="presensi-list"></div>
           </div>
         </div>
         <div class="step-nav">
-          <button class="btn-back" onclick="kembaliKeStep1()">← Kembali</button>
-          <button class="btn-next" id="btnLanjutPresensi" onclick="doSimpanPresensi()">Lanjut ke Nilai →</button>
+          <button class="btn-back" onclick="kembaliKeStep1()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Kembali</button>
+          <button class="btn-next" id="btnLanjutPresensi" onclick="doSimpanPresensi()">Lanjut ke Nilai <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/></svg></button>
         </div>
       </div>
 
@@ -3469,7 +3796,7 @@ html.theme-dark .pr-chip.active {
         <div class="card">
           <div class="card-head" style="flex-direction:column;align-items:stretch;gap:8px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-              <div class="card-title">✏️ Nilai per Murid</div>
+              <div class="card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Nilai per Murid</div>
               <span style="font-size:12px;color:var(--text-3)" id="nilaiProgress"></span>
             </div>
             <div class="nm-progress-track" id="nmProgressTrack" style="display:none">
@@ -3481,8 +3808,8 @@ html.theme-dark .pr-chip.active {
           </div>
         </div>
         <div class="step-nav">
-          <button class="btn-back" onclick="kembaliKeStep2()">← Kembali</button>
-          <button class="btn-next" onclick="lanjutKeJurnal()">Lanjut ke Jurnal →</button>
+          <button class="btn-back" onclick="kembaliKeStep2()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Kembali</button>
+          <button class="btn-next" onclick="lanjutKeJurnal()">Lanjut ke Jurnal <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/></svg></button>
         </div>
       </div>
 
@@ -3490,15 +3817,15 @@ html.theme-dark .pr-chip.active {
       <div class="page" id="page-hafalan-kbm">
         <div id="stepBarHafalanKbm" class="steps"></div>
 
-        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">📖 Input Hafalan</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Input Hafalan</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — input hafalan satu per satu</div>
 
         <div id="hafalanKbmList"></div>
 
         <div class="step-nav" style="margin-top:16px">
-          <button class="btn-back" onclick="kembaliKeStep2()">← Presensi</button>
+          <button class="btn-back" onclick="kembaliKeStep2()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Presensi</button>
           <button class="btn-next" id="btnSimpanHafalanKbm" onclick="simpanHafalanKBM()">
-            Simpan & Lanjut ke Jurnal →
+            Simpan & Lanjut ke Jurnal <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
       </div>
@@ -3507,7 +3834,7 @@ html.theme-dark .pr-chip.active {
       <div class="page" id="page-microteaching-kbm">
         <div id="stepBarMicroteachingKbm" class="steps"></div>
 
-        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px">✍️ Penilaian Micro Teaching</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin:14px 0 4px"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Penilaian Micro Teaching</div>
         <div style="font-size:12px;color:var(--text-3);margin-bottom:14px">Murid yang hadir (H/T) — nilai rubrik satu per satu</div>
 
         <!-- Legenda skor -->
@@ -3616,9 +3943,9 @@ html.theme-dark .pr-chip.active {
             align-items: center;
             gap: 6px;
             padding: 8px 12px;
-            background: rgba(14,165,233,0.05);
+            background: var(--kbm-accent-soft, rgba(15,23,42,.05));
             border-radius: 8px;
-            border: 1px dashed rgba(14,165,233,0.2);
+            border: 1px dashed var(--kbm-accent-border, rgba(15,23,42,.18));
           }
         </style>
 
@@ -3626,21 +3953,21 @@ html.theme-dark .pr-chip.active {
           <!-- Card Jurnal Sesi -->
           <div class="jurnal-card">
             <div class="jurnal-card-head">
-              <div class="jurnal-card-title">📓 Jurnal Sesi</div>
+              <div class="jurnal-card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg>Jurnal Sesi</div>
             </div>
             <div class="jurnal-card-body">
               <div class="fg">
-                <label class="nm-section-label">📖 Topik / Materi yang Dipelajari</label>
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Topik / Materi yang Dipelajari</label>
                 <input type="text" class="fc" id="jurnalMateri" placeholder="Contoh: Makhraj Huruf Halqi, Hukum Nun Mati...">
               </div>
 
               <div class="jurnal-field-row">
                 <div class="fg">
-                  <label class="nm-section-label">📄 Halaman / Modul</label>
+                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/></svg> Halaman / Modul</label>
                   <input type="text" class="fc" id="jurnalHalaman" placeholder="Contoh: Halaman 12–15, Modul Bab 3...">
                 </div>
                 <div class="fg">
-                  <label class="nm-section-label">🕐 Jam Selesai</label>
+                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M12 7v5l3 2"/></svg> Jam Selesai</label>
                   <input type="time" class="fc" id="jurnalJamSelesai">
                 </div>
               </div>
@@ -3648,7 +3975,7 @@ html.theme-dark .pr-chip.active {
               <input type="hidden" id="jurnalMetode" value="Campuran">
 
               <div class="fg">
-                <label class="nm-section-label">📝 Catatan Umum Sesi</label>
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Catatan Umum Sesi</label>
                 <textarea class="fc" id="jurnalCatatan" rows="3"
                   placeholder="Kondisi kelas, progress, rencana pertemuan berikutnya..." style="resize:vertical"></textarea>
               </div>
@@ -3658,54 +3985,54 @@ html.theme-dark .pr-chip.active {
           <!-- Card Latihan Mandiri (PR) -->
           <div class="jurnal-card">
             <div class="jurnal-card-head pr-head">
-              <div class="jurnal-card-title">📝 Latihan Mandiri (PR)</div>
+              <div class="jurnal-card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Latihan Mandiri (PR)</div>
               <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="background:var(--card-solid, #fff); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer;">
-                <option value="">✨ Template PR...</option>
-                <option value="vn">🎙️ VN Setoran Hafalan</option>
-                <option value="murottal">🎧 Mendengar Murottal Referensi</option>
-                <option value="baca">📖 Membaca Mandiri 3x</option>
+                <option value="">Template PR...</option>
+                <option value="vn">VN Setoran Hafalan</option>
+                <option value="murottal">Mendengar Murottal Referensi</option>
+                <option value="baca">Membaca Mandiri 3x</option>
               </select>
             </div>
             <div class="jurnal-card-body">
               <div class="jurnal-field-row">
                 <div class="fg">
-                  <label class="nm-section-label">📌 Jenis Latihan Mandiri (PR)</label>
+                  <label class="nm-section-label">Jenis Latihan Mandiri (PR)</label>
                   <select class="fc" id="jurnalJenisLatihan" onchange="toggleReferensiJurnal()">
                     <option value="">— Tidak ada Latihan Mandiri (PR) —</option>
-                    <option value="Rekaman Portal">🎙️ Rekaman Suara di Portal (Disarankan)</option>
-                    <option value="VN di WAG">📱 Kirim Voice Note (VN) di WhatsApp Group</option>
-                    <option value="Mendengar dan membaca mandiri">🎧 Mendengar Murattal & Membaca Mandiri (Tanpa Setor Suara)</option>
-                    <option value="Lainnya">📌 Lainnya</option>
+                    <option value="Rekaman Portal">Rekaman Suara di Portal (Disarankan)</option>
+                    <option value="VN di WAG">Kirim Voice Note (VN) di WhatsApp Group</option>
+                    <option value="Mendengar dan membaca mandiri">Mendengar Murattal & Membaca Mandiri (Tanpa Setor Suara)</option>
+                    <option value="Lainnya">Lainnya</option>
                   </select>
                 </div>
                 <div class="fg">
-                  <label class="nm-section-label">📅 Deadline Pengerjaan</label>
+                  <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path class="kbm-d1" d="M16 2v4M8 2v4M3 10h18"/></svg> Deadline Pengerjaan</label>
                   <input type="date" class="fc" id="jurnalDeadline">
                 </div>
               </div>
 
               <div class="fg">
-                <label class="nm-section-label">✏️ Deskripsi Latihan Mandiri (PR)</label>
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Deskripsi Latihan Mandiri (PR)</label>
                 <textarea class="fc" id="jurnalLatihanMandiri" rows="3"
                   placeholder="Contoh: Baca halaman 12–15, dengarkan rekaman ustadz sebelum pertemuan berikutnya..."
                   style="resize:vertical"></textarea>
               </div>
 
               <div class="fg" id="wadahJurnalReferensi" style="display: none;">
-                <label class="nm-section-label">🔗 Tautan Referensi Rekaman / Murattal (Opsional)</label>
+                <label class="nm-section-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path class="kbm-d1" d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> Tautan Referensi Rekaman / Murattal (Opsional)</label>
                 <input type="url" class="fc" id="jurnalReferensiUrl" placeholder="https://drive.google.com/file/d/.../view atau link audio lainnya">
               </div>
 
               <div class="jurnal-tip">
-                💡 Latihan Mandiri (PR) akan tampil di dashboard murid
+                <svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path class="kbm-d1" d="M12 3a6 6 0 0 1 4 10.5c-.6.5-1 1.3-1 2.5H9c0-1.2-.4-2-1-2.5A6 6 0 0 1 12 3z"/></svg> Latihan Mandiri (PR) akan tampil di dashboard murid
               </div>
             </div>
           </div>
         </div>
 
         <div class="step-nav" style="margin-top:20px;">
-          <button class="btn-back" onclick="kembaliKeStep3()">← Kembali</button>
-          <button class="btn-next" id="btnSelesai" onclick="showPreview()">✅ Selesaikan Sesi</button>
+          <button class="btn-back" onclick="kembaliKeStep3()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/></svg> Kembali</button>
+          <button class="btn-next" id="btnSelesai" onclick="showPreview()"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Selesaikan Sesi</button>
         </div>
       </div>
 
@@ -6071,7 +6398,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=d0d20871" defer></script>
+<script src="kbm-module.js?v=9fd12d88" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>

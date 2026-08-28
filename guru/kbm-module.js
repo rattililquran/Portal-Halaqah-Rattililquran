@@ -6,6 +6,37 @@
   'use strict';
 
   // ── PRIVATE CONSTANTS & HELPERS ──
+  // Set ikon SVG garis (stroke) utk halaman KBM — menggantikan emoji fungsional.
+  // Tiap ikon: garis "digambar" saat muncul (animasi stroke-draw di CSS .kbm-ico).
+  // Pakai: kbmIco('buku') / kbmIco('buku','kbm-ico-lg'). Warna ikut currentColor.
+  var _KBM_ICONS = {
+    buku    : '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path class="kbm-d1" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    masjid  : '<path d="M3 21h18"/><path class="kbm-d1" d="M5 21V10m14 11V10"/><path class="kbm-d2" d="M12 3c3 3 5 4.5 5 7H7c0-2.5 2-4 5-7z"/>',
+    toga    : '<path d="M22 9L12 4 2 9l10 5 10-5z"/><path class="kbm-d1" d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path class="kbm-d2" d="M22 9v5"/>',
+    kalender: '<rect x="3" y="4" width="18" height="18" rx="2"/><path class="kbm-d1" d="M16 2v4M8 2v4M3 10h18"/>',
+    jam     : '<circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M12 7v5l3 2"/>',
+    centang : '<polyline points="20 6 9 17 4 12"/>',
+    silang  : '<path d="M18 6 6 18M6 6l12 12"/>',
+    user    : '<circle cx="12" cy="8" r="4"/><path class="kbm-d1" d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/>',
+    users   : '<circle cx="9" cy="8" r="3.5"/><path class="kbm-d1" d="M2.5 20c0-3.3 2.9-5 6.5-5s6.5 1.7 6.5 5"/><path class="kbm-d2" d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 15.5c2 .8 3 2.2 3 4.5"/>',
+    edit    : '<path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+    dokumen : '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path class="kbm-d1" d="M14 2v6h6M9 13h6M9 17h6"/>',
+    doa     : '<path d="M7 11V7a5 5 0 0 1 10 0v4"/><path class="kbm-d1" d="M5 11h14v6a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5v-6z"/>',
+    nasihat : '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    libur   : '<circle cx="12" cy="12" r="9"/><path class="kbm-d1" d="M5.5 5.5l13 13"/>',
+    kembali : '<path d="M19 12H5"/><polyline class="kbm-d1" points="12 19 5 12 12 5"/>',
+    lanjut  : '<path d="M5 12h14"/><polyline class="kbm-d1" points="12 5 19 12 12 19"/>',
+    play    : '<polygon points="6 4 20 12 6 20 6 4"/>',
+    sampah  : '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/>',
+    pin     : '<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle class="kbm-d1" cx="12" cy="10" r="2.5"/>',
+    api     : '<path d="M12 22c4 0 7-2.7 7-7 0-3-2-5.5-4-7-1 2-2 3-2 3s-1-4-4-6c0 4-4 5.5-4 10 0 4.3 3 7 7 7z"/>',
+    spin    : '<path d="M21 12a9 9 0 1 1-6.2-8.56"/>'
+  };
+  function kbmIco(name, cls) {
+    var body = _KBM_ICONS[name] || _KBM_ICONS.dokumen;
+    return '<svg class="kbm-ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
+  }
+
   const KRITERIA_MT = [
     { id: 'penguasaan', label: 'Penguasaan Materi', bobot: 0.25, desc: ['Sangat Kuat', 'Kuat', 'Cukup', 'Lemah'] },
     { id: 'penyampaian', label: 'Cara Penyampaian', bobot: 0.25, desc: ['Sangat Jelas', 'Jelas', 'Cukup', 'Kurang'] },
@@ -547,9 +578,9 @@
         + '<span class="wiz-hq-info">'
         +   '<span class="wiz-hq-nama">' + esc(h.nama_halaqah || h.id_halaqah) + '</span>'
         +   '<span class="wiz-hq-meta">'
-        +     '<span>📅 ' + esc(h.jadwal_hari || '-') + '</span>'
-        +     '<span>⏰ ' + esc(h.jam_mulai || '-') + '</span>'
-        +     '<span>🔢 ' + esc(_wizNextPtLabel(h)) + '</span>'
+        +     '<span>' + kbmIco('kalender') + ' ' + esc(h.jadwal_hari || '-') + '</span>'
+        +     '<span>' + kbmIco('jam') + ' ' + esc(h.jam_mulai || '-') + '</span>'
+        +     '<span>' + kbmIco('buku') + ' ' + esc(_wizNextPtLabel(h)) + '</span>'
         +   '</span>'
         + '</span>'
         + (isToday ? '<span class="wiz-hq-badge">HARI INI</span>' : '')
@@ -1426,17 +1457,17 @@
     var statusColor = status === 'H' ? '#16a34a' : status === 'T' ? '#d97706' : status === 'I' ? '#2563eb' : '#dc2626';
 
     return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:24px; border-radius:16px; overflow:hidden; border:1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">'
-      + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:linear-gradient(135deg, #0d2d5e, #1a4fa8); color:#fff; flex-wrap:wrap;">'
-        + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
+      + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:var(--kbm-accent-soft, rgba(15,23,42,.05)); color:var(--kbm-ink, var(--text)); border-bottom:1px solid var(--kbm-line, var(--border)); flex-wrap:wrap;">'
+        + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:var(--kbm-accent, #0f172a); color:var(--kbm-card,#fff); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
         + '<div>'
-          + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">👤 ' + esc(m.nama_murid) + '</div>'
-          + '<div style="font-size:11px; margin-top:2px;"><span style="background:'+statusColor+'; color:#fff; padding:2px 8px; border-radius:100px; font-weight:800;">'+statusText+'</span></div>'
+          + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">' + esc(m.nama_murid) + '</div>'
+          + '<div style="font-size:11px; margin-top:2px;"><span style="background:var(--kbm-accent-soft, rgba(15,23,42,.08)); color:var(--kbm-ink-2, var(--text-2)); padding:2px 8px; border-radius:6px; font-weight:800;">'+statusText+'</span></div>'
         + '</div>'
-        + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:100px; padding:4px 12px; font-size:12px; font-weight:900; letter-spacing: 0.04em;">OBSERVER</div>'
+        + '<div class="student-score-badge" id="mt-score-badge-' + id + '" style="margin-left:auto; background:var(--kbm-accent-soft, rgba(15,23,42,.08)); border:1px solid var(--kbm-line, var(--border)); border-radius:6px; padding:4px 12px; font-size:12px; font-weight:900; letter-spacing: 0.04em; color:var(--kbm-ink-2, var(--text-2));">OBSERVER</div>'
       + '</div>'
       + '<div style="padding:14px 18px 0; display:flex; align-items:center; gap:8px;">'
         + '<input type="checkbox" id="mt-toggle-' + id + '" data-status="'+status+'" onchange="toggleMicroteachingPracticing(\'' + id + '\')" style="width:18px; height:18px; cursor:pointer;">'
-        + '<label for="mt-toggle-' + id + '" style="font-size:13px; font-weight:800; color:#1e3a8a; cursor:pointer; margin:0; user-select:none;">🎯 Jadwal Praktik Hari Ini</label>'
+        + '<label for="mt-toggle-' + id + '" style="font-size:13px; font-weight:800; color:var(--kbm-ink, var(--text)); cursor:pointer; margin:0; user-select:none;">Jadwal Praktik Hari Ini</label>'
       + '</div>'
       + '<div id="mt-content-wrapper-' + id + '"></div>'
       + '</div>';
@@ -3759,6 +3790,7 @@
   window.selectKbmJenis = selectKbmJenis;
   window.wizGo = wizGo;
   window.wizGantiHalaqah = wizGantiHalaqah;
+  window.kbmIco = kbmIco;
   window.wizNext = wizNext;
   window.wizPickHalaqah = wizPickHalaqah;
   window.renderWizHalaqahCards = renderWizHalaqahCards;
