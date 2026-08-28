@@ -3741,6 +3741,10 @@
   window.simpanCatatan = simpanCatatan;
   window._saveKbmDraftLocal = _saveKbmDraftLocal;
   window._kbmServerSyncFlush = _kbmServerSyncFlush;
+  // Diekspor karena dipanggil dari inline oninput di HTML yg dirender JS
+  // (textarea koreksi/catatan nilai & catatan microteaching) -- inline handler
+  // berjalan di scope global, bukan di dalam IIFE modul ini.
+  window._kbmDraftSaveDebounced = _kbmDraftSaveDebounced;
   window._loadKbmDraftLocal = _loadKbmDraftLocal;
   window._clearKbmDraftLocal = _clearKbmDraftLocal;
   window._hydrateKbmCacheFromDraft = _hydrateKbmCacheFromDraft;
