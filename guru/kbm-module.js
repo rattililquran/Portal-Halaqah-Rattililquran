@@ -288,6 +288,19 @@
         presensi
       });
       const jenisSesi = sesiAktif ? sesiAktif.jenis_sesi : 'KBM Reguler';
+      // Selaraskan dgn step Nilai Reguler (yg sumber kebenarannya DOM & tak
+      // merender field utk murid non-H/T): invalidasi cache setoran hafalan utk
+      // murid yg statusnya BUKAN H/T. Tanpa ini (bug F2), cache keranjang lama
+      // "bangkit" kembali & ikut tersimpan permanen bila guru mengubah status
+      // H→A/I lalu mengembalikannya ke H -- padahal setoran itu seharusnya batal.
+      if (jenisSesi === 'KBM Qiyam' && window._hafalanKbmCache) {
+        presensi.forEach(function(p) {
+          if (!['H','T'].includes(p.status_hadir)) {
+            delete window._hafalanKbmCache[p.id_murid];
+            if (window._hafalanKbmTarget) delete window._hafalanKbmTarget[p.id_murid];
+          }
+        });
+      }
       if (jenisSesi === 'KBM Qiyam') {
         goToHafalanQiyam();
       } else if (jenisSesi === 'Micro Teaching') {
@@ -521,8 +534,13 @@
       var isToday = _wizIsHariIni(h);
       // escJs utk argumen string JS di onclick (id_halaqah bisa mengandung
       // apostrof/backslash yg mematahkan string & membuka injeksi kode) -- esc()
-      // saja TIDAK cukup (polar baku codebase, lihat shared-utils.js escJs).
-      var _escId = (typeof escJs === 'function') ? escJs : esc;
+      // saja TIDAK cukup (pola baku codebase, lihat shared-utils.js escJs).
+      // Fallback lokal TETap meng-escape apostrof+backslash bila escJs global
+      // belum termuat (jaga-jaga kegagalan load), jadi tak pernah kembali ke
+      // esc() yg membuka celah XSS yg sama.
+      var _escId = (typeof escJs === 'function') ? escJs : function(s){
+        return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      };
       return '<button type="button" class="wiz-hq-card' + (isSel ? ' selected' : '') + (isToday ? ' today' : '') + '"'
         + ' data-hid="' + esc(h.id_halaqah) + '" onclick="wizPickHalaqah(\'' + _escId(h.id_halaqah) + '\')">'
         + '<span class="wiz-hq-dot" style="background:' + _dotColor(h.id_halaqah) + '"></span>'
@@ -589,7 +607,10 @@
     } else if (isPengganti && !_wizTglTouched) {
       var todayJkt = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
       if (todayJkt && tgl === todayJkt) {
-        msg = '⚠️ Ini kelas pengganti — pilih tanggal pelaksanaannya (bukan hari ini). Ubah tanggal untuk melanjutkan.';
+        // Jelaskan cara membuka guard: ubah tanggal (boleh dikembalikan ke hari
+        // ini bila memang sengaja). Tanpa penjelasan ini, guru yg MEMANG ingin
+        // kelas pengganti hari ini akan terjebak tanpa tahu jalannya (bug F5 UX).
+        msg = '⚠️ Ini kelas pengganti — tanggalnya masih hari ini (default). Sentuh/ubah kolom tanggal untuk konfirmasi tanggal pelaksanaan (boleh dipilih kembali ke hari ini bila memang sengaja).';
       }
     }
     var ok = !msg;
@@ -1814,9 +1835,15 @@
         if (!serverNewer) return;
         var dd = server.draft;
         try {
+          // Pertahankan draft jurnal lokal -- server sync (hemat payload) TIDAK
+          // menyimpan field jurnal, jadi objek dari server tak punya `jurnal`.
+          // Tanpa baris ini, reconcile yg menimpa draft lokal akan MENGHAPUS
+          // jurnal/latihan yg sudah diketik guru (bug F1).
+          var prevJurnal = (local && local.jurnal) ? local.jurnal : {};
           localStorage.setItem(_kbmDraftKey(id_kbm), JSON.stringify({
             id_kbm: id_kbm, jenis_sesi: server.jenis_sesi, updated_at: server.updated_at,
             nilai: dd.nilai || {}, hafalan: dd.hafalan || {}, microteaching: dd.microteaching || {},
+            jurnal: prevJurnal,
           }));
         } catch (e) {}
         // H2 fix (bug hunt 2026-08-18): serverNewer sudah true di titik ini, tapi
