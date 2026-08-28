@@ -2613,13 +2613,18 @@
     _updateNmProgress(terisi, total);
   }
 
-  // Teks + bar progres "X/Y terisi" -- 1 fungsi dipanggil dari render awal &
+  // Chip + bar progres "X/Y terisi" -- 1 fungsi dipanggil dari render awal &
   // updateNilaiCard, supaya teks dan lebar bar tak pernah menunjukkan angka beda.
+  // Chip berada di head STICKY (menggantung saat scroll); warnanya berubah hijau
+  // saat semua murid H/T sudah terisi, biar mudah dicerna sekilas.
   function _updateNmProgress(terisi, total) {
     const progEl   = document.getElementById('nilaiProgress');
     const trackEl  = document.getElementById('nmProgressTrack');
     const fillEl   = document.getElementById('nmProgressFill');
-    if (progEl) progEl.textContent = terisi + '/' + total + ' terisi';
+    if (progEl) {
+      progEl.textContent = terisi + '/' + total + ' terisi';
+      progEl.classList.toggle('done', total > 0 && terisi >= total);
+    }
     if (trackEl) trackEl.style.display = total > 0 ? 'block' : 'none';
     if (fillEl)  fillEl.style.width = (total > 0 ? Math.min(100, (terisi / total) * 100) : 0) + '%';
   }
