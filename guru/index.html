@@ -1862,8 +1862,12 @@ html.theme-dark #page-presensi .pb[data-k="T"].on{background:#f0f2f8;color:#0f17
 /* Head nilai STICKY: judul + chip x/y + progress bar menggantung di atas
    saat guru scroll daftar murid. Background solid krn konten lewat di
    baliknya; turun 6px agar menyatu dgn kartu. */
-#page-nilai-murid .nm-sticky-head{
-  position:sticky;top:0;z-index:20;
+ #page-nilai-murid .nm-sticky-head{
+   position:sticky;z-index:20;
+   /* top = tinggi topbar (sticky juga) — head menggantung LINGKAR di bawah
+      topbar, judul+chip tidak ketutupan (dulu top:0 → ketutupan, hanya bar
+      yang menjulur kelihatan). */
+   top:calc(var(--hh) + var(--sat));
   background:var(--kbm-card);
   border-bottom:1px solid var(--kbm-line);
   border-radius:var(--kbm-radius) var(--kbm-radius) 0 0;
@@ -1884,6 +1888,16 @@ html.theme-dark #page-nilai-murid .nm-sticky-head{box-shadow:0 6px 14px -8px rgb
   background:var(--kbm-ok);color:#fff;border-color:var(--kbm-ok);
 }
 html.theme-dark #page-nilai-murid .nm-progress-chip.done{color:#0f172a}
+/* HP: chip & bar SEJAJAR satu baris di bawah judul kecil -- hemat ruang
+   vertikal dan x/y langsung dibaca bersama bar (lihat screenshot guru). */
+@media (max-width:600px){
+  #page-nilai-murid .nm-sticky-head{padding:10px 12px 8px;gap:6px}
+  #page-nilai-murid .nm-sticky-head .card-title{font-size:12.5px}
+  #page-nilai-murid .nm-sticky-head .card-title .kbm-ico{width:15px;height:15px}
+  #page-nilai-murid .nm-progress-row{display:flex;align-items:center;gap:8px}
+  #page-nilai-murid .nm-progress-row .nm-progress-track{flex:1;margin:0}
+  #page-nilai-murid .nm-progress-chip{flex-shrink:0;order:-1}
+}
 #page-nilai-murid .nm-tool-btn,#page-hafalan-kbm .nm-tool-btn,#page-microteaching-kbm .nm-tool-btn{
   border-radius:6px;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-2);box-shadow:none;font-weight:700;
 }
@@ -6447,7 +6461,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=a5a0819d" defer></script>
+<script src="kbm-module.js?v=7ff93091" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>

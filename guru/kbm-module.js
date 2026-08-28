@@ -262,9 +262,9 @@
       cont.innerHTML = emptyHTML('','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
     }
     const _ps = window._presensiState || {};
-    cont.innerHTML = muridSesi.map(m => `
+    cont.innerHTML = muridSesi.map((m, idx) => `
       <div class="prow" id="prow-${esc(m.id_murid)}">
-        <span class="prow-avatar">${esc(String(m.nama_murid||'?').trim().charAt(0).toUpperCase())}</span>
+        <span class="prow-avatar">${idx + 1}</span>
         <div class="prow-info">
           <div class="prow-name">${esc(m.nama_murid)}</div>
           <div class="prow-sub">${m.total_hadir||0}× hadir</div>
@@ -745,10 +745,14 @@
       window._lastTargetDataKbm.forEach(function(t){ _targetMapKbm[t.id_murid] = t; });
     }
 
+    // Nomor urut konsisten dgn step 2/3: urutan asli daftar murid sesi.
+    var _numMapKbm = {};
+    (muridSesi||[]).forEach(function(m, i){ _numMapKbm[m.id_murid] = i + 1; });
+
     function buildCard(m, status) {
       var mid      = m.id_murid;
       var eid      = mid.replace(/[^a-zA-Z0-9-_]/g, '_');
-      var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
+      var noUrut   = _numMapKbm[mid] || '';
       var badge    = {H:'nm-badge-H',T:'nm-badge-T',I:'nm-badge-I',A:'nm-badge-A'}[status]||'nm-badge-H';
       var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
 
@@ -765,7 +769,7 @@
 
       return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
         + '<div class="nm-header" style="margin-bottom:0;">'
-          + '<div class="nm-nama"><div class="nm-nama-avatar">' + initials + '</div>' + esc(m.nama_murid) + '</div>'
+          + '<div class="nm-nama"><div class="nm-nama-avatar">' + noUrut + '</div>' + esc(m.nama_murid) + '</div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
             + '<button onclick="showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
               + 'style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.2s;white-space:nowrap" '
@@ -842,9 +846,8 @@
         + '</div>'
         + tidakList.map(function(m) {
             var s = presensiMap[m.id_murid]||'A';
-            var initials = (m.nama_murid||'?').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
             return '<div class="nilai-murid-card alpa" style="margin-bottom:8px">'
-              + '<div class="nm-header"><div class="nm-nama"><div class="nm-nama-avatar">'+initials+'</div>'+esc(m.nama_murid)+'</div>'
+              + '<div class="nm-header"><div class="nm-nama"><div class="nm-nama-avatar">'+(_numMapKbm[m.id_murid]||'')+'</div>'+esc(m.nama_murid)+'</div>'
               + '<span class="nm-badge-hadir '+(s==='I'?'nm-badge-I':'nm-badge-A')+'">'+(s==='I'?'Izin':'Alpa')+'</span></div>'
               + '<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:4px 0">Tidak perlu input hafalan</div></div>';
           }).join('');
@@ -1451,6 +1454,10 @@
       return;
     }
 
+    // Nomor urut untuk buildMicroteachingCard (urutan asli daftar murid).
+    window._kbmNumMap = {};
+    (muridSesi||[]).forEach(function(m, i){ window._kbmNumMap[m.id_murid] = i + 1; });
+
     cont.innerHTML = muridSesi.map(function(m) {
       return buildMicroteachingCard(m);
     }).join('');
@@ -1459,8 +1466,10 @@
   }
 
   function buildMicroteachingCard(m) {
-    var initials = (m.nama_murid || '').split(' ').slice(0, 2).map(function(w){ return w[0]||''; }).join('').toUpperCase();
+    // Nomor urut konsisten dgn step 2/3: urutan asli daftar murid sesi.
+    var numMap = (window._kbmNumMap = window._kbmNumMap || {});
     var id = m.id_murid;
+    var noUrut = numMap[id] || '';
     
     const presensiMap = {};
     document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
@@ -1472,7 +1481,7 @@
 
     return '<div class="student-card card" id="mt-card-' + id + '" style="margin-bottom:24px; border-radius:16px; overflow:hidden; border:1.5px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.06);">'
       + '<div class="student-header" style="display:flex; align-items:center; gap:12px; padding:14px 18px; background:var(--kbm-accent-soft, rgba(15,23,42,.05)); color:var(--kbm-ink, var(--text)); border-bottom:1px solid var(--kbm-line, var(--border)); flex-wrap:wrap;">'
-        + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:var(--kbm-accent, #0f172a); color:var(--kbm-card,#fff); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + initials + '</div>'
+        + '<div class="student-avatar" style="width:36px; height:36px; border-radius:8px; background:var(--kbm-accent, #0f172a); color:var(--kbm-card,#fff); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px;">' + noUrut + '</div>'
         + '<div>'
           + '<div class="student-name" style="font-size:14.5px; font-weight:800; letter-spacing: 0.02em;">' + esc(m.nama_murid) + '</div>'
           + '<div style="font-size:11px; margin-top:2px;"><span style="background:var(--kbm-accent-soft, rgba(15,23,42,.08)); color:var(--kbm-ink-2, var(--text-2)); padding:2px 8px; border-radius:6px; font-weight:800;">'+statusText+'</span></div>'
@@ -2436,8 +2445,13 @@
     const _hqList  = (window.HQ && window.HQ.AppState && window.HQ.AppState.halaqahList) || window.halaqahList || [];
     const _hqNow   = (_hqList || []).find(function(h){ return h.id_halaqah === _kbmHqId; });
     const isDaurahHalaqah = !!(_hqNow && _hqNow.level === 'Tahsin Al-Fatihah');
+    // Nomor urut konsisten dgn step 2: urutan asli daftar murid sesi
+    // (bukan urutan tampil di step 3 yg disort berdasarkan status presensi).
+    var _numMapNilai = {};
+    (muridSesi||[]).forEach(function(m, i){ _numMapNilai[m.id_murid] = i + 1; });
     let terisi = 0;
-    cont.innerHTML = muridSorted.map(m => {
+    cont.innerHTML = muridSorted.map((m, idx) => {
+      const noUrut = String(idx + 1).padStart(2, '0');
       const status   = presensiMap[m.id_murid] || 'H';
       const isAlpa   = status === 'A';
       const isIzin   = status === 'I';
@@ -2545,7 +2559,6 @@
         }
       }
 
-      var initials = m.nama_murid.split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
       var badgeCls = {'H':'nm-badge-H','T':'nm-badge-T','I':'nm-badge-I','A':'nm-badge-A'}[status] || 'nm-badge-H';
 
       var sepHtml = '';
@@ -2568,7 +2581,7 @@
       return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
         + '<div class="nm-header" onclick="toggleNilaiCard(\'' + esc(m.id_murid) + '\')">'
         + '<div class="nm-nama">'
-        + '<div class="nm-nama-avatar">' + initials + '</div>'
+        + '<div class="nm-nama-avatar">' + (_numMapNilai[m.id_murid] || '') + '</div>'
         + '<span class="nm-nama-txt">' + esc(m.nama_murid) + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
