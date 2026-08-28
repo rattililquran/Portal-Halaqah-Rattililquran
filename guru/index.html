@@ -639,6 +639,87 @@ html.theme-dark [style*="color:#1d4ed8"][style*="text-transform:uppercase"]{colo
 .hf-pn-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid #f3f4f6;background:#fff;margin-bottom:5px}
 .hf-pn-row:last-child{margin-bottom:0}
 .hf-pn-row:hover{border-color:#bfdbfe;background:#f0f9ff}
+/* ══ Kelompok Belajar & Partner Qiyam (kelompok-module.js, #page-kelompok) ══
+   Token tema (var(--card-solid)/--text/--border/--blue dst) supaya otomatis
+   benar di dark mode -- dulu semua warna di-hardcode inline dari sisa modal. */
+.kg-section{background:var(--card-solid);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.kg-section-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--blue-bg)}
+.kg-section-title{font-size:14.5px;font-weight:800;color:var(--text)}
+.kg-section-sub{font-size:11px;color:var(--text-3);margin-top:1px}
+.kg-section-body{padding:16px}
+.kg-card{background:var(--card-solid);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.kg-card-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2);border-bottom:1px solid var(--border)}
+.kg-card-name{flex:1;min-width:0;font-size:12.5px;padding:6px 10px;font-weight:700;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:8px}
+.kg-cap{font-size:10px;font-weight:800;padding:3px 9px;border-radius:100px;flex-shrink:0;white-space:nowrap}
+.kg-cap.full{background:var(--green-bg);color:var(--green-txt)}
+.kg-cap.partial{background:var(--amber-bg);color:var(--amber-txt)}
+.kg-icon-btn{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;font-size:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--red-bg);color:var(--red-txt)}
+.kg-btn-colek{display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue-txt);border:none;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0}
+.kg-card-body{padding:12px}
+.kg-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue-bg);color:var(--blue-txt);font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 5px 5px 0}
+.kg-chip button{border:none;background:none;color:inherit;cursor:pointer;font-size:12px;padding:0;line-height:1;opacity:.65}
+.kg-chip button:hover{opacity:1}
+.kg-empty{font-size:11px;color:var(--text-3);margin-bottom:2px}
+.kg-empty-lg{text-align:center;padding:20px 16px;color:var(--text-3);font-size:12px;line-height:1.6}
+.kg-add-sel{width:100%;margin-top:8px;font-size:11px;padding:6px 9px;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:8px}
+.kg-sub{border-top:1px dashed var(--border);margin-top:9px;padding-top:9px}
+.kg-sub-lbl{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kg-denyut-row{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px;flex-wrap:wrap}
+.kg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kg-dot.green{background:var(--green)}
+.kg-dot.amber{background:var(--amber)}
+.kg-denyut-name{font-weight:700;color:var(--text)}
+.kg-denyut-status{color:var(--text-3);font-size:11px}
+.kg-badge-menunggu{font-size:10px;font-weight:700;color:var(--amber-txt);background:var(--amber-bg);border-radius:100px;padding:1px 7px;margin-left:6px}
+.kg-btn-nudge{margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
+.kg-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.kg-btn-tool{border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer}
+.kg-btn-lini{background:rgba(13,148,136,.1);color:#0f766e}
+html.theme-dark .kg-btn-lini{background:rgba(45,212,191,.12);color:#2dd4bf}
+.kg-btn-milestone{background:var(--bg-2);color:var(--text-2)}
+.kg-btn-target{background:var(--amber-bg);color:var(--amber-txt)}
+.kg-teal-note{color:#0f766e}
+html.theme-dark .kg-teal-note{color:#5eead4}
+/* form buat kelompok */
+.kg-new-panel{background:var(--card-solid);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.kg-new-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--blue-bg);border-bottom:1px solid var(--border)}
+.kg-new-plus{width:34px;height:34px;border-radius:9px;background:var(--blue-d);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff}
+.kg-new-title{font-size:13px;font-weight:800;color:var(--text)}
+.kg-new-sub{font-size:10px;color:var(--text-3)}
+.kg-new-body{padding:12px 14px}
+.kg-btn-auto{display:flex;align-items:center;gap:6px;justify-content:center;background:var(--blue-bg);color:var(--blue-txt);border:1.5px dashed var(--blue);border-radius:9px;padding:9px 12px;font-size:11.5px;font-weight:800;cursor:pointer;width:100%;margin-bottom:12px}
+.kg-btn-auto:hover{filter:brightness(1.06)}
+.kg-divider-or{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.kg-divider-or::before,.kg-divider-or::after{content:'';flex:1;height:1px;background:var(--border)}
+.kg-chk-label{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:9px;margin-bottom:5px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:border-color .12s,background .12s}
+.kg-chk-label:hover{border-color:var(--blue)}
+.kg-chk-label.on{border-color:var(--blue-d);background:var(--blue-bg)}
+.kg-counter{font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.kg-counter.low{background:var(--bg-2);color:var(--text-3)}
+.kg-counter.mid{background:var(--amber-bg);color:var(--amber-txt)}
+.kg-counter.ready{background:var(--green-bg);color:var(--green-txt)}
+.kg-btn-submit{background:var(--blue-d);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;width:100%;transition:opacity .15s}
+.kg-btn-submit:disabled{opacity:.4;cursor:not-allowed}
+/* menunggu konfirmasi */
+.kg-menunggu{background:var(--amber-bg);border:1px solid var(--amber-l, rgba(245,158,11,.35));border-radius:12px;padding:12px}
+.kg-menunggu-title{font-size:12px;font-weight:800;color:var(--amber-txt);margin-bottom:2px}
+.kg-menunggu-sub{font-size:10px;color:var(--amber-txt);opacity:.85;margin-bottom:8px}
+.kg-menunggu-item{background:var(--card-solid);border:1px solid var(--amber-l, rgba(245,158,11,.3));border-radius:10px;padding:10px;margin-bottom:6px}
+.kg-menunggu-item:last-child{margin-bottom:0}
+.kg-menunggu-name{font-weight:800;font-size:12px;color:var(--text)}
+.kg-menunggu-meta{font-size:11px;color:var(--text-3);margin-bottom:6px}
+.kg-menunggu-actions{display:flex;gap:6px}
+.kg-sel-inline{flex:1;font-size:11px;padding:6px 8px;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:7px}
+.kg-btn-confirm{background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:800;font-size:11px;cursor:pointer}
+/* target */
+.kg-target-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 9px;background:var(--amber-bg);border-radius:8px;margin-bottom:5px}
+.kg-target-title{font-size:11px;font-weight:700;color:var(--amber-txt);flex:1;min-width:0}
+.kg-target-add{display:flex;gap:6px;margin-bottom:8px}
+.kg-target-input{flex:1;font-size:11px;padding:6px 8px;background:var(--card-solid);color:var(--text);border:1px solid var(--border);border-radius:7px}
+.kg-target-set-btn{background:#d97706;color:#fff;border:none;border-radius:7px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer}
+/* lini masa */
+.kg-lini-row{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.kg-lini-row:last-child{border-bottom:none}
 /* Raport Tahfidz */
 @keyframes rt-spin{to{transform:rotate(360deg)}}
 .rt-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin-bottom:14px;break-inside:avoid}
@@ -3620,14 +3701,14 @@ html.theme-dark .pr-chip.active {
         <div style="font-size:12.5px;color:var(--text-3);margin-bottom:16px">Kelola kelompok kecil murid untuk saling menyimak, mencatat &amp; mengingatkan secara mandiri.</div>
 
         <!-- ═ Kelompok Partner Belajar (Level 1-4) ═ -->
-        <div id="kbSectionWrap" style="display:none;background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px">
-          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(37,99,235,.08),transparent)">
+        <div id="kbSectionWrap" class="kg-section" style="display:none">
+          <div class="kg-section-head">
             <div>
-              <div style="font-size:14.5px;font-weight:800;color:var(--text)">📚 Kelompok Partner Belajar</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:1px">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
+              <div class="kg-section-title">📚 Kelompok Partner Belajar</div>
+              <div class="kg-section-sub">Atur kelompok 3-5 murid untuk saling catat &amp; konfirmasi aktivitas mandiri</div>
             </div>
           </div>
-          <div style="padding:16px">
+          <div class="kg-section-body">
             <div id="kbHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah</label>
               <select class="fc" id="kbHalaqahSel" onchange="renderKelolaKelompokBelajar()"></select>
@@ -3636,34 +3717,34 @@ html.theme-dark .pr-chip.active {
             <div id="kbListWrap" style="margin-bottom:16px"></div>
 
             <!-- Form buat kelompok baru -->
-            <div style="background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,rgba(37,99,235,.08),transparent);border-bottom:1px solid var(--border)">
-                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
+            <div class="kg-new-panel">
+              <div class="kg-new-head">
+                <div class="kg-new-plus">+</div>
                 <div style="flex:1">
-                  <div style="font-size:13px;font-weight:800;color:var(--text)">Buat Kelompok Baru</div>
-                  <div style="font-size:10px;color:var(--text-3)">Pilih 3-5 murid</div>
+                  <div class="kg-new-title">Buat Kelompok Baru</div>
+                  <div class="kg-new-sub">Pilih 3-5 murid, atau bentuk otomatis dari sisa murid</div>
                 </div>
               </div>
-              <div style="padding:12px 14px">
+              <div class="kg-new-body">
                 <label class="hf-lbl">Nama Kelompok (opsional)</label>
                 <input type="text" class="fc" id="kbNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
                 <label class="hf-lbl">Anggota</label>
                 <div id="kbNewAnggotaList" style="margin:6px 0 10px"></div>
-                <button onclick="kbCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
+                <button onclick="kbCreateKelompok()" id="kbBtnCreate" class="kg-btn-submit" disabled>+ Buat Kelompok</button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- ═ Kelompok Partner Qiyam -- hanya tampil utk guru yg punya halaqah Level Qiyam ═ -->
-        <div id="kpSectionWrap" style="display:none;background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
-          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(37,99,235,.08),transparent)">
+        <div id="kpSectionWrap" class="kg-section" style="display:none;margin-bottom:0">
+          <div class="kg-section-head">
             <div>
-              <div style="font-size:14.5px;font-weight:800;color:var(--text)">👥 Kelompok Partner Qiyam</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:1px">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
+              <div class="kg-section-title">👥 Kelompok Partner Qiyam</div>
+              <div class="kg-section-sub">Atur kelompok 2-3 murid untuk saling setor &amp; konfirmasi mandiri</div>
             </div>
           </div>
-          <div style="padding:16px">
+          <div class="kg-section-body">
             <div id="kpHalaqahSelWrap" style="margin-bottom:14px">
               <label class="hf-lbl">Halaqah Qiyam</label>
               <select class="fc" id="kpHalaqahSel" onchange="renderKelolaKelompokPartner()"></select>
@@ -3672,20 +3753,20 @@ html.theme-dark .pr-chip.active {
             <div id="kpListWrap" style="margin-bottom:16px"></div>
 
             <!-- Form buat kelompok baru -->
-            <div style="background:var(--card-solid,#fff);border:1px solid var(--border);border-radius:14px;overflow:hidden">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,rgba(37,99,235,.08),transparent);border-bottom:1px solid var(--border)">
-                <div style="width:34px;height:34px;border-radius:9px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff">+</div>
+            <div class="kg-new-panel">
+              <div class="kg-new-head">
+                <div class="kg-new-plus">+</div>
                 <div style="flex:1">
-                  <div style="font-size:13px;font-weight:800;color:var(--text)">Buat Kelompok Baru</div>
-                  <div style="font-size:10px;color:var(--text-3)">Pilih 2-3 murid Level Qiyam</div>
+                  <div class="kg-new-title">Buat Kelompok Baru</div>
+                  <div class="kg-new-sub">Pilih 2-3 murid Level Qiyam, atau bentuk otomatis dari sisa murid</div>
                 </div>
               </div>
-              <div style="padding:12px 14px">
+              <div class="kg-new-body">
                 <label class="hf-lbl">Nama Kelompok (opsional)</label>
                 <input type="text" class="fc" id="kpNewNama" placeholder="Misal: Kelompok 1" style="margin-bottom:10px">
                 <label class="hf-lbl">Anggota</label>
                 <div id="kpNewAnggotaList" style="margin:6px 0 10px"></div>
-                <button onclick="kpCreateKelompok()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">+ Buat Kelompok</button>
+                <button onclick="kpCreateKelompok()" id="kpBtnCreate" class="kg-btn-submit" disabled>+ Buat Kelompok</button>
               </div>
             </div>
           </div>
@@ -5868,7 +5949,7 @@ html.theme-dark .pr-chip.active {
 <script src="quiz-module.js?v=a9fbf7ff"></script>
 <script src="jadwal-module.js?v=b2b2adea" defer></script>
 <script src="dashboard-module.js?v=6fde4521" defer></script>
-<script src="kelompok-module.js?v=bfe03a4a" defer></script>
+<script src="kelompok-module.js?v=73fc70a9" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=ffb3d278" defer></script>
