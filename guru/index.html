@@ -1778,8 +1778,10 @@ html.theme-dark #page-microteaching-kbm .fc:focus,html.theme-dark #page-jurnal .
 
 /* — TILE JENIS SESI: grid rapi, aksen netral saat aktif — */
 #page-kbm .kbm-jenis-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 10px;font-size:13px;font-weight:800;cursor:pointer;user-select:none;
   border-radius:var(--kbm-radius-sm);border:1px solid var(--kbm-line);
-  background:var(--kbm-card);color:var(--kbm-ink-2);font-weight:700;
+  background:var(--kbm-card);color:var(--kbm-ink-2);
   box-shadow:none;transition:border-color .15s,color .15s,background .15s;
 }
 #page-kbm .kbm-jenis-btn:hover{border-color:var(--kbm-accent-border)}
@@ -2670,64 +2672,11 @@ html.theme-dark .pd-flow-item,.pd-qr-i{background:#0d1f35;border-color:#1f2d45}
 html.theme-dark .rubrik-option label { border-color: rgba(255,255,255,0.12); }
 html.theme-dark .rubrik-option label:hover { background: rgba(255,255,255,0.05); }
 
-/* KBM Session Type Buttons */
-.kbm-jenis-btn {
-  border: 1.5px solid var(--border) !important;
-  background: var(--bg-1);
-  color: var(--text-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 10px;
-  border-radius: 12px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  user-select: none;
-}
-.kbm-jenis-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.06);
-}
-.kbm-jenis-btn.kbm-jenis-reguler:hover { border-color: #3b82f6 !important; }
-.kbm-jenis-btn.kbm-jenis-qiyam:hover { border-color: #10b981 !important; }
-.kbm-jenis-btn.kbm-jenis-micro:hover { border-color: #8b5cf6 !important; }
-.kbm-jenis-btn.kbm-jenis-lainnya:hover { border-color: #64748b !important; }
-
-/* Active States */
-.kbm-jenis-btn.kbm-jenis-reguler.active {
-  background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
-  border-color: #1d4ed8 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(29,78,216,0.2) !important;
-}
-.kbm-jenis-btn.kbm-jenis-qiyam.active {
-  background: linear-gradient(135deg, #047857, #10b981) !important;
-  border-color: #047857 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(4,120,87,0.2) !important;
-}
-.kbm-jenis-btn.kbm-jenis-micro.active {
-  background: linear-gradient(135deg, #6d28d9, #8b5cf6) !important;
-  border-color: #6d28d9 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(109,40,217,0.2) !important;
-}
-.kbm-jenis-btn.kbm-jenis-lainnya.active {
-  background: linear-gradient(135deg, #475569, #64748b) !important;
-  border-color: #475569 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(71,85,105,0.2) !important;
-}
-
-html.theme-dark .kbm-jenis-btn {
-  background: #111c30;
-  border-color: rgba(255,255,255,0.1) !important;
-  color: #cbd5e1;
-}
+/* KBM Session Type Buttons — visual dikendalikan design system #page-kbm
+   .kbm-jenis-btn (aksen netral). Blok gradient warna + !important lama dihapus
+   (deep bug hunt 2026-08-28): karena !important, dia selalu menang atas
+   design system minimalis & tile aktif masih tampil gradient biru/ungu.
+   .kbm-jenis-lainnya juga dihapus (tile "Lainnya" sudah tidak ada). */
 
 .menu-item-hover{transition:background .2s ease}
 .menu-item-hover:hover{background:rgba(16,185,129,0.05)!important}
