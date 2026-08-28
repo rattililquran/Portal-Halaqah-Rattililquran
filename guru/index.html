@@ -6071,7 +6071,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=89e596ee" defer></script>
+<script src="kbm-module.js?v=992e0704" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -6237,6 +6237,17 @@ window.addEventListener('DOMContentLoaded', () => {
   var _cbPengganti = document.getElementById('kbmIsPengganti');
   if (_cbPengganti) _cbPengganti.addEventListener('change', function(){ if (typeof _wizUpdateDetailGuard==='function') _wizUpdateDetailGuard(); });
   if (typeof wizGo === 'function') wizGo(1);
+  // Persistensi draft jurnal & latihan mandiri: simpan tiap kali field berubah
+  // (input untuk text/textarea, change untuk select/date). Tanpa ini, mengetik
+  // di jurnal tidak memicu _saveKbmDraftLocal sehingga tak pernah masuk draft.
+  ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalLatihanMandiri','jurnalReferensiUrl'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', function(){ if (typeof window._kbmDraftSaveDebounced==='function') window._kbmDraftSaveDebounced(); });
+  });
+  ['jurnalJenisLatihan','jurnalDeadline'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', function(){ if (typeof window._kbmDraftSaveDebounced==='function') window._kbmDraftSaveDebounced(); });
+  });
   document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
   });

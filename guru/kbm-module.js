@@ -1655,6 +1655,33 @@
 
   function _mergeCacheObj(prev, cur) { return Object.assign({}, prev || {}, cur || {}); }
 
+  // Field jurnal & latihan mandiri yg ikut dipersist di draft lokal. jurnalMetode
+  // (hidden konstan), jurnalJamSelesai (sengaja fresh tiap masuk Jurnal), &
+  // jurnalPrTemplate (hanya helper pengisi) TIDAK disimpan.
+  var _JURNAL_DRAFT_FIELDS = ['jurnalMateri','jurnalHalaman','jurnalCatatan','jurnalJenisLatihan','jurnalDeadline','jurnalLatihanMandiri','jurnalReferensiUrl'];
+  function _snapshotJurnalDraft() {
+    var o = {};
+    _JURNAL_DRAFT_FIELDS.forEach(function(id){
+      var el = document.getElementById(id);
+      // Hanya catat field yg TIDAK kosong -- field jurnal ada di DOM sejak awal
+      // (walau kosong), jadi tanpa filter ini save dari step sebelum Jurnal akan
+      // menimpa draft jurnal yg sudah terisi dgn objek berisi string kosong.
+      if (el && el.value) o[id] = el.value;
+    });
+    return o;
+  }
+  function _restoreJurnalDraft(jurnal) {
+    if (!jurnal) return;
+    _JURNAL_DRAFT_FIELDS.forEach(function(id){
+      var el = document.getElementById(id);
+      // Hanya isi slot yg masih kosong -- jangan timpa yg sudah diketik guru
+      // di sesi ini (mis. restore dipanggil ulang saat mundur-maju step).
+      if (el && !el.value && jurnal[id]) el.value = jurnal[id];
+    });
+    // Sinkronkan visibilitas wadah referensi dgn jenis latihan yg dipulihkan.
+    if (typeof toggleReferensiJurnal === 'function') toggleReferensiJurnal();
+  }
+
   function _saveKbmDraftLocal() {
     const sesiAktif = getSesiAktif();
     if (!sesiAktif || !sesiAktif.id_kbm) return;
@@ -1671,7 +1698,14 @@
       hafalan       : _mergeCacheObj(prev.hafalan,       window._hafalanKbmCache),
       target        : _mergeCacheObj(prev.target,        window._hafalanKbmTarget),
       microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
-      daurah_asmt   : window._daurahAssessmentMap || {}
+      daurah_asmt   : window._daurahAssessmentMap || {},
+      // Jurnal & latihan mandiri: snapshot terkini bila ada field terisi; kalau
+      // belum ada yg diisi (save dari step sebelum Jurnal), pertahankan draft
+      // lama supaya nilai yg sudah diisi tak terhapus.
+      jurnal        : (function(){
+        var cur = _snapshotJurnalDraft();
+        return Object.keys(cur).length ? cur : (prev.jurnal || {});
+      })()
     };
     try { localStorage.setItem(_kbmDraftKey(sesiAktif.id_kbm), JSON.stringify(draft)); }
     catch (e) {}
@@ -1725,6 +1759,9 @@
     if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData, force);
     if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData, force);
     if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
+    // Jurnal & latihan mandiri: field-nya statis di page-jurnal (selalu ter-render
+    // di DOM), jadi aman dipulihkan di sini saat resume draft (lanjutSesi).
+    if (d.jurnal) _restoreJurnalDraft(d.jurnal);
   }
 
   var _kbmSyncTimer = null, _kbmSyncChipTimer = null;
@@ -1887,6 +1924,14 @@
     _saveMicroteachingKbmCache();
     var jamEl = document.getElementById('jurnalJamSelesai');
     if (jamEl) jamEl.value = new Date().toTimeString().slice(0,5);
+    // Pulihkan draft jurnal/latihan yg mungkin sudah diisi sebelumnya (mundur-
+    // maju step), tanpa menimpa yg sudah ada. Draft lokal di-load ulang karena
+    // bisa berisi data yg belum sempat ter-hydrate ke DOM.
+    var sesiAktif = getSesiAktif();
+    if (sesiAktif && sesiAktif.id_kbm) {
+      var d = _loadKbmDraftLocal(sesiAktif.id_kbm);
+      if (d && d.jurnal) _restoreJurnalDraft(d.jurnal);
+    }
     goPage('jurnal');
     renderSteps('jurnal');
     setStepTitle('jurnal');
