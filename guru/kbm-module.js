@@ -30,7 +30,19 @@
     sampah  : '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/>',
     pin     : '<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle class="kbm-d1" cx="12" cy="10" r="2.5"/>',
     api     : '<path d="M12 22c4 0 7-2.7 7-7 0-3-2-5.5-4-7-1 2-2 3-2 3s-1-4-4-6c0 4-4 5.5-4 10 0 4.3 3 7 7 7z"/>',
-    spin    : '<path d="M21 12a9 9 0 1 1-6.2-8.56"/>'
+    spin    : '<path d="M21 12a9 9 0 1 1-6.2-8.56"/>',
+    // — tambahan utk pembersihan emoji berikutnya —
+    kamera  : '<rect x="2.5" y="6" width="19" height="13" rx="2.5"/><circle class="kbm-d1" cx="12" cy="12.5" r="3.5"/><path class="kbm-d2" d="M8.5 6l1.2-2h4.6L15.5 6"/>',
+    putar   : '<path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><polyline class="kbm-d1" points="21 3 21 8 16 8"/><path class="kbm-d2" d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><polyline class="kbm-d3" points="3 21 3 16 8 16"/>',
+    bintang : '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/>',
+    titik3  : '<circle cx="5" cy="12" r="1.6"/><circle class="kbm-d1" cx="12" cy="12" r="1.6"/><circle class="kbm-d2" cx="19" cy="12" r="1.6"/>',
+    gelang  : '<path d="M12 3v6m0 6v6M3 12h6m6 0h6"/><circle class="kbm-d1" cx="12" cy="12" r="2.6"/>',
+    mata    : '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="kbm-d1" cx="12" cy="12" r="2.8"/>',
+    'panah-turun' : '<path d="M12 4v14"/><polyline class="kbm-d1" points="6 12 12 18 18 12"/>',
+    petir   : '<path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/>',
+    kirim   : '<path d="M22 2L11 13"/><path class="kbm-d1" d="M22 2l-7 20-4-9-9-4 20-7z"/>',
+    dasbor  : '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect class="kbm-d1" x="14" y="3" width="7" height="5" rx="1.5"/><rect class="kbm-d2" x="14" y="12" width="7" height="9" rx="1.5"/><rect class="kbm-d3" x="3" y="16" width="7" height="5" rx="1.5"/>',
+    // — emoji kompatibilitas (utk pembacaan icon config lama, tidak dirender di option) —
   };
   function kbmIco(name, cls) {
     var body = _KBM_ICONS[name] || _KBM_ICONS.dokumen;
@@ -128,7 +140,7 @@
       {id:'kbmJenis',   label:'Jenis Sesi'},
     ])) return;
 
-    setBtn('btnMulai', true, '⏳ Membuka sesi...');
+    setBtn('btnMulai', true, 'Membuka sesi...');
     showLoad('Bismillah, kita buka sesi KBM dengan doa terlebih dahulu...');
     try {
       const pertemuanCustom = (document.getElementById('kbmPertemuan') ? document.getElementById('kbmPertemuan').value : '');
@@ -164,7 +176,7 @@
       });
 
       hideLoad();
-      setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
+      setBtn('btnMulai', false, 'Mulai Perjuangan Baru');
 
       tampilkanDoa(() => {
         goPage('presensi');
@@ -175,7 +187,7 @@
     } catch(e) {
       toast(friendlyError(e),'err');
       hideLoad();
-      setBtn('btnMulai', false, '🌟 Mulai Perjuangan Baru');
+      setBtn('btnMulai', false, 'Mulai Perjuangan Baru');
     }
   }
 
@@ -238,16 +250,16 @@
     if (btnLanjut) {
       const jenisSesi = sesiAktif && sesiAktif.jenis_sesi;
       if (jenisSesi === 'KBM Qiyam') {
-        btnLanjut.textContent = 'Input Hafalan →';
+        btnLanjut.textContent = 'Input Hafalan';
       } else if (jenisSesi === 'Micro Teaching') {
-        btnLanjut.textContent = 'Input Nilai/Assessment →';
+        btnLanjut.textContent = 'Input Nilai/Assessment';
       } else {
-        btnLanjut.textContent = isReguler ? 'Lanjut ke Nilai →' : 'Selesaikan Sesi →';
+        btnLanjut.textContent = isReguler ? 'Lanjut ke Nilai' : 'Selesaikan Sesi';
       }
     }
     renderSteps('presensi');
     if (!muridSesi.length) {
-      cont.innerHTML = emptyHTML('👥','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
+      cont.innerHTML = emptyHTML('','Belum ada murid','Tambahkan murid ke halaqah ini lewat portal admin.'); return;
     }
     const _ps = window._presensiState || {};
     cont.innerHTML = muridSesi.map(m => `
@@ -566,11 +578,10 @@
       // escJs utk argumen string JS di onclick (id_halaqah bisa mengandung
       // apostrof/backslash yg mematahkan string & membuka injeksi kode) -- esc()
       // saja TIDAK cukup (pola baku codebase, lihat shared-utils.js escJs).
-      // Fallback lokal TETap meng-escape apostrof+backslash bila escJs global
-      // belum termuat (jaga-jaga kegagalan load), jadi tak pernah kembali ke
-      // esc() yg membuka celah XSS yg sama.
+      // Fallback lokal identik dgn escJs baku (shared-utils.js:113): HTML-encode
+      // & < > " + escape backslash & apostrof — bila escJs global belum termuat.
       var _escId = (typeof escJs === 'function') ? escJs : function(s){
-        return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       };
       return '<button type="button" class="wiz-hq-card' + (isSel ? ' selected' : '') + (isToday ? ' today' : '') + '"'
         + ' data-hid="' + esc(h.id_halaqah) + '" onclick="wizPickHalaqah(\'' + _escId(h.id_halaqah) + '\')">'
@@ -634,14 +645,14 @@
     var isPengganti = !!(document.getElementById('kbmIsPengganti')||{}).checked;
     var msg = '';
     if (!tgl || !jam) {
-      msg = '⚠️ Isi tanggal & jam mulai terlebih dahulu.';
+      msg = 'Isi tanggal & jam mulai terlebih dahulu.';
     } else if (isPengganti && !_wizTglTouched) {
       var todayJkt = (typeof window._todayJakarta === 'function') ? window._todayJakarta() : null;
       if (todayJkt && tgl === todayJkt) {
         // Jelaskan cara membuka guard: ubah tanggal (boleh dikembalikan ke hari
         // ini bila memang sengaja). Tanpa penjelasan ini, guru yg MEMANG ingin
         // kelas pengganti hari ini akan terjebak tanpa tahu jalannya (bug F5 UX).
-        msg = '⚠️ Ini kelas pengganti — tanggalnya masih hari ini (default). Sentuh/ubah kolom tanggal untuk konfirmasi tanggal pelaksanaan (boleh dipilih kembali ke hari ini bila memang sengaja).';
+        msg = 'Ini kelas pengganti — tanggalnya masih hari ini (default). Sentuh/ubah kolom tanggal untuk konfirmasi tanggal pelaksanaan (boleh dipilih kembali ke hari ini bila memang sengaja).';
       }
     }
     var ok = !msg;
@@ -693,7 +704,7 @@
     var cont = document.getElementById('hafalanKbmList');
     const muridSesi = getMuridSesi();
     if (!cont || !muridSesi || !muridSesi.length) {
-      if (cont) cont.innerHTML = emptyHTML('👥','Tidak ada murid','');
+      if (cont) cont.innerHTML = emptyHTML('','Tidak ada murid','');
       return;
     }
     var presensiMap = {};
@@ -710,16 +721,18 @@
     });
 
     var cfg     = typeof _hfLoadConfig === 'function' ? _hfLoadConfig() : { kelancaran: [], nilai: [] };
+    // Emoji icon dari config sengaja TIDAK dirender di sini (KB-ICO 2026-08-28):
+    // SVG tak bisa masuk <option>, dan emoji berbenturan dgn desain minimalis.
     var kelOpts = (cfg.kelancaran||[]).map(function(k) {
-      return '<option value="' + esc(k.nama) + '" title="' + esc(k.ket||'') + '">' + k.icon + ' ' + esc(k.nama) + ' (+' + k.poin + ' poin)</option>';
+      return '<option value="' + esc(k.nama) + '" title="' + esc(k.ket||'') + '">' + esc(k.nama) + ' (+' + k.poin + ' poin)</option>';
     }).join('');
     var nilOpts = (cfg.nilai||[]).map(function(n) {
-      return '<option value="' + esc(n.kode) + '">' + n.icon + ' ' + esc(n.kode) + ' — ' + esc(n.desc) + ' (' + n.poin + ' poin)</option>';
+      return '<option value="' + esc(n.kode) + '">' + esc(n.kode) + ' — ' + esc(n.desc) + ' (' + n.poin + ' poin)</option>';
     }).join('');
     var kamOpts = [
-      {nama:'kamera terbuka',icon:'📷'},
-      {nama:'kamera sering buka tutup',icon:'🟡'},
-      {nama:'kamera tertutup',icon:'❌'}
+      {nama:'kamera terbuka',icon:''},
+      {nama:'kamera sering buka tutup',icon:''},
+      {nama:'kamera tertutup',icon:''}
     ].map(function(k) {
       return '<option value="' + esc(k.nama) + '">' + k.icon + ' ' + esc(k.nama) + '</option>';
     }).join('');
@@ -823,7 +836,7 @@
     if (tidakList.length) {
       html += '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">'
         + '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#fde68a)"></div>'
-        + '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:3px 12px">⬇ Izin &amp; Alpa — tidak perlu input hafalan</div>'
+        + '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:3px 12px;display:inline-flex;align-items:center;gap:4px">' + kbmIco('panah-turun') + ' Izin &amp; Alpa — tidak perlu input hafalan</div>'
         + '<div style="flex:1;height:1px;background:linear-gradient(90deg,#fde68a,transparent)"></div>'
         + '</div>'
         + tidakList.map(function(m) {
@@ -1005,7 +1018,7 @@
       totalPoin = activePoin;
     }
 
-    poinEl.textContent = '⚡ Estimasi total poin: +' + totalPoin + (list.length > 1 ? ' (' + list.length + ' surat)' : '');
+    poinEl.textContent = 'Estimasi total poin: +' + totalPoin + (list.length > 1 ? ' (' + list.length + ' surat)' : '');
   }
 
   function addHafalanKbmItem(mid) {
@@ -1192,16 +1205,16 @@
     
     var stagedItems = [];
     overlapChunks.forEach(function(c) {
-      htmlDesc += '<div style="color:#d97706;font-weight:700;margin-bottom:4px">🔄 Murajaah (pengulangan): Ayat ' + c.dari + '–' + c.sampai + '</div>';
+      htmlDesc += '<div style="color:#d97706;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px">' + kbmIco('putar') + ' Murajaah (pengulangan): Ayat ' + c.dari + '–' + c.sampai + '</div>';
       stagedItems.push({ jenis:'Murajaah', surat:surat, suratD:suratD, dari:c.dari, sampai:c.sampai, juz:juz, kel:kel, nil:nil, kam:kam, catatan:catatan, _saved:false });
     });
     newChunks.forEach(function(c) {
-      htmlDesc += '<div style="color:#059669;font-weight:700;margin-bottom:4px">📖 Ziyadah (hafalan baru): Ayat ' + c.dari + '–' + c.sampai + '</div>';
+      htmlDesc += '<div style="color:#059669;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px">' + kbmIco('buku') + ' Ziyadah (hafalan baru): Ayat ' + c.dari + '–' + c.sampai + '</div>';
       stagedItems.push({ jenis:'Ziyadah', surat:surat, suratD:suratD, dari:c.dari, sampai:c.sampai, juz:juz, kel:kel, nil:nil, kam:kam, catatan:catatan, _saved:false });
     });
     htmlDesc += '</div>';
 
-    showConfirm(htmlDesc, { title: '🔀 Auto-Split Setoran Hafalan', okText: 'Tambahkan Keduanya', cancelText: 'Batal' }).then(function(confirmed) {
+    showConfirm(htmlDesc, { title: 'Auto-Split Setoran Hafalan', okText: 'Tambahkan Keduanya', cancelText: 'Batal' }).then(function(confirmed) {
       if (!confirmed) return;
       if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
       if (!Array.isArray(window._hafalanKbmCache[mid])) window._hafalanKbmCache[mid] = [];
@@ -1268,7 +1281,7 @@
           + 'onmousedown="hfKbmSelectSurat(this)">'
           + '<span style="background:#d1fae5;color:#065f46;width:22px;height:22px;border-radius:5px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (meta.no||'?') + '</span>'
           + '<span style="font-weight:600;flex:1">' + esc(z.surat) + '</span>'
-          + '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">🔄 Ayat ' + z.ayat_dari + '–' + z.ayat_sampai + '</span>'
+          + '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">Murajaah · Ayat ' + z.ayat_dari + '–' + z.ayat_sampai + '</span>'
         + '</div>';
       }).join('');
       dd.style.display = 'block'; return;
@@ -1433,7 +1446,7 @@
     if (!cont) return;
     const muridSesi = getMuridSesi();
     if (!muridSesi || !muridSesi.length) {
-      cont.innerHTML = emptyHTML('👥', 'Tidak ada murid', 'Silakan pilih halaqah yang memiliki murid.');
+      cont.innerHTML = emptyHTML('', 'Tidak ada murid', 'Silakan pilih halaqah yang memiliki murid.');
       return;
     }
 
@@ -1484,17 +1497,17 @@
     var isAbsent = ['A','I'].includes(status);
     
     if (!isToggled) {
-      wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-3); font-style:italic; font-size:13px;">'
-        + '👁️ Murid menyimak pertemuan ini sebagai observer (tidak dinilai).'
+      wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-3); font-style:italic; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px;">'
+        + kbmIco('user') + ' Murid menyimak pertemuan ini sebagai observer (tidak dinilai).'
         + '</div>';
       var badge = document.getElementById('mt-score-badge-' + id);
       if (badge) badge.textContent = 'OBSERVER';
       return;
     }
-    
+
     if (isAbsent) {
-      wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--red); font-weight:700; font-size:13px; background:#fef2f2; border-radius:12px; border:1px solid #fca5a5; margin:10px 0;">'
-        + '⚠️ Murid tidak hadir saat jadwal praktik. Nilai praktik otomatis dihitung 0 (Alpa).'
+      wrapper.innerHTML = '<div style="padding:20px; text-align:center; color:var(--red); font-weight:700; font-size:13px; background:#fef2f2; border-radius:12px; border:1px solid #fca5a5; margin:10px 0; display:flex; align-items:center; justify-content:center; gap:6px;">'
+        + kbmIco('silang') + ' Murid tidak hadir saat jadwal praktik. Nilai praktik otomatis dihitung 0 (Alpa).'
         + '</div>';
       var badge = document.getElementById('mt-score-badge-' + id);
       if (badge) badge.textContent = 'NILAI: 0';
@@ -1517,9 +1530,9 @@
       return '<div class="rubrik-item" style="border-bottom:1px solid var(--border); padding:16px 0;">'
         + '<div class="rubrik-label" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">'
           + '<div class="rubrik-title-chip" style="background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #c2410c; border: 1px solid #f97316; padding: 4px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; box-shadow: 0 2px 4px rgba(249,115,22,0.08);">'
-            + '✨ ' + k.label
+            + k.label
           + '</div>'
-          + '<div style="font-size:11px; color:#1e3a8a; font-weight:800; background:#dbeafe; border: 1px solid #3b82f6; padding:4px 12px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(59,130,246,0.08);">⚖️ Bobot ' + Math.round(k.bobot*100) + '%</div>'
+          + '<div style="font-size:11px; color:var(--kbm-ink-2,#475569); font-weight:800; background:var(--kbm-accent-soft,rgba(100,116,139,.08)); border: 1px solid var(--kbm-line,rgba(100,116,139,.18)); padding:4px 12px; border-radius:20px; display:inline-flex; align-items:center;">Bobot ' + Math.round(k.bobot*100) + '%</div>'
         + '</div>'
         + '<div class="rubrik-options">' + opts + '</div>'
       + '</div>';
@@ -1823,12 +1836,12 @@
     if (_kbmSyncChipTimer) { clearTimeout(_kbmSyncChipTimer); _kbmSyncChipTimer = null; }
     el.className = 'kbm-sync-chip show ' + state;
     if (state === 'syncing') {
-      el.textContent = '↑ Menyinkronkan…';
+      el.textContent = 'Menyinkronkan…';
     } else if (state === 'synced') {
-      el.textContent = '✓ Tersimpan ke server';
+      el.textContent = 'Tersimpan ke server';
       _kbmSyncChipTimer = setTimeout(function(){ el.className = 'kbm-sync-chip'; }, 1800);
     } else {
-      el.textContent = '⚠ Tersimpan lokal · menunggu koneksi';
+      el.textContent = 'Tersimpan lokal · menunggu koneksi';
       _kbmSyncChipTimer = setTimeout(function(){ el.className = 'kbm-sync-chip'; }, 3500);
     }
   }
@@ -2390,7 +2403,7 @@
     const cont = document.getElementById('nilaiMuridList');
     if (!cont) return;
     const muridSesi = getMuridSesi();
-    if (!muridSesi.length) { cont.innerHTML = emptyHTML('👥','Tidak ada murid',''); return; }
+    if (!muridSesi.length) { cont.innerHTML = emptyHTML('','Tidak ada murid',''); return; }
 
     const presensiMap = {};
     document.querySelectorAll('#presensiList .pb.on').forEach(btn => {
@@ -2539,7 +2552,7 @@
         sepInserted = true;
         sepHtml = '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">'
           + '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#fde68a)"></div>'
-          + '<div style="font-size:10px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:3px 12px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">⬇ Izin &amp; Alpa</div>'
+          + '<div style="font-size:10px;font-weight:800;color:var(--kbm-warn,#b45309);background:var(--kbm-warn-soft,#fffbeb);border:1px solid var(--kbm-warn-border,#fde68a);border-radius:100px;padding:3px 12px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">Izin &amp; Alpa</div>'
           + '<div style="flex:1;height:1px;background:linear-gradient(90deg,#fde68a,transparent)"></div>'
           + '</div>';
       }
@@ -2818,7 +2831,7 @@
           `Nilai yang belum lengkap akan langsung memengaruhi raport akhir Murid.\n` +
           `Mengisi nilai secara lengkap dan tepat waktu merupakan bentuk menjalankan AMANAH kita sebagai guru.\n\n` +
           `Apakah Anda yakin tetap ingin menutup sesi ini?`;
-        if (!(await showConfirm(confirmMsg, { title: '⚠️ Nilai Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
+        if (!(await showConfirm(confirmMsg, { title: 'Nilai Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
       }
     }
 
@@ -2834,7 +2847,7 @@
         const confirmMsg = `Peringatan: Ada ${incompleteMT} peserta Praktik Mengajar yang rubrik penilaiannya baru terisi sebagian.\n\n` +
           `Penilaian yang belum lengkap TIDAK akan tersimpan (nilai kosong) dan tidak bisa diisi lagi setelah sesi ditutup.\n\n` +
           `Apakah Anda yakin tetap ingin menutup sesi ini?`;
-        if (!(await showConfirm(confirmMsg, { title: '⚠️ Penilaian Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
+        if (!(await showConfirm(confirmMsg, { title: 'Penilaian Belum Lengkap', okText: 'Tetap Tutup Sesi', danger: true }))) return;
       }
     }
 
@@ -2884,18 +2897,18 @@
             const currentDate = new Date(sesiAktif.tanggal_pertemuan);
             const diffDays = Math.ceil((currentDate - lastPrDate) / (1000 * 60 * 60 * 24));
             if (diffDays >= 7) {
-              const confirmPrMsg = `💡 Pengingat SOP: Halaqah Anda sudah ${diffDays} hari tidak menerima tugas PR.\n`
+              const confirmPrMsg = `Pengingat SOP: Halaqah Anda sudah ${diffDays} hari tidak menerima tugas PR.\n`
                 + `Untuk menjaga keaktifan latihan murid di luar kelas, disarankan memberikan Latihan Mandiri.\n\n`
                 + `Apakah Anda yakin tetap ingin menutup sesi tanpa PR?`;
-              if (!(await showConfirm(confirmPrMsg, { title: '💡 Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
+              if (!(await showConfirm(confirmPrMsg, { title: 'Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
                 return;
               }
             }
           } else if (lastPrRes.status === 'ok' && !lastPrRes.data) {
-            const confirmPrMsg = `💡 Pengingat SOP: Halaqah ini belum pernah diberikan tugas PR.\n`
+            const confirmPrMsg = `Pengingat SOP: Halaqah ini belum pernah diberikan tugas PR.\n`
               + `Untuk menjaga keaktifan latihan murid di luar kelas, disarankan memberikan Latihan Mandiri.\n\n`
               + `Apakah Anda yakin tetap ingin menutup sesi tanpa PR?`;
-            if (!(await showConfirm(confirmPrMsg, { title: '💡 Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
+            if (!(await showConfirm(confirmPrMsg, { title: 'Pengingat SOP PR', okText: 'Tetap Tanpa PR', danger: false }))) {
               return;
             }
           }
@@ -2907,7 +2920,7 @@
 
     closeModal('previewModal');
 
-    setBtn('btnSelesai', true, '⏳ Menyimpan...');
+    setBtn('btnSelesai', true, 'Menyimpan...');
     showLoad('Alhamdulillah, kita simpan sesi KBM kali ini semoga Allah terima...');
     try {
       await window.HQ.GuruAPI.simpanJurnalKBM({
@@ -2965,7 +2978,7 @@
               } catch (errSetoran) {
                 console.error('Gagal menyimpan item setoran KBM Qiyam:', errSetoran);
                 hideLoad();
-                setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi');
+                setBtn('btnSelesai', false, 'Selesaikan & Tutup Sesi');
                 toast('Gagal menyimpan setoran ' + (cache.suratD || cache.surat || '') + ' untuk ' + m.nama_murid + '. Silakan coba lagi.', 'error');
                 return;
               }
@@ -3090,17 +3103,17 @@
       window._daurahAssessmentItems = [];
 
       hideLoad();
-      setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi');
+      setBtn('btnSelesai', false, 'Selesaikan & Tutup Sesi');
 
       const el = document.getElementById('notifOverlay');
       if (el) {
-        document.getElementById('notifIcon').textContent  = '🌟';
+        document.getElementById('notifIcon').textContent  = '';
         document.getElementById('notifTitle').textContent = 'Jazaakumullahu Khairan';
         document.getElementById('notifMsg').textContent   =
           'Jazaakumullahu Khairan atas jerih payah yang dikeluarkan, semoga Allah terima sebagai amal kebaikan kita.';
         const btn = document.getElementById('notifBtn');
         btn.className   = 'notif-btn ok';
-        btn.textContent = 'Aamiin 🤲';
+        btn.textContent = 'Aamiin';
         btn.onclick     = closeNotif;
         el.classList.add('show');
         setTimeout(closeNotif, 7000);
@@ -3127,7 +3140,7 @@
         }
       }, 1000);
 
-    } catch(e) { toast(friendlyError(e),'err'); hideLoad(); setBtn('btnSelesai', false, '✅ Selesaikan & Tutup Sesi'); }
+    } catch(e) { toast(friendlyError(e),'err'); hideLoad(); setBtn('btnSelesai', false, 'Selesaikan & Tutup Sesi'); }
   }
 
   // ── STEP INDICATOR ──────────────────────
@@ -3242,11 +3255,11 @@
     return hariSejakWIB(k.last_active_date);
   }
   function getKhatamkuBadge(k) {
-    if (!k) return `<span class="badge b-gray">⚫ Belum ada data</span>`;
+    if (!k) return '<span class="badge b-gray">Belum ada data</span>';
     const hari = khatamkuHariTakAktif(k);
-    if (hari === null) return `<span class="badge b-blue">🔵 Belum ada bacaan</span>`;
-    if (hari >= 3) return `<span class="badge b-amber">🟡 ${hari} hari tidak aktif</span>`;
-    return `<span class="badge b-green">🟢 Streak ${k.streak_days || 0}h</span>`;
+    if (hari === null) return '<span class="badge b-blue">Belum ada bacaan</span>';
+    if (hari >= 3) return '<span class="badge b-amber">' + hari + ' hari tidak aktif</span>';
+    return '<span class="badge b-green">Streak ' + (k.streak_days || 0) + 'h</span>';
   }
 
   async function getMurid(id_halaqah) {
@@ -3332,7 +3345,6 @@
 
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="10"><div class="guru-empty">'
-        + '<div class="guru-empty-ico">👥</div>'
         + '<div class="guru-empty-ttl">Belum ada murid di halaqah ini</div>'
         + '<div class="guru-empty-sub">Murid baru dapat ditambahkan oleh Admin melalui portal admin.</div>'
         + '</div></td></tr>';
@@ -3388,7 +3400,7 @@
     var khSummary = document.getElementById('muridKhatamkuSummary');
     if (khSummary) {
       var khAktif = rows.filter(function(m){ var h = khatamkuHariTakAktif(m.khatamku); return h !== null && h < 3; }).length;
-      khSummary.textContent = '🔗 ' + khAktif + '/' + rows.length + ' aktif KhatamKu';
+      khSummary.textContent = khAktif + '/' + rows.length + ' aktif KhatamKu';
     }
 
     if (!filtered.length) {
@@ -3429,7 +3441,7 @@
         + '<td>'+getPoinAdabBadge(m.poin_adab)+'</td>'
         + '<td>'+getPoinKameraBadge(m.poin_kamera)+'</td>'
         + '<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
-          + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">📝 Catatan</button>'
+          + '<button class="btn btn-outline btn-sm" data-id="'+esc(m.id_anggota)+'" data-nama="'+esc(m.nama_murid)+'" data-cat="'+esc(m.catatan_guru||'')+'" onclick="var b=this;bukaCatatan(b.getAttribute(\'data-id\'),b.getAttribute(\'data-nama\'),b.getAttribute(\'data-cat\'))">'+kbmIco('edit')+' Catatan</button>'
           + (m.no_hp
             ? '<button class="btn btn-outline btn-sm" style="border-color:var(--kbm-ok,#16a34a);color:var(--kbm-ok,#16a34a)" data-nama="'+esc(m.nama_murid)+'" data-hp="'+esc(m.no_hp||'')+'" data-level="'+esc(m.level||'')+'" onclick="var b=this;openWAMurid(b.getAttribute(\'data-nama\'),b.getAttribute(\'data-hp\'),b.getAttribute(\'data-level\'))" title="Hubungi via WhatsApp">' + kbmIco('nasihat') + ' WA</button>'
             : '<button class="btn btn-outline btn-sm" disabled style="border-color:var(--kbm-line,#cbd5e1);color:var(--kbm-ink-3,#94a3b8);cursor:not-allowed;opacity:0.6" title="No HP belum diisi di profil murid">' + kbmIco('nasihat') + ' WA</button>')
@@ -3565,7 +3577,7 @@
           <td>—</td>
         </tr>`;
       }
-      const penggantiBadge = k.is_pengganti ? ' <span class="badge" style="background:#fff7ed;color:#c2410c">🔄 Pengganti</span>' : '';
+      const penggantiBadge = k.is_pengganti ? ' <span class="badge" style="background:#fff7ed;color:#c2410c">' + kbmIco('putar') + ' Pengganti</span>' : '';
       return `<tr>
       <td>${fmtDate(k.tanggal_pertemuan)}<br><small style="color:var(--text-3)">${esc(k.jam_mulai||'')}${k.jam_selesai?'–'+esc(k.jam_selesai):''}</small></td>
       <td><span class="badge b-blue">ke-${k.pertemuan_ke}</span></td>
@@ -3574,11 +3586,11 @@
       <td><strong style="color:var(--green)">${k.jumlah_hadir??0}</strong>/${(k.jumlah_hadir??0)+(k.jumlah_alpa??0)}</td>
       <td>${typeof statusBadge === 'function' ? statusBadge(k.status) : k.status}${penggantiBadge}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">🔍 Detail</button>
+        <button class="btn btn-outline btn-sm" onclick="lihatDetail('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">${kbmIco('mata')} Detail</button>
         <button class="btn btn-outline btn-sm" style="color:var(--amber);border-color:var(--amber)"
-          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">✏️ Edit KBM</button>
+          onclick="bukaEditPresensi('${esc(k.id_kbm)}','${esc(k.tanggal_pertemuan)}')">${kbmIco('edit')} Edit KBM</button>
         ${k.status === 'draft' ? `<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)"
-          onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">🗑 Hapus Draft</button>` : ''}
+          onclick="hapusDraftKBM('${esc(k.id_kbm)}','${esc(k.pertemuan_ke)}','${esc(k.jenis_sesi||'KBM')}')">${kbmIco('sampah')} Hapus Draft</button>` : ''}
       </td>
     </tr>`;
     }).join('');
@@ -3638,7 +3650,7 @@
               + '</span>';
           }).join(' ');
           return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px">'
-            + '<div style="font-size:12px;font-weight:800;color:#92400e;white-space:nowrap;min-width:80px">📚 ' + esc(h.nama) + '</div>'
+            + '<div style="font-size:12px;font-weight:800;color:#92400e;white-space:nowrap;min-width:80px;display:inline-flex;align-items:center;gap:4px">' + kbmIco('buku') + ' ' + esc(h.nama) + '</div>'
             + '<div style="display:flex;flex-wrap:wrap;gap:4px">' + items + '</div>'
             + '</div>';
         }).join('');
@@ -3658,7 +3670,7 @@
     showLoad('Menghapus sesi draft...');
     try {
       await window.HQ.GuruAPI.hapusKBM(id_kbm);
-      toast('Sesi draft berhasil dihapus ✅', 'ok');
+      toast('Sesi draft berhasil dihapus', 'ok');
       if (window._guruTabLoaded) delete window._guruTabLoaded['riwayat'];
       loadRiwayat();
       if (typeof loadDashboard === 'function') loadDashboard(true);
@@ -3668,13 +3680,13 @@
 
   async function lihatDetail(id_kbm, tgl) {
     document.getElementById('detailTitle').textContent = 'Detail — ' + fmtDate(tgl);
-    document.getElementById('detailBody').innerHTML = emptyHTML('⏳','Memuat...','');
+    document.getElementById('detailBody').innerHTML = emptyHTML('','Memuat...','');
     openModal('detailModal');
     try {
       const r = await window.HQ.GuruAPI.getNilaiByKBM(id_kbm);
       const data = r.data || [];
       if (!data.length) {
-        document.getElementById('detailBody').innerHTML = emptyHTML('📭','Belum ada data nilai','');
+        document.getElementById('detailBody').innerHTML = emptyHTML('','Belum ada data nilai','');
         return;
       }
       document.getElementById('detailBody').innerHTML = data.map(n => {
@@ -3695,11 +3707,11 @@
             </div>
             ${h.target_surat ? `
               <div style="font-size:12px;color:#059669;font-weight:600;margin-bottom:4px">
-                🎯 Target: ${esc(h.target_surat)} · Ayat ${h.target_ayat_dari || 1}–${h.target_ayat_sampai || 1}
+                Target: ${esc(h.target_surat)} · Ayat ${h.target_ayat_dari || 1}–${h.target_ayat_sampai || 1}
               </div>` : ''}
             ${h.catatan ? `
               <div style="margin-top:6px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;color:#78350f;font-style:italic">
-                📝 Catatan: ${esc(h.catatan)}
+                Catatan: ${esc(h.catatan)}
               </div>` : ''}
           `;
         } else if (n.jenis_sesi === 'Micro Teaching') {
