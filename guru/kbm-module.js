@@ -264,9 +264,8 @@
     const _ps = window._presensiState || {};
     cont.innerHTML = muridSesi.map((m, idx) => `
       <div class="prow" id="prow-${esc(m.id_murid)}">
-        <span class="prow-avatar">${idx + 1}</span>
         <div class="prow-info">
-          <div class="prow-name">${esc(m.nama_murid)}</div>
+          <div class="prow-name"><span class="prow-avatar">${idx + 1}</span> ${esc(m.nama_murid)}</div>
           <div class="prow-sub">${m.total_hadir||0}× hadir</div>
         </div>
         <div class="prow-btns">
@@ -769,7 +768,7 @@
 
       return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
         + '<div class="nm-header" style="margin-bottom:0;">'
-          + '<div class="nm-nama"><div class="nm-nama-avatar">' + noUrut + '</div>' + esc(m.nama_murid) + '</div>'
+          + '<div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">' + noUrut + '</span> ' + esc(m.nama_murid) + '</span></div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
             + '<button onclick="showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
               + 'style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.2s;white-space:nowrap" '
@@ -847,7 +846,7 @@
         + tidakList.map(function(m) {
             var s = presensiMap[m.id_murid]||'A';
             return '<div class="nilai-murid-card alpa" style="margin-bottom:8px">'
-              + '<div class="nm-header"><div class="nm-nama"><div class="nm-nama-avatar">'+(_numMapKbm[m.id_murid]||'')+'</div>'+esc(m.nama_murid)+'</div>'
+              + '<div class="nm-header"><div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">'+(_numMapKbm[m.id_murid]||'')+'</span> '+esc(m.nama_murid)+'</span></div>'
               + '<span class="nm-badge-hadir '+(s==='I'?'nm-badge-I':'nm-badge-A')+'">'+(s==='I'?'Izin':'Alpa')+'</span></div>'
               + '<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:4px 0">Tidak perlu input hafalan</div></div>';
           }).join('');
@@ -2669,8 +2668,7 @@
       return sepHtml + '<div class="' + cardClass + '" id="nmcard-' + esc(m.id_murid) + '">'
         + '<div class="nm-header" onclick="toggleNilaiCard(\'' + esc(m.id_murid) + '\')">'
         + '<div class="nm-nama">'
-        + '<div class="nm-nama-avatar">' + (_numMapNilai[m.id_murid] || '') + '</div>'
-        + '<span class="nm-nama-txt">' + esc(m.nama_murid) + '</span>'
+        + '<span class="nm-nama-txt"><span class="nm-nama-avatar">' + (_numMapNilai[m.id_murid] || '') + '</span> ' + esc(m.nama_murid) + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">'
         + (isSkip ? '' : '<span class="nm-badge-warn" id="nmwarn-' + esc(m.id_murid) + '"' + (needsAttention ? '' : ' style="display:none"') + '>Perhatian</span>')

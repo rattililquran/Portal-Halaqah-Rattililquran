@@ -2031,16 +2031,15 @@ html.theme-dark #page-nilai-murid .nm-point-add[data-kind="catatan"]{border-colo
 }
 .nm-nama-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .nm-nama-avatar{
-  /* Nomor urut inline dgn nama: ukuran MENGIKUTI font nama (em), bukan kotak
-     tetap -- jadi selalu satu baris & proporsional baik di nama pendek maupun
-     panjang, terutama di layar kecil. */
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:1.6em;height:1.6em;line-height:1;
-  padding:0 .28em;border-radius:1em;
-  background:rgba(255,255,255,.2);
+  /* Nomor urut INLINE di dalam teks nama (vertical-align middle): posisinya
+     selalu SEJAJAR dgn baseline nama, bukan item flex terpisah yg tampak
+     mengambang di atas nama. Ukuran mengikuti font nama (em). */
+  display:inline-block;vertical-align:middle;
+  min-width:1.55em;height:1.55em;line-height:1.55em;
+  margin-right:.45em;padding:0 .22em;border-radius:1em;
+  background:rgba(255,255,255,.22);
   border:1px solid rgba(255,255,255,.35);
-  color:#fff;font-size:.78em;font-weight:800;
-  flex-shrink:0;
+  color:#fff;font-size:.74em;font-weight:800;text-align:center;
 }
 /* Chip Perhatian + badge hadir + chevron jangan pernah menyusut/hilang --
    nama murid yg terpotong ellipsis lebih dapat diterima drpd status hadir
@@ -2284,12 +2283,12 @@ html.theme-dark #editPresensiList .prow-level{color:#6b7280!important}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;
 }
 #page-presensi .prow-sub{font-size:11px;color:var(--kbm-ink-3,var(--text-3));margin-top:1px}
-/* Avatar inisial murid (sesi aktif & modal edit presensi) — inline dgn nama,
-   ukuran mengikuti font nama (em) agar selalu sejajar di semua lebar layar. */
+/* Avatar nomor urut INLINE dalam teks nama — selalu sejajar baseline nama */
 #page-presensi .prow-avatar, #editPresensiList .prow-avatar{
-  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-  min-width:1.7em;height:1.7em;line-height:1;padding:0 .3em;border-radius:1em;
-  font-size:.85em;font-weight:800;letter-spacing:.02em;
+  display:inline-block;vertical-align:middle;flex-shrink:0;
+  min-width:1.6em;height:1.6em;line-height:1.6em;
+  margin-right:.45em;padding:0 .24em;border-radius:1em;
+  font-size:.8em;font-weight:800;text-align:center;
   background:var(--kbm-accent-soft,rgba(15,23,42,.06));
   color:var(--kbm-accent,#0f172a);
   border:1px solid var(--kbm-accent-border,rgba(15,23,42,.14));
@@ -2321,7 +2320,7 @@ html.theme-dark #page-presensi .prow-avatar{background:rgba(240,242,248,.08)!imp
 @media (max-width:480px){
   #page-presensi .prow{flex-wrap:wrap;padding:10px 12px;gap:8px}
   #page-presensi .prow-info{flex:1 1 100%;display:flex;align-items:center;gap:10px}
-  #page-presensi .prow-avatar{min-width:1.7em;height:1.7em;flex-shrink:0}
+  #page-presensi .prow-avatar{flex-shrink:0}
   #page-presensi .prow-btns{flex:1 1 100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   #page-presensi .pb{min-width:0;width:100%;padding:8px 0;font-size:12px;border-radius:7px}
 }
@@ -6496,7 +6495,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=1d46caab" defer></script>
+<script src="kbm-module.js?v=91b13f9a" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -7627,9 +7626,8 @@ async function bukaEditPresensi(id_kbm, tanggal) {
       document.getElementById('editPresensiList').innerHTML = murid.map(m => `
         <div class="prow">
           <div class="prow-info">
-            <span class="prow-avatar">${esc(String(m.nama_murid||'?').trim().charAt(0).toUpperCase())}</span>
             <div>
-              <div class="prow-name">${esc(m.nama_murid)}</div>
+              <div class="prow-name"><span class="prow-avatar">${esc(String(m.nama_murid||'?').trim().charAt(0).toUpperCase())}</span> ${esc(m.nama_murid)}</div>
             </div>
           </div>
           <div class="prow-btns">
@@ -7647,9 +7645,8 @@ async function bukaEditPresensi(id_kbm, tanggal) {
       const status = String(n.status_hadir||'H').toUpperCase();
       return `<div class="prow">
         <div class="prow-info">
-          <span class="prow-avatar">${esc(String(n.nama_murid||n.id_murid||'?').trim().charAt(0).toUpperCase())}</span>
           <div>
-            <div class="prow-name">${esc(n.nama_murid||n.id_murid)}</div>
+            <div class="prow-name"><span class="prow-avatar">${esc(String(n.nama_murid||n.id_murid||'?').trim().charAt(0).toUpperCase())}</span> ${esc(n.nama_murid||n.id_murid)}</div>
           </div>
         </div>
         <div class="prow-btns">
