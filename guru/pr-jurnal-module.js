@@ -891,6 +891,7 @@
       txtArea.value = 'Merekam dan mengirimkan setoran suara (VN) halaman/materi hari ini melalui portal untuk dikoreksi makhrajnya.';
       if (selectJenis) {
         selectJenis.value = 'Rekaman Portal';
+        jrSyncRadio('Rekaman Portal');
         toggleReferensiJurnal();
       }
     } else if (val === 'deteksihukum') {
@@ -904,6 +905,7 @@
       txtArea.value = 'Membaca mandiri (latihan berulang) materi/halaman tajwid hari ini sebanyak minimal 3 kali sebelum pertemuan berikutnya.';
       if (selectJenis) {
         selectJenis.value = 'Mendengar dan membaca mandiri';
+        jrSyncRadio('Mendengar dan membaca mandiri');
         toggleReferensiJurnal();
       }
     } else if (val === 'hafalandalil') {

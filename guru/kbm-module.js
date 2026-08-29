@@ -1754,6 +1754,12 @@
     });
     // Sinkronkan visibilitas wadah referensi dgn jenis latihan yg dipulihkan.
     if (typeof toggleReferensiJurnal === 'function') toggleReferensiJurnal();
+    // Sinkronkan radio chip Jenis PR dgn nilai hidden select yg baru dipulihkan
+    // (bug: tanpa ini radio chip tetap kosong/salah setelah restore draft).
+    var jenisEl = document.getElementById('jurnalJenisLatihan');
+    if (jenisEl && jenisEl.value && typeof jrSyncRadio === 'function') {
+      jrSyncRadio(jenisEl.value);
+    }
   }
 
   function _saveKbmDraftLocal() {
