@@ -4030,15 +4030,18 @@ html.theme-dark .pr-chip.active {
             border-radius: 8px;
             border: 1px dashed var(--kbm-accent-border, rgba(15,23,42,.18));
           }
-          /* Label minimalis tapi mudah ternotice: garis kiri aksen + warna tegas */
+          /* Label field: chip oranye kecil di depan teks — mudah ternotice */
           .jr-label{
-            display:block;font-size:12px;font-weight:800;
+            display:flex;align-items:center;gap:6px;
+            font-size:12px;font-weight:800;
             color:var(--kbm-ink,var(--text));margin-bottom:6px;
-            padding-left:8px;
-            border-left:2.5px solid var(--kbm-accent,#0f172a);
-            letter-spacing:.01em;
           }
-          html.theme-dark .jr-label{border-left-color:#f0f2f8}
+          .jr-label::before{
+            content:'';display:inline-block;
+            width:8px;height:8px;border-radius:3px;flex-shrink:0;
+            background:#f97316;
+          }
+          html.theme-dark .jr-label::before{background:#fb923c}
           /* Chip template PR: tombol kecil yang mudah diketuk di HP */
           .jr-tpl-row{
             display:flex;align-items:center;gap:8px;flex-wrap:wrap;
