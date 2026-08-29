@@ -893,10 +893,11 @@
         selectJenis.value = 'Rekaman Portal';
         toggleReferensiJurnal();
       }
-    } else if (val === 'murottal') {
-      txtArea.value = 'Mendengarkan rekaman murottal/suara referensi ustadz sebanyak minimal 1 kali secara saksama.';
+    } else if (val === 'deteksihukum') {
+      txtArea.value = 'Identifikasi hukum tajwid yang anda temukan di ayat ... surat ...';
       if (selectJenis) {
-        selectJenis.value = 'Mendengar dan membaca mandiri';
+        selectJenis.value = 'Deteksi Hukum Tajwid';
+        jrSyncRadio('Deteksi Hukum Tajwid');
         toggleReferensiJurnal();
       }
     } else if (val === 'baca') {
