@@ -1862,21 +1862,27 @@ html.theme-dark #page-presensi .pb[data-k="T"].on{background:#f0f2f8;color:#0f17
 /* Head nilai STICKY: judul + chip x/y + progress bar menggantung di atas
    saat guru scroll daftar murid. Background solid krn konten lewat di
    baliknya; turun 6px agar menyatu dgn kartu. */
- #page-nilai-murid .nm-sticky-head{
-   position:sticky;z-index:20;
-   /* top = tinggi topbar (sticky juga) — head menggantung LINGKAR di bawah
-      topbar, judul+chip tidak ketutupan (dulu top:0 → ketutupan, hanya bar
-      yang menjulur kelihatan). */
-   top:calc(var(--hh) + var(--sat));
-  background:var(--kbm-card);
-  border-bottom:1px solid var(--kbm-line);
-  border-radius:var(--kbm-radius) var(--kbm-radius) 0 0;
-  margin:0;padding:14px 16px 12px;
-  flex-direction:column;align-items:stretch;gap:8px;
-  box-shadow:0 6px 14px -10px rgba(15,23,42,.25);
-}
+  #page-nilai-murid .nm-sticky-head{
+    position:sticky;z-index:20;
+    top:calc(var(--hh) + var(--sat));
+    background:var(--kbm-card);
+    border-bottom:1px solid var(--kbm-line);
+    border-radius:var(--kbm-radius) var(--kbm-radius) 0 0;
+    margin:0;padding:9px 12px;
+    flex-direction:column;align-items:stretch;gap:0;
+    box-shadow:0 6px 14px -10px rgba(15,23,42,.25);
+  }
+  /* Baris bar + chip SEJAJAR (hemat ruang, terutama HP) */
+  #page-nilai-murid .nm-sticky-trackrow{display:flex;align-items:center;gap:10px}
+  #page-nilai-murid .nm-sticky-trackrow .nm-progress-track{flex:1;margin:0}
+  #page-nilai-murid .nm-sticky-trackrow .nm-progress-chip{flex-shrink:0}
+  @media (max-width:600px){
+    #page-nilai-murid .nm-sticky-head{padding:8px 10px}
+    #page-nilai-murid .nm-sticky-trackrow{gap:8px}
+    #page-nilai-murid .nm-progress-chip{font-size:11px;padding:3px 8px}
+  }
 html.theme-dark #page-nilai-murid .nm-sticky-head{box-shadow:0 6px 14px -8px rgba(0,0,0,.55)}
-/* Chip "x/y terisi": pill mencolok, warna berubah saat penuh (di-set JS) */
+/* Chip "x/y terisi": pill mencolok, hijau saat penuh */
 #page-nilai-murid .nm-progress-chip{
   font-size:11.5px;font-weight:800;letter-spacing:.02em;
   padding:4px 10px;border-radius:100px;white-space:nowrap;
@@ -1888,16 +1894,6 @@ html.theme-dark #page-nilai-murid .nm-sticky-head{box-shadow:0 6px 14px -8px rgb
   background:var(--kbm-ok);color:#fff;border-color:var(--kbm-ok);
 }
 html.theme-dark #page-nilai-murid .nm-progress-chip.done{color:#0f172a}
-/* HP: chip & bar SEJAJAR satu baris di bawah judul kecil -- hemat ruang
-   vertikal dan x/y langsung dibaca bersama bar (lihat screenshot guru). */
-@media (max-width:600px){
-  #page-nilai-murid .nm-sticky-head{padding:10px 12px 8px;gap:6px}
-  #page-nilai-murid .nm-sticky-head .card-title{font-size:12.5px}
-  #page-nilai-murid .nm-sticky-head .card-title .kbm-ico{width:15px;height:15px}
-  #page-nilai-murid .nm-progress-row{display:flex;align-items:center;gap:8px}
-  #page-nilai-murid .nm-progress-row .nm-progress-track{flex:1;margin:0}
-  #page-nilai-murid .nm-progress-chip{flex-shrink:0;order:-1}
-}
 #page-nilai-murid .nm-tool-btn,#page-hafalan-kbm .nm-tool-btn,#page-microteaching-kbm .nm-tool-btn{
   border-radius:6px;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-2);box-shadow:none;font-weight:700;
 }
@@ -3882,12 +3878,12 @@ html.theme-dark .pr-chip.active {
 
         <div class="card">
           <div class="card-head nm-sticky-head">
-            <div class="nm-sticky-row">
-              <div class="card-title"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true" style="margin-right:6px"><path d="M12 20h9"/><path class="kbm-d1" d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Nilai per Murid</div>
+            <!-- Hanya bar + chip yg menggantung (hemat ruang, terutama HP) -->
+            <div class="nm-sticky-trackrow">
+              <div class="nm-progress-track" id="nmProgressTrack" style="display:none">
+                <div class="nm-progress-fill" id="nmProgressFill" style="width:0%"></div>
+              </div>
               <span class="nm-progress-chip" id="nilaiProgress">0/0 terisi</span>
-            </div>
-            <div class="nm-progress-track" id="nmProgressTrack" style="display:none">
-              <div class="nm-progress-fill" id="nmProgressFill" style="width:0%"></div>
             </div>
           </div>
           <div class="card-body">
