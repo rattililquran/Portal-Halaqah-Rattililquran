@@ -1,4 +1,4 @@
-window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posisi Modul-Web (kurikulum lengkap, independen dari status halaman). Dikonsumsi Portal (picker jurnal) + Modul-Web (parser/navigasi).", "canonical_format": "[web] huruf/<slug>/<tadrib?>/<item?>  ·  [web] rujukan/<slug>  ·  [web] index", "tadrib_labels": {"a": "Tadrīb A · Latihan Lisan", "b": "Tadrīb B · Latihan Frasa", "c": "Tadrīb C · Latihan Ayat"}, "makharij": [{"slug": "jauf", "title": "Al-Jauf"}, {"slug": "halq", "title": "Al-Ḥalq"}, {"slug": "lisan", "title": "Al-Lisān"}, {"slug": "syafatain", "title": "Asy-Syafatain"}, {"slug": "khaisyum", "title": "Al-Khaisyum"}], "rujukan": [{"slug": "anatomi-makhraj", "name": "Anatomi Makhraj"}, {"slug": "itmamul-harakat", "name": "Itmāmul Ḥarakāt"}, {"slug": "pengantar-tahsin", "name": "Pengantar Tahsin"}, {"slug": "penjelasan-sifat", "name": "Penjelasan Sifat"}, {"slug": "penjelasan-bacaan-khusus", "name": "Bacaan Khusus"}, {"slug": "penjelasan-rasm-utsmani", "name": "Rasm Utsmani"}], "huruf": [{"slug": "jauf", "ar": "ا · و · ي", "name": "Al-Jauf", "makhraj": "jauf", "order": 1, "tadrib": ["a"], "built": true}, {"slug": "hamzah", "ar": "ء", "name": "Hamzah", "makhraj": "halq", "order": 2, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "ha", "ar": "ه", "name": "Ha", "makhraj": "halq", "order": 3, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "ain", "ar": "ع", "name": "'Ain", "makhraj": "halq", "order": 4, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "ha-harfi", "ar": "ح", "name": "Ḥa", "makhraj": "halq", "order": 5, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "ghain", "ar": "غ", "name": "Ghain", "makhraj": "halq", "order": 6, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "kha", "ar": "خ", "name": "Kha", "makhraj": "halq", "order": 7, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "qaf", "ar": "ق", "name": "Qāf", "makhraj": "lisan", "order": 8, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "kaf", "ar": "ك", "name": "Kaf", "makhraj": "lisan", "order": 9, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "jim", "ar": "ج", "name": "Jīm", "makhraj": "lisan", "order": 10, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "syin", "ar": "ش", "name": "Syīn", "makhraj": "lisan", "order": 11, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "yaa", "ar": "ي", "name": "Yā'", "makhraj": "lisan", "order": 12, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "dad", "ar": "ض", "name": "Ḍād", "makhraj": "lisan", "order": 13, "tadrib": ["a", "b", "c"], "built": true}, {"slug": "lam", "ar": "ل", "name": "Lām", "makhraj": "lisan", "order": 14, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "nun", "ar": "ن", "name": "Nūn", "makhraj": "lisan", "order": 15, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "ra", "ar": "ر", "name": "Rā", "makhraj": "lisan", "order": 16, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "tha", "ar": "ط", "name": "Ṭā'", "makhraj": "lisan", "order": 17, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "dal", "ar": "د", "name": "Dāl", "makhraj": "lisan", "order": 18, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "ta", "ar": "ت", "name": "Tā'", "makhraj": "lisan", "order": 19, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "shad", "ar": "ص", "name": "Ṣād", "makhraj": "lisan", "order": 20, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "sin", "ar": "س", "name": "Sīn", "makhraj": "lisan", "order": 21, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "zay", "ar": "ز", "name": "Zāy", "makhraj": "lisan", "order": 22, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "zha", "ar": "ظ", "name": "Ẓā'", "makhraj": "lisan", "order": 23, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "dzal", "ar": "ذ", "name": "Żāl", "makhraj": "lisan", "order": 24, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "tsa", "ar": "ث", "name": "Ṡā'", "makhraj": "lisan", "order": 25, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "fa", "ar": "ف", "name": "Fā'", "makhraj": "syafatain", "order": 26, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "wau", "ar": "و", "name": "Wāw", "makhraj": "syafatain", "order": 27, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "ba", "ar": "ب", "name": "Bā'", "makhraj": "syafatain", "order": 28, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "mim", "ar": "م", "name": "Mīm", "makhraj": "syafatain", "order": 29, "tadrib": ["a", "b", "c"], "built": false}, {"slug": "ghunnah", "ar": "ﻥ ﻡ", "name": "Ghunnah", "makhraj": "khaisyum", "order": 30, "tadrib": [], "built": false}]};
+window.MODUL_MANIFEST = {"version":2,"note":"Manifest lengkap Modul-Web v2 — semua 30 huruf built, 36 rujukan (penjelasan tajwid + ringkasan + materi pengantar). Dikonsumsi picker jurnal KBM.","canonical_format":"[web] huruf/<slug>/<tadrib?>/<item?>  ·  [web] rujukan/<slug>  ·  [web] index","tadrib_labels":{"a":"Tadrīb A · Latihan Lisan","b":"Tadrīb B · Latihan Frasa","c":"Tadrīb C · Latihan Ayat"},"makharij":[{"slug":"jauf","title":"Al-Jauf"},{"slug":"halq","title":"Al-Ḥalq"},{"slug":"lisan","title":"Al-Lisān"},{"slug":"syafatain","title":"Asy-Syafatain"},{"slug":"khaisyum","title":"Al-Khaisyum"}],"rujukan":[{"slug":"pengantar-tahsin","name":"Pengantar Tahsin"},{"slug":"anatomi-makhraj","name":"Anatomi Makhraj"},{"slug":"penjelasan-sifat","name":"Penjelasan Sifat"},{"slug":"itmamul-harakat","name":"Itmāmul Ḥarakāt"},{"slug":"penjelasan-bacaan-khusus","name":"Bacaan Khusus"},{"slug":"penjelasan-rasm-utsmani","name":"Rasm Utsmani"},{"slug":"penjelasan-hamzah-wasal","name":"Hamzah Wasal"},{"slug":"penjelasan-hukum-ra","name":"Hukum Rā'"},{"slug":"penjelasan-shad-sin","name":"Shād dibaca Sīn"},{"slug":"penjelasan-tamkin-yaa","name":"Tamkīn Al-Yā'"},{"slug":"penjelasan-izhar-halq","name":"Iẓhār Ḥalqī"},{"slug":"penjelasan-idgham-bighunnah","name":"Idghām Bighunnah"},{"slug":"penjelasan-idgham-bilaghunnah","name":"Idghām Bilā Ghunnah"},{"slug":"penjelasan-iqlab","name":"Iqlāb"},{"slug":"penjelasan-ikhfa-haqiqi","name":"Ikhfā' Ḥaqīqī"},{"slug":"penjelasan-ikhfa-syafawi","name":"Ikhfā' Syafawī"},{"slug":"penjelasan-idgham-mimi","name":"Idghām Mīmī"},{"slug":"penjelasan-izhar-syafawi","name":"Iẓhār Syafawī"},{"slug":"penjelasan-izhar-qamariyah","name":"Iẓhār Qamariyyah"},{"slug":"penjelasan-idgham-syamsiyah","name":"Idghām Syamsiyyah"},{"slug":"penjelasan-idgham-mutajanisain","name":"Idghām Mutajānisain"},{"slug":"penjelasan-idgham-mutamatsilain","name":"Idghām Mutamātsilain"},{"slug":"penjelasan-idgham-mutaqaribain","name":"Idghām Mutaqāribain"},{"slug":"penjelasan-mad-thabii","name":"Mad Ṭabī'ī"},{"slug":"penjelasan-mad-iwadh","name":"Mad 'Iwaḍ"},{"slug":"penjelasan-mad-shilah-qasirah","name":"Mad Ṣilah Qaṣīrah"},{"slug":"penjelasan-mad-shilah-kubra","name":"Mad Ṣilah Kubrā"},{"slug":"penjelasan-mad-wajib-muttasil","name":"Mad Wājib Muttaṣil"},{"slug":"penjelasan-mad-jaiz-munfasil","name":"Mad Jā'iz Munfaṣil"},{"slug":"penjelasan-mad-aridh-lissukun","name":"Mad 'Āriḍ Lissukūn"},{"slug":"penjelasan-mad-lin","name":"Mad Līn"},{"slug":"penjelasan-mad-badal","name":"Mad Badal"},{"slug":"penjelasan-mad-lazim","name":"Mad Lāzim"},{"slug":"ringkasan-alif-lam","name":"Ringkasan: Hukum Alif-Lām"},{"slug":"ringkasan-mad-thabii","name":"Ringkasan: Mad Ṭabī'ī"},{"slug":"ringkasan-mad-fari","name":"Ringkasan: Mad Far'ī"},{"slug":"ringkasan-nun-sukun-tanwin","name":"Ringkasan: Nūn Sukun & Tanwīn"},{"slug":"ringkasan-mim-sukun","name":"Ringkasan: Mīm Sukun"},{"slug":"ringkasan-pertemuan-huruf","name":"Ringkasan: Pertemuan Dua Huruf"}],"huruf":[{"slug":"jauf","ar":"ا · و · ي","name":"Al-Jauf","makhraj":"jauf","order":1,"tadrib":["a","b","c"],"built":true},{"slug":"hamzah","ar":"ء","name":"Hamzah","makhraj":"halq","order":2,"tadrib":["a","b","c"],"built":true},{"slug":"ha","ar":"ه","name":"Ha","makhraj":"halq","order":3,"tadrib":["a","b","c"],"built":true},{"slug":"ain","ar":"ع","name":"'Ain","makhraj":"halq","order":4,"tadrib":["a","b","c"],"built":true},{"slug":"ha-harfi","ar":"ح","name":"Ḥa","makhraj":"halq","order":5,"tadrib":["a","b","c"],"built":true},{"slug":"ghain","ar":"غ","name":"Ghain","makhraj":"halq","order":6,"tadrib":["a","b","c"],"built":true},{"slug":"kha","ar":"خ","name":"Kha","makhraj":"halq","order":7,"tadrib":["a","b","c"],"built":true},{"slug":"qaf","ar":"ق","name":"Qāf","makhraj":"lisan","order":8,"tadrib":["a","b","c"],"built":true},{"slug":"kaf","ar":"ك","name":"Kaf","makhraj":"lisan","order":9,"tadrib":["a","b","c"],"built":true},{"slug":"jim","ar":"ج","name":"Jīm","makhraj":"lisan","order":10,"tadrib":["a","b","c"],"built":true},{"slug":"syin","ar":"ش","name":"Syīn","makhraj":"lisan","order":11,"tadrib":["a","b","c"],"built":true},{"slug":"yaa","ar":"ي","name":"Yā'","makhraj":"lisan","order":12,"tadrib":["a","b","c"],"built":true},{"slug":"dad","ar":"ض","name":"Ḍād","makhraj":"lisan","order":13,"tadrib":["a","b","c"],"built":true},{"slug":"lam","ar":"ل","name":"Lām","makhraj":"lisan","order":14,"tadrib":["a","b","c"],"built":true},{"slug":"nun","ar":"ن","name":"Nūn","makhraj":"lisan","order":15,"tadrib":["a","b","c"],"built":true},{"slug":"ra","ar":"ر","name":"Rā'","makhraj":"lisan","order":16,"tadrib":["a","b","c"],"built":true},{"slug":"tsa","ar":"ث","name":"Tsā'","makhraj":"lisan","order":17,"tadrib":["a","b","c"],"built":true},{"slug":"dzal","ar":"ذ","name":"Dzāl","makhraj":"lisan","order":18,"tadrib":["a","b","c"],"built":true},{"slug":"zha","ar":"ظ","name":"Ẓā'","makhraj":"lisan","order":19,"tadrib":["a","b","c"],"built":true},{"slug":"sin","ar":"س","name":"Sīn","makhraj":"lisan","order":20,"tadrib":["a","b","c"],"built":true},{"slug":"zay","ar":"ز","name":"Zāy","makhraj":"lisan","order":21,"tadrib":["a","b","c"],"built":true},{"slug":"shad","ar":"ص","name":"Shād","makhraj":"lisan","order":22,"tadrib":["a","b","c"],"built":true},{"slug":"tha","ar":"ط","name":"Ṭā'","makhraj":"lisan","order":23,"tadrib":["a","b","c"],"built":true},{"slug":"dal","ar":"د","name":"Dāl","makhraj":"lisan","order":24,"tadrib":["a","b","c"],"built":true},{"slug":"ta","ar":"ت","name":"Tā'","makhraj":"lisan","order":25,"tadrib":["a","b","c"],"built":true},{"slug":"ba","ar":"ب","name":"Bā'","makhraj":"syafatain","order":26,"tadrib":["a","b","c"],"built":true},{"slug":"mim","ar":"م","name":"Mīm","makhraj":"syafatain","order":27,"tadrib":["a","b","c"],"built":true},{"slug":"wau","ar":"و","name":"Wāw","makhraj":"syafatain","order":28,"tadrib":["a","b","c"],"built":true},{"slug":"fa","ar":"ف","name":"Fā'","makhraj":"syafatain","order":29,"tadrib":["a","b","c"],"built":true},{"slug":"ghunnah","ar":"غنة","name":"Al-Ghunnah","makhraj":"khaisyum","order":30,"tadrib":[],"built":true}]};
 
 /* ================================================================
    Modul Position Picker (Tahap 2) — pengisi "Halaman / Modul" jurnal KBM
@@ -38,7 +38,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
   function buildPanelHTML(){
     var mk = '<option value="">— pilih —</option>';
     (M.makharij||[]).forEach(function(g){ mk+=opt('mk:'+g.slug, g.title); });
-    mk += opt('rujukan','Materi Rujukan');
+    mk += opt('rujukan','Materi Rujukan & Hukum Tajwid');
     mk += opt('index','Beranda Huruf (index)');
     return ''
     +'<div class="mpp-row">'
@@ -119,10 +119,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
   function injectCSS(){
     if(document.getElementById('mpp-css')) return;
     var st=document.createElement('style'); st.id='mpp-css';
-    // Desain konsisten dengan design system KBM minimalis (--kbm-* tokens):
-    // flat, sudut kecil, label chip oranye-emas, aksen netral (bukan biru hardcode).
     st.textContent=''
-    // Tombol pemicu: chip seperti nm-section-label (chip oranye-emas gradient)
     +'.mpp-btn{'
     +  'display:flex;align-items:center;justify-content:center;gap:5px;'
     +  'width:100%;box-sizing:border-box;margin-bottom:6px;cursor:pointer;'
@@ -132,15 +129,12 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +  'color:#991b1b;text-transform:uppercase;letter-spacing:.07em;'
     +'}'
     +'.mpp-btn:hover{border-color:#dc2626;background:linear-gradient(135deg,#fecaca,#fca5a5)}'
-    // Panel: flat, kartu minimalis
     +'.mpp-panel{'
     +  'margin-top:10px;border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
     +  'background:var(--kbm-card,#fff);border-radius:10px;padding:12px 14px;font-size:13px;'
     +  'width:100%;box-sizing:border-box;'
     +'}'
-    // Row layout
     +'.mpp-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}'
-    // Label row: chip oranye-emas sama persis dgn nm-section-label
     +'.mpp-row label{'
     +  'display:inline-flex;align-items:center;gap:5px;'
     +  'background:linear-gradient(135deg,#fef3c7,#fde68a);'
@@ -149,7 +143,6 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +  'color:#92400e;text-transform:uppercase;letter-spacing:.07em;'
     +  'width:fit-content;margin-bottom:2px;'
     +'}'
-    // Select & input: sama dgn .fc KBM
     +'.mpp-panel select,.mpp-panel input{'
     +  'font-size:13px;padding:7px 10px;width:100%;'
     +  'border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
@@ -160,7 +153,6 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +  'border-color:var(--kbm-accent,#0f172a);'
     +  'box-shadow:0 0 0 3px var(--kbm-accent-soft,rgba(15,23,42,.08));outline:none;'
     +'}'
-    // Preview: monospace netral
     +'.mpp-preview{'
     +  'font-family:ui-monospace,Menlo,monospace;font-size:11.5px;'
     +  'background:var(--kbm-accent-soft,rgba(15,23,42,.05));'
@@ -168,7 +160,6 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +  'border-radius:8px;padding:7px 10px;'
     +  'color:var(--text,#0f172a);white-space:normal;word-break:break-word;'
     +'}'
-    // Aksi: Terapkan = aksen netral, Tutup = outline
     +'.mpp-actions{display:flex;gap:8px;margin-top:8px}'
     +'.mpp-apply{'
     +  'flex:1;padding:8px;border:0;border-radius:8px;cursor:pointer;'
@@ -183,7 +174,6 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +  'background:transparent;border-radius:8px;cursor:pointer;'
     +  'color:var(--text-2,#475569);'
     +'}'
-    // Dark mode
     +'html.theme-dark .mpp-panel{'
     +  'background:#121214;border-color:rgba(255,255,255,.1);'
     +'}'
@@ -192,7 +182,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +'}'
     +'html.theme-dark .mpp-preview{background:rgba(240,242,248,.06);border-color:rgba(240,242,248,.12);color:#f0f2f8}'
     +'html.theme-dark .mpp-apply{background:#f0f2f8;color:#0f172a}'
-    +'html.theme-dark .mpp-btn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fbbf24}';
+    +'html.theme-dark .mpp-btn{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.4);color:#fca5a5}';
     document.head.appendChild(st);
   }
 
