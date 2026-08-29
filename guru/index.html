@@ -4061,13 +4061,13 @@ html.theme-dark .pr-chip.active {
             color:var(--kbm-ink-2);transition:background .15s,border-color .15s;
           }
           .jr-chip:hover{background:var(--kbm-accent-soft);border-color:var(--kbm-accent-border);color:var(--kbm-ink)}
-          /* Radio chip jenis PR */
-          .jr-radio-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+          /* Radio chip jenis PR — kompak di HP */
+          .jr-radio-group{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
           .jr-radio-chip{display:inline-flex;align-items:center;cursor:pointer}
           .jr-radio-chip input[type=radio]{display:none}
           .jr-radio-chip span{
-            display:inline-block;padding:6px 13px;border-radius:100px;
-            font-size:12.5px;font-weight:700;cursor:pointer;user-select:none;
+            display:inline-block;padding:5px 11px;border-radius:100px;
+            font-size:12px;font-weight:700;cursor:pointer;user-select:none;white-space:nowrap;
             background:var(--kbm-card);border:1.5px solid var(--kbm-line);
             color:var(--kbm-ink-2);transition:background .15s,border-color .15s,color .15s;
           }
@@ -4076,6 +4076,8 @@ html.theme-dark .pr-chip.active {
           }
           html.theme-dark .jr-radio-chip input[type=radio]:checked + span{background:#f0f2f8;border-color:#f0f2f8;color:#0f172a}
           .jr-radio-chip:hover span{border-color:var(--kbm-accent-border)}
+          /* jurnal-field-row tetap 2 kolom mulai dari 360px agar deadline satu baris dgn jenis */
+          @media(min-width:360px){.jurnal-field-row{grid-template-columns:1fr 1fr!important}}
         </style>
 
         <!-- Mini step indicator jurnal -->
