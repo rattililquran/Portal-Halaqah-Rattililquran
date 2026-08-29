@@ -4090,48 +4090,43 @@ html.theme-dark .pr-chip.active {
           <div class="jurnal-card">
             <div class="jurnal-card-body" style="padding-top:14px">
 
-              <!-- Template PR: chip baris cepat (lebih mudah diketuk di HP) -->
-              <div class="jr-tpl-row">
-                <span class="jr-tpl-label">Template:</span>
-                <div class="jr-tpl-chips">
-                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('vn')">VN Setoran</button>
-                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('murottal')">Murottal</button>
-                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('baca')">Mandiri 3×</button>
-                </div>
-                <!-- hidden select tetap dipakai applyJurnalPrTemplate & draft -->
-                <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="display:none">
-                  <option value=""></option>
-                  <option value="vn">VN Setoran Hafalan</option>
-                  <option value="murottal">Mendengar Murottal Referensi</option>
-                  <option value="baca">Membaca Mandiri 3x</option>
-                </select>
-              </div>
-
-              <!-- Jenis PR: radio chip + Deadline sejajar -->
+              <!-- Jenis PR + Deadline sejajar -->
               <div class="jurnal-field-row">
                 <div class="fg">
                   <label class="jr-label">Jenis PR</label>
-                  <!-- radio chip: value sinkron ke hidden select (sumber kebenaran draft/API) -->
                   <div class="jr-radio-group" id="jrJenisRadios">
                     <label class="jr-radio-chip"><input type="radio" name="jenisPrRadio" value="" onchange="jrSetJenis(this.value)"><span>Tidak ada PR</span></label>
                     <label class="jr-radio-chip"><input type="radio" name="jenisPrRadio" value="Rekaman Portal" onchange="jrSetJenis(this.value)"><span>Rekaman Portal</span></label>
                     <label class="jr-radio-chip"><input type="radio" name="jenisPrRadio" value="VN di WAG" onchange="jrSetJenis(this.value)"><span>Voice Note WAG</span></label>
                     <label class="jr-radio-chip"><input type="radio" name="jenisPrRadio" value="Mendengar dan membaca mandiri" onchange="jrSetJenis(this.value)"><span>Tilawah Mandiri</span></label>
-                    <label class="jr-radio-chip"><input type="radio" name="jenisPrRadio" value="Lainnya" onchange="jrSetJenis(this.value)"><span>Lainnya</span></label>
                   </div>
-                  <!-- hidden select tetap jadi sumber kebenaran (dibaca draft/doSelesaiKBM) -->
                   <select id="jurnalJenisLatihan" onchange="jrSyncRadio(this.value);toggleReferensiJurnal()" style="display:none">
                     <option value=""></option>
                     <option value="Rekaman Portal">Rekaman Suara di Portal</option>
                     <option value="VN di WAG">Voice Note ke WAG</option>
                     <option value="Mendengar dan membaca mandiri">Tilawah Mandiri</option>
-                    <option value="Lainnya">Lainnya</option>
                   </select>
                 </div>
                 <div class="fg">
                   <label class="jr-label"><svg class="kbm-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path class="kbm-d1" d="M16 2v4M8 2v4M3 10h18"/></svg> Deadline</label>
                   <input type="date" class="fc" id="jurnalDeadline">
                 </div>
+              </div>
+
+              <!-- Template PR: setelah deadline, di atas deskripsi -->
+              <div class="jr-tpl-row">
+                <span class="jr-tpl-label">Template Deskripsi:</span>
+                <div class="jr-tpl-chips">
+                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('vn')">VN Setoran</button>
+                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('murottal')">Murottal</button>
+                  <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('baca')">Mandiri 3×</button>
+                </div>
+                <select id="jurnalPrTemplate" onchange="applyJurnalPrTemplate(this.value)" style="display:none">
+                  <option value=""></option>
+                  <option value="vn">VN Setoran Hafalan</option>
+                  <option value="murottal">Mendengar Murottal Referensi</option>
+                  <option value="baca">Membaca Mandiri 3x</option>
+                </select>
               </div>
 
               <!-- Deskripsi: full width -->
