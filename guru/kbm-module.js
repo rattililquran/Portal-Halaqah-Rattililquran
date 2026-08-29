@@ -2434,16 +2434,18 @@
         return !cache.adab;
       });
       if (belumDinilai.length > 0) {
-        var namaPratinjau = belumDinilai.slice(0, 3).map(function(m){ return m.nama_murid; }).join(', ')
-          + (belumDinilai.length > 3 ? ', dan ' + (belumDinilai.length - 3) + ' lainnya' : '');
-        // P1-2 (audit form Jurnal 2026-08-18): nada dilunakkan -- ini cuma heads-up
-        // awal (masih bisa kembali isi sebelum sesi benar2 ditutup), bukan peringatan
-        // final. Peringatan tegas soal dampak ke raport tetap ada di doSelesaiKBM()
-        // sbg palang pintu terakhir, tak perlu diulang di sini dgn nada yg sama.
+        // Chip merah per nama murid — nama lengkap, semua ditampilkan
+        var chipHtml = belumDinilai.map(function(m){
+          return '<span style="display:inline-flex;align-items:center;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.35);color:#ef4444;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap">'
+            + esc(m.nama_murid) + '</span>';
+        }).join(' ');
+        var pesanHtml = '<div style="font-size:13px;color:var(--text-2,#b0b7c3);margin-bottom:10px">'
+          + 'Masih ada <strong style="color:#ef4444">' + belumDinilai.length + ' murid</strong> yang belum dinilai:</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' + chipHtml + '</div>'
+          + '<div style="font-size:12px;color:var(--text-3,#6b7280)">Bisa kembali isi sebelum sesi ditutup. Lanjut ke Jurnal dulu?</div>';
         var lanjutkan = await window.showConfirm(
-          'Masih ada ' + belumDinilai.length + ' murid belum dinilai:\n' + namaPratinjau
-          + '.\n\nBisa kembali isi sebelum sesi ditutup. Lanjut ke Jurnal dulu?',
-          { title: 'Belum Semua Dinilai', okText: 'Lanjut, Isi Nanti', cancelText: 'Kembali Isi Dulu' }
+          '',
+          { title: 'Belum Semua Dinilai', html: pesanHtml, okText: 'Lanjut, Isi Nanti', cancelText: 'Kembali Isi Dulu' }
         );
         if (!lanjutkan) return;
       }
