@@ -2035,9 +2035,11 @@
     if (!pts.length) pts = ['']; // selalu 1 poin kosong awal
     _pointsCache[taId] = pts;
     wrap.innerHTML = pts.map(function(p, i) {
+      // Label placeholder: "Koreksi N" utk field koreksi, "Catatan N" utk catatan.
+      var label = taId.indexOf('catatan-') === 0 ? 'Catatan' : 'Koreksi';
       return '<div class="nm-point-row">'
         + '<span class="nm-point-num">' + (i+1) + '</span>'
-        + '<input type="text" class="fc nm-point-input" data-ta="' + esc(taId) + '" data-i="' + i + '" value="' + esc(p) + '" placeholder="Poin ' + (i+1) + ' (makhraj, mad, dll)...">'
+        + '<input type="text" class="fc nm-point-input" data-ta="' + esc(taId) + '" data-i="' + i + '" value="' + esc(p) + '" placeholder="' + label + ' ' + (i+1) + '">'
         + '<button type="button" class="nm-point-del" data-ta="' + esc(taId) + '" data-i="' + i + '" title="Hapus poin">×</button>'
         + '</div>';
     }).join('');
@@ -2586,10 +2588,10 @@
         '  <!-- textarea tetap jadi sumber data (per-baris); editor poin di atasnya -->',
         '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:16px;resize:vertical;min-height:60px;display:none">' + esc(korVal) + '</textarea>',
         '  <div id="pts-koreksi-' + esc(m.id_murid) + '" class="nm-points" data-mid="' + esc(m.id_murid) + '"></div>',
-        '  <button type="button" class="nm-point-add" onclick="_kbmAddPoint(\'koreksi-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin</button>',
+        '  <button type="button" class="nm-point-add" data-kind="koreksi" onclick="_kbmAddPoint(\'koreksi-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin Koreksi</button>',
         '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:16px;resize:vertical;margin-top:6px;display:none">' + esc(catVal) + '</textarea>',
         '  <div id="pts-catatan-' + esc(m.id_murid) + '" class="nm-points" data-mid="' + esc(m.id_murid) + '"></div>',
-        '  <button type="button" class="nm-point-add" onclick="_kbmAddPoint(\'catatan-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin Catatan</button>',
+        '  <button type="button" class="nm-point-add" data-kind="catatan" onclick="_kbmAddPoint(\'catatan-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin Catatan</button>',
         '</div>',
       ].join('\n');
 

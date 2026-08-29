@@ -1924,6 +1924,17 @@ html.theme-dark #page-nilai-murid .nm-progress-chip.done{color:#0f172a}
   background:transparent;border:1px dashed var(--kbm-accent-border);border-radius:8px;
   color:var(--kbm-accent);font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;
 }
+/* Bedakan warna tombol tambah poin: koreksi vs catatan */
+#page-nilai-murid .nm-point-add[data-kind="koreksi"]{
+  border-color:var(--kbm-accent-border);color:var(--kbm-accent);
+  background:var(--kbm-accent-soft);
+}
+#page-nilai-murid .nm-point-add[data-kind="catatan"]{
+  border-color:rgba(180,83,9,.3);color:var(--kbm-warn,#b45309);
+  background:var(--kbm-warn-soft,rgba(180,83,9,.06));
+}
+html.theme-dark #page-nilai-murid .nm-point-add[data-kind="koreksi"]{border-color:rgba(240,242,248,.2);color:#f0f2f8;background:rgba(240,242,248,.07)}
+html.theme-dark #page-nilai-murid .nm-point-add[data-kind="catatan"]{border-color:rgba(251,191,36,.25);color:#fbbf24;background:rgba(251,191,36,.07)}
 
 /* — BADGE status (Hadir/Izin/dsb): flat, sudut kecil — */
 #page-presensi .badge,#page-nilai-murid .badge,#page-hafalan-kbm .badge,#page-microteaching-kbm .badge,
@@ -6484,7 +6495,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=81be9312" defer></script>
+<script src="kbm-module.js?v=1d46caab" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
