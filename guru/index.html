@@ -4030,30 +4030,20 @@ html.theme-dark .pr-chip.active {
             border-radius: 8px;
             border: 1px dashed var(--kbm-accent-border, rgba(15,23,42,.18));
           }
-          /* Label field: chip oranye kecil di depan teks — mudah ternotice */
+          /* Label field: chip oranye kecil di depan teks */
           .jr-label{
             display:flex;align-items:center;gap:6px;
             font-size:12px;font-weight:800;
             color:var(--kbm-ink,var(--text));margin-bottom:6px;
           }
           .jr-label::before{
-            content:'';display:inline-block;
-            width:8px;height:8px;border-radius:3px;flex-shrink:0;
-            background:#f97316;
+            content:'';flex-shrink:0;
+            width:8px;height:8px;border-radius:3px;
+            background:#f97316;display:block;
           }
           html.theme-dark .jr-label::before{background:#fb923c}
-          /* Chip template PR: tombol kecil yang mudah diketuk di HP */
-          .jr-tpl-row{
-            display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-            padding:8px 12px;background:var(--kbm-accent-soft,rgba(15,23,42,.04));
-            border-radius:8px;border:1px solid var(--kbm-accent-border,rgba(15,23,42,.1));
-            margin-bottom:14px;
-          }
-          .jr-tpl-label{
-            font-size:11px;font-weight:800;color:var(--kbm-ink-3,var(--text-3));
-            white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;
-          }
-          .jr-tpl-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+          /* Template deskripsi: label + chip inline (dalam kartu, tanpa box) */
+          .jr-tpl-inline{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
           .jr-chip{
             padding:5px 12px;border-radius:100px;
             font-size:12px;font-weight:700;cursor:pointer;
@@ -4115,10 +4105,10 @@ html.theme-dark .pr-chip.active {
                 </div>
               </div>
 
-              <!-- Template PR: setelah deadline, di atas deskripsi -->
-              <div class="jr-tpl-row">
-                <span class="jr-tpl-label">Template Deskripsi:</span>
-                <div class="jr-tpl-chips">
+              <!-- Template Deskripsi: label + chip inline (tanpa box terpisah) -->
+              <div class="fg">
+                <label class="jr-label">Template Deskripsi</label>
+                <div class="jr-tpl-inline">
                   <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('vn')">VN Setoran</button>
                   <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('murottal')">Murottal</button>
                   <button type="button" class="jr-chip" onclick="applyJurnalPrTemplate('baca')">Mandiri 3×</button>
