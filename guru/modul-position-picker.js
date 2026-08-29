@@ -125,13 +125,13 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     // Tombol pemicu: chip seperti nm-section-label (chip oranye-emas gradient)
     +'.mpp-btn{'
     +  'display:flex;align-items:center;justify-content:center;gap:5px;'
-    +  'width:100%;box-sizing:border-box;margin-top:6px;cursor:pointer;'
-    +  'background:linear-gradient(135deg,#fef3c7,#fde68a);'
-    +  'border:1px solid #f59e0b;border-radius:8px;'
+    +  'width:100%;box-sizing:border-box;margin-bottom:6px;cursor:pointer;'
+    +  'background:linear-gradient(135deg,#fef2f2,#fecaca);'
+    +  'border:1.5px solid #ef4444;border-radius:8px;'
     +  'padding:6px 11px;font-size:11px;font-weight:800;'
-    +  'color:#92400e;text-transform:uppercase;letter-spacing:.07em;'
+    +  'color:#991b1b;text-transform:uppercase;letter-spacing:.07em;'
     +'}'
-    +'.mpp-btn:hover{border-color:#d97706;background:linear-gradient(135deg,#fde68a,#fbbf24)}'
+    +'.mpp-btn:hover{border-color:#dc2626;background:linear-gradient(135deg,#fecaca,#fca5a5)}'
     // Panel: flat, kartu minimalis
     +'.mpp-panel{'
     +  'margin-top:10px;border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
@@ -204,7 +204,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     btn.type='button'; btn.className='mpp-btn'; btn.textContent='Isi dari Modul-Web';
     var panel=document.createElement('div'); panel.className='mpp-panel'; panel.style.display='none';
     panel.innerHTML=buildPanelHTML();
-    input.insertAdjacentElement('afterend', btn);
+    input.insertAdjacentElement('beforebegin', btn);
     btn.insertAdjacentElement('afterend', panel);
     btn.addEventListener('click',function(){ panel.style.display = panel.style.display==='none'?'':'none'; });
     panel.querySelector('.mpp-mk').addEventListener('change',function(){ onMkChange(panel); });
