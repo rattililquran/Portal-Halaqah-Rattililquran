@@ -906,6 +906,13 @@
         selectJenis.value = 'Mendengar dan membaca mandiri';
         toggleReferensiJurnal();
       }
+    } else if (val === 'hafalandalil') {
+      txtArea.value = 'Kirimkan VN di portal dalil makhraj huruf ... / sifat ...';
+      if (selectJenis) {
+        selectJenis.value = 'Rekaman Portal';
+        jrSyncRadio('Rekaman Portal');
+        toggleReferensiJurnal();
+      }
     }
     
     const deadlineInput = document.getElementById('jurnalDeadline');
