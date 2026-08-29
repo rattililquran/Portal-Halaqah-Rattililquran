@@ -1901,6 +1901,29 @@ html.theme-dark #page-nilai-murid .nm-progress-chip.done{color:#0f172a}
 #page-nilai-murid .nm-tool-btn,#page-hafalan-kbm .nm-tool-btn,#page-microteaching-kbm .nm-tool-btn{
   border-radius:6px;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink-2);box-shadow:none;font-weight:700;
 }
+/* Editor poin bernomor (Koreksi & Catatan Tahsin) */
+#page-nilai-murid .nm-point-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+#page-nilai-murid .nm-point-num{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;
+  background:var(--kbm-accent-soft);color:var(--kbm-accent);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10.5px;font-weight:800;
+}
+#page-nilai-murid .nm-point-input{
+  flex:1;min-width:0;font-size:13.5px;padding:8px 10px;
+  border-radius:8px;border:1px solid var(--kbm-line);background:var(--kbm-card);color:var(--kbm-ink);
+}
+#page-nilai-murid .nm-point-input:focus{border-color:var(--kbm-accent);box-shadow:0 0 0 3px var(--kbm-accent-soft);outline:none}
+#page-nilai-murid .nm-point-del{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;border:1px solid var(--kbm-line);
+  background:transparent;color:var(--kbm-danger,#dc2626);font-size:14px;font-weight:800;cursor:pointer;line-height:1;
+}
+#page-nilai-murid .nm-point-del:hover{background:rgba(220,38,38,.08)}
+#page-nilai-murid .nm-point-add{
+  display:inline-flex;align-items:center;gap:4px;margin-top:4px;
+  background:transparent;border:1px dashed var(--kbm-accent-border);border-radius:8px;
+  color:var(--kbm-accent);font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;
+}
 
 /* — BADGE status (Hadir/Izin/dsb): flat, sudut kecil — */
 #page-presensi .badge,#page-nilai-murid .badge,#page-hafalan-kbm .badge,#page-microteaching-kbm .badge,
@@ -6461,7 +6484,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=41364ffb" defer></script>
-<script src="kbm-module.js?v=7ff93091" defer></script>
+<script src="kbm-module.js?v=81be9312" defer></script>
 <script src="modul-position-picker.js?v=3c44760b" defer></script>
 <script src="pr-jurnal-module.js?v=44d125b2" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
@@ -6637,6 +6660,24 @@ window.addEventListener('DOMContentLoaded', () => {
   ['jurnalJenisLatihan','jurnalDeadline'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.addEventListener('change', function(){ if (typeof window._kbmDraftSaveDebounced==='function') window._kbmDraftSaveDebounced(); });
+  });
+  // Editor poin bernomor (Koreksi & Catatan) — delegasi event utk poin dinamis
+  // (input edit & tombol hapus di .nm-points yang dirender kbm-module).
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('nm-point-input')) {
+      var ta = t.getAttribute('data-ta'); var i = Number(t.getAttribute('data-i')||0);
+      if (ta && typeof window._kbmEditPoint === 'function') window._kbmEditPoint(ta, i, t.value);
+      if (typeof window._kbmDraftSaveDebounced === 'function') window._kbmDraftSaveDebounced();
+    }
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('nm-point-del')) {
+      var ta = t.getAttribute('data-ta'); var i = Number(t.getAttribute('data-i')||0);
+      if (ta && typeof window._kbmRemovePoint === 'function') window._kbmRemovePoint(ta, i);
+      if (typeof window._kbmDraftSaveDebounced === 'function') window._kbmDraftSaveDebounced();
+    }
   });
   document.getElementById('topDate').textContent = now.toLocaleDateString('id-ID', {
     weekday:'long', day:'numeric', month:'long', year:'numeric'
@@ -8911,13 +8952,19 @@ function toggleChip(btn) {
   if (!textarea) return;
   var cur = textarea.value.trim();
   if (btn.classList.contains('selected')) {
-    // Tambah teks ke textarea — pisah dengan newline agar mudah dibaca
-    textarea.value = cur ? cur + String.fromCharCode(10) + teks : teks;
+    // Tambah sebagai POIN bernomor baru (bukan concat newline mentah)
+    if (typeof window._kbmAddPoint === 'function') {
+      window._kbmAddPoint('koreksi-' + id_murid, teks);
+    } else {
+      textarea.value = cur ? cur + String.fromCharCode(10) + teks : teks;
+    }
   } else {
     // Hapus teks dari textarea
     textarea.value = cur.split(String.fromCharCode(10))
       .filter(function(t){ return t.trim() !== teks.trim(); })
       .join(String.fromCharCode(10)).trim();
+    // Sync poin dari textarea yg sudah berubah
+    if (typeof window._kbmInitPoints === 'function') window._kbmInitPoints('koreksi-' + id_murid);
   }
   // Auto-resize textarea
   textarea.style.height = 'auto';

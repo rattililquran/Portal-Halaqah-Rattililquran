@@ -2000,6 +2000,87 @@
     openModal('previewModal');
   }
 
+  // ── Poin bernomor utk Koreksi & Catatan (Opsi 2) ──
+  // textarea 'koreksi-'+mid / 'catatan-'+mid TETAP jadi sumber kebenaran
+  // (per-baris). Editor poin hanya UI di atasnya: tambah/hapus/edit poin lalu
+  // serialize ke textarea + draft. Draft, preview, raport, doSelesaiKBM tak
+  // berubah sama sekali (backward-compatible).
+  var _pointsCache = {}; // { 'koreksi-m1': ['p1','p2'], ... }
+
+  function _splitPoints(text) {
+    var t = String(text || '').split(String.fromCharCode(10));
+    return t.map(function(s){ return s.trim(); }).filter(function(s){ return s !== ''; });
+  }
+
+  function _serializePointsToTextarea(taId) {
+    var ta = document.getElementById(taId);
+    if (!ta) return;
+    var pts = _pointsCache[taId] || [];
+    ta.value = pts.filter(function(p){ return p.trim() !== ''; }).join(String.fromCharCode(10));
+    // auto-resize supaya draft lihat nilai terbaru
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
+    // sinkron cache (nilai/preview lama mengandalkan textarea)
+    var mid = taId.replace(/^koreksi-|^catatan-/, '');
+    if (!window._nilaiCache) window._nilaiCache = {};
+    if (!window._nilaiCache[mid]) window._nilaiCache[mid] = {};
+    if (taId.indexOf('koreksi-') === 0) window._nilaiCache[mid].koreksi = ta.value;
+    else if (taId.indexOf('catatan-') === 0) window._nilaiCache[mid].catatan = ta.value;
+  }
+
+  function _renderPointsList(taId) {
+    var wrap = document.getElementById('pts-' + taId);
+    if (!wrap) return;
+    var pts = _pointsCache[taId] || [];
+    if (!pts.length) pts = ['']; // selalu 1 poin kosong awal
+    _pointsCache[taId] = pts;
+    wrap.innerHTML = pts.map(function(p, i) {
+      return '<div class="nm-point-row">'
+        + '<span class="nm-point-num">' + (i+1) + '</span>'
+        + '<input type="text" class="fc nm-point-input" data-ta="' + esc(taId) + '" data-i="' + i + '" value="' + esc(p) + '" placeholder="Poin ' + (i+1) + ' (makhraj, mad, dll)...">'
+        + '<button type="button" class="nm-point-del" data-ta="' + esc(taId) + '" data-i="' + i + '" title="Hapus poin">×</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Tambah poin (dari teks template atau kosong)
+  function _addPoint(taId, teks) {
+    var pts = _pointsCache[taId] || (_pointsCache[taId] = _splitPoints((document.getElementById(taId) || {}).value || ''));
+    if (teks) pts.push(teks); else pts.push('');
+    _renderPointsList(taId);
+    _serializePointsToTextarea(taId);
+    var inputs = document.querySelectorAll('#pts-' + taId + ' .nm-point-input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  }
+
+  // Hapus poin (kalau chip-nya dipilih, lepas juga)
+  function _removePoint(taId, idx) {
+    var pts = _pointsCache[taId] || [];
+    pts.splice(idx, 1);
+    if (!pts.length) pts = [''];
+    _pointsCache[taId] = pts;
+    _renderPointsList(taId);
+    _serializePointsToTextarea(taId);
+  }
+
+  // Edit poin (oninput)
+  function _editPoint(taId, idx, val) {
+    var pts = _pointsCache[taId] || [];
+    pts[idx] = val;
+    _pointsCache[taId] = pts;
+    _serializePointsToTextarea(taId);
+  }
+
+  // Init poin dari textarea (render awal): parse per-baris
+  function _initPoints(taId) {
+    var ta = document.getElementById(taId);
+    if (!ta) return;
+    _pointsCache[taId] = _splitPoints(ta.value);
+    _renderPointsList(taId);
+    // Sync cache kalau kosong tapi textarea ada isi (mis. draft lama)
+    if (_pointsCache[taId].length) _serializePointsToTextarea(taId);
+  }
+
   function goToJurnal() {
     _saveHafalanKbmCache();
     _saveMicroteachingKbmCache();
@@ -2502,8 +2583,13 @@
         '    <button type="button" class="nm-tool-btn" data-mid="' + esc(m.id_murid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">Riwayat</button>',
         '  </div>',
         '  <div id="chips-' + esc(m.id_murid) + '" style="' + (isDaurahHalaqah ? '' : 'display:none;') + 'margin-bottom:8px"></div>',
-        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:16px;resize:vertical;min-height:60px">' + esc(korVal) + '</textarea>',
-        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:16px;resize:vertical;margin-top:6px">' + esc(catVal) + '</textarea>',
+        '  <!-- textarea tetap jadi sumber data (per-baris); editor poin di atasnya -->',
+        '  <textarea class="fc" id="koreksi-' + esc(m.id_murid) + '" rows="3" oninput="autoResizeKor(this);_kbmDraftSaveDebounced()" placeholder="Koreksi tahsin (makhraj, mad, dll)..." style="font-size:16px;resize:vertical;min-height:60px;display:none">' + esc(korVal) + '</textarea>',
+        '  <div id="pts-koreksi-' + esc(m.id_murid) + '" class="nm-points" data-mid="' + esc(m.id_murid) + '"></div>',
+        '  <button type="button" class="nm-point-add" onclick="_kbmAddPoint(\'koreksi-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin</button>',
+        '  <textarea class="fc" id="catatan-' + esc(m.id_murid) + '" rows="2" oninput="_kbmDraftSaveDebounced()" placeholder="Catatan tambahan (opsional)..." style="font-size:16px;resize:vertical;margin-top:6px;display:none">' + esc(catVal) + '</textarea>',
+        '  <div id="pts-catatan-' + esc(m.id_murid) + '" class="nm-points" data-mid="' + esc(m.id_murid) + '"></div>',
+        '  <button type="button" class="nm-point-add" onclick="_kbmAddPoint(\'catatan-' + esc(m.id_murid) + '\',\'\')">+ Tambah Poin Catatan</button>',
         '</div>',
       ].join('\n');
 
@@ -2621,6 +2707,16 @@
     } else if (typeof loadTemplateKoreksi === 'function') {
       loadTemplateKoreksi().then(function() { doRenderChips(); });
     }
+
+    // Inisialisasi editor poin utk tiap kartu (koreksi + catatan) dari textarea
+    // yg sudah terisi (draft/restore) -- wajib setiap re-render supaya nomor urut
+    // poin selalu sinkron dgn isi textarea.
+    muridSesi.forEach(function(m) {
+      if (typeof _kbmInitPoints === 'function') {
+        _kbmInitPoints('koreksi-' + m.id_murid);
+        _kbmInitPoints('catatan-' + m.id_murid);
+      }
+    });
 
     const total = muridSesi.filter(function(m){ return !['A','I'].includes(presensiMap[m.id_murid]||'H'); }).length;
     _updateNmProgress(terisi, total);
@@ -3852,6 +3948,10 @@
   window.jurnalWizGo = jurnalWizGo;
   window.jurnalWizNext = jurnalWizNext;
   window.kbmIco = kbmIco;
+  window._kbmAddPoint = _addPoint;
+  window._kbmRemovePoint = _removePoint;
+  window._kbmEditPoint = _editPoint;
+  window._kbmInitPoints = _initPoints;
   window.wizNext = wizNext;
   window.wizPickHalaqah = wizPickHalaqah;
   window.renderWizHalaqahCards = renderWizHalaqahCards;
