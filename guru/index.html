@@ -2031,11 +2031,15 @@ html.theme-dark #page-nilai-murid .nm-point-add[data-kind="catatan"]{border-colo
 }
 .nm-nama-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .nm-nama-avatar{
-  width:32px;height:32px;border-radius:50%;
+  /* Nomor urut inline dgn nama: ukuran MENGIKUTI font nama (em), bukan kotak
+     tetap -- jadi selalu satu baris & proporsional baik di nama pendek maupun
+     panjang, terutama di layar kecil. */
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:1.6em;height:1.6em;line-height:1;
+  padding:0 .28em;border-radius:1em;
   background:rgba(255,255,255,.2);
-  border:2px solid rgba(255,255,255,.35);
-  color:#fff;font-size:12px;font-weight:800;
-  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.35);
+  color:#fff;font-size:.78em;font-weight:800;
   flex-shrink:0;
 }
 /* Chip Perhatian + badge hadir + chevron jangan pernah menyusut/hilang --
@@ -2280,11 +2284,12 @@ html.theme-dark #editPresensiList .prow-level{color:#6b7280!important}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;
 }
 #page-presensi .prow-sub{font-size:11px;color:var(--kbm-ink-3,var(--text-3));margin-top:1px}
-/* Avatar inisial murid (sesi aktif & modal edit presensi) */
+/* Avatar inisial murid (sesi aktif & modal edit presensi) — inline dgn nama,
+   ukuran mengikuti font nama (em) agar selalu sejajar di semua lebar layar. */
 #page-presensi .prow-avatar, #editPresensiList .prow-avatar{
-  width:38px;height:38px;border-radius:50%;flex-shrink:0;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:800;letter-spacing:.02em;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  min-width:1.7em;height:1.7em;line-height:1;padding:0 .3em;border-radius:1em;
+  font-size:.85em;font-weight:800;letter-spacing:.02em;
   background:var(--kbm-accent-soft,rgba(15,23,42,.06));
   color:var(--kbm-accent,#0f172a);
   border:1px solid var(--kbm-accent-border,rgba(15,23,42,.14));
@@ -2316,7 +2321,7 @@ html.theme-dark #page-presensi .prow-avatar{background:rgba(240,242,248,.08)!imp
 @media (max-width:480px){
   #page-presensi .prow{flex-wrap:wrap;padding:10px 12px;gap:8px}
   #page-presensi .prow-info{flex:1 1 100%;display:flex;align-items:center;gap:10px}
-  #page-presensi .prow-avatar{width:34px;height:34px;font-size:14px;flex-shrink:0}
+  #page-presensi .prow-avatar{min-width:1.7em;height:1.7em;flex-shrink:0}
   #page-presensi .prow-btns{flex:1 1 100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   #page-presensi .pb{min-width:0;width:100%;padding:8px 0;font-size:12px;border-radius:7px}
 }
