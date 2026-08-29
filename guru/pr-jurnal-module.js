@@ -361,16 +361,22 @@
           const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
           if (isAudio && item.pr_lampiran_url.includes('id=')) {
             const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
-            const containerId = 'audio-container-guru-' + fileId;
+            // escJs: fileId dari URL eksternal bisa mengandung apostrof → XSS
+            const safeFileId = escJs ? escJs(fileId) : fileId.replace(/'/g,"\\'");
+            const containerId = 'audio-container-guru-' + safeFileId.replace(/[^a-zA-Z0-9_-]/g,'_');
+            const safeContainerId = escJs ? escJs(containerId) : containerId.replace(/'/g,"\\'");
             lampiranHTML = `
               <div id="${containerId}" style="width:100%; max-width:240px; min-height:40px; display:flex; align-items:center;">
-                <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${containerId}', '${fileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-                  ▶️ Putar Rekaman
+                <button class="btn btn-outline btn-sm" onclick="putarAudioInline('${safeContainerId}', '${safeFileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+                  ▶ Putar Rekaman
                 </button>
               </div>
             `;
           } else {
-            lampiranHTML = `<a href="${esc(item.pr_lampiran_url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">📂 Buka Lampiran</a>`;
+            // Validasi protokol URL lampiran — hanya https:// yg diizinkan
+            const safeUrl = (item.pr_lampiran_url && item.pr_lampiran_url.startsWith('https://'))
+              ? item.pr_lampiran_url : '#';
+            lampiranHTML = `<a href="${esc(safeUrl)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--blue);border-color:var(--blue)">Buka Lampiran</a>`;
           }
         }
         
@@ -462,11 +468,13 @@
       const isAudio = item.pr_lampiran_url.includes('drive.google.com') || /\.(webm|mp3|wav|m4a|mp4|ogg)($|\?)/i.test(item.pr_lampiran_url);
       if (isAudio && item.pr_lampiran_url.includes('id=')) {
         const fileId = item.pr_lampiran_url.split('id=')[1].split('&')[0];
-        const containerId = 'audio-container-modal-' + fileId;
+        const safeFileId = escJs ? escJs(fileId) : fileId.replace(/'/g,"\\'");
+        const containerId = 'audio-container-modal-' + safeFileId.replace(/[^a-zA-Z0-9_-]/g,'_');
+        const safeContainerId = escJs ? escJs(containerId) : containerId.replace(/'/g,"\\'");
         iframeWadah.innerHTML = `
           <div id="${containerId}" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:10px;">
-            <button class="btn btn-outline" onclick="putarAudioInline('${containerId}', '${fileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-              ▶️ Putar Rekaman
+            <button class="btn btn-outline" onclick="putarAudioInline('${safeContainerId}', '${safeFileId}')" style="color:var(--blue);border-color:var(--blue);width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+              ▶ Putar Rekaman
             </button>
           </div>
         `;
@@ -606,16 +614,18 @@
   }
 
   function renderAudioPlayerDOM(container, containerId, fileId, blobUrl, mimeType) {
+    // escJs containerId: bisa mengandung karakter berbahaya jika fileId bermasalah
+    const safeContainerId = (typeof escJs === 'function') ? escJs(containerId) : containerId.replace(/'/g,"\\'");
     container.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:4px; width:100%;">
         <audio controls style="width:100%; height:36px;" id="audio-el-${containerId}">
-          <source src="${blobUrl}" type="${mimeType}">
+          <source src="${esc(blobUrl)}" type="${esc(mimeType)}">
           Peramban Anda tidak mendukung pemutar suara.
         </audio>
         <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; margin-top:2px;">
           <span style="color:var(--text-3)">Kecepatan:</span>
           <select style="background:var(--bg-2); border:1px solid var(--border); border-radius:4px; padding:2px 4px; font-size:11px; color:var(--text);" 
-                  onchange="document.getElementById('audio-el-${containerId}').playbackRate = parseFloat(this.value)">
+                  onchange="document.getElementById('audio-el-${safeContainerId}').playbackRate = parseFloat(this.value)">
             <option value="1.0">1.0x (Normal)</option>
             <option value="1.25">1.25x</option>
             <option value="1.5">1.5x</option>

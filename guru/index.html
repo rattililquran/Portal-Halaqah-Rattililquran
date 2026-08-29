@@ -2390,7 +2390,35 @@ html.theme-dark .kelompok-empty{color:#4b5563!important}
 /* ── PR module ── */
 html.theme-dark .pr-card{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
 html.theme-dark .pr-murid-name{color:#f0f2f8!important}
-html.theme-dark .pr-chip-wrap{background:#0a0a0c!important}
+html.theme-dark .pr-sum-card{background:#121214!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .pr-sum-card-badge{background:#1a1c20!important;border-color:rgba(255,255,255,.08)!important;color:#9ca3af!important}
+html.theme-dark .pr-sum-card-badge.waiting{background:rgba(245,158,11,.1)!important;border-color:rgba(245,158,11,.2)!important;color:#fbbf24!important}
+html.theme-dark .pr-sum-card-badge.todo{background:rgba(148,163,184,.08)!important;border-color:rgba(148,163,184,.15)!important;color:#94a3b8!important}
+html.theme-dark .pr-sum-card-badge.done{background:rgba(52,211,153,.1)!important;border-color:rgba(52,211,153,.2)!important;color:#34d399!important}
+html.theme-dark .pr-group-header{background:rgba(255,255,255,.02)!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .pr-group-title{color:#d1d5db!important}
+html.theme-dark .pr-table td{color:#b0b7c3!important;border-color:rgba(255,255,255,.05)!important}
+html.theme-dark .pr-table th{background:#0a0a0c!important;color:#6b7280!important;border-color:rgba(255,255,255,.06)!important}
+html.theme-dark .pr-table tr:hover td{background:rgba(255,255,255,.03)!important}
+html.theme-dark .page-title-row{border-bottom-color:rgba(255,255,255,.07)!important}
+html.theme-dark .page-title{color:#f0f2f8!important}
+html.theme-dark .sort-btn{background:#1a1c20!important;border-color:rgba(255,255,255,.08)!important;color:#94a3b8!important}
+html.theme-dark .sort-btn.active{background:rgba(56,189,248,.1)!important;border-color:rgba(56,189,248,.2)!important;color:#38bdf8!important}
+html.theme-dark .filter-chip{background:#1a1c20!important;border-color:rgba(255,255,255,.08)!important;color:#94a3b8!important}
+html.theme-dark .filter-chip.active{background:rgba(56,189,248,.1)!important;border-color:rgba(56,189,248,.2)!important;color:#38bdf8!important}
+html.theme-dark .notif-banner{background:#0d0a00!important;border-color:rgba(251,191,36,.2)!important;color:#fbbf24!important}
+html.theme-dark .notif-banner.danger{background:#1a0000!important;border-color:rgba(248,113,113,.2)!important;color:#f87171!important}
+html.theme-dark .kh-row{background:#0a0a0c!important;border-color:rgba(255,255,255,.06)!important}
+html.theme-dark .kh-row:hover{background:rgba(56,189,248,.04)!important}
+html.theme-dark .kh-streak-badge{background:rgba(52,211,153,.1)!important;color:#34d399!important}
+html.theme-dark .kh-empty{color:#4b5563!important}
+html.theme-dark .riwayat-filter{background:#1a1c20!important;border-color:rgba(255,255,255,.08)!important;color:#9ca3af!important}
+html.theme-dark .tab-bar{background:#0a0a0c!important;border-bottom-color:rgba(255,255,255,.06)!important}
+html.theme-dark .tab-btn{color:#6b7280!important}
+html.theme-dark .tab-btn.active{color:#38bdf8!important;border-bottom-color:#38bdf8!important}
+html.theme-dark .daurah-asmt-row{background:#1a1c20!important;border-color:rgba(255,255,255,.07)!important}
+html.theme-dark .daurah-cat-divider{background:rgba(240,242,248,.04)!important;border-color:rgba(240,242,248,.1)!important;color:#9ca3af!important}
+
 html.theme-dark .pr-status-chip.done{background:rgba(52,211,153,.1)!important;color:#34d399!important;border-color:rgba(52,211,153,.2)!important}
 html.theme-dark .pr-status-chip.pending{background:rgba(251,191,36,.08)!important;color:#fbbf24!important;border-color:rgba(251,191,36,.18)!important}
 html.theme-dark .pr-status-chip.missing{background:rgba(248,113,113,.08)!important;color:#f87171!important;border-color:rgba(248,113,113,.18)!important}
@@ -6753,7 +6781,7 @@ html.theme-dark .pr-chip.active {
 <script src="raport-module.js?v=41364ffb" defer></script>
 <script src="kbm-module.js?v=e0f38c15" defer></script>
 <script src="modul-position-picker.js?v=9d42a6a0" defer></script>
-<script src="pr-jurnal-module.js?v=a1f18871" defer></script>
+<script src="pr-jurnal-module.js?v=4522bcbb" defer></script>
 <script src="hafalan-module.js?v=c78ba7e2" defer></script>
 <script src="mutabaah-guru-module.js?v=eeec8d51" defer></script>
 <script src="pengembangan-guru-module.js?v=c5bc33e2" defer></script>
@@ -7430,6 +7458,11 @@ function goPage(name) {
       resetLiburCheck();
       var _la = document.getElementById('liburAlasan');
       if (_la) _la.value = '';
+      // Reset flag tanggal-touch supaya guard D5 (kelas pengganti) selalu
+      // mengevaluasi ulang saat guru membuka kembali halaman KBM.
+      if (typeof wizMarkTglTouched !== 'undefined' && typeof wizGo !== 'undefined') {
+        window._wizTglTouched = false;
+      }
     }
     // Render ulang kartu halaqah wizard sesuai pilihan terkini (setelah populateSel)
     if (typeof renderWizHalaqahCards === 'function') renderWizHalaqahCards();
