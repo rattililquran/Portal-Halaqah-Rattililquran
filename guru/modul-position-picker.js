@@ -119,18 +119,78 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
   function injectCSS(){
     if(document.getElementById('mpp-css')) return;
     var st=document.createElement('style'); st.id='mpp-css';
+    // Desain konsisten dengan design system KBM minimalis (--kbm-* tokens):
+    // flat, sudut kecil, label chip oranye-emas, aksen netral (bukan biru hardcode).
     st.textContent=''
-    +'.mpp-btn{margin-top:6px;font-size:12px;padding:4px 10px;border:1px solid #c7d2e0;background:#f3f7fc;border-radius:8px;cursor:pointer;color:#245}'
-    +'.mpp-btn:hover{border-color:#3b82f6;color:#1d4ed8}'
-    +'.mpp-panel{margin-top:8px;border:1px solid #dbe4ee;background:#fbfdff;border-radius:10px;padding:10px;font-size:13px}'
-    +'.mpp-row{display:flex;flex-direction:column;gap:3px;margin-bottom:7px}'
-    +'.mpp-row label{font-size:11px;font-weight:700;color:#456}'
-    +'.mpp-panel select,.mpp-panel input{font-size:13px;padding:5px 7px;border:1px solid #cdd8e3;border-radius:7px;width:100%}'
-    +'.mpp-preview{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:#eef4fb;border-radius:6px;padding:6px 8px;color:#234;white-space:normal;word-break:break-word}'
-    +'.mpp-actions{display:flex;gap:8px;margin-top:4px}'
-    +'.mpp-apply{flex:1;padding:6px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}'
-    +'.mpp-apply:disabled{background:#9db6e6;cursor:not-allowed}'
-    +'.mpp-cancel{padding:6px 10px;border:1px solid #cdd8e3;background:#fff;border-radius:8px;cursor:pointer}';
+    // Tombol pemicu: chip seperti nm-section-label (chip oranye-emas gradient)
+    +'.mpp-btn{'
+    +  'display:inline-flex;align-items:center;gap:5px;margin-top:6px;cursor:pointer;'
+    +  'background:linear-gradient(135deg,#fef3c7,#fde68a);'
+    +  'border:1px solid #f59e0b;border-radius:8px;'
+    +  'padding:4px 11px;font-size:11px;font-weight:800;'
+    +  'color:#92400e;text-transform:uppercase;letter-spacing:.07em;'
+    +'}'
+    +'.mpp-btn:hover{border-color:#d97706;background:linear-gradient(135deg,#fde68a,#fbbf24)}'
+    // Panel: flat, kartu minimalis
+    +'.mpp-panel{'
+    +  'margin-top:10px;border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
+    +  'background:var(--kbm-card,#fff);border-radius:10px;padding:12px 14px;font-size:13px;'
+    +'}'
+    // Row layout
+    +'.mpp-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}'
+    // Label row: chip oranye-emas sama persis dgn nm-section-label
+    +'.mpp-row label{'
+    +  'display:inline-flex;align-items:center;gap:5px;'
+    +  'background:linear-gradient(135deg,#fef3c7,#fde68a);'
+    +  'border:1px solid #f59e0b;border-radius:8px;'
+    +  'padding:2px 8px;font-size:10px;font-weight:800;'
+    +  'color:#92400e;text-transform:uppercase;letter-spacing:.07em;'
+    +  'width:fit-content;margin-bottom:2px;'
+    +'}'
+    // Select & input: sama dgn .fc KBM
+    +'.mpp-panel select,.mpp-panel input{'
+    +  'font-size:13px;padding:7px 10px;width:100%;'
+    +  'border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
+    +  'border-radius:8px;background:var(--kbm-card,#fff);'
+    +  'color:var(--text,#0f172a);'
+    +'}'
+    +'.mpp-panel select:focus,.mpp-panel input:focus{'
+    +  'border-color:var(--kbm-accent,#0f172a);'
+    +  'box-shadow:0 0 0 3px var(--kbm-accent-soft,rgba(15,23,42,.08));outline:none;'
+    +'}'
+    // Preview: monospace netral
+    +'.mpp-preview{'
+    +  'font-family:ui-monospace,Menlo,monospace;font-size:11.5px;'
+    +  'background:var(--kbm-accent-soft,rgba(15,23,42,.05));'
+    +  'border:1px solid var(--kbm-accent-border,rgba(15,23,42,.12));'
+    +  'border-radius:8px;padding:7px 10px;'
+    +  'color:var(--text,#0f172a);white-space:normal;word-break:break-word;'
+    +'}'
+    // Aksi: Terapkan = aksen netral, Tutup = outline
+    +'.mpp-actions{display:flex;gap:8px;margin-top:8px}'
+    +'.mpp-apply{'
+    +  'flex:1;padding:8px;border:0;border-radius:8px;cursor:pointer;'
+    +  'background:var(--kbm-accent,#0f172a);color:var(--kbm-card,#fff);'
+    +  'font-size:12px;font-weight:700;'
+    +'}'
+    +'.mpp-apply:disabled{opacity:.45;cursor:not-allowed}'
+    +'.mpp-apply:hover:not(:disabled){filter:brightness(1.1)}'
+    +'.mpp-cancel{'
+    +  'padding:8px 14px;font-size:12px;font-weight:700;'
+    +  'border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
+    +  'background:transparent;border-radius:8px;cursor:pointer;'
+    +  'color:var(--text-2,#475569);'
+    +'}'
+    // Dark mode
+    +'html.theme-dark .mpp-panel{'
+    +  'background:#121214;border-color:rgba(255,255,255,.1);'
+    +'}'
+    +'html.theme-dark .mpp-panel select,html.theme-dark .mpp-panel input{'
+    +  'background:#1b1d20;border-color:rgba(255,255,255,.12);color:#f0f2f8;'
+    +'}'
+    +'html.theme-dark .mpp-preview{background:rgba(240,242,248,.06);border-color:rgba(240,242,248,.12);color:#f0f2f8}'
+    +'html.theme-dark .mpp-apply{background:#f0f2f8;color:#0f172a}'
+    +'html.theme-dark .mpp-btn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fbbf24}';
     document.head.appendChild(st);
   }
 
@@ -139,7 +199,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     if(input.dataset.mppAttached) return; input.dataset.mppAttached='1';
     injectCSS();
     var btn=document.createElement('button');
-    btn.type='button'; btn.className='mpp-btn'; btn.textContent='🧩 Isi dari Modul-Web';
+    btn.type='button'; btn.className='mpp-btn'; btn.textContent='Isi dari Modul-Web';
     var panel=document.createElement('div'); panel.className='mpp-panel'; panel.style.display='none';
     panel.innerHTML=buildPanelHTML();
     input.insertAdjacentElement('afterend', btn);
