@@ -124,10 +124,11 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     st.textContent=''
     // Tombol pemicu: chip seperti nm-section-label (chip oranye-emas gradient)
     +'.mpp-btn{'
-    +  'display:inline-flex;align-items:center;gap:5px;margin-top:6px;cursor:pointer;'
+    +  'display:flex;align-items:center;justify-content:center;gap:5px;'
+    +  'width:100%;box-sizing:border-box;margin-top:6px;cursor:pointer;'
     +  'background:linear-gradient(135deg,#fef3c7,#fde68a);'
     +  'border:1px solid #f59e0b;border-radius:8px;'
-    +  'padding:4px 11px;font-size:11px;font-weight:800;'
+    +  'padding:6px 11px;font-size:11px;font-weight:800;'
     +  'color:#92400e;text-transform:uppercase;letter-spacing:.07em;'
     +'}'
     +'.mpp-btn:hover{border-color:#d97706;background:linear-gradient(135deg,#fde68a,#fbbf24)}'
@@ -135,6 +136,7 @@ window.MODUL_MANIFEST = {"version": 1, "note": "Sumber kebenaran taksonomi posis
     +'.mpp-panel{'
     +  'margin-top:10px;border:1px solid var(--kbm-line,rgba(100,116,139,.18));'
     +  'background:var(--kbm-card,#fff);border-radius:10px;padding:12px 14px;font-size:13px;'
+    +  'width:100%;box-sizing:border-box;'
     +'}'
     // Row layout
     +'.mpp-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}'
