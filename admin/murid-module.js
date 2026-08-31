@@ -177,19 +177,39 @@ function updateSortIndicators(tableKey) {
   });
 }
 
+// Cache guruMap (id_guru -> list halaqah): rebuild hanya saat allHalaqah berganti
+// referensi (selalu reassign, tak pernah mutasi in-place) -- lihat RENCANA_fix_search_manajemen_user.md
+var _guruMapCache = null, _guruMapSrc = null;
+function getGuruMap() {
+  if (_guruMapSrc !== allHalaqah) {
+    _guruMapSrc = allHalaqah;
+    _guruMapCache = {};
+    (allHalaqah || []).forEach(function(h) {
+      if (!h.id_guru) return;
+      if (!_guruMapCache[h.id_guru]) _guruMapCache[h.id_guru] = [];
+      _guruMapCache[h.id_guru].push(h);
+    });
+  }
+  return _guruMapCache;
+}
+
+// String pencarian per-user, dihitung lazy & di-cache di objeknya sendiri.
+// LAZY (bukan precompute di loadUsers()) supaya tetap benar walau allUsers
+// direassign dari luar loadUsers() -- mis. startAdminAutoRefresh() background.
+function _userHay(u) {
+  if (u._hay === undefined) {
+    u._hay = ((u.id_user||'') + ' ' + (u.nama_lengkap||'') + ' ' + (u.no_hp||'') + ' ' + (u.email||'')).toLowerCase();
+  }
+  return u._hay;
+}
+
 function renderUsersTable(role) {
   var q = (document.getElementById('userSearchInput') ? document.getElementById('userSearchInput').value : '').trim().toLowerCase();
   var statusF = document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '';
   var halaqahF = document.getElementById('userHalaqahFilter') ? document.getElementById('userHalaqahFilter').value : '';
   var tipeMuridF = document.getElementById('userTipeMuridFilter') ? document.getElementById('userTipeMuridFilter').value : '';
 
-  // Build map: id_guru -> list of halaqah
-  var guruMap = {};
-  (allHalaqah || []).forEach(function(h) {
-    if (!h.id_guru) return;
-    if (!guruMap[h.id_guru]) guruMap[h.id_guru] = [];
-    guruMap[h.id_guru].push(h);
-  });
+  var guruMap = getGuruMap();
 
   var filtered = (allUsers || []).filter(function(u) {
     if (role === 'guru'  && u.role !== 'guru')  return false;
@@ -197,10 +217,7 @@ function renderUsersTable(role) {
     if (statusF && u.status !== statusF) return false;
     if (tipeMuridF && (u.tipe_murid||'reguler') !== tipeMuridF) return false;
     if (halaqahF && role === 'guru' && u.id_user !== halaqahF) return false;
-    if (q) {
-      var hay = [u.id_user||'', u.nama_lengkap||'', u.no_hp||'', u.email||''].join(' ').toLowerCase();
-      if (hay.indexOf(q) === -1) return false;
-    }
+    if (q && _userHay(u).indexOf(q) === -1) return false;
     return true;
   });
 
@@ -289,6 +306,14 @@ function salinNoHp(el, hp) {
 }
 
 function filterUsersTable() { renderUsersTable(currentUserTab); }
+
+// Debounce khusus kotak cari (oninput, per-keystroke) -- dropdown filter (onchange)
+// tetap panggil filterUsersTable() langsung, tak perlu didebounce.
+var _userSearchTimer = null;
+function filterUsersTableDebounced() {
+  clearTimeout(_userSearchTimer);
+  _userSearchTimer = setTimeout(filterUsersTable, 220);
+}
 
 function toggleUsrBendahara() {
   var wrap = document.getElementById('usrBendaharaWrap');
@@ -1048,6 +1073,7 @@ function _kqRenderList() {
     window.renderUsersTable = renderUsersTable;
     window.salinNoHp = salinNoHp;
     window.filterUsersTable = filterUsersTable;
+    window.filterUsersTableDebounced = filterUsersTableDebounced;
     window.toggleUsrBendahara = toggleUsrBendahara;
     window.openModalUser = openModalUser;
     window.suggestUsrIdUser = suggestUsrIdUser;
