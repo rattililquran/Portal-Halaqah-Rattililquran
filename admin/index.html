@@ -151,7 +151,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .sb-wave{display:none}
 
 /* Nav */
-.sb-nav{flex:1;padding:6px 12px 16px}
+.sb-nav{flex:1;padding:4px 10px 24px}
 .sb-sec{
   display:flex !important;
   justify-content:flex-start !important;
@@ -163,31 +163,31 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   text-transform:uppercase;
   letter-spacing:.08em;
   padding:3px 10px !important;
-  margin:14px 0 6px 4px !important;
+  margin:12px 0 4px 2px !important;
   background:rgba(14,165,233,0.06);
   border:1px solid rgba(14,165,233,0.12);
   border-radius:100px;
 }
 .nav-btn{
-  display:flex;align-items:center;justify-content:flex-start !important;gap:12px;
-  width:100%;padding:10px 12px;border-radius:12px;
+  display:flex;align-items:center;justify-content:flex-start !important;gap:9px;
+  width:100%;padding:7px 10px;border-radius:10px;
   color:var(--text-2);background:none;border:none;
-  font-family:inherit;font-size:13px;font-weight:600;
+  font-family:inherit;font-size:12.5px;font-weight:600;
   cursor:pointer;text-align:left;
   transition:background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, padding 0.2s ease, font-size 0.25s ease;
 }
-.nav-btn:hover{background:rgba(14,165,233,.08);color:#0284c7}
-.nav-btn.active{background:rgba(14,165,233,.1);color:#0284c7;
-  box-shadow:0 4px 12px rgba(14,165,233,0.06), inset 3px 0 0 #0ea5e9}
+.nav-btn:hover{background:rgba(14,165,233,.08);color:var(--text)}
+.nav-btn.active{background:rgba(14,165,233,.1);color:#0284c7}
 .nav-btn .ni{
-  width:34px;height:34px;border-radius:10px;
-  background:rgba(14,165,233,.06);color:#0284c7;
+  width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;font-size:15px;
-  transition:background 0.25s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.nav-btn.active .ni{background:rgba(14,165,233,.15)}
-.nav-btn:hover .ni{background:rgba(14,165,233,.12);transform:scale(1.1) translateY(-1px)}
+.nav-btn.active .ni{animation:navIconPop .38s ease}
+.nav-btn:hover .ni{transform:scale(1.1) translateY(-1px)}
+@keyframes navIconPop{0%{transform:scale(1)}45%{transform:scale(1.24)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.nav-btn .ni{transition:none !important;animation:none !important}}
 
 .sb-foot{padding:12px 12px 16px;border-top:1px solid rgba(14,165,233,0.08);transition:all 0.3s;}
 .logout-btn{
@@ -745,10 +745,10 @@ html.theme-dark .sb-sec{
   border-color: rgba(56, 189, 248, 0.15) !important;
 }
 html.theme-dark .nav-btn{color:rgba(255,255,255,.75) !important}
-html.theme-dark .nav-btn .ni{background:rgba(56, 189, 248,.06) !important;color:#7dd3fc !important}
+html.theme-dark .nav-btn .ni{color:#7dd3fc !important}
 html.theme-dark .nav-btn:hover{background:rgba(56, 189, 248,.08) !important;color:#7dd3fc !important}
-html.theme-dark .nav-btn.active{background:rgba(56, 189, 248,.12) !important;color:#38bdf8 !important;box-shadow:0 4px 12px rgba(56, 189, 248,0.06), inset 3px 0 0 #38bdf8 !important}
-html.theme-dark .nav-btn.active .ni{background:rgba(56, 189, 248,.15) !important}
+html.theme-dark .nav-btn.active{background:rgba(56, 189, 248,.12) !important;color:#38bdf8 !important}
+html.theme-dark .nav-btn.active .ni{color:#38bdf8 !important}
 html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .logout-btn{background:rgba(248,113,113,.06) !important;color:#f87171 !important;border-color:rgba(248,113,113,.15) !important}
 html.theme-dark .logout-btn:hover{background:rgba(248,113,113,.1) !important;border-color:rgba(248,113,113,0.3) !important}
@@ -1382,22 +1382,22 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('saran')" data-p="saran"><span class="ni">💬</span>Saran & Masukan</button>
       <button class="nav-btn" onclick="goPage('push')" data-p="push"><span class="ni">🔔</span>Push Notifikasi</button>
 
-      <div class="sb-sec">Monitoring & Keuangan</div>
-      <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
-      <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
-      <button class="nav-btn" onclick="goPage('absensi-guru')" data-p="absensi-guru"><span class="ni">🧑‍🏫</span>Absensi Guru</button>
-      <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
-      <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
-      <button class="nav-btn" onclick="goPage('pengembangan-pengajar')" data-p="pengembangan-pengajar"><span class="ni">🌱</span>Pengembangan Pengajar</button>
-      <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔒</span>Observasi Guru</button>
-      <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔍</span>Audit Log</button>
-
-      <div class="sb-sec">Akademik & KBM</div>
+      <div class="sb-sec">Kelas & Peserta</div>
       <button class="nav-btn" onclick="goPage('halaqah')" data-p="halaqah"><span class="ni">📚</span>Halaqah</button>
       <button class="nav-btn" onclick="goPage('anggota')" data-p="anggota"><span class="ni">📋</span>Anggota Kelas</button>
       <button class="nav-btn" onclick="goPage('pengganti')" data-p="pengganti"><span class="ni">🔄</span>Kelas Pengganti</button>
-      <button class="nav-btn" onclick="goPage('kelompok-qiyam')" data-p="kelompok-qiyam"><span class="ni">👥</span>Kelompok Partner Qiyam</button>
-      <button class="nav-btn" onclick="goPage('kelompok-belajar')" data-p="kelompok-belajar"><span class="ni">📚</span>Kelompok Partner Belajar</button>
+      <button class="nav-btn" onclick="goPage('users')" data-p="users"><span class="ni">👤</span>Manajemen User</button>
+      <button class="nav-btn" onclick="goPage('periode')" data-p="periode"><span class="ni">📅</span>Periode / Semester</button>
+
+      <div class="sb-sec">Monitoring</div>
+      <button class="nav-btn" onclick="goPage('laporan')" data-p="laporan"><span class="ni">📊</span>Laporan Global</button>
+      <button class="nav-btn" onclick="goPage('absensi')" data-p="absensi"><span class="ni">✅</span>Rekap Absensi</button>
+      <button class="nav-btn" onclick="goPage('absensi-guru')" data-p="absensi-guru"><span class="ni">🧑‍🏫</span>Absensi Guru</button>
+      <button class="nav-btn" onclick="goPage('kepatuhan')" data-p="kepatuhan"><span class="ni">📈</span>Kepatuhan Guru & Ketua</button>
+      <button class="nav-btn nav-superadmin" onclick="goPage('observasi')" data-p="observasi" style="display:none"><span class="ni">🔍</span>Observasi Guru</button>
+
+      <div class="sb-sec">Keuangan</div>
+      <button class="nav-btn" onclick="goPage('spp')" data-p="spp"><span class="ni">💳</span>SPP & Infaq</button>
 
       <div class="sb-sec">Penilaian & Raport</div>
       <button class="nav-btn" onclick="goPage('komponen')" data-p="komponen"><span class="ni">⚙️</span>Komponen Raport</button>
@@ -1405,17 +1405,23 @@ html.theme-dark .fin-detail-card {
       <button class="nav-btn" onclick="goPage('raport')" data-p="raport"><span class="ni">📄</span>Generate Raport</button>
       <button class="nav-btn" onclick="goPage('indikator-daurah')" data-p="indikator-daurah"><span class="ni">🎯</span>Indikator Daurah</button>
 
-      <div class="sb-sec">Konfigurasi</div>
-      <button class="nav-btn" onclick="goPage('periode')" data-p="periode"><span class="ni">📅</span>Periode / Semester</button>
-      <button class="nav-btn" onclick="goPage('users')" data-p="users"><span class="ni">👥</span>Manajemen User</button>
+      <div class="sb-sec">Kurikulum & Konten</div>
       <button class="nav-btn" onclick="goPage('level')" data-p="level"><span class="ni">🏆</span>Manajemen Level</button>
       <button class="nav-btn" onclick="goPage('materi')" data-p="materi"><span class="ni">📖</span>Materi Kajian</button>
       <button class="nav-btn" onclick="goPage('soal')" data-p="soal"><span class="ni">📦</span>Bank Soal</button>
+      <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
       <button class="nav-btn" onclick="goPage('maze')" data-p="maze"><span class="ni">🎮</span>Rattil Maze</button>
       <button class="nav-btn" onclick="goPage('run')" data-p="run"><span class="ni">🦘</span>Rattil Run</button>
-      <button class="nav-btn" onclick="goPage('template')" data-p="template"><span class="ni">✏️</span>Template Koreksi</button>
+
+      <div class="sb-sec">SDM Pengajar</div>
+      <button class="nav-btn" onclick="goPage('pengembangan-pengajar')" data-p="pengembangan-pengajar"><span class="ni">🌱</span>Pengembangan Pengajar</button>
+      <button class="nav-btn" onclick="goPage('kelompok-qiyam')" data-p="kelompok-qiyam"><span class="ni">👥</span>Kelompok Partner Qiyam</button>
+      <button class="nav-btn" onclick="goPage('kelompok-belajar')" data-p="kelompok-belajar"><span class="ni">👥</span>Kelompok Partner Belajar</button>
+
+      <div class="sb-sec">Sistem</div>
       <button class="nav-btn" onclick="goPage('arsip')" data-p="arsip"><span class="ni">🗄️</span>Arsip Data</button>
-      <button class="nav-btn" onclick="goPage('stress-test')" data-p="stress-test"><span class="ni">⚡</span>Stress Test</button>
+      <button class="nav-btn nav-superadmin" onclick="goPage('audit')" data-p="audit" style="display:none"><span class="ni">🔒</span>Audit Log</button>
+      <button class="nav-btn nav-superadmin" onclick="goPage('stress-test')" data-p="stress-test" style="display:none"><span class="ni">⚡</span>Stress Test</button>
     </div>
     <div class="sb-foot">
       <button class="logout-btn" onclick="doLogout()">
