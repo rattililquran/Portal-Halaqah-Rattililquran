@@ -126,7 +126,11 @@ function switchUserTab(tab) {
   var tipeMuridEl = document.getElementById('userTipeMuridFilter');
   if (tipeMuridEl) tipeMuridEl.value = '';
 
-  loadUsers(tab);
+  // Render dari cache -- allUsers sudah dimuat penuh oleh loadMasterData() saat
+  // halaman dibuka pertama kali (goPage('users') -> loadUsers()) & setiap mutasi
+  // user. Ganti tab (guru/murid/semua) HANYA memfilter ulang di klien, tanpa
+  // fetch network + loader fullscreen -- lihat RENCANA_fix_search_manajemen_user.md
+  renderUsersTable(tab);
 }
 
 async function loadUsers(role) {
