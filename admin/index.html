@@ -6726,7 +6726,11 @@ var _sppIhsanDataFiltered = [];
     var thead0 = table.tHead;
     var ths = thead0 ? thead0.querySelectorAll('th') : [];
     for (var i = 0; i < ths.length; i++) {
-      var text = ths[i].innerText.trim().toLowerCase();
+      // textContent, BUKAN innerText -- innerText memaksa reflow sinkron tiap
+      // dibaca (browser harus hitung layout utk cek visibilitas render), dan
+      // fungsi ini dipanggil per tabel per mutasi. textContent cukup utk
+      // sekadar cek teks header "No"/"#" dan jauh lebih murah (lihat RENCANA_fix_search_manajemen_user.md).
+      var text = ths[i].textContent.trim().toLowerCase();
       // Ignore our own added header
       if (ths[i].classList.contains('row-no-header')) continue;
       if (text === 'no' || text === 'no.' || text === '#') {
@@ -6744,7 +6748,7 @@ var _sppIhsanDataFiltered = [];
         if (!row.querySelector('.row-no-header')) {
           var th = document.createElement('th');
           th.className = 'row-no-header';
-          th.innerText = 'NO.';
+          th.textContent = 'NO.';
           th.style.width = '45px';
           th.style.minWidth = '45px';
           th.style.textAlign = 'center';
@@ -6798,7 +6802,7 @@ var _sppIhsanDataFiltered = [];
           row.insertBefore(noCell, row.firstChild);
         }
         var noText = validRowIndex + '.';
-        if (noCell.innerText !== noText) noCell.innerText = noText;
+        if (noCell.textContent !== noText) noCell.textContent = noText;
         validRowIndex++;
       });
     });
@@ -6806,18 +6810,27 @@ var _sppIhsanDataFiltered = [];
 
   function setupTableObserver() {
     var observer = new MutationObserver(function(mutations) {
+      // Kumpulkan tabel terdampak dulu (Set = dedup otomatis), BARU panggil
+      // updateTableNumbers SEKALI per tabel -- bukan sekali per mutation
+      // record. Tanpa ini: 1 innerHTML besar (mis. render tabel user, ratusan
+      // baris) -> N insertBefore (satu per baris, tiap kali menyisipkan
+      // .row-no-cell) -> N mutation record BARU -> observer terpanggil lagi
+      // dengan N record -> updateTableNumbers(table) ke-trigger N KALI, tiap
+      // panggilan mengulang SELURUH baris tabel -> O(n^2) -> bisa hang
+      // beberapa detik di tabel besar. Lihat RENCANA_fix_search_manajemen_user.md.
+      var affected = new Set();
       mutations.forEach(function(mutation) {
         if (mutation.type === 'childList' || mutation.type === 'subtree' || mutation.type === 'attributes') {
           var target = mutation.target;
           var table = target.closest ? target.closest('table') : null;
           if (table) {
-            updateTableNumbers(table);
-          } else {
-            var tables = target.querySelectorAll ? target.querySelectorAll('table') : [];
-            tables.forEach(updateTableNumbers);
+            affected.add(table);
+          } else if (target.querySelectorAll) {
+            target.querySelectorAll('table').forEach(function(t){ affected.add(t); });
           }
         }
       });
+      affected.forEach(updateTableNumbers);
     });
 
     observer.observe(document.body, {
