@@ -3559,7 +3559,7 @@ var AdminAPI = {
       usersRes, hqRes, kbmBulanRes, periodeRes, nilaiRes, anggotaRes, kbmSesiRes, raportRes,
       saranRes, sppPendingRes, kbmAllRes, sppBulanIniRes, anggotaTipeRes, kbmPekanRes
     ] = await Promise.all([
-      _sb.from('users').select('role').eq('status','aktif'),
+      _sb.from('users').select('role').eq('status','aktif').neq('tipe_murid','alumni'),
       _sb.from('halaqah').select('id_halaqah, nama_halaqah, nama_guru, level').eq('status','aktif'),
       _sb.from('kbm_log').select('id_kbm',{count:'exact',head:true}).eq('status','selesai').gte('tanggal_pertemuan', bulanIni),
       _sb.from('periode').select('id_periode, nama_periode').eq('status','aktif').order('created_at',{ascending:false}).limit(1).maybeSingle(),
