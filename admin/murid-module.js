@@ -123,6 +123,8 @@ function switchUserTab(tab) {
   var statusEl = document.getElementById('userStatusFilter');
   if (statusEl) statusEl.value = '';
   if (halaqahFilterEl) halaqahFilterEl.value = '';
+  var tipeMuridEl = document.getElementById('userTipeMuridFilter');
+  if (tipeMuridEl) tipeMuridEl.value = '';
 
   loadUsers(tab);
 }
@@ -179,6 +181,7 @@ function renderUsersTable(role) {
   var q = (document.getElementById('userSearchInput') ? document.getElementById('userSearchInput').value : '').trim().toLowerCase();
   var statusF = document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '';
   var halaqahF = document.getElementById('userHalaqahFilter') ? document.getElementById('userHalaqahFilter').value : '';
+  var tipeMuridF = document.getElementById('userTipeMuridFilter') ? document.getElementById('userTipeMuridFilter').value : '';
 
   // Build map: id_guru -> list of halaqah
   var guruMap = {};
@@ -192,6 +195,7 @@ function renderUsersTable(role) {
     if (role === 'guru'  && u.role !== 'guru')  return false;
     if (role === 'murid' && u.role !== 'murid') return false;
     if (statusF && u.status !== statusF) return false;
+    if (tipeMuridF && (u.tipe_murid||'reguler') !== tipeMuridF) return false;
     if (halaqahF && role === 'guru' && u.id_user !== halaqahF) return false;
     if (q) {
       var hay = [u.id_user||'', u.nama_lengkap||'', u.no_hp||'', u.email||''].join(' ').toLowerCase();
@@ -249,7 +253,9 @@ function renderUsersTable(role) {
             + '<span>' + esc(u.no_hp) + '</span><span class="hp-copy-ico" style="font-size:11px;opacity:.5">📋</span></span>'
           : '–') + '</td>'
       + '<td>' + esc(u.email||'–') + '</td>'
-      + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
+      + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>')
+        + ((u.tipe_murid||'reguler')==='alumni' ? ' <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px">Alumni</span>' : '')
+      + '</td>'
       + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">✏️</button>' + btnDel + '</td>'
       + '</tr>';
   }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
@@ -327,6 +333,8 @@ function editUser(id) {
   document.getElementById('usrEmail').value   = u.email || '';
   document.getElementById('usrAlamat').value  = u.alamat || '';
   document.getElementById('usrStatus').value  = u.status;
+  if (document.getElementById('usrTipeMurid'))
+    document.getElementById('usrTipeMurid').value = u.tipe_murid || 'reguler';
   document.getElementById('usrCatatan').value = u.catatan || '';
   document.getElementById('usrIsBendahara').checked = !!u.is_bendahara;
   document.getElementById('usrIdUser').value  = u.id_user;
@@ -349,6 +357,7 @@ async function saveUser() {
     email       : document.getElementById('usrEmail').value,
     alamat      : document.getElementById('usrAlamat').value,
     status      : document.getElementById('usrStatus').value,
+    tipe_murid  : document.getElementById('usrTipeMurid') ? (document.getElementById('usrTipeMurid').value || 'reguler') : 'reguler',
     catatan     : document.getElementById('usrCatatan').value,
     is_bendahara: role === 'admin' ? document.getElementById('usrIsBendahara').checked : false,
   };
@@ -860,6 +869,9 @@ function renderHalaqahTable() {
       + '<td style="display:flex;gap:5px">'
       + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">✏️</button>'
       + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Nonaktifkan (reversible)">🗑</button>'
+      + ((currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin'))
+          ? ' <button class="btn btn-sm" style="background:rgba(5,150,105,.12);color:#065f46;border:1px solid rgba(5,150,105,.3);font-size:10.5px;padding:3px 8px" onclick="wisudaSemuaHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\',' + (h.total_murid||0) + ')" title="Jadikan semua anggota alumni">Wisuda</button>'
+          : '')
       + ((currentUser && currentUser.role === 'superadmin')
           ? '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px" onclick="hardDeleteHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Hapus PERMANEN: halaqah + seluruh riwayat KBM/nilai/raport">⚠️</button>'
           : '')
@@ -872,6 +884,27 @@ function renderHalaqahTable() {
 }
 
 function filterHalaqahTable() { renderHalaqahTable(); }
+
+async function wisudaSemuaHalaqah(id_halaqah, nama_halaqah, total_murid) {
+  if (!confirm(
+    'Wisuda semua murid dari halaqah "' + nama_halaqah + '"?\n\n'
+    + '(' + total_murid + ' murid akan ditandai sebagai alumni)\n\n'
+    + 'Yang terjadi:\n'
+    + '- Murid masih bisa login dan lihat riwayat belajar\n'
+    + '- Murid tidak dihitung sebagai murid aktif\n'
+    + '- Murid tidak muncul di dropdown tambah anggota halaqah baru\n'
+    + '- Berlaku GLOBAL jika murid terdaftar di halaqah lain\n\n'
+    + 'Bisa dibalik: edit data murid, ubah tipe kembali ke Reguler.\n\nLanjutkan?'
+  )) return;
+  showLoad('Mewisuda murid...');
+  try {
+    var r = await window.HQ.AdminAPI.bulkWisudaHalaqah(id_halaqah, nama_halaqah);
+    toast(r.jumlah + ' murid diwisuda dari "' + nama_halaqah + '"', 'ok');
+    await loadMasterData();
+    renderHalaqahTable();
+  } catch(e) { toast(friendlyError(e), 'err'); }
+  finally { hideLoad(); }
+}
 
 // ══════════════════════════════════════════
 //  KELAS PENGGANTI
@@ -1038,6 +1071,7 @@ function _kqRenderList() {
     window.loadHalaqah = loadHalaqah;
     window.renderHalaqahTable = renderHalaqahTable;
     window.filterHalaqahTable = filterHalaqahTable;
+    window.wisudaSemuaHalaqah = wisudaSemuaHalaqah;
     window.loadKelasPengganti = loadKelasPengganti;
     window.loadKelompokQiyam = loadKelompokQiyam;
     window.onKqHalaqahChange = onKqHalaqahChange;

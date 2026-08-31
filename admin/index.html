@@ -1591,6 +1591,11 @@ html.theme-dark .fin-detail-card {
             <option value="aktif">✅ Aktif</option>
             <option value="nonaktif">❌ Non-aktif</option>
           </select>
+          <select class="fc" id="userTipeMuridFilter" onchange="filterUsersTable()" style="max-width:160px">
+            <option value="">— Semua Tipe —</option>
+            <option value="reguler">Aktif (Reguler)</option>
+            <option value="alumni">Alumni</option>
+          </select>
           <select class="fc" id="userHalaqahFilter" onchange="filterUsersTable()" style="max-width:200px;display:none">
             <option value="">— Semua Halaqah —</option>
           </select>
@@ -3955,6 +3960,13 @@ html.theme-dark .fin-detail-card {
       <div class="fg"><label>Status</label>
         <select class="fc" id="usrStatus"><option value="aktif">Aktif</option><option value="nonaktif">Non-aktif</option></select>
       </div>
+      <div class="fg" id="usrTipeMuridWrap">
+        <label>Tipe Murid</label>
+        <select class="fc" id="usrTipeMurid">
+          <option value="reguler">Reguler (Aktif)</option>
+          <option value="alumni">Alumni</option>
+        </select>
+      </div>
       <div class="fg"><label>Catatan</label><input type="text" class="fc" id="usrCatatan" placeholder="Catatan tambahan..."></div>
       <input type="hidden" id="usrId">
     </div>
@@ -4316,13 +4328,13 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=e65fb5b6"></script>
+<script src="../supabase/api-staff.js?v=d941d3cd"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=2c2ca81f" defer></script>
-<script src="murid-module.js?v=da447ae4" defer></script>
+<script src="murid-module.js?v=4655f6c9" defer></script>
 <script src="kelompok-module.js?v=ee8eb9ab" defer></script>
 <script src="spp-keuangan-module.js?v=4429240b" defer></script>
 <script src="konten-module.js?v=a81c6e0c" defer></script>
@@ -5325,6 +5337,11 @@ function renderAnggotaTable() {
         ${currentUser && currentUser.role === 'superadmin'
           ? `<button class="btn btn-sm" style="background:${a.is_ketua===true?'rgba(16,185,129,.15);color:#059669;border:1px solid rgba(16,185,129,.3)':'rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.25)'};font-size:10.5px;padding:3px 8px" onclick="toggleKetua('${esc(a.id_anggota)}','${a.is_ketua}','${escJs(a.nama_murid)}')">${a.is_ketua===true?'👑 Ketua':'Jadikan Ketua'}</button>`
           : ''}
+        ${(currentUser && (currentUser.role==='admin'||currentUser.role==='superadmin'))
+          ? (((allUsers||[]).find(u=>u.id_user===a.id_murid)||{}).tipe_murid||'reguler')==='alumni'
+            ? `<button class="btn btn-sm" style="background:rgba(234,179,8,.12);color:#854d0e;border:1px solid rgba(234,179,8,.3);font-size:10.5px;padding:3px 8px" onclick="toggleWisudaMurid('${esc(a.id_murid)}','${escJs(a.nama_murid)}','reguler')" title="Aktifkan kembali sebagai murid reguler">Aktifkan</button>`
+            : `<button class="btn btn-sm" style="background:rgba(5,150,105,.12);color:#065f46;border:1px solid rgba(5,150,105,.3);font-size:10.5px;padding:3px 8px" onclick="toggleWisudaMurid('${esc(a.id_murid)}','${escJs(a.nama_murid)}','alumni')" title="Jadikan alumni">Wisuda</button>`
+          : ''}
         <button class="btn btn-red btn-sm" onclick="hapusAnggota('${esc(a.id_anggota)}','${escJs(a.nama_murid)}')">🗑</button>
       </td>
     </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada murid</td></tr>';
@@ -5335,7 +5352,7 @@ function filterAnggotaTable() { renderAnggotaTable(); }
 
 function openModalAnggota() {
   populateSel('angHalaqah', allHalaqah);
-  const muridList = allUsers.filter(u=>u.role==='murid'&&u.status==='aktif');
+  const muridList = allUsers.filter(u=>u.role==='murid'&&u.status==='aktif'&&(u.tipe_murid||'reguler')==='reguler');
   document.getElementById('angMurid').innerHTML = '<option value="">— Pilih Murid —</option>' +
     muridList.map(u=>`<option value="${esc(u.id_user)}">${esc(u.nama_lengkap)} (${esc(u.id_user)})</option>`).join('');
   openModal('modalAnggota');
@@ -5460,6 +5477,32 @@ async function saveAnggota() {
     toast('Murid berhasil didaftarkan!','ok');
     loadAnggota();
   } catch(e) { toast(friendlyError(e),'err'); }
+  finally { hideLoad(); }
+}
+
+async function toggleWisudaMurid(id_murid, nama_murid, tipe_baru) {
+  if (!confirm(
+    (tipe_baru === 'alumni'
+      ? 'Wisuda "' + nama_murid + '"?\n\n'
+        + '- Murid masih bisa login dan lihat riwayat belajar\n'
+        + '- Tidak dihitung sebagai murid aktif\n'
+        + '- Berlaku GLOBAL (semua halaqah)\n\n'
+        + 'Bisa dibalik dengan tombol Aktifkan.'
+      : 'Aktifkan kembali "' + nama_murid + '" sebagai murid reguler?')
+    + '\n\nLanjutkan?'
+  )) return;
+  showLoad('Memproses...');
+  try {
+    var today = new Date().toISOString().slice(0,10);
+    await window.HQ.AdminAPI.updateUser({
+      id_user   : id_murid,
+      tipe_murid: tipe_baru,
+      tgl_lulus : tipe_baru === 'alumni' ? today : null
+    });
+    toast('"' + nama_murid + '" ' + (tipe_baru === 'alumni' ? 'diwisuda' : 'diaktifkan kembali'), 'ok');
+    await loadMasterData();
+    renderAnggotaTable();
+  } catch(e) { toast(friendlyError(e), 'err'); }
   finally { hideLoad(); }
 }
 
