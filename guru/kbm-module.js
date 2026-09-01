@@ -2350,6 +2350,14 @@
       window._hfKbmBulkAdd = true;
       try { pendingAdd.forEach(function(p){ addHafalanKbmItem(p.id_murid); }); }
       finally { window._hfKbmBulkAdd = false; }
+      // Kalau salah satu item memicu dialog Auto-Split (overlap parsial), item itu
+      // belum masuk keranjang sampai guru menjawab dialog. Berhenti tanpa pesan
+      // membingungkan — guru tinggal klik "Simpan & Lanjut" lagi setelahnya.
+      var adaTertunda = pendingAdd.some(function(p){
+        var c = window._hafalanKbmCache[p.id_murid];
+        return !(Array.isArray(c) ? c.length : (c && c.jenis));
+      });
+      if (adaTertunda) return;
     }
 
     var valid = true;
