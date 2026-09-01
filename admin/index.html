@@ -1285,7 +1285,7 @@ html.theme-dark .fin-detail-card {
 <body>
 <!-- OFFLINE BANNER -->
 <div class="offline-banner" id="offlineBanner">
-  <span class="offline-banner-icon">⚠️</span>
+  <span class="offline-banner-icon"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
   <span class="offline-banner-text">Koneksi internet terputus. Anda sedang bekerja secara offline.</span>
 </div>
 
@@ -1565,17 +1565,17 @@ html.theme-dark .fin-detail-card {
         <div class="section-title">Manajemen User</div>
         <div class="section-sub">Kelola akun guru dan murid.</div>
         <div class="tab-bar">
-          <button class="tab-btn active" onclick="switchUserTab('guru')">👨‍🏫 Guru</button>
-          <button class="tab-btn" onclick="switchUserTab('murid')">🧒 Murid</button>
-          <button class="tab-btn" onclick="switchUserTab('semua')">👥 Semua</button>
+          <button class="tab-btn active" onclick="switchUserTab('guru')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Guru</button>
+          <button class="tab-btn" onclick="switchUserTab('murid')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Murid</button>
+          <button class="tab-btn" onclick="switchUserTab('semua')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Semua</button>
         </div>
         <!-- Filter bar -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-          <input type="search" id="userSearchInput" class="fc" placeholder="🔍 Cari nama, NIS, email, HP..." oninput="filterUsersTableDebounced()" style="flex:1;min-width:180px;max-width:320px">
+          <input type="search" id="userSearchInput" class="fc" placeholder="Cari nama, NIS, email, HP..." oninput="filterUsersTableDebounced()" style="flex:1;min-width:180px;max-width:320px">
           <select class="fc" id="userStatusFilter" onchange="filterUsersTable()" style="max-width:160px">
             <option value="">— Semua Status —</option>
-            <option value="aktif">✅ Aktif</option>
-            <option value="nonaktif">❌ Non-aktif</option>
+            <option value="aktif"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> Aktif</option>
+            <option value="nonaktif"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Non-aktif</option>
           </select>
           <select class="fc" id="userTipeMuridFilter" onchange="filterUsersTable()" style="max-width:160px">
             <option value="">— Semua Tipe —</option>
@@ -1588,7 +1588,7 @@ html.theme-dark .fin-detail-card {
           <span id="userCountBadge" style="font-size:12px;color:var(--text-3);white-space:nowrap;margin-left:4px"></span>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
             <button class="btn btn-primary btn-sm" onclick="openModalUser()">+ User Baru</button>
-            <button class="btn btn-ghost btn-sm" onclick="openBulkImport()">📥 Import CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="openBulkImport()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Import CSV</button>
           </div>
         </div>
         <div class="card">
@@ -1620,7 +1620,7 @@ html.theme-dark .fin-detail-card {
         <div class="section-sub">Buat dan kelola kelas halaqah.</div>
         <!-- Filter bar -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-          <input type="search" id="halaqahSearchInput" class="fc" placeholder="🔍 Cari nama halaqah, guru, ketua..." oninput="filterHalaqahTable()" style="flex:1;min-width:180px;max-width:300px">
+          <input type="search" id="halaqahSearchInput" class="fc" placeholder="Cari nama halaqah, guru, ketua..." oninput="filterHalaqahTable()" style="flex:1;min-width:180px;max-width:300px">
           <select class="fc" id="halaqahLevelFilter" onchange="filterHalaqahTable()" style="max-width:160px">
             <option value="">— Semua Level —</option>
             <option value="Level 1">Level 1</option>
@@ -1632,8 +1632,8 @@ html.theme-dark .fin-detail-card {
           </select>
           <select class="fc" id="halaqahStatusFilter" onchange="filterHalaqahTable()" style="max-width:160px">
             <option value="">— Semua Status —</option>
-            <option value="aktif">✅ Aktif</option>
-            <option value="nonaktif">❌ Non-aktif</option>
+            <option value="aktif"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> Aktif</option>
+            <option value="nonaktif"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Non-aktif</option>
           </select>
           <span id="halaqahCountBadge" style="font-size:12px;color:var(--text-3);white-space:nowrap"></span>
           <button class="btn btn-primary btn-sm" onclick="openModalHalaqah()" style="margin-left:auto">+ Halaqah Baru</button>
@@ -1645,7 +1645,7 @@ html.theme-dark .fin-detail-card {
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','nama_halaqah',renderHalaqahTable)">Nama Halaqah<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="nama_halaqah"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','nama_guru',renderHalaqahTable)">Guru<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="nama_guru"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','level',renderHalaqahTable)">Level<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="level"></span></th>
-                <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','nama_ketua',renderHalaqahTable)">👑 Ketua<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="nama_ketua"></span></th>
+                <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','nama_ketua',renderHalaqahTable)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Ketua<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="nama_ketua"></span></th>
                 <th>Jadwal</th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','lokasi',renderHalaqahTable)">Lokasi<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="lokasi"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('halaqah','total_murid',renderHalaqahTable)">Murid<span class="sort-ind" data-sort-tbl="halaqah" data-sort-col="total_murid"></span></th>
@@ -1666,7 +1666,7 @@ html.theme-dark .fin-detail-card {
           <select class="fc" id="anggotaHalaqahSel" onchange="loadAnggota()" style="max-width:280px">
             <option value="">— Pilih Halaqah —</option>
           </select>
-          <input type="search" id="anggotaSearchInput" class="fc" placeholder="🔍 Cari nama/NIS murid..." oninput="filterAnggotaTable()" style="max-width:220px">
+          <input type="search" id="anggotaSearchInput" class="fc" placeholder="Cari nama/NIS murid..." oninput="filterAnggotaTable()" style="max-width:220px">
           <button class="btn btn-primary btn-sm" onclick="openModalAnggota()">+ Tambah Murid</button>
         </div>
         <div class="card">
@@ -1690,7 +1690,7 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ KELAS PENGGANTI ══ -->
       <div class="page" id="page-pengganti">
-        <div class="section-title">🔄 Kelas Pengganti</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Kelas Pengganti</div>
         <div class="section-sub">Kelola hari libur resmi, pantau sisa kelas pengganti, dan tandai sesi sebagai pengganti.</div>
 
         <div class="card" style="margin-bottom:14px">
@@ -1743,8 +1743,8 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ KELOMPOK PARTNER QIYAM ══ -->
       <div class="page" id="page-kelompok-qiyam">
-        <div class="section-title">👥 Kelompok Partner Qiyam</div>
-        <div class="section-sub">Kelola kelompok 2-3 murid Level Qiyam untuk saling setor &amp; konfirmasi hafalan mandiri. <a href="../assets/panduan/panduan_partner_qiyam_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px">📖 Panduan ↗</a></div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Kelompok Partner Qiyam</div>
+        <div class="section-sub">Kelola kelompok 2-3 murid Level Qiyam untuk saling setor &amp; konfirmasi hafalan mandiri. <a href="../assets/panduan/panduan_partner_qiyam_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Panduan ↗</a></div>
 
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="kqHalaqahSel" onchange="onKqHalaqahChange()" style="max-width:280px">
@@ -1773,8 +1773,8 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ KELOMPOK PARTNER BELAJAR (Level 1-4) ══ -->
       <div class="page" id="page-kelompok-belajar">
-        <div class="section-title">📚 Kelompok Partner Belajar</div>
-        <div class="section-sub">Kelola kelompok 3-5 murid Level 1-4 untuk saling catat &amp; konfirmasi aktivitas belajar mandiri. <a href="../assets/panduan/panduan_partner_belajar_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px">📖 Panduan ↗</a></div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Kelompok Partner Belajar</div>
+        <div class="section-sub">Kelola kelompok 3-5 murid Level 1-4 untuk saling catat &amp; konfirmasi aktivitas belajar mandiri. <a href="../assets/panduan/panduan_partner_belajar_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Panduan ↗</a></div>
 
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
           <select class="fc" id="kbaHalaqahSel" onchange="onKbaHalaqahChange()" style="max-width:280px">
@@ -1820,7 +1820,7 @@ html.theme-dark .fin-detail-card {
             <div id="komponenList"></div>
             <div id="bobotTotal" class="bobot-total"></div>
             <div style="margin-top:14px;display:flex;gap:10px">
-              <button class="btn btn-green" onclick="saveKomponen()">💾 Simpan Konfigurasi</button>
+              <button class="btn btn-green" onclick="saveKomponen()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Konfigurasi</button>
             </div>
           </div>
         </div>
@@ -1837,7 +1837,7 @@ html.theme-dark .fin-detail-card {
         <div class="card" id="nilaiCard" style="display:none">
           <div class="card-head">
             <div class="card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Input Nilai</div>
-            <button class="btn btn-green btn-sm" onclick="saveSemuaNilai()">💾 Simpan Semua</button>
+            <button class="btn btn-green btn-sm" onclick="saveSemuaNilai()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Semua</button>
           </div>
           <div class="card-body" id="nilaiBody"></div>
         </div>
@@ -1857,9 +1857,9 @@ html.theme-dark .fin-detail-card {
           <div>
             <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:4px;text-transform:uppercase">Generate untuk</div>
             <select class="fc" id="genRaportMode" onchange="updateGenRaportMode()" style="min-width:140px">
-              <option value="semua">📋 Semua Murid</option>
-              <option value="halaqah">🏫 Per Kelas</option>
-              <option value="level">🏆 Per Level</option>
+              <option value="semua"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Semua Murid</option>
+              <option value="halaqah"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/><path d="M14 9h1"/><path d="M14 13h1"/><path d="M14 17h1"/></svg> Per Kelas</option>
+              <option value="level"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Per Level</option>
             </select>
           </div>
           <div id="genHalaqahWrap" style="display:none">
@@ -1875,11 +1875,11 @@ html.theme-dark .fin-detail-card {
             </select>
           </div>
           <button class="btn btn-primary" id="btnGenRaport" onclick="doGenerateBulk()" style="align-self:flex-end">
-            ⚡ Generate
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generate
           </button>
         </div>
         <div style="margin-bottom:10px">
-          <input type="search" id="raportSearchInput" class="fc" placeholder="🔍 Cari ID murid/halaqah, predikat, status..." oninput="filterRaportTable()" style="max-width:280px">
+          <input type="search" id="raportSearchInput" class="fc" placeholder="Cari ID murid/halaqah, predikat, status..." oninput="filterRaportTable()" style="max-width:280px">
         </div>
         <div class="card">
           <div class="tbl-wrap">
@@ -1905,8 +1905,8 @@ html.theme-dark .fin-detail-card {
 
         <!-- Tab bar -->
         <div class="tab-bar" id="laporanTabBar">
-          <button class="tab-btn active" id="laporanTabGlobal" onclick="switchLaporanTab('global')">📊 Semua Halaqah</button>
-          <button class="tab-btn" id="laporanTabDaurah" onclick="switchLaporanTab('daurah')">📋 Daurah Al-Fatihah</button>
+          <button class="tab-btn active" id="laporanTabGlobal" onclick="switchLaporanTab('global')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Semua Halaqah</button>
+          <button class="tab-btn" id="laporanTabDaurah" onclick="switchLaporanTab('daurah')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Daurah Al-Fatihah</button>
         </div>
 
         <!-- TAB: GLOBAL -->
@@ -1940,7 +1940,7 @@ html.theme-dark .fin-detail-card {
           <!-- Tabel halaqah -->
           <div class="card" style="margin-top:14px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Detail Per Halaqah</div>
+              <div style="font-size:13px;font-weight:700;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Detail Per Halaqah</div>
               <span style="font-size:11px;color:var(--text-3)">Klik baris untuk expand detail murid</span>
             </div>
             <div class="tbl-wrap">
@@ -1961,23 +1961,23 @@ html.theme-dark .fin-detail-card {
           <!-- Heatmap indikator tajwid -->
           <div class="card" style="margin-top:14px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
-              <div style="font-size:13px;font-weight:700;color:var(--text)">🔥 Heatmap Penguasaan Tajwid</div>
+              <div style="font-size:13px;font-weight:700;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Heatmap Penguasaan Tajwid</div>
               <select class="fc" id="mtbHeatmapFilter" onchange="reloadMtbHeatmap()" style="max-width:200px;font-size:12px"><option value="">— Semua Halaqah —</option></select>
             </div>
             <div id="mtbHeatmapWrap"></div>
             <div style="margin-top:10px;font-size:11px;color:var(--text-3);display:flex;gap:14px;flex-wrap:wrap">
-              <span>✅ Paham</span><span>🟡 Ragu-ragu</span><span>❌ Belum paham</span><span>⚪ Belum dinilai</span>
+              <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> Paham</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:3px;vertical-align:1px"></span>Ragu-ragu</span><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Belum paham</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--text-3);margin-right:3px;vertical-align:1px"></span>Belum dinilai</span>
             </div>
           </div>
 
           <!-- Insight: ranking indikator + alert murid -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
             <div class="card">
-              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">📉 Indikator Paling Sulit</div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Indikator Paling Sulit</div>
               <div id="mtbBarChart"></div>
             </div>
             <div class="card">
-              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">⚠️ Murid Perlu Perhatian</div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Murid Perlu Perhatian</div>
               <div id="mtbAlertList"></div>
             </div>
           </div>
@@ -1989,7 +1989,7 @@ html.theme-dark .fin-detail-card {
       <div class="page" id="page-absensi">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <div class="section-title">Rekap Absensi</div>
-          <button class="btn btn-green btn-sm" onclick="doExportAbsensi()">📥 Export ke Sheet</button>
+          <button class="btn btn-green btn-sm" onclick="doExportAbsensi()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Export ke Sheet</button>
         </div>
         <div class="section-sub">Akumulasi kehadiran semua murid. H=100%, T=70%, I=50%, A=0%</div>
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
@@ -2042,7 +2042,7 @@ html.theme-dark .fin-detail-card {
       <!-- ══ ABSENSI GURU ══ -->
       <div class="page" id="page-absensi-guru">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
-          <div class="section-title">🧑‍🏫 Absensi Guru</div>
+          <div class="section-title"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Absensi Guru</div>
           <button class="btn btn-green btn-sm" onclick="exportAbsensiGuruCSV()">⬇️ Export CSV</button>
         </div>
         <div class="section-sub">Kehadiran guru dihitung otomatis dari sesi KBM (kecuali Kajian At-Tibyan). Angka inti: <strong>%Durasi tertunaikan</strong> (durasi ≥ ambang). Klik baris guru untuk rincian harian &amp; koreksi (override).</div>
@@ -2068,8 +2068,8 @@ html.theme-dark .fin-detail-card {
           <div style="flex:1"></div>
           <div class="fg" style="margin:0"><label style="font-size:11px" title="Ihsan = jumlah murid aktif di halaqah yang diampu × tarif ini (per bulan). Sesi tidak berpengaruh.">Tarif / murid / bulan (Rp)</label>
             <input type="number" class="fc" id="abgTarif" min="0" step="5000" placeholder="50000" oninput="_abgTarifChanged()" style="max-width:150px"></div>
-          <button class="btn btn-outline btn-sm" onclick="cetakIhsanGuru()" title="Buka tampilan cetak/PDF rekap ihsan bulan terpilih" style="margin-bottom:1px">🖨️ Cetak Ihsan</button>
-          <button class="btn btn-outline btn-sm" onclick="salinIhsanSheets()" title="Salin sebagai tabel (nempel rapi per kolom di Google Sheets)" style="margin-bottom:1px">📋 Salin ke Sheets</button>
+          <button class="btn btn-outline btn-sm" onclick="cetakIhsanGuru()" title="Buka tampilan cetak/PDF rekap ihsan bulan terpilih" style="margin-bottom:1px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak Ihsan</button>
+          <button class="btn btn-outline btn-sm" onclick="salinIhsanSheets()" title="Salin sebagai tabel (nempel rapi per kolom di Google Sheets)" style="margin-bottom:1px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Salin ke Sheets</button>
         </div>
 
         <!-- Pengaturan ambang & berlaku-mulai -->
@@ -2080,7 +2080,7 @@ html.theme-dark .fin-detail-card {
             <input type="number" class="fc" id="abgOutlier" min="1" max="1440" style="max-width:110px"></div>
           <div class="fg" style="margin:0"><label style="font-size:11px" title="Alpa hanya dihitung sejak tanggal ini. Kosong = tanpa batas.">Absensi berlaku mulai</label>
             <input type="date" class="fc" id="abgMulai" style="max-width:160px"></div>
-          <button class="btn btn-outline btn-sm" onclick="savePengaturanAbsensiGuru()">💾 Simpan Pengaturan</button>
+          <button class="btn btn-outline btn-sm" onclick="savePengaturanAbsensiGuru()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Pengaturan</button>
           <div style="font-size:10.5px;color:var(--text-3);max-width:300px;line-height:1.4">"Berlaku mulai" mencegah tanggal lampau (sebelum guru rutin mencatat sesi) tertandai Alpa retroaktif.</div>
         </div></div>
 
@@ -2097,7 +2097,7 @@ html.theme-dark .fin-detail-card {
           <span class="abg-chip abg-I">I</span> Izin
           <span class="abg-chip abg-A">A</span> Alpa
           <span class="abg-chip abg-L">L</span> Libur
-          <span style="color:var(--text-3)">· ⚠ singkat/lupa-tutup · ⏳ perlu ditutup · Kalender libur di tab <strong>Kelas Pengganti</strong></span>
+          <span style="color:var(--text-3)">· <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> singkat/lupa-tutup · ⏳ perlu ditutup · Kalender libur di tab <strong>Kelas Pengganti</strong></span>
         </div>
 
         <div class="card" style="margin-top:12px">
@@ -2108,8 +2108,8 @@ html.theme-dark .fin-detail-card {
                 <th title="(H+Hᴾ penuh)/(H+DS+Hᴾ) — angka inti">%Durasi</th>
                 <th title="(H+DS+Hᴾ)/(H+DS+Hᴾ+I+A − Izin yang sudah ditebus pengganti). Izin yang sudah diganti tidak menggerus %.">%Hadir</th>
                 <th title="Jumlah sesi mengajar yang terlaksana bulan ini = H + DS + Hᴾ">Mengajar</th>
-                <th title="Jumlah murid di halaqah yang DIAJAR bulan ini (≥1 sesi). Halaqah yang tak diajar bulan ini tidak dihitung.">👥 Murid</th>
-                <th title="Usulan ihsan = murid (dari halaqah yang diajar bulan ini) × tarif/bulan.">💰 Ihsan</th>
+                <th title="Jumlah murid di halaqah yang DIAJAR bulan ini (≥1 sesi). Halaqah yang tak diajar bulan ini tidak dihitung."><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Murid</th>
+                <th title="Usulan ihsan = murid (dari halaqah yang diajar bulan ini) × tarif/bulan."><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Ihsan</th>
                 <th>H</th><th>DS</th><th>I</th><th>A</th><th>Hᴾ</th>
                 <th title="sisa Izin/Alpa setelah ditebus pengganti">Hutang</th>
                 <th class="abg-stripcol">Kehadiran harian (klik baris → rincian)</th>
@@ -2126,7 +2126,7 @@ html.theme-dark .fin-detail-card {
         <!-- ── Header ── -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
           <div>
-            <div class="section-title" style="margin:0">💳 SPP &amp; Infaq</div>
+            <div class="section-title" style="margin:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg> SPP &amp; Infaq</div>
             <div style="font-size:12px;color:var(--text-3);margin-top:3px">Kelola pembayaran dan rekap tunggakan murid</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2149,7 +2149,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#10b981,#34d399); --stat-shadow:rgba(16,185,129,0.15); --stat-border-hover:rgba(16,185,129,0.3); --stat-bg-tint:rgba(16,185,129,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Lunas</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">✅</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg></span>
             </div>
             <div>
               <div style="font-size:24px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatLunas">—</div>
@@ -2160,7 +2160,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#ef4444,#f87171); --stat-shadow:rgba(239,68,68,0.15); --stat-border-hover:rgba(239,68,68,0.3); --stat-bg-tint:rgba(239,68,68,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Menunggak</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">⚠️</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             </div>
             <div>
               <div style="font-size:24px; font-weight:900; color:var(--red-txt); line-height:1.2; margin-bottom:4px" id="sppStatTunggak">—</div>
@@ -2171,7 +2171,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#3b82f6,#60a5fa); --stat-shadow:rgba(59,130,246,0.15); --stat-border-hover:rgba(59,130,246,0.3); --stat-bg-tint:rgba(59,130,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total SPP</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💸</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             </div>
             <div>
               <div style="font-size:20px; font-weight:900; color:var(--blue-txt); line-height:1.2; margin-bottom:4px" id="sppStatTotal">—</div>
@@ -2182,7 +2182,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#f59e0b,#fbbf24); --stat-shadow:rgba(245,158,11,0.15); --stat-border-hover:rgba(245,158,11,0.3); --stat-bg-tint:rgba(245,158,11,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Infaq</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(245,158,11,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💛</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(245,158,11,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
             </div>
             <div>
               <div style="font-size:20px; font-weight:900; color:var(--amber-txt); line-height:1.2; margin-bottom:4px" id="sppStatInfaq">—</div>
@@ -2193,7 +2193,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#8b5cf6,#a78bfa); --stat-shadow:rgba(139,92,246,0.15); --stat-border-hover:rgba(139,92,246,0.3); --stat-bg-tint:rgba(139,92,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Masuk</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">💰</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             </div>
             <div>
               <div style="font-size:20px; font-weight:900; color:var(--purple-txt); line-height:1.2; margin-bottom:4px" id="sppStatMasuk">—</div>
@@ -2204,7 +2204,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#f43f5e,#fb7185); --stat-shadow:rgba(244,63,94,0.15); --stat-border-hover:rgba(244,63,94,0.3); --stat-bg-tint:rgba(244,63,94,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Ihsan Guru</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(244,63,94,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">❤️</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(244,63,94,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
             </div>
             <div>
               <div style="font-size:20px; font-weight:900; color:#e11d48; line-height:1.2; margin-bottom:4px" id="sppStatIhsan">—</div>
@@ -2215,7 +2215,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#059669,#34d399); --stat-shadow:rgba(5,150,105,0.15); --stat-border-hover:rgba(5,150,105,0.3); --stat-bg-tint:rgba(5,150,105,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Sisa Kas (Net)</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(5,150,105,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">⚖️</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(5,150,105,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l-3 6a4 4 0 0 0 8 0L5 7"/><path d="M19 7l-3 6a4 4 0 0 0 8 0l-3-6"/><path d="M5 7h14M3 21h18"/></svg></span>
             </div>
             <div>
               <div style="font-size:20px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatNet">—</div>
@@ -2226,7 +2226,7 @@ html.theme-dark .fin-detail-card {
           <div class="stat" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Beasiswa</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0">🎓</span>
+              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
             </div>
             <div>
               <div style="font-size:24px; font-weight:900; color:#0284c7; line-height:1.2; margin-bottom:4px" id="sppStatBeasiswa">—</div>
@@ -2239,7 +2239,7 @@ html.theme-dark .fin-detail-card {
         <div class="card" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)">🎓 Kas Beasiswa &amp; Operasional</div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Kas Beasiswa &amp; Operasional</div>
               <div style="font-size:11px;color:var(--text-3);margin-top:2px">Sisa infaq (setelah operasional) dibagi rata ke guru pengajar murid beasiswa</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -2273,7 +2273,7 @@ html.theme-dark .fin-detail-card {
         <div class="card" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)">📒 Buku Kas (Arus Kas)</div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Buku Kas (Arus Kas)</div>
               <div style="font-size:11px;color:var(--text-3);margin-top:2px">Pemasukan &amp; pengeluaran kas. Ihsan Guru dihitung sebagai pengeluaran (honor), bukan pemasukan.</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -2283,7 +2283,7 @@ html.theme-dark .fin-detail-card {
               <select id="arusKasBulanStart" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
               <span style="font-size:11px;color:var(--text-3);font-weight:700">s/d</span>
               <select id="arusKasBulanEnd" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadArusKas()"></select>
-              <button type="button" class="btn btn-outline btn-sm" onclick="bukaKelolaKategori()" style="font-size:11px;padding:6px 10px" title="Kelola kategori kas">⚙️ Kategori</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="bukaKelolaKategori()" style="font-size:11px;padding:6px 10px" title="Kelola kategori kas"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Kategori</button>
               <button class="btn btn-primary btn-sm" onclick="bukaFormKas()" style="font-size:12px;padding:6px 12px">+ Catat Transaksi</button>
             </div>
           </div>
@@ -2311,14 +2311,14 @@ html.theme-dark .fin-detail-card {
               <div id="arusKasBdKeluar" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
           </div>
-          <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🧾 Riwayat Transaksi <span id="arusKasPeriodeLabel" style="color:var(--text-3);font-weight:700"></span></div>
+          <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Riwayat Transaksi <span id="arusKasPeriodeLabel" style="color:var(--text-3);font-weight:700"></span></div>
           <div id="arusKasRiwayat" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
         </div>
 
         <!-- ── Metode Pembayaran ── -->
         <div class="card" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div style="font-size:13px;font-weight:800;color:var(--text)">🏦 Metode Pembayaran</div>
+            <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Metode Pembayaran</div>
             <button class="btn btn-primary btn-sm" onclick="bukaFormMetode()" style="font-size:12px;padding:6px 12px">+ Tambah</button>
           </div>
           <div id="sppMetodeAdminList" style="display:flex;flex-direction:column;gap:8px">
@@ -2341,7 +2341,7 @@ html.theme-dark .fin-detail-card {
         <!-- ── Riwayat Konfirmasi Terbaru (untuk batalkan jika salah klik) ── -->
         <div style="margin-bottom:20px">
           <button type="button" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px" onclick="toggleSPPRiwayat()">
-            🕘 Riwayat Konfirmasi Terbaru
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg> Riwayat Konfirmasi Terbaru
           </button>
           <div id="sppRiwayatSection" style="display:none;margin-top:10px;flex-direction:column;gap:8px"></div>
         </div>
@@ -2351,7 +2351,7 @@ html.theme-dark .fin-detail-card {
           <!-- Header rekap -->
           <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)">📋 Rekap Pembayaran</div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Rekap Pembayaran</div>
               <div style="font-size:11px;color:#94a3b8;margin-top:2px" id="sppRekapSubtitle">Rekap tunggakan SPP Pribadi per bulan</div>
             </div>
             <!-- Filter -->
@@ -2381,10 +2381,10 @@ html.theme-dark .fin-detail-card {
                 <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
               </select>
               <button class="btn btn-outline btn-sm" onclick="eksporSPP()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
-                <span>📥</span> Ekspor CSV
+                <span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span> Ekspor CSV
               </button>
               <button class="btn btn-outline btn-sm" id="btnSalinTagihan" onclick="salinTagihanMassal()" style="font-size:12px;padding:6px 12px;display:flex;align-items:center;gap:4px">
-                <span>📋</span> Salin Tagihan WA
+                <span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></span> Salin Tagihan WA
               </button>
             </div>
           </div>
@@ -2412,7 +2412,7 @@ html.theme-dark .fin-detail-card {
           <div class="modal" style="max-width:420px">
             <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
               <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalOperasionalTitle">Tambah Operasional</div>
-              <button class="btn-icon" onclick="tutupFormOperasional()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+              <button class="btn-icon" onclick="tutupFormOperasional()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
               <input type="hidden" id="opId">
@@ -2449,7 +2449,7 @@ html.theme-dark .fin-detail-card {
           <div class="modal" style="max-width:440px">
             <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
               <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalKasTitle">Catat Transaksi Kas</div>
-              <button class="btn-icon" onclick="tutupFormKas()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+              <button class="btn-icon" onclick="tutupFormKas()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
               <input type="hidden" id="kasId">
@@ -2509,8 +2509,8 @@ html.theme-dark .fin-detail-card {
         <div class="overlay" id="modalKasKategori" onclick="if(event.target===this)tutupKelolaKategori()">
           <div class="modal" style="max-width:560px">
             <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
-              <div style="font-size:15px;font-weight:800;color:var(--text)">⚙️ Kelola Kategori Kas</div>
-              <button class="btn-icon" onclick="tutupKelolaKategori()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+              <div style="font-size:15px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Kelola Kategori Kas</div>
+              <button class="btn-icon" onclick="tutupKelolaKategori()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
               <div style="font-size:11.5px;color:var(--text-3)">Kategori dipakai di form "Catat Transaksi". <strong>Operasional</strong> terkunci (dipakai perhitungan beasiswa). <strong>Honor Guru</strong> diinput lewat tombol Ihsan Guru, bukan di sini.</div>
@@ -2541,15 +2541,15 @@ html.theme-dark .fin-detail-card {
           <div class="modal" style="max-width:420px">
             <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
               <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalMetodeTitle">Tambah Metode Bayar</div>
-              <button class="btn-icon" onclick="tutupFormMetode()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+              <button class="btn-icon" onclick="tutupFormMetode()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
               <input type="hidden" id="metodeId">
               <div>
                 <label style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:8px">Jenis</label>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="metodeJenisTabs">
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green, #1a5c3a);background:var(--green-bg, #f0fdf4);color:var(--green-txt, #1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)">🏦 Rekening Bank</div>
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2, #fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)">📱 QRIS</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green, #1a5c3a);background:var(--green-bg, #f0fdf4);color:var(--green-txt, #1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Rekening Bank</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2, #fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> QRIS</div>
                 </div>
               </div>
               <input type="hidden" id="metodeJenis" value="rekening">
@@ -2602,7 +2602,7 @@ html.theme-dark .fin-detail-card {
                 <div style="font-size:15px;font-weight:800;color:var(--text)">＋ Input Pembayaran Manual</div>
                 <div style="font-size:11px;color:var(--text-3);margin-top:2px" id="sppManualCounter"></div>
               </div>
-              <button class="btn-icon" onclick="tutupModalInputSPPManual()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+              <button class="btn-icon" onclick="tutupModalInputSPPManual()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
               <!-- Murid search -->
@@ -2620,9 +2620,9 @@ html.theme-dark .fin-detail-card {
               <div>
                 <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Jenis</label>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="sppManualJenisTabs">
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green,#1a5c3a);background:var(--green-bg,#f0fdf4);color:var(--green-txt,#1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('SPP Pribadi',this)">💳 SPP Pribadi</div>
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Infaq/Operasional',this)">💛 Infaq</div>
-                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Ihsan Guru',this)">❤️ Ihsan Guru</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green,#1a5c3a);background:var(--green-bg,#f0fdf4);color:var(--green-txt,#1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('SPP Pribadi',this)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg> SPP Pribadi</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Infaq/Operasional',this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Infaq</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2,#fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setSPPManualJenis('Ihsan Guru',this)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Ihsan Guru</div>
                 </div>
                 <input type="hidden" id="sppManualJenis" value="SPP Pribadi">
               </div>
@@ -2657,7 +2657,7 @@ html.theme-dark .fin-detail-card {
               <div id="sppManualErr" style="display:none;color:var(--red);font-size:12px"></div>
               <!-- Buttons -->
               <div style="display:flex;gap:8px">
-                <button class="btn btn-primary" onclick="submitInputSPPManual()" style="flex:1">💾 Simpan & Lanjut Murid Berikutnya</button>
+                <button class="btn btn-primary" onclick="submitInputSPPManual()" style="flex:1"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan & Lanjut Murid Berikutnya</button>
               </div>
             </div>
           </div>
@@ -2681,7 +2681,7 @@ html.theme-dark .fin-detail-card {
             </div>
             <div class="fg"><label>Judul</label><input type="text" class="fc" id="pngJudul" placeholder="Judul pengumuman..."></div>
             <div class="fg"><label>Isi</label><textarea class="fc" id="pngIsi" rows="4" style="resize:vertical" placeholder="Isi pengumuman..."></textarea></div>
-            <button class="btn btn-primary" onclick="doKirimPengumuman()">📤 Kirim</button>
+            <button class="btn btn-primary" onclick="doKirimPengumuman()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim</button>
           </div>
         </div>
         <div class="card">
@@ -2720,8 +2720,8 @@ html.theme-dark .fin-detail-card {
 
         <!-- Tab bar -->
         <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--border);padding-bottom:0">
-          <button class="materi-tab-btn active" id="mTabAt" onclick="switchMateriTab('at',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue-d);border-bottom:2px solid var(--blue-d);margin-bottom:-2px">📋 At-Tibyan</button>
-          <button class="materi-tab-btn" id="mTabLevel" onclick="switchMateriTab('level',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-2px">📚 Materi Level</button>
+          <button class="materi-tab-btn active" id="mTabAt" onclick="switchMateriTab('at',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--blue-d);border-bottom:2px solid var(--blue-d);margin-bottom:-2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> At-Tibyan</button>
+          <button class="materi-tab-btn" id="mTabLevel" onclick="switchMateriTab('level',this)" style="padding:8px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Materi Level</button>
         </div>
 
         <!-- Panel: At-Tibyan -->
@@ -2776,7 +2776,7 @@ html.theme-dark .fin-detail-card {
           </div>
           <div class="modal-foot">
             <button class="btn btn-outline" onclick="tutupModalAt()">Batal</button>
-            <button class="btn btn-primary" onclick="simpanAtMateri()">💾 Simpan</button>
+            <button class="btn btn-primary" onclick="simpanAtMateri()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
           </div>
         </div>
       </div>
@@ -2799,7 +2799,7 @@ html.theme-dark .fin-detail-card {
           </div>
           <div class="modal-foot">
             <button class="btn btn-outline" onclick="tutupModalLevel()">Batal</button>
-            <button class="btn btn-primary" onclick="simpanMateriLevel()">💾 Simpan</button>
+            <button class="btn btn-primary" onclick="simpanMateriLevel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
           </div>
         </div>
       </div>
@@ -2824,10 +2824,10 @@ html.theme-dark .fin-detail-card {
             <div class="fg"><label>Keterangan (opsional)</label><input type="text" class="fc" id="abgOvKet" placeholder="Alasan koreksi..."></div>
           </div>
           <div class="modal-foot" style="justify-content:space-between">
-            <button class="btn btn-outline btn-sm" id="abgOvHapusBtn" onclick="deleteAbgOverride()" style="display:none">🗑️ Hapus Override</button>
+            <button class="btn btn-outline btn-sm" id="abgOvHapusBtn" onclick="deleteAbgOverride()" style="display:none"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Override</button>
             <div style="display:flex;gap:8px;margin-left:auto">
               <button class="btn btn-outline" onclick="closeAbgOverride()">Batal</button>
-              <button class="btn btn-primary" onclick="saveAbgOverride()">💾 Simpan</button>
+              <button class="btn btn-primary" onclick="saveAbgOverride()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
             </div>
           </div>
         </div>
@@ -2873,8 +2873,8 @@ html.theme-dark .fin-detail-card {
                 <div style="font-size:12px;color:var(--text-3);margin-top:2px">Aktifkan atau nonaktifkan setiap jenis notifikasi secara global</div>
               </div>
               <div style="display:flex;gap:8px">
-                <button class="btn btn-outline btn-sm" onclick="setAllPushConfig(false)">⛔ Matikan Semua</button>
-                <button class="btn btn-green btn-sm" onclick="setAllPushConfig(true)">✅ Aktifkan Semua</button>
+                <button class="btn btn-outline btn-sm" onclick="setAllPushConfig(false)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Matikan Semua</button>
+                <button class="btn btn-green btn-sm" onclick="setAllPushConfig(true)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> Aktifkan Semua</button>
               </div>
             </div>
             <div class="card-body" id="pushConfigList" style="padding-top:8px">
@@ -2887,7 +2887,7 @@ html.theme-dark .fin-detail-card {
             <div class="card-head" style="border-bottom:1px solid var(--border);padding-bottom:14px">
               <div>
                 <div class="card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>Pengumuman Onboarding</div>
-                <div style="font-size:12px;color:var(--text-3);margin-top:2px">Popup yang muncul sekali saat user login. Begitu disimpan, tampil lagi ke semua user yang ditarget. <a href="../assets/panduan/panduan_onboarding_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px">📖 Panduan ↗</a></div>
+                <div style="font-size:12px;color:var(--text-3);margin-top:2px">Popup yang muncul sekali saat user login. Begitu disimpan, tampil lagi ke semua user yang ditarget. <a href="../assets/panduan/panduan_onboarding_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Panduan ↗</a></div>
               </div>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer">
                 <input type="checkbox" id="obEnabled" style="width:18px;height:18px;cursor:pointer">
@@ -2896,7 +2896,7 @@ html.theme-dark .fin-detail-card {
             </div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:10px;padding-top:12px">
               <div class="fg" style="margin:0"><label>Judul</label>
-                <input class="fc" id="obJudul" maxlength="120" placeholder="mis. Selamat Datang 👋">
+                <input class="fc" id="obJudul" maxlength="120" placeholder="mis. Selamat Datang di Portal">
               </div>
               <div class="fg" style="margin:0"><label>Pesan</label>
                 <textarea class="fc" id="obPesan" rows="4" maxlength="800" placeholder="Tulis isi pengumuman. Baris baru didukung."></textarea>
@@ -2904,10 +2904,10 @@ html.theme-dark .fin-detail-card {
               <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <div class="fg" style="margin:0;flex:1;min-width:140px"><label>Target</label>
                   <select class="fc" id="obTarget">
-                    <option value="murid">👩‍🎓 Murid</option>
-                    <option value="guru">👨‍🏫 Guru</option>
-                    <option value="admin">🛡️ Admin</option>
-                    <option value="all">🌐 Semua</option>
+                    <option value="murid">Murid</option>
+                    <option value="guru">Guru</option>
+                    <option value="admin"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Admin</option>
+                    <option value="all"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Semua</option>
                   </select>
                 </div>
                 <div class="fg" style="margin:0;flex:1;min-width:140px"><label>Aksi Tombol</label>
@@ -2922,11 +2922,11 @@ html.theme-dark .fin-detail-card {
               </div>
               <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;background:var(--bg-2);padding:10px 12px;border-radius:10px">
                 <input type="checkbox" id="obOnlyUnsub" style="width:17px;height:17px;flex-shrink:0;cursor:pointer">
-                <span>🎯 Hanya tampilkan ke user yang <strong>belum aktifkan notifikasi</strong> (lewati yang sudah aktif)</span>
+                <span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> Hanya tampilkan ke user yang <strong>belum aktifkan notifikasi</strong> (lewati yang sudah aktif)</span>
               </label>
               <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
-                <button class="btn btn-outline btn-sm" onclick="previewOnboarding()">👁️ Pratinjau</button>
-                <button class="btn btn-green btn-sm" onclick="saveOnboarding()">💾 Simpan</button>
+                <button class="btn btn-outline btn-sm" onclick="previewOnboarding()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Pratinjau</button>
+                <button class="btn btn-green btn-sm" onclick="saveOnboarding()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
               </div>
             </div>
           </div>
@@ -2972,9 +2972,9 @@ html.theme-dark .fin-detail-card {
                   </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
-                  <button class="btn btn-outline btn-sm" id="pnDeleteBtn" style="display:none" onclick="deletePopupNotif()">🗑️ Hapus</button>
-                  <button class="btn btn-outline btn-sm" id="pnResendBtn" style="display:none" onclick="resendPopupNotif()" title="Tampilkan lagi ke semua pengguna, termasuk yang sudah pernah menutupnya">🔁 Kirim Lagi</button>
-                  <button class="btn btn-green btn-sm" onclick="savePopupNotif()">💾 Simpan</button>
+                  <button class="btn btn-outline btn-sm" id="pnDeleteBtn" style="display:none" onclick="deletePopupNotif()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus</button>
+                  <button class="btn btn-outline btn-sm" id="pnResendBtn" style="display:none" onclick="resendPopupNotif()" title="Tampilkan lagi ke semua pengguna, termasuk yang sudah pernah menutupnya"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Kirim Lagi</button>
+                  <button class="btn btn-green btn-sm" onclick="savePopupNotif()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
                 </div>
               </div>
             </div>
@@ -2986,37 +2986,37 @@ html.theme-dark .fin-detail-card {
             <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
               <div class="fg" style="margin:0"><label>Target Penerima</label>
                 <select class="fc" id="pushTestTarget" onchange="onPushTargetChange(this.value)">
-                  <option value="role_murid">👩‍🎓 Semua Murid</option>
-                  <option value="role_guru">👩‍🏫 Semua Guru</option>
-                  <option value="role_admin">🛡 Semua Admin</option>
-                  <option value="all">🌍 Semua User</option>
+                  <option value="role_murid">Semua Murid</option>
+                  <option value="role_guru">Semua Guru</option>
+                  <option value="role_admin"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Semua Admin</option>
+                  <option value="all"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Semua User</option>
                   <optgroup label="── Per Halaqah ──" id="pushOptHalaqah"></optgroup>
                   <optgroup label="── Per Level ──" id="pushOptLevel"></optgroup>
-                  <option value="user_id">🔍 User ID Tertentu</option>
+                  <option value="user_id"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> User ID Tertentu</option>
                 </select>
               </div>
               <div class="fg" style="margin:0;display:none" id="pushTestUserIdWrap">
                 <label>User ID</label>
                 <input type="text" class="fc" id="pushTestUserId" placeholder="Contoh: RTL2418000001">
               </div>
-              <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" value="📢 Pengumuman dari Admin"></div>
+              <div class="fg" style="margin:0"><label>Judul</label><input type="text" class="fc" id="pushTestTitle" value="Pengumuman dari Admin"></div>
               <div class="fg" style="margin:0"><label>Pesan</label><textarea class="fc" id="pushTestBody" rows="3">Assalamualaikum, ada pengumuman penting dari Rattililqur'an.</textarea></div>
 
               <!-- Link Ketuk -->
               <div class="fg" style="margin:0">
-                <label>🔗 Link Ketuk Notifikasi</label>
+                <label><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link Ketuk Notifikasi</label>
                 <select class="fc" id="pushTestUrlPreset" onchange="onPushUrlPresetChange(this.value)" style="margin-bottom:6px">
                   <optgroup label="── Portal Murid ──">
-                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html">🏠 Beranda Murid</option>
-                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#attibyan">📖 At-Tibyan</option>
-                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#raport">📄 Raport</option>
-                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#pr">✏️ Latihan Mandiri</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M9 21V12h6v9"/></svg> Beranda Murid</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#attibyan"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> At-Tibyan</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#raport">Raport</option>
+                    <option value="/Portal-Halaqah-Rattililquran/murid/index.html#pr"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Latihan Mandiri</option>
                   </optgroup>
                   <optgroup label="── Portal Guru ──">
-                    <option value="/Portal-Halaqah-Rattililquran/guru/index.html">👩‍🏫 Dashboard Guru</option>
+                    <option value="/Portal-Halaqah-Rattililquran/guru/index.html">Dashboard Guru</option>
                   </optgroup>
                   <optgroup label="── Lainnya ──">
-                    <option value="custom">✏️ URL Kustom (isi manual)</option>
+                    <option value="custom"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> URL Kustom (isi manual)</option>
                   </optgroup>
                 </select>
                 <div id="pushTestUrlCustomWrap" style="display:none">
@@ -3024,12 +3024,12 @@ html.theme-dark .fin-detail-card {
                     placeholder="https://rattililquran.github.io/..."
                     style="font-size:13px">
                   <div style="font-size:11px;color:var(--text-3);margin-top:4px">
-                    ✅ URL eksternal diizinkan (Zoom, YouTube, dll) — harus <strong>https://</strong>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> URL eksternal diizinkan (Zoom, YouTube, dll) — harus <strong>https://</strong>
                   </div>
                 </div>
               </div>
 
-              <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush" style="margin-top:4px">📤 Kirim Sekarang</button>
+              <button class="btn btn-primary" onclick="kirimTestPush()" id="btnTestPush" style="margin-top:4px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim Sekarang</button>
               <div id="pushTestResult" style="display:none;font-size:12.5px;padding:10px 14px;border-radius:10px;font-weight:600"></div>
             </div>
           </div>
@@ -3041,16 +3041,16 @@ html.theme-dark .fin-detail-card {
             <div class="card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
                 <button class="btn btn-outline btn-sm" onclick="testTrigger('kbm_h1')" style="justify-content:flex-start;gap:6px"><span>⏰</span>H-1 KBM</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_h1')" style="justify-content:flex-start;gap:6px"><span>📖</span>H-1 At-Tibyan</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_h1')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>H-1 At-Tibyan</button>
                 <button class="btn btn-outline btn-sm" onclick="testTrigger('attibyan_30min')" style="justify-content:flex-start;gap:6px"><span>⏱</span>30min At-Tibyan</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('pr_deadline')" style="justify-content:flex-start;gap:6px"><span>✏️</span>Deadline PR</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('guru_kbm_today')" style="justify-content:flex-start;gap:6px"><span>📚</span>KBM Guru</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('admin_digest')" style="justify-content:flex-start;gap:6px"><span>📊</span>Rekap Admin</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('spp_reminder')" style="justify-content:flex-start;gap:6px"><span>💳</span>Reminder SPP</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('reminder_guru_followup')" style="justify-content:flex-start;gap:6px"><span>🚨</span>Followup Guru</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('reminder_ketua_observasi')" style="justify-content:flex-start;gap:6px"><span>📋</span>Observasi Ketua</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('dzikir_pagi')" style="justify-content:flex-start;gap:6px"><span>☀️</span>Dzikir Pagi</button>
-                <button class="btn btn-outline btn-sm" onclick="testTrigger('dzikir_sore')" style="justify-content:flex-start;gap:6px"><span>🌙</span>Dzikir Sore</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('pr_deadline')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>Deadline PR</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('guru_kbm_today')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>KBM Guru</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('admin_digest')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Rekap Admin</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('spp_reminder')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Reminder SPP</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('reminder_guru_followup')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Followup Guru</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('reminder_ketua_observasi')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></span>Observasi Ketua</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('dzikir_pagi')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>Dzikir Pagi</button>
+                <button class="btn btn-outline btn-sm" onclick="testTrigger('dzikir_sore')" style="justify-content:flex-start;gap:6px"><span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>Dzikir Sore</button>
               </div>
               <div id="pushTriggerResult" style="display:none;font-size:12px;padding:10px;border-radius:8px;margin-top:10px;font-weight:600"></div>
             </div>
@@ -3060,7 +3060,7 @@ html.theme-dark .fin-detail-card {
           <div class="card">
             <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Diagnostik Sistem</div><div style="font-size:12px;color:var(--text-3)">Cek status SW, push manager, dan subscription</div></div>
             <div class="card-body">
-              <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="width:100%;margin-bottom:8px">🔍 Jalankan Diagnostik</button>
+              <button class="btn btn-outline btn-sm" onclick="jalankanDiagnostik()" style="width:100%;margin-bottom:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Jalankan Diagnostik</button>
               <div id="pushDiagResult" style="font-family:monospace;font-size:11px;line-height:1.8;background:var(--bg-2,#f8fafc);border-radius:8px;padding:10px;display:none;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto"></div>
             </div>
           </div>
@@ -3125,8 +3125,8 @@ html.theme-dark .fin-detail-card {
                 </div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="stressTestMulai()" id="btnStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="stressTestCleanup()" id="btnStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="stressTestMulai()" id="btnStressStart" style="gap:6px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="stressTestCleanup()" id="btnStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="stProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="stProgressLabel">Memulai...</div>
@@ -3154,8 +3154,8 @@ html.theme-dark .fin-detail-card {
                 </select>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="rsStressTestMulai()" id="btnRsStressStart">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="rsStressTestCleanup()" id="btnRsStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="rsStressTestMulai()" id="btnRsStressStart"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="rsStressTestCleanup()" id="btnRsStressCleanup" style="border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="rsStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="rsStProgressLabel">Memulai...</div>
@@ -3176,8 +3176,8 @@ html.theme-dark .fin-detail-card {
             <div class="card-body">
               <div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Menambahkan key <code>_st: true</code> ke prefs tiap user tanpa menghapus prefs nyata.</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="prefsStressTestMulai()" id="btnPrefsStressStart">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="prefsStressTestCleanup()" id="btnPrefsStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="prefsStressTestMulai()" id="btnPrefsStressStart"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="prefsStressTestCleanup()" id="btnPrefsStressCleanup" style="border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="prefsStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="prefsStProgressLabel">Memulai...</div>
@@ -3205,8 +3205,8 @@ html.theme-dark .fin-detail-card {
                 </select>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="combStressTestMulai()" id="btnCombStressStart">🔥 Mulai Combined Test</button>
-                <button class="btn btn-outline btn-sm" onclick="combStressTestCleanup()" id="btnCombStressCleanup" style="border-color:#ef4444;color:#ef4444">🗑️ Cleanup Semua</button>
+                <button class="btn btn-primary btn-sm" onclick="combStressTestMulai()" id="btnCombStressStart"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Combined Test</button>
+                <button class="btn btn-outline btn-sm" onclick="combStressTestCleanup()" id="btnCombStressCleanup" style="border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Cleanup Semua</button>
               </div>
               <div id="combStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="combStProgressLabel">Memulai...</div>
@@ -3235,8 +3235,8 @@ html.theme-dark .fin-detail-card {
                 </select>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="usrStressTestMulai()" id="btnUsrStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="usrStressTestCleanup()" id="btnUsrStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="usrStressTestMulai()" id="btnUsrStressStart" style="gap:6px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="usrStressTestCleanup()" id="btnUsrStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="usrStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="usrStProgressLabel">Memulai...</div>
@@ -3265,8 +3265,8 @@ html.theme-dark .fin-detail-card {
                 </select>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="obsStressTestMulai()" id="btnObsStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="obsStressTestCleanup()" id="btnObsStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="obsStressTestMulai()" id="btnObsStressStart" style="gap:6px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="obsStressTestCleanup()" id="btnObsStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="obsStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="obsStProgressLabel">Memulai...</div>
@@ -3295,8 +3295,8 @@ html.theme-dark .fin-detail-card {
                 </select>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <button class="btn btn-primary btn-sm" onclick="atStressTestMulai()" id="btnAtStressStart" style="gap:6px">⚡ Mulai Stress Test</button>
-                <button class="btn btn-outline btn-sm" onclick="atStressTestCleanup()" id="btnAtStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444">🗑️ Hapus Data Test</button>
+                <button class="btn btn-primary btn-sm" onclick="atStressTestMulai()" id="btnAtStressStart" style="gap:6px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Mulai Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="atStressTestCleanup()" id="btnAtStressCleanup" style="gap:6px;border-color:#ef4444;color:#ef4444"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Hapus Data Test</button>
               </div>
               <div id="atStProgressWrap" style="display:none;margin-bottom:10px">
                 <div style="font-size:12px;color:var(--text-3);margin-bottom:4px" id="atStProgressLabel">Memulai...</div>
@@ -3321,12 +3321,12 @@ html.theme-dark .fin-detail-card {
           </div>
           <div class="card-body">
             <div id="templateList"></div>
-            <button class="btn btn-green" style="margin-top:12px" onclick="saveTemplate()">💾 Simpan Template</button>
+            <button class="btn btn-green" style="margin-top:12px" onclick="saveTemplate()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Template</button>
           </div>
         </div>
         <div class="card" style="background:var(--blue-l);border-color:rgba(20,88,168,.2)">
           <div class="card-body" style="padding:14px">
-            <div style="font-size:12.5px;color:var(--blue);font-weight:600">💡 Cara kerja:</div>
+            <div style="font-size:12.5px;color:var(--blue);font-weight:600"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Cara kerja:</div>
             <div style="font-size:12px;color:var(--blue-d);margin-top:4px;line-height:1.6">
               Template ini akan muncul sebagai chip/tombol cepat di portal guru saat guru mengisi koreksi tahsin. Guru cukup tap chip untuk memasukkan teks ke kolom koreksi.
             </div>
@@ -3336,7 +3336,7 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ INDIKATOR DAURAH ══ -->
       <div class="page" id="page-indikator-daurah">
-        <div class="section-title">🎯 Indikator Kelayakan Daurah</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> Indikator Kelayakan Daurah</div>
         <div class="section-sub">Kelola 7 Indikator Tajwid & Makhraj untuk program Daurah Al-Fatihah.</div>
         <div class="card">
           <div class="card-head">
@@ -3368,7 +3368,7 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ ARSIP DATA ══ -->
       <div class="page" id="page-arsip">
-        <div class="section-title">🗄️ Arsip Data</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Arsip Data</div>
         <div class="section-sub">Pindahkan data lama ke sheet arsip agar sistem tetap ringan dan cepat.</div>
 
         <!-- Mode arsip -->
@@ -3379,9 +3379,9 @@ html.theme-dark .fin-detail-card {
               <div class="fg">
                 <label>Mode Arsip</label>
                 <select class="fc" id="arsipMode" onchange="updateArsipMode()">
-                  <option value="tahunan">📅 Tahunan (data > 1 tahun)</option>
-                  <option value="semester">📆 Per Semester</option>
-                  <option value="periode">📋 Per Periode</option>
+                  <option value="tahunan"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tahunan (data > 1 tahun)</option>
+                  <option value="semester"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Per Semester</option>
+                  <option value="periode"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Per Periode</option>
                 </select>
               </div>
               <div class="fg" id="arsipSemesterWrap" style="display:none">
@@ -3399,10 +3399,10 @@ html.theme-dark .fin-detail-card {
             </div>
             <div style="background:var(--amber-l,#fffbeb);border:1px solid #fcd34d;border-radius:var(--r-sm);
               padding:10px 14px;font-size:12.5px;color:#92400e;margin-bottom:12px">
-              ⚠️ <strong>Perhatian:</strong> Proses arsip memindahkan data ke tabel arsip.
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <strong>Perhatian:</strong> Proses arsip memindahkan data ke tabel arsip.
               Data tidak dihapus permanen — tetap bisa dilihat di arsip database. Pastikan sudah konfirmasi data sebelum arsip.
             </div>
-            <button class="btn btn-primary" onclick="doArsip()">🗄️ Mulai Arsip</button>
+            <button class="btn btn-primary" onclick="doArsip()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Mulai Arsip</button>
           </div>
         </div>
 
@@ -3410,7 +3410,7 @@ html.theme-dark .fin-detail-card {
         <div class="card">
           <div class="card-head">
             <div class="card-title"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Sheet Arsip Tersedia</div>
-            <button class="btn btn-ghost btn-sm" onclick="loadArsipList()">🔄 Refresh</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadArsipList()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
           </div>
           <div class="tbl-wrap">
             <table>
@@ -3425,8 +3425,8 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ PENGEMBANGAN PENGAJAR (patch_082) ══ -->
       <div class="page" id="page-pengembangan-pengajar">
-        <div class="section-title">🌱 Pengembangan Pengajar</div>
-        <div class="section-sub">Bina & ukur mutu pengajar: profil &amp; jenjang, tashih, pelatihan, evaluasi berbobot, mutaba'ah, apresiasi, serta Halaqah Pengajar (peer). Ubah jenjang &amp; indikator: superadmin. <a href="../assets/panduan/panduan_pengembangan_pengajar_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px">📖 Panduan ↗</a></div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c0-4 2-6 2-6s2 2 2 6"/><path d="M12 14c-3 0-6-2-6-6 4 0 6 2 6 6z"/><path d="M12 14c3 0 6-3 6-7-4 0-6 3-6 7z"/></svg> Pengembangan Pengajar</div>
+        <div class="section-sub">Bina & ukur mutu pengajar: profil &amp; jenjang, tashih, pelatihan, evaluasi berbobot, mutaba'ah, apresiasi, serta Halaqah Pengajar (peer). Ubah jenjang &amp; indikator: superadmin. <a href="../assets/panduan/panduan_pengembangan_pengajar_admin.html" target="_blank" rel="noopener" style="color:var(--blue,#2563eb);font-weight:700;text-decoration:underline;text-underline-offset:2px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Panduan ↗</a></div>
         <div id="ppRoot"><div style="text-align:center;padding:20px;color:var(--text-3)">Memuat...</div></div>
       </div>
 
@@ -3456,14 +3456,14 @@ html.theme-dark .fin-detail-card {
             <option value="guru_asc">Urutan: Guru (A-Z)</option>
             <option value="halaqah_asc">Urutan: Halaqah (A-Z)</option>
           </select>
-          <button class="btn btn-outline btn-sm" onclick="loadObservasi()">🔄 Refresh</button>
+          <button class="btn btn-outline btn-sm" onclick="loadObservasi()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
           <span style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Periode:</span>
           <input type="date" class="fc" id="obsDateFrom" onchange="loadObservasi()" style="max-width:160px;font-size:12px;padding:6px 10px">
           <span style="color:var(--text-3);font-size:12px">s/d</span>
           <input type="date" class="fc" id="obsDateTo" onchange="loadObservasi()" style="max-width:160px;font-size:12px;padding:6px 10px">
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('obsDateFrom').value='';document.getElementById('obsDateTo').value='';loadObservasi()" title="Hapus filter periode">✕ Reset Periode</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('obsDateFrom').value='';document.getElementById('obsDateTo').value='';loadObservasi()" title="Hapus filter periode"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reset Periode</button>
           <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
             <span style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Urut Kartu:</span>
             <select id="obsStatSort" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="renderObsStats()">
@@ -3521,21 +3521,21 @@ html.theme-dark .fin-detail-card {
         <!-- Stats Cards -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px">
           <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="font-size:32px">🚨</div>
+            <div style="font-size:32px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
             <div>
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Murid Kritis Saat Ini</div>
               <div style="font-size:28px;font-weight:900;color:var(--red)" id="kepatuhanTotalKritis">0</div>
             </div>
           </div>
           <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="font-size:32px">👨‍🏫</div>
+            <div style="font-size:32px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
             <div>
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kepatuhan Follow-up Guru</div>
               <div style="font-size:28px;font-weight:900;color:var(--green)" id="kepatuhanGuruRate">100%</div>
             </div>
           </div>
           <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="font-size:32px">📋</div>
+            <div style="font-size:32px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg></div>
             <div>
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Kepatuhan Observasi Ketua</div>
               <div style="font-size:28px;font-weight:900;color:var(--blue)" id="kepatuhanKetuaRate">100%</div>
@@ -3546,7 +3546,7 @@ html.theme-dark .fin-detail-card {
         <div class="card">
           <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center">
             <div style="font-weight:800;color:var(--text)">Laporan Kepatuhan per Halaqah</div>
-            <button class="btn btn-primary btn-sm" onclick="loadKepatuhan()">🔄 Segarkan Data</button>
+            <button class="btn btn-primary btn-sm" onclick="loadKepatuhan()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Segarkan Data</button>
           </div>
           <div class="tbl-wrap">
             <table class="premium-table">
@@ -3578,7 +3578,7 @@ html.theme-dark .fin-detail-card {
         <!-- Stats Grid -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px">
           <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="font-size:32px">💬</div>
+            <div style="font-size:32px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
             <div>
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Total Masukan</div>
               <div style="font-size:28px;font-weight:900;color:var(--text)" id="saranStatTotal">0</div>
@@ -3599,7 +3599,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="font-size:32px">📖</div>
+            <div style="font-size:32px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
             <div>
               <div style="font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase">Rating Avg Kurikulum</div>
               <div style="font-size:28px;font-weight:900;color:var(--green)" id="saranStatAvgMateri">–</div>
@@ -3615,8 +3615,8 @@ html.theme-dark .fin-detail-card {
           <div style="width:180px">
             <select class="fc" id="saranFilterKategori" onchange="filterSaran()">
               <option value="">Semua Kategori</option>
-              <option value="portal">🖥️ Portal & Aplikasi</option>
-              <option value="program">📖 Program & KBM</option>
+              <option value="portal"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Portal & Aplikasi</option>
+              <option value="program"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Program & KBM</option>
             </select>
           </div>
           <div style="width:180px">
@@ -3630,7 +3630,7 @@ html.theme-dark .fin-detail-card {
             </select>
           </div>
           <div>
-            <button class="btn btn-primary" onclick="loadSaranPage()">🔄 Segarkan</button>
+            <button class="btn btn-primary" onclick="loadSaranPage()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Segarkan</button>
           </div>
         </div>
 
@@ -3659,10 +3659,10 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ KELOLA MAZE ══ -->
       <div class="page" id="page-maze">
-        <div class="section-title">🎮 Rattil Maze (Petualangan)</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg> Rattil Maze (Petualangan)</div>
         <div class="section-sub">Kelola petualangan game labirin. Tautkan ke quiz agar level hanya muncul untuk halaqah yang ditugaskan (seperti quiz), atau biarkan tanpa quiz untuk latihan bebas.</div>
         <div style="margin-bottom:16px">
-          <button onclick="openMazeLevelModal(null)" style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue,none)">➕ Tambah Petualangan</button>
+          <button onclick="openMazeLevelModal(null)" style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue,none)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah Petualangan</button>
         </div>
         <div id="mazeLevelListContainer" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
           <div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat petualangan...</div>
@@ -3671,10 +3671,10 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ RATTIL RUN ══ -->
       <div class="page" id="page-run">
-        <div class="section-title">🦘 Rattil Run (Lari)</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Rattil Run (Lari)</div>
         <div class="section-sub">Kelola level game pelari kuis. Tautkan ke quiz agar level hanya muncul untuk halaqah yang ditugaskan, atau biarkan tanpa quiz untuk latihan bebas. Hanya soal ber-flag <b>Boleh Rattil Run</b> yang tampil.</div>
         <div style="margin-bottom:16px">
-          <button onclick="openRunLevelModal(null)" style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue,none)">➕ Tambah Level</button>
+          <button onclick="openRunLevelModal(null)" style="background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-pill,100px);font-weight:800;font-size:13px;cursor:pointer;box-shadow:var(--shadow-blue,none)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah Level</button>
         </div>
         <div id="runLevelListContainer" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
           <div style="text-align:center;padding:40px;color:var(--text-3);grid-column:1/-1">Memuat level lari...</div>
@@ -3683,14 +3683,14 @@ html.theme-dark .fin-detail-card {
 
       <!-- ══ BANK SOAL ══ -->
       <div class="page" id="page-soal">
-        <div class="section-title">📦 Bank Soal Bersama</div>
+        <div class="section-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Bank Soal Bersama</div>
         <div class="section-sub">Kelola bank soal untuk seluruh halaqah. Admin dapat memoderasi, menghapus, atau mengimpor soal secara massal.</div>
 
         <!-- Filter & Action Panel -->
         <div style="background:var(--card-solid);padding:14px;border-radius:var(--r-lg);border:1px solid var(--border);margin-bottom:16px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
           <!-- Search input -->
           <div style="flex:2;min-width:200px;position:relative;">
-            <input type="text" class="fc" id="adminBankSearchInput" oninput="onAdminBankSearchInput(this.value)" placeholder="🔍 Cari teks soal atau pembuat..." style="padding-left:34px;">
+            <input type="text" class="fc" id="adminBankSearchInput" oninput="onAdminBankSearchInput(this.value)" placeholder="Cari teks soal atau pembuat..." style="padding-left:34px;">
           </div>
           <!-- Level Select -->
           <div style="flex:1;min-width:150px;">
@@ -3710,7 +3710,7 @@ html.theme-dark .fin-detail-card {
           </div>
           <!-- Action Buttons -->
           <div style="display:flex;gap:8px;margin-left:auto;">
-            <button class="btn btn-primary btn-sm" onclick="bukaModalImportSoal()">📥 Import CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="bukaModalImportSoal()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Import CSV</button>
           </div>
         </div>
 
@@ -3748,12 +3748,12 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalImportSoal">
   <div class="modal" style="max-width:680px; width:90%; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
     <div class="modal-head">
-      <div class="modal-title">📥 Import Soal via CSV</div>
-      <button class="modal-x" onclick="closeModal('modalImportSoal')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Import Soal via CSV</div>
+      <button class="modal-x" onclick="closeModal('modalImportSoal')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body" style="overflow-y:auto; flex:1; padding:20px;">
       <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Panduan Pengisian Template</div>
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Panduan Pengisian Template</div>
         <ol style="font-size:12px;color:var(--blue-d);line-height:1.8;padding-left:16px;margin:0;">
           <li>Klik <strong>Unduh Template CSV Soal</strong> di bawah ini.</li>
           <li>Isi data menggunakan Excel atau aplikasi spreadsheet lainnya.</li>
@@ -3767,7 +3767,7 @@ html.theme-dark .fin-detail-card {
 
       <!-- Dropzone -->
       <div id="dropZoneSoal" style="border:2px dashed var(--border);border-radius:var(--r-md);padding:30px 16px;text-align:center;cursor:pointer;background:var(--bg-2);transition:all .2s;" onclick="document.getElementById('csvFileInputSoal').click()">
-        <div style="font-size:36px;margin-bottom:8px">☁️</div>
+        <div style="font-size:36px;margin-bottom:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
         <div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Drag berkas CSV Soal ke sini atau klik untuk memilih</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:4px">Format berkas: .csv (UTF-8) — Maksimal 200 soal per unggahan</div>
       </div>
@@ -3775,7 +3775,7 @@ html.theme-dark .fin-detail-card {
 
       <!-- Preview Box -->
       <div id="importPreviewBoxSoal" style="display:none;margin-top:16px;">
-        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">👁️ Pratinjau Soal (<span id="previewCountSoal">0</span> soal terdeteksi)</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Pratinjau Soal (<span id="previewCountSoal">0</span> soal terdeteksi)</div>
         <div class="tbl-wrap" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);">
           <table class="premium-table" style="font-size:11.5px;">
             <thead>
@@ -3807,7 +3807,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot" style="flex-shrink:0;">
       <button class="btn btn-ghost" id="btnBatalImportSoal" onclick="closeModal('modalImportSoal')">Batal</button>
-      <button class="btn btn-primary" id="btnImportSoal" onclick="prosesImportSoal()" disabled>🚀 Mulai Impor</button>
+      <button class="btn btn-primary" id="btnImportSoal" onclick="prosesImportSoal()" disabled><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Mulai Impor</button>
     </div>
   </div>
 </div>
@@ -3815,7 +3815,7 @@ html.theme-dark .fin-detail-card {
 <!-- MODAL PERIODE -->
 <div class="overlay" id="modalPeriode">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">📅 Periode Baru</div><button class="modal-x" onclick="closeModal('modalPeriode')">✕</button></div>
+    <div class="modal-head"><div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Periode Baru</div><button class="modal-x" onclick="closeModal('modalPeriode')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="fg"><label>Nama Periode</label><input type="text" class="fc" id="prdNama" placeholder="Contoh: Ganjil 2026, Batch 1 2026"></div>
       <div class="f2">
@@ -3831,7 +3831,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalPeriode')">Batal</button>
-      <button class="btn btn-primary" onclick="savePeriode()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="savePeriode()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -3840,8 +3840,8 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="profilModal">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">👤 Profil Saya</div>
-      <button class="modal-x" onclick="closeModal('profilModal')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profil Saya</div>
+      <button class="modal-x" onclick="closeModal('profilModal')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <!-- Header Profil & Avatar -->
@@ -3870,14 +3870,14 @@ html.theme-dark .fin-detail-card {
 
       <!-- Pengaturan Akun -->
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:15px">
-        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px;letter-spacing:0.05em">⚙️ Pengaturan Akun</div>
+        <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;margin-bottom:8px;letter-spacing:0.05em"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Pengaturan Akun</div>
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
           <div onclick="closeModal('profilModal');openModal('modalChangePassword')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border)" class="menu-item-hover">
-            <span style="font-weight:600;font-size:13px;color:var(--text)">🔐 Ganti Password</span>
+            <span style="font-weight:600;font-size:13px;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Ganti Password</span>
             <span style="color:var(--text-3);font-weight:700">&rsaquo;</span>
           </div>
           <div onclick="doLogout()" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer" class="menu-item-hover">
-            <span style="font-weight:600;font-size:13px;color:var(--red)">🚪 Keluar dari Aplikasi</span>
+            <span style="font-weight:600;font-size:13px;color:var(--red)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21V3h9v18"/><line x1="20" y1="21" x2="4" y2="21"/><line x1="14" y1="12" x2="14" y2="12.01"/></svg> Keluar dari Aplikasi</span>
             <span style="color:var(--red);font-weight:700">&rsaquo;</span>
           </div>
         </div>
@@ -3885,7 +3885,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('profilModal')">Batal</button>
-      <button class="btn btn-primary" onclick="saveMyProfil()" id="btnSaveMyProfil">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="saveMyProfil()" id="btnSaveMyProfil"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -3894,8 +3894,8 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalChangePassword">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">🔐 Ganti Password</div>
-      <button class="modal-x" onclick="closeModal('modalChangePassword')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Ganti Password</div>
+      <button class="modal-x" onclick="closeModal('modalChangePassword')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="fg" style="margin-bottom:12px">
@@ -3913,7 +3913,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalChangePassword')">Batal</button>
-      <button class="btn btn-primary" onclick="doMyGantiPassword()" id="btnMyGantiPw">💾 Simpan Password</button>
+      <button class="btn btn-primary" onclick="doMyGantiPassword()" id="btnMyGantiPw"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Password</button>
     </div>
   </div>
 </div>
@@ -3921,7 +3921,7 @@ html.theme-dark .fin-detail-card {
 <!-- MODAL USER -->
 <div class="overlay" id="modalUser">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title" id="modalUserTitle">👤 User Baru</div><button class="modal-x" onclick="closeModal('modalUser')">✕</button></div>
+    <div class="modal-head"><div class="modal-title" id="modalUserTitle"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> User Baru</div><button class="modal-x" onclick="closeModal('modalUser')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="f2">
         <div class="fg"><label>Nama Lengkap</label><input type="text" class="fc" id="usrNama" placeholder="Nama lengkap" oninput="suggestUsrIdUser()"></div>
@@ -3959,7 +3959,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalUser')">Batal</button>
-      <button class="btn btn-primary" onclick="saveUser()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="saveUser()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -3967,7 +3967,7 @@ html.theme-dark .fin-detail-card {
 <!-- MODAL HALAQAH -->
 <div class="overlay" id="modalHalaqah">
   <div class="modal modal-lg">
-    <div class="modal-head"><div class="modal-title" id="modalHalaqahTitle">📚 Halaqah Baru</div><button class="modal-x" onclick="closeModal('modalHalaqah')">✕</button></div>
+    <div class="modal-head"><div class="modal-title" id="modalHalaqahTitle"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Halaqah Baru</div><button class="modal-x" onclick="closeModal('modalHalaqah')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="f2">
         <div class="fg"><label>Nama Halaqah</label><input type="text" class="fc" id="hqNama" placeholder="Contoh: Halaqah Al-Fatihah"></div>
@@ -4011,7 +4011,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalHalaqah')">Batal</button>
-      <button class="btn btn-primary" onclick="saveHalaqah()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="saveHalaqah()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -4019,7 +4019,7 @@ html.theme-dark .fin-detail-card {
 <!-- MODAL ANGGOTA -->
 <div class="overlay" id="modalAnggota">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">👤 Tambah Murid ke Halaqah</div><button class="modal-x" onclick="closeModal('modalAnggota')">✕</button></div>
+    <div class="modal-head"><div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Tambah Murid ke Halaqah</div><button class="modal-x" onclick="closeModal('modalAnggota')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="fg"><label>Halaqah</label>
         <select class="fc" id="angHalaqah"><option value="">— Pilih Halaqah —</option></select>
@@ -4056,12 +4056,12 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalImport">
   <div class="modal modal-lg">
     <div class="modal-head">
-      <div class="modal-title">📥 Import Data via CSV</div>
-      <button class="modal-x" onclick="closeModal('modalImport')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Import Data via CSV</div>
+      <button class="modal-x" onclick="closeModal('modalImport')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <div style="background:var(--blue-l);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📋 Cara Pakai</div>
+        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Cara Pakai</div>
         <ol style="font-size:12.5px;color:var(--blue-d);line-height:2;padding-left:16px">
           <li>Klik <strong>Unduh Template CSV</strong> di bawah.</li>
           <li>Isi data di Excel atau aplikasi spreadsheet — guru dulu, lalu murid.</li>
@@ -4070,11 +4070,11 @@ html.theme-dark .fin-detail-card {
           <li>Upload file, periksa preview, klik <strong>Import Data</strong>.</li>
         </ol>
         <div style="margin-top:8px;font-size:12px;color:var(--blue);font-weight:600">
-          ✅ Otomatis: buat halaqah → simpan users → daftarkan ke halaqah — support 300+ murid
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg> Otomatis: buat halaqah → simpan users → daftarkan ke halaqah — support 300+ murid
         </div>
       </div>
       <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Format Kolom</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Format Kolom</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px">
           <div><div style="font-size:11.5px;font-weight:700;color:var(--text-3)">NIS</div><div style="font-size:11px;color:var(--text-3)">auto jika kosong</div></div>
           <div><div style="font-size:11.5px;font-weight:700;color:var(--amber)">password</div><div style="font-size:11px;color:var(--text-3)">direkomendasikan</div></div>
@@ -4090,7 +4090,7 @@ html.theme-dark .fin-detail-card {
           <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">jam_mulai</div><div style="font-size:11px;color:var(--text-3)">contoh: 08:00</div></div>
           <div><div style="font-size:11.5px;font-weight:700;color:var(--text-2)">jam_selesai</div><div style="font-size:11px;color:var(--text-3)">contoh: 09:30</div></div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()">📥 Unduh Template CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Unduh Template CSV</button>
       </div>
       <div id="dropZone"
         style="border:2px dashed var(--border);border-radius:var(--r-lg);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px"
@@ -4098,7 +4098,7 @@ html.theme-dark .fin-detail-card {
         ondragover="event.preventDefault();this.style.borderColor='var(--blue)';this.style.background='var(--blue-l)'"
         ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
         ondrop="handleFileDrop(event)">
-        <div style="font-size:36px;margin-bottom:8px">☁️</div>
+        <div style="font-size:36px;margin-bottom:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
         <div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>
         <div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8) — support hingga 500 baris</div>
       </div>
@@ -4124,7 +4124,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" id="btnBatalImport" onclick="closeModal('modalImport')">Batal</button>
-      <button class="btn btn-primary" id="btnImport" onclick="doImportTerintegrasi()" disabled>📥 Import Data</button>
+      <button class="btn btn-primary" id="btnImport" onclick="doImportTerintegrasi()" disabled><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Import Data</button>
     </div>
   </div>
 </div>
@@ -4133,8 +4133,8 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalObsDetail">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">🔎 Detail Observasi Sesi</div>
-      <button class="modal-x" onclick="closeModal('modalObsDetail')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Detail Observasi Sesi</div>
+      <button class="modal-x" onclick="closeModal('modalObsDetail')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body" id="obsDetailModalBody"></div>
     <div class="modal-foot">
@@ -4147,8 +4147,8 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalLevel">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="modalMngLevelTitle">🏆 Level Baru</div>
-      <button class="modal-x" onclick="closeModal('modalLevel')">✕</button>
+      <div class="modal-title" id="modalMngLevelTitle"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Level Baru</div>
+      <button class="modal-x" onclick="closeModal('modalLevel')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="fg"><label>Nama Level</label>
@@ -4168,7 +4168,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalLevel')">Batal</button>
-      <button class="btn btn-primary" onclick="saveLevel()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="saveLevel()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -4177,8 +4177,8 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalIndikator" onclick="if(event.target===this)closeModal('modalIndikator')">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="modalIndikatorTitle">🎯 Indikator Baru</div>
-      <button class="modal-x" onclick="closeModal('modalIndikator')">✕</button>
+      <div class="modal-title" id="modalIndikatorTitle"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg> Indikator Baru</div>
+      <button class="modal-x" onclick="closeModal('modalIndikator')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="indId">
@@ -4229,7 +4229,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalIndikator')">Batal</button>
-      <button class="btn btn-primary" onclick="simpanIndikator()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="simpanIndikator()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan</button>
     </div>
   </div>
 </div>
@@ -4237,7 +4237,7 @@ html.theme-dark .fin-detail-card {
 <!-- MODAL DETAIL RAPORT -->
 <div class="overlay" id="modalRaport">
   <div class="modal modal-lg">
-    <div class="modal-head"><div class="modal-title" id="modalRaportTitle">Detail Raport</div><button class="modal-x" onclick="closeModal('modalRaport')">✕</button></div>
+    <div class="modal-head"><div class="modal-title" id="modalRaportTitle">Detail Raport</div><button class="modal-x" onclick="closeModal('modalRaport')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body" id="modalRaportBody"></div>
     <div class="modal-foot" id="modalRaportFoot"></div>
   </div>
@@ -4247,14 +4247,14 @@ html.theme-dark .fin-detail-card {
 <div class="overlay" id="modalSaranDetail">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">💬 Detail & Tanggapan Saran</div>
-      <button class="modal-x" onclick="closeModal('modalSaranDetail')">✕</button>
+      <div class="modal-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Detail & Tanggapan Saran</div>
+      <button class="modal-x" onclick="closeModal('modalSaranDetail')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
         <div>
           <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Pengirim</div>
-          <div style="font-weight:700" id="saranDetPengirim">Anonim 🔒</div>
+          <div style="font-weight:700" id="saranDetPengirim">Anonim <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         </div>
         <div>
           <div style="color:var(--text-3);font-size:11px;font-weight:700;text-transform:uppercase">Kategori</div>
@@ -4308,7 +4308,7 @@ html.theme-dark .fin-detail-card {
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modalSaranDetail')">Batal</button>
-      <button class="btn btn-primary" onclick="simpanTanggapanSaran()">💾 Simpan Tanggapan</button>
+      <button class="btn btn-primary" onclick="simpanTanggapanSaran()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Tanggapan</button>
     </div>
   </div>
 </div>
