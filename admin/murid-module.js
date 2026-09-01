@@ -13,8 +13,12 @@
 async function loadPeriode() {
   showLoad('Bismillah, memuat data periode...');
   try {
-    const r = await window.HQ.AdminAPI.getAllPeriode();
-    allPeriode = r.data || [];
+    const [rp, rh] = await Promise.all([
+      window.HQ.AdminAPI.getAllPeriode(),
+      window.HQ.AdminAPI.getAllHalaqah(),   // utk hitung isi tiap periode (fresh)
+    ]);
+    allPeriode = rp.data || [];
+    allHalaqah = rh.data || allHalaqah || [];
     renderPeriodeTable();
   } catch(e) { toast('Gagal: '+e.message,'err'); }
   finally { hideLoad(); }
@@ -25,9 +29,23 @@ function renderPeriodeTable() {
   if (!tbody) return;
   const n = allPeriode.length;
   const _mv = (id, dir, disabled) => `<button class="btn btn-ghost btn-sm" style="padding:2px 5px" title="${dir<0?'Naik':'Turun'}" ${disabled?'disabled style="opacity:.3;padding:2px 5px"':''} onclick="movePeriode('${esc(id)}',${dir})"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="${dir<0?'18 15 12 9 6 15':'6 9 12 15 18 9'}"/></svg></button>`;
-  tbody.innerHTML = allPeriode.map((p, i) => `<tr>
+  // Hitung isi tiap periode dari allHalaqah (punya id_periode + total_murid aktif)
+  const _statPer = {};
+  (allHalaqah || []).forEach(h => {
+    const k = h.id_periode; if (!k) return;
+    if (!_statPer[k]) _statPer[k] = { hal: 0, murid: 0 };
+    _statPer[k].hal += 1;
+    _statPer[k].murid += (h.total_murid || 0);
+  });
+  tbody.innerHTML = allPeriode.map((p, i) => {
+    const st = _statPer[p.id_periode] || { hal: 0, murid: 0 };
+    const cHal = st.hal ? `<strong>${st.hal}</strong>` : '<span style="color:var(--text-3)">—</span>';
+    const cMur = st.hal ? `<strong>${st.murid}</strong>` : '<span style="color:var(--text-3)">—</span>';
+    return `<tr>
     <td style="white-space:nowrap"><span style="display:inline-flex;flex-direction:column;gap:1px">${_mv(p.id_periode,-1,i===0)}${_mv(p.id_periode,1,i===n-1)}</span></td>
     <td><strong>${esc(p.nama_periode)}</strong>${p.deskripsi?`<br><small style="color:var(--text-3)">${esc(p.deskripsi)}</small>`:''}</td>
+    <td class="align-center">${cHal}</td>
+    <td class="align-center">${cMur}</td>
     <td>${p.tanggal_mulai||'–'}</td>
     <td>${p.tanggal_selesai||'–'}</td>
     <td>${p.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
@@ -35,7 +53,19 @@ function renderPeriodeTable() {
       <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">${svgIcon('edit',14)}</button>
       ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">${svgIcon('play',14)} Aktifkan</button>`:''}
     </td>
-  </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+  </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+
+  // Catatan: halaqah aktif yang belum ditandai ke periode mana pun
+  const note = document.getElementById('periodeUntaggedNote');
+  if (note) {
+    const untag = (allHalaqah || []).filter(h => !h.id_periode && h.status === 'aktif');
+    if (untag.length) {
+      const uMur = untag.reduce((s, h) => s + (h.total_murid || 0), 0);
+      note.textContent = '⚠ ' + untag.length + ' halaqah aktif (' + uMur + ' murid) belum ditandai ke periode mana pun — gunakan "Set Periode Massal" di halaman Halaqah.';
+      note.style.display = '';
+    } else { note.style.display = 'none'; }
+  }
 }
 
 // Ubah urutan tampil periode (dipakai di SEMUA dropdown periode). Butuh kolom
