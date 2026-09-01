@@ -20,10 +20,10 @@ async function loadMetodeBayarAdmin() {
     }
     el.innerHTML = list.map(function(m) {
       var detail = m.jenis==='qris'
-        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1)">📱 QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
+        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1);display:inline-flex;align-items:center;gap:4px">'+svgIcon('smartphone',12)+' QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
         : '<span style="font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)">'+esc(m.nomor||'—')+'</span><span style="font-size:11px;color:var(--text-2, #64748b);margin-left:8px">a/n '+esc(m.atas_nama||'')+'</span>';
       return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border:1px solid var(--border);border-radius:10px">'
-        + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'var(--blue-bg, #e0f2fe)':'var(--green-bg, #f0fdf4)')+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(m.jenis==='qris'?'📱':'🏦')+'</div>'
+        + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'var(--blue-bg, #e0f2fe)':'var(--green-bg, #f0fdf4)')+';border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:'+(m.jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--green-txt, #1a5c3a)')+'">'+(m.jenis==='qris'?svgIcon('smartphone',18):svgIcon('bank',18))+'</div>'
         + '<div style="flex:1;min-width:0">'
         + '<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.bank&&m.bank!==m.nama?m.bank+' · ':'')+esc(m.nama)+'</div>'
         + '<div style="margin-top:2px">'+detail+'</div>'
@@ -112,7 +112,7 @@ async function simpanMetode() {
     aktif     : true,
   };
   if (!d.nama) { showAlertModal('Nama harus diisi', { title: 'Validasi' }); return; }
-  try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan ✅','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
+  try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
   catch(e) { toast(friendlyError(e),'err'); }
 }
 
@@ -149,15 +149,15 @@ async function loadSPPAdmin() {
           var buktiLink = isGateway
             ? ''
             : (p.bukti_url
-                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600">🔗 Lihat bukti</a>'
+                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">'+svgIcon('link',12)+' Lihat bukti</a>'
                 : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
           var actionBtns = '<div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;flex-shrink:0">'
-            + (isGateway ? '<span style="display:block;text-align:center;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap">⚡ Otomatis via Gateway</span>' : '')
+            + (isGateway ? '<span style="display:block;text-align:center;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px">'+svgIcon('zap',12)+' Otomatis via Gateway</span>' : '')
             + '<div style="display:flex;gap:6px">'
               + (isGateway
-                  ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">✅ Konfirmasi Manual</button>'
-                  : '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">✅ Konfirmasi</button>')
-              + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">❌ Tolak</button>'
+                  ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">'+svgIcon('ok',14)+' Konfirmasi Manual</button>'
+                  : '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">'+svgIcon('ok',14)+' Konfirmasi</button>')
+              + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">'+svgIcon('close',14)+' Tolak</button>'
               + '</div>'
             + '</div>';
           return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">'
@@ -274,8 +274,8 @@ function renderKasOperasionalList(items) {
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
       + '<span style="font-size:12px;font-weight:800;color:var(--red-txt)">Rp '+(Number(it.nominal)||0).toLocaleString('id-ID')+'</span>'
-      + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editOperasional(\''+esc(it.id_operasional)+'\')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusOperasionalItem(\''+esc(it.id_operasional)+'\',\''+escJs(it.keterangan)+'\')">🗑</button>'
+      + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editOperasional(\''+esc(it.id_operasional)+'\')">'+svgIcon('edit',13)+'</button>'
+      + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusOperasionalItem(\''+esc(it.id_operasional)+'\',\''+escJs(it.keterangan)+'\')">'+svgIcon('delete',13)+'</button>'
       + '</div></div>';
   }).join('');
 }
@@ -462,8 +462,8 @@ function renderArusKasRiwayat(rows) {
       + '<div style="font-size:12.5px;font-weight:900;color:'+col+';font-variant-numeric:tabular-nums;white-space:nowrap">'+sign+'Rp '+(Number(r.nominal)||0).toLocaleString('id-ID')+'</div>'
       + (editable
           ? '<div style="display:flex;gap:4px;flex-shrink:0">'
-            + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editKasItem(\''+esc(r.id)+'\')">✏️</button>'
-            + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKasItem(\''+esc(r.id)+'\',\''+escJs(r.keterangan||r.kategori)+'\')">🗑</button>'
+            + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editKasItem(\''+esc(r.id)+'\')">'+svgIcon('edit',13)+'</button>'
+            + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKasItem(\''+esc(r.id)+'\',\''+escJs(r.keterangan||r.kategori)+'\')">'+svgIcon('delete',13)+'</button>'
             + '</div>'
           : '')
       + '</div>';
@@ -620,11 +620,11 @@ function renderKelolaKategori() {
     wrap.innerHTML = rows.map(function(k){
       var locked = !!k.kunci;
       return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);border-radius:8px">'
-        + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--text)">'+esc(k.nama)+(locked?' <span title="Kategori sistem (terkunci)" style="font-size:11px">🔒</span>':'')+'</span>'
+        + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--text)">'+esc(k.nama)+(locked?' <span title="Kategori sistem (terkunci)" style="display:inline-flex;vertical-align:middle;opacity:.6">'+svgIcon('lock',12)+'</span>':'')+'</span>'
         + (locked
             ? '<span style="font-size:10px;color:var(--text-3)">sistem</span>'
-            : '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="renameKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">✏️</button>'
-              + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">🗑</button>')
+            : '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="renameKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">'+svgIcon('edit',13)+'</button>'
+              + '<button class="btn btn-red btn-sm" style="padding:3px 7px" onclick="hapusKategoriKas(\''+escJs(k.id_kk)+'\',\''+escJs(k.nama)+'\')">'+svgIcon('delete',13)+'</button>')
         + '</div>';
     }).join('');
   });
@@ -767,9 +767,9 @@ function filterSPPTable() {
       : 'badge b-amber';
     var bulanBelum;
     if (modeLunasBulan) {
-      bulanBelum = '<span class="badge b-green">✅ Lunas '+esc(bulanFilter)+'</span>';
+      bulanBelum = '<span class="badge b-green" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('ok',11)+' Lunas '+esc(bulanFilter)+'</span>';
     } else if (m.tunggakan === 0) {
-      bulanBelum = '<span class="badge b-green">✅ Lunas</span>';
+      bulanBelum = '<span class="badge b-green" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('ok',11)+' Lunas</span>';
     } else if (m.bulan_belum.length) {
       bulanBelum = m.bulan_belum.map(function(b){ return '<span class="tag-spp-belum">'+b+'</span>'; }).join('');
     } else {
@@ -790,7 +790,7 @@ function filterSPPTable() {
         + '2. Transfer sesuai nominal, lalu pilih bulan & metode bayar dan upload bukti transfer\n\n'
         + 'Jika ada kendala teknis ataupun finansial, jangan ragu hubungi kami. Semoga Allah mudahkan. Jazakumullahu khairan. 🤲\n\n'
         + '-Data ini direkap otomatis melalui portal Rattililqur\'an, jika ada ketidak cocokan data mohon untuk konfirmasi-';
-      waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">💬 WA</a>';
+      waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">'+svgIcon('message',12)+' WA</a>';
     }
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.nama_murid)+'</div>'
@@ -835,7 +835,7 @@ function filterInfaqTable() {
 
   tbody.innerHTML = data.map(function(r) {
     var metodeBadge = r.metode_bayar === 'gateway'
-      ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+      ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px">'+svgIcon('zap',10)+' Gateway</span>'
       : '<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">Manual</span>';
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
@@ -996,7 +996,7 @@ function salinTagihanMassal() {
   txt += 'Pembayaran dapat ditransfer ke rekening resmi lembaga. Semoga Allah mudahkan rezeki Bapak/Ibu sekalian. Jazakumullahu khairan 🤲';
   
   navigator.clipboard.writeText(txt).then(function() {
-    toast('Teks rekap tagihan disalin ke clipboard! 📋', 'ok');
+    toast('Teks rekap tagihan disalin ke clipboard!', 'ok');
   }).catch(function() {
     // Fallback
     var el = document.createElement('textarea');
@@ -1005,12 +1005,12 @@ function salinTagihanMassal() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    toast('Teks rekap tagihan disalin ke clipboard! 📋', 'ok');
+    toast('Teks rekap tagihan disalin ke clipboard!', 'ok');
   });
 }
 
 async function konfirmasiManualGateway(id_spp, namaMurid, bulanTahun) {
-  var msg = '⚠️ Baris ini adalah tagihan <strong>Gateway (Mayar)</strong> yang BELUM otomatis lunas.<br><br>'
+  var msg = '<div style="display:flex;align-items:flex-start;gap:6px">'+svgIcon('warn',16)+'<span>Baris ini adalah tagihan <strong>Gateway (Mayar)</strong> yang BELUM otomatis lunas.</span></div><br>'
     + 'Sebelum konfirmasi manual, pastikan Anda sudah <strong>cek riwayat transaksi di Mayar Dashboard</strong> dan '
     + esc(namaMurid) + ' <strong>BENAR-BENAR SUDAH MEMBAYAR</strong> SPP ' + esc(bulanTahun) + '.<br><br>'
     + 'Jika belum dibayar, klik <strong>Batal</strong> — konfirmasi yang salah akan membuat status "Lunas" padahal belum dibayar.';
@@ -1046,7 +1046,7 @@ async function loadSPPRiwayat() {
         ? '<span style="background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Lunas</span>'
         : '<span style="background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Ditolak</span>';
       var sumberBadge = isGateway
-        ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">⚡ Gateway</span>'
+        ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px">'+svgIcon('zap',10)+' Gateway</span>'
         : '<span style="background:var(--bg,#f1f5f9);color:var(--text-2,#64748b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Manual Admin</span>';
       var when = fmtDate(p.validated_at || p.tanggal_bayar);
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">'
@@ -1058,7 +1058,7 @@ async function loadSPPRiwayat() {
           +' &nbsp;·&nbsp; <span style="color:var(--text-3, #94a3b8)">'+esc(when)+'</span></div>'
         + '</div>'
         + '<button class="btn btn-sm" style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);border:1px solid #fcd34d;font-size:12px;padding:7px 12px;flex-shrink:0" '
-          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+p.status+'\')">↩️ Batalkan</button>'
+          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+p.status+'\')">'+svgIcon('undo',13)+' Batalkan</button>'
         + '</div>';
     }).join('');
   } catch(e) {
@@ -1068,8 +1068,8 @@ async function loadSPPRiwayat() {
 
 async function batalkanKonfirmasi(id_spp, namaMurid, bulanTahun, statusSebelumnya) {
   var aksiLabel = statusSebelumnya === 'lunas' ? 'LUNAS' : 'DITOLAK';
-  var msg = '⚠️ Anda akan membatalkan konfirmasi <strong>' + aksiLabel + '</strong> untuk '
-    + esc(namaMurid) + ' — SPP ' + esc(bulanTahun) + '.<br><br>'
+  var msg = '<div style="display:flex;align-items:flex-start;gap:6px">'+svgIcon('warn',16)+'<span>Anda akan membatalkan konfirmasi <strong>' + aksiLabel + '</strong> untuk '
+    + esc(namaMurid) + ' — SPP ' + esc(bulanTahun) + '.</span></div><br>'
     + 'Status akan dikembalikan ke <strong>"Menunggu Validasi"</strong> agar bisa dikonfirmasi/ditolak ulang dengan benar.<br><br>'
     + 'Pastikan ini memang salah konfirmasi sebelum lanjut.';
   var ok = await showConfirm('', { html: msg, title: 'Batalkan Konfirmasi?', okText: 'Ya, Batalkan', danger: true });
@@ -1080,7 +1080,7 @@ async function batalkanKonfirmasi(id_spp, namaMurid, bulanTahun, statusSebelumny
     if (r && r.status === 'error') {
       toast(r.message || 'Gagal membatalkan.', 'warn');
     } else {
-      toast('Konfirmasi dibatalkan, status kembali ke Menunggu ✅', 'ok');
+      toast('Konfirmasi dibatalkan, status kembali ke Menunggu', 'ok');
     }
     _sppRiwayatLoaded = false;
     loadSPPRiwayat();
@@ -1096,7 +1096,7 @@ async function validasiSPP(id_spp, aksi) {
     if (r && r.status === 'error') {
       toast(r.message || 'Pengajuan ini sudah divalidasi sebelumnya.', 'warn');
     } else {
-      toast(aksi==='lunas'?'Pembayaran dikonfirmasi ✅':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
+      toast(aksi==='lunas'?'Pembayaran dikonfirmasi':'Pembayaran ditolak', aksi==='lunas'?'ok':'warn');
     }
     loadSPPAdmin();
   } catch(e) { toast(friendlyError(e),'err'); }
@@ -1228,7 +1228,7 @@ async function pilihMuridSPPManual(id_murid, nama, halaqah) {
   document.getElementById('sppManualMuridId').value = id_murid;
   document.getElementById('sppManualMuridDropdown').style.display = 'none';
   var info = document.getElementById('sppManualMuridInfo');
-  info.textContent = '✅ ' + nama + (halaqah ? ' · ' + halaqah : '');
+  info.textContent = nama + (halaqah ? ' · ' + halaqah : '');
   info.style.display = '';
   
   // Load status SPP/Ihsan bulan
@@ -1262,7 +1262,7 @@ function renderSPPManualBulanGrid(lunas, menunggu) {
     var isLunas = !isInfaq && lunas.includes(b);
     var isMenunggu = !isInfaq && menunggu.includes(b);
     var disabled = isLunas ? 'pointer-events:none;opacity:0.5;' : '';
-    var label = isLunas ? '✅ ' + b : isMenunggu ? '⏳ ' + b : b;
+    var label = isLunas ? svgIcon('ok',12) + ' ' + b : isMenunggu ? svgIcon('clock',12) + ' ' + b : b;
     var bgChecked = isLunas
       ? 'background:var(--green-bg,#f0fdf4);border-color:var(--green,#1a5c3a);color:var(--green-txt,#065f46);'
       : isMenunggu
@@ -1421,9 +1421,9 @@ async function submitInputSPPManual() {
       toast(r.message || 'Sudah lunas sebelumnya.', 'warn');
     } else {
       _sppManualSessionCount += 1;
-      toast('✅ ' + (r.message || 'Berhasil disimpan'), 'ok');
+      toast(r.message || 'Berhasil disimpan', 'ok');
       var entriLabel = jenis === 'Ihsan Guru' ? 'transaksi ihsan' : 'murid';
-      document.getElementById('sppManualCounter').textContent = '✅ ' + _sppManualSessionCount + ' ' + entriLabel + ' sudah diinput sesi ini';
+      document.getElementById('sppManualCounter').textContent = _sppManualSessionCount + ' ' + entriLabel + ' sudah diinput sesi ini';
     }
     // Stay open: reset form untuk murid berikutnya
     document.getElementById('sppManualMuridSearch').value = '';
@@ -1479,7 +1479,7 @@ async function doKirimPengumuman() {
     await window.HQ.AdminAPI.buatPengumuman({ judul, isi, target });
     document.getElementById('pngJudul').value = '';
     document.getElementById('pngIsi').value   = '';
-    toast('Pengumuman terkirim! 📢','ok');
+    toast('Pengumuman terkirim!','ok');
     loadPengumuman();
   } catch(e) { toast(friendlyError(e),'err'); }
   finally { hideLoad(); }

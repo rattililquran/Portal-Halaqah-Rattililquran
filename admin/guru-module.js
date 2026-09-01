@@ -2134,7 +2134,10 @@ var ADMIN_ICON_PATHS = {
   chevron:    '<polyline points="9 18 15 12 9 6"/>',
   move:       '<polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>',
   // Ditambah bertahap Fase 7 (murid-module.js)
-  play:       '<polygon points="5 3 19 12 5 21 5 3"/>'
+  play:       '<polygon points="5 3 19 12 5 21 5 3"/>',
+  // Ditambah bertahap Fase 8 (spp-keuangan-module.js)
+  bank:       '<line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
+  undo:       '<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>'
 };
 function svgIcon(name, size) {
   size = size || 16;
