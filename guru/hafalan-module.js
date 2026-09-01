@@ -733,10 +733,12 @@
               + '🔄 ' + esc(rangeStr) + '</span>';
         noStyle += 'background:#e0f2fe;color:#0284c7;';
       } else if (s._is_fully_set) {
+        // Surat sudah dihafal penuh: tidak dikunci — guru boleh memilihnya untuk
+        // ziyadah ulang. Badge "✓ Selesai (Penuh)" tetap sebagai penanda pasif.
         badge = '<span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0">'
               + '✓ Selesai (Penuh)</span>';
         noStyle += 'background:#dcfce7;color:#15803d;';
-        rowStyle += 'opacity:.5; pointer-events:none;';
+        rowStyle += 'opacity:.7;';
       } else if (s._sudah_disetor) {
         var rangeStr = s._intervals.map(function(inv) {
           return inv.ayat_dari + '–' + inv.ayat_sampai;
@@ -933,8 +935,9 @@
       var intervals = getZiyadahIntervalsForSurat(surat);
       var overlap = checkZiyadahOverlap(intervals, aD, aS);
       if (overlap) {
-        showToast('Gagal: Ayat ' + aD + '–' + aS + ' sudah pernah disetor sebagai Ziyadah (tumpang tindih dengan ayat ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ').', 'warning');
-        return;
+        // Tumpang-tindih Ziyadah tidak lagi diblokir (murid boleh menyetor ulang
+        // ayat yang sudah pernah disetor) — cukup diberi catatan ringan.
+        showToast('Catatan: ayat ' + aD + '–' + aS + ' sudah pernah disetor Ziyadah (beririsan ' + overlap.ayat_dari + '–' + overlap.ayat_sampai + ') — tetap disimpan sebagai pengulangan.');
       }
     } else if (jenis === 'Murajaah') {
       var intervals = getZiyadahIntervalsForSurat(surat);
