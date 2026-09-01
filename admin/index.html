@@ -259,26 +259,25 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 html.theme-dark .pcard{box-shadow:0 2px 8px rgba(0,0,0,.3)}
 html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
 
-/* Aksi "Menunggu Validasi" — minimalis, flat, tanpa glow. Semua elemen
-   selebar kontainer 300px → tombol & chip simetris. */
-.spp-pend-acts{display:flex;flex-direction:column;gap:7px;flex-shrink:0;width:340px;max-width:100%}
-.spp-pend-row{display:flex;gap:8px;width:100%}
-.spp-abtn{flex:1 1 0;min-width:0;box-sizing:border-box;
+/* Aksi "Menunggu Validasi" — minimalis, flat. Semua tombol & chip IDENTIK:
+   lebar (grid 2 kolom sama rata), tinggi (var --spp-abtn-h), radius, padding. */
+.spp-pend-acts{--spp-abtn-h:38px;display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  flex-shrink:0;width:340px;max-width:100%}
+.spp-abtn,.spp-gw-chip{box-sizing:border-box;height:var(--spp-abtn-h);
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:8px 10px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;
-  line-height:1;cursor:pointer;white-space:nowrap;border:1px solid transparent;
-  -webkit-appearance:none;appearance:none;transition:background .14s,border-color .14s,color .14s}
+  padding:0 12px;border-radius:8px;font-family:inherit;font-weight:600;line-height:1;
+  white-space:nowrap;border:1px solid transparent;overflow:hidden;
+  -webkit-appearance:none;appearance:none}
+.spp-abtn{font-size:12px;cursor:pointer;transition:background .14s,border-color .14s,color .14s}
 .spp-abtn svg{width:14px;height:14px;flex-shrink:0}
+.spp-gw-chip svg{width:12px;height:12px;flex-shrink:0}
 .spp-abtn-ok{background:#047857;border-color:#047857;color:#fff}
 .spp-abtn-ok:hover{background:#065f46;border-color:#065f46}
 .spp-abtn-ok:active{background:#064e3b}
 .spp-abtn-no{background:var(--card);border-color:var(--border);color:var(--red-txt)}
 .spp-abtn-no:hover{background:var(--red-bg);border-color:var(--red-txt)}
-.spp-gw-chip{box-sizing:border-box;width:100%;display:inline-flex;align-items:center;justify-content:center;
-  gap:5px;padding:5px 9px;border-radius:8px;
-  background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--border);
-  font-size:10.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
-.spp-gw-chip svg{width:11px;height:11px}
+.spp-gw-chip{grid-column:1 / -1;font-size:10.5px;font-weight:700;letter-spacing:.2px;
+  background:var(--blue-bg);color:var(--blue-txt);border-color:var(--border)}
 @media(max-width:520px){ .spp-pend-acts{width:100%} }
 
 /* TABLE */
@@ -4576,7 +4575,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=9bb64167" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=0eb15747" defer></script>
+<script src="spp-keuangan-module.js?v=55b7b7ae" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>
