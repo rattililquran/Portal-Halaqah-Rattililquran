@@ -4922,6 +4922,56 @@ var AdminAPI = {
     return { status:'ok', updated: updated };
   },
 
+  // Panel Rekonsiliasi (Fase 4): buktikan Σ(per periode) + TanpaPeriode = Total
+  // untuk tiap metrik & tahun. Partisi eksak lewat kolom id_periode.
+  getRekonsiliasiSPP: async function(p) {
+    var tahun = (p && p.tahun && String(p.tahun) !== 'semua') ? Number(p.tahun) : new Date().getFullYear();
+    var spp = await _selectAllPaged('spp_pembayaran', 'jenis, nominal, id_periode',
+      function(q){ return q.eq('status','lunas').eq('tahun', tahun).order('id_spp'); }, 'rekonsiliasi:spp');
+    var op = await _selectAllPaged('operasional', 'nominal, id_periode',
+      function(q){ return q.eq('tahun', tahun).order('id_operasional'); }, 'rekonsiliasi:op');
+    var kas = await _selectAllPaged('kas', 'nominal, arah, id_periode',
+      function(q){ return q.gte('tanggal', tahun+'-01-01').lt('tanggal', (tahun+1)+'-01-01').order('id_kas'); }, 'rekonsiliasi:kas');
+    var per = await _sb.from('periode').select('id_periode, nama_periode').order('created_at', { ascending: true });
+    var periodeList = (per.data || []).map(function(x){ return { id: x.id_periode, nama: x.nama_periode }; });
+
+    function agg(rows, valFn, keyFn) {
+      var m = { _tanpa: 0, _total: 0 };
+      periodeList.forEach(function(pp){ m[pp.id] = 0; });
+      (rows || []).forEach(function(r){
+        if (keyFn && !keyFn(r)) return;
+        var v = Number(valFn(r) || 0);
+        m._total += v;
+        var k = r.id_periode;
+        if (k && m[k] !== undefined) m[k] += v;
+        else if (k && m[k] === undefined) { m[k] = v; }  // periode dihapus tapi baris masih menunjuk
+        else m._tanpa += v;
+      });
+      return m;
+    }
+    function row(label, key, m) {
+      var sigma = periodeList.reduce(function(s,pp){ return s + (m[pp.id]||0); }, 0);
+      // periode "hantu" (id tak ada di daftar)
+      var ghost = 0;
+      Object.keys(m).forEach(function(k){ if (k[0] !== '_' && !periodeList.some(function(pp){return pp.id===k;})) ghost += m[k]; });
+      sigma += ghost;
+      return { key: key, label: label, per: m, tanpa: m._tanpa, sigma_periode: sigma, total: m._total,
+               cocok: Math.abs((sigma + m._tanpa) - m._total) < 1 };
+    }
+
+    var isSPP = function(r){ var j = r.jenis || 'SPP Pribadi'; return j === 'SPP Pribadi'; };
+    var metrik = [
+      row('SPP Pribadi (masuk)', 'spp',   agg(spp, function(r){return r.nominal;}, isSPP)),
+      row('Infaq (masuk)',       'infaq', agg(spp, function(r){return r.nominal;}, function(r){ return r.jenis === 'Infaq/Operasional'; })),
+      row('Ihsan Guru (keluar)', 'ihsan', agg(spp, function(r){return r.nominal;}, function(r){ return r.jenis === 'Ihsan Guru'; })),
+      row('Operasional (keluar)','operasional', agg(op, function(r){return r.nominal;})),
+      row('Kas lain (masuk)',    'kas_masuk',  agg(kas, function(r){return r.nominal;}, function(r){ return r.arah === 'masuk'; })),
+      row('Kas lain (keluar)',   'kas_keluar', agg(kas, function(r){return r.nominal;}, function(r){ return r.arah === 'keluar'; })),
+    ];
+    return { status:'ok', data: { tahun: tahun, periode: periodeList, metrik: metrik,
+      semua_cocok: metrik.every(function(m){ return m.cocok; }) } };
+  },
+
   getSPPRekap: async function(p) {
     p = p || {};
     // p: { tahun ('semua'|N), id_periode ('<id>'|'__tanpa__'|undefined), id_halaqah, bulan }

@@ -208,7 +208,40 @@ function onSPPTahunChange() {
 function sppLihatTanpaPeriode() {
   var sel = document.getElementById('sppFilterPeriode');
   if (sel) { sel.value = '__tanpa__'; }
+  if (_sppTab === 'spp') _sppSPPView = 'transaksi';  // orphan lebih jelas di daftar transaksi
   onSPPPeriodeChange();
+}
+
+// Panel Rekonsiliasi — hanya di tab "Kas & Ihsan" + mode "Seluruh Periode".
+async function loadRekonsiliasi() {
+  var card = document.getElementById('sppRekonsiliasiCard');
+  if (!card) return;
+  var show = (_sppTab === 'kas' && !_sppPeriodeVal());
+  card.style.display = show ? '' : 'none';
+  if (!show) return;
+  var th = _sppTahunVal();
+  var body = document.getElementById('sppRekonBody');
+  body.innerHTML = '<tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">Memuat…</td></tr>';
+  try {
+    var r = await window.HQ.AdminAPI.getRekonsiliasiSPP({ tahun: th });
+    var d = r.data || {};
+    document.getElementById('sppRekonTahun').textContent = 'tahun ' + (d.tahun || th);
+    var _rp = function(n){ return 'Rp ' + Math.round(Number(n)||0).toLocaleString('id-ID'); };
+    body.innerHTML = (d.metrik || []).map(function(m) {
+      var ok = m.cocok;
+      return '<tr>'
+        + '<td style="font-weight:600">' + esc(m.label) + '</td>'
+        + '<td class="align-right" style="font-variant-numeric:tabular-nums">' + _rp(m.sigma_periode) + '</td>'
+        + '<td class="align-right" style="font-variant-numeric:tabular-nums;color:' + (m.tanpa > 0 ? 'var(--amber-txt)' : 'var(--text-3)') + '">' + _rp(m.tanpa) + '</td>'
+        + '<td class="align-right" style="font-variant-numeric:tabular-nums;font-weight:700">' + _rp(m.total) + '</td>'
+        + '<td class="align-center">' + (ok
+            ? '<span style="color:var(--green-txt);font-weight:800">✓</span>'
+            : '<span style="color:var(--red-txt);font-weight:800">✗</span>') + '</td>'
+        + '</tr>';
+    }).join('') || '<tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">Tak ada data.</td></tr>';
+  } catch(e) {
+    body.innerHTML = '<tr><td colspan="5" style="padding:14px;color:var(--red);font-size:12px">Gagal: ' + esc(friendlyError(e)) + '</td></tr>';
+  }
 }
 
 // Ganti tab SPP / Infaq / Kas & Ihsan.
@@ -239,6 +272,7 @@ function switchSPPTab(tab, silent) {
     _sppSPPView = 'tunggakan';
     if (viewTog) viewTog.classList.remove('btn-primary');
   }
+  if (typeof loadRekonsiliasi === 'function') loadRekonsiliasi();
   if (!silent) filterSPPTable();
 }
 
@@ -372,6 +406,7 @@ async function loadSPPAdmin() {
 
       loadKasBeasiswa(rekap);
       loadArusKas();
+      loadRekonsiliasi();
 
       switchSPPTab(_sppTab, true);
       filterSPPTable();
@@ -1916,6 +1951,7 @@ async function doKirimPengumuman() {
     window.sppLihatTanpaPeriode = sppLihatTanpaPeriode;
     window.populateSPPPeriodeFilter = populateSPPPeriodeFilter;
     window.toggleSPPView = toggleSPPView;
+    window.loadRekonsiliasi = loadRekonsiliasi;
     window.sppBulkSetPeriode = sppBulkSetPeriode;
     window.bukaEditSPPRow = bukaEditSPPRow;
     window.tutupEditSPPRow = tutupEditSPPRow;
