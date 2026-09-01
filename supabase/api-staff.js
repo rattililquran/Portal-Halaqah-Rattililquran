@@ -4108,6 +4108,37 @@ var AdminAPI = {
 
   getAllPeriode: async function() { return GuruAPI.getAllPeriode(); },
   createPeriode: async function(d) { var {data,error}=await _sb.from('periode').insert(d).select().single(); _check(error,'createPeriode'); return {status:'ok',data}; },
+  // Set periode utk banyak halaqah sekaligus + tandai transaksi SPP/Infaq
+  // terkait yang belum berperiode (migrasi data lama → rekap per periode).
+  bulkSetHalaqahPeriode: async function(d) {
+    var ids = (d.halaqah_ids || []).filter(Boolean);
+    if (!ids.length)     throw new Error('Pilih minimal 1 halaqah.');
+    if (!d.id_periode)   throw new Error('Pilih periode tujuan.');
+    // Berapa baris SPP yang akan ikut tertandai (sebelum update)
+    var sppCount = 0;
+    try {
+      var cnt = await _sb.from('spp_pembayaran').select('id_spp', { count:'exact', head:true })
+        .in('id_halaqah', ids).is('id_periode', null);
+      sppCount = cnt.count || 0;
+    } catch(_) {}
+    var { error: e1 } = await _sb.from('halaqah').update({ id_periode: d.id_periode }).in('id_halaqah', ids);
+    _check(e1, 'bulkSetHalaqahPeriode:halaqah');
+    var sppOk = false;
+    if (d.backfill_spp !== false) {
+      try {
+        var { error: e2 } = await _sb.from('spp_pembayaran').update({ id_periode: d.id_periode })
+          .in('id_halaqah', ids).is('id_periode', null);
+        if (e2) throw e2;
+        sppOk = true;
+      } catch (eSpp) {
+        // Kolom id_periode belum ada (patch_101 belum dijalankan) → halaqah tetap
+        // ter-update; SPP diisi trigger DB nanti / jalankan ulang tool setelah patch.
+        console.warn('bulkSetHalaqahPeriode: backfill SPP dilewati —', eSpp && eSpp.message);
+      }
+    }
+    _logAudit('bulk_set_halaqah_periode', { count: ids.length, id_periode: d.id_periode, spp_backfilled: sppOk ? sppCount : 0 });
+    return { status:'ok', halaqah: ids.length, spp_backfilled: sppOk ? sppCount : 0 };
+  },
   updatePeriode: async function(d) { var {id_periode,...u}=d; var {data,error}=await _sb.from('periode').update(u).eq('id_periode',id_periode).select().single(); _check(error,'updatePeriode'); return {status:'ok',data}; },
   getKomponenRaport: async function(id) { return GuruAPI.getKomponenRaport(id); },
   saveKomponenRaport: async function(d) {

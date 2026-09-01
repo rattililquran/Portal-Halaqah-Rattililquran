@@ -945,10 +945,15 @@ function renderHalaqahTable() {
     var ketuaCell = h.nama_ketua
       ? '<span style="font-weight:700;color:var(--amber-txt);display:inline-flex;align-items:center;gap:4px">' + svgIcon('award',13) + ' ' + esc(h.nama_ketua) + '</span>'
       : '<span style="color:var(--text-3);font-size:11px">Belum diatur</span>';
+    var perNama = _periodeNama(h.id_periode);
+    var perCell = perNama
+      ? '<span class="badge b-purple" style="font-size:10px">' + esc(perNama) + '</span>'
+      : '<span style="color:var(--text-3);font-size:11px;font-style:italic">— belum —</span>';
     return '<tr>'
       + '<td><strong>' + esc(h.nama_halaqah) + '</strong></td>'
       + '<td>' + esc(h.nama_guru) + '</td>'
       + '<td><span class="badge b-blue">' + esc(h.level) + '</span></td>'
+      + '<td>' + perCell + '</td>'
       + '<td>' + ketuaCell + '</td>'
       + '<td>' + esc(h.jadwal_hari||'–') + '<br><small style="color:var(--text-3)">' + esc(h.jam_mulai||'') + (h.jam_selesai ? '–' + esc(h.jam_selesai) : '') + '</small></td>'
       + '<td>' + esc(h.lokasi||'–') + '</td>'
@@ -972,6 +977,72 @@ function renderHalaqahTable() {
 }
 
 function filterHalaqahTable() { renderHalaqahTable(); }
+
+// ── Nama periode dari id (map allPeriode) ──
+function _periodeNama(id) {
+  if (!id) return '';
+  var p = (allPeriode || []).find(function(x){ return x.id_periode === id; });
+  return p ? p.nama_periode : id;
+}
+
+// ══ Set Periode Massal (Halaqah) — migrasi data ke rekap per-periode ══
+function bukaBulkPeriodeHalaqah() {
+  var sel = document.getElementById('bpPeriode');
+  sel.innerHTML = (allPeriode || []).map(function(p){
+    return '<option value="' + esc(p.id_periode) + '"' + (p.status === 'aktif' ? ' selected' : '') + '>'
+      + esc(p.nama_periode) + (p.status === 'aktif' ? ' (Aktif)' : '') + '</option>';
+  }).join('');
+  if (!sel.options.length) { toast('Belum ada periode. Buat dulu di menu Periode / Semester.', 'warn'); return; }
+  document.getElementById('bpErr').style.display = 'none';
+  document.getElementById('bpHanyaKosong').checked = true;
+  renderBulkPeriodeList();
+  openModal('modalBulkPeriodeHalaqah');
+}
+
+function renderBulkPeriodeList() {
+  var hanyaKosong = document.getElementById('bpHanyaKosong').checked;
+  var list = (allHalaqah || []).filter(function(h){ return h.status === 'aktif'; });
+  if (hanyaKosong) list = list.filter(function(h){ return !h.id_periode; });
+  list.sort(function(a,b){ return (a.nama_halaqah||'').localeCompare(b.nama_halaqah||''); });
+  var wrap = document.getElementById('bpList');
+  if (!list.length) { wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px">Tidak ada halaqah.</div>'; return; }
+  wrap.innerHTML = list.map(function(h){
+    var per = _periodeNama(h.id_periode);
+    return '<label style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12.5px" onmouseover="this.style.background=\'var(--bg-2,#f6f7f9)\'" onmouseout="this.style.background=\'\'">'
+      + '<input type="checkbox" class="bp-chk" value="' + esc(h.id_halaqah) + '" checked>'
+      + '<span style="flex:1;font-weight:600;color:var(--text)">' + esc(h.nama_halaqah) + '</span>'
+      + '<span style="font-size:10.5px;color:var(--text-3)">' + esc(h.nama_guru || '') + '</span>'
+      + (per ? '<span class="badge b-purple" style="font-size:9.5px">' + esc(per) + '</span>' : '')
+      + '</label>';
+  }).join('');
+}
+
+function bpToggleAll(on) {
+  document.querySelectorAll('#bpList .bp-chk').forEach(function(c){ c.checked = !!on; });
+}
+
+async function terapkanBulkPeriodeHalaqah() {
+  var id_periode = document.getElementById('bpPeriode').value;
+  var ids = Array.from(document.querySelectorAll('#bpList .bp-chk:checked')).map(function(c){ return c.value; });
+  var err = document.getElementById('bpErr');
+  if (!ids.length) { err.textContent = 'Pilih minimal 1 halaqah.'; err.style.display = ''; return; }
+  var nama = _periodeNama(id_periode);
+  if (!confirm('Tandai ' + ids.length + ' halaqah ke periode "' + nama + '"?\n\nTransaksi SPP/Infaq halaqah tsb yang belum berperiode ikut ditandai.')) return;
+  var btn = document.getElementById('bpApplyBtn');
+  btn.disabled = true;
+  showLoad('Menandai periode...');
+  try {
+    var r = await window.HQ.AdminAPI.bulkSetHalaqahPeriode({ halaqah_ids: ids, id_periode: id_periode, backfill_spp: true });
+    toast(r.halaqah + ' halaqah ditandai' + (r.spp_backfilled ? ' · ' + r.spp_backfilled + ' transaksi SPP ikut ditandai' : ''), 'ok');
+    closeModal('modalBulkPeriodeHalaqah');
+    await loadMasterData();
+    renderHalaqahTable();
+  } catch(e) {
+    err.textContent = 'Gagal: ' + friendlyError(e); err.style.display = '';
+  } finally {
+    btn.disabled = false; hideLoad();
+  }
+}
 
 async function wisudaSemuaHalaqah(id_halaqah, nama_halaqah, total_murid) {
   if (!confirm(
@@ -1162,6 +1233,10 @@ function _kqRenderList() {
     window.renderHalaqahTable = renderHalaqahTable;
     window.filterHalaqahTable = filterHalaqahTable;
     window.wisudaSemuaHalaqah = wisudaSemuaHalaqah;
+    window.bukaBulkPeriodeHalaqah = bukaBulkPeriodeHalaqah;
+    window.renderBulkPeriodeList = renderBulkPeriodeList;
+    window.bpToggleAll = bpToggleAll;
+    window.terapkanBulkPeriodeHalaqah = terapkanBulkPeriodeHalaqah;
     window.loadKelasPengganti = loadKelasPengganti;
     window.loadKelompokQiyam = loadKelompokQiyam;
     window.onKqHalaqahChange = onKqHalaqahChange;
