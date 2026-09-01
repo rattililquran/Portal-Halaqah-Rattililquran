@@ -483,6 +483,29 @@ html.theme-dark #page-spp .tab-btn:hover:not(.active){background:rgba(255,255,25
 html.theme-dark #page-spp .tab-btn.active[data-spptab="spp"] svg{color:#34d399}
 html.theme-dark #page-spp .tab-btn.active[data-spptab="infaq"] svg{color:#fbbf24}
 html.theme-dark #page-spp .tab-btn.active[data-spptab="kas"] svg{color:#a78bfa}
+
+/* KPI halaman SPP — flat & minimalis: angka netral, aksen tipis di ikon saja */
+#page-spp .stat.spp-kpi{padding:14px 15px;display:flex;flex-direction:column;gap:5px;
+  border:1px solid var(--border);border-radius:var(--r);transition:border-color .14s}
+#page-spp .stat.spp-kpi::before{content:none;display:none}
+#page-spp .stat.spp-kpi:hover{transform:none;border-color:var(--text-3)}
+#page-spp .spp-kpi-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0}
+#page-spp .spp-kpi-lbl{font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-spp .spp-kpi-ic{width:14px;height:14px;flex-shrink:0;color:var(--text-3)}
+#page-spp .spp-kpi-num{font-size:21px;font-weight:800;line-height:1.12;color:var(--text);
+  font-variant-numeric:tabular-nums;letter-spacing:-.015em;overflow-wrap:anywhere}
+#page-spp .spp-kpi-sub{font-size:10px;font-weight:500;line-height:1.35;color:var(--text-3)}
+#page-spp .spp-kpi[data-tone="green"]   .spp-kpi-ic{color:#059669}
+#page-spp .spp-kpi[data-tone="red"]     .spp-kpi-ic{color:#dc2626}
+#page-spp .spp-kpi[data-tone="blue"]    .spp-kpi-ic{color:#2563eb}
+#page-spp .spp-kpi[data-tone="amber"]   .spp-kpi-ic{color:#d97706}
+#page-spp .spp-kpi[data-tone="violet"]  .spp-kpi-ic{color:#7c3aed}
+#page-spp .spp-kpi[data-tone="rose"]    .spp-kpi-ic{color:#e11d48}
+#page-spp .spp-kpi[data-tone="emerald"] .spp-kpi-ic{color:#059669}
+#page-spp .spp-kpi[data-tone="sky"]     .spp-kpi-ic{color:#0284c7}
+html.theme-dark #page-spp .spp-kpi[data-tone] .spp-kpi-ic{filter:brightness(1.35)}
+html.theme-dark #page-spp .stat.spp-kpi:hover{border-color:rgba(255,255,255,.22) !important}
 @keyframes mtbPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .progress-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:4px}
 .progress-fill{height:100%;border-radius:100px;transition:width .3s}
@@ -2243,20 +2266,19 @@ html.theme-dark .fin-detail-card {
             <div class="section-title" style="margin:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg> SPP &amp; Infaq</div>
             <div style="font-size:12px;color:var(--text-3);margin-top:3px">Kelola pembayaran dan rekap tunggakan murid</div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary btn-sm" onclick="bukaModalInputSPPManual()" style="display:flex;align-items:center;gap:6px">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Input Pembayaran Manual
+          <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary btn-sm" onclick="bukaModalInputSPPManual()" style="display:inline-flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Input Pembayaran
             </button>
-            <button class="btn btn-primary btn-sm" onclick="bukaModalInputSPPManual('Ihsan Guru')" style="display:flex;align-items:center;gap:6px;background:#e11d48;border-color:#e11d48">
+            <button class="btn btn-outline btn-sm" onclick="bukaModalInputSPPManual('Ihsan Guru')" style="display:inline-flex;align-items:center;gap:6px">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Input Ihsan Guru
             </button>
-            <button class="btn btn-outline btn-sm" onclick="loadSPPAdmin()" style="display:flex;align-items:center;gap:6px">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Refresh
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="bukaKelolaMetode()" title="Kelola rekening & QRIS pembayaran" style="display:flex;align-items:center;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="bukaKelolaMetode()" title="Kelola rekening & QRIS pembayaran" style="display:inline-flex;align-items:center;gap:6px">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               Metode Bayar
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSPPAdmin()" title="Muat ulang" aria-label="Muat ulang" style="display:inline-flex;align-items:center;gap:6px;padding-left:9px;padding-right:9px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
           </div>
         </div>
@@ -2280,94 +2302,54 @@ html.theme-dark .fin-detail-card {
         </div>
 
         <!-- ── Stats ── -->
-        <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,200px));gap:12px;margin-bottom:24px">
-          <!-- Lunas -->
-          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#10b981,#34d399); --stat-shadow:rgba(16,185,129,0.15); --stat-border-hover:rgba(16,185,129,0.3); --stat-bg-tint:rgba(16,185,129,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Lunas</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:24px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatLunas">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatLunasSub">—</div>
-            </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(148px,208px));gap:10px;margin-bottom:18px">
+          <div class="stat spp-kpi" data-spptab="spp" data-tone="green">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Lunas</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatLunas">—</div>
+            <div class="spp-kpi-sub" id="sppStatLunasSub">—</div>
           </div>
-          <!-- Menunggak -->
-          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#ef4444,#f87171); --stat-shadow:rgba(239,68,68,0.15); --stat-border-hover:rgba(239,68,68,0.3); --stat-bg-tint:rgba(239,68,68,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Menunggak</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:24px; font-weight:900; color:var(--red-txt); line-height:1.2; margin-bottom:4px" id="sppStatTunggak">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatTunggakSub">—</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="spp" data-tone="red">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Menunggak</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatTunggak">—</div>
+            <div class="spp-kpi-sub" id="sppStatTunggakSub">—</div>
           </div>
-          <!-- Total SPP -->
-          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#3b82f6,#60a5fa); --stat-shadow:rgba(59,130,246,0.15); --stat-border-hover:rgba(59,130,246,0.3); --stat-bg-tint:rgba(59,130,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total SPP</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:20px; font-weight:900; color:var(--blue-txt); line-height:1.2; margin-bottom:4px" id="sppStatTotal">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatTotalSub">Terbayar tahun ini</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="spp" data-tone="blue">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Total SPP</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatTotal">—</div>
+            <div class="spp-kpi-sub" id="sppStatTotalSub">Terbayar tahun ini</div>
           </div>
-          <!-- Total Infaq -->
-          <div class="stat" data-spptab="infaq" style="--stat-grad:linear-gradient(90deg,#f59e0b,#fbbf24); --stat-shadow:rgba(245,158,11,0.15); --stat-border-hover:rgba(245,158,11,0.3); --stat-bg-tint:rgba(245,158,11,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Infaq</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(245,158,11,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:20px; font-weight:900; color:var(--amber-txt); line-height:1.2; margin-bottom:4px" id="sppStatInfaq">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatInfaqSub">Terbayar tahun ini</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="spp" data-tone="sky">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Beasiswa</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatBeasiswa">—</div>
+            <div class="spp-kpi-sub" id="sppStatBeasiswaSub">Penerima (SPP dibebaskan)</div>
           </div>
-          <!-- Total Masuk -->
-          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#8b5cf6,#a78bfa); --stat-shadow:rgba(139,92,246,0.15); --stat-border-hover:rgba(139,92,246,0.3); --stat-bg-tint:rgba(139,92,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Pemasukan</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:20px; font-weight:900; color:var(--purple-txt); line-height:1.2; margin-bottom:4px" id="sppStatMasuk">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatMasukSub">Terbayar tahun ini</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="infaq" data-tone="amber">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Total Infaq</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatInfaq">—</div>
+            <div class="spp-kpi-sub" id="sppStatInfaqSub">Terbayar tahun ini</div>
           </div>
-          <!-- Total Ihsan Guru -->
-          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#f43f5e,#fb7185); --stat-shadow:rgba(244,63,94,0.15); --stat-border-hover:rgba(244,63,94,0.3); --stat-bg-tint:rgba(244,63,94,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Ihsan Guru</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(244,63,94,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:20px; font-weight:900; color:#e11d48; line-height:1.2; margin-bottom:4px" id="sppStatIhsan">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatIhsanSub">Gaji terbayar tahun ini</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="kas" data-tone="violet">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Pemasukan</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatMasuk">—</div>
+            <div class="spp-kpi-sub" id="sppStatMasukSub">Terbayar tahun ini</div>
           </div>
-          <!-- Sisa Kas (Net) -->
-          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#059669,#34d399); --stat-shadow:rgba(5,150,105,0.15); --stat-border-hover:rgba(5,150,105,0.3); --stat-bg-tint:rgba(5,150,105,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Saldo</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(5,150,105,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l-3 6a4 4 0 0 0 8 0L5 7"/><path d="M19 7l-3 6a4 4 0 0 0 8 0l-3-6"/><path d="M5 7h14M3 21h18"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:20px; font-weight:900; color:var(--green-txt); line-height:1.2; margin-bottom:4px" id="sppStatNet">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500; line-height:1.4" id="sppStatNetSub">Saldo setelah ihsan</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="kas" data-tone="rose">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Ihsan Guru</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatIhsan">—</div>
+            <div class="spp-kpi-sub" id="sppStatIhsanSub">Gaji terbayar tahun ini</div>
           </div>
-          <!-- Beasiswa -->
-          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Beasiswa</span>
-              <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
-            </div>
-            <div>
-              <div style="font-size:24px; font-weight:900; color:#0284c7; line-height:1.2; margin-bottom:4px" id="sppStatBeasiswa">—</div>
-              <div style="font-size:11px; color:var(--text-3); font-weight:500" id="sppStatBeasiswaSub">Penerima (SPP dibebaskan)</div>
-            </div>
+          <div class="stat spp-kpi" data-spptab="kas" data-tone="emerald">
+            <div class="spp-kpi-hd"><span class="spp-kpi-lbl">Saldo</span>
+              <svg class="spp-kpi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l-3 6a4 4 0 0 0 8 0L5 7"/><path d="M19 7l-3 6a4 4 0 0 0 8 0l-3-6"/><path d="M5 7h14M3 21h18"/></svg></div>
+            <div class="spp-kpi-num" id="sppStatNet">—</div>
+            <div class="spp-kpi-sub" id="sppStatNetSub">Pemasukan − Pengeluaran</div>
           </div>
         </div>
 
@@ -4607,7 +4589,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=b762fed5" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=ea5e5679" defer></script>
+<script src="spp-keuangan-module.js?v=1407671a" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>

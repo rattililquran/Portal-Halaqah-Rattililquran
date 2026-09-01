@@ -491,7 +491,8 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatIhsanSub').innerHTML  = 'Pengeluaran total ' + _rp(keu.pengeluaran.total) + (keu.pengeluaran.operasional ? ' (Operasional ' + _rp(keu.pengeluaran.operasional) + ')' : '');
       var netEl = document.getElementById('sppStatNet');
       netEl.textContent = _rpSigned(keu.saldo);
-      netEl.style.color = (keu.saldo < 0) ? 'var(--red-txt)' : 'var(--green-txt)';
+      // Angka netral; merah HANYA bila saldo negatif (isyarat akuntansi)
+      netEl.style.color = (keu.saldo < 0) ? 'var(--red-txt)' : '';
       document.getElementById('sppStatNetSub').textContent = 'Pemasukan − Pengeluaran';
 
       // Ember ketiga + kartu Kas Beasiswa
