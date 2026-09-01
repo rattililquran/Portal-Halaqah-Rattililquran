@@ -159,6 +159,7 @@
       window.doaSudahMuncul = false;
       window._nilaiCache      = {};
       window._hafalanKbmCache = {};
+      window._hafalanKbmForm  = {};
       window._microteachingKbmCache = {};
       window._hfKbmZiyadah   = {};
       window._lastTargetDataKbm = null;
@@ -340,6 +341,7 @@
         presensi.forEach(function(p) {
           if (!['H','T'].includes(p.status_hadir)) {
             delete window._hafalanKbmCache[p.id_murid];
+            if (window._hafalanKbmForm)   delete window._hafalanKbmForm[p.id_murid];
             if (window._hafalanKbmTarget) delete window._hafalanKbmTarget[p.id_murid];
           }
         });
@@ -1123,6 +1125,8 @@
     });
 
     window._hafalanKbmCache[mid].push(item);
+    // Kolom input sudah "dipindah" ke keranjang -> snapshot form tak relevan lagi.
+    if (window._hafalanKbmForm) delete window._hafalanKbmForm[mid];
 
     var setV = function(id,v){ var el=document.getElementById(id);if(el)el.value=v; };
     setV('hfkbm-surat-'+eid, '');
@@ -1138,8 +1142,10 @@
     _kbmDraftSaveDebounced();
 
     // Satu notifikasi saja (tak menumpuk): catatan overlap > catatan duplikat >
-    // konfirmasi biasa.
-    if (overlapNote) {
+    // konfirmasi biasa. Saat penambahan massal (dari dialog "belum masuk
+    // keranjang"), notifikasi per-item disenyapkan — dialog itu sudah cukup.
+    if (window._hfKbmBulkAdd) { /* senyap */ }
+    else if (overlapNote) {
       quickToast(overlapNote, 'info');
     } else if (isExactDup) {
       quickToast('Item identik sudah ada di keranjang sesi ini — tetap ditambahkan.', 'info');
@@ -1251,6 +1257,7 @@
       setV('hfkbm-ayat-dari-'+eid, '');
       setV('hfkbm-ayat-sampai-'+eid, '');
       setV('hfkbm-catatan-'+eid, '');
+      if (window._hafalanKbmForm) delete window._hafalanKbmForm[mid];
       renderHafalanKbmStagedList(mid);
       updateHfKbmPoin(mid);
       _kbmDraftSaveDebounced();
@@ -1817,6 +1824,11 @@
       nilai         : _mergeCacheObj(prev.nilai,         window._nilaiCache),
       hafalan       : _mergeCacheObj(prev.hafalan,       window._hafalanKbmCache),
       target        : _mergeCacheObj(prev.target,        window._hafalanKbmTarget),
+      // Snapshot form editor (kolom input yang BELUM ditambahkan ke keranjang).
+      // State klien = sumber kebenaran (di-rebuild tiap _saveHafalanKbmCache),
+      // jadi assign langsung, bukan merge — supaya form yang sudah dikosongkan/
+      // ditambahkan tidak "bangkit" lagi.
+      hafalan_form  : window._hafalanKbmForm || {},
       microteaching : _mergeCacheObj(prev.microteaching, window._microteachingKbmCache),
       daurah_asmt   : window._daurahAssessmentMap || {},
       // Jurnal & latihan mandiri: snapshot terkini bila ada field terisi; kalau
@@ -1876,6 +1888,7 @@
     var anyData = function(o){ return !!(o && Object.keys(o).some(function(k){ return o[k]; })); };
     if (d.nilai)         window._nilaiCache            = _mergeFill(window._nilaiCache, d.nilai, anyData, force);
     if (d.hafalan)       window._hafalanKbmCache        = _mergeFill(window._hafalanKbmCache, d.hafalan, _hafKbmHasContent, force);
+    if (d.hafalan_form)  window._hafalanKbmForm         = _mergeFill(window._hafalanKbmForm, d.hafalan_form, _hafKbmHasContent, force);
     if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData, force);
     if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData, force);
     if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
@@ -1934,15 +1947,18 @@
         if (!serverNewer) return;
         var dd = server.draft;
         try {
-          // Pertahankan draft jurnal lokal -- server sync (hemat payload) TIDAK
-          // menyimpan field jurnal, jadi objek dari server tak punya `jurnal`.
-          // Tanpa baris ini, reconcile yg menimpa draft lokal akan MENGHAPUS
-          // jurnal/latihan yg sudah diketik guru (bug F1).
-          var prevJurnal = (local && local.jurnal) ? local.jurnal : {};
+          // Pertahankan draft lokal utk field yg TIDAK ikut server sync (hemat
+          // payload): jurnal/latihan, target hafalan, snapshot form editor,
+          // asesmen daurah. Tanpa ini, reconcile yg menimpa draft lokal akan
+          // MENGHAPUS data itu (bug F1 dulu utk jurnal).
+          var prevJurnal      = (local && local.jurnal)       ? local.jurnal       : {};
+          var prevTarget      = (local && local.target)       ? local.target       : {};
+          var prevHafalanForm = (local && local.hafalan_form) ? local.hafalan_form : {};
+          var prevDaurahAsmt  = (local && local.daurah_asmt)  ? local.daurah_asmt  : {};
           localStorage.setItem(_kbmDraftKey(id_kbm), JSON.stringify({
             id_kbm: id_kbm, jenis_sesi: server.jenis_sesi, updated_at: server.updated_at,
             nilai: dd.nilai || {}, hafalan: dd.hafalan || {}, microteaching: dd.microteaching || {},
-            jurnal: prevJurnal,
+            jurnal: prevJurnal, target: prevTarget, hafalan_form: prevHafalanForm, daurah_asmt: prevDaurahAsmt,
           }));
         } catch (e) {}
         // H2 fix (bug hunt 2026-08-18): serverNewer sudah true di titik ini, tapi
@@ -2181,6 +2197,7 @@
   function _saveHafalanKbmCache() {
     if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
     if (!window._hafalanKbmTarget) window._hafalanKbmTarget = {};
+    if (!window._hafalanKbmForm) window._hafalanKbmForm = {};
     const muridSesi = getMuridSesi();
     if (!muridSesi) return;
     muridSesi.forEach(function(m) {
@@ -2209,21 +2226,26 @@
       var currentCache = window._hafalanKbmCache[m.id_murid];
       var staged = Array.isArray(currentCache) ? currentCache : (currentCache && currentCache.jenis ? [currentCache] : []);
 
-      // If keranjang already has items, keranjang IS the single source of truth.
-      // Do NOT auto-append active DOM fields! (Active DOM fields are just an item editor)
+      // Keranjang HANYA diisi lewat aksi sengaja guru (tombol "+ Tambah" / dialog
+      // Auto-Split). Isi kolom input di form editor TIDAK PERNAH otomatis jadi
+      // item keranjang — dulu perilaku ini bikin setoran murid lain / hasil edit
+      // nilai "nyelonong" masuk keranjang saat autosave/refresh & berpotensi
+      // tumpang tindih. Snapshot form disimpan terpisah (window._hafalanKbmForm)
+      // supaya ketikan yang belum ditambahkan tetap aman kalau browser di-refresh.
       if (staged.length > 0) {
         if (staged[0] && (tgtSrt || tgtDari || tgtSmp)) {
           staged[0].tgtSrt  = staged[0].tgtSrt  || tgtSrt;
           staged[0].tgtDari = staged[0].tgtDari || tgtDari;
           staged[0].tgtSmp  = staged[0].tgtSmp  || tgtSmp;
         }
+        delete window._hafalanKbmForm[m.id_murid];
         return;
       }
 
-      // If keranjang is empty, only sync active DOM item if it's a FULLY valid setoran item
-      var isValidSingleItem = activeItem.jenis === 'Tahsin' || (activeItem.surat && activeItem.dari && activeItem.sampai);
-      if (isValidSingleItem) {
-        window._hafalanKbmCache[m.id_murid] = [activeItem];
+      if (_hafKbmHasContent(activeItem)) {
+        window._hafalanKbmForm[m.id_murid] = activeItem;
+      } else {
+        delete window._hafalanKbmForm[m.id_murid];
       }
     });
   }
@@ -2235,7 +2257,8 @@
       var eid   = _hfKbmEid(m.id_murid);
       var cache = window._hafalanKbmCache[m.id_murid];
       var tgt   = window._hafalanKbmTarget && window._hafalanKbmTarget[m.id_murid];
-      if (!cache && !tgt) return;
+      var form  = window._hafalanKbmForm && window._hafalanKbmForm[m.id_murid];
+      if (!cache && !tgt && !form) return;
       var list = Array.isArray(cache) ? cache : (cache && cache.jenis ? [cache] : []);
 
       var first = list[0];
@@ -2252,24 +2275,27 @@
       setV('hfkbm-tgt-dari-'+eid,  tD);
       setV('hfkbm-tgt-sampai-'+eid,tM);
 
-      // Jika draf berupa item tunggal legacy (bukan array staged), pulihkan form editor.
+      // Pulihkan kolom input form editor (BUKAN ke keranjang) selama keranjang
+      // murid ini masih kosong: dari draf item-tunggal legacy, atau dari snapshot
+      // form (window._hafalanKbmForm) untuk ketikan yang belum ditekan "+ Tambah".
       var isLegacySingle = !Array.isArray(cache) && cache && cache.jenis;
-      if (isLegacySingle && first) {
-        setSel('hfkbm-jenis-'+eid, first.jenis);
-        setSel('hfkbm-juz-'+eid,   first.juz);
-        setV('hfkbm-surat-'+eid,   first.surat);
-        setV('hfkbm-surat-display-'+eid, first.suratD);
-        setV('hfkbm-ayat-dari-'+eid,  first.dari);
-        setV('hfkbm-ayat-sampai-'+eid,first.sampai);
-        setSel('hfkbm-kel-'+eid,    first.kel);
-        setSel('hfkbm-nil-'+eid,    first.nil);
-        setSel('hfkbm-kam-'+eid,    first.kam);
-        setV('hfkbm-catatan-'+eid, first.catatan);
-        if (first.suratD) {
+      var formSrc = (isLegacySingle && first) ? first : (!list.length ? form : null);
+      if (formSrc) {
+        setSel('hfkbm-jenis-'+eid, formSrc.jenis);
+        setSel('hfkbm-juz-'+eid,   formSrc.juz);
+        setV('hfkbm-surat-'+eid,   formSrc.surat);
+        setV('hfkbm-surat-display-'+eid, formSrc.suratD);
+        setV('hfkbm-ayat-dari-'+eid,  formSrc.dari);
+        setV('hfkbm-ayat-sampai-'+eid,formSrc.sampai);
+        setSel('hfkbm-kel-'+eid,    formSrc.kel);
+        setSel('hfkbm-nil-'+eid,    formSrc.nil);
+        setSel('hfkbm-kam-'+eid,    formSrc.kam);
+        setV('hfkbm-catatan-'+eid, formSrc.catatan);
+        if (formSrc.suratD) {
           var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
-            .find(function(s){ return s.latin === first.suratD; });
+            .find(function(s){ return s.latin === formSrc.suratD; });
           var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
-          if (infoEl && meta) { infoEl.textContent = first.suratD + ' = ' + meta.ayat + ' ayat'; }
+          if (infoEl && meta) { infoEl.textContent = formSrc.suratD + ' = ' + meta.ayat + ' ayat'; }
         }
       }
 
@@ -2278,7 +2304,7 @@
     });
   }
 
-  function simpanHafalanKBM() {
+  async function simpanHafalanKBM() {
     const sesiAktif = getSesiAktif();
     if (!sesiAktif) return;
     _saveHafalanKbmCache();
@@ -2289,6 +2315,43 @@
     });
 
     const muridSesi = getMuridSesi();
+    var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
+
+    // Keranjang HANYA diisi lewat aksi sengaja. Kalau ada kolom input yang sudah
+    // lengkap tapi belum ditekan "+ Tambah", jangan diam-diam dimasukkan —
+    // konfirmasi dulu ke guru (satu dialog untuk semua murid terkait).
+    var pendingAdd = [];
+    muridSesi.forEach(function(m) {
+      var status = presensiMap[m.id_murid] || 'A';
+      if (status !== 'H' && status !== 'T') return;
+      var eid = _hfKbmEid(m.id_murid);
+      var actJenis = getV('hfkbm-jenis-'+eid);
+      var actSurat = getV('hfkbm-surat-'+eid);
+      var actDari  = getV('hfkbm-ayat-dari-'+eid);
+      var actSampai= getV('hfkbm-ayat-sampai-'+eid);
+      var isValidActive = actJenis === 'Tahsin' || (actSurat && actDari && actSampai);
+      if (isValidActive) {
+        pendingAdd.push({ id_murid: m.id_murid, nama: m.nama_murid,
+          desc: actJenis === 'Tahsin' ? 'Tahsin' : (getV('hfkbm-surat-display-'+eid) || actSurat) + ' ' + actDari + '–' + actSampai });
+      }
+    });
+    if (pendingAdd.length) {
+      var htmlList = pendingAdd.map(function(p){
+        return '<li style="margin-bottom:2px"><b>' + esc(p.nama) + '</b> — ' + esc(p.desc) + '</li>';
+      }).join('');
+      var ok = await showConfirm('', {
+        title: 'Setoran Belum Masuk Keranjang',
+        html: '<div style="font-size:13px;color:var(--text-2)">Kolom input berikut sudah terisi tapi <b>belum ditekan "+ Tambah Surat"</b>:</div>'
+          + '<ul style="font-size:12.5px;margin:8px 0 10px;padding-left:18px">' + htmlList + '</ul>'
+          + '<div style="font-size:12px;color:var(--text-3)">Tambahkan ke keranjang sekarang lalu lanjut ke Jurnal?</div>',
+        okText: 'Ya, Tambahkan & Lanjut', cancelText: 'Kembali'
+      });
+      if (!ok) return;
+      window._hfKbmBulkAdd = true;
+      try { pendingAdd.forEach(function(p){ addHafalanKbmItem(p.id_murid); }); }
+      finally { window._hfKbmBulkAdd = false; }
+    }
+
     var valid = true;
     for (var i = 0; i < muridSesi.length; i++) {
       var m = muridSesi[i];
@@ -2296,22 +2359,9 @@
       if (status !== 'H' && status !== 'T') continue;
 
       var eid = _hfKbmEid(m.id_murid);
-      var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
-      var actSurat = getV('hfkbm-surat-'+eid);
-      var actDari  = getV('hfkbm-ayat-dari-'+eid);
-      var actSampai= getV('hfkbm-ayat-sampai-'+eid);
-      var actJenis = getV('hfkbm-jenis-'+eid);
 
       var rawCache = window._hafalanKbmCache[m.id_murid];
       var list = Array.isArray(rawCache) ? rawCache : (rawCache && rawCache.jenis ? [rawCache] : []);
-
-      // If active form has a valid setoran typed in but teacher didn't click "+ Tambah", auto-add it to cart
-      var isValidActive = actJenis === 'Tahsin' || (actSurat && actDari && actSampai);
-      if (isValidActive && list.length > 0) {
-        addHafalanKbmItem(m.id_murid);
-        rawCache = window._hafalanKbmCache[m.id_murid];
-        list = Array.isArray(rawCache) ? rawCache : [rawCache];
-      }
 
       if (!list.length) {
         toast('Pilih jenis setoran untuk ' + m.nama_murid, 'warn');
@@ -3268,6 +3318,7 @@
       window._nilaiCache = {};
       window._microteachingKbmCache = {};
       window._hafalanKbmCache = {};
+      window._hafalanKbmForm  = {};
 
       const dw = document.getElementById('draftWarning');
       if (dw) dw.classList.remove('show');
