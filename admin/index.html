@@ -449,9 +449,28 @@ html.theme-dark .u-ibtn.d2:hover{background:rgba(248,113,113,.2);color:#fecaca}
 .empty-ttl{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
 .tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
-.tab-btn{padding:9px 16px;background:none;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:none;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all .15s;white-space:nowrap}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-btn:hover{color:var(--text)}
+
+/* Tab SPP / Infaq / Kas & Ihsan — segmented control biar jelas "kamu di mana" */
+#page-spp .tab-bar{display:inline-flex;gap:4px;border-bottom:none;background:var(--bg-2);
+  border:1px solid var(--border);border-radius:11px;padding:4px;max-width:100%;flex-wrap:wrap}
+#page-spp .tab-btn{border-bottom:none;margin-bottom:0;padding:9px 17px;border-radius:8px;
+  font-size:13px;font-weight:700;color:var(--text-3);transition:background .15s,color .15s,box-shadow .15s}
+#page-spp .tab-btn svg{width:14px;height:14px;flex-shrink:0}
+#page-spp .tab-btn:hover:not(.active){color:var(--text-2);background:rgba(0,0,0,.04)}
+#page-spp .tab-btn.active{background:var(--card);color:var(--text);border-bottom:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.05)}
+#page-spp .tab-btn.active[data-spptab="spp"] svg{color:#059669}
+#page-spp .tab-btn.active[data-spptab="infaq"] svg{color:#d97706}
+#page-spp .tab-btn.active[data-spptab="kas"] svg{color:#7c3aed}
+html.theme-dark #page-spp .tab-bar{background:rgba(255,255,255,.05) !important;border-color:rgba(255,255,255,.09) !important}
+html.theme-dark #page-spp .tab-btn.active{background:#1c1c1f !important;color:#f0f2f8 !important;box-shadow:0 1px 4px rgba(0,0,0,.55)}
+html.theme-dark #page-spp .tab-btn:hover:not(.active){background:rgba(255,255,255,.06)}
+html.theme-dark #page-spp .tab-btn.active[data-spptab="spp"] svg{color:#34d399}
+html.theme-dark #page-spp .tab-btn.active[data-spptab="infaq"] svg{color:#fbbf24}
+html.theme-dark #page-spp .tab-btn.active[data-spptab="kas"] svg{color:#a78bfa}
 @keyframes mtbPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .progress-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:4px}
 .progress-fill{height:100%;border-radius:100px;transition:width .3s}
