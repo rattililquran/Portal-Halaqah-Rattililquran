@@ -404,13 +404,14 @@ async function loadSPPAdmin() {
             : (p.bukti_url
                 ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">'+svgIcon('link',12)+' Lihat bukti</a>'
                 : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
-          var actionBtns = '<div style="display:flex;flex-direction:column;align-items:stretch;gap:6px;flex-shrink:0">'
-            + (isGateway ? '<span style="display:block;text-align:center;background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px">'+svgIcon('zap',12)+' Otomatis via Gateway</span>' : '')
-            + '<div style="display:flex;gap:6px">'
+          var _idj = escJs(p.id_spp);
+          var actionBtns = '<div class="spp-pend-acts">'
+            + (isGateway ? '<span class="spp-gw-chip">'+svgIcon('zap',12)+' Otomatis via Gateway</span>' : '')
+            + '<div class="spp-pend-row">'
               + (isGateway
-                  ? '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="konfirmasiManualGateway(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">'+svgIcon('ok',14)+' Konfirmasi Manual</button>'
-                  : '<button class="btn btn-green btn-sm" style="font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'lunas\')">'+svgIcon('ok',14)+' Konfirmasi</button>')
-              + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:12px;padding:7px 12px;flex:1;white-space:nowrap" onclick="validasiSPP(\''+esc(p.id_spp)+'\',\'ditolak\')">'+svgIcon('close',14)+' Tolak</button>'
+                  ? '<button class="spp-abtn spp-abtn-ok" onclick="konfirmasiManualGateway(\''+_idj+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'\')">'+svgIcon('ok',14)+' Konfirmasi Manual</button>'
+                  : '<button class="spp-abtn spp-abtn-ok" onclick="validasiSPP(\''+_idj+'\',\'lunas\')">'+svgIcon('ok',14)+' Konfirmasi</button>')
+              + '<button class="spp-abtn spp-abtn-no" onclick="validasiSPP(\''+_idj+'\',\'ditolak\')">'+svgIcon('close',14)+' Tolak</button>'
               + '</div>'
             + '</div>';
           return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">'
