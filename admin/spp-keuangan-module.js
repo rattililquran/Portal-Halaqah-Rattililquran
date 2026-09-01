@@ -499,15 +499,14 @@ async function loadSPPAdmin() {
         }
         pendList.innerHTML = pending.map(function(p) {
           var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
-          var jenisBadge = p.jenis === 'SPP Pribadi'
-            ? '<span style="background:var(--green-bg, #f0fdf4);color:var(--green-txt, #065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">SPP Pribadi</span>'
-            : '<span style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Infaq</span>';
+          var jenisTag = p.jenis === 'SPP Pribadi'
+            ? '<span class="spp-tag t-green">SPP Pribadi</span>'
+            : '<span class="spp-tag t-amber">Infaq</span>';
           var isGateway = p.metode_bayar === 'gateway';
-          var buktiLink = isGateway
-            ? ''
+          var bukti = isGateway ? ''
             : (p.bukti_url
-                ? '<a href="javascript:void(0)" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')" style="color:var(--blue-txt, #0369a1);font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">'+svgIcon('link',12)+' Lihat bukti</a>'
-                : '<span style="font-size:11px;color:var(--text-3, #94a3b8)">Tidak ada bukti</span>');
+                ? '<button type="button" class="spp-link" onclick="openSppLightbox(\''+escJs(p.bukti_url)+'\')">'+svgIcon('link',12)+' Lihat bukti</button>'
+                : '<span style="font-size:11px;color:var(--text-3)">Tidak ada bukti</span>');
           var _idj = escJs(p.id_spp);
           var actionBtns = '<div class="spp-pend-acts">'
             + (isGateway ? '<span class="spp-gw-chip">'+svgIcon('zap',12)+' Otomatis via Gateway</span>' : '')
@@ -516,15 +515,15 @@ async function loadSPPAdmin() {
                 : '<button class="spp-abtn spp-abtn-ok" onclick="validasiSPP(\''+_idj+'\',\'lunas\')">'+svgIcon('ok',14)+' Konfirmasi</button>')
             + '<button class="spp-abtn spp-abtn-no" onclick="validasiSPP(\''+_idj+'\',\'ditolak\')">'+svgIcon('close',14)+' Tolak</button>'
             + '</div>';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap">'
-            + '<div style="flex:1;min-width:160px">'
-            + '<div style="font-size:13.5px;font-weight:800;color:var(--text)">'+esc(p.nama_murid||p.id_murid)+'</div>'
-            + '<div style="font-size:11px;color:var(--text-2, #64748b);margin-top:3px">'+jenisBadge
-              +' <span style="margin-left:4px">'+esc(p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'')+'</span>'
-              +' &nbsp;·&nbsp; <strong>'+nominal+'</strong>'
-              +(p.metode_transfer?'&nbsp;·&nbsp;<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">'+esc(p.metode_transfer)+'</span>':'')+'</div>'
-            + (p.catatan ? '<div style="font-size:10.5px;color:var(--text-3, #94a3b8);margin-top:3px;font-style:italic">'+esc(p.catatan)+'</div>' : '')
-            + (buktiLink ? '<div style="margin-top:4px">'+buktiLink+'</div>' : '')
+          return '<div class="spp-row">'
+            + '<div class="spp-row-main">'
+            + '<div class="spp-row-name">'+esc(p.nama_murid||p.id_murid)+'</div>'
+            + '<div class="spp-row-meta">'+jenisTag
+              +'<span>'+esc((p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||''))+'</span>'
+              +'<span>·</span><strong>'+nominal+'</strong>'
+              +(p.metode_transfer?'<span class="spp-tag">'+esc(p.metode_transfer)+'</span>':'')+'</div>'
+            + (p.catatan ? '<div class="spp-row-note">'+esc(p.catatan)+'</div>' : '')
+            + (bukti ? '<div style="margin-top:5px">'+bukti+'</div>' : '')
             + '</div>'
             + actionBtns
             + '</div>';
@@ -1699,27 +1698,28 @@ async function loadSPPRiwayat(force) {
       var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
       var isGateway  = p.metode_bayar === 'gateway' && !p.validated_by;
       var bulanTahun = (p.bulan!=='-'?p.bulan+' ':'')+(p.tahun||'');
-      var statusBadge = p.status === 'lunas'
-        ? '<span style="background:var(--green-bg,#f0fdf4);color:var(--green-txt,#065f46);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Lunas</span>'
-        : '<span style="background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Ditolak</span>';
-      var sumberBadge = isGateway
-        ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px">'+svgIcon('zap',10)+' Gateway</span>'
-        : '<span style="background:var(--bg,#f1f5f9);color:var(--text-2,#64748b);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Manual Admin</span>';
+      var statusTag = p.status === 'lunas'
+        ? '<span class="spp-tag t-green">Lunas</span>'
+        : '<span class="spp-tag t-red">Ditolak</span>';
+      var sumberTag = isGateway
+        ? '<span class="spp-tag t-gw">'+svgIcon('zap',10)+' Gateway</span>'
+        : '<span class="spp-tag">Manual Admin</span>';
       var when = fmtDate(p.validated_at || p.tanggal_bayar);
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">'
-        + '<div style="flex:1;min-width:160px">'
-        + '<div style="font-size:13px;font-weight:800;color:var(--text)">'+esc(p.nama_murid||p.id_murid)+'</div>'
-        + '<div style="font-size:11px;color:var(--text-2, #64748b);margin-top:3px">'+statusBadge+' '+sumberBadge
-          +' <span style="margin-left:4px">'+esc(bulanTahun)+'</span>'
-          +' &nbsp;·&nbsp; <strong>'+nominal+'</strong>'
-          +' &nbsp;·&nbsp; <span style="color:var(--text-3, #94a3b8)">'+esc(when)+'</span></div>'
+      var _idj = escJs(p.id_spp);
+      return '<div class="spp-row">'
+        + '<div class="spp-row-main">'
+        + '<div class="spp-row-name">'+esc(p.nama_murid||p.id_murid)+'</div>'
+        + '<div class="spp-row-meta">'+statusTag+sumberTag
+          +'<span>'+esc(bulanTahun)+'</span>'
+          +'<span>·</span><strong>'+nominal+'</strong>'
+          +'<span>·</span><span style="color:var(--text-3)">'+esc(when)+'</span></div>'
         + '</div>'
-        + '<button class="btn btn-sm" style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);border:1px solid #fcd34d;font-size:12px;padding:7px 12px;flex-shrink:0" '
-          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+escJs(p.status)+'\')">'+svgIcon('undo',13)+' Batalkan</button>'
+        + '<button type="button" class="spp-undo-btn" '
+          + 'onclick="batalkanKonfirmasi(\''+_idj+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+escJs(p.status)+'\')">'+svgIcon('undo',13)+' Batalkan</button>'
         + '</div>';
     }).join('');
   } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#ef4444;font-size:13px">Gagal memuat riwayat: '+esc(friendlyError(e))+'</div>';
+    listEl.innerHTML = '<div class="spp-empty" style="color:var(--red-txt)">Gagal memuat riwayat: ' + esc(friendlyError(e)) + '</div>';
   }
 }
 
