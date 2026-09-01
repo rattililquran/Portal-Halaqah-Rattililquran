@@ -4154,11 +4154,14 @@ var AdminAPI = {
     var ids = (d.halaqah_ids || []).filter(Boolean);
     if (!ids.length)     throw new Error('Pilih minimal 1 halaqah.');
     if (!d.id_periode)   throw new Error('Pilih periode tujuan.');
-    // Berapa baris SPP yang akan ikut tertandai (sebelum update)
+    var repointAll = d.repoint_all === true;   // pindahkan juga yg sudah ber-periode lain
+    // Berapa baris SPP yang akan ikut tertandai (sebelum update).
+    //  repoint_all → semua baris halaqah tsb; default → hanya yg id_periode NULL.
     var sppCount = 0;
     try {
-      var cnt = await _sb.from('spp_pembayaran').select('id_spp', { count:'exact', head:true })
-        .in('id_halaqah', ids).is('id_periode', null);
+      var _cq = _sb.from('spp_pembayaran').select('id_spp', { count:'exact', head:true }).in('id_halaqah', ids);
+      if (!repointAll) _cq = _cq.is('id_periode', null);
+      var cnt = await _cq;
       sppCount = cnt.count || 0;
     } catch(_) {}
     var { error: e1 } = await _sb.from('halaqah').update({ id_periode: d.id_periode }).in('id_halaqah', ids);
@@ -4166,8 +4169,9 @@ var AdminAPI = {
     var sppOk = false;
     if (d.backfill_spp !== false) {
       try {
-        var { error: e2 } = await _sb.from('spp_pembayaran').update({ id_periode: d.id_periode })
-          .in('id_halaqah', ids).is('id_periode', null);
+        var _uq = _sb.from('spp_pembayaran').update({ id_periode: d.id_periode }).in('id_halaqah', ids);
+        if (!repointAll) _uq = _uq.is('id_periode', null);
+        var { error: e2 } = await _uq;
         if (e2) throw e2;
         sppOk = true;
       } catch (eSpp) {
@@ -4176,8 +4180,8 @@ var AdminAPI = {
         console.warn('bulkSetHalaqahPeriode: backfill SPP dilewati —', eSpp && eSpp.message);
       }
     }
-    _logAudit('bulk_set_halaqah_periode', { count: ids.length, id_periode: d.id_periode, spp_backfilled: sppOk ? sppCount : 0 });
-    return { status:'ok', halaqah: ids.length, spp_backfilled: sppOk ? sppCount : 0 };
+    _logAudit('bulk_set_halaqah_periode', { count: ids.length, id_periode: d.id_periode, repoint_all: repointAll, spp_backfilled: sppOk ? sppCount : 0 });
+    return { status:'ok', halaqah: ids.length, spp_backfilled: sppOk ? sppCount : 0, repoint_all: repointAll };
   },
   updatePeriode: async function(d) { var {id_periode,...u}=d; var {data,error}=await _sb.from('periode').update(u).eq('id_periode',id_periode).select().single(); _check(error,'updatePeriode'); return {status:'ok',data}; },
   getKomponenRaport: async function(id) { return GuruAPI.getKomponenRaport(id); },

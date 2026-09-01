@@ -4302,6 +4302,10 @@ html.theme-dark .fin-detail-card {
         <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:11px" onclick="bpToggleAll(true)">Pilih semua</button>
         <button type="button" class="btn btn-ghost btn-sm" style="font-size:11px" onclick="bpToggleAll(false)">Kosongkan</button>
       </div>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-2);margin-bottom:6px;cursor:pointer;padding:9px 11px;background:var(--amber-bg);border:1px solid rgba(251,191,36,.3);border-radius:8px">
+        <input type="checkbox" id="bpPindahSemua" style="margin-top:2px" onchange="if(this.checked){var k=document.getElementById('bpHanyaKosong');if(k){k.checked=false;renderBulkPeriodeList();}}">
+        <span>Pindahkan juga transaksi yang <strong>sudah ber-periode lain</strong> ke periode tujuan.<br><span style="color:var(--text-3)">Centang ini kalau Anda <em>memindah</em> halaqah dari periode lama ke periode baru — supaya pembayaran ikut pindah, bukan cuma yang kosong.</span></span>
+      </label>
       <div id="bpList" style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px"></div>
       <div id="bpErr" style="display:none;color:var(--red);font-size:12px;margin-top:8px"></div>
     </div>
@@ -4611,13 +4615,13 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=5985dcca"></script>
+<script src="../supabase/api-staff.js?v=a970af5e"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=b762fed5" defer></script>
-<script src="murid-module.js?v=ab5e45c8" defer></script>
+<script src="murid-module.js?v=8bcd0b34" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
 <script src="spp-keuangan-module.js?v=05ad959e" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>

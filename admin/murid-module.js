@@ -995,6 +995,7 @@ function bukaBulkPeriodeHalaqah() {
   if (!sel.options.length) { toast('Belum ada periode. Buat dulu di menu Periode / Semester.', 'warn'); return; }
   document.getElementById('bpErr').style.display = 'none';
   document.getElementById('bpHanyaKosong').checked = true;
+  var _ps = document.getElementById('bpPindahSemua'); if (_ps) _ps.checked = false;
   renderBulkPeriodeList();
   openModal('modalBulkPeriodeHalaqah');
 }
@@ -1026,14 +1027,19 @@ async function terapkanBulkPeriodeHalaqah() {
   var ids = Array.from(document.querySelectorAll('#bpList .bp-chk:checked')).map(function(c){ return c.value; });
   var err = document.getElementById('bpErr');
   if (!ids.length) { err.textContent = 'Pilih minimal 1 halaqah.'; err.style.display = ''; return; }
+  var repointAll = !!(document.getElementById('bpPindahSemua') && document.getElementById('bpPindahSemua').checked);
   var nama = _periodeNama(id_periode);
-  if (!confirm('Tandai ' + ids.length + ' halaqah ke periode "' + nama + '"?\n\nTransaksi SPP/Infaq halaqah tsb yang belum berperiode ikut ditandai.')) return;
+  var _msg = 'Tandai ' + ids.length + ' halaqah ke periode "' + nama + '"?\n\n'
+    + (repointAll
+        ? 'SEMUA transaksi SPP/Infaq halaqah tsb (termasuk yang sudah ber-periode lain) dipindah ke periode ini.'
+        : 'Transaksi SPP/Infaq halaqah tsb yang belum berperiode ikut ditandai.');
+  if (!confirm(_msg)) return;
   var btn = document.getElementById('bpApplyBtn');
   btn.disabled = true;
   showLoad('Menandai periode...');
   try {
-    var r = await window.HQ.AdminAPI.bulkSetHalaqahPeriode({ halaqah_ids: ids, id_periode: id_periode, backfill_spp: true });
-    toast(r.halaqah + ' halaqah ditandai' + (r.spp_backfilled ? ' · ' + r.spp_backfilled + ' transaksi SPP ikut ditandai' : ''), 'ok');
+    var r = await window.HQ.AdminAPI.bulkSetHalaqahPeriode({ halaqah_ids: ids, id_periode: id_periode, backfill_spp: true, repoint_all: repointAll });
+    toast(r.halaqah + ' halaqah ditandai' + (r.spp_backfilled ? ' · ' + r.spp_backfilled + ' transaksi SPP' + (r.repoint_all ? ' dipindah' : ' ikut ditandai') : ''), 'ok');
     closeModal('modalBulkPeriodeHalaqah');
     await loadMasterData();
     renderHalaqahTable();
