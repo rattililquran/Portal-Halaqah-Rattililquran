@@ -1058,7 +1058,7 @@ async function loadSPPRiwayat() {
           +' &nbsp;·&nbsp; <span style="color:var(--text-3, #94a3b8)">'+esc(when)+'</span></div>'
         + '</div>'
         + '<button class="btn btn-sm" style="background:var(--amber-bg, #fffbeb);color:var(--amber-txt, #92400e);border:1px solid #fcd34d;font-size:12px;padding:7px 12px;flex-shrink:0" '
-          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+p.status+'\')">'+svgIcon('undo',13)+' Batalkan</button>'
+          + 'onclick="batalkanKonfirmasi(\''+esc(p.id_spp)+'\',\''+escJs(p.nama_murid||p.id_murid)+'\',\''+escJs(bulanTahun)+'\',\''+escJs(p.status)+'\')">'+svgIcon('undo',13)+' Batalkan</button>'
         + '</div>';
     }).join('');
   } catch(e) {
