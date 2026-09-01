@@ -12,16 +12,16 @@
   function _isSuper() { return currentUser && currentUser.role === 'superadmin'; }
   function _root()    { return document.getElementById('ppRoot'); }
   function _body(html) { var b = document.getElementById('ppBody'); if (b) b.innerHTML = html; }
-  function _busy()    { _body('<div style="padding:20px;color:var(--text-3)">⏳ Memuat...</div>'); }
+  function _busy()    { _body('<div style="padding:20px;color:var(--text-3)">' + svgIcon('clock',14) + ' Memuat...</div>'); }
   function _err(e)    { _body('<div style="padding:20px;color:var(--red,#dc2626)">Gagal: ' + esc(friendlyError(e)) + '</div>'); }
 
   var TABS = [
-    { id: 'profil',    label: '👤 Profil & Jenjang' },
-    { id: 'agenda',    label: '📅 Program Pembinaan' },
-    { id: 'pelatihan', label: '🎓 Pelatihan' },
-    { id: 'rapor',     label: '📊 Mutaba\'ah & Rapor' },
-    { id: 'peer',      label: '🤝 Halaqah Pengajar' },
-    { id: 'indikator', label: '⚙️ Indikator', superOnly: true },
+    { id: 'profil',    label: svgIcon('user',12)+' Profil & Jenjang' },
+    { id: 'agenda',    label: svgIcon('calendar',12)+' Program Pembinaan' },
+    { id: 'pelatihan', label: svgIcon('graduation',12)+' Pelatihan' },
+    { id: 'rapor',     label: svgIcon('bar-chart',12)+' Mutaba\'ah & Rapor' },
+    { id: 'peer',      label: svgIcon('users',12)+' Halaqah Pengajar' },
+    { id: 'indikator', label: svgIcon('settings',12)+' Indikator', superOnly: true },
   ];
 
   // Ciri guru terbaik (4 ranah) + ruh penyemangat.
@@ -86,7 +86,7 @@
             + (on ? 'background:var(--blue,#2563eb);color:#fff' : 'background:var(--bg-2,#f1f5f9);color:var(--text-1,#334155)') + '">' + t.label + '</button>';
         }).join('')
       + '</div>'
-      + '<div style="font-size:11px;color:var(--text-3);background:var(--bg-2,#f8fafc);border-radius:8px;padding:7px 11px;margin-bottom:12px;line-height:1.5">🌱 Ini <strong>ikhtiar tumbuh bersama</strong>, bukan rapor kinerja — dahulukan apresiasi, bina dengan lembut.</div>';
+      + '<div style="font-size:11px;color:var(--text-3);background:var(--bg-2,#f8fafc);border-radius:8px;padding:7px 11px;margin-bottom:12px;line-height:1.5">' + svgIcon('sprout',13) + ' Ini <strong>ikhtiar tumbuh bersama</strong>, bukan rapor kinerja — dahulukan apresiasi, bina dengan lembut.</div>';
   }
 
   function loadPengembanganPengajar() {
@@ -130,23 +130,23 @@
           : '<span style="font-size:11px;font-weight:800;border-radius:100px;padding:2px 9px;' + (badge[jenjang] || '') + '">' + esc(jenjang) + '</span>';
         var sertBtn = '<button onclick="ppToggleSertifikasi(\'' + esc(p.id_user) + '\',\'' + sert + '\')" style="border:none;border-radius:100px;padding:2px 9px;font-size:10px;font-weight:800;cursor:pointer;'
           + (sert === 'tersertifikasi' ? 'background:#dcfce7;color:#166534' : 'background:#fef3c7;color:#92400e') + '">'
-          + (sert === 'tersertifikasi' ? '✓ tersertifikasi' : '⏳ orientasi') + '</button>';
+          + (sert === 'tersertifikasi' ? svgIcon('ok',11)+' tersertifikasi' : svgIcon('clock',11)+' orientasi') + '</button>';
         var musyrifCell = _isSuper()
-          ? ' <button onclick="ppToggleMusyrif(\'' + escJs(p.id_user) + '\',' + (p.is_musyrif ? 'true' : 'false') + ',\'' + escJs(p.nama_lengkap) + '\')" style="border:none;border-radius:100px;padding:1px 8px;font-size:10px;font-weight:800;cursor:pointer;' + (p.is_musyrif ? 'background:#ede9fe;color:#7c3aed' : 'background:var(--bg-2,#f1f5f9);color:var(--text-3)') + '">' + (p.is_musyrif ? '· Musyrif ✓' : '+ Musyrif') + '</button>'
+          ? ' <button onclick="ppToggleMusyrif(\'' + escJs(p.id_user) + '\',' + (p.is_musyrif ? 'true' : 'false') + ',\'' + escJs(p.nama_lengkap) + '\')" style="border:none;border-radius:100px;padding:1px 8px;font-size:10px;font-weight:800;cursor:pointer;' + (p.is_musyrif ? 'background:#ede9fe;color:#7c3aed' : 'background:var(--bg-2,#f1f5f9);color:var(--text-3)') + '">' + (p.is_musyrif ? '· Musyrif '+svgIcon('ok',10) : '+ Musyrif') + '</button>'
           : (p.is_musyrif ? ' <span style="font-size:10px;color:#7c3aed;font-weight:800">· Musyrif</span>' : '');
         return '<tr>'
           + '<td><strong>' + esc(p.nama_lengkap) + '</strong>' + musyrifCell + '</td>'
           + '<td>' + jenjangSel + '</td>'
           + '<td>' + sertBtn + '</td>'
           + '<td style="font-size:11px;color:var(--text-3)">' + esc(k.status_sanad || '—') + (k.hafalan_juz != null ? ' · ' + esc(k.hafalan_juz) + ' juz' : '') + '</td>'
-          + '<td><button onclick="ppEditKompetensi(\'' + esc(p.id_user) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer">✎ Edit</button></td>'
+          + '<td><button onclick="ppEditKompetensi(\'' + esc(p.id_user) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer">' + svgIcon('edit',12) + ' Edit</button></td>'
           + '</tr>';
       }).join('');
       _body('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
         + '<thead><tr style="text-align:left;color:var(--text-3);font-size:11px">'
         + '<th style="padding:8px">Pengajar</th><th>Jenjang</th><th>Sertifikasi</th><th>Sanad/Hafalan</th><th></th></tr></thead>'
         + '<tbody>' + (rows || '<tr><td colspan="5" style="padding:16px;color:var(--text-3)">Belum ada pengajar.</td></tr>') + '</tbody></table></div>'
-        + (_isSuper() ? '' : '<div style="font-size:11px;color:var(--text-3);margin-top:8px">ℹ️ Ubah jenjang hanya untuk superadmin.</div>'));
+        + (_isSuper() ? '' : '<div style="font-size:11px;color:var(--text-3);margin-top:8px">' + svgIcon('info',13) + ' Ubah jenjang hanya untuk superadmin.</div>'));
     } catch (e) { _err(e); }
   }
 
@@ -218,8 +218,8 @@
       var kebaikan = PP.agenda.filter(function(a){ return a.asal !== 'masalah'; });
       _body(
         '<button onclick="ppNewAgenda()" style="border:none;background:var(--blue,#2563eb);color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;margin-bottom:14px">+ To-do Pembinaan</button>'
-        + _agendaGroup('🩹 Dari Keresahan (yang ingin diperbaiki)', '#b45309', 'rgba(217,119,6,.07)', masalah)
-        + _agendaGroup('🌱 Dari Kebaikan (yang ingin dikejar)', '#166534', 'rgba(22,163,74,.06)', kebaikan)
+        + _agendaGroup(svgIcon('warn',12)+' Dari Keresahan (yang ingin diperbaiki)', '#b45309', 'rgba(217,119,6,.07)', masalah)
+        + _agendaGroup(svgIcon('sprout',12)+' Dari Kebaikan (yang ingin dikejar)', '#166534', 'rgba(22,163,74,.06)', kebaikan)
       );
     } catch (e) { _err(e); }
   }
@@ -240,31 +240,31 @@
   function _agendaCard(a) {
     var badFrek = { mingguan: 'Mingguan', bulanan: 'Bulanan', semesteran: 'Semesteran', tahunan: 'Tahunan', sekali: 'Sekali' };
     var jenisBadge = a.jenis
-      ? '<span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 8px;' + (a.jenis === 'belajar' ? 'background:#e0f2fe;color:#075985' : 'background:#dcfce7;color:#166534') + '">' + (a.jenis === 'belajar' ? '📖 belajar' : '🔨 praktik') + '</span>' : '';
+      ? '<span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 8px;' + (a.jenis === 'belajar' ? 'background:#e0f2fe;color:#075985' : 'background:#dcfce7;color:#166534') + '">' + (a.jenis === 'belajar' ? svgIcon('book',10)+' belajar' : svgIcon('tool',10)+' praktik') + '</span>' : '';
     var indBadge = a.indikator
       ? '<span style="font-size:10px;color:#7c3aed;font-weight:700">dinilai: ' + esc(a.indikator.nama) + (a.indikator.bobot != null ? ' ' + a.indikator.bobot + '%' : '') + '</span>' : '';
     var ranahBadge = a.ranah ? '<span style="font-size:10px;color:var(--text-3)">' + esc(_ranahLabel(a.ranah)) + '</span>' : '';
     var done = a.status === 'selesai';
     var head = '<div style="display:flex;justify-content:space-between;gap:8px;align-items:start">'
-      + '<div style="min-width:0"><div style="font-weight:800;font-size:13px' + (done ? ';text-decoration:line-through;color:var(--text-3)' : '') + '">' + esc(a.judul) + (done ? ' ✅' : '') + '</div>'
+      + '<div style="min-width:0"><div style="font-weight:800;font-size:13px' + (done ? ';text-decoration:line-through;color:var(--text-3)' : '') + '">' + esc(a.judul) + (done ? ' '+svgIcon('ok',12) : '') + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px">' + jenisBadge + ranahBadge + indBadge
       + '<span style="font-size:10px;color:var(--text-3)">· ' + (badFrek[a.frekuensi] || a.frekuensi) + (a.jadwal_teks ? ' · ' + esc(a.jadwal_teks) : '') + (a.jumlah_dilaksanakan ? ' · ' + a.jumlah_dilaksanakan + '× dilaksanakan' : '') + '</span>'
       + '</div></div></div>';
     var body = '';
     if (a.asal === 'masalah') {
       body = '<div style="font-size:11px;margin-top:6px;line-height:1.6">'
-        + (a.masalah ? '<div>🩹 <strong>Masalah:</strong> ' + esc(a.masalah) + '</div>' : '')
-        + '<div>⚡ <strong>Eksekusi:</strong> ' + esc(a.judul) + '</div>'
-        + (a.target ? '<div>🎯 <strong>Target:</strong> ' + esc(a.target) + '</div>' : '')
+        + (a.masalah ? '<div>'+svgIcon('warn',12)+' <strong>Masalah:</strong> ' + esc(a.masalah) + '</div>' : '')
+        + '<div>'+svgIcon('zap',12)+' <strong>Eksekusi:</strong> ' + esc(a.judul) + '</div>'
+        + (a.target ? '<div>'+svgIcon('target',12)+' <strong>Target:</strong> ' + esc(a.target) + '</div>' : '')
         + '</div>';
     } else if (a.target || a.deskripsi) {
       body = '<div style="font-size:11px;color:var(--text-3);margin-top:4px">' + esc(a.target || a.deskripsi) + '</div>';
     }
     var actions = '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
-      + '<button onclick="ppEditAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">✎ Edit</button>'
-      + '<button onclick="ppIngatkanAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">🔔 Ingatkan</button>'
-      + (done ? '' : '<button onclick="ppSelesaiAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:rgba(22,163,74,.1);color:#166534;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">✓ Selesai</button>')
-      + '<button onclick="ppHapusAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:none;color:#ef4444;border-radius:6px;padding:3px 6px;font-size:12px;cursor:pointer">✕</button>'
+      + '<button onclick="ppEditAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">' + svgIcon('edit',12) + ' Edit</button>'
+      + '<button onclick="ppIngatkanAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">' + svgIcon('bell',12) + ' Ingatkan</button>'
+      + (done ? '' : '<button onclick="ppSelesaiAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:rgba(22,163,74,.1);color:#166534;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer">' + svgIcon('ok',12) + ' Selesai</button>')
+      + '<button onclick="ppHapusAgenda(\'' + esc(a.id_agenda) + '\')" style="border:none;background:none;color:#ef4444;border-radius:6px;padding:3px 6px;font-size:12px;cursor:pointer">' + svgIcon('close',12) + '</button>'
       + '</div>';
     return '<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:11px;margin-bottom:8px">'
       + head + body + actions + '</div>';
@@ -280,7 +280,7 @@
     }
     var indOpts = (PP.agendaIndikator || []).map(function(i){ return { v: i.id_indikator, l: i.nama + (i.bobot != null ? ' (' + i.bobot + '%)' : '') }; });
     var ranahOpts = RANAH.map(function(r){ return { v: r.id, l: r.label }; });
-    var jenisOpts = [{ v: 'belajar', l: '📖 Belajar (ilmu)' }, { v: 'praktik', l: '🔨 Praktik (amal)' }];
+    var jenisOpts = [{ v: 'belajar', l: 'Belajar (ilmu)' }, { v: 'praktik', l: 'Praktik (amal)' }];
     var frekOpts = [{v:'mingguan',l:'Mingguan'},{v:'bulanan',l:'Bulanan'},{v:'semesteran',l:'Semesteran'},{v:'tahunan',l:'Tahunan'},{v:'sekali',l:'Sekali'}];
     // chip pustaka
     var chips = (asal === 'masalah')
@@ -289,7 +289,7 @@
     function fld(label, ctrl) { return '<div style="margin-bottom:9px"><label style="display:block;font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:3px">' + label + '</label>' + ctrl + '</div>'; }
     var inp = 'width:100%;box-sizing:border-box;font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid var(--border,#e5e7eb);background:var(--bg-1,#fff);color:inherit';
     return ''
-      + fld('Sumber to-do', '<select id="pgaAsal" onchange="ppAgendaAsalChange()" style="' + inp + '">' + optSel([{v:'masalah',l:'🩹 Keresahan (perbaiki masalah)'},{v:'kebaikan',l:'🌱 Kebaikan (kejar ciri)'}], asal) + '</select>')
+      + fld('Sumber to-do', '<select id="pgaAsal" onchange="ppAgendaAsalChange()" style="' + inp + '">' + optSel([{v:'masalah',l:'Keresahan (perbaiki masalah)'},{v:'kebaikan',l:'Kebaikan (kejar ciri)'}], asal) + '</select>')
       + '<div style="margin-bottom:9px"><div style="font-size:10px;color:var(--text-3);margin-bottom:2px">Quick-add dari pustaka:</div><div id="pgaChips" style="max-height:88px;overflow:auto">' + chips + '</div></div>'
       + '<div id="pgaMasalahWrap" style="display:' + (asal === 'masalah' ? 'block' : 'none') + '">' + fld('Masalah (keresahan)', '<textarea id="pgaMasalah" rows="2" style="' + inp + '">' + esc(a.masalah || '') + '</textarea>') + '</div>'
       + fld('Eksekusi / judul kegiatan *', '<input id="pgaJudul" style="' + inp + '" value="' + esc(a.judul || '') + '">')
@@ -390,7 +390,7 @@
           + '</div>'
           + '<div style="display:flex;gap:6px;margin-top:8px;align-items:center">'
           + '<span style="font-size:11px;color:var(--text-3)">Hadir ' + p.peserta.hadir + '/' + p.peserta.total + '</span>'
-          + '<button onclick="ppKehadiran(\'' + esc(p.id_pelatihan) + '\')" style="margin-left:auto;border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">✓ Kehadiran</button>'
+          + '<button onclick="ppKehadiran(\'' + esc(p.id_pelatihan) + '\')" style="margin-left:auto;border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">' + svgIcon('ok',12) + ' Kehadiran</button>'
           + '</div></div>';
       }).join('');
       var chips = '<div style="font-size:10px;color:var(--text-3);margin:2px 0">Template siap-pakai:</div><div style="max-height:70px;overflow:auto;margin-bottom:10px">'
@@ -477,7 +477,7 @@
     var box = document.getElementById('ppRaporBox');
     if (!box) return;
     if (!id_guru) { box.innerHTML = ''; return; }
-    box.innerHTML = '<div style="color:var(--text-3);font-size:12px">⏳ Memuat rapor...</div>';
+    box.innerHTML = '<div style="color:var(--text-3);font-size:12px">' + svgIcon('clock',13) + ' Memuat rapor...</div>';
     try {
       // Observasi (sensitif) hanya untuk superadmin — hindari error RLS di admin biasa.
       // allSettled: rapor inti WAJIB; apresiasi & observasi SEKUNDER (kegagalannya
@@ -498,11 +498,11 @@
       PP.obsCatatan = {};   // simpan catatan observasi utk tindak lanjut (hindari escaping panjang di onclick)
       // Nudge apresiasi ≥ koreksi: bila tak ada apresiasi dalam 30 hari.
       var adaApresiasiBaru = ap.some(function(a){ return a.tanggal && (Date.now() - new Date(a.tanggal).getTime()) < 30 * 86400000; });
-      var nudgeApresiasi = adaApresiasiBaru ? '' : '<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:7px 10px;margin-bottom:8px">✨ Sudah beri apresiasi bulan ini? Sekecil apa pun menguatkan.</div>';
+      var nudgeApresiasi = adaApresiasiBaru ? '' : '<div style="font-size:11px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:7px 10px;margin-bottom:8px">' + svgIcon('star',13) + ' Sudah beri apresiasi bulan ini? Sekecil apa pun menguatkan.</div>';
       var apHtml = ap.map(function(a) {
         return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px">'
-          + '<span style="flex:1">🏅 <strong>' + esc(a.jenis) + '</strong>' + (a.keterangan ? ' · ' + esc(a.keterangan) : '') + ' <span style="color:var(--text-3)">· ' + esc(a.tanggal || '') + '</span></span>'
-          + '<button onclick="ppHapusApresiasi(\'' + esc(a.id_apresiasi) + '\',\'' + esc(id_guru) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button>'
+          + '<span style="flex:1">' + svgIcon('award',12) + ' <strong>' + esc(a.jenis) + '</strong>' + (a.keterangan ? ' · ' + esc(a.keterangan) : '') + ' <span style="color:var(--text-3)">· ' + esc(a.tanggal || '') + '</span></span>'
+          + '<button onclick="ppHapusApresiasi(\'' + esc(a.id_apresiasi) + '\',\'' + esc(id_guru) + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">' + svgIcon('close',12) + '</button>'
           + '</div>';
       }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada apresiasi.</div>';
       var obsHtml = '';
@@ -512,12 +512,12 @@
           PP.obsCatatan[key] = o.catatan || o.catatan_lain || '';
           var teks = PP.obsCatatan[key];
           return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-top:1px solid var(--border,#f1f5f9)">'
-            + '<span style="flex:1;min-width:0">👁️ ' + esc((o.tanggal || '') + (teks ? ' · ' + teks : ' · (tanpa catatan)')) + '</span>'
-            + (teks ? '<button onclick="ppTindaklanjutiObservasi(\'' + esc(id_guru) + '\',\'' + key + '\')" style="border:none;background:rgba(217,119,6,.12);color:#b45309;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;cursor:pointer">→ Mutaba\'ah</button>' : '')
+            + '<span style="flex:1;min-width:0">' + svgIcon('eye',12) + ' ' + esc((o.tanggal || '') + (teks ? ' · ' + teks : ' · (tanpa catatan)')) + '</span>'
+            + (teks ? '<button onclick="ppTindaklanjutiObservasi(\'' + esc(id_guru) + '\',\'' + key + '\')" style="border:none;background:rgba(217,119,6,.12);color:#b45309;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;cursor:pointer">' + svgIcon('send',10) + ' Mutaba\'ah</button>' : '')
             + '</div>';
         }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada observasi.</div>';
         obsHtml = '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
-          + '<div style="font-size:12px;font-weight:800;margin-bottom:5px">👁️ Observasi KBM (ketua kelas)</div>'
+          + '<div style="font-size:12px;font-weight:800;margin-bottom:5px">' + svgIcon('eye',13) + ' Observasi KBM (ketua kelas)</div>'
           + obsRows + '</div>';
       }
       box.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap">'
@@ -528,9 +528,9 @@
         + _stat('Micro Teaching', r.micro_teaching || 0)
         + _stat('Mutaba\'ah Terbuka', r.mutabaah_terbuka || 0)
         + '</div>'
-        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">💡 % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport; Micro Teaching dari sesi KBM.</div>'
+        + '<div style="font-size:11px;color:var(--text-3);margin-top:8px">' + svgIcon('lightbulb',13) + ' % Kehadiran & Capaian Murid ditarik otomatis dari data absensi & raport; Micro Teaching dari sesi KBM.</div>'
         + '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">🏅 Apresiasi</span>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:800">' + svgIcon('award',13) + ' Apresiasi</span>'
         + '<button onclick="ppBeriApresiasi(\'' + esc(id_guru) + '\')" style="border:none;background:#d97706;color:#fff;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Beri Apresiasi</button></div>'
         + nudgeApresiasi + apHtml + '</div>'
         + _riwayatHtml(re)
@@ -548,18 +548,18 @@
       return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
         + esc(t.tanggal || '') + ' · ' + esc(t.surat_diuji || '-')
         + ' <span style="font-size:10px;font-weight:800;border-radius:100px;padding:1px 7px;' + badge + '">' + esc(label) + '</span>'
-        + (t.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(t.catatan) + '</div>' : '')
+        + (t.catatan ? '<div style="color:var(--text-3);font-size:10px">' + svgIcon('message',10) + ' ' + esc(t.catatan) + '</div>' : '')
         + '</div>';
     }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada tashih.</div>';
     var evalr = (re.evaluasi || []).map(function(e) {
       return '<div style="font-size:11px;padding:4px 0;border-top:1px solid var(--border,#f1f5f9)">'
         + esc(e.tanggal || '') + ' · nilai <strong>' + (e.nilai_akhir != null ? e.nilai_akhir : '—') + '</strong>'
-        + (e.catatan ? '<div style="color:var(--text-3);font-size:10px">💬 ' + esc(e.catatan) + '</div>' : '')
+        + (e.catatan ? '<div style="color:var(--text-3);font-size:10px">' + svgIcon('message',10) + ' ' + esc(e.catatan) + '</div>' : '')
         + '</div>';
     }).join('') || '<div style="font-size:11px;color:var(--text-3)">Belum ada evaluasi.</div>';
     return '<div style="border:1px dashed var(--border,#e5e7eb);border-radius:9px;padding:10px;margin-top:12px">'
-      + '<div style="font-size:12px;font-weight:800;margin-bottom:4px">🎤 Riwayat Tashih</div>' + tashih
-      + '<div style="font-size:12px;font-weight:800;margin:8px 0 4px">📊 Riwayat Evaluasi</div>' + evalr
+      + '<div style="font-size:12px;font-weight:800;margin-bottom:4px">' + svgIcon('mic',13) + ' Riwayat Tashih</div>' + tashih
+      + '<div style="font-size:12px;font-weight:800;margin:8px 0 4px">' + svgIcon('bar-chart',13) + ' Riwayat Evaluasi</div>' + evalr
       + '</div>';
   }
 
@@ -622,16 +622,16 @@
         return '<div style="border:1px solid var(--border,#e5e7eb);border-radius:11px;padding:12px;margin-bottom:8px">'
           + '<div style="display:flex;justify-content:space-between;gap:8px">'
           + '<div style="font-weight:800;font-size:13px">' + esc(k.nama_kelompok) + (k.fokus ? ' <span style="font-size:11px;font-weight:600;color:var(--text-3)">· ' + esc(k.fokus) + '</span>' : '') + '</div>'
-          + '<button onclick="ppDeleteKelompok(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:13px">✕</button>'
+          + '<button onclick="ppDeleteKelompok(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:13px">' + svgIcon('close',12) + '</button>'
           + '</div>'
-          + '<div style="font-size:11px;color:var(--text-3);margin:4px 0">' + (k.jadwal ? '🗓️ ' + esc(k.jadwal) + ' · ' : '') + 'Setoran: ' + ((pantau.kelompok || []).filter(function(x) { return x.id_kelompok === k.id_kelompok; }).map(function(x) { return x.jumlah_setoran; })[0] || 0) + '</div>'
+          + '<div style="font-size:11px;color:var(--text-3);margin:4px 0">' + (k.jadwal ? svgIcon('calendar',11) + ' ' + esc(k.jadwal) + ' · ' : '') + 'Setoran: ' + ((pantau.kelompok || []).filter(function(x) { return x.id_kelompok === k.id_kelompok; }).map(function(x) { return x.jumlah_setoran; })[0] || 0) + '</div>'
           + '<div style="font-size:11px;margin-bottom:6px">Anggota: ' + (anggota || '<span style="color:var(--text-3)">belum ada</span>') + '</div>'
           + '<button onclick="ppSetAnggota(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">Atur Anggota</button>'
-          + ' <button onclick="ppIngatkan(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">🔔 Ingatkan</button>'
+          + ' <button onclick="ppIngatkan(\'' + esc(k.id_kelompok) + '\')" style="border:none;background:rgba(37,99,235,.1);color:#2563eb;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">' + svgIcon('bell',12) + ' Ingatkan</button>'
           + '</div>';
       }).join('');
       _body('<div style="background:var(--bg-2,#f8fafc);border-radius:11px;padding:12px;margin-bottom:12px">'
-        + '<div style="font-size:12px;font-weight:800;margin-bottom:4px">🌱 Keaktifan Kolaboratif</div>'
+        + '<div style="font-size:12px;font-weight:800;margin-bottom:4px">' + svgIcon('sprout',13) + ' Keaktifan Kolaboratif</div>'
         + '<div style="font-size:12px">Total setoran pekan ini & lampau: <strong>' + (pantau.total_setoran || 0) + '</strong></div>'
         + '<div style="margin-top:6px">' + (katHtml || '<span style="font-size:11px;color:var(--text-3)">Belum ada setoran.</span>') + '</div></div>'
         + '<button onclick="ppNewKelompok()" style="border:none;background:var(--blue,#2563eb);color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;margin-bottom:12px">+ Kelompok Pengajar</button>'
@@ -710,7 +710,7 @@
           + '<td style="padding:6px"><strong>' + esc(i.nama) + '</strong></td>'
           + '<td>' + esc(String(i.bobot)) + '</td>'
           + '<td style="font-size:11px;color:' + (i.status === 'aktif' ? '#166534' : '#991b1b') + '">' + esc(i.status) + '</td>'
-          + '<td><button onclick="ppEditIndikator(\'' + esc(i.id_indikator) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✎</button></td>'
+          + '<td><button onclick="ppEditIndikator(\'' + esc(i.id_indikator) + '\')" style="border:none;background:var(--bg-2,#f1f5f9);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">' + svgIcon('edit',12) + '</button></td>'
           + '</tr>';
       }).join('');
       _body('<div style="font-size:12px;margin-bottom:8px">Total bobot aktif: <strong style="color:' + (total === 100 ? '#166534' : '#dc2626') + '">' + total + '</strong> / 100</div>'
