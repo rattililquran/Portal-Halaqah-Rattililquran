@@ -124,11 +124,6 @@ function goPage(name) {
 function openSB()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sbOverlay').classList.add('show'); }
 function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOverlay').classList.remove('show'); }
 
-function toggleSidebarCollapse() {
-  const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-  localStorage.setItem('hq_sidebar_collapsed', isCollapsed ? 'true' : 'false');
-}
-
 async function refreshPage() {
   const btn = document.getElementById('refreshBtn');
   if (btn) { btn.style.transform = 'rotate(360deg)'; btn.style.transition = 'transform 0.6s'; }
@@ -2270,7 +2265,6 @@ async function loadPushAdmin() {
     window.goPage = goPage;
     window.openSB = openSB;
     window.closeSB = closeSB;
-    window.toggleSidebarCollapse = toggleSidebarCollapse;
     window.refreshPage = refreshPage;
     window.loadDashboard = loadDashboard;
     window.loadObservasi = loadObservasi;

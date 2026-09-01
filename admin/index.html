@@ -104,9 +104,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   position:fixed;top:0;left:0;width:var(--sw);height:100dvh;
   background:#ffffff;
   border-right:1px solid var(--border);
-  border-radius:0 24px 24px 0;
+  border-radius:0;
   display:flex;flex-direction:column;z-index:100;
-  transition:transform .3s, width 0.3s cubic-bezier(.22,1,.36,1), background-color 0.3s, border-color 0.3s;
+  transition:transform .3s, background-color 0.3s, border-color 0.3s;
   overflow-x:hidden;overflow-y:auto;box-shadow:none;
   direction:rtl;
   overscroll-behavior: contain;
@@ -162,7 +162,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 }
 .nav-btn{
   display:flex;align-items:center;justify-content:flex-start !important;gap:9px;
-  width:100%;padding:7px 10px;border-radius:10px;
+  width:100%;padding:8px 10px;border-radius:var(--r-sm);
   color:var(--text);background:none;border:none;
   font-family:inherit;font-size:12.5px;font-weight:600;
   cursor:pointer;text-align:left;margin-bottom:1px;
@@ -185,7 +185,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .logout-btn{
   width:100%;padding:10px;
   background:rgba(220,38,38,0.05);color:#dc2626;
-  border:1px solid rgba(220,38,38,0.12);border-radius:12px;
+  border:1px solid rgba(220,38,38,0.12);border-radius:var(--r-sm);
   font-family:inherit;font-size:12.5px;font-weight:700;
   cursor:pointer;transition:all .2s;
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -648,10 +648,10 @@ html.theme-dark #page-spp .stat.spp-kpi:hover{border-color:rgba(255,255,255,.22)
 .skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
 
 /* Active scale micro-interaction */
-.btn, .sidebar-item, .sb-toggle-collapse, .nav-item {
+.btn, .sidebar-item, .nav-item {
   transition: transform 0.12s ease, background-color 0.2s, border-color 0.2s, box-shadow 0.2s !important;
 }
-.btn:active, .sidebar-item:active, .sb-toggle-collapse:active, .nav-item:active {
+.btn:active, .sidebar-item:active, .nav-item:active {
   transform: scale(0.96) !important;
 }
 
@@ -805,80 +805,6 @@ html.theme-dark .card,html.theme-dark .stat{
 html.theme-dark .card-head{background:#161618 !important;border-bottom-color:rgba(255,255,255,.07) !important}
 html.theme-dark .card-title{color:#f0f2f8 !important}
 html.theme-dark .btn-ghost:hover{background:rgba(255,255,255,.06)}
-/* Collapsed Sidebar Rules */
-@media(min-width:769px) {
-  body.sidebar-collapsed {
-    --sw: 78px !important;
-  }
-  body.sidebar-collapsed .sidebar {
-    border-radius: 0 16px 16px 0;
-  }
-  body.sidebar-collapsed .sb-profile-row {
-    justify-content: center;
-  }
-  body.sidebar-collapsed .sb-avatar {
-    width: 40px;
-    height: 40px;
-  }
-  body.sidebar-collapsed .sb-info,
-  body.sidebar-collapsed .sb-sec,
-  body.sidebar-collapsed .logout-btn span {
-    display: none !important;
-  }
-  body.sidebar-collapsed .logout-btn {
-    padding: 10px 0;
-    width: 44px;
-    margin: 0 auto;
-  }
-  body.sidebar-collapsed .nav-btn {
-    font-size: 0 !important;
-    padding: 10px 10px;
-    justify-content: center;
-  }
-  body.sidebar-collapsed .nav-btn .ni {
-    margin: 0 !important;
-  }
-}
-
-/* Toggle Collapse Button style */
-.sb-toggle-collapse {
-  display: none;
-}
-@media(min-width:769px) {
-  .sb-toggle-collapse {
-    display: flex;
-    position: fixed;
-    bottom: 24px;
-    left: calc(var(--sw) - 16px);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #fff;
-    border: 1px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 110;
-    transition: left 0.3s cubic-bezier(.22,1,.36,1), transform 0.2s, background-color 0.2s, border-color 0.2s;
-    color: #0ea5e9;
-  }
-  .sb-toggle-collapse:hover {
-    transform: scale(1.1);
-    background: #eff6ff;
-    border-color: #0ea5e9;
-  }
-  .sb-toggle-collapse svg {
-    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
-  }
-  body.sidebar-collapsed .sb-toggle-collapse {
-    left: 62px !important;
-  }
-  body.sidebar-collapsed .sb-toggle-collapse svg {
-    transform: rotate(180deg);
-  }
-}
-
 html.theme-dark .card:hover,html.theme-dark .stat:hover{
   box-shadow:0 16px 36px var(--stat-shadow, rgba(0,0,0,.45)) !important;
   border-color:var(--stat-border-hover, rgba(255,255,255,.15)) !important;
@@ -923,16 +849,6 @@ html.theme-dark .nav-btn.active .ni{color:#38bdf8 !important}
 html.theme-dark .sb-foot{border-top-color:rgba(255,255,255,.06) !important}
 html.theme-dark .logout-btn{background:rgba(248,113,113,.06) !important;color:#f87171 !important;border-color:rgba(248,113,113,.15) !important}
 html.theme-dark .logout-btn:hover{background:rgba(248,113,113,.1) !important;border-color:rgba(248,113,113,0.3) !important}
-html.theme-dark .sb-toggle-collapse {
-  background: #121214 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #38bdf8 !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-}
-html.theme-dark .sb-toggle-collapse:hover {
-  background: rgba(56, 189, 248, 0.1) !important;
-  border-color: #38bdf8 !important;
-}
 /* Topbar */
 html.theme-dark .topbar{background:#0a0a0c !important;backdrop-filter:none !important;border-bottom-color:rgba(255,255,255,.07) !important}
 html.theme-dark .topbar-title{color:#f0f2f8 !important}
@@ -1476,11 +1392,6 @@ html.theme-dark .fin-detail-card {
   <span class="offline-banner-text">Koneksi internet terputus. Anda sedang bekerja secara offline.</span>
 </div>
 
-<script>
-  if (localStorage.getItem('hq_sidebar_collapsed') === 'true' && window.innerWidth > 768) {
-    document.body.classList.add('sidebar-collapsed');
-  }
-</script>
 
 <div class="loader" id="loader">
   <div class="loader-inner">
@@ -1593,10 +1504,6 @@ html.theme-dark .fin-detail-card {
     </div>
   </aside>
 
-  <!-- Collapse Button (Desktop only) -->
-  <button class="sb-toggle-collapse" onclick="toggleSidebarCollapse()" aria-label="Toggle Sidebar" title="Collapse/Expand Sidebar">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-  </button>
 
   <div class="main">
     <div class="topbar">
@@ -4621,7 +4528,7 @@ html.theme-dark .fin-detail-card {
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=e55f4b6f" defer></script>
+<script src="guru-module.js?v=d1e3c00d" defer></script>
 <script src="murid-module.js?v=009a432e" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
 <script src="spp-keuangan-module.js?v=05ad959e" defer></script>
