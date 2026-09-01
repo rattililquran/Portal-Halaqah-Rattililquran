@@ -127,8 +127,93 @@ function loadMoreSPP() {
   filterSPPTable(true); // true = pertahankan limit saat ini, jangan reset ke 50
 }
 
+// ── Nilai filter periode & tahun halaman SPP ──
+function _sppPeriodeVal() { var el = document.getElementById('sppFilterPeriode'); return el ? el.value : ''; }
+function _sppTahunVal()   { var el = document.getElementById('sppFilterTahun');   return el ? el.value : String(new Date().getFullYear()); }
+var _sppTab = localStorage.getItem('hq_spp_tab') || 'spp';
+
+// Isi dropdown periode halaman SPP (dipanggil saat masuk halaman).
+function populateSPPPeriodeFilter() {
+  var sel = document.getElementById('sppFilterPeriode');
+  if (!sel) return;
+  var saved = localStorage.getItem('hq_spp_periode') || '';
+  var opts = '<option value="">Seluruh Periode</option>';
+  (typeof allPeriode !== 'undefined' ? allPeriode : []).forEach(function(p) {
+    var lbl = p.nama_periode + (p.status === 'aktif' ? ' (Aktif)' : '');
+    opts += '<option value="' + esc(p.id_periode) + '">' + esc(lbl) + '</option>';
+  });
+  opts += '<option value="__tanpa__">— Tanpa Periode —</option>';
+  sel.innerHTML = opts;
+  if (saved && sel.querySelector('option[value="' + (window.CSS && CSS.escape ? CSS.escape(saved) : saved) + '"]')) sel.value = saved;
+  // Sinkronkan tahun tersimpan
+  var savedTh = localStorage.getItem('hq_spp_tahun');
+  var thSel = document.getElementById('sppFilterTahun');
+  if (thSel && savedTh && thSel.querySelector('option[value="' + savedTh + '"]')) thSel.value = savedTh;
+  _syncSPPTahunEnabled();
+}
+
+// Saat periode spesifik dipilih → tahun jadi "Semua Tahun" & di-disable
+// (periode punya rentang tanggalnya sendiri). "Seluruh Periode" → tahun aktif kembali.
+function _syncSPPTahunEnabled() {
+  var per = _sppPeriodeVal();
+  var thSel = document.getElementById('sppFilterTahun');
+  if (!thSel) return;
+  if (per && per !== '__tanpa__') {
+    thSel.dataset.prev = thSel.value;
+    thSel.value = 'semua';
+    thSel.disabled = true;
+    thSel.style.opacity = '0.55';
+  } else {
+    thSel.disabled = false;
+    thSel.style.opacity = '';
+    if (thSel.value === 'semua' && thSel.dataset.prev) thSel.value = thSel.dataset.prev;
+  }
+}
+
+function onSPPPeriodeChange() {
+  localStorage.setItem('hq_spp_periode', _sppPeriodeVal());
+  _syncSPPTahunEnabled();
+  localStorage.setItem('hq_spp_tahun', _sppTahunVal());
+  loadSPPAdmin();
+}
+function onSPPTahunChange() {
+  localStorage.setItem('hq_spp_tahun', _sppTahunVal());
+  loadSPPAdmin();
+}
+function sppLihatTanpaPeriode() {
+  var sel = document.getElementById('sppFilterPeriode');
+  if (sel) { sel.value = '__tanpa__'; }
+  onSPPPeriodeChange();
+}
+
+// Ganti tab SPP / Infaq / Kas & Ihsan.
+//  silent=true → hanya sinkronkan tampilan (dipanggil dari loadSPPAdmin), tak reload.
+function switchSPPTab(tab, silent) {
+  if (['spp','infaq','kas'].indexOf(tab) < 0) tab = 'spp';
+  _sppTab = tab;
+  localStorage.setItem('hq_spp_tab', tab);
+  document.querySelectorAll('.tab-btn[data-spptab]').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-spptab') === tab);
+  });
+  document.querySelectorAll('#page-spp [data-spptab]').forEach(function(el) {
+    if (el.classList.contains('tab-btn')) return;
+    el.style.display = (el.getAttribute('data-spptab') === tab) ? '' : 'none';
+  });
+  // Jenis tabel Rekap mengikuti tab
+  var jenis = tab === 'infaq' ? 'infaq' : (tab === 'kas' ? 'ihsan' : 'spp');
+  var jenisEl = document.getElementById('sppFilterJenis');
+  if (jenisEl) jenisEl.value = jenis;
+  // Kontrol yang cuma relevan utk tab SPP
+  var statusEl = document.getElementById('sppFilterStatus');
+  var btnSalin = document.getElementById('btnSalinTagihan');
+  if (statusEl) statusEl.style.display = (tab === 'spp') ? '' : 'none';
+  if (btnSalin) btnSalin.style.display = (tab === 'spp') ? '' : 'none';
+  if (!silent) filterSPPTable();
+}
+
 async function loadSPPAdmin() {
-  var tahun     = document.getElementById('sppFilterTahun').value;
+  var periode   = _sppPeriodeVal();          // '' | '<id>' | '__tanpa__'
+  var tahun     = _sppTahunVal();            // 'semua' | 'NNNN'
   var idHalaqah = document.getElementById('sppFilterHalaqah').value;
   showLoad('Memuat data SPP...');
   try {
@@ -194,7 +279,9 @@ async function loadSPPAdmin() {
 
     // ── Load rekap (independent) ──
     try {
-      var rekapRes = await window.HQ.AdminAPI.getSPPRekap({ tahun, id_halaqah: idHalaqah||undefined });
+      var rekapRes = await window.HQ.AdminAPI.getSPPRekap({
+        tahun: tahun, id_periode: periode || undefined, id_halaqah: idHalaqah||undefined
+      });
       var rekap = rekapRes.data || {};
       _sppRekapData = rekap.murid_list || [];
       _sppInfaqData = rekap.infaq_list || [];
@@ -217,26 +304,44 @@ async function loadSPPAdmin() {
       document.getElementById('sppStatTotalSub').innerHTML = 'Gateway: Rp ' + (rekap.spp_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.spp_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_manual_count||0) + 'x)';
       document.getElementById('sppStatInfaq').textContent   = 'Rp ' + (rekap.total_infaq||0).toLocaleString('id-ID');
       document.getElementById('sppStatInfaqSub').innerHTML = 'Gateway: Rp ' + (rekap.infaq_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.infaq_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.infaq_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.infaq_manual_count||0) + 'x)';
-      document.getElementById('sppStatMasuk').textContent   = 'Rp ' + (rekap.total_masuk||0).toLocaleString('id-ID');
-      document.getElementById('sppStatMasukSub').innerHTML = 'Gateway: Rp ' + (rekap.total_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.total_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.total_manual_count||0) + 'x)';
 
-      // Ihsan Guru & Saldo Net
-      document.getElementById('sppStatIhsan').textContent = 'Rp ' + (rekap.total_ihsan||0).toLocaleString('id-ID');
-      var netVal = rekap.total_net || 0;
+      // ── Kartu tab "Kas & Ihsan" — dari keuangan (satu sumber kebenaran) ──
+      var keu = rekap.keuangan || { pemasukan:{total:0}, pengeluaran:{ihsan:0,operasional:0,total:0}, saldo:0 };
+      var _rp = function(n){ return 'Rp ' + Math.round(Number(n)||0).toLocaleString('id-ID'); };
+      var _rpSigned = function(n){ n = Math.round(Number(n)||0); return (n<0 ? '−Rp '+Math.abs(n).toLocaleString('id-ID') : 'Rp '+n.toLocaleString('id-ID')); };
+      document.getElementById('sppStatMasuk').textContent   = _rp(keu.pemasukan.total);
+      document.getElementById('sppStatMasukSub').innerHTML  = 'SPP ' + _rp(keu.pemasukan.spp) + ' · Infaq ' + _rp(keu.pemasukan.infaq) + (keu.pemasukan.kas_lain ? ' · Kas ' + _rp(keu.pemasukan.kas_lain) : '');
+      document.getElementById('sppStatIhsan').textContent   = _rp(keu.pengeluaran.ihsan);
+      document.getElementById('sppStatIhsanSub').innerHTML  = 'Pengeluaran total ' + _rp(keu.pengeluaran.total) + (keu.pengeluaran.operasional ? ' (Operasional ' + _rp(keu.pengeluaran.operasional) + ')' : '');
       var netEl = document.getElementById('sppStatNet');
-      if (netVal < 0) {
-        netEl.style.color = 'var(--red-txt)';
-        netEl.textContent = '−Rp ' + Math.abs(netVal).toLocaleString('id-ID');
-      } else {
-        netEl.style.color = 'var(--green-txt)';
-        netEl.textContent = 'Rp ' + netVal.toLocaleString('id-ID');
-      }
+      netEl.textContent = _rpSigned(keu.saldo);
+      netEl.style.color = (keu.saldo < 0) ? 'var(--red-txt)' : 'var(--green-txt)';
+      document.getElementById('sppStatNetSub').textContent = 'Pemasukan − Pengeluaran';
 
       // Ember ketiga + kartu Kas Beasiswa
       document.getElementById('sppStatBeasiswa').textContent = rekap.beasiswa_count || 0;
+
+      // ── Label scope + badge "Tanpa Periode" ──
+      var scopeEl = document.getElementById('sppScopeLabel');
+      if (scopeEl) {
+        var tScope = (tahun === 'semua') ? 'semua tahun' : 'tahun ' + tahun;
+        scopeEl.textContent = rekap.periode_nama
+          ? (rekap.mode === 'tanpa_periode' ? 'Transaksi belum berperiode · ' + tScope
+             : 'Periode: ' + rekap.periode_nama + (rekap.periode_range && rekap.periode_range.mulai ? ' (' + rekap.periode_range.mulai + ' – ' + rekap.periode_range.selesai + ')' : ''))
+          : 'Semua periode · ' + tScope;
+      }
+      var tpBadge = document.getElementById('sppTanpaPeriodeBadge');
+      if (tpBadge) {
+        var tpN = rekap.tanpa_periode_count || 0;
+        if (tpN > 0 && periode !== '__tanpa__') {
+          tpBadge.style.display = ''; tpBadge.textContent = '⚠ ' + tpN + ' transaksi tanpa periode';
+        } else { tpBadge.style.display = 'none'; }
+      }
+
       loadKasBeasiswa(rekap);
       loadArusKas();
 
+      switchSPPTab(_sppTab, true);
       filterSPPTable();
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
@@ -293,7 +398,8 @@ function renderKasOperasionalList(items) {
 
 async function loadKasBeasiswa(rekapPrefetch) {
   ensureKasBulanOptions();
-  var tahun = Number(document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value || new Date().getFullYear());
+  var _thRaw = (document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || '';
+  var tahun = (_thRaw && _thRaw !== 'semua') ? Number(_thRaw) : new Date().getFullYear();
   var idHalaqah = (document.getElementById('sppFilterHalaqah') && document.getElementById('sppFilterHalaqah').value) || '';
   var bulan = document.getElementById('kasBeasiswaBulan').value;
   try {
@@ -497,17 +603,29 @@ function renderArusKasRiwayat(rows) {
 async function loadArusKas() {
   ensureArusKasBulanOptions();
   if (!document.getElementById('arusKasBulanStart')) return;
-  var tahun = Number((document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || new Date().getFullYear());
+  var periode = (typeof _sppPeriodeVal === 'function') ? _sppPeriodeVal() : '';
+  var thRaw = (document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || String(new Date().getFullYear());
+  var tahun = thRaw === 'semua' ? new Date().getFullYear() : Number(thRaw);
   var bulanStart = document.getElementById('arusKasBulanStart').value;
   var bulanEnd   = document.getElementById('arusKasBulanEnd').value;
+  // Mode periode → pemilih bulan Dari/s/d tak relevan (getArusKas ikut rentang periode)
+  var perMode = !!(periode && periode !== '__tanpa__');
+  ['arusKasBulanStart','arusKasBulanEnd'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.disabled = perMode; el.style.opacity = perMode ? '0.5' : ''; }
+  });
   try {
-    var res = await window.HQ.AdminAPI.getArusKas({ tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd });
+    var arg = periode
+      ? { id_periode: periode }
+      : { tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd };
+    var res = await window.HQ.AdminAPI.getArusKas(arg);
     var d = res.data || {};
     _arusKasRows = d.riwayat || [];
     var lbl = document.getElementById('arusKasPeriodeLabel');
     if (lbl) {
-      var bs = d.bulan_start || bulanStart, be = d.bulan_end || bulanEnd;
-      lbl.textContent = (bs === be ? bs : bs + '–' + be) + ' ' + (d.tahun || tahun);
+      lbl.textContent = d.periode_nama
+        ? d.periode_nama
+        : ((d.bulan_start === d.bulan_end ? d.bulan_start : d.bulan_start + '–' + d.bulan_end) + ' ' + (d.tahun || tahun));
     }
     var fmt = function(n){ return 'Rp ' + (Number(n)||0).toLocaleString('id-ID'); };
     document.getElementById('arusKasMasuk').textContent  = fmt(d.total_masuk);
@@ -968,6 +1086,11 @@ function _csvSafe(val) {
 function eksporSPP() {
   var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
   var tahun = document.getElementById('sppFilterTahun').value;
+  var _perSel = document.getElementById('sppFilterPeriode');
+  var perLabel = _perSel && _perSel.value
+    ? (_perSel.value === '__tanpa__' ? 'TanpaPeriode' : (_perSel.options[_perSel.selectedIndex].text || _perSel.value).replace(/[^A-Za-z0-9]+/g,'-'))
+    : 'SemuaPeriode';
+  tahun = perLabel + '_' + tahun;
   var halaqahVal = document.getElementById('sppFilterHalaqah').value || 'Semua-Halaqah';
   var bulanVal = document.getElementById('sppFilterBulan').value || 'Semua-Bulan';
 
@@ -1580,6 +1703,11 @@ async function doKirimPengumuman() {
     window.hapusMetode = hapusMetode;
     window.simpanMetode = simpanMetode;
     window.loadSPPAdmin = loadSPPAdmin;
+    window.switchSPPTab = switchSPPTab;
+    window.onSPPPeriodeChange = onSPPPeriodeChange;
+    window.onSPPTahunChange = onSPPTahunChange;
+    window.sppLihatTanpaPeriode = sppLihatTanpaPeriode;
+    window.populateSPPPeriodeFilter = populateSPPPeriodeFilter;
     window.ensureKasBulanOptions = ensureKasBulanOptions;
     window.renderKasRingkasan = renderKasRingkasan;
     window.renderKasOperasionalList = renderKasOperasionalList;

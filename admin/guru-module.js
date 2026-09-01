@@ -98,7 +98,7 @@ function goPage(name) {
     laporan   : loadLaporan,
     absensi   : () => { populateSel('absensiHalaqahSel', allHalaqah, true); loadAbsensi(); },
     'absensi-guru' : loadAbsensiGuru,
-    spp       : function(){ loadMetodeBayarAdmin(); loadSPPAdmin(); },
+    spp       : function(){ if (window.populateSPPPeriodeFilter) window.populateSPPPeriodeFilter(); loadMetodeBayarAdmin(); loadSPPAdmin(); },
     pengumuman: loadPengumuman,
     observasi : loadObservasi,
     kepatuhan : loadKepatuhan,

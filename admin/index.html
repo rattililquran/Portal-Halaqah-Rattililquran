@@ -2180,10 +2180,28 @@ html.theme-dark .fin-detail-card {
           </div>
         </div>
 
+        <!-- ── Filter Periode / Tahun ── -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+          <select id="sppFilterPeriode" class="fc" style="width:auto;font-weight:700;font-size:12.5px;padding:7px 12px" onchange="onSPPPeriodeChange()"></select>
+          <select id="sppFilterTahun" class="fc" style="width:auto;font-size:12.5px;padding:7px 12px" onchange="onSPPTahunChange()">
+            <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+            <option value="semua">Semua Tahun</option>
+          </select>
+          <span id="sppScopeLabel" style="font-size:11.5px;color:var(--text-3);white-space:nowrap"></span>
+          <button type="button" id="sppTanpaPeriodeBadge" onclick="sppLihatTanpaPeriode()" style="display:none;margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:100px;background:var(--amber-bg);color:var(--amber-txt);border:1px solid rgba(251,191,36,.35);cursor:pointer"></button>
+        </div>
+
+        <!-- ── Tab: SPP / Infaq / Kas & Ihsan ── -->
+        <div class="tab-bar" style="margin-bottom:18px">
+          <button class="tab-btn active" data-spptab="spp" onclick="switchSPPTab('spp')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> SPP</button>
+          <button class="tab-btn" data-spptab="infaq" onclick="switchSPPTab('infaq')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Infaq</button>
+          <button class="tab-btn" data-spptab="kas" onclick="switchSPPTab('kas')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Kas &amp; Ihsan</button>
+        </div>
+
         <!-- ── Stats ── -->
-        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px">
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,200px));gap:12px;margin-bottom:24px">
           <!-- Lunas -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#10b981,#34d399); --stat-shadow:rgba(16,185,129,0.15); --stat-border-hover:rgba(16,185,129,0.3); --stat-bg-tint:rgba(16,185,129,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#10b981,#34d399); --stat-shadow:rgba(16,185,129,0.15); --stat-border-hover:rgba(16,185,129,0.3); --stat-bg-tint:rgba(16,185,129,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Lunas</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/></svg></span>
@@ -2194,7 +2212,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Menunggak -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#ef4444,#f87171); --stat-shadow:rgba(239,68,68,0.15); --stat-border-hover:rgba(239,68,68,0.3); --stat-bg-tint:rgba(239,68,68,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#ef4444,#f87171); --stat-shadow:rgba(239,68,68,0.15); --stat-border-hover:rgba(239,68,68,0.3); --stat-bg-tint:rgba(239,68,68,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Menunggak</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
@@ -2205,7 +2223,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Total SPP -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#3b82f6,#60a5fa); --stat-shadow:rgba(59,130,246,0.15); --stat-border-hover:rgba(59,130,246,0.3); --stat-bg-tint:rgba(59,130,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#3b82f6,#60a5fa); --stat-shadow:rgba(59,130,246,0.15); --stat-border-hover:rgba(59,130,246,0.3); --stat-bg-tint:rgba(59,130,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total SPP</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
@@ -2216,7 +2234,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Total Infaq -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#f59e0b,#fbbf24); --stat-shadow:rgba(245,158,11,0.15); --stat-border-hover:rgba(245,158,11,0.3); --stat-bg-tint:rgba(245,158,11,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="infaq" style="--stat-grad:linear-gradient(90deg,#f59e0b,#fbbf24); --stat-shadow:rgba(245,158,11,0.15); --stat-border-hover:rgba(245,158,11,0.3); --stat-bg-tint:rgba(245,158,11,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Infaq</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(245,158,11,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
@@ -2227,9 +2245,9 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Total Masuk -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#8b5cf6,#a78bfa); --stat-shadow:rgba(139,92,246,0.15); --stat-border-hover:rgba(139,92,246,0.3); --stat-bg-tint:rgba(139,92,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#8b5cf6,#a78bfa); --stat-shadow:rgba(139,92,246,0.15); --stat-border-hover:rgba(139,92,246,0.3); --stat-bg-tint:rgba(139,92,246,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Masuk</span>
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Pemasukan</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             </div>
             <div>
@@ -2238,7 +2256,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Total Ihsan Guru -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#f43f5e,#fb7185); --stat-shadow:rgba(244,63,94,0.15); --stat-border-hover:rgba(244,63,94,0.3); --stat-bg-tint:rgba(244,63,94,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#f43f5e,#fb7185); --stat-shadow:rgba(244,63,94,0.15); --stat-border-hover:rgba(244,63,94,0.3); --stat-bg-tint:rgba(244,63,94,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Total Ihsan Guru</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(244,63,94,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
@@ -2249,9 +2267,9 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Sisa Kas (Net) -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#059669,#34d399); --stat-shadow:rgba(5,150,105,0.15); --stat-border-hover:rgba(5,150,105,0.3); --stat-bg-tint:rgba(5,150,105,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="kas" style="--stat-grad:linear-gradient(90deg,#059669,#34d399); --stat-shadow:rgba(5,150,105,0.15); --stat-border-hover:rgba(5,150,105,0.3); --stat-bg-tint:rgba(5,150,105,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Sisa Kas (Net)</span>
+              <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Saldo</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(5,150,105,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l-3 6a4 4 0 0 0 8 0L5 7"/><path d="M19 7l-3 6a4 4 0 0 0 8 0l-3-6"/><path d="M5 7h14M3 21h18"/></svg></span>
             </div>
             <div>
@@ -2260,7 +2278,7 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <!-- Beasiswa -->
-          <div class="stat" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
+          <div class="stat" data-spptab="spp" style="--stat-grad:linear-gradient(90deg,#0ea5e9,#38bdf8); --stat-shadow:rgba(14,165,233,0.15); --stat-border-hover:rgba(14,165,233,0.3); --stat-bg-tint:rgba(14,165,233,0.03); display:flex; flex-direction:column; justify-content:space-between; text-align:left; padding:18px 16px; min-height:125px">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
               <span style="font-size:10.5px; font-weight:700; color:var(--text-2, #64748b); text-transform:uppercase; letter-spacing:0.8px">Beasiswa</span>
               <span style="font-size:15px; width:26px; height:26px; border-radius:50%; background:rgba(14,165,233,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
@@ -2273,7 +2291,7 @@ html.theme-dark .fin-detail-card {
         </div>
 
         <!-- ── Kas Beasiswa & Operasional ── -->
-        <div class="card" style="padding:16px 20px;margin-bottom:20px">
+        <div class="card" data-spptab="kas" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Kas Beasiswa &amp; Operasional</div>
@@ -2307,7 +2325,7 @@ html.theme-dark .fin-detail-card {
         </div>
 
         <!-- ── Buku Kas (Arus Kas) ── -->
-        <div class="card" style="padding:16px 20px;margin-bottom:20px">
+        <div class="card" data-spptab="kas" style="padding:16px 20px;margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
             <div>
               <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Buku Kas (Arus Kas)</div>
@@ -2393,20 +2411,13 @@ html.theme-dark .fin-detail-card {
             </div>
             <!-- Filter -->
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <select id="sppFilterJenis" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="filterSPPTable()">
-                <option value="spp">SPP Pribadi</option>
-                <option value="infaq">Infaq/Operasional</option>
-                <option value="ihsan">Ihsan Guru</option>
-              </select>
+              <input type="hidden" id="sppFilterJenis" value="spp">
               <input type="text" id="sppSearchInput" class="fc" style="width:140px;font-size:12px;padding:6px 10px" placeholder="Cari nama/NIS..." oninput="filterSPPTableDebounced()">
               <select id="sppFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
                 <option value="">Semua Status</option>
                 <option value="lunas">Lunas</option>
                 <option value="menunggak">Menunggak</option>
                 <option value="tunggakan_berat">Tunggakan ≥ 3 Bulan</option>
-              </select>
-              <select id="sppFilterTahun" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="loadSPPAdmin()">
-                <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
               </select>
               <select id="sppFilterHalaqah" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="loadSPPAdmin()">
                 <option value="">Semua Halaqah</option>
@@ -4395,15 +4406,15 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=9dd92985"></script>
+<script src="../supabase/api-staff.js?v=abde1e3f"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=ab2cfc2d" defer></script>
+<script src="guru-module.js?v=290d8aa2" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=31a31be5" defer></script>
+<script src="spp-keuangan-module.js?v=5b66a9c3" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>
