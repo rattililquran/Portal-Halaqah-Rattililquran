@@ -235,6 +235,30 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
 .card-body{padding:18px}
 
+/* PCARD — kartu seragam yang bisa diciutkan (halaman SPP & Infaq) */
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.pcard-head{width:100%;box-sizing:border-box;display:flex;align-items:center;gap:11px;
+  padding:13px 16px;background:none;border:none;cursor:pointer;font-family:inherit;
+  text-align:left;color:var(--text);white-space:normal;-webkit-appearance:none;appearance:none;
+  transition:background .12s}
+.pcard-head:hover{background:var(--bg-2)}
+.pcard-head:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.pcard-ico{width:15px;height:15px;flex-shrink:0;color:var(--text-3)}
+.pcard-tt{flex:1;min-width:0;display:block}
+.pcard-title{font-size:13px;font-weight:800;line-height:1.3;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--text)}
+.pcard-sub{display:block;font-size:11px;color:var(--text-3);margin-top:2px;font-weight:500;line-height:1.4}
+.pcard-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
+  padding:0 6px;border-radius:100px;background:var(--amber-bg);color:var(--amber-txt);
+  font-size:10.5px;font-weight:800;border:1px solid rgba(180,83,9,.22)}
+.pcard-chev{width:16px;height:16px;flex-shrink:0;color:var(--text-3);transition:transform .2s}
+.pcard[data-collapsed] .pcard-chev{transform:rotate(-90deg)}
+.pcard[data-collapsed] .pcard-body{display:none}
+.pcard-body{border-top:1px solid var(--border);padding:16px}
+.pcard-body.p0{padding:0}
+html.theme-dark .pcard{box-shadow:0 2px 8px rgba(0,0,0,.3)}
+html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
+
 /* TABLE */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
@@ -2295,16 +2319,19 @@ html.theme-dark .fin-detail-card {
         </div>
 
         <!-- ── Kas Beasiswa & Operasional ── -->
-        <div class="card" data-spptab="kas" style="padding:16px 20px;margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Kas Beasiswa &amp; Operasional</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Sisa infaq (setelah operasional) dibagi rata ke guru pengajar murid beasiswa</div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <select id="kasBeasiswaBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadKasBeasiswa()"></select>
-              <button class="btn btn-primary btn-sm" onclick="bukaFormOperasional()" style="font-size:12px;padding:6px 12px">+ Tambah Operasional</button>
-            </div>
+        <section class="pcard" data-collapsed id="sppKasBeasiswaCard" data-spptab="kas">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Kas Beasiswa &amp; Operasional</span>
+              <span class="pcard-sub">Sisa infaq (setelah operasional) dibagi rata ke guru pengajar murid beasiswa</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="pcard-body">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+            <select id="kasBeasiswaBulan" class="fc" style="width:auto;font-size:12px;padding:6px 10px;font-weight:700" onchange="loadKasBeasiswa()"></select>
+            <button class="btn btn-primary btn-sm" onclick="bukaFormOperasional()" style="font-size:12px;padding:6px 12px">+ Tambah Operasional</button>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
             <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.18);border-radius:10px;padding:10px 12px">
@@ -2326,16 +2353,21 @@ html.theme-dark .fin-detail-card {
             </div>
           </div>
           <div id="kasOperasionalList" style="display:flex;flex-direction:column;gap:6px"></div>
-        </div>
+          </div><!-- /pcard-body -->
+        </section>
 
         <!-- ── Buku Kas (Arus Kas) ── -->
-        <div class="card" data-spptab="kas" style="padding:16px 20px;margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Buku Kas (Arus Kas)</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Pemasukan &amp; pengeluaran kas. Ihsan Guru dihitung sebagai pengeluaran (honor), bukan pemasukan.</div>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <section class="pcard" data-collapsed id="sppArusKasCard" data-spptab="kas">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Buku Kas (Arus Kas)</span>
+              <span class="pcard-sub">Pemasukan &amp; pengeluaran kas. Ihsan Guru dihitung sebagai pengeluaran (honor), bukan pemasukan.</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="pcard-body">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
               <button type="button" class="btn btn-outline btn-sm" onclick="arusKasPreset('bulan')" style="font-size:11px;padding:6px 10px">Bulan Ini</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="arusKasPreset('tahun')" style="font-size:11px;padding:6px 10px">Setahun</button>
               <span style="font-size:11px;color:var(--text-3);font-weight:700">Dari</span>
@@ -2345,7 +2377,6 @@ html.theme-dark .fin-detail-card {
               <button type="button" class="btn btn-outline btn-sm" onclick="bukaKelolaKategori()" style="font-size:11px;padding:6px 10px" title="Kelola kategori kas"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Kategori</button>
               <button class="btn btn-primary btn-sm" onclick="bukaFormKas()" style="font-size:12px;padding:6px 12px">+ Catat Transaksi</button>
             </div>
-          </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
             <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:10px;padding:10px 12px">
               <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Total Masuk</div>
@@ -2372,45 +2403,71 @@ html.theme-dark .fin-detail-card {
           </div>
           <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Riwayat Transaksi <span id="arusKasPeriodeLabel" style="color:var(--text-3);font-weight:700"></span></div>
           <div id="arusKasRiwayat" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
-        </div>
+          </div><!-- /pcard-body -->
+        </section>
 
         <!-- ── Panel Rekonsiliasi (mode Seluruh Periode) ── -->
-        <div class="card" data-spptab="kas" id="sppRekonsiliasiCard" style="padding:16px 20px;margin-bottom:20px;display:none">
-          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Rekonsiliasi Periode <span id="sppRekonTahun" style="color:var(--text-3);font-weight:700"></span></div>
-          <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">✓ = <b>(Σ per periode + Tanpa Periode)</b> cocok dgn <b>Total di kartu</b> (angka yang Anda baca). ✗ = ada selisih — baris menunjuk periode terhapus, atau dua jalur hitung tak sepakat. Perlu diperiksa.</div>
-          <div class="tbl-wrap"><table class="premium-table" style="font-size:12px"><thead><tr>
-            <th>Metrik</th><th class="align-right">Σ per Periode</th><th class="align-right">Tanpa Periode</th><th class="align-right">Total (kartu)</th><th class="align-center">Cocok?</th>
-          </tr></thead><tbody id="sppRekonBody"><tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">—</td></tr></tbody></table></div>
-        </div>
+        <section class="pcard" data-collapsed id="sppRekonsiliasiCard" data-spptab="kas" style="display:none">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Rekonsiliasi Periode <span id="sppRekonTahun" style="color:var(--text-3);font-weight:600;font-size:11px"></span></span>
+              <span class="pcard-sub">Buktikan Σ per periode + Tanpa Periode = Total di kartu</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="pcard-body">
+            <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">✓ = <b>(Σ per periode + Tanpa Periode)</b> cocok dgn <b>Total di kartu</b> (angka yang Anda baca). ✗ = ada selisih — baris menunjuk periode terhapus, atau dua jalur hitung tak sepakat. Perlu diperiksa.</div>
+            <div class="tbl-wrap"><table class="premium-table" style="font-size:12px"><thead><tr>
+              <th>Metrik</th><th class="align-right">Σ per Periode</th><th class="align-right">Tanpa Periode</th><th class="align-right">Total (kartu)</th><th class="align-center">Cocok?</th>
+            </tr></thead><tbody id="sppRekonBody"><tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">—</td></tr></tbody></table></div>
+          </div><!-- /pcard-body -->
+        </section>
 
-        <!-- ── Pending Validasi ── -->
-        <div id="sppPendingSection" style="display:none;margin-bottom:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px;background:var(--amber-bg);border:1px solid rgba(251,191,36,0.25);border-radius:10px">
-            <span style="font-size:16px;display:inline-flex"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--amber-txt)">Menunggu Validasi</div>
-              <div style="font-size:11px;color:var(--amber-txt)">Periksa bukti transfer sebelum konfirmasi</div>
-            </div>
+        <!-- ── Menunggu Validasi ── -->
+        <section class="pcard" data-collapsed id="sppPendingSection" style="display:none">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Menunggu Validasi <span class="pcard-badge" id="sppPendingBadge">0</span></span>
+              <span class="pcard-sub">Periksa bukti transfer sebelum konfirmasi</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="pcard-body">
+            <div id="sppPendingList" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
-          <div id="sppPendingList" style="display:flex;flex-direction:column;gap:8px"></div>
-        </div>
+        </section>
 
         <!-- ── Riwayat Konfirmasi Terbaru (untuk batalkan jika salah klik) ── -->
-        <div style="margin-bottom:20px">
-          <button type="button" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px" onclick="toggleSPPRiwayat()">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg> Riwayat Konfirmasi Terbaru
+        <section class="pcard" data-collapsed id="sppRiwayatCard" data-load="loadSPPRiwayat">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Riwayat Konfirmasi Terbaru</span>
+              <span class="pcard-sub">Batalkan di sini jika ada salah konfirmasi / tolak</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div id="sppRiwayatSection" style="display:none;margin-top:10px;flex-direction:column;gap:8px"></div>
-        </div>
+          <div class="pcard-body">
+            <div id="sppRiwayatSection" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </section>
 
-        <!-- ── Rekap Tunggakan ── -->
-        <div class="card" style="padding:0;overflow:hidden">
-          <!-- Header rekap -->
-          <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--text)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Rekap Pembayaran</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px" id="sppRekapSubtitle">Rekap tunggakan SPP Pribadi per bulan</div>
-            </div>
+        <!-- ── Rekap Pembayaran ── -->
+        <section class="pcard" data-collapsed id="sppRekapCard">
+          <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
+            <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+            <span class="pcard-tt">
+              <span class="pcard-title">Rekap Pembayaran</span>
+              <span class="pcard-sub" id="sppRekapSubtitle">Rekap tunggakan SPP Pribadi per bulan</span>
+            </span>
+            <svg class="pcard-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="pcard-body p0">
+          <!-- Filter -->
+          <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px">
+            <div style="margin-right:auto;font-size:11px;color:var(--text-3)">Gunakan filter untuk mempersempit daftar.</div>
             <!-- Filter -->
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <input type="hidden" id="sppFilterJenis" value="spp">
@@ -2462,7 +2519,8 @@ html.theme-dark .fin-detail-card {
             </tbody>
           </table>
           </div><!-- /tbl-wrap -->
-        </div><!-- /card rekap -->
+          </div><!-- /pcard-body -->
+        </section>
 
         <!-- ── Modal Edit Transaksi (SPP / Infaq / Ihsan) ── -->
         <div class="overlay" id="modalEditSPPRow" onclick="if(event.target===this)tutupEditSPPRow()">
@@ -4493,10 +4551,10 @@ html.theme-dark .fin-detail-card {
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
-<script src="guru-module.js?v=a952ae77" defer></script>
+<script src="guru-module.js?v=9bb64167" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=f957fc29" defer></script>
+<script src="spp-keuangan-module.js?v=cb413142" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>

@@ -132,6 +132,34 @@ async function simpanMetode() {
   catch(e) { toast(friendlyError(e),'err'); }
 }
 
+// ── Kartu bisa diciutkan (.pcard) — default tertutup, ingat pilihan ──
+function togglePcard(head) {
+  var card = head && head.closest ? head.closest('.pcard') : null;
+  if (!card) return;
+  var wasCollapsed = card.hasAttribute('data-collapsed');
+  card.toggleAttribute('data-collapsed', !wasCollapsed);
+  head.setAttribute('aria-expanded', String(wasCollapsed));
+  if (card.id) { try { localStorage.setItem('pcard:' + card.id, wasCollapsed ? '1' : '0'); } catch(e) {} }
+  if (wasCollapsed) {  // baru dibuka → muat kontennya bila perlu
+    var fn = card.getAttribute('data-load');
+    if (fn && typeof window[fn] === 'function') window[fn]();
+  }
+}
+// Pulihkan status ciut tiap kartu di halaman SPP (dipanggil saat masuk halaman).
+function _restoreSPPCards() {
+  document.querySelectorAll('#page-spp .pcard[id]').forEach(function(card) {
+    var open = false;
+    try { open = localStorage.getItem('pcard:' + card.id) === '1'; } catch(e) {}
+    card.toggleAttribute('data-collapsed', !open);
+    var head = card.querySelector('.pcard-head');
+    if (head) head.setAttribute('aria-expanded', String(open));
+    if (open) {
+      var fn = card.getAttribute('data-load');
+      if (fn && typeof window[fn] === 'function') window[fn]();
+    }
+  });
+}
+
 // Batas render tabel Rekap SPP/Infaq/Ihsan -- dipakai bersama ketiga
 // sub-tampilan (dropdown "jenis": spp/infaq/ihsan) karena cuma satu yang
 // tampil di satu waktu (satu <tbody> yang sama). Direset ke 50 tiap filter
@@ -361,6 +389,8 @@ async function loadSPPAdmin() {
       var pending  = pendingRes.data || [];
       var pendSec  = document.getElementById('sppPendingSection');
       var pendList = document.getElementById('sppPendingList');
+      var pendBadge = document.getElementById('sppPendingBadge');
+      if (pendBadge) pendBadge.textContent = pending.length;
       if (pending.length) {
         pendSec.style.display = '';
         pendList.innerHTML = pending.map(function(p) {
@@ -1543,13 +1573,6 @@ async function konfirmasiManualGateway(id_spp, namaMurid, bulanTahun) {
 }
 
 var _sppRiwayatLoaded = false;
-function toggleSPPRiwayat() {
-  var sec = document.getElementById('sppRiwayatSection');
-  var hidden = sec.style.display === 'none';
-  sec.style.display = hidden ? 'flex' : 'none';
-  if (hidden && !_sppRiwayatLoaded) loadSPPRiwayat();
-}
-
 async function loadSPPRiwayat() {
   var listEl = document.getElementById('sppRiwayatSection');
   listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Memuat...</div>';
@@ -2087,8 +2110,9 @@ async function doKirimPengumuman() {
     window.eksporSPP = eksporSPP;
     window.salinTagihanMassal = salinTagihanMassal;
     window.konfirmasiManualGateway = konfirmasiManualGateway;
-    window.toggleSPPRiwayat = toggleSPPRiwayat;
     window.loadSPPRiwayat = loadSPPRiwayat;
+    window.togglePcard = togglePcard;
+    window._restoreSPPCards = _restoreSPPCards;
     window.batalkanKonfirmasi = batalkanKonfirmasi;
     window.validasiSPP = validasiSPP;
     window.bukaModalInputSPPManual = bukaModalInputSPPManual;
