@@ -142,7 +142,96 @@ function togglePcard(head) {
     var fn = card.getAttribute('data-load');
     if (fn && typeof window[fn] === 'function') window[fn]();
   }
+  _syncToggleAllBtn();
 }
+// Buka / tutup SEMUA kartu sekaligus. Kalau ada yg tertutup → buka semua;
+// kalau semua terbuka → tutup semua. Status tetap disimpan per kartu.
+function toggleAllSPPCards() {
+  var cards = [].slice.call(document.querySelectorAll('#page-spp .pcard[id]'));
+  if (!cards.length) return;
+  var anyCollapsed = cards.some(function(c){ return c.hasAttribute('data-collapsed'); });
+  var collapse = !anyCollapsed;
+  cards.forEach(function(card) {
+    card.toggleAttribute('data-collapsed', collapse);
+    var head = card.querySelector('.pcard-head');
+    if (head) head.setAttribute('aria-expanded', String(!collapse));
+    if (card.id) { try { localStorage.setItem('pcard:' + card.id, collapse ? '0' : '1'); } catch(e) {} }
+    if (!collapse) {
+      var fn = card.getAttribute('data-load');
+      if (fn && typeof window[fn] === 'function') window[fn]();
+    }
+  });
+  _syncToggleAllBtn();
+}
+function _syncToggleAllBtn() {
+  var btn = document.getElementById('sppToggleAllBtn');
+  if (!btn) return;
+  var cards = document.querySelectorAll('#page-spp .pcard[id]');
+  var allOpen = cards.length > 0 && [].every.call(cards, function(c){ return !c.hasAttribute('data-collapsed'); });
+  btn.textContent = allOpen ? 'Tutup semua' : 'Buka semua';
+}
+
+// Empty state seragam.
+var _SPP_EMPTY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"/><line x1="9" y1="13" x2="15" y2="13"/></svg>';
+function _sppEmptyBox(msg) {
+  return '<div class="spp-empty">' + _SPP_EMPTY_SVG + '<span>' + esc(msg) + '</span></div>';
+}
+function _sppEmptyRow(cols, msg) {
+  return '<tr><td colspan="' + cols + '"><div class="spp-empty">' + _SPP_EMPTY_SVG + '<span>' + esc(msg) + '</span></div></td></tr>';
+}
+
+// Drill-down dari kartu KPI → pindah tab + buka kartu terkait + set filter.
+function _sppOpenCard(id) {
+  var c = document.getElementById(id);
+  if (!c) return;
+  if (c.hasAttribute('data-collapsed')) { var h = c.querySelector('.pcard-head'); if (h) togglePcard(h); }
+  setTimeout(function(){ c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+}
+function sppKpiDrill(target) {
+  switch (target) {
+    case 'lunas':
+    case 'menunggak':
+      switchSPPTab('spp');
+      _sppSPPView = 'tunggakan';
+      try { localStorage.setItem('hq_spp_view', 'tunggakan'); } catch(e) {}
+      var st = document.getElementById('sppFilterStatus');
+      if (st) st.value = (target === 'lunas' ? 'lunas' : 'menunggak');
+      _sppOpenCard('sppRekapCard');
+      filterSPPTable();
+      break;
+    case 'spp-tx':
+      switchSPPTab('spp');
+      if (!_sppTunggakanDisabled) {
+        _sppSPPView = 'transaksi';
+        try { localStorage.setItem('hq_spp_view', 'transaksi'); } catch(e) {}
+      }
+      _sppOpenCard('sppRekapCard');
+      filterSPPTable();
+      break;
+    case 'infaq':
+      switchSPPTab('infaq');
+      _sppOpenCard('sppRekapCard');
+      break;
+    case 'ihsan':
+      switchSPPTab('kas');
+      _sppOpenCard('sppRekapCard');
+      break;
+    case 'kas':
+      switchSPPTab('kas');
+      _sppOpenCard('sppArusKasCard');
+      break;
+  }
+}
+document.addEventListener('click', function(e) {
+  var k = e.target && e.target.closest ? e.target.closest('#page-spp .spp-kpi[data-drill]') : null;
+  if (k) sppKpiDrill(k.getAttribute('data-drill'));
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  var k = e.target && e.target.closest ? e.target.closest('#page-spp .spp-kpi[data-drill]') : null;
+  if (k) { e.preventDefault(); sppKpiDrill(k.getAttribute('data-drill')); }
+});
+
 // Pulihkan status ciut tiap kartu di halaman SPP (dipanggil saat masuk halaman).
 function _restoreSPPCards() {
   document.querySelectorAll('#page-spp .pcard[id]').forEach(function(card) {
@@ -160,6 +249,7 @@ function _restoreSPPCards() {
       if (fn && typeof window[fn] === 'function') window[fn]();
     }
   });
+  _syncToggleAllBtn();
 }
 
 // Batas render tabel Rekap SPP/Infaq/Ihsan -- dipakai bersama ketiga
@@ -554,7 +644,7 @@ function renderKasRingkasan(rekap) {
   var sisa = Number(rekap.beasiswa_sisa)||0;
   var sisaEl = document.getElementById('kasSisa');
   sisaEl.textContent = (sisa < 0 ? '−Rp ' + Math.abs(sisa).toLocaleString('id-ID') : fmt(sisa));
-  sisaEl.style.color = sisa > 0 ? 'var(--green-txt)' : 'var(--text-2)';
+  sisaEl.style.color = sisa < 0 ? 'var(--red-txt)' : '';   // netral; merah hanya bila minus
   document.getElementById('kasBagian').textContent = fmt(rekap.beasiswa_bagian_per_guru);
   var gc = rekap.beasiswa_guru_count || 0;
   document.getElementById('kasBagianSub').textContent = gc ? ('dibagi rata ' + gc + ' guru') : 'belum ada guru beasiswa';
@@ -758,7 +848,7 @@ function renderArusKasRiwayat(rows) {
   var wrap = document.getElementById('arusKasRiwayat');
   if (!wrap) return;
   if (!rows || !rows.length) {
-    wrap.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text-3);font-size:12px">Belum ada transaksi bulan ini.</div>';
+    wrap.innerHTML = _sppEmptyBox("Belum ada transaksi pada rentang ini.");
     return;
   }
   var srcLabel = { kas:'Kas', operasional:'Operasional', ihsan:'Honor Guru', spp:'SPP', infaq:'Infaq' };
@@ -824,7 +914,7 @@ async function loadArusKas() {
     var saldo = Number(d.saldo)||0;
     var sEl = document.getElementById('arusKasSaldo');
     sEl.textContent = (saldo < 0 ? '−Rp ' + Math.abs(saldo).toLocaleString('id-ID') : fmt(saldo));
-    sEl.style.color = saldo < 0 ? 'var(--red-txt)' : 'var(--green-txt)';
+    sEl.style.color = saldo < 0 ? 'var(--red-txt)' : '';   // netral; merah hanya bila minus
     renderArusKasBreakdown('arusKasBdMasuk',  d.breakdown_masuk,  'masuk');
     renderArusKasBreakdown('arusKasBdKeluar', d.breakdown_keluar, 'keluar');
     renderArusKasRiwayat(_arusKasRows);
@@ -1124,7 +1214,7 @@ function filterSPPTable(keepLimit) {
   _sppRekapDataFiltered = data;
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
+    tbody.innerHTML = _sppEmptyRow(5, "Belum ada data untuk filter ini.");
     return;
   }
 
@@ -1201,7 +1291,7 @@ function filterInfaqTable(keepLimit) {
   if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
+    tbody.innerHTML = _sppEmptyRow(6, "Belum ada transaksi Infaq pada filter ini.");
     return;
   }
 
@@ -1249,7 +1339,7 @@ function filterIhsanTable(keepLimit) {
   if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data pembayaran Ihsan Guru.</td></tr>';
+    tbody.innerHTML = _sppEmptyRow(6, "Belum ada pembayaran Ihsan Guru pada filter ini.");
     return;
   }
 
@@ -1285,7 +1375,7 @@ function _renderSPPTxTable(keepLimit) {
   });
   _sppListFiltered = data;
   if (!keepLimit) _sppRenderLimit = 50;
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada transaksi SPP.</td></tr>'; return; }
+  if (!data.length) { tbody.innerHTML = _sppEmptyRow(6, "Belum ada transaksi SPP pada filter ini."); return; }
   var vis = data.slice(0, _sppRenderLimit);
   tbody.innerHTML = vis.map(function(r) {
     return '<tr>'
@@ -1602,7 +1692,7 @@ async function loadSPPRiwayat(force) {
     _sppRiwayatLoaded = true;
     var rows = res.data || [];
     if (!rows.length) {
-      listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Belum ada riwayat konfirmasi.</div>';
+      listEl.innerHTML = _sppEmptyBox("Belum ada konfirmasi / penolakan terbaru.");
       return;
     }
     listEl.innerHTML = rows.map(function(p) {
@@ -2133,6 +2223,7 @@ async function doKirimPengumuman() {
     window.konfirmasiManualGateway = konfirmasiManualGateway;
     window.loadSPPRiwayat = loadSPPRiwayat;
     window.togglePcard = togglePcard;
+    window.toggleAllSPPCards = toggleAllSPPCards;
     window._restoreSPPCards = _restoreSPPCards;
     window.batalkanKonfirmasi = batalkanKonfirmasi;
     window.validasiSPP = validasiSPP;
