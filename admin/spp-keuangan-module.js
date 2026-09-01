@@ -30,8 +30,10 @@ async function loadMetodeBayarAdmin() {
       return;
     }
     el.innerHTML = list.map(function(m) {
+      var _mid = escJs(m.id);
+      var _safeQr = (m.qris_url && /^https?:\/\//i.test(m.qris_url)) ? m.qris_url : '';
       var detail = m.jenis==='qris'
-        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1);display:inline-flex;align-items:center;gap:4px">'+svgIcon('smartphone',12)+' QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
+        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1);display:inline-flex;align-items:center;gap:4px">'+svgIcon('smartphone',12)+' QRIS ' + (_safeQr?'· <a href="'+esc(_safeQr)+'" target="_blank" rel="noopener noreferrer" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
         : '<span style="font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)">'+esc(m.nomor||'—')+'</span><span style="font-size:11px;color:var(--text-2, #64748b);margin-left:8px">a/n '+esc(m.atas_nama||'')+'</span>';
       return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border:1px solid var(--border);border-radius:10px">'
         + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'var(--blue-bg, #e0f2fe)':'var(--green-bg, #f0fdf4)')+';border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:'+(m.jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--green-txt, #1a5c3a)')+'">'+(m.jenis==='qris'?svgIcon('smartphone',18):svgIcon('bank',18))+'</div>'
@@ -40,20 +42,15 @@ async function loadMetodeBayarAdmin() {
         + '<div style="margin-top:2px">'+detail+'</div>'
         + '</div>'
         + '<div style="display:flex;gap:6px;flex-shrink:0">'
-        + '<button class="btn btn-outline btn-sm" onclick="editMetode(\''+m.id+'\')">Edit</button>'
-        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+escJs(m.nama)+'\')">Hapus</button>'
+        + '<button class="btn btn-outline btn-sm" onclick="editMetode(\''+_mid+'\')">Edit</button>'
+        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+_mid+'\',\''+escJs(m.nama)+'\')">Hapus</button>'
         + '</div></div>';
     }).join('');
   } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(friendlyError(e))+'</div>'; }
 }
 
-var _allMetode = [];
 
-async function bukaFormMetode(data) {
-  if (!_allMetode.length) {
-    try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
-    catch(e) { toast(friendlyError(e),'err'); return; }
-  }
+function bukaFormMetode(data) {
   var isEdit = !!data;
   document.getElementById('modalMetodeTitle').textContent = isEdit ? 'Edit Metode Bayar' : 'Tambah Metode Bayar';
   document.getElementById('metodeId').value         = (data && data.id) || '';
@@ -99,8 +96,9 @@ function setMetodeJenis(jenis, el) {
 async function editMetode(id) {
   try {
     var r = await window.HQ.AdminAPI.getMetodeBayar();
-    var m = (r.data||[]).find(function(x){return x.id===id;});
+    var m = (r.data||[]).find(function(x){return String(x.id)===String(id);});
     if (m) bukaFormMetode(m);
+    else { toast('Metode tak ditemukan — mungkin sudah dihapus. Muat ulang.', 'warn'); loadMetodeBayarAdmin(); }
   } catch(e) { toast(friendlyError(e),'err'); }
 }
 async function hapusMetode(id, nama) {
@@ -109,7 +107,7 @@ async function hapusMetode(id, nama) {
   document.getElementById('notifBtn').onclick = async () => {
     closeNotif();
     showLoad('Bismillah, memproses...');
-    try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); _allMetode=[]; loadMetodeBayarAdmin(); }
+    try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); loadMetodeBayarAdmin(); }
     catch(e) { toast(friendlyError(e),'err'); }
     finally { hideLoad(); }
   };
@@ -128,7 +126,7 @@ async function simpanMetode() {
     aktif     : true,
   };
   if (!d.nama) { showAlertModal('Nama harus diisi', { title: 'Validasi' }); return; }
-  try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
+  try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan','ok'); tutupFormMetode(); loadMetodeBayarAdmin(); }
   catch(e) { toast(friendlyError(e),'err'); }
 }
 
@@ -391,6 +389,8 @@ async function loadSPPAdmin() {
       var pendList = document.getElementById('sppPendingList');
       var pendBadge = document.getElementById('sppPendingBadge');
       if (pendBadge) pendBadge.textContent = pending.length;
+      // Tetap ciut secara default, tapi tint header amber saat ada antrian → tak terlewat
+      if (pendSec) pendSec.classList.toggle('pcard-alert', pending.length > 0);
       if (pending.length) {
         pendSec.style.display = '';
         pendList.innerHTML = pending.map(function(p) {

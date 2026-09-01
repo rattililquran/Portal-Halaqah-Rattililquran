@@ -258,6 +258,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .pcard-body.p0{padding:0}
 html.theme-dark .pcard{box-shadow:0 2px 8px rgba(0,0,0,.3)}
 html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
+/* Kartu butuh perhatian (mis. ada antrian validasi) — header ter-tint walau diciutkan */
+.pcard.pcard-alert{border-color:#fcd34d}
+.pcard.pcard-alert .pcard-head{background:var(--amber-bg)}
+.pcard.pcard-alert .pcard-title,.pcard.pcard-alert .pcard-ico{color:var(--amber-txt)}
+html.theme-dark .pcard.pcard-alert{border-color:rgba(251,191,36,.4)}
 
 /* Aksi "Menunggu Validasi" — minimalis, flat. Semua tombol & chip IDENTIK:
    lebar (grid 2 kolom sama rata), tinggi (var --spp-abtn-h), radius, padding. */
@@ -279,6 +284,11 @@ html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
 .spp-gw-chip{grid-column:1 / -1;font-size:10.5px;font-weight:800;letter-spacing:.2px;
   background:#fde047;color:#713f12;border-color:#eab308}
 html.theme-dark .spp-gw-chip{background:#facc15;color:#422006;border-color:#ca8a04}
+/* Layar sempit → tombol menumpuk vertikal biar label "Konfirmasi Manual" tak terpotong */
+@media(max-width:430px){
+  .spp-pend-acts{grid-template-columns:1fr}
+  .spp-gw-chip{grid-column:1}
+}
 @media(max-width:520px){ .spp-pend-acts{width:100%} }
 
 /* TABLE */
@@ -2360,7 +2370,7 @@ html.theme-dark .fin-detail-card {
         </div>
 
         <!-- ── Kas Beasiswa & Operasional ── -->
-        <section class="pcard" data-collapsed id="sppKasBeasiswaCard" data-spptab="kas">
+        <section class="pcard" data-collapsed id="sppKasBeasiswaCard" data-spptab="kas" style="display:none">
           <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
             <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
             <span class="pcard-tt">
@@ -2398,7 +2408,7 @@ html.theme-dark .fin-detail-card {
         </section>
 
         <!-- ── Buku Kas (Arus Kas) ── -->
-        <section class="pcard" data-collapsed id="sppArusKasCard" data-spptab="kas">
+        <section class="pcard" data-collapsed id="sppArusKasCard" data-spptab="kas" style="display:none">
           <button type="button" class="pcard-head" aria-expanded="false" onclick="togglePcard(this)">
             <svg class="pcard-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             <span class="pcard-tt">
@@ -4595,7 +4605,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=9bb64167" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=55b7b7ae" defer></script>
+<script src="spp-keuangan-module.js?v=7192cd8f" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>
