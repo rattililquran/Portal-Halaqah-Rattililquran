@@ -560,7 +560,13 @@ var MuridAPI = {
       return { status: 'ok', message: 'Semua bulan yang dipilih sudah lunas. Tidak ada yang perlu dikonfirmasi.' };
     }
 
-    var rows = bulanProses.map(function(bulan) {
+    // Split multi-bulan: floor tiap bulan, sisa pembulatan ke bulan TERAKHIR
+    // supaya Σ potongan == total persis (bug presisi P6). BUG-07: bagi
+    // bulanProses.length (bulan yg benar-benar diproses), bukan bulanList.length.
+    var _totalNom = Number(d.nominal || 0);
+    var _nBulan   = bulanProses.length;
+    var _baseNom  = _nBulan > 1 ? Math.floor(_totalNom / _nBulan) : _totalNom;
+    var rows = bulanProses.map(function(bulan, _idx) {
       return {
         id_spp    : idSppMap[bulan],
         id_murid, nama_murid: user.nama_lengkap || user.nama || '',
@@ -568,8 +574,7 @@ var MuridAPI = {
         bulan, tahun: Number(d.tahun),
         jenis: d.jenis || 'SPP Pribadi',
         status: 'menunggu',
-        // BUG-07 fix: dibagi bulanProses.length (bulan yg benar-benar diproses), bukan bulanList.length
-        nominal: bulanProses.length > 1 ? Math.round(Number(d.nominal||0) / bulanProses.length) : Number(d.nominal||0),
+        nominal: (_nBulan > 1 && _idx === _nBulan - 1) ? _totalNom - _baseNom * (_nBulan - 1) : _baseNom,
         metode_transfer: d.metode_transfer || '',
         bukti_url: d.bukti_url || '',
         catatan: d.catatan || '',
