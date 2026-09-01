@@ -490,7 +490,9 @@ var MuridAPI = {
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
     var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
-    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas' && (r.jenis==='SPP Pribadi' || !r.jenis); }).map(function(r){ return r.bulan; });
+    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas' && (r.jenis==='SPP Pribadi' || !r.jenis); })
+      .map(function(r){ return r.bulan; })
+      .filter(function(b,i,arr){ return arr.indexOf(b) === i; }); // distinct — 2 baris lunas utk 1 bulan tak boleh dihitung 2x
     var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu' && (r.jenis==='SPP Pribadi' || !r.jenis) && !_sppGatewayExpired(r); }).map(function(r){ return r.bulan; });
     var bulanGrid   = BULAN.map(function(b) {
       var l = lunasBulan.includes(b);

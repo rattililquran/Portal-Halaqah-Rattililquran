@@ -1175,10 +1175,12 @@ function filterSPPTable(keepLimit) {
       return (m.lunas_bulan||[]).includes(bulanFilter);
     });
   } else {
-    // 1. Filter bulan (default: murid yang BELUM bayar bulan tsb)
+    // 1. Filter bulan (default: murid yang PUNYA tunggakan & BELUM bayar bulan tsb).
+    //    Pakai lunas_bulan langsung — bukan bulan_belum — supaya murid yg belum
+    //    pernah bayar sama sekali (bulan_belum kosong) tetap ikut tersaring.
     if (bulanFilter) {
       data = data.filter(function(m) {
-        return m.bulan_belum.includes(bulanFilter);
+        return m.tunggakan > 0 && !(m.lunas_bulan || []).includes(bulanFilter);
       });
     }
 
