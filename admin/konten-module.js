@@ -43,7 +43,7 @@ async function saveOnboarding() {
   if (cfg.cta_action && !cfg.cta_label) { toast('Isi teks tombol, atau pilih "Tanpa tombol aksi".', 'err'); return; }
   try {
     await window.HQ.AdminAPI.saveOnboarding(cfg);
-    toast('💾 Pengumuman onboarding tersimpan' + (cfg.enabled ? ' & aktif' : ''), 'ok');
+    toast('Pengumuman onboarding tersimpan' + (cfg.enabled ? ' & aktif' : ''), 'ok');
   } catch(e) { toast(friendlyError(e), 'err'); }
 }
 function previewOnboarding() {
@@ -105,7 +105,7 @@ async function resendPopupNotif() {
   if (!confirm('Kirim ulang popup "' + (row.judul || row.id_popup) + '"?\n\nPopup akan tampil lagi ke semua pengguna, termasuk yang sudah pernah menutupnya.')) return;
   try {
     await window.HQ.AdminAPI.savePopupNotif(row);
-    toast('🔁 Popup dikirim ulang ke semua pengguna', 'ok');
+    toast('Popup dikirim ulang ke semua pengguna', 'ok');
     await loadPopupNotif();
     pnEditForm(_pnEditingId);
   } catch(e) { toast(friendlyError(e), 'err'); }
@@ -175,7 +175,7 @@ async function savePopupNotif() {
   };
   try {
     await window.HQ.AdminAPI.savePopupNotif(cfg);
-    toast('💾 Popup notifikasi tersimpan' + (cfg.aktif ? ' & aktif' : ''), 'ok');
+    toast('Popup notifikasi tersimpan' + (cfg.aktif ? ' & aktif' : ''), 'ok');
     await loadPopupNotif();
     pnEditForm(idPopup); // masuk mode edit penuh (ID terkunci, tombol Hapus muncul) --
                           // cegah simpan ulang dgn ID field yg masih bisa diubah bebas
@@ -187,7 +187,7 @@ async function deletePopupNotif() {
   if (!confirm('Hapus popup "' + _pnEditingId + '"? Tindakan ini tidak bisa dibatalkan.')) return;
   try {
     await window.HQ.AdminAPI.deletePopupNotif(_pnEditingId);
-    toast('🗑️ Popup notifikasi dihapus', 'ok');
+    toast('Popup notifikasi dihapus', 'ok');
     pnNewForm();
     await loadPopupNotif();
   } catch(e) { toast(friendlyError(e), 'err'); }
@@ -223,7 +223,7 @@ function renderPushConfig(configs) {
     groups[meta.group].push(Object.assign({}, c, meta));
   });
 
-  var GROUP_ICON = { 'Terjadwal':'⏰', 'Real-time':'⚡' };
+  var GROUP_ICON = { 'Terjadwal': svgIcon('clock',13), 'Real-time': svgIcon('zap',13) };
   var GROUP_COLOR = { 'Terjadwal':'var(--blue)', 'Real-time':'var(--green)' };
 
   el.innerHTML = Object.keys(groups).map(function(gName) {
@@ -235,12 +235,12 @@ function renderPushConfig(configs) {
       + items.map(function(c) {
           var isOn = c.enabled;
           return '<div class="push-cfg-row" data-key="'+c.key+'" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:4px;background:var(--bg-2,#f8fafc);border:1px solid var(--border);transition:background .15s">'
-            + '<div style="font-size:20px;width:28px;text-align:center;flex-shrink:0">' + (c.icon||'🔔') + '</div>'
+            + '<div style="width:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-3)">' + (c.icon||svgIcon('bell',18)) + '</div>'
             + '<div style="flex:1;min-width:0">'
             +   '<div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(c.label) + '</div>'
-            +   '<div style="font-size:11px;color:var(--text-3);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap">'
-            +     '<span>🕐 ' + esc(c.waktu) + '</span>'
-            +     '<span>👤 ' + esc(c.target) + '</span>'
+            +   '<div style="font-size:11px;color:var(--text-3);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
+            +     '<span style="display:flex;align-items:center;gap:4px">' + svgIcon('clock',12) + esc(c.waktu) + '</span>'
+            +     '<span style="display:flex;align-items:center;gap:4px">' + svgIcon('user',12) + esc(c.target) + '</span>'
             +   '</div>'
             + '</div>'
             + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
@@ -269,7 +269,7 @@ async function togglePushConfig(key, enabled) {
   }
   try {
     await window.HQ.AdminAPI.updatePushConfig(key, enabled);
-    toast((enabled ? '✅ Diaktifkan' : '⛔ Dinonaktifkan') + ': ' + key.replace(/_/g,' '), 'ok');
+    toast((enabled ? 'Diaktifkan' : 'Dinonaktifkan') + ': ' + key.replace(/_/g,' '), 'ok');
   } catch(e) {
     // Revert visual jika gagal
     var btn2  = row && row.querySelector('button');
@@ -344,7 +344,7 @@ function renderPushSubscribers(subs) {
   var tbody = document.getElementById('pushSubsTbl');
   if (!subs.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-3)">Belum ada subscriber.</td></tr>'; return; }
   var ROLE_BADGE = { murid:'<span class="badge b-blue">Murid</span>', guru:'<span class="badge b-green">Guru</span>', admin:'<span class="badge b-amber">Admin</span>' };
-  var DEVICE_ICO = { android:'📱', ios:'🍎', desktop:'💻' };
+  var DEVICE_ICO = { android: svgIcon('smartphone',13), ios: svgIcon('smartphone',13), desktop: svgIcon('monitor',13) };
   tbody.innerHTML = subs.map(function(s) {
     var d = new Date(s.created_at);
     var tgl = d.toLocaleDateString('id') + ' ' + d.toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit'});
@@ -352,9 +352,9 @@ function renderPushSubscribers(subs) {
       + '<td style="font-weight:700;font-size:13px">' + esc(s.nama||s.id_user) + '</td>'
       + '<td style="font-size:11.5px;color:var(--text-3)">' + esc(s.id_user) + '</td>'
       + '<td>' + (ROLE_BADGE[s.role]||s.role) + '</td>'
-      + '<td style="font-size:13px">' + (DEVICE_ICO[s.device_hint]||'❓') + ' ' + esc(s.device_hint||'-') + '</td>'
+      + '<td style="font-size:13px"><span style="display:inline-flex;align-items:center;gap:5px">' + (DEVICE_ICO[s.device_hint]||svgIcon('help',13)) + esc(s.device_hint||'-') + '</span></td>'
       + '<td style="font-size:12px;color:var(--text-3)">' + tgl + '</td>'
-      + '<td style="text-align:center"><button class="btn btn-red btn-sm" onclick="hapusPushSubscriber(\''+s.id+'\')" title="Hapus subscription ini">🗑</button></td>'
+      + '<td style="text-align:center"><button class="btn btn-red btn-sm" onclick="hapusPushSubscriber(\''+s.id+'\')" title="Hapus subscription ini">' + svgIcon('delete',14) + '</button></td>'
       + '</tr>';
   }).join('');
 }
@@ -390,10 +390,10 @@ async function loadPushTargetOptions() {
     var optH = document.getElementById('pushOptHalaqah');
     var optL = document.getElementById('pushOptLevel');
     if (optH) optH.innerHTML = _pushHalaqahList.map(function(h){
-      return '<option value="halaqah_'+h.id_halaqah+'">🏠 '+esc(h.nama_halaqah)+' ('+esc(h.level||'-')+')</option>';
+      return '<option value="halaqah_'+h.id_halaqah+'">'+esc(h.nama_halaqah)+' ('+esc(h.level||'-')+')</option>';
     }).join('');
     if (optL) optL.innerHTML = _pushLevelList.map(function(l){
-      return '<option value="level_'+l+'">📚 Level: '+esc(l)+'</option>';
+      return '<option value="level_'+l+'">Level: '+esc(l)+'</option>';
     }).join('');
   } catch(e) { console.warn('loadPushTargetOptions:', e); }
 }
@@ -443,7 +443,7 @@ async function setAllPushConfig(enabled) {
     return key ? togglePushConfig(key, enabled) : Promise.resolve();
   });
   await Promise.allSettled(promises);
-  toast(enabled ? '✅ Semua notifikasi diaktifkan' : '⛔ Semua notifikasi dinonaktifkan', 'ok');
+  toast(enabled ? 'Semua notifikasi diaktifkan' : 'Semua notifikasi dinonaktifkan', 'ok');
 }
 
 async function kirimTestPush() {
@@ -456,7 +456,7 @@ async function kirimTestPush() {
   btn.disabled = true; btn.textContent = 'Mengirim...';
   try {
     var pushUrl = getPushTestUrl();
-    if (pushUrl === null) { btn.disabled=false; btn.textContent='📤 Kirim Sekarang'; return; }
+    if (pushUrl === null) { btn.disabled=false; btn.textContent='Kirim Sekarang'; return; }
     var opts = { title, body, url: pushUrl, tag: 'admin-kirim' };
     if (target === 'user_id') {
       var uid = document.getElementById('pushTestUserId').value.trim();
@@ -487,18 +487,18 @@ async function kirimTestPush() {
     res.style.border = '1px solid ' + (ok ? 'var(--green, #bbf7d0)' : (r.total===0 ? 'var(--amber, #fde68a)' : 'var(--red, #fecaca)'));
     res.style.borderRadius = '10px';
     res.textContent = ok
-      ? '✅ Berhasil dikirim ke ' + r.sent + ' device' + (r.failed ? ' · Gagal: '+r.failed : '')
-      : (r.total===0 ? '⚠️ Tidak ada device yang subscribe' : '❌ Gagal: ' + (r.failed||0) + ' dari ' + r.total);
+      ? 'Berhasil dikirim ke ' + r.sent + ' device' + (r.failed ? ' · Gagal: '+r.failed : '')
+      : (r.total===0 ? 'Tidak ada device yang subscribe' : 'Gagal: ' + (r.failed||0) + ' dari ' + r.total);
   } catch(e) { toast(friendlyError(e),'err'); }
-  finally { btn.disabled=false; btn.textContent='📤 Kirim Test'; }
+  finally { btn.disabled=false; btn.textContent='Kirim Test'; }
 }
 
 async function jalankanDiagnostik() {
   var el = document.getElementById('pushDiagResult');
   el.style.display = 'block';
-  el.textContent = '⏳ Memeriksa...';
+  el.textContent = 'Memeriksa...';
   var lines = [];
-  var ok = '✅', warn = '⚠️', err = '❌';
+  var ok = '[OK]', warn = '[WARN]', err = '[GAGAL]';
 
   // 1. Browser support
   lines.push('── Browser Support ──');
@@ -570,17 +570,17 @@ async function jalankanDiagnostik() {
 async function testTrigger(trigger) {
   var res = document.getElementById('pushTriggerResult');
   res.style.display = '';
-  res.textContent = '⏳ Menjalankan trigger: ' + trigger + '...';
+  res.textContent = 'Menjalankan trigger: ' + trigger + '...';
   try {
     var r = await window.HQ.AdminAPI.testTrigger(trigger);
     res.style.background = r.ok ? 'var(--green-bg, #f0fdf4)' : 'var(--amber-bg, #fef3c7)';
     res.style.color       = r.ok ? 'var(--green-txt, #065f46)' : 'var(--amber-txt, #92400e)';
     res.textContent = r.ok
-      ? '✅ Trigger ' + trigger + ' berhasil dijalankan'
-      : '⛔ Trigger dinonaktifkan admin: ' + trigger;
+      ? 'Trigger ' + trigger + ' berhasil dijalankan'
+      : 'Trigger dinonaktifkan admin: ' + trigger;
   } catch(e) {
     res.style.background = 'var(--red-bg, #fff5f5)'; res.style.color = 'var(--red-txt, #991b1b)';
-    res.textContent = '❌ Error: ' + e.message;
+    res.textContent = 'Error: ' + e.message;
   }
 }
 
@@ -593,7 +593,7 @@ function _confirmStressCleanup(msg) {
 // ══════════════════════════════════════════
 async function stressTestMulai() {
   var btn = document.getElementById('btnStressStart');
-  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  btn.disabled = true; btn.textContent = 'Berjalan...';
   document.getElementById('stResult').style.display = 'none';
   document.getElementById('stProgressWrap').style.display = 'block';
 
@@ -610,30 +610,30 @@ async function stressTestMulai() {
     );
 
     var errHtml = hasil.errors && hasil.errors.length
-      ? '<div style="color:#ef4444;font-size:11px;margin-top:8px">⚠ ' + hasil.errors.length + ' error — cek console</div>'
+      ? '<div style="color:#ef4444;font-size:11px;margin-top:8px;display:flex;align-items:center;gap:5px">' + svgIcon('warn',13) + hasil.errors.length + ' error — cek console</div>'
       : '';
     if (hasil.errors && hasil.errors.length) console.warn('[StressTest] Errors:', hasil.errors);
 
     document.getElementById('stResult').style.display = 'block';
     document.getElementById('stResult').innerHTML = '<div style="background:var(--bg-2);padding:12px;border-radius:8px;font-size:13px">'
-      + '<div style="font-weight:700;margin-bottom:8px;color:#22c55e">✅ Stress Test Selesai</div>'
-      + '<div>📚 KBM Log: <b>' + hasil.totalKbm + '</b> sesi</div>'
-      + '<div>📋 Nilai KBM: <b>' + hasil.totalNilai + '</b> record</div>'
-      + (incSetoran ? '<div>📖 Setoran Hafalan: <b>' + hasil.totalSetoran + '</b> record</div>' : '')
+      + '<div style="font-weight:700;margin-bottom:8px;color:#22c55e;display:flex;align-items:center;gap:6px">' + svgIcon('ok',15) + 'Stress Test Selesai</div>'
+      + '<div>' + svgIcon('book',13) + ' KBM Log: <b>' + hasil.totalKbm + '</b> sesi</div>'
+      + '<div>' + svgIcon('clipboard',13) + ' Nilai KBM: <b>' + hasil.totalNilai + '</b> record</div>'
+      + (incSetoran ? '<div>' + svgIcon('book',13) + ' Setoran Hafalan: <b>' + hasil.totalSetoran + '</b> record</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
       + errHtml + '</div>';
   } catch(e) {
     document.getElementById('stResult').style.display = 'block';
-    document.getElementById('stResult').innerHTML = '<div style="color:#ef4444;padding:10px;background:var(--bg-2);border-radius:8px;font-size:13px">❌ Error: ' + e.message + '</div>';
+    document.getElementById('stResult').innerHTML = '<div style="color:#ef4444;padding:10px;background:var(--bg-2);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:6px">' + svgIcon('err',15) + 'Error: ' + e.message + '</div>';
   }
 
-  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+  btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
 async function stressTestCleanup() {
   if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari kbm_log, nilai_kbm, dan setoran_hafalan?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnStressCleanup');
-  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  btn.disabled = true; btn.textContent = 'Menghapus...';
   try {
     var r = await window.HQ.AdminAPI.cleanupStressTest();
     if (r.status === 'ok') {
@@ -648,7 +648,7 @@ async function stressTestCleanup() {
   } catch(e) {
     toast('Error: ' + e.message, 'error');
   }
-  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+  btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -658,7 +658,7 @@ async function rsStressTestMulai() {
   var btn=document.getElementById('btnRsStressStart'), wrap=document.getElementById('rsStProgressWrap'),
       bar=document.getElementById('rsStProgressBar'), lbl=document.getElementById('rsStProgressLabel'),
       res=document.getElementById('rsStResult');
-  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  btn.disabled=true; btn.textContent='Berjalan...';
   wrap.style.display='block'; res.style.display='none';
   var sesiPerHalaqah=parseInt(document.getElementById('rsStSesiCount').value)||2;
   try {
@@ -666,23 +666,23 @@ async function rsStressTestMulai() {
     if(r.errors&&r.errors.length) console.warn('[ST REKAP] Errors:',r.errors);
     res.style.display='block';
     res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      +'<div style="font-weight:600;color:var(--success);margin-bottom:6px">'+(r.status==='ok'?'✅ Selesai':'⚠️ '+r.errors.length+' error')+'</div>'
-      +'<div>📚 KBM Log: <b>'+r.totalKbm+'</b></div><div>📋 Rekap Status: <b>'+r.totalRekap+'</b></div>'
+      +'<div style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:6px;margin-bottom:6px">'+(r.status==='ok'?svgIcon('ok',14)+'Selesai':svgIcon('warn',14)+r.errors.length+' error')+'</div>'
+      +'<div>'+svgIcon('book',13)+' KBM Log: <b>'+r.totalKbm+'</b></div><div>'+svgIcon('clipboard',13)+' Rekap Status: <b>'+r.totalRekap+'</b></div>'
       +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
       +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Ditandai [STRESS_TEST]</div></div>';
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
+  btn.disabled=false; btn.textContent='Mulai Stress Test';
 }
 async function rsStressTestCleanup() {
   if(!(await _confirmStressCleanup('Hapus data [STRESS_TEST] dari rekap_status dan kbm_log?'))) return;
   var btn=document.getElementById('btnRsStressCleanup');
-  btn.disabled=true; btn.textContent='⏳ Menghapus...';
+  btn.disabled=true; btn.textContent='Menghapus...';
   try {
     var r=await window.HQ.AdminAPI.cleanupStressTestRekapStatus();
     if(r.status==='ok'){var d=r.deleted||{};toast('Terhapus — Rekap: '+(d.rekap||0)+', KBM: '+(d.kbm||0),'ok');document.getElementById('rsStResult').style.display='none';document.getElementById('rsStProgressWrap').style.display='none';document.getElementById('rsStProgressBar').style.width='0%';}
     else toast('Error: '+(r.errors||[]).join(', '),'error');
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='🗑️ Hapus Data Test';
+  btn.disabled=false; btn.textContent='Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -692,29 +692,29 @@ async function prefsStressTestMulai() {
   var btn=document.getElementById('btnPrefsStressStart'), wrap=document.getElementById('prefsStProgressWrap'),
       bar=document.getElementById('prefsStProgressBar'), lbl=document.getElementById('prefsStProgressLabel'),
       res=document.getElementById('prefsStResult');
-  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  btn.disabled=true; btn.textContent='Berjalan...';
   wrap.style.display='block'; res.style.display='none';
   try {
     var r=await window.HQ.AdminAPI.stressTestPushPrefs(function(pct,msg){bar.style.width=pct+'%';lbl.textContent=msg;});
     res.style.display='block';
     res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      +'<div style="font-weight:600;color:var(--success);margin-bottom:6px">'+(r.status==='ok'?'✅ Selesai':'⚠️ '+r.errors.length+' error')+'</div>'
-      +'<div>👤 User diupdate: <b>'+r.totalUsers+'</b></div>'
+      +'<div style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:6px;margin-bottom:6px">'+(r.status==='ok'?svgIcon('ok',14)+'Selesai':svgIcon('warn',14)+r.errors.length+' error')+'</div>'
+      +'<div>'+svgIcon('user',13)+' User diupdate: <b>'+r.totalUsers+'</b></div>'
       +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
       +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Key <code>_st:true</code> ditambahkan ke prefs — tidak mempengaruhi notifikasi nyata</div></div>';
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='⚡ Mulai Stress Test';
+  btn.disabled=false; btn.textContent='Mulai Stress Test';
 }
 async function prefsStressTestCleanup() {
   if(!(await _confirmStressCleanup('Hapus key _st dari semua push_user_prefs?'))) return;
   var btn=document.getElementById('btnPrefsStressCleanup');
-  btn.disabled=true; btn.textContent='⏳ Menghapus...';
+  btn.disabled=true; btn.textContent='Menghapus...';
   try {
     var r=await window.HQ.AdminAPI.cleanupStressTestPushPrefs();
     if(r.status==='ok'){var d=r.deleted||{};toast('Cleaned — '+d.rows+' rows','ok');document.getElementById('prefsStResult').style.display='none';document.getElementById('prefsStProgressWrap').style.display='none';document.getElementById('prefsStProgressBar').style.width='0%';}
     else toast('Error: '+(r.errors||[]).join(', '),'error');
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='🗑️ Hapus Data Test';
+  btn.disabled=false; btn.textContent='Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -724,7 +724,7 @@ async function combStressTestMulai() {
   var btn=document.getElementById('btnCombStressStart'), wrap=document.getElementById('combStProgressWrap'),
       bar=document.getElementById('combStProgressBar'), lbl=document.getElementById('combStProgressLabel'),
       res=document.getElementById('combStResult');
-  btn.disabled=true; btn.textContent='⏳ Berjalan...';
+  btn.disabled=true; btn.textContent='Berjalan...';
   wrap.style.display='block'; res.style.display='none';
   var sesi=parseInt(document.getElementById('combStSesi').value)||2;
   try {
@@ -732,28 +732,28 @@ async function combStressTestMulai() {
     var totalErrors=[r.kbm,r.atTibyan,r.observasi,r.rekapStatus,r.users].reduce(function(s,x){return s+((x&&x.errors&&x.errors.length)||0);},0);
     res.style.display='block';
     res.innerHTML='<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      +'<div style="font-weight:600;color:'+(totalErrors?'#f59e0b':'var(--success)')+';margin-bottom:8px">'+(totalErrors?'⚠️ Selesai ('+totalErrors+' error)':'🔥 Combined Load Selesai')+'</div>'
-      +'<div>📚 KBM: <b>'+(r.kbm&&r.kbm.totalKbm||0)+'</b> sesi</div>'
-      +'<div>📖 At-Tibyan: <b>'+(r.atTibyan&&r.atTibyan.totalSesi||0)+'</b> sesi / <b>'+(r.atTibyan&&r.atTibyan.totalLog||0)+'</b> log</div>'
-      +'<div>📋 Observasi: <b>'+(r.observasi&&r.observasi.totalObs||0)+'</b> record</div>'
-      +'<div>📝 Rekap Status: <b>'+(r.rekapStatus&&r.rekapStatus.totalRekap||0)+'</b> record</div>'
-      +'<div>👤 Users: <b>'+(r.users&&r.users.totalUsers||0)+'</b> murid</div>'
+      +'<div style="font-weight:600;color:'+(totalErrors?'#f59e0b':'var(--success)')+';display:flex;align-items:center;gap:6px;margin-bottom:8px">'+(totalErrors?svgIcon('warn',14)+'Selesai ('+totalErrors+' error)':svgIcon('zap',14)+'Combined Load Selesai')+'</div>'
+      +'<div>'+svgIcon('book',13)+' KBM: <b>'+(r.kbm&&r.kbm.totalKbm||0)+'</b> sesi</div>'
+      +'<div>'+svgIcon('book',13)+' At-Tibyan: <b>'+(r.atTibyan&&r.atTibyan.totalSesi||0)+'</b> sesi / <b>'+(r.atTibyan&&r.atTibyan.totalLog||0)+'</b> log</div>'
+      +'<div>'+svgIcon('clipboard',13)+' Observasi: <b>'+(r.observasi&&r.observasi.totalObs||0)+'</b> record</div>'
+      +'<div>'+svgIcon('edit',13)+' Rekap Status: <b>'+(r.rekapStatus&&r.rekapStatus.totalRekap||0)+'</b> record</div>'
+      +'<div>'+svgIcon('user',13)+' Users: <b>'+(r.users&&r.users.totalUsers||0)+'</b> murid</div>'
       +'<div style="color:var(--text-3);font-size:11px;margin-top:8px">Semua ditandai [STRESS_TEST] — klik "Cleanup Semua" untuk bersihkan</div></div>';
     if(totalErrors) console.warn('[Combined ST] errors:',r);
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='🔥 Mulai Combined Test';
+  btn.disabled=false; btn.textContent='Mulai Combined Test';
 }
 async function combStressTestCleanup() {
   if(!(await _confirmStressCleanup('Cleanup SEMUA data stress test dari seluruh tabel?\n\nTidak dapat di-undo.'))) return;
   var btn=document.getElementById('btnCombStressCleanup');
-  btn.disabled=true; btn.textContent='⏳ Cleanup semua...';
+  btn.disabled=true; btn.textContent='Cleanup semua...';
   try {
     var r=await window.HQ.AdminAPI.cleanupStressTestCombined();
     toast('Cleanup selesai — semua tabel bersih','ok');
     ['combStResult','combStProgressWrap'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
     document.getElementById('combStProgressBar').style.width='0%';
   } catch(e){toast('Error: '+e.message,'error');}
-  btn.disabled=false; btn.textContent='🗑️ Cleanup Semua';
+  btn.disabled=false; btn.textContent='Cleanup Semua';
 }
 
 // ══════════════════════════════════════════
@@ -765,7 +765,7 @@ async function usrStressTestMulai() {
   var bar  = document.getElementById('usrStProgressBar');
   var lbl  = document.getElementById('usrStProgressLabel');
   var res  = document.getElementById('usrStResult');
-  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  btn.disabled = true; btn.textContent = 'Berjalan...';
   wrap.style.display = 'block'; res.style.display = 'none';
   var muridPerHalaqah = parseInt(document.getElementById('usrStCount').value) || 3;
   try {
@@ -776,21 +776,21 @@ async function usrStressTestMulai() {
     if (r.errors && r.errors.length) console.warn('[StressTest USR] Errors:', r.errors);
     res.style.display = 'block';
     res.innerHTML = '<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      + '<div style="font-weight:600;color:var(--success);margin-bottom:6px">'
-      + (r.status === 'ok' ? '✅ Stress Test Selesai' : '⚠️ Selesai dengan ' + r.errors.length + ' error') + '</div>'
-      + '<div>👤 User Murid: <b>' + r.totalUsers + '</b></div>'
-      + '<div>📋 Anggota: <b>' + r.totalAnggota + '</b></div>'
+      + '<div style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+      + (r.status === 'ok' ? svgIcon('ok',14)+'Stress Test Selesai' : svgIcon('warn',14)+'Selesai dengan ' + r.errors.length + ' error') + '</div>'
+      + '<div>' + svgIcon('user',13) + ' User Murid: <b>' + r.totalUsers + '</b></div>'
+      + '<div>' + svgIcon('clipboard',13) + ' Anggota: <b>' + r.totalAnggota + '</b></div>'
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] di kolom catatan — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+  btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
 async function usrStressTestCleanup() {
   if (!(await _confirmStressCleanup('Hapus semua user [STRESS_TEST] dari users dan anggota?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnUsrStressCleanup');
-  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  btn.disabled = true; btn.textContent = 'Menghapus...';
   try {
     var r = await window.HQ.AdminAPI.cleanupStressTestUsers();
     if (r.status === 'ok') {
@@ -803,7 +803,7 @@ async function usrStressTestCleanup() {
       toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
     }
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+  btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -815,7 +815,7 @@ async function obsStressTestMulai() {
   var bar  = document.getElementById('obsStProgressBar');
   var lbl  = document.getElementById('obsStProgressLabel');
   var res  = document.getElementById('obsStResult');
-  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  btn.disabled = true; btn.textContent = 'Berjalan...';
   wrap.style.display = 'block'; res.style.display = 'none';
   var sesiPerHalaqah = parseInt(document.getElementById('obsStSesiCount').value) || 2;
   try {
@@ -826,21 +826,21 @@ async function obsStressTestMulai() {
     if (r.errors && r.errors.length) console.warn('[StressTest OBS] Errors:', r.errors);
     res.style.display = 'block';
     res.innerHTML = '<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      + '<div style="font-weight:600;color:var(--success);margin-bottom:6px">'
-      + (r.status === 'ok' ? '✅ Stress Test Selesai' : '⚠️ Selesai dengan ' + r.errors.length + ' error') + '</div>'
-      + '<div>📚 KBM Log: <b>' + r.totalKbm + '</b> sesi</div>'
-      + '<div>📋 Observasi: <b>' + r.totalObs + '</b> record</div>'
+      + '<div style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+      + (r.status === 'ok' ? svgIcon('ok',14)+'Stress Test Selesai' : svgIcon('warn',14)+'Selesai dengan ' + r.errors.length + ' error') + '</div>'
+      + '<div>' + svgIcon('book',13) + ' KBM Log: <b>' + r.totalKbm + '</b> sesi</div>'
+      + '<div>' + svgIcon('clipboard',13) + ' Observasi: <b>' + r.totalObs + '</b> record</div>'
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+  btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
 async function obsStressTestCleanup() {
   if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari observasi_kbm dan kbm_log (observasi)?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnObsStressCleanup');
-  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  btn.disabled = true; btn.textContent = 'Menghapus...';
   try {
     var r = await window.HQ.AdminAPI.cleanupStressTestObservasi();
     if (r.status === 'ok') {
@@ -853,7 +853,7 @@ async function obsStressTestCleanup() {
       toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
     }
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+  btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -865,7 +865,7 @@ async function atStressTestMulai() {
   var bar  = document.getElementById('atStProgressBar');
   var lbl  = document.getElementById('atStProgressLabel');
   var res  = document.getElementById('atStResult');
-  btn.disabled = true; btn.textContent = '⏳ Berjalan...';
+  btn.disabled = true; btn.textContent = 'Berjalan...';
   wrap.style.display = 'block'; res.style.display = 'none';
   var sesiCount = parseInt(document.getElementById('atStSesiCount').value) || 3;
   try {
@@ -876,21 +876,21 @@ async function atStressTestMulai() {
     if (r.errors && r.errors.length) console.warn('[StressTest AT] Errors:', r.errors);
     res.style.display = 'block';
     res.innerHTML = '<div style="background:var(--bg-2);border-radius:8px;padding:12px;font-size:13px">'
-      + '<div style="font-weight:600;color:var(--success);margin-bottom:6px">'
-      + (r.status === 'ok' ? '✅ Stress Test Selesai' : '⚠️ Selesai dengan ' + r.errors.length + ' error') + '</div>'
-      + '<div>📖 Sesi At-Tibyan: <b>' + r.totalSesi + '</b></div>'
-      + '<div>👥 Log Presensi: <b>' + r.totalLog + '</b></div>'
+      + '<div style="font-weight:600;color:var(--success);display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+      + (r.status === 'ok' ? svgIcon('ok',14)+'Stress Test Selesai' : svgIcon('warn',14)+'Selesai dengan ' + r.errors.length + ' error') + '</div>'
+      + '<div>' + svgIcon('book',13) + ' Sesi At-Tibyan: <b>' + r.totalSesi + '</b></div>'
+      + '<div>' + svgIcon('users',13) + ' Log Presensi: <b>' + r.totalLog + '</b></div>'
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '⚡ Mulai Stress Test';
+  btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
 async function atStressTestCleanup() {
   if (!(await _confirmStressCleanup('Hapus semua data [STRESS_TEST] dari at_tibyan_sesi dan at_tibyan_log?\n\nTidak dapat di-undo.'))) return;
   var btn = document.getElementById('btnAtStressCleanup');
-  btn.disabled = true; btn.textContent = '⏳ Menghapus...';
+  btn.disabled = true; btn.textContent = 'Menghapus...';
   try {
     var r = await window.HQ.AdminAPI.cleanupStressTestAtTibyan();
     if (r.status === 'ok') {
@@ -903,7 +903,7 @@ async function atStressTestCleanup() {
       toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
     }
   } catch(e) { toast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '🗑️ Hapus Data Test';
+  btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
 // ══════════════════════════════════════════
@@ -945,8 +945,8 @@ async function loadAtMateriAdmin() {
         + '<td style="font-size:12.5px">'+esc(m.pemateri||'-')+'</td>'
         + '<td style="font-size:12px;white-space:nowrap">'+esc(m.tanggal||'-')+'</td>'
         + '<td><div style="display:flex;gap:6px">'
-        + '<button class="btn btn-outline btn-sm" onclick="editAtMateri('+m.id+')">✏️</button>'
-        + '<button class="btn btn-red btn-sm" onclick="hapusAtMateri('+m.id+','+m.pertemuan_ke+')">🗑️</button>'
+        + '<button class="btn btn-outline btn-sm" onclick="editAtMateri('+m.id+')">' + svgIcon('edit',14) + '</button>'
+        + '<button class="btn btn-red btn-sm" onclick="hapusAtMateri('+m.id+','+m.pertemuan_ke+')">' + svgIcon('delete',14) + '</button>'
         + '</div></td></tr>';
     }).join('');
   } catch(e) {
@@ -1045,8 +1045,8 @@ function renderMateriLevelAdmin() {
       + '<div style="font-size:11.5px;color:var(--text-3);margin-top:2px;white-space:normal">'+esc((m.isi||'').substring(0,70))+((m.isi||'').length>70?'...':'')+'</div></td>'
       + '<td style="text-align:center">'+esc(m.urutan||'-')+'</td>'
       + '<td><div style="display:flex;gap:6px">'
-      + '<button class="btn btn-outline btn-sm" onclick="editMateriLevel('+m.id+')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" onclick="hapusMateriLevel('+m.id+',\''+escJs(m.judul)+'\')">🗑️</button>'
+      + '<button class="btn btn-outline btn-sm" onclick="editMateriLevel('+m.id+')">' + svgIcon('edit',14) + '</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusMateriLevel('+m.id+',\''+escJs(m.judul)+'\')">' + svgIcon('delete',14) + '</button>'
       + '</div></td></tr>';
   }).join('');
 }
@@ -1122,8 +1122,8 @@ async function loadLevel() {
       + '<td style="font-size:12.5px;color:var(--text-3)">' + esc(l.deskripsi||'–') + '</td>'
       + '<td>' + (l.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>') + '</td>'
       + '<td style="display:flex;gap:5px">'
-      + '<button class="btn btn-ghost btn-sm" data-lid="' + esc(l.id_level) + '" onclick="editLevel(this.getAttribute(\'data-lid\'))">✏️</button>'
-      + '<button class="btn btn-red btn-sm" data-lid="' + esc(l.id_level) + '" data-lnm="' + esc(l.nama_level) + '" onclick="hapusLevel(this.getAttribute(\'data-lid\'),this.getAttribute(\'data-lnm\'))">🗑</button>'
+      + '<button class="btn btn-ghost btn-sm" data-lid="' + esc(l.id_level) + '" onclick="editLevel(this.getAttribute(\'data-lid\'))">' + svgIcon('edit',14) + '</button>'
+      + '<button class="btn btn-red btn-sm" data-lid="' + esc(l.id_level) + '" data-lnm="' + esc(l.nama_level) + '" onclick="hapusLevel(this.getAttribute(\'data-lid\'),this.getAttribute(\'data-lnm\'))">' + svgIcon('delete',14) + '</button>'
       + '</td>'
       + '</tr>'
     ).join('') || '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada level</td></tr>';
@@ -1132,7 +1132,7 @@ async function loadLevel() {
 }
 
 function openModalLevel() {
-  document.getElementById('modalMngLevelTitle').textContent = '🏆 Level Baru';
+  document.getElementById('modalMngLevelTitle').textContent = 'Level Baru';
   document.getElementById('lvlId').value = '';
   document.getElementById('lvlNama').value = '';
   document.getElementById('lvlUrutan').value = '';
@@ -1148,7 +1148,7 @@ function editLevel(id) {
   window.HQ.AdminAPI.getLevelList().then(r => {
     const l = (r.data||[]).find(x => x.id_level === id);
     if (!l) return;
-    document.getElementById('modalMngLevelTitle').textContent = '✏️ Edit Level';
+    document.getElementById('modalMngLevelTitle').textContent = 'Edit Level';
     document.getElementById('lvlId').value = l.id_level;
     document.getElementById('lvlNama').value = l.nama_level;
     document.getElementById('lvlUrutan').value = l.urutan||'';
@@ -1220,7 +1220,7 @@ function renderTemplateRows() {
     return '<div class="komponen-row" style="padding:8px;gap:8px">'
       + '<input type="text" class="fc" value="' + esc(t.kategori||'Umum') + '" placeholder="Kategori" style="width:120px;flex-shrink:0" oninput="templateRows[' + i + '].kategori=this.value">'
       + '<input type="text" class="fc" value="' + esc(t.teks) + '" placeholder="Teks koreksi..." style="flex:1" oninput="templateRows[' + i + '].teks=this.value">'
-      + '<button class="btn btn-red btn-sm" onclick="hapusTemplateRow(' + i + ')">🗑</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusTemplateRow(' + i + ')">' + svgIcon('delete',14) + '</button>'
       + '</div>';
   }).join('') || '<div style="color:var(--text-3);text-align:center;padding:16px">Belum ada template</div>';
 }
@@ -1415,8 +1415,8 @@ function resetAdminSession() {
             + '<td style="font-size:12px;white-space:normal;line-height:1.4">' + esc(m.keterangan || '-') + '</td>'
             + '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>'
             + '<td><div style="display:flex;gap:6px">'
-            + '<button class="btn btn-outline btn-sm" onclick="editIndikator(\'' + m.id_item + '\')">✏️</button>'
-            + '<button class="btn btn-red btn-sm" onclick="hapusIndikator(\'' + m.id_item + '\',\'' + escJs(m.teks_latin) + '\')">🗑️</button>'
+            + '<button class="btn btn-outline btn-sm" onclick="editIndikator(\'' + m.id_item + '\')">' + svgIcon('edit',14) + '</button>'
+            + '<button class="btn btn-red btn-sm" onclick="hapusIndikator(\'' + m.id_item + '\',\'' + escJs(m.teks_latin) + '\')">' + svgIcon('delete',14) + '</button>'
             + '</div></td></tr>';
         }).join('');
       } catch(e) {
