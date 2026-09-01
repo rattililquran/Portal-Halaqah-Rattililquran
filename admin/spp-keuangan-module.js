@@ -116,6 +116,17 @@ async function simpanMetode() {
   catch(e) { toast(friendlyError(e),'err'); }
 }
 
+// Batas render tabel Rekap SPP/Infaq/Ihsan -- dipakai bersama ketiga
+// sub-tampilan (dropdown "jenis": spp/infaq/ihsan) karena cuma satu yang
+// tampil di satu waktu (satu <tbody> yang sama). Direset ke 50 tiap filter
+// berubah, TIDAK direset saat "muat lagi" (lihat loadMoreSPP). Perf fix:
+// lihat RENCANA_fix_lambat_spp.md.
+var _sppRenderLimit = 50;
+function loadMoreSPP() {
+  _sppRenderLimit += 50;
+  filterSPPTable(true); // true = pertahankan limit saat ini, jangan reset ke 50
+}
+
 async function loadSPPAdmin() {
   var tahun     = document.getElementById('sppFilterTahun').value;
   var idHalaqah = document.getElementById('sppFilterHalaqah').value;
@@ -676,7 +687,29 @@ async function toggleTipeSpp(id_anggota, current, nama) {
   } catch(e) { toast('Gagal: ' + (e.message||e), 'err'); }
 }
 
-function filterSPPTable() {
+// Pesan WA pengingat SPP -- dibangun HANYA saat tombol WA diklik (bukan
+// eager per-baris saat render). Sama persis isinya dgn sebelumnya, cuma
+// waktu eksekusinya dipindah. Perf fix: lihat RENCANA_fix_lambat_spp.md.
+function sppKirimWAReminder(id_murid) {
+  var m = (_sppRekapData || []).find(function(x) { return x.id_murid === id_murid; });
+  if (!m || !m.no_hp) return;
+  var num = m.no_hp.replace(/\D/g, '');
+  if (num.startsWith('0')) num = '62' + num.slice(1);
+  else if (!num.startsWith('62')) num = '62' + num;
+  var nominal = m.tunggakan * SPP_NOMINAL_BULANAN;
+  var msg = 'Assalamualaikum ' + m.nama_murid + ',\n\n'
+    + 'Izin Kami ingatkan kembali perihal pembayaran SPP yang belum tertunaikan:\n\n'
+    + 'Bulan : ' + (m.bulan_belum.length ? m.bulan_belum.join(', ') : (m.tunggakan + ' bulan terakhir')) + '\n'
+    + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n\n'
+    + 'Cara pembayaran:\n'
+    + '1. Buka Portal Rattililqur\'an → menu *SPP* → *Konfirmasi SPP* (info rekening/QRIS terbaru ada di sana)\n'
+    + '2. Transfer sesuai nominal, lalu pilih bulan & metode bayar dan upload bukti transfer\n\n'
+    + 'Jika ada kendala teknis ataupun finansial, jangan ragu hubungi kami. Semoga Allah mudahkan. Jazakumullahu khairan. 🤲\n\n'
+    + '-Data ini direkap otomatis melalui portal Rattililqur\'an, jika ada ketidak cocokan data mohon untuk konfirmasi-';
+  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function filterSPPTable(keepLimit) {
   var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
   var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
   var bulanFilter = document.getElementById('sppFilterBulan').value;
@@ -706,8 +739,9 @@ function filterSPPTable() {
         ? '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Status ' + bulanFilter + '</th><th class="align-center">Reminder</th></tr>'
         : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
 
-  if (jenis === 'infaq') return filterInfaqTable();
-  if (jenis === 'ihsan') return filterIhsanTable();
+  if (jenis === 'infaq') return filterInfaqTable(keepLimit);
+  if (jenis === 'ihsan') return filterIhsanTable(keepLimit);
+  if (!keepLimit) _sppRenderLimit = 50;
 
   var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
   var tbody = document.getElementById('sppRekapBody');
@@ -759,7 +793,8 @@ function filterSPPTable() {
     return;
   }
 
-  tbody.innerHTML = data.map(function(m) {
+  var visibleRows = data.slice(0, _sppRenderLimit);
+  tbody.innerHTML = visibleRows.map(function(m) {
     var badgeClass = m.tunggakan===0
       ? 'badge b-green'
       : m.tunggakan>=3
@@ -775,23 +810,9 @@ function filterSPPTable() {
     } else {
       bulanBelum = '<span class="tag-spp-belum">'+m.tunggakan+' bulan belum lunas</span>';
     }
-    var waLink = '';
-    if (m.no_hp && m.tunggakan > 0) {
-      var num = m.no_hp.replace(/\D/g,'');
-      if (num.startsWith('0')) num = '62' + num.slice(1);
-      else if (!num.startsWith('62')) num = '62' + num;
-      var nominal = m.tunggakan * SPP_NOMINAL_BULANAN;
-      var msg = 'Assalamualaikum ' + m.nama_murid + ',\n\n'
-        + 'Izin Kami ingatkan kembali perihal pembayaran SPP yang belum tertunaikan:\n\n'
-        + 'Bulan : ' + (m.bulan_belum.length ? m.bulan_belum.join(', ') : (m.tunggakan + ' bulan terakhir')) + '\n'
-        + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n\n'
-        + 'Cara pembayaran:\n'
-        + '1. Buka Portal Rattililqur\'an → menu *SPP* → *Konfirmasi SPP* (info rekening/QRIS terbaru ada di sana)\n'
-        + '2. Transfer sesuai nominal, lalu pilih bulan & metode bayar dan upload bukti transfer\n\n'
-        + 'Jika ada kendala teknis ataupun finansial, jangan ragu hubungi kami. Semoga Allah mudahkan. Jazakumullahu khairan. 🤲\n\n'
-        + '-Data ini direkap otomatis melalui portal Rattililqur\'an, jika ada ketidak cocokan data mohon untuk konfirmasi-';
-      waLink = '<a href="https://wa.me/'+num+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;font-size:10.5px;font-weight:700;text-decoration:none">'+svgIcon('message',12)+' WA</a>';
-    }
+    var waLink = (m.no_hp && m.tunggakan > 0)
+      ? '<button onclick="sppKirimWAReminder(\''+esc(m.id_murid)+'\')" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:10.5px;font-weight:700;cursor:pointer">'+svgIcon('message',12)+' WA</button>'
+      : '';
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.nama_murid)+'</div>'
       + '<div style="font-size:11px;color:var(--text-3)">'+esc(m.id_murid)+' · '+esc(m.level||'')+'</div></td>'
@@ -801,9 +822,24 @@ function filterSPPTable() {
       + '<td class="align-center">'+waLink+'</td>'
       + '</tr>';
   }).join('');
+  if (data.length > visibleRows.length) {
+    tbody.innerHTML += '<tr><td colspan="5" style="text-align:center;padding:14px">'
+      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">'
+      + svgIcon('download',14) + ' Muat ' + Math.min(50, data.length - visibleRows.length) + ' lagi ('
+      + (data.length - visibleRows.length) + ' tersisa)</button></td></tr>';
+  }
 }
 
-function filterInfaqTable() {
+// Debounce khusus kotak cari (oninput, per-keystroke) -- dropdown filter
+// (jenis/status/bulan, onchange) tetap panggil filterSPPTable() langsung,
+// tak perlu didebounce. Perf fix: lihat RENCANA_fix_lambat_spp.md.
+var _sppSearchTimer = null;
+function filterSPPTableDebounced() {
+  clearTimeout(_sppSearchTimer);
+  _sppSearchTimer = setTimeout(function(){ filterSPPTable(); }, 220);
+}
+
+function filterInfaqTable(keepLimit) {
   var searchVal = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
   var bulanFilter = document.getElementById('sppFilterBulan').value;
   var tbody = document.getElementById('sppRekapBody');
@@ -827,13 +863,15 @@ function filterInfaqTable() {
   }
 
   _sppInfaqDataFiltered = data;
+  if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = data.map(function(r) {
+  var visibleRows = data.slice(0, _sppRenderLimit);
+  tbody.innerHTML = visibleRows.map(function(r) {
     var metodeBadge = r.metode_bayar === 'gateway'
       ? '<span style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#0369a1;padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px">'+svgIcon('zap',10)+' Gateway</span>'
       : '<span style="background:var(--bg, #f1f5f9);color:var(--text-2, #64748b);padding:1px 7px;border-radius:6px;font-size:10px;font-weight:700">Manual</span>';
@@ -846,9 +884,15 @@ function filterInfaqTable() {
       + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br>'+metodeBadge+'</td>'
       + '</tr>';
   }).join('');
+  if (data.length > visibleRows.length) {
+    tbody.innerHTML += '<tr><td colspan="5" style="text-align:center;padding:14px">'
+      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">'
+      + svgIcon('download',14) + ' Muat ' + Math.min(50, data.length - visibleRows.length) + ' lagi ('
+      + (data.length - visibleRows.length) + ' tersisa)</button></td></tr>';
+  }
 }
 
-function filterIhsanTable() {
+function filterIhsanTable(keepLimit) {
   var searchVal = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
   var bulanFilter = document.getElementById('sppFilterBulan').value;
   var tbody = document.getElementById('sppRekapBody');
@@ -871,13 +915,15 @@ function filterIhsanTable() {
   }
 
   _sppIhsanDataFiltered = data;
+  if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data pembayaran Ihsan Guru.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = data.map(function(r) {
+  var visibleRows = data.slice(0, _sppRenderLimit);
+  tbody.innerHTML = visibleRows.map(function(r) {
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
       + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+' · Guru</div></td>'
@@ -887,6 +933,12 @@ function filterIhsanTable() {
       + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br><span style="font-size:10.5px;color:var(--text-3)">'+esc(r.catatan||'Gaji Guru')+'</span></td>'
       + '</tr>';
   }).join('');
+  if (data.length > visibleRows.length) {
+    tbody.innerHTML += '<tr><td colspan="5" style="text-align:center;padding:14px">'
+      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">'
+      + svgIcon('download',14) + ' Muat ' + Math.min(50, data.length - visibleRows.length) + ' lagi ('
+      + (data.length - visibleRows.length) + ' tersisa)</button></td></tr>';
+  }
 }
 
 // Cegah CSV/Formula Injection: jika nilai diawali =,+,-,@ (atau tab/CR),
@@ -1525,8 +1577,11 @@ async function doKirimPengumuman() {
     window.hapusKategoriKas = hapusKategoriKas;
     window.toggleTipeSpp = toggleTipeSpp;
     window.filterSPPTable = filterSPPTable;
+    window.filterSPPTableDebounced = filterSPPTableDebounced;
     window.filterInfaqTable = filterInfaqTable;
     window.filterIhsanTable = filterIhsanTable;
+    window.loadMoreSPP = loadMoreSPP;
+    window.sppKirimWAReminder = sppKirimWAReminder;
     window._csvSafe = _csvSafe;
     window.eksporSPP = eksporSPP;
     window.salinTagihanMassal = salinTagihanMassal;
