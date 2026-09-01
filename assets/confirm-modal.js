@@ -29,7 +29,13 @@
   // Konfirmasi yang sedang menunggu jawaban user (untuk guard re-entrancy).
   var _pending = null;
 
-  // Resolve true jika "Oke" diklik, false jika "Batal"/klik luar/tombol X/Esc.
+  // Resolve:
+  //   true  → tombol "Oke" diklik
+  //   false → tombol "Batal" diklik (aksi batal yang DISENGAJA)
+  //   null  → ditutup tanpa memilih (klik luar / Esc / didahului dialog lain)
+  // Sebagian besar pemanggil cukup pakai `if (!hasil)` (null & false sama-sama
+  // falsy). Pemanggil yang perlu bedakan "batal disengaja" vs "sekadar ditutup"
+  // bisa cek `hasil === false`.
   window.showConfirm = function (message, opts) {
     opts = opts || {};
     return new Promise(function (resolve) {
@@ -39,9 +45,9 @@
       var okBtn     = document.getElementById('confirmModalOk');
       var cancelBtn = document.getElementById('confirmModalCancel');
 
-      // Kalau ada dialog sebelumnya yang masih menunggu, anggap dibatalkan
-      // dulu sebelum dialog baru dibuka — mencegah listener menumpuk.
-      if (_pending) _pending(false);
+      // Kalau ada dialog sebelumnya yang masih menunggu, tutup dulu (resolve null
+      // — "ditutup tanpa memilih") sebelum dialog baru dibuka, cegah listener menumpuk.
+      if (_pending) _pending();
 
       titleEl.textContent = opts.title || 'Konfirmasi';
       bodyEl.innerHTML = opts.html || esc(message || '').replace(/\n/g, '<br>');
@@ -61,13 +67,14 @@
       }
       function onOk()     { cleanup(true); }
       function onCancel() { cleanup(false); }
-      function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(false); }
+      function onOverlay(e) { if (e.target === overlay && !opts.alertOnly) cleanup(null); }
       function onKey(e) {
         if (e.key !== 'Escape') return;
-        cleanup(opts.alertOnly ? true : false);
+        cleanup(opts.alertOnly ? true : null);
       }
 
-      _pending = cleanup;
+      // Didahului dialog lain → dianggap "ditutup tanpa memilih", bukan batal.
+      _pending = function () { cleanup(null); };
       okBtn.addEventListener('click', onOk);
       cancelBtn.addEventListener('click', onCancel);
       overlay.addEventListener('click', onOverlay);

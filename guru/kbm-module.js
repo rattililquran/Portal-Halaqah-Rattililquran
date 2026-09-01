@@ -1026,6 +1026,7 @@
 
   function addHafalanKbmItem(mid) {
     var eid = _hfKbmEid(mid);
+    var overlapNote = '';   // catatan ringan kalau range Ziyadah beririsan data lama
     var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
     var jenis   = getV('hfkbm-jenis-'+eid);
     var surat   = getV('hfkbm-surat-'+eid);
@@ -1069,12 +1070,12 @@
         if (overlap) {
           // Tumpang-tindih Ziyadah TIDAK lagi diblokir (keputusan pembina: murid
           // boleh menyetor ulang/menambah pada ayat yang sudah pernah disetor).
-          // Auto-Split tetap DITAWARKAN untuk overlap parsial; kalau guru "Batal"
-          // di dialog itu, tryAutoSplitZiyadah sendiri yang menambahkan apa adanya.
+          // Auto-Split tetap DITAWARKAN untuk overlap parsial; kalau ditawarkan,
+          // tryAutoSplitZiyadah yang menangani penambahan + notifikasinya sendiri.
           if (typeof tryAutoSplitZiyadah === 'function' && tryAutoSplitZiyadah(mid, surat, suratD, juz, aD, aS, kel, nil, kam, catatan)) {
             return;
           }
-          quickToast((suratD || surat) + ' ayat ' + aD + '–' + aS + ' sudah pernah disetor Ziyadah — tetap dicatat sebagai pengulangan.', 'info');
+          overlapNote = (suratD || surat) + ' ayat ' + aD + '–' + aS + ' sudah pernah disetor Ziyadah — ditambahkan ke keranjang sebagai pengulangan.';
         }
       } else if (jenis === 'Murajaah') {
         var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[mid]) || [];
@@ -1112,6 +1113,15 @@
     if (!Array.isArray(window._hafalanKbmCache[mid])) {
       window._hafalanKbmCache[mid] = [];
     }
+
+    // Deteksi item yang PERSIS sama sudah ada di keranjang sesi ini (jenis+surat+
+    // range identik) — bukan diblokir, tapi diberitahu supaya salah-tap ganda kelihatan.
+    var isExactDup = jenis !== 'Tahsin' && window._hafalanKbmCache[mid].some(function(it){
+      return it.jenis === jenis
+        && (it.surat||'').toLowerCase().replace(/['-]/g,'') === (surat||'').toLowerCase().replace(/['-]/g,'')
+        && String(it.dari) === String(dari) && String(it.sampai) === String(sampai);
+    });
+
     window._hafalanKbmCache[mid].push(item);
 
     var setV = function(id,v){ var el=document.getElementById(id);if(el)el.value=v; };
@@ -1126,7 +1136,16 @@
     renderHafalanKbmStagedList(mid);
     updateHfKbmPoin(mid);
     _kbmDraftSaveDebounced();
-    toast('Setoran "' + (suratD||surat||jenis) + '" ditambahkan ke keranjang!', 'ok');
+
+    // Satu notifikasi saja (tak menumpuk): catatan overlap > catatan duplikat >
+    // konfirmasi biasa.
+    if (overlapNote) {
+      quickToast(overlapNote, 'info');
+    } else if (isExactDup) {
+      quickToast('Item identik sudah ada di keranjang sesi ini — tetap ditambahkan.', 'info');
+    } else {
+      toast('Setoran "' + (suratD||surat||jenis) + '" ditambahkan ke keranjang!', 'ok');
+    }
   }
 
   function editHafalanKbmItem(mid, index) {
@@ -1237,10 +1256,14 @@
       _kbmDraftSaveDebounced();
     }
 
-    showConfirm(htmlDesc, { title: 'Auto-Split Setoran Hafalan', okText: 'Tambahkan Keduanya', cancelText: 'Tambahkan Apa Adanya' }).then(function(confirmed) {
+    showConfirm(htmlDesc, { title: 'Auto-Split Setoran Hafalan', okText: 'Tambahkan Keduanya', cancelText: 'Tambahkan Apa Adanya' }).then(function(choice) {
+      // choice: true = pisah, false = tambah apa adanya (tombol), null = ditutup
+      // (Esc/klik-luar/didahului dialog lain) -> jangan lakukan apa pun, data di
+      // form masih utuh sehingga guru bisa menyesuaikan lalu klik "+ Tambah" lagi.
+      if (choice == null) return;
       if (!window._hafalanKbmCache) window._hafalanKbmCache = {};
       if (!Array.isArray(window._hafalanKbmCache[mid])) window._hafalanKbmCache[mid] = [];
-      if (confirmed) {
+      if (choice) {
         stagedItems.forEach(function(it) { window._hafalanKbmCache[mid].push(it); });
         _resetHfKbmForm();
         toast('Setoran berhasil dipisah otomatis!', 'ok');
@@ -2329,20 +2352,9 @@
             valid = false; break;
           }
 
-          if (cache.jenis === 'Ziyadah') {
-            var rawDb = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
-            var priorStaged = list.slice(0, j).filter(function(it){ return it.jenis === 'Ziyadah'; });
-            var allZiyadah = rawDb.concat(priorStaged);
-            var rawForSurat = allZiyadah.filter(function(z) {
-              return (z.surat||'').toLowerCase().replace(/['-]/g,'') === (cache.surat||'').toLowerCase().replace(/['-]/g,'');
-            });
-            var intervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
-            var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(intervals, aD, aS) : null;
-            if (overlap) {
-              // Bukan lagi penghalang finalisasi — cukup diingatkan.
-              quickToast(m.nama_murid + ': ' + (cache.suratD || cache.surat) + ' ayat ' + aD + '–' + aS + ' beririsan Ziyadah lama — tetap dicatat.', 'info');
-            }
-          } else if (cache.jenis === 'Murajaah') {
+          // Tumpang-tindih Ziyadah TIDAK divalidasi lagi di sini — sudah
+          // diperbolehkan & sudah diberi catatan ringan saat item ditambahkan.
+          if (cache.jenis === 'Murajaah') {
             var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
             var rawForSurat = raw.filter(function(z) {
               return (z.surat||'').toLowerCase().replace(/['-]/g,'') === (cache.surat||'').toLowerCase().replace(/['-]/g,'');
@@ -2389,19 +2401,8 @@
           toast('Target ayat ' + m.nama_murid + ' melebihi jumlah ayat surat ' + targetMeta.latin + ' (' + targetMeta.ayat + ' ayat)', 'warn');
           valid = false; break;
         }
-        var raw = (window._hfKbmZiyadah && window._hfKbmZiyadah[m.id_murid]) || [];
-        var stagedZiyadah = list.filter(function(it){ return it.jenis === 'Ziyadah'; });
-        var allZiyadah = raw.concat(stagedZiyadah);
-        var rawForSurat = allZiyadah.filter(function(z) {
-          return (z.surat||'').toLowerCase().replace(/['-]/g,'') === tgtSrt.toLowerCase().replace(/['-]/g,'');
-        });
-        var tgtIntervals = typeof mergeIntervals === 'function' ? mergeIntervals(rawForSurat) : [];
-        var overlap = typeof checkZiyadahOverlap === 'function' ? checkZiyadahOverlap(tgtIntervals, tgtD, tgtS) : null;
-        if (overlap) {
-          // Target boleh beririsan dengan Ziyadah yang sudah disetor (mis. untuk
-          // pemantapan) — tidak diblokir, cukup diingatkan.
-          quickToast('Target ' + m.nama_murid + ' beririsan dengan Ziyadah yang sudah disetor — tetap disimpan.', 'info');
-        }
+        // Target BOLEH beririsan dengan Ziyadah yang sudah disetor (mis. untuk
+        // pemantapan) — tidak divalidasi/diperingatkan lagi di sini.
       }
     }
 
