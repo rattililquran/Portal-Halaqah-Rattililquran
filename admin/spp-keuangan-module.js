@@ -150,7 +150,11 @@ function _restoreSPPCards() {
     try { open = localStorage.getItem('pcard:' + card.id) === '1'; } catch(e) {}
     card.toggleAttribute('data-collapsed', !open);
     var head = card.querySelector('.pcard-head');
-    if (head) head.setAttribute('aria-expanded', String(open));
+    var body = card.querySelector('.pcard-body');
+    if (head) {
+      head.setAttribute('aria-expanded', String(open));
+      if (body) { if (!body.id) body.id = card.id + '-body'; head.setAttribute('aria-controls', body.id); }
+    }
     if (open) {
       var fn = card.getAttribute('data-load');
       if (fn && typeof window[fn] === 'function') window[fn]();
@@ -365,9 +369,10 @@ async function loadSPPAdmin() {
   // Filter halaqah hanya dihormati di tab SPP (di tab lain angka Kas/Ihsan
   // se-lembaga — mencampur 1-halaqah SPP dgn Kas global itu menyesatkan).
   var idHalaqah = (_sppTab === 'spp') ? (document.getElementById('sppFilterHalaqah').value || '') : '';
-  // Filter berubah → data Kas/Rekonsiliasi siklus ini wajib di-fetch ulang saat tabnya dibuka
+  // Filter berubah / ada aksi validasi → data turunan wajib di-fetch ulang
   _sppKasLoaded = false;
   _sppRekonLoaded = false;
+  _sppRiwayatLoaded = false;
   showLoad('Memuat data SPP...');
   try {
     // Isi dropdown halaqah jika belum
@@ -389,10 +394,19 @@ async function loadSPPAdmin() {
       var pendList = document.getElementById('sppPendingList');
       var pendBadge = document.getElementById('sppPendingBadge');
       if (pendBadge) pendBadge.textContent = pending.length;
-      // Tetap ciut secara default, tapi tint header amber saat ada antrian → tak terlewat
+      // Tint header amber saat ada antrian → tak terlewat
       if (pendSec) pendSec.classList.toggle('pcard-alert', pending.length > 0);
       if (pending.length) {
         pendSec.style.display = '';
+        // Auto-buka HANYA bila user belum pernah set preferensi kartu ini
+        // (sekali ditutup/dibuka manual → keputusan user dihormati, tak disimpan di sini).
+        var _pendPref = null;
+        try { _pendPref = localStorage.getItem('pcard:sppPendingSection'); } catch(e) {}
+        if (_pendPref === null) {
+          pendSec.removeAttribute('data-collapsed');
+          var _pendHead = pendSec.querySelector('.pcard-head');
+          if (_pendHead) _pendHead.setAttribute('aria-expanded', 'true');
+        }
         pendList.innerHTML = pending.map(function(p) {
           var nominal = p.nominal ? 'Rp '+Number(p.nominal).toLocaleString('id-ID') : '—';
           var jenisBadge = p.jenis === 'SPP Pribadi'
@@ -509,6 +523,8 @@ async function loadSPPAdmin() {
       // "Kas & Ihsan" dibuka (hindari 3-4 call sia-sia di tab SPP/Infaq).
       switchSPPTab(_sppTab, true);
       filterSPPTable();
+      // Kartu Riwayat sedang terbuka → segarkan (mungkin barusan ada aksi validasi)
+      if (document.querySelector('#sppRiwayatCard:not([data-collapsed])')) loadSPPRiwayat(true);
     } catch(eRekap) {
       console.error('getSPPRekap error:', eRekap);
       document.getElementById('sppRekapBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--red);font-size:12px">Gagal memuat rekap: '+esc(eRekap.message)+'</td></tr>';
@@ -1572,8 +1588,13 @@ async function konfirmasiManualGateway(id_spp, namaMurid, bulanTahun) {
 }
 
 var _sppRiwayatLoaded = false;
-async function loadSPPRiwayat() {
+// force=true → paksa fetch ulang (mis. setelah aksi validasi / batal).
+// Tanpa force → skip kalau sudah dimuat siklus ini (hindari fetch berulang
+// dari _restoreSPPCards / expand-collapse berkali-kali).
+async function loadSPPRiwayat(force) {
   var listEl = document.getElementById('sppRiwayatSection');
+  if (!listEl) return;
+  if (_sppRiwayatLoaded && !force) return;
   listEl.innerHTML = '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:13px">Memuat...</div>';
   try {
     var res = await window.HQ.AdminAPI.getSPPRecentValidasi();

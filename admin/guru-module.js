@@ -77,6 +77,9 @@ async function loadMasterData() {
 //  NAVIGASI
 // ══════════════════════════════════════════
 function goPage(name) {
+  // Tutup modal yang mungkin masih terbuka + lepas kunci scroll saat pindah halaman
+  document.querySelectorAll('.overlay.open, .modal-overlay.open').forEach(o => o.classList.remove('open'));
+  document.body.style.overflow = '';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
