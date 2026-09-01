@@ -235,10 +235,15 @@ function renderUsersTable(role) {
   });
 
   var showHalaqahCol = role === 'guru';
-  var colCount = showHalaqahCol ? 8 : 7;
+  // +1 kolom "No." -- dibangun langsung di sini (bukan disisipkan belakangan
+  // oleh setupTableObserver global) supaya tabel Users PUNYA header "No."
+  // sendiri: hasOriginalNo di updateTableNumbers() jadi true -> observer
+  // langsung return, tak ada insertBefore per baris / mutation cascade sama
+  // sekali utk tabel ini. Lihat RENCANA_fix_search_manajemen_user.md (Adendum 3).
+  var colCount = (showHalaqahCol ? 8 : 7) + 1;
   var tbody = document.getElementById('usersTbl');
 
-  tbody.innerHTML = filtered.map(function(u) {
+  tbody.innerHTML = filtered.map(function(u, idx) {
     var hqList = guruMap[u.id_user] || [];
     var hqCell = '';
     if (showHalaqahCol) {
@@ -265,6 +270,7 @@ function renderUsersTable(role) {
       btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">⚠️ Hapus Permanen</button>';
     }
     return '<tr>'
+      + '<td style="color:var(--text-3);font-size:11px;text-align:center">' + (idx+1) + '.</td>'
       + '<td><code style="font-size:11.5px">' + esc(u.id_user) + '</code></td>'
       + '<td><strong>' + esc(u.nama_lengkap) + '</strong></td>'
       + '<td>' + roleBadge(u.role) + '</td>'
