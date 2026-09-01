@@ -132,6 +132,10 @@ var _sppListData = [];          // rekap.spp_list (SPP Pribadi per transaksi)
 var _sppListFiltered = [];
 var _sppSPPView = 'tunggakan';  // 'tunggakan' | 'transaksi' (khusus tab SPP)
 var _sppEditCtx = null;         // {jenisKey, row}
+var _sppLastRekap = null;       // rekap utama terakhir (utk lazy-load tab Kas)
+var _sppKasLoaded = false;      // sudah fetch data Kas/Beasiswa siklus ini?
+var _sppRekonLoaded = false;    // sudah fetch Rekonsiliasi siklus ini?
+var _sppTunggakanDisabled = false; // "Semua Tahun + Seluruh Periode" → tunggakan mati
 
 function _txPeriodeBadge(idPeriode) {
   if (!idPeriode) return '<span style="font-size:10px;color:var(--amber-txt);font-style:italic">tanpa periode</span>';
@@ -194,12 +198,13 @@ function _syncSPPTahunEnabled() {
   } else {
     thSel.disabled = false;
     thSel.style.opacity = '';
-    // Kembali ke "Seluruh Periode": pulihkan tahun asli, atau default tahun ini
-    // (hindari nyangkut di "Semua Tahun" yg mode ini tak benar-benar dukung).
-    if (thSel.value === 'semua') {
-      thSel.value = (thSel.dataset.prev && thSel.dataset.prev !== 'semua')
-        ? thSel.dataset.prev
-        : String(new Date().getFullYear());
+    // Kembali ke "Seluruh Periode" / "Tanpa Periode": pulihkan tahun asli bila
+    // sebelumnya sempat dipaksa 'semua' oleh mode periode. Kalau user memang
+    // memilih "Semua Tahun" sendiri (dan tak ada prev), biarkan — mode ini
+    // kini mendukungnya penuh.
+    if (thSel.value === 'semua' && thSel.dataset.prev && thSel.dataset.prev !== 'semua') {
+      thSel.value = thSel.dataset.prev;
+      delete thSel.dataset.prev;
     }
   }
 }
@@ -228,27 +233,36 @@ async function loadRekonsiliasi() {
   var show = (_sppTab === 'kas' && !_sppPeriodeVal());
   card.style.display = show ? '' : 'none';
   if (!show) return;
+  if (_sppRekonLoaded) return;   // lazy — sudah dimuat siklus ini
+  _sppRekonLoaded = true;
   var th = _sppTahunVal();
   var body = document.getElementById('sppRekonBody');
   body.innerHTML = '<tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">Memuat…</td></tr>';
   try {
     var r = await window.HQ.AdminAPI.getRekonsiliasiSPP({ tahun: th });
     var d = r.data || {};
-    document.getElementById('sppRekonTahun').textContent = 'tahun ' + (d.tahun || th);
+    document.getElementById('sppRekonTahun').textContent = d.semua_tahun ? '(semua tahun)' : ('tahun ' + (d.tahun || th));
     var _rp = function(n){ return 'Rp ' + Math.round(Number(n)||0).toLocaleString('id-ID'); };
     body.innerHTML = (d.metrik || []).map(function(m) {
       var ok = m.cocok;
+      var totalKartu = (m.total_kartu !== undefined) ? m.total_kartu : m.total;
+      var beda = Math.abs(Number(m.total||0) - Number(totalKartu||0)) >= 1;
       return '<tr>'
         + '<td style="font-weight:600">' + esc(m.label) + '</td>'
         + '<td class="align-right" style="font-variant-numeric:tabular-nums">' + _rp(m.sigma_periode) + '</td>'
         + '<td class="align-right" style="font-variant-numeric:tabular-nums;color:' + (m.tanpa > 0 ? 'var(--amber-txt)' : 'var(--text-3)') + '">' + _rp(m.tanpa) + '</td>'
-        + '<td class="align-right" style="font-variant-numeric:tabular-nums;font-weight:700">' + _rp(m.total) + '</td>'
+        + '<td class="align-right" style="font-variant-numeric:tabular-nums;font-weight:700">' + _rp(totalKartu)
+          + (beda ? '<br><span style="font-size:9.5px;color:var(--red-txt);font-weight:600">rekon: ' + _rp(m.total) + '</span>' : '') + '</td>'
         + '<td class="align-center">' + (ok
             ? '<span style="color:var(--green-txt);font-weight:800">✓</span>'
-            : '<span style="color:var(--red-txt);font-weight:800">✗</span>') + '</td>'
+            : '<span style="color:var(--red-txt);font-weight:800" title="Σ per periode + Tanpa Periode tidak sama dengan Total di kartu">✗</span>') + '</td>'
         + '</tr>';
     }).join('') || '<tr><td colspan="5" class="align-center" style="padding:16px;color:var(--text-3)">Tak ada data.</td></tr>';
+    if (!d.acuan_kartu) {
+      body.innerHTML += '<tr><td colspan="5" style="padding:8px 12px;font-size:10.5px;color:var(--amber-txt)">⚠ Acuan kartu gagal dimuat — kolom Cocok? hanya mengecek partisi internal.</td></tr>';
+    }
   } catch(e) {
+    _sppRekonLoaded = false;  // biar bisa dicoba lagi
     body.innerHTML = '<tr><td colspan="5" style="padding:14px;color:var(--red);font-size:12px">Gagal: ' + esc(friendlyError(e)) + '</td></tr>';
   }
 }
@@ -276,12 +290,18 @@ function switchSPPTab(tab, silent) {
   var statusEl = document.getElementById('sppFilterStatus');
   var btnSalin = document.getElementById('btnSalinTagihan');
   var viewTog  = document.getElementById('sppViewToggle');
-  if (statusEl) statusEl.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan') ? '' : 'none';
-  if (btnSalin) btnSalin.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan') ? '' : 'none';
-  if (viewTog)  viewTog.style.display  = (tab === 'spp') ? '' : 'none';
+  if (statusEl) statusEl.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan' && !_sppTunggakanDisabled) ? '' : 'none';
+  if (btnSalin) btnSalin.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan' && !_sppTunggakanDisabled) ? '' : 'none';
+  if (viewTog)  viewTog.style.display  = (tab === 'spp' && !_sppTunggakanDisabled) ? '' : 'none';
   if (tab !== 'spp' && _sppSPPView === 'transaksi') {
     _sppSPPView = 'tunggakan';
     if (viewTog) viewTog.classList.remove('btn-primary');
+  }
+  // Lazy-load: data Kas/Beasiswa hanya di-fetch saat tab "Kas & Ihsan" dibuka.
+  if (tab === 'kas' && !_sppKasLoaded) {
+    _sppKasLoaded = true;
+    if (typeof loadKasBeasiswa === 'function') loadKasBeasiswa(_sppLastRekap);
+    if (typeof loadArusKas === 'function') loadArusKas();
   }
   if (typeof loadRekonsiliasi === 'function') loadRekonsiliasi();
   if (!silent) filterSPPTable();
@@ -291,6 +311,9 @@ async function loadSPPAdmin() {
   var periode   = _sppPeriodeVal();          // '' | '<id>' | '__tanpa__'
   var tahun     = _sppTahunVal();            // 'semua' | 'NNNN'
   var idHalaqah = document.getElementById('sppFilterHalaqah').value;
+  // Filter berubah → data Kas/Rekonsiliasi siklus ini wajib di-fetch ulang saat tabnya dibuka
+  _sppKasLoaded = false;
+  _sppRekonLoaded = false;
   showLoad('Memuat data SPP...');
   try {
     // Isi dropdown halaqah jika belum
@@ -359,11 +382,16 @@ async function loadSPPAdmin() {
         tahun: tahun, id_periode: periode || undefined, id_halaqah: idHalaqah||undefined
       });
       var rekap = rekapRes.data || {};
+      _sppLastRekap = rekap;
       _sppRekapData = rekap.murid_list || [];
       _sppInfaqData = rekap.infaq_list || [];
       _sppIhsanData = rekap.ihsan_list || [];
       _sppListData  = rekap.spp_list || [];
-      
+      _sppTunggakanDisabled = !!rekap.tunggakan_disabled;
+      // Kombo "Seluruh Periode + Semua Tahun": tunggakan tak bermakna → paksa
+      // tampilan "Per pembayaran" & sembunyikan toggle/filter tunggakan.
+      if (_sppTunggakanDisabled) _sppSPPView = 'transaksi';
+
       // Update Dashboard Kinerja SPP Bulanan
       var totalMurid = (rekap.lunas || 0) + (rekap.menunggak || 0);
       var pctLunas = totalMurid > 0 ? Math.round((rekap.lunas || 0) / totalMurid * 100) : 0;
@@ -373,10 +401,10 @@ async function loadSPPAdmin() {
       });
       var belumTertagih = totalTunggakanBulan * SPP_NOMINAL_BULANAN;
 
-      document.getElementById('sppStatLunas').textContent   = rekap.lunas || 0;
-      document.getElementById('sppStatLunasSub').textContent = pctLunas + '% dari ' + totalMurid + ' murid';
-      document.getElementById('sppStatTunggak').textContent  = rekap.menunggak || 0;
-      document.getElementById('sppStatTunggakSub').textContent  = 'Belum tertagih: Rp ' + belumTertagih.toLocaleString('id-ID');
+      document.getElementById('sppStatLunas').textContent   = _sppTunggakanDisabled ? '—' : (rekap.lunas || 0);
+      document.getElementById('sppStatLunasSub').textContent = _sppTunggakanDisabled ? 'pilih tahun spesifik utk lihat tunggakan' : (pctLunas + '% dari ' + totalMurid + ' murid');
+      document.getElementById('sppStatTunggak').textContent  = _sppTunggakanDisabled ? '—' : (rekap.menunggak || 0);
+      document.getElementById('sppStatTunggakSub').textContent  = _sppTunggakanDisabled ? 'tunggakan tak dihitung utk "Semua Tahun"' : ('Belum tertagih: Rp ' + belumTertagih.toLocaleString('id-ID'));
       document.getElementById('sppStatTotal').textContent   = 'Rp ' + (rekap.total_nominal||0).toLocaleString('id-ID');
       document.getElementById('sppStatTotalSub').innerHTML = 'Gateway: Rp ' + (rekap.spp_gateway_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_gateway_count||0) + 'x)<br>Manual: Rp ' + (rekap.spp_manual_nominal||0).toLocaleString('id-ID') + ' (' + (rekap.spp_manual_count||0) + 'x)';
       document.getElementById('sppStatInfaq').textContent   = 'Rp ' + (rekap.total_infaq||0).toLocaleString('id-ID');
@@ -420,9 +448,8 @@ async function loadSPPAdmin() {
         } else { tpBadge.style.display = 'none'; }
       }
 
-      loadKasBeasiswa(rekap);
-      loadArusKas();
-      // loadRekonsiliasi() dipanggil oleh switchSPPTab (hanya nembak API di tab Kas)
+      // Kas/Beasiswa/Rekonsiliasi lazy-load — switchSPPTab yang fetch saat tab
+      // "Kas & Ihsan" dibuka (hindari 3-4 call sia-sia di tab SPP/Infaq).
       switchSPPTab(_sppTab, true);
       filterSPPTable();
     } catch(eRekap) {
@@ -689,21 +716,25 @@ async function loadArusKas() {
   if (!document.getElementById('arusKasBulanStart')) return;
   var periode = (typeof _sppPeriodeVal === 'function') ? _sppPeriodeVal() : '';
   var thRaw = (document.getElementById('sppFilterTahun') && document.getElementById('sppFilterTahun').value) || String(new Date().getFullYear());
-  var tahun = thRaw === 'semua' ? new Date().getFullYear() : Number(thRaw);
+  var isSemuaTh = thRaw === 'semua';
+  var tahun = isSemuaTh ? new Date().getFullYear() : Number(thRaw);
   var bulanStart = document.getElementById('arusKasBulanStart').value;
   var bulanEnd   = document.getElementById('arusKasBulanEnd').value;
-  // Mode periode → pemilih bulan Dari/s/d tak relevan (getArusKas ikut rentang periode)
+  // Pemilih bulan Dari/s/d tak relevan di mode periode ATAU "Semua Tahun"
   var perMode = !!(periode && periode !== '__tanpa__');
+  var lockBulan = perMode || (isSemuaTh && periode !== '__tanpa__');
   ['arusKasBulanStart','arusKasBulanEnd'].forEach(function(id){
     var el = document.getElementById(id);
-    if (el) { el.disabled = perMode; el.style.opacity = perMode ? '0.5' : ''; }
+    if (el) { el.disabled = lockBulan; el.style.opacity = lockBulan ? '0.5' : ''; }
   });
   try {
     var arg = perMode
       ? { id_periode: periode }
       : periode === '__tanpa__'
-        ? { id_periode: '__tanpa__', tahun: tahun }   // ikut filter tahun
-        : { tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd };
+        ? { id_periode: '__tanpa__', tahun: isSemuaTh ? 'semua' : tahun }
+        : isSemuaTh
+          ? { tahun: 'semua' }
+          : { tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd };
     var res = await window.HQ.AdminAPI.getArusKas(arg);
     var d = res.data || {};
     _arusKasRows = d.riwayat || [];
@@ -932,23 +963,27 @@ function filterSPPTable(keepLimit) {
   var jenis = document.getElementById('sppFilterJenis')?.value || 'spp';
   var statusFilter = document.getElementById('sppFilterStatus')?.value || '';
   var bulanFilter = document.getElementById('sppFilterBulan').value;
-  var modeLunasBulan = jenis !== 'infaq' && !!bulanFilter && statusFilter === 'lunas';
+  var modeLunasBulan = jenis !== 'infaq' && !_sppTunggakanDisabled && !!bulanFilter && statusFilter === 'lunas';
+
+  var sppTxMode = (jenis === 'spp' && (_sppSPPView === 'transaksi' || _sppTunggakanDisabled));
 
   // Toggle visibilitas kontrol yang hanya relevan untuk SPP Pribadi
   var statusSel = document.getElementById('sppFilterStatus');
   var btnSalin  = document.getElementById('btnSalinTagihan');
   var subtitle  = document.getElementById('sppRekapSubtitle');
-  if (statusSel) statusSel.style.display = (jenis === 'infaq' || jenis === 'ihsan') ? 'none' : '';
-  if (btnSalin)  btnSalin.style.display  = (jenis === 'infaq' || jenis === 'ihsan') ? 'none' : '';
+  if (statusSel) statusSel.style.display = (jenis === 'infaq' || jenis === 'ihsan' || sppTxMode) ? 'none' : '';
+  if (btnSalin)  btnSalin.style.display  = (jenis === 'infaq' || jenis === 'ihsan' || sppTxMode) ? 'none' : '';
   if (subtitle)  subtitle.textContent    = jenis === 'infaq'
     ? 'Daftar pembayaran Infaq/Operasional yang sudah lunas'
     : jenis === 'ihsan'
       ? 'Daftar pembayaran Ihsan Guru (Gaji)'
+      : sppTxMode
+        ? 'Daftar transaksi SPP Pribadi per pembayaran' + (_sppTunggakanDisabled ? ' (semua tahun)' : '')
       : modeLunasBulan
         ? 'Murid yang sudah membayar SPP Pribadi ' + bulanFilter
         : 'Rekap tunggakan SPP Pribadi per bulan';
 
-  var sppTxMode = (jenis === 'spp' && _sppSPPView === 'transaksi');
+  // (sppTxMode dihitung di atas)
   // Bar tandai periode massal + info baris (mode transaksi / infaq / ihsan)
   _updateSPPBulkBar(jenis, sppTxMode);
 
@@ -1251,6 +1286,7 @@ async function sppBulkSetPeriode() {
 }
 
 function toggleSPPView() {
+  if (_sppTunggakanDisabled) return;  // "Semua Tahun": hanya mode transaksi
   _sppSPPView = (_sppSPPView === 'transaksi') ? 'tunggakan' : 'transaksi';
   var btn = document.getElementById('sppViewToggle');
   if (btn) btn.classList.toggle('btn-primary', _sppSPPView === 'transaksi');
