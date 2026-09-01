@@ -1296,6 +1296,56 @@ html.theme-dark .at-dot.null{background:#374151!important}
 .kal-leg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);font-weight:600}
 .kal-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
 
+/* Kartu greeting dashboard murid -- desain identik dgn portal guru
+   (dash-header-gradient, pil Halaqah Hari Ini/Berikutnya, dst). */
+.dash-top-cards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.dash-top-cards > div {
+  flex: 1;
+  margin-bottom: 0 !important;
+}
+@media (max-width: 767px) {
+  .dash-top-cards {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+.dash-header-gradient{
+  background:linear-gradient(135deg,#0d1f35 0%,#1458A8 50%,#169B6B 100%);
+  border-radius:20px;padding:20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 32px rgba(13,27,42,.18);
+}
+.dash-header-gradient::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.dash-header-gradient::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.dash-greet{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:2px}
+/* Kedua status ("Hari Ini" & "Berikutnya") sama persis pil+ikon -- lebih
+   besar/tebal drpd caption biasa spy langsung ternotice. Style identik dgn
+   portal guru. */
+.dash-greet.is-next,.dash-greet.is-today{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:13px;font-weight:800;color:#fff;
+  background:rgba(255,255,255,.18);
+  padding:4px 11px;border-radius:100px;margin-bottom:6px;
+}
+.dash-greet.is-next svg,.dash-greet.is-today svg{width:12px;height:12px;flex-shrink:0}
+.dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
+.dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
+.dash-hari strong{font-weight:800;color:#fff;font-size:12.5px;letter-spacing:.01em}
+.dash-sesi-lain{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;align-items:center;gap:4px}
+.dash-sesi-lain svg{width:11px;height:11px;flex-shrink:0}
+
 /* ── DASHBOARD: Kartu Kehadiranku (KBM Reguler + At-Tibyan digabung, kalender di kartu terpisah) ── */
 #dashProgressCard{
   background:#fff !important;box-shadow:var(--shadow-card);
@@ -4022,6 +4072,18 @@ html.theme-dark .materi-daurah-banner-title {
 
       <!-- Keaktifan Alert Box -->
       <div id="keaktifanAlertBox" style="margin-bottom:16px; display:none;" onclick="openNotifications()"></div>
+
+      <!-- Kartu greeting: halaqah hari ini / berikutnya -- diketuk langsung buka
+           Riwayat KBM (lihat onclick di markup, sudah goPage('riwayat')). Desain
+           mengikuti kartu greeting di portal guru. -->
+      <div class="dash-top-cards">
+        <div class="dash-header-gradient" onclick="goPage('riwayat')" style="cursor:pointer" title="Lihat Riwayat KBM">
+          <div class="dash-greet" id="greet">Halaqah</div>
+          <div class="dash-name" id="dashNama">Memuat…</div>
+          <div class="dash-hari" id="dashHariIni">&nbsp;</div>
+          <div class="dash-sesi-lain" id="dashSesiLain" style="display:none"></div>
+        </div>
+      </div>
 
       <!-- Progress Level -->
       <!-- Kalender KBM + Kehadiranku: berdampingan di layar lebar (lihat .dash-top-grid) -->
@@ -8146,6 +8208,82 @@ function _donutReplayHandler(e) {
 document.addEventListener('mouseover', _donutReplayHandler);
 document.addEventListener('click', _donutReplayHandler);
 
+// Kartu header gradient (dulu sapaan nama murid) sekarang jadi pintasan ke
+// halaqah yang paling relevan: yang jadwalnya HARI INI kalau ada, atau
+// halaqah dengan jadwal TERDEKAT ke depan kalau hari ini kosong -- diketuk
+// langsung buka Riwayat KBM (lihat onclick di markup, sudah goPage('riwayat')).
+var NAMA_HARI_ID_MURID = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+function updateHalaqahHariIniCardMurid(hq) {
+  var greetEl = document.getElementById('greet');
+  var namaEl  = document.getElementById('dashNama');
+  var hariEl  = document.getElementById('dashHariIni');
+  var lainEl  = document.getElementById('dashSesiLain');
+  if (!greetEl || !namaEl || !hariEl) return;
+
+  greetEl.className = 'dash-greet'; // reset dulu
+  if (lainEl) { lainEl.style.display = 'none'; lainEl.innerHTML = ''; }
+
+  if (!hq || !hq.nama) {
+    greetEl.textContent = 'Halaqah';
+    namaEl.textContent  = 'Belum ada halaqah aktif';
+    hariEl.textContent  = 'Hubungi admin untuk penempatan halaqah.';
+    return;
+  }
+
+  var todayIdx = new Date().getDay();
+
+  // includes() substring -- toleran thd jadwal_hari yg ada teks/tanda baca
+  function daysUntil(jadwalHariStr) {
+    var jadwalLower = (jadwalHariStr || '').toLowerCase();
+    var hariIdx = window._HARI_INDEX || {};
+    var min = Infinity;
+    Object.keys(hariIdx).forEach(function(k) {
+      if (!jadwalLower.includes(k)) return;
+      var diff = (hariIdx[k] - todayIdx + 7) % 7;
+      if (diff < min) min = diff;
+    });
+    return min;
+  }
+
+  // Jam WIB saat ini ("HH:MM") lewat aritmetika UTC+7 langsung
+  var _nowWib = new Date(Date.now() + 7 * 3600000);
+  var nowHHMM = String(_nowWib.getUTCHours()).padStart(2, '0') + ':' + String(_nowWib.getUTCMinutes()).padStart(2, '0');
+
+  function effectiveDays(h) {
+    var d = daysUntil(h.jadwal);
+    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = 7;
+    return d;
+  }
+
+  var bestDays = effectiveDays(hq);
+
+  if (bestDays === Infinity) {
+    greetEl.textContent = 'Halaqah';
+    namaEl.textContent  = hq.nama;
+    hariEl.textContent  = 'Jadwal belum diatur — hubungi admin.';
+    return;
+  }
+
+  var jam = hq.jam ? (hq.jam + (hq.jam_selesai ? '–' + hq.jam_selesai : '')) : '';
+  var labelHari = bestDays === 0 ? 'Hari ini' : (hq.jadwal || NAMA_HARI_ID_MURID[(todayIdx + bestDays) % 7]);
+
+  if (bestDays === 0) {
+    greetEl.className = 'dash-greet is-today';
+    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.8 15.5 16 9.5"/></svg> Halaqah Hari Ini';
+  } else {
+    greetEl.className = 'dash-greet is-next';
+    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Halaqah Berikutnya';
+  }
+  namaEl.textContent  = hq.nama;
+  hariEl.innerHTML = '<strong>' + esc(labelHari + (jam ? ' · ' + jam : '')) + '</strong> — Semoga Allah mudahkan perjuangan hari ini.';
+
+  // Tampilkan nama pengajar sebagai info tambahan
+  if (lainEl && hq.guru) {
+    lainEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ' + esc(hq.guru);
+    lainEl.style.display = 'flex';
+  }
+}
+
 async function loadDashboard(silent) {
   if (!silent) {
     showLoad('Bismillah, memuat dashboard...');
@@ -8525,6 +8663,9 @@ async function loadDashboard(silent) {
       renderKalender();
     }
     renderDashKalender(hq, atRes.data || []);
+
+    // Kartu greeting -- isi setelah data halaqah siap
+    updateHalaqahHariIniCardMurid(hq);
 
     // Load async — tidak blokir dashboard
     loadSPP();
