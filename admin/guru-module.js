@@ -219,7 +219,7 @@ async function loadDashboard() {
         </div>
       `).join('');
     } else {
-      warnTbody.innerHTML = `<div style="text-align:center;padding:12px;color:var(--green-txt);font-weight:700">✅ Semua halaqah kondusif (0 kritis)</div>`;
+      warnTbody.innerHTML = `<div style="text-align:center;padding:12px;color:var(--green-txt);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px">${svgIcon('ok',15)}Semua halaqah kondusif (0 kritis)</div>`;
     }
 
     // ── Populate Financial (Opsi 3) ──
@@ -310,7 +310,7 @@ function renderObsStats() {
       var cWaktu    = sedikit ? netral : (g.pct_tepat_waktu >= 90 ? 'var(--green-txt)' : g.pct_tepat_waktu >= 70 ? 'var(--amber-txt)' : 'var(--red-txt)');
       var cLatihan  = sedikit ? netral : (g.pct_ada_latihan >= 70 ? 'var(--green-txt)' : g.pct_ada_latihan >= 50 ? 'var(--amber-txt)' : 'var(--red-txt)');
       var badgeSedikit = sedikit
-        ? '<span class="badge b-gray" style="font-size:9.5px;font-weight:700" title="Persentase dari sampel kecil belum tentu mencerminkan performa keseluruhan — tunggu lebih banyak data observasi sebelum menyimpulkan">📋 Data masih sedikit (n='+g.total+')</span>'
+        ? '<span class="badge b-gray" style="font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;gap:3px" title="Persentase dari sampel kecil belum tentu mencerminkan performa keseluruhan — tunggu lebih banyak data observasi sebelum menyimpulkan">'+svgIcon('clipboard',11)+'Data masih sedikit (n='+g.total+')</span>'
         : '';
       return '<div class="card" style="padding:16px;cursor:pointer" onclick="filterObsByGuru(\''+esc(g.id_guru||'')+'\',\''+escJs(g.nama_guru||'')+'\')" title="Klik untuk lihat detail observasi guru ini">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
@@ -396,7 +396,7 @@ function filterObservasiTable() {
       + '<td><span class="badge '+(WAKTU_COLOR[r.ketepatan_waktu]||'b-gray')+'" style="font-size:10.5px">'+esc(r.ketepatan_waktu||'-')+menitInfo+'</span></td>'
       + '<td><span class="badge '+(KAMERA_COLOR[r.kamera_peserta]||'b-gray')+'" style="font-size:10.5px">'+esc(r.kamera_peserta||'-')+'</span></td>'
       + '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px" title="' + esc(r.catatan_lain || '–') + '">'+esc(r.catatan_lain||'–')+'</td>'
-      + '<td><button class="btn btn-ghost btn-sm" onclick="lihatObsDetail('+idx+')" title="Lihat detail lengkap sesi ini">👁 Detail</button></td>'
+      + '<td><button class="btn btn-ghost btn-sm" onclick="lihatObsDetail('+idx+')" title="Lihat detail lengkap sesi ini" style="display:inline-flex;align-items:center;gap:5px">'+svgIcon('eye',13)+'Detail</button></td>'
       + '</tr>';
   }).join('');
 }
@@ -583,8 +583,8 @@ function calculateSaranStats() {
   
   document.getElementById('saranStatTotal').textContent = total;
   document.getElementById('saranStatPending').textContent = pending;
-  document.getElementById('saranStatAvgGuru').textContent = avgGuru === '–' ? '–' : '⭐ ' + avgGuru;
-  document.getElementById('saranStatAvgMateri').textContent = avgMateri === '–' ? '–' : '📖 ' + avgMateri;
+  document.getElementById('saranStatAvgGuru').textContent = avgGuru === '–' ? '–' : avgGuru;
+  document.getElementById('saranStatAvgMateri').textContent = avgMateri === '–' ? '–' : avgMateri;
 }
 
 function filterSaran() {
@@ -629,13 +629,13 @@ function renderSaranTable(list) {
     // Sender Name
     const trueName = (!s.is_anonymous && s.users && s.users.nama_lengkap) ? s.users.nama_lengkap : s.nama_pengirim;
     const senderHtml = s.is_anonymous 
-      ? '<span class="badge b-red">🔒 Anonim</span>' 
+      ? '<span class="badge b-red" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('lock',11)+'Anonim</span>'
       : `<strong>${esc(trueName || 'Siswa')}</strong>`;
-      
+
     // Category Badge
     const catBadge = s.kategori_utama === 'portal'
-      ? '<span class="badge b-purple">🖥️ Portal & Teknis</span>'
-      : '<span class="badge b-blue">📖 Program Kelas</span>';
+      ? '<span class="badge b-purple" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('monitor',11)+'Portal & Teknis</span>'
+      : '<span class="badge b-blue" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('book',11)+'Program Kelas</span>';
       
     // Sub-category badge
     const subCatLabel = `<br><small style="color:var(--text-3)">${esc(s.sub_kategori)}</small>`;
@@ -647,8 +647,8 @@ function renderSaranTable(list) {
     // Rating
     let ratingHtml = '<span style="color:var(--text-3)">–</span>';
     if (s.kategori_utama === 'program') {
-      const starGuru = s.rating_guru ? `⭐${s.rating_guru} (G)` : '';
-      const starMateri = s.rating_materi ? `⭐${s.rating_materi} (M)` : '';
+      const starGuru = s.rating_guru ? `${svgIcon('star',11)}${s.rating_guru} (G)` : '';
+      const starMateri = s.rating_materi ? `${svgIcon('star',11)}${s.rating_materi} (M)` : '';
       ratingHtml = [starGuru, starMateri].filter(Boolean).join('<br>');
     }
     
@@ -669,7 +669,7 @@ function renderSaranTable(list) {
       <td class="align-center" style="white-space:nowrap;font-size:11px">${ratingHtml}</td>
       <td>${statusBadge}</td>
       <td>
-        <button class="btn btn-primary btn-sm" onclick="showSaranDetail('${s.id}')">👁️ Detail / Aksi</button>
+        <button class="btn btn-primary btn-sm" onclick="showSaranDetail('${s.id}')" style="display:inline-flex;align-items:center;gap:5px">${svgIcon('eye',13)}Detail / Aksi</button>
       </td>
     </tr>`;
   }).join('');
@@ -693,7 +693,7 @@ function showSaranDetail(id) {
   
   // Set Sender
   if (s.is_anonymous) {
-    document.getElementById('saranDetPengirim').innerHTML = '<span class="badge b-red">🔒 Anonim</span>';
+    document.getElementById('saranDetPengirim').innerHTML = '<span class="badge b-red" style="display:inline-flex;align-items:center;gap:3px">'+svgIcon('lock',11)+'Anonim</span>';
   } else {
     const trueName = (s.users && s.users.nama_lengkap) ? s.users.nama_lengkap : s.nama_pengirim;
     document.getElementById('saranDetPengirim').textContent = trueName || 'Siswa';
@@ -715,9 +715,9 @@ function showSaranDetail(id) {
   const wrapMateri = document.getElementById('saranDetRatingMateriWrap');
   if (s.kategori_utama === 'program') {
     wrapGuru.style.display = s.rating_guru ? 'block' : 'none';
-    if (s.rating_guru) document.getElementById('saranDetRatingGuru').textContent = '⭐ ' + s.rating_guru + ' / 5';
+    if (s.rating_guru) document.getElementById('saranDetRatingGuru').textContent = s.rating_guru + ' / 5';
     wrapMateri.style.display = s.rating_materi ? 'block' : 'none';
-    if (s.rating_materi) document.getElementById('saranDetRatingMateri').textContent = '⭐ ' + s.rating_materi + ' / 5';
+    if (s.rating_materi) document.getElementById('saranDetRatingMateri').textContent = s.rating_materi + ' / 5';
   } else {
     wrapGuru.style.display = 'none';
     wrapMateri.style.display = 'none';
@@ -871,7 +871,7 @@ function adminLevelSectionHeader(level, count) {
     : 'background:var(--bg-2);color:var(--text-3);';
   return `
     <div style="display:flex;align-items:center;gap:8px;margin:18px 0 8px;grid-column:1/-1;">
-      <span style="font-size:12px;font-weight:800;${chip}padding:4px 12px;border-radius:100px;white-space:nowrap;">📗 ${esc(label)}</span>
+      <span style="font-size:12px;font-weight:800;${chip}padding:4px 12px;border-radius:100px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">${svgIcon('book',13)}${esc(label)}</span>
       <span style="font-size:10.5px;font-weight:700;color:var(--text-3);white-space:nowrap;">${count} soal</span>
       <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>`;
@@ -889,7 +889,7 @@ function adminBankCardHtml(s, num) {
 
     // Rekomendasi badge
     const rekHtml = s.rekomendasi_pertemuan_ke 
-      ? `<span style="font-size:10px;font-weight:800;background:rgba(245,158,11,0.1);color:var(--amber);padding:2px 8px;border-radius:100px;">📍 Pertemuan ${s.rekomendasi_pertemuan_ke}</span>` 
+      ? `<span style="font-size:10px;font-weight:800;background:rgba(245,158,11,0.1);color:var(--amber);padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px">${svgIcon('pin',11)}Pertemuan ${s.rekomendasi_pertemuan_ke}</span>`
       : '';
 
     return `
@@ -914,10 +914,10 @@ function adminBankCardHtml(s, num) {
             <!-- Actions -->
             <div style="display:flex;gap:4px;flex-shrink:0;">
               <button onclick="openModalEditSoalAdmin('${escJs(s.id_soal)}')" class="btn-edit-soal-admin" style="background:var(--blue-l);color:var(--blue-d);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Edit Soal">
-                ✏️
+                ${svgIcon('edit',15)}
               </button>
               <button onclick="hapusSoalAdmin('${escJs(s.id_soal)}')" class="btn-delete-soal-admin" style="background:var(--red-l);color:var(--red);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Hapus Soal">
-                🗑️
+                ${svgIcon('delete',15)}
               </button>
             </div>
           </div>
@@ -991,8 +991,8 @@ async function openModalEditSoalAdmin(id_soal) {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeAdminSoalModal()">
       <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <h3 style="font-size:16px;font-weight:800;color:var(--text)">📝 Edit Soal (Bank Soal)</h3>
-          <button onclick="closeAdminSoalModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          <h3 style="font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">${svgIcon('edit',15)}Edit Soal (Bank Soal)</h3>
+          <button onclick="closeAdminSoalModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center">${svgIcon('close',18)}</button>
         </div>
 
         <form onsubmit="submitFormEditSoalAdmin(event, '${escJs(editingSoal.id_soal)}')">
@@ -1043,7 +1043,7 @@ async function openModalEditSoalAdmin(id_soal) {
           <div style="margin-bottom:12px;">
             <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);">
               <input type="checkbox" id="csBolehMaze" ${editingSoal.boleh_maze ? 'checked' : ''}>
-              <span style="flex:1">🎮 Boleh dimainkan di <b>Rattil Maze</b> (Petualangan)</span>
+              <span style="flex:1;display:flex;align-items:center;gap:6px">${svgIcon('gamepad',15)}Boleh dimainkan di <b>Rattil Maze</b> (Petualangan)</span>
             </label>
             <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5;">Efektif untuk tipe <b>Pilihan Ganda</b>, <b>Benar/Salah</b>, atau <b>Audio</b> dengan opsi pendek (≤4 opsi, tiap opsi ≤14 karakter). Tipe lain diabaikan di maze.</div>
           </div>
@@ -1052,7 +1052,7 @@ async function openModalEditSoalAdmin(id_soal) {
           <div style="margin-bottom:12px;">
             <label style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg-2);padding:11px;border-radius:var(--r-sm);border:1px solid var(--border);">
               <input type="checkbox" id="csBolehRun" ${editingSoal.boleh_run ? 'checked' : ''}>
-              <span style="flex:1">🦘 Boleh dimainkan di <b>Rattil Run</b> (Lari)</span>
+              <span style="flex:1;display:flex;align-items:center;gap:6px">${svgIcon('run',15)}Boleh dimainkan di <b>Rattil Run</b> (Lari)</span>
             </label>
             <div style="font-size:10.5px;color:var(--text-3);margin-top:4px;line-height:1.5;">Efektif untuk tipe <b>Pilihan Ganda</b> atau <b>Benar/Salah</b> dengan opsi pendek (ideal ≤3 opsi, tiap opsi ≤14 karakter). Tipe lain diabaikan di Run.</div>
           </div>
@@ -1065,7 +1065,7 @@ async function openModalEditSoalAdmin(id_soal) {
           <div id="csTeksArabWrap" style="display:none;margin-bottom:12px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
               <label style="font-size:11px;font-weight:700;color:var(--text-2);">TEKS ARAB</label>
-              <button type="button" onclick="adminApplyTajwidHighlight()" style="font-size:10.5px;font-weight:800;color:var(--blue-d);background:var(--blue-l);border:none;padding:3px 8px;border-radius:100px;cursor:pointer;">✨ Tandai Highlight Tajwid</button>
+              <button type="button" onclick="adminApplyTajwidHighlight()" style="font-size:10.5px;font-weight:800;color:var(--blue-d);background:var(--blue-l);border:none;padding:3px 8px;border-radius:100px;cursor:pointer;display:inline-flex;align-items:center;gap:4px">${svgIcon('star',11)}Tandai Highlight Tajwid</button>
             </div>
             <textarea id="csTeksArab" rows="2" oninput="adminUpdateTeksArabPreview(this.value)" placeholder="Gunakan {[...]} untuk highlight kata/hukum tajwid" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--border);font-family:'Amiri',serif;font-size:18px;direction:rtl;outline:none;resize:vertical;">${editingSoal.teks_arab ? esc(editingSoal.teks_arab) : ''}</textarea>
             <div style="margin-top:6px;">
@@ -1161,8 +1161,8 @@ function adminOnTipeSoalChange(tipe) {
     optionsDiv.innerHTML = `
       <label style="display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;">KUNCI JAWABAN BENAR:</label>
       <div style="display:flex;gap:16px;">
-        <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="benar" checked> ✅ Benar</label>
-        <label style="font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="csBsBenar" value="salah"> ❌ Salah</label>
+        <label style="font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><input type="radio" name="csBsBenar" value="benar" checked> ${svgIcon('ok',13)}Benar</label>
+        <label style="font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px"><input type="radio" name="csBsBenar" value="salah"> ${svgIcon('err',13)}Salah</label>
       </div>
     `;
   } else if (tipe === 'matching') {
@@ -1305,7 +1305,7 @@ function bukaModalImportSoal() {
   if (dz) {
     dz.style.background = '';
     dz.style.borderColor = 'var(--border)';
-    dz.innerHTML = '<div style="font-size:36px;margin-bottom:8px">☁️</div>'
+    dz.innerHTML = '<div style="margin-bottom:8px;display:flex;justify-content:center;color:var(--text-3)">' + svgIcon('cloud',36) + '</div>'
       + '<div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Drag berkas CSV Soal ke sini atau klik untuk memilih</div>'
       + '<div style="font-size:11px;color:var(--text-3);margin-top:4px">Format berkas: .csv (UTF-8) — Maksimal 200 soal per unggahan</div>';
   }
@@ -1538,8 +1538,8 @@ function parseCSVSoal(file) {
 
       // Render preview row
       const statusHtml = item.error 
-        ? `<span style="color:var(--red);font-weight:700">❌ ${esc(item.error)}</span>` 
-        : '<span style="color:var(--green);font-weight:700">✅ Valid</span>';
+        ? `<span style="color:var(--red);font-weight:700;display:inline-flex;align-items:center;gap:4px">${svgIcon('err',12)}${esc(item.error)}</span>`
+        : `<span style="color:var(--green);font-weight:700;display:inline-flex;align-items:center;gap:4px">${svgIcon('ok',12)}Valid</span>`;
       
       const badgeTipe = getTipeSoalLabelAdmin(tipe);
       
@@ -1559,7 +1559,7 @@ function parseCSVSoal(file) {
     
     const dropZone = document.getElementById('dropZoneSoal');
     dropZone.style.borderColor = validCount === _parsedImportSoal.length ? 'var(--green)' : 'var(--amber)';
-    dropZone.innerHTML = `<div style="font-size:32px">📂</div>`
+    dropZone.innerHTML = `<div style="display:flex;justify-content:center;color:var(--text-3)">${svgIcon('folder',32)}</div>`
       + `<div style="font-weight:700;font-size:13.5px;color:var(--text-2)">Berkas: ${esc(file.name)}</div>`
       + `<div style="font-size:11px;color:var(--text-3);margin-top:4px">${validCount} dari ${_parsedImportSoal.length} soal valid dan siap diimpor.</div>`;
 
@@ -1633,7 +1633,7 @@ function populatePeriodeSel(selId) {
   const sel = document.getElementById(selId);
   if (!sel) return;
   sel.innerHTML = '<option value="">— Pilih Periode —</option>' +
-    allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' ✓':''}</option>`).join('');
+    allPeriode.map(p => `<option value="${esc(p.id_periode)}" ${p.status==='aktif'?'selected':''}>${esc(p.nama_periode)}${p.status==='aktif'?' (Aktif)':''}</option>`).join('');
 }
 
 // ══════════════════════════════════════════
@@ -1670,7 +1670,7 @@ async function loadMazeAdmin() {
     box.innerHTML = levels.map(lv => {
       const q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
       const sumber = lv.id_kuis
-        ? (q ? `🔗 ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
+        ? (q ? `${svgIcon('link',12)} ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
              : _mazeBadge('quiz tak ditemukan', '#dc2626'))
         : _mazeBadge('Latihan bebas (tanpa quiz)', '#2563eb');
       return `
@@ -1678,16 +1678,16 @@ async function loadMazeAdmin() {
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
             <div>
               <div style="font-weight:800;color:var(--text);font-size:14.5px">${esc(lv.nama_level)}</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · 👾 ${esc(lv.jumlah_monster)} · ⚡ ${esc(lv.kecepatan_monster)}×</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · ${esc(lv.jumlah_monster)} monster · ${svgIcon('zap',11)}${esc(lv.kecepatan_monster)}×</div>
             </div>
             ${_mazeBadge(lv.aktif?'Aktif':'Nonaktif', lv.aktif?'#16a34a':'#6b7280')}
           </div>
           <div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">Sumber soal: ${sumber}</div>
           <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Audiens: ${(lv.target_levels && lv.target_levels.length) ? esc(lv.target_levels.join(', ')) : 'Semua level'}${lv.rekomendasi_pertemuan_ke ? ' · rekom. pertemuan ke-'+esc(lv.rekomendasi_pertemuan_ke) : ''}</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="openMazeLevelModal('${escJs(lv.id_maze_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>
-            <button onclick="toggleMazeAktifAdmin('${escJs(lv.id_maze_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'⏸ Nonaktifkan':'▶ Aktifkan'}</button>
-            <button onclick="deleteMazeLevelConfirm('${escJs(lv.id_maze_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">🗑</button>
+            <button onclick="openMazeLevelModal('${escJs(lv.id_maze_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px">${svgIcon('edit',13)}Edit</button>
+            <button onclick="toggleMazeAktifAdmin('${escJs(lv.id_maze_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'Nonaktifkan':'Aktifkan'}</button>
+            <button onclick="deleteMazeLevelConfirm('${escJs(lv.id_maze_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center">${svgIcon('delete',13)}</button>
           </div>
         </div>`;
     }).join('');
@@ -1723,8 +1723,8 @@ async function openMazeLevelModal(id_maze_level) {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeMazeModal()">
       <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🎮 ${editing?'Edit':'Tambah'} Petualangan</h3>
-          <button onclick="closeMazeModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          <h3 style="font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">${svgIcon('gamepad',15)}${editing?'Edit':'Tambah'} Petualangan</h3>
+          <button onclick="closeMazeModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center">${svgIcon('close',18)}</button>
         </div>
         <form onsubmit="submitMazeLevel(event, ${editing?`'${escJs(editing.id_maze_level)}'`:'null'})">
           <div style="margin-bottom:12px">
@@ -1880,24 +1880,24 @@ async function loadRunAdmin() {
     box.innerHTML = levels.map(lv => {
       const q = lv.id_kuis ? quizMap[lv.id_kuis] : null;
       const sumber = lv.id_kuis
-        ? (q ? `🔗 ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
+        ? (q ? `${svgIcon('link',12)} ${esc(q.judul)} ${_mazeBadge(q.status, q.status==='aktif'?'#16a34a':'#d97706')}`
              : _mazeBadge('quiz tak ditemukan', '#dc2626'))
         : _mazeBadge('Latihan bebas (tanpa quiz)', '#2563eb');
       return `
         <div style="background:var(--card-solid);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
             <div>
-              <div style="font-weight:800;color:var(--text);font-size:14.5px">🦘 ${esc(lv.nama_level)}</div>
-              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · 🎯 ${esc(lv.target_soal)} soal · ⚡ ${esc(lv.kecepatan_awal)}× · 🌵 ${esc(lv.kepadatan_rintangan)}×</div>
+              <div style="font-weight:800;color:var(--text);font-size:14.5px;display:flex;align-items:center;gap:6px">${svgIcon('run',14)}${esc(lv.nama_level)}</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">Urutan ${esc(lv.urutan)} · ${esc(lv.tingkat_kesulitan)} · ${svgIcon('target',11)}${esc(lv.target_soal)} soal · ${svgIcon('zap',11)}${esc(lv.kecepatan_awal)}× · rintangan ${esc(lv.kepadatan_rintangan)}×</div>
             </div>
             ${_mazeBadge(lv.aktif?'Aktif':'Nonaktif', lv.aktif?'#16a34a':'#6b7280')}
           </div>
           <div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">Sumber soal: ${sumber}</div>
           <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Audiens: ${(lv.target_levels && lv.target_levels.length) ? esc(lv.target_levels.join(', ')) : 'Semua level'}${lv.rekomendasi_pertemuan_ke ? ' · rekom. pertemuan ke-'+esc(lv.rekomendasi_pertemuan_ke) : ''}</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="openRunLevelModal('${escJs(lv.id_run_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">✏️ Edit</button>
-            <button onclick="toggleRunAktifAdmin('${escJs(lv.id_run_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'⏸ Nonaktifkan':'▶ Aktifkan'}</button>
-            <button onclick="deleteRunLevelConfirm('${escJs(lv.id_run_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">🗑</button>
+            <button onclick="openRunLevelModal('${escJs(lv.id_run_level)}')" style="flex:1;background:var(--blue-l);color:var(--blue-d);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px">${svgIcon('edit',13)}Edit</button>
+            <button onclick="toggleRunAktifAdmin('${escJs(lv.id_run_level)}', ${lv.aktif?'false':'true'})" style="flex:1;background:var(--bg-2);color:var(--text);border:none;padding:8px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer">${lv.aktif?'Nonaktifkan':'Aktifkan'}</button>
+            <button onclick="deleteRunLevelConfirm('${escJs(lv.id_run_level)}','${escJs(lv.nama_level)}')" style="background:#fee2e2;color:#dc2626;border:none;padding:8px 12px;border-radius:var(--r-sm);font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center">${svgIcon('delete',13)}</button>
           </div>
         </div>`;
     }).join('');
@@ -1933,8 +1933,8 @@ async function openRunLevelModal(id_run_level) {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeRunModal()">
       <div style="background:var(--card-solid,#fff);border-radius:var(--r-xl,24px);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="font-size:16px;font-weight:800;color:var(--text)">🦘 ${editing?'Edit':'Tambah'} Level Lari</h3>
-          <button onclick="closeRunModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-3)">✕</button>
+          <h3 style="font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">${svgIcon('run',15)}${editing?'Edit':'Tambah'} Level Lari</h3>
+          <button onclick="closeRunModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center">${svgIcon('close',18)}</button>
         </div>
         <form onsubmit="submitRunLevel(event, ${editing?`'${escJs(editing.id_run_level)}'`:'null'})">
           <div style="margin-bottom:12px">
@@ -2100,7 +2100,18 @@ var ADMIN_ICON_PATHS = {
   smartphone: '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
   monitor:    '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
   help:       '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-  zap:        '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'
+  zap:        '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  // Ditambah bertahap Fase 5 (guru-module.js)
+  eye:        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  lock:       '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  gamepad:    '<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/>',
+  link:       '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  pin:        '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  star:       '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  cloud:      '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+  folder:     '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  target:     '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  run:        '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
 };
 function svgIcon(name, size) {
   size = size || 16;
