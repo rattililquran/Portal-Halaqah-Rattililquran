@@ -61,7 +61,7 @@ async function loadArsipList() {
       return '<tr>'
         + '<td style="font-weight:600">' + esc(a.nama) + '</td>'
         + '<td>' + (a.baris||0).toLocaleString() + ' baris</td>'
-        + '<td><a href="' + esc(a.url) + '" target="_blank" class="btn btn-ghost btn-sm">🔗 Buka</a></td>'
+        + '<td><a href="' + esc(a.url) + '" target="_blank" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px">' + svgIcon('link',13) + ' Buka</a></td>'
         + '</tr>';
     }).join('');
   } catch(e) { toast(friendlyError(e),'err'); }
@@ -93,7 +93,7 @@ async function doArsip() {
   try {
     // Gunakan apiPost standar
     var data = await window.HQ.AdminAPI.arsipData(params);
-    toast('✅ ' + (data.message || 'Arsip selesai! Sheet arsip baru dibuat.'),'ok');
+    toast(data.message || 'Arsip selesai! Sheet arsip baru dibuat.','ok');
     await loadArsipList();
   } catch(e) { toast('Arsip gagal: ' + e.message,'err'); }
   finally { hideLoad(); }
