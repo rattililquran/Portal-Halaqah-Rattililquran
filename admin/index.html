@@ -2177,6 +2177,10 @@ html.theme-dark .fin-detail-card {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               Refresh
             </button>
+            <button class="btn btn-ghost btn-sm" onclick="bukaKelolaMetode()" title="Kelola rekening & QRIS pembayaran" style="display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Metode Bayar
+            </button>
           </div>
         </div>
 
@@ -2649,6 +2653,83 @@ html.theme-dark .fin-detail-card {
                 </div>
               </div>
               <button class="btn btn-outline" onclick="tutupKelolaKategori()" style="width:100%">Selesai</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Modal: Kelola Metode Pembayaran (rekening / QRIS) ── -->
+        <div class="overlay" id="modalMetodeKelola" onclick="if(event.target===this)tutupKelolaMetode()">
+          <div class="modal" style="max-width:460px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)">Metode Pembayaran</div>
+              <button class="btn-icon" onclick="tutupKelolaMetode()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;color:var(--text-3)">Rekening &amp; QRIS yang tampil di portal murid saat konfirmasi pembayaran manual.</div>
+              <div id="sppMetodeAdminList" style="display:flex;flex-direction:column;gap:8px">
+                <div style="text-align:center;padding:14px;color:var(--text-3);font-size:12px">Memuat…</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="bukaFormMetode()" style="align-self:flex-start;font-size:12px;padding:6px 12px">+ Tambah Metode</button>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-outline" onclick="tutupKelolaMetode()" style="width:100%">Selesai</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay" id="modalMetode" onclick="if(event.target===this)tutupFormMetode()">
+          <div class="modal" style="max-width:420px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)" id="modalMetodeTitle">Tambah Metode Bayar</div>
+              <button class="btn-icon" onclick="tutupFormMetode()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+              <input type="hidden" id="metodeId">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:8px">Jenis</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="metodeJenisTabs">
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--green, #1a5c3a);background:var(--green-bg, #f0fdf4);color:var(--green-txt, #1a5c3a);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('rekening',this)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Rekening Bank</div>
+                  <div style="padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--bg-2, #fff);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer;text-align:center" onclick="setMetodeJenis('qris',this)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> QRIS</div>
+                </div>
+              </div>
+              <input type="hidden" id="metodeJenis" value="rekening">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nama / Label</label>
+                <input id="metodeNama" class="fc" placeholder="Cth: Bank BSI, Dana, QRIS Rattil" style="width:100%">
+              </div>
+              <div id="metodeRekeningFields" style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nama Bank</label>
+                  <input id="metodeBank" class="fc" placeholder="Cth: BSI, BCA, Dana" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nomor Rekening</label>
+                  <input id="metodeNomor" class="fc" placeholder="Cth: 7123456789" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Atas Nama</label>
+                  <input id="metodeAtasNama" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
+                </div>
+              </div>
+              <div id="metodeQrisFields" style="display:none;flex-direction:column;gap:12px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Atas Nama</label>
+                  <input id="metodeAtasNamaQris" class="fc" placeholder="Cth: Rattililquran" style="width:100%">
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">URL Gambar QRIS</label>
+                  <input id="metodeQrisUrl" class="fc" placeholder="https://..." style="width:100%">
+                  <div style="font-size:11px;color:#94a3b8;margin-top:5px">Paste URL dari Google Drive atau Supabase Storage. Bisa diisi nanti.</div>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Urutan Tampil</label>
+                <input type="number" id="metodeUrutan" class="fc" value="1" min="1" style="width:80px">
+              </div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-outline" onclick="tutupFormMetode()">Batal</button>
+              <button class="btn btn-primary" onclick="simpanMetode()">Simpan</button>
             </div>
           </div>
         </div>
@@ -4415,7 +4496,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=a952ae77" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=be0560df" defer></script>
+<script src="spp-keuangan-module.js?v=f957fc29" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>
