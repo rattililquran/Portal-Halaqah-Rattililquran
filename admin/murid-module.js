@@ -209,6 +209,16 @@ function _userHay(u) {
   return u._hay;
 }
 
+// Inisial untuk avatar tabel -- buang gelar ("Al-Ustadz/Ustadzah") lalu ambil
+// huruf awal kata pertama + kata terakhir supaya seragam & mudah dibedakan.
+function _userInitials(nama) {
+  var n = String(nama||'').replace(/^\s*(al-?\s*)?(ustadz(ah)?|ust)\s+/i, '').trim();
+  var parts = n.split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 // Batas baris yang benar-benar di-render ke DOM sekaligus ("load more"),
 // BUKAN paginasi bernomor -- reset ke default tiap ganti tab/filter/cari
 // (lihat switchUserTab & filterUsersTable), TIDAK direset saat sort/klik
@@ -267,27 +277,29 @@ function renderUsersTable(role) {
       } else {
         var items = hqList.map(function(h) {
           var kl = h.nama_ketua
-            ? svgIcon('award',12) + ' <strong>' + esc(h.nama_ketua) + '</strong>'
-            : '<span style="color:var(--text-3);font-size:11px">Belum ada ketua</span>';
-          return '<div style="margin-bottom:4px"><span class="badge b-blue" style="font-size:10px">'
-            + esc(h.nama_halaqah) + '</span> <small>' + kl + '</small></div>';
+            ? '<span class="u-hq-kt">' + svgIcon('award',11) + esc(h.nama_ketua) + '</span>'
+            : '<span class="u-hq-kt none">belum ada ketua</span>';
+          return '<div class="u-hq-row"><span class="badge b-blue">'
+            + esc(h.nama_halaqah) + '</span>' + kl + '</div>';
         }).join('');
-        hqCell = '<td>' + items + '</td>';
+        hqCell = '<td><div class="u-hq">' + items + '</div></td>';
       }
     }
     var btnDel = (u.id_user !== 'USR-ADMIN-001')
-      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Nonaktifkan (reversible)">' + svgIcon('delete',14) + '</button>'
+      ? '<button class="u-ibtn d1" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Nonaktifkan akun (bisa dipulihkan)">' + svgIcon('delete',14) + '</button>'
       : '';
-    // Hapus permanen: hanya superadmin (membebaskan ID + hapus akun login)
+    // Hapus permanen: hanya superadmin (membebaskan ID + hapus akun login).
+    // Ikon-only bertint merah pekat -- klik membuka modal ketik-ID, jadi aman.
     if (currentUser && currentUser.role === 'superadmin' && (u.role === 'murid' || u.role === 'guru')) {
       var _hdFn = u.role === 'guru' ? 'hardDeleteGuru' : 'hardDeleteMurid';
       var _hdTitle = u.role === 'guru' ? 'Hapus PERMANEN guru: hapus halaqah yang diampu + seluruh riwayat + akun login' : 'Hapus PERMANEN: hapus data, bebaskan ID, hapus akun login';
-      btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px;display:inline-flex;align-items:center;gap:4px" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">' + svgIcon('warn',12) + ' Hapus Permanen</button>';
+      btnDel += '<button class="u-ibtn d2" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">' + svgIcon('warn',14) + '</button>';
     }
     return '<tr>'
-      + '<td style="color:var(--text-3);font-size:11px;text-align:center">' + (idx+1) + '.</td>'
-      + '<td><code style="font-size:11.5px">' + esc(u.id_user) + '</code></td>'
-      + '<td><strong>' + esc(u.nama_lengkap) + '</strong></td>'
+      + '<td class="u-no">' + (idx+1) + '</td>'
+      + '<td><code class="nis">' + esc(u.id_user) + '</code></td>'
+      + '<td><div class="u-ident"><span class="u-ava r-' + esc(u.role||'') + '">' + esc(_userInitials(u.nama_lengkap)) + '</span>'
+        + '<span class="u-name">' + esc(u.nama_lengkap) + '</span></div></td>'
       + '<td>' + roleBadge(u.role) + '</td>'
       + (showHalaqahCol ? hqCell : '')
       + '<td>' + (u.no_hp
@@ -298,7 +310,7 @@ function renderUsersTable(role) {
       + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>')
         + ((u.tipe_murid||'reguler')==='alumni' ? ' <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px">Alumni</span>' : '')
       + '</td>'
-      + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">' + svgIcon('edit',14) + '</button>' + btnDel + '</td>'
+      + '<td><div class="u-actions"><button class="u-ibtn" onclick="editUser(\'' + esc(u.id_user) + '\')" title="Edit data">' + svgIcon('edit',14) + '</button>' + btnDel + '</div></td>'
       + '</tr>';
   }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
 

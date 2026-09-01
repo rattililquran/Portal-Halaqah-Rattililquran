@@ -259,6 +259,49 @@ html.theme-dark .premium-table tbody tr:nth-child(even) {
   background: rgba(255, 255, 255, 0.015);
 }
 
+/* ═══ MANAJEMEN USER — tabel identitas ═══ */
+table.utbl td{padding:11px 14px;vertical-align:middle}
+table.utbl tbody tr:nth-child(even) td{background:rgba(0,0,0,.018)}
+html.theme-dark table.utbl tbody tr:nth-child(even) td{background:rgba(255,255,255,.022)}
+table.utbl tbody tr:hover td{background:rgba(14,165,233,.06)}
+html.theme-dark table.utbl tbody tr:hover td{background:rgba(56,189,248,.08)}
+table.utbl code.nis{background:var(--bg);border:1px solid var(--border);border-radius:5px;
+  padding:2px 7px;font-size:11px;color:var(--text-2);letter-spacing:.03em}
+.u-no{color:var(--text-3);font-size:11px;text-align:center;font-variant-numeric:tabular-nums}
+
+.u-ident{display:flex;align-items:center;gap:10px;min-width:0}
+.u-ava{width:34px;height:34px;min-width:34px;border-radius:50%;display:inline-flex;
+  align-items:center;justify-content:center;font-size:11.5px;font-weight:800;
+  letter-spacing:.02em;background:var(--blue-l);color:var(--blue-d);
+  border:1px solid rgba(0,0,0,.05);user-select:none;flex-shrink:0}
+.u-ava.r-guru{background:var(--green-l);color:#0a6b4e}
+.u-ava.r-murid{background:var(--blue-l);color:#1d4ed8}
+.u-ava.r-admin,.u-ava.r-superadmin{background:var(--red-l);color:#b91c1c}
+html.theme-dark .u-ava{border-color:rgba(255,255,255,.07)}
+html.theme-dark .u-ava.r-guru{color:#34d399}
+html.theme-dark .u-ava.r-murid{color:#7dd3fc}
+html.theme-dark .u-ava.r-admin,html.theme-dark .u-ava.r-superadmin{color:#fca5a5}
+.u-name{font-weight:700;color:var(--text);line-height:1.3;letter-spacing:-.01em;min-width:0}
+
+.u-hq{display:flex;flex-direction:column;gap:4px;max-width:330px}
+.u-hq-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3}
+.u-hq-row .badge{font-size:10px}
+.u-hq-kt{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text-2);font-weight:600}
+.u-hq-kt svg{color:var(--amber);flex-shrink:0}
+.u-hq-kt.none{color:var(--text-3);font-weight:500;font-style:italic;opacity:.85}
+
+.u-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}
+.u-ibtn{-webkit-appearance:none;appearance:none;width:30px;height:30px;min-width:30px;
+  min-height:30px;max-height:30px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:8px;flex-shrink:0;border:1px solid var(--border);background:var(--card);
+  color:var(--text-2);cursor:pointer;transition:background .13s,color .13s,border-color .13s,transform .13s}
+.u-ibtn:hover{background:var(--bg);color:var(--text);transform:translateY(-1px)}
+.u-ibtn.d1:hover{background:var(--red-l);color:var(--red-txt);border-color:rgba(239,68,68,.35)}
+.u-ibtn.d2{background:rgba(185,28,28,.08);color:#b91c1c;border-color:rgba(185,28,28,.2)}
+.u-ibtn.d2:hover{background:rgba(185,28,28,.16);color:#7f1d1d;border-color:rgba(185,28,28,.4)}
+html.theme-dark .u-ibtn.d2{background:rgba(248,113,113,.12);color:#fca5a5;border-color:rgba(248,113,113,.25)}
+html.theme-dark .u-ibtn.d2:hover{background:rgba(248,113,113,.2);color:#fecaca}
+
 .align-right{text-align:right !important}
 .align-center{text-align:center !important}
 
@@ -1596,7 +1639,7 @@ html.theme-dark .fin-detail-card {
             <div class="card-title" id="userTabTitle">Daftar Guru</div>
           </div>
           <div class="tbl-wrap">
-            <table>
+            <table class="utbl">
               <thead><tr>
                 <th style="width:38px;min-width:38px">No.</th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','id_user',function(){renderUsersTable(currentUserTab)})">NIS<span class="sort-ind" data-sort-tbl="users" data-sort-col="id_user"></span></th>
@@ -1606,7 +1649,7 @@ html.theme-dark .fin-detail-card {
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','no_hp',function(){renderUsersTable(currentUserTab)})">No HP<span class="sort-ind" data-sort-tbl="users" data-sort-col="no_hp"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','email',function(){renderUsersTable(currentUserTab)})">Email<span class="sort-ind" data-sort-tbl="users" data-sort-col="email"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','status',function(){renderUsersTable(currentUserTab)})">Status<span class="sort-ind" data-sort-tbl="users" data-sort-col="status"></span></th>
-                <th>Aksi</th>
+                <th style="text-align:right">Aksi</th>
               </tr></thead>
               <tbody id="usersTbl"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
@@ -4321,7 +4364,7 @@ html.theme-dark .fin-detail-card {
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=ab2cfc2d" defer></script>
-<script src="murid-module.js?v=183cd953" defer></script>
+<script src="murid-module.js?v=d7bfaafe" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
 <script src="spp-keuangan-module.js?v=aea9e12c" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
