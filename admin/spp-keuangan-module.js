@@ -127,6 +127,31 @@ function loadMoreSPP() {
   filterSPPTable(true); // true = pertahankan limit saat ini, jangan reset ke 50
 }
 
+// ══ Fase 3 — Kelola Transaksi (edit / hapus / tandai periode) ══
+var _sppListData = [];          // rekap.spp_list (SPP Pribadi per transaksi)
+var _sppListFiltered = [];
+var _sppSPPView = 'tunggakan';  // 'tunggakan' | 'transaksi' (khusus tab SPP)
+var _sppEditCtx = null;         // {jenisKey, row}
+
+function _txPeriodeBadge(idPeriode) {
+  if (!idPeriode) return '<span style="font-size:10px;color:var(--amber-txt);font-style:italic">tanpa periode</span>';
+  var nm = (typeof allPeriode !== 'undefined' ? allPeriode : []).find(function(p){ return p.id_periode === idPeriode; });
+  return '<span class="badge b-purple" style="font-size:9.5px">' + esc(nm ? nm.nama_periode : idPeriode) + '</span>';
+}
+function _txAksiCell(idSpp, jenisKey) {
+  return '<div style="display:inline-flex;gap:5px">'
+    + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" title="Edit" onclick="bukaEditSPPRow(\'' + esc(idSpp) + '\',\'' + jenisKey + '\')">' + svgIcon('edit',13) + '</button>'
+    + '<button class="btn btn-sm" style="padding:3px 7px;background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);border:1px solid rgba(239,68,68,.25)" title="Hapus" onclick="hapusSPPRowLangsung(\'' + esc(idSpp) + '\',\'' + jenisKey + '\')">' + svgIcon('delete',13) + '</button>'
+    + '</div>';
+}
+// Baris "muat lagi" — colspan mengikuti jumlah kolom aktual
+function _txMoreRow(dataLen, visLen, cols) {
+  if (dataLen <= visLen) return '';
+  return '<tr><td colspan="' + cols + '" style="text-align:center;padding:14px">'
+    + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">' + svgIcon('download',14)
+    + ' Muat ' + Math.min(50, dataLen - visLen) + ' lagi (' + (dataLen - visLen) + ' tersisa)</button></td></tr>';
+}
+
 // ── Nilai filter periode & tahun halaman SPP ──
 function _sppPeriodeVal() { var el = document.getElementById('sppFilterPeriode'); return el ? el.value : ''; }
 function _sppTahunVal()   { var el = document.getElementById('sppFilterTahun');   return el ? el.value : String(new Date().getFullYear()); }
@@ -206,8 +231,14 @@ function switchSPPTab(tab, silent) {
   // Kontrol yang cuma relevan utk tab SPP
   var statusEl = document.getElementById('sppFilterStatus');
   var btnSalin = document.getElementById('btnSalinTagihan');
-  if (statusEl) statusEl.style.display = (tab === 'spp') ? '' : 'none';
-  if (btnSalin) btnSalin.style.display = (tab === 'spp') ? '' : 'none';
+  var viewTog  = document.getElementById('sppViewToggle');
+  if (statusEl) statusEl.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan') ? '' : 'none';
+  if (btnSalin) btnSalin.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan') ? '' : 'none';
+  if (viewTog)  viewTog.style.display  = (tab === 'spp') ? '' : 'none';
+  if (tab !== 'spp' && _sppSPPView === 'transaksi') {
+    _sppSPPView = 'tunggakan';
+    if (viewTog) viewTog.classList.remove('btn-primary');
+  }
   if (!silent) filterSPPTable();
 }
 
@@ -286,6 +317,7 @@ async function loadSPPAdmin() {
       _sppRekapData = rekap.murid_list || [];
       _sppInfaqData = rekap.infaq_list || [];
       _sppIhsanData = rekap.ihsan_list || [];
+      _sppListData  = rekap.spp_list || [];
       
       // Update Dashboard Kinerja SPP Bulanan
       var totalMurid = (rekap.lunas || 0) + (rekap.menunggak || 0);
@@ -862,18 +894,25 @@ function filterSPPTable(keepLimit) {
         ? 'Murid yang sudah membayar SPP Pribadi ' + bulanFilter
         : 'Rekap tunggakan SPP Pribadi per bulan';
 
+  var sppTxMode = (jenis === 'spp' && _sppSPPView === 'transaksi');
+  // Bar tandai periode massal + info baris (mode transaksi / infaq / ihsan)
+  _updateSPPBulkBar(jenis, sppTxMode);
+
   // Ganti header tabel sesuai jenis
   var thead = document.getElementById('sppRekapHead');
   thead.innerHTML = jenis === 'infaq'
-    ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal</th></tr>'
+    ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan/Thn</th><th>Periode</th><th class="align-right">Nominal</th><th class="align-center">Aksi</th></tr>'
     : jenis === 'ihsan'
-      ? '<tr><th>Nama Guru</th><th>Status</th><th>Bulan</th><th>Tanggal Bayar</th><th class="align-right">Nominal / Keterangan</th></tr>'
+      ? '<tr><th>Nama Guru</th><th>Status</th><th>Bulan/Thn</th><th>Periode</th><th class="align-right">Nominal / Ket.</th><th class="align-center">Aksi</th></tr>'
+      : sppTxMode
+        ? '<tr><th>Nama Murid</th><th>Halaqah</th><th>Bulan/Thn</th><th>Periode</th><th class="align-right">Nominal</th><th class="align-center">Aksi</th></tr>'
       : modeLunasBulan
         ? '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Status ' + bulanFilter + '</th><th class="align-center">Reminder</th></tr>'
         : '<tr><th>Nama Murid</th><th>Halaqah</th><th class="align-center">Tunggakan</th><th>Bulan Belum Lunas</th><th class="align-center">Reminder</th></tr>';
 
   if (jenis === 'infaq') return filterInfaqTable(keepLimit);
   if (jenis === 'ihsan') return filterIhsanTable(keepLimit);
+  if (sppTxMode) return _renderSPPTxTable(keepLimit);
   if (!keepLimit) _sppRenderLimit = 50;
 
   var searchVal   = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
@@ -999,7 +1038,7 @@ function filterInfaqTable(keepLimit) {
   if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data.</td></tr>';
     return;
   }
 
@@ -1012,17 +1051,13 @@ function filterInfaqTable(keepLimit) {
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
       + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+' · '+esc(r.level||'')+'</div></td>'
       + '<td><div style="font-weight:600;color:var(--text-2)">'+esc(r.nama_halaqah||r.id_halaqah||'—')+'</div></td>'
-      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'</td>'
-      + '<td>'+esc(r.tanggal_bayar||'—')+'</td>'
+      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'<br><span style="font-size:10px;color:var(--text-3)">'+esc(r.tanggal_bayar||'—')+'</span></td>'
+      + '<td>'+_txPeriodeBadge(r.id_periode)+'</td>'
       + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br>'+metodeBadge+'</td>'
+      + '<td class="align-center">'+_txAksiCell(r.id_spp,'infaq')+'</td>'
       + '</tr>';
   }).join('');
-  if (data.length > visibleRows.length) {
-    tbody.innerHTML += '<tr><td colspan="5" style="text-align:center;padding:14px">'
-      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">'
-      + svgIcon('download',14) + ' Muat ' + Math.min(50, data.length - visibleRows.length) + ' lagi ('
-      + (data.length - visibleRows.length) + ' tersisa)</button></td></tr>';
-  }
+  tbody.innerHTML += _txMoreRow(data.length, visibleRows.length, 6);
 }
 
 function filterIhsanTable(keepLimit) {
@@ -1051,27 +1086,199 @@ function filterIhsanTable(keepLimit) {
   if (!keepLimit) _sppRenderLimit = 50;
 
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data pembayaran Ihsan Guru.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada data pembayaran Ihsan Guru.</td></tr>';
     return;
   }
 
   var visibleRows = data.slice(0, _sppRenderLimit);
   tbody.innerHTML = visibleRows.map(function(r) {
+    var stBadge = r.status === 'menunggu' ? '<span class="badge b-amber" style="font-size:10.5px">Menunggu</span>'
+      : r.status === 'ditolak' ? '<span class="badge b-gray" style="font-size:10.5px">Ditolak</span>'
+      : '<span class="badge b-green" style="font-size:10.5px">Lunas</span>';
     return '<tr>'
       + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
       + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+' · Guru</div></td>'
-      + '<td><span class="badge b-green" style="font-size:10.5px">Lunas</span></td>'
-      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'</td>'
-      + '<td>'+esc(r.tanggal_bayar||'—')+'</td>'
+      + '<td>'+stBadge+'</td>'
+      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'<br><span style="font-size:10px;color:var(--text-3)">'+esc(r.tanggal_bayar||'—')+'</span></td>'
+      + '<td>'+_txPeriodeBadge(r.id_periode)+'</td>'
       + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong><br><span style="font-size:10.5px;color:var(--text-3)">'+esc(r.catatan||'Gaji Guru')+'</span></td>'
+      + '<td class="align-center">'+_txAksiCell(r.id_spp,'ihsan')+'</td>'
       + '</tr>';
   }).join('');
-  if (data.length > visibleRows.length) {
-    tbody.innerHTML += '<tr><td colspan="5" style="text-align:center;padding:14px">'
-      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreSPP()">'
-      + svgIcon('download',14) + ' Muat ' + Math.min(50, data.length - visibleRows.length) + ' lagi ('
-      + (data.length - visibleRows.length) + ' tersisa)</button></td></tr>';
+  tbody.innerHTML += _txMoreRow(data.length, visibleRows.length, 6);
+}
+
+// Tabel SPP Pribadi per transaksi (mode "Per pembayaran" di tab SPP)
+function _renderSPPTxTable(keepLimit) {
+  var searchVal = (document.getElementById('sppSearchInput')?.value || '').toLowerCase().trim();
+  var bulanFilter = document.getElementById('sppFilterBulan').value;
+  var tbody = document.getElementById('sppRekapBody');
+  var data = (_sppListData || []).slice();
+  if (bulanFilter) data = data.filter(function(r){ return r.bulan === bulanFilter; });
+  if (searchVal) data = data.filter(function(r){
+    return (r.nama_murid||'').toLowerCase().indexOf(searchVal) !== -1
+      || (r.id_murid||'').toLowerCase().indexOf(searchVal) !== -1
+      || (r.nama_halaqah||r.id_halaqah||'').toLowerCase().indexOf(searchVal) !== -1;
+  });
+  _sppListFiltered = data;
+  if (!keepLimit) _sppRenderLimit = 50;
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Tidak ada transaksi SPP.</td></tr>'; return; }
+  var vis = data.slice(0, _sppRenderLimit);
+  tbody.innerHTML = vis.map(function(r) {
+    return '<tr>'
+      + '<td><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(r.nama_murid)+'</div>'
+      + '<div style="font-size:11px;color:var(--text-3)">'+esc(r.id_murid)+'</div></td>'
+      + '<td><div style="font-weight:600;color:var(--text-2)">'+esc(r.nama_halaqah||r.id_halaqah||'—')+'</div></td>'
+      + '<td>'+esc(r.bulan||'')+' '+esc(String(r.tahun||''))+'<br><span style="font-size:10px;color:var(--text-3)">'+esc(r.tanggal_bayar||'—')+'</span></td>'
+      + '<td>'+_txPeriodeBadge(r.id_periode)+'</td>'
+      + '<td class="align-right"><strong>Rp '+Number(r.nominal||0).toLocaleString('id-ID')+'</strong></td>'
+      + '<td class="align-center">'+_txAksiCell(r.id_spp,'spp')+'</td>'
+      + '</tr>';
+  }).join('');
+  tbody.innerHTML += _txMoreRow(data.length, vis.length, 6);
+}
+
+// Isi <select> periode untuk bar bulk + modal edit.
+function _isiSPPBulkPeriodeSel(selId, includeFromHalaqah, selected) {
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  var opts = '<option value="">— Tanpa periode —</option>';
+  if (includeFromHalaqah) opts += '<option value="from_halaqah">Ikut periode halaqah (otomatis)</option>';
+  (typeof allPeriode !== 'undefined' ? allPeriode : []).forEach(function(p) {
+    opts += '<option value="' + esc(p.id_periode) + '">' + esc(p.nama_periode) + (p.status === 'aktif' ? ' (Aktif)' : '') + '</option>';
+  });
+  sel.innerHTML = opts;
+  if (selected !== undefined) sel.value = selected || '';
+}
+
+// Perbarui bar "tandai periode massal" + jumlah baris tampil.
+function _updateSPPBulkBar(jenis, sppTxMode) {
+  var bar = document.getElementById('sppBulkPeriodeBar');
+  if (!bar) return;
+  var show = (jenis === 'infaq' || jenis === 'ihsan' || sppTxMode);
+  bar.style.display = show ? 'flex' : 'none';
+  if (!show) return;
+  if (!document.getElementById('sppBulkPeriodeSel').options.length)
+    _isiSPPBulkPeriodeSel('sppBulkPeriodeSel', jenis !== 'ihsan');
+  // info diisi setelah render (filter*Table mengisi _spp*Filtered) — pakai timeout mikro
+  setTimeout(function() {
+    var arr = jenis === 'infaq' ? _sppInfaqDataFiltered
+            : jenis === 'ihsan' ? _sppIhsanDataFiltered
+            : _sppListFiltered;
+    var n = (arr || []).length;
+    var el = document.getElementById('sppBulkPeriodeInfo');
+    if (el) el.textContent = n + ' transaksi tampil';
+  }, 0);
+}
+
+function _sppBulkJenisKey() {
+  var j = document.getElementById('sppFilterJenis')?.value || 'spp';
+  return j === 'infaq' ? 'infaq' : (j === 'ihsan' ? 'ihsan' : 'spp');
+}
+
+async function sppBulkSetPeriode() {
+  var key = _sppBulkJenisKey();
+  var arr = key === 'infaq' ? _sppInfaqDataFiltered : (key === 'ihsan' ? _sppIhsanDataFiltered : _sppListFiltered);
+  var ids = (arr || []).map(function(r){ return r.id_spp; }).filter(Boolean);
+  if (!ids.length) { toast('Tidak ada transaksi tampil.', 'warn'); return; }
+  var sel = document.getElementById('sppBulkPeriodeSel');
+  var idPer = sel.value;
+  var label = idPer === '' ? 'Tanpa periode' : (idPer === 'from_halaqah' ? 'periode halaqah masing-masing' : (sel.options[sel.selectedIndex].text));
+  if (!confirm('Tandai ' + ids.length + ' transaksi (' + key.toUpperCase() + ') → ' + label + '?')) return;
+  showLoad('Menandai periode...');
+  try {
+    var r = await window.HQ.AdminAPI.bulkAssignPeriode({ table: 'spp_pembayaran', ids: ids, id_periode: idPer });
+    toast((r.updated || ids.length) + ' transaksi ditandai', 'ok');
+    loadSPPAdmin();
+  } catch(e) { toast('Gagal: ' + friendlyError(e), 'err'); }
+  finally { hideLoad(); }
+}
+
+function toggleSPPView() {
+  _sppSPPView = (_sppSPPView === 'transaksi') ? 'tunggakan' : 'transaksi';
+  var btn = document.getElementById('sppViewToggle');
+  if (btn) btn.classList.toggle('btn-primary', _sppSPPView === 'transaksi');
+  filterSPPTable();
+}
+
+// ── Modal Edit Transaksi ──
+function bukaEditSPPRow(idSpp, jenisKey) {
+  var arr = jenisKey === 'infaq' ? _sppInfaqData : (jenisKey === 'ihsan' ? _sppIhsanData : _sppListData);
+  var row = (arr || []).find(function(r){ return r.id_spp === idSpp; });
+  if (!row) { toast('Baris tak ditemukan, muat ulang halaman.', 'err'); return; }
+  _sppEditCtx = { jenisKey: jenisKey, row: row };
+  document.getElementById('esrErr').style.display = 'none';
+  document.getElementById('esrId').value = idSpp;
+  document.getElementById('esrMurid').textContent = (jenisKey === 'ihsan' ? 'Guru: ' : 'Murid: ') + (row.nama_murid || row.id_murid)
+    + (row.nama_halaqah ? ' · ' + row.nama_halaqah : '');
+  document.getElementById('esrJenis').value = jenisKey === 'infaq' ? 'Infaq/Operasional' : (jenisKey === 'ihsan' ? 'Ihsan Guru' : 'SPP Pribadi');
+  document.getElementById('esrStatus').value = row.status || 'lunas';
+  document.getElementById('esrBulan').value = row.bulan || '-';
+  document.getElementById('esrTahun').value = row.tahun || new Date().getFullYear();
+  document.getElementById('esrNominal').value = row.nominal || 0;
+  document.getElementById('esrTanggal').value = row.tanggal_bayar || '';
+  document.getElementById('esrCatatan').value = row.catatan || '';
+  _isiSPPBulkPeriodeSel('esrPeriode', jenisKey !== 'ihsan', row.id_periode || '');
+  openModal('modalEditSPPRow');
+}
+function tutupEditSPPRow() { closeModal('modalEditSPPRow'); _sppEditCtx = null; }
+
+async function simpanEditSPPRow() {
+  var id = document.getElementById('esrId').value;
+  var err = document.getElementById('esrErr');
+  var nominal = Number(document.getElementById('esrNominal').value);
+  if (!(nominal >= 0)) { err.textContent = 'Nominal tak boleh negatif.'; err.style.display = ''; return; }
+  var fields = {
+    jenis: document.getElementById('esrJenis').value,
+    status: document.getElementById('esrStatus').value,
+    bulan: document.getElementById('esrBulan').value,
+    tahun: Number(document.getElementById('esrTahun').value),
+    nominal: nominal,
+    tanggal_bayar: document.getElementById('esrTanggal').value || null,
+    catatan: document.getElementById('esrCatatan').value.trim() || null,
+    id_periode: document.getElementById('esrPeriode').value,
+  };
+  var btn = document.getElementById('esrSaveBtn');
+  btn.disabled = true;
+  showLoad('Menyimpan...');
+  try {
+    await window.HQ.AdminAPI.updateSPPRow(id, fields);
+    toast('Transaksi diperbarui', 'ok');
+    tutupEditSPPRow();
+    loadSPPAdmin();
+  } catch(e) {
+    err.textContent = 'Gagal: ' + friendlyError(e); err.style.display = '';
+  } finally { btn.disabled = false; hideLoad(); }
+}
+
+// Hapus dari dalam modal edit
+function hapusSPPRow() {
+  var id = document.getElementById('esrId').value;
+  if (id) _hapusSPPRowInti(id, _sppEditCtx && _sppEditCtx.row);
+}
+// Hapus dari tombol di baris tabel
+function hapusSPPRowLangsung(idSpp, jenisKey) {
+  var arr = jenisKey === 'infaq' ? _sppInfaqData : (jenisKey === 'ihsan' ? _sppIhsanData : _sppListData);
+  var row = (arr || []).find(function(r){ return r.id_spp === idSpp; });
+  _hapusSPPRowInti(idSpp, row);
+}
+async function _hapusSPPRowInti(idSpp, row) {
+  var lunas = row && row.status === 'lunas';
+  var label = row ? ((row.nama_murid || idSpp) + ' — ' + (row.bulan || '') + ' ' + (row.tahun || '') + ' — Rp ' + Number(row.nominal || 0).toLocaleString('id-ID')) : idSpp;
+  if (lunas) {
+    var ket = prompt('HAPUS PERMANEN transaksi LUNAS ini?\n\n' + label + '\n\nKetik HAPUS untuk konfirmasi:');
+    if ((ket || '').trim().toUpperCase() !== 'HAPUS') { if (ket !== null) toast('Dibatalkan (konfirmasi tak cocok).', 'warn'); return; }
+  } else {
+    if (!confirm('Hapus transaksi ini?\n\n' + label)) return;
   }
+  showLoad('Menghapus...');
+  try {
+    await window.HQ.AdminAPI.deleteSPPRow(idSpp);
+    toast('Transaksi dihapus', 'ok');
+    closeModal('modalEditSPPRow');
+    loadSPPAdmin();
+  } catch(e) { toast('Gagal: ' + friendlyError(e), 'err'); }
+  finally { hideLoad(); }
 }
 
 // Cegah CSV/Formula Injection: jika nilai diawali =,+,-,@ (atau tab/CR),
@@ -1708,6 +1915,13 @@ async function doKirimPengumuman() {
     window.onSPPTahunChange = onSPPTahunChange;
     window.sppLihatTanpaPeriode = sppLihatTanpaPeriode;
     window.populateSPPPeriodeFilter = populateSPPPeriodeFilter;
+    window.toggleSPPView = toggleSPPView;
+    window.sppBulkSetPeriode = sppBulkSetPeriode;
+    window.bukaEditSPPRow = bukaEditSPPRow;
+    window.tutupEditSPPRow = tutupEditSPPRow;
+    window.simpanEditSPPRow = simpanEditSPPRow;
+    window.hapusSPPRow = hapusSPPRow;
+    window.hapusSPPRowLangsung = hapusSPPRowLangsung;
     window.ensureKasBulanOptions = ensureKasBulanOptions;
     window.renderKasRingkasan = renderKasRingkasan;
     window.renderKasOperasionalList = renderKasOperasionalList;

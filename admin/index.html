@@ -2412,6 +2412,7 @@ html.theme-dark .fin-detail-card {
             <!-- Filter -->
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <input type="hidden" id="sppFilterJenis" value="spp">
+              <button type="button" id="sppViewToggle" onclick="toggleSPPView()" class="btn btn-outline btn-sm" style="display:none;font-size:11px;padding:6px 10px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Per pembayaran</button>
               <input type="text" id="sppSearchInput" class="fc" style="width:140px;font-size:12px;padding:6px 10px" placeholder="Cari nama/NIS..." oninput="filterSPPTableDebounced()">
               <select id="sppFilterStatus" class="fc" style="width:auto;font-size:12px;padding:6px 10px" onchange="filterSPPTable()">
                 <option value="">Semua Status</option>
@@ -2436,6 +2437,13 @@ html.theme-dark .fin-detail-card {
               </button>
             </div>
           </div>
+          <!-- Bar tandai periode massal (mode "per pembayaran" / Infaq / Ihsan) -->
+          <div id="sppBulkPeriodeBar" style="display:none;padding:9px 18px;background:var(--amber-bg);border-bottom:1px solid rgba(251,191,36,.25);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px">
+            <span style="font-weight:700;color:var(--amber-txt)" id="sppBulkPeriodeInfo">0 transaksi tampil</span>
+            <span style="color:var(--text-3)">→ tandai ke</span>
+            <select id="sppBulkPeriodeSel" class="fc" style="width:auto;font-size:12px;padding:5px 9px"></select>
+            <button type="button" class="btn btn-primary btn-sm" style="font-size:11px;padding:5px 12px" onclick="sppBulkSetPeriode()">Terapkan</button>
+          </div>
           <div class="tbl-wrap">
           <table class="premium-table" id="sppRekapTable">
             <thead id="sppRekapHead">
@@ -2453,6 +2461,58 @@ html.theme-dark .fin-detail-card {
           </table>
           </div><!-- /tbl-wrap -->
         </div><!-- /card rekap -->
+
+        <!-- ── Modal Edit Transaksi (SPP / Infaq / Ihsan) ── -->
+        <div class="overlay" id="modalEditSPPRow" onclick="if(event.target===this)tutupEditSPPRow()">
+          <div class="modal" style="max-width:460px">
+            <div class="modal-head" style="border-bottom:1px solid var(--border);padding-bottom:16px">
+              <div style="font-size:15px;font-weight:800;color:var(--text)" id="editSPPRowTitle">Edit Transaksi</div>
+              <button class="btn-icon" onclick="tutupEditSPPRow()" style="font-size:18px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+              <input type="hidden" id="esrId">
+              <div id="esrMurid" style="font-size:12.5px;color:var(--text-2);background:var(--bg-2,#f6f7f9);border:1px solid var(--border);border-radius:8px;padding:8px 10px"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Jenis</label>
+                  <select id="esrJenis" class="fc" style="width:100%">
+                    <option value="SPP Pribadi">SPP Pribadi</option>
+                    <option value="Infaq/Operasional">Infaq/Operasional</option>
+                    <option value="Ihsan Guru">Ihsan Guru</option>
+                  </select></div>
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Status</label>
+                  <select id="esrStatus" class="fc" style="width:100%">
+                    <option value="lunas">Lunas</option><option value="menunggu">Menunggu</option><option value="ditolak">Ditolak</option>
+                  </select></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Bulan</label>
+                  <select id="esrBulan" class="fc" style="width:100%">
+                    <option value="-">—</option><option>Januari</option><option>Februari</option><option>Maret</option><option>April</option><option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option><option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+                  </select></div>
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tahun</label>
+                  <input id="esrTahun" type="number" min="2020" max="2100" class="fc" style="width:100%"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Nominal (Rp)</label>
+                  <input id="esrNominal" type="number" min="0" class="fc" style="width:100%"></div>
+                <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Tanggal Bayar</label>
+                  <input id="esrTanggal" type="date" class="fc" style="width:100%"></div>
+              </div>
+              <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Periode</label>
+                <select id="esrPeriode" class="fc" style="width:100%"></select>
+                <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">SPP/Infaq: kosongkan → ikut periode halaqah otomatis.</div>
+              </div>
+              <div><label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan</label>
+                <input id="esrCatatan" class="fc" style="width:100%" placeholder="—"></div>
+              <div id="esrErr" style="display:none;color:var(--red);font-size:12px"></div>
+            </div>
+            <div class="modal-foot">
+              <button class="btn btn-sm" style="background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);border:1px solid rgba(239,68,68,.3);margin-right:auto" onclick="hapusSPPRow()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> Hapus</button>
+              <button class="btn btn-ghost" onclick="tutupEditSPPRow()">Batal</button>
+              <button class="btn btn-primary" id="esrSaveBtn" onclick="simpanEditSPPRow()">Simpan</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Modal Tambah/Edit Metode -->
         <!-- ── Modal Operasional ── -->
@@ -4406,7 +4466,7 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=abde1e3f"></script>
+<script src="../supabase/api-staff.js?v=eaefe7e1"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
@@ -4414,7 +4474,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=290d8aa2" defer></script>
 <script src="murid-module.js?v=ab5e45c8" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=5b66a9c3" defer></script>
+<script src="spp-keuangan-module.js?v=d8c720dd" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>

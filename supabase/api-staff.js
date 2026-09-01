@@ -4830,6 +4830,98 @@ var AdminAPI = {
     _logAudit('batal_validasi_spp', {id_spp: id_spp, status_sebelumnya: sppRow.status, id_murid: sppRow.id_murid});
     return { status:'ok' };
   },
+
+  // ── Kelola Transaksi (Fase 3) — edit / hapus / pindah periode per baris ──
+  updateSPPRow: async function(id_spp, fields) {
+    var _J = ['SPP Pribadi', 'Infaq/Operasional', 'Ihsan Guru'];
+    var _S = ['lunas', 'menunggu', 'ditolak'];
+    var _B = _BULAN_KEU.concat(['-']);
+    if (!id_spp) throw new Error('id_spp wajib.');
+    var { data: before } = await _sb.from('spp_pembayaran').select('*').eq('id_spp', id_spp).maybeSingle();
+    if (!before) throw new Error('Baris tak ditemukan (mungkin sudah dihapus).');
+    var d = fields || {};
+    var u = {};
+    if (d.bulan   !== undefined) { if (_B.indexOf(d.bulan) < 0) throw new Error('Bulan tak valid.'); u.bulan = d.bulan; }
+    if (d.tahun   !== undefined) { var t = Number(d.tahun); if (!(t >= 2020 && t <= 2100)) throw new Error('Tahun tak valid.'); u.tahun = t; }
+    if (d.jenis   !== undefined) { if (_J.indexOf(d.jenis) < 0) throw new Error('Jenis tak valid.'); u.jenis = d.jenis; }
+    if (d.status  !== undefined) { if (_S.indexOf(d.status) < 0) throw new Error('Status tak valid.'); u.status = d.status; }
+    if (d.nominal !== undefined) { var n = Number(d.nominal); if (!(n >= 0)) throw new Error('Nominal tak boleh negatif.'); u.nominal = Math.round(n); }
+    if (d.catatan       !== undefined) u.catatan = d.catatan || null;
+    if (d.tanggal_bayar !== undefined) u.tanggal_bayar = d.tanggal_bayar || null;
+    if (d.id_halaqah    !== undefined) u.id_halaqah = d.id_halaqah || '';
+    // id_periode: nilai eksplisit, atau 'from_halaqah' → ikut periode halaqah baris.
+    if (d.id_periode === 'from_halaqah') {
+      var hqId = (u.id_halaqah !== undefined) ? u.id_halaqah : before.id_halaqah;
+      if (hqId) {
+        var { data: hq } = await _sb.from('halaqah').select('id_periode').eq('id_halaqah', hqId).maybeSingle();
+        u.id_periode = (hq && hq.id_periode) || null;
+      } else u.id_periode = null;
+    } else if (d.id_periode !== undefined) {
+      u.id_periode = d.id_periode || null;
+    }
+    if (!Object.keys(u).length) return { status:'ok', message:'Tidak ada perubahan.' };
+    var { error } = await _sb.from('spp_pembayaran').update(u).eq('id_spp', id_spp);
+    _check(error, 'updateSPPRow');
+    var chg = {};
+    Object.keys(u).forEach(function(k){ if (String(before[k] == null ? '' : before[k]) !== String(u[k] == null ? '' : u[k])) chg[k] = { dari: before[k], jadi: u[k] }; });
+    _logAudit('update_spp_row', { id_spp: id_spp, id_murid: before.id_murid, jenis: before.jenis, perubahan: chg });
+    return { status:'ok', changed: Object.keys(chg) };
+  },
+
+  deleteSPPRow: async function(id_spp) {
+    if (!id_spp) throw new Error('id_spp wajib.');
+    var { data: snap } = await _sb.from('spp_pembayaran').select('*').eq('id_spp', id_spp).maybeSingle();
+    if (!snap) throw new Error('Baris tak ditemukan.');
+    var { error } = await _sb.from('spp_pembayaran').delete().eq('id_spp', id_spp);
+    _check(error, 'deleteSPPRow');
+    _logAudit('delete_spp_row', { id_spp: id_spp, id_murid: snap.id_murid, jenis: snap.jenis,
+      bulan: snap.bulan, tahun: snap.tahun, nominal: snap.nominal, status: snap.status, id_periode: snap.id_periode });
+    return { status:'ok' };
+  },
+
+  // Tandai periode utk banyak baris sekaligus (spp_pembayaran / operasional / kas).
+  //  id_periode : '<id>' | '' (kosongkan) | 'from_halaqah' (khusus spp_pembayaran)
+  bulkAssignPeriode: async function(d) {
+    var table = d.table || 'spp_pembayaran';
+    if (['spp_pembayaran','operasional','kas'].indexOf(table) < 0) throw new Error('Tabel tak dikenal.');
+    var pkCol = table === 'operasional' ? 'id_operasional' : (table === 'kas' ? 'id_kas' : 'id_spp');
+    var ids = (d.ids || []).filter(Boolean);
+    if (!ids.length) throw new Error('Pilih minimal 1 baris.');
+    var updated = 0;
+    if (d.id_periode === 'from_halaqah') {
+      if (table !== 'spp_pembayaran') throw new Error("'from_halaqah' hanya untuk transaksi SPP.");
+      var rows = await _selectAllPaged(table, 'id_spp, id_halaqah',
+        function(q){ return q.in('id_spp', ids).order('id_spp'); }, 'bulkAssignPeriode:rows');
+      var hqSet = {};
+      (rows || []).forEach(function(r){ if (r.id_halaqah) hqSet[r.id_halaqah] = true; });
+      var hqIds = Object.keys(hqSet);
+      var hqPer = {};
+      if (hqIds.length) {
+        var { data: hqs } = await _sb.from('halaqah').select('id_halaqah, id_periode').in('id_halaqah', hqIds);
+        (hqs || []).forEach(function(h){ hqPer[h.id_halaqah] = h.id_periode || null; });
+      }
+      // Kelompokkan id_spp per periode target lalu update per grup.
+      var byPer = {};
+      (rows || []).forEach(function(r){
+        var per = r.id_halaqah ? (hqPer[r.id_halaqah] || null) : null;
+        (byPer[per || ''] = byPer[per || ''] || []).push(r.id_spp);
+      });
+      for (var key in byPer) {
+        var per = key || null;
+        var { error: eG } = await _sb.from(table).update({ id_periode: per }).in('id_spp', byPer[key]);
+        _check(eG, 'bulkAssignPeriode:grup');
+        if (per) updated += byPer[key].length;
+      }
+    } else {
+      var per2 = d.id_periode || null;
+      var { error: e1 } = await _sb.from(table).update({ id_periode: per2 }).in(pkCol, ids);
+      _check(e1, 'bulkAssignPeriode');
+      updated = ids.length;
+    }
+    _logAudit('bulk_assign_periode', { table: table, count: ids.length, id_periode: d.id_periode, updated: updated });
+    return { status:'ok', updated: updated };
+  },
+
   getSPPRekap: async function(p) {
     p = p || {};
     // p: { tahun ('semua'|N), id_periode ('<id>'|'__tanpa__'|undefined), id_halaqah, bulan }
@@ -4985,16 +5077,29 @@ var AdminAPI = {
     (anggota||[]).forEach(function(a){
       anggotaMap[a.id_murid] = { nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '', id_halaqah: a.id_halaqah, level: a.level };
     });
-    // Daftar pembayaran Infaq/Operasional (per transaksi, untuk Rekap Pembayaran)
+    // Daftar pembayaran Infaq/Operasional (per transaksi, untuk Rekap Pembayaran + Kelola)
     var infaqList = infaqData.map(function(r){
       var info = anggotaMap[r.id_murid] || {};
       return {
-        id_murid: r.id_murid, nama_murid: r.nama_murid,
+        id_spp: r.id_spp, id_murid: r.id_murid, nama_murid: r.nama_murid,
         id_halaqah: r.id_halaqah || info.id_halaqah || '', nama_halaqah: info.nama_halaqah || '',
         level: info.level || '', bulan: r.bulan, tahun: r.tahun,
         nominal: r.nominal, tanggal_bayar: r.tanggal_bayar, metode_bayar: r.metode_bayar,
+        id_periode: r.id_periode || null, status: r.status || 'lunas', catatan: r.catatan || '',
       };
     }).sort(function(a,b){ return (b.tanggal_bayar||'').localeCompare(a.tanggal_bayar||'') || a.nama_murid.localeCompare(b.nama_murid); });
+
+    // Daftar pembayaran SPP Pribadi per transaksi (untuk Kelola Transaksi)
+    var sppList = sppPribadi.map(function(r){
+      var info = anggotaMap[r.id_murid] || {};
+      return {
+        id_spp: r.id_spp, id_murid: r.id_murid, nama_murid: r.nama_murid,
+        id_halaqah: r.id_halaqah || info.id_halaqah || '', nama_halaqah: info.nama_halaqah || '',
+        level: info.level || '', bulan: r.bulan, tahun: r.tahun,
+        nominal: r.nominal, tanggal_bayar: r.tanggal_bayar, metode_bayar: r.metode_bayar,
+        id_periode: r.id_periode || null, status: r.status || 'lunas', catatan: r.catatan || '',
+      };
+    }).sort(function(a,b){ return (b.tanggal_bayar||'').localeCompare(a.tanggal_bayar||'') || (a.nama_murid||'').localeCompare(b.nama_murid||''); });
 
     // ── Angka keuangan: SATU sumber kebenaran (_hitungKeuangan) ──
     // Kas + Operasional ikut scope periode/tahun (agar kartu Pemasukan/
@@ -5086,7 +5191,7 @@ var AdminAPI = {
       return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
         level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum, is_beasiswa:m.is_beasiswa };
     });
-    return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList,
+    return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, spp_list: sppList,
       ihsan_list: ihsanData.map(function(r) {
         return {
           id_spp: r.id_spp,
@@ -5096,7 +5201,10 @@ var AdminAPI = {
           tahun: r.tahun,
           nominal: r.nominal,
           tanggal_bayar: r.tanggal_bayar,
-          catatan: r.catatan
+          catatan: r.catatan || '',
+          id_periode: r.id_periode || null,
+          status: r.status || 'lunas',
+          metode_bayar: r.metode_bayar || 'manual'
         };
       }).sort(function(a,b){ return (b.tanggal_bayar||'').localeCompare(a.tanggal_bayar||'') || a.nama_murid.localeCompare(b.nama_murid); }),
       total_nominal: totalSPP, total_infaq: totalInfaq, total_ihsan: totalIhsan, total_masuk: totalMasuk, total_net: totalNet, lunas, menunggak, tahun,
