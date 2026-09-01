@@ -2137,7 +2137,11 @@ var ADMIN_ICON_PATHS = {
   play:       '<polygon points="5 3 19 12 5 21 5 3"/>',
   // Ditambah bertahap Fase 8 (spp-keuangan-module.js)
   bank:       '<line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
-  undo:       '<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>'
+  undo:       '<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>',
+  // Ditambah saat bug hunt Fase 1-8: dipakai KBA_JENIS_ICON (admin/index.html)
+  // utk jenis aktivitas 'Doa-Doa Pilihan' -- sebelumnya menunjuk 'heart' yang
+  // belum pernah didefinisikan di sini, jadi svgIcon() mengembalikan '' (kosong).
+  heart:      '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
 };
 function svgIcon(name, size) {
   size = size || 16;
@@ -2148,6 +2152,11 @@ function svgIcon(name, size) {
 
 function toast(msg, type='') {
   const titles = {ok:'Berhasil',err:'Gagal',warn:'Perhatian','':'Info'};
+  // Pertahanan: tipe tak dikenal (mis. typo 'error' alih-alih 'err') dulu bikin
+  // svgIcon() diam-diam kembalikan '' (icon kosong) + judul salah -- ketahuan
+  // saat bug hunt Fase 1-8. Normalisasi ke 'info' di sini supaya typo serupa
+  // di masa depan tetap terlihat (bukan hilang tanpa jejak).
+  if (type && !(type in titles)) type = 'info';
   const iconEl = document.getElementById('notifIcon');
   iconEl.innerHTML = svgIcon(type||'info', 40);
   iconEl.className = 'notif-icon ' + (type||'info');

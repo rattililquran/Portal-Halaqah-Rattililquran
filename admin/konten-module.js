@@ -643,10 +643,10 @@ async function stressTestCleanup() {
       document.getElementById('stProgressWrap').style.display = 'none';
       document.getElementById('stProgressBar').style.width = '0%';
     } else {
-      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'err');
     }
   } catch(e) {
-    toast('Error: ' + e.message, 'error');
+    toast('Error: ' + e.message, 'err');
   }
   btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
@@ -670,7 +670,7 @@ async function rsStressTestMulai() {
       +'<div>'+svgIcon('book',13)+' KBM Log: <b>'+r.totalKbm+'</b></div><div>'+svgIcon('clipboard',13)+' Rekap Status: <b>'+r.totalRekap+'</b></div>'
       +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
       +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Ditandai [STRESS_TEST]</div></div>';
-  } catch(e){toast('Error: '+e.message,'error');}
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Mulai Stress Test';
 }
 async function rsStressTestCleanup() {
@@ -680,8 +680,8 @@ async function rsStressTestCleanup() {
   try {
     var r=await window.HQ.AdminAPI.cleanupStressTestRekapStatus();
     if(r.status==='ok'){var d=r.deleted||{};toast('Terhapus — Rekap: '+(d.rekap||0)+', KBM: '+(d.kbm||0),'ok');document.getElementById('rsStResult').style.display='none';document.getElementById('rsStProgressWrap').style.display='none';document.getElementById('rsStProgressBar').style.width='0%';}
-    else toast('Error: '+(r.errors||[]).join(', '),'error');
-  } catch(e){toast('Error: '+e.message,'error');}
+    else toast('Error: '+(r.errors||[]).join(', '),'err');
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Hapus Data Test';
 }
 
@@ -702,7 +702,7 @@ async function prefsStressTestMulai() {
       +'<div>'+svgIcon('user',13)+' User diupdate: <b>'+r.totalUsers+'</b></div>'
       +(r.errors&&r.errors.length?'<div style="color:#ef4444;font-size:11px;margin-top:4px">'+r.errors.slice(0,2).join('<br>')+'</div>':'')
       +'<div style="color:var(--text-3);font-size:11px;margin-top:6px">Key <code>_st:true</code> ditambahkan ke prefs — tidak mempengaruhi notifikasi nyata</div></div>';
-  } catch(e){toast('Error: '+e.message,'error');}
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Mulai Stress Test';
 }
 async function prefsStressTestCleanup() {
@@ -712,8 +712,8 @@ async function prefsStressTestCleanup() {
   try {
     var r=await window.HQ.AdminAPI.cleanupStressTestPushPrefs();
     if(r.status==='ok'){var d=r.deleted||{};toast('Cleaned — '+d.rows+' rows','ok');document.getElementById('prefsStResult').style.display='none';document.getElementById('prefsStProgressWrap').style.display='none';document.getElementById('prefsStProgressBar').style.width='0%';}
-    else toast('Error: '+(r.errors||[]).join(', '),'error');
-  } catch(e){toast('Error: '+e.message,'error');}
+    else toast('Error: '+(r.errors||[]).join(', '),'err');
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Hapus Data Test';
 }
 
@@ -740,7 +740,7 @@ async function combStressTestMulai() {
       +'<div>'+svgIcon('user',13)+' Users: <b>'+(r.users&&r.users.totalUsers||0)+'</b> murid</div>'
       +'<div style="color:var(--text-3);font-size:11px;margin-top:8px">Semua ditandai [STRESS_TEST] — klik "Cleanup Semua" untuk bersihkan</div></div>';
     if(totalErrors) console.warn('[Combined ST] errors:',r);
-  } catch(e){toast('Error: '+e.message,'error');}
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Mulai Combined Test';
 }
 async function combStressTestCleanup() {
@@ -752,7 +752,7 @@ async function combStressTestCleanup() {
     toast('Cleanup selesai — semua tabel bersih','ok');
     ['combStResult','combStProgressWrap'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
     document.getElementById('combStProgressBar').style.width='0%';
-  } catch(e){toast('Error: '+e.message,'error');}
+  } catch(e){toast('Error: '+e.message,'err');}
   btn.disabled=false; btn.textContent='Cleanup Semua';
 }
 
@@ -783,7 +783,7 @@ async function usrStressTestMulai() {
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] di kolom catatan — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
@@ -800,9 +800,9 @@ async function usrStressTestCleanup() {
       document.getElementById('usrStProgressWrap').style.display = 'none';
       document.getElementById('usrStProgressBar').style.width = '0%';
     } else {
-      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'err');
     }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
@@ -833,7 +833,7 @@ async function obsStressTestMulai() {
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
@@ -850,9 +850,9 @@ async function obsStressTestCleanup() {
       document.getElementById('obsStProgressWrap').style.display = 'none';
       document.getElementById('obsStProgressBar').style.width = '0%';
     } else {
-      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'err');
     }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
@@ -883,7 +883,7 @@ async function atStressTestMulai() {
       + (r.errors && r.errors.length ? '<div style="color:#ef4444;font-size:11px;margin-top:6px">' + r.errors.slice(0,3).join('<br>') + '</div>' : '')
       + '<div style="color:var(--text-3);font-size:11px;margin-top:8px">Ditandai [STRESS_TEST] — klik "Hapus Data Test" untuk cleanup</div>'
       + '</div>';
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Mulai Stress Test';
 }
 
@@ -900,9 +900,9 @@ async function atStressTestCleanup() {
       document.getElementById('atStProgressWrap').style.display = 'none';
       document.getElementById('atStProgressBar').style.width = '0%';
     } else {
-      toast('Error cleanup: ' + (r.errors || []).join(', '), 'error');
+      toast('Error cleanup: ' + (r.errors || []).join(', '), 'err');
     }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = 'Hapus Data Test';
 }
 
