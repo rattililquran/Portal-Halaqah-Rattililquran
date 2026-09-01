@@ -2075,10 +2075,34 @@ async function deleteRunLevelConfirm(id_run_level, nama) {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+// ── Infrastruktur icon SVG bersama (Fase 2 redesain minimalis) ──────────
+// Lookup nama semantik -> path SVG (Feather-style, viewBox 24x24), dipakai
+// lintas semua modul admin lewat window.svgIcon(). Diisi bertahap: status
+// (dipakai toast() di bawah) + aksi umum yg sudah pasti dibutuhkan Fase
+// 4-11 (edit/delete/close/add). Tambah entri baru di sini saat fase
+// berikutnya menemukan konsep yang belum ada, jangan duplikat di file lain.
+var ADMIN_ICON_PATHS = {
+  ok:     '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 17.01"/>',
+  err:    '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  warn:   '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  info:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  edit:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  delete: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  close:  '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  add:    '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
+};
+function svgIcon(name, size) {
+  size = size || 16;
+  var p = ADMIN_ICON_PATHS[name];
+  if (!p) return '';
+  return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+}
+
 function toast(msg, type='') {
-  const icons  = {ok:'✅',err:'❌',warn:'⚠️','':'ℹ️'};
   const titles = {ok:'Berhasil',err:'Gagal',warn:'Perhatian','':'Info'};
-  document.getElementById('notifIcon').textContent  = icons[type]||'ℹ️';
+  const iconEl = document.getElementById('notifIcon');
+  iconEl.innerHTML = svgIcon(type||'info', 40);
+  iconEl.className = 'notif-icon ' + (type||'info');
   document.getElementById('notifTitle').textContent = titles[type]||'Info';
   document.getElementById('notifMsg').textContent   = msg;
   const btn = document.getElementById('notifBtn');
@@ -2235,6 +2259,7 @@ async function loadPushAdmin() {
     window.openModal = openModal;
     window.closeModal = closeModal;
     window.toast = toast;
+    window.svgIcon = svgIcon;
     window.closeNotif = closeNotif;
     window.showLoad = showLoad;
     window.hideLoad = hideLoad;
