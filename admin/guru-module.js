@@ -7,6 +7,13 @@
 
   // --- Guru & Halaqah Management ---
 
+// Peta warna badge Observasi Guru -- dipakai bareng oleh tabel ringkas
+// (filterObservasiTable) & modal detail (lihatObsDetail). Sebelumnya
+// didefinisikan ulang identik di kedua fungsi (bug hunt Fase 12).
+var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
+var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
+var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
+
 // ══════════════════════════════════════════
 //  APP START
 // ══════════════════════════════════════════
@@ -382,9 +389,6 @@ function filterObservasiTable() {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Belum ada data observasi sesuai filter</td></tr>';
     return;
   }
-  var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
-  var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
-  var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
   tbody.innerHTML = _obsDataFiltered.map(function(r, idx) {
     var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' mnt)' : '';
     return '<tr>'
@@ -404,9 +408,6 @@ function filterObservasiTable() {
 function lihatObsDetail(idx) {
   var r = _obsDataFiltered[idx];
   if (!r) return;
-  var COND_COLOR = { 'Kondusif':'b-green', 'Kurang Kondusif':'b-amber', 'Tidak Kondusif':'b-red' };
-  var WAKTU_COLOR = { 'Tepat Waktu':'b-green', 'Guru Terlambat':'b-red', 'Diakhiri Lebih Awal':'b-amber', 'Keduanya':'b-red' };
-  var KAMERA_COLOR = { 'Sebagian Besar Terbuka':'b-green', 'Campuran':'b-amber', 'Sebagian Besar Tertutup':'b-red' };
   var menitInfo = r.estimasi_menit > 0 ? ' ('+r.estimasi_menit+' menit)' : '';
   var rows = [
     ['Tanggal', fmtDate(r.tanggal) + ' &bull; Pertemuan ke-' + esc(String(r.pertemuan_ke||'-'))],
