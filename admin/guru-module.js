@@ -2132,7 +2132,9 @@ var ADMIN_ICON_PATHS = {
   'trend-up':   '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
   'trend-down': '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
   chevron:    '<polyline points="9 18 15 12 9 6"/>',
-  move:       '<polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>'
+  move:       '<polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>',
+  // Ditambah bertahap Fase 7 (murid-module.js)
+  play:       '<polygon points="5 3 19 12 5 21 5 3"/>'
 };
 function svgIcon(name, size) {
   size = size || 16;

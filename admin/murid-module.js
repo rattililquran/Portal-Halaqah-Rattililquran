@@ -29,8 +29,8 @@ function renderPeriodeTable() {
     <td>${p.tanggal_selesai||'–'}</td>
     <td>${p.status==='aktif'?'<span class="badge b-green">Aktif</span>':'<span class="badge b-gray">Non-aktif</span>'}</td>
     <td style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">✏️</button>
-      ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">▶ Aktifkan</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">${svgIcon('edit',14)}</button>
+      ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">${svgIcon('play',14)} Aktifkan</button>`:''}
     </td>
   </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
 }
@@ -267,7 +267,7 @@ function renderUsersTable(role) {
       } else {
         var items = hqList.map(function(h) {
           var kl = h.nama_ketua
-            ? '👑 <strong>' + esc(h.nama_ketua) + '</strong>'
+            ? svgIcon('award',12) + ' <strong>' + esc(h.nama_ketua) + '</strong>'
             : '<span style="color:var(--text-3);font-size:11px">Belum ada ketua</span>';
           return '<div style="margin-bottom:4px"><span class="badge b-blue" style="font-size:10px">'
             + esc(h.nama_halaqah) + '</span> <small>' + kl + '</small></div>';
@@ -276,13 +276,13 @@ function renderUsersTable(role) {
       }
     }
     var btnDel = (u.id_user !== 'USR-ADMIN-001')
-      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Nonaktifkan (reversible)">🗑</button>'
+      ? '<button class="btn btn-red btn-sm" onclick="deleteUser(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="Nonaktifkan (reversible)">' + svgIcon('delete',14) + '</button>'
       : '';
     // Hapus permanen: hanya superadmin (membebaskan ID + hapus akun login)
     if (currentUser && currentUser.role === 'superadmin' && (u.role === 'murid' || u.role === 'guru')) {
       var _hdFn = u.role === 'guru' ? 'hardDeleteGuru' : 'hardDeleteMurid';
       var _hdTitle = u.role === 'guru' ? 'Hapus PERMANEN guru: hapus halaqah yang diampu + seluruh riwayat + akun login' : 'Hapus PERMANEN: hapus data, bebaskan ID, hapus akun login';
-      btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">⚠️ Hapus Permanen</button>';
+      btnDel += '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px;margin-left:5px;display:inline-flex;align-items:center;gap:4px" onclick="' + _hdFn + '(\'' + esc(u.id_user) + '\',\'' + escJs(u.nama_lengkap) + '\')" title="' + _hdTitle + '">' + svgIcon('warn',12) + ' Hapus Permanen</button>';
     }
     return '<tr>'
       + '<td style="color:var(--text-3);font-size:11px;text-align:center">' + (idx+1) + '.</td>'
@@ -292,20 +292,20 @@ function renderUsersTable(role) {
       + (showHalaqahCol ? hqCell : '')
       + '<td>' + (u.no_hp
           ? '<span class="hp-copy" title="Klik untuk salin nomor" onclick="salinNoHp(this,\'' + esc(u.no_hp) + '\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">'
-            + '<span>' + esc(u.no_hp) + '</span><span class="hp-copy-ico" style="font-size:11px;opacity:.5">📋</span></span>'
+            + '<span>' + esc(u.no_hp) + '</span><span class="hp-copy-ico" style="opacity:.5;display:inline-flex">' + svgIcon('clipboard',12) + '</span></span>'
           : '–') + '</td>'
       + '<td>' + esc(u.email||'–') + '</td>'
       + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>')
         + ((u.tipe_murid||'reguler')==='alumni' ? ' <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px">Alumni</span>' : '')
       + '</td>'
-      + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">✏️</button>' + btnDel + '</td>'
+      + '<td style="display:flex;gap:5px"><button class="btn btn-ghost btn-sm" onclick="editUser(\'' + esc(u.id_user) + '\')">' + svgIcon('edit',14) + '</button>' + btnDel + '</td>'
       + '</tr>';
   }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
 
   if (filtered.length > visibleRows.length) {
     tbody.innerHTML += '<tr><td colspan="' + colCount + '" style="text-align:center;padding:14px">'
       + '<button class="btn btn-ghost btn-sm" onclick="loadMoreUsers()">'
-      + '⬇️ Muat ' + Math.min(50, filtered.length - visibleRows.length) + ' lagi ('
+      + svgIcon('download',14) + ' Muat ' + Math.min(50, filtered.length - visibleRows.length) + ' lagi ('
       + (filtered.length - visibleRows.length) + ' tersisa)</button></td></tr>';
   }
 
@@ -335,9 +335,9 @@ function salinNoHp(el, hp) {
     toast('Nomor ' + hp + ' disalin!', 'ok');
     var ico = el.querySelector('.hp-copy-ico');
     if (ico) {
-      var orig = ico.textContent;
-      ico.textContent = '✅';
-      setTimeout(function(){ ico.textContent = orig; }, 1500);
+      var orig = ico.innerHTML;
+      ico.innerHTML = svgIcon('ok',12);
+      setTimeout(function(){ ico.innerHTML = orig; }, 1500);
     }
   }).catch(function() {
     toast('Gagal menyalin nomor', 'err');
@@ -364,7 +364,7 @@ function toggleUsrBendahara() {
 }
 
 function openModalUser() {
-  document.getElementById('modalUserTitle').textContent = '👤 User Baru';
+  document.getElementById('modalUserTitle').textContent = 'User Baru';
   ['usrNama','usrHp','usrEmail','usrAlamat','usrCatatan','usrIdUser','usrPassword'].forEach(id => document.getElementById(id).value='');
   document.getElementById('usrRole').value = 'murid';
   document.getElementById('usrStatus').value = 'aktif';
@@ -393,7 +393,7 @@ function suggestUsrIdUser() {
 function editUser(id) {
   const u = allUsers.find(x => x.id_user === id);
   if (!u) return;
-  document.getElementById('modalUserTitle').textContent = '✏️ Edit User';
+  document.getElementById('modalUserTitle').textContent = 'Edit User';
   document.getElementById('usrId').value      = u.id_user;
   document.getElementById('usrNama').value    = u.nama_lengkap;
   document.getElementById('usrRole').value    = u.role;
@@ -486,8 +486,8 @@ function hardDeleteMurid(id, nama) {
   ov.innerHTML = `
     <div class="modal" style="max-width:440px" onclick="event.stopPropagation()">
       <div class="modal-head">
-        <div class="modal-title" style="color:#b91c1c">⚠️ Hapus Murid Permanen</div>
-        <button class="modal-x" onclick="document.getElementById('_hardDelOverlay').remove()">×</button>
+        <div class="modal-title" style="color:#b91c1c;display:flex;align-items:center;gap:6px">${svgIcon('warn',16)} Hapus Murid Permanen</div>
+        <button class="modal-x" onclick="document.getElementById('_hardDelOverlay').remove()">${svgIcon('close',16)}</button>
       </div>
       <div class="modal-body">
         <div style="background:rgba(127,29,29,.08);border:1px solid rgba(127,29,29,.25);border-radius:10px;padding:12px;font-size:12.5px;color:var(--text-2);line-height:1.6;margin-bottom:14px">
@@ -504,7 +504,7 @@ function hardDeleteMurid(id, nama) {
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('_hardDelOverlay').remove()">Batal</button>
-        <button id="_hardDelBtn" class="btn btn-red btn-sm" disabled onclick="confirmHardDeleteMurid('${esc(id)}','${escJs(nama)}')">🗑 Hapus Permanen</button>
+        <button id="_hardDelBtn" class="btn btn-red btn-sm" disabled onclick="confirmHardDeleteMurid('${esc(id)}','${escJs(nama)}')">${svgIcon('delete',14)} Hapus Permanen</button>
       </div>
     </div>`;
   ov.addEventListener('click', function(){ ov.remove(); });
@@ -533,15 +533,15 @@ function _hardDelModal(title, warnHtml, id, confirmFn, nama) {
   ov.id = '_hardDelOverlay'; ov.className = 'overlay open';
   ov.innerHTML =
     '<div class="modal" style="max-width:460px" onclick="event.stopPropagation()">'
-    + '<div class="modal-head"><div class="modal-title" style="color:#b91c1c">' + title + '</div>'
-    + '<button class="modal-x" onclick="document.getElementById(\'_hardDelOverlay\').remove()">×</button></div>'
+    + '<div class="modal-head"><div class="modal-title" style="color:#b91c1c;display:flex;align-items:center;gap:6px">' + title + '</div>'
+    + '<button class="modal-x" onclick="document.getElementById(\'_hardDelOverlay\').remove()">' + svgIcon('close',16) + '</button></div>'
     + '<div class="modal-body">'
     + '<div style="background:rgba(127,29,29,.08);border:1px solid rgba(127,29,29,.25);border-radius:10px;padding:12px;font-size:12.5px;color:var(--text-2);line-height:1.6;margin-bottom:14px">' + warnHtml + '</div>'
     + '<div class="fg"><label>Ketik ID <code>' + esc(id) + '</code> untuk konfirmasi</label>'
     + '<input id="_hardDelConfirm" class="fc" placeholder="' + esc(id) + '" autocomplete="off" oninput="document.getElementById(\'_hardDelBtn\').disabled=(this.value.trim().toUpperCase()!==\'' + esc(id) + '\'.toUpperCase())"></div>'
     + '</div><div class="modal-foot">'
     + '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'_hardDelOverlay\').remove()">Batal</button>'
-    + '<button id="_hardDelBtn" class="btn btn-red btn-sm" disabled onclick="' + confirmFn + '(\'' + esc(id) + '\',\'' + escJs(nama) + '\')">🗑 Hapus Permanen</button>'
+    + '<button id="_hardDelBtn" class="btn btn-red btn-sm" disabled onclick="' + confirmFn + '(\'' + esc(id) + '\',\'' + escJs(nama) + '\')">' + svgIcon('delete',14) + ' Hapus Permanen</button>'
     + '</div></div>';
   ov.addEventListener('click', function(){ ov.remove(); });
   document.body.appendChild(ov);
@@ -549,7 +549,7 @@ function _hardDelModal(title, warnHtml, id, confirmFn, nama) {
 }
 
 function hardDeleteGuru(id, nama) {
-  _hardDelModal('⚠️ Hapus Guru Permanen',
+  _hardDelModal(svgIcon('warn',16) + ' Hapus Guru Permanen',
     'Tindakan ini <strong>TIDAK BISA dibatalkan</strong>. Untuk <strong>' + esc(nama) + '</strong> (<code>' + esc(id) + '</code>) akan:'
     + '<ul style="margin:6px 0 0;padding-left:18px">'
     + '<li>Menghapus <strong>halaqah yang ia ampu</strong> beserta SELURUH riwayatnya (anggota, KBM, nilai, raport, absensi).</li>'
@@ -572,7 +572,7 @@ async function confirmHardDeleteGuru(id, nama) {
 }
 
 function hardDeleteHalaqah(id, nama) {
-  _hardDelModal('⚠️ Hapus Halaqah Permanen',
+  _hardDelModal(svgIcon('warn',16) + ' Hapus Halaqah Permanen',
     'Tindakan ini <strong>TIDAK BISA dibatalkan</strong>. Halaqah <strong>' + esc(nama) + '</strong> (<code>' + esc(id) + '</code>) beserta <strong>SELURUH riwayatnya</strong> akan dihapus: keanggotaan murid, semua sesi KBM, nilai, raport, observasi, dll. Murid tetap ada (hanya keanggotaannya di halaqah ini yang hilang).',
     id, 'confirmHardDeleteHalaqah', nama);
 }
@@ -600,7 +600,7 @@ function openBulkImport() {
   if (dz) {
     dz.style.background = '';
     dz.style.borderColor = 'var(--border)';
-    dz.innerHTML = '<div style="font-size:36px;margin-bottom:8px">☁️</div>'
+    dz.innerHTML = '<div style="margin-bottom:8px;display:flex;justify-content:center;color:var(--text-3)">' + svgIcon('cloud',36) + '</div>'
       + '<div style="font-weight:700;font-size:14px;color:var(--text-2)">Drag file CSV ke sini atau klik untuk pilih</div>'
       + '<div style="font-size:12px;color:var(--text-3);margin-top:4px">Format: .csv (UTF-8) — support hingga 500 baris</div>';
   }
@@ -707,7 +707,7 @@ function processCSV(text) {
   var guruCount  = importedUsers.filter(function(u){return u.role==='guru';}).length;
   var halaqahSet = new Set(importedUsers.filter(function(u){return u.nama_halaqah;}).map(function(u){return u.nama_halaqah;}));
 
-  if (info) info.innerHTML = '<span style="color:var(--green)">✅ ' + importedUsers.length + ' baris siap diimport</span>'
+  if (info) info.innerHTML = '<span style="color:var(--green);display:inline-flex;align-items:center;gap:5px">' + svgIcon('ok',14) + ' ' + importedUsers.length + ' baris siap diimport</span>'
     + ' — ' + muridCount + ' murid, ' + guruCount + ' guru, ' + halaqahSet.size + ' halaqah';
   if (head) head.innerHTML = '<tr>' + ['NIS','Nama','Role','Halaqah','Level'].map(function(h){
     return '<th style="padding:6px 8px;background:#f8fafc;border:1px solid var(--border);font-size:10.5px;white-space:nowrap">' + h + '</th>';
@@ -732,7 +732,7 @@ function processCSV(text) {
   if (dz) {
     dz.style.background = 'var(--green-l)';
     dz.style.borderColor = 'var(--green)';
-    dz.innerHTML = '<div style="font-size:28px;margin-bottom:6px">✅</div>'
+    dz.innerHTML = '<div style="margin-bottom:6px;display:flex;justify-content:center;color:var(--green)">' + svgIcon('ok',28) + '</div>'
       + '<div style="font-weight:700;font-size:14px;color:var(--green)">' + importedUsers.length + ' baris siap diimport</div>'
       + '<div style="font-size:12px;color:#0a6b4e;margin-top:2px;cursor:pointer">Klik untuk ganti file</div>';
   }
@@ -859,14 +859,14 @@ async function doImportTerintegrasi() {
 
     // Rekap akhir
     var msg = 'Import selesai!\n'
-      + '🏫 Halaqah baru: ' + rekap.halaqah_baru + '\n'
-      + '✅ User berhasil: ' + rekap.user_berhasil + '\n'
-      + (rekap.guru_linked ? '🔗 Halaqah ditautkan ke guru: ' + rekap.guru_linked + '\n' : '')
-      + '👥 Didaftarkan ke halaqah: ' + rekap.assigned + '\n'
-      + (rekap.user_duplikat ? '⚠️ Duplikat diskip: ' + rekap.user_duplikat + '\n' : '')
-      + (rekap.user_gagal.length ? '❌ Gagal: ' + rekap.user_gagal.length + '\n' : '')
-      + (rekap.halaqah_skipped && rekap.halaqah_skipped.length ? '🏫❌ Halaqah gagal dibuat: ' + rekap.halaqah_skipped.join('; ') + '\n' : '')
-      + (rekap.not_found.length ? '⚠️ ' + [...new Set(rekap.not_found)].join('; ') : '');
+      + 'Halaqah baru: ' + rekap.halaqah_baru + '\n'
+      + 'User berhasil: ' + rekap.user_berhasil + '\n'
+      + (rekap.guru_linked ? 'Halaqah ditautkan ke guru: ' + rekap.guru_linked + '\n' : '')
+      + 'Didaftarkan ke halaqah: ' + rekap.assigned + '\n'
+      + (rekap.user_duplikat ? 'Duplikat diskip: ' + rekap.user_duplikat + '\n' : '')
+      + (rekap.user_gagal.length ? 'Gagal: ' + rekap.user_gagal.length + '\n' : '')
+      + (rekap.halaqah_skipped && rekap.halaqah_skipped.length ? 'Halaqah gagal dibuat: ' + rekap.halaqah_skipped.join('; ') + '\n' : '')
+      + (rekap.not_found.length ? [...new Set(rekap.not_found)].join('; ') : '');
 
     setTimeout(function() {
       closeModal('modalImport');
@@ -923,7 +923,7 @@ function renderHalaqahTable() {
   var tbody = document.getElementById('halaqahTbl');
   tbody.innerHTML = rows.map(function(h) {
     var ketuaCell = h.nama_ketua
-      ? '<span style="font-weight:700;color:var(--amber-txt)">👑 ' + esc(h.nama_ketua) + '</span>'
+      ? '<span style="font-weight:700;color:var(--amber-txt);display:inline-flex;align-items:center;gap:4px">' + svgIcon('award',13) + ' ' + esc(h.nama_ketua) + '</span>'
       : '<span style="color:var(--text-3);font-size:11px">Belum diatur</span>';
     return '<tr>'
       + '<td><strong>' + esc(h.nama_halaqah) + '</strong></td>'
@@ -935,13 +935,13 @@ function renderHalaqahTable() {
       + '<td>' + (h.total_murid||0) + '</td>'
       + '<td>' + (h.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>') + '</td>'
       + '<td style="display:flex;gap:5px">'
-      + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">✏️</button>'
-      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Nonaktifkan (reversible)">🗑</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="editHalaqah(\'' + esc(h.id_halaqah) + '\')">' + svgIcon('edit',14) + '</button>'
+      + '<button class="btn btn-red btn-sm" onclick="hapusHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Nonaktifkan (reversible)">' + svgIcon('delete',14) + '</button>'
       + ((currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin'))
           ? ' <button class="btn btn-sm" style="background:rgba(5,150,105,.12);color:#065f46;border:1px solid rgba(5,150,105,.3);font-size:10.5px;padding:3px 8px" onclick="wisudaSemuaHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\',' + (h.total_murid||0) + ')" title="Jadikan semua anggota alumni">Wisuda</button>'
           : '')
       + ((currentUser && currentUser.role === 'superadmin')
-          ? '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px" onclick="hardDeleteHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Hapus PERMANEN: halaqah + seluruh riwayat KBM/nilai/raport">⚠️</button>'
+          ? '<button class="btn btn-sm" style="background:rgba(127,29,29,.12);color:#7f1d1d;border:1px solid rgba(127,29,29,.3);font-size:10.5px;padding:3px 8px" onclick="hardDeleteHalaqah(\'' + esc(h.id_halaqah) + '\',\'' + escJs(h.nama_halaqah) + '\')" title="Hapus PERMANEN: halaqah + seluruh riwayat KBM/nilai/raport">' + svgIcon('warn',14) + '</button>'
           : '')
       + '</td></tr>';
   }).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada halaqah ditemukan</td></tr>';
@@ -1052,7 +1052,7 @@ function _kqRenderList() {
     const chips = anggota.map(a =>
       `<span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 9px;border-radius:100px;margin:0 4px 4px 0">`
         + esc(a.nama_murid || a.id_murid)
-        + `<button onclick="kqRemoveAnggota('${esc(k.id_kelompok)}','${esc(a.id_murid)}')" style="border:none;background:none;color:#1d4ed8;cursor:pointer;font-size:12px;padding:0;line-height:1" title="Hapus dari kelompok">✕</button>`
+        + `<button onclick="kqRemoveAnggota('${esc(k.id_kelompok)}','${esc(a.id_murid)}')" style="border:none;background:none;color:#1d4ed8;cursor:pointer;padding:0;line-height:1;display:inline-flex" title="Hapus dari kelompok">${svgIcon('close',12)}</button>`
       + `</span>`
     ).join('');
 
@@ -1076,9 +1076,9 @@ function _kqRenderList() {
     // Lini Masa Kelompok: toggle + tambah milestone (lazy-load)
     const liniBlock = `<div style="border-top:1px dashed var(--border,#e5e7eb);margin-top:8px;padding-top:8px">`
       + `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">`
-        + `<button onclick="kqToggleLiniMasa('${esc(k.id_kelompok)}')" style="background:rgba(13,148,136,.1);color:#0f766e;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🗓️ Lini Masa</button>`
+        + `<button onclick="kqToggleLiniMasa('${esc(k.id_kelompok)}')" style="background:rgba(13,148,136,.1);color:#0f766e;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:4px">${svgIcon('calendar',12)} Lini Masa</button>`
         + `<button onclick="kqAddMilestone('${esc(k.id_kelompok)}')" style="background:var(--bg-2,#f3f4f6);color:var(--text-1,#374151);border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">+ Milestone</button>`
-        + `<button onclick="kqToggleTarget('${esc(k.id_kelompok)}')" style="background:rgba(245,158,11,.12);color:#b45309;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer">🎯 Target</button>`
+        + `<button onclick="kqToggleTarget('${esc(k.id_kelompok)}')" style="background:rgba(245,158,11,.12);color:#b45309;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:4px">${svgIcon('target',12)} Target</button>`
       + `</div>`
       + `<div id="kqLini_${esc(k.id_kelompok)}" style="display:none;margin-top:8px"></div>`
       + `<div id="kqTarget_${esc(k.id_kelompok)}" style="display:none;margin-top:8px"></div>`
@@ -1087,7 +1087,7 @@ function _kqRenderList() {
     return `<div style="background:var(--bg-1,#fff);border:1px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;margin-bottom:10px">`
       + `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-2,#f9fafb);border-bottom:1px solid var(--border,#f0f0f0)">`
         + `<input type="text" class="fc" value="${esc(k.nama_kelompok||'')}" placeholder="Nama kelompok" style="flex:1;font-size:12px;padding:5px 9px;font-weight:700" onchange="kqRenameKelompok('${esc(k.id_kelompok)}',this.value)">`
-        + `<button onclick="kqDeleteKelompok('${esc(k.id_kelompok)}')" style="width:32px;height:32px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;flex-shrink:0" title="Hapus Kelompok">🗑</button>`
+        + `<button onclick="kqDeleteKelompok('${esc(k.id_kelompok)}')" style="width:32px;height:32px;border-radius:7px;border:none;background:#fee2e2;color:#dc2626;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center" title="Hapus Kelompok">${svgIcon('delete',14)}</button>`
       + `</div>`
       + `<div style="padding:10px 12px">`
         + (chips || '<div style="font-size:11px;color:var(--text-3)">Belum ada anggota</div>')
