@@ -591,15 +591,11 @@ async function loadSPPAdmin() {
       var scopeEl = document.getElementById('sppScopeLabel');
       if (scopeEl) {
         var tScope = (tahun === 'semua') ? 'semua tahun' : 'tahun ' + tahun;
-        var _noDates = rekap.mode === 'periode' && !(rekap.periode_range && rekap.periode_range.mulai);
         scopeEl.textContent = rekap.periode_nama
           ? (rekap.mode === 'tanpa_periode' ? 'Transaksi belum berperiode · ' + tScope
              : 'Periode: ' + rekap.periode_nama + (rekap.periode_range && rekap.periode_range.mulai ? ' (' + rekap.periode_range.mulai + ' – ' + rekap.periode_range.selesai + ')' : ''))
           : 'Semua periode · ' + tScope;
-        // Periode tanpa tanggal → angka uang tetap benar (via id_periode) tapi
-        // tunggakan/lunas tak bisa dihitung. Minta admin lengkapi tanggal.
-        scopeEl.style.color = _noDates ? 'var(--amber-txt)' : 'var(--text-3)';
-        if (_noDates) scopeEl.textContent += ' — ⚠ tanggal periode belum diisi, tunggakan tak dihitung';
+        scopeEl.style.color = 'var(--text-3)';
       }
       var tpBadge = document.getElementById('sppTanpaPeriodeBadge');
       if (tpBadge) {

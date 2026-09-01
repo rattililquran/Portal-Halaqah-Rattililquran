@@ -5073,7 +5073,7 @@ var AdminAPI = {
     var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, tipe_spp, status, halaqah(nama_halaqah, id_guru)');
     if (pInfo) {
       anggotaQ = pInfo.halaqahIds.length
-        ? anggotaQ.in('id_halaqah', pInfo.halaqahIds)
+        ? anggotaQ.in('id_halaqah', pInfo.halaqahIds).eq('status','aktif')
         : anggotaQ.eq('id_halaqah', ' none'); // periode tanpa halaqah → roster kosong
     } else if (p.id_halaqah) {
       anggotaQ = anggotaQ.eq('id_halaqah', p.id_halaqah).eq('status','aktif');
@@ -5107,18 +5107,15 @@ var AdminAPI = {
       return b.tahun < _nowY || (b.tahun === _nowY && bi < bulanSelesai);
     }).map(function(b){ return b.bulan; }).filter(function(b,i,a){ return a.indexOf(b) === i; }) : null;
 
-    // Cari bulan pertama tiap murid mulai punya catatan SPP Pribadi tahun ini —
-    // murid yang baru mulai/bayar di muka (mis. baru tercatat mulai Oktober)
-    // tidak dianggap nunggak untuk bulan-bulan sebelum itu.
+    // Tunggakan SPP SELALU dihitung dgn window 5-bulan dari data pembayaran
+    // murid TAHUN INI — LEPAS dari filter periode (bulan periode tak boleh
+    // memengaruhi rekap tunggakan). `firstBulanMap` = bulan pertama tercatat;
+    // `lunasYearMap` = semua bulan yg sudah LUNAS (jenis SPP Pribadi).
     var firstBulanMap = {};
+    var lunasYearMap = {};
     if (muridIds.length && !tunggakanDisabled) {
-      var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, jenis',
-        function(q){
-          q = q.in('id_murid', muridIds);
-          if (pInfo) q = q.eq('id_periode', pInfo.id_periode);
-          else q = q.eq('tahun', tahun);
-          return q.order('id_spp');
-        },
+      var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, jenis, status',
+        function(q){ return q.in('id_murid', muridIds).eq('tahun', tahun).order('id_spp'); },
         'getSPPRekap:allSppRows');
       (allSppRows||[]).forEach(function(r){
         if (r.jenis && r.jenis !== 'SPP Pribadi') return;
@@ -5127,22 +5124,19 @@ var AdminAPI = {
         if (firstBulanMap[r.id_murid] === undefined || idx < firstBulanMap[r.id_murid]) {
           firstBulanMap[r.id_murid] = idx;
         }
+        if (r.status === 'lunas') {
+          (lunasYearMap[r.id_murid] = lunasYearMap[r.id_murid] || []).push(r.bulan);
+        }
       });
     }
 
-    // Map id_murid → bulan lunas (menggunakan data SPP Pribadi saja)
-    var lunasMap = {};
-    sppPribadi.forEach(function(s){
-      if (!lunasMap[s.id_murid]) lunasMap[s.id_murid] = [];
-      lunasMap[s.id_murid].push(s.bulan);
-    });
     // Peserta Daurah Al-Fatihah (NIS prefix FTH) TIDAK dikenai SPP Pribadi —
     // keluarkan dari daftar & hitungan lunas/menunggak. Infaq Daurah mereka tetap
     // tercatat lewat infaqData (langsung dari spp_pembayaran) & anggotaMap.
     var isDaurahFth = function(id){ return !!(id && String(id).toUpperCase().startsWith('FTH')); };
     var anggotaSPP = (anggota||[]).filter(function(a){ return !isDaurahFth(a.id_murid); });
     var muridListRaw = anggotaSPP.map(function(a) {
-      var lunasBulan = lunasMap[a.id_murid] || [];
+      var lunasBulan = lunasYearMap[a.id_murid] || [];
       var firstIdx = firstBulanMap[a.id_murid];
       var isBeasiswa = a.tipe_spp === 'beasiswa';
       var bulanBelum, tunggakan, winLen;
@@ -5160,20 +5154,6 @@ var AdminAPI = {
         bulanBelum = [];
         tunggakan  = 0;
         winLen     = 0;
-      } else if (pInfo) {
-        // Mode periode: kewajiban = bulan-bulan periode yg sudah berjalan.
-        // Murid yang catatan SPP pertamanya di tengah periode (join belakangan
-        // / bayar di muka) TIDAK dihitung nunggak utk bulan sebelum itu —
-        // konsisten dgn logika window non-periode. Kalau belum ada catatan
-        // sama sekali (firstIdx undefined) → seluruh bulan wajib dihitung.
-        var _wajib = (firstIdx === undefined) ? bulanWajibPeriode
-          : bulanWajibPeriode.filter(function(b){
-              var bi = BULAN.indexOf(b);
-              return bi < 0 || bi >= firstIdx;
-            });
-        bulanBelum = _wajib.filter(function(b){ return lunasBulan.indexOf(b) < 0; });
-        tunggakan  = bulanBelum.length;
-        winLen     = _wajib.length;
       } else if (firstIdx === undefined) {
         // Belum pernah punya catatan SPP Pribadi sama sekali → anggap nunggak WINDOW_SIZE bulan
         bulanBelum = [];
