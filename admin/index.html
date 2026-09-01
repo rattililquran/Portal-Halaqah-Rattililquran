@@ -259,11 +259,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 html.theme-dark .pcard{box-shadow:0 2px 8px rgba(0,0,0,.3)}
 html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
 
-/* Aksi "Menunggu Validasi" — minimalis, flat, tanpa glow */
-.spp-pend-acts{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
-.spp-pend-row{display:flex;gap:8px}
-.spp-abtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:8px 14px;border-radius:8px;font-family:inherit;font-size:12.5px;font-weight:600;
+/* Aksi "Menunggu Validasi" — minimalis, flat, tanpa glow. Semua elemen
+   selebar kontainer 300px → tombol & chip simetris. */
+.spp-pend-acts{display:flex;flex-direction:column;gap:7px;flex-shrink:0;width:340px;max-width:100%}
+.spp-pend-row{display:flex;gap:8px;width:100%}
+.spp-abtn{flex:1 1 0;min-width:0;box-sizing:border-box;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 10px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;
   line-height:1;cursor:pointer;white-space:nowrap;border:1px solid transparent;
   -webkit-appearance:none;appearance:none;transition:background .14s,border-color .14s,color .14s}
 .spp-abtn svg{width:14px;height:14px;flex-shrink:0}
@@ -272,15 +274,12 @@ html.theme-dark .pcard-head:hover{background:rgba(255,255,255,.04)}
 .spp-abtn-ok:active{background:#064e3b}
 .spp-abtn-no{background:var(--card);border-color:var(--border);color:var(--red-txt)}
 .spp-abtn-no:hover{background:var(--red-bg);border-color:var(--red-txt)}
-.spp-gw-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:6px;
+.spp-gw-chip{box-sizing:border-box;width:100%;display:inline-flex;align-items:center;justify-content:center;
+  gap:5px;padding:5px 9px;border-radius:8px;
   background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--border);
   font-size:10.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
 .spp-gw-chip svg{width:11px;height:11px}
-@media(max-width:520px){
-  .spp-pend-acts{align-items:stretch;width:100%}
-  .spp-pend-row{width:100%}
-  .spp-abtn{flex:1}
-}
+@media(max-width:520px){ .spp-pend-acts{width:100%} }
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto}
