@@ -283,14 +283,16 @@ html.theme-dark .u-ava.r-murid{color:#7dd3fc}
 html.theme-dark .u-ava.r-admin,html.theme-dark .u-ava.r-superadmin{color:#fca5a5}
 .u-name{font-weight:700;color:var(--text);line-height:1.3;letter-spacing:-.01em;min-width:0}
 
-.u-hq{display:flex;flex-direction:column;gap:4px;max-width:330px}
-.u-hq-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3}
-.u-hq-row .badge{font-size:10px}
-.u-hq-kt{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text-2);font-weight:600}
+.u-hq{display:flex;flex-direction:column;gap:3px;max-width:340px}
+.u-hq-row{line-height:1.5}
+.u-hq-row .badge{font-size:10px;margin-right:3px;vertical-align:middle}
+.u-hq-kt{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text-2);font-weight:600;vertical-align:middle;white-space:nowrap}
 .u-hq-kt svg{color:var(--amber);flex-shrink:0}
 .u-hq-kt.none{color:var(--text-3);font-weight:500;font-style:italic;opacity:.85}
 
-.u-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}
+/* kolom Aksi: lebar mengikuti isi, tak menyusut & tak meluber keluar tabel */
+table.utbl th.u-act-h,table.utbl td.u-act{width:1%;white-space:nowrap;text-align:right}
+.u-actions{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
 .u-ibtn{-webkit-appearance:none;appearance:none;width:30px;height:30px;min-width:30px;
   min-height:30px;max-height:30px;display:inline-flex;align-items:center;justify-content:center;
   border-radius:8px;flex-shrink:0;border:1px solid var(--border);background:var(--card);
@@ -1649,7 +1651,7 @@ html.theme-dark .fin-detail-card {
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','no_hp',function(){renderUsersTable(currentUserTab)})">No HP<span class="sort-ind" data-sort-tbl="users" data-sort-col="no_hp"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','email',function(){renderUsersTable(currentUserTab)})">Email<span class="sort-ind" data-sort-tbl="users" data-sort-col="email"></span></th>
                 <th style="cursor:pointer;user-select:none" onclick="toggleSort('users','status',function(){renderUsersTable(currentUserTab)})">Status<span class="sort-ind" data-sort-tbl="users" data-sort-col="status"></span></th>
-                <th style="text-align:right">Aksi</th>
+                <th class="u-act-h">Aksi</th>
               </tr></thead>
               <tbody id="usersTbl"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-3)">Memuat...</td></tr></tbody>
             </table>
@@ -4364,7 +4366,7 @@ html.theme-dark .fin-detail-card {
 <script src="../assets/push-permission.js"></script>
 <script src="../assets/confirm-modal.js"></script>
 <script src="guru-module.js?v=ab2cfc2d" defer></script>
-<script src="murid-module.js?v=d7bfaafe" defer></script>
+<script src="murid-module.js?v=dc84d7b1" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
 <script src="spp-keuangan-module.js?v=aea9e12c" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>

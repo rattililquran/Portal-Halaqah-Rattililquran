@@ -256,6 +256,14 @@ function renderUsersTable(role) {
   });
 
   var showHalaqahCol = role === 'guru';
+  // Sinkronkan visibilitas header "Halaqah / Ketua" dgn body DI SINI -- jangan
+  // andalkan switchUserTab() yang hanya jalan saat tab di-klik. Saat halaman
+  // pertama dibuka, loadUsers('guru') -> renderUsersTable('guru') menambah
+  // sel hqCell ke body sementara header <th id="usrHalaqahTh"> masih
+  // display:none -> jumlah kolom body(9) != header(8) -> seluruh baris body
+  // geser 1 kolom & kolom Aksi meluber keluar tabel.
+  var _hqTh = document.getElementById('usrHalaqahTh');
+  if (_hqTh) _hqTh.style.display = showHalaqahCol ? '' : 'none';
   // +1 kolom "No." -- dibangun langsung di sini (bukan disisipkan belakangan
   // oleh setupTableObserver global) supaya tabel Users PUNYA header "No."
   // sendiri: hasOriginalNo di updateTableNumbers() jadi true -> observer
@@ -310,7 +318,7 @@ function renderUsersTable(role) {
       + '<td>' + (u.status==='aktif' ? '<span class="badge b-green">Aktif</span>' : '<span class="badge b-gray">Non-aktif</span>')
         + ((u.tipe_murid||'reguler')==='alumni' ? ' <span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px">Alumni</span>' : '')
       + '</td>'
-      + '<td><div class="u-actions"><button class="u-ibtn" onclick="editUser(\'' + esc(u.id_user) + '\')" title="Edit data">' + svgIcon('edit',14) + '</button>' + btnDel + '</div></td>'
+      + '<td class="u-act"><div class="u-actions"><button class="u-ibtn" onclick="editUser(\'' + esc(u.id_user) + '\')" title="Edit data">' + svgIcon('edit',14) + '</button>' + btnDel + '</div></td>'
       + '</tr>';
   }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
 
