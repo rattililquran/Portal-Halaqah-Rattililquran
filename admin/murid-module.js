@@ -130,6 +130,8 @@ function switchUserTab(tab) {
   // halaman dibuka pertama kali (goPage('users') -> loadUsers()) & setiap mutasi
   // user. Ganti tab (guru/murid/semua) HANYA memfilter ulang di klien, tanpa
   // fetch network + loader fullscreen -- lihat RENCANA_fix_search_manajemen_user.md
+  // Reset batas "load more" tiap ganti tab -- mulai lagi dari 50 baris teratas.
+  _usersRenderLimit = 50;
   // INSTRUMENTASI SEMENTARA (2026-09-01) -- ukur JS murni vs. total yg terasa
   // user, utk memastikan apakah sisa lag dari JS atau dari luar JS (mis.
   // paint/compositing backdrop-filter). Hapus setelah investigasi selesai.
@@ -216,6 +218,15 @@ function _userHay(u) {
   return u._hay;
 }
 
+// Batas baris yang benar-benar di-render ke DOM sekaligus ("load more"),
+// BUKAN paginasi bernomor -- reset ke default tiap ganti tab/filter/cari
+// (lihat switchUserTab & filterUsersTable), TIDAK direset saat sort/klik
+// "muat lagi". Alasan: profiling (console.time) menunjukkan JS murni sudah
+// cepat (<75ms bahkan 458 baris), tapi layout+paint browser dari SEMUA baris
+// itu tetap ~1.6-2 DETIK karena jumlah node DOM total (bukan soal search/tab
+// lagi) -- lihat RENCANA_fix_search_manajemen_user.md (Adendum 4).
+var _usersRenderLimit = 50;
+
 function renderUsersTable(role) {
   var q = (document.getElementById('userSearchInput') ? document.getElementById('userSearchInput').value : '').trim().toLowerCase();
   var statusF = document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '';
@@ -252,7 +263,11 @@ function renderUsersTable(role) {
   var colCount = (showHalaqahCol ? 8 : 7) + 1;
   var tbody = document.getElementById('usersTbl');
 
-  tbody.innerHTML = filtered.map(function(u, idx) {
+  // Hanya render 50 (bertambah tiap klik "muat lagi") ke DOM sekaligus --
+  // idx tetap mewakili posisi asli di `filtered` karena slice mulai dari 0.
+  var visibleRows = filtered.slice(0, _usersRenderLimit);
+
+  tbody.innerHTML = visibleRows.map(function(u, idx) {
     var hqList = guruMap[u.id_user] || [];
     var hqCell = '';
     if (showHalaqahCol) {
@@ -296,14 +311,28 @@ function renderUsersTable(role) {
       + '</tr>';
   }).join('') || '<tr><td colspan="' + colCount + '" style="text-align:center;padding:32px;color:var(--text-3)">Tidak ada data ditemukan</td></tr>';
 
+  if (filtered.length > visibleRows.length) {
+    tbody.innerHTML += '<tr><td colspan="' + colCount + '" style="text-align:center;padding:14px">'
+      + '<button class="btn btn-ghost btn-sm" onclick="loadMoreUsers()">'
+      + '⬇️ Muat ' + Math.min(50, filtered.length - visibleRows.length) + ' lagi ('
+      + (filtered.length - visibleRows.length) + ' tersisa)</button></td></tr>';
+  }
+
   var total = (allUsers||[]).filter(function(u){
     if (role==='guru' && u.role!=='guru') return false;
     if (role==='murid' && u.role!=='murid') return false;
     return true;
   }).length;
   var badge = document.getElementById('userCountBadge');
-  if (badge) badge.textContent = filtered.length + ' dari ' + total + ' pengguna';
+  if (badge) badge.textContent = (visibleRows.length < filtered.length
+    ? 'Menampilkan ' + visibleRows.length + ' dari ' + filtered.length + ' cocok'
+    : filtered.length + ' dari ' + total + ' pengguna');
   updateSortIndicators('users');
+}
+
+function loadMoreUsers() {
+  _usersRenderLimit += 50;
+  renderUsersTable(currentUserTab);
 }
 
 function salinNoHp(el, hp) {
@@ -324,7 +353,11 @@ function salinNoHp(el, hp) {
   });
 }
 
-function filterUsersTable() { renderUsersTable(currentUserTab); }
+function filterUsersTable() {
+  // Cari/filter baru -- mulai lagi dari 50 baris teratas hasil yang cocok.
+  _usersRenderLimit = 50;
+  renderUsersTable(currentUserTab);
+}
 
 // Debounce khusus kotak cari (oninput, per-keystroke) -- dropdown filter (onchange)
 // tetap panggil filterUsersTable() langsung, tak perlu didebounce.
@@ -1092,6 +1125,7 @@ function _kqRenderList() {
     window.renderUsersTable = renderUsersTable;
     window.salinNoHp = salinNoHp;
     window.filterUsersTable = filterUsersTable;
+    window.loadMoreUsers = loadMoreUsers;
     window.filterUsersTableDebounced = filterUsersTableDebounced;
     window.toggleUsrBendahara = toggleUsrBendahara;
     window.openModalUser = openModalUser;
