@@ -2227,6 +2227,8 @@ function friendlyError(e) {
     return 'Sesi Anda telah berakhir. Silakan masuk kembali.';
   if (low.indexOf('timeout') >= 0 || low.indexOf('timed out') >= 0)
     return 'Permintaan terlalu lama. Coba lagi sebentar.';
+  if (low.indexOf('duplicate key') >= 0 || low.indexOf('unique constraint') >= 0 || low.indexOf('already exists') >= 0)
+    return 'Data ini sudah ada (duplikat) — kemungkinan ID/NIS/nama sudah dipakai. Gunakan yang lain.';
   if (low.indexOf('relation') >= 0 || low.indexOf('column') >= 0 || low.indexOf('syntax') >= 0 ||
       low.indexOf('supabase') >= 0 || low.indexOf('pgrst') >= 0 || /[{}<>]/.test(m) || m.length > 120)
     return 'Gagal memuat data. Coba lagi sebentar.';

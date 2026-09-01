@@ -427,14 +427,20 @@ function openModalUser() {
 }
 
 // Saran ID User otomatis dari Nama Lengkap (hanya saat tambah user baru,
-// dan hanya jika user belum mengetik manual di kolom ID User)
+// dan hanya jika user belum mengetik manual di kolom ID User).
+// Cek tabrakan dgn user yang sudah ada (termasuk yang nonaktif) → tambah angka.
 function suggestUsrIdUser() {
   var idField = document.getElementById('usrIdUser');
   if (idField.disabled || idField.dataset.manual === '1') return;
   var nama = document.getElementById('usrNama').value || '';
   var base = nama.replace(/^(al-|al\s|ustadz\s|ustadzah\s)/gi, '')
     .split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g, '').substring(0, 6);
-  idField.value = base;
+  if (!base) { idField.value = ''; return; }
+  var taken = {};
+  (window.allUsers || []).forEach(function(u){ if (u && u.id_user) taken[String(u.id_user).toUpperCase()] = 1; });
+  var cand = base, n = 1;
+  while (taken[cand]) { n++; cand = base + n; }
+  idField.value = cand;
 }
 
 function editUser(id) {
@@ -482,6 +488,12 @@ async function saveUser() {
     var idUser = document.getElementById('usrIdUser').value.trim().toUpperCase();
     if (!idUser) return toast('ID User wajib diisi','err');
     if (!/^[A-Z0-9_-]+$/.test(idUser)) return toast('ID User hanya boleh huruf, angka, - dan _','err');
+    // Cegah tabrakan primary key (termasuk user nonaktif) sebelum kirim
+    if ((window.allUsers || []).some(function(u){ return u && String(u.id_user).toUpperCase() === idUser; })) {
+      toast('ID User / NIS "' + idUser + '" sudah dipakai user lain (termasuk yang nonaktif). Cek di Manajemen User, atau ganti ID User.', 'err');
+      var _f = document.getElementById('usrIdUser'); _f.dataset.manual = '1'; _f.focus(); _f.select();
+      return;
+    }
     data.id_user = idUser;
     password = document.getElementById('usrPassword').value.trim();
     if (!password) return toast('Password awal wajib diisi','err');
@@ -503,7 +515,13 @@ async function saveUser() {
     closeModal('modalUser');
     toast(id ? 'User diperbarui!' : 'User baru dibuat!', 'ok');
     await loadMasterData(); loadUsers(currentUserTab);
-  } catch(e) { toast(friendlyError(e),'err'); }
+  } catch(e) {
+    var _m = (e && e.message) ? String(e.message) : '';
+    if (/duplicate key|users_pkey|unique constraint|already exists/i.test(_m))
+      toast('ID User / NIS "' + (data.id_user || '') + '" sudah dipakai. Ganti ID User lalu simpan lagi.', 'err');
+    else
+      toast(friendlyError(e),'err');
+  }
   finally { hideLoad(); }
 }
 
