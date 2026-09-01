@@ -132,16 +132,7 @@ function switchUserTab(tab) {
   // fetch network + loader fullscreen -- lihat RENCANA_fix_search_manajemen_user.md
   // Reset batas "load more" tiap ganti tab -- mulai lagi dari 50 baris teratas.
   _usersRenderLimit = 50;
-  // INSTRUMENTASI SEMENTARA (2026-09-01) -- ukur JS murni vs. total yg terasa
-  // user, utk memastikan apakah sisa lag dari JS atau dari luar JS (mis.
-  // paint/compositing backdrop-filter). Hapus setelah investigasi selesai.
-  var _t0 = performance.now();
   renderUsersTable(tab);
-  var _t1 = performance.now();
-  requestAnimationFrame(function() {
-    var _t2 = performance.now();
-    console.log('[perf] switchUserTab(' + tab + '): JS renderUsersTable=' + (_t1-_t0).toFixed(1) + 'ms, sampai frame berikutnya (termasuk paint)=' + (_t2-_t0).toFixed(1) + 'ms, jumlah baris=' + document.querySelectorAll('#usersTbl tr').length);
-  });
 }
 
 async function loadUsers(role) {
