@@ -5067,9 +5067,9 @@ var AdminAPI = {
     var infaqData = sppFiltered.filter(function(s){ return s.jenis === 'Infaq/Operasional'; });
     var ihsanData = sppFiltered.filter(function(s){ return s.jenis === 'Ihsan Guru'; });
 
-    // Roster untuk cross-check tunggakan.
-    //  - mode periode : SEMUA anggota (termasuk alumni) di halaqah periode itu
-    //  - mode filter halaqah / seluruh : hanya anggota aktif
+    // Roster untuk cross-check tunggakan — HANYA anggota aktif di semua mode
+    // (alumni tak lagi masuk hitungan lunas/menunggak). Mode periode dibatasi
+    // ke halaqah milik periode tsb.
     var anggotaQ = _sb.from('anggota').select('id_murid, nama_murid, id_halaqah, level, tipe_spp, status, halaqah(nama_halaqah, id_guru)');
     if (pInfo) {
       anggotaQ = pInfo.halaqahIds.length
@@ -5099,34 +5099,37 @@ var AdminAPI = {
     var endIdx   = bulanSelesai;
     var bulanRekapDefault = BULAN.slice(startIdx, endIdx);
 
-    // Mode periode: window kewajiban = bulan-bulan periode s/d bulan berjalan.
-    var _nowY = new Date().getFullYear();
-    var bulanWajibPeriode = pInfo ? pInfo.monthBuckets.filter(function(b){
-      var bi = BULAN.indexOf(b.bulan);
-      // bulan yang sudah SELESAI berjalan (konsisten dgn bulanRekapDefault: current month belum jatuh tempo)
-      return b.tahun < _nowY || (b.tahun === _nowY && bi < bulanSelesai);
-    }).map(function(b){ return b.bulan; }).filter(function(b,i,a){ return a.indexOf(b) === i; }) : null;
-
     // Tunggakan SPP SELALU dihitung dgn window 5-bulan dari data pembayaran
-    // murid TAHUN INI — LEPAS dari filter periode (bulan periode tak boleh
-    // memengaruhi rekap tunggakan). `firstBulanMap` = bulan pertama tercatat;
-    // `lunasYearMap` = semua bulan yg sudah LUNAS (jenis SPP Pribadi).
-    var firstBulanMap = {};
+    // murid — LEPAS dari filter periode (bulan periode tak boleh memengaruhi
+    // rekap tunggakan). HANYA baris LUNAS yang menentukan window & tunggakan:
+    //  - `firstBulanMap` = bulan LUNAS pertama (chrono) → anchor window.
+    //    Baris `menunggu`/`ditolak` diabaikan supaya penolakan di bulan awal
+    //    tidak menggeser window & bikin murid lunas tampil menunggak.
+    //  - `lunasYearMap` = semua bulan yg sudah LUNAS (jenis SPP Pribadi).
+    // Cakupan tahun: mode periode → tahun-tahun yg dilingkupi periode
+    // (`pInfo.tahunSet`) + 1 tahun setelahnya (window bisa melingkar ke Jan
+    // tahun berikutnya); mode lain → `tahun` + tahun berikutnya.
+    var _baseYears = (pInfo && pInfo.tahunSet && pInfo.tahunSet.length) ? pInfo.tahunSet.slice() : [tahun];
+    var _maxY = Math.max.apply(null, _baseYears);
+    var tunggakanYears = (_baseYears.indexOf(_maxY + 1) < 0) ? _baseYears.concat([_maxY + 1]) : _baseYears;
+    var firstBulanMap = {};      // id_murid → indeks bulan (0-11) LUNAS pertama
+    var _firstChrono  = {};      // id_murid → kunci kronologis (tahun*12 + idx) utk tie-break lintas tahun
     var lunasYearMap = {};
     if (muridIds.length && !tunggakanDisabled) {
-      var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, jenis, status',
-        function(q){ return q.in('id_murid', muridIds).eq('tahun', tahun).order('id_spp'); },
+      var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, tahun, jenis, status',
+        function(q){ return q.in('id_murid', muridIds).in('tahun', tunggakanYears).order('id_spp'); },
         'getSPPRekap:allSppRows');
       (allSppRows||[]).forEach(function(r){
         if (r.jenis && r.jenis !== 'SPP Pribadi') return;
+        if (r.status !== 'lunas') return;
         var idx = BULAN.indexOf(r.bulan);
         if (idx < 0) return;
-        if (firstBulanMap[r.id_murid] === undefined || idx < firstBulanMap[r.id_murid]) {
+        var chrono = (Number(r.tahun) || 0) * 12 + idx;
+        if (_firstChrono[r.id_murid] === undefined || chrono < _firstChrono[r.id_murid]) {
+          _firstChrono[r.id_murid] = chrono;
           firstBulanMap[r.id_murid] = idx;
         }
-        if (r.status === 'lunas') {
-          (lunasYearMap[r.id_murid] = lunasYearMap[r.id_murid] || []).push(r.bulan);
-        }
+        (lunasYearMap[r.id_murid] = lunasYearMap[r.id_murid] || []).push(r.bulan);
       });
     }
 
@@ -5326,7 +5329,7 @@ var AdminAPI = {
       mode: pInfo ? 'periode' : (isTanpa ? 'tanpa_periode' : (isSemuaTahun ? 'semua_tahun' : 'tahun')),
       periode_id: pInfo ? pInfo.id_periode : (isTanpa ? _PERIODE_SENTINEL_NONE : null),
       periode_nama: pInfo ? pInfo.nama_periode : (isTanpa ? 'Tanpa Periode' : null),
-      periode_bulan: pInfo ? (bulanWajibPeriode || []) : null,
+      periode_bulan: null, // usang: tunggakan tak lagi berbasis bulan periode (window 5-bln)
       periode_range: pInfo ? { mulai: pInfo.tanggal_mulai, selesai: pInfo.tanggal_selesai } : null,
       tahun_scope: tahunSpesifik || ((pInfo || isTanpa || isSemuaTahun) ? 'semua' : tahun),
       tanpa_periode_count: tanpaPeriodeCount,
