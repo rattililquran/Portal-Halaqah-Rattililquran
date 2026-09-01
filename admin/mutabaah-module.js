@@ -44,9 +44,9 @@
     el.innerHTML =
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px">'
       + '<div>'
-      +   '<div style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px">\ud83d\udccb Mutaba\'ah \u2014 ' + esc(p.nama_periode) + '</div>'
+      +   '<div style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px">' + svgIcon('clipboard',20) + ' Mutaba\'ah \u2014 ' + esc(p.nama_periode) + '</div>'
       +   '<div style="font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-      +     '<span>\uD83D\uDCC5 ' + tglStr + '</span>'
+      +     '<span style="display:inline-flex;align-items:center;gap:4px">' + svgIcon('calendar',12) + ' ' + tglStr + '</span>'
       +     (d.statusDaurah === 'berlangsung' ? '<span>\u2022</span><span>Hari ke-<strong>' + d.hariKe + '</strong> dari 8</span>' : '')
       +     '<span>\u2022</span>' + statusBadge
       +   '</div>'
@@ -54,7 +54,7 @@
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
       +   '<select class="fc" id="mtbPeriodeSel" onchange="loadMutabaah()" style="max-width:220px;font-size:12px"><option value="P-DAURAH-JULI-2026">Daurah Al-Fatihah Jul 2026</option></select>'
       +   '<button class="btn btn-ghost btn-sm" onclick="loadMutabaah()" style="display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Refresh</button>'
-      +   '<button class="btn btn-outline btn-sm" onclick="mtbCsvExport()" style="display:flex;align-items:center;gap:6px">\uD83D\uDCE5 Export CSV</button>'
+      +   '<button class="btn btn-outline btn-sm" onclick="mtbCsvExport()" style="display:flex;align-items:center;gap:6px">' + svgIcon('download',14) + ' Export CSV</button>'
       + '</div>'
       + '</div>'
       + '<div style="background:rgba(0,0,0,.06);border-radius:100px;height:8px;overflow:hidden">'
@@ -69,17 +69,17 @@
     if (!el) return;
     var hariLabel = statusDaurah === 'belum' ? 'Belum Mulai' : statusDaurah === 'selesai' ? 'Selesai' : 'Hari ' + hariKe + '/8';
     var cards = [
-      { ico:'\uD83E\uDDD1\u200D\uD83C\uDF93', val:s.totalPeserta,     lbl:'Total Peserta',       sub:'Murid aktif daurah',   grad:'linear-gradient(90deg,#0ea5e9,#38bdf8)',   color:'var(--blue-txt)' },
-      { ico:'\uD83D\uDCC5',  val:hariLabel,           lbl:'Progress Daurah',      sub:'dari 8 hari',          grad:'linear-gradient(90deg,#8b5cf6,#a78bfa)',   color:'var(--purple-txt)' },
-      { ico:'\uD83D\uDCCB',  val:s.totalSesi,         lbl:'Sesi Terlaksana',      sub:'KBM selesai',          grad:'linear-gradient(90deg,#f59e0b,#fbbf24)',   color:'var(--amber-txt)' },
-      { ico:'\u2705',         val:s.avgHadir + '%',    lbl:'Rata-Rata Hadir',      sub:'Semua halaqah',        grad:'linear-gradient(90deg,#10b981,#34d399)',   color:'var(--green-txt)' },
-      { ico:'\uD83C\uDFAF',  val:s.avgTajwid + '%',   lbl:'Penguasaan Tajwid',    sub:'Status guru: paham',   grad:'linear-gradient(90deg,#06b6d4,#22d3ee)',   color:'#0891b2' },
+      { ico:svgIcon('graduation',15), val:s.totalPeserta,     lbl:'Total Peserta',       sub:'Murid aktif daurah',   grad:'linear-gradient(90deg,#0ea5e9,#38bdf8)',   color:'var(--blue-txt)' },
+      { ico:svgIcon('calendar',15),  val:hariLabel,           lbl:'Progress Daurah',      sub:'dari 8 hari',          grad:'linear-gradient(90deg,#8b5cf6,#a78bfa)',   color:'var(--purple-txt)' },
+      { ico:svgIcon('clipboard',15),  val:s.totalSesi,         lbl:'Sesi Terlaksana',      sub:'KBM selesai',          grad:'linear-gradient(90deg,#f59e0b,#fbbf24)',   color:'var(--amber-txt)' },
+      { ico:svgIcon('ok',15),         val:s.avgHadir + '%',    lbl:'Rata-Rata Hadir',      sub:'Semua halaqah',        grad:'linear-gradient(90deg,#10b981,#34d399)',   color:'var(--green-txt)' },
+      { ico:svgIcon('target',15),  val:s.avgTajwid + '%',   lbl:'Penguasaan Tajwid',    sub:'Status guru: paham',   grad:'linear-gradient(90deg,#06b6d4,#22d3ee)',   color:'#0891b2' },
     ];
     el.innerHTML = cards.map(function(c) {
       return '<div class="stat" style="--stat-grad:' + c.grad + ';display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:18px 16px;min-height:110px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
         +   '<span style="font-size:10.5px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.8px">' + c.lbl + '</span>'
-        +   '<span style="font-size:15px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">' + c.ico + '</span>'
+        +   '<span style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:' + c.color + '">' + c.ico + '</span>'
         + '</div>'
         + '<div style="font-size:22px;font-weight:900;color:' + c.color + ';line-height:1.2;margin-bottom:2px">' + c.val + '</div>'
         + '<div style="font-size:11px;color:var(--text-3);font-weight:500">' + c.sub + '</div>'
@@ -99,7 +99,7 @@
       var pHadir  = hq.pctHadir  >= 85 ? '#10b981' : hq.pctHadir  >= 70 ? '#f59e0b' : '#ef4444';
       var pTajwid = hq.pctTajwid >= 75 ? '#10b981' : hq.pctTajwid >= 50 ? '#f59e0b' : '#ef4444';
       var row = '<tr style="cursor:pointer" onclick="mtbTglDetail(\'' + esc(hq.id_halaqah) + '\')">'
-        + '<td><span style="font-size:11px;margin-right:6px;display:inline-block;transition:transform .2s" id="mtbArr_' + esc(hq.id_halaqah) + '">\u25B6</span><strong>' + esc(hq.nama_halaqah) + '</strong></td>'
+        + '<td><span style="margin-right:6px;display:inline-flex;transition:transform .2s" id="mtbArr_' + esc(hq.id_halaqah) + '">' + svgIcon('chevron',11) + '</span><strong>' + esc(hq.nama_halaqah) + '</strong></td>'
         + '<td style="color:var(--text-2);font-size:12.5px">' + esc(hq.nama_guru || '\u2014') + '</td>'
         + '<td class="align-center"><span class="badge b-blue">' + hq.murid.length + '</span></td>'
         + '<td class="align-center"><span class="badge b-gray">' + hq.sesiTerlaksana + '/8</span></td>'
@@ -134,7 +134,7 @@
       var sesiCells = sesiNums.map(function(ke){
         var st = m.sesiStatus && m.sesiStatus[ke];
         if (st === 'H' || st === 'T') return '<td style="text-align:center" title="H' + ke + ': ' + (st === 'T' ? 'Terlambat' : 'Hadir') + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (st === 'T' ? '#f59e0b' : '#10b981') + '"></span></td>';
-        if (st === 'A') return '<td style="text-align:center;color:#ef4444;font-size:11px;font-weight:800" title="H' + ke + ': Alpa">\u2717</td>';
+        if (st === 'A') return '<td style="text-align:center;color:#ef4444;font-size:11px;font-weight:800" title="H' + ke + ': Alpa">' + svgIcon('close',11) + '</td>';
         if (st) return '<td style="text-align:center" title="H' + ke + ': ' + esc(st) + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8"></span></td>';
         return sesiDone[ke]
           ? '<td style="text-align:center;color:var(--text-3);font-size:10px" title="H' + ke + ': sesi terlaksana, tanpa catatan presensi">\u00b7</td>'
@@ -146,7 +146,7 @@
         + '<td style="text-align:center"><strong style="color:' + pctC + '">' + m.pctHadir + '%</strong></td>'
         + '</tr>';
     }).join('');
-    var tableHadir = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">📅 Kehadiran</div>'
+    var tableHadir = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:flex;align-items:center;gap:5px">' + svgIcon('calendar',11) + ' Kehadiran</div>'
       + '<div style="overflow-x:auto;margin-bottom:18px"><table style="min-width:340px;font-size:11.5px"><thead><tr>' + hadirHdr + '</tr></thead><tbody>' + hadirBody + '</tbody></table></div>';
 
     if (!indikator.length) return tableHadir;
@@ -165,7 +165,7 @@
         + esc(g.hari) + ' <span style="opacity:.75">(' + g.items.length + ')</span></button>';
     }).join('');
 
-    var tableTajwid = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">📊 Indikator Tajwid</div>'
+    var tableTajwid = '<div style="font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:5px">' + svgIcon('bar-chart',11) + ' Indikator Tajwid</div>'
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">' + chipsHtml + '</div>'
       + '<div id="mtbTajwidTblWrap_' + esc(hq.id_halaqah) + '" style="overflow-x:auto">' + _renderTajwidTable(hq, activeGroup.items) + '</div>';
 
@@ -197,12 +197,13 @@
       m.tajwid.forEach(function(t){ tByItem[t.id_item] = t; });
       var tajwidCells = items.map(function(item){
         var t = tByItem[item.id_item] || { nama: item.nama_item, status: null };
-        var ico = t.status==='paham'?'\u2705':t.status==='ragu'?'\uD83D\uDFE1':t.status==='belum'?'\u274C':'\u26AA';
+        var icoColor = t.status==='paham'?'#10b981':t.status==='ragu'?'#f59e0b':t.status==='belum'?'#ef4444':'#cbd5e1';
+        var ico = '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + icoColor + '"></span>';
         return '<td style="text-align:center;font-size:13px" title="' + esc(t.nama) + ': ' + (t.status || 'belum dinilai') + '">' + ico + '</td>';
       }).join('');
       var waBtn = m.no_hp
-        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAAdminAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(hq.nama_halaqah) + '\', \'' + escJs(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">💬 WA</button>'
-        : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;padding:2px 8px;font-size:11px" title="No HP belum diisi">💬 WA</button>';
+        ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;padding:2px 8px;font-size:11px" onclick="openWAAdminAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(hq.nama_halaqah) + '\', \'' + escJs(hq.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwid.filter(t=>t.status==='belum').length + ')" title="Hubungi Murid via WhatsApp">' + svgIcon('message',12) + ' WA</button>'
+        : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;padding:2px 8px;font-size:11px" title="No HP belum diisi">' + svgIcon('message',12) + ' WA</button>';
       return '<tr>'
         + '<td><strong style="font-size:12px">' + esc(m.nama_murid) + '</strong></td>'
         + tajwidCells
@@ -250,7 +251,7 @@
       var cells = m.tajwid.map(function(t){
         var bg = t.status==='paham'?'rgba(16,185,129,.85)':t.status==='ragu'?'rgba(245,158,11,.8)':t.status==='belum'?'rgba(239,68,68,.8)':'rgba(0,0,0,.06)';
         var color = t.status ? '#fff' : 'var(--text-3)';
-        var ico = t.status==='paham'?'\u2713':t.status==='ragu'?'?':t.status==='belum'?'\u2717':'\u00B7';
+        var ico = t.status==='paham'?svgIcon('ok',12):t.status==='ragu'?'?':t.status==='belum'?svgIcon('close',12):'\u00B7';
         return '<td style="text-align:center;padding:5px 3px" title="' + esc(t.nama) + ': ' + (t.status||'belum dinilai') + '"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:' + bg + ';color:' + color + ';font-size:12px;font-weight:700">' + ico + '</span></td>';
       }).join('');
       return '<tr><td style="font-size:12px;font-weight:600;white-space:nowrap;padding:6px 10px">' + esc(m.nama_murid) + '</td><td style="font-size:11px;color:var(--text-3);padding:6px 8px">' + esc(m.nama_halaqah) + '</td>' + cells + '</tr>';
@@ -292,27 +293,30 @@
         return '<div style="margin-bottom:12px">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:12px;font-weight:600;color:var(--text-2)">'+esc(item.nama)+'</span>'+label+'</div>'
           + '<div style="height:8px;background:rgba(0,0,0,.06);border-radius:100px;overflow:hidden"><div style="height:8px;background:'+color+';border-radius:100px;width:'+(pct||0)+'%;transition:width .5s ease"></div></div>'
-          + '<div style="font-size:10.5px;color:var(--text-3);margin-top:3px">\u2705 '+item.paham+' &nbsp;\uD83D\uDFE1 '+item.ragu+' &nbsp;\u274C '+item.belum+'</div>'
+          + '<div style="font-size:10.5px;color:var(--text-3);margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap">'
+            + '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981"></span> '+item.paham
+            + ' &nbsp;<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f59e0b"></span> '+item.ragu
+            + ' &nbsp;<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444"></span> '+item.belum+'</div>'
           + '</div>';
       }).join('');
     }
     var alertEl = document.getElementById('mtbAlertList');
     if (alertEl) {
-      if (!alerts.length) { alertEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12.5px">\u2705 Semua murid dalam kondisi baik</div>'; }
+      if (!alerts.length) { alertEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:6px">' + svgIcon('ok',14) + ' Semua murid dalam kondisi baik</div>'; }
       else alertEl.innerHTML = alerts.map(function(m) {
         var isKritis = m.level === 'kritis';
         var border = isKritis ? '#ef4444' : '#f59e0b';
         var bg = isKritis ? 'rgba(239,68,68,.04)' : 'rgba(245,158,11,.04)';
-        var ico = isKritis ? '\uD83D\uDFE5' : '\uD83D\uDFE1';
+        var ico = '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + (isKritis ? '#ef4444' : '#f59e0b') + ';flex-shrink:0"></span>';
         var lemah = m.indikatorLemah.slice(0,3).join(', ') + (m.indikatorLemah.length>3?' +'+(m.indikatorLemah.length-3)+' lainnya':'');
         
         var waBtn = m.no_hp
-          ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;margin-top:6px;font-size:11px;padding:2px 8px" onclick="openWAAdminAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(m.nama_halaqah) + '\', \'' + escJs(m.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwidBelum + ')" title="Hubungi via WhatsApp">💬 WA</button>'
-          : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;margin-top:6px;font-size:11px;padding:2px 8px" title="No HP belum diisi">💬 WA</button>';
+          ? '<button class="btn btn-outline btn-sm" style="border-color:#16a34a;color:#16a34a;margin-top:6px;font-size:11px;padding:2px 8px" onclick="openWAAdminAlert(\'' + escJs(m.nama_murid) + '\', \'' + escJs(m.no_hp) + '\', \'' + escJs(m.nama_halaqah) + '\', \'' + escJs(m.nama_guru) + '\', ' + m.pctHadir + ', ' + m.pahamCount + ', ' + m.tajwidBelum + ')" title="Hubungi via WhatsApp">' + svgIcon('message',12) + ' WA</button>'
+          : '<button class="btn btn-outline btn-sm" disabled style="border-color:#cbd5e1;color:#94a3b8;cursor:not-allowed;opacity:0.6;margin-top:6px;font-size:11px;padding:2px 8px" title="No HP belum diisi">' + svgIcon('message',12) + ' WA</button>';
 
         return '<div style="border-left:3px solid '+border+';background:'+bg+';border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px">'
           + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+ico+' <strong style="font-size:12.5px">'+esc(m.nama_murid)+'</strong> <span style="font-size:11px;color:var(--text-3)">\u2014 '+esc(m.nama_halaqah)+'</span></div>'
-          + '<div style="font-size:11px;color:var(--text-2);display:flex;gap:12px;flex-wrap:wrap"><span>Hadir: <strong>'+m.pctHadir+'%</strong></span><span>Belum paham: <strong>'+m.tajwidBelum+' indikator</strong></span>'+(lemah?'<span style="color:var(--text-3)">\u26A0\uFE0F '+esc(lemah)+'</span>':'')+'</div>'
+          + '<div style="font-size:11px;color:var(--text-2);display:flex;gap:12px;flex-wrap:wrap"><span>Hadir: <strong>'+m.pctHadir+'%</strong></span><span>Belum paham: <strong>'+m.tajwidBelum+' indikator</strong></span>'+(lemah?'<span style="color:var(--text-3);display:inline-flex;align-items:center;gap:3px">'+svgIcon('warn',11)+' '+esc(lemah)+'</span>':'')+'</div>'
           + waBtn
           + '</div>';
       }).join('');
