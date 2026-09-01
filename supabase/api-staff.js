@@ -1362,9 +1362,16 @@ var GuruAPI = {
 
   // ── Raport ─────────────────────────────────
   getAllPeriode: async function() {
-    var { data, error } = await _sb.from('periode').select('*').order('created_at', { ascending: false });
-    _check(error, 'getAllPeriode');
-    return { status: 'ok', data };
+    // Urut manual (kolom `urutan`, patch_102) → NULL di belakang → lalu tanggal_mulai.
+    // Fallback ke created_at bila kolom `urutan` belum ada.
+    var res = await _sb.from('periode').select('*')
+      .order('urutan', { ascending: true, nullsFirst: false })
+      .order('tanggal_mulai', { ascending: true, nullsFirst: false });
+    if (res.error) {
+      res = await _sb.from('periode').select('*').order('created_at', { ascending: false });
+    }
+    _check(res.error, 'getAllPeriode');
+    return { status: 'ok', data: res.data };
   },
 
   getKomponenRaport: async function(id_periode) {

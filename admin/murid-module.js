@@ -23,7 +23,10 @@ async function loadPeriode() {
 function renderPeriodeTable() {
   const tbody = document.getElementById('periodeTbl');
   if (!tbody) return;
-  tbody.innerHTML = allPeriode.map(p => `<tr>
+  const n = allPeriode.length;
+  const _mv = (id, dir, disabled) => `<button class="btn btn-ghost btn-sm" style="padding:2px 5px" title="${dir<0?'Naik':'Turun'}" ${disabled?'disabled style="opacity:.3;padding:2px 5px"':''} onclick="movePeriode('${esc(id)}',${dir})"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="${dir<0?'18 15 12 9 6 15':'6 9 12 15 18 9'}"/></svg></button>`;
+  tbody.innerHTML = allPeriode.map((p, i) => `<tr>
+    <td style="white-space:nowrap"><span style="display:inline-flex;flex-direction:column;gap:1px">${_mv(p.id_periode,-1,i===0)}${_mv(p.id_periode,1,i===n-1)}</span></td>
     <td><strong>${esc(p.nama_periode)}</strong>${p.deskripsi?`<br><small style="color:var(--text-3)">${esc(p.deskripsi)}</small>`:''}</td>
     <td>${p.tanggal_mulai||'–'}</td>
     <td>${p.tanggal_selesai||'–'}</td>
@@ -32,7 +35,31 @@ function renderPeriodeTable() {
       <button class="btn btn-ghost btn-sm" onclick="editPeriode('${esc(p.id_periode)}')">${svgIcon('edit',14)}</button>
       ${p.status!=='aktif'?`<button class="btn btn-green btn-sm" onclick="aktivasiPeriode('${esc(p.id_periode)}')">${svgIcon('play',14)} Aktifkan</button>`:''}
     </td>
-  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+  </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3)">Belum ada periode</td></tr>';
+}
+
+// Ubah urutan tampil periode (dipakai di SEMUA dropdown periode). Butuh kolom
+// periode.urutan (patch_102) — kalau belum ada, updatePeriode akan error jelas.
+async function movePeriode(id, dir) {
+  const arr = allPeriode.slice();
+  const idx = arr.findIndex(p => p.id_periode === id);
+  const j = idx + dir;
+  if (idx < 0 || j < 0 || j >= arr.length) return;
+  const tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp;
+  showLoad('Menyimpan urutan...');
+  try {
+    for (let k = 0; k < arr.length; k++) {
+      const want = (k + 1) * 10;
+      if (arr[k].urutan !== want) {
+        await window.HQ.AdminAPI.updatePeriode({ id_periode: arr[k].id_periode, urutan: want });
+      }
+    }
+    await loadMasterData();
+    loadPeriode();
+    toast('Urutan periode diperbarui', 'ok');
+  } catch(e) {
+    toast('Gagal mengurutkan: ' + friendlyError(e) + ' (jalankan patch_102 dulu?)', 'err');
+  } finally { hideLoad(); }
 }
 
 function openModalPeriode(id) {
@@ -1204,6 +1231,7 @@ function _kqRenderList() {
     window.openModalPeriode = openModalPeriode;
     window.editPeriode = editPeriode;
     window.aktivasiPeriode = aktivasiPeriode;
+    window.movePeriode = movePeriode;
     window.savePeriode = savePeriode;
     window.switchUserTab = switchUserTab;
     window.loadUsers = loadUsers;
