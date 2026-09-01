@@ -9,19 +9,19 @@
 
 // ── Lini Masa Kelompok (admin) — gabungan setoran dikonfirmasi + milestone ──
 function _kqRenderLiniMasa(setoran, milestones) {
-  const jenisIcon = { Ziyadah:'📖', Murajaah:'🔄' };
+  const jenisIcon = { Ziyadah:svgIcon('book',13), Murajaah:svgIcon('refresh',13) };
   const events = [];
   (setoran || []).forEach(s => {
     events.push({ t:new Date(s.tanggal).getTime(), dot:'#16a34a', tgl:s.tanggal, html:
-      `<div style="font-weight:700;color:var(--text-1,#374151)">${jenisIcon[s.jenis]||'📖'} ${esc(s.nama_murid)} — ${esc(s.jenis)}</div>`
+      `<div style="font-weight:700;color:var(--text-1,#374151)">${jenisIcon[s.jenis]||svgIcon('book',13)} ${esc(s.nama_murid)} — ${esc(s.jenis)}</div>`
       + `<div style="color:var(--text-3)">QS. ${esc(s.surat)} ayat ${esc(s.ayat_dari)}-${esc(s.ayat_sampai)}${s.kelancaran ? ' · '+esc(s.kelancaran) : ''}</div>`
-      + (s.catatan_partner ? `<div style="color:#0f766e">💬 ${esc(s.catatan_partner)}${s.reaksi_partner ? ' '+esc(s.reaksi_partner) : ''}</div>` : '')
+      + (s.catatan_partner ? `<div style="color:#0f766e">${svgIcon('message',12)} ${esc(s.catatan_partner)}${s.reaksi_partner ? ' '+esc(s.reaksi_partner) : ''}</div>` : '')
     });
   });
   (milestones || []).forEach(m => {
     events.push({ t:new Date(m.tanggal).getTime(), dot:'#f59e0b', tgl:m.tanggal, html:
-      `<div style="font-weight:800;color:#b45309">🏆 ${esc(m.judul)}`
-        + `<button onclick="kqDeleteMilestone('${esc(m.id_milestone)}','${esc(m.id_kelompok)}')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:12px;margin-left:6px" title="Hapus">✕</button>`
+      `<div style="font-weight:800;color:#b45309">${svgIcon('award',13)} ${esc(m.judul)}`
+        + `<button onclick="kqDeleteMilestone('${esc(m.id_milestone)}','${esc(m.id_kelompok)}')" style="border:none;background:none;color:#ef4444;cursor:pointer;margin-left:6px;display:inline-flex;vertical-align:middle" title="Hapus">${svgIcon('delete',12)}</button>`
       + `</div>`
       + `<div style="color:var(--text-3);font-size:10px">ditandai oleh ${esc(m.nama_pembuat || '-')}</div>`
     });
@@ -45,7 +45,7 @@ async function _kqLoadLiniMasa(id_kelompok) {
   const c = document.getElementById('kqLini_' + id_kelompok);
   if (!c) return;
   c.style.display = 'block';
-  c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+  c.innerHTML = '<div style="font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:5px">' + svgIcon('clock',11) + ' Memuat...</div>';
   try {
     const res = await Promise.all([
       window.HQ.AdminAPI.getLiniMasaSetoranKelompok(id_kelompok),
@@ -93,13 +93,13 @@ async function _kqRenderMenunggu() {
       `<option value="${esc(k.nama)}">${esc(k.icon||'')} ${esc(k.nama)}</option>`).join('');
     wrap.style.display = 'block';
     wrap.innerHTML = `<div class="card"><div class="card-body" style="background:#fffbeb">`
-      + `<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px">⏳ Setoran Partner Menunggu Konfirmasi (${data.length})</div>`
+      + `<div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px;display:flex;align-items:center;gap:6px">${svgIcon('clock',13)} Setoran Partner Menunggu Konfirmasi (${data.length})</div>`
       + data.map(r =>
           `<div style="background:#fff;border:1px solid #fde68a;border-radius:10px;padding:10px;margin-bottom:6px">`
           + `<div style="font-weight:800;font-size:12px">${esc(r.nama_murid)}</div>`
           + `<div style="font-size:11px;color:#6b7280;margin-bottom:6px">${esc(r.jenis)} · Juz ${esc(r.juz||'-')} · ${esc(r.surat)} ayat ${esc(r.ayat_dari)}-${esc(r.ayat_sampai)}</div>`
           + `<div style="display:flex;gap:6px"><select class="fc" id="kqKonf_${esc(r.id_setoran)}" style="flex:1;font-size:11px;padding:5px 8px">${kelOpts}</select>`
-          + `<button onclick="kqGuruKonfirmasi('${esc(r.id_setoran)}')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:800;font-size:11px;cursor:pointer">✓ Konfirmasi</button></div>`
+          + `<button onclick="kqGuruKonfirmasi('${esc(r.id_setoran)}')" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:0 12px;font-weight:800;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px">${svgIcon('ok',12)} Konfirmasi</button></div>`
           + `</div>`
         ).join('')
       + `</div></div>`;
@@ -123,13 +123,13 @@ function _kqRenderTargetHtml(targets, total) {
     const done = (t.target_partner_progress || []).length;
     const tercapai = t.status === 'tercapai';
     const badge = tercapai
-      ? `<span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px">🎉 tercapai</span>`
+      ? `<span style="font-size:10px;font-weight:800;color:#15803d;background:rgba(22,163,74,.14);border-radius:100px;padding:1px 7px;display:inline-flex;align-items:center;gap:3px">${svgIcon('award',10)} tercapai</span>`
       : `<span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:1px 7px">${done}/${total} selesai</span>`;
-    const markBtn = tercapai ? '' : `<button onclick="kqMarkTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" title="Tandai tercapai (paksa, override konsensus)" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer">✓</button>`;
+    const markBtn = tercapai ? '' : `<button onclick="kqMarkTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" title="Tandai tercapai (paksa, override konsensus)" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;display:inline-flex">${svgIcon('ok',11)}</button>`;
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:5px">`
-    + `<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0">🎯 ${esc(t.judul)} ${badge}</span>`
-    + `<span style="display:flex;gap:4px;flex-shrink:0">${markBtn}`
-    + `<button onclick="kqDeleteTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px">✕</button></span>`
+    + `<span style="font-size:11px;font-weight:700;color:#92400e;flex:1;min-width:0;display:flex;align-items:center;gap:4px">${svgIcon('target',11)} ${esc(t.judul)} ${badge}</span>`
+    + `<span style="display:flex;gap:4px;flex-shrink:0;align-items:center">${markBtn}`
+    + `<button onclick="kqDeleteTarget('${esc(t.id_target)}','${esc(t.id_kelompok)}')" style="background:none;border:none;color:#ef4444;cursor:pointer;display:inline-flex">${svgIcon('delete',12)}</button></span>`
   + `</div>`;
   }).join('');
 }
@@ -137,7 +137,7 @@ async function _kqLoadTarget(id_kelompok) {
   const c = document.getElementById('kqTarget_' + id_kelompok);
   if (!c) return;
   c.style.display = 'block';
-  c.innerHTML = '<div style="font-size:11px;color:var(--text-3)">⏳ Memuat...</div>';
+  c.innerHTML = '<div style="font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:5px">' + svgIcon('clock',11) + ' Memuat...</div>';
   try {
     const k = window._kqData.kelompok.find(x => x.id_kelompok === id_kelompok);
     const total = k ? (k.anggota_kelompok_partner || []).length : 0;
@@ -193,7 +193,7 @@ function _kqDenyutRow(a) {
     : '';
   let nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = `<button onclick="kqNudgeAnggota('${escJs(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">💬 Ingatkan</button>`;
+    nudgeBtn = `<button onclick="kqNudgeAnggota('${escJs(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">${svgIcon('message',12)} Ingatkan</button>`;
   }
   return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
     + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`
