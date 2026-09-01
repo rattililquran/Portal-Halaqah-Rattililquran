@@ -5,116 +5,7 @@
 (function() {
   "use strict";
 
-  // --- SPP, Infaq, Metode Bayar, Kas Beasiswa & Operasional ---
-
-// ── Metode Bayar ──
-async function loadMetodeBayarAdmin() {
-  var el = document.getElementById('sppMetodeAdminList');
-  if (!el) return;
-  try {
-    var r = await window.HQ.AdminAPI.getMetodeBayar();
-    var list = r.data || [];
-    if (!list.length) {
-      el.innerHTML = '<div style="padding:14px;background:var(--bg-2, #f8fafc);border-radius:10px;border:1px dashed var(--border);text-align:center;color:var(--text-3, #94a3b8);font-size:13px">Belum ada metode. Klik "+ Tambah" untuk menambahkan rekening atau QRIS.</div>';
-      return;
-    }
-    el.innerHTML = list.map(function(m) {
-      var detail = m.jenis==='qris'
-        ? '<span style="font-size:11px;color:var(--blue-txt, #0369a1);display:inline-flex;align-items:center;gap:4px">'+svgIcon('smartphone',12)+' QRIS ' + (m.qris_url?'· <a href="'+esc(m.qris_url)+'" target="_blank" style="color:var(--blue-txt, #0369a1)">Lihat QR</a>':'· belum ada gambar') + '</span>'
-        : '<span style="font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)">'+esc(m.nomor||'—')+'</span><span style="font-size:11px;color:var(--text-2, #64748b);margin-left:8px">a/n '+esc(m.atas_nama||'')+'</span>';
-      return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-2, #f8fafc);border:1px solid var(--border);border-radius:10px">'
-        + '<div style="width:36px;height:36px;background:'+(m.jenis==='qris'?'var(--blue-bg, #e0f2fe)':'var(--green-bg, #f0fdf4)')+';border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:'+(m.jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--green-txt, #1a5c3a)')+'">'+(m.jenis==='qris'?svgIcon('smartphone',18):svgIcon('bank',18))+'</div>'
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(m.bank&&m.bank!==m.nama?m.bank+' · ':'')+esc(m.nama)+'</div>'
-        + '<div style="margin-top:2px">'+detail+'</div>'
-        + '</div>'
-        + '<div style="display:flex;gap:6px;flex-shrink:0">'
-        + '<button class="btn btn-outline btn-sm" onclick="editMetode(\''+m.id+'\')">Edit</button>'
-        + '<button class="btn btn-sm" style="background:var(--red-bg, #fee2e2);color:var(--red-txt, #991b1b);border:1px solid var(--red-l, #fca5a5);font-size:11px" onclick="hapusMetode(\''+m.id+'\',\''+escJs(m.nama)+'\')">Hapus</button>'
-        + '</div></div>';
-    }).join('');
-  } catch(e) { if (el) el.innerHTML = '<div style="color:var(--red);padding:12px">Gagal: '+esc(friendlyError(e))+'</div>'; }
-}
-
-var _allMetode = [];
-
-async function bukaFormMetode(data) {
-  if (!_allMetode.length) {
-    try { var r = await window.HQ.AdminAPI.getMetodeBayar(); _allMetode = r.data||[]; }
-    catch(e) { toast(friendlyError(e),'err'); return; }
-  }
-  var isEdit = !!data;
-  document.getElementById('modalMetodeTitle').textContent = isEdit ? 'Edit Metode Bayar' : 'Tambah Metode Bayar';
-  document.getElementById('metodeId').value         = (data && data.id) || '';
-  document.getElementById('metodeNama').value       = (data && data.nama) || '';
-  document.getElementById('metodeBank').value       = (data && data.bank) || '';
-  document.getElementById('metodeNomor').value      = (data && data.nomor) || '';
-  document.getElementById('metodeAtasNama').value   = (data && data.atas_nama) || '';
-  document.getElementById('metodeAtasNamaQris').value = (data && data.atas_nama) || '';
-  document.getElementById('metodeQrisUrl').value    = (data && data.qris_url) || '';
-  document.getElementById('metodeUrutan').value     = (data && data.urutan) || 1;
-  var jenis = (data && data.jenis) || 'rekening';
-  document.getElementById('metodeJenis').value = jenis;
-  var tabs = document.querySelectorAll('#metodeJenisTabs > div');
-  tabs[0].style.borderColor = jenis==='rekening'?'var(--green, #1a5c3a)':'var(--border)';
-  tabs[0].style.background  = jenis==='rekening'?'var(--green-bg, #f0fdf4)':'var(--bg-2, #fff)';
-  tabs[0].style.color       = jenis==='rekening'?'var(--green-txt, #1a5c3a)':'var(--text-2)';
-  tabs[1].style.borderColor = jenis==='qris'?'var(--blue, #0369a1)':'var(--border)';
-  tabs[1].style.background  = jenis==='qris'?'var(--blue-bg, #f0f9ff)':'var(--bg-2, #fff)';
-  tabs[1].style.color       = jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--text-2)';
-  document.getElementById('metodeRekeningFields').style.display = jenis==='rekening'?'':'none';
-  document.getElementById('metodeQrisFields').style.display     = jenis==='qris'?'':'none';
-  document.getElementById('modalMetode').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function tutupFormMetode() { document.getElementById('modalMetode').classList.remove('open'); document.body.style.overflow=''; }
-function setMetodeJenis(jenis, el) {
-  document.getElementById('metodeJenis').value = jenis;
-  var tabs = document.querySelectorAll('#metodeJenisTabs > div');
-  tabs[0].style.borderColor = jenis==='rekening'?'var(--green, #1a5c3a)':'var(--border)';
-  tabs[0].style.background  = jenis==='rekening'?'var(--green-bg, #f0fdf4)':'var(--bg-2, #fff)';
-  tabs[0].style.color       = jenis==='rekening'?'var(--green-txt, #1a5c3a)':'var(--text-2)';
-  tabs[1].style.borderColor = jenis==='qris'?'var(--blue, #0369a1)':'var(--border)';
-  tabs[1].style.background  = jenis==='qris'?'var(--blue-bg, #f0f9ff)':'var(--bg-2, #fff)';
-  tabs[1].style.color       = jenis==='qris'?'var(--blue-txt, #0369a1)':'var(--text-2)';
-  document.getElementById('metodeRekeningFields').style.display = jenis==='rekening'?'':'none';
-  document.getElementById('metodeQrisFields').style.display     = jenis==='qris'?'':'none';
-}
-async function editMetode(id) {
-  try {
-    var r = await window.HQ.AdminAPI.getMetodeBayar();
-    var m = (r.data||[]).find(function(x){return x.id===id;});
-    if (m) bukaFormMetode(m);
-  } catch(e) { toast(friendlyError(e),'err'); }
-}
-async function hapusMetode(id, nama) {
-  toast('Hapus "'+nama+'"?', 'warn');
-  document.getElementById('notifBtn').textContent = 'Ya, Hapus';
-  document.getElementById('notifBtn').onclick = async () => {
-    closeNotif();
-    showLoad('Bismillah, memproses...');
-    try { await window.HQ.AdminAPI.deleteMetodeBayar(id); toast('Dihapus','ok'); _allMetode=[]; loadMetodeBayarAdmin(); }
-    catch(e) { toast(friendlyError(e),'err'); }
-    finally { hideLoad(); }
-  };
-}
-async function simpanMetode() {
-  var jenis = document.getElementById('metodeJenis').value;
-  var d = {
-    id        : document.getElementById('metodeId').value || undefined,
-    nama      : document.getElementById('metodeNama').value.trim(),
-    jenis,
-    bank      : jenis==='rekening' ? document.getElementById('metodeBank').value.trim() : null,
-    nomor     : jenis==='rekening' ? document.getElementById('metodeNomor').value.trim() : null,
-    atas_nama : jenis==='rekening' ? document.getElementById('metodeAtasNama').value.trim() : document.getElementById('metodeAtasNamaQris').value.trim(),
-    qris_url  : jenis==='qris'     ? document.getElementById('metodeQrisUrl').value.trim() : null,
-    urutan    : Number(document.getElementById('metodeUrutan').value)||1,
-    aktif     : true,
-  };
-  if (!d.nama) { showAlertModal('Nama harus diisi', { title: 'Validasi' }); return; }
-  try { await window.HQ.AdminAPI.saveMetodeBayar(d); toast('Tersimpan','ok'); _allMetode=[]; tutupFormMetode(); loadMetodeBayarAdmin(); }
-  catch(e) { toast(friendlyError(e),'err'); }
-}
+  // --- SPP, Infaq, Kas Beasiswa & Operasional ---
 
 // Batas render tabel Rekap SPP/Infaq/Ihsan -- dipakai bersama ketiga
 // sub-tampilan (dropdown "jenis": spp/infaq/ihsan) karena cuma satu yang
@@ -2012,13 +1903,6 @@ async function doKirimPengumuman() {
 
   // Export functions to window
   if (typeof window !== "undefined") {
-    window.loadMetodeBayarAdmin = loadMetodeBayarAdmin;
-    window.bukaFormMetode = bukaFormMetode;
-    window.tutupFormMetode = tutupFormMetode;
-    window.setMetodeJenis = setMetodeJenis;
-    window.editMetode = editMetode;
-    window.hapusMetode = hapusMetode;
-    window.simpanMetode = simpanMetode;
     window.loadSPPAdmin = loadSPPAdmin;
     window.switchSPPTab = switchSPPTab;
     window.onSPPPeriodeChange = onSPPPeriodeChange;
