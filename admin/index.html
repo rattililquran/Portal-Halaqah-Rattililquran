@@ -2470,6 +2470,10 @@ html.theme-dark .fin-detail-card {
                 <input id="opNominal" type="number" min="1" class="fc" placeholder="300000" style="width:100%">
               </div>
               <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Periode</label>
+                <select id="opPeriode" class="fc" style="width:100%"></select>
+              </div>
+              <div>
                 <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
                 <input id="opCatatan" class="fc" placeholder="—" style="width:100%">
               </div>
@@ -2530,9 +2534,15 @@ html.theme-dark .fin-detail-card {
                   </select>
                 </div>
               </div>
-              <div>
-                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
-                <input id="kasCatatan" class="fc" placeholder="—" style="width:100%">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Periode</label>
+                  <select id="kasPeriode" class="fc" style="width:100%"></select>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Catatan (opsional)</label>
+                  <input id="kasCatatan" class="fc" placeholder="—" style="width:100%">
+                </div>
               </div>
               <div id="kasErr" style="display:none;color:var(--red);font-size:12px"></div>
               <button class="btn btn-primary" onclick="simpanKas()" style="width:100%">Simpan</button>
@@ -2667,6 +2677,12 @@ html.theme-dark .fin-detail-card {
                 <select id="sppManualTahun" class="fc" style="width:auto" onchange="onSPPManualTahunChange()">
                   <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
                 </select>
+              </div>
+              <!-- Periode (khusus Ihsan Guru — SPP/Infaq ikut periode halaqah) -->
+              <div id="sppManualPeriodeWrap" style="display:none">
+                <label style="font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:6px">Periode</label>
+                <select id="sppManualPeriode" class="fc" style="width:100%"></select>
+                <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">Ihsan Guru ditandai ke periode ini untuk rekap keuangan per semester.</div>
               </div>
               <!-- Bulan grid -->
               <div>
@@ -4350,7 +4366,7 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=2c4e8fdf"></script>
-<script src="../supabase/api-staff.js?v=86969b10"></script>
+<script src="../supabase/api-staff.js?v=309c2972"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
@@ -4358,7 +4374,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=ab2cfc2d" defer></script>
 <script src="murid-module.js?v=dc84d7b1" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=aea9e12c" defer></script>
+<script src="spp-keuangan-module.js?v=31a31be5" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>

@@ -311,6 +311,16 @@ async function loadKasBeasiswa(rekapPrefetch) {
   } catch(e) { console.error('loadKasBeasiswa', e); }
 }
 
+// Isi <select> periode dari allPeriode (pakai helper global populatePeriodeSel).
+// selected: id_periode terpilih | '' (Tanpa periode) | undefined (biar aktif terpilih).
+function _isiPeriodeSel(selId, selected) {
+  if (typeof window.populatePeriodeSel === 'function') window.populatePeriodeSel(selId);
+  var el = document.getElementById(selId);
+  if (!el) return;
+  if (el.options[0] && el.options[0].value === '') el.options[0].textContent = '— Tanpa periode —';
+  if (selected !== undefined) el.value = selected || '';
+}
+
 function bukaFormOperasional(item) {
   var selB = document.getElementById('opBulan');
   if (!selB.options.length) selB.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
@@ -328,6 +338,7 @@ function bukaFormOperasional(item) {
     document.getElementById('opKeterangan').value = item.keterangan || '';
     document.getElementById('opNominal').value = item.nominal || '';
     document.getElementById('opCatatan').value = item.catatan || '';
+    _isiPeriodeSel('opPeriode', item.id_periode || '');
   } else {
     document.getElementById('modalOperasionalTitle').textContent = 'Tambah Operasional';
     document.getElementById('opId').value = '';
@@ -336,6 +347,7 @@ function bukaFormOperasional(item) {
     document.getElementById('opKeterangan').value = '';
     document.getElementById('opNominal').value = '';
     document.getElementById('opCatatan').value = '';
+    _isiPeriodeSel('opPeriode');
   }
   document.getElementById('modalOperasional').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -354,12 +366,13 @@ async function simpanOperasional() {
   var keterangan = document.getElementById('opKeterangan').value.trim();
   var nominal = document.getElementById('opNominal').value;
   var catatan = document.getElementById('opCatatan').value.trim();
+  var id_periode = (document.getElementById('opPeriode') && document.getElementById('opPeriode').value) || null;
   var err = document.getElementById('opErr');
   if (!keterangan) { err.textContent='Keterangan wajib diisi.'; err.style.display=''; return; }
   if (!nominal || Number(nominal) <= 0) { err.textContent='Nominal harus lebih dari 0.'; err.style.display=''; return; }
   try {
-    if (id) await window.HQ.AdminAPI.updateOperasional({ id_operasional:id, bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan });
-    else    await window.HQ.AdminAPI.tambahOperasional({ bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan });
+    if (id) await window.HQ.AdminAPI.updateOperasional({ id_operasional:id, bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan, id_periode:id_periode });
+    else    await window.HQ.AdminAPI.tambahOperasional({ bulan:bulan, tahun:tahun, keterangan:keterangan, nominal:nominal, catatan:catatan, id_periode:id_periode });
     tutupFormOperasional();
     toast('Operasional tersimpan','ok');
     var kasSel = document.getElementById('kasBeasiswaBulan'); if (kasSel) kasSel.value = bulan;
@@ -547,6 +560,7 @@ async function bukaFormKas(item) {
   document.getElementById('kasPenerima').value   = (item && item.penerima) || '';
   document.getElementById('kasMetode').value      = (item && item.metode) || '';
   document.getElementById('kasCatatan').value    = (item && item.catatan) || '';
+  _isiPeriodeSel('kasPeriode', item ? (item.id_periode || '') : undefined);
   updateKasOperasionalHint();
   document.getElementById('modalKas').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -573,6 +587,7 @@ async function simpanKas() {
   var penerima   = document.getElementById('kasPenerima').value.trim();
   var metode     = document.getElementById('kasMetode').value;
   var catatan    = document.getElementById('kasCatatan').value.trim();
+  var id_periode = (document.getElementById('kasPeriode') && document.getElementById('kasPeriode').value) || null;
   var err = document.getElementById('kasErr');
   var fail = function(m){ err.textContent = m; err.style.display = ''; };
   if (!tanggal)                       return fail('Tanggal wajib diisi.');
@@ -587,11 +602,11 @@ async function simpanKas() {
       var parts = tanggal.split('-');
       var bulanName = BULAN_LIST[(Number(parts[1])||1) - 1];
       var tahunVal  = Number(parts[0]) || new Date().getFullYear();
-      await window.HQ.AdminAPI.tambahOperasional({ bulan: bulanName, tahun: tahunVal, keterangan: keterangan, nominal: nominal, catatan: catatan });
+      await window.HQ.AdminAPI.tambahOperasional({ bulan: bulanName, tahun: tahunVal, keterangan: keterangan, nominal: nominal, catatan: catatan, id_periode: id_periode });
       if (typeof loadKasBeasiswa === 'function') loadKasBeasiswa();
     } else {
       var payload = { arah: arah, kategori: kategori, tanggal: tanggal, nominal: nominal,
-        keterangan: keterangan, penerima: penerima||null, metode: metode||null, catatan: catatan||null };
+        keterangan: keterangan, penerima: penerima||null, metode: metode||null, catatan: catatan||null, id_periode: id_periode };
       if (id) { payload.id_kas = id; await window.HQ.AdminAPI.updateKas(payload); }
       else    { await window.HQ.AdminAPI.tambahKas(payload); }
     }
@@ -1428,6 +1443,17 @@ function setSPPManualJenis(jenis, el) {
   // Tombol pilih semua hanya untuk SPP
   var btnAll = document.getElementById('btnPilihSemuaBelum');
   if (btnAll) btnAll.style.display = (jenis === 'SPP Pribadi') ? '' : 'none';
+
+  // Periode: hanya relevan untuk Ihsan Guru (SPP/Infaq ikut periode halaqah).
+  var perWrap = document.getElementById('sppManualPeriodeWrap');
+  if (perWrap) {
+    if (jenis === 'Ihsan Guru') {
+      perWrap.style.display = '';
+      _isiPeriodeSel('sppManualPeriode');
+    } else {
+      perWrap.style.display = 'none';
+    }
+  }
 }
 
 async function onSPPManualTahunChange() {
@@ -1468,6 +1494,10 @@ async function submitInputSPPManual() {
       jenis: jenis,
       nominal: nominal,
       catatan: document.getElementById('sppManualCatatan').value.trim(),
+      // Ihsan Guru: tandai ke periode (SPP/Infaq ikut periode halaqah di backend)
+      id_periode: jenis === 'Ihsan Guru'
+        ? ((document.getElementById('sppManualPeriode') && document.getElementById('sppManualPeriode').value) || null)
+        : undefined,
     });
     if (r.count === 0) {
       toast(r.message || 'Sudah lunas sebelumnya.', 'warn');

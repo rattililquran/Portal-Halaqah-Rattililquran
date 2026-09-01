@@ -4624,6 +4624,9 @@ var AdminAPI = {
       .eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle();
     var nama_murid = (anggota && anggota.nama_murid) || '';
     var id_halaqah = (anggota && anggota.id_halaqah) || '';
+    // id_periode SPP Pribadi & Infaq: diisi otomatis oleh trigger DB dari
+    // periode halaqah (patch_101). Ihsan Guru tak punya halaqah → dari form.
+    var id_periode = (jenis === 'Ihsan Guru') ? (d.id_periode || null) : null;
 
     // Jika nama_murid kosong, fallback ke tabel users
     if (!nama_murid) {
@@ -4673,7 +4676,7 @@ var AdminAPI = {
       var nominalPerBulan = (_nBulan > 1 && _idx === _nBulan - 1)
         ? _totalNom - _baseNom * (_nBulan - 1)
         : _baseNom;
-      return {
+      var _row = {
         id_spp       : idSppMap[bulan],
         id_murid     : id_murid,
         nama_murid   : nama_murid,
@@ -4694,6 +4697,11 @@ var AdminAPI = {
         mayar_invoice_id  : null,
         mayar_payment_link: null,
       };
+      // Hanya kirim id_periode bila ada (Ihsan Guru dari form). SPP/Infaq
+      // dibiarkan trigger DB yang isi dari halaqah → aman walau patch_101
+      // belum jalan (kolom belum ada).
+      if (id_periode) _row.id_periode = id_periode;
+      return _row;
     });
 
     var { error } = await _sb.from('spp_pembayaran').upsert(rows, { onConflict: 'id_spp' });
@@ -5010,16 +5018,19 @@ var AdminAPI = {
     return { status:'ok', data: data||[], total: total };
   },
   tambahOperasional: async function(d) {
-    var { error } = await _sb.from('operasional').insert({
+    var _opRow = {
       bulan: d.bulan, tahun: Number(d.tahun), keterangan: d.keterangan,
       nominal: Number(d.nominal), catatan: d.catatan || null, created_by: _uid(),
-    });
+    };
+    if (d.id_periode) _opRow.id_periode = d.id_periode; // aman walau kolom belum ada (patch_101)
+    var { error } = await _sb.from('operasional').insert(_opRow);
     _check(error,'tambahOperasional');
     return { status:'ok' };
   },
   updateOperasional: async function(d) {
     var { id_operasional } = d, u = {};
     ['bulan','tahun','keterangan','nominal','catatan'].forEach(function(k){ if (d[k] !== undefined) u[k] = d[k]; });
+    if (d.id_periode !== undefined && d.id_periode !== null) u.id_periode = d.id_periode; // clearing → Fase 3
     if (u.nominal != null) u.nominal = Number(u.nominal);
     if (u.tahun   != null) u.tahun   = Number(u.tahun);
     var { error } = await _sb.from('operasional').update(u).eq('id_operasional', id_operasional);
@@ -5063,14 +5074,16 @@ var AdminAPI = {
     return { status:'ok', data: data||[], total: total };
   },
   tambahKas: async function(d) {
-    var { data, error } = await _sb.from('kas').insert({
+    var _kasRow = {
       tanggal: d.tanggal || new Date().toISOString().slice(0,10),
       arah: d.arah, kategori: d.kategori,
       nominal: Number(d.nominal), keterangan: d.keterangan,
       penerima: d.penerima || null, metode: d.metode || null,
       bukti_url: d.bukti_url || null, catatan: d.catatan || null,
       created_by: _uid(),
-    }).select('id_kas').single();
+    };
+    if (d.id_periode) _kasRow.id_periode = d.id_periode; // aman walau kolom belum ada (patch_101)
+    var { data, error } = await _sb.from('kas').insert(_kasRow).select('id_kas').single();
     _check(error,'tambahKas');
     _logAudit('tambah_kas', { id_kas: data && data.id_kas, arah: d.arah, kategori: d.kategori, nominal: Number(d.nominal) });
     return { status:'ok', data: data };
@@ -5078,6 +5091,7 @@ var AdminAPI = {
   updateKas: async function(d) {
     var { id_kas } = d, u = {};
     ['tanggal','arah','kategori','nominal','keterangan','penerima','metode','bukti_url','catatan'].forEach(function(k){ if (d[k] !== undefined) u[k] = d[k]; });
+    if (d.id_periode !== undefined && d.id_periode !== null) u.id_periode = d.id_periode; // clearing → Fase 3
     if (u.nominal != null) u.nominal = Number(u.nominal);
     var { error } = await _sb.from('kas').update(u).eq('id_kas', id_kas);
     _check(error,'updateKas');
@@ -5229,7 +5243,8 @@ var AdminAPI = {
     kasRows.forEach(function(k){
       riwayat.push({ source:'kas', id:k.id_kas, tanggal:k.tanggal, arah:k.arah,
         kategori:k.kategori, nominal:Number(k.nominal||0), keterangan:k.keterangan,
-        penerima:k.penerima||null, metode:k.metode||null, catatan:k.catatan||null });
+        penerima:k.penerima||null, metode:k.metode||null, catatan:k.catatan||null,
+        id_periode:k.id_periode||null });
     });
     opRows.forEach(function(o){
       riwayat.push({ source:'operasional', id:o.id_operasional, tanggal:null, arah:'keluar',
