@@ -139,9 +139,10 @@ function _txPeriodeBadge(idPeriode) {
   return '<span class="badge b-purple" style="font-size:9.5px">' + esc(nm ? nm.nama_periode : idPeriode) + '</span>';
 }
 function _txAksiCell(idSpp, jenisKey) {
+  var j = escJs(idSpp);  // arg dlm string JS di dalam atribut onclick → wajib escJs (esc tak escape kutip tunggal)
   return '<div style="display:inline-flex;gap:5px">'
-    + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" title="Edit" onclick="bukaEditSPPRow(\'' + esc(idSpp) + '\',\'' + jenisKey + '\')">' + svgIcon('edit',13) + '</button>'
-    + '<button class="btn btn-sm" style="padding:3px 7px;background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);border:1px solid rgba(239,68,68,.25)" title="Hapus" onclick="hapusSPPRowLangsung(\'' + esc(idSpp) + '\',\'' + jenisKey + '\')">' + svgIcon('delete',13) + '</button>'
+    + '<button class="btn btn-ghost btn-sm" style="padding:3px 7px" title="Edit" onclick="bukaEditSPPRow(\'' + j + '\',\'' + jenisKey + '\')">' + svgIcon('edit',13) + '</button>'
+    + '<button class="btn btn-sm" style="padding:3px 7px;background:var(--red-bg,#fee2e2);color:var(--red-txt,#991b1b);border:1px solid rgba(239,68,68,.25)" title="Hapus" onclick="hapusSPPRowLangsung(\'' + j + '\',\'' + jenisKey + '\')">' + svgIcon('delete',13) + '</button>'
     + '</div>';
 }
 // Baris "muat lagi" — colspan mengikuti jumlah kolom aktual
@@ -184,14 +185,22 @@ function _syncSPPTahunEnabled() {
   var thSel = document.getElementById('sppFilterTahun');
   if (!thSel) return;
   if (per && per !== '__tanpa__') {
-    thSel.dataset.prev = thSel.value;
+    // Simpan tahun "asli" — JANGAN timpa dgn 'semua' bila fungsi dipanggil
+    // ulang saat sudah mode periode (bug: prev jadi 'semua' → tahun ngunci).
+    if (thSel.value !== 'semua') thSel.dataset.prev = thSel.value;
     thSel.value = 'semua';
     thSel.disabled = true;
     thSel.style.opacity = '0.55';
   } else {
     thSel.disabled = false;
     thSel.style.opacity = '';
-    if (thSel.value === 'semua' && thSel.dataset.prev) thSel.value = thSel.dataset.prev;
+    // Kembali ke "Seluruh Periode": pulihkan tahun asli, atau default tahun ini
+    // (hindari nyangkut di "Semua Tahun" yg mode ini tak benar-benar dukung).
+    if (thSel.value === 'semua') {
+      thSel.value = (thSel.dataset.prev && thSel.dataset.prev !== 'semua')
+        ? thSel.dataset.prev
+        : String(new Date().getFullYear());
+    }
   }
 }
 
@@ -255,7 +264,9 @@ function switchSPPTab(tab, silent) {
   });
   document.querySelectorAll('#page-spp [data-spptab]').forEach(function(el) {
     if (el.classList.contains('tab-btn')) return;
-    el.style.display = (el.getAttribute('data-spptab') === tab) ? '' : 'none';
+    if (el.getAttribute('data-spptab') !== tab) { el.style.display = 'none'; return; }
+    // Kartu .stat pakai display:flex inline — jangan dikosongkan (jadi block → layout rusak)
+    el.style.display = el.classList.contains('stat') ? 'flex' : '';
   });
   // Jenis tabel Rekap mengikuti tab
   var jenis = tab === 'infaq' ? 'infaq' : (tab === 'kas' ? 'ihsan' : 'spp');
@@ -391,10 +402,15 @@ async function loadSPPAdmin() {
       var scopeEl = document.getElementById('sppScopeLabel');
       if (scopeEl) {
         var tScope = (tahun === 'semua') ? 'semua tahun' : 'tahun ' + tahun;
+        var _noDates = rekap.mode === 'periode' && !(rekap.periode_range && rekap.periode_range.mulai);
         scopeEl.textContent = rekap.periode_nama
           ? (rekap.mode === 'tanpa_periode' ? 'Transaksi belum berperiode · ' + tScope
              : 'Periode: ' + rekap.periode_nama + (rekap.periode_range && rekap.periode_range.mulai ? ' (' + rekap.periode_range.mulai + ' – ' + rekap.periode_range.selesai + ')' : ''))
           : 'Semua periode · ' + tScope;
+        // Periode tanpa tanggal → angka uang tetap benar (via id_periode) tapi
+        // tunggakan/lunas tak bisa dihitung. Minta admin lengkapi tanggal.
+        scopeEl.style.color = _noDates ? 'var(--amber-txt)' : 'var(--text-3)';
+        if (_noDates) scopeEl.textContent += ' — ⚠ tanggal periode belum diisi, tunggakan tak dihitung';
       }
       var tpBadge = document.getElementById('sppTanpaPeriodeBadge');
       if (tpBadge) {
@@ -406,8 +422,7 @@ async function loadSPPAdmin() {
 
       loadKasBeasiswa(rekap);
       loadArusKas();
-      loadRekonsiliasi();
-
+      // loadRekonsiliasi() dipanggil oleh switchSPPTab (hanya nembak API di tab Kas)
       switchSPPTab(_sppTab, true);
       filterSPPTable();
     } catch(eRekap) {
@@ -594,12 +609,14 @@ function kasKategoriNames(arah) {
 }
 
 function ensureArusKasBulanOptions() {
-  var now = BULAN_LIST[new Date().getMonth()];
-  ['arusKasBulanStart','arusKasBulanEnd'].forEach(function(id){
+  // Default rentang = SETAHUN penuh (Jan–Des) supaya angka Buku Kas cocok dgn
+  // kartu "Pemasukan/Pengeluaran/Saldo" (yang bersumber getSPPRekap → scope tahun).
+  // User bisa persempit ke "Bulan Ini" lewat tombol preset.
+  ['arusKasBulanStart','arusKasBulanEnd'].forEach(function(id, i){
     var sel = document.getElementById(id);
     if (sel && !sel.options.length) {
       sel.innerHTML = BULAN_LIST.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
-      sel.value = now;
+      sel.value = i === 0 ? BULAN_LIST[0] : BULAN_LIST[11];
     }
   });
 }
@@ -682,9 +699,11 @@ async function loadArusKas() {
     if (el) { el.disabled = perMode; el.style.opacity = perMode ? '0.5' : ''; }
   });
   try {
-    var arg = periode
+    var arg = perMode
       ? { id_periode: periode }
-      : { tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd };
+      : periode === '__tanpa__'
+        ? { id_periode: '__tanpa__', tahun: tahun }   // ikut filter tahun
+        : { tahun: tahun, bulanStart: bulanStart, bulanEnd: bulanEnd };
     var res = await window.HQ.AdminAPI.getArusKas(arg);
     var d = res.data || {};
     _arusKasRows = d.riwayat || [];
@@ -1193,8 +1212,10 @@ function _updateSPPBulkBar(jenis, sppTxMode) {
   var show = (jenis === 'infaq' || jenis === 'ihsan' || sppTxMode);
   bar.style.display = show ? 'flex' : 'none';
   if (!show) return;
-  if (!document.getElementById('sppBulkPeriodeSel').options.length)
-    _isiSPPBulkPeriodeSel('sppBulkPeriodeSel', jenis !== 'ihsan');
+  // Repopulasi tiap kali — opsi "Ikut periode halaqah" hanya relevan utk
+  // SPP/Infaq (bkn Ihsan). Pertahankan pilihan yg sedang dipilih.
+  var _bs = document.getElementById('sppBulkPeriodeSel');
+  _isiSPPBulkPeriodeSel('sppBulkPeriodeSel', jenis !== 'ihsan', _bs ? _bs.value : undefined);
   // info diisi setelah render (filter*Table mengisi _spp*Filtered) — pakai timeout mikro
   setTimeout(function() {
     var arr = jenis === 'infaq' ? _sppInfaqDataFiltered
@@ -1244,8 +1265,11 @@ function bukaEditSPPRow(idSpp, jenisKey) {
   _sppEditCtx = { jenisKey: jenisKey, row: row };
   document.getElementById('esrErr').style.display = 'none';
   document.getElementById('esrId').value = idSpp;
-  document.getElementById('esrMurid').textContent = (jenisKey === 'ihsan' ? 'Guru: ' : 'Murid: ') + (row.nama_murid || row.id_murid)
-    + (row.nama_halaqah ? ' · ' + row.nama_halaqah : '');
+  var _isGw = row.metode_bayar === 'gateway';
+  document.getElementById('esrMurid').innerHTML = esc((jenisKey === 'ihsan' ? 'Guru: ' : 'Murid: ') + (row.nama_murid || row.id_murid)
+    + (row.nama_halaqah ? ' · ' + row.nama_halaqah : ''))
+    + (_isGw ? '<div style="margin-top:6px;color:var(--red-txt);font-weight:700;display:flex;gap:5px;align-items:flex-start">'
+        + svgIcon('warn',13) + '<span>Transaksi <b>Gateway (Mayar)</b>. Mengubah/menghapus di sini TIDAK menyesuaikan data di Mayar — rekonsiliasi jadi tanggung jawab Anda.</span></div>' : '');
   document.getElementById('esrJenis').value = jenisKey === 'infaq' ? 'Infaq/Operasional' : (jenisKey === 'ihsan' ? 'Ihsan Guru' : 'SPP Pribadi');
   document.getElementById('esrStatus').value = row.status || 'lunas';
   document.getElementById('esrBulan').value = row.bulan || '-';
@@ -1298,10 +1322,12 @@ function hapusSPPRowLangsung(idSpp, jenisKey) {
   _hapusSPPRowInti(idSpp, row);
 }
 async function _hapusSPPRowInti(idSpp, row) {
-  var lunas = row && row.status === 'lunas';
+  // row null (data tak ketemu di cache) → jangan longgarkan gerbang: anggap lunas.
+  var lunas = !row || row.status === 'lunas';
   var label = row ? ((row.nama_murid || idSpp) + ' — ' + (row.bulan || '') + ' ' + (row.tahun || '') + ' — Rp ' + Number(row.nominal || 0).toLocaleString('id-ID')) : idSpp;
+  var gwNote = (row && row.metode_bayar === 'gateway') ? '\n\n⚠ Transaksi GATEWAY (Mayar) — penghapusan tidak menyesuaikan Mayar.' : '';
   if (lunas) {
-    var ket = prompt('HAPUS PERMANEN transaksi LUNAS ini?\n\n' + label + '\n\nKetik HAPUS untuk konfirmasi:');
+    var ket = prompt('HAPUS PERMANEN transaksi LUNAS ini?\n\n' + label + gwNote + '\n\nKetik HAPUS untuk konfirmasi:');
     if ((ket || '').trim().toUpperCase() !== 'HAPUS') { if (ket !== null) toast('Dibatalkan (konfirmasi tak cocok).', 'warn'); return; }
   } else {
     if (!confirm('Hapus transaksi ini?\n\n' + label)) return;

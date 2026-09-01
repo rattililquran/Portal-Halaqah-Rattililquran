@@ -4842,6 +4842,9 @@ var AdminAPI = {
     var d = fields || {};
     var u = {};
     if (d.bulan   !== undefined) { if (_B.indexOf(d.bulan) < 0) throw new Error('Bulan tak valid.'); u.bulan = d.bulan; }
+    // '-' hanya sah utk Infaq/Operasional (kolom bulan memang '-' sejak patch_052).
+    var _jefektif = (d.jenis !== undefined) ? d.jenis : before.jenis;
+    if (u.bulan === '-' && _jefektif !== 'Infaq/Operasional') throw new Error('Bulan wajib dipilih utk ' + _jefektif + '.');
     if (d.tahun   !== undefined) { var t = Number(d.tahun); if (!(t >= 2020 && t <= 2100)) throw new Error('Tahun tak valid.'); u.tahun = t; }
     if (d.jenis   !== undefined) { if (_J.indexOf(d.jenis) < 0) throw new Error('Jenis tak valid.'); u.jenis = d.jenis; }
     if (d.status  !== undefined) { if (_S.indexOf(d.status) < 0) throw new Error('Status tak valid.'); u.status = d.status; }
@@ -4861,6 +4864,8 @@ var AdminAPI = {
     }
     if (!Object.keys(u).length) return { status:'ok', message:'Tidak ada perubahan.' };
     var { error } = await _sb.from('spp_pembayaran').update(u).eq('id_spp', id_spp);
+    if (error && (error.code === '23505' || /duplicate|unique/i.test(error.message||'')))
+      throw new Error('Sudah ada transaksi ' + (u.jenis || before.jenis) + ' untuk murid ini di bulan/tahun tsb.');
     _check(error, 'updateSPPRow');
     var chg = {};
     Object.keys(u).forEach(function(k){ if (String(before[k] == null ? '' : before[k]) !== String(u[k] == null ? '' : u[k])) chg[k] = { dari: before[k], jadi: u[k] }; });
@@ -5093,9 +5098,18 @@ var AdminAPI = {
         winLen     = 0;
       } else if (pInfo) {
         // Mode periode: kewajiban = bulan-bulan periode yg sudah berjalan.
-        bulanBelum = bulanWajibPeriode.filter(function(b){ return lunasBulan.indexOf(b) < 0; });
+        // Murid yang catatan SPP pertamanya di tengah periode (join belakangan
+        // / bayar di muka) TIDAK dihitung nunggak utk bulan sebelum itu —
+        // konsisten dgn logika window non-periode. Kalau belum ada catatan
+        // sama sekali (firstIdx undefined) → seluruh bulan wajib dihitung.
+        var _wajib = (firstIdx === undefined) ? bulanWajibPeriode
+          : bulanWajibPeriode.filter(function(b){
+              var bi = BULAN.indexOf(b);
+              return bi < 0 || bi >= firstIdx;
+            });
+        bulanBelum = _wajib.filter(function(b){ return lunasBulan.indexOf(b) < 0; });
         tunggakan  = bulanBelum.length;
-        winLen     = bulanWajibPeriode.length;
+        winLen     = _wajib.length;
       } else if (firstIdx === undefined) {
         // Belum pernah punya catatan SPP Pribadi sama sekali → anggap nunggak WINDOW_SIZE bulan
         bulanBelum = [];
