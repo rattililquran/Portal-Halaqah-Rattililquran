@@ -3617,15 +3617,23 @@ async function _resolvePeriode(id_periode) {
     var y = Number(data.tanggal_mulai.slice(0,4)), m = Number(data.tanggal_mulai.slice(5,7));
     var ey = Number(data.tanggal_selesai.slice(0,4)), em = Number(data.tanggal_selesai.slice(5,7));
     var guard = 0;
-    while ((y < ey || (y === ey && m <= em)) && guard++ < 60) {
+    // 120 bulan = 10 tahun — jauh di atas periode wajar (≤6 bln); guard cuma
+    // jaring salah-input tanggal_selesai (mis. '2099'). Lihat _multiYearWarn.
+    while ((y < ey || (y === ey && m <= em)) && guard++ < 120) {
       buckets.push({ tahun: y, bulan: _BULAN_KEU[m-1] });
       m++; if (m > 12) { m = 1; y++; }
     }
+    if (guard >= 120) console.warn('_resolvePeriode: rentang periode ' + id_periode + ' >10 thn — tanggal_selesai kemungkinan salah input.');
   }
+  // Nama bulan berulang (periode >12 bln) → tunggakan mode-periode dedup
+  // by-name bisa undercount. Realistis tak terjadi; peringatkan bila ada.
+  var _namaSet = {}, _dupNama = false;
+  buckets.forEach(function(b){ if (_namaSet[b.bulan]) _dupNama = true; _namaSet[b.bulan] = 1; });
+  if (_dupNama) console.warn('_resolvePeriode: periode ' + id_periode + ' >12 bln — estimasi tunggakan bisa kurang akurat (dedup nama bulan).');
   return {
     id_periode: data.id_periode, nama_periode: data.nama_periode,
     tanggal_mulai: data.tanggal_mulai, tanggal_selesai: data.tanggal_selesai,
-    halaqahIds: halaqahIds, monthBuckets: buckets,
+    halaqahIds: halaqahIds, monthBuckets: buckets, bulan_berulang: _dupNama,
     tahunSet: buckets.reduce(function(s,b){ if (s.indexOf(b.tahun)<0) s.push(b.tahun); return s; }, []),
   };
 }
@@ -4679,6 +4687,7 @@ var AdminAPI = {
     if (!id_murid) throw new Error('Murid belum dipilih.');
     var bulanList = Array.isArray(d.bulan) ? d.bulan : [d.bulan];
     if (!bulanList.length) throw new Error('Pilih minimal 1 bulan.');
+    if (!(Number(d.nominal) > 0)) throw new Error('Nominal harus lebih dari 0.');
     var tahun = Number(d.tahun) || new Date().getFullYear();
     var jenis = d.jenis || 'SPP Pribadi';
 
@@ -5222,10 +5231,14 @@ var AdminAPI = {
     var keuangan = _hitungKeuangan(sppFiltered, _kasScope.data, _opScope.data, { bulanRange: null });
 
     // Badge "Tanpa Periode": jumlah baris lunas yg id_periode-nya NULL.
+    // Scope ke tahun spesifik agar cocok dgn drill-down (klik badge → daftar
+    // difilter tahun). Mode "Semua Tahun" / periode → hitung semua tahun.
     var tanpaPeriodeCount = 0;
     try {
-      var _tpc = await _sb.from('spp_pembayaran').select('id_spp', { count:'exact', head:true })
+      var _tpcQ = _sb.from('spp_pembayaran').select('id_spp', { count:'exact', head:true })
         .eq('status','lunas').is('id_periode', null);
+      if (tahunSpesifik) _tpcQ = _tpcQ.eq('tahun', tahunSpesifik);
+      var _tpc = await _tpcQ;
       tanpaPeriodeCount = _tpc.count || 0;
     } catch(_) {}
 

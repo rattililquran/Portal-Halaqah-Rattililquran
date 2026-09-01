@@ -130,7 +130,7 @@ function loadMoreSPP() {
 // ══ Fase 3 — Kelola Transaksi (edit / hapus / tandai periode) ══
 var _sppListData = [];          // rekap.spp_list (SPP Pribadi per transaksi)
 var _sppListFiltered = [];
-var _sppSPPView = 'tunggakan';  // 'tunggakan' | 'transaksi' (khusus tab SPP)
+var _sppSPPView = localStorage.getItem('hq_spp_view') || 'tunggakan';  // 'tunggakan' | 'transaksi' (khusus tab SPP)
 var _sppEditCtx = null;         // {jenisKey, row}
 var _sppLastRekap = null;       // rekap utama terakhir (utk lazy-load tab Kas)
 var _sppKasLoaded = false;      // sudah fetch data Kas/Beasiswa siklus ini?
@@ -222,7 +222,7 @@ function onSPPTahunChange() {
 function sppLihatTanpaPeriode() {
   var sel = document.getElementById('sppFilterPeriode');
   if (sel) { sel.value = '__tanpa__'; }
-  if (_sppTab === 'spp') _sppSPPView = 'transaksi';  // orphan lebih jelas di daftar transaksi
+  if (_sppTab === 'spp') { _sppSPPView = 'transaksi'; localStorage.setItem('hq_spp_view', 'transaksi'); }  // orphan lebih jelas di daftar transaksi
   onSPPPeriodeChange();
 }
 
@@ -293,9 +293,19 @@ function switchSPPTab(tab, silent) {
   if (statusEl) statusEl.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan' && !_sppTunggakanDisabled) ? '' : 'none';
   if (btnSalin) btnSalin.style.display = (tab === 'spp' && _sppSPPView === 'tunggakan' && !_sppTunggakanDisabled) ? '' : 'none';
   if (viewTog)  viewTog.style.display  = (tab === 'spp' && !_sppTunggakanDisabled) ? '' : 'none';
-  if (tab !== 'spp' && _sppSPPView === 'transaksi') {
-    _sppSPPView = 'tunggakan';
-    if (viewTog) viewTog.classList.remove('btn-primary');
+  if (viewTog)  viewTog.classList.toggle('btn-primary', tab === 'spp' && _sppSPPView === 'transaksi' && !_sppTunggakanDisabled);
+
+  // Filter Halaqah cuma berlaku di tab SPP (Kas/Operasional/Ihsan tak per-halaqah).
+  // Di luar tab SPP → sembunyikan & kosongkan; kalau tadinya terisi, muat ulang
+  // supaya kartu Pemasukan/Saldo kembali se-lembaga.
+  var hqFilt = document.getElementById('sppFilterHalaqah');
+  if (hqFilt) {
+    hqFilt.style.display = (tab === 'spp') ? '' : 'none';
+    if (tab !== 'spp' && hqFilt.value) {
+      hqFilt.value = '';
+      _sppKasLoaded = false; _sppRekonLoaded = false;
+      if (!silent) return loadSPPAdmin();
+    }
   }
   // Lazy-load: data Kas/Beasiswa hanya di-fetch saat tab "Kas & Ihsan" dibuka.
   if (tab === 'kas' && !_sppKasLoaded) {
@@ -310,7 +320,9 @@ function switchSPPTab(tab, silent) {
 async function loadSPPAdmin() {
   var periode   = _sppPeriodeVal();          // '' | '<id>' | '__tanpa__'
   var tahun     = _sppTahunVal();            // 'semua' | 'NNNN'
-  var idHalaqah = document.getElementById('sppFilterHalaqah').value;
+  // Filter halaqah hanya dihormati di tab SPP (di tab lain angka Kas/Ihsan
+  // se-lembaga — mencampur 1-halaqah SPP dgn Kas global itu menyesatkan).
+  var idHalaqah = (_sppTab === 'spp') ? (document.getElementById('sppFilterHalaqah').value || '') : '';
   // Filter berubah → data Kas/Rekonsiliasi siklus ini wajib di-fetch ulang saat tabnya dibuka
   _sppKasLoaded = false;
   _sppRekonLoaded = false;
@@ -1288,6 +1300,7 @@ async function sppBulkSetPeriode() {
 function toggleSPPView() {
   if (_sppTunggakanDisabled) return;  // "Semua Tahun": hanya mode transaksi
   _sppSPPView = (_sppSPPView === 'transaksi') ? 'tunggakan' : 'transaksi';
+  localStorage.setItem('hq_spp_view', _sppSPPView);
   var btn = document.getElementById('sppViewToggle');
   if (btn) btn.classList.toggle('btn-primary', _sppSPPView === 'transaksi');
   filterSPPTable();

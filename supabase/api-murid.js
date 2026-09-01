@@ -527,6 +527,7 @@ var MuridAPI = {
   konfirmasiSPP: async function(d) {
     var id_murid = _uid();
     var user = _currentUser || {};
+    if (!(Number(d.nominal) > 0)) throw new Error('Nominal pembayaran harus lebih dari 0.');
     var { data: anggota } = await _sb.from('anggota').select('id_halaqah').eq('id_murid',id_murid).eq('status','aktif').maybeSingle();
     var id_halaqah = anggota && anggota.id_halaqah || '';
     // Support multi-bulan: d.bulan bisa array atau string
