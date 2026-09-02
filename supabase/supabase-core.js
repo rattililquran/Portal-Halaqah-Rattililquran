@@ -324,6 +324,171 @@ var _HARI_INDEX = {
   'kamis': 4, 'jumat': 5, "jum'at": 5, 'sabtu': 6,
 };
 
+// ─────────────────────────────────────────────
+//  HALAQAH SCHEDULE — status "sekarang/berikutnya" utk kartu greeting (guru & murid).
+//  SATU sumber kebenaran. Dulu tiap portal punya salinan daysUntil/effectiveDays
+//  sendiri -> pernah beda perilaku & bug jadwal multi-hari harus ditambal 2x.
+//  Murni fungsi klien tanpa I/O. Waktu dipatok WIB (UTC+7), sama dgn helper Jakarta lain.
+//  Dipakai: guru/index.html updateHalaqahHariIniCard, murid/index.html updateHalaqahHariIniCardMurid.
+// ─────────────────────────────────────────────
+var HalaqahSchedule = (function() {
+  var NAMA_HARI = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+  // "HH:MM" | "HH:MM:SS" | "H:MM" -> "HH:MM"; selain itu -> ''.
+  function _hhmm(v) {
+    var m = String(v == null ? '' : v).trim().match(/^(\d{1,2}):(\d{2})/);
+    return m ? (String(m[1]).padStart(2, '0') + ':' + m[2]) : '';
+  }
+
+  // Selisih hari (0..7) dari hari ini ke hari terjadwal terdekat yg cocok di string
+  // jadwal ("Selasa, Rabu, Jumat"). afterToday=true: kejadian utk HARI INI dihitung
+  // minggu depan (+7) -- hari terjadwal LAIN di minggu yg sama tetap menang.
+  function _daysUntil(jadwalStr, todayIdx, afterToday) {
+    var s = String(jadwalStr || '').toLowerCase();
+    var min = Infinity;
+    for (var k in _HARI_INDEX) {
+      if (!Object.prototype.hasOwnProperty.call(_HARI_INDEX, k)) continue;
+      if (s.indexOf(k) === -1) continue;
+      var diff = (_HARI_INDEX[k] - todayIdx + 7) % 7;
+      if (afterToday && diff === 0) diff = 7;
+      if (diff < min) min = diff;
+    }
+    return min;
+  }
+
+  function _shallowMerge(a, b) {
+    var o = {}, k;
+    for (k in a) if (Object.prototype.hasOwnProperty.call(a, k)) o[k] = a[k];
+    for (k in b) if (Object.prototype.hasOwnProperty.call(b, k)) o[k] = b[k];
+    return o;
+  }
+
+  // resolve(daftarHalaqah, opts) -> objek status kartu greeting.
+  //  daftarHalaqah : array. Tiap item toleran thd 2 skema:
+  //     guru  -> { nama_halaqah, jadwal_hari, jam_mulai, jam_selesai, ... }
+  //     murid -> { nama,         jadwal,      jam,        jam_selesai, ... }
+  //  opts.hariIniServer : nama hari WIB dari server (opsional; fallback getUTCDay).
+  //  opts.now           : Date "wall-clock WIB" (opsional; utk test).
+  //
+  //  return: {
+  //    state: 'berlangsung'|'hari_ini'|'selesai_hari_ini'|'kosong'
+  //         | 'jadwal_belum_diatur'|'belum_ada_halaqah',
+  //    halaqah,            // objek halaqah terpilih (raw), null bila tak ada
+  //    namaHalaqah,
+  //    daysUntil,          // 0 utk state hari-ini/berlangsung; 1..7 utk berikutnya
+  //    dayLabel,           // 'Hari ini'|'Besok'|'Lusa'|'N hari lagi'|'Jumat'
+  //    hariLabel,          // dayLabel siap-pakai ('3 hari lagi · Senin' utk d 3..6)
+  //    hariNama,           // nama hari spesifik kejadian terdekat ('Jumat')
+  //    jamMulai, jamSelesai, jamRange,   // "HH:MM" / "03:00–04:00"
+  //    sesiLain,           // # halaqah LAIN yg jatuh di hari terpilih yg sama
+  //    sesiHariIni: { total, selesai, berlangsung, akanDatang, berikutnyaJam },
+  //  }
+  function resolve(halaqahList, opts) {
+    opts = opts || {};
+    var list = (halaqahList || []).filter(Boolean);
+
+    var now = opts.now instanceof Date ? opts.now : new Date(Date.now() + 7 * 3600000);
+    var todayIdx = _HARI_INDEX[String(opts.hariIniServer || '').toLowerCase()];
+    if (todayIdx === undefined || todayIdx === null) todayIdx = now.getUTCDay();
+    var nowHHMM = String(now.getUTCHours()).padStart(2, '0') + ':' + String(now.getUTCMinutes()).padStart(2, '0');
+
+    var EMPTY = {
+      state: 'belum_ada_halaqah', halaqah: null, namaHalaqah: '',
+      daysUntil: null, dayLabel: '', hariLabel: '', hariNama: '',
+      jamMulai: '', jamSelesai: '', jamRange: '', sesiLain: 0,
+      sesiHariIni: { total: 0, selesai: 0, berlangsung: 0, akanDatang: 0, berikutnyaJam: '' },
+    };
+    if (!list.length) return EMPTY;
+
+    var items = list.map(function(h) {
+      var jm = _hhmm(h.jam_mulai != null ? h.jam_mulai : h.jam);
+      var js = _hhmm(h.jam_selesai);
+      var it = {
+        raw: h,
+        nama: h.nama_halaqah || h.nama || '',
+        jadwal: h.jadwal_hari || h.jadwal || '',
+        jamMulai: jm,
+        jamSelesai: js,
+      };
+      it.dRaw = _daysUntil(it.jadwal, todayIdx, false);
+      // Refinemen intra-hari HANYA bila jam valid & sesi tak melewati tengah malam
+      // (js > jm). Sesi lintas-tengah-malam -> pakai logika level-hari saja (aman,
+      // tak akan salah bilang "selesai"/"berlangsung").
+      var intraOk = it.dRaw === 0 && jm && js && js > jm;
+      it.berlangsung    = intraOk && nowHHMM >= jm && nowHHMM < js;
+      it.selesaiHariIni = intraOk && nowHHMM >= js;
+      it.akanDatang     = it.dRaw === 0 && !it.berlangsung && !it.selesaiHariIni;
+      it.dEff = it.selesaiHariIni ? _daysUntil(it.jadwal, todayIdx, true) : it.dRaw;
+      return it;
+    });
+
+    function byJam(a, b) { return (a.jamMulai || '99:99').localeCompare(b.jamMulai || '99:99'); }
+
+    var berlangsung = items.filter(function(x) { return x.berlangsung; }).sort(byJam);
+    var akanDatang  = items.filter(function(x) { return x.akanDatang;  }).sort(byJam);
+
+    var featured, state;
+    if (berlangsung.length) {
+      featured = berlangsung[0]; state = 'berlangsung';
+    } else if (akanDatang.length) {
+      featured = akanDatang[0]; state = 'hari_ini';
+    } else {
+      featured = items.slice().sort(function(a, b) {
+        return a.dEff !== b.dEff ? a.dEff - b.dEff : byJam(a, b);
+      })[0];
+      if (!featured || featured.dEff === Infinity) {
+        return _shallowMerge(EMPTY, {
+          state: 'jadwal_belum_diatur',
+          halaqah: featured ? featured.raw : list[0],
+          namaHalaqah: (featured ? featured.nama : (list[0].nama_halaqah || list[0].nama)) || '',
+        });
+      }
+      state = items.some(function(x) { return x.selesaiHariIni; }) ? 'selesai_hari_ini' : 'kosong';
+    }
+
+    var isToday = state === 'berlangsung' || state === 'hari_ini';
+    var d = isToday ? 0 : featured.dEff;
+    var hariNama = NAMA_HARI[(todayIdx + d) % 7];
+    var dayLabel;
+    if (isToday)               dayLabel = 'Hari ini';
+    else if (d === 1)          dayLabel = 'Besok';
+    else if (d === 2)          dayLabel = 'Lusa';
+    else if (d >= 3 && d <= 6) dayLabel = d + ' hari lagi';
+    else                       dayLabel = hariNama; // d === 7 (minggu depan, hari sama)
+
+    // Label siap-pakai utk baris hari/jam. "N hari lagi" perlu nama hari di sebelah;
+    // "Besok"/"Lusa"/"Jumat" sudah cukup sendiri.
+    var hariLabel = (d >= 3 && d <= 6) ? (dayLabel + ' · ' + hariNama) : dayLabel;
+
+    var sesiLain = isToday
+      ? items.filter(function(x) { return x !== featured && (x.berlangsung || x.akanDatang); }).length
+      : items.filter(function(x) { return x !== featured && x.dEff === featured.dEff; }).length;
+
+    return {
+      state: state,
+      halaqah: featured.raw,
+      namaHalaqah: featured.nama,
+      daysUntil: d,
+      dayLabel: dayLabel,
+      hariLabel: hariLabel,
+      hariNama: hariNama,
+      jamMulai: featured.jamMulai,
+      jamSelesai: featured.jamSelesai,
+      jamRange: featured.jamMulai ? (featured.jamMulai + (featured.jamSelesai ? '–' + featured.jamSelesai : '')) : '',
+      sesiLain: sesiLain,
+      sesiHariIni: {
+        total:        items.filter(function(x) { return x.dRaw === 0; }).length,
+        selesai:      items.filter(function(x) { return x.selesaiHariIni; }).length,
+        berlangsung:  berlangsung.length,
+        akanDatang:   akanDatang.length,
+        berikutnyaJam: akanDatang.length ? akanDatang[0].jamMulai : '',
+      },
+    };
+  }
+
+  return { resolve: resolve, NAMA_HARI: NAMA_HARI };
+})();
+
 // Durasi (menit) dari jam isian guru "HH:MM". Pelengkap bila selesai_pada NULL (baris lama).
 function _absensiMenitDariJam(jm, js) {
   if (!jm || !js) return null;
@@ -1029,6 +1194,7 @@ window.HQ.Auth = Auth;
 window.HQ.PushAPI = PushAPI;
 window.HQ.PushPrefsAPI = PushPrefsAPI;
 window.HQ.AbsensiGuruUtil = AbsensiGuruUtil;
+window.HQ.HalaqahSchedule = HalaqahSchedule;
 window.HQ.supabase = _sb;
 window.HQ.getCurrentUser = function() { return _currentUser; };
 window.HQ.cache = { invalidate: function(){ return window._clearHQCache && window._clearHQCache(); }, clear: function(){ return window._clearHQCache && window._clearHQCache(); } };

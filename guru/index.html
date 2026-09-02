@@ -1407,23 +1407,30 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   background:rgba(255,255,255,.04);
 }
 .dash-greet{font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:2px}
-/* Kedua status ("Hari Ini" & "Berikutnya") = pil MERAH SOLID + teks putih tebal.
-   Merah solid + putih paling terbaca di atas gradient gelap. Pembeda antar-status
-   lewat ikon & teks (centang "Hari Ini" vs kalender "Berikutnya"), bukan warna. */
-.dash-greet.is-next,.dash-greet.is-today{
+/* Pil status. Bentuk sama utk semua status; warna & ikon yg beda:
+   - Hari Ini / Berikutnya -> MERAH solid (paling terbaca di atas gradient gelap)
+   - Berlangsung sekarang  -> HIJAU solid + titik berdenyut ("aktif, ayo masuk") */
+.dash-greet.is-next,.dash-greet.is-today,.dash-greet.is-live{
   display:inline-flex;align-items:center;gap:5px;
   font-size:13px;font-weight:800;color:#fff;letter-spacing:.015em;
-  background:#dc2626;
   border:1px solid rgba(255,255,255,.22);
-  box-shadow:0 2px 10px rgba(220,38,38,.45);
   padding:4px 11px;border-radius:100px;margin-bottom:6px;
 }
-.dash-greet.is-next svg,.dash-greet.is-today svg{width:12px;height:12px;flex-shrink:0}
+.dash-greet.is-next,.dash-greet.is-today{background:#dc2626;box-shadow:0 2px 10px rgba(220,38,38,.45)}
+.dash-greet.is-live{background:#059669;box-shadow:0 2px 10px rgba(5,150,105,.5)}
+.dash-greet.is-next svg,.dash-greet.is-today svg,.dash-greet.is-live svg{width:12px;height:12px;flex-shrink:0}
+.dash-greet .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;flex-shrink:0;animation:greetPulse 1.6s ease-in-out infinite}
+@keyframes greetPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
+@media (prefers-reduced-motion:reduce){.dash-greet .live-dot{animation:none}}
 .dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
 .dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
 .dash-hari strong{font-weight:800;color:#fff;font-size:12.5px;letter-spacing:.01em}
-.dash-sesi-lain{font-size:11px;color:rgba(255,255,255,.55);margin-top:4px;align-items:center;gap:4px}
+.dash-sesi-lain{font-size:11px;color:rgba(255,255,255,.55);margin-top:5px;flex-wrap:wrap;align-items:center;gap:4px 12px}
 .dash-sesi-lain svg{width:11px;height:11px;flex-shrink:0}
+.dash-sesi-lain .chip{display:inline-flex;align-items:center;gap:4px}
+.dash-sesi-lain .chip-ok{color:#86efac}
+/* Kalimat doa/motivasi -- paling bawah kartu, di bawah baris meta. */
+.dash-doa{font-size:11px;color:rgba(255,255,255,.5);margin-top:8px;font-style:italic}
 
 /* Sinkron badge — posisi tidak ganggu tombol */
 .refresh-badge{position:fixed;bottom:72px;left:16px !important;right:auto !important;
@@ -3774,6 +3781,7 @@ html.theme-dark .pr-chip.active {
             <div class="dash-name" id="dashNama">Memuat…</div>
             <div class="dash-hari" id="dashHariIni">&nbsp;</div>
             <div class="dash-sesi-lain" id="dashSesiLain" style="display:none"></div>
+            <div class="dash-doa" id="dashDoa" style="display:none"></div>
           </div>
         </div>
 
@@ -6770,7 +6778,7 @@ html.theme-dark .pr-chip.active {
 <div id="guruRunModalContainer"></div>
 
 <script src="../assets/js/supabase.min.js"></script>
-<script src="../supabase/supabase-core.js?v=5922206d"></script>
+<script src="../supabase/supabase-core.js?v=e8a55e6b"></script>
 <script src="../supabase/api-staff.js?v=797b142d"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="../assets/js/shared-utils.js?v=20b69409"></script>
@@ -8945,131 +8953,96 @@ function renderJadwal() {
   }).join('');
 }
 
-// Kartu header gradient (dulu sapaan nama guru) sekarang jadi pintasan ke
-// halaqah yang paling relevan: yang jadwalnya HARI INI kalau ada, atau
-// halaqah dengan jadwal TERDEKAT ke depan kalau hari ini kosong -- diketuk
-// langsung buka Sesi KBM (lihat onclick di markup, sudah goPage('kbm')).
-var NAMA_HARI_ID = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+// Kartu header gradient (dulu sapaan nama guru) -> pintasan ke halaqah paling
+// relevan lewat status jadwal terpusat (window.HQ.HalaqahSchedule, supabase-core.js).
+// Diketuk = mulaiSesiBaruCepat() (lihat onclick di markup).
+var _greetTick = null;
 function updateHalaqahHariIniCard(hariIniServer) {
+  if (_greetTick) { clearInterval(_greetTick); _greetTick = null; }
+
   var greetEl = document.getElementById('greet');
   var namaEl  = document.getElementById('dashNama');
   var hariEl  = document.getElementById('dashHariIni');
   var lainEl  = document.getElementById('dashSesiLain');
+  var doaEl   = document.getElementById('dashDoa');
   if (!greetEl || !namaEl || !hariEl) return;
 
-  greetEl.className = 'dash-greet'; // reset dulu -- bisa saja sebelumnya berstatus is-next
+  greetEl.className = 'dash-greet'; // reset -- bisa saja sebelumnya is-next/is-today/is-live
   if (lainEl) { lainEl.style.display = 'none'; lainEl.innerHTML = ''; }
+  if (doaEl)  { doaEl.style.display  = 'none'; doaEl.textContent = ''; }
 
-  if (!jadwalData || !jadwalData.length) {
+  var S = (window.HQ && window.HQ.HalaqahSchedule)
+    ? window.HQ.HalaqahSchedule.resolve(jadwalData || [], { hariIniServer: hariIniServer })
+    : null;
+
+  if (!S || S.state === 'belum_ada_halaqah') {
     greetEl.textContent = 'Halaqah';
     namaEl.textContent  = 'Belum ada halaqah aktif';
     hariEl.textContent  = 'Hubungi admin untuk penempatan halaqah.';
     return;
   }
-
-  // _HARI_INDEX (dari supabase-core.js, global) mencakup variasi ejaan hari
-  // ("jumat" & "jum'at", "minggu" & "ahad") -- data jadwal_hari lama di DB
-  // sebagian tersimpan pakai apostrof ("Jum'at"), findIndex string-persis
-  // sebelumnya gagal cocok utk varian itu shg halaqah Jumat tak pernah
-  // terhitung "terdekat" dgn benar. Pakai peta yg sama dgn Kehadiranku.
-  var todayIdx = (window._HARI_INDEX || {})[(hariIniServer || '').toLowerCase()];
-  if (todayIdx === undefined) todayIdx = new Date().getDay(); // fallback kalau nama hari dari server tak dikenali
-
-  // includes() substring (bukan exact-match per token) -- toleran thd jadwal_hari
-  // yg ada teks/tanda baca tambahan di luar dugaan, cocok jg dgn SEMUA varian
-  // ejaan hari (mis. "jumat" & "jum'at") lewat _HARI_INDEX, bukan cuma 1 ejaan.
-  function daysUntil(jadwalHariStr, afterToday) {
-    var jadwalLower = (jadwalHariStr || '').toLowerCase();
-    var hariIdx = window._HARI_INDEX || {};
-    var min = Infinity;
-    Object.keys(hariIdx).forEach(function(k) {
-      if (!jadwalLower.includes(k)) return;
-      var diff = (hariIdx[k] - todayIdx + 7) % 7;
-      // afterToday: sesi hari ini sudah usai -- kejadian utk hari INI baru minggu
-      // depan (+7), tapi hari terjadwal LAIN di minggu yg sama (mis. Jumat utk
-      // halaqah "Selasa, Rabu, Jumat" saat Rabu lewat) tetap dihitung normal & menang.
-      if (afterToday && diff === 0) diff = 7;
-      if (diff < min) min = diff;
-    });
-    return min;
-  }
-
-  // Jam WIB saat ini ("HH:MM") lewat aritmetika UTC+7 langsung -- bukan new Date()
-  // device-local (pola sama dgn helper Jakarta lain di file ini).
-  var _nowWib = new Date(Date.now() + 7 * 3600000);
-  var nowHHMM = String(_nowWib.getUTCHours()).padStart(2, '0') + ':' + String(_nowWib.getUTCMinutes()).padStart(2, '0');
-
-  // Guru bisa punya >1 sesi di hari yg sama jam beda (mis. 03:00 & 19:30) -- kalau
-  // sesi hari-ini SUDAH LEWAT jam selesainya, jangan anggap "0 hari lagi" lagi,
-  // supaya tak terus nyangkut nyorot sesi yg sudah usai selagi ada sesi lain hari
-  // ini yg masih akan datang/berlangsung.
-  //
-  // Utk halaqah MULTI-HARI ("Selasa, Rabu, Jumat"): saat Rabu sudah lewat, kejadian
-  // berikutnya = Jumat minggu ini (2 hari lagi), BUKAN Rabu minggu depan (+7).
-  // Dulu dipaksa d=7 -> halaqah lain yg jadwalnya jauh (mis. Senin) malah keliru
-  // kepilih jadi "Halaqah Berikutnya".
-  function effectiveDays(h) {
-    var d = daysUntil(h.jadwal_hari);
-    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = daysUntil(h.jadwal_hari, true);
-    return d;
-  }
-
-  var best = null, bestDays = Infinity;
-  jadwalData.forEach(function(h) {
-    var d = effectiveDays(h);
-    if (d < bestDays) {
-      bestDays = d; best = h;
-    } else if (d === bestDays && best && h.jam_mulai && (!best.jam_mulai || h.jam_mulai < best.jam_mulai)) {
-      // Beberapa halaqah bisa sama-sama jatuh di hari terdekat yg sama --
-      // menangkan yg jamnya lebih pagi/cepat, bukan asal yg pertama di array.
-      best = h;
-    }
-  });
-
-  if (!best || bestDays === Infinity) {
+  if (S.state === 'jadwal_belum_diatur') {
     greetEl.textContent = 'Halaqah Saya';
-    namaEl.textContent  = jadwalData[0].nama_halaqah;
+    namaEl.textContent  = S.namaHalaqah || (jadwalData[0] && jadwalData[0].nama_halaqah) || 'Halaqah';
     hariEl.textContent  = 'Jadwal belum diatur — hubungi admin.';
     return;
   }
 
-  var jam = best.jam_mulai ? (best.jam_mulai + (best.jam_selesai ? '–' + best.jam_selesai : '')) : '';
-  // "Halaqah Berikutnya": tampilkan HARI SPESIFIK kejadian terdekat (mis. "Jumat"),
-  // BUKAN seluruh string jadwal ("Selasa, Rabu, Jumat") -- kalau string mentah yg
-  // dipakai, kartu ikut menyebut hari yg justru sudah lewat minggu ini shg guru
-  // bingung. Jadwal lengkap tetap terlihat di daftar Akademik & modal "Pilih Halaqah".
-  var labelHari = bestDays === 0 ? 'Hari ini' : NAMA_HARI_ID[(todayIdx + bestDays) % 7];
-  if (bestDays === 0) {
-    // Pil + ikon centang (hijau) -- konsisten dgn perlakuan "Halaqah Berikutnya",
-    // supaya sama2 ternotice, bukan cuma salah satunya yg berupa teks polos.
-    greetEl.className = 'dash-greet is-today';
-    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.8 15.5 16 9.5"/></svg> Halaqah Hari Ini';
-  } else {
-    // Dibuat lebih "ternotice" drpd caption biasa -- pil + ikon kalender, supaya
-    // guru langsung sadar hari ini kosong, bukan cuma lolos terbaca sekilas.
-    greetEl.className = 'dash-greet is-next';
-    greetEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Halaqah Berikutnya';
-  }
-  namaEl.textContent  = best.nama_halaqah;
-  // Hari & jam ditebalkan (<strong>) supaya lebih ternotice drpd sisa kalimat -- guru
-  // langsung tertangkap info paling penting (kapan) tanpa perlu baca seluruh kalimat.
-  hariEl.innerHTML = '<strong>' + esc(labelHari + (jam ? ' · ' + jam : '')) + '</strong> — Semoga Allah mudahkan perjuangan hari ini.';
+  var ICON_TODAY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.8 15.5 16 9.5"/></svg>';
+  var ICON_CAL   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
 
-  // Kartu cuma menyorot SATU halaqah (jamnya paling dekat/pagi) -- kalau di
-  // hari yg sama ternyata ada halaqah lain juga (jam beda), guru perlu tahu
-  // supaya tak lupa sesi susulan yg tak tersorot di sini.
+  if (S.state === 'berlangsung') {
+    greetEl.className = 'dash-greet is-live';
+    greetEl.innerHTML = '<span class="live-dot"></span> Berlangsung sekarang';
+  } else if (S.state === 'hari_ini') {
+    greetEl.className = 'dash-greet is-today';
+    greetEl.innerHTML = ICON_TODAY + ' Halaqah Hari Ini';
+  } else { // selesai_hari_ini | kosong
+    greetEl.className = 'dash-greet is-next';
+    greetEl.innerHTML = ICON_CAL + ' Halaqah Berikutnya';
+  }
+
+  namaEl.textContent = S.namaHalaqah;
+
+  // Baris hari/jam (tebal, bersih). Doa dipindah ke #dashDoa paling bawah.
+  var infoText = (S.state === 'berlangsung')
+    ? (S.jamRange || 'Sedang berlangsung') + (S.jamSelesai ? ' · berakhir ' + S.jamSelesai : '')
+    : S.hariLabel + (S.jamRange ? ' · ' + S.jamRange : '');
+  hariEl.innerHTML = '<strong>' + esc(infoText) + '</strong>';
+
+  // Chip meta: "sesi hari ini selesai" (apresiasi) + "halaqah/sesi lain di hari sama".
   if (lainEl) {
-    var others = jadwalData.filter(function(h) {
-      if (h === best) return false;
-      return effectiveDays(h) === bestDays;
-    }).length;
-    if (others > 0) {
-      var teksLain = bestDays === 0
-        ? '+' + others + ' sesi lain hari ini'
-        : '+' + others + ' halaqah lain di hari yang sama';
-      lainEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' + teksLain;
+    var chips = [];
+    if (S.sesiHariIni.selesai > 0 && (S.state === 'selesai_hari_ini' || S.state === 'hari_ini')) {
+      var teksOk = (S.sesiHariIni.total > 1)
+        ? (S.sesiHariIni.selesai + ' dari ' + S.sesiHariIni.total + ' sesi hari ini selesai')
+        : 'Sesi hari ini selesai';
+      chips.push('<span class="chip chip-ok">' + ICON_CHECK + esc(teksOk) + '</span>');
+    }
+    if (S.sesiLain > 0) {
+      var teksLain = (S.state === 'berlangsung' || S.state === 'hari_ini')
+        ? '+' + S.sesiLain + ' sesi lain hari ini'
+        : '+' + S.sesiLain + ' halaqah lain di hari yang sama';
+      chips.push('<span class="chip">' + ICON_CLOCK + esc(teksLain) + '</span>');
+    }
+    if (chips.length) {
+      lainEl.innerHTML = chips.join('');
       lainEl.style.display = 'flex';
     }
+  }
+
+  if (doaEl) {
+    doaEl.textContent = 'Semoga Allah mudahkan perjuangan hari ini.';
+    doaEl.style.display = 'block';
+  }
+
+  // State sensitif-waktu -> refresh sendiri tiap menit supaya kartu flip
+  // (hari_ini -> berlangsung -> selesai) tanpa reload manual. Tanpa arg: helper
+  // pakai hari WIB live -> ikut benar kalau dashboard dibiarkan terbuka lewat tengah malam.
+  if (S.state === 'hari_ini' || S.state === 'berlangsung') {
+    _greetTick = setInterval(function() { updateHalaqahHariIniCard(); }, 60000);
   }
 }
 
