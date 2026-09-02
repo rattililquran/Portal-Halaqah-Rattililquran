@@ -1133,6 +1133,7 @@
     setV('hfkbm-surat-display-'+eid, '');
     setV('hfkbm-ayat-dari-'+eid, '');
     setV('hfkbm-ayat-sampai-'+eid, '');
+    setV('hfkbm-juz-'+eid, '');   // reset Juz — kalau nyangkut, dropdown surat berikutnya ikut terkunci ke juz itu
     setV('hfkbm-catatan-'+eid, '');
     var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
     if (infoEl) infoEl.textContent = '— pilih surat berikutnya —';
@@ -1256,6 +1257,7 @@
       setV('hfkbm-surat-display-'+eid, '');
       setV('hfkbm-ayat-dari-'+eid, '');
       setV('hfkbm-ayat-sampai-'+eid, '');
+      setV('hfkbm-juz-'+eid, '');
       setV('hfkbm-catatan-'+eid, '');
       if (window._hafalanKbmForm) delete window._hafalanKbmForm[mid];
       renderHafalanKbmStagedList(mid);
@@ -1336,8 +1338,10 @@
 
     var list = (typeof _getSuratData === 'function' ? _getSuratData() : [])
       .filter(function(s){
-        var matchJuz  = !selJuz || (s.juz && s.juz.includes(selJuz));
-        var matchName = !norm   || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
+        var matchName = !norm || s.latin.toLowerCase().replace(/['-]/g,'').includes(norm);
+        // Kalau guru sedang mengetik nama surat, jangan sembunyikan hasilnya cuma
+        // karena Juz terpilih tak cocok — pencarian nama menang.
+        var matchJuz  = norm || !selJuz || (s.juz && s.juz.includes(selJuz));
         return matchJuz && matchName;
       });
 
