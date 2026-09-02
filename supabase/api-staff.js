@@ -505,6 +505,18 @@ var GuruAPI = {
     return { status: 'ok' };
   },
 
+  // KBM Qiyam: koreksi & catatan per murid per sesi (gaya KBM Reguler).
+  // HANYA sentuh 2 kolom ini -- adab/kamera_murid/nilai TIDAK diubah (kamera
+  // Qiyam disinkron terpisah oleh addSetoranHafalan). Baris nilai_kbm sudah
+  // dibuat saat simpanPresensi, jadi .update() aman.
+  simpanKoreksiCatatanKbm: async function(d) {
+    var { error } = await _sb.from('nilai_kbm')
+      .update({ koreksi_tahsin: d.koreksi_tahsin || null, catatan_murid: d.catatan_murid || null })
+      .eq('id_kbm', d.id_kbm).eq('id_murid', d.id_murid);
+    _check(error, 'simpanKoreksiCatatanKbm');
+    return { status: 'ok' };
+  },
+
   simpanNilaiMuridBatch: async function(d) {
     var updates = (d.nilai_list || d.nilai || []).map(function(n) { return {
       id_kbm: d.id_kbm, id_halaqah: d.id_halaqah, id_murid: n.id_murid,
@@ -805,7 +817,7 @@ var GuruAPI = {
 
   getRiwayatMuridKoreksi: async function(id_murid, limit) {
     var { data, error } = await _sb.from('nilai_kbm')
-      .select('koreksi_tahsin, tanggal, pertemuan_ke, jenis_sesi')
+      .select('koreksi_tahsin, catatan_murid, adab, tanggal, pertemuan_ke, jenis_sesi')
       .eq('id_murid', id_murid).neq('koreksi_tahsin', '')
       .or('jenis_sesi.neq.Micro Teaching,jenis_sesi.is.null')
       .order('tanggal', { ascending: false }).limit(limit || 10);
@@ -1721,9 +1733,21 @@ var GuruAPI = {
     // batas hari benar-benar hari kalender Asia/Jakarta, bukan UTC.
     if (tgl_mulai)   q = q.gte('created_at', tgl_mulai + 'T00:00:00+07:00');
     if (tgl_selesai) q = q.lte('created_at', tgl_selesai + 'T23:59:59+07:00');
-    var { data, error } = await q;
+
+    // Koreksi & Catatan Tahsin KBM Qiyam disimpan per murid per sesi di nilai_kbm
+    // (bukan di setoran_hafalan.catatan). Ambil untuk digabung ke daftar catatan raport.
+    var kcQ = _sb.from('nilai_kbm')
+      .select('id_murid, tanggal, koreksi_tahsin, catatan_murid')
+      .eq('id_halaqah', id_halaqah).eq('jenis_sesi', 'KBM Qiyam')
+      .or('koreksi_tahsin.not.is.null,catatan_murid.not.is.null')
+      .order('tanggal', { ascending: true }).limit(500);
+    if (id_murid)    kcQ = kcQ.eq('id_murid', id_murid);
+    if (tgl_mulai)   kcQ = kcQ.gte('tanggal', tgl_mulai);
+    if (tgl_selesai) kcQ = kcQ.lte('tanggal', tgl_selesai);
+
+    var [{ data, error }, kcRes] = await Promise.all([q, kcQ]);
     _check(error, 'getRaportTahfidzData');
-    return { status: 'ok', data: data || [] };
+    return { status: 'ok', data: data || [], koreksi_catatan: (kcRes && kcRes.data) || [] };
   },
 
   // Konfigurasi penilaian hafalan (Kelancaran + Nilai Makhraj & Tajwid)

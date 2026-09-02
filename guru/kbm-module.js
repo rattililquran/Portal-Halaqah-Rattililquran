@@ -753,6 +753,7 @@
     function buildCard(m, status) {
       var mid      = m.id_murid;
       var eid      = mid.replace(/[^a-zA-Z0-9-_]/g, '_');
+      var _kc      = (window._nilaiCache && window._nilaiCache[mid]) || {};
       var noUrut   = _numMapKbm[mid] || '';
       var badge    = {H:'nm-badge-H',T:'nm-badge-T',I:'nm-badge-I',A:'nm-badge-A'}[status]||'nm-badge-H';
       var badgeTxt = {H:'Hadir',T:'Terlambat',I:'Izin',A:'Alpa'}[status]||status;
@@ -819,9 +820,6 @@
             + '</div>'
             + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:var(--kbm-warn,#b45309);background:var(--kbm-warn-soft, rgba(180,83,9,.07));border:1px solid var(--kbm-warn,#b45309);border-radius:8px;padding:6px 10px;margin-top:8px">Estimasi poin: akan dihitung</div>'
           + '</div>'
-          + '<div class="fg" style="margin-bottom:8px"><div class="nm-section-label">Catatan Guru</div>'
-            + '<textarea class="fc" id="hfkbm-catatan-' + eid + '" rows="2" placeholder="Catatan untuk murid..." style="font-size:12px;resize:vertical"></textarea>'
-          + '</div>'
           + '<button type="button" onclick="addHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\')" style="width:100%;margin-bottom:8px;background:var(--kbm-ok,#059669);color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
             + kbmIco('centang') + ' Tambah Surat Ke Keranjang Setoran'
           + '</button>'
@@ -833,6 +831,22 @@
               + '<div><input type="number" class="fc" id="hfkbm-tgt-dari-' + eid + '" min="1" placeholder="Dari" style="font-size:12px"></div>'
               + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-' + eid + '" min="1" placeholder="Sampai" style="font-size:12px"></div>'
             + '</div>'
+          + '</div>'
+          // ── Koreksi & Catatan Tahsin (per murid per sesi → nilai_kbm) ──
+          + '<div style="border-top:1px dashed var(--kbm-line, var(--border));margin-top:12px;padding-top:10px">'
+            + '<div class="nm-section-label" style="display:flex;align-items:center;gap:4px">' + kbmIco('edit') + ' Koreksi &amp; Catatan Tahsin <span style="font-weight:500;color:var(--text-3);text-transform:none;letter-spacing:0">(sesi ini)</span></div>'
+            + '<div style="display:flex;gap:8px;margin:6px 0 8px">'
+              + '<button type="button" class="nm-tool-btn" data-mid="' + esc(mid) + '" data-mnm="' + esc(m.nama_murid) + '" onclick="bukaRiwayatKoreksi(this.dataset.mid,this.dataset.mnm)">Riwayat Koreksi</button>'
+              + '<button type="button" class="nm-tool-btn" data-mid="' + esc(mid) + '" data-eid="' + eid + '" data-mnm="' + esc(m.nama_murid) + '" onclick="hfKbmMuatKoreksiLalu(this.dataset.mid,this.dataset.eid,this.dataset.mnm)">Muat sesi lalu</button>'
+            + '</div>'
+            + '<div class="nm-section-label" style="font-size:10px">Koreksi Tahsin (makhraj, mad, dll)</div>'
+            + '<textarea id="hfkbm-koreksi-' + eid + '" style="display:none">' + esc(_kc.koreksi || '') + '</textarea>'
+            + '<div id="pts-hfkbm-koreksi-' + eid + '" class="nm-points"></div>'
+            + '<button type="button" class="nm-point-add" data-kind="koreksi" onclick="_kbmAddPoint(\'hfkbm-koreksi-' + eid + '\',\'\')">+ Tambah Poin Koreksi</button>'
+            + '<div class="nm-section-label" style="font-size:10px;margin-top:10px">Catatan (motivasi, target, dll)</div>'
+            + '<textarea id="hfkbm-catatan-' + eid + '" style="display:none">' + esc(_kc.catatan || '') + '</textarea>'
+            + '<div id="pts-hfkbm-catatan-' + eid + '" class="nm-points"></div>'
+            + '<button type="button" class="nm-point-add" data-kind="catatan" onclick="_kbmAddPoint(\'hfkbm-catatan-' + eid + '\',\'\')">+ Tambah Poin Catatan</button>'
           + '</div>'
         + '</div>'
       + '</div>';
@@ -1039,7 +1053,7 @@
     var kel     = getV('hfkbm-kel-'+eid);
     var nil     = getV('hfkbm-nil-'+eid);
     var kam     = getV('hfkbm-kam-'+eid);
-    var catatan = getV('hfkbm-catatan-'+eid);
+    var catatan = '';   // catatan per-surat DIHAPUS — koreksi/catatan kini per-sesi (nilai_kbm)
 
     if (!jenis) { toast('Pilih jenis setoran','warn'); return; }
     if (jenis !== 'Tahsin') {
@@ -1134,7 +1148,7 @@
     setV('hfkbm-ayat-dari-'+eid, '');
     setV('hfkbm-ayat-sampai-'+eid, '');
     setV('hfkbm-juz-'+eid, '');   // reset Juz — kalau nyangkut, dropdown surat berikutnya ikut terkunci ke juz itu
-    setV('hfkbm-catatan-'+eid, '');
+    // JANGAN clear hfkbm-koreksi-/hfkbm-catatan- di sini — itu per-sesi, bukan per-surat.
     var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
     if (infoEl) infoEl.textContent = '— pilih surat berikutnya —';
 
@@ -1177,7 +1191,6 @@
     setSel('hfkbm-kel-'+eid,    item.kel);
     setSel('hfkbm-nil-'+eid,    item.nil);
     setSel('hfkbm-kam-'+eid,    item.kam);
-    setV('hfkbm-catatan-'+eid, item.catatan);
 
     if (item.suratD) {
       var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
@@ -1199,6 +1212,35 @@
     updateHfKbmPoin(mid);
     _kbmDraftSaveDebounced();
     toast('Item setoran dihapus', 'info');
+  }
+
+  // "Muat koreksi sesi lalu": tarik poin koreksi tahsin dari sesi sebelumnya
+  // (append + dedup) supaya guru cepat menandai isu yang masih berulang.
+  async function hfKbmMuatKoreksiLalu(mid, eid, nama) {
+    try {
+      var r = await window.HQ.GuruAPI.getRiwayatMuridKoreksi(mid, 1);
+      var rows = (r && r.data) || [];
+      var prevText = rows.length ? String(rows[0].koreksi_tahsin || '') : '';
+      var prev = prevText.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+      if (!prev.length) {
+        quickToast('Belum ada koreksi sesi sebelumnya untuk ' + (nama || 'murid ini') + '.', 'info');
+        return;
+      }
+      var taId = 'hfkbm-koreksi-' + eid;
+      var ta = document.getElementById(taId);
+      if (!ta) return;
+      var cur = String(ta.value || '').split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+      var added = 0;
+      prev.forEach(function(p){ if (cur.indexOf(p) === -1) { cur.push(p); added++; } });
+      ta.value = cur.join('\n');
+      if (typeof _kbmInitPoints === 'function') _kbmInitPoints(taId);
+      _kbmDraftSaveDebounced();
+      var tgl = rows[0].tanggal ? (typeof fmtDate === 'function' ? fmtDate(rows[0].tanggal) : rows[0].tanggal) : 'sebelumnya';
+      quickToast(added ? ('Dimuat ' + added + ' poin koreksi dari sesi ' + tgl + '.')
+                       : ('Semua poin koreksi sesi ' + tgl + ' sudah ada di daftar.'), 'info');
+    } catch (e) {
+      quickToast('Gagal memuat koreksi sesi lalu.', 'warn');
+    }
   }
 
   function tryAutoSplitZiyadah(mid, surat, suratD, juz, aD, aS, kel, nil, kam, catatan) {
@@ -1258,7 +1300,6 @@
       setV('hfkbm-ayat-dari-'+eid, '');
       setV('hfkbm-ayat-sampai-'+eid, '');
       setV('hfkbm-juz-'+eid, '');
-      setV('hfkbm-catatan-'+eid, '');
       if (window._hafalanKbmForm) delete window._hafalanKbmForm[mid];
       renderHafalanKbmStagedList(mid);
       updateHfKbmPoin(mid);
@@ -2085,12 +2126,16 @@
     // auto-resize supaya draft lihat nilai terbaru
     ta.style.height = 'auto';
     ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
-    // sinkron cache (nilai/preview lama mengandalkan textarea)
-    var mid = taId.replace(/^koreksi-|^catatan-/, '');
-    if (!window._nilaiCache) window._nilaiCache = {};
-    if (!window._nilaiCache[mid]) window._nilaiCache[mid] = {};
-    if (taId.indexOf('koreksi-') === 0) window._nilaiCache[mid].koreksi = ta.value;
-    else if (taId.indexOf('catatan-') === 0) window._nilaiCache[mid].catatan = ta.value;
+    // sinkron cache (KBM Reguler: nilai/preview lama mengandalkan textarea per-baris).
+    // HANYA id Reguler `koreksi-<mid>` / `catatan-<mid>`. Id KBM Qiyam (`hfkbm-…`) &
+    // Edit KBM (`enqk-…`) disinkron di tempat lain (jangan bikin key _nilaiCache sampah).
+    if (taId.indexOf('koreksi-') === 0 || taId.indexOf('catatan-') === 0) {
+      var mid = taId.replace(/^koreksi-|^catatan-/, '');
+      if (!window._nilaiCache) window._nilaiCache = {};
+      if (!window._nilaiCache[mid]) window._nilaiCache[mid] = {};
+      if (taId.indexOf('koreksi-') === 0) window._nilaiCache[mid].koreksi = ta.value;
+      else window._nilaiCache[mid].catatan = ta.value;
+    }
   }
 
   function _renderPointsList(taId) {
@@ -2101,7 +2146,8 @@
     _pointsCache[taId] = pts;
     wrap.innerHTML = pts.map(function(p, i) {
       // Label placeholder: "Koreksi N" utk field koreksi, "Catatan N" utk catatan.
-      var label = taId.indexOf('catatan-') === 0 ? 'Catatan' : 'Koreksi';
+      // !== -1 (bukan === 0): id KBM Qiyam/Edit ber-prefix (hfkbm-catatan-…, enqk-catatan-…).
+      var label = taId.indexOf('catatan-') !== -1 ? 'Catatan' : 'Koreksi';
       return '<div class="nm-point-row">'
         + '<span class="nm-point-num">' + (i+1) + '</span>'
         + '<input type="text" class="fc nm-point-input" data-ta="' + esc(taId) + '" data-i="' + i + '" value="' + esc(p) + '" placeholder="' + label + ' ' + (i+1) + '">'
@@ -2209,6 +2255,17 @@
       if (!document.getElementById('hfkbm-jenis-'+eid)) return;
       var getV = function(id){ var el=document.getElementById(id);return el?el.value:''; };
 
+      // Koreksi & Catatan Tahsin (per murid per sesi) -> window._nilaiCache[mid],
+      // ikut persist di draft `nilai` + server-sync (dikonsumsi doSelesaiKBM & Edit KBM).
+      var korEl = document.getElementById('hfkbm-koreksi-'+eid);
+      var catEl = document.getElementById('hfkbm-catatan-'+eid);
+      if (korEl || catEl) {
+        if (!window._nilaiCache) window._nilaiCache = {};
+        var nc = window._nilaiCache[m.id_murid] || (window._nilaiCache[m.id_murid] = {});
+        if (korEl) nc.koreksi = korEl.value;
+        if (catEl) nc.catatan = catEl.value;
+      }
+
       var tgtSrt  = getV('hfkbm-tgt-surat-'+eid);
       var tgtDari = getV('hfkbm-tgt-dari-'+eid);
       var tgtSmp  = getV('hfkbm-tgt-sampai-'+eid);
@@ -2221,7 +2278,7 @@
         surat  : getV('hfkbm-surat-'+eid), suratD  : getV('hfkbm-surat-display-'+eid),
         dari   : getV('hfkbm-ayat-dari-'+eid), sampai: getV('hfkbm-ayat-sampai-'+eid),
         kel    : getV('hfkbm-kel-'+eid),   nil    : getV('hfkbm-nil-'+eid),
-        kam    : getV('hfkbm-kam-'+eid),   catatan: getV('hfkbm-catatan-'+eid),
+        kam    : getV('hfkbm-kam-'+eid),   catatan: '',
         tgtSrt : tgtSrt,
         tgtDari: tgtDari,
         tgtSmp : tgtSmp,
@@ -2262,7 +2319,23 @@
       var cache = window._hafalanKbmCache[m.id_murid];
       var tgt   = window._hafalanKbmTarget && window._hafalanKbmTarget[m.id_murid];
       var form  = window._hafalanKbmForm && window._hafalanKbmForm[m.id_murid];
-      if (!cache && !tgt && !form) return;
+      var nc    = window._nilaiCache && window._nilaiCache[m.id_murid];
+      var ncHasKC = nc && (nc.koreksi || nc.catatan);
+
+      // Pulihkan Koreksi & Catatan Tahsin (per sesi) ke editor poin. Hanya isi
+      // kalau textarea masih kosong — jangan timpa ketikan guru (restore dipanggil
+      // beberapa kali, sebagian via setTimeout).
+      if (document.getElementById('hfkbm-koreksi-'+eid)) {
+        var _setKC = function(id,v){ var el=document.getElementById(id); if (el && v && !el.value) el.value = v; };
+        _setKC('hfkbm-koreksi-'+eid, nc && nc.koreksi);
+        _setKC('hfkbm-catatan-'+eid, nc && nc.catatan);
+        if (typeof _kbmInitPoints === 'function') {
+          _kbmInitPoints('hfkbm-koreksi-'+eid);
+          _kbmInitPoints('hfkbm-catatan-'+eid);
+        }
+      }
+
+      if (!cache && !tgt && !form && !ncHasKC) return;
       var list = Array.isArray(cache) ? cache : (cache && cache.jenis ? [cache] : []);
 
       var first = list[0];
@@ -2294,7 +2367,6 @@
         setSel('hfkbm-kel-'+eid,    formSrc.kel);
         setSel('hfkbm-nil-'+eid,    formSrc.nil);
         setSel('hfkbm-kam-'+eid,    formSrc.kam);
-        setV('hfkbm-catatan-'+eid, formSrc.catatan);
         if (formSrc.suratD) {
           var meta = (typeof _getSuratData === 'function' ? _getSuratData() : [])
             .find(function(s){ return s.latin === formSrc.suratD; });
@@ -3188,6 +3260,26 @@
               }
             }
           }
+        }
+
+        // Koreksi & Catatan Tahsin per murid -> nilai_kbm. Dijalankan SETELAH loop
+        // setoran (biar sinkron kamera di addSetoranHafalan tak ketimpa). Non-blok:
+        // setoran sudah aman, koreksi bisa diperbaiki lewat Edit KBM.
+        for (const m of muridSesi) {
+          const stKC = presensiMapPv[m.id_murid] || 'H';
+          if (!['H','T'].includes(stKC)) continue;
+          const eidKC = m.id_murid.replace(/[^a-zA-Z0-9-_]/g,'_');
+          const korEl = document.getElementById('hfkbm-koreksi-'+eidKC);
+          const catEl = document.getElementById('hfkbm-catatan-'+eidKC);
+          const korV  = korEl ? korEl.value.trim() : '';
+          const catV  = catEl ? catEl.value.trim() : '';
+          if (!korV && !catV) continue;
+          try {
+            await window.HQ.GuruAPI.simpanKoreksiCatatanKbm({
+              id_kbm: sesiAktif.id_kbm, id_murid: m.id_murid,
+              koreksi_tahsin: korV || null, catatan_murid: catV || null,
+            });
+          } catch (eKC) { console.warn('simpanKoreksiCatatanKbm gagal:', eKC && eKC.message); }
         }
       } else {
         for (const m of muridSesi) {
@@ -4166,5 +4258,6 @@
   window.addHafalanKbmItem = addHafalanKbmItem;
   window.editHafalanKbmItem = editHafalanKbmItem;
   window.removeHafalanKbmItem = removeHafalanKbmItem;
+  window.hfKbmMuatKoreksiLalu = hfKbmMuatKoreksiLalu;
 
 })();

@@ -368,10 +368,13 @@ async function generateRaportTahfidz() {
     // Filter ke murid yang dipilih atau semua
     var targetMurid = id_murid ? muridList.filter(function(m){ return m.id_murid===id_murid; }) : muridList;
 
+    var allKoreksiCatatan = resSetoran.koreksi_catatan || [];
+
     // Build raport per murid
     var raportList = targetMurid.map(function(m) {
       var setoran = allSetoran.filter(function(s){ return s.id_murid === m.id_murid; });
-      return _rtBuildMuridRaport(m, setoran, penilaianCfg);
+      var kc      = allKoreksiCatatan.filter(function(x){ return x.id_murid === m.id_murid; });
+      return _rtBuildMuridRaport(m, setoran, penilaianCfg, kc);
     });
 
     _rtLastData = { raportList, periodeInfo, id_halaqah, penilaianCfg };
@@ -405,7 +408,7 @@ function _rtHitungPoin(nilai, kelancaran, cfg) {
 }
 
 // ── Build raport data per murid ─────────────────────────────────────────
-function _rtBuildMuridRaport(murid, setoran, cfg) {
+function _rtBuildMuridRaport(murid, setoran, cfg, koreksiCatatan) {
   var totalPoin = 0, nilaiA = 0, nilaiB = 0, nilaiC = 0;
   var kelLancar = 0, kelCukup = 0, kelPerbaikan = 0;
   var jenisCnt  = { Ziyadah: 0, Murajaah: 0, Tahsin: 0 };
@@ -456,10 +459,18 @@ function _rtBuildMuridRaport(murid, setoran, cfg) {
       if (s.created_at > suratMap[suratKey].last_tgl) suratMap[suratKey].last_tgl = s.created_at;
     }
 
-    // Catatan
+    // Catatan per-surat lama (data Qiyam sebelum koreksi/catatan pindah ke per-sesi)
     if (s.catatan && s.catatan.trim()) {
       catatanList.push({ tanggal: s.created_at, surat: s.surat, catatan: s.catatan, guru: s.nama_guru });
     }
+  });
+
+  // Koreksi & Catatan Tahsin per sesi (KBM Qiyam → nilai_kbm). Gabung ke daftar catatan.
+  (koreksiCatatan || []).forEach(function(kc) {
+    var parts = [];
+    if (kc.koreksi_tahsin && kc.koreksi_tahsin.trim()) parts.push('Koreksi: ' + kc.koreksi_tahsin.trim());
+    if (kc.catatan_murid  && kc.catatan_murid.trim())  parts.push('Catatan: ' + kc.catatan_murid.trim());
+    if (parts.length) catatanList.push({ tanggal: kc.tanggal, surat: '', catatan: parts.join('\n'), guru: '' });
   });
 
   // Target aktif (setoran terbaru yang punya target)
@@ -606,8 +617,8 @@ function _rtRenderMuridCard(r, periodeInfo, idx) {
       + r.catatan.map(function(c){
           var tgl = c.tanggal ? new Date(c.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-';
           return '<div style="border-left:3px solid #fbbf24;padding:8px 12px;background:#fffbeb;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:12px">'
-            + '<div style="font-weight:700;color:#78350f;margin-bottom:3px">' + esc(c.surat||'-') + ' &nbsp;·&nbsp; ' + tgl + '</div>'
-            + '<div style="color:#92400e;font-style:italic">"' + esc(c.catatan) + '"</div>'
+            + '<div style="font-weight:700;color:#78350f;margin-bottom:3px">' + (c.surat ? esc(c.surat) + ' &nbsp;·&nbsp; ' : '') + tgl + '</div>'
+            + '<div style="color:#92400e;font-style:italic;white-space:pre-wrap">' + esc(c.catatan) + '</div>'
           + '</div>';
         }).join('')
     + '</div>';

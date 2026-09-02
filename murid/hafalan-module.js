@@ -155,10 +155,26 @@
       el.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--text-3);font-size:13px">Tidak ada setoran untuk kategori ini.</div>';
       return;
     }
+    var _sesiShown = {};   // koreksi/catatan sesi tampil sekali per id_kbm
+    var _noteList = function(txt, ikon, warna) {
+      var lines = String(txt || '').split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+      if (!lines.length) return '';
+      var body = lines.length === 1 ? _esc(lines[0])
+        : '<ul style="margin:3px 0 0;padding-left:16px">' + lines.map(function(l){ return '<li>' + _esc(l) + '</li>'; }).join('') + '</ul>';
+      return '<div style="margin-top:8px;font-size:12px;color:' + warna + '"><span style="font-weight:700">' + ikon + '</span> ' + body + '</div>';
+    };
     el.innerHTML = filtered.map(function(r) {
       var info = getNilaiBadgeInfo(r.nilai);
       var badgeHtml = '<span class="nilai-badge ' + info.cls + '">' + info.label + '</span>';
       var audioPlayerHtml = r.audio_url ? _renderAudioPlayerHtml(r.audio_url) : '';
+      var sesiHtml = '';
+      if (r.id_kbm && !_sesiShown[r.id_kbm] && (r._sesiKoreksi || r._sesiCatatan)) {
+        _sesiShown[r.id_kbm] = 1;
+        sesiHtml = '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border)">'
+          + _noteList(r._sesiKoreksi, 'Koreksi tahsin:', 'var(--text-2)')
+          + _noteList(r._sesiCatatan, 'Catatan guru:', 'var(--blue)')
+          + '</div>';
+      }
       return '<div class="hafalan-card">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
         +   '<div>'
@@ -172,6 +188,7 @@
         +   '<span>Disimak oleh ' + _esc(r.nama_guru || 'Guru') + '</span>'
         + '</div>'
         + audioPlayerHtml
+        + sesiHtml
         + '</div>';
     }).join('');
   }

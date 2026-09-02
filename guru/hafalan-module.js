@@ -1144,7 +1144,7 @@
       var nilaiLabel = { Mumtaz:'M', Baik:'B', Cukup:'C', A:'A', B:'B', C:'C' };
 
       body.innerHTML = data.map(function(r) {
-        var catHtml = r.catatan ? '<div style="margin-top:5px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 7px 7px 0;padding:5px 9px;font-size:11px;color:#78350f;font-style:italic">' + esc(r.catatan) + '</div>' : '';
+        var catHtml = r.catatan ? '<div style="margin-top:5px;background:#fffbeb;border-left:3px solid #fbbf24;border-radius:0 7px 7px 0;padding:5px 9px;font-size:11px;color:#78350f;font-style:italic;white-space:pre-wrap">' + esc(r.catatan) + '</div>' : '';
         var tgtHtml = r.target_surat ? '<div style="margin-top:4px;font-size:11px;color:#059669;font-weight:600">🎯 Target: ' + esc(r.target_surat) + ' · ' + r.target_ayat_dari + '–' + r.target_ayat_sampai + '</div>' : '';
         var kelHtml = r.kelancaran ? '<span style="font-size:10px;background:#f3f4f6;border-radius:100px;padding:1px 6px;margin-left:4px;font-weight:700">' + esc(r.kelancaran) + '</span>' : '';
         return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:11px 12px;margin-bottom:7px;display:flex;gap:9px;align-items:flex-start">'

@@ -774,9 +774,14 @@ var MuridAPI = {
       }
       if (n.kamera_murid) {
         bulanMap[key].kamTotal++;
-        if (n.kamera_murid === 'kamera terbuka') bulanMap[key].kamTerbuka++;
-        else if (n.kamera_murid === 'kamera sering tertutup') bulanMap[key].kamSering++;
-        else if (n.kamera_murid === 'kamera selalu tertutup') bulanMap[key].kamSelalu++;
+        // Wording riil pasca migration 009: 'kamera terbuka' | 'kamera sering buka
+        // tutup' | 'kamera tertutup'. Data lama bisa 'sering/selalu tertutup' —
+        // cocokkan longgar supaya dua-duanya terbaca (dulu string exact tak match
+        // => bucket "sering/selalu" selalu 0).
+        var _km = String(n.kamera_murid);
+        if (_km === 'kamera terbuka') bulanMap[key].kamTerbuka++;
+        else if (_km.indexOf('sering') !== -1) bulanMap[key].kamSering++;
+        else bulanMap[key].kamSelalu++;
       }
     });
     var trenAdabKamera = Object.keys(bulanMap).sort().map(function(key) {
@@ -1083,6 +1088,21 @@ var MuridAPI = {
     var rows = data || [];
     var hasMore = rows.length > lim;
     if (hasMore) rows = rows.slice(0, lim);
+
+    // Tempel Koreksi & Catatan Tahsin sesi (KBM Qiyam menyimpannya per murid per
+    // sesi di nilai_kbm, bukan per baris setoran). 1 query utk kumpulan id_kbm.
+    var kbmIds = Array.from(new Set(rows.map(function(r){ return r.id_kbm; }).filter(Boolean)));
+    if (kbmIds.length) {
+      var { data: nk } = await _sb.from('nilai_kbm')
+        .select('id_kbm, koreksi_tahsin, catatan_murid')
+        .eq('id_murid', _uid()).in('id_kbm', kbmIds);
+      var nkMap = {};
+      (nk || []).forEach(function(n){ nkMap[n.id_kbm] = n; });
+      rows.forEach(function(r){
+        var n = r.id_kbm && nkMap[r.id_kbm];
+        if (n) { r._sesiKoreksi = n.koreksi_tahsin || ''; r._sesiCatatan = n.catatan_murid || ''; }
+      });
+    }
     return { status: 'ok', data: rows, total: null, has_more: hasMore };
   },
 
