@@ -1418,8 +1418,8 @@ html.theme-dark .draft-warning-note{background:rgba(251,191,36,.12)!important;bo
   padding:4px 11px;border-radius:100px;margin-bottom:6px;
 }
 .dash-greet.is-next,.dash-greet.is-today{background:#dc2626;box-shadow:0 2px 10px rgba(220,38,38,.45)}
-.dash-greet.is-live{background:#059669;box-shadow:0 2px 10px rgba(5,150,105,.5)}
-.dash-greet.is-libur{background:#d97706;box-shadow:0 2px 10px rgba(217,119,6,.45)}
+.dash-greet.is-live{background:#047857;box-shadow:0 2px 10px rgba(4,120,87,.5)}
+.dash-greet.is-libur{background:#b45309;box-shadow:0 2px 10px rgba(180,83,9,.45)}
 .dash-greet.is-next svg,.dash-greet.is-today svg,.dash-greet.is-live svg,.dash-greet.is-libur svg{width:12px;height:12px;flex-shrink:0}
 .dash-greet .live-dot{width:7px;height:7px;border-radius:50%;background:#fff;flex-shrink:0;animation:greetPulse 1.6s ease-in-out infinite}
 @keyframes greetPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
@@ -8973,9 +8973,12 @@ function updateHalaqahHariIniCard(hariIniServer) {
   if (lainEl) { lainEl.style.display = 'none'; lainEl.innerHTML = ''; }
   if (doaEl)  { doaEl.style.display  = 'none'; doaEl.textContent = ''; }
 
+  // hariIniServer dari pemanggil (loadJadwal); saat dipanggil ulang oleh _greetTick
+  // tanpa arg -> pakai nama hari server yg sudah disimpan global (tetap otoritatif,
+  // bukan jatuh ke jam device).
   var S = (window.HQ && window.HQ.HalaqahSchedule)
     ? window.HQ.HalaqahSchedule.resolve(jadwalData || [], {
-        hariIniServer: hariIniServer,
+        hariIniServer: hariIniServer || window._hariIniServer || '',
         liburResmi: window._liburResmiHariIni || null,
       })
     : null;
@@ -9031,9 +9034,10 @@ function updateHalaqahHariIniCard(hariIniServer) {
   if (lainEl) {
     var chips = [];
     if (S.sesiHariIni.selesai > 0 && (S.state === 'selesai_hari_ini' || S.state === 'hari_ini')) {
-      var teksOk = (S.sesiHariIni.total > 1)
-        ? (S.sesiHariIni.selesai + ' dari ' + S.sesiHariIni.total + ' sesi hari ini selesai')
-        : 'Sesi hari ini selesai';
+      var _sel = S.sesiHariIni.selesai, _tot = S.sesiHariIni.total;
+      var teksOk = (_tot > 1 && _sel < _tot) ? (_sel + ' dari ' + _tot + ' sesi hari ini selesai')
+                 : (_tot > 1)                ? (_tot + ' sesi hari ini selesai')
+                 : 'Sesi hari ini selesai';
       chips.push('<span class="chip chip-ok">' + ICON_CHECK + esc(teksOk) + '</span>');
     }
     if (S.sesiLain > 0) {
@@ -9054,8 +9058,8 @@ function updateHalaqahHariIniCard(hariIniServer) {
   }
 
   // State sensitif-waktu -> refresh sendiri tiap menit supaya kartu flip
-  // (hari_ini -> berlangsung -> selesai) tanpa reload manual. Tanpa arg: helper
-  // pakai hari WIB live -> ikut benar kalau dashboard dibiarkan terbuka lewat tengah malam.
+  // (hari_ini -> berlangsung -> selesai) tanpa reload manual. Cukup evaluasi ulang
+  // JAM (hari tetap dari _hariIniServer, lihat resolve() di atas).
   if (S.state === 'hari_ini' || S.state === 'berlangsung') {
     _greetTick = setInterval(function() { updateHalaqahHariIniCard(); }, 60000);
   }
