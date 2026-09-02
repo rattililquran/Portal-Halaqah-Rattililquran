@@ -6782,7 +6782,7 @@ html.theme-dark .pr-chip.active {
 <script src="kelompok-module.js?v=5dd31fc4" defer></script>
 <script src="attibyan-module.js?v=97664e45" defer></script>
 <script src="raport-module.js?v=463af432" defer></script>
-<script src="kbm-module.js?v=fbc87115" defer></script>
+<script src="kbm-module.js?v=9e9308cc" defer></script>
 <script src="modul-position-picker.js?v=9d42a6a0" defer></script>
 <script src="pr-jurnal-module.js?v=4522bcbb" defer></script>
 <script src="hafalan-module.js?v=e7b6294f" defer></script>
@@ -8959,13 +8959,17 @@ function updateHalaqahHariIniCard(hariIniServer) {
   // includes() substring (bukan exact-match per token) -- toleran thd jadwal_hari
   // yg ada teks/tanda baca tambahan di luar dugaan, cocok jg dgn SEMUA varian
   // ejaan hari (mis. "jumat" & "jum'at") lewat _HARI_INDEX, bukan cuma 1 ejaan.
-  function daysUntil(jadwalHariStr) {
+  function daysUntil(jadwalHariStr, afterToday) {
     var jadwalLower = (jadwalHariStr || '').toLowerCase();
     var hariIdx = window._HARI_INDEX || {};
     var min = Infinity;
     Object.keys(hariIdx).forEach(function(k) {
       if (!jadwalLower.includes(k)) return;
       var diff = (hariIdx[k] - todayIdx + 7) % 7;
+      // afterToday: sesi hari ini sudah usai -- kejadian utk hari INI baru minggu
+      // depan (+7), tapi hari terjadwal LAIN di minggu yg sama (mis. Jumat utk
+      // halaqah "Selasa, Rabu, Jumat" saat Rabu lewat) tetap dihitung normal & menang.
+      if (afterToday && diff === 0) diff = 7;
       if (diff < min) min = diff;
     });
     return min;
@@ -8979,11 +8983,15 @@ function updateHalaqahHariIniCard(hariIniServer) {
   // Guru bisa punya >1 sesi di hari yg sama jam beda (mis. 03:00 & 19:30) -- kalau
   // sesi hari-ini SUDAH LEWAT jam selesainya, jangan anggap "0 hari lagi" lagi,
   // supaya tak terus nyangkut nyorot sesi yg sudah usai selagi ada sesi lain hari
-  // ini yg masih akan datang/berlangsung. Kejadian berikutnya utk hari itu baru
-  // minggu depan (+7), sesuai jadwal mingguan tetap.
+  // ini yg masih akan datang/berlangsung.
+  //
+  // Utk halaqah MULTI-HARI ("Selasa, Rabu, Jumat"): saat Rabu sudah lewat, kejadian
+  // berikutnya = Jumat minggu ini (2 hari lagi), BUKAN Rabu minggu depan (+7).
+  // Dulu dipaksa d=7 -> halaqah lain yg jadwalnya jauh (mis. Senin) malah keliru
+  // kepilih jadi "Halaqah Berikutnya".
   function effectiveDays(h) {
     var d = daysUntil(h.jadwal_hari);
-    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = 7;
+    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = daysUntil(h.jadwal_hari, true);
     return d;
   }
 
@@ -9007,9 +9015,11 @@ function updateHalaqahHariIniCard(hariIniServer) {
   }
 
   var jam = best.jam_mulai ? (best.jam_mulai + (best.jam_selesai ? '–' + best.jam_selesai : '')) : '';
-  // Tampilkan SEMUA hari halaqah ini terjadwal (mis. "Senin, Jumat"), bukan cuma
-  // hari terdekat yg dipakai utk menyortir -- halaqah sering ketemu >1x seminggu.
-  var labelHari = bestDays === 0 ? 'Hari ini' : (best.jadwal_hari || NAMA_HARI_ID[(todayIdx + bestDays) % 7]);
+  // "Halaqah Berikutnya": tampilkan HARI SPESIFIK kejadian terdekat (mis. "Jumat"),
+  // BUKAN seluruh string jadwal ("Selasa, Rabu, Jumat") -- kalau string mentah yg
+  // dipakai, kartu ikut menyebut hari yg justru sudah lewat minggu ini shg guru
+  // bingung. Jadwal lengkap tetap terlihat di daftar Akademik & modal "Pilih Halaqah".
+  var labelHari = bestDays === 0 ? 'Hari ini' : NAMA_HARI_ID[(todayIdx + bestDays) % 7];
   if (bestDays === 0) {
     // Pil + ikon centang (hijau) -- konsisten dgn perlakuan "Halaqah Berikutnya",
     // supaya sama2 ternotice, bukan cuma salah satunya yg berupa teks polos.
