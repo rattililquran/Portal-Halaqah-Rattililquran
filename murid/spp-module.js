@@ -337,56 +337,71 @@
     var _sppSheet = document.querySelector('#sppKonfirmasiModal .modal-sheet');
     if (_sppSheet) _sppSheet.scrollTop = 0;
 
-    // Disable bulan yang sudah lunas/menunggu & beri feedback interaktif
+    // Isi opsi tahun (tahun−1, tahun, tahun+1; default tahun berjalan).
+    var _thn = new Date().getFullYear();
+    var _selTahun = document.getElementById('sppFormTahun');
+    if (_selTahun) {
+      _selTahun.innerHTML = [_thn - 1, _thn, _thn + 1].map(function(y){
+        return '<option value="' + y + '"' + (y === _thn ? ' selected' : '') + '>' + y + '</option>';
+      }).join('');
+    }
+
+    // Disable bulan yang sudah lunas/menunggu (per TAHUN terpilih) + feedback interaktif
+    window._sppPendingMonths = [];
     try {
       var sppSt = await window.HQ.MuridAPI.getSPPStatus();
-      var grid  = sppSt.data && sppSt.data.bulan_grid || [];
-      var pendingMonths = [];
-      window._sppPendingMonths = [];
+      var _lunasBY    = (sppSt.data && sppSt.data.lunas_by_year)    || {};
+      var _menungguBY = (sppSt.data && sppSt.data.menunggu_by_year) || {};
 
-      document.querySelectorAll('#sppBulanGrid .spp-bulan-check').forEach(function(label) {
-        var inp = label.querySelector('input');
-        if (!inp) return;
-        var bulan = inp.value;
-        var info  = grid.find(function(g){ return g.bulan === bulan; });
-        var st    = info ? info.status : 'belum';
-        label.classList.remove('lunas','menunggu');
-        label.onclick = null; // reset handler
-        
-        if (st === 'lunas' || st === 'menunggu') {
-          label.classList.add(st);
-          inp.disabled = true;
-          inp.checked  = false;
-          if (st === 'menunggu') pendingMonths.push(bulan);
+      var _refreshBulanDisable = function() {
+        var y = Number(document.getElementById('sppFormTahun').value) || new Date().getFullYear();
+        var lunasY    = _lunasBY[y]    || [];
+        var menungguY = _menungguBY[y] || [];
+        var pendingMonths = [];
 
-          label.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (st === 'menunggu') {
-              toast('⏳ SPP bulan ' + bulan + ' sedang menunggu verifikasi Admin. Tidak perlu dikonfirmasi ulang.', 'warn');
-            } else if (st === 'lunas') {
-              toast('✅ SPP bulan ' + bulan + ' sudah LUNAS.', 'ok');
-            }
-          };
-        } else {
-          inp.disabled = false;
+        document.querySelectorAll('#sppBulanGrid .spp-bulan-check').forEach(function(label) {
+          var inp = label.querySelector('input');
+          if (!inp) return;
+          var bulan = inp.value;
+          var st = lunasY.indexOf(bulan) >= 0 ? 'lunas'
+                 : menungguY.indexOf(bulan) >= 0 ? 'menunggu' : 'belum';
+          label.classList.remove('lunas','menunggu');
+          label.onclick = null;
+
+          if (st === 'lunas' || st === 'menunggu') {
+            label.classList.add(st);
+            inp.disabled = true;
+            inp.checked  = false;
+            if (st === 'menunggu') pendingMonths.push(bulan);
+            label.onclick = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              toast(st === 'menunggu'
+                ? '⏳ SPP bulan ' + bulan + ' ' + y + ' sedang menunggu verifikasi Admin. Tidak perlu dikonfirmasi ulang.'
+                : '✅ SPP bulan ' + bulan + ' ' + y + ' sudah LUNAS.', st === 'menunggu' ? 'warn' : 'ok');
+            };
+          } else {
+            inp.disabled = false;
+          }
+        });
+
+        window._sppPendingMonths = pendingMonths;
+        var noticeEl = document.getElementById('sppPendingNotice');
+        var noticeTextEl = document.getElementById('sppPendingNoticeText');
+        if (noticeEl && noticeTextEl) {
+          if (pendingMonths.length > 0) {
+            noticeTextEl.innerHTML = 'Pembayaran SPP bulan <b>' + pendingMonths.join(', ') + ' ' + y + '</b> bertanda (⏳) dan sedang ditinjau Admin. Bukti transfer sudah tersimpan & tidak perlu dikonfirmasi ulang.';
+            noticeEl.style.display = 'flex';
+          } else {
+            noticeEl.style.display = 'none';
+          }
         }
-      });
+        updateSppBulanCount();
+      };
 
-      window._sppPendingMonths = pendingMonths;
-
-      // Update banner pending notice di modal
-      var noticeEl = document.getElementById('sppPendingNotice');
-      var noticeTextEl = document.getElementById('sppPendingNoticeText');
-      if (noticeEl && noticeTextEl) {
-        if (pendingMonths.length > 0) {
-          noticeTextEl.innerHTML = 'Pembayaran SPP bulan <b>' + pendingMonths.join(', ') + '</b> bertanda (⏳) dan sedang ditinjau Admin. Bukti transfer sudah tersimpan & tidak perlu dikonfirmasi ulang.';
-          noticeEl.style.display = 'flex';
-        } else {
-          noticeEl.style.display = 'none';
-        }
-      }
-    } catch(e) { /* gagal load status — biarkan semua aktif */ }
+      if (_selTahun) _selTahun.onchange = _refreshBulanDisable;
+      _refreshBulanDisable();
+    } catch(e) { window._sppPendingMonths = []; /* gagal load status — biarkan semua aktif */ }
 
     // Load metode bayar dengan timeout 8 detik
     try {
@@ -587,13 +602,12 @@
     var menungguBulan = data.menunggu_bulan || [];
 
     // Aturan PASTI: 1 level SPP = 5 pembayaran. Semua angka (lunasCount, level,
-    // progress, tunggakan) dihitung backend via _sppLevelInfo dari AKUMULASI
-    // bulan lunas LINTAS TAHUN — identik dgn admin getSPPRekap. FE tak menghitung
-    // ulang dari grid (dulu bikin angka beda saat riwayat menyeberang tahun).
-    var lunasCount       = (data.lunas_count    !== undefined) ? data.lunas_count    : (data.lunas_bulan || []).length;
-    var levelSelesai     = (data.level_selesai  !== undefined) ? data.level_selesai  : Math.max(0, Math.floor((lunasCount - 1) / 5));
-    var progressLevelIni = (data.progress_level !== undefined) ? data.progress_level : (lunasCount ? lunasCount - levelSelesai * 5 : 0);
-    var tunggakan        = (data.tunggakan      !== undefined) ? data.tunggakan      : (5 - progressLevelIni);
+    // progress, tunggakan) dihitung backend via _sppLevelInfo (supabase-core) dari
+    // AKUMULASI bulan lunas LINTAS TAHUN — identik dgn admin getSPPRekap.
+    var lunasCount       = data.lunas_count    || 0;
+    var levelSelesai     = data.level_selesai  || 0;
+    var progressLevelIni = data.progress_level || 0;
+    var tunggakan        = (data.tunggakan !== undefined) ? data.tunggakan : (5 - progressLevelIni);
 
     // ── Donut chart -- isi ring = progress level yang sedang berjalan (X dari 5 bulan) ──
     var circ = 2 * Math.PI * 15; // 94.25

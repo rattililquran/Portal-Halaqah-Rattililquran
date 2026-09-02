@@ -487,8 +487,7 @@ var MuridAPI = {
       .order('tahun',{ascending:false}).order('created_at',{ascending:false}); // JANGAN diubah — `rows` dipakai apa adanya utk daftar Infaq (terbaru dulu)
     if (error) return { status:'ok', data:{ rows:[], tunggakan:0, total_nominal:0, lunas_count:0,
       level_selesai:0, level_berjalan:1, progress_level:0, slot_level:[], menunggu_bulan:[],
-      lunas_by_year:{}, menunggu_by_year:{}, has_paid:false, tahun_ini:tahunIni,
-      lunas_bulan:[], bulan_grid:[], bulan_mulai_idx:0, tahun_aktif:tahunIni, window_size:5 } };
+      lunas_by_year:{}, menunggu_by_year:{}, has_paid:false, tahun_ini:tahunIni, window_size:5 } };
     var rows = data || [];
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var isSPP = function(r){ return r.jenis==='SPP Pribadi' || !r.jenis; };
@@ -528,14 +527,6 @@ var MuridAPI = {
       menunggu_bulan: menunggu, lunas_by_year: lunasByYear, menunggu_by_year: menungguByYear,
       total_nominal: lunasKronologis.reduce(function(s,r){ return s+r.nominal; }, 0),
       has_paid: lvl.lunas_count > 0, tahun_ini: tahunIni,
-      // ── DEPRECATED (modal konfirmasi masih pakai bulan_grid; hapus di akhir Fase 3) ──
-      lunas_bulan: (lunasByYear[tahunIni] || []).filter(function(b,i,a){ return a.indexOf(b)===i; }),
-      bulan_grid: BULAN.map(function(b){
-        var l = (lunasByYear[tahunIni]||[]).indexOf(b) >= 0;
-        var m = (menungguByYear[tahunIni]||[]).indexOf(b) >= 0;
-        return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
-      }),
-      bulan_mulai_idx: 0, tahun_aktif: tahunIni,
     }};
   },
 
