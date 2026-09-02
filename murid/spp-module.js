@@ -578,18 +578,13 @@
   function renderSPP(data) {
     if (!data) return;
     _sppData = data;
-    var card  = document.getElementById('sppCard');
-    var grid  = document.getElementById('sppBulanGridDisplay');
-    var badge = document.getElementById('sppBadge');
-    if (!card || !grid) return;
+    var card   = document.getElementById('sppCard');
+    var slotEl = document.getElementById('sppLevelSlots');
+    var badge  = document.getElementById('sppBadge');
+    if (!card || !slotEl) return;
     card.style.display = 'block';
 
-    var bulanBerjalan = new Date().getMonth() + 1;
-
-    var bulanGrid    = data.bulan_grid || [];
-    var lunasBulan   = data.lunas_bulan || [];
-    var menungguBulan= data.menunggu_bulan || [];
-    var bulanMulaiIdx    = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
+    var menungguBulan = data.menunggu_bulan || [];
 
     // Aturan PASTI: 1 level SPP = 5 pembayaran. Semua angka (lunasCount, level,
     // progress, tunggakan) dihitung backend via _sppLevelInfo dari AKUMULASI
@@ -633,23 +628,31 @@
       badge.textContent = tunggakan===0 ? '✅ Lunas' : '⚠ ' + tunggakan + ' bulan';
     }
 
-    // ── Grid 12 bulan ──
-    var BNAME = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+    // ── 5 slot LEVEL berjalan (data.slot_level = 0..5 pembayaran level ini) ──
+    var BULAN_SINGKAT = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
     var SVG_HEAD = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke-linecap="round" stroke-linejoin="round">';
-    var ICO_CHECK = SVG_HEAD + '<polyline points="20 6 9 17 4 12" stroke="#16a34a" stroke-width="3"/></svg>';
-    var ICO_CLOCK = SVG_HEAD + '<circle cx="12" cy="12" r="9" stroke="#b45309" stroke-width="2"/><polyline points="12 7 12 12 15.5 14" stroke="#b45309" stroke-width="2"/></svg>';
-    var ICO_X     = SVG_HEAD + '<polyline points="18 6 6 18" stroke="#dc2626" stroke-width="2.5"/><polyline points="6 6 18 18" stroke="#dc2626" stroke-width="2.5"/></svg>';
-    var ICO_CIRCLE= SVG_HEAD + '<circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="2"/></svg>';
-    grid.innerHTML = (bulanGrid || []).map(function(b, i) {
-      var sudahMulai = i >= bulanMulaiIdx;
-      var lewat      = (i + 1) <= bulanBerjalan;
-      var ico  = b.status==='lunas' ? ICO_CHECK : b.status==='menunggu' ? ICO_CLOCK : (sudahMulai && lewat ? ICO_X : ICO_CIRCLE);
-      var cls  = b.status==='lunas' ? 'spp-lunas' : b.status==='menunggu' ? 'spp-menunggu' : 'spp-belum';
-      return '<div class="spp-bulan ' + cls + '" title="' + b.bulan + '">'
-        + '<span class="spp-bulan-ico">' + ico + '</span>'
-        + '<span>' + BNAME[i] + '</span>'
+    var ICO_CHECK  = SVG_HEAD + '<polyline points="20 6 9 17 4 12" stroke="#16a34a" stroke-width="3"/></svg>';
+    var ICO_CIRCLE = SVG_HEAD + '<circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="2"/></svg>';
+    var slots = data.slot_level || [];
+    var _slotHtml = '';
+    for (var s = 0; s < 5; s++) {
+      var paid = slots[s];
+      var lbl  = paid
+        ? (BULAN_SINGKAT[paid.idx] + (paid.tahun !== data.tahun_ini ? " '" + String(paid.tahun).slice(-2) : ''))
+        : 'belum';
+      _slotHtml += '<div class="spp-slot ' + (paid ? 'lunas' : 'belum') + '" title="'
+        + (paid ? esc(paid.bulan + ' ' + paid.tahun) : 'Belum dibayar') + '">'
+        + '<span class="spp-slot-ico">' + (paid ? ICO_CHECK : ICO_CIRCLE) + '</span>'
+        + '<span class="spp-slot-lbl">' + lbl + '</span>'
         + '</div>';
-    }).join('');
+    }
+    slotEl.innerHTML = _slotHtml;
+    var capEl = document.getElementById('sppLevelCap');
+    if (capEl) {
+      capEl.textContent = 'Level ' + (data.level_berjalan || 1)
+        + (data.level_selesai ? ' · ' + data.level_selesai + ' level sebelumnya tuntas' : '')
+        + ' · ' + (lunasCount || 0) + ' bulan total terbayar';
+    }
 
     // Pesan pemberitahuan jika ada pembayaran menunggu verifikasi admin
     var msgEl = document.getElementById('sppMsg');
