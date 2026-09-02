@@ -341,6 +341,7 @@
     var _thn = new Date().getFullYear();
     var _selTahun = document.getElementById('sppFormTahun');
     if (_selTahun) {
+      _selTahun.onchange = null; // buang handler open sebelumnya (closure data-nya basi) sampai fetch di bawah selesai
       _selTahun.innerHTML = [_thn - 1, _thn, _thn + 1].map(function(y){
         return '<option value="' + y + '"' + (y === _thn ? ' selected' : '') + '>' + y + '</option>';
       }).join('');

@@ -525,7 +525,10 @@ var MuridAPI = {
       tunggakan: lvl.tunggakan, window_size: 5,
       slot_level: slotLevel,
       menunggu_bulan: menunggu, lunas_by_year: lunasByYear, menunggu_by_year: menungguByYear,
-      total_nominal: lunasKronologis.reduce(function(s,r){ return s+r.nominal; }, 0),
+      // total_nominal = seluruh uang SPP Pribadi lunas yg pernah dibayar (lifetime,
+      // TIDAK dedup — bayar 1 bulan 2× tetap 2× nominal).
+      total_nominal: rows.filter(function(r){ return r.status==='lunas' && isSPP(r); })
+        .reduce(function(s,r){ return s+Number(r.nominal||0); }, 0),
       has_paid: lvl.lunas_count > 0, tahun_ini: tahunIni,
     }};
   },
