@@ -368,10 +368,13 @@ var HalaqahSchedule = (function() {
   //     guru  -> { nama_halaqah, jadwal_hari, jam_mulai, jam_selesai, ... }
   //     murid -> { nama,         jadwal,      jam,        jam_selesai, ... }
   //  opts.hariIniServer : nama hari WIB dari server (opsional; fallback getUTCDay).
+  //  opts.liburResmi    : { keterangan } | null — kalau ada & hari ini hari halaqah,
+  //                       sesi hari ini dianggap batal -> state 'libur_resmi', featured
+  //                       loncat ke kejadian berikutnya.
   //  opts.now           : Date "wall-clock WIB" (opsional; utk test).
   //
   //  return: {
-  //    state: 'berlangsung'|'hari_ini'|'selesai_hari_ini'|'kosong'
+  //    state: 'berlangsung'|'hari_ini'|'selesai_hari_ini'|'libur_resmi'|'kosong'
   //         | 'jadwal_belum_diatur'|'belum_ada_halaqah',
   //    halaqah,            // objek halaqah terpilih (raw), null bila tak ada
   //    namaHalaqah,
@@ -380,6 +383,7 @@ var HalaqahSchedule = (function() {
   //    hariLabel,          // dayLabel siap-pakai ('3 hari lagi · Senin' utk d 3..6)
   //    hariNama,           // nama hari spesifik kejadian terdekat ('Jumat')
   //    jamMulai, jamSelesai, jamRange,   // "HH:MM" / "03:00–04:00"
+  //    libur,             // { keterangan } saat state 'libur_resmi', selain itu null
   //    sesiLain,           // # halaqah LAIN yg jatuh di hari terpilih yg sama
   //    sesiHariIni: { total, selesai, berlangsung, akanDatang, berikutnyaJam },
   //  }
@@ -395,10 +399,13 @@ var HalaqahSchedule = (function() {
     var EMPTY = {
       state: 'belum_ada_halaqah', halaqah: null, namaHalaqah: '',
       daysUntil: null, dayLabel: '', hariLabel: '', hariNama: '',
-      jamMulai: '', jamSelesai: '', jamRange: '', sesiLain: 0,
+      jamMulai: '', jamSelesai: '', jamRange: '', libur: null, sesiLain: 0,
       sesiHariIni: { total: 0, selesai: 0, berlangsung: 0, akanDatang: 0, berikutnyaJam: '' },
     };
     if (!list.length) return EMPTY;
+
+    var liburKeterangan = opts.liburResmi ? (opts.liburResmi.keterangan || '') : null;
+    var isLibur = opts.liburResmi != null;
 
     var items = list.map(function(h) {
       var jm = _hhmm(h.jam_mulai != null ? h.jam_mulai : h.jam);
@@ -411,14 +418,16 @@ var HalaqahSchedule = (function() {
         jamSelesai: js,
       };
       it.dRaw = _daysUntil(it.jadwal, todayIdx, false);
-      // Refinemen intra-hari HANYA bila jam valid & sesi tak melewati tengah malam
-      // (js > jm). Sesi lintas-tengah-malam -> pakai logika level-hari saja (aman,
-      // tak akan salah bilang "selesai"/"berlangsung").
-      var intraOk = it.dRaw === 0 && jm && js && js > jm;
+      // Libur resmi hari ini -> sesi hari ini batal: tak berlangsung, tak akan
+      // datang, tak "selesai"; kejadian dihitung ke hari terjadwal berikutnya.
+      it.liburHariIni = isLibur && it.dRaw === 0;
+      // Refinemen intra-hari HANYA bila jam valid, bukan libur, & sesi tak melewati
+      // tengah malam (js > jm). Sesi lintas-tengah-malam -> logika level-hari saja.
+      var intraOk = it.dRaw === 0 && !it.liburHariIni && jm && js && js > jm;
       it.berlangsung    = intraOk && nowHHMM >= jm && nowHHMM < js;
       it.selesaiHariIni = intraOk && nowHHMM >= js;
-      it.akanDatang     = it.dRaw === 0 && !it.berlangsung && !it.selesaiHariIni;
-      it.dEff = it.selesaiHariIni ? _daysUntil(it.jadwal, todayIdx, true) : it.dRaw;
+      it.akanDatang     = it.dRaw === 0 && !it.liburHariIni && !it.berlangsung && !it.selesaiHariIni;
+      it.dEff = (it.liburHariIni || it.selesaiHariIni) ? _daysUntil(it.jadwal, todayIdx, true) : it.dRaw;
       return it;
     });
 
@@ -443,7 +452,9 @@ var HalaqahSchedule = (function() {
           namaHalaqah: (featured ? featured.nama : (list[0].nama_halaqah || list[0].nama)) || '',
         });
       }
-      state = items.some(function(x) { return x.selesaiHariIni; }) ? 'selesai_hari_ini' : 'kosong';
+      state = items.some(function(x) { return x.liburHariIni; }) ? 'libur_resmi'
+            : items.some(function(x) { return x.selesaiHariIni; }) ? 'selesai_hari_ini'
+            : 'kosong';
     }
 
     var isToday = state === 'berlangsung' || state === 'hari_ini';
@@ -475,6 +486,7 @@ var HalaqahSchedule = (function() {
       jamMulai: featured.jamMulai,
       jamSelesai: featured.jamSelesai,
       jamRange: featured.jamMulai ? (featured.jamMulai + (featured.jamSelesai ? '–' + featured.jamSelesai : '')) : '',
+      libur: state === 'libur_resmi' ? { keterangan: liburKeterangan || '' } : null,
       sesiLain: sesiLain,
       sesiHariIni: {
         total:        items.filter(function(x) { return x.dRaw === 0; }).length,

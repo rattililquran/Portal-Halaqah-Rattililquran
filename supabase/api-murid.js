@@ -110,18 +110,24 @@ var MuridAPI = {
       ? _sb.from('level').select('partner_belajar_enabled, jumlah_pertemuan').eq('nama_level', anggota.halaqah.level).maybeSingle()
       : Promise.resolve({ data: null });
 
+    // Libur resmi hari ini (global semua halaqah) -- utk kartu greeting. Non-fatal.
+    var liburResmiQuery = _sb.from('hari_libur_resmi')
+      .select('keterangan').eq('tanggal', _todayJakarta()).maybeSingle();
+
     var [
       { data: pengumuman },
       { data: prRaw },
       qiyamCountRes,
       qiyamLatestRes,
-      levelBelajarRes
+      levelBelajarRes,
+      liburResmiRes
     ] = await Promise.all([
       pengumumanQuery,
       prQuery,
       qiyamCountQuery,
       qiyamLatestQuery,
-      levelBelajarQuery
+      levelBelajarQuery,
+      liburResmiQuery.then(function(r) { return r; }, function() { return { data: null }; })
     ]);
 
     _check(qiyamLatestRes.error, 'getDashboard - qiyamLatest');
@@ -266,6 +272,7 @@ var MuridAPI = {
       poin_kamera_detail: { terbuka: kamTerbuka, selalu_tertutup: kamSeltup, sering_tertutup: kamSegtup },
       pengumuman : pengumuman || [],
       pr_aktif   : prAktif,
+      libur_resmi_hari_ini: (liburResmiRes && liburResmiRes.data) || null,
       daurah     : daurahData,
       qiyam: {
         total_setoran: qiyamCountRes.count || 0,
