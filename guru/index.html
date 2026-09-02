@@ -8751,11 +8751,29 @@ function showPreview() {
   const BADGE_PV = {H:'b-green',T:'b-purple',I:'b-amber',A:'b-red'};
   nilaiList.innerHTML = nilaiItems.map(m => {
     const skipStatus = m.status === 'A' || m.status === 'I';
-    // Fix 5: KBM Qiyam — hanya tampilkan nama + badge presensi, tanpa adab/kamera
+    // KBM Qiyam: tampilkan nama + badge presensi + ringkasan apa yg AKAN disimpan
+    // (jumlah setoran + indikator koreksi/catatan/target). Sumber = state klien
+    // yg sama persis dgn yg dibaca doSelesaiKBM: window._hafalanKbmCache (keranjang)
+    // & window._nilaiCache (koreksi/catatan) — jadi guru bisa memverifikasi sebelum
+    // sesi ditutup, bukan sekadar percaya.
     if (isQiyamPreview) {
+      const _rawSet = (window._hafalanKbmCache || {})[m.id_murid];
+      const _nSet = Array.isArray(_rawSet) ? _rawSet.length : ((_rawSet && _rawSet.jenis) ? 1 : 0);
+      const _nc = (window._nilaiCache || {})[m.id_murid] || {};
+      const _adaKor = !!String(_nc.koreksi || '').trim();
+      const _adaCat = !!String(_nc.catatan || '').trim();
+      const _rawTgt = (window._hafalanKbmTarget || {})[m.id_murid] || {};
+      const _adaTgt = !!(_rawTgt.tgtSrt || (Array.isArray(_rawSet) && _rawSet[0] && _rawSet[0].tgtSrt));
+      const _isH = m.status === 'H' || m.status === 'T';
       return '<div class="preview-murid-item">'
         + '<span style="font-weight:600">' + esc(m.nama) + '</span>'
+        + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'
         + '<span class="badge ' + (BADGE_PV[m.status]||'b-gray') + '" style="font-size:11px">' + esc(m.hadir) + '</span>'
+        + (_isH ? '<span class="badge ' + (_nSet ? 'b-green' : 'b-red') + '" style="font-size:11px">' + _nSet + ' setoran</span>' : '')
+        + (_isH && _adaKor ? '<span title="Ada koreksi tahsin" style="font-size:13px">✏️</span>' : '')
+        + (_isH && _adaCat ? '<span title="Ada catatan" style="font-size:13px">📝</span>' : '')
+        + (_isH && _adaTgt ? '<span title="Ada target hafalan berikutnya" style="font-size:13px">🎯</span>' : '')
+        + '</div>'
       + '</div>';
     }
     if (isMicroteachingPreview) {

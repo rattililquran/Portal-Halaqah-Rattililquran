@@ -3412,23 +3412,48 @@
         }
 
         // Koreksi & Catatan Tahsin per murid -> nilai_kbm. Dijalankan SETELAH loop
-        // setoran (biar sinkron kamera di addSetoranHafalan tak ketimpa). Non-blok:
-        // setoran sudah aman, koreksi bisa diperbaiki lewat Edit KBM.
+        // setoran (biar sinkron kamera di addSetoranHafalan tak ketimpa).
+        //
+        // Sumber kebenaran = window._nilaiCache (bukan DOM). _saveHafalanKbmCache()
+        // dipanggil dulu utk flush editor poin DOM -> _nilaiCache; kalau kartu
+        // Hafalan tak ter-render (mis. resume lintas perangkat) _nilaiCache tetap
+        // berisi nilai hasil hydrate draft/server. _nilaiCache inilah yg ikut
+        // draft lokal + server-sync, jadi yg tersimpan = yg tersinkron.
+        //
+        // BLOKIR penutupan sesi bila gagal (koreksi/catatan = bagian inti KBM,
+        // BUKAN "non-blok" lagi): retry singkat dulu, kalau tetap gagal -> batal
+        // tutup sesi, draft utuh, guru bisa "Selesaikan" lagi (idempoten: setoran
+        // sudah _saved -> di-skip, simpanKoreksiCatatanKbm = .update() aman diulang).
+        _saveHafalanKbmCache();
         for (const m of muridSesi) {
           const stKC = presensiMapPv[m.id_murid] || 'H';
           if (!['H','T'].includes(stKC)) continue;
-          const eidKC = m.id_murid.replace(/[^a-zA-Z0-9-_]/g,'_');
-          const korEl = document.getElementById('hfkbm-koreksi-'+eidKC);
-          const catEl = document.getElementById('hfkbm-catatan-'+eidKC);
-          const korV  = korEl ? korEl.value.trim() : '';
-          const catV  = catEl ? catEl.value.trim() : '';
+          const ncKC = (window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
+          const korV = String(ncKC.koreksi || '').trim();
+          const catV = String(ncKC.catatan || '').trim();
           if (!korV && !catV) continue;
-          try {
-            await window.HQ.GuruAPI.simpanKoreksiCatatanKbm({
-              id_kbm: sesiAktif.id_kbm, id_murid: m.id_murid,
-              koreksi_tahsin: korV || null, catatan_murid: catV || null,
-            });
-          } catch (eKC) { console.warn('simpanKoreksiCatatanKbm gagal:', eKC && eKC.message); }
+          var _kcOk = false, _kcErr = null;
+          for (var _kcTry = 0; _kcTry < 3 && !_kcOk; _kcTry++) {
+            try {
+              await window.HQ.GuruAPI.simpanKoreksiCatatanKbm({
+                id_kbm: sesiAktif.id_kbm, id_murid: m.id_murid,
+                koreksi_tahsin: korV || null, catatan_murid: catV || null,
+              });
+              _kcOk = true;
+            } catch (eKC) {
+              _kcErr = eKC;
+              console.warn('simpanKoreksiCatatanKbm gagal (percobaan ' + (_kcTry+1) + '):', eKC && eKC.message);
+              if (_kcTry < 2) await new Promise(function(r){ setTimeout(r, 800); });
+            }
+          }
+          if (!_kcOk) {
+            console.error('Gagal menyimpan koreksi/catatan KBM Qiyam:', _kcErr);
+            try { _saveKbmDraftLocal(sesiAktif.id_kbm); } catch (e) {}
+            hideLoad();
+            setBtn('btnSelesai', false, 'Selesaikan & Tutup Sesi');
+            toast('Gagal menyimpan koreksi/catatan untuk ' + m.nama_murid + '. Cek koneksi lalu tekan "Selesaikan" lagi.', 'error');
+            return;
+          }
         }
       } else {
         for (const m of muridSesi) {
