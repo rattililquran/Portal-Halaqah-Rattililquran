@@ -466,25 +466,37 @@ async function loadSPPGlobalStrip(force) {
     var res = await window.HQ.AdminAPI.getRekapGlobal();
     var g = res.data || {};
     var rp = function(n){ return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); };
-    var i  = function(label, val, cls){ return '<span class="gs-i">' + label + '<b' + (cls ? ' class="' + cls + '"' : '') + '>' + val + '</b></span>'; };
+    var rpShort = function(n){
+      n = Math.round(Number(n) || 0); var neg = n < 0 ? '−' : ''; n = Math.abs(n);
+      if (n >= 1e9)  return neg + 'Rp ' + (n / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' M';
+      if (n >= 1e6)  return neg + 'Rp ' + (n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt';
+      if (n >= 1e3)  return neg + 'Rp ' + Math.round(n / 1e3) + ' rb';
+      return neg + 'Rp ' + n;
+    };
+    var cell = function(lbl, val, sub, cls, split){
+      return '<div class="gg-cell' + (split ? ' gg-split' : '') + '">'
+        + '<div class="gg-lbl">' + lbl + '</div>'
+        + '<div class="gg-val' + (cls ? ' ' + cls : '') + '">' + val + '</div>'
+        + (sub ? '<div class="gg-sub">' + sub + '</div>' : '')
+        + '</div>';
+    };
+    var totalMurid = (Number(g.murid_non_beasiswa) || 0) + Number(g.beasiswa || 0);
+    var sldNeg = Number(g.saldo) < 0;
     el.innerHTML =
-      '<span class="gs-tag">Global · semua periode</span>'
-      + '<span class="gs-row">'
-      +   i('SPP', rp(g.spp))
-      +   i('Infaq', rp(g.infaq))
-      +   i('Total masuk', rp(g.total_masuk))
-      +   i('Ihsan Guru', rp(g.ihsan))
-      +   i('Saldo', (Number(g.saldo) < 0 ? '−' : '') + rp(Math.abs(Number(g.saldo) || 0)), Number(g.saldo) < 0 ? 'gs-neg' : 'gs-ok')
-      + '</span>'
-      + '<span class="gs-div"></span>'
-      + '<span class="gs-row">'
-      +   i('Lunas', g.lunas, 'gs-ok')
-      +   i('Menunggak', g.menunggak, 'gs-warn')
-      +   i('Belum tertagih', rp(g.belum_tertagih), 'gs-warn')
-      +   i('Beasiswa', g.beasiswa)
-      +   i('Total murid', (Number(g.murid_non_beasiswa) || 0) + Number(g.beasiswa || 0))
-      + '</span>';
-    el.style.display = 'flex';
+      '<div class="gg-hd">'
+      +   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+      +   '<span class="gg-t">Ringkasan Global</span>'
+      +   '<span class="gg-note">semua periode &amp; tahun · ' + totalMurid + ' murid</span>'
+      + '</div>'
+      + '<div class="gg-body">'
+      +   cell('Total Masuk', rp(g.total_masuk), 'SPP ' + rpShort(g.spp) + ' · Infaq ' + rpShort(g.infaq))
+      +   cell('Ihsan Guru', rp(g.ihsan), 'gaji guru terbayar')
+      +   cell('Saldo (Net)', (sldNeg ? '−' : '') + rp(Math.abs(Number(g.saldo) || 0)), 'setelah ihsan', sldNeg ? 'gg-neg' : 'gg-ok', true)
+      +   cell('Lunas', g.lunas, 'dari ' + (Number(g.murid_non_beasiswa) || 0) + ' murid', 'gg-ok')
+      +   cell('Menunggak', g.menunggak, 'belum tertagih ' + rpShort(g.belum_tertagih), 'gg-warn')
+      +   cell('Beasiswa', g.beasiswa, 'SPP dibebaskan')
+      + '</div>';
+    el.style.display = 'block';
     _sppGlobalTs = Date.now();
   } catch (e) {
     console.warn('loadSPPGlobalStrip', e);
