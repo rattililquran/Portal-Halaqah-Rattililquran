@@ -709,6 +709,12 @@
       if (cont) cont.innerHTML = emptyHTML('','Tidak ada murid','');
       return;
     }
+    // Reset penanda "sengaja dibuka" saat sesi berganti (bukan sekadar re-render).
+    var _saNow = getSesiAktif();
+    if (_saNow && window._nmManualOpenKbm !== _saNow.id_kbm) {
+      _nmManualOpen = {};
+      window._nmManualOpenKbm = _saNow.id_kbm;
+    }
     var presensiMap = {};
     document.querySelectorAll('#presensiList .pb.on').forEach(function(btn) {
       presensiMap[btn.dataset.id] = btn.dataset.k;
@@ -769,11 +775,16 @@
         + '</div>';
       }
 
-      return '<div class="nilai-murid-card" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-        + '<div class="nm-header" style="margin-bottom:0;">'
+      var _rawItems = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+      var hasItems  = Array.isArray(_rawItems) ? _rawItems.length > 0 : !!(_rawItems && _rawItems.jenis);
+      var startCollapsed = hasItems && !_nmManualOpen[mid];
+      var cardCls = 'nilai-murid-card' + (hasItems ? ' terisi' : '') + (startCollapsed ? ' collapsed' : '');
+
+      return '<div class="' + cardCls + '" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
+        + '<div class="nm-header" style="margin-bottom:0;" onclick="toggleHfKbmCard(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
           + '<div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">' + noUrut + '</span> ' + esc(m.nama_murid) + '</span></div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
-            + '<button onclick="showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
+            + '<button onclick="event.stopPropagation();showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
               + 'style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.2s;white-space:nowrap" '
               + 'title="Riwayat Setoran Semua Surat" '
               + 'onmouseover="this.style.background=\'rgba(255,255,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.18)\'">'
@@ -781,8 +792,12 @@
               + 'Riwayat'
             + '</button>'
             + '<span class="nm-badge-hadir ' + badge + '">' + badgeTxt + '</span>'
+            + '<span class="nm-chevron">▾</span>'
           + '</div>'
         + '</div>'
+        + '<div class="nm-summary" id="hfkbm-sum-' + eid + '">' + esc(_hfKbmCardSummaryText(mid)) + '</div>'
+        + '<div class="nm-body-wrap"' + (startCollapsed ? ' style="display:none"' : '') + '>'
+        + '<div class="nm-body" onfocusout="_hfKbmCardFocusOut(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
         + '<div style="padding:10px 12px 12px">'
           + targetSubtext
           + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
@@ -853,7 +868,9 @@
               + '<div><input type="number" class="fc" id="hfkbm-tgt-sampai-' + eid + '" min="1" placeholder="Sampai" style="font-size:12px"></div>'
             + '</div>'
           + '</div>'
-        + '</div>'
+        + '</div>'   /* padding wrapper */
+        + '</div>'   /* .nm-body */
+        + '</div>'   /* .nm-body-wrap */
       + '</div>';
     }
 
@@ -980,6 +997,7 @@
   function renderHafalanKbmStagedList(mid) {
     var eid = _hfKbmEid(mid);
     var container = document.getElementById('hfkbm-staged-list-' + eid);
+    if (typeof _hfKbmUpdateCardState === 'function') _hfKbmUpdateCardState(mid);
     if (!container) return;
     var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
     var list = Array.isArray(raw) ? raw : [];
@@ -1007,6 +1025,102 @@
       + '</div>';
     }).join('');
     container.innerHTML = html;
+  }
+
+  // ── Buka/tutup kartu murid KBM Qiyam (hemat ruang, gaya KBM Reguler) ──
+  // "terisi" = keranjang murid sudah punya minimal 1 item. Manual toggle via
+  // header + auto-collapse saat fokus benar-benar meninggalkan kartu.
+  function _hfKbmCardSummaryText(mid) {
+    var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+    var list = Array.isArray(raw) ? raw : (raw && raw.jenis ? [raw] : []);
+    if (!list.length) return '';
+    var nc = (window._nilaiCache && window._nilaiCache[mid]) || {};
+    var korCount = nc.koreksi ? String(nc.koreksi).split(String.fromCharCode(10)).filter(function(t){ return t.trim(); }).length : 0;
+    var parts = [list.length + ' surat di keranjang'];
+    if (korCount) parts.push(korCount + ' koreksi');
+    if (nc.catatan && String(nc.catatan).trim()) parts.push('ada catatan');
+    return parts.join(' · ');
+  }
+
+  function _hfKbmUpdateCardState(mid) {
+    var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
+    if (!card) return;
+    var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+    var hasItems = Array.isArray(raw) ? raw.length > 0 : !!(raw && raw.jenis);
+    card.classList.toggle('terisi', hasItems);
+    if (!hasItems && card.classList.contains('collapsed')) {
+      card.classList.remove('collapsed');
+      _hfKbmSetBodyCollapsed(mid, false);
+    }
+    var sum = document.getElementById('hfkbm-sum-' + _hfKbmEid(mid));
+    if (sum) sum.textContent = _hfKbmCardSummaryText(mid);
+  }
+
+  function _hfKbmSetBodyCollapsed(mid, collapsed) {
+    var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
+    var wrap = card && card.querySelector('.nm-body-wrap');
+    if (!wrap) return;
+    if (wrap._nmTransEnd) { wrap.removeEventListener('transitionend', wrap._nmTransEnd); wrap._nmTransEnd = null; }
+    if (wrap._nmTimer)    { clearTimeout(wrap._nmTimer); wrap._nmTimer = null; }
+    wrap.style.overflow = 'hidden';   // dropdown surat tak boleh bocor selagi animasi
+
+    var finish = function() {
+      wrap.removeEventListener('transitionend', onEnd);
+      wrap._nmTransEnd = null;
+      if (wrap._nmTimer) { clearTimeout(wrap._nmTimer); wrap._nmTimer = null; }
+      if (collapsed) {
+        if (wrap.style.maxHeight === '0px') wrap.style.display = 'none';
+      } else {
+        wrap.style.maxHeight = '';       // lepas batas supaya konten yg berubah tak ke-clip
+        wrap.style.overflow = 'visible'; // biar dropdown surat bisa keluar batas kartu
+      }
+    };
+    var onEnd = function(e) { if (e.propertyName === 'max-height') finish(); };
+
+    if (collapsed) {
+      wrap.style.maxHeight = wrap.scrollHeight + 'px';
+      void wrap.offsetHeight;
+      wrap.style.maxHeight = '0px';
+    } else {
+      wrap.style.display = '';
+      wrap.style.maxHeight = '0px';
+      void wrap.offsetHeight;
+      wrap.style.maxHeight = wrap.scrollHeight + 'px';
+    }
+    wrap._nmTransEnd = onEnd;
+    wrap.addEventListener('transitionend', onEnd);
+    // Fallback: transition dimatikan (prefers-reduced-motion) → transitionend
+    // tak pernah datang; tetap bersihkan state supaya overflow/maxHeight benar.
+    wrap._nmTimer = setTimeout(finish, 340);
+  }
+
+  function toggleHfKbmCard(mid) {
+    var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
+    if (!card || !card.classList.contains('terisi')) return;
+    var willCollapse = !card.classList.contains('collapsed');
+    card.classList.toggle('collapsed', willCollapse);
+    _hfKbmSetBodyCollapsed(mid, willCollapse);
+    if (willCollapse) delete _nmManualOpen[mid]; else _nmManualOpen[mid] = true;
+    var sum = document.getElementById('hfkbm-sum-' + _hfKbmEid(mid));
+    if (sum) sum.textContent = _hfKbmCardSummaryText(mid);
+  }
+
+  function _hfKbmCardFocusOut(mid) {
+    setTimeout(function() {
+      var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
+      if (!card || card.contains(document.activeElement)) return;
+      // Jangan auto-collapse selagi ada dialog/toast (Auto-Split / konfirmasi /
+      // notif) terbuka — fokus pindah ke situ, bukan berarti guru selesai.
+      if (document.querySelector('#confirmModalOverlay.open, .overlay.open, .overlay.show, .notif-overlay.show')) return;
+      var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
+      var hasItems = Array.isArray(raw) ? raw.length > 0 : !!(raw && raw.jenis);
+      if (hasItems && !_nmManualOpen[mid] && !card.classList.contains('collapsed')) {
+        card.classList.add('collapsed');
+        _hfKbmSetBodyCollapsed(mid, true);
+        var sum = document.getElementById('hfkbm-sum-' + _hfKbmEid(mid));
+        if (sum) sum.textContent = _hfKbmCardSummaryText(mid);
+      }
+    }, 0);
   }
 
   function updateHfKbmPoin(mid) {
@@ -1156,6 +1270,14 @@
     // JANGAN clear hfkbm-koreksi-/hfkbm-catatan- di sini — itu per-sesi, bukan per-surat.
     var infoEl = document.getElementById('hfkbm-ayat-info-'+eid);
     if (infoEl) infoEl.textContent = '— pilih surat berikutnya —';
+
+    // Tahan fokus di dalam kartu (ke dropdown Jenis) supaya kartu tak keburu
+    // auto-collapse — WebKit tak fokuskan <button> saat di-tap, jadi tanpa ini
+    // kartu collapse tiap kali "+ Tambah" diklik. Select tak auto-buka saat fokus.
+    if (!window._hfKbmBulkAdd) {
+      var jnsEl = document.getElementById('hfkbm-jenis-'+eid);
+      if (jnsEl) { try { jnsEl.focus(); } catch(e){} }
+    }
 
     renderHafalanKbmStagedList(mid);
     updateHfKbmPoin(mid);
@@ -4168,6 +4290,8 @@
   window.updateNmSummary = updateNmSummary;
   window.toggleNilaiCard = toggleNilaiCard;
   window._nmCardFocusOut = _nmCardFocusOut;
+  window.toggleHfKbmCard = toggleHfKbmCard;
+  window._hfKbmCardFocusOut = _hfKbmCardFocusOut;
   window.toggleTemplateKoreksi = toggleTemplateKoreksi;
   window.renderNilaiList = renderNilaiList;
   window.doSelesaiKBM = doSelesaiKBM;
