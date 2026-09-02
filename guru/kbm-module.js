@@ -781,7 +781,7 @@
       var cardCls = 'nilai-murid-card' + (hasItems ? ' terisi' : '') + (startCollapsed ? ' collapsed' : '');
 
       return '<div class="' + cardCls + '" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-        + '<div class="nm-header" style="margin-bottom:0;" onclick="toggleHfKbmCard(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
+        + '<div class="nm-header nm-header-clickable" style="margin-bottom:0;cursor:pointer" title="Ketuk untuk buka/tutup kartu">'
           + '<div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">' + noUrut + '</span> ' + esc(m.nama_murid) + '</span></div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
             + '<button onclick="event.stopPropagation();showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
@@ -893,6 +893,17 @@
 
     if (cont.dataset.listenersBound) return;
     cont.dataset.listenersBound = '1';
+
+    // Buka/tutup kartu murid: delegasi klik pada header (bukan inline onclick,
+    // supaya tak bergantung markup & tetap jalan tiap re-render).
+    cont.addEventListener('click', function(e) {
+      if (e.target.closest && e.target.closest('button, a, input, select, textarea, .nm-points')) return;
+      var hdr = e.target.closest && e.target.closest('.nm-header');
+      if (!hdr) return;
+      var cardEl = hdr.closest('.nilai-murid-card[data-mid]');
+      if (!cardEl) return;
+      toggleHfKbmCard(cardEl.getAttribute('data-mid'));
+    });
 
     cont.addEventListener('input', function(e) {
       _kbmDraftSaveDebounced();
@@ -1047,13 +1058,16 @@
     if (!card) return;
     var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
     var hasItems = Array.isArray(raw) ? raw.length > 0 : !!(raw && raw.jenis);
+    var wasTerisi = card.classList.contains('terisi');
     card.classList.toggle('terisi', hasItems);
-    if (!hasItems && card.classList.contains('collapsed')) {
+    // Item terakhir baru saja dihapus & kartu sedang tertutup → buka lagi
+    // (jangan biarkan kartu kosong ke-collapse tak sengaja).
+    if (!hasItems && wasTerisi && card.classList.contains('collapsed')) {
       card.classList.remove('collapsed');
       _hfKbmSetBodyCollapsed(mid, false);
     }
     var sum = document.getElementById('hfkbm-sum-' + _hfKbmEid(mid));
-    if (sum) sum.textContent = _hfKbmCardSummaryText(mid);
+    if (sum && card.classList.contains('collapsed')) sum.textContent = _hfKbmCardSummaryText(mid);
   }
 
   function _hfKbmSetBodyCollapsed(mid, collapsed) {
@@ -1096,13 +1110,14 @@
 
   function toggleHfKbmCard(mid) {
     var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
-    if (!card || !card.classList.contains('terisi')) return;
+    if (!card) return;
     var willCollapse = !card.classList.contains('collapsed');
     card.classList.toggle('collapsed', willCollapse);
     _hfKbmSetBodyCollapsed(mid, willCollapse);
+    // Tandai manual-open supaya auto-collapse (focusout) tak lawan pilihan guru.
     if (willCollapse) delete _nmManualOpen[mid]; else _nmManualOpen[mid] = true;
     var sum = document.getElementById('hfkbm-sum-' + _hfKbmEid(mid));
-    if (sum) sum.textContent = _hfKbmCardSummaryText(mid);
+    if (sum) sum.textContent = willCollapse ? _hfKbmCardSummaryText(mid) : '';
   }
 
   function _hfKbmCardFocusOut(mid) {
