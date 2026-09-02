@@ -472,6 +472,9 @@ function _rtBuildMuridRaport(murid, setoran, cfg, koreksiCatatan) {
     if (kc.catatan_murid  && kc.catatan_murid.trim())  parts.push('Catatan: ' + kc.catatan_murid.trim());
     if (parts.length) catatanList.push({ tanggal: kc.tanggal, surat: '', catatan: parts.join('\n'), guru: '' });
   });
+  // Urut kronologis sebelum ambil 5 terakhir (per-surat pakai created_at ISO,
+  // per-sesi pakai tanggal 'YYYY-MM-DD' — bandingkan 10 char pertama biar setara).
+  catatanList.sort(function(a, b){ return String(a.tanggal||'').slice(0,10).localeCompare(String(b.tanggal||'').slice(0,10)); });
 
   // Target aktif (setoran terbaru yang punya target)
   var targetAktif = null;

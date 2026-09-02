@@ -781,7 +781,7 @@
       var cardCls = 'nilai-murid-card' + (hasItems ? ' terisi' : '') + (startCollapsed ? ' collapsed' : '');
 
       return '<div class="' + cardCls + '" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-        + '<div class="nm-header nm-header-clickable" style="margin-bottom:0;cursor:pointer" title="Ketuk untuk buka/tutup kartu">'
+        + '<div class="nm-header nm-header-clickable" style="margin-bottom:0;cursor:pointer" title="Ketuk untuk buka/tutup kartu" onclick="if(!event.target.closest(\'button,a,input,select,textarea\'))toggleHfKbmCard(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
           + '<div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">' + noUrut + '</span> ' + esc(m.nama_murid) + '</span></div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
             + '<button onclick="event.stopPropagation();showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
@@ -1111,6 +1111,10 @@
   function toggleHfKbmCard(mid) {
     var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
     if (!card) return;
+    // Guard double-fire (inline onclick + delegasi klik bisa keduanya kena).
+    if (card._tgLock) return;
+    card._tgLock = true;
+    setTimeout(function(){ card._tgLock = false; }, 60);
     var willCollapse = !card.classList.contains('collapsed');
     card.classList.toggle('collapsed', willCollapse);
     _hfKbmSetBodyCollapsed(mid, willCollapse);
@@ -1124,9 +1128,10 @@
     setTimeout(function() {
       var card = document.getElementById('hfkbm-card-' + _hfKbmEid(mid));
       if (!card || card.contains(document.activeElement)) return;
-      // Jangan auto-collapse selagi ada dialog/toast (Auto-Split / konfirmasi /
-      // notif) terbuka — fokus pindah ke situ, bukan berarti guru selesai.
-      if (document.querySelector('#confirmModalOverlay.open, .overlay.open, .overlay.show, .notif-overlay.show')) return;
+      // Jangan auto-collapse selagi dialog/toast yang RELEVAN terbuka (fokus
+      // pindah ke situ, bukan berarti guru selesai): showConfirm (Auto-Split /
+      // "belum masuk keranjang"), modal Riwayat Koreksi, notif blocking.
+      if (document.querySelector('#confirmModalOverlay.open, #modalKoreksi.open, #notifOverlay.show')) return;
       var raw = window._hafalanKbmCache && window._hafalanKbmCache[mid];
       var hasItems = Array.isArray(raw) ? raw.length > 0 : !!(raw && raw.jenis);
       if (hasItems && !_nmManualOpen[mid] && !card.classList.contains('collapsed')) {

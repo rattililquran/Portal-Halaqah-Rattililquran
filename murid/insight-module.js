@@ -59,8 +59,8 @@
   function legendKamera() {
     return '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--text-3);margin-bottom:10px">'
       + legendDot('var(--green)', 'Terbuka')
-      + legendDot('var(--amber)', 'Sering Tertutup')
-      + legendDot('var(--red)', 'Selalu Tertutup')
+      + legendDot('var(--amber)', 'Sering Buka-Tutup')
+      + legendDot('var(--red)', 'Tertutup')
       + '</div>';
   }
 
@@ -81,8 +81,8 @@
   // yang bersih (tidak ada masalah kamera) tidak penuh angka "0x" tak berguna.
   function kameraCaption(nSering, nSelalu) {
     var parts = [];
-    if (nSelalu) parts.push('🔴 selalu tertutup ' + nSelalu + '×');
-    if (nSering) parts.push('🟠 sering tertutup ' + nSering + '×');
+    if (nSelalu) parts.push('🔴 kamera tertutup ' + nSelalu + '×');
+    if (nSering) parts.push('🟠 sering buka-tutup ' + nSering + '×');
     if (!parts.length) return '';
     return '<div style="margin:2px 0 0 60px;font-size:10.5px;color:var(--text-3)">' + parts.join(' · ') + '</div>';
   }
