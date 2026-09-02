@@ -163,6 +163,8 @@
       window._microteachingKbmCache = {};
       window._hfKbmZiyadah   = {};
       window._lastTargetDataKbm = null;
+      window._daurahAssessmentMap = {};
+      window._daurahMuridJawaban  = {};
       _pruneKbmDrafts(r.data.id_kbm);
       window._presensiState = {};
       window._presensiStateKbm = r.data.id_kbm;
@@ -387,11 +389,21 @@
             }));
             
             window._daurahAssessmentMap = window._daurahAssessmentMap || {};
+            window._daurahMuridJawaban = window._daurahMuridJawaban || {};
             r.data.forEach(m => {
               window._daurahAssessmentMap[m.id_murid] = window._daurahAssessmentMap[m.id_murid] || {};
+              window._daurahMuridJawaban[m.id_murid] = window._daurahMuridJawaban[m.id_murid] || {};
               m.detail.forEach(d => {
-                // Gunakan jawaban guru, jika belum ada gunakan jawaban murid, jika belum ada null
-                window._daurahAssessmentMap[m.id_murid][d.id_item] = d.jawaban_guru || d.jawaban || null;
+                // status_guru = PENILAIAN GURU LANGSUNG (spt adab/kamera), BUKAN warisan
+                // jawaban self-assessment murid — lihat api-murid.js getPenilaianGuru &
+                // patch_081 (jawaban murid jadi status_guru = raport bisa LULUS tanpa
+                // guru). Prefill HANYA dari jawaban_guru. Jangan timpa nilai yg sudah ada
+                // di map (mis. ketukan sesi ini yg dipulihkan dari draft server).
+                if (window._daurahAssessmentMap[m.id_murid][d.id_item] == null) {
+                  window._daurahAssessmentMap[m.id_murid][d.id_item] = d.jawaban_guru || null;
+                }
+                // Jawaban murid disimpan terpisah — hanya utk rujukan tampilan.
+                window._daurahMuridJawaban[m.id_murid][d.id_item] = d.jawaban || null;
               });
             });
           }
@@ -2083,7 +2095,9 @@
     if (d.hafalan_form)  window._hafalanKbmForm         = _mergeFill(window._hafalanKbmForm, d.hafalan_form, _hafKbmHasContent, force);
     if (d.target)        window._hafalanKbmTarget       = _mergeFill(window._hafalanKbmTarget, d.target, anyData, force);
     if (d.microteaching) window._microteachingKbmCache  = _mergeFill(window._microteachingKbmCache, d.microteaching, anyData, force);
-    if (d.daurah_asmt)   window._daurahAssessmentMap    = d.daurah_asmt;
+    // daurah_asmt: merge per-murid (bukan replace) — draft `{}` tak menghapus map
+    // in-memory, & saat reconcile force-hydrate nilai server menang per murid.
+    if (d.daurah_asmt)   window._daurahAssessmentMap    = _mergeFill(window._daurahAssessmentMap, d.daurah_asmt, anyData, force);
     // Jurnal & latihan mandiri: field-nya statis di page-jurnal (selalu ter-render
     // di DOM), jadi aman dipulihkan di sini saat resume draft (lanjutSesi).
     if (d.jurnal) _restoreJurnalDraft(d.jurnal);
@@ -2116,7 +2130,9 @@
       window.HQ.GuruAPI.saveKbmDraftServer({
         id_kbm     : sesiAktif.id_kbm,
         jenis_sesi : sesiAktif.jenis_sesi,
-        draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {} },
+        // daurah_asmt IKUT sinkron server (dulu lokal-saja → penilaian daurah di
+        // tablet hilang saat sesi ditutup dari HP lain).
+        draft      : { nilai: d.nilai || {}, hafalan: d.hafalan || {}, microteaching: d.microteaching || {}, daurah_asmt: d.daurah_asmt || {} },
       }).then(function(){ _setKbmSyncStatus('synced'); })
         .catch(function(){ _setKbmSyncStatus('offline'); });
     } catch (e) { _setKbmSyncStatus('offline'); }
@@ -2140,9 +2156,10 @@
         var dd = server.draft;
         try {
           // Pertahankan draft lokal utk field yg TIDAK ikut server sync (hemat
-          // payload): jurnal/latihan, target hafalan, snapshot form editor,
-          // asesmen daurah. Tanpa ini, reconcile yg menimpa draft lokal akan
-          // MENGHAPUS data itu (bug F1 dulu utk jurnal).
+          // payload): jurnal/latihan, target hafalan, snapshot form editor.
+          // Tanpa ini, reconcile yg menimpa draft lokal akan MENGHAPUS data itu
+          // (bug F1 dulu utk jurnal). daurah_asmt KINI ikut server-sync → ambil
+          // dari server (fallback lokal utk draft lama sebelum perubahan ini).
           var prevJurnal      = (local && local.jurnal)       ? local.jurnal       : {};
           var prevTarget      = (local && local.target)       ? local.target       : {};
           var prevHafalanForm = (local && local.hafalan_form) ? local.hafalan_form : {};
@@ -2150,7 +2167,8 @@
           localStorage.setItem(_kbmDraftKey(id_kbm), JSON.stringify({
             id_kbm: id_kbm, jenis_sesi: server.jenis_sesi, updated_at: server.updated_at,
             nilai: dd.nilai || {}, hafalan: dd.hafalan || {}, microteaching: dd.microteaching || {},
-            jurnal: prevJurnal, target: prevTarget, hafalan_form: prevHafalanForm, daurah_asmt: prevDaurahAsmt,
+            jurnal: prevJurnal, target: prevTarget, hafalan_form: prevHafalanForm,
+            daurah_asmt: (dd.daurah_asmt && Object.keys(dd.daurah_asmt).length) ? dd.daurah_asmt : prevDaurahAsmt,
           }));
         } catch (e) {}
         // H2 fix (bug hunt 2026-08-18): serverNewer sudah true di titik ini, tapi
@@ -2926,9 +2944,11 @@
             + '</div>';
 
           var currentCat = '';
+          var _daurahAnsLbl = { paham: 'Paham', ragu: 'Ragu', belum: 'Belum' };
           meetingItems.forEach(function(item) {
             var ans = (window._daurahAssessmentMap && window._daurahAssessmentMap[m.id_murid] && window._daurahAssessmentMap[m.id_murid][item.id_item]) || null;
-            
+            var _mrdAns = (window._daurahMuridJawaban && window._daurahMuridJawaban[m.id_murid] && window._daurahMuridJawaban[m.id_murid][item.id_item]) || null;
+
             var itemCat = item.kategori || 'Lainnya';
             if (itemCat !== currentCat) {
               currentCat = itemCat;
@@ -2944,6 +2964,7 @@
               + '<span>' + esc(item.teks_latin) + '</span>'
               + '</div>'
               + (item.keterangan ? '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px">' + esc(item.keterangan) + '</div>' : '')
+              + (_mrdAns ? '<div style="font-size:10.5px;color:var(--text-3);margin-bottom:6px">Self-assessment murid: <b style="color:var(--text-2)">' + esc(_daurahAnsLbl[_mrdAns] || _mrdAns) + '</b>' + (ans ? '' : ' <span style="opacity:.75">— tetap perlu dinilai guru</span>') + '</div>' : '')
               + '<div style="display:flex;gap:6px">'
               + '<button type="button" class="btn-asmt-opt btn-paham ' + (ans === 'paham' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'paham\', this)">Paham</button>'
               + '<button type="button" class="btn-asmt-opt btn-ragu ' + (ans === 'ragu' ? 'active' : '') + '" onclick="setDaurahAsmtScore(\'' + esc(m.id_murid) + '\', \'' + esc(item.id_item) + '\', \'ragu\', this)">Ragu</button>'
@@ -3456,6 +3477,11 @@
           }
         }
       } else {
+        // KBM Reguler: flush field DOM -> window._nilaiCache dulu, lalu baca dari
+        // cache (bukan DOM) — konsisten dgn Qiyam & MT, dan tetap benar walau
+        // kartu nilai kebetulan tak ter-render. _nilaiCache = sumber yg sama
+        // dgn draft lokal + server-sync. No-op utk MT (elemen adab-<id> tak ada).
+        if (!isMicroteachingSesi) _snapshotNilaiCache();
         for (const m of muridSesi) {
           if (isMicroteachingSesi) {
             const cache = window._microteachingKbmCache[m.id_murid] || {};
@@ -3508,10 +3534,17 @@
               });
             }
           } else {
-            const adab    = (document.getElementById('adab-'+m.id_murid) ? document.getElementById('adab-'+m.id_murid).value : '') || '';
-            const kamera  = (document.getElementById('kamera-'+m.id_murid) ? document.getElementById('kamera-'+m.id_murid).value : '') || '';
-            const koreksi = (document.getElementById('koreksi-'+m.id_murid) ? document.getElementById('koreksi-'+m.id_murid).value : '') || '';
-            const catatanVal = ((document.getElementById('catatan-'+m.id_murid) || {}).value || '').trim();
+            // Murid I/A: form adab-<id> dll tak dirender (konsisten renderNilaiMuridStep)
+            // -> jangan simpan sisa nilai lama dari _nilaiCache (mis. murid sempat H
+            // lalu diubah ke A). DOM-read lama otomatis ter-skip karena elemen absen;
+            // di jalur cache kita gate eksplisit dgn status presensi.
+            const statusReg = presensiMapPv[m.id_murid] || 'H';
+            if (['A','I'].includes(statusReg)) continue;
+            const _ncReg  = (window._nilaiCache && window._nilaiCache[m.id_murid]) || {};
+            const adab    = String(_ncReg.adab    || '').trim();
+            const kamera  = String(_ncReg.kamera  || '').trim();
+            const koreksi = String(_ncReg.koreksi || '').trim();
+            const catatanVal = String(_ncReg.catatan || '').trim();
             // P0 fix (audit form Jurnal 2026-08-18): `catatan` dulu TIDAK ikut
             // syarat "ada data" -- murid yang HANYA diisi Catatan (tanpa Adab/
             // Kamera/Koreksi) tak pernah masuk nilaiList, catatannya hilang diam-
@@ -3571,6 +3604,7 @@
       _clearKbmDraftLocal(idKbmSelesai);
       window._daurahAssessmentMap = {};
       window._daurahAssessmentItems = [];
+      window._daurahMuridJawaban = {};
 
       hideLoad();
       setBtn('btnSelesai', false, 'Selesaikan & Tutup Sesi');
@@ -4379,6 +4413,7 @@
 
   window._daurahAssessmentItems = [];
   window._daurahAssessmentMap = {};
+  window._daurahMuridJawaban = {};
 
   function getDaurahDayTitle(meetingNo) {
     const titles = {
