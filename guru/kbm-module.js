@@ -2438,18 +2438,18 @@
       // Auto-Split). Isi kolom input di form editor TIDAK PERNAH otomatis jadi
       // item keranjang — dulu perilaku ini bikin setoran murid lain / hasil edit
       // nilai "nyelonong" masuk keranjang saat autosave/refresh & berpotensi
-      // tumpang tindih. Snapshot form disimpan terpisah (window._hafalanKbmForm)
-      // supaya ketikan yang belum ditambahkan tetap aman kalau browser di-refresh.
-      if (staged.length > 0) {
-        if (staged[0] && (tgtSrt || tgtDari || tgtSmp)) {
-          staged[0].tgtSrt  = staged[0].tgtSrt  || tgtSrt;
-          staged[0].tgtDari = staged[0].tgtDari || tgtDari;
-          staged[0].tgtSmp  = staged[0].tgtSmp  || tgtSmp;
-        }
-        delete window._hafalanKbmForm[m.id_murid];
-        return;
+      // tumpang tindih.
+      if (staged.length > 0 && staged[0] && (tgtSrt || tgtDari || tgtSmp)) {
+        staged[0].tgtSrt  = staged[0].tgtSrt  || tgtSrt;
+        staged[0].tgtDari = staged[0].tgtDari || tgtDari;
+        staged[0].tgtSmp  = staged[0].tgtSmp  || tgtSmp;
       }
 
+      // Snapshot kolom input yang sedang diketik — disimpan TERPISAH dari
+      // keranjang (window._hafalanKbmForm), tak pernah jadi item otomatis.
+      // Tetap di-snapshot walau keranjang sudah berisi, supaya ketikan surat
+      // ke-2, ke-3, dst tidak hilang saat browser di-refresh / pindah step.
+      // `_hafKbmHasContent` memastikan form kosong (baru default) tak ikut.
       if (_hafKbmHasContent(activeItem)) {
         window._hafalanKbmForm[m.id_murid] = activeItem;
       } else {
@@ -2499,11 +2499,13 @@
       setV('hfkbm-tgt-dari-'+eid,  tD);
       setV('hfkbm-tgt-sampai-'+eid,tM);
 
-      // Pulihkan kolom input form editor (BUKAN ke keranjang) selama keranjang
-      // murid ini masih kosong: dari draf item-tunggal legacy, atau dari snapshot
-      // form (window._hafalanKbmForm) untuk ketikan yang belum ditekan "+ Tambah".
+      // Pulihkan kolom input form editor (BUKAN ke keranjang): dari draf item-
+      // tunggal legacy, atau dari snapshot form (window._hafalanKbmForm) untuk
+      // ketikan yang belum ditekan "+ Tambah". Snapshot dipulihkan baik keranjang
+      // kosong MAUPUN sudah berisi — surat ke-2+ yang lagi diketik tak hilang
+      // saat refresh. (Item legacy tetap hanya kalau keranjang belum jadi array.)
       var isLegacySingle = !Array.isArray(cache) && cache && cache.jenis;
-      var formSrc = (isLegacySingle && first) ? first : (!list.length ? form : null);
+      var formSrc = (isLegacySingle && first) ? first : (form || null);
       if (formSrc) {
         setSel('hfkbm-jenis-'+eid, formSrc.jenis);
         setSel('hfkbm-juz-'+eid,   formSrc.juz);
