@@ -140,6 +140,11 @@ var MuridAPI = {
       return (b.tanggal || '').localeCompare(a.tanggal || '');
     });
     var mtLatest = sortedMt.length > 0 ? sortedMt[0] : null;
+    // Semua sesi Micro Teaching yg diikuti murid (termasuk sbg observer -- hadir
+    // tapi nilai NULL krn tak dapat giliran tampil). Dipakai FE utk tetap
+    // menampilkan kartu MT dgn info placeholder walau belum ada nilai praktik.
+    var mtAllSessions = allSessions.filter(function(n) { return n.jenis_sesi === 'Micro Teaching'; });
+    var mtHadirCount = mtAllSessions.filter(function(n) { return n.status_hadir === 'H' || n.status_hadir === 'T'; }).length;
 
     var today = _todayJakarta();
     var prAktif = (prRaw||[])
@@ -288,7 +293,9 @@ var MuridAPI = {
           catatan_murid: mtLatest.catatan_murid
         } : null,
         rata_nilai: mtAvg,
-        total_sesi: mtScores.length
+        total_sesi: mtScores.length,
+        total_ikut: mtAllSessions.length,
+        total_hadir: mtHadirCount
       }
     }};
   },

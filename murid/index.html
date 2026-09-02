@@ -4298,7 +4298,7 @@ html.theme-dark .materi-daurah-banner-title {
               <div class="prog-donut-wrap" id="dashMicroDonutRing" style="background:conic-gradient(#cbd5e1 100%, transparent 0%)">
                 <div class="prog-donut-inner">
                   <span class="prog-donut-pct" id="dashMicroProgressPctNum" style="color:#8b5cf6">0%</span>
-                  <span class="prog-donut-lbl">nilai</span>
+                  <span class="prog-donut-lbl" id="dashMicroDonutLbl">nilai</span>
                 </div>
               </div>
               <!-- Info kanan -->
@@ -7193,7 +7193,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=3d96c992" defer></script>
-<script src="../supabase/api-murid.js?v=a22555ce" defer></script>
+<script src="../supabase/api-murid.js?v=c3c20e48" defer></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -7351,13 +7351,32 @@ function openProgressBreakdown(forceMicro) {
 
       bodyEl.innerHTML = qiyamHtml;
     } else if (isMicro) {
-      var lastMt = dashData.micro_teaching && dashData.micro_teaching.terakhir;
-      var avgNilai = dashData.micro_teaching ? dashData.micro_teaching.rata_nilai : 0;
-      
-      var microHtml = '<div style="text-align:center;margin-bottom:20px;background:rgba(139,92,246,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.2)">'
+      var _mt = dashData.micro_teaching || {};
+      var lastMt = _mt.terakhir;
+      var avgNilai = _mt.rata_nilai || 0;
+      var mtDinilai = (_mt.total_sesi || 0) > 0;
+      var mtHadirSesi = _mt.total_hadir || 0;
+
+      var microHtml;
+      if (!mtDinilai && mtHadirSesi > 0) {
+        // Observer-only: murid sudah hadir menyimak sesi MT tapi belum pernah tampil dinilai
+        microHtml = '<div style="text-align:center;margin-bottom:16px;background:rgba(139,92,246,0.06);padding:18px 16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.25)">'
+          + '<div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Micro Teaching</div>'
+          + '<div style="font-size:15px;font-weight:800;color:#8b5cf6;line-height:1.4">Hadir sebagai observer</div>'
+          + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:6px">Kamu sudah menyimak ' + mtHadirSesi + ' sesi praktik mengajar temanmu.</div>'
+          + '</div>'
+          + '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;color:var(--text-3);font-size:13px;line-height:1.5">'
+          + 'Nilai praktik & rincian rubrik akan muncul di sini setelah kamu mendapat giliran tampil dan dinilai oleh pendidik.'
+          + '</div>';
+        bodyEl.innerHTML = microHtml;
+        openModal('progressBreakdownModal');
+        return;
+      }
+
+      microHtml = '<div style="text-align:center;margin-bottom:20px;background:rgba(139,92,246,0.06);padding:16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.2)">'
         + '<div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Rata-rata Nilai Praktik</div>'
         + '<div style="font-size:32px;font-weight:800;color:#8b5cf6;">' + avgNilai + ' / 100</div>'
-        + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:4px">Total Sesi: ' + (dashData.micro_teaching ? dashData.micro_teaching.total_sesi : 0) + ' kali</div>'
+        + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:4px">Total Sesi: ' + (_mt.total_sesi || 0) + ' kali</div>'
         + '</div>';
 
       if (lastMt) {
@@ -8547,29 +8566,51 @@ async function loadDashboard(silent) {
     // Micro Teaching Card visibility and population
     var microCardEl = document.getElementById('dashMicroCard');
     if (microCardEl) {
-      if (!isMicro && !isQiyam && d.micro_teaching && d.micro_teaching.total_sesi > 0) {
+      var mt = d.micro_teaching;
+      // Sesi MT yg sudah dinilai praktiknya (rata_nilai bermakna)
+      var mtGraded   = !!(mt && mt.total_sesi > 0);
+      // Murid hadir menyimak sesi MT tapi belum pernah tampil dinilai (observer)
+      var mtObserved = !!(mt && !mtGraded && mt.total_hadir > 0);
+      if (!isMicro && !isQiyam && (mtGraded || mtObserved)) {
         microCardEl.style.display = 'block';
-        
-        var mtAvgNilai = d.micro_teaching.rata_nilai || 0;
-        var mtDonutRing = document.getElementById('dashMicroDonutRing');
-        var mtPctNum = document.getElementById('dashMicroProgressPctNum');
+
+        var mtDonutRing  = document.getElementById('dashMicroDonutRing');
+        var mtPctNum     = document.getElementById('dashMicroProgressPctNum');
+        var mtDonutLbl   = document.getElementById('dashMicroDonutLbl');
         var mtProgressBar = document.getElementById('dashMicroProgressBar');
-        
-        if (mtDonutRing) {
-          animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: '#8b5cf6', targetPct: mtAvgNilai, sweep: !silent, barEl: mtProgressBar });
-        }
-        
-        var mtLast = d.micro_teaching.terakhir;
-        if (mtLast) {
-          var mtLastNilai = mtLast.nilai || 0;
-          var mtLastPertemuan = mtLast.pertemuan_ke || 1;
-          document.getElementById('dashMicroProgressPct').textContent = 'Nilai: ' + mtLastNilai + ' (Latihan ke-' + mtLastPertemuan + ')';
-          
-          var mtPred = mtLastNilai >= 90 ? 'Sangat Baik' : mtLastNilai >= 75 ? 'Baik' : mtLastNilai >= 60 ? 'Cukup' : 'Perlu Perbaikan';
-          document.getElementById('dashMicroSisa').textContent = 'Predikat: ' + mtPred;
+        var mtBarWrap    = document.getElementById('dashMicroProgressBarWrap');
+
+        if (mtGraded) {
+          if (mtDonutLbl) mtDonutLbl.textContent = 'nilai';
+          if (mtBarWrap) mtBarWrap.style.display = '';
+          if (mtDonutRing) {
+            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: '#8b5cf6', targetPct: (mt.rata_nilai || 0), sweep: !silent, barEl: mtProgressBar });
+          }
+
+          var mtLast = mt.terakhir;
+          if (mtLast) {
+            var mtLastNilai = mtLast.nilai || 0;
+            var mtLastPertemuan = mtLast.pertemuan_ke || 1;
+            document.getElementById('dashMicroProgressPct').textContent = 'Nilai: ' + mtLastNilai + ' (Latihan ke-' + mtLastPertemuan + ')';
+
+            var mtPred = mtLastNilai >= 90 ? 'Sangat Baik' : mtLastNilai >= 75 ? 'Baik' : mtLastNilai >= 60 ? 'Cukup' : 'Perlu Perbaikan';
+            document.getElementById('dashMicroSisa').textContent = 'Predikat: ' + mtPred;
+          } else {
+            document.getElementById('dashMicroProgressPct').textContent = 'Belum ada latihan';
+            document.getElementById('dashMicroSisa').textContent = 'Mulai praktik mengajar Anda';
+          }
         } else {
-          document.getElementById('dashMicroProgressPct').textContent = 'Belum ada latihan';
-          document.getElementById('dashMicroSisa').textContent = 'Mulai praktik mengajar Anda';
+          // Observer-only: belum ada nilai praktik -> donut netral + info placeholder
+          var mtHadir = (mt && mt.total_hadir) || 0;
+          if (mtDonutLbl) mtDonutLbl.textContent = 'observer';
+          if (mtBarWrap) mtBarWrap.style.display = 'none';
+          if (mtDonutRing) {
+            // sweep:false -> paint sinkron + batalkan animasi lama yg mungkin nyangkut
+            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: '#cbd5e1', targetPct: 0, sweep: false, barEl: mtProgressBar });
+          }
+          if (mtPctNum) { mtPctNum.textContent = '–'; mtPctNum.style.color = '#94a3b8'; }
+          document.getElementById('dashMicroProgressPct').textContent = 'Hadir sebagai observer';
+          document.getElementById('dashMicroSisa').textContent = 'Menyimak ' + mtHadir + ' sesi · nilai praktik muncul setelah kamu tampil';
         }
       } else {
         microCardEl.style.display = 'none';
