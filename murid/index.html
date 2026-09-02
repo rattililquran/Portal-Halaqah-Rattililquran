@@ -1340,6 +1340,17 @@ html.theme-dark .at-dot.null{background:#374151!important}
   padding:4px 11px;border-radius:100px;margin-bottom:6px;
 }
 .dash-greet.is-next svg,.dash-greet.is-today svg{width:12px;height:12px;flex-shrink:0}
+/* "Halaqah Berikutnya" -> pil MERAH SOLID + teks putih tebal (pembeda dari
+   "Halaqah Hari Ini" yg putih transparan) supaya murid langsung sadar hari ini
+   tak ada halaqah. Merah solid + teks putih jauh lebih terbaca di atas gradient
+   gelap drpd teks merah transparan. Ikon ikut putih krn stroke="currentColor". */
+.dash-greet.is-next{
+  color:#fff;
+  background:#dc2626;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 2px 10px rgba(220,38,38,.45);
+  letter-spacing:.015em;
+}
 .dash-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px}
 .dash-hari{font-size:12px;color:rgba(255,255,255,.6)}
 .dash-hari strong{font-weight:800;color:#fff;font-size:12.5px;letter-spacing:.01em}
@@ -8239,28 +8250,37 @@ function updateHalaqahHariIniCardMurid(hq) {
     return;
   }
 
-  var todayIdx = new Date().getDay();
+  // Hari & jam "sekarang" dipatok WIB (UTC+7) dari sumber yg SAMA -- tak
+  // terpengaruh timezone device (dulu todayIdx pakai new Date().getDay() device-
+  // local sedangkan nowHHMM sudah WIB -> bisa beda hari di device luar WIB).
+  var _nowWib = new Date(Date.now() + 7 * 3600000);
+  var todayIdx = _nowWib.getUTCDay();
+  var nowHHMM = String(_nowWib.getUTCHours()).padStart(2, '0') + ':' + String(_nowWib.getUTCMinutes()).padStart(2, '0');
 
   // includes() substring -- toleran thd jadwal_hari yg ada teks/tanda baca
-  function daysUntil(jadwalHariStr) {
+  // tambahan; cocok jg dgn SEMUA varian ejaan hari (mis. "jumat" & "jum'at").
+  function daysUntil(jadwalHariStr, afterToday) {
     var jadwalLower = (jadwalHariStr || '').toLowerCase();
     var hariIdx = window._HARI_INDEX || {};
     var min = Infinity;
     Object.keys(hariIdx).forEach(function(k) {
       if (!jadwalLower.includes(k)) return;
       var diff = (hariIdx[k] - todayIdx + 7) % 7;
+      // afterToday: sesi hari ini sudah usai -- kejadian utk hari INI baru minggu
+      // depan (+7), tapi hari terjadwal LAIN di minggu yg sama (mis. Jumat utk
+      // jadwal "Selasa, Rabu, Jumat" saat Rabu lewat) tetap dihitung normal.
+      if (afterToday && diff === 0) diff = 7;
       if (diff < min) min = diff;
     });
     return min;
   }
 
-  // Jam WIB saat ini ("HH:MM") lewat aritmetika UTC+7 langsung
-  var _nowWib = new Date(Date.now() + 7 * 3600000);
-  var nowHHMM = String(_nowWib.getUTCHours()).padStart(2, '0') + ':' + String(_nowWib.getUTCMinutes()).padStart(2, '0');
-
   function effectiveDays(h) {
     var d = daysUntil(h.jadwal);
-    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = 7;
+    // Sesi hari ini sudah lewat jam selesainya -> pakai hari terjadwal BERIKUTNYA.
+    // Jadwal multi-hari ("Selasa, Rabu, Jumat"): Rabu lewat -> Jumat (2 hari lagi),
+    // BUKAN Rabu minggu depan (+7).
+    if (d === 0 && h.jam_selesai && nowHHMM > h.jam_selesai) d = daysUntil(h.jadwal, true);
     return d;
   }
 
@@ -8274,7 +8294,10 @@ function updateHalaqahHariIniCardMurid(hq) {
   }
 
   var jam = hq.jam ? (hq.jam + (hq.jam_selesai ? '–' + hq.jam_selesai : '')) : '';
-  var labelHari = bestDays === 0 ? 'Hari ini' : (hq.jadwal || NAMA_HARI_ID_MURID[(todayIdx + bestDays) % 7]);
+  // "Halaqah Berikutnya": tampilkan HARI SPESIFIK terdekat (mis. "Jumat"), BUKAN
+  // string jadwal penuh ("Selasa, Rabu, Jumat") yg ikut menyebut hari yg justru
+  // sudah lewat minggu ini shg murid bingung.
+  var labelHari = bestDays === 0 ? 'Hari ini' : NAMA_HARI_ID_MURID[(todayIdx + bestDays) % 7];
 
   if (bestDays === 0) {
     greetEl.className = 'dash-greet is-today';
