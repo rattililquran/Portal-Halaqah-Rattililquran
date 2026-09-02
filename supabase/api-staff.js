@@ -5090,39 +5090,34 @@ var AdminAPI = {
     }
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     var TOTAL_REKAP   = 12;
-    var WINDOW_SIZE   = 5; // kewajiban SPP = 5 bulan flat per level (samakan dgn api-murid getSPPStatus)
+    var WINDOW_SIZE   = 5; // 1 level SPP = 5 pembayaran (hitungan via _sppLevelInfo, samakan dgn api-murid)
     // Bulan terakhir yang sudah selesai (getMonth() tanpa +1: Juni=5 → Jan-Mei sudah lewat)
     var bulanSelesai  = new Date().getMonth(); // 0-indexed, eksklusif — hanya utk daftar "bulan belum" (bukan hitungan)
     var startIdx = Math.max(0, bulanSelesai - TOTAL_REKAP);
     var endIdx   = bulanSelesai;
     var bulanRekapDefault = BULAN.slice(startIdx, endIdx);
 
-    // ── Tunggakan SPP = max(0, 5 − jumlah bulan DISTINCT yang sudah LUNAS) ──
-    // Kewajiban 1 level = 5 bulan flat (Interpretasi A, dikonfirmasi user).
-    // TIDAK memakai window kalender / anchor bulan (lihat memori
-    // spp-progress-per-level: "window kalender GAGAL 2×, pakai akumulasi
-    // lunasCount") & LEPAS dari filter periode. Rumus identik dgn portal murid
-    // (api-murid.js getSPPStatus) supaya kedua portal tak pernah beda angka.
-    // Cakupan tahun: mode periode → tahun-tahun yg dilingkupi periode +
-    // 1 tahun sesudahnya; mode lain → tahun berjalan + 1 (murid bayar di muka).
-    var _baseYears = (pInfo && pInfo.tahunSet && pInfo.tahunSet.length) ? pInfo.tahunSet.slice() : [tahun];
-    var _maxY = Math.max.apply(null, _baseYears);
-    var tunggakanYears = (_baseYears.indexOf(_maxY + 1) < 0) ? _baseYears.concat([_maxY + 1]) : _baseYears;
+    // ── Tunggakan SPP: model LEVEL 5-bulan (helper bersama _sppLevelInfo) ──
+    // 1 level = 5 pembayaran. lunasCount = jumlah bulan DISTINCT (tahun,bulan)
+    // berstatus lunas, jenis SPP Pribadi, SELURUH riwayat murid (LEPAS dari
+    // filter periode & tahun). tunggakan = sisa kewajiban level berjalan
+    // (Interpretasi A). Rumus IDENTIK dgn portal murid (api-murid getSPPStatus)
+    // supaya dua portal tak pernah beda angka. Lihat memori spp-progress-per-level.
     // p.bulan hanya dipakai loadKasBeasiswa (butuh field beasiswa_*, bukan
-    // murid_list) → lewati fetch tunggakan yg mahal.
+    // murid_list) → lewati fetch yg mahal.
     var _skipTunggakan = tunggakanDisabled || !!p.bulan;
-    var lunasSetMap = {};        // id_murid → { "tahun-bulan": namaBulan }  (distinct)
-    var firstIdxMap = {};        // id_murid → indeks bulan LUNAS pertama (utk daftar "bulan belum" saja)
+    var lunasSetMap  = {};   // id_murid → { "tahun-bulan": idxBulan(0-11) }  distinct, lintas tahun
+    var firstIdxMap  = {};   // id_murid → idx bulan LUNAS pertama (kronologis) — utk daftar bulan_belum
     var _firstChrono = {};
     if (muridIds.length && !_skipTunggakan) {
       var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, tahun, jenis, status',
-        function(q){ return q.in('id_murid', muridIds).in('tahun', tunggakanYears).eq('status','lunas').order('id_spp'); },
+        function(q){ return q.in('id_murid', muridIds).eq('status','lunas').order('id_spp'); },
         'getSPPRekap:allSppRows');
       (allSppRows||[]).forEach(function(r){
         if (r.jenis && r.jenis !== 'SPP Pribadi') return;
         var idx = BULAN.indexOf(r.bulan);
         if (idx < 0) return; // buang bulan '-' / tak dikenal
-        (lunasSetMap[r.id_murid] = lunasSetMap[r.id_murid] || {})[r.tahun + '-' + r.bulan] = r.bulan;
+        (lunasSetMap[r.id_murid] = lunasSetMap[r.id_murid] || {})[r.tahun + '-' + r.bulan] = idx;
         var chrono = (Number(r.tahun) || 0) * 12 + idx;
         if (_firstChrono[r.id_murid] === undefined || chrono < _firstChrono[r.id_murid]) {
           _firstChrono[r.id_murid] = chrono;
@@ -5137,34 +5132,36 @@ var AdminAPI = {
     var isDaurahFth = function(id){ return !!(id && String(id).toUpperCase().startsWith('FTH')); };
     var anggotaSPP = (anggota||[]).filter(function(a){ return !isDaurahFth(a.id_murid); });
     var muridListRaw = anggotaSPP.map(function(a) {
-      var _lunasSet  = lunasSetMap[a.id_murid] || {};
-      var lunasCount = Object.keys(_lunasSet).length;   // distinct (tahun,bulan) → sumber hitungan
-      var lunasBulan = Object.keys(_lunasSet).map(function(k){ return _lunasSet[k]; })
-                        .filter(function(b,i,arr){ return arr.indexOf(b) === i; }); // nama bulan distinct (tampilan/filter)
+      var _set   = lunasSetMap[a.id_murid] || {};
+      var _keys  = Object.keys(_set);                   // "tahun-bulan" distinct
+      var lunasBulan = _keys.map(function(k){ return BULAN[_set[k]]; })
+                            .filter(function(b,i,arr){ return arr.indexOf(b) === i; }); // nama bulan distinct
+      var _lvl   = _sppLevelInfo(_keys.length);
       var firstIdx = firstIdxMap[a.id_murid];
       var isBeasiswa = a.tipe_spp === 'beasiswa';
-      var bulanBelum, tunggakan, winLen;
+      var bulanBelum, tunggakan, winLen, levelSelesai, progressLevel;
       if (_skipTunggakan) {
         return {
           id_murid: a.id_murid, nama_murid: a.nama_murid, id_halaqah: a.id_halaqah,
           nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '', level: a.level,
           no_hp: hpMap[a.id_murid] || '', lunas_bulan: lunasBulan,
           tunggakan: 0, bulan_belum: [], _winLen: 0, is_beasiswa: isBeasiswa,
+          level_selesai: 0, progress_level: 0,
         };
       }
       if (isBeasiswa) {
         // Murid beasiswa: SPP Pribadi dibebaskan → tak pernah nunggak.
         // Dikeluarkan dari hitungan lunas/menunggak (kategori terpisah, lihat bawah).
-        bulanBelum = [];
-        tunggakan  = 0;
-        winLen     = 0;
+        bulanBelum = []; tunggakan = 0; winLen = 0; levelSelesai = 0; progressLevel = 0;
       } else {
-        tunggakan = Math.max(0, WINDOW_SIZE - lunasCount);
-        winLen    = WINDOW_SIZE;
+        tunggakan    = _lvl.tunggakan;
+        winLen       = WINDOW_SIZE;
+        levelSelesai = _lvl.level_selesai;
+        progressLevel = _lvl.progress_level;
         // `bulan_belum` = daftar bulan utk kolom tabel + WA (BUKAN sumber
-        // hitungan). Slot 5 bulan dari bulan LUNAS pertama; kalau belum pernah
-        // bayar → dikosongkan (FE tampil "N bulan belum lunas").
-        if (tunggakan === 0 || firstIdx === undefined) {
+        // hitungan). Hanya bermakna utk murid level-1; multi-level → kosong
+        // (FE tampil "N bulan belum lunas"). Slot 5 bulan dari bulan LUNAS pertama.
+        if (tunggakan === 0 || levelSelesai > 0 || firstIdx === undefined) {
           bulanBelum = [];
         } else {
           var slot = [];
@@ -5178,6 +5175,7 @@ var AdminAPI = {
         level: a.level, no_hp: hpMap[a.id_murid] || '',
         lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
         _winLen: winLen, is_beasiswa: isBeasiswa,
+        level_selesai: levelSelesai, progress_level: progressLevel,
       };
     }).sort(function(a,b){ return b.tunggakan - a.tunggakan || a.nama_murid.localeCompare(b.nama_murid); });
 
@@ -5303,7 +5301,8 @@ var AdminAPI = {
 
     var muridList = muridListRaw.map(function(m){
       return { id_murid:m.id_murid, nama_murid:m.nama_murid, id_halaqah:m.id_halaqah, nama_halaqah:m.nama_halaqah,
-        level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum, is_beasiswa:m.is_beasiswa };
+        level:m.level, no_hp:m.no_hp, lunas_bulan:m.lunas_bulan, tunggakan:m.tunggakan, bulan_belum:m.bulan_belum, is_beasiswa:m.is_beasiswa,
+        level_selesai:m.level_selesai, progress_level:m.progress_level };
     });
     return { status:'ok', data:{ murid_list: muridList, infaq_list: infaqList, spp_list: sppList,
       ihsan_list: ihsanData.map(function(r) {

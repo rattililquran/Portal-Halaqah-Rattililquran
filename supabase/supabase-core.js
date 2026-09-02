@@ -216,6 +216,26 @@ function _sppGatewayExpired(r) {
     && r.mayar_expired_at && new Date(r.mayar_expired_at).getTime() < Date.now();
 }
 
+// ── SPP: 1 level = 5 pembayaran. Dari AKUMULASI jumlah bulan lunas (lintas
+//    tahun, distinct per tahun-bulan) hitung posisi di level berjalan + sisa
+//    kewajibannya. SATU sumber kebenaran utk portal admin (getSPPRekap) &
+//    murid (getSPPStatus) — jangan duplikasi rumusnya di tempat lain.
+//    Lihat memori spp-progress-per-level: "akumulasi lunasCount, BUKAN window
+//    kalender" (window kalender GAGAL 2×). Tunggakan (Interpretasi A) = sisa
+//    kewajiban level berjalan; bulan yang belum jatuh tempo TETAP dihitung.
+function _sppLevelInfo(lunasCount) {
+  lunasCount = Math.max(0, Math.floor(Number(lunasCount) || 0));
+  var levelSelesai  = lunasCount === 0 ? 0 : Math.floor((lunasCount - 1) / 5);
+  var progressLevel = lunasCount === 0 ? 0 : lunasCount - levelSelesai * 5; // 0..5
+  return {
+    lunas_count:    lunasCount,
+    level_selesai:  levelSelesai,        // jumlah level yg SUDAH tuntas 5 bulan
+    level_berjalan: levelSelesai + 1,    // nomor level yg sedang dikerjakan
+    progress_level: progressLevel,       // 0..5 pembayaran di level berjalan
+    tunggakan:      5 - progressLevel,   // 0..5 sisa kewajiban level berjalan
+  };
+}
+
 // L4: jalur lama simpan template koreksi (3 request, NON-ATOMIK). Hanya
 // dipakai sebagai fallback bila RPC save_template_koreksi belum ada di DB
 // (patch_039 belum dijalankan). p_templates sudah dinormalisasi:

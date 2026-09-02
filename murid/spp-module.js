@@ -591,25 +591,14 @@
     var menungguBulan= data.menunggu_bulan || [];
     var bulanMulaiIdx    = (data.bulan_mulai_idx !== undefined) ? data.bulan_mulai_idx : 0;
 
-    // Aturan PASTI (dikonfirmasi): satu level SPP = 5 bulan. Batas kalender mulai/berhentinya
-    // level TIDAK selalu pasti diketahui sistem, jadi progress dihitung murni dari akumulasi
-    // total bulan lunas -- bukan dari window kalender per-level (itu penyebab bug sebelumnya).
-    // floor((lunasCount-1)/5) = jumlah level yang SUDAH TUNTAS 5 bulannya.
-    // sisanya (1..5) = progress bulan pada level yang sedang berjalan/baru saja tuntas.
-    var lunasCount   = bulanGrid.filter(function(b){ return b.status === 'lunas'; }).length;
-    var levelSelesai = 0, progressLevelIni = 0;
-    if (lunasCount > 0) {
-      levelSelesai     = Math.floor((lunasCount - 1) / 5);
-      progressLevelIni = lunasCount - (levelSelesai * 5); // 1..5
-    }
-    // Tunggakan = bulan yang sudah lewat jatuh tempo tapi belum dibayar -- konsep TERPISAH
-    // dari progress level (soal keterlambatan, bukan soal sudah berapa level terselesaikan).
-    var tunggakanGrid = bulanGrid.filter(function(b, i){
-      var sudahMulai = i >= bulanMulaiIdx;
-      var lewat      = (i + 1) <= bulanBerjalan;
-      return sudahMulai && lewat && b.status !== 'lunas' && b.status !== 'menunggu';
-    }).length;
-    var tunggakan = (data.tunggakan !== undefined) ? data.tunggakan : tunggakanGrid;
+    // Aturan PASTI: 1 level SPP = 5 pembayaran. Semua angka (lunasCount, level,
+    // progress, tunggakan) dihitung backend via _sppLevelInfo dari AKUMULASI
+    // bulan lunas LINTAS TAHUN — identik dgn admin getSPPRekap. FE tak menghitung
+    // ulang dari grid (dulu bikin angka beda saat riwayat menyeberang tahun).
+    var lunasCount       = (data.lunas_count    !== undefined) ? data.lunas_count    : (data.lunas_bulan || []).length;
+    var levelSelesai     = (data.level_selesai  !== undefined) ? data.level_selesai  : Math.max(0, Math.floor((lunasCount - 1) / 5));
+    var progressLevelIni = (data.progress_level !== undefined) ? data.progress_level : (lunasCount ? lunasCount - levelSelesai * 5 : 0);
+    var tunggakan        = (data.tunggakan      !== undefined) ? data.tunggakan      : (5 - progressLevelIni);
 
     // ── Donut chart -- isi ring = progress level yang sedang berjalan (X dari 5 bulan) ──
     var circ = 2 * Math.PI * 15; // 94.25

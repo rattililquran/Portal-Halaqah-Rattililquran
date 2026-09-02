@@ -484,40 +484,58 @@ var MuridAPI = {
     var id_murid = _uid();
     var tahunIni = new Date().getFullYear();
     var { data, error } = await _sb.from('spp_pembayaran').select('*').eq('id_murid', id_murid)
-      .order('tahun',{ascending:false}).order('created_at',{ascending:false});
-    if (error) return { status: 'ok', data: { rows: [], lunas_bulan: [], tunggakan: 0, total_nominal: 0 } };
+      .order('tahun',{ascending:false}).order('created_at',{ascending:false}); // JANGAN diubah — `rows` dipakai apa adanya utk daftar Infaq (terbaru dulu)
+    if (error) return { status:'ok', data:{ rows:[], tunggakan:0, total_nominal:0, lunas_count:0,
+      level_selesai:0, level_berjalan:1, progress_level:0, slot_level:[], menunggu_bulan:[],
+      lunas_by_year:{}, menunggu_by_year:{}, has_paid:false, tahun_ini:tahunIni,
+      lunas_bulan:[], bulan_grid:[], bulan_mulai_idx:0, tahun_aktif:tahunIni, window_size:5 } };
     var rows = data || [];
     var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    var tahunAktif = rows.length ? Math.max(tahunIni, rows[0].tahun) : tahunIni;
-    var rowsTahunIni = rows.filter(function(r){ return r.tahun === tahunAktif; });
-    var lunasBulan  = rowsTahunIni.filter(function(r){ return r.status==='lunas' && (r.jenis==='SPP Pribadi' || !r.jenis); })
-      .map(function(r){ return r.bulan; })
-      .filter(function(b,i,arr){ return arr.indexOf(b) === i; }); // distinct — 2 baris lunas utk 1 bulan tak boleh dihitung 2x
-    var menunggu    = rowsTahunIni.filter(function(r){ return r.status==='menunggu' && (r.jenis==='SPP Pribadi' || !r.jenis) && !_sppGatewayExpired(r); }).map(function(r){ return r.bulan; });
-    var bulanGrid   = BULAN.map(function(b) {
-      var l = lunasBulan.includes(b);
-      var m = menunggu.includes(b);
-      return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
+    var isSPP = function(r){ return r.jenis==='SPP Pribadi' || !r.jenis; };
+
+    // [DESAIN SENGAJA] Kewajiban SPP = model LEVEL 5-bulan. lunasCount =
+    // AKUMULASI bulan lunas LINTAS TAHUN, distinct (tahun,bulan). Hitungan
+    // level/tunggakan via _sppLevelInfo (supabase-core) — SAMA persis dgn admin
+    // getSPPRekap. JANGAN sekat per tahun kalender (dulu bikin riwayat hilang
+    // saat murid bayar tahun depan di muka). Lihat memori spp-progress-per-level.
+    var _seen = {};
+    var lunasKronologis = rows.filter(function(r){ return r.status==='lunas' && isSPP(r); })
+      .map(function(r){ return { tahun:Number(r.tahun), idx:BULAN.indexOf(r.bulan), bulan:r.bulan, nominal:Number(r.nominal||0) }; })
+      .filter(function(r){ return r.idx >= 0; })
+      .sort(function(a,b){ return (a.tahun-b.tahun) || (a.idx-b.idx); })
+      .filter(function(r){ var k=r.tahun+'-'+r.bulan; if (_seen[k]) return false; _seen[k]=1; return true; });
+
+    var lvl = _sppLevelInfo(lunasKronologis.length);
+    var slotLevel = lunasKronologis.slice(lvl.level_selesai * 5); // 0..5 pembayaran level berjalan (= lvl.progress_level elemen)
+
+    // Peta lunas/menunggu per tahun — utk modal konfirmasi (disable bulan per tahun terpilih)
+    var lunasByYear = {}, menungguByYear = {};
+    rows.forEach(function(r){
+      if (!isSPP(r)) return;
+      var y = Number(r.tahun);
+      if (r.status==='lunas') (lunasByYear[y] = lunasByYear[y] || []).push(r.bulan);
+      else if (r.status==='menunggu' && !_sppGatewayExpired(r)) (menungguByYear[y] = menungguByYear[y] || []).push(r.bulan);
     });
-    var totalNominal = rowsTahunIni.filter(function(r){return r.status==='lunas';}).reduce(function(s,r){return s+Number(r.nominal||0);},0);
-    // [DESAIN SENGAJA] Kewajiban SPP = 5 bulan flat per periode.
-    // JANGAN diganti window kalender (Jan–bulanBerjalan) — setiap level/kelas
-    // bisa dibuka di bulan berbeda, tidak selalu mulai Januari.
-    // tunggakan = sisa dari 5, bukan "bulan lewat yang belum dibayar".
-    var TOTAL_SPP = 5;
-    var tunggakan = Math.max(0, TOTAL_SPP - lunasBulan.length);
-    // [DESAIN SENGAJA] Bulan mulai grid diambil dari bulan pertama yang pernah
-    // disubmit murid — bukan Januari, bukan tanggal bergabung anggota.
-    // Bulan sebelum itu tampil ○ (tidak berlaku), bukan ❌.
-    var semuaBulanSpp = rowsTahunIni.filter(function(r){ return r.jenis==='SPP Pribadi'||!r.jenis; });
-    var bulanMulaiIdx = semuaBulanSpp.length
-      ? semuaBulanSpp.reduce(function(min,r){ var i=BULAN.indexOf(r.bulan); return i>=0&&i<min?i:min; }, 11)
-      : new Date().getMonth();
+    var menungguRows = rows.filter(function(r){ return r.status==='menunggu' && isSPP(r) && !_sppGatewayExpired(r); });
+    var menunggu = menungguRows.map(function(r){ return r.bulan + (Number(r.tahun)!==tahunIni ? ' '+r.tahun : ''); });
+
     return { status: 'ok', data: {
-      rows, lunas_bulan: lunasBulan, menunggu_bulan: menunggu,
-      bulan_grid: bulanGrid, tunggakan, total_nominal: totalNominal,
-      tahun_aktif: tahunAktif, has_paid: lunasBulan.length > 0,
-      window_size: TOTAL_SPP, bulan_mulai_idx: bulanMulaiIdx,
+      rows: rows,
+      lunas_count: lvl.lunas_count, level_selesai: lvl.level_selesai,
+      level_berjalan: lvl.level_berjalan, progress_level: lvl.progress_level,
+      tunggakan: lvl.tunggakan, window_size: 5,
+      slot_level: slotLevel,
+      menunggu_bulan: menunggu, lunas_by_year: lunasByYear, menunggu_by_year: menungguByYear,
+      total_nominal: lunasKronologis.reduce(function(s,r){ return s+r.nominal; }, 0),
+      has_paid: lvl.lunas_count > 0, tahun_ini: tahunIni,
+      // ── DEPRECATED (modal konfirmasi masih pakai bulan_grid; hapus di akhir Fase 3) ──
+      lunas_bulan: (lunasByYear[tahunIni] || []).filter(function(b,i,a){ return a.indexOf(b)===i; }),
+      bulan_grid: BULAN.map(function(b){
+        var l = (lunasByYear[tahunIni]||[]).indexOf(b) >= 0;
+        var m = (menungguByYear[tahunIni]||[]).indexOf(b) >= 0;
+        return { bulan:b, status: l?'lunas': m?'menunggu':'belum' };
+      }),
+      bulan_mulai_idx: 0, tahun_aktif: tahunIni,
     }};
   },
 
