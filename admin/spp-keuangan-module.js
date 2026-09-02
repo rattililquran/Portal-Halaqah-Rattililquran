@@ -453,7 +453,47 @@ function switchSPPTab(tab, silent) {
   if (!silent) filterSPPTable();
 }
 
+// Ringkasan GLOBAL (semua periode & tahun) — strip padat di bawah judul,
+// TERPISAH dari kartu KPI (yg ikut filter). Angka global TIDAK berubah saat
+// filter periode/tahun diganti → cache 20 dtk supaya ganti-filter beruntun
+// tak spam query berat (getArusKas 'semua'). `force` utk sesudah input/validasi.
+var _sppGlobalTs = 0;
+async function loadSPPGlobalStrip(force) {
+  var el = document.getElementById('sppGlobalStrip');
+  if (!el) return;
+  if (!force && el.style.display !== 'none' && (Date.now() - _sppGlobalTs) < 20000) return;
+  try {
+    var res = await window.HQ.AdminAPI.getRekapGlobal();
+    var g = res.data || {};
+    var rp = function(n){ return 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID'); };
+    var i  = function(label, val, cls){ return '<span class="gs-i">' + label + '<b' + (cls ? ' class="' + cls + '"' : '') + '>' + val + '</b></span>'; };
+    el.innerHTML =
+      '<span class="gs-tag">Global · semua periode</span>'
+      + '<span class="gs-row">'
+      +   i('SPP', rp(g.spp))
+      +   i('Infaq', rp(g.infaq))
+      +   i('Total masuk', rp(g.total_masuk))
+      +   i('Ihsan Guru', rp(g.ihsan))
+      +   i('Saldo', (Number(g.saldo) < 0 ? '−' : '') + rp(Math.abs(Number(g.saldo) || 0)), Number(g.saldo) < 0 ? 'gs-neg' : 'gs-ok')
+      + '</span>'
+      + '<span class="gs-div"></span>'
+      + '<span class="gs-row">'
+      +   i('Lunas', g.lunas, 'gs-ok')
+      +   i('Menunggak', g.menunggak, 'gs-warn')
+      +   i('Belum tertagih', rp(g.belum_tertagih), 'gs-warn')
+      +   i('Beasiswa', g.beasiswa)
+      +   i('Total murid', (Number(g.murid_non_beasiswa) || 0) + Number(g.beasiswa || 0))
+      + '</span>';
+    el.style.display = 'flex';
+    _sppGlobalTs = Date.now();
+  } catch (e) {
+    console.warn('loadSPPGlobalStrip', e);
+    el.style.display = 'none';
+  }
+}
+
 async function loadSPPAdmin() {
+  loadSPPGlobalStrip(); // fire-and-forget, tak memblokir render utama
   var periode   = _sppPeriodeVal();          // '' | '<id>' | '__tanpa__'
   var tahun     = _sppTahunVal();            // 'semua' | 'NNNN'
   // Filter halaqah hanya dihormati di tab SPP (di tab lain angka Kas/Ihsan
@@ -2170,6 +2210,7 @@ async function doKirimPengumuman() {
     window.hapusMetode = hapusMetode;
     window.simpanMetode = simpanMetode;
     window.loadSPPAdmin = loadSPPAdmin;
+    window.loadSPPGlobalStrip = loadSPPGlobalStrip;
     window.switchSPPTab = switchSPPTab;
     window.onSPPPeriodeChange = onSPPPeriodeChange;
     window.onSPPTahunChange = onSPPTahunChange;

@@ -463,6 +463,21 @@ html.theme-dark .u-ibtn.d2:hover{background:rgba(248,113,113,.2);color:#fecaca}
 .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-btn:hover{color:var(--text)}
 
+/* Ringkasan GLOBAL (padat, di bawah judul) */
+#page-spp .spp-global-strip{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 15px;
+  padding:11px 15px;margin-bottom:16px;border-radius:var(--r);
+  background:var(--bg-2);border:1px solid var(--border);font-size:12px;color:var(--text-2);line-height:1.7}
+#page-spp .spp-global-strip .gs-tag{font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text-3);align-self:center;flex-shrink:0}
+#page-spp .spp-global-strip .gs-row{display:flex;flex-wrap:wrap;gap:4px 14px}
+#page-spp .spp-global-strip .gs-i{white-space:nowrap}
+#page-spp .spp-global-strip .gs-i b{color:var(--text);font-weight:800;margin-left:3px}
+#page-spp .spp-global-strip .gs-i b.gs-neg{color:var(--red-txt)}
+#page-spp .spp-global-strip .gs-i b.gs-ok{color:var(--green-txt)}
+#page-spp .spp-global-strip .gs-i b.gs-warn{color:var(--amber-txt)}
+#page-spp .spp-global-strip .gs-div{flex-basis:100%;height:0}
+html.theme-dark #page-spp .spp-global-strip{background:rgba(255,255,255,.03) !important;border-color:rgba(255,255,255,.08) !important}
+
 /* Strip filter + tab menempel di bawah topbar saat scroll */
 #page-spp .spp-sticky{position:sticky;top:calc(var(--hh) + var(--sat));z-index:20;
   background:var(--bg);padding-top:10px;margin-bottom:16px;border-bottom:1px solid var(--border)}
@@ -2237,6 +2252,9 @@ html.theme-dark .fin-detail-card {
             </button>
           </div>
         </div>
+
+        <!-- ── Ringkasan GLOBAL (semua periode & tahun — TERPISAH dari kartu KPI di bawah) ── -->
+        <div id="sppGlobalStrip" class="spp-global-strip" style="display:none"></div>
 
         <!-- ── Strip filter + tab (sticky saat scroll) ── -->
         <div class="spp-sticky">
@@ -4523,7 +4541,7 @@ html.theme-dark .fin-detail-card {
 
 <script src="../assets/js/supabase.min.js"></script>
 <script src="../supabase/supabase-core.js?v=5922206d"></script>
-<script src="../supabase/api-staff.js?v=f1d79f5f"></script>
+<script src="../supabase/api-staff.js?v=3b22b3a2"></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462"></script>
 <script src="admin-stress-test.js?v=6ac12ed5" defer></script>
 <script src="../assets/push-permission.js"></script>
@@ -4531,7 +4549,7 @@ html.theme-dark .fin-detail-card {
 <script src="guru-module.js?v=d1e3c00d" defer></script>
 <script src="murid-module.js?v=009a432e" defer></script>
 <script src="kelompok-module.js?v=80537494" defer></script>
-<script src="spp-keuangan-module.js?v=33b56c61" defer></script>
+<script src="spp-keuangan-module.js?v=aa79758c" defer></script>
 <script src="konten-module.js?v=2cd98010" defer></script>
 <script src="laporan-module.js?v=407ae4fc" defer></script>
 <script src="mutabaah-module.js?v=b0aed315" defer></script>

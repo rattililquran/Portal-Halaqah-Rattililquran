@@ -5662,6 +5662,53 @@ var AdminAPI = {
       riwayat: riwayat,
     }};
   },
+
+  // Ringkasan GLOBAL — SEMUA periode & tahun. Untuk strip di atas halaman SPP,
+  // TERPISAH dari kartu KPI (yang ikut filter periode/tahun). Uang via
+  // getArusKas('semua') — satu sumber (ikut kas & operasional). Lunas/menunggak
+  // via model level (_sppLevelInfo, akumulasi bulan lunas SPP Pribadi lintas
+  // tahun) — rumus & hasil sama persis dgn getSPPRekap.
+  getRekapGlobal: async function() {
+    var kas = await this.getArusKas({ tahun: 'semua' });
+    var kd = (kas && kas.data) || {};
+    var _m = kd.masuk || {}, _k = kd.keluar || {};
+    var isFth = function(id){ return !!(id && String(id).toUpperCase().startsWith('FTH')); };
+
+    var { data: anggota } = await _sb.from('anggota').select('id_murid, tipe_spp').eq('status','aktif');
+    var roster = (anggota||[]).filter(function(a){ return !isFth(a.id_murid); });
+    var muridIds = roster.map(function(a){ return a.id_murid; });
+    var beasiswa = roster.filter(function(a){ return a.tipe_spp === 'beasiswa'; }).length;
+
+    var setMap = {};
+    if (muridIds.length) {
+      var rows = await _selectAllPaged('spp_pembayaran', 'id_murid, bulan, tahun, jenis, status',
+        function(q){ return q.in('id_murid', muridIds).eq('status','lunas').order('id_spp'); }, 'getRekapGlobal');
+      (rows||[]).forEach(function(r){
+        if (r.jenis && r.jenis !== 'SPP Pribadi') return;
+        if (_BULAN_KEU.indexOf(r.bulan) < 0) return; // buang bulan '-' / tak dikenal
+        (setMap[r.id_murid] = setMap[r.id_murid] || {})[r.tahun + '-' + r.bulan] = 1;
+      });
+    }
+    var lunas = 0, menunggak = 0, tunggakanBulan = 0;
+    roster.forEach(function(a){
+      if (a.tipe_spp === 'beasiswa') return;
+      var lv = _sppLevelInfo(Object.keys(setMap[a.id_murid] || {}).length);
+      if (lv.tunggakan === 0) lunas++; else { menunggak++; tunggakanBulan += lv.tunggakan; }
+    });
+
+    return { status:'ok', data:{
+      lunas: lunas, menunggak: menunggak, beasiswa: beasiswa,
+      murid_non_beasiswa: lunas + menunggak,
+      belum_tertagih: tunggakanBulan * SPP_NOMINAL_BULANAN,
+      spp:          Number(_m.spp_pribadi || 0),
+      infaq:        Number(_m.infaq || 0),
+      total_masuk:  Number(kd.total_masuk || 0),
+      ihsan:        Number(_k.ihsan || 0),
+      total_keluar: Number(kd.total_keluar || 0),
+      saldo:        Number(kd.saldo || 0),
+    }};
+  },
+
   exportRekapAbsensi: async function(p) { return {status:'ok',message:'Export belum diimplementasi'}; },
   arsipData: async function() { throw new Error('Fitur arsip data belum tersedia. Data BELUM dipindahkan — jangan jadikan ini sebagai pengganti backup.'); },
   getArsipList: async function() { return {status:'ok',data:[]}; },
