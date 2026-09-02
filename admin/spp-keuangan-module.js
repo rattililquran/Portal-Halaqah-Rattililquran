@@ -1108,7 +1108,7 @@ function sppKirimWAReminder(id_murid) {
   var nominal = m.tunggakan * SPP_NOMINAL_BULANAN;
   var msg = 'Assalamualaikum ' + m.nama_murid + ',\n\n'
     + 'Izin Kami ingatkan kembali perihal pembayaran SPP yang belum tertunaikan:\n\n'
-    + 'Bulan : ' + (m.bulan_belum.length ? m.bulan_belum.join(', ') : (m.tunggakan + ' bulan terakhir')) + '\n'
+    + 'Jumlah : ' + m.tunggakan + ' bulan\n'
     + 'Total : Rp ' + nominal.toLocaleString('id-ID') + '\n\n'
     + 'Cara pembayaran:\n'
     + '1. Buka Portal Rattililqur\'an → menu *SPP* → *Konfirmasi SPP* (info rekening/QRIS terbaru ada di sana)\n'

@@ -5106,23 +5106,15 @@ var AdminAPI = {
     // p.bulan hanya dipakai loadKasBeasiswa (butuh field beasiswa_*, bukan
     // murid_list) → lewati fetch yg mahal.
     var _skipTunggakan = tunggakanDisabled || !!p.bulan;
-    var lunasSetMap  = {};   // id_murid → { "tahun-bulan": idxBulan(0-11) }  distinct, lintas tahun
-    var firstIdxMap  = {};   // id_murid → idx bulan LUNAS pertama (kronologis) — utk daftar bulan_belum
-    var _firstChrono = {};
+    var lunasSetMap = {};   // id_murid → { "tahun-bulan": namaBulan }  distinct, lintas tahun
     if (muridIds.length && !_skipTunggakan) {
       var allSppRows = await _selectAllPaged('spp_pembayaran', 'id_spp, id_murid, bulan, tahun, jenis, status',
         function(q){ return q.in('id_murid', muridIds).eq('status','lunas').order('id_spp'); },
         'getSPPRekap:allSppRows');
       (allSppRows||[]).forEach(function(r){
         if (r.jenis && r.jenis !== 'SPP Pribadi') return;
-        var idx = BULAN.indexOf(r.bulan);
-        if (idx < 0) return; // buang bulan '-' / tak dikenal
-        (lunasSetMap[r.id_murid] = lunasSetMap[r.id_murid] || {})[r.tahun + '-' + r.bulan] = idx;
-        var chrono = (Number(r.tahun) || 0) * 12 + idx;
-        if (_firstChrono[r.id_murid] === undefined || chrono < _firstChrono[r.id_murid]) {
-          _firstChrono[r.id_murid] = chrono;
-          firstIdxMap[r.id_murid] = idx;
-        }
+        if (BULAN.indexOf(r.bulan) < 0) return; // buang bulan '-' / tak dikenal
+        (lunasSetMap[r.id_murid] = lunasSetMap[r.id_murid] || {})[r.tahun + '-' + r.bulan] = r.bulan;
       });
     }
 
@@ -5134,12 +5126,11 @@ var AdminAPI = {
     var muridListRaw = anggotaSPP.map(function(a) {
       var _set   = lunasSetMap[a.id_murid] || {};
       var _keys  = Object.keys(_set);                   // "tahun-bulan" distinct
-      var lunasBulan = _keys.map(function(k){ return BULAN[_set[k]]; })
+      var lunasBulan = _keys.map(function(k){ return _set[k]; })
                             .filter(function(b,i,arr){ return arr.indexOf(b) === i; }); // nama bulan distinct
       var _lvl   = _sppLevelInfo(_keys.length);
-      var firstIdx = firstIdxMap[a.id_murid];
       var isBeasiswa = a.tipe_spp === 'beasiswa';
-      var bulanBelum, tunggakan, winLen, levelSelesai, progressLevel;
+      var tunggakan, winLen, levelSelesai, progressLevel;
       if (_skipTunggakan) {
         return {
           id_murid: a.id_murid, nama_murid: a.nama_murid, id_halaqah: a.id_halaqah,
@@ -5152,28 +5143,20 @@ var AdminAPI = {
       if (isBeasiswa) {
         // Murid beasiswa: SPP Pribadi dibebaskan → tak pernah nunggak.
         // Dikeluarkan dari hitungan lunas/menunggak (kategori terpisah, lihat bawah).
-        bulanBelum = []; tunggakan = 0; winLen = 0; levelSelesai = 0; progressLevel = 0;
+        tunggakan = 0; winLen = 0; levelSelesai = 0; progressLevel = 0;
       } else {
-        tunggakan    = _lvl.tunggakan;
-        winLen       = WINDOW_SIZE;
-        levelSelesai = _lvl.level_selesai;
+        tunggakan     = _lvl.tunggakan;
+        winLen        = WINDOW_SIZE;
+        levelSelesai  = _lvl.level_selesai;
         progressLevel = _lvl.progress_level;
-        // `bulan_belum` = daftar bulan utk kolom tabel + WA (BUKAN sumber
-        // hitungan). Hanya bermakna utk murid level-1; multi-level → kosong
-        // (FE tampil "N bulan belum lunas"). Slot 5 bulan dari bulan LUNAS pertama.
-        if (tunggakan === 0 || levelSelesai > 0 || firstIdx === undefined) {
-          bulanBelum = [];
-        } else {
-          var slot = [];
-          for (var i = 0; i < WINDOW_SIZE; i++) slot.push(BULAN[(firstIdx + i) % 12]);
-          bulanBelum = slot.filter(function(b){ return lunasBulan.indexOf(b) < 0; });
-        }
       }
       return {
         id_murid: a.id_murid, nama_murid: a.nama_murid,
         id_halaqah: a.id_halaqah, nama_halaqah: a.halaqah && a.halaqah.nama_halaqah || '',
         level: a.level, no_hp: hpMap[a.id_murid] || '',
-        lunas_bulan: lunasBulan, tunggakan, bulan_belum: bulanBelum,
+        // bulan_belum: model level count-based tak bisa memetakan bulan kalender
+        // yg presisi → selalu [] (FE tampil "N bulan belum lunas" dr `tunggakan`).
+        lunas_bulan: lunasBulan, tunggakan, bulan_belum: [],
         _winLen: winLen, is_beasiswa: isBeasiswa,
         level_selesai: levelSelesai, progress_level: progressLevel,
       };
