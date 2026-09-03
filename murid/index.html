@@ -4410,20 +4410,6 @@ html.theme-dark .materi-daurah-banner-title {
         <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="goPage('spp-infaq')">Lihat Detail &amp; Bayar →</button>
       </div>
 
-      <!-- Pengumuman preview -->
-      <div class="card js-chipcard">
-        <div class="card-head">
-          <span class="card-chip cc-blue cc-anim-shake">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-            <span class="card-chip-t">Pengumuman</span>
-          </span>
-          <button class="card-chip-more" onclick="goPage('pengumuman')">Semua →</button>
-        </div>
-        <div class="card-body" id="dashPengumuman">
-          <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
-        </div>
-      </div>
-
     </div><!-- /dashboard -->
 
     <!-- ════ PEMBAYARAN & INFAQ (SPP) ════ -->
@@ -7280,7 +7266,7 @@ html.theme-dark .materi-daurah-banner-title {
      yaitu setelah ketiga script defer ini selesai dieksekusi). -->
 <script src="../assets/js/supabase.min.js" defer></script>
 <script src="../supabase/supabase-core.js?v=3d96c992" defer></script>
-<script src="../supabase/api-murid.js?v=c3c20e48" defer></script>
+<script src="../supabase/api-murid.js?v=6e65310e" defer></script>
 <script src="../supabase/hq-assemble.js?v=7dc0b462" defer></script>
 <script src="../assets/push-permission.js" defer></script>
 <script src="../assets/popup-notifikasi.js" defer></script>
@@ -8831,9 +8817,6 @@ async function loadDashboard(silent) {
             + '</div>';
         }).join('') + (prAktif.length > 2 ? '<div style="font-size:12px;color:var(--text-3);padding-top:6px">+' + (prAktif.length-2) + ' latihan lainnya</div>' : '');
       }
-
-    // Pengumuman preview
-    renderPengumumanList(d.pengumuman || [], 'dashPengumuman', 2);
 
     // Profil modal data — dari d.profil
     var _namaProfil = prof.nama || (d.profil && d.profil.nama) || '';

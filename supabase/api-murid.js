@@ -78,10 +78,9 @@ var MuridAPI = {
     var dashboardNilai = allSessions.filter(function(n) { return KBM_JENIS_DIHITUNG.indexOf(n.jenis_sesi) !== -1; });
 
     var id_halaqah = anggota && anggota.halaqah && anggota.halaqah.id_halaqah;
-    // Fetch pengumuman aktif untuk murid ini (target: semua atau halaqah ini)
-    var pengumumanQuery = _sb.from('pengumuman').select('*').eq('status','aktif').order('tanggal',{ascending:false}).limit(5);
-    if (id_halaqah) pengumumanQuery = pengumumanQuery.or('target.in.(semua,all),id_halaqah.eq.'+id_halaqah);
-    else pengumumanQuery = pengumumanQuery.in('target',['semua','all']);
+    // (Kartu Pengumuman preview dihapus dari Beranda 2026-09-03 -- halaman
+    // Pengumuman penuh fetch sendiri lewat loadPengumuman(), jadi query di sini
+    // tak perlu lagi.)
 
     // Fetch exercises (PR) and exclude MT exercises
     var prQuery = _sb.from('nilai_kbm')
@@ -115,14 +114,12 @@ var MuridAPI = {
       .select('keterangan').eq('tanggal', _todayJakarta()).maybeSingle();
 
     var [
-      { data: pengumuman },
       { data: prRaw },
       qiyamCountRes,
       qiyamLatestRes,
       levelBelajarRes,
       liburResmiRes
     ] = await Promise.all([
-      pengumumanQuery,
       prQuery,
       qiyamCountQuery,
       qiyamLatestQuery,
@@ -275,7 +272,6 @@ var MuridAPI = {
       poin_kamera: poinKamera,
       poin_adab_detail  : { baik: adabBaik, cukup: adabData.length - adabBaik },
       poin_kamera_detail: { terbuka: kamTerbuka, selalu_tertutup: kamSeltup, sering_tertutup: kamSegtup },
-      pengumuman : pengumuman || [],
       pr_aktif   : prAktif,
       libur_resmi_hari_ini: (liburResmiRes && liburResmiRes.data) || null,
       daurah     : daurahData,
