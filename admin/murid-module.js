@@ -368,7 +368,7 @@ function renderUsersTable(role) {
       + '<td>' + roleBadge(u.role) + '</td>'
       + (showHalaqahCol ? hqCell : '')
       + '<td>' + (u.no_hp
-          ? '<span class="hp-copy" title="Klik untuk salin nomor" onclick="salinNoHp(this,\'' + esc(u.no_hp) + '\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">'
+          ? '<span class="hp-copy" title="Klik untuk salin nomor" onclick="salinNoHp(this,\'' + escJs(u.no_hp) + '\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">'
             + '<span>' + esc(u.no_hp) + '</span><span class="hp-copy-ico" style="opacity:.5;display:inline-flex">' + svgIcon('clipboard',12) + '</span></span>'
           : '–') + '</td>'
       + '<td>' + esc(u.email||'–') + '</td>'

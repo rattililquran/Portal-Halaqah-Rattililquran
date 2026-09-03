@@ -793,10 +793,10 @@
       var cardCls = 'nilai-murid-card' + (hasItems ? ' terisi' : '') + (startCollapsed ? ' collapsed' : '');
 
       return '<div class="' + cardCls + '" id="hfkbm-card-' + eid + '" style="margin-bottom:12px" data-mid="' + esc(mid) + '">'
-        + '<div class="nm-header nm-header-clickable" style="margin-bottom:0;cursor:pointer" title="Ketuk untuk buka/tutup kartu" onclick="if(!event.target.closest(\'button,a,input,select,textarea\'))toggleHfKbmCard(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
+        + '<div class="nm-header nm-header-clickable" style="margin-bottom:0;cursor:pointer" title="Ketuk untuk buka/tutup kartu" onclick="if(!event.target.closest(\'button,a,input,select,textarea\'))toggleHfKbmCard(\'' + escJs(mid) + '\')">'
           + '<div class="nm-nama"><span class="nm-nama-txt"><span class="nm-nama-avatar">' + noUrut + '</span> ' + esc(m.nama_murid) + '</span></div>'
           + '<div style="display:flex;align-items:center;gap:6px">'
-            + '<button onclick="event.stopPropagation();showRiwayatSetoranModal(\'' + esc(mid.replace(/'/g,"\\'")) + '\', \'' + esc((m.nama_murid||'').replace(/'/g,"\\'")) + '\')" '
+            + '<button data-mid="' + esc(mid) + '" data-mnm="' + esc(m.nama_murid||'') + '" onclick="event.stopPropagation();showRiwayatSetoranModal(this.dataset.mid, this.dataset.mnm)" '
               + 'style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:7px;color:#fff;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.2s;white-space:nowrap" '
               + 'title="Riwayat Setoran Semua Surat" '
               + 'onmouseover="this.style.background=\'rgba(255,255,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.18)\'">'
@@ -809,7 +809,7 @@
         + '</div>'
         + '<div class="nm-summary" id="hfkbm-sum-' + eid + '">' + esc(_hfKbmCardSummaryText(mid)) + '</div>'
         + '<div class="nm-body-wrap"' + (startCollapsed ? ' style="display:none"' : '') + '>'
-        + '<div class="nm-body" onfocusout="_hfKbmCardFocusOut(\'' + esc(mid.replace(/'/g,"\\'")) + '\')">'
+        + '<div class="nm-body" onfocusout="_hfKbmCardFocusOut(\'' + escJs(mid) + '\')">'
         + '<div style="padding:10px 12px 12px">'
           + targetSubtext
           + '<div style="display:grid;grid-template-columns:110px 1fr;gap:8px;margin-bottom:8px">'
@@ -847,7 +847,7 @@
             + '</div>'
             + '<div id="hfkbm-poin-' + eid + '" style="font-size:11px;color:var(--kbm-warn,#b45309);background:var(--kbm-warn-soft, rgba(180,83,9,.07));border:1px solid var(--kbm-warn,#b45309);border-radius:8px;padding:6px 10px;margin-top:8px">Estimasi poin: akan dihitung</div>'
           + '</div>'
-          + '<button type="button" onclick="addHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\')" style="width:100%;margin-bottom:8px;background:var(--kbm-ok,#059669);color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
+          + '<button type="button" onclick="addHafalanKbmItem(\'' + escJs(mid) + '\')" style="width:100%;margin-bottom:8px;background:var(--kbm-ok,#059669);color:#fff;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">'
             + kbmIco('centang') + ' Tambah Surat Ke Keranjang Setoran'
           + '</button>'
           + '<div id="hfkbm-staged-list-' + eid + '" style="display:none;margin-bottom:8px"></div>'
@@ -1042,8 +1042,8 @@
           + '<div style="font-size:10.5px;color:#6b7280;margin-top:2px">' + esc(detail) + '</div>'
         + '</div>'
         + '<div style="display:flex;gap:4px">'
-          + '<button type="button" onclick="editHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:var(--kbm-accent-soft, rgba(15,23,42,.08));border:none;color:var(--kbm-ink-2, var(--text-2));border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Edit item setoran ini">Edit</button>'
-          + '<button type="button" onclick="removeHafalanKbmItem(\'' + esc(mid.replace(/'/g,"\\'")) + '\', ' + idx + ')" style="background:var(--kbm-warn-soft, rgba(220,38,38,.08));border:none;color:var(--kbm-danger,#dc2626);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
+          + '<button type="button" onclick="editHafalanKbmItem(\'' + escJs(mid) + '\', ' + idx + ')" style="background:var(--kbm-accent-soft, rgba(15,23,42,.08));border:none;color:var(--kbm-ink-2, var(--text-2));border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Edit item setoran ini">Edit</button>'
+          + '<button type="button" onclick="removeHafalanKbmItem(\'' + escJs(mid) + '\', ' + idx + ')" style="background:var(--kbm-warn-soft, rgba(220,38,38,.08));border:none;color:var(--kbm-danger,#dc2626);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer" title="Hapus item setoran ini">✕</button>'
         + '</div>'
       + '</div>';
     }).join('');

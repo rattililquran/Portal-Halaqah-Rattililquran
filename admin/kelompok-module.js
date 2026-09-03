@@ -193,7 +193,7 @@ function _kqDenyutRow(a) {
     : '';
   let nudgeBtn = '';
   if (mandek && p && p.no_hp) {
-    nudgeBtn = `<button onclick="kqNudgeAnggota('${escJs(a.nama_murid||'')}','${esc(p.no_hp)}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">${svgIcon('message',12)} Ingatkan</button>`;
+    nudgeBtn = `<button onclick="kqNudgeAnggota('${escJs(a.nama_murid||'')}','${escJs(p.no_hp||'')}')" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;background:#25d366;color:#fff;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">${svgIcon('message',12)} Ingatkan</button>`;
   }
   return `<div style="display:flex;align-items:center;gap:7px;padding:5px 0;font-size:12px">`
     + `<span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0"></span>`

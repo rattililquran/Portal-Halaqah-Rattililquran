@@ -213,7 +213,7 @@
         if (isContacted) {
           followupBtn = '<button class="ketua-wa-btn" disabled style="background:var(--green-l);color:var(--green);border:none;margin-left:8px;font-weight:700">✅ Sudah Diingatkan</button>';
         } else {
-          followupBtn = '<button class="ketua-wa-btn" style="background:rgba(59,130,246,0.15);color:var(--blue);border:none;margin-left:8px;font-weight:700" onclick="doMarkContactedKetua(\''+m.id_murid+'\', \''+esc(m.nama_murid)+'\', \''+type+'\', '+m.absen+', this)">Tandai Sudah Diingatkan</button>';
+          followupBtn = '<button class="ketua-wa-btn" data-mid="'+esc(m.id_murid)+'" data-nm="'+esc(m.nama_murid||'')+'" data-tipe="'+esc(type)+'" data-val="'+esc(m.absen)+'" style="background:rgba(59,130,246,0.15);color:var(--blue);border:none;margin-left:8px;font-weight:700" onclick="doMarkContactedKetua(this.dataset.mid, this.dataset.nm, this.dataset.tipe, +this.dataset.val, this)">Tandai Sudah Diingatkan</button>';
         }
       }
 
