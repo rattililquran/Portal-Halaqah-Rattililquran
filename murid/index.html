@@ -1647,6 +1647,64 @@ html.theme-dark .micro-dash-card{background:#121214 !important;box-shadow:0 2px 
 html.theme-dark .micro-dash-card .prog-inner-wrap{background:transparent !important;padding:0 !important;margin-top:8px}
 html.theme-dark .micro-dash-card .prog-inner-card{background:rgba(255,255,255,.035) !important;border:1px solid rgba(255,255,255,.055) !important}
 html.theme-dark .micro-dash-card .prog-donut-inner{background:#0b0b0d !important;border-color:rgba(255,255,255,.10) !important;box-shadow:none !important}
+
+/* ══ CHIP JUDUL KARTU BERANDA — satu komponen utk semua kartu Beranda ══
+   Ganti .card-title / .prog-title / .spp-title yg campur-campur. Pil kecil,
+   ikon bare (tanpa kotak), teks KAPITAL, aksen per-kartu. Ikon beranimasi
+   halus (idle) + bereaksi saat kartu di-hover. Lihat mockup keputusan. */
+.card-chip{
+  display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  padding:5px 12px;border-radius:100px;
+  background:var(--cc-bg);border:1px solid var(--cc-bd);
+  margin-bottom:12px;font-family:inherit;max-width:100%;
+}
+.card-chip svg{width:15px;height:15px;flex-shrink:0;color:var(--cc-fg);display:block}
+.card-chip-t{
+  font-size:10.5px;font-weight:800;letter-spacing:.075em;text-transform:uppercase;
+  color:var(--cc-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-chip-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-chip-row .card-chip,
+.card-head .card-chip{margin-bottom:0}
+.card-chip-more{
+  margin-left:auto;flex-shrink:0;
+  font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text-3);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 2px;
+}
+.card-chip-more:hover{color:var(--text-2)}
+
+/* aksen per kartu (tema terang) */
+.cc-green {--cc-fg:#15803d;--cc-bg:rgba(21,128,61,.08);--cc-bd:rgba(21,128,61,.2)}
+.cc-cyan  {--cc-fg:#0e7490;--cc-bg:rgba(14,116,144,.08);--cc-bd:rgba(14,116,144,.2)}
+.cc-violet{--cc-fg:#7c3aed;--cc-bg:rgba(124,58,237,.09);--cc-bd:rgba(124,58,237,.22)}
+.cc-amber {--cc-fg:#b45309;--cc-bg:rgba(180,83,9,.10);--cc-bd:rgba(180,83,9,.24)}
+.cc-blue  {--cc-fg:#1d4ed8;--cc-bg:rgba(29,78,216,.08);--cc-bd:rgba(29,78,216,.2)}
+/* aksen per kartu (gelap / AMOLED — diangkat utk kontras di hitam) */
+html.theme-dark .cc-green {--cc-fg:#4ade80;--cc-bg:rgba(74,222,128,.10);--cc-bd:rgba(74,222,128,.16)}
+html.theme-dark .cc-cyan  {--cc-fg:#22d3ee;--cc-bg:rgba(34,211,238,.10);--cc-bd:rgba(34,211,238,.16)}
+html.theme-dark .cc-violet{--cc-fg:#c4b5fd;--cc-bg:rgba(196,181,253,.12);--cc-bd:rgba(196,181,253,.18)}
+html.theme-dark .cc-amber {--cc-fg:#fbbf24;--cc-bg:rgba(251,191,36,.11);--cc-bd:rgba(251,191,36,.17)}
+html.theme-dark .cc-blue  {--cc-fg:#7dd3fc;--cc-bg:rgba(125,211,252,.10);--cc-bd:rgba(125,211,252,.16)}
+/* tema Minimalis terang: aksen sedikit lebih pekat, senada chip seksi sidebar */
+html.theme-minimal:not(.theme-dark) .card-chip{background:var(--cc-bg);border-color:var(--cc-bd)}
+
+/* animasi ikon — idle sangat halus, reaksi lebih hidup saat kartu di-hover */
+@keyframes ccFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+@keyframes ccSway{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+@keyframes ccRing{0%,55%,100%{transform:rotate(0)}62%{transform:rotate(-14deg)}72%{transform:rotate(11deg)}82%{transform:rotate(-6deg)}91%{transform:rotate(3deg)}}
+@keyframes ccNudge{0%,100%{transform:translateY(0)}30%{transform:translateY(-3px)}60%{transform:translateY(1px)}}
+@keyframes ccFlip{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+.card-chip svg{animation:ccFloat 3.6s ease-in-out infinite;transform-origin:center;will-change:transform}
+.card-chip.cc-anim-bell svg{animation:ccSway 4s ease-in-out infinite}
+.js-chipcard{perspective:240px}
+.js-chipcard:hover .card-chip svg{animation:ccNudge .7s ease}
+.js-chipcard:hover .card-chip.cc-anim-bell svg{animation:ccRing 1s ease}
+.js-chipcard:hover .card-chip.cc-anim-flip svg{animation:ccFlip .7s ease}
+@media (prefers-reduced-motion:reduce){
+  .card-chip svg,.card-chip.cc-anim-bell svg,
+  .js-chipcard:hover .card-chip svg{animation:none !important}
+}
+
 .attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;
@@ -4148,9 +4206,12 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
 
       <!-- Kehadiranku (gabungan KBM Reguler + At-Tibyan) -->
-      <div class="card" id="dashProgressCard" style="padding:18px;cursor:default">
-        <!-- Judul besar -->
-        <div class="card-title" style="margin-bottom:16px;gap:10px"><div class="pg-sec-ico ico-green kh-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 10.5 15 16 9"/></svg></div>Kehadiranku</div>
+      <div class="card js-chipcard" id="dashProgressCard" style="padding:18px;cursor:default">
+        <!-- Judul -->
+        <div class="card-chip cc-green" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.4 10.7 15 16 9.2"/></svg>
+          <span class="card-chip-t">Kehadiranku</span>
+        </div>
 
         <div class="dash-prog-body">
         <!-- KBM Reguler (jadi "KBM Qiyam" utk level Qiyam -- lihat dashKbmLabel di JS) -->
@@ -4232,10 +4293,13 @@ html.theme-dark .materi-daurah-banner-title {
       </div><!-- /dash-top-grid -->
 
       <!-- Partner Qiyam Card -->
-      <div class="partner-dash-card" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
-        <div class="prog-title">
-          <span>🤝 Partner Qiyam</span>
-          <span id="dashPartnerBadge" class="partner-dash-badge" style="display:none"></span>
+      <div class="partner-dash-card js-chipcard" id="dashPartnerCard" style="display:none" onclick="goPage('hafalan'); switchHafalanTab('partner');">
+        <div class="card-chip-row">
+          <span class="card-chip cc-cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.4"/><path d="M22 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.5a4 4 0 0 1 0 7.5"/></svg>
+            <span class="card-chip-t">Partner Qiyam</span>
+          </span>
+          <span id="dashPartnerBadge" class="partner-dash-badge" style="display:none;margin-left:auto"></span>
         </div>
         <div id="dashPartnerBody" class="partner-dash-body">⏳ Memuat...</div>
       </div>
@@ -4243,10 +4307,13 @@ html.theme-dark .materi-daurah-banner-title {
       <!-- Partner Belajar Card (Level 1-4) -- ringkasan dua-arah (notifikasi konfirmasi,
            CTA kontekstual, daftar anggota) + form mini "Lapor Aktivitas" sebagai CTA
            sekunder (dulu dua kartu terpisah dgn syarat tampil yg tidak sinkron). -->
-      <div class="partner-dash-card" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
-        <div class="prog-title">
-          <span>📚 Partner Belajar</span>
-          <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none"></span>
+      <div class="partner-dash-card js-chipcard" id="dashPartnerBelajarCard" style="display:none" onclick="goPage('partner-belajar')">
+        <div class="card-chip-row">
+          <span class="card-chip cc-cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.4"/><path d="M22 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.5a4 4 0 0 1 0 7.5"/></svg>
+            <span class="card-chip-t">Partner Belajar</span>
+          </span>
+          <span id="dashPartnerBelajarBadge" class="partner-dash-badge" style="display:none;margin-left:auto"></span>
         </div>
         <div id="dashPartnerBelajarBody" class="partner-dash-body">⏳ Memuat...</div>
         <button type="button" class="btn btn-ghost" id="dashPbFormToggleBtn" style="display:none" onclick="event.stopPropagation();toggleDashPbForm()">+ Lapor Aktivitas Belajar</button>
@@ -4280,24 +4347,23 @@ html.theme-dark .materi-daurah-banner-title {
       </div>
 
       <!-- PR Aktif -->
-      <div class="card" id="prCard" style="display:none">
+      <div class="card js-chipcard" id="prCard" style="display:none">
         <div class="card-head">
-          <div class="card-title">📝 Latihan Mandiri (PR) Aktif</div>
-          <button class="card-more" onclick="goPage('pr')">Lihat →</button>
+          <span class="card-chip cc-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            <span class="card-chip-t">Latihan Mandiri (PR)</span>
+          </span>
+          <button class="card-chip-more" onclick="goPage('pr')">Lihat →</button>
         </div>
         <div class="card-body" id="dashPrPreview"></div>
       </div>
 
       <!-- Micro Teaching Card -->
-      <div class="micro-dash-card" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
-        <!-- Judul MT -->
-        <div class="prog-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Micro Teaching
-        </div>
-        <!-- Chip label -->
-        <div class="prog-level-row">
-          <span class="level-badge" style="background:linear-gradient(135deg,rgba(139,92,246,.55),rgba(167,139,250,.4)); border:1.5px solid rgba(139,92,246,.6); box-shadow:0 0 12px rgba(139,92,246,.35),inset 0 1px 0 rgba(255,255,255,.25);">Micro Teaching</span>
+      <div class="micro-dash-card js-chipcard" id="dashMicroCard" style="display:none;" onclick="openMicroTeachingBreakdown()">
+        <!-- Judul MT (chip judul saja — tak lagi dobel dgn level-badge) -->
+        <div class="card-chip cc-violet cc-anim-flip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5z"/><path d="M6 12v5c0 1 2.7 3 6 3s6-2 6-3v-5"/><line x1="22" y1="10" x2="22" y2="15"/></svg>
+          <span class="card-chip-t">Micro Teaching</span>
         </div>
         <!-- Inner wrap -->
         <div class="prog-inner-wrap">
@@ -4328,18 +4394,27 @@ html.theme-dark .materi-daurah-banner-title {
            menampilkan teks yang sudah dihitung oleh renderSPP() di spp-module.js (via hook
            window.onSppRendered) -- tidak menghitung ulang apa pun sendiri, supaya tidak ada
            risiko angka beda antara Beranda & halaman Administrasi. -->
-      <div class="card" id="dashSppSummaryCard" style="margin-bottom:16px;padding:16px 18px;display:none">
-        <div class="spp-title"><div class="pg-sec-ico ico-green spp-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>Pembayaran & Infaq<span id="dashSppSummaryBadge" style="margin-left:auto"></span></div>
+      <div class="card js-chipcard" id="dashSppSummaryCard" style="margin-bottom:16px;padding:16px 18px;display:none">
+        <div class="card-chip-row">
+          <span class="card-chip cc-amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
+            <span class="card-chip-t">Pembayaran &amp; Infaq</span>
+          </span>
+          <span id="dashSppSummaryBadge" style="margin-left:auto"></span>
+        </div>
         <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-top:10px" id="dashSppSummaryTitle">Memuat...</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:2px" id="dashSppSummarySub"></div>
         <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px" onclick="goPage('spp-infaq')">Lihat Detail &amp; Bayar →</button>
       </div>
 
       <!-- Pengumuman preview -->
-      <div class="card">
+      <div class="card js-chipcard">
         <div class="card-head">
-          <div class="card-title">📢 Pengumuman</div>
-          <button class="card-more" onclick="goPage('pengumuman')">Semua →</button>
+          <span class="card-chip cc-blue cc-anim-bell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+            <span class="card-chip-t">Pengumuman</span>
+          </span>
+          <button class="card-chip-more" onclick="goPage('pengumuman')">Semua →</button>
         </div>
         <div class="card-body" id="dashPengumuman">
           <div class="empty"><div class="empty-ico">📭</div><div class="empty-ttl">Belum ada pengumuman</div></div>
@@ -7505,6 +7580,13 @@ function openMicroTeachingBreakdown() {
 //  INIT
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
+  // Stagger idle-float ikon chip judul kartu Beranda biar tak mengambang serempak
+  try {
+    document.querySelectorAll('.card-chip svg').forEach(function(s, i) {
+      s.style.animationDelay = (i * 0.4).toFixed(2) + 's';
+    });
+  } catch (e) {}
+
   var now = new Date();
   var HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   var BLAN = ['Januari','Februari','Maret','April','Mei','Juni',
