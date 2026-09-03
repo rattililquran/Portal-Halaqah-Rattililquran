@@ -421,7 +421,10 @@ window._pushSkip = function() {
 };
 
 // ── Entry point otomatis: tampilkan dialog setelah login ─────
-window.initPushPrompt = function(roleLabel) {
+// delayMs opsional -- default 30 dtk (guru/admin). Murid mengoper nilainya
+// sendiri dari startApp() (murid/index.html) supaya urutan popup murid bisa
+// diatur terpisah dari portal lain.
+window.initPushPrompt = function(roleLabel, delayMs) {
   var state = getPushState();
 
   // Sudah granted: pastikan subscription browser masih ada (localStorage bisa
@@ -442,17 +445,18 @@ window.initPushPrompt = function(roleLabel) {
   // Sudah pernah subscribe & memang siap-tanya → jangan ganggu.
   if (state === 'ask' && localStorage.getItem(STORAGE_KEY_SUBSCRIBED) === 'true') return;
 
-  // Hormati timer "Nanti Saja" (30 hari) untuk popup OTOMATIS.
+  // Hormati timer "Nanti Saja" (DISMISS_DAYS = 7 hari) untuk popup OTOMATIS.
   var dismissedAt = localStorage.getItem(STORAGE_KEY_DISMISSED);
   if (dismissedAt) {
     var daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 86400);
     if (daysSince < DISMISS_DAYS) return;
   }
 
-  // Tunda 30 detik (dinaikkan dari 3 detik) -- kasih jarak lebih lega dari
-  // popup lain (onboarding 1.5 detik) supaya tak gampang tumpang tindih, dan
-  // beri waktu murid lihat-lihat dashboard dulu sebelum diminta izin.
-  setTimeout(function() { _pushTungguGiliran(state, roleLabel, 0); }, 30000);
+  // Tunda sebelum tampil. Default 30 dtk; murid kini mengoper 4 dtk (diminta
+  // user) -- ajakan notifikasi jadi popup pertama, disusul dakwah (30 dtk) &
+  // KhatamKu (60 dtk). Pengaman tabrakan popup (_pushTungguGiliran) tetap jaga.
+  var tunda = (typeof delayMs === 'number' && delayMs >= 0) ? delayMs : 30000;
+  setTimeout(function() { _pushTungguGiliran(state, roleLabel, 0); }, tunda);
 };
 
 // Pengaman tabrakan popup: cek ULANG scr berkala (bukan sekali lalu nyerah)

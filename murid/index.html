@@ -7291,7 +7291,7 @@ html.theme-dark .materi-daurah-banner-title {
 <script src="raport-module.js?v=bdd7d39d" defer></script>
 <script src="insight-module.js?v=c1ae28ce" defer></script>
 <script src="khatamku-link-module.js?v=c5683397" defer></script>
-<script src="khatamku-popup-module.js?v=30c9989b" defer></script>
+<script src="khatamku-popup-module.js?v=417511fd" defer></script>
 <script src="ketua-module.js?v=257eff70" defer></script>
 <script>
 // ══════════════════════════════════════════
@@ -8054,19 +8054,17 @@ function startApp() {
   resetMuridSession();
   startMuridAutoRefresh();
   loadDashboard();
-  if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid');
+  // Urutan/tunda popup startup murid (diminta user):
+  //   ajakan notifikasi (push) = 4 dtk   -> popup pertama
+  //   dakwah (popup_notifikasi) = 30 dtk
+  //   KhatamKu                  = 60 dtk  (tunda internal di modulnya)
+  // Tiap popup tetap punya pengaman tabrakan (tunggu 3 dtk, ulang maks 12x)
+  // kalau popup lain masih terbuka saat gilirannya.
+  if (typeof window.initPopupNotifikasi === 'function') window.initPopupNotifikasi('murid', 30000);
   if (typeof window.initKhatamkuPopup === 'function') window.initKhatamkuPopup('murid');
-  // Dilaporkan user 2026-08-27: ajakan notifikasi "tak pernah muncul" --
-  // ternyata initPushPrompt() (didefinisikan lengkap di assets/push-
-  // permission.js, dgn delay 30 detik & pengaman tabrakan popup) memang tak
-  // pernah dipanggil di murid sama sekali (cuma ada di guru/attibyan-
-  // module.js & admin/laporan-module.js, itupun nempel di modul fitur
-  // tertentu bukan alur start-up utama). Satu-satunya jalur aktivasi push
-  // murid selama ini cuma tombol manual "Aktifkan" di halaman Preferensi
-  // Notifikasi -- jelas kenapa subscriber rendah (114/397). Dipanggil di
-  // sini spy sejajar dgn popup lain (stagger: dakwah=4dtk, KhatamKu=15dtk,
-  // push=30dtk).
-  if (typeof window.initPushPrompt === 'function') window.initPushPrompt('murid');
+  // initPushPrompt: sebelumnya tak pernah dipanggil di murid (cuma guru/admin),
+  // makanya subscriber push murid rendah. Kini popup pertama, tunda 4 dtk.
+  if (typeof window.initPushPrompt === 'function') window.initPushPrompt('murid', 4000);
   // startApp() TIDAK memanggil goPage() (halaman dashboard sudah .active dari HTML
   // statis) -- jadi highlight tab atas perlu disinkronkan manual di sini supaya
   // tab "Utama" sudah menyala sejak awal, bukan baru menyala setelah tab pertama

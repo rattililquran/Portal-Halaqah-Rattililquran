@@ -163,19 +163,18 @@
     render(data);
   }
 
-  // Entry point -- panggil dari startApp() SETELAH initPopupNotifikasi (lihat
-  // murid/index.html:7744). Urutan stagger: onboarding=1.5s, popup dakwah=4s,
-  // ini=15s, ajakan notifikasi=30s. Delay 15000ms SENGAJA lebih santai drpd
-  // onboarding/dakwah (popup KhatamKu tidak time-sensitive, boleh telat
-  // tampil) tapi masih sebelum ajakan notifikasi. tunggGiliran() tetap
-  // jaga-jaga kalau masih terhalang setelah itu.
+  // Entry point -- panggil dari startApp() (lihat murid/index.html). Urutan
+  // stagger popup murid (diminta user): ajakan notifikasi=4s, dakwah=30s,
+  // ini=60s. Delay 60000ms SENGAJA paling belakang -- popup KhatamKu tidak
+  // time-sensitive, boleh telat tampil. tunggGiliran() tetap jaga-jaga kalau
+  // masih terhalang popup lain setelah itu.
   window.initKhatamkuPopup = function(roleLabel) {
     if (hasSeenToday()) return;
     if (!window.HQ || !window.HQ.MuridAPI || typeof window.HQ.MuridAPI.getKhatamkuLinkStatus !== 'function') return;
     window.HQ.MuridAPI.getKhatamkuLinkStatus().then(function(r) {
       var data = (r && r.data) || null;
       if (!data) return;
-      setTimeout(function(){ tunggGiliran(data, 0); }, 15000);
+      setTimeout(function(){ tunggGiliran(data, 0); }, 60000);
     }).catch(function(){});
   };
 })();

@@ -129,12 +129,14 @@ window._pnDismiss = function() {
 // roleLabel diterima utk konsistensi tanda tangan dgn initOnboarding(), tapi
 // TIDAK dipakai memfilter Fase 0 -- popup ini satu kanal utk semua role
 // (target per-role sengaja ditunda, lihat RENCANA §7 #4).
-window.initPopupNotifikasi = function(roleLabel) {
+// delayMs opsional -- default 4 dtk (guru). Murid mengoper 30 dtk dari
+// startApp() supaya urutan popup murid: ajakan notifikasi=4s, dakwah=30s,
+// popup KhatamKu=60s. (onboarding=1.5s masih dormant di semua portal.)
+window.initPopupNotifikasi = function(roleLabel, delayMs) {
+  var tunda = (typeof delayMs === 'number' && delayMs >= 0) ? delayMs : 4000;
   fetchActive().then(function(p) {
     if (!p || hasSeen(p)) return;
-    // Urutan stagger: onboarding=1.5s, popup dakwah (ini)=4s, ajakan
-    // notifikasi=30s, popup KhatamKu (murid)=15s.
-    setTimeout(function() { _pnTungguGiliran(p, 0); }, 4000);
+    setTimeout(function() { _pnTungguGiliran(p, 0); }, tunda);
   }).catch(function(){});
 };
 
