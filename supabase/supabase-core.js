@@ -23,6 +23,15 @@ const _sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 // (anti-tampering) — jika tarif berubah, ubah DI SANA JUGA agar sinkron.
 const SPP_NOMINAL_BULANAN = 75000;
 
+// Kolom public.users yang AMAN dikirim ke browser — TANPA `password_hash`
+// (hash bcrypt) & `auth_id` (UUID akun Auth). Menggantikan `select('*')` di
+// getProfile / getDashboard / getAllUsers / getMuridBelum / createUser /
+// updateUser (audit keamanan T3, patch_107). Sejalan dgn GRANT SELECT kolom
+// di patch_107: kalau kolom users bertambah & perlu tampil di klien, tambahkan
+// DI SINI **dan** di GRANT patch_107. Konstanta top-level -> terlihat langsung
+// (tanpa window.) di api-staff.js & api-murid.js, sama seperti `_sb`.
+const USER_COLS_CLIENT = 'id_user,nama_lengkap,role,no_hp,email,alamat,tgl_daftar,status,catatan,nama_guru,nama_halaqah,created_at,updated_at,is_bendahara,is_musyrif,tipe_murid,tgl_lulus';
+
 // ─────────────────────────────────────────────
 //  SESSION
 // ─────────────────────────────────────────────
@@ -884,7 +893,7 @@ var Auth = {
   getProfile: async function() {
     var uid = _uid();
     if (!uid) return { status: 'error', message: 'Sesi telah berakhir. Silakan login ulang.' };
-    var { data, error } = await _sb.from('users').select('*').eq('id_user', uid).maybeSingle();
+    var { data, error } = await _sb.from('users').select(USER_COLS_CLIENT).eq('id_user', uid).maybeSingle();
     if (error) throw new Error(error.message);
     return { status: 'ok', data: data || _currentUser };
   },

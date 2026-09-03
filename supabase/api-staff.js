@@ -334,7 +334,7 @@ var GuruAPI = {
     var { data: sudah } = await _sb.from('anggota')
       .select('id_murid').eq('id_halaqah', id_halaqah);
     var sudahIds = (sudah || []).map(function(a) { return a.id_murid; });
-    var q = _sb.from('users').select('*').eq('role', 'murid').eq('status', 'aktif');
+    var q = _sb.from('users').select(USER_COLS_CLIENT).eq('role', 'murid').eq('status', 'aktif');
     if (sudahIds.length > 0) q = q.not('id_user', 'in', '(' + sudahIds.join(',') + ')');
     var { data, error } = await q.order('nama_lengkap');
     _check(error, 'getMuridBelum');
@@ -3833,14 +3833,14 @@ var AdminAPI = {
     }};
   },
   getAllUsers: async function(p) {
-    var q = _sb.from('users').select('*').order('nama_lengkap');
+    var q = _sb.from('users').select(USER_COLS_CLIENT).order('nama_lengkap');
     // Accept both a plain string role (e.g. 'guru') or an object { role: 'guru' }
     var roleFilter = typeof p === 'string' ? p : (p && p.role ? p.role : null);
     if (roleFilter) q = q.eq('role', roleFilter);
     var {data,error} = await q; _check(error,'getAllUsers'); return {status:'ok',data};
   },
-  createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select().single(); _check(error,'createUser'); return {status:'ok',data}; },
-  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select(); _check(error,'updateUser'); if(!data || !data.length) throw new Error('User '+id_user+' tidak ditemukan atau tidak ada perubahan tersimpan -- coba muat ulang halaman dan login ulang'); if('role' in u || 'status' in u || 'is_musyrif' in u || 'tipe_murid' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data:data[0]}; },
+  createUser: async function(d) { var {data,error}=await _sb.from('users').insert(d).select(USER_COLS_CLIENT).single(); _check(error,'createUser'); return {status:'ok',data}; },
+  updateUser: async function(d) { var {id_user,...u}=d; var {data,error}=await _sb.from('users').update(u).eq('id_user',id_user).select(USER_COLS_CLIENT); _check(error,'updateUser'); if(!data || !data.length) throw new Error('User '+id_user+' tidak ditemukan atau tidak ada perubahan tersimpan -- coba muat ulang halaman dan login ulang'); if('role' in u || 'status' in u || 'is_musyrif' in u || 'tipe_murid' in u){ _logAudit('update_user_role_status', {id_user:id_user, changes:u}); } return {status:'ok',data:data[0]}; },
   deleteUser: async function(id_user) { var {error}=await _sb.from('users').update({status:'nonaktif'}).eq('id_user',id_user); _check(error,'deleteUser'); return {status:'ok'}; },
   // Wisuda bulk semua murid di satu halaqah (patch_100)
   bulkWisudaHalaqah: async function(id_halaqah, nama_halaqah) {

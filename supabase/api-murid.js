@@ -40,7 +40,7 @@ var MuridAPI = {
     var id_murid = _uid();
     var [anggotaRes, userRes, nilaiRes] = await Promise.all([
       _sb.from('anggota').select('*, halaqah(*, periode(*))').eq('id_murid', id_murid).eq('status', 'aktif').maybeSingle(),
-      _sb.from('users').select('*').eq('id_user', id_murid).maybeSingle(),
+      _sb.from('users').select(USER_COLS_CLIENT).eq('id_user', id_murid).maybeSingle(),
       _sb.from('nilai_kbm').select('*, kbm_log!nilai_kbm_id_kbm_fkey(*)').eq('id_murid', id_murid),
     ]);
     var anggota    = anggotaRes.data;
