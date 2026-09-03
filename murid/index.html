@@ -1638,6 +1638,15 @@ html.theme-dark #dashAtTibyanCard.attibyan-locked {
 .micro-dash-card:active{transform:scale(.98)}
 .micro-dash-card .prog-title{color:var(--text) !important;}
 .micro-dash-card .prog-inner-wrap{background:var(--bg-2) !important;margin-top:4px;}
+/* Observer (belum ada nilai praktik): nada lebih kalem + info kiri boleh 2 baris */
+.micro-dash-card.is-observer .prog-donut-lbl{letter-spacing:.02em}
+.micro-dash-card.is-observer .prog-info-sesi{line-height:1.45}
+/* Dark / AMOLED: frame biru-muda 8px tak cocok di hitam -- buang bingkai,
+   pakai panel abu tipis yg "naik" dari kartu, senada kartu Beranda lain. */
+html.theme-dark .micro-dash-card{background:#121214 !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+html.theme-dark .micro-dash-card .prog-inner-wrap{background:transparent !important;padding:0 !important;margin-top:8px}
+html.theme-dark .micro-dash-card .prog-inner-card{background:rgba(255,255,255,.035) !important;border:1px solid rgba(255,255,255,.055) !important}
+html.theme-dark .micro-dash-card .prog-donut-inner{background:#0b0b0d !important;border-color:rgba(255,255,255,.10) !important;box-shadow:none !important}
 .attibyan-dash-ico{width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,#f59e0b,#d97706);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;
@@ -7360,12 +7369,14 @@ function openProgressBreakdown(forceMicro) {
       var microHtml;
       if (!mtDinilai && mtHadirSesi > 0) {
         // Observer-only: murid sudah hadir menyimak sesi MT tapi belum pernah tampil dinilai
-        microHtml = '<div style="text-align:center;margin-bottom:16px;background:rgba(139,92,246,0.06);padding:18px 16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.25)">'
-          + '<div style="font-size:12px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:0.05em;margin-bottom:6px">Micro Teaching</div>'
-          + '<div style="font-size:15px;font-weight:800;color:#8b5cf6;line-height:1.4">Hadir sebagai observer</div>'
-          + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:6px">Kamu sudah menyimak ' + mtHadirSesi + ' sesi praktik mengajar temanmu.</div>'
+        microHtml = '<div style="text-align:center;margin-bottom:14px;background:var(--purple-bg);padding:20px 16px;border-radius:16px;border:1px dashed rgba(139,92,246,0.35)">'
+          + '<div style="width:48px;height:48px;margin:0 auto 10px;border-radius:14px;background:rgba(139,92,246,0.14);display:flex;align-items:center;justify-content:center">'
+            + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple-txt)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
           + '</div>'
-          + '<div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;color:var(--text-3);font-size:13px;line-height:1.5">'
+          + '<div style="font-size:16px;font-weight:800;color:var(--purple-txt);line-height:1.4">Hadir sebagai observer</div>'
+          + '<div style="font-size:13px;color:var(--text-2);font-weight:600;margin-top:6px;line-height:1.5">Kamu sudah menyimak <strong>' + mtHadirSesi + ' sesi</strong> praktik mengajar temanmu.</div>'
+          + '</div>'
+          + '<div style="background:var(--bg-2);padding:14px;border-radius:12px;border:1px solid var(--border);text-align:center;color:var(--text-3);font-size:12.5px;line-height:1.55">'
           + 'Nilai praktik & rincian rubrik akan muncul di sini setelah kamu mendapat giliran tampil dan dinilai oleh pendidik.'
           + '</div>';
         bodyEl.innerHTML = microHtml;
@@ -8579,12 +8590,16 @@ async function loadDashboard(silent) {
         var mtDonutLbl   = document.getElementById('dashMicroDonutLbl');
         var mtProgressBar = document.getElementById('dashMicroProgressBar');
         var mtBarWrap    = document.getElementById('dashMicroProgressBarWrap');
+        var mtDark       = document.documentElement.classList.contains('theme-dark');
+
+        microCardEl.classList.toggle('is-observer', !mtGraded);
 
         if (mtGraded) {
           if (mtDonutLbl) mtDonutLbl.textContent = 'nilai';
           if (mtBarWrap) mtBarWrap.style.display = '';
+          if (mtPctNum) mtPctNum.style.color = mtDark ? '#c4b5fd' : '#8b5cf6';
           if (mtDonutRing) {
-            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: '#8b5cf6', targetPct: (mt.rata_nilai || 0), sweep: !silent, barEl: mtProgressBar });
+            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: (mtDark ? '#a78bfa' : '#8b5cf6'), targetPct: (mt.rata_nilai || 0), sweep: !silent, barEl: mtProgressBar });
           }
 
           var mtLast = mt.terakhir;
@@ -8600,15 +8615,18 @@ async function loadDashboard(silent) {
             document.getElementById('dashMicroSisa').textContent = 'Mulai praktik mengajar Anda';
           }
         } else {
-          // Observer-only: belum ada nilai praktik -> donut netral + info placeholder
+          // Observer-only: belum ada nilai praktik -> ring netral penuh + info placeholder.
+          // Warna ring & angka theme-aware -- di AMOLED track rgba(0,0,0,.05) tak
+          // kelihatan, jadi pakai abu terang & lukis ring PENUH (targetPct 100).
           var mtHadir = (mt && mt.total_hadir) || 0;
+          var mtEmptyRing = mtDark ? 'rgba(167,139,250,0.30)' : '#ede9fe';
           if (mtDonutLbl) mtDonutLbl.textContent = 'observer';
           if (mtBarWrap) mtBarWrap.style.display = 'none';
           if (mtDonutRing) {
-            // sweep:false -> paint sinkron + batalkan animasi lama yg mungkin nyangkut
-            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: '#cbd5e1', targetPct: 0, sweep: false, barEl: mtProgressBar });
+            // sweep:false -> lukis sinkron + batalkan animasi lama yg mungkin nyangkut
+            animateDonutRing(mtDonutRing, { pctNumEl: mtPctNum, color: mtEmptyRing, targetPct: 100, sweep: false });
           }
-          if (mtPctNum) { mtPctNum.textContent = '–'; mtPctNum.style.color = '#94a3b8'; }
+          if (mtPctNum) { mtPctNum.textContent = '–'; mtPctNum.style.color = mtDark ? '#8b93a3' : '#94a3b8'; }
           document.getElementById('dashMicroProgressPct').textContent = 'Hadir sebagai observer';
           document.getElementById('dashMicroSisa').textContent = 'Menyimak ' + mtHadir + ' sesi · nilai praktik muncul setelah kamu tampil';
         }
